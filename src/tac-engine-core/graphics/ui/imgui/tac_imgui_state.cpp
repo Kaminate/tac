@@ -513,7 +513,8 @@ namespace Tac
     // TODO obviously move this to init
     const Render::ShaderProgramParams programParams
     {
-      .mFileStem = "2D",
+      .mFileStem = "DX12HelloFrameBuf", // test
+      //.mFileStem = "2D",
     };
     Render::ProgramHandle program = TAC_CALL(
       Render::RenderApi::CreateShaderProgram( programParams, errors ) );

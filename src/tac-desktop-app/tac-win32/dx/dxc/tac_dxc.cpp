@@ -62,7 +62,7 @@ namespace Tac::Render
     TAC_CALL( Filesystem::SaveToFile( path, bytes, byteCount, errors ) );
   }
 
-  static String GetBlob16AsUTF8( PCom< IDxcBlobUtf16> blob16, PCom<IDxcUtils> pUtils )
+  static String GetBlob16AsUTF8( IDxcBlobUtf16* blob16, IDxcUtils* pUtils )
   {
     if( !blob16 )
       return {};
@@ -72,13 +72,6 @@ namespace Tac::Render
       ( IDxcBlob* )blob16,
       pName8.CreateAddress() ) ) );
     return String( pName8->GetStringPointer(), ( int )pName8->GetStringLength() );
-  }
-
-  static bool DidCompileSucceed( PCom<IDxcResult> pResults )
-  {
-    HRESULT hrStatus;
-    TAC_ASSERT( SUCCEEDED( pResults->GetStatus( &hrStatus ) ) );
-    return SUCCEEDED( hrStatus );
   }
 
 
@@ -133,14 +126,160 @@ namespace Tac::Render
     OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
   }
 
+  void DXCReflInfo::AddBinding( D3D12_SHADER_INPUT_BIND_DESC desc )
+  {
+    for( const D3D12_SHADER_INPUT_BIND_DESC& existingBinding : mReflBindings )
+    {
+      if( StringView( existingBinding.Name ) == StringView( desc.Name ) )
+      {
+        TAC_ASSERT( existingBinding.Type == desc.Type &&
+                    existingBinding.Dimension == desc.Dimension ); // sanity
+        return;
+      }
+    }
+
+    mReflBindings.push_back( desc );
+  }
+
+  static void ReflectShader( IDxcUtils* pUtils,
+                             IDxcResult* pResults,
+                             DXCReflInfo* reflInfo )
+  {
+    PCom< IDxcBlob > reflBlob;
+    if( !pResults->HasOutput( DXC_OUT_REFLECTION ) )
+      return;
+
+    TAC_ASSERT( SUCCEEDED( pResults->GetOutput(
+      DXC_OUT_REFLECTION,
+      reflBlob.iid(),
+      reflBlob.ppv(),
+      nullptr ) ) );
+
+    const DxcBuffer reflBuf
+    {
+        .Ptr = reflBlob->GetBufferPointer(),
+        .Size = reflBlob->GetBufferSize(),
+        .Encoding = 0,
+    };
+
+    PCom< ID3D12ShaderReflection > shaderReflection{};
+    TAC_ASSERT( SUCCEEDED( pUtils->CreateReflection(
+      &reflBuf,
+      shaderReflection.iid(),
+      shaderReflection.ppv() ) ) );
+
+    D3D12_SHADER_DESC shaderDesc{};
+    shaderReflection->GetDesc( &shaderDesc );
+
+    for( UINT iCBuf = 0; iCBuf < shaderDesc.ConstantBuffers; ++iCBuf )
+    {
+      ID3D12ShaderReflectionConstantBuffer* cBuf =
+        shaderReflection->GetConstantBufferByIndex( iCBuf );
+
+      D3D12_SHADER_BUFFER_DESC desc{}; // ie CBufferPerFrame, CBufferPerObject
+      cBuf->GetDesc( &desc );
+
+      ++asdf;
+    }
+
+    for( UINT iRsc = 0; iRsc < shaderDesc.BoundResources; ++iRsc )
+    {
+      // ie: CBufferPerFrame, CBufferPerObject, "linearSampler", "image"
+      D3D12_SHADER_INPUT_BIND_DESC desc; 
+      shaderReflection->GetResourceBindingDesc( iRsc, &desc );
+      ++asdf;
+
+      // see also definition of D3D12_SHADER_INPUT_BIND_DESC for desc of each parameter
+
+      if( desc.Type == D3D_SIT_BYTEADDRESS ) // or D3D_SIT_TEXTURE
+      {
+      }
+      if( desc.Dimension == D3D_SRV_DIMENSION_BUFFER ) // or D3D_SRV_DIMENSION_TEXTURE2D
+      {
+        desc.BindCount ; // size of buffer, if fixed, 0 if unbounded
+      }
+
+      reflInfo->AddBinding( desc );
+    }
+
+    for( UINT iInput = 0; iInput < shaderDesc.InputParameters; ++iInput )
+    {
+      // ie: POSITION, TEXCOORD, etc
+      D3D12_SIGNATURE_PARAMETER_DESC inputParamDesc;
+      shaderReflection->GetInputParameterDesc( iInput, &inputParamDesc );
+      ++asdf;
+    }
+
+    for( UINT iOutput = 0; iOutput < shaderDesc.OutputParameters; ++iOutput )
+    {
+      // ie: SV_POSITION, SV_TARGET, etc
+      D3D12_SIGNATURE_PARAMETER_DESC desc;
+      shaderReflection->GetOutputParameterDesc( iOutput, &desc );
+      ++asdf;
+    }
+
+    reflInfo->mReflBlobs.push_back( reflBlob );
+    reflInfo->mRefls.push_back( shaderReflection );
+
+    shaderDesc.Creator; // <-- note this shows dxc ver info
+  }
+
+  static void SavePDB( IDxcUtils* pUtils,
+                       IDxcPdbUtils* pdbUtils,
+                       IDxcResult* pResults,
+                       IDxcBlob* pShader,
+                       Filesystem::Path outputDir,
+                       Errors& errors )
+  {
+    if( !pResults->HasOutput( DXC_OUT_PDB ) )
+      return;
+    PCom<IDxcBlob> pPDB ;
+    PCom<IDxcBlobUtf16> pPDBName ;
+    TAC_DX12_CALL( pResults->GetOutput( DXC_OUT_PDB,
+                       pPDB.iid(),
+                       pPDB.ppv(),
+                       pPDBName.CreateAddress() ) );
+    TAC_RAISE_ERROR_IF( !pShader, "No shader pdb" );
+    const String pdbName = GetBlob16AsUTF8( pPDBName.Get(), pUtils );
+    const Filesystem::Path pdbPath = outputDir / pdbName;
+    TAC_CALL( SaveBlobToFile( pPDB, pdbPath, errors ) );
+
+    PrintCompilerInfo( pdbUtils, pPDB.Get() );
+  }
+
+  static void CheckCompileSuccess( IDxcResult* pResults, Errors& errors )
+  {
+    HRESULT compileStatus;
+    TAC_RAISE_ERROR_IF( FAILED( pResults->GetStatus( &compileStatus ) ),
+                        "Failed to get shader compilation status" );
+    if( SUCCEEDED( compileStatus ) )
+      return;
+
+    TAC_RAISE_ERROR_IF( !pResults->HasOutput( DXC_OUT_ERRORS ),
+                        "Shader compilation failed, no error blob" );
+
+    PCom<IDxcBlobUtf8> pErrors;
+    TAC_RAISE_ERROR_IF( FAILED( pResults->GetOutput(
+      DXC_OUT_ERRORS,
+      pErrors.iid(),
+      pErrors.ppv(),
+      nullptr ) ),
+      "Shader compilation failed and error blob retrieval failed" );
+
+    StringView errorBlobStr( pErrors->GetStringPointer(),
+                             ( int )pErrors->GetStringLength() );
+
+    TAC_RAISE_ERROR( String() + "Shader compilation failed: " + errorBlobStr );
+  }
 
   static PCom< IDxcBlob > DXCCompileBlob( const ShaderTypeData& typeData,
+                                          DXCReflInfo* reflInfo,
                                           const DXCCompileParams& input,
                                           Errors& errors  )
   {
     TAC_ASSERT( !input.mOutputDir.empty() );
 
-    Optional<String> entryPoint = typeData.FindEntryPoint( input.mPreprocessedShader );
+    Optional< String > entryPoint = typeData.FindEntryPoint( input.mPreprocessedShader );
     if( !entryPoint.HasValue() )
       return {};
 
@@ -213,7 +352,7 @@ namespace Tac::Render
       .Encoding = DXC_CP_ACP,
     };
 
-    PCom<IDxcResult> pResults;
+    PCom< IDxcResult > pResults;
     TAC_ASSERT( SUCCEEDED( pCompiler->Compile(
       &Source,
       pArguments,
@@ -222,145 +361,30 @@ namespace Tac::Render
       pResults.iid(),
       pResults.ppv() ) ) );
 
-    //
-    // Quit if the compilation failed.
-    //
-    if( !DidCompileSucceed( pResults ) )
-    {
-      PCom<IDxcBlobUtf8> pErrors;
-      String errorStr = "Shader compilation failed";
-      if( pResults->HasOutput( DXC_OUT_ERRORS ) )
-      {
+    CheckCompileSuccess( pResults.Get(), errors );
 
-        //
-        // Print errors if present.
-        //
-        TAC_ASSERT( SUCCEEDED( pResults->GetOutput(
-          DXC_OUT_ERRORS,
-          pErrors.iid(),
-          pErrors.ppv(),
-          nullptr ) ) );
-
-        errorStr += '\n';
-        errorStr += StringView( pErrors->GetStringPointer(),
-                                ( int )pErrors->GetStringLength() );
-      }
-
-
-
-      TAC_RAISE_ERROR_RETURN( errorStr, {} );
-    }
-
-    PCom<IDxcBlob> reflBlob;
-    if( pResults->HasOutput( DXC_OUT_REFLECTION ) )
-    {
-      TAC_ASSERT( SUCCEEDED( pResults->GetOutput(
-        DXC_OUT_REFLECTION,
-        reflBlob.iid(),
-        reflBlob.ppv(),
-        nullptr ) ) );
-
-      const DxcBuffer reflBuf
-      {
-          .Ptr = reflBlob->GetBufferPointer(),
-          .Size = reflBlob->GetBufferSize(),
-          .Encoding = 0,
-      };
-
-      PCom< ID3D12ShaderReflection > shaderReflection{};
-      TAC_ASSERT( SUCCEEDED( pUtils->CreateReflection(
-        &reflBuf,
-        shaderReflection.iid(),
-        shaderReflection.ppv() ) ) );
-
-      D3D12_SHADER_DESC shaderDesc{};
-      shaderReflection->GetDesc( &shaderDesc );
-
-      for( UINT iCBuf = 0; iCBuf < shaderDesc.ConstantBuffers; ++iCBuf )
-      {
-        ID3D12ShaderReflectionConstantBuffer* cBuf =
-          shaderReflection->GetConstantBufferByIndex( iCBuf );
-
-        D3D12_SHADER_BUFFER_DESC desc{}; // ie CBufferPerFrame, CBufferPerObject
-        cBuf->GetDesc( &desc );
-
-        ++asdf;
-      }
-
-      for( UINT iRsc = 0; iRsc < shaderDesc.BoundResources; ++iRsc )
-      {
-        // ie: CBufferPerFrame, CBufferPerObject, "linearSampler", "image"
-        D3D12_SHADER_INPUT_BIND_DESC desc; 
-        shaderReflection->GetResourceBindingDesc( iRsc, &desc );
-        ++asdf;
-      }
-
-      for( UINT iInput = 0; iInput < shaderDesc.InputParameters; ++iInput )
-      {
-        // ie: POSITION, TEXCOORD, etc
-        D3D12_SIGNATURE_PARAMETER_DESC inputParamDesc;
-        shaderReflection->GetInputParameterDesc( iInput, &inputParamDesc );
-        ++asdf;
-      }
-
-      for( UINT iOutput = 0; iOutput < shaderDesc.OutputParameters; ++iOutput )
-      {
-        // ie: SV_POSITION, SV_TARGET, etc
-        D3D12_SIGNATURE_PARAMETER_DESC desc;
-        shaderReflection->GetOutputParameterDesc( iOutput, &desc );
-        ++asdf;
-      }
-
-
-      shaderDesc.Creator; // <-- note this shows dxc ver info
-
-    }
+    ReflectShader( pUtils.Get(), pResults.Get(), reflInfo );
     
+    TAC_RAISE_ERROR_IF_RETURN( !pResults->HasOutput( DXC_OUT_OBJECT ), "no shader binary", {} );
+    PCom< IDxcBlob > pShader;
+    PCom< IDxcBlobUtf16 > pShaderName;
+    TAC_DX12_CALL_RET( {},
+                       pResults->GetOutput(
+                       DXC_OUT_OBJECT,
+                       pShader.iid(),
+                       pShader.ppv(),
+                       pShaderName.CreateAddress() ) );
+    TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
+    const String outputShaderName = GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() );
+    const Filesystem::Path dxilShaderPath = input.mOutputDir / outputShaderName;
+    TAC_CALL_RET( {}, SaveBlobToFile( pShader, dxilShaderPath, errors ) );
 
-    PCom<IDxcBlob> pShader;
-    if( pResults->HasOutput( DXC_OUT_OBJECT ) )
-    {
-      //
-      // Save shader binary.
-      //
-      PCom< IDxcBlobUtf16 > pShaderName;
-      TAC_DX12_CALL_RET( {},
-                         pResults->GetOutput(
-                         DXC_OUT_OBJECT,
-                         pShader.iid(),
-                         pShader.ppv(),
-                         pShaderName.CreateAddress() ) );
-      TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
-      const String outputShaderName = GetBlob16AsUTF8( pShaderName, pUtils );
-      const Filesystem::Path dxilShaderPath = input.mOutputDir / outputShaderName;
-      TAC_CALL_RET( {}, SaveBlobToFile(pShader, dxilShaderPath, errors ));
-    }
-    else
-    {
-      TAC_RAISE_ERROR_RETURN( "no object", {} );
-    }
-
-    if( pResults->HasOutput( DXC_OUT_PDB ) )
-    {
-      //
-      // Save pdb.
-      //
-
-      PCom<IDxcBlob> pPDB ;
-      PCom<IDxcBlobUtf16> pPDBName ;
-      TAC_DX12_CALL_RET( {},
-                         pResults->GetOutput( DXC_OUT_PDB,
-                         pPDB.iid(),
-                         pPDB.ppv(),
-                         pPDBName.CreateAddress() ) );
-      TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader pdb", {} );
-      const String pdbName = GetBlob16AsUTF8( pPDBName, pUtils );
-      const Filesystem::Path pdbPath = input.mOutputDir / pdbName;
-      TAC_CALL_RET( {}, SaveBlobToFile(pPDB, pdbPath, errors ));
-
-      PrintCompilerInfo( pdbUtils.Get(), pPDB.Get() );
-
-    }
+    SavePDB( pUtils.Get(),
+             pdbUtils.Get(),
+             pResults.Get(),
+             pShader.Get(),
+             input.mOutputDir,
+             errors );
 
     return pShader;
   }
@@ -374,8 +398,10 @@ namespace Tac
     PCom< IDxcBlob > vsBlob;
     PCom< IDxcBlob > psBlob;
 
-    vsBlob = DXCCompileBlob( sVSData, input, errors );
-    psBlob = DXCCompileBlob( sPSData, input, errors );
+    DXCReflInfo reflInfo;
+
+    vsBlob = DXCCompileBlob( sVSData, &reflInfo, input, errors );
+    psBlob = DXCCompileBlob( sPSData, &reflInfo, input, errors );
 
     TAC_RAISE_ERROR_IF_RETURN( !vsBlob && !psBlob, "Failed to find any shaders", {} );
 
@@ -383,6 +409,7 @@ namespace Tac
     {
       .mVSBlob = vsBlob,
       .mPSBlob = psBlob,
+      .mReflInfo = reflInfo,
     };
   }
 

@@ -4,6 +4,10 @@
 #include "tac-win32/dx/dxc/tac_dxc.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
+#if !TAC_DELETE_ME()
+#include "tac-std-lib/os/tac_os.h"
+#endif
+
 namespace Tac::Render
 {
   static const D3D_SHADER_MODEL sShaderModel = D3D_SHADER_MODEL_6_5;
@@ -72,6 +76,12 @@ namespace Tac::Render
     };
 
     DXCCompileOutput output = TAC_CALL( DXCCompile( input, errors ) );
+
+    for( D3D12_SHADER_INPUT_BIND_DESC& info : output.mReflInfo.mReflBindings )
+    {
+      OS::OSDebugBreak();
+      info.Name;
+    }
 
     mShaderPrograms[ h.GetIndex() ] = DX12ShaderProgram
     {

@@ -7,6 +7,7 @@
 
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
 #include <dxcapi.h> // (include after d3d12.h) IDxcBlob IDxcUtils, IDxcCompiler3, DxcCreateInstance
+#include <d3d12shader.h> // Shader reflection (ID3D12ShaderReflection/D3D12_SHADER_INPUT_BIND_DESC)
 
 namespace Tac::Render
 {
@@ -18,11 +19,26 @@ namespace Tac::Render
     Filesystem::Path    mOutputDir;
   };
 
+  struct DXCReflInfo
+  {
+    void AddBinding( D3D12_SHADER_INPUT_BIND_DESC );
+
+    // Storing IDxcBlob / ID3D12ShaderReflection because I assume that the string pointers in the
+    // D3D12_SHADER_INPUT_BIND_DESC go inside one of these
+    Vector< PCom< IDxcBlob > >               mReflBlobs;
+    Vector< PCom< ID3D12ShaderReflection > > mRefls;
+
+    Vector< D3D12_SHADER_INPUT_BIND_DESC >   mReflBindings;
+  };
+
   struct DXCCompileOutput
   {
     PCom< IDxcBlob > mVSBlob;
     PCom< IDxcBlob > mPSBlob;
+    DXCReflInfo      mReflInfo;
   };
+
+  //enum DXC;
 
   DXCCompileOutput DXCCompile( const DXCCompileParams&, Errors& );
 
