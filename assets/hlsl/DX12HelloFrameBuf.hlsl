@@ -64,6 +64,7 @@ struct MyCBufType
 
 typedef VSOutput PSInput;
 
+ByteAddressBuffer            FixedSizeBufferTable[69] : register( t0, space2 );
 ByteAddressBuffer            BufferTable[] : register( t0, space0 );
 Texture2D                    Textures[]    : register( t0, space1 );
 SamplerState                 Sampler       : register( s0 );
@@ -74,23 +75,28 @@ VSOutput VSMain( uint iVtx : SV_VertexID )
 {
   const uint byteOffset = sizeof( Vertex ) * iVtx;
   const ByteAddressBuffer vertexBytes = BufferTable[ MyCBuf.mVertexBuffer ];
+  const ByteAddressBuffer vertexBytesDELETEME = FixedSizeBufferTable[ MyCBuf.mVertexBuffer ];
   const Vertex input = vertexBytes.Load< Vertex >( byteOffset );
+  const Vertex input2 = vertexBytesDELETEME.Load< Vertex >( byteOffset );
 
   VSOutput result;
-  result.mPosition = ClipSpacePosition4(mul(MyCBuf.mWorld, float4(input.mPosition, 1)));
+  result.mPosition = ClipSpacePosition4( mul( MyCBuf.mWorld, float4( input.mPosition, 1 ) ) );
   result.mColor = input.mColor;
   result.mUVs = input.mUVs;
+
+result.mColor.mFloat3.x +=   input2.mColor.mFloat3.x;
+
   return result;
 }
 
 LinearColor4 PSMain( PSInput input) : SV_TARGET
 {
-  Texture2D texture = Textures[MyCBuf.mTexture];
+  Texture2D texture = Textures[ MyCBuf.mTexture ];
 
-  const float sample = texture.Sample(Sampler, input.mUVs.mFloat2).x;
-  const float3 rgb = lerp(input.mColor.mFloat3, float3(1, 1, 1), sample);
+  const float sample = texture.Sample( Sampler, input.mUVs.mFloat2 ).x;
+  const float3 rgb = lerp( input.mColor.mFloat3, float3( 1, 1, 1 ), sample );
 
-  return LinearColor4(float4(rgb, 1));
+  return LinearColor4( float4( rgb, 1 ) );
 }
 
 // TODO: save below to hlsl test?
