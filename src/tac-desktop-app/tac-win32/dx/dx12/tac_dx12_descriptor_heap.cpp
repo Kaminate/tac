@@ -18,7 +18,8 @@ namespace Tac::Render
       mHeap.iid(),
       mHeap.ppv() ) );
     mHeapStartCPU = mHeap->GetCPUDescriptorHandleForHeapStart();
-    mHeapStartGPU = mHeap->GetGPUDescriptorHandleForHeapStart();
+    if( desc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE )
+      mHeapStartGPU = mHeap->GetGPUDescriptorHandleForHeapStart();
     mDescriptorSize = device->GetDescriptorHandleIncrementSize( desc.Type );
     mDesc = desc;
   }
@@ -31,9 +32,16 @@ namespace Tac::Render
     return { mHeapStartCPU.ptr + i * mDescriptorSize };
   }
 
+  // This function call is used for the following ID3D12GraphicsCommandList:: functions
+  // ::ClearUnorderedAccessViewFloat
+  // ::ClearUnorderedAccessViewUint
+  // ::SetComputeRootDescriptorTable
+  // ::SetGraphicsRootDescriptorTable
   D3D12_GPU_DESCRIPTOR_HANDLE DX12DescriptorHeap::IndexGPUDescriptorHandle( int i ) const
   {
     TAC_ASSERT_INDEX( i, GetDescriptorCount() );
+    TAC_ASSERT( mDesc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE );
+
     return { mHeapStartGPU.ptr + i * mDescriptorSize };
   }
 
@@ -45,6 +53,8 @@ namespace Tac::Render
     {
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
       .NumDescriptors = (UINT)n,
+
+      // D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE not allowed with D3D12_DESCRIPTOR_HEAP_TYPE_RTV
     };
     Init( desc, device, errors );
   }

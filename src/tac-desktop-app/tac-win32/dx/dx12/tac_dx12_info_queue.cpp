@@ -6,6 +6,18 @@
 
 namespace Tac::Render
 {
+  static const char* D3D12_MESSAGE_SEVERITY_ToString( D3D12_MESSAGE_SEVERITY Severity )
+  {
+    switch( Severity )
+    {
+    case D3D12_MESSAGE_SEVERITY_CORRUPTION: return "Corruption";
+    case D3D12_MESSAGE_SEVERITY_ERROR: return "Error";
+    case D3D12_MESSAGE_SEVERITY_WARNING: return "Warning";
+    case D3D12_MESSAGE_SEVERITY_INFO: return "Info";
+    case D3D12_MESSAGE_SEVERITY_MESSAGE: return "Message";
+    default: return "???";
+    }
+  }
 
 
   static void MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
@@ -15,7 +27,11 @@ namespace Tac::Render
                                   void* pContext )
   {
     if( pDescription )
-      OS::OSDebugPrintLine( pDescription );
+      OS::OSDebugPrintLine(
+        String()
+        + D3D12_MESSAGE_SEVERITY_ToString( Severity )
+        + ": "
+        + pDescription );
 
     OS::OSDebugBreak();
   }

@@ -12,6 +12,7 @@
 #include "tac_dx12_debug_layer.h"
 
 #include "tac_dx12_samplers.h"
+#include "tac_dx12_root_sig_bindings.h"
 #include "tac_dx12_command_queue.h"
 #include "tac_dx12_descriptor_heap.h"
 #include "tac_dx12_command_allocator_pool.h"
@@ -38,6 +39,8 @@ namespace Tac::Render
   struct DX12Pipeline
   {
     PCom< ID3D12PipelineState > mPSO;
+    PCom< ID3D12RootSignature > mRootSignature;
+    D3D12RootSigBindings        mRootSignatureBindings;
   };
 
   /*
