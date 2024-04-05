@@ -1,19 +1,20 @@
-#include "tac_example_dx12_root_sig_builder.h"
+#include "tac_dx12_root_sig_builder.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 
 namespace Tac::Render
 {
-    RootSignatureBuilder::RootSignatureBuilder( ID3D12Device* device ) : mDevice( device ) {}
+    DX12RootSigBuilder::DX12RootSigBuilder( ID3D12Device* device ) : mDevice( device ) {}
 
-    void RootSignatureBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
+    void DX12RootSigBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
                                  D3D12_DESCRIPTOR_RANGE1 toAdd )
     {
       AddRootDescriptorTable( vis, Span( toAdd ) );
     }
 
-    void RootSignatureBuilder::AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE paramType,
+
+    void DX12RootSigBuilder::AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE paramType,
                                                   D3D12_SHADER_VISIBILITY vis,
                                                   D3D12_ROOT_DESCRIPTOR1 desc)
     {
@@ -27,8 +28,7 @@ namespace Tac::Render
       mRootParams.push_back( rootParam );
     }
 
-
-    void RootSignatureBuilder::AddConstantBuffer( D3D12_SHADER_VISIBILITY vis,
+    void DX12RootSigBuilder::AddConstantBuffer( D3D12_SHADER_VISIBILITY vis,
                                                   D3D12_ROOT_DESCRIPTOR1 descriptor )
     {
       const D3D12_ROOT_PARAMETER1 rootParam
@@ -41,7 +41,7 @@ namespace Tac::Render
       mRootParams.push_back( rootParam );
     }
 
-    void RootSignatureBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
+    void DX12RootSigBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
                                  Span<D3D12_DESCRIPTOR_RANGE1> toAdd )
     {
       Span dst( &mRanges[ mRanges.size() ], toAdd.size() );
@@ -62,7 +62,7 @@ namespace Tac::Render
       mRootParams.push_back( rootParam );
     }
 
-    PCom< ID3D12RootSignature > RootSignatureBuilder::Build( Errors& errors )
+    PCom< ID3D12RootSignature > DX12RootSigBuilder::Build( Errors& errors )
     {
       TAC_ASSERT( !mRootParams.empty() );
 

@@ -1,4 +1,6 @@
 target_sources( TacWin32 PRIVATE
+  "tac_dx12_root_sig_builder.cpp"
+  "tac_dx12_root_sig_builder.h"
   "tac_dx12_helper.cpp"
   "tac_dx12_helper.h"
   "tac_dx12_root_sig_bindings.cpp"

@@ -12,13 +12,13 @@ namespace Tac { struct Errors; }
 namespace Tac::Render
 {
 
-  struct RootSignatureBuilder
+  struct DX12RootSigBuilder
   {
-    RootSignatureBuilder( ID3D12Device* device ) ;
+    DX12RootSigBuilder( ID3D12Device* device ) ;
 
     void AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE,
-                           D3D12_SHADER_VISIBILITY,
-                           D3D12_ROOT_DESCRIPTOR1 );
+                            D3D12_SHADER_VISIBILITY,
+                            D3D12_ROOT_DESCRIPTOR1 );
 
     void AddConstantBuffer( D3D12_SHADER_VISIBILITY,
                             D3D12_ROOT_DESCRIPTOR1 );
