@@ -22,12 +22,14 @@ namespace Tac::Render
   struct DXCReflInfo
   {
     void AddBinding( D3D12_SHADER_INPUT_BIND_DESC );
+    bool HasBinding( StringView );
 
     // Storing IDxcBlob / ID3D12ShaderReflection because I assume that the string pointers in the
     // D3D12_SHADER_INPUT_BIND_DESC go inside one of these
     Vector< PCom< IDxcBlob > >               mReflBlobs;
     Vector< PCom< ID3D12ShaderReflection > > mRefls;
 
+    // Combined bindings from all shader stanges
     Vector< D3D12_SHADER_INPUT_BIND_DESC >   mReflBindings;
   };
 

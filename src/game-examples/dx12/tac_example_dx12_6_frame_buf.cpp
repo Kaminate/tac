@@ -590,7 +590,7 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::CreateRootSignature( Errors& errors )
   {
-    RootSignatureBuilder builder( ( ID3D12Device* )m_device );
+    DX12ExampleRootSignatureBuilder builder( ( ID3D12Device* )m_device );
 
     // register(s0)  samplers
     builder.AddRootDescriptorTable( D3D12_SHADER_VISIBILITY_PIXEL,

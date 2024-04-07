@@ -5,18 +5,18 @@
 
 namespace Tac::Render
 {
-struct DX12ShaderProgramMgr;
+  struct DX12ProgramMgr;
   struct DX12PipelineMgr
   {
-    void Init( ID3D12Device*, DX12ShaderProgramMgr* );
-    void CreatePipeline( PipelineHandle, PipelineParams, Errors& );
-    void DestroyPipeline( PipelineHandle );
+    void          Init( ID3D12Device*, DX12ProgramMgr* );
+    void          CreatePipeline( PipelineHandle, PipelineParams, Errors& );
+    void          DestroyPipeline( PipelineHandle );
     DX12Pipeline* FindPipeline( ProgramHandle );
 
   private:
-    DX12Pipeline      mPipelines[ 100 ];
-    ID3D12Device*     mDevice{};
-    DX12ShaderProgramMgr* mProgramMgr{};
+    DX12Pipeline    mPipelines[ 100 ];
+    ID3D12Device*   mDevice{};
+    DX12ProgramMgr* mProgramMgr{};
   };
 } // namespace Tac::Render
 

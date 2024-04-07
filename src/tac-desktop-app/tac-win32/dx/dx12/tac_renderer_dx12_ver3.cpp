@@ -142,9 +142,9 @@ namespace Tac::Render
 
     TAC_CALL( InitDescriptorHeaps( errors ) );
 
-    TAC_CALL( mShaderProgramMgr.Init( device, errors ) );
+    TAC_CALL( mProgramMgr.Init( device, errors ) );
 
-    TAC_CALL( mPipelineMgr.Init( device, &mShaderProgramMgr ) );
+    TAC_CALL( mPipelineMgr.Init( device, &mProgramMgr ) );
 
     mFrameBufMgr.Init( device, &mCpuDescriptorHeapRTV );
     mBufMgr.Init( device );
@@ -242,16 +242,16 @@ namespace Tac::Render
     mBufMgr.DestroyDynBuf(h);
   }
 
-  void DX12Backend::CreateShaderProgram( ProgramHandle h,
-                                         ShaderProgramParams params,
+  void DX12Backend::CreateProgram( ProgramHandle h,
+                                         ProgramParams params,
                                          Errors& errors )
   {
-    mShaderProgramMgr.CreateShaderProgram( h, params, errors );
+    mProgramMgr.CreateProgram( h, params, errors );
   }
 
-  void DX12Backend::DestroyShaderProgram( ProgramHandle h )
+  void DX12Backend::DestroyProgram( ProgramHandle h )
   {
-    mShaderProgramMgr.DestroyProgram( h );
+    mProgramMgr.DestroyProgram( h );
   }
 
   void DX12Backend::CreateRenderPipeline( PipelineHandle h,

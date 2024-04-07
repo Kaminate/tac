@@ -2,25 +2,23 @@
 
 #include "tac-std-lib/tac_ints.h" // u64
 #include "tac-std-lib/containers/tac_array.h"
+#include "tac-rhi/render3/tac_render_backend.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
-#include "tac-win32/dx/dx12/shaderprogram/tac_dx12_shader_program_mgr.h"
+#include "tac-win32/dx/dx12/program/tac_dx12_program_mgr.h"
 #include "tac-win32/dx/dx12/pipeline/tac_dx12_pipeline_mgr.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_buffer_mgr.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
-#include "tac-rhi/render3/tac_render_backend.h"
-
 #include "tac-win32/dx/dx12/device/tac_dx12_device.h"
 #include "tac-win32/dx/dx12/device/tac_dx12_info_queue.h"
 #include "tac-win32/dx/dx12/device/tac_dx12_debug_layer.h"
-
-#include "tac_dx12_samplers.h"
-#include "tac_dx12_root_sig_bindings.h"
-#include "tac_dx12_command_queue.h"
+#include "tac-win32/dx/dx12/tac_dx12_samplers.h"
+//#include "tac-win32/dx/dx12/program/tac_dx12_program_bindings.h"
+#include "tac-win32/dx/dx12/tac_dx12_command_queue.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
-#include "tac_dx12_command_allocator_pool.h"
-#include "tac_dx12_context_manager.h"
-#include "tac_dx12_gpu_upload_allocator.h"
+#include "tac-win32/dx/dx12/tac_dx12_command_allocator_pool.h"
+#include "tac-win32/dx/dx12/tac_dx12_context_manager.h"
+#include "tac-win32/dx/dx12/tac_dx12_gpu_upload_allocator.h"
 
 
 #include <d3d12.h> // D3D12...
@@ -87,8 +85,8 @@ namespace Tac::Render
     void UpdateDynBuf( RenderApi::UpdateDynBufParams ) override;
     void DestroyDynBuf( DynBufHandle ) override;
 
-    void CreateShaderProgram( ProgramHandle, ShaderProgramParams, Errors& ) override;
-    void DestroyShaderProgram( ProgramHandle ) override;
+    void CreateProgram( ProgramHandle, ProgramParams, Errors& ) override;
+    void DestroyProgram( ProgramHandle ) override;
 
     void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) override;
     void DestroyRenderPipeline( PipelineHandle ) override;
@@ -103,7 +101,7 @@ namespace Tac::Render
     // Managers
     DX12FrameBufferMgr   mFrameBufMgr;
     DX12BufferMgr        mBufMgr;
-    DX12ShaderProgramMgr mShaderProgramMgr;
+    DX12ProgramMgr       mProgramMgr;
     DX12PipelineMgr      mPipelineMgr;
 
     // CPU Heaps (used for creating resources)

@@ -8,8 +8,7 @@
 
 namespace Tac::Render
 {
-  // this maybe should be renamed shaderbindings
-  struct D3D12RootSigBinding
+  struct D3D12ProgramBinding
   {
     enum Type
     {
@@ -28,12 +27,12 @@ namespace Tac::Render
     int    mRegisterSpace = -1;
   };
 
-  struct D3D12RootSigBindings
+  struct D3D12ProgramBindings
   {
-    D3D12RootSigBindings() = default;
-    D3D12RootSigBindings( const D3D12_SHADER_INPUT_BIND_DESC*, int );
+    D3D12ProgramBindings() = default;
+    D3D12ProgramBindings( const D3D12_SHADER_INPUT_BIND_DESC*, int );
 
-    Vector< D3D12RootSigBinding > mBindings;
+    Vector< D3D12ProgramBinding > mBindings;
   };
 
 } // namespace Tac::Render

@@ -111,20 +111,20 @@ namespace Tac::Render
   void         RenderApi::DestroyDynBuf( DynBufHandle h )
   {
     sBackend->DestroyDynBuf( h );
-    IdProtT<DynBufHandle>::Free( h );
+    IdProtT< DynBufHandle >::Free( h );
   }
 
-  ProgramHandle RenderApi::CreateShaderProgram( ShaderProgramParams params, Errors& errors )
+  ProgramHandle RenderApi::CreateShaderProgram( ProgramParams params, Errors& errors )
   {
     const ProgramHandle h = IdProtT< ProgramHandle >::Alloc();
-    sBackend->CreateShaderProgram( h, params, errors );
+    sBackend->CreateProgram( h, params, errors );
     return h;
   }
 
   void           RenderApi::DestroyShaderProgram( ProgramHandle h )
   {
-    sBackend->DestroyShaderProgram( h );
-    IdProtT<ProgramHandle>::Free( h );
+    sBackend->DestroyProgram( h );
+    IdProtT< ProgramHandle >::Free( h );
   }
 
   PipelineHandle RenderApi::CreateRenderPipeline( PipelineParams params, Errors& errors )
@@ -137,6 +137,6 @@ namespace Tac::Render
   void           RenderApi::DestroyRenderPipeline( PipelineHandle h )
   {
     sBackend->DestroyRenderPipeline( h );
-    IdProtT<PipelineHandle>::Free( h );
+    IdProtT< PipelineHandle >::Free( h );
   }
 }

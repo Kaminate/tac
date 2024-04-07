@@ -511,7 +511,7 @@ namespace Tac
     void* context = nullptr;
 
     // TODO obviously move this to init
-    const Render::ShaderProgramParams programParams
+    const Render::ProgramParams programParams
     {
       .mFileStem = "DX12HelloFrameBuf", // test
       //.mFileStem = "2D",

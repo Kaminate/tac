@@ -1,4 +1,4 @@
-#include "tac_dx12_shader_program.h"
+#include "tac_dx12_program.h"
 
 namespace Tac::Render
 {

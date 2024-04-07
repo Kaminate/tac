@@ -5,15 +5,15 @@
 
 namespace Tac::Render
 {
-    RootSignatureBuilder::RootSignatureBuilder( ID3D12Device* device ) : mDevice( device ) {}
+    DX12ExampleRootSignatureBuilder::DX12ExampleRootSignatureBuilder( ID3D12Device* device ) : mDevice( device ) {}
 
-    void RootSignatureBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
+    void DX12ExampleRootSignatureBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
                                  D3D12_DESCRIPTOR_RANGE1 toAdd )
     {
       AddRootDescriptorTable( vis, Span( toAdd ) );
     }
 
-    void RootSignatureBuilder::AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE paramType,
+    void DX12ExampleRootSignatureBuilder::AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE paramType,
                                                   D3D12_SHADER_VISIBILITY vis,
                                                   D3D12_ROOT_DESCRIPTOR1 desc)
     {
@@ -28,7 +28,7 @@ namespace Tac::Render
     }
 
 
-    void RootSignatureBuilder::AddConstantBuffer( D3D12_SHADER_VISIBILITY vis,
+    void DX12ExampleRootSignatureBuilder::AddConstantBuffer( D3D12_SHADER_VISIBILITY vis,
                                                   D3D12_ROOT_DESCRIPTOR1 descriptor )
     {
       const D3D12_ROOT_PARAMETER1 rootParam
@@ -41,7 +41,7 @@ namespace Tac::Render
       mRootParams.push_back( rootParam );
     }
 
-    void RootSignatureBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
+    void DX12ExampleRootSignatureBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
                                  Span<D3D12_DESCRIPTOR_RANGE1> toAdd )
     {
       Span dst( &mRanges[ mRanges.size() ], toAdd.size() );
@@ -62,7 +62,7 @@ namespace Tac::Render
       mRootParams.push_back( rootParam );
     }
 
-    PCom< ID3D12RootSignature > RootSignatureBuilder::Build( Errors& errors )
+    PCom< ID3D12RootSignature > DX12ExampleRootSignatureBuilder::Build( Errors& errors )
     {
       TAC_ASSERT( !mRootParams.empty() );
 

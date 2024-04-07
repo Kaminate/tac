@@ -14,14 +14,21 @@ namespace Tac::Render
 
   struct DX12RootSigBuilder
   {
-    DX12RootSigBuilder( ID3D12Device* device ) ;
+    struct Location
+    {
+      int mRegister;
+      int mSpace;
+    };
+
+    DX12RootSigBuilder( ID3D12Device* );
 
     void AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE,
-                            D3D12_SHADER_VISIBILITY,
-                            D3D12_ROOT_DESCRIPTOR1 );
+                           D3D12_SHADER_VISIBILITY,
+                           D3D12_ROOT_DESCRIPTOR1 );
 
-    void AddConstantBuffer( D3D12_SHADER_VISIBILITY,
-                            D3D12_ROOT_DESCRIPTOR1 );
+    void AddConstantBuffer( Location );
+
+    void AddUnboundedArray( D3D12_DESCRIPTOR_RANGE_TYPE, Location );
 
     // Add a descriptor table that associated with a single descriptor range
     // ( This must be called for an unbounded array )
@@ -39,6 +46,8 @@ namespace Tac::Render
     
 
   private:
+    D3D12_DESCRIPTOR_RANGE1* AddRange( int n = 1 );
+
     Vector< D3D12_ROOT_PARAMETER1 >             mRootParams;
 
     // This cannot be a Vector<> because D3D12_ROOT_PARAMETER1 may point to it

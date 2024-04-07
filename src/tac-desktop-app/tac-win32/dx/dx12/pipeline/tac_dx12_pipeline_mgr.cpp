@@ -1,6 +1,8 @@
 #include "tac_dx12_pipeline_mgr.h" // self-inc
-#include "tac-win32/dx/dx12/shaderprogram/tac_dx12_shader_program_mgr.h"
+
+#include "tac-win32/dx/dx12/program/tac_dx12_program_mgr.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dx12/pipeline/tac_dx12_root_sig_builder.h"
 
 //#include "tac-win32/dx/hlsl/tac_hlsl_preprocess.h"
 //#include "tac-win32/dx/dxc/tac_dxc.h"
@@ -68,7 +70,7 @@ namespace Tac::Render
     }
   }
 
-  void DX12PipelineMgr::Init( ID3D12Device* device, DX12ShaderProgramMgr* programMgr )
+  void DX12PipelineMgr::Init( ID3D12Device* device, DX12ProgramMgr* programMgr )
   {
     mDevice = device;
     mProgramMgr = programMgr;
@@ -85,7 +87,7 @@ namespace Tac::Render
 
     ID3D12Device* device = mDevice;
 
-    DX12ShaderProgram* program = mProgramMgr->FindProgram( params.mProgram );
+    DX12Program* program = mProgramMgr->FindProgram( params.mProgram );
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
@@ -109,6 +111,9 @@ namespace Tac::Render
       },
     };
 
+    DX12RootSigBuilder rootSigBuilder( device );
+
+    program->mProgramBindings;
     OS::OSDebugBreak();
     const DXGI_SAMPLE_DESC SampleDesc{ .Count = 1 };
 

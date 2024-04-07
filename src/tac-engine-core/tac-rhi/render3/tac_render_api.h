@@ -67,7 +67,7 @@ namespace Tac::Render
     TexFmt      mColorFmt;
   };
 
-  struct ShaderProgramParams
+  struct ProgramParams
   {
     StringView mFileStem;
   };
@@ -110,7 +110,7 @@ namespace Tac::Render
     static PipelineHandle CreateRenderPipeline( PipelineParams, Errors& );
     static void           DestroyRenderPipeline( PipelineHandle );
 
-    static ProgramHandle  CreateShaderProgram( ShaderProgramParams, Errors& );
+    static ProgramHandle  CreateShaderProgram( ProgramParams, Errors& );
     static void           DestroyShaderProgram( ProgramHandle );
 
     static FBHandle       CreateFB( FrameBufferParams, Errors& );

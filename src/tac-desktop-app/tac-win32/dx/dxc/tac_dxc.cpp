@@ -126,17 +126,18 @@ namespace Tac::Render
     OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
   }
 
-  void DXCReflInfo::AddBinding( D3D12_SHADER_INPUT_BIND_DESC desc )
+  bool DXCReflInfo::HasBinding( StringView name )
   {
     for( const D3D12_SHADER_INPUT_BIND_DESC& existingBinding : mReflBindings )
-    {
-      if( StringView( existingBinding.Name ) == StringView( desc.Name ) )
-      {
-        TAC_ASSERT( existingBinding.Type == desc.Type &&
-                    existingBinding.Dimension == desc.Dimension ); // sanity
-        return;
-      }
-    }
+      if( StringView( existingBinding.Name ) == name )
+        return true;
+    return false;
+  }
+
+  void DXCReflInfo::AddBinding( D3D12_SHADER_INPUT_BIND_DESC desc )
+  {
+    if( HasBinding( desc.Name ) )
+      return;
 
     mReflBindings.push_back( desc );
   }

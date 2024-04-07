@@ -1,10 +1,10 @@
 target_sources( TacWin32 PRIVATE
-  "tac_dx12_root_sig_builder.cpp"
-  "tac_dx12_root_sig_builder.h"
+  #"tac_dx12_root_sig_builder.cpp"
+  #"tac_dx12_root_sig_builder.h"
   "tac_dx12_helper.cpp"
   "tac_dx12_helper.h"
-  "tac_dx12_root_sig_bindings.cpp"
-  "tac_dx12_root_sig_bindings.h"
+  #"tac_dx12_root_sig_bindings.cpp"
+  #"tac_dx12_root_sig_bindings.h"
   "tac_dx12_samplers.cpp"
   "tac_dx12_samplers.h"
   "tac_dx12_enum_helper.cpp"
@@ -28,7 +28,7 @@ target_sources( TacWin32 PRIVATE
   "tac_renderer_dx12_ver3.h"
 )
 
-add_subdirectory( shaderprogram )
+add_subdirectory( program )
 add_subdirectory( buffer )
 add_subdirectory( pipeline )
 add_subdirectory( descriptor )

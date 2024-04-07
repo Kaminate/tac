@@ -1,11 +1,11 @@
-#include "tac_dx12_shader_program_mgr.h" // self-inc
+#include "tac_dx12_program_mgr.h" // self-inc
 
 #include "tac-win32/dx/hlsl/tac_hlsl_preprocess.h"
 #include "tac-win32/dx/dxc/tac_dxc.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
-#include "tac-win32/dx/dx12/tac_dx12_root_sig_bindings.h" // D3D12RootSigBindings
+//#include "tac-win32/dx/dx12/program/tac_dx12_program_bindings.h" // D3D12ProgramBindings
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-win32/dx/dx12/tac_dx12_root_sig_builder.h"
+//#include "tac-win32/dx/dx12/tac_dx12_root_sig_builder.h"
 
 #if !TAC_DELETE_ME()
 #include "tac-std-lib/os/tac_os.h"
@@ -97,7 +97,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12ShaderProgramMgr::Init( ID3D12Device* device, Errors& errors )
+  void DX12ProgramMgr::Init( ID3D12Device* device, Errors& errors )
   {
     mDevice = device;
 
@@ -105,19 +105,19 @@ namespace Tac::Render
     TAC_RAISE_ERROR_IF( sShaderModel > highestShaderModel, "Shader model too high" );
   }
 
-  DX12ShaderProgram* DX12ShaderProgramMgr::FindProgram( ProgramHandle h )
+  DX12Program* DX12ProgramMgr::FindProgram( ProgramHandle h )
   {
-    return h.IsValid() ? &mShaderPrograms[ h.GetIndex() ] : nullptr;
+    return h.IsValid() ? &mPrograms[ h.GetIndex() ] : nullptr;
   }
 
-  void DX12ShaderProgramMgr::DestroyProgram( ProgramHandle h )
+  void DX12ProgramMgr::DestroyProgram( ProgramHandle h )
   {
     if( h.IsValid() )
-      mShaderPrograms[ h.GetIndex() ] = {};
+      mPrograms[ h.GetIndex() ] = {};
   }
 
-  void DX12ShaderProgramMgr::CreateShaderProgram( ProgramHandle h,
-                                                  ShaderProgramParams params,
+  void DX12ProgramMgr::CreateProgram( ProgramHandle h,
+                                                  ProgramParams params,
                                                   Errors& errors)
   {
     const String fileName = params.mFileStem + ".hlsl";
@@ -133,9 +133,7 @@ namespace Tac::Render
 
     DXCCompileOutput output = TAC_CALL( DXCCompile( input, errors ) );
 
-
-
-    D3D12RootSigBindings bindings( output.mReflInfo.mReflBindings.data(),
+    D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
                                    output.mReflInfo.mReflBindings.size() );
 
     // Here's what im thinking.
@@ -149,14 +147,14 @@ namespace Tac::Render
     }
 #endif
 
-    mShaderPrograms[ h.GetIndex() ] = DX12ShaderProgram
+    mPrograms[ h.GetIndex() ] = DX12Program
     {
       .mFileStem = params.mFileStem,
       .mVSBlob = output.mVSBlob,
       .mVSBytecode = IDxcBlobToBytecode( output.mVSBlob ),
       .mPSBlob = output.mPSBlob,
       .mPSBytecode = IDxcBlobToBytecode( output.mPSBlob ),
-      .mRootSignatureBindings = bindings,
+      .mProgramBindings = bindings,
     };
 
   }

@@ -19,8 +19,8 @@ namespace Tac::Render
     virtual void UpdateDynBuf( RenderApi::UpdateDynBufParams ) {}
     virtual void DestroyDynBuf( DynBufHandle ) {}
 
-    virtual void CreateShaderProgram( ProgramHandle, ShaderProgramParams, Errors& ) {}
-    virtual void DestroyShaderProgram( ProgramHandle ) {}
+    virtual void CreateProgram( ProgramHandle, ProgramParams, Errors& ) {}
+    virtual void DestroyProgram( ProgramHandle ) {}
 
     virtual void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) {}
     virtual void DestroyRenderPipeline( PipelineHandle ) {}
