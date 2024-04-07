@@ -271,7 +271,7 @@ namespace Tac
     };
     ImGuiInit( imguiInitParams );
 
-    sWindowBackend.mIsRendererEnabled = sApp->IsRenderEnabled();
+    //sWindowBackend.mIsRendererEnabled = sApp->IsRenderEnabled();
 
     sDesktopEventHandler.mKeyboardBackend = &sKeyboardBackend;
     sDesktopEventHandler.mWindowBackend = &sWindowBackend;

@@ -1,8 +1,12 @@
 #include "tac_dx12_descriptor_heap.h" // self-inc
-#include "tac_dx12_helper.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
 
 namespace Tac::Render
 {
+
+
+
+  // -----------------------------------------------------------------------------------------------
   void DX12DescriptorHeap::Init( const D3D12_DESCRIPTOR_HEAP_DESC& desc,
                                  ID3D12Device* device,
                                  Errors& errors )
@@ -47,6 +51,36 @@ namespace Tac::Render
 
   D3D12_DESCRIPTOR_HEAP_TYPE DX12DescriptorHeap::GetType() const { return mDesc.Type; }
 
+
+  int                          DX12DescriptorHeap::AllocateIndex()
+  {
+    if( mFreeIndexes.empty() )
+    {
+      TAC_ASSERT( mUsedIndexCount < ( int )mDesc.NumDescriptors );
+      return mUsedIndexCount++;
+    }
+
+    int i = mFreeIndexes.back();
+    mFreeIndexes.pop_back();
+    return i;
+  }
+
+  DX12DescriptorHeapAllocation DX12DescriptorHeap::Allocate()
+  {
+    return DX12DescriptorHeapAllocation
+    {
+      .mOwner = this,
+      .mIndex = AllocateIndex(),
+    };
+  }
+
+  void DX12DescriptorHeap::Free( DX12DescriptorHeapAllocation allocation )
+  {
+    TAC_ASSERT( allocation.mOwner == this );
+    mFreeIndexes.push_back( allocation.mIndex );
+  }
+
+#if 0
   void DX12DescriptorHeap::InitRTV( int n, ID3D12Device* device, Errors& errors )
   {
     const D3D12_DESCRIPTOR_HEAP_DESC desc =
@@ -81,7 +115,9 @@ namespace Tac::Render
     };
 
     Init( desc, device, errors );
+
   }
+#endif
 
 } // namespace Tac::Render
 

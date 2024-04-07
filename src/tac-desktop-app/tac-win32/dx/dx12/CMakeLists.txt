@@ -26,15 +26,11 @@ target_sources( TacWin32 PRIVATE
   # "tac_renderer_dx12_ver2.h"
   "tac_renderer_dx12_ver3.cpp"
   "tac_renderer_dx12_ver3.h"
-  "tac_dx12_device.cpp"
-  "tac_dx12_device.h"
-  "tac_dx12_info_queue.cpp"
-  "tac_dx12_info_queue.h"
-  "tac_dx12_debug_layer.cpp"
-  "tac_dx12_debug_layer.h"
-  "tac_dx12_descriptor_heap.h"
-  "tac_dx12_descriptor_heap.cpp"
 )
 
 add_subdirectory( shaderprogram )
+add_subdirectory( buffer )
+add_subdirectory( pipeline )
+add_subdirectory( descriptor )
+add_subdirectory( device )
 

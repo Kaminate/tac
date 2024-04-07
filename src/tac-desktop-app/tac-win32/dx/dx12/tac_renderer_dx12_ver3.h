@@ -5,16 +5,19 @@
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
 #include "tac-win32/dx/dx12/shaderprogram/tac_dx12_shader_program_mgr.h"
+#include "tac-win32/dx/dx12/pipeline/tac_dx12_pipeline_mgr.h"
+#include "tac-win32/dx/dx12/buffer/tac_dx12_buffer_mgr.h"
+#include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 
-#include "tac_dx12_device.h"
-#include "tac_dx12_info_queue.h"
-#include "tac_dx12_debug_layer.h"
+#include "tac-win32/dx/dx12/device/tac_dx12_device.h"
+#include "tac-win32/dx/dx12/device/tac_dx12_info_queue.h"
+#include "tac-win32/dx/dx12/device/tac_dx12_debug_layer.h"
 
 #include "tac_dx12_samplers.h"
 #include "tac_dx12_root_sig_bindings.h"
 #include "tac_dx12_command_queue.h"
-#include "tac_dx12_descriptor_heap.h"
+#include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac_dx12_command_allocator_pool.h"
 #include "tac_dx12_context_manager.h"
 #include "tac_dx12_gpu_upload_allocator.h"
@@ -36,12 +39,6 @@ namespace Tac::Render
   };
   */
 
-  struct DX12Pipeline
-  {
-    PCom< ID3D12PipelineState > mPSO;
-    PCom< ID3D12RootSignature > mRootSignature;
-    D3D12RootSigBindings        mRootSignatureBindings;
-  };
 
   /*
   struct DX12Window
@@ -49,18 +46,15 @@ namespace Tac::Render
   };
   */
 
+#if 0
   struct DX12Resource
   {
-    PCom< ID3D12Resource > mResource;
-    D3D12_RESOURCE_DESC    mDesc{};
-    D3D12_RESOURCE_STATES  mState{};
+    PCom< ID3D12Resource >       mResource;
+    D3D12_RESOURCE_DESC          mDesc{};
+    D3D12_RESOURCE_STATES        mState{};
+    DX12DescriptorHeapAllocation mRTV;
   };
 
-  struct DX12DynBuf
-  {
-    DX12Resource mResource;
-    void*        mMappedCPUAddr = nullptr;
-  };
 
   const int TAC_SWAP_CHAIN_BUF_COUNT = 3;
 
@@ -76,6 +70,7 @@ namespace Tac::Render
     SwapChainRTVs           mRTVs;
     TexFmt                  mFmt = TexFmt::kUnknown;
   };
+#endif
 
   // you know, do we even inherit form renderer?
   // this is our chance to rebuild the renderer
@@ -83,18 +78,14 @@ namespace Tac::Render
   {
     void Init( Errors& ) override;
 
-    DX12Device                 mDevice;
-    DX12DebugLayer             mDebugLayer;
-    DX12InfoQueue              mInfoQueue;
-
     void   CreateFB( FBHandle, FrameBufferParams, Errors& ) override;
-    void   ResizeFB( FBHandle, v2i )  override;
+    void   ResizeFB( FBHandle, v2i ) override;
     TexFmt GetFBFmt( FBHandle ) override;
-    void   DestroyFB( FBHandle)  override;
+    void   DestroyFB( FBHandle ) override;
 
     void CreateDynBuf( DynBufHandle, int, StackFrame, Errors& ) override;
     void UpdateDynBuf( RenderApi::UpdateDynBufParams ) override;
-    void DestroyDynBuf( DynBufHandle) override;
+    void DestroyDynBuf( DynBufHandle ) override;
 
     void CreateShaderProgram( ProgramHandle, ShaderProgramParams, Errors& ) override;
     void DestroyShaderProgram( ProgramHandle ) override;
@@ -102,12 +93,28 @@ namespace Tac::Render
     void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) override;
     void DestroyRenderPipeline( PipelineHandle ) override;
 
-    DX12FrameBuf         mFrameBufs[ 100 ];
-    DX12DynBuf           mDynBufs[ 100 ];
-    DX12ShaderProgramMgr mShaderProgramMgr;
-    DX12Pipeline         mPipelines[ 100 ];
-    DX12DescriptorHeap   mRTVDescriptorHeap;
+  private:
+    void InitDescriptorHeaps( Errors& );
 
+    DX12Device           mDevice;
+    DX12DebugLayer       mDebugLayer;
+    DX12InfoQueue        mInfoQueue;
+
+    // Managers
+    DX12FrameBufferMgr   mFrameBufMgr;
+    DX12BufferMgr        mBufMgr;
+    DX12ShaderProgramMgr mShaderProgramMgr;
+    DX12PipelineMgr      mPipelineMgr;
+
+    // CPU Heaps (used for creating resources)
+    DX12DescriptorHeap   mCpuDescriptorHeapRTV;
+    DX12DescriptorHeap   mCpuDescriptorHeapDSV;
+    DX12DescriptorHeap   mCpuDescriptorHeapCBV_SRV_UAV;
+    DX12DescriptorHeap   mCpuDescriptorHeapSampler;
+
+    // GPU Heaps (used for rendering)
+    DX12DescriptorHeap   mGpuDescriptorHeapCBV_SRV_UAV;
+    DX12DescriptorHeap   mGpuDescriptorHeapSampler;
 
 /*
     void CreateDynamicBuffer2( const DynBufCreateParams&, Errors& ) override;

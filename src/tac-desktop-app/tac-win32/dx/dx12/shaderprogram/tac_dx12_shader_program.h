@@ -20,7 +20,7 @@ namespace Tac::Render
     PCom< IDxcBlob >      mPSBlob;
     D3D12_SHADER_BYTECODE mPSBytecode;
 
-    PCom< ID3D12RootSignature > mRootSignature;
+    //PCom< ID3D12RootSignature > mRootSignature;
     D3D12RootSigBindings        mRootSignatureBindings;
   };
 } // namespace Tac::Render

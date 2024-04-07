@@ -4,6 +4,10 @@
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
+namespace Tac
+{
+}
+
 namespace Tac::Render
 {
   static int sMaxGPUFrameCount; 
@@ -48,6 +52,8 @@ namespace Tac::Render
   };
 
   // -----------------------------------------------------------------------------------------------
+
+
 
   void RenderApi::Init( InitParams params, Errors& errors )
   {

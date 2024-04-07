@@ -9,6 +9,7 @@ namespace Tac::Render
   {
     void Init( ID3D12Device*, Errors& );
     void CreateShaderProgram( ProgramHandle, ShaderProgramParams, Errors& );
+    void DestroyProgram(ProgramHandle);
     DX12ShaderProgram* FindProgram( ProgramHandle );
 
   private:

@@ -26,7 +26,7 @@ namespace Tac::Render
   {
     const D3D_SHADER_MODEL lowestDefined = D3D_SHADER_MODEL_5_1;
     const D3D_SHADER_MODEL highestDefined = D3D_SHADER_MODEL_6_7; // D3D_HIGHEST_SHADER_MODEL undefined?;
-    for( D3D_SHADER_MODEL shaderModel = highestDefined; 
+    for( D3D_SHADER_MODEL shaderModel = highestDefined;
          shaderModel >= lowestDefined;
          shaderModel = D3D_SHADER_MODEL( shaderModel - 1 ) )
     {
@@ -38,8 +38,8 @@ namespace Tac::Render
       if( SUCCEEDED( device->CheckFeatureSupport(
         D3D12_FEATURE_SHADER_MODEL,
         &featureData,
-        sizeof(D3D12_FEATURE_DATA_SHADER_MODEL) ) ) )
-        
+        sizeof( D3D12_FEATURE_DATA_SHADER_MODEL ) ) ) )
+
         // For some godforsaken fucking reason, this isn't the same as shaderModel
         return featureData.HighestShaderModel;
     }
@@ -47,6 +47,7 @@ namespace Tac::Render
     return lowestDefined;
   }
 
+#if 0
   static D3D12RootSigBinding::Type ShaderInputToRootSigBindType( D3D_SHADER_INPUT_TYPE Type )
   {
     switch( Type )
@@ -62,15 +63,6 @@ namespace Tac::Render
   static void ShaderInputToRootSigBinding( D3D12_SHADER_INPUT_BIND_DESC& info,
                                            D3D12RootSigBindings* bindings )
   {
-    D3D12RootSigBinding::Type type = ShaderInputToRootSigBindType( info.Type );
-    D3D12RootSigBinding binding
-    {
-      .mType = type,
-      .mName = info.Name,
-      .mCount = ( int )info.BindCount,
-    };
-
-    bindings->mBindings.push_back( binding );
   }
 
   static D3D12_DESCRIPTOR_RANGE_TYPE ShaderInputToDescriptorRangeType( D3D_SHADER_INPUT_TYPE Type )
@@ -81,7 +73,7 @@ namespace Tac::Render
     case D3D_SIT_CBUFFER: return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
     case D3D_SIT_BYTEADDRESS: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     case D3D_SIT_TEXTURE: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    default: TAC_ASSERT_INVALID_CASE( Type ); return D3D12_DESCRIPTOR_RANGE_TYPE_SRV; 
+    default: TAC_ASSERT_INVALID_CASE( Type ); return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
     }
   }
 
@@ -92,55 +84,15 @@ namespace Tac::Render
     case D3D_SIT_CBUFFER:     return D3D12_ROOT_PARAMETER_TYPE_CBV;
     case D3D_SIT_BYTEADDRESS: return D3D12_ROOT_PARAMETER_TYPE_SRV;
     case D3D_SIT_TEXTURE:     return D3D12_ROOT_PARAMETER_TYPE_SRV;
-    case D3D_SIT_SAMPLER:     return D3D12_ROOT_PARAMETER_TYPE_SRV;
-    default: TAC_ASSERT_INVALID_CASE( Type ); return (D3D12_ROOT_PARAMETER_TYPE)0; 
+    case D3D_SIT_SAMPLER:
+      TAC_ASSERT_CRITICAL( "Samplers are bound through descriptor heaps "
+                           "and cannot be root parameters" );
+      return ( D3D12_ROOT_PARAMETER_TYPE )0;
+    default: TAC_ASSERT_INVALID_CASE( Type ); return ( D3D12_ROOT_PARAMETER_TYPE )0;
     }
   }
 
-  static void ShaderInputToRootParam( D3D12_SHADER_INPUT_BIND_DESC& info,
-                                                       DX12RootSigBuilder* rootSigBuilder )
-  {
-    if( info.Type == D3D_SIT_SAMPLER )
-      rootSigBuilder->Add...desctorpt table; // cuz :
-          //const Array descHeaps = {
-          //  ( ID3D12DescriptorHeap* )m_srvHeap,
-          //  ( ID3D12DescriptorHeap* )m_samplerHeap,
-          //};
-          //m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
-
-    if( info.BindCount == 1 )
-    {
-      D3D12_ROOT_PARAMETER_TYPE ParameterType = ShaderInputToRootParamType(info.Type);
-      TAC_ASSERT( ParameterType == D3D12_ROOT_PARAMETER_TYPE_CBV ||
-                  ParameterType == D3D12_ROOT_PARAMETER_TYPE_SRV ||
-                  ParameterType == D3D12_ROOT_PARAMETER_TYPE_UAV );
-
-      D3D12_ROOT_DESCRIPTOR1 Descriptor
-      {
-        .ShaderRegister = info.BindPoint,
-        .RegisterSpace = info.Space,
-        .Flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE ,
-      };
-      rootSigBuilder->AddRootDescriptor(ParameterType, D3D12_SHADER_VISIBILITY_ALL, Descriptor);
-    }
-    else
-    {
-
-      // UINT_MAX represents an unbounded array
-      UINT NumDescriptors = info.BindCount == 0 ? UINT_MAX : info.BindCount;
-
-      D3D12_DESCRIPTOR_RANGE_TYPE RangeType = ShaderInputToDescriptorRangeType( info.Type );
-      D3D12_DESCRIPTOR_RANGE1 range {
-        .RangeType = RangeType,
-        .NumDescriptors = NumDescriptors,
-        .BaseShaderRegister = info.BindPoint,
-        .RegisterSpace = info.Space,
-        .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE,
-        .OffsetInDescriptorsFromTableStart = 0,
-      };
-      rootSigBuilder->AddRootDescriptorTable(D3D12_SHADER_VISIBILITY_ALL, range );
-    }
-  }
+#endif
 
 
   // -----------------------------------------------------------------------------------------------
@@ -156,6 +108,12 @@ namespace Tac::Render
   DX12ShaderProgram* DX12ShaderProgramMgr::FindProgram( ProgramHandle h )
   {
     return h.IsValid() ? &mShaderPrograms[ h.GetIndex() ] : nullptr;
+  }
+
+  void DX12ShaderProgramMgr::DestroyProgram( ProgramHandle h )
+  {
+    if( h.IsValid() )
+      mShaderPrograms[ h.GetIndex() ] = {};
   }
 
   void DX12ShaderProgramMgr::CreateShaderProgram( ProgramHandle h,
@@ -176,21 +134,20 @@ namespace Tac::Render
     DXCCompileOutput output = TAC_CALL( DXCCompile( input, errors ) );
 
 
-    DX12RootSigBuilder rootSigBuilder( mDevice );
 
-    D3D12RootSigBindings bindings;
+    D3D12RootSigBindings bindings( output.mReflInfo.mReflBindings.data(),
+                                   output.mReflInfo.mReflBindings.size() );
 
     // Here's what im thinking.
     // Every descriptor table has its own root parameter,
     // so there wouldn't be a descriptor table that has CBVs, SRVs, and UAVs.
     // Instead that would be 3 separate root parameters.
+#if 0
     for( D3D12_SHADER_INPUT_BIND_DESC& info : output.mReflInfo.mReflBindings )
     {
       ShaderInputToRootSigBinding( info, &bindings );
-      ShaderInputToRootParam( info, &rootSigBuilder );
     }
-
-    PCom< ID3D12RootSignature > rootSignature = TAC_CALL( rootSigBuilder.Build( errors ) );
+#endif
 
     mShaderPrograms[ h.GetIndex() ] = DX12ShaderProgram
     {
@@ -199,7 +156,6 @@ namespace Tac::Render
       .mVSBytecode = IDxcBlobToBytecode( output.mVSBlob ),
       .mPSBlob = output.mPSBlob,
       .mPSBytecode = IDxcBlobToBytecode( output.mPSBlob ),
-      .mRootSignature = rootSignature,
       .mRootSignatureBindings = bindings,
     };
 
