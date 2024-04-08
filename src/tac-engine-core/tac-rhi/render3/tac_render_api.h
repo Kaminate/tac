@@ -17,18 +17,10 @@ namespace Tac::Render
     int mIndex;
   };
 
-#if 0
-#define TAC_DEFINE_HANDLE( T ) struct T : public Handle { T( int i = -1 ) : Handle{ i } {} }
-  TAC_DEFINE_HANDLE( FBHandle );
-  TAC_DEFINE_HANDLE( DynBufHandle );
-#undef TAC_DEFINE_HANDLE
-#else
-
-  struct FBHandle       : public Handle { FBHandle( int i = -1 ) : Handle{ i } {} };
-  struct DynBufHandle   : public Handle { DynBufHandle( int i = -1 ) : Handle{ i } {} };
+  struct FBHandle       : public Handle { FBHandle      ( int i = -1 ) : Handle{ i } {} };
+  struct DynBufHandle   : public Handle { DynBufHandle  ( int i = -1 ) : Handle{ i } {} };
   struct PipelineHandle : public Handle { PipelineHandle( int i = -1 ) : Handle( i ) {} };
-  struct ProgramHandle  : public Handle { ProgramHandle( int i = -1 ) : Handle{ i } {} };
-#endif
+  struct ProgramHandle  : public Handle { ProgramHandle ( int i = -1 ) : Handle{ i } {} };
 
 
   //enum RasterizerType

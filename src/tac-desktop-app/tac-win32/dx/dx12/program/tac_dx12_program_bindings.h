@@ -10,14 +10,16 @@ namespace Tac::Render
 {
   struct D3D12ProgramBinding
   {
-    enum Type
+    enum Type // DILIGENT SHADER_RESOURCE_TYPE
     {
       kUnknown = 0,
-      kCBuf,
-      kSRV,
-      kUAV,
+
+      kConstantBuffer,
       kSampler,
-      kTexture,
+      kTextureUAV,
+      kTextureSRV,
+      kBufferUAV,
+      kBufferSRV,
     };
 
     Type   mType = Type::kUnknown;

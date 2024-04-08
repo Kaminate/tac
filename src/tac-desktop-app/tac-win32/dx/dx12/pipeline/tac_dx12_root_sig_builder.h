@@ -3,7 +3,7 @@
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-std-lib/containers/tac_fixed_vector.h"
+//#include "tac-std-lib/containers/tac_fixed_vector.h"
 
 #include <d3d12.h> // ID3D12...
 
@@ -22,37 +22,43 @@ namespace Tac::Render
 
     DX12RootSigBuilder( ID3D12Device* );
 
-    void AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE,
-                           D3D12_SHADER_VISIBILITY,
-                           D3D12_ROOT_DESCRIPTOR1 );
+    void AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE, Location );
 
-    void AddConstantBuffer( Location );
+    //void AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE,
+    //                       D3D12_SHADER_VISIBILITY,
+    //                       D3D12_ROOT_DESCRIPTOR1 );
+
+    //void AddConstantBuffer( Location );
 
     void AddUnboundedArray( D3D12_DESCRIPTOR_RANGE_TYPE, Location );
+    void AddBoundedArray( D3D12_DESCRIPTOR_RANGE_TYPE, int, Location );
 
     // Add a descriptor table that associated with a single descriptor range
     // ( This must be called for an unbounded array )
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
-                                 D3D12_DESCRIPTOR_RANGE1 );
+    //void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
+    //                             D3D12_DESCRIPTOR_RANGE1 );
     
 
     // Add a descriptor table associated with several descriptor ranges
     // ( for example, a SRV range, CBV range, and UAV range )
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
-                                 Span< D3D12_DESCRIPTOR_RANGE1 > );
+    //void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
+    //                             Span< D3D12_DESCRIPTOR_RANGE1 > );
     
 
     PCom< ID3D12RootSignature > Build( Errors& errors );
     
 
   private:
+    struct DescriptorTable
+    {
+    };
+
     D3D12_DESCRIPTOR_RANGE1* AddRange( int n = 1 );
+    void AddArrayInternal( D3D12_DESCRIPTOR_RANGE_TYPE, UINT, Location );
 
-    Vector< D3D12_ROOT_PARAMETER1 >             mRootParams;
-
-    // This cannot be a Vector<> because D3D12_ROOT_PARAMETER1 may point to it
-    FixedVector< D3D12_DESCRIPTOR_RANGE1, 100 > mRanges;
-
-    ID3D12Device*                               mDevice;
+    Vector< D3D12_ROOT_PARAMETER1 >   mRootParams;
+    Vector< D3D12_DESCRIPTOR_RANGE1 > mRanges;
+    Vector< int >                     mRangeOffsets;
+    ID3D12Device*                     mDevice;
   };
 }

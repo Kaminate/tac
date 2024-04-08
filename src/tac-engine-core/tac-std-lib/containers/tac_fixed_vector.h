@@ -15,7 +15,7 @@ namespace Tac
   struct FixedVector
   {
     FixedVector() = default;
-    FixedVector( int size ) : mTCount( size ) {}
+    explicit FixedVector( int size ) : mTCount( size ) {}
     FixedVector( int size, T initialValue );
     FixedVector( T* tbegin, T* tend );
     FixedVector( std::initializer_list< T > );

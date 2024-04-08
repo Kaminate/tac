@@ -17,6 +17,90 @@
 
 namespace Tac::Render
 {
+  static D3D12_DESCRIPTOR_RANGE_TYPE
+    D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( D3D12ProgramBinding::Type type )
+  {
+    switch( type )
+    {
+    case D3D12ProgramBinding::Type::kTextureUAV:
+    case D3D12ProgramBinding::Type::kBufferUAV:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+
+    case D3D12ProgramBinding::Type::kTextureSRV:
+    case D3D12ProgramBinding::Type::kBufferSRV:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
+    case D3D12ProgramBinding::Type::kSampler:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+
+    case D3D12ProgramBinding::Type::kConstantBuffer:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+
+    default: TAC_ASSERT_INVALID_CASE( type ); return ( D3D12_DESCRIPTOR_RANGE_TYPE )0;
+    }
+  }
+
+  static D3D12_ROOT_PARAMETER_TYPE
+    D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( D3D12ProgramBinding::Type type )
+  {
+    switch( type )
+    {
+    case D3D12ProgramBinding::Type::kTextureUAV:
+    case D3D12ProgramBinding::Type::kBufferUAV:
+      return D3D12_ROOT_PARAMETER_TYPE_UAV;
+
+    case D3D12ProgramBinding::Type::kTextureSRV:
+    case D3D12ProgramBinding::Type::kBufferSRV:
+      return D3D12_ROOT_PARAMETER_TYPE_SRV;
+
+    case D3D12ProgramBinding::Type::kConstantBuffer:
+      return D3D12_ROOT_PARAMETER_TYPE_CBV;
+
+    default: TAC_ASSERT_INVALID_CASE( type ); return ( D3D12_ROOT_PARAMETER_TYPE )0;
+    }
+  }
+
+
+  static PCom< ID3D12RootSignature > BuildRootSignature( ID3D12Device* device,
+                                                         const D3D12ProgramBindings& bindings,
+                                                         Errors& errors )
+  {
+    DX12RootSigBuilder rootSigBuilder( device );
+
+    for( const D3D12ProgramBinding& binding : bindings.mBindings )
+    {
+
+      const DX12RootSigBuilder::Location loc
+      {
+        .mRegister = binding.mBindRegister,
+        .mSpace = binding.mRegisterSpace,
+      };
+
+      const bool isArray = binding.mBindCount != 1;
+
+      if( isArray || binding.mType == D3D12ProgramBinding::Type::kSampler )
+      {
+        // Create a root descriptor table
+        const D3D12_DESCRIPTOR_RANGE_TYPE descriptorRangeType =
+          D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( binding.mType );
+
+        if( binding.mBindCount == 0 )
+          rootSigBuilder.AddUnboundedArray( descriptorRangeType, loc );
+        else
+          rootSigBuilder.AddBoundedArray( descriptorRangeType, binding.mBindCount, loc );
+      }
+      else
+      {
+        // Create a root descriptor
+        const D3D12_ROOT_PARAMETER_TYPE type = 
+          D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( binding.mType );
+        rootSigBuilder.AddRootDescriptor( type, loc );
+      }
+
+    }
+
+    return rootSigBuilder.Build( errors );
+  }
 
 #if 0
   static void ShaderInputToRootParam( D3D12_SHADER_INPUT_BIND_DESC& info,
@@ -111,27 +195,14 @@ namespace Tac::Render
       },
     };
 
-    DX12RootSigBuilder rootSigBuilder( device );
+    PCom< ID3D12RootSignature > rootSig = TAC_CALL(
+      BuildRootSignature( device, program->mProgramBindings, errors ) );
 
-    program->mProgramBindings;
-    OS::OSDebugBreak();
     const DXGI_SAMPLE_DESC SampleDesc{ .Count = 1 };
-
-
-#if 0
-    program->mRootSignatureBindings;
-    DX12RootSigBuilder rootSigBuilder( mDevice );
-    PCom< ID3D12RootSignature > rootSignature = TAC_CALL( rootSigBuilder.Build( errors ) );
-
-    DX12RootSigBuilder;
-    RootSignatureBuilder;
-    device->CreateRootSignature( 0, BLOB, blobByteCount, iid, ppv );
-#endif
-
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
-      //.pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
+      .pRootSignature = ( ID3D12RootSignature* )rootSig,
       .VS = program->mVSBytecode,
       .PS = program->mPSBytecode,
       .BlendState = BlendState,
@@ -150,7 +221,6 @@ namespace Tac::Render
     for( int i = 0; i < n; ++i )
       psoDesc.RTVFormats[ i ] = TexFmtToDxgiFormat( params.mRTVColorFmts[ i ] );
 
-
     PCom< ID3D12PipelineState > pso;
     TAC_CALL( device->CreateGraphicsPipelineState( &psoDesc, pso.iid(), pso.ppv() ) );
 
@@ -159,6 +229,7 @@ namespace Tac::Render
     mPipelines[ h.GetIndex() ] = DX12Pipeline
     {
       .mPSO = pso,
+      .mRootSignature = rootSig,
     };
   }
 

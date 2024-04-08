@@ -146,7 +146,8 @@ namespace Tac::Render
 
     TAC_CALL( mPipelineMgr.Init( device, &mProgramMgr ) );
 
-    mFrameBufMgr.Init( device, &mCpuDescriptorHeapRTV );
+    mFrameBufMgr.Init( device, &mCommandQueue, &mCpuDescriptorHeapRTV );
+
     mBufMgr.Init( device );
 
     //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();
@@ -164,18 +165,20 @@ namespace Tac::Render
 
     TAC_CALL( infoQueue.Init( debugLayer, device, errors ) );
 
+    */
     TAC_CALL( mCommandQueue.Create( device, errors ) );
-
-    TAC_CALL( mSRVDescriptorHeap.InitSRV( 100, device, errors ) );
-    TAC_CALL( mSamplerDescriptorHeap.InitSampler( 100, device, errors ) );
-
     mCommandAllocatorPool.Init( device, &mCommandQueue );
     mContextManager.Init( &mCommandAllocatorPool,
                           &mCommandQueue,
                           &mUploadPageManager,
                           device );
-
     mUploadPageManager.Init( device, &mCommandQueue );
+    /*
+
+    TAC_CALL( mSRVDescriptorHeap.InitSRV( 100, device, errors ) );
+    TAC_CALL( mSamplerDescriptorHeap.InitSampler( 100, device, errors ) );
+
+
 
     mSamplers.Init( device, &mSamplerDescriptorHeap );
     */

@@ -46,6 +46,7 @@ namespace Tac
     TAC_DELETE[] mDense;
     mDense = newDense;
     mSparse = newSparse;
+    mCapacity = capacity;
   }
 
   int IdCollection::Alloc()

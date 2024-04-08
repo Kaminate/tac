@@ -29,7 +29,6 @@ namespace Tac::Render
   {
     const void*             mNWH{};
     v2i                     mSize{};
-    DX12CommandQueue        mCommandQueue;
     PCom< IDXGISwapChain4 > mSwapChain;
     DXGI_SWAP_CHAIN_DESC1   mSwapChainDesc;
     DX12SwapChainImages     mSwapChainImages;

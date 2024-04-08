@@ -10,10 +10,12 @@
 namespace Tac::Render
 {
   void DX12FrameBufferMgr::Init( ID3D12Device* device,
+                                 DX12CommandQueue* commandQueue,
                                  DX12DescriptorHeap* cpuDescriptorHeapRTV )
   {
     mDevice = device;
     mCpuDescriptorHeapRTV = cpuDescriptorHeapRTV;
+    mCommandQueue = commandQueue;
   }
 
   void   DX12FrameBufferMgr::CreateFB( FBHandle h, FrameBufferParams params, Errors& errors )
@@ -23,9 +25,6 @@ namespace Tac::Render
     const int iHandle = h.GetIndex();
 
     ID3D12Device* device = mDevice;
-
-    DX12CommandQueue cmdQ;
-    cmdQ.Create( mDevice, errors );
 
     DXGI_FORMAT fmt = DXGI_FORMAT_UNKNOWN;
     switch( params.mColorFmt )
@@ -38,7 +37,7 @@ namespace Tac::Render
     const SwapChainCreateInfo scInfo
     {
       .mHwnd = ( HWND )nwh,
-      .mDevice = ( IUnknown* )cmdQ.GetCommandQueue(), // swap chain can force flush the queue
+      .mDevice = ( IUnknown* )mCommandQueue->GetCommandQueue(),
       .mBufferCount = TAC_SWAP_CHAIN_BUF_COUNT,
       .mWidth = size.x,
       .mHeight = size.y,
@@ -84,7 +83,6 @@ namespace Tac::Render
     {
       .mNWH = nwh,
       .mSize = size,
-      .mCommandQueue = ( DX12CommandQueue&& )cmdQ,
       .mSwapChain = swapChain,
       .mSwapChainDesc = swapChainDesc,
       .mSwapChainImages = swapChainImages,

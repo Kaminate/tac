@@ -115,10 +115,6 @@ namespace Tac::Render
     DX12DescriptorHeap   mGpuDescriptorHeapSampler;
 
 /*
-    void CreateDynamicBuffer2( const DynBufCreateParams&, Errors& ) override;
-    void UpdateDynamicBuffer2( const DynBufUpdateParams& ) override;
-    void SetRenderObjectName( const SetRenderObjectNameParams& ) override;
-
     Cmds GetCommandList( ContextHandle, Errors& ) override;
 
     // ---------------------------------------------------------------------------------------------
@@ -137,16 +133,15 @@ namespace Tac::Render
     u64                        m_gpuFlightFrameIndex = 0;
 
 
+    */
     DX12CommandQueue           mCommandQueue;
     DX12CommandAllocatorPool   mCommandAllocatorPool;
     DX12ContextManager         mContextManager;
-    DX12DescriptorHeap         mSRVDescriptorHeap;
-    DX12DescriptorHeap         mSamplerDescriptorHeap;
-    DX12Samplers               mSamplers;
     DX12UploadPageMgr          mUploadPageManager;
+    /*
+    DX12Samplers               mSamplers;
     Vector< FenceSignal >      mFenceValues;
     Vector< DX12Context >      mContexts;
-    Vector< DX12DynBuf >       mDynBufs;
     */
   };
 } // namespace Tac::Render

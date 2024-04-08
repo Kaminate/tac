@@ -13,7 +13,9 @@ namespace Tac::Render
   struct DX12DescriptorHeap;
   struct DX12FrameBufferMgr
   {
-    void Init( ID3D12Device*, DX12DescriptorHeap* );
+    void Init( ID3D12Device*,
+               DX12CommandQueue*,
+               DX12DescriptorHeap* );
 
     void   CreateFB( FBHandle, FrameBufferParams, Errors& );
     void   ResizeFB( FBHandle, v2i );
@@ -23,5 +25,6 @@ namespace Tac::Render
     DX12FrameBuf        mFrameBufs[ 100 ]{};
     ID3D12Device*       mDevice{};
     DX12DescriptorHeap* mCpuDescriptorHeapRTV{};
+    DX12CommandQueue*   mCommandQueue{};
   };
 } // namespace Tac::Render

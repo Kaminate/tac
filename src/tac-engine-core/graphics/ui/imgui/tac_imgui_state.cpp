@@ -527,7 +527,8 @@ namespace Tac
     const Render::PipelineParams pipelineParams
     {
       .mProgram = program,
-      .mRTVColorFmts = fbFmt,
+      //.mRTVColorFmts = { fbFmt },
+      .mRTVColorFmts{ fbFmt },
     };
     Render::PipelineHandle pipeline = TAC_CALL(
       Render::RenderApi::CreateRenderPipeline( pipelineParams, errors ) );
@@ -562,34 +563,38 @@ namespace Tac
       .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
     };
 
+    //TAC_ASSERT( hDesktopWindow.IsValid() );
+    //if(! hDesktopWindow.GetDesktopWindowNativeHandle())
+    //  return;
 
-#if 0
-    
+    //const DesktopWindowState* desktopWindowState = hDesktopWindow.GetDesktopWindowState();
 
-    TAC_ASSERT( hDesktopWindow.IsValid() );
-    if(! hDesktopWindow.GetDesktopWindowNativeHandle())
-      return;
+    //const v2 size = desktopWindowState->GetSizeV2();
+    //const int w = desktopWindowState->mWidth;
+    //const int h = desktopWindowState->mHeight;
 
-    const DesktopWindowState* desktopWindowState = hDesktopWindow.GetDesktopWindowState();
-
-    const v2 size = desktopWindowState->GetSizeV2();
-    const int w = desktopWindowState->mWidth;
-    const int h = desktopWindowState->mHeight;
-
-    WindowGraphics& windowGraphics = WindowGraphics::Instance();
+    //WindowGraphics& windowGraphics = WindowGraphics::Instance();
 
     //Render::ViewHandle2 viewHandle2 = ;
-    OS::OSDebugBreak();
-    const Render::ViewHandle viewHandle = windowGraphics.GetView( hDesktopWindow );
-    if( !viewHandle.IsValid() )
-      return;
+    //OS::OSDebugBreak();
+    //const Render::ViewHandle viewHandle = windowGraphics.GetView( hDesktopWindow );
+    //if( !viewHandle.IsValid() )
+    //  return;
 
-    const Render::FramebufferHandle hFB = windowGraphics.GetFramebuffer( hDesktopWindow );
+    //const Render::FramebufferHandle hFB = windowGraphics.GetFramebuffer( hDesktopWindow );
+
+#if WE_HAD_A_COMMAND_LIST
+    ID3D12GraphicsCommandList* commandList;
+    commandList->RSSetViewports();
+    commandList->RSSetScissorRects();
+    commandList->OMSetRenderTargets();
 
     Render::SetViewFramebuffer( viewHandle, hFB );
     Render::SetViewport( viewHandle, Render::Viewport( size ) );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect( size ) );
+#endif
 
+#if 0
     //Render::DebugGroup::Iterator debugGroupIterator = mDebugGroupStack.IterateBegin();
 
     const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
