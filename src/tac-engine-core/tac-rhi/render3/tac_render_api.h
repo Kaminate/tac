@@ -3,6 +3,7 @@
 #include "tac-std-lib/math/tac_vector2i.h"
 #include "tac-std-lib/error/tac_stack_frame.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
+#include "tac-std-lib/memory/tac_smart_ptr.h"
 
 namespace Tac{ struct Errors; }
 namespace Tac::Filesystem{ struct Path; }
@@ -79,6 +80,19 @@ namespace Tac::Render
 
   // i think like a view could be a higher order construct, like in Tac::Space
 
+  struct IContextBackend;
+  struct Context
+  {
+    ~Context();
+    void SetViewport( v2i );
+    void SetScissor( v2i );
+    void SetRenderTarget( FBHandle );
+    void Execute( Errors& );
+    void ExecuteSynchronously( Errors& );
+
+    IContextBackend* mContextBackend{};
+  };
+
   struct RenderApi
   {
     struct InitParams
@@ -113,5 +127,7 @@ namespace Tac::Render
     static DynBufHandle   CreateDynBuf( int, StackFrame, Errors& );
     static void           UpdateDynBuf( UpdateDynBufParams );
     static void           DestroyDynBuf( DynBufHandle );
+
+    static Context        CreateRenderContext( Errors& );
   };
 }

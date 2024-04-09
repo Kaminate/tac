@@ -21,15 +21,10 @@ namespace Tac::Render
 
   struct DX12UploadPageMgr
   {
-    void Init( ID3D12Device* device, DX12CommandQueue* commandQueue )
-    {
-      mDevice = device;
-      mCommandQueue = commandQueue;
-    };
-
+    void           Init( ID3D12Device* , DX12CommandQueue* );
     DX12UploadPage RequestPage( int byteCount, Errors& );
-    void          UnretirePages();
-    void          RetirePage( DX12UploadPage, FenceSignal );
+    void           UnretirePages();
+    void           RetirePage( DX12UploadPage, FenceSignal );
 
   private:
     DX12UploadPage AllocateNewPage( int byteCount, Errors& );

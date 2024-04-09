@@ -53,9 +53,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-
-
-  void RenderApi::Init( InitParams params, Errors& errors )
+  void             RenderApi::Init( InitParams params, Errors& errors )
   {
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
     sShaderOutputPath = params.mShaderOutputPath;
@@ -63,80 +61,113 @@ namespace Tac::Render
     sBackend->Init( errors );
   }
 
+  int              RenderApi::GetMaxGPUFrameCount()
+  {
+    return sMaxGPUFrameCount;
+  }
+
   Filesystem::Path RenderApi::GetShaderOutputPath()
   {
     return sShaderOutputPath;
   }
 
-  int RenderApi::GetMaxGPUFrameCount()
-  {
-    return sMaxGPUFrameCount;
-  }
-
-  FBHandle RenderApi::CreateFB( FrameBufferParams params, Errors& errors )
-  {
-    const FBHandle h = IdProtT<FBHandle>::Alloc();
-    sBackend->CreateFB( h, params, errors );
-    return h; 
-  }
-
-  void     RenderApi::ResizeFB( FBHandle h, v2i size )
-  {
-    sBackend->ResizeFB( h, size );
-  }
-
-  TexFmt         RenderApi::GetFBFmt( FBHandle h )
-  {
-    return sBackend->GetFBFmt( h );
-  }
-
-  void     RenderApi::DestroyFB( FBHandle h )
-  {
-    sBackend->DestroyFB( h );
-    IdProtT<FBHandle>::Free( h );
-  }
-
-  DynBufHandle RenderApi::CreateDynBuf( int n, StackFrame sf, Errors& errors )
-  {
-    const DynBufHandle h = IdProtT< DynBufHandle >::Alloc();
-    sBackend->CreateDynBuf( h, n, sf, errors );
-    return h;
-  }
-
-  void         RenderApi::UpdateDynBuf( UpdateDynBufParams params )
-  {
-    sBackend->UpdateDynBuf( params );
-  }
-
-  void         RenderApi::DestroyDynBuf( DynBufHandle h )
-  {
-    sBackend->DestroyDynBuf( h );
-    IdProtT< DynBufHandle >::Free( h );
-  }
-
-  ProgramHandle RenderApi::CreateShaderProgram( ProgramParams params, Errors& errors )
-  {
-    const ProgramHandle h = IdProtT< ProgramHandle >::Alloc();
-    sBackend->CreateProgram( h, params, errors );
-    return h;
-  }
-
-  void           RenderApi::DestroyShaderProgram( ProgramHandle h )
-  {
-    sBackend->DestroyProgram( h );
-    IdProtT< ProgramHandle >::Free( h );
-  }
-
-  PipelineHandle RenderApi::CreateRenderPipeline( PipelineParams params, Errors& errors )
+  PipelineHandle   RenderApi::CreateRenderPipeline( PipelineParams params, Errors& errors )
   {
     const PipelineHandle h = IdProtT< PipelineHandle >::Alloc();
     sBackend->CreateRenderPipeline( h, params, errors );
     return h;
   }
 
-  void           RenderApi::DestroyRenderPipeline( PipelineHandle h )
+  void             RenderApi::DestroyRenderPipeline( PipelineHandle h )
   {
     sBackend->DestroyRenderPipeline( h );
     IdProtT< PipelineHandle >::Free( h );
   }
-}
+
+  ProgramHandle    RenderApi::CreateShaderProgram( ProgramParams params, Errors& errors )
+  {
+    const ProgramHandle h = IdProtT< ProgramHandle >::Alloc();
+    sBackend->CreateProgram( h, params, errors );
+    return h;
+  }
+
+  void             RenderApi::DestroyShaderProgram( ProgramHandle h )
+  {
+    sBackend->DestroyProgram( h );
+    IdProtT< ProgramHandle >::Free( h );
+  }
+
+  FBHandle         RenderApi::CreateFB( FrameBufferParams params, Errors& errors )
+  {
+    const FBHandle h = IdProtT<FBHandle>::Alloc();
+    sBackend->CreateFB( h, params, errors );
+    return h; 
+  }
+
+  void             RenderApi::ResizeFB( FBHandle h, v2i size )
+  {
+    sBackend->ResizeFB( h, size );
+  }
+
+  TexFmt           RenderApi::GetFBFmt( FBHandle h )
+  {
+    return sBackend->GetFBFmt( h );
+  }
+
+  void             RenderApi::DestroyFB( FBHandle h )
+  {
+    sBackend->DestroyFB( h );
+    IdProtT<FBHandle>::Free( h );
+  }
+
+  DynBufHandle     RenderApi::CreateDynBuf( int n, StackFrame sf, Errors& errors )
+  {
+    const DynBufHandle h = IdProtT< DynBufHandle >::Alloc();
+    sBackend->CreateDynBuf( h, n, sf, errors );
+    return h;
+  }
+
+  void             RenderApi::UpdateDynBuf( UpdateDynBufParams params )
+  {
+    sBackend->UpdateDynBuf( params );
+  }
+
+  void             RenderApi::DestroyDynBuf( DynBufHandle h )
+  {
+    sBackend->DestroyDynBuf( h );
+    IdProtT< DynBufHandle >::Free( h );
+  }
+
+  Context          RenderApi::CreateRenderContext( Errors& errors )
+  {
+    return Context{ .mContextBackend = sBackend->CreateRenderContextBackend( errors ) };
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  Context::~Context()
+  {
+    mContextBackend->Retire();
+  }
+
+  void Context::SetViewport( v2i size ) { mContextBackend->SetViewport( size ); }
+
+  void Context::SetScissor( v2i size ) { mContextBackend->SetScissor( size ); }
+
+  void Context::SetRenderTarget( FBHandle h )
+  {
+    mContextBackend->SetRenderTarget( h );
+  }
+
+  void Context::Execute( Errors& errors )
+  {
+    mContextBackend->Execute( errors );
+  }
+
+  void Context::ExecuteSynchronously( Errors& errors )
+  {
+    mContextBackend->ExecuteSynchronously( errors );
+  }
+
+
+} // namespace Tac::Render

@@ -98,6 +98,12 @@ namespace Tac::Render
 
   // GPUUploadPageManager
 
+  void DX12UploadPageMgr::Init( ID3D12Device* device, DX12CommandQueue* commandQueue )
+  {
+    mDevice = device;
+    mCommandQueue = commandQueue;
+  };
+
   void DX12UploadPageMgr::UnretirePages()
   {
     int n = mRetiredPages.size();

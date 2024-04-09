@@ -3,8 +3,10 @@
 #include "tac_dx12_gpu_upload_allocator.h"
 
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/containers/tac_fixed_vector.h"
 
 
 namespace Tac::Render
@@ -12,45 +14,51 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
   // DX12Context
+#if 0
 
-  ID3D12GraphicsCommandList* DX12Context::GetCommandList() { return mCommandList.Get(); }
-
-  void DX12Context::SetName( StringView name )
-  {
-    DX12SetName( mCommandAllocator, name );
-    DX12SetName( mCommandList, name );
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  // DX12ContextScope
-
-  DX12ContextScope::DX12ContextScope( DX12Context context,
-                                      DX12CommandAllocatorPool* pool,
+  DX12Context::DX12Context( DX12CommandAllocatorPool* pool,
                                       DX12ContextManager* mgr,
                                       DX12CommandQueue* q,
                                       Errors* e )
   {
-    mContext = context;
     mCommandAllocatorPool = mCommandAllocatorPool;
     mContextManager = mgr;
     mCommandQueue = mCommandQueue;
     mParentScopeErrors = e;
   }
 
-  DX12ContextScope::DX12ContextScope( DX12ContextScope&& other ) noexcept
+  DX12Context::DX12Context( DX12Context&& other ) noexcept
   {
-    MoveFrom( ( DX12ContextScope&& )other );
+    MoveFrom( ( DX12Context&& )other );
   }
 
-  DX12ContextScope::~DX12ContextScope()
+  void DX12Context::MoveFrom( DX12Context&& other ) noexcept
   {
-    if( mMoved )
-      return;
+    mCommandList = other.mCommandList;
+    mCommandAllocator = other.mCommandAllocator;
+    mGPUUploadAllocator = other.mGPUUploadAllocator;
+    mExecuted = other.mExecuted;
+    mSynchronous = other.mSynchronous;
+    mCommandAllocatorPool = other.mCommandAllocatorPool;
+    mContextManager = other.mContextManager;
+    mCommandQueue = other.mCommandQueue;
+  }
 
-    Errors& errors = *mParentScopeErrors;
+  void DX12Context::operator = ( DX12Context&& other ) noexcept
+  {
+    MoveFrom( ( DX12Context&& )other );
+  }
 
-    ID3D12GraphicsCommandList* commandList = mContext.GetCommandList();
+
+#endif
+
+  void DX12Context::Execute( Errors& errors )
+  {
+    TAC_ASSERT( !mExecuted );
+
+    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    if( !commandList )
+      return; // This context has been (&&) moved
     
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( commandList->Close() );
@@ -64,43 +72,176 @@ namespace Tac::Render
       TAC_ASSERT( !errors );
     }
 
-    mCommandAllocatorPool->Retire( mContext.mCommandAllocator, fenceSignal );
-    mContext.mCommandAllocator = {};
-    mContext.mGPUUploadAllocator.FreeAll( fenceSignal );
+    mCommandAllocatorPool->Retire( mCommandAllocator, fenceSignal );
+    mCommandAllocator = {};
+    mGPUUploadAllocator.FreeAll( fenceSignal );
 
-    mContextManager->RetireContext( mContext );
+    mExecuted = true;
   }
 
-  ID3D12GraphicsCommandList* DX12ContextScope::GetCommandList()       { return mContext.GetCommandList(); }
-  void                       DX12ContextScope::ExecuteSynchronously() { mSynchronous = true; }
+  ID3D12GraphicsCommandList* DX12Context::GetCommandList() { return mCommandList.Get(); }
+  ID3D12CommandAllocator* DX12Context::GetCommandAllocator() { return mCommandAllocator.Get(); }
 
-  void DX12ContextScope::MoveFrom( DX12ContextScope&& other ) noexcept
+  void DX12Context::Reset( Errors& errors )
   {
-    other.mMoved = true;
+    mSynchronous = false;
+    mExecuted = false;
+    //mGPUUploadAllocator; // <-- should be clear
 
-    mContext = other.mContext;
-    mSynchronous = other.mSynchronous;
-    mCommandAllocatorPool = other.mCommandAllocatorPool;
-    mContextManager = other.mContextManager;
-    mCommandQueue = other.mCommandQueue;
-    mParentScopeErrors = other.mParentScopeErrors;
+    TAC_ASSERT( !mCommandAllocator );
+
+    mCommandAllocator = 
+        TAC_CALL( mCommandAllocatorPool->GetAllocator( errors ) );
+
+    // Command list allocators can only be reset when the associated 
+    // command lists have finished execution on the GPU; apps should use 
+    // fences to determine GPU execution progress.
+    //
+    // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12commandallocator-reset
+    // ID3D12CommandAllocator::Reset
+    //   Indicates to re-use the memory that is associated with the command allocator.
+    //   From this call to Reset, the runtime and driver determine that the GPU is no longer
+    //   executing any command lists that have recorded commands with the command allocator.
+    ID3D12CommandAllocator* dxCommandAllocator = GetCommandAllocator();
+    TAC_DX12_CALL( mCommandAllocator->Reset() );
+
+
+    // However( when ExecuteCommandList() is called on a particular command 
+    // list, that command list can then be reset at any time and must be before 
+    // re-recording.
+    //
+    // ID3D12GraphicsCommandList::Reset
+    //
+    //   Resets a command list back to its initial state as if a new command list was just created.
+    //   After Reset succeeds, the command list is left in the "recording" state.
+    //
+    //   you can re-use command list tracking structures without any allocations
+    //   you can call Reset while the command list is still being executed
+    //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
+    ID3D12GraphicsCommandList* dxCommandList = GetCommandList();
+    TAC_DX12_CALL( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
+
   }
 
-  void DX12ContextScope::operator = ( DX12ContextScope&& other ) noexcept { other.mMoved = true; }
+  void DX12Context::SetName( StringView name )
+  {
+    DX12SetName( mCommandAllocator, name );
+    DX12SetName( mCommandList, name );
+  }
+
+  void DX12Context::ExecuteSynchronously( Errors& errors )
+  {
+    mSynchronous = true;
+    Execute( errors );
+  }
+
+  void DX12Context::SetViewport( v2i size )
+  {
+    ID3D12GraphicsCommandList* cmd = GetCommandList();
+
+    D3D12_VIEWPORT vp
+    {
+      .TopLeftX = 0,
+      .TopLeftY = 0,
+      .Width = (FLOAT)size.x,
+      .Height = (FLOAT)size.y,
+      .MinDepth = 0,
+      .MaxDepth = 1,
+    };
+    cmd->RSSetViewports( 1, &vp );
+  }
+
+  void DX12Context::SetScissor( v2i size )
+  {
+    ID3D12GraphicsCommandList* cmd = GetCommandList();
+    D3D12_RECT rect
+    {
+      .right = ( LONG )size.x,
+      .bottom = ( LONG )size.y,
+    };
+    cmd->RSSetScissorRects( 1, &rect );
+  }
+
+  void DX12Context::SetRenderTarget( FBHandle h )
+  {
+    ID3D12GraphicsCommandList* cmd = GetCommandList();
+
+    FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
+
+    DX12FrameBuf* frameBuf = mFrameBufferMgr->FindFB( h );
+    DX12SwapChainImage& swapChainImage = frameBuf->mSwapChainImages[ iBuf ];
+
+    D3D12_CPU_DESCRIPTOR_HANDLE descHandle = swapChainImage.mRTV.GetCPUHandle();
+    rtDescs.push_back( descHandle );
+
+    BOOL RTsSingleHandleToDescriptorRange = false;
+
+    // if null, no depth stencil is bound
+    const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor{};
+    cmd->OMSetRenderTargets( ( UINT )rtDescs.size(),
+                             rtDescs.data(),
+                             RTsSingleHandleToDescriptorRange,
+                             pDepthStencilDescriptor );
+  }
+
+
+  void DX12Context::Retire()
+  {
+    mContextManager->RetireContext( this );
+  }
 
   // -----------------------------------------------------------------------------------------------
 
   // DX12ContextManager
 
-  void DX12ContextManager::RetireContext( DX12Context context )
+  void DX12ContextManager::RetireContext( DX12Context* context )
   {
-    TAC_ASSERT( !context.mCommandAllocator );
     mAvailableContexts.push_back( context );
+  }
+
+
+  void DX12ContextManager::Init( DX12CommandAllocatorPool* commandAllocatorPool,
+                                 DX12CommandQueue* commandQueue,
+                                 DX12UploadPageMgr* uploadPageManager,
+                                 DX12FrameBufferMgr* frameBufferMgr,
+                                 ID3D12Device* device )
+  {
+    mCommandAllocatorPool = commandAllocatorPool;
+    mCommandQueue = commandQueue;
+    mUploadPageManager = uploadPageManager;
+    mFrameBufferMgr = frameBufferMgr;
+    device->QueryInterface( mDevice.iid(), mDevice.ppv() );
+    TAC_ASSERT( mDevice );
+  }
+
+  DX12Context* DX12ContextManager::GetContext( Errors& errors )
+  {
+    DX12Context* dx12Context{};
+
+    if( mAvailableContexts.empty() )
+    {
+      dx12Context = TAC_NEW DX12Context;
+      dx12Context->mCommandList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
+      dx12Context->mGPUUploadAllocator.Init( mUploadPageManager );
+      dx12Context->mCommandAllocatorPool = mCommandAllocatorPool;
+      dx12Context->mContextManager = this;
+      dx12Context->mCommandQueue = mCommandQueue;
+      dx12Context->mFrameBufferMgr = mFrameBufferMgr;
+      dx12Context->mCommandList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
+    }
+    else
+    {
+      dx12Context = mAvailableContexts.back();
+      mAvailableContexts.pop_back();
+    }
+
+    TAC_CALL_RET( {}, dx12Context->Reset( errors ) );
+
+    return dx12Context;
   }
 
   PCom< ID3D12GraphicsCommandList > DX12ContextManager::CreateCommandList( Errors& errors )
   {
-
     // Create the command list
     //
     // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
@@ -121,77 +262,5 @@ namespace Tac::Render
     return graphicsList;
   }
 
-  void DX12ContextManager::Init( DX12CommandAllocatorPool* commandAllocatorPool,
-                                 DX12CommandQueue* commandQueue,
-                                 DX12UploadPageMgr* uploadPageManager,
-                                 ID3D12Device* device )
-  {
-    mCommandAllocatorPool = commandAllocatorPool;
-    mCommandQueue = commandQueue;
-    mUploadPageManager = uploadPageManager;
-    device->QueryInterface( mDevice.iid(), mDevice.ppv() );
-    TAC_ASSERT( mDevice );
-  }
 
-  DX12Context DX12ContextManager::GetContextNoScope( Errors& errors )
-  {
-    DX12Context context;
-
-    if( mAvailableContexts.empty() )
-    {
-      PCom<ID3D12GraphicsCommandList > cmdList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
-      context.mCommandList = cmdList;
-      context.mGPUUploadAllocator.Init( mUploadPageManager );
-    }
-    else
-    {
-      context = mAvailableContexts.back();
-      mAvailableContexts.pop_back();
-    }
-
-    context.mCommandAllocator = 
-        TAC_CALL_RET( {}, mCommandAllocatorPool->GetAllocator( errors ) );
-
-    // Command list allocators can only be reset when the associated 
-    // command lists have finished execution on the GPU; apps should use 
-    // fences to determine GPU execution progress.
-    //
-    // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12commandallocator-reset
-    // ID3D12CommandAllocator::Reset
-    //   Indicates to re-use the memory that is associated with the command allocator.
-    //   From this call to Reset, the runtime and driver determine that the GPU is no longer
-    //   executing any command lists that have recorded commands with the command allocator.
-    ID3D12CommandAllocator* dxCommandAllocator = context.mCommandAllocator.Get();
-    TAC_DX12_CALL_RET( {}, dxCommandAllocator->Reset() );
-
-
-    // However( when ExecuteCommandList() is called on a particular command 
-    // list, that command list can then be reset at any time and must be before 
-    // re-recording.
-    //
-    // ID3D12GraphicsCommandList::Reset
-    //
-    //   Resets a command list back to its initial state as if a new command list was just created.
-    //   After Reset succeeds, the command list is left in the "recording" state.
-    //
-    //   you can re-use command list tracking structures without any allocations
-    //   you can call Reset while the command list is still being executed
-    //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
-    ID3D12GraphicsCommandList* dxCommandList = context.GetCommandList();
-    TAC_DX12_CALL_RET( {}, dxCommandList->Reset( dxCommandAllocator, nullptr ) );
-
-    return context;
-  }
-
-  DX12ContextScope DX12ContextManager::GetContext( Errors& errors )
-  {
-    DX12Context context = TAC_CALL_RET( {}, GetContextNoScope( errors ) );
-    DX12ContextScope scope( context,
-                            mCommandAllocatorPool,
-                            this,
-                            mCommandQueue,
-                            &errors );
-    return scope;
-  }
-
-}
+} // namespace Tac::Render

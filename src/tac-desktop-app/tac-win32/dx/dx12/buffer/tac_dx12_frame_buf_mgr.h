@@ -17,10 +17,11 @@ namespace Tac::Render
                DX12CommandQueue*,
                DX12DescriptorHeap* );
 
-    void   CreateFB( FBHandle, FrameBufferParams, Errors& );
-    void   ResizeFB( FBHandle, v2i );
-    TexFmt GetFBFmt( FBHandle );
-    void   DestroyFB( FBHandle);
+    void          CreateFB( FBHandle, FrameBufferParams, Errors& );
+    void          ResizeFB( FBHandle, v2i );
+    TexFmt        GetFBFmt( FBHandle );
+    void          DestroyFB( FBHandle );
+    DX12FrameBuf* FindFB( FBHandle );
 
     DX12FrameBuf        mFrameBufs[ 100 ]{};
     ID3D12Device*       mDevice{};

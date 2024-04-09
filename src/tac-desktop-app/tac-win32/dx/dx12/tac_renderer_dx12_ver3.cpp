@@ -48,9 +48,29 @@ namespace Tac::Render
   // DX12Backend
 #endif
 
+  // -----------------------------------------------------------------------------------------------
+
+  //DX12Context::~DX12Context()
+  //{
+  //}
+
+  //void DX12Context::SetViewport( v2i size )
+  //{
+  //}
+
+  //void DX12Context::SetScissor( v2i size )
+  //{
+  //}
+
+  //void DX12Context::SetRenderTarget( FBHandle h )
+  //{
+  //}
+
+  // -----------------------------------------------------------------------------------------------
+
   //const int TAC_MAX_FB_COUNT = 100;
 
-  void DX12Backend::InitDescriptorHeaps( Errors& errors )
+  void    DX12Backend::InitDescriptorHeaps( Errors& errors )
   {
     ID3D12Device* device = mDevice.GetID3D12Device();
 
@@ -128,7 +148,7 @@ namespace Tac::Render
     }
   }
 
-  void DX12Backend::Init( Errors& errors )
+  void    DX12Backend::Init( Errors& errors )
   {
     TAC_CALL( DXGIInit( errors ) );
 
@@ -171,6 +191,7 @@ namespace Tac::Render
     mContextManager.Init( &mCommandAllocatorPool,
                           &mCommandQueue,
                           &mUploadPageManager,
+                          &mFrameBufMgr,
                           device );
     mUploadPageManager.Init( device, &mCommandQueue );
     /*
@@ -205,69 +226,74 @@ namespace Tac::Render
 
 #endif
 
-  void DX12Backend::CreateFB( FBHandle h,
-                              FrameBufferParams params,
-                              Errors& errors )
-  {
-    mFrameBufMgr.CreateFB( h, params, errors );
-  }
-
-  void DX12Backend::ResizeFB( FBHandle h, v2i size )
-  {
-    mFrameBufMgr.ResizeFB( h, size );
-  }
-
-  TexFmt DX12Backend::GetFBFmt( FBHandle h )
-  {
-    return mFrameBufMgr.GetFBFmt( h);
-  }
-
-  void DX12Backend::DestroyFB( FBHandle h )
-  {
-    return mFrameBufMgr.DestroyFB( h);
-  }
-
-  void DX12Backend::CreateDynBuf( DynBufHandle h,
-                                  int byteCount,
-                                  StackFrame sf,
-                                  Errors& errors )
-  {
-    mBufMgr.CreateDynBuf( h, byteCount, sf, errors );
-  }
-
-  void DX12Backend::UpdateDynBuf( RenderApi::UpdateDynBufParams params )
-  {
-    mBufMgr.UpdateDynBuf( params );
-  }
-
-  void DX12Backend::DestroyDynBuf( DynBufHandle h )
-  {
-    mBufMgr.DestroyDynBuf(h);
-  }
-
-  void DX12Backend::CreateProgram( ProgramHandle h,
-                                         ProgramParams params,
-                                         Errors& errors )
-  {
-    mProgramMgr.CreateProgram( h, params, errors );
-  }
-
-  void DX12Backend::DestroyProgram( ProgramHandle h )
-  {
-    mProgramMgr.DestroyProgram( h );
-  }
-
-  void DX12Backend::CreateRenderPipeline( PipelineHandle h,
-                                          PipelineParams params,
-                                          Errors & errors )
+  void    DX12Backend::CreateRenderPipeline( PipelineHandle h,
+                                             PipelineParams params,
+                                             Errors& errors )
   {
     mPipelineMgr.CreatePipeline( h, params, errors );
 
   }
 
-  void DX12Backend::DestroyRenderPipeline( PipelineHandle h )
+  void    DX12Backend::DestroyRenderPipeline( PipelineHandle h )
   {
     mPipelineMgr.DestroyPipeline( h );
+  }
+
+  void    DX12Backend::CreateProgram( ProgramHandle h,
+                                      ProgramParams params,
+                                      Errors& errors )
+  {
+    mProgramMgr.CreateProgram( h, params, errors );
+  }
+
+  void    DX12Backend::DestroyProgram( ProgramHandle h )
+  {
+    mProgramMgr.DestroyProgram( h );
+  }
+
+  void    DX12Backend::CreateFB( FBHandle h,
+                                 FrameBufferParams params,
+                                 Errors& errors )
+  {
+    mFrameBufMgr.CreateFB( h, params, errors );
+  }
+
+  void    DX12Backend::ResizeFB( FBHandle h, v2i size )
+  {
+    mFrameBufMgr.ResizeFB( h, size );
+  }
+
+  TexFmt  DX12Backend::GetFBFmt( FBHandle h )
+  {
+    return mFrameBufMgr.GetFBFmt( h );
+  }
+
+  void    DX12Backend::DestroyFB( FBHandle h )
+  {
+    return mFrameBufMgr.DestroyFB( h);
+  }
+
+  void    DX12Backend::CreateDynBuf( DynBufHandle h,
+                                     int byteCount,
+                                     StackFrame sf,
+                                     Errors& errors )
+  {
+    mBufMgr.CreateDynBuf( h, byteCount, sf, errors );
+  }
+
+  void    DX12Backend::UpdateDynBuf( RenderApi::UpdateDynBufParams params )
+  {
+    mBufMgr.UpdateDynBuf( params );
+  }
+
+  void    DX12Backend::DestroyDynBuf( DynBufHandle h )
+  {
+    mBufMgr.DestroyDynBuf( h );
+  }
+
+  IContextBackend* DX12Backend::CreateRenderContextBackend(Errors& errors)
+  {
+    return mContextManager.GetContext(errors);
   }
 
 } // namespace Tac::Render

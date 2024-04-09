@@ -111,4 +111,9 @@ namespace Tac::Render
     if( h.IsValid() )
       mFrameBufs[ h.GetIndex() ] = {};
   }
+
+  DX12FrameBuf* DX12FrameBufferMgr::FindFB( FBHandle h )
+  {
+    return h.IsValid() ? &mFrameBufs[ h.GetIndex() ] : nullptr;
+  }
 } // namespace Tac::Render

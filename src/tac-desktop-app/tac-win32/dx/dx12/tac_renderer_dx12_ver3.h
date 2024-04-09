@@ -27,54 +27,18 @@ namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
-  /*
-
-  struct DX12CommandList : public ICommandList
-  {
-    void Draw() override;
-
-    DX12Context mContext;
-  };
-  */
-
-
-  /*
-  struct DX12Window
-  {
-  };
-  */
-
-#if 0
-  struct DX12Resource
-  {
-    PCom< ID3D12Resource >       mResource;
-    D3D12_RESOURCE_DESC          mDesc{};
-    D3D12_RESOURCE_STATES        mState{};
-    DX12DescriptorHeapAllocation mRTV;
-  };
-
-
-  const int TAC_SWAP_CHAIN_BUF_COUNT = 3;
-
-  using SwapChainRTVs = Array< DX12Resource, TAC_SWAP_CHAIN_BUF_COUNT >;
-
-  struct DX12FrameBuf
-  {
-    const void*             mNWH{};
-    v2i                     mSize{};
-    DX12CommandQueue        mCommandQueue;
-    PCom< IDXGISwapChain4 > mSwapChain;
-    DXGI_SWAP_CHAIN_DESC1   mSwapChainDesc;
-    SwapChainRTVs           mRTVs;
-    TexFmt                  mFmt = TexFmt::kUnknown;
-  };
-#endif
 
   // you know, do we even inherit form renderer?
   // this is our chance to rebuild the renderer
   struct DX12Backend : public IRenderBackend3
   {
     void Init( Errors& ) override;
+
+    void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) override;
+    void DestroyRenderPipeline( PipelineHandle ) override;
+
+    void CreateProgram( ProgramHandle, ProgramParams, Errors& ) override;
+    void DestroyProgram( ProgramHandle ) override;
 
     void   CreateFB( FBHandle, FrameBufferParams, Errors& ) override;
     void   ResizeFB( FBHandle, v2i ) override;
@@ -85,11 +49,7 @@ namespace Tac::Render
     void UpdateDynBuf( RenderApi::UpdateDynBufParams ) override;
     void DestroyDynBuf( DynBufHandle ) override;
 
-    void CreateProgram( ProgramHandle, ProgramParams, Errors& ) override;
-    void DestroyProgram( ProgramHandle ) override;
-
-    void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) override;
-    void DestroyRenderPipeline( PipelineHandle ) override;
+    IContextBackend* CreateRenderContextBackend(Errors&) override;
 
   private:
     void InitDescriptorHeaps( Errors& );

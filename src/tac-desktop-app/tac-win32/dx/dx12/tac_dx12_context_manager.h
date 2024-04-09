@@ -3,68 +3,68 @@
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac_dx12_gpu_upload_allocator.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-rhi/render3/tac_render_backend.h"
 
 #include <d3d12.h> // ID3D12...
 
-namespace Tac
-{
-  struct Errors;
-}
+namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
   struct DX12CommandAllocatorPool;
   struct DX12ContextManager;
   struct DX12CommandQueue;
+  struct DX12FrameBufferMgr;
 
   // A context has a commandlist, even if the context is recycled, the commandlist stays with it
   // forever.
   //
   // However, the commandallocator is changed every time the context is recycled
-  struct DX12Context
+  struct DX12Context : public IContextBackend
   {
+    DX12Context() = default;
+#if 0
+    DX12Context( DX12CommandAllocatorPool*,
+                 DX12ContextManager*,
+                 DX12CommandQueue*,
+                 Errors* );
+    ~DX12Context() override;
+    DX12Context( DX12Context&& ) noexcept;
+    void operator = ( DX12Context& ) = delete;
+    void operator = ( DX12Context&& ) noexcept;
+#endif
+
     // note(n473): i dont like how with dx12context::Begin and dx12context::Finish,
     // there is no protection (afaict) to prevent someone from forgetting to call Finish.
-    ID3D12GraphicsCommandList*        GetCommandList();
-    void SetName( StringView );
+    ID3D12GraphicsCommandList* GetCommandList();
+    ID3D12CommandAllocator*    GetCommandAllocator();
+    void                       SetName( StringView );
+    void                       Reset( Errors& );
+
+    void                       Execute( Errors& ) override;
+    void                       ExecuteSynchronously( Errors& ) override;
+    void                       SetViewport( v2i ) override;
+    void                       SetScissor( v2i ) override;
+    void                       SetRenderTarget( FBHandle ) override;
+
+    void                       MoveFrom( DX12Context&& ) noexcept;
+
+    void Retire() override;
 
     PCom< ID3D12GraphicsCommandList > mCommandList;
     PCom< ID3D12CommandAllocator >    mCommandAllocator;
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
     DX12UploadAllocator               mGPUUploadAllocator;
-  };
-
-  struct DX12ContextScope
-  {
-    DX12ContextScope() = default;
-    DX12ContextScope( DX12Context,
-                      DX12CommandAllocatorPool*,
-                      DX12ContextManager*,
-                      DX12CommandQueue*,
-                      Errors* );
-    DX12ContextScope( DX12ContextScope&& ) noexcept;
-    ~DX12ContextScope();
-
-    void operator = ( DX12ContextScope& ) = delete;
-    void operator = ( DX12ContextScope&& ) noexcept;
-
-    ID3D12GraphicsCommandList* GetCommandList();
-    void                       ExecuteSynchronously();
-
-  private:
-    void MoveFrom( DX12ContextScope&& ) noexcept;
-
-
-    DX12Context                mContext;
-    bool                       mSynchronous = false;
+    bool                              mSynchronous = false;
+    bool                              mExecuted = false;
 
     // singletons
-    DX12CommandAllocatorPool*  mCommandAllocatorPool = nullptr;
-    DX12ContextManager*        mContextManager = nullptr;
-    DX12CommandQueue*          mCommandQueue = nullptr;
-    Errors*                    mParentScopeErrors = nullptr;
-    bool                       mMoved = false;
+    DX12CommandAllocatorPool*         mCommandAllocatorPool = nullptr;
+    DX12ContextManager*               mContextManager = nullptr;
+    DX12CommandQueue*                 mCommandQueue = nullptr;
+    DX12FrameBufferMgr*               mFrameBufferMgr{};
   };
 
   // a contextmanager manages contexts
@@ -73,21 +73,23 @@ namespace Tac::Render
     void Init( DX12CommandAllocatorPool*,
                DX12CommandQueue*,
                DX12UploadPageMgr*,
+               DX12FrameBufferMgr*,
                ID3D12Device* );
-    
-    DX12ContextScope                 GetContext( Errors& );
-    DX12Context                      GetContextNoScope( Errors& );
-    void                             RetireContext( DX12Context context );
-    
-    PCom<ID3D12GraphicsCommandList > CreateCommandList(Errors&);
+
+    DX12Context*                      GetContext( Errors& );
+    void                              RetireContext( DX12Context* );
+    PCom< ID3D12GraphicsCommandList > CreateCommandList( Errors& );
 
   private:
-    Vector< DX12Context >     mAvailableContexts;
+    Vector< DX12Context* >         mAvailableContexts;
 
     // singletons
     DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
     DX12CommandQueue*         mCommandQueue = nullptr;
-    DX12UploadPageMgr*     mUploadPageManager = nullptr;
+    DX12UploadPageMgr*        mUploadPageManager = nullptr;
+    DX12FrameBufferMgr*       mFrameBufferMgr{};
+
     PCom< ID3D12Device4 >     mDevice;
+
   };
 }
