@@ -8,6 +8,8 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 
+#include <WinPixEventRuntime/pix3.h>
+
 
 namespace Tac::Render
 {
@@ -17,9 +19,9 @@ namespace Tac::Render
 #if 0
 
   DX12Context::DX12Context( DX12CommandAllocatorPool* pool,
-                                      DX12ContextManager* mgr,
-                                      DX12CommandQueue* q,
-                                      Errors* e )
+                            DX12ContextManager* mgr,
+                            DX12CommandQueue* q,
+                            Errors* e )
   {
     mCommandAllocatorPool = mCommandAllocatorPool;
     mContextManager = mgr;
@@ -59,7 +61,11 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* commandList = GetCommandList();
     if( !commandList )
       return; // This context has been (&&) moved
-    
+
+    for( int i = 0; i < mEventCount; ++i )
+      PIXEndEvent( commandList );
+    mEventCount = 0;
+
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( commandList->Close() );
 
@@ -90,8 +96,8 @@ namespace Tac::Render
 
     TAC_ASSERT( !mCommandAllocator );
 
-    mCommandAllocator = 
-        TAC_CALL( mCommandAllocatorPool->GetAllocator( errors ) );
+    mCommandAllocator =
+      TAC_CALL( mCommandAllocatorPool->GetAllocator( errors ) );
 
     // Command list allocators can only be reset when the associated 
     // command lists have finished execution on the GPU; apps should use 
@@ -143,8 +149,8 @@ namespace Tac::Render
     {
       .TopLeftX = 0,
       .TopLeftY = 0,
-      .Width = (FLOAT)size.x,
-      .Height = (FLOAT)size.y,
+      .Width = ( FLOAT )size.x,
+      .Height = ( FLOAT )size.y,
       .MinDepth = 0,
       .MaxDepth = 1,
     };
@@ -162,26 +168,59 @@ namespace Tac::Render
     cmd->RSSetScissorRects( 1, &rect );
   }
 
+  void DX12Context::DebugEvent( StringView str )
+  {
+    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
+    mEventCount++;
+  }
+
+  void DX12Context::DebugMarker( StringView str )
+  {
+    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
+  }
+
   void DX12Context::SetRenderTarget( FBHandle h )
   {
-    ID3D12GraphicsCommandList* cmd = GetCommandList();
+    ID3D12GraphicsCommandList* commandList = GetCommandList();
 
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
 
     DX12FrameBuf* frameBuf = mFrameBufferMgr->FindFB( h );
-    DX12SwapChainImage& swapChainImage = frameBuf->mSwapChainImages[ iBuf ];
+    const UINT bbIdx = frameBuf->mSwapChain->GetCurrentBackBufferIndex();
+    DX12SwapChainImage& swapChainImage = frameBuf->mSwapChainImages[ bbIdx ];
 
     D3D12_CPU_DESCRIPTOR_HANDLE descHandle = swapChainImage.mRTV.GetCPUHandle();
     rtDescs.push_back( descHandle );
 
     BOOL RTsSingleHandleToDescriptorRange = false;
 
+    D3D12_RESOURCE_BARRIER barrier
+    {
+      .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+      .Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+      .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
+      {
+        .pResource = swapChainImage.mResource.Get(),
+        .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+        .StateBefore = swapChainImage.mState,
+        .StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
+      },
+    };
+
+    const Array barriers = { barrier };
+    commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
+
     // if null, no depth stencil is bound
     const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor{};
-    cmd->OMSetRenderTargets( ( UINT )rtDescs.size(),
-                             rtDescs.data(),
-                             RTsSingleHandleToDescriptorRange,
-                             pDepthStencilDescriptor );
+    commandList->OMSetRenderTargets( ( UINT )rtDescs.size(),
+                                     rtDescs.data(),
+                                     RTsSingleHandleToDescriptorRange,
+                                     pDepthStencilDescriptor );
+
+    swapChainImage.mState = D3D12_RESOURCE_STATE_RENDER_TARGET;
+
   }
 
 

@@ -48,6 +48,8 @@ namespace Tac::Render
     void                       SetScissor( v2i ) override;
     void                       SetRenderTarget( FBHandle ) override;
 
+    void                       DebugEvent( StringView ) override;
+    void                       DebugMarker( StringView ) override;
     void                       MoveFrom( DX12Context&& ) noexcept;
 
     void Retire() override;
@@ -65,6 +67,7 @@ namespace Tac::Render
     DX12ContextManager*               mContextManager = nullptr;
     DX12CommandQueue*                 mCommandQueue = nullptr;
     DX12FrameBufferMgr*               mFrameBufferMgr{};
+    int                               mEventCount{};
   };
 
   // a contextmanager manages contexts

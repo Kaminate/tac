@@ -1,5 +1,6 @@
 #pragma once
 
+#if 0
 #include <d3d12.h>
 
 namespace Tac { struct Errors; }
@@ -17,3 +18,4 @@ namespace Tac::Render
   };
 } // namespace Tac::Render
 
+#endif

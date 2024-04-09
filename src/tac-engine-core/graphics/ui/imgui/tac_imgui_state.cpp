@@ -533,22 +533,10 @@ namespace Tac
     Render::PipelineHandle pipeline = TAC_CALL(
       Render::RenderApi::CreateRenderPipeline( pipelineParams, errors ) );
 
-#if 0
-
-    for( ImGuiSimWindowDraws& windowDraws : frameDraws->mWindowDraws )
-    {
-      WindowHandle handle = windowDraws.mHandle;
-      Vector< SmartPtr< UI2DDrawData > > drawData = windowDraws.mDrawData;
-      const int vertexCount = windowDraws.mVertexCount;
-      const int indexCount = windowDraws.mIndexCount;
-    }
-
-
-    TAC_RENDER_GROUP_BLOCK( String() + __FUNCTION__
+    String renderGroupStr =  String() + __FUNCTION__
                             + "("
-                            + Tac::ToString( mWindowHandle.GetIndex() )
-                            + ")" );
-#endif
+                            + Tac::ToString( hDesktopWindow.GetIndex() )
+                            + ")";
 
     const v2i windowSize = windowApi->GetSize( hDesktopWindow );
 
@@ -563,35 +551,21 @@ namespace Tac
       .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
     };
 
-    //TAC_ASSERT( hDesktopWindow.IsValid() );
-    //if(! hDesktopWindow.GetDesktopWindowNativeHandle())
-    //  return;
 
-    //const DesktopWindowState* desktopWindowState = hDesktopWindow.GetDesktopWindowState();
+    Render::Context renderContext = TAC_CALL( Render::RenderApi::CreateRenderContext( errors ) );
+    renderContext.SetRenderTarget( fb );
+    renderContext.SetViewport( windowSize );
+    renderContext.SetScissor( windowSize );
+    renderContext.DebugEvent( renderGroupStr );
+    renderContext.DebugMarker( "hello hello" );
 
-    //const v2 size = desktopWindowState->GetSizeV2();
-    //const int w = desktopWindowState->mWidth;
-    //const int h = desktopWindowState->mHeight;
+#if 0
+    auto shaderBinding = Render::RenderApi::CreateShaderBinding( pipeline );
+    shaderBinding->GetVariableByName( "g_Texture" )->SetArray( pTexSRVs, 0, NumTextures );
+    shaderBinding->GetVariableByName( "CBufferPerFrame" )->Set(...);
+    shaderBinding->GetVariableByName( "CBufferPerObject" )->Set(...);
 
-    //WindowGraphics& windowGraphics = WindowGraphics::Instance();
-
-    //Render::ViewHandle2 viewHandle2 = ;
-    //OS::OSDebugBreak();
-    //const Render::ViewHandle viewHandle = windowGraphics.GetView( hDesktopWindow );
-    //if( !viewHandle.IsValid() )
-    //  return;
-
-    //const Render::FramebufferHandle hFB = windowGraphics.GetFramebuffer( hDesktopWindow );
-
-#if WE_HAD_A_COMMAND_LIST
-    ID3D12GraphicsCommandList* commandList;
-    commandList->RSSetViewports();
-    commandList->RSSetScissorRects();
-    commandList->OMSetRenderTargets();
-
-    Render::SetViewFramebuffer( viewHandle, hFB );
-    Render::SetViewport( viewHandle, Render::Viewport( size ) );
-    Render::SetViewScissorRect( viewHandle, Render::ScissorRect( size ) );
+    renderContext.CommitShaderResources( shaderBinding );
 #endif
 
 #if 0
@@ -661,7 +635,6 @@ namespace Tac
                              viewportDraw,
                              errors );
     }
-
   }
 
 

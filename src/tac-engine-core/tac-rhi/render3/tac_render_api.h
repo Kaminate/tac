@@ -90,6 +90,10 @@ namespace Tac::Render
     void Execute( Errors& );
     void ExecuteSynchronously( Errors& );
 
+    // represents a region of time ( from the call till the end of scope )
+    void DebugEvent( StringView ); 
+    void DebugMarker( StringView ); // represents a single point in time
+
     IContextBackend* mContextBackend{};
   };
 

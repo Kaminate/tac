@@ -28,6 +28,16 @@ add_subdirectory( main )
 
 target_link_libraries( TacWin32 TacEngineCore )
 
+
+# pix nuget test
+if( TRUE )
+
+include( ${CMAKE_SOURCE_DIR}/cmake/pix.cmake )
+add_pix_target()
+target_link_libraries( TacWin32 PIX )
+endif()
+
+
 # this is used in tac_register_renderers for __has_include( "tac_renderer_directx11.h" )
 target_include_directories( TacWin32 PUBLIC renderer )
 

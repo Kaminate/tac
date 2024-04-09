@@ -12,6 +12,8 @@ namespace Tac::Render
     virtual void SetRenderTarget( FBHandle ) {}
     virtual void Execute( Errors& ) {}
     virtual void ExecuteSynchronously( Errors& ) {}
+    virtual void DebugEvent( StringView ) {}
+    virtual void DebugMarker( StringView ) {}
     virtual void Retire() = 0;
   };
 

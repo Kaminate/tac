@@ -169,5 +169,8 @@ namespace Tac::Render
     mContextBackend->ExecuteSynchronously( errors );
   }
 
+  void Context::DebugEvent( StringView s ) { mContextBackend->DebugEvent( s ); }
+  void Context::DebugMarker( StringView s ) { mContextBackend->DebugMarker( s ); }
+
 
 } // namespace Tac::Render
