@@ -6,25 +6,27 @@
 #include "tac_example_dx12_input_layout_builder.h"
 #include "tac_example_dx12_checkerboard.h"
 
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-#include "src/common/containers/tac_array.h"
-#include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/containers/tac_span.h"
-#include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/math/tac_vector4.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/math/tac_vector3.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/shell/windows/tac_win32.h"
+//#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+//#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -69,25 +71,6 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   // Helper functions for App::Init
-
-  void DX12AppHelloTexture::CreateDesktopWindow()
-  {
-    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
-    const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
-    const DesktopAppCreateWindowParams desktopParams
-    {
-      .mName = "DX12 Window",
-      .mX = ( monitor.mWidth - s ) / 2,
-      .mY = ( monitor.mHeight - s ) / 2,
-      .mWidth = s,
-      .mHeight = s,
-    };
-    hDesktopWindow = CreateTrackedWindow( desktopParams );
-
-    DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
-    DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
-    QuitProgramOnWindowClose( hDesktopWindow );
-  }
 
   void DX12AppHelloTexture::EnableDebug( Errors& errors )
   {
@@ -773,34 +756,40 @@ namespace Tac
   }
 
 
-
-
-
-
   void DX12AppHelloTexture::CreatePipelineState( Errors& errors )
   {
     const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTexture.hlsl";
 
-    TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
+    DX12ExampleProgramCompiler::Params params
+    {
+      .mOutputDir = sShellPrefPath,
+      .mDevice = ( ID3D12Device* )m_device,
+    };
 
-    DX12ProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile(shaderAssetPath, errors) );
+    TAC_CALL( DX12ExampleProgramCompiler compiler( params, errors ) );
 
-    const DX12BuiltInputLayout inputLayout{
-      VertexDeclarations
-      {
-        VertexDeclaration
-        {
-          .mAttribute = Attribute::Position,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
-        },
-        VertexDeclaration
-        {
-          .mAttribute = Attribute::Color,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
-        },
-      } };
+    DX12ExampleProgramCompiler::Result compileResult
+      = TAC_CALL( compiler.Compile( shaderAssetPath, errors ) );
+
+    VertexDeclaration posDecl
+    {
+      .mAttribute = Attribute::Position,
+      .mTextureFormat = Format::sv3,
+      .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
+    };
+
+    VertexDeclaration colDecl
+    {
+      .mAttribute = Attribute::Color,
+      .mTextureFormat = Format::sv3,
+      .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
+    };
+
+    VertexDeclarations decls;
+    decls.push_back( posDecl );
+    decls.push_back( colDecl );
+
+    const DX12BuiltInputLayout inputLayout( decls );
 
 
     const D3D12_RASTERIZER_DESC RasterizerState
@@ -825,11 +814,12 @@ namespace Tac
       },
     };
 
+    const DXGI_FORMAT RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = compileResult.GetBytecode(Render::ShaderType::Vertex ),
-      .PS = compileResult.GetBytecode(Render::ShaderType::Fragment ),
+      .VS = compileResult.GetBytecode( Render::ShaderType::Vertex ),
+      .PS = compileResult.GetBytecode( Render::ShaderType::Fragment ),
       .BlendState = BlendState,
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,
@@ -837,7 +827,7 @@ namespace Tac
       .InputLayout = D3D12_INPUT_LAYOUT_DESC{},
       .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
       .NumRenderTargets = 1,
-      .RTVFormats = { DXGIGetSwapChainFormat() },
+      .RTVFormats = { RTVFormat },
       .SampleDesc = { .Count = 1 },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
@@ -853,15 +843,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloTexture::DX12CreateSwapChain( Errors& errors )
+  void DX12AppHelloTexture::DX12CreateSwapChain( SysWindowApi* windowApi, Errors& errors )
   {
     if( m_swapChain )
       return;
 
-    const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
-    const auto hwnd = ( HWND )state->mNativeWindowHandle;
+    auto hwnd = ( HWND )windowApi->GetNWH( hDesktopWindow );
     if( !hwnd )
       return;
+
+    const v2i size = windowApi->GetSize( hDesktopWindow );
 
     TAC_ASSERT( m_commandQueue );
 
@@ -870,8 +861,8 @@ namespace Tac
       .mHwnd = hwnd,
       .mDevice = (IUnknown*)m_commandQueue, // swap chain can force flush the queue
       .mBufferCount = bufferCount,
-      .mWidth = state->mWidth,
-      .mHeight = state->mHeight,
+      .mWidth = size.x,
+      .mHeight = size.y,
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -1245,9 +1236,24 @@ namespace Tac
 
   DX12AppHelloTexture::DX12AppHelloTexture( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloTexture::Init( Errors& errors )
+  void DX12AppHelloTexture::Init( SimInitParams params, Errors& errors )
   {
-    CreateDesktopWindow();
+    WindowBackend::SysApi::mIsRendererEnabled = false; // hack
+
+    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
+    const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
+    int X = ( monitor.mWidth - s ) / 2;
+    int Y = ( monitor.mHeight - s ) / 2;
+
+    SimWindowApi::CreateParams windowParams
+    {
+      .mName = "DX12 Window",
+      .mPos{ X, Y },
+      .mSize{ s, s },
+    };
+    hDesktopWindow = params.mWindowApi->CreateWindow( windowParams );
+
+    QuitProgramOnWindowClose( hDesktopWindow );
   }
 
   void DX12AppHelloTexture::PreSwapChainInit( Errors& errors)
@@ -1274,13 +1280,15 @@ namespace Tac
     TAC_CALL( CreateSampler( errors ) );
   }
 
-  void DX12AppHelloTexture::Update( Errors& errors )
+
+  void DX12AppHelloTexture::Render( SysRenderParams renderParams , Errors& errors )
   {
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+    SysWindowApi* windowApi = renderParams.mWindowApi;
+    if( !windowApi->IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( errors ) );
+    TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
     TAC_CALL( CreateVertexBuffer( errors ) );
     TAC_CALL( CreateTexture( errors ) );
@@ -1290,6 +1298,11 @@ namespace Tac
 
     TAC_CALL( SwapChainPresent( errors ) );
     TAC_CALL( WaitForPreviousFrame( errors ) );
+
+  }
+
+  void DX12AppHelloTexture::Update( SimUpdateParams params, Errors& errors )
+  {
   }
 
   void DX12AppHelloTexture::Uninit( Errors& errors )

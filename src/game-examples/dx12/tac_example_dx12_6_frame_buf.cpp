@@ -1052,6 +1052,7 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::Init( SimInitParams initParams, Errors& errors )
   {
+    WindowBackend::SysApi::mIsRendererEnabled = false; // hack
     CreateDesktopWindow();
   }
 

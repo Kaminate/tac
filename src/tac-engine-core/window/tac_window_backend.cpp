@@ -18,6 +18,8 @@ import std; // mutex
 
 namespace Tac::WindowBackend
 {
+
+  bool SysApi::mIsRendererEnabled = true;
   struct WindowState
   {
     String mName;

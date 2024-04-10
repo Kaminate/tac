@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
-#include "tac_example_dx12_win32_event.h"
+#include "tac-win32/tac_win32_com_ptr.h"
+#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-win32/event/tac_win32_event.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
 
 #include <d3d12.h> // D3D12...
 
@@ -30,15 +30,15 @@ namespace Tac
 
     DX12AppHelloTexture( const Config& );
 
-    void Init( Errors& ) override;
-    void Update( Errors& ) override;
+    void Init( SimInitParams, Errors& ) override;
+    void Update( SimUpdateParams, Errors& ) override;
+    void Render( SysRenderParams, Errors& ) override;
     void Uninit( Errors& ) override;
 
   private:
 
     // Helper functions for Init
     void PreSwapChainInit(Errors&);
-    void CreateDesktopWindow();
 
     void EnableDebug( Errors& );
 
@@ -61,7 +61,7 @@ namespace Tac
     
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( Errors& );
+    void DX12CreateSwapChain( SysWindowApi*, Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
@@ -99,7 +99,7 @@ namespace Tac
 
     static const int                   bufferCount = 2;
 
-    DesktopWindowHandle                hDesktopWindow{};
+    WindowHandle                       hDesktopWindow{};
 
     // ---------------------------------------------------------------------------------------------
 

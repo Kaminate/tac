@@ -128,6 +128,9 @@ namespace Tac
       //Mouse::MouseEndFrame();
 
       App::IState* gameState = mApp->GetGameState();
+      if( !gameState )
+        gameState = TAC_NEW App::IState;
+
       gameState->mFrameIndex = Timestep::GetElapsedFrames();
       gameState->mTimestamp = Timestep::GetElapsedTime();
       gameState->mTimepoint = Timestep::GetLastTick();

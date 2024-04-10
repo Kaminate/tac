@@ -47,4 +47,14 @@ function( add_pix_target )
     target_compile_definitions( PIX INTERFACE USE_PIX )
     set_property( TARGET PIX PROPERTY DX_COMPONENT_CONFIG "NuGet (WinPixEventRuntime.1.0.230302001)" )
 
+    # install the dll?
+
+    message( "cmake install prefi: " ${CMAKE_INSTALL_PREFIX} )
+    message( "cmake install bin: " ${CMAKE_INSTALL_BINDIR} )
+
+    set( PIX_DLL_PATH ${pix_content_SOURCE_DIR}/bin/x64/WinPixEventRuntime.dll
+         CACHE FILEPATH "Path of PIX dll" )
+
+
+
 endfunction()

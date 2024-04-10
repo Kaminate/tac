@@ -527,16 +527,13 @@ namespace Tac
     const Render::PipelineParams pipelineParams
     {
       .mProgram = program,
-      //.mRTVColorFmts = { fbFmt },
       .mRTVColorFmts{ fbFmt },
     };
     Render::PipelineHandle pipeline = TAC_CALL(
       Render::RenderApi::CreateRenderPipeline( pipelineParams, errors ) );
 
-    String renderGroupStr =  String() + __FUNCTION__
-                            + "("
-                            + Tac::ToString( hDesktopWindow.GetIndex() )
-                            + ")";
+    const String renderGroupStr = String()
+      + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")";
 
     const v2i windowSize = windowApi->GetSize( hDesktopWindow );
 

@@ -136,7 +136,7 @@ function( _define_dx_path varName filename )
     list( APPEND bins $ENV{WindowsSdkVerBinPath} )
   endif()
 
-  foreach(bin ${bins})
+  foreach( bin ${bins} )
     set( varVal ${bin}x64/${filename} )
     if( EXISTS ${varVal} )
       message( VERBOSE "Setting ${varName} to ${varVal}" )

@@ -12,13 +12,14 @@ namespace Tac
   struct TrackInfo
   {
     String              mPath;
-    WindowHandle mWindowHandle;
+    WindowHandle        mWindowHandle;
     int                 mX = 0;
     int                 mY = 0;
     int                 mW = 0;
     int                 mH = 0;
     bool                mQuitOnClose = false;
     bool                mEverOpened = false;
+    bool                mTrackSettings = false;
   };
 
   static Vector< TrackInfo > sTrackInfos;
@@ -59,6 +60,7 @@ Tac::WindowHandle Tac::CreateTrackedWindow( const SimWindowApi::CreateParams& pa
     .mY = params.mPos.y,
     .mW = params.mSize.x,
     .mH = params.mSize.y,
+    .mTrackSettings = true,
   };
   sTrackInfos.push_back( info );
   return windowHandle;}
@@ -93,44 +95,58 @@ void Tac::UpdateTrackedWindows()
   for( TrackInfo& info : sTrackInfos )
   {
     WindowHandle windowHandle = info.mWindowHandle;
-    if( !sWindowApi-> IsShown(windowHandle) && info.mEverOpened )
+    if( !sWindowApi->IsShown( windowHandle ) && info.mEverOpened )
       OS::OSAppStopRunning();
 
-    if( !sWindowApi->IsShown(windowHandle) )
+    if( !sWindowApi->IsShown( windowHandle ) )
       continue;
 
     info.mEverOpened = true;
 
-    const v2i pos = sWindowApi->GetPos( windowHandle );
-    const v2i size = sWindowApi->GetSize( windowHandle );
-    const int x = pos.x;
-    const int y = pos.y;
-    const int w = size.x;
-    const int h = size.y;
-    if( x == info.mX &&
-        y == info.mY &&
-        w == info.mW &&
-        h == info.mH )
-      continue;
+    if( info.mTrackSettings )
+    {
+      const v2i pos = sWindowApi->GetPos( windowHandle );
+      const v2i size = sWindowApi->GetSize( windowHandle );
+      const int x = pos.x;
+      const int y = pos.y;
+      const int w = size.x;
+      const int h = size.y;
+      if( x == info.mX &&
+          y == info.mY &&
+          w == info.mW &&
+          h == info.mH )
+        continue;
 
-    info.mX = x;
-    info.mY = y;
-    info.mW = w;
-    info.mH = h;
-    Json* json = SettingsGetJson( info.mPath );
-    SettingsSetNumber( "x", info.mX, json );
-    SettingsSetNumber( "y", info.mY, json );
-    SettingsSetNumber( "w", info.mW, json );
-    SettingsSetNumber( "h", info.mH, json );
+      info.mX = x;
+      info.mY = y;
+      info.mW = w;
+      info.mH = h;
+      Json* json = SettingsGetJson( info.mPath );
+      SettingsSetNumber( "x", info.mX, json );
+      SettingsSetNumber( "y", info.mY, json );
+      SettingsSetNumber( "w", info.mW, json );
+      SettingsSetNumber( "h", info.mH, json );
+    }
   }
 }
 
 
-void Tac::QuitProgramOnWindowClose( const WindowHandle& WindowHandle )
+void Tac::QuitProgramOnWindowClose( const WindowHandle& h )
 {
-  TrackInfo* trackInfo = FindTrackInfo( WindowHandle );
-  TAC_ASSERT( trackInfo ); // maybe todo make this work on non-tracked windows?
-  trackInfo->mQuitOnClose = true;
+  TrackInfo* trackInfo = FindTrackInfo( h );
+  if( !trackInfo )
+  {
+    const TrackInfo info
+    {
+      .mWindowHandle = h,
+      .mQuitOnClose = true,
+    };
+    sTrackInfos.push_back( info );
+  }
+  else
+  {
+    trackInfo->mQuitOnClose = true;
+  }
 }
 
 
