@@ -230,9 +230,7 @@ namespace Tac
     } break;
 
     //case WM_SETCURSOR:
-    //{
-    //  result = TRUE;
-    //} break;
+    //  return TRUE;
 
     case WM_SETFOCUS:
     {

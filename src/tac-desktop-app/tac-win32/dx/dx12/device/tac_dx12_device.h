@@ -13,11 +13,10 @@ namespace Tac::Render
 {
   struct DX12DebugLayer;
 
-  struct DX12Device
+  struct DX12DeviceInitializer
   {
     // Creates the device
     void Init( const DX12DebugLayer&, Errors& );
-    ID3D12Device* GetID3D12Device();
 
     PCom< ID3D12Device >              m_device;
     PCom< ID3D12DebugDevice >         m_debugDevice;

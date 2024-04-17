@@ -7,7 +7,7 @@
 namespace Tac::Render
 {
 
-  void DX12Device::Init( const DX12DebugLayer& debugLayer, Errors& errors )
+  void DX12DeviceInitializer::Init( const DX12DebugLayer& debugLayer, Errors& errors )
   {
     TAC_ASSERT( !IsDebugMode || debugLayer.IsEnabled() );
 
@@ -24,10 +24,7 @@ namespace Tac::Render
       m_device.QueryInterface( m_debugDevice );
       TAC_ASSERT( m_debugDevice );
     }
-
   }
-
-  ID3D12Device* DX12Device::GetID3D12Device() { return m_device.Get(); }
 
 } // namespace Tac::Render
 

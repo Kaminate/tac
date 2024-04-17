@@ -141,8 +141,8 @@ namespace Tac
 
   struct ImGuiRenderBuffers
   {
-    Render::DynBufHandle mVB;
-    Render::DynBufHandle mIB;
+    Render::BufferHandle mVB;
+    Render::BufferHandle mIB;
     int mVBCount = 0;
     int mIBCount = 0;
   };

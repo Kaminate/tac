@@ -13,11 +13,11 @@ namespace Tac::Render
   struct DX12BufferMgr
   {
     void Init( ID3D12Device* );
-    void CreateDynBuf( DynBufHandle, int, StackFrame, Errors& );
-    void UpdateDynBuf( RenderApi::UpdateDynBufParams );
-    void DestroyDynBuf( DynBufHandle);
+    void CreateBuffer( CreateBufferParams, Errors& );
+    void UpdateBuffer( UpdateBufferParams );
+    void DestroyBuffer( BufferHandle);
 
-    DX12DynBuf    mDynBufs[ 100 ];
+    DX12Buffer    mBuffers[ 100 ];
     ID3D12Device* mDevice{};
   };
 } // namespace Tac::Render

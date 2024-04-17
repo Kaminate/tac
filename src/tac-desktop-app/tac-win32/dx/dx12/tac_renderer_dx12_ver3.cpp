@@ -16,6 +16,67 @@
 namespace Tac::Render
 {
 
+  static DX12Renderer sRenderer;
+
+  void    DX12Renderer::Init( Errors& errors )
+  {
+
+    TAC_CALL( DXGIInit( errors ) );
+
+    TAC_CALL( mDebugLayer.Init( errors ) );
+
+    TAC_CALL( mDeviceInitializer.Init( mDebugLayer, errors ) );
+
+    mDevice = mDeviceInitializer.m_device.Get();
+
+    TAC_CALL( mInfoQueue.Init( mDebugLayer, mDevice, errors ) );
+
+    TAC_CALL( InitDescriptorHeaps( errors ) );
+
+    TAC_CALL( mProgramMgr.Init( mDevice, errors ) );
+
+    TAC_CALL( mPipelineMgr.Init( mDevice, &mProgramMgr ) );
+
+    mFrameBufMgr.Init( mDevice, &mCommandQueue, &mCpuDescriptorHeapRTV );
+
+    mBufMgr.Init( mDevice );
+
+    //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();
+    /*
+    const int maxGPUFrameCount = Render::GetMaxGPUFrameCount();
+    TAC_ASSERT( maxGPUFrameCount );
+    mFenceValues.resize( maxGPUFrameCount );
+
+    TAC_CALL( DXGIInit( errors ) );
+
+    TAC_CALL( debugLayer.Init( errors ) );
+
+    TAC_CALL( mDevice.Init( debugLayer, errors ) );
+    ID3D12Device* device = mDevice.GetID3D12Device();
+
+    TAC_CALL( infoQueue.Init( debugLayer, device, errors ) );
+
+    */
+    TAC_CALL( mCommandQueue.Create( mDevice, errors ) );
+    mCommandAllocatorPool.Init( mDevice, &mCommandQueue );
+    mContextManager.Init( &mCommandAllocatorPool,
+                          &mCommandQueue,
+                          &mUploadPageManager,
+                          &mFrameBufMgr,
+                          mDevice );
+    mUploadPageManager.Init( mDevice, &mCommandQueue );
+    /*
+
+    TAC_CALL( mSRVDescriptorHeap.InitSRV( 100, device, errors ) );
+    TAC_CALL( mSamplerDescriptorHeap.InitSampler( 100, device, errors ) );
+
+
+
+    mSamplers.Init( device, &mSamplerDescriptorHeap );
+    */
+  }
+
+
 #if 0
   // -----------------------------------------------------------------------------------------------
 
@@ -36,9 +97,9 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  // DX12DynBuf
+  // DX12Buffer
 
-  void DX12DynBuf::SetName( StringView name )
+  void DX12Buffer::SetName( StringView name )
   {
     DX12SetName( mResource, name );
   }
@@ -70,9 +131,9 @@ namespace Tac::Render
 
   //const int TAC_MAX_FB_COUNT = 100;
 
-  void    DX12Backend::InitDescriptorHeaps( Errors& errors )
+  void    DX12Renderer::InitDescriptorHeaps( Errors& errors )
   {
-    ID3D12Device* device = mDevice.GetID3D12Device();
+    ID3D12Device* device = mDevice;
 
     // CPU RTV
     {
@@ -148,61 +209,8 @@ namespace Tac::Render
     }
   }
 
-  void    DX12Backend::Init( Errors& errors )
+  void    DX12Device::Init( Errors& errors )
   {
-    TAC_CALL( DXGIInit( errors ) );
-
-    TAC_CALL( mDebugLayer.Init( errors ) );
-
-    TAC_CALL( mDevice.Init( mDebugLayer, errors ) );
-
-    ID3D12Device* device = mDevice.GetID3D12Device();
-
-    TAC_CALL( mInfoQueue.Init( mDebugLayer, device, errors ) );
-
-    TAC_CALL( InitDescriptorHeaps( errors ) );
-
-    TAC_CALL( mProgramMgr.Init( device, errors ) );
-
-    TAC_CALL( mPipelineMgr.Init( device, &mProgramMgr ) );
-
-    mFrameBufMgr.Init( device, &mCommandQueue, &mCpuDescriptorHeapRTV );
-
-    mBufMgr.Init( device );
-
-    //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();
-    /*
-    const int maxGPUFrameCount = Render::GetMaxGPUFrameCount();
-    TAC_ASSERT( maxGPUFrameCount );
-    mFenceValues.resize( maxGPUFrameCount );
-
-    TAC_CALL( DXGIInit( errors ) );
-
-    TAC_CALL( debugLayer.Init( errors ) );
-
-    TAC_CALL( mDevice.Init( debugLayer, errors ) );
-    ID3D12Device* device = mDevice.GetID3D12Device();
-
-    TAC_CALL( infoQueue.Init( debugLayer, device, errors ) );
-
-    */
-    TAC_CALL( mCommandQueue.Create( device, errors ) );
-    mCommandAllocatorPool.Init( device, &mCommandQueue );
-    mContextManager.Init( &mCommandAllocatorPool,
-                          &mCommandQueue,
-                          &mUploadPageManager,
-                          &mFrameBufMgr,
-                          device );
-    mUploadPageManager.Init( device, &mCommandQueue );
-    /*
-
-    TAC_CALL( mSRVDescriptorHeap.InitSRV( 100, device, errors ) );
-    TAC_CALL( mSamplerDescriptorHeap.InitSampler( 100, device, errors ) );
-
-
-
-    mSamplers.Init( device, &mSamplerDescriptorHeap );
-    */
   }
 
 #if 0
@@ -226,74 +234,91 @@ namespace Tac::Render
 
 #endif
 
-  void    DX12Backend::CreateRenderPipeline( PipelineHandle h,
-                                             PipelineParams params,
+  PipelineHandle    DX12Device::CreatePipeline(  PipelineParams params,
                                              Errors& errors )
   {
-    mPipelineMgr.CreatePipeline( h, params, errors );
+    PipelineHandle h = AllocPipelineHandle();
+    sRenderer. mPipelineMgr.CreatePipeline( h, params, errors );
+    return h;
 
   }
 
-  void    DX12Backend::DestroyRenderPipeline( PipelineHandle h )
+  void    DX12Device::DestroyPipeline( PipelineHandle h )
   {
-    mPipelineMgr.DestroyPipeline( h );
+    sRenderer. mPipelineMgr.DestroyPipeline( h );
   }
 
-  void    DX12Backend::CreateProgram( ProgramHandle h,
+  ProgramHandle    DX12Device::CreateProgram(  
                                       ProgramParams params,
                                       Errors& errors )
   {
-    mProgramMgr.CreateProgram( h, params, errors );
+    ProgramHandle h = AllocProgramHandle();
+    sRenderer. mProgramMgr.CreateProgram( h, params, errors );
+    return h;
   }
 
-  void    DX12Backend::DestroyProgram( ProgramHandle h )
+  void    DX12Device::DestroyProgram( ProgramHandle h )
   {
     mProgramMgr.DestroyProgram( h );
   }
 
-  void    DX12Backend::CreateFB( FBHandle h,
+  FBHandle    DX12Device::CreateFB(  
                                  FrameBufferParams params,
                                  Errors& errors )
   {
     mFrameBufMgr.CreateFB( h, params, errors );
   }
 
-  void    DX12Backend::ResizeFB( FBHandle h, v2i size )
+  void    DX12Device::ResizeFB( FBHandle h, v2i size )
   {
     mFrameBufMgr.ResizeFB( h, size );
   }
 
-  TexFmt  DX12Backend::GetFBFmt( FBHandle h )
+  TexFmt  DX12Device::GetFBFmt( FBHandle h )
   {
     return mFrameBufMgr.GetFBFmt( h );
   }
 
-  void    DX12Backend::DestroyFB( FBHandle h )
+  void    DX12Device::DestroyFB( FBHandle h )
   {
     return mFrameBufMgr.DestroyFB( h);
   }
 
-  void    DX12Backend::CreateDynBuf( DynBufHandle h,
-                                     int byteCount,
-                                     StackFrame sf,
-                                     Errors& errors )
+  BufferHandle    DX12Device::CreateBuffer( CreateBufferParams params,
+                                            Errors& errors )
   {
-    mBufMgr.CreateDynBuf( h, byteCount, sf, errors );
+    BufferHandle h = AllocBufferHandle();
+    sRenderer.mBufMgr.CreateBuffer( params, errors );
+    return h;
   }
 
-  void    DX12Backend::UpdateDynBuf( RenderApi::UpdateDynBufParams params )
+  void    DX12Device::UpdateBuffer( UpdateBufferParams params )
   {
-    mBufMgr.UpdateDynBuf( params );
+    mBufMgr.UpdateBuffer( params );
   }
 
-  void    DX12Backend::DestroyDynBuf( DynBufHandle h )
+  void    DX12Device::DestroyBuffer( BufferHandle h )
   {
-    mBufMgr.DestroyDynBuf( h );
+    mBufMgr.DestroyBuffer( h );
   }
 
-  IContextBackend* DX12Backend::CreateRenderContextBackend(Errors& errors)
+  IContextBackend* DX12Device::CreateRenderContextBackend( Errors& errors )
   {
     return mContextManager.GetContext(errors);
   }
 
+  TextureHandle DX12Device::CreateTexture( CreateTextureParams params, Errors& errors )
+  {
+    sRenderer.mTexMgr.CreateTexture( params, errors );
+  }
+
+  void DX12Device::UpdateTexture( UpdateTextureParams parms )
+  {
+    sRenderer.mTexMgr.UpdateDynTex( params )
+  }
+
+  void DX12Device::DestroyTexture( TextureHandle h )
+  {
+    sRenderer.mTexMgr.DestroyTexture( h );
+  }
 } // namespace Tac::Render

@@ -402,7 +402,7 @@ namespace Tac
     {
       const int byteCount = mVertexCount * sizeof( UI2DVertex );
       gDrawInterface->mVB = TAC_CALL(
-        Render::RenderApi::CreateDynBuf( byteCount, TAC_STACK_FRAME, errors ) );
+        Render::RenderApi::CreateBuffer( byteCount, TAC_STACK_FRAME, errors ) );
       gDrawInterface->mVBCount = mVertexCount;
     }
 
@@ -410,14 +410,14 @@ namespace Tac
     for( SmartPtr< UI2DDrawData>& drawData : mDrawData )
     {
       const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
-      const Render::RenderApi::UpdateDynBufParams updateParams
+      const Render::UpdateBufferParams updateParams
       {
         .mHandle = gDrawInterface->mVB,
         .mSrcBytes = drawData->mVtxs.data(),
         .mSrcByteCount = srcByteCount,
         .mDstByteOffset = byteOffset,
       };
-      Render::RenderApi::UpdateDynBuf( updateParams );
+      Render::RenderApi::UpdateBuffer( updateParams );
       byteOffset += srcByteCount;
     }
   }
@@ -429,7 +429,7 @@ namespace Tac
     {
       const int byteCount = mIndexCount * sizeof( UI2DIndex );
       gDrawInterface->mIB
-        = TAC_CALL( Render::RenderApi::CreateDynBuf( byteCount, TAC_STACK_FRAME, errors ) );
+        = TAC_CALL( Render::RenderApi::CreateBuffer( byteCount, TAC_STACK_FRAME, errors ) );
       gDrawInterface->mIBCount = mIndexCount;
     }
 
@@ -437,7 +437,7 @@ namespace Tac
     for( SmartPtr< UI2DDrawData >& drawData : mDrawData )
     {
       const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
-      const Render::RenderApi::UpdateDynBufParams updateParams
+      const Render::UpdateBufferParams updateParams
       {
         .mHandle = gDrawInterface->mIB,
         .mSrcBytes = drawData->mIdxs.data(),
@@ -445,7 +445,7 @@ namespace Tac
         .mDstByteOffset = byteOffset,
       };
 
-      Render::RenderApi::UpdateDynBuf( updateParams );
+      Render::RenderApi::UpdateBuffer( updateParams );
       byteOffset += srcByteCount;
     }
   }

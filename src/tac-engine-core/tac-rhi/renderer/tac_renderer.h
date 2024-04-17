@@ -465,17 +465,17 @@ namespace Tac::Render
   void                             BeginGroup( const StringView&, const StackFrame& );
   void                             EndGroup( const StackFrame& );
 
-  void                             SetRenderObjectDebugName( FramebufferHandle, const StringView& );
-  void                             SetRenderObjectDebugName( TextureHandle, const StringView& );
-  void                             SetRenderObjectDebugName( MagicBufferHandle, const StringView& );
-  void                             SetRenderObjectDebugName( VertexBufferHandle, const StringView& );
-  void                             SetRenderObjectDebugName( IndexBufferHandle, const StringView& );
+  void                             SetRenderObjectDebugName( FramebufferHandle,     const StringView& );
+  void                             SetRenderObjectDebugName( TextureHandle,         const StringView& );
+  void                             SetRenderObjectDebugName( MagicBufferHandle,     const StringView& );
+  void                             SetRenderObjectDebugName( VertexBufferHandle,    const StringView& );
+  void                             SetRenderObjectDebugName( IndexBufferHandle,     const StringView& );
   void                             SetRenderObjectDebugName( RasterizerStateHandle, const StringView& );
-  void                             SetRenderObjectDebugName( BlendStateHandle, const StringView& );
-  void                             SetRenderObjectDebugName( DepthStateHandle, const StringView& );
-  void                             SetRenderObjectDebugName( VertexFormatHandle, const StringView& );
-  void                             SetRenderObjectDebugName( ConstantBufferHandle, const StringView& );
-  void                             SetRenderObjectDebugName( SamplerStateHandle, const StringView& );
+  void                             SetRenderObjectDebugName( BlendStateHandle,      const StringView& );
+  void                             SetRenderObjectDebugName( DepthStateHandle,      const StringView& );
+  void                             SetRenderObjectDebugName( VertexFormatHandle,    const StringView& );
+  void                             SetRenderObjectDebugName( ConstantBufferHandle,  const StringView& );
+  void                             SetRenderObjectDebugName( SamplerStateHandle,    const StringView& );
 
   enum class RendererAPI
   {

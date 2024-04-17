@@ -10,10 +10,9 @@ namespace Tac
 
 namespace Tac::Render
 {
-  static int sMaxGPUFrameCount; 
+  static int              sMaxGPUFrameCount; 
   static Filesystem::Path sShaderOutputPath; 
-
-  static IRenderBackend3* sBackend;
+  static IDevice*         sDevice;
 
   // -----------------------------------------------------------------------------------------------
   Handle::Handle( int i ) : mIndex( i ) {}
@@ -21,44 +20,10 @@ namespace Tac::Render
   bool Handle::IsValid() const { return mIndex != -1; }
   // -----------------------------------------------------------------------------------------------
 
-  template< typename T >
-  struct IdProtT
-  {
-    static T Alloc()
-    {
-      TAC_SCOPE_GUARD( std::lock_guard, GetMtx() );
-      return GetIds().Alloc();
-    }
-
-    static void Free(T t )
-    {
-      TAC_SCOPE_GUARD( std::lock_guard, GetMtx() );
-      return GetIds().Free( ( ( Handle )t ).GetIndex() );
-    }
-
-  private:
-
-    static IdCollection& GetIds()
-    {
-      static IdCollection sCollection;
-      return sCollection;
-    }
-
-    static std::mutex& GetMtx()
-    {
-      static std::mutex sMtx;
-      return sMtx;
-    }
-  };
-
-  // -----------------------------------------------------------------------------------------------
-
   void             RenderApi::Init( InitParams params, Errors& errors )
   {
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
     sShaderOutputPath = params.mShaderOutputPath;
-    sBackend = IRenderBackend3::sInstance;
-    sBackend->Init( errors );
   }
 
   int              RenderApi::GetMaxGPUFrameCount()
@@ -71,106 +36,27 @@ namespace Tac::Render
     return sShaderOutputPath;
   }
 
-  PipelineHandle   RenderApi::CreateRenderPipeline( PipelineParams params, Errors& errors )
-  {
-    const PipelineHandle h = IdProtT< PipelineHandle >::Alloc();
-    sBackend->CreateRenderPipeline( h, params, errors );
-    return h;
-  }
-
-  void             RenderApi::DestroyRenderPipeline( PipelineHandle h )
-  {
-    sBackend->DestroyRenderPipeline( h );
-    IdProtT< PipelineHandle >::Free( h );
-  }
-
-  ProgramHandle    RenderApi::CreateShaderProgram( ProgramParams params, Errors& errors )
-  {
-    const ProgramHandle h = IdProtT< ProgramHandle >::Alloc();
-    sBackend->CreateProgram( h, params, errors );
-    return h;
-  }
-
-  void             RenderApi::DestroyShaderProgram( ProgramHandle h )
-  {
-    sBackend->DestroyProgram( h );
-    IdProtT< ProgramHandle >::Free( h );
-  }
-
-  FBHandle         RenderApi::CreateFB( FrameBufferParams params, Errors& errors )
-  {
-    const FBHandle h = IdProtT<FBHandle>::Alloc();
-    sBackend->CreateFB( h, params, errors );
-    return h; 
-  }
-
-  void             RenderApi::ResizeFB( FBHandle h, v2i size )
-  {
-    sBackend->ResizeFB( h, size );
-  }
-
-  TexFmt           RenderApi::GetFBFmt( FBHandle h )
-  {
-    return sBackend->GetFBFmt( h );
-  }
-
-  void             RenderApi::DestroyFB( FBHandle h )
-  {
-    sBackend->DestroyFB( h );
-    IdProtT<FBHandle>::Free( h );
-  }
-
-  DynBufHandle     RenderApi::CreateDynBuf( int n, StackFrame sf, Errors& errors )
-  {
-    const DynBufHandle h = IdProtT< DynBufHandle >::Alloc();
-    sBackend->CreateDynBuf( h, n, sf, errors );
-    return h;
-  }
-
-  void             RenderApi::UpdateDynBuf( UpdateDynBufParams params )
-  {
-    sBackend->UpdateDynBuf( params );
-  }
-
-  void             RenderApi::DestroyDynBuf( DynBufHandle h )
-  {
-    sBackend->DestroyDynBuf( h );
-    IdProtT< DynBufHandle >::Free( h );
-  }
-
   Context          RenderApi::CreateRenderContext( Errors& errors )
   {
     return Context{ .mContextBackend = sBackend->CreateRenderContextBackend( errors ) };
   }
 
+  IDevice* RenderApi::GetRenderDevice()
+  {
+    return sDevice;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
-  Context::~Context()
-  {
-    mContextBackend->Retire();
-  }
+  Context::~Context()                                  { mContextBackend->Retire(); }
+  void Context::SetViewport( v2i size )                { mContextBackend->SetViewport( size ); }
+  void Context::SetScissor( v2i size )                 { mContextBackend->SetScissor( size ); }
+  void Context::SetRenderTarget( FBHandle h )          { mContextBackend->SetRenderTarget( h ); }
+  void Context::Execute( Errors& errors )              { mContextBackend->Execute( errors ); }
+  void Context::ExecuteSynchronously( Errors& errors ) { mContextBackend->ExecuteSynchronously( errors ); }
+  void Context::DebugEvent( StringView s )             { mContextBackend->DebugEvent( s ); }
+  void Context::DebugMarker( StringView s )            { mContextBackend->DebugMarker( s ); }
 
-  void Context::SetViewport( v2i size ) { mContextBackend->SetViewport( size ); }
-
-  void Context::SetScissor( v2i size ) { mContextBackend->SetScissor( size ); }
-
-  void Context::SetRenderTarget( FBHandle h )
-  {
-    mContextBackend->SetRenderTarget( h );
-  }
-
-  void Context::Execute( Errors& errors )
-  {
-    mContextBackend->Execute( errors );
-  }
-
-  void Context::ExecuteSynchronously( Errors& errors )
-  {
-    mContextBackend->ExecuteSynchronously( errors );
-  }
-
-  void Context::DebugEvent( StringView s ) { mContextBackend->DebugEvent( s ); }
-  void Context::DebugMarker( StringView s ) { mContextBackend->DebugMarker( s ); }
-
+  // -----------------------------------------------------------------------------------------------
 
 } // namespace Tac::Render

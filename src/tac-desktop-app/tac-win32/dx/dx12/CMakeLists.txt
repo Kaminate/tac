@@ -30,6 +30,7 @@ target_sources( TacWin32 PRIVATE
 
 add_subdirectory( program )
 add_subdirectory( buffer )
+add_subdirectory( texture )
 add_subdirectory( pipeline )
 add_subdirectory( descriptor )
 add_subdirectory( device )

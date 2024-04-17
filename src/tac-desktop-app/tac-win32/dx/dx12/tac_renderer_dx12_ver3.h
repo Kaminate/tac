@@ -8,6 +8,7 @@
 #include "tac-win32/dx/dx12/program/tac_dx12_program_mgr.h"
 #include "tac-win32/dx/dx12/pipeline/tac_dx12_pipeline_mgr.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_buffer_mgr.h"
+#include "tac-win32/dx/dx12/texture/tac_dx12_texture_mgr.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 #include "tac-win32/dx/dx12/device/tac_dx12_device.h"
 #include "tac-win32/dx/dx12/device/tac_dx12_info_queue.h"
@@ -28,39 +29,23 @@ namespace Tac { struct Errors; }
 namespace Tac::Render
 {
 
-  // you know, do we even inherit form renderer?
-  // this is our chance to rebuild the renderer
-  struct DX12Backend : public IRenderBackend3
+  struct DX12Renderer
   {
-    void Init( Errors& ) override;
-
-    void CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) override;
-    void DestroyRenderPipeline( PipelineHandle ) override;
-
-    void CreateProgram( ProgramHandle, ProgramParams, Errors& ) override;
-    void DestroyProgram( ProgramHandle ) override;
-
-    void   CreateFB( FBHandle, FrameBufferParams, Errors& ) override;
-    void   ResizeFB( FBHandle, v2i ) override;
-    TexFmt GetFBFmt( FBHandle ) override;
-    void   DestroyFB( FBHandle ) override;
-
-    void CreateDynBuf( DynBufHandle, int, StackFrame, Errors& ) override;
-    void UpdateDynBuf( RenderApi::UpdateDynBufParams ) override;
-    void DestroyDynBuf( DynBufHandle ) override;
-
-    IContextBackend* CreateRenderContextBackend(Errors&) override;
-
-  private:
+    void Init( Errors& );
     void InitDescriptorHeaps( Errors& );
 
-    DX12Device           mDevice;
-    DX12DebugLayer       mDebugLayer;
-    DX12InfoQueue        mInfoQueue;
+    DX12CommandQueue           mCommandQueue;
+    DX12CommandAllocatorPool   mCommandAllocatorPool;
+    DX12ContextManager         mContextManager;
+    DX12UploadPageMgr          mUploadPageManager;
+    DX12DeviceInitializer mDeviceInitializer;
+    DX12DebugLayer        mDebugLayer;
+    DX12InfoQueue         mInfoQueue;
 
     // Managers
     DX12FrameBufferMgr   mFrameBufMgr;
     DX12BufferMgr        mBufMgr;
+    DX12TextureMgr       mTexMgr;
     DX12ProgramMgr       mProgramMgr;
     DX12PipelineMgr      mPipelineMgr;
 
@@ -73,6 +58,37 @@ namespace Tac::Render
     // GPU Heaps (used for rendering)
     DX12DescriptorHeap   mGpuDescriptorHeapCBV_SRV_UAV;
     DX12DescriptorHeap   mGpuDescriptorHeapSampler;
+
+    ID3D12Device* mDevice;
+  };
+
+  struct DX12Device : public IDevice
+  {
+    void Init( Errors& ) override;
+
+    PipelineHandle CreatePipeline( PipelineParams, Errors& ) override;
+    void           DestroyPipeline( PipelineHandle ) override;
+
+    ProgramHandle CreateProgram( ProgramParams, Errors& ) override;
+    void          DestroyProgram( ProgramHandle ) override;
+
+    FBHandle    CreateFB( FrameBufferParams, Errors& ) override;
+    void        ResizeFB( FBHandle, v2i ) override;
+    TexFmt      GetFBFmt( FBHandle ) override;
+    void        DestroyFB( FBHandle ) override;
+
+    BufferHandle CreateBuffer( CreateBufferParams, Errors& ) override;
+    void         UpdateBuffer( UpdateBufferParams ) override;
+    void         DestroyBuffer( BufferHandle ) override;
+
+    TextureHandle CreateTexture( CreateTextureParams, Errors& ) override;
+    void          UpdateTexture( UpdateTextureParams ) override;
+    void          DestroyTexture( TextureHandle ) override;
+
+    IContextBackend* CreateRenderContextBackend(Errors&) override;
+
+  private:
+
 
 /*
     Cmds GetCommandList( ContextHandle, Errors& ) override;
@@ -94,10 +110,6 @@ namespace Tac::Render
 
 
     */
-    DX12CommandQueue           mCommandQueue;
-    DX12CommandAllocatorPool   mCommandAllocatorPool;
-    DX12ContextManager         mContextManager;
-    DX12UploadPageMgr          mUploadPageManager;
     /*
     DX12Samplers               mSamplers;
     Vector< FenceSignal >      mFenceValues;

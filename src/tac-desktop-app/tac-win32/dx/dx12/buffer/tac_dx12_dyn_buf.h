@@ -7,7 +7,7 @@
 
 namespace Tac::Render
 {
-  struct DX12DynBuf
+  struct DX12Buffer
   {
     PCom< ID3D12Resource >         mResource;
     D3D12_RESOURCE_DESC            mDesc{};

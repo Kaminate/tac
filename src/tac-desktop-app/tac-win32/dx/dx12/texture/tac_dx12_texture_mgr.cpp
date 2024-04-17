@@ -4,15 +4,13 @@
 
 namespace Tac::Render
 {
-  void DX12BufferMgr::Init( ID3D12Device* device )
+  void DX12TextureMgr::Init( ID3D12Device* device )
   {
     mDevice = device;
   }
 
-    void DX12BufferMgr::CreateBuffer( CreateBufferParams params, Errors& errors)
+    void DX12TextureMgr::CreateDynTex( DynTexHandle h, int byteCount, StackFrame sf, Errors& errors)
     {
-      BufferHandle h = params. , int byteCount, StackFrame sf;
-
       const D3D12_HEAP_PROPERTIES HeapProps
       {
         .Type = D3D12_HEAP_TYPE_UPLOAD,
@@ -65,24 +63,24 @@ namespace Tac::Render
 
       const int i = h.GetIndex();
 
-      mBuffers[ i ] = DX12Buffer
+      mDynTexs[ i ] = DX12DynTex
       {
         .mResource = buffer,
         .mMappedCPUAddr = cpuAddr,
       };
     }
 
-    void DX12BufferMgr::UpdateBuffer( UpdateBufferParams params )
+    void DX12TextureMgr::UpdateDynTex( UpdateDynTexParams params )
     {
-      BufferHandle h = params.mHandle;
-      DX12Buffer& Buffer = mBuffers[ h.GetIndex() ];
-      char* dstBytes = ( char* )Buffer.mMappedCPUAddr + params.mDstByteOffset;
+      DynTexHandle h = params.mHandle;
+      DX12DynTex& dynTex = mDynTexs[ h.GetIndex() ];
+      char* dstBytes = ( char* )dynTex.mMappedCPUAddr + params.mDstByteOffset;
       MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
     }
 
-    void DX12BufferMgr::DestroyBuffer( BufferHandle h )
+    void DX12TextureMgr::DestroyDynTex( DynTexHandle h )
     {
     if( h.IsValid() )
-      mBuffers[ h.GetIndex() ] = {};
+      mDynTexs[ h.GetIndex() ] = {};
     }
 } // namespace Tac::Render

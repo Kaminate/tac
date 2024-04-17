@@ -1298,7 +1298,6 @@ namespace Tac
 
     TAC_CALL( SwapChainPresent( errors ) );
     TAC_CALL( WaitForPreviousFrame( errors ) );
-
   }
 
   void DX12AppHelloTexture::Update( SimUpdateParams params, Errors& errors )

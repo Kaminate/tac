@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tac_render_api.h"
+#include "tac-rhi/identifier/tac_id_collection.h"
 
 namespace Tac{ struct Errors; }
 namespace Tac::Render
@@ -17,28 +18,14 @@ namespace Tac::Render
     virtual void Retire() = 0;
   };
 
-  struct IRenderBackend3
-  {
-    IRenderBackend3();
-    virtual void Init( Errors& ) {};
-
-    virtual void    CreateRenderPipeline( PipelineHandle, PipelineParams, Errors& ) {}
-    virtual void    DestroyRenderPipeline( PipelineHandle ) {}
-
-    virtual void    CreateProgram( ProgramHandle, ProgramParams, Errors& ) {}
-    virtual void    DestroyProgram( ProgramHandle ) {}
-
-    virtual void    CreateFB( FBHandle, FrameBufferParams, Errors& ) {}
-    virtual void    ResizeFB( FBHandle, v2i ) {}
-    virtual TexFmt  GetFBFmt( FBHandle ) { return TexFmt::kUnknown; }
-    virtual void    DestroyFB( FBHandle ) {}
-
-    virtual void    CreateDynBuf( DynBufHandle, int, StackFrame, Errors& ) {}
-    virtual void    UpdateDynBuf( RenderApi::UpdateDynBufParams ) {}
-    virtual void    DestroyDynBuf( DynBufHandle ) {}
-
-    virtual IContextBackend* CreateRenderContextBackend( Errors& ) { return {}; }
-
-    static IRenderBackend3* sInstance;
-  };
+  FBHandle        AllocFBHandle();
+  PipelineHandle  AllocPipelineHandle();
+  ProgramHandle   AllocProgramHandle();
+  BufferHandle    AllocBufferHandle();
+  TextureHandle   AllocTextureHandle();
+  void            FreeHandle( FBHandle );
+  void            FreeHandle( PipelineHandle );
+  void            FreeHandle( ProgramHandle );
+  void            FreeHandle( BufferHandle );
+  void            FreeHandle( TextureHandle );
 }

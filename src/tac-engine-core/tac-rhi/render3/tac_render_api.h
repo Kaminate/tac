@@ -9,6 +9,9 @@ namespace Tac{ struct Errors; }
 namespace Tac::Filesystem{ struct Path; }
 namespace Tac::Render
 {
+  struct IContextBackend;
+  struct IDevice;
+
   struct Handle
   {
     Handle( int );
@@ -19,10 +22,10 @@ namespace Tac::Render
   };
 
   struct FBHandle       : public Handle { FBHandle      ( int i = -1 ) : Handle{ i } {} };
-  struct DynBufHandle   : public Handle { DynBufHandle  ( int i = -1 ) : Handle{ i } {} };
   struct PipelineHandle : public Handle { PipelineHandle( int i = -1 ) : Handle( i ) {} };
   struct ProgramHandle  : public Handle { ProgramHandle ( int i = -1 ) : Handle{ i } {} };
-
+  struct BufferHandle   : public Handle { BufferHandle  ( int i = -1 ) : Handle{ i } {} };
+  struct TextureHandle  : public Handle { TextureHandle ( int i = -1 ) : Handle{ i } {} };
 
   //enum RasterizerType
   //{
@@ -60,6 +63,14 @@ namespace Tac::Render
     TexFmt      mColorFmt;
   };
 
+  struct CreateTextureParams
+  {
+  };
+
+  struct UpdateTextureParams
+  {
+  };
+
   struct ProgramParams
   {
     StringView mFileStem;
@@ -80,7 +91,7 @@ namespace Tac::Render
 
   // i think like a view could be a higher order construct, like in Tac::Space
 
-  struct IContextBackend;
+
   struct Context
   {
     ~Context();
@@ -97,6 +108,19 @@ namespace Tac::Render
     IContextBackend* mContextBackend{};
   };
 
+  struct CreateBufferParams
+  {
+    int mByteCount;
+  };
+
+  struct UpdateBufferParams
+  {
+    BufferHandle mHandle;
+    const void*  mSrcBytes;
+    int          mSrcByteCount;
+    int          mDstByteOffset;
+  };
+
   struct RenderApi
   {
     struct InitParams
@@ -105,33 +129,37 @@ namespace Tac::Render
       const Filesystem::Path& mShaderOutputPath;
     };
 
-    struct UpdateDynBufParams
-    {
-      DynBufHandle mHandle;
-      const void*  mSrcBytes;
-      int          mSrcByteCount;
-      int          mDstByteOffset;
-    };
-
     static void Init( InitParams, Errors& );
     static int              GetMaxGPUFrameCount();
     static Filesystem::Path GetShaderOutputPath();
+    static Context          CreateRenderContext( Errors& );
+    static IDevice*         GetRenderDevice();
+  };
 
-    static PipelineHandle CreateRenderPipeline( PipelineParams, Errors& );
-    static void           DestroyRenderPipeline( PipelineHandle );
+  struct IDevice
+  {
+    virtual void Init( Errors& ) {};
 
-    static ProgramHandle  CreateShaderProgram( ProgramParams, Errors& );
-    static void           DestroyShaderProgram( ProgramHandle );
+    virtual PipelineHandle CreatePipeline( PipelineParams, Errors& ) {}
+    virtual void           DestroyPipeline( PipelineHandle ) {}
 
-    static FBHandle       CreateFB( FrameBufferParams, Errors& );
-    static void           ResizeFB( FBHandle, v2i );
-    static TexFmt         GetFBFmt( FBHandle );
-    static void           DestroyFB( FBHandle );
+    virtual ProgramHandle  CreateProgram( ProgramParams, Errors& ) {}
+    virtual void           DestroyProgram( ProgramHandle ) {}
 
-    static DynBufHandle   CreateDynBuf( int, StackFrame, Errors& );
-    static void           UpdateDynBuf( UpdateDynBufParams );
-    static void           DestroyDynBuf( DynBufHandle );
+    virtual FBHandle       CreateFB( FrameBufferParams, Errors& ) {}
+    virtual void           ResizeFB( FBHandle, v2i ) {}
+    virtual TexFmt         GetFBFmt( FBHandle ) { return TexFmt::kUnknown; }
+    virtual void           DestroyFB( FBHandle ) {}
 
-    static Context        CreateRenderContext( Errors& );
+    virtual BufferHandle   CreateBuffer( CreateBufferParams, Errors& ) {}
+    virtual void           UpdateBuffer( UpdateBufferParams ) {}
+    virtual void           DestroyBuffer( BufferHandle ) {}
+
+    virtual TextureHandle  CreateTexture( CreateTextureParams, Errors& ) {}
+    virtual void           UpdateTexture( UpdateTextureParams ) {}
+    virtual void           DestroyTexture( TextureHandle ) {}
+
+    virtual IContextBackend* CreateRenderContextBackend( Errors& ) { return {}; }
   };
 }
+

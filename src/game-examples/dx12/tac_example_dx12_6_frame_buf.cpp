@@ -382,15 +382,15 @@ namespace Tac
       .Format = resourceDesc.Format,
       .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
       .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-      .Texture2D = D3D12_TEX2D_SRV { .MipLevels = 1, },
+      .Texture2D = D3D12_TEX2D_SRV{.MipLevels = 1, },
     };
 
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
       GetSRVCpuDescHandle( SRVIndexes::TriangleTexture );
-    m_device->CreateShaderResourceView((ID3D12Resource*)m_texture.Get(),
+    m_device->CreateShaderResourceView( ( ID3D12Resource* )m_texture.Get(),
                                         &srvDesc,
-                                        DestDescriptor);
-    
+                                        DestDescriptor );
+
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
@@ -1058,7 +1058,6 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)
   {
-
     TAC_CALL( DXGIInit( errors ) );
 
     DX12ExampleDebugLayer debugLayer;

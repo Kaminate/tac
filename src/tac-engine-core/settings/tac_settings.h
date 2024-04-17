@@ -3,19 +3,16 @@
 #pragma once
 
 #include "tac-std-lib/dataprocess/tac_json.h"
-//#include "tac-std-lib/tac_core.h"
 
 namespace Tac::Filesystem { struct Path; }
-
 namespace Tac
 {
-
 	void       SettingsInit( const Filesystem::Path&, Errors& );
 
 	//         Instructs that the settings file should be updated next write tick
 	void       SettingsSave();
 	Json*      SettingsGetJson( StringView path, Json* root = nullptr );
-	Json*      SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root);
+	Json*      SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root );
 	StringView SettingsGetString( StringView path, StringView fallback, Json* = nullptr );
 	void       SettingsSetString( StringView path, StringView setValue, Json* = nullptr );
   JsonNumber SettingsGetNumber( StringView path, JsonNumber fallback, Json* = nullptr );
