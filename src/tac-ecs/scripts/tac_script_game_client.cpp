@@ -500,7 +500,7 @@ namespace Tac
 		//  image.mWidth = x;
 		//  image.mHeight = y;
 
-		//  Render::TexSpec textureData;
+		//  Render::CreateTextureParams textureData;
 		//  textureData.mAccess = Access::Default;
 		//  textureData.mBinding = Binding::ShaderResource;
 		//  textureData.mImage = image;

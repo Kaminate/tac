@@ -33,8 +33,8 @@ namespace Tac
                                                         Render::ViewHandle );
   void                          GamePresentationDebugImGui( Graphics* );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );
-  //Render::ConstantBufferHandle  GamePresentationGetPerFrame();
-  //Render::ConstantBufferHandle  GamePresentationGetPerObj();
+  //Render::BufferHandle  GamePresentationGetPerFrame();
+  //Render::BufferHandle  GamePresentationGetPerObj();
   Render::DepthStateHandle      GamePresentationGetDepthState();
   Render::BlendStateHandle      GamePresentationGetBlendState();
   Render::RasterizerStateHandle GamePresentationGetRasterizerState();

@@ -1,6 +1,6 @@
 #include "tac_keyboard_backend.h" // self-inc
 
-#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 

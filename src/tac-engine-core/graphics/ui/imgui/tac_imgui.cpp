@@ -11,7 +11,8 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_array.h"

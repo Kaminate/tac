@@ -157,7 +157,7 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  void DX12AppHelloFrameBuf::CreateVertexBufferSRV( Errors& errors )
+  void DX12AppHelloFrameBuf::CreateBufferSRV( Errors& errors )
   {
     TAC_ASSERT( m_vertexBuffer );
 
@@ -455,7 +455,7 @@ namespace Tac
     DX12SetName( m_commandListBundle, "my_bundle_cmdlist" );
   }
 
-  void DX12AppHelloFrameBuf::CreateVertexBuffer( Errors& errors )
+  void DX12AppHelloFrameBuf::CreateBuffer( Errors& errors )
   {
     static bool sInitialized;
     TAC_ASSERT(!sInitialized);
@@ -585,7 +585,7 @@ namespace Tac
     // complete before continuing.
     context.ExecuteSynchronously();
 
-    TAC_CALL( CreateVertexBufferSRV( errors ) );
+    TAC_CALL( CreateBufferSRV( errors ) );
   }
 
   void DX12AppHelloFrameBuf::CreateRootSignature( Errors& errors )
@@ -985,7 +985,7 @@ namespace Tac
 
         // Here we are using SetGraphicsRootConstantBufferView to set a root CBV, as opposed to
         // using SetGraphicsRootDescriptorTable to set a table containing an element 
-        // (ID3D12Device::CreateConstantBufferView) which describes a CBV.
+        // (ID3D12Device::CreateBufferView) which describes a CBV.
         m_commandList->SetGraphicsRootConstantBufferView( 3, BufferLocation );
       }
     }
@@ -1158,7 +1158,7 @@ namespace Tac
       TAC_CALL( PreSwapChainInit( errors ) );
       TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
       TAC_CALL( CreateRenderTargetViews( errors ) );
-      TAC_CALL( CreateVertexBuffer( errors ) );
+      TAC_CALL( CreateBuffer( errors ) );
       TAC_CALL( CreateTexture( errors ) );
       RecordBundle();
     }

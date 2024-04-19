@@ -15,9 +15,22 @@ namespace Tac::Render
   static IDevice*         sDevice;
 
   // -----------------------------------------------------------------------------------------------
-  Handle::Handle( int i ) : mIndex( i ) {}
-  int Handle::GetIndex() const { TAC_ASSERT( IsValid() ); return mIndex; }
-  bool Handle::IsValid() const { return mIndex != -1; }
+
+  Binding operator | ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs | ( int )rhs ); }
+  Binding operator & ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs & ( int )rhs ); }
+
+  // -----------------------------------------------------------------------------------------------
+
+  IContext::Scope::Scope( IContext* context ) { mContext = context; }
+  IContext::Scope::~Scope()                   { mContext->Retire(); }
+  IContext* IContext::Scope::operator ->()    { return mContext; }
+
+  // -----------------------------------------------------------------------------------------------
+
+  IHandle::IHandle( int i ) : mIndex( i ) {}
+  int IHandle::GetIndex() const { TAC_ASSERT( IsValid() ); return mIndex; }
+  bool IHandle::IsValid() const { return mIndex != -1; }
+
   // -----------------------------------------------------------------------------------------------
 
   void             RenderApi::Init( InitParams params, Errors& errors )
@@ -25,37 +38,42 @@ namespace Tac::Render
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
     sShaderOutputPath = params.mShaderOutputPath;
   }
-
-  int              RenderApi::GetMaxGPUFrameCount()
+  void             RenderApi::Uninit()
   {
-    return sMaxGPUFrameCount;
+    // ...
   }
-
-  Filesystem::Path RenderApi::GetShaderOutputPath()
-  {
-    return sShaderOutputPath;
-  }
-
-  Context          RenderApi::CreateRenderContext( Errors& errors )
-  {
-    return Context{ .mContextBackend = sBackend->CreateRenderContextBackend( errors ) };
-  }
-
-  IDevice* RenderApi::GetRenderDevice()
-  {
-    return sDevice;
-  }
+  int              RenderApi::GetMaxGPUFrameCount() { return sMaxGPUFrameCount; }
+  Filesystem::Path RenderApi::GetShaderOutputPath() { return sShaderOutputPath; }
+  IDevice*         RenderApi::GetRenderDevice()     { return sDevice; }
 
   // -----------------------------------------------------------------------------------------------
 
-  Context::~Context()                                  { mContextBackend->Retire(); }
-  void Context::SetViewport( v2i size )                { mContextBackend->SetViewport( size ); }
-  void Context::SetScissor( v2i size )                 { mContextBackend->SetScissor( size ); }
-  void Context::SetRenderTarget( FBHandle h )          { mContextBackend->SetRenderTarget( h ); }
-  void Context::Execute( Errors& errors )              { mContextBackend->Execute( errors ); }
-  void Context::ExecuteSynchronously( Errors& errors ) { mContextBackend->ExecuteSynchronously( errors ); }
-  void Context::DebugEvent( StringView s )             { mContextBackend->DebugEvent( s ); }
-  void Context::DebugMarker( StringView s )            { mContextBackend->DebugMarker( s ); }
+
+  Format Format::FromElements( FormatElement element, int n )
+  {
+    return
+    {
+      .mElementCount = n,
+      .mPerElementByteCount = element.mPerElementByteCount,
+      .mPerElementDataType = element.mPerElementDataType,
+    };
+  }
+
+  int    Format::CalculateTotalByteCount() const
+  {
+    return mElementCount * mPerElementByteCount;
+  }
+
+  const FormatElement FormatElement::sFloat =
+  {
+      .mPerElementByteCount = sizeof( float ),
+      .mPerElementDataType = GraphicsType::real,
+  };
+  const Format Format::sfloat = Format::FromElements( FormatElement::sFloat, 1 );
+  const Format Format::sv2 = Format::FromElements( FormatElement::sFloat, 2 );
+  const Format Format::sv3 = Format::FromElements( FormatElement::sFloat, 3 );
+  const Format Format::sv4 = Format::FromElements( FormatElement::sFloat, 4 );
+
 
   // -----------------------------------------------------------------------------------------------
 

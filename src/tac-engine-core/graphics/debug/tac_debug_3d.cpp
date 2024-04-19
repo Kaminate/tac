@@ -1,6 +1,7 @@
 #include "tac_debug_3d.h" // self-inc
 
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
@@ -23,28 +24,35 @@ namespace Tac
   {
     void                          Init( Errors& );
     void                          Uninit();
+#if TAC_TEMPORARILY_DISABLED()
     Render::BlendStateHandle      mAlphaBlendState;
     Render::DepthStateHandle      mDepthLess;
     Render::RasterizerStateHandle mRasterizerStateNoCull;
-    Render::ShaderHandle          m3DVertexColorShader;
+    Render::ProgramHandle         m3DVertexColorShader;
     Render::VertexFormatHandle    mVertexColorFormat;
+#endif
   } gDebug3DCommonData;
 
-  static Render::DefaultCBufferPerFrame Debug3DGetPerFrameData( const Render::ViewHandle viewId,
-                                                        const Camera* camera,
-                                                        const int viewWidth,
-                                                        const int viewHeight )
+  static Render::DefaultCBufferPerFrame Debug3DGetPerFrameData( const Render::TextureHandle viewId,
+                                                                const Camera* camera,
+                                                                const int viewWidth,
+                                                                const int viewHeight )
 
   {
-    const auto outProj = Render::GetPerspectiveProjectionAB( { .mNear = camera->mNearPlane,
-                                        .mFar = camera->mFarPlane }
-    );
+    const Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    const auto ndcAttribs = renderDevice->GetInfo().mNDCAttribs;
+    const m4::ProjectionMatrixParams projMtxParams
+    {
+      .mNDCMinZ = ndcAttribs.mMin,
+      .mNDCMaxZ = ndcAttribs.mMax,
+      .mViewSpaceNear = camera->mNearPlane,
+      .mViewSpaceFar = camera->mFarPlane,
+      .mAspectRatio = ( float )viewWidth / ( float )viewHeight,
+      .mFOVYRadians = camera->mFovyrad,
+    };
 
-    const auto w = ( float )viewWidth;
-    const auto h = ( float )viewHeight;
-    const float aspect = w / h;
     const m4 view = camera->View();
-    const m4 proj = camera->Proj( outProj.mA, outProj.mB, aspect );
+    const m4 proj = m4::ProjPerspective( projMtxParams );
     const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
     return Render::DefaultCBufferPerFrame
     {
@@ -52,7 +60,7 @@ namespace Tac
       .mProjection = proj,
       .mFar = camera->mFarPlane,
       .mNear = camera->mNearPlane,
-      .mGbufferSize = { w, h },
+      .mGbufferSize = { ( float )viewWidth, ( float )viewHeight },
       .mSecModTau = ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ),
     };
   }
@@ -63,15 +71,18 @@ namespace Tac
 
   void Debug3DCommonData::Uninit()
   {
+#if TAC_TEMPORARILY_DISABLED()
     Render::DestroyBlendState( mAlphaBlendState, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthLess, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerStateNoCull, TAC_STACK_FRAME );
     Render::DestroyShader( m3DVertexColorShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mVertexColorFormat, TAC_STACK_FRAME );
+#endif
   }
 
   void Debug3DCommonData::Init( Errors& errors )
   {
+#if TAC_TEMPORARILY_DISABLED()
     const Render::RasterizerState rasterizerState
     {
       .mFillMode = Render::FillMode::Solid,
@@ -135,12 +146,15 @@ namespace Tac
                                                   .mBlendA = Render::BlendMode::Add,};
     mAlphaBlendState = Render::CreateBlendState( alphaBlendStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mAlphaBlendState, "debug-3d-alpha-blend" );
+#endif
   }
 
   Debug3DDrawData::~Debug3DDrawData()
   {
+#if TAC_TEMPORARILY_DISABLED()
     if( mVerts.IsValid() )
       Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
+#endif
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -509,12 +523,14 @@ namespace Tac
     DebugDraw3DTriangle( p0, p1, p2, color, color, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DToTexture( const Render::ViewHandle viewId,
+  void Debug3DDrawData::DebugDraw3DToTexture( Render::IContext* renderContext,
+                                              const Render::TextureHandle,
                                               const Camera* camera,
                                               const int viewWidth,
                                               const int viewHeight,
                                               Errors& errors )
   {
+#if TAC_TEMPORARILY_DISABLED()
     TAC_PROFILE_BLOCK;
     const int vertexCount = mDebugDrawVerts.size();
     if( mDebugDrawVerts.size() )
@@ -523,7 +539,7 @@ namespace Tac
       {
         if( mVerts.IsValid() )
           Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
-        mVerts = Render::CreateVertexBuffer( mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
+        mVerts = Render::CreateBuffer( mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
                                              mDebugDrawVerts.data(),
                                              sizeof( DefaultVertexColor ),
                                              Render::Access::Dynamic,
@@ -548,7 +564,7 @@ namespace Tac
                                                                           viewWidth,
                                                                           viewHeight );
 
-    const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
+    const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
     const int size = sizeof( Render::DefaultCBufferPerFrame );
     Render::UpdateConstantBuffer( hPerFrame, &perFrameData, size, TAC_STACK_FRAME );
 
@@ -560,9 +576,12 @@ namespace Tac
     Render::SetRasterizerState( gDebug3DCommonData.mRasterizerStateNoCull );
     Render::SetVertexFormat( gDebug3DCommonData.mVertexColorFormat );
     Render::SetVertexBuffer( mVerts, 0, vertexCount );
-    Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+    Render::SetIndexBuffer( Render::BufferHandle(), 0, 0 );
     Render::Submit( viewId, TAC_STACK_FRAME );
     Render::EndGroup( TAC_STACK_FRAME );
+#else
+    mDebugDrawVerts.clear();
+#endif
   }
 
 }

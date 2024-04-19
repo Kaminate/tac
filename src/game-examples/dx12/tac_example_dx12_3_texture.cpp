@@ -251,7 +251,7 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  void DX12AppHelloTexture::CreateVertexBufferSRV( Errors& errors )
+  void DX12AppHelloTexture::CreateBufferSRV( Errors& errors )
   {
     TAC_ASSERT( m_vertexBuffer );
 
@@ -560,7 +560,7 @@ namespace Tac
     DX12SetName( m_commandList, "My Command List" );
   }
 
-  void DX12AppHelloTexture::CreateVertexBuffer( Errors& errors )
+  void DX12AppHelloTexture::CreateBuffer( Errors& errors )
   {
     static bool sCreated;
     if( sCreated )
@@ -699,7 +699,7 @@ namespace Tac
     // complete before continuing.
     TAC_CALL( WaitForPreviousFrame( errors ) );
 
-    TAC_CALL( CreateVertexBufferSRV( errors ) );
+    TAC_CALL( CreateBufferSRV( errors ) );
   }
 
   void DX12AppHelloTexture::CreateFence( Errors& errors )
@@ -1290,7 +1290,7 @@ namespace Tac
     TAC_CALL( PreSwapChainInit( errors ) );
     TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
-    TAC_CALL( CreateVertexBuffer( errors ) );
+    TAC_CALL( CreateBuffer( errors ) );
     TAC_CALL( CreateTexture( errors ) );
     TAC_CALL( PopulateCommandList( errors ) );
 

@@ -5,7 +5,8 @@
 
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/containers/tac_vector.h" // Vector
-#include "tac-rhi/renderer/tac_renderer.h" // Render::
+//#include "tac-rhi/renderer/tac_renderer.h" // Render::
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h" // DefaultCBufferPerObject
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-engine-core/graphics/debug/tac_debug_group.h"
@@ -30,7 +31,7 @@ namespace Tac
     int                             mVertexCount = 0;
     int                             mIIndexStart = 0;
     int                             mIndexCount = 0;
-    Render::ShaderHandle            mShader;
+    Render::ProgramHandle           mShader;
     Render::TextureHandle           mTexture;
     Render::DefaultCBufferPerObject mUniformSource;
     StackFrame                      mStackFrame;
@@ -41,11 +42,10 @@ namespace Tac
 
   struct UI2DDrawGpuInterface
   {
-    int                        mVertexCapacity = 0;
-    int                        mIndexCapacity = 0;
-    Render::VertexBufferHandle mVertexBufferHandle;
-    Render::IndexBufferHandle  mIndexBufferHandle;
-
+    int                  mVertexCapacity = 0;
+    int                  mIndexCapacity = 0;
+    Render::BufferHandle mVertexBufferHandle;
+    Render::BufferHandle mIndexBufferHandle;
   };
 
 
@@ -79,10 +79,11 @@ namespace Tac
     UI2DDrawData() = default;
     ~UI2DDrawData() = default;
 
-    static void DrawToTexture2( Render::ViewHandle,
-                               UI2DDrawGpuInterface*,
-                               Span< UI2DDrawData >,
-                               Errors& );
+    static void DrawToTexture2( Render::IContext*,
+                                Render::TextureHandle,
+                                UI2DDrawGpuInterface*,
+                                Span< UI2DDrawData >,
+                                Errors& );
 
 #if 0
     void                   DrawToTexture( Render::ViewHandle, int w, int h, Errors& );

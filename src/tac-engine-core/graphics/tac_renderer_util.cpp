@@ -1,4 +1,5 @@
-#include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac_renderer_util.h" // self-inc
+#include "tac-std-lib/error/tac_error_handling.h"
 
 
 namespace Tac::Render
@@ -48,24 +49,34 @@ namespace Tac::Render
     return result;
   }
 
-  Render::ConstantBufferHandle CBufferLights::Handle;
-  Render::ConstantBufferHandle DefaultCBufferPerFrame::Handle;
-  Render::ConstantBufferHandle DefaultCBufferPerObject::Handle;
+  Render::BufferHandle CBufferLights::sHandle;
+  Render::BufferHandle DefaultCBufferPerFrame::sHandle;
+  Render::BufferHandle DefaultCBufferPerObject::sHandle;
 
-  void      DefaultCBufferPerFrame::Init()
+  void      DefaultCBufferPerFrame::Init( Errors& errors )
   {
-    Handle = Render::CreateConstantBuffer( "CBufferPerFrame",
-                                           sizeof( DefaultCBufferPerFrame ),
-                                           TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( Handle, "per-frame" );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::CreateBufferParams params
+    {
+      .mByteCount = sizeof( DefaultCBufferPerFrame ),
+      .mAccess = Render::Usage::Dynamic,
+      .mOptionalName =  "CBufferPerFrame",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }
 
-  void      DefaultCBufferPerObject::Init()
+  void      DefaultCBufferPerObject::Init(Errors& errors)
   {
-    Handle = Render::CreateConstantBuffer( "CBufferPerObject",
-                                           sizeof( DefaultCBufferPerObject ),
-                                           TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( Handle, "per-obj" );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::CreateBufferParams params
+    {
+      .mByteCount = sizeof( DefaultCBufferPerObject ),
+      .mAccess = Render::Usage::Dynamic,
+      .mOptionalName =  "CBufferPerObject",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }
 
   //void      DefaultCBufferPerObject::SetColor( const v3& sRGB, float linearAlpha )
@@ -121,12 +132,17 @@ namespace Tac::Render
 
   const v4& DefaultCBufferPerObject::GetColor() const { return Color.Color; }
 
-  void      CBufferLights::Init()
+  void      CBufferLights::Init(Errors& errors)
   {
-    Handle = Render::CreateConstantBuffer( "CBufferLights",
-                                           sizeof( CBufferLights ),
-                                           TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( Handle, "lights" );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::CreateBufferParams params
+    {
+      .mByteCount = sizeof( CBufferLights ),
+      .mAccess = Render::Usage::Dynamic,
+      .mOptionalName =  "CBufferLights",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }
 
 } // namespace Tac::Render

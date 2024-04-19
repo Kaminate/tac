@@ -4,7 +4,8 @@
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-std-lib/containers/tac_map.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 
 namespace Tac

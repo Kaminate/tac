@@ -3,7 +3,8 @@
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac
 {
@@ -96,14 +97,15 @@ namespace Tac
                               const v3& p2,
                               const v3& color = { 1, 1, 1 } );
 
-    void DebugDraw3DToTexture( const Render::ViewHandle,
+    void DebugDraw3DToTexture( Render::IContext*,
+                               const Render::TextureHandle,
                                const Camera*,
                                const int viewWidth,
                                const int viewHeight,
                                Errors& );
     
     Vector< DefaultVertexColor > mDebugDrawVerts;
-    Render::VertexBufferHandle   mVerts;
+    Render::BufferHandle         mVerts;
     int                          mCapacity = 0;
   };
 

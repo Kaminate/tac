@@ -7,6 +7,7 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac::Render::DebugGroup
 {
@@ -35,9 +36,9 @@ namespace Tac::Render::DebugGroup
   {
     friend struct Stack;
     ~Iterator();
+    Iterator( Render::IContext* );
 
   private:
-    Iterator() = default; // only constructable by Stack::IterateBegin()
 
     bool                  Contains( const Node* ) const;
     const Node*           back() const;
@@ -45,6 +46,7 @@ namespace Tac::Render::DebugGroup
 
     bool                  mFinished = false;
     Vector< const Node* > mNodeStack; // actual stack of nodes that were pushed/popped
+    Render::IContext*     mRenderContext{};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -57,9 +59,9 @@ namespace Tac::Render::DebugGroup
     String&        Push();
     void           Pop();
 
-    Iterator       IterateBegin() const;
-    void           IterateElement( Iterator&, NodeIndex, const StackFrame& ) const;
-    void           IterateEnd( Iterator&, const StackFrame& );
+    Iterator       IterateBegin( Render::IContext* ) const;
+    void           IterateElement( Iterator&, NodeIndex ) const;
+    void           IterateEnd( Iterator& );
 
   private:
     Node*          FindNode( NodeIndex );

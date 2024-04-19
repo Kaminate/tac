@@ -5,6 +5,7 @@
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -141,7 +142,8 @@ namespace Tac
 
   static Mesh               WavefrontObjConvertToMesh( const StringView& name,
                                                        const WavefrontObj& wavefrontObj,
-                                                       const Render::VertexDeclarations& vertexDeclarations )
+                                                       const Render::VertexDeclarations& vertexDeclarations,
+                                                       Errors& errors )
   {
     const int stride = WavefrontObjCalculateStride( vertexDeclarations );
 
@@ -203,12 +205,18 @@ namespace Tac
       subMeshTriangles.push_back( subMeshTriangle );
     }
 
-    const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
-                                                                                dstVtxBytes.data(),
-                                                                                stride,
-                                                                                Render::Access::Default,
-                                                                                TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( vertexBuffer, name );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+
+    Render::CreateBufferParams vertexBufferParams
+    {
+      .mByteCount = dstVtxBytes.size(),
+      .mBytes = dstVtxBytes.data(),
+      .mAccess = Render::Usage::Default,
+      .mOptionalName = name,
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    const Render::BufferHandle vertexBuffer =
+      TAC_CALL_RET( {}, renderDevice->CreateBuffer( vertexBufferParams, errors ) );
 
     const SubMesh subMesh
     {
@@ -235,7 +243,7 @@ namespace Tac
     const StringView name = assetPath.GetFilename();
     const String bytes = LoadAssetPath( assetPath, errors );
     const WavefrontObj wavefrontObj = WavefrontObjLoad( bytes.data(), bytes.size() );
-    const Mesh mesh = WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations );
+    const Mesh mesh = WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations, errors );
     return mesh;
   }
 

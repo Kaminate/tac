@@ -50,7 +50,19 @@ namespace Tac
     static m4    TransformInverse( const v3& scale, const v3& eulerRads, const v3& translate );
     static m4    View( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU );
     static m4    ViewInv( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU );
+
     static m4    ProjPerspective( float A, float B, float mFieldOfViewYRad, float mAspectRatio );
+
+    struct ProjectionMatrixParams
+    {
+      float mNDCMinZ;
+      float mNDCMaxZ;
+      float mViewSpaceNear;
+      float mViewSpaceFar;
+      float mAspectRatio;
+      float mFOVYRadians;
+    };
+    static m4    ProjPerspective( ProjectionMatrixParams );
     static m4    ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio );
   };
 

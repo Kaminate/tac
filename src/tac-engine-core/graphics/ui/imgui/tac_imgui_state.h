@@ -192,7 +192,7 @@ namespace Tac
 
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
   {
-    ImGuiDesktopWindowImpl();
+    ImGuiDesktopWindowImpl() = default;
     ImGuiSimWindowDraws GetSimWindowDraws();
   };
 

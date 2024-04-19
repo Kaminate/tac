@@ -14,12 +14,9 @@ namespace Tac::Render
   {
     void Init( ID3D12Device* );
 
-    void CreateTex( DynTexHandle, TexParams, Errors& );
-    void DestroyTex( TexHandle );
-
-    void CreateDynTex( DynTexHandle, int, StackFrame, Errors& );
-    void UpdateDynTex( UpdateDynTexParams );
-    void DestroyDynTex( DynTexHandle );
+    void CreateTexture( TextureHandle, CreateTextureParams, Errors& );
+    void UpdateTexture( TextureHandle, UpdateTextureParams );
+    void DestroyTexture( TextureHandle );
 
     DX12Texture   mTextures[ 100 ];
     ID3D12Device* mDevice{};

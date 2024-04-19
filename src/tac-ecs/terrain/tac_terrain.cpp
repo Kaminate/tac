@@ -225,13 +225,13 @@ namespace Tac
     if( mVertexBuffer.IsValid() )
     {
       Render::DestroyVertexBuffer( mVertexBuffer, TAC_STACK_FRAME );
-      mVertexBuffer = Render::VertexBufferHandle();
+      mVertexBuffer = Render::BufferHandle();
     }
 
     if( mIndexBuffer.IsValid() )
     {
       Render::DestroyIndexBuffer( mIndexBuffer, TAC_STACK_FRAME );
-      mIndexBuffer = Render::IndexBufferHandle();
+      mIndexBuffer = Render::BufferHandle();
     }
   }
 

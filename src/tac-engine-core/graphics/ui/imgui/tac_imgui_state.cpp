@@ -398,11 +398,17 @@ namespace Tac
   void ImGuiSimWindowDraws::CopyVertexes( ImGuiRenderBuffers* gDrawInterface,
                                          Errors& errors )
   {
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
     if( !gDrawInterface->mVB.IsValid() || gDrawInterface->mVBCount < mVertexCount )
     {
       const int byteCount = mVertexCount * sizeof( UI2DVertex );
-      gDrawInterface->mVB = TAC_CALL(
-        Render::RenderApi::CreateBuffer( byteCount, TAC_STACK_FRAME, errors ) );
+      const Render::CreateBufferParams params
+      {
+        .mByteCount = byteCount,
+        .mOptionalName = "imgui_vtx_buf",
+        .mStackFrame = TAC_STACK_FRAME,
+      };
+      gDrawInterface->mVB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
       gDrawInterface->mVBCount = mVertexCount;
     }
 
@@ -412,12 +418,11 @@ namespace Tac
       const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
       const Render::UpdateBufferParams updateParams
       {
-        .mHandle = gDrawInterface->mVB,
         .mSrcBytes = drawData->mVtxs.data(),
         .mSrcByteCount = srcByteCount,
         .mDstByteOffset = byteOffset,
       };
-      Render::RenderApi::UpdateBuffer( updateParams );
+      renderDevice->UpdateBuffer( gDrawInterface->mVB, updateParams );
       byteOffset += srcByteCount;
     }
   }
@@ -425,11 +430,17 @@ namespace Tac
   void ImGuiSimWindowDraws::CopyIndexes( ImGuiRenderBuffers* gDrawInterface,
                                         Errors& errors )
   {
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
     if( !gDrawInterface->mIB.IsValid() || gDrawInterface->mIBCount < mIndexCount )
     {
       const int byteCount = mIndexCount * sizeof( UI2DIndex );
-      gDrawInterface->mIB
-        = TAC_CALL( Render::RenderApi::CreateBuffer( byteCount, TAC_STACK_FRAME, errors ) );
+      const Render::CreateBufferParams params
+      {
+        .mByteCount = byteCount,
+        .mOptionalName = "imgui_idx_buf",
+        .mStackFrame = TAC_STACK_FRAME,
+      };
+      gDrawInterface->mIB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
       gDrawInterface->mIBCount = mIndexCount;
     }
 
@@ -439,20 +450,16 @@ namespace Tac
       const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
       const Render::UpdateBufferParams updateParams
       {
-        .mHandle = gDrawInterface->mIB,
         .mSrcBytes = drawData->mIdxs.data(),
         .mSrcByteCount = srcByteCount,
         .mDstByteOffset = byteOffset,
       };
 
-      Render::RenderApi::UpdateBuffer( updateParams );
+      renderDevice->UpdateBuffer( gDrawInterface->mIB, updateParams );
       byteOffset += srcByteCount;
     }
   }
    
-  ImGuiDesktopWindowImpl::ImGuiDesktopWindowImpl()
-  {
-  }
 
   ImGuiSimWindowDraws ImGuiDesktopWindowImpl::GetSimWindowDraws()
   {
@@ -490,6 +497,7 @@ namespace Tac
                                      ImGuiPersistantViewport* sysDraws,
                                      Errors& errors )
   {
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
     SysWindowApi* windowApi = sysDrawParams->mWindowApi;
 
     const WindowHandle hDesktopWindow = sysDraws->mWindowHandle;
@@ -517,12 +525,12 @@ namespace Tac
       //.mFileStem = "2D",
     };
     Render::ProgramHandle program = TAC_CALL(
-      Render::RenderApi::CreateShaderProgram( programParams, errors ) );
+      renderDevice->CreateProgram( programParams, errors ) );
 
 #if 1
     Render::FBHandle fb = windowApi->GetFBHandle( hDesktopWindow );
 #endif
-    const Render::TexFmt fbFmt = Render::RenderApi::GetFBFmt( fb );
+    const Render::TexFmt fbFmt = renderDevice->GetFBFmt( fb );
 
     const Render::PipelineParams pipelineParams
     {
@@ -530,7 +538,7 @@ namespace Tac
       .mRTVColorFmts{ fbFmt },
     };
     Render::PipelineHandle pipeline = TAC_CALL(
-      Render::RenderApi::CreateRenderPipeline( pipelineParams, errors ) );
+      renderDevice->CreatePipeline( pipelineParams, errors ) );
 
     const String renderGroupStr = String()
       + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")";
@@ -548,13 +556,16 @@ namespace Tac
       .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
     };
 
+    Render::IContext::Scope renderContext = TAC_CALL( renderDevice->CreateRenderContext( errors ) );
 
-    Render::Context renderContext = TAC_CALL( Render::RenderApi::CreateRenderContext( errors ) );
-    renderContext.SetRenderTarget( fb );
-    renderContext.SetViewport( windowSize );
-    renderContext.SetScissor( windowSize );
-    renderContext.DebugEvent( renderGroupStr );
-    renderContext.DebugMarker( "hello hello" );
+    renderContext->SetRenderTarget( fb );
+    renderContext->SetViewport( windowSize );
+    renderContext->SetScissor( windowSize );
+    renderContext->DebugEventBegin( renderGroupStr );
+    renderContext->DebugEventEnd();
+    renderContext->DebugMarker( "hello hello" );
+
+    TAC_CALL( renderContext->Execute( errors ) );
 
 #if 0
     auto shaderBinding = Render::RenderApi::CreateShaderBinding( pipeline );
@@ -568,7 +579,7 @@ namespace Tac
 #if 0
     //Render::DebugGroup::Iterator debugGroupIterator = mDebugGroupStack.IterateBegin();
 
-    const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
+    const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
     const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
     Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
 
@@ -585,7 +596,7 @@ namespace Tac
         //  gUI2DCommonData.m1x1White;
 
 
-        const Render::ConstantBufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
+        const Render::BufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
         const int perObjSize = sizeof( Render::DefaultCBufferPerObject );
         //Render::UpdateConstantBuffer( hPerObj,
         //                              &uidrawCall.mUniformSource,
@@ -596,8 +607,8 @@ namespace Tac
         //Render::SetSamplerState( { gUI2DCommonData.mSamplerState } );
         //Render::SetDepthState( gUI2DCommonData.mDepthState );
         //Render::SetVertexFormat( gUI2DCommonData.mFormat );
-        //Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
-        //Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
+        //Render::SetVertexBuffer( mBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
+        //Render::SetIndexBuffer( mBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
         //Render::SetTexture( { texture } );
         //Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
         //Render::SetShader( uidrawCall.mShader );

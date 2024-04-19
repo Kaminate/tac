@@ -1,13 +1,14 @@
 #include "tac_desktop_app.h" // self-inc
 
-#include "tac-desktop-app/tac_desktop_app_error_report.h"
-#include "tac-desktop-app/tac_desktop_app_renderers.h"
-#include "tac-desktop-app/tac_desktop_app_threads.h"
-#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event_handler.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app_error_report.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app_renderers.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 //#include "tac-desktop-app/tac_desktop_window_life.h"
-#include "tac-desktop-app/tac_desktop_window_move.h"
-#include "tac-desktop-app/tac_desktop_window_resize.h"
-#include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
+#include "tac-desktop-app/desktop_window/tac_desktop_window_move.h"
+#include "tac-desktop-app/desktop_window/tac_desktop_window_resize.h"
+#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-desktop-app/tac_logic_thread.h"
 #include "tac-desktop-app/tac_platform_thread.h"
 #include "tac-desktop-app/tac_render_state.h"
@@ -49,92 +50,6 @@ import std; // mutex, thread, type_traits
 
 namespace Tac
 {
-  using namespace DesktopEventApi;
-
-  struct DesktopEventHandler : public DesktopEventApi::Handler
-  {
-    void HandleBegin() override
-    {
-      mWindowBackend->ApplyBegin();
-      mKeyboardBackend->ApplyBegin();
-    }
-
-    void HandleEnd() override
-    {
-      mWindowBackend->ApplyEnd();
-      mKeyboardBackend->ApplyEnd();
-    }
-
-    void Handle( const WindowVisibleEvent& data ) override
-    {
-      mWindowBackend->SetWindowIsVisible( data.mWindowHandle, data.mVisible );
-    }
-
-    void Handle( const WindowDestroyEvent& data ) override
-    {
-      mWindowBackend->SetWindowDestroyed( data.mWindowHandle );
-    }
-
-    void Handle( const WindowCreateEvent& data, Errors& errors ) override
-    {
-      const v2i pos{ data.mX, data.mY };
-      const v2i size{ data.mW, data.mH };
-      mWindowBackend->SetWindowCreated( data.mWindowHandle,
-                                       data.mNativeWindowHandle,
-                                       data.mName,
-                                       pos,
-                                       size,
-                                       errors );
-    }
-
-    void Handle( const CursorUnobscuredEvent& data ) override
-    {
-      //SetHoveredWindow( data.mWindowHandle );
-    }
-
-    void Handle( const KeyInputEvent& data ) override
-    {
-      mKeyboardBackend->SetCodepoint( data.mCodepoint );
-    }
-
-    void Handle( const KeyStateEvent& data ) override
-    {
-      const KeyboardBackend::KeyState state = data.mDown
-        ? KeyboardBackend::KeyState::Down
-        : KeyboardBackend::KeyState::Up;
-
-      mKeyboardBackend->SetKeyState( data.mKey, state );
-    }
-
-    void Handle( const MouseMoveEvent& data ) override
-    {
-      const v2 screenSpaceWindowPos = mWindowApi->GetPos( data.mWindowHandle );
-      const v2 windowSpaceMousePos{ ( float )data.mX, ( float )data.mY };
-      const v2 screenSpaceMousePos = screenSpaceWindowPos + windowSpaceMousePos;
-      mKeyboardBackend->SetMousePos(screenSpaceMousePos);
-    }
-
-    void Handle( const MouseWheelEvent& data ) override
-    {
-      mKeyboardBackend->SetMouseWheel( data.mDelta );
-    }
-
-    void Handle( const WindowMoveEvent& data ) override
-    {
-      mWindowBackend->SetWindowPos( data.mWindowHandle, v2i( data.mX, data.mY ) );
-    }
-
-    void Handle( const WindowResizeEvent& data ) override
-    {
-      mWindowBackend->SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ) );
-    }
-
-    KeyboardBackend::SysApi* mKeyboardBackend;
-    WindowBackend::SysApi* mWindowBackend;
-    SysWindowApi* mWindowApi;
-  };
-
-
   static DesktopEventHandler           sDesktopEventHandler;
 
   static KeyboardBackend::SysApi       sKeyboardBackend;
@@ -183,7 +98,28 @@ namespace Tac
   }
 #endif
 
-  // -----------------------------------------------------------------------------------------------
+
+  static void         DesktopAppDebugImGuiHoveredWindow()
+  {
+    PlatformFns* platform = PlatformFns::GetInstance();
+#if 0
+    const WindowHandle hoveredHandle = platform->PlatformGetMouseHoveredWindow();
+    const DesktopWindowState* hovered = hoveredHandle.GetDesktopWindowState();
+    if( !hovered )
+    {
+      ImGuiText( "Hovered window: <none>" );
+      return;
+    }
+
+    const ShortFixedString text = ShortFixedString::Concat(
+      "Hovered window: ",
+      ToString( hoveredHandle.GetIndex() ),
+      " ",
+      hovered->mName );
+    ImGuiText( text );
+#endif
+  }
+
 
   static String ToStem( StringView sv )
   {
@@ -200,8 +136,9 @@ namespace Tac
     return result;
   }
 
-  DesktopApp*         DesktopApp::GetInstance() { return &sDesktopApp; }
+  // -----------------------------------------------------------------------------------------------
 
+  DesktopApp*         DesktopApp::GetInstance() { return &sDesktopApp; }
 
   void                DesktopApp::Init( Errors& errors )
   {
@@ -275,7 +212,6 @@ namespace Tac
 
     sDesktopEventHandler.mKeyboardBackend = &sKeyboardBackend;
     sDesktopEventHandler.mWindowBackend = &sWindowBackend;
-    sDesktopEventHandler.mWindowApi = &sSysWindowApi;
     DesktopEventApi::Init( &sDesktopEventHandler );
 
     std::thread logicThread( &LogicThread::Update, sLogicThread, std::ref( gLogicThreadErrors ) );
@@ -331,29 +267,6 @@ namespace Tac
   //  return DesktopAppImplDestroyWindow(WindowHandle);
   //}
 
-
-
-  static void         DesktopAppDebugImGuiHoveredWindow()
-  {
-    PlatformFns* platform = PlatformFns::GetInstance();
-#if 0
-    const WindowHandle hoveredHandle = platform->PlatformGetMouseHoveredWindow();
-    const DesktopWindowState* hovered = hoveredHandle.GetDesktopWindowState();
-    if( !hovered )
-    {
-      ImGuiText( "Hovered window: <none>" );
-      return;
-    }
-
-    const ShortFixedString text = ShortFixedString::Concat(
-      "Hovered window: ",
-      ToString( hoveredHandle.GetIndex() ),
-      " ",
-      hovered->mName );
-    ImGuiText( text );
-#endif
-  }
-
   void                DesktopApp::DebugImGui(Errors& errors)
   {
     if( !ImGuiCollapsingHeader("DesktopAppDebugImGui"))
@@ -371,11 +284,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-
-
-
 } // namespace Tac
 
 Tac::Errors&             Tac::GetMainErrors() { return gMainFunctionErrors; }
-
 

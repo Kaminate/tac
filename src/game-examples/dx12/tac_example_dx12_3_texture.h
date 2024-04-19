@@ -48,12 +48,12 @@ namespace Tac
     void CreateRTVDescriptorHeap( Errors& );
     void CreateSamplerDescriptorHeap( Errors& );
     void CreateSRVDescriptorHeap( Errors& );
-    void CreateVertexBufferSRV( Errors& );
+    void CreateBufferSRV( Errors& );
     void CreateSampler( Errors& );
     void CreateTexture( Errors& );
     void CreateCommandAllocator( Errors& );
     void CreateCommandList( Errors& );
-    void CreateVertexBuffer( Errors& );
+    void CreateBuffer( Errors& );
     void CreateFence( Errors& );
     void CreateRootSignature( Errors& );
     void CreatePipelineState( Errors& );

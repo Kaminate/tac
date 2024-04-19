@@ -35,8 +35,8 @@
 
 namespace Tac
 {
-  static Render::ShaderHandle          m3DShader;
-  static Render::ShaderHandle          mTerrainShader;
+  static Render::ProgramHandle          m3DShader;
+  static Render::ProgramHandle          mTerrainShader;
   static Render::VertexFormatHandle    m3DVertexFormat;
   static Render::VertexFormatHandle    mTerrainVertexFormat;
   static Render::DepthStateHandle      mDepthState;
@@ -263,7 +263,7 @@ namespace Tac
       }
     }
 
-    terrain->mVertexBuffer = Render::CreateVertexBuffer( vertexes.size() * sizeof( TerrainVertex ),
+    terrain->mVertexBuffer = Render::CreateBuffer( vertexes.size() * sizeof( TerrainVertex ),
                                                          vertexes.data(),
                                                          sizeof( TerrainVertex ),
                                                          Render::Access::Default,

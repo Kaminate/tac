@@ -30,7 +30,7 @@ namespace Tac
 {
 
 
-  static Render::ShaderHandle sShader;
+  static Render::ProgramHandle sShader;
 
   struct ShadowModelVisitor : public ModelVisitor
   {
@@ -62,7 +62,7 @@ namespace Tac
       .Color = Render::PremultipliedAlpha::From_sRGB(  model->mColorRGB ),
     };
 
-    const Render::ConstantBufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
+    const Render::BufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
     const int perObjSize = sizeof( Render::DefaultCBufferPerObject );
 
     Render::UpdateConstantBuffer( hPerObj, &objBuf, perObjSize, TAC_STACK_FRAME );
@@ -86,13 +86,13 @@ namespace Tac
 
   static Render::TextureHandle CreateShadowMapDepth( const Light* light )
   {
-    const Render::TexSpec texSpecDepth{ .mImage { .mWidth = light->mShadowResolution,
+    const Render::CreateTextureParams CreateTextureParamsDepth{ .mImage { .mWidth = light->mShadowResolution,
                                                   .mHeight = light->mShadowResolution ,
                                                   .mFormat { .mElementCount = 1,
                                                              .mPerElementByteCount = 4,
                                                              .mPerElementDataType = Render::GraphicsType::real } },
                                         .mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource };
-    Render::TextureHandle textureHandleDepth = Render::CreateTexture( texSpecDepth, TAC_STACK_FRAME );
+    Render::TextureHandle textureHandleDepth = Render::CreateTexture( CreateTextureParamsDepth, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( textureHandleDepth, "shadowmap-depth" );
     return textureHandleDepth;
 
@@ -161,7 +161,7 @@ namespace Tac
     CreateShadowMapResources( light );
 
     const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
-    const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
+    const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
     const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
 
 

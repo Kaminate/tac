@@ -4,7 +4,7 @@
 //#include "tac-std-lib/string/tac_string.h"
 //#include "tac-std-lib/math/tac_vector3.h"
 //#include "tac-std-lib/math/tac_matrix4.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
 
 namespace Tac
 {

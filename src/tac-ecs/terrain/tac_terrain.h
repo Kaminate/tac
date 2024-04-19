@@ -55,8 +55,8 @@ namespace Tac
 
 
     // do you think this shit should actually be owned by the game presentation?
-    Render::VertexBufferHandle     mVertexBuffer;
-    Render::IndexBufferHandle      mIndexBuffer;
+    Render::BufferHandle     mVertexBuffer;
+    Render::BufferHandle      mIndexBuffer;
     int                            mIndexCount = 0;
     Vector< TerrainOBB >           mTerrainOBBs;
     Errors                         mTestHeightmapLoadErrors;

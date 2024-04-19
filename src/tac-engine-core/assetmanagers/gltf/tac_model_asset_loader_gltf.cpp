@@ -7,7 +7,8 @@
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -118,92 +119,102 @@ namespace Tac
     cgltf_data* parsedData = nullptr;
   };
   
-  static Render::VertexBufferHandle ConvertToVertexBuffer( 
-    const Render::VertexDeclarations& vertexDeclarations,
-    const cgltf_primitive* parsedPrim,
-    const StringView& bufferName )
+  static Render::BufferHandle ConvertToVertexBuffer( const Render::VertexDeclarations& decls,
+                                                     const cgltf_primitive* parsedPrim,
+                                                     const StringView& bufferName,
+                                                     Errors& errors )
   {
-        const int dstVtxStride = ComputeStride(vertexDeclarations);
-        TAC_ASSERT( dstVtxStride );
+    const int dstVtxStride = ComputeStride( decls );
+    TAC_ASSERT( dstVtxStride );
 
-        const int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
-        Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
+    const int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
+    Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
 
-        for( int iVertexDeclaration = 0;
-             iVertexDeclaration < vertexDeclarations.size();
-             iVertexDeclaration++ )
+    for( int iVertexDeclaration = 0;
+         iVertexDeclaration < decls.size();
+         iVertexDeclaration++ )
+    {
+      const Render::VertexDeclaration& vertexDeclaration = decls[ iVertexDeclaration ];
+      const Render::Format& dstFormat = vertexDeclaration.mTextureFormat;
+      const cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute( vertexDeclaration.mAttribute );
+      const cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType );
+      if( !gltfVertAttribute )
+        continue;
+
+      const cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
+      const Render::Format srcFormat = FillDataType( gltfVertAttributeData );
+      TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
+      char* dstVtx = dstVtxBytes.data();
+      char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +
+        gltfVertAttributeData->offset +
+        gltfVertAttributeData->buffer_view->offset;
+      int elementCount = Min( dstFormat.mElementCount, srcFormat.mElementCount );
+      for( int iVert = 0; iVert < vertexCount; ++iVert )
+      {
+        char* srcElement = srcVtx;
+        char* dstElement = dstVtx + vertexDeclaration.mAlignedByteOffset;
+        for( int iElement = 0; iElement < elementCount; ++iElement )
         {
-          const Render::VertexDeclaration& vertexDeclaration = vertexDeclarations[ iVertexDeclaration ];
-          const Render::Format& dstFormat = vertexDeclaration.mTextureFormat;
-          const cgltf_attribute_type gltfVertAttributeType = GetGltfFromAttribute( vertexDeclaration.mAttribute );
-          const cgltf_attribute* gltfVertAttribute = FindAttributeOfType( parsedPrim, gltfVertAttributeType );
-          if( !gltfVertAttribute )
-            continue;
-
-          const cgltf_accessor* gltfVertAttributeData = gltfVertAttribute->data;
-          const Render::Format srcFormat = FillDataType( gltfVertAttributeData );
-          TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
-          char* dstVtx = dstVtxBytes.data();
-          char* srcVtx = ( char* )gltfVertAttributeData->buffer_view->buffer->data +
-            gltfVertAttributeData->offset +
-            gltfVertAttributeData->buffer_view->offset;
-          int elementCount = Min( dstFormat.mElementCount, srcFormat.mElementCount );
-          for( int iVert = 0; iVert < vertexCount; ++iVert )
+          if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
+              srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
           {
-            char* srcElement = srcVtx;
-            char* dstElement = dstVtx + vertexDeclaration.mAlignedByteOffset;
-            for( int iElement = 0; iElement < elementCount; ++iElement )
-            {
-              if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
-                  srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
-              {
-                MemCpy( dstElement, srcElement, srcFormat.mPerElementByteCount );
-              }
-              else
-              {
-                TAC_ASSERT_UNIMPLEMENTED;
-              }
-              // copy
-              dstElement += dstFormat.mPerElementByteCount;
-              srcElement += srcFormat.mPerElementByteCount;
-            }
-            srcVtx += gltfVertAttributeData->stride;
-            dstVtx += dstVtxStride;
+            MemCpy( dstElement, srcElement, srcFormat.mPerElementByteCount );
           }
+          else
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          // copy
+          dstElement += dstFormat.mPerElementByteCount;
+          srcElement += srcFormat.mPerElementByteCount;
         }
+        srcVtx += gltfVertAttributeData->stride;
+        dstVtx += dstVtxStride;
+      }
+    }
 
-        TAC_ASSERT( dstVtxStride );
-        TAC_ASSERT( dstVtxBytes.size() );
+    TAC_ASSERT( dstVtxStride );
+    TAC_ASSERT( dstVtxBytes.size() );
+    TAC_UNUSED_PARAMETER( dstVtxStride );
 
-        const Render::VertexBufferHandle vertexBuffer = Render::CreateVertexBuffer( dstVtxBytes.size(),
-                                                                                    dstVtxBytes.data(),
-                                                                                    dstVtxStride,
-                                                                                    Render::Access::Default,
-                                                                                    TAC_STACK_FRAME );
-        Render::SetRenderObjectDebugName( vertexBuffer, bufferName );
-        return vertexBuffer;
+    Render::CreateBufferParams createBufferParams
+    {
+      .mByteCount = dstVtxBytes.size(),
+      .mBytes = dstVtxBytes.data(),
+      .mOptionalName = bufferName,
+      .mStackFrame = TAC_STACK_FRAME
+       //dstVtxStride,
+    };
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    const Render::BufferHandle vertexBuffer = renderDevice->CreateBuffer( createBufferParams, errors );
+    return vertexBuffer;
   }
 
 
-  static Render::IndexBufferHandle ConvertToIndexBuffer(
-    const cgltf_primitive* parsedPrim,
-    const StringView& bufferName )
+  static Render::BufferHandle ConvertToIndexBuffer( const cgltf_primitive* parsedPrim,
+                                                    const StringView& bufferName,
+                                                    Errors& errors )
   {
-        TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
+    TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
 
-        const cgltf_accessor* indices = parsedPrim->indices;
-        const void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
-        const Render::Format indexFormat = FillDataType( indices );
-        const int indexBufferByteCount = ( int )indices->count * indexFormat.CalculateTotalByteCount();
-        const Render::IndexBufferHandle indexBuffer = Render::CreateIndexBuffer( indexBufferByteCount,
-                                                                                 indiciesData,
-                                                                                 Render::Access::Default,
-                                                                                 indexFormat,
-                                                                                 TAC_STACK_FRAME );
+    const cgltf_accessor* indices = parsedPrim->indices;
+    const void* indiciesData = ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset;
+    const Render::Format indexFormat = FillDataType( indices );
+    TAC_UNUSED_PARAMETER(indexFormat);
+    const int indexBufferByteCount = ( int )indices->count * indexFormat.CalculateTotalByteCount();
+    const Render::CreateBufferParams createBufferParams
+    {
+      .mByteCount = indexBufferByteCount,
+      .mBytes = indiciesData,
+      .mOptionalName = bufferName,
+      .mStackFrame = TAC_STACK_FRAME
+      //indexFormat,
+    };
+    auto device = Render::RenderApi::GetRenderDevice();
+    const Render::BufferHandle indexBuffer =
+      TAC_CALL_RET( {}, device->CreateBuffer( createBufferParams, errors ) );
 
-
-        Render::SetRenderObjectDebugName( indexBuffer, bufferName );
-        return indexBuffer;
+    return indexBuffer;
   }
 
   static void                 PopulateSubmeshes( Vector< SubMesh >& submeshes,
@@ -247,11 +258,11 @@ namespace Tac
         const int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
         const int indexCount = ( int )parsedPrim->indices->count;
 
-        const Render::IndexBufferHandle indexBuffer = ConvertToIndexBuffer( parsedPrim, bufferName );
+        const Render::BufferHandle indexBuffer =
+          TAC_CALL( ConvertToIndexBuffer( parsedPrim, bufferName, errors ) ); 
 
-        const Render::VertexBufferHandle vertexBuffer = ConvertToVertexBuffer( vertexDeclarations,
-                                                                               parsedPrim,
-                                                                               bufferName );
+        const Render::BufferHandle vertexBuffer =
+          TAC_CALL( ConvertToVertexBuffer( vertexDeclarations, parsedPrim, bufferName, errors ) );
 
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );

@@ -1,8 +1,8 @@
 #include "tac_platform_thread.h" // self-inc
 
-#include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_desktop_app_threads.h"
-#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-desktop-app/tac_iapp.h"
 #include "tac-desktop-app/tac_render_state.h"
 

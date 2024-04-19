@@ -3,6 +3,7 @@
 #include "tac-std-lib/tac_ints.h" // u64
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-rhi/render3/tac_render_backend.h"
+//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
 #include "tac-win32/dx/dx12/program/tac_dx12_program_mgr.h"
@@ -78,14 +79,14 @@ namespace Tac::Render
     void        DestroyFB( FBHandle ) override;
 
     BufferHandle CreateBuffer( CreateBufferParams, Errors& ) override;
-    void         UpdateBuffer( UpdateBufferParams ) override;
+    void         UpdateBuffer( BufferHandle, UpdateBufferParams ) override;
     void         DestroyBuffer( BufferHandle ) override;
 
     TextureHandle CreateTexture( CreateTextureParams, Errors& ) override;
-    void          UpdateTexture( UpdateTextureParams ) override;
+    void          UpdateTexture( TextureHandle, UpdateTextureParams ) override;
     void          DestroyTexture( TextureHandle ) override;
 
-    IContextBackend* CreateRenderContextBackend(Errors&) override;
+    IContext::Scope CreateRenderContext( Errors& ) override;
 
   private:
 

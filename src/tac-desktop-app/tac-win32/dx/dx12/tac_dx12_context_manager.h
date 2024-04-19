@@ -21,7 +21,7 @@ namespace Tac::Render
   // forever.
   //
   // However, the commandallocator is changed every time the context is recycled
-  struct DX12Context : public IContextBackend
+  struct DX12Context : public IContext
   {
     DX12Context() = default;
 #if 0
@@ -43,7 +43,7 @@ namespace Tac::Render
     void                       Reset( Errors& );
 
     void                       Execute( Errors& ) override;
-    void                       ExecuteSynchronously( Errors& ) override;
+    void                       SetSynchronous() override;
     void                       SetViewport( v2i ) override;
     void                       SetScissor( v2i ) override;
     void                       SetRenderTarget( FBHandle ) override;

@@ -289,7 +289,7 @@ namespace Tac
     DX12SetName( m_commandList, "My Command List" );
   }
 
-  void DX12AppHelloTriangle::CreateVertexBuffer( Errors& errors )
+  void DX12AppHelloTriangle::CreateBuffer( Errors& errors )
   {
     const float m_aspectRatio = ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height;
 
@@ -1010,7 +1010,7 @@ namespace Tac
 
     TAC_CALL( DX12CreateSwapChain( errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
-    TAC_CALL( CreateVertexBuffer( errors ) );
+    TAC_CALL( CreateBuffer( errors ) );
     TAC_CALL( CreateSRV( errors ) );
 
     m_viewport = D3D12_VIEWPORT

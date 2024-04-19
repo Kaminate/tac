@@ -53,33 +53,19 @@ add_subdirectory( vulkan )
 add_library( TacDesktopApp )
 target_sources( TacDesktopApp
   PRIVATE
-  "tac_desktop_app.cpp"
-  "tac_desktop_app_renderers.cpp"
-  "tac_desktop_event.cpp"
-  "tac_desktop_window_settings_tracker.cpp"
   "tac_render_state.cpp"
-  "tac_desktop_app_error_report.cpp"
-  "tac_desktop_app_error_report.h"
-  "tac_desktop_window_move.cpp"
-  "tac_desktop_window_resize.cpp"
-  #"tac_desktop_window_life.cpp"
-  "tac_desktop_app_threads.cpp"
   "tac_logic_thread.cpp"
   "tac_logic_thread.h"
   "tac_platform_thread.cpp"
   "tac_platform_thread.h"
   PUBLIC
   "tac_iapp.h"
-  "tac_desktop_app.h"
-  "tac_desktop_window_move.h"
-  "tac_desktop_window_resize.h"
-  #"tac_desktop_window_life.h"
-  "tac_desktop_app_renderers.h"
-  "tac_desktop_event.h"
-  "tac_desktop_window_settings_tracker.h"
   "tac_render_state.h"
-  "tac_desktop_app_threads.h"
 )
+
+add_subdirectory( desktop_app )
+add_subdirectory( desktop_window )
+add_subdirectory( desktop_event )
 
 target_include_directories( TacDesktopApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 target_link_libraries( TacDesktopApp TacECS )

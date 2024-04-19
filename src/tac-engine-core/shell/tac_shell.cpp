@@ -13,7 +13,8 @@
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
@@ -42,7 +43,7 @@ namespace Tac
     ModelAssetManagerUninit();
 
     // last, so resources can be freed
-    Render::Uninit();
+    Render::RenderApi::Uninit();
   }
 
   void            ShellInit( Errors& errors )
@@ -53,9 +54,9 @@ namespace Tac
 
     TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ));
 
-    Render::DefaultCBufferPerFrame::Init();
-    Render::DefaultCBufferPerObject::Init();
-    Render::CBufferLights::Init();
+    TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );
+    TAC_CALL( Render::DefaultCBufferPerObject::Init( errors ) );
+    TAC_CALL( Render::CBufferLights::Init( errors ) );
 
     TAC_CALL( UI2DCommonDataInit( errors ));
 

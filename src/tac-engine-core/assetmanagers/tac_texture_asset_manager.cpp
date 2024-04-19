@@ -2,7 +2,8 @@
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
@@ -21,7 +22,7 @@ namespace Tac::TextureAssetManager
   struct AsyncTextureData
   {
     virtual ~AsyncTextureData() = default;
-    virtual void CreateTexture( Render::TextureHandle* , Errors& ) = 0;
+    virtual Render::TextureHandle CreateTexture( Errors& ) = 0;
   };
 
   struct AsyncTexture
@@ -33,7 +34,7 @@ namespace Tac::TextureAssetManager
 
   struct AsyncTextureSingleData : AsyncTextureData
   {
-    void CreateTexture( Render::TextureHandle* , Errors& ) override;
+    Render::TextureHandle CreateTexture( Errors& ) override;
     int              mPitch = 0;
     Render::Image    mImage;
     Vector< char >   mImageData;
@@ -42,7 +43,7 @@ namespace Tac::TextureAssetManager
 
   struct AsyncTextureCubeData : AsyncTextureData
   {
-    void CreateTexture( Render::TextureHandle* , Errors& ) override;
+    Render::TextureHandle CreateTexture( Errors& ) override;
 
     int              mPitch = 0;
     Render::Image    mImage;
@@ -80,23 +81,24 @@ namespace Tac::TextureAssetManager
 
   // -----------------------------------------------------------------------------------------------
 
-  void AsyncTextureSingleData::CreateTexture( Render::TextureHandle* texture, Errors& )
+  Render::TextureHandle AsyncTextureSingleData::CreateTexture( Errors& errors )
   {
-      const Render::TexSpec texSpec
+      const Render::CreateTextureParams createTextureParams
       {
          .mImage = mImage,
          .mPitch = mPitch,
          .mImageBytes = mImageData.data(),
          .mBinding = Render::Binding::ShaderResource,
+         .mStackFrame = TAC_STACK_FRAME,
       };
-      *texture = Render::CreateTexture( texSpec, TAC_STACK_FRAME );
+      return Render::RenderApi::GetRenderDevice()->CreateTexture( createTextureParams, errors );
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  void AsyncTextureCubeData::CreateTexture( Render::TextureHandle* texture, Errors& ) 
+  Render::TextureHandle AsyncTextureCubeData::CreateTexture(  Errors& errors )
   {
-    const Render::TexSpec commandData =
+    const Render::CreateTextureParams commandData =
     { 
       .mImage = mImage,
       .mPitch = mPitch,
@@ -110,8 +112,9 @@ namespace Tac::TextureAssetManager
         mImageData[ 5 ].data()
       },
       .mBinding = Render::Binding::ShaderResource,
+      .mStackFrame  = TAC_STACK_FRAME ,
     };
-    *texture = Render::CreateTexture( commandData, TAC_STACK_FRAME );
+    return Render::RenderApi::GetRenderDevice()->CreateTexture( commandData, errors );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -306,8 +309,7 @@ namespace Tac::TextureAssetManager
     {
       TAC_RAISE_ERROR_IF( job->mErrors, job->mErrors.ToString() );
 
-      Render::TextureHandle texture;
-      TAC_CALL( asyncTexture->mData->CreateTexture( &texture, errors ));
+      Render::TextureHandle texture = TAC_CALL( asyncTexture->mData->CreateTexture( errors ) );
       mLoadingTextures.erase( id );
       TAC_DELETE asyncTexture;
       mLoadedTextures[ id ] = texture;
@@ -319,7 +321,7 @@ namespace Tac::TextureAssetManager
   Render::TextureHandle GetTexture( const AssetPathStringView& textureFilepath, Errors& errors )
   {
     if( textureFilepath.empty() )
-      return Render::TextureHandle();
+      return {};
 
     const StringID id( textureFilepath );
 

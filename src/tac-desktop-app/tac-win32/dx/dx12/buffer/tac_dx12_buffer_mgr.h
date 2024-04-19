@@ -13,9 +13,9 @@ namespace Tac::Render
   struct DX12BufferMgr
   {
     void Init( ID3D12Device* );
-    void CreateBuffer( CreateBufferParams, Errors& );
-    void UpdateBuffer( UpdateBufferParams );
-    void DestroyBuffer( BufferHandle);
+    void CreateBuffer( BufferHandle, CreateBufferParams, Errors& );
+    void UpdateBuffer( BufferHandle, UpdateBufferParams );
+    void DestroyBuffer( BufferHandle );
 
     DX12Buffer    mBuffers[ 100 ];
     ID3D12Device* mDevice{};

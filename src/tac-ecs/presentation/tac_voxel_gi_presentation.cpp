@@ -43,9 +43,9 @@ namespace Tac
   static Render::FramebufferHandle     voxelFramebuffer;
   static Render::MagicBufferHandle     voxelRWStructuredBuf;
   static Render::RasterizerStateHandle voxelRasterizerState;
-  static Render::ShaderHandle          voxelCopyShader;
-  static Render::ShaderHandle          voxelVisualizerShader;
-  static Render::ShaderHandle          voxelizerShader;
+  static Render::ProgramHandle          voxelCopyShader;
+  static Render::ProgramHandle          voxelVisualizerShader;
+  static Render::ProgramHandle          voxelizerShader;
   static Render::TextureHandle         voxelFramebufferTexture;
   static Render::TextureHandle         voxelTextureRadianceBounce0;
   static Render::TextureHandle         voxelTextureRadianceBounce1;
@@ -96,12 +96,12 @@ namespace Tac
     //       Number of voxels on each side of the grid
     u32 gVoxelGridSize;
 
-    static Render::ConstantBufferHandle  Handle;
+    static Render::BufferHandle  Handle;
 
     static void Init();
   };
 
-  Render::ConstantBufferHandle  CBufferVoxelizer::Handle;
+  Render::BufferHandle  CBufferVoxelizer::Handle;
 
 
 
@@ -130,7 +130,7 @@ namespace Tac
   static void                    CreateVoxelView()
   {
     // The framebuffer texture is only to allow for renderdoc debugging pixel shaders
-    const Render::TexSpec texSpec
+    const Render::CreateTextureParams CreateTextureParams
     {
       .mImage
       {
@@ -146,7 +146,7 @@ namespace Tac
       .mBinding = Render::Binding::RenderTarget
     };
 
-    voxelFramebufferTexture = Render::CreateTexture( texSpec, TAC_STACK_FRAME );
+    voxelFramebufferTexture = Render::CreateTexture( CreateTextureParams, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelFramebufferTexture, "voxel-fbo-tex" );
 
     voxelFramebuffer = Render::CreateFramebufferForRenderToTexture( { voxelFramebufferTexture }, TAC_STACK_FRAME );
@@ -164,7 +164,7 @@ namespace Tac
 
   void                    CBufferVoxelizer::Init()
   {
-    CBufferVoxelizer::Handle = Render::CreateConstantBuffer( "CBufferVoxelizer",
+    CBufferVoxelizer::Handle = Render::CreateBuffer( "CBufferVoxelizer",
                                                              sizeof( CBufferVoxelizer ),
                                                              TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( CBufferVoxelizer::Handle, "vox-constant-buf" );
@@ -253,10 +253,10 @@ namespace Tac
     Render::SetRenderObjectDebugName( voxelVertexFormat, "vox-vtx-fmt" );
   }
 
-  static Render::TexSpec         GetVoxRadianceTexSpec()
+  static Render::CreateTextureParams         GetVoxRadianceCreateTextureParams()
   {
     // rgba16f, 2 bytes (16 bits) per float, hdr values
-    return Render::TexSpec
+    return Render::CreateTextureParams
     {
       .mImage =
       {
@@ -279,13 +279,13 @@ namespace Tac
 
   static void                    CreateVoxelTextureRadianceBounce1()
   {
-    voxelTextureRadianceBounce1 = Render::CreateTexture( GetVoxRadianceTexSpec(), TAC_STACK_FRAME );
+    voxelTextureRadianceBounce1 = Render::CreateTexture( GetVoxRadianceCreateTextureParams(), TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelTextureRadianceBounce1, "radiance-bounce-1" );
   }
 
   static void                    CreateVoxelTextureRadianceBounce0()
   {
-    voxelTextureRadianceBounce0 = Render::CreateTexture( GetVoxRadianceTexSpec(), TAC_STACK_FRAME );
+    voxelTextureRadianceBounce0 = Render::CreateTexture( GetVoxRadianceCreateTextureParams(), TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( voxelTextureRadianceBounce0, "radiance-bounce-0" );
   }
 
@@ -378,12 +378,12 @@ namespace Tac
     Render::SetTexture( { voxelTextureRadianceBounce0 } );
     Render::SetVertexFormat( Render::VertexFormatHandle() );
     Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );
-    Render::SetVertexBuffer( Render::VertexBufferHandle(),
+    Render::SetVertexBuffer( Render::BufferHandle(),
                              0,
                              voxelSettingsCurrent.voxelDimension *
                              voxelSettingsCurrent.voxelDimension *
                              voxelSettingsCurrent.voxelDimension );
-    Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+    Render::SetIndexBuffer( Render::BufferHandle(), 0, 0 );
     Render::Submit( viewHandle, TAC_STACK_FRAME );
     Render::EndGroup( TAC_STACK_FRAME );
   }
@@ -502,11 +502,11 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     Render::BeginGroup( "Voxel copy", TAC_STACK_FRAME );
     Render::SetShader( voxelCopyShader );
-    Render::SetVertexBuffer( Render::VertexBufferHandle(), 0,
+    Render::SetVertexBuffer( Render::BufferHandle(), 0,
                              voxelSettingsCurrent.voxelDimension *
                              voxelSettingsCurrent.voxelDimension *
                              voxelSettingsCurrent.voxelDimension );
-    Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
+    Render::SetIndexBuffer( Render::BufferHandle(), 0, 0 );
     Render::SetVertexFormat( Render::VertexFormatHandle() );
     Render::SetDepthState( voxelCopyDepthState );
     Render::SetPrimitiveTopology( Render::PrimitiveTopology::PointList );

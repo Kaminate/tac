@@ -112,7 +112,7 @@ namespace Tac::DesktopEventApi
   void Queue( const WindowResizeEvent& );
   void Queue( const WindowVisibleEvent& );
 
-  void Apply(Errors&);
+  void Apply( Errors& );
 
 
   // -----------------------------------------------------------------------------------------------

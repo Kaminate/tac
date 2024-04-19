@@ -5,7 +5,8 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_matrix4.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac
 {
@@ -20,8 +21,8 @@ namespace Tac
                                                          float* outDist ) const;
 
     Render::PrimitiveTopology  mPrimitiveTopology = Render::PrimitiveTopology::Unknown;
-    Render::VertexBufferHandle mVertexBuffer;
-    Render::IndexBufferHandle  mIndexBuffer;
+    Render::BufferHandle mVertexBuffer;
+    Render::BufferHandle mIndexBuffer;
     SubMeshTriangles           mTris;
     int                        mIndexCount = 0;
     int                        mVertexCount = 0;

@@ -6,7 +6,7 @@ add_library( TacRHI )
 add_subdirectory( identifier )
 # add_subdirectory( render )
 add_subdirectory( render3 )
-add_subdirectory( renderer )
+# add_subdirectory( renderer )
 
 target_link_libraries( TacRHI TacStdLib )
 

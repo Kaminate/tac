@@ -17,7 +17,7 @@
 namespace Tac
 {
   static Render::VertexFormatHandle    mVertexFormat;
-  static Render::ShaderHandle          mShader;
+  static Render::ProgramHandle          mShader;
   static Render::BlendStateHandle      mBlendState;
   static Render::DepthStateHandle      mDepthState;
   static Render::RasterizerStateHandle mRasterizerState;

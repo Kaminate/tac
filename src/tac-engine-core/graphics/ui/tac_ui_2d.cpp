@@ -3,7 +3,8 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 //#include "tac-std-lib/os/tac_os.h" // deleteme
@@ -27,13 +28,15 @@ namespace Tac
     void Uninit();
 
     Render::TextureHandle         m1x1White;
+    Render::ProgramHandle          mShader;
+    Render::ProgramHandle          m2DTextShader;
+#if TAC_TEMPORARILY_DISABLED()
     Render::VertexFormatHandle    mFormat;
-    Render::ShaderHandle          mShader;
-    Render::ShaderHandle          m2DTextShader;
     Render::DepthStateHandle      mDepthState;
     Render::BlendStateHandle      mBlendState;
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
+#endif
   } gUI2DCommonData;
 
   static m4 OrthographicUIMatrix2( const float w, const float h )
@@ -145,48 +148,48 @@ namespace Tac
 
     int& mVertexCapacity = gDrawInterface->mVertexCapacity;
     int& mIndexCapacity = gDrawInterface->mIndexCapacity;
-    Render::VertexBufferHandle& mVertexBufferHandle = gDrawInterface->mVertexBufferHandle;
-    Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface->mIndexBufferHandle;
+    Render::BufferHandle& mBufferHandle = gDrawInterface->mBufferHandle;
+    Render::BufferHandle& mBufferHandle = gDrawInterface->mBufferHandle;
 
 
     const int vertexCount = mDefaultVertex2Ds.size();
     const int indexCount = mDefaultIndex2Ds.size();
-    if( !mVertexBufferHandle.IsValid() || mVertexCapacity < vertexCount )
+    if( !mBufferHandle.IsValid() || mVertexCapacity < vertexCount )
     {
-      if( mVertexBufferHandle.IsValid() )
-        Render::DestroyVertexBuffer( mVertexBufferHandle, TAC_STACK_FRAME );
-      mVertexBufferHandle = Render::CreateVertexBuffer( mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
+      if( mBufferHandle.IsValid() )
+        Render::DestroyVertexBuffer( mBufferHandle, TAC_STACK_FRAME );
+      mBufferHandle = Render::CreateBuffer( mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
                                                         nullptr,
                                                         sizeof( UI2DVertex ),
                                                         Render::Access::Dynamic,
                                                         TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( mVertexBufferHandle, "ui2d-vtx-buf" );
+      Render::SetRenderObjectDebugName( mBufferHandle, "ui2d-vtx-buf" );
       mVertexCapacity = vertexCount;
     }
 
-    if( !mIndexBufferHandle.IsValid() || mIndexCapacity < indexCount )
+    if( !mBufferHandle.IsValid() || mIndexCapacity < indexCount )
     {
-      if( mIndexBufferHandle.IsValid() )
-        Render::DestroyIndexBuffer( mIndexBufferHandle, TAC_STACK_FRAME );
+      if( mBufferHandle.IsValid() )
+        Render::DestroyIndexBuffer( mBufferHandle, TAC_STACK_FRAME );
       Render::Format format{ .mElementCount = 1,
                              .mPerElementByteCount = sizeof( UI2DIndex ),
                              .mPerElementDataType = Render::GraphicsType::uint };
-      mIndexBufferHandle = Render::CreateIndexBuffer( indexCount * sizeof( UI2DIndex ),
+      mBufferHandle = Render::CreateIndexBuffer( indexCount * sizeof( UI2DIndex ),
                                                       nullptr,
                                                       Render::Access::Dynamic,
                                                       format,
                                                       TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( mIndexBufferHandle, "ui2d-idx-buf" );
+      Render::SetRenderObjectDebugName( mBufferHandle, "ui2d-idx-buf" );
       mIndexCapacity = indexCount;
     }
 
 
-    Render::UpdateVertexBuffer( mVertexBufferHandle,
+    Render::UpdateVertexBuffer( mBufferHandle,
                                 mDefaultVertex2Ds.data(),
                                 mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
                                 TAC_STACK_FRAME );
 
-    Render::UpdateIndexBuffer( mIndexBufferHandle,
+    Render::UpdateIndexBuffer( mBufferHandle,
                                mDefaultIndex2Ds.data(),
                                mDefaultIndex2Ds.size() * sizeof( UI2DIndex ),
                                TAC_STACK_FRAME );
@@ -197,8 +200,9 @@ namespace Tac
   void UI2DCommonDataInit( Errors& errors ){ gUI2DCommonData.Init( errors ); }
   void UI2DCommonData::Init( Errors& errors )
   {
+#if TAC_TEMPORARILY_DISABLED()
     const u8 data[] = { 255, 255, 255, 255 };
-    const Render::TexSpec textureData =
+    const Render::CreateTextureParams textureData =
     {
       .mImage
       {
@@ -293,11 +297,13 @@ namespace Tac
     };
     mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerState  , "2d-samp" );
+#endif
   }
 
   void UI2DCommonDataUninit() { gUI2DCommonData.Uninit(); }
   void UI2DCommonData::Uninit()
   {
+#if TAC_TEMPORARILY_DISABLED()
     Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
     Render::DestroyShader( mShader, TAC_STACK_FRAME );
@@ -306,6 +312,7 @@ namespace Tac
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+#endif
   }
 
 #if 0
@@ -346,8 +353,8 @@ namespace Tac
     if( mVtxs.size() && mIdxs.size() )
     {
       UpdateDrawInterface( this, &gDrawInterface, errors );
-      Render::VertexBufferHandle& mVertexBufferHandle = gDrawInterface.mVertexBufferHandle;
-      Render::IndexBufferHandle& mIndexBufferHandle = gDrawInterface.mIndexBufferHandle;
+      Render::BufferHandle& mBufferHandle = gDrawInterface.mBufferHandle;
+      Render::BufferHandle& mBufferHandle = gDrawInterface.mBufferHandle;
 
       OrthographicUIMatrixUnitTest();
 
@@ -361,7 +368,7 @@ namespace Tac
         .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
       };
 
-      const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
+      const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
       const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
       Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
 
@@ -377,7 +384,7 @@ namespace Tac
           gUI2DCommonData.m1x1White;
 
 
-        const Render::ConstantBufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
+        const Render::BufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
         const int perObjSize = sizeof( Render::DefaultCBufferPerObject );
         Render::UpdateConstantBuffer( hPerObj,
                                       &uidrawCall.mUniformSource,
@@ -388,8 +395,8 @@ namespace Tac
         Render::SetSamplerState( { gUI2DCommonData.mSamplerState } );
         Render::SetDepthState( gUI2DCommonData.mDepthState );
         Render::SetVertexFormat( gUI2DCommonData.mFormat );
-        Render::SetVertexBuffer( mVertexBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
-        Render::SetIndexBuffer( mIndexBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
+        Render::SetVertexBuffer( mBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
+        Render::SetIndexBuffer( mBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
         Render::SetTexture( { texture } );
         Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
         Render::SetShader( uidrawCall.mShader );
@@ -405,7 +412,8 @@ namespace Tac
   }
 #endif
 
-  void UI2DDrawData::DrawToTexture2( Render::ViewHandle viewHandle,
+  void UI2DDrawData::DrawToTexture2( Render::IContext*,
+                                     Render::TextureHandle,
                                      UI2DDrawGpuInterface* gpuBuffers,
                                      Span< UI2DDrawData > drawDatas,
                                      Errors& errors )

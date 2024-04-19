@@ -10,8 +10,6 @@ namespace Tac
     void  SetForwards( v3 ); // does not need to be normalized
     m4    View() const;
     m4    ViewInv() const;
-    m4    Proj( float a, float b, float aspect ) const;
-    m4    ProjInv( float a, float b, float aspect ) const;
 
     v3    mPos       = { 0,0,5 };
     v3    mForwards  = { 0,0,-1};

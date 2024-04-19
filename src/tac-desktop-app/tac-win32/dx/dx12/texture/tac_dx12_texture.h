@@ -7,11 +7,7 @@
 
 namespace Tac::Render
 {
-  struct DX12DynTex
-  {
-  };
-
-  struct DX12Tex
+  struct DX12Texture
   {
   };
 

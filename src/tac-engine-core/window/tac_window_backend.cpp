@@ -148,6 +148,12 @@ namespace Tac::WindowBackend
     sPlatformCurr[ h.GetIndex() ].mPos = pos;
   }
 
+  v2i  SysApi::GetWindowPos( WindowHandle h )
+  {
+    TAC_ASSERT( sModificationAllowed );
+    return sPlatformCurr[ h.GetIndex() ].mPos;
+  }
+
   void SysApi::ApplyEnd()
   {
     sModificationAllowed = false;

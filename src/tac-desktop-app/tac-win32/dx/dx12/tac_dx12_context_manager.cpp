@@ -135,10 +135,9 @@ namespace Tac::Render
     DX12SetName( mCommandList, name );
   }
 
-  void DX12Context::ExecuteSynchronously( Errors& errors )
+  void DX12Context::SetSynchronous()
   {
     mSynchronous = true;
-    Execute( errors );
   }
 
   void DX12Context::SetViewport( v2i size )

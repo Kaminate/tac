@@ -1,5 +1,7 @@
 #include "tac_render_backend.h" // self-inc
 
+#include "tac-rhi/identifier/tac_id_collection.h"
+
 namespace Tac::Render
 {
 }

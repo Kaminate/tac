@@ -1,10 +1,12 @@
 #include "tac_debug_group.h" // self-inc
 
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 
 namespace Tac::Render::DebugGroup
 {
+  Iterator::Iterator( Render::IContext* context ) : mRenderContext( context ) { }
 
   Iterator::~Iterator()
   {
@@ -40,15 +42,14 @@ namespace Tac::Render::DebugGroup
     return mCurNodeIdx;
   }
 
-  Iterator    Stack::IterateBegin() const
+  Iterator    Stack::IterateBegin( Render::IContext* context ) const
   {
     TAC_ASSERT_MSG( mCurNodeIdx == NullNodeIndex, "Mismatched Push/Pop calls" );
-    return {};
+    return Iterator( context );
   }
 
   void        Stack::IterateElement( Iterator& it,
-                                     const NodeIndex info,
-                                     const StackFrame& sf ) const
+                                     const NodeIndex info ) const
   {
     const Node* node = FindNode( info );
     TAC_ASSERT( node && node->mHeight < 100 );
@@ -62,7 +63,7 @@ namespace Tac::Render::DebugGroup
 
     while( !it.empty() && it.back() != commonParent )
     {
-      Render::EndGroup( sf );
+      it.mRenderContext->DebugEventEnd();
       it.mNodeStack.pop_back();
     }
 
@@ -73,14 +74,17 @@ namespace Tac::Render::DebugGroup
       it.mNodeStack.push_back( curNode );
     Tac::Reverse( it.mNodeStack.begin() + oldNodeCount, it.mNodeStack.end() );
     for( int i = oldNodeCount; i < it.mNodeStack.size(); ++i )
-      Render::BeginGroup( it.mNodeStack[ i ]->mName, sf );
+    {
+      StringView name = it.mNodeStack[ i ]->mName;
+      it.mRenderContext->DebugEventBegin( name );
+    }
   }
 
-  void        Stack::IterateEnd( Iterator& it, const StackFrame& sf )
+  void        Stack::IterateEnd( Iterator& it )
   {
     const int n = it.mNodeStack.size();
     for( int i = 0; i < n; ++i )
-      Render::EndGroup( sf );
+      it.mRenderContext->DebugEventEnd();
 
     it.mNodeStack = {};
     it.mFinished = true;

@@ -292,29 +292,33 @@ namespace Tac::Render
     return h;
   }
 
-  void    DX12Device::UpdateBuffer( UpdateBufferParams params )
+  void    DX12Device::UpdateBuffer( BufferHandle h, UpdateBufferParams params )
   {
-    mBufMgr.UpdateBuffer( params );
+    sRenderer.mBufMgr.UpdateBuffer( h, params );
   }
 
   void    DX12Device::DestroyBuffer( BufferHandle h )
   {
-    mBufMgr.DestroyBuffer( h );
+    sRenderer.mBufMgr.DestroyBuffer( h );
   }
 
-  IContextBackend* DX12Device::CreateRenderContextBackend( Errors& errors )
+  IContext::Scope DX12Device::CreateRenderContext( Errors& errors )
   {
-    return mContextManager.GetContext(errors);
+    DX12Context* context = sRenderer.mContextManager.GetContext( errors );
+
+    return IContext::Scope( context );
   }
 
   TextureHandle DX12Device::CreateTexture( CreateTextureParams params, Errors& errors )
   {
-    sRenderer.mTexMgr.CreateTexture( params, errors );
+    TextureHandle h = AllocTextureHandle();
+    sRenderer.mTexMgr.CreateTexture( h, params, errors );
+    return h;
   }
 
-  void DX12Device::UpdateTexture( UpdateTextureParams parms )
+  void DX12Device::UpdateTexture( TextureHandle h, UpdateTextureParams params )
   {
-    sRenderer.mTexMgr.UpdateDynTex( params )
+    sRenderer.mTexMgr.UpdateTexture( h, params )
   }
 
   void DX12Device::DestroyTexture( TextureHandle h )

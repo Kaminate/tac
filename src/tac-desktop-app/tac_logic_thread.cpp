@@ -1,10 +1,10 @@
 #include "tac_logic_thread.h" // self-inc
 
-#include "tac-desktop-app/tac_desktop_app_threads.h"
-#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-desktop-app/tac_iapp.h"
 #include "tac-desktop-app/tac_render_state.h"
-#include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
+#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
 #include "tac-ecs/tac_space.h"
 
