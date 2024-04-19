@@ -28,7 +28,7 @@
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 
-#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
 
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"

@@ -20,7 +20,7 @@
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 
-#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
@@ -387,10 +387,10 @@ namespace Tac
     float farPlane = 10000.0f;
     float nearPlane = 0.1f;
     //float fovYRad = 100.0f * ( 3.14f / 180.0f );
-    const Render::InProj inProj = { .mNear = nearPlane, .mFar = farPlane };
-    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
-    const float projA = outProj.mA;
-    const float projB = outProj.mB;
+    //const Render::InProj inProj = { .mNear = nearPlane, .mFar = farPlane };
+    //const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
+    //const float projA = outProj.mA;
+    //const float projB = outProj.mB;
 
     const m4 world_to_view = m4::View( camPos, camViewDir, camR, camU );
     //auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );

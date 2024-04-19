@@ -1,7 +1,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/debug/tac_depth_buffer_visualizer.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
@@ -133,7 +133,7 @@ namespace Tac
     Camera3DDraw( camera, drawData );
   }
 
-  void LightDebugImgui( Light* light )
+  void LightDebugImgui( Light* light, Errors& errors )
   {
     LightDebug3DDraw( light );
 
@@ -143,16 +143,18 @@ namespace Tac
     //ImGuiImage( ( int )light->mShadowMapColor, { 100, 100 } );
     LightDebugImguiShadowResolution( light );
 
-    const Camera camera = light->GetCamera();
-    const Render::InProj inProj = { .mNear = camera.mNearPlane, .mFar = camera.mFarPlane };
-    const Render::TextureHandle viz = DepthBufferLinearVisualizationRender( light->mShadowMapDepth,
-                                                                            light->mShadowResolution,
-                                                                            light->mShadowResolution,
-                                                                            inProj );
+    const Render::TextureHandle viz =
+      TAC_CALL( DepthBufferLinearVisualizationRender(
+        light->mShadowMapDepth,
+        light->mShadowResolution,
+        light->mShadowResolution,
+        errors ) );
     const v2 shadowMapSize = v2( 1, 1 ) * 256;
-    ImGuiImage( ( int )viz, shadowMapSize );
+    ImGuiImage( viz.GetIndex(), shadowMapSize );
 
-    Render::DestroyTexture( viz, TAC_STACK_FRAME );
+
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    renderDevice->DestroyTexture( viz );
 
 
     if( light->mShadowResolution != oldShadowMapResolution )
@@ -162,6 +164,7 @@ namespace Tac
 
     m4 world_xform = light->mEntity->mWorldTransform;
 
+    const Camera camera = light->GetCamera();
     v3 x = camera.mRight;
     v3 y = camera.mUp;
     v3 z = -camera.mForwards;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/containers/tac_fixed_vector.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 #include <d3d12.h> // ID3D12...
 

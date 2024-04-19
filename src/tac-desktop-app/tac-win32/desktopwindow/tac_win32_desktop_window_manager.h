@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-win32/tac_win32.h"
-#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-engine-core/platform/tac_platform.h"
 
 namespace Tac

@@ -1,5 +1,7 @@
 #include "tac_example_dx12_shader_compile.h" // self-inc
-#include "tac_example_dx12_2_dxc.h"
+
+//#include "tac_example_dx12_2_dxc.h"
+#include "tac-win32/dx/dxc/tac_dxc.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
@@ -47,6 +49,7 @@ namespace Tac::Render
 
   // DX12ExampleProgramCompiler::Result definition
   
+#if 0
   D3D12_SHADER_BYTECODE DX12ExampleProgramCompiler::Result::GetBytecode( ShaderType type )
   {
     auto blob = ( IDxcBlob* )mBlobs[ ( int )type ];
@@ -54,6 +57,7 @@ namespace Tac::Render
       D3D12_SHADER_BYTECODE{ blob->GetBufferPointer(), blob->GetBufferSize() } :
       D3D12_SHADER_BYTECODE{};
   }
+#endif
 
   // -----------------------------------------------------------------------------------------------
 
@@ -69,52 +73,36 @@ namespace Tac::Render
     TAC_RAISE_ERROR_IF( shaderModel > highestShaderModel, "Shader model too high" );
   }
 
-  static PCom<IDxcBlob> CompileShader( ShaderType shaderType,
-                                       AssetPathStringView shaderAssetPath,
-                                       Errors& errors)
-  {
-    const String shaderStrProcessed = HLSLPreprocess( shaderAssetPath, errors );
-
-    const char* entryPoints[ ( int )ShaderType::Count ]{};
-    entryPoints[ ( int )ShaderType::Vertex ] = "VSMain";
-    entryPoints[ ( int )ShaderType::Fragment ] = "PSMain";
-
-    const char* entryPoint = entryPoints[ (int)shaderType ];
-    if( !entryPoint )
-      return {};
-
-    if( !shaderStrProcessed.contains( String() + entryPoint + "(" ) )
-      return {};
-
-    const DXC::ExampleInput input
-    {
-      .mShaderAssetPath = shaderAssetPath,
-      .mPreprocessedShader = shaderStrProcessed,
-      .mEntryPoint = entryPoint,
-      .mType = shaderType,
-      .mShaderModel = shaderModel,
-      .mOutputDir = sOutputDir,
-    };
-    return TAC_CALL_RET( {}, DXC::ExampleCompile( input, errors ));
-
-
-  }
-
   // you know... this code assumes all the shaders are in the same file... why would that
   // even be a fair assumption...
   DX12ExampleProgramCompiler::Result DX12ExampleProgramCompiler::Compile( const AssetPathStringView& path,
-                                                            Errors& errors )
+                                                                          Errors& errors )
   {
-    Result result;
-    for( int i = 0; i < ( int )ShaderType::Count; ++i )
-    {
-      result.mBlobs[ i ] = TAC_CALL_RET( {},
-                                         CompileShader( ( ShaderType )i,
-                                         path,
-                                         errors ) );
-    }
 
-    return result;
+    const String shaderStrProcessed = HLSLPreprocess( path, errors );
+
+    DXCCompileParams compileParams
+    {
+      .mFileName = path,
+      .mPreprocessedShader = shaderStrProcessed,
+      .mShaderModel = shaderModel,
+      .mOutputDir = sOutputDir,
+    };
+
+    DXCCompileOutput compileOutput = TAC_CALL_RET( {}, DXCCompile( compileParams, errors ) );
+
+    PCom< IDxcBlob >& PSBlob = compileOutput.mPSBlob;
+    PCom< IDxcBlob >& VSBlob = compileOutput.mVSBlob;
+    D3D12_SHADER_BYTECODE VSBytecode{ VSBlob->GetBufferPointer(), VSBlob->GetBufferSize() };
+    D3D12_SHADER_BYTECODE PSBytecode{ PSBlob->GetBufferPointer(),  PSBlob->GetBufferSize() };
+
+    return Result
+    {
+      .mVSBlob = VSBlob,
+      .mPSBlob = PSBlob,
+      .mVSBytecode = VSBytecode,
+      .mPSBytecode = PSBytecode,
+    };
   }
 
   // -----------------------------------------------------------------------------------------------

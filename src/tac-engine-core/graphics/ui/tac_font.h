@@ -8,7 +8,7 @@
 
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/math/tac_vector2.h" // v2
-//#include "tac-rhi/renderer/tac_renderer.h" // Render::TextureHandle
+//#include "tac-rhi/render3/tac_render_api.h" // Render::TextureHandle
 #include "tac-rhi/render3/tac_render_api.h"
 //#include "tac-std-lib/tac_core.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"

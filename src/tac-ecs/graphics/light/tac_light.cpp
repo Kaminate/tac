@@ -149,16 +149,16 @@ namespace Tac
     mCreatedRenderResources = false;
 
     Render::DestroyTexture( mShadowMapDepth, TAC_STACK_FRAME );
-    mShadowMapDepth = Render::TextureHandle();
+    mShadowMapDepth = {};
 
     //Render::DestroyTexture( mShadowMapColor, TAC_STACK_FRAME );
     //mShadowMapColor = Render::TextureHandle();
 
     Render::DestroyFramebuffer( mShadowFramebuffer, TAC_STACK_FRAME );
-    mShadowFramebuffer = Render::FramebufferHandle();
+    mShadowFramebuffer = {};
 
     Render::DestroyView( mShadowView );
-    mShadowView = Render::ViewHandle();
+    mShadowView = {};
   }
 
   void LightDebugImgui( Light* );
@@ -200,16 +200,20 @@ namespace Tac
   Render::ShaderLight                            LightToShaderLight( const Light* light )
   {
     const Camera camera = light->GetCamera();
-    const Render::InProj inProj = { .mNear = camera.mNearPlane, .mFar = camera.mFarPlane };
-    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
-    const float a = outProj.mA;
-    const float b = outProj.mB;
-    const float w = ( float )light->mShadowResolution;
-    const float h = ( float )light->mShadowResolution;
-    const float aspect = w / h;
-    const m4 view = camera.View();
-    const m4 proj = camera.Proj( a, b, aspect );
+    const Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    const Render::NDCAttribs ndcAttribs = renderDevice->GetInfo().mNDCAttribs;
+    const m4::ProjectionMatrixParams projParams
+    {
+      .mNDCMinZ = ndcAttribs.mMinZ,
+      .mNDCMaxZ = ndcAttribs.mMaxZ,
+      .mViewSpaceNear = camera.mNearPlane,
+      .mViewSpaceFar = camera.mFarPlane,
+      .mAspectRatio = 1,
+      .mFOVYRadians = camera.mFovyrad,
+    };
 
+    const m4 view = camera.View();
+    const m4 proj = m4::ProjPerspective( projParams );
 
     const u32 flags = 0
       | Render::GetShaderLightFlagType()->ShiftResult( light->mType )

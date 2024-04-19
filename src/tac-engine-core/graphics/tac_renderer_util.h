@@ -1,7 +1,7 @@
 // This file is for things that you may want to use after including tac_renderer.h
 #pragma once
 
-//#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector2.h"

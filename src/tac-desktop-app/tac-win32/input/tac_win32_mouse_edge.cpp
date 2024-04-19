@@ -1,8 +1,8 @@
 #include "tac_win32_mouse_edge.h" // self-inc
 
 
-#include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 
 //#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
@@ -20,8 +20,8 @@ namespace Tac
 {
   enum class MouseEdgeFlags
   {
-    kNone = 0b0001,
-    kMovable = 0b0010,
+    kNone      = 0b0001,
+    kMovable   = 0b0010,
     kResizable = 0b0100,
   };
 

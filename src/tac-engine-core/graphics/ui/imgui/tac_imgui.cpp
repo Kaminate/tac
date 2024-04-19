@@ -11,7 +11,7 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 
-//#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
@@ -24,7 +24,7 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 
-//#include "tac-desktop-app/tac_desktop_app.h"
+//#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 //#include "tac-engine-core/window/tac_window_api_graphics.h"
 
 namespace Tac

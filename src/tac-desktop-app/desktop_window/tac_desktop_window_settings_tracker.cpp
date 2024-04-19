@@ -4,7 +4,7 @@
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 namespace Tac
 {

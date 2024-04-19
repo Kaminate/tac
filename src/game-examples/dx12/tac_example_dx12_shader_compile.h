@@ -3,7 +3,7 @@
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
 #include <dxcapi.h> // (must be included after d3d12.h) IDxc..., Dxc...
 
-#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
@@ -14,14 +14,16 @@ namespace Tac::Render
   {
     struct Result
     {
-      D3D12_SHADER_BYTECODE GetBytecode( ShaderType );
-      PCom<IDxcBlob> mBlobs[ (int) ShaderType::Count ];
+      PCom< IDxcBlob >      mVSBlob;
+      PCom< IDxcBlob >      mPSBlob;
+      D3D12_SHADER_BYTECODE mVSBytecode;
+      D3D12_SHADER_BYTECODE mPSBytecode;
     };
 
     struct Params
     {
       Filesystem::Path mOutputDir;
-      ID3D12Device* mDevice;
+      ID3D12Device*    mDevice;
     };
 
     DX12ExampleProgramCompiler( Params, Errors& );

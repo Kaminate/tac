@@ -3,7 +3,6 @@
 namespace Tac::Render
 {
   struct TextureHandle;
-  struct InProj;
   struct IContext;
 }
 
@@ -17,8 +16,7 @@ namespace Tac
   // h - desired height of output texture 
   // f - far plane camera dist
   // n - near plane camera dist
-  Render::TextureHandle DepthBufferLinearVisualizationRender( Render::IContext*,
-                                                              const Render::TextureHandle&,
+  Render::TextureHandle DepthBufferLinearVisualizationRender( const Render::TextureHandle&,
                                                               int w,
                                                               int h,
                                                               Errors& );

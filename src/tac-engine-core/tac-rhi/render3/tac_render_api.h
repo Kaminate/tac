@@ -52,6 +52,59 @@ namespace Tac::Render
 
   // vvv can/should this/some of section be deleted?
 
+  enum class BlendMode
+  {
+    Add,
+  };
+
+  enum class BlendConstants
+  {
+    One,
+    Zero,
+    SrcRGB,
+    SrcA,
+    OneMinusSrcA,
+  };
+
+  enum class FillMode
+  {
+    Solid,
+    Wireframe
+  };
+
+  enum class CullMode
+  {
+    None,
+    Back,
+    Front
+  };
+
+  enum class AddressMode
+  {
+    Wrap,
+    Clamp,
+    Border,
+  };
+
+  enum class Comparison
+  {
+    Always,
+    Never,
+  };
+
+  enum class Filter
+  {
+    Point,
+    Linear,
+    Aniso,
+  };
+
+  enum class DepthFunc
+  {
+    Less,
+    LessOrEqual,
+  };
+
   enum class Attribute // Used to hardcode shader semantics/indexes
   {
     Position,
@@ -277,8 +330,9 @@ namespace Tac::Render
 
   struct NDCAttribs
   {
-    float mMin;
-    float mMax;
+    // (-1, 1) for opengl, (0, 1) for directx
+    float mMinZ;
+    float mMaxZ;
   };
 
   struct IDevice

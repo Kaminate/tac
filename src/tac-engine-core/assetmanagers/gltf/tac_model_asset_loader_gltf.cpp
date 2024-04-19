@@ -7,7 +7,7 @@
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
-//#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-std-lib/containers/tac_vector.h"

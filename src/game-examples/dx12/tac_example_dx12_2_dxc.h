@@ -1,8 +1,10 @@
+// use tac_dxc.h instead
+#if 0
 // This file serves as a wrapper around dxc
 #pragma once
 
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
-#include "tac-rhi/renderer/tac_renderer.h" // ShaderType
+#include "tac-rhi/render3/tac_render_api.h" // ShaderType
 #include "tac-std-lib/filesystem/tac_asset.h" // AssetPathStringView
 #include "tac-std-lib/filesystem/tac_filesystem.h" // Filesystem::Path
 
@@ -21,7 +23,8 @@ namespace Tac::Render::DXC
     Filesystem::Path    mOutputDir;
   };
 
-  PCom<IDxcBlob> ExampleCompile( const ExampleInput&, Errors& );
+  PCom< IDxcBlob > ExampleCompile( const ExampleInput&, Errors& );
 
 } // namespace Tac::Render
 
+#endif

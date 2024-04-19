@@ -1,6 +1,7 @@
 #pragma once
 
-#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h" // Render::TextureHandle
+//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-ecs/component/tac_component.h"
 
 // Okay but like

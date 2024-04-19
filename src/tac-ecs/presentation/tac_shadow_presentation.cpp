@@ -7,7 +7,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-rhi/renderer/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix4.h"
@@ -131,10 +131,19 @@ namespace Tac
   Render::DefaultCBufferPerFrame ShadowLightVisitor::GetPerFrameData( const Light* light )
   {
     const Camera camera = light->GetCamera();
-    const Render::InProj inProj = { .mNear = camera.mNearPlane, .mFar = camera.mFarPlane };
-    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
-    const float a = outProj.mA;
-    const float b = outProj.mB;
+    const Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    const Render::NDCAttribs ndc = renderDevice->GetInfo().mNDCAttribs;
+    const m4::ProjectionMatrixParams projParams
+    {
+      .mNDCMinZ = ndc.mMinZ,
+      .mNDCMaxZ = ndc.mMaxZ,
+      .mViewSpaceNear = camera.mNearPlane,
+      .mViewSpaceFar = camera.mFarPlane,
+      .mAspectRatio = 1,
+      .mFOVYRadians = camera.mFovyrad, // uhh should this be asserted to be 90 deg?
+    };
+
+    const m4 proj = m4::ProjPerspective(projParams);
     const float w = ( float )light->mShadowResolution;
     const float h = ( float )light->mShadowResolution;
     const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
@@ -142,7 +151,7 @@ namespace Tac
     return Render::DefaultCBufferPerFrame
     {
       .mView = camera.View(),
-      .mProjection = camera.Proj( a, b, w / h ),
+      .mProjection = proj,
       .mFar = camera.mFarPlane,
       .mNear = camera.mNearPlane,
       .mGbufferSize = { w, h },

@@ -1,6 +1,6 @@
 #include "tac_depth_buffer_visualizer.h" // self-inc
 
-//#include "tac-rhi/renderer/tac_renderer.h"
+//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
@@ -54,7 +54,6 @@ namespace Tac
 }
 
 Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender(
-  Render::IContext* renderContext,
   const Render::TextureHandle& depthTexture,
   int w,
   int h,

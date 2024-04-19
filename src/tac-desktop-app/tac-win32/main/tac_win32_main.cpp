@@ -1,6 +1,6 @@
 #include "tac_win32_main.h" // self-inc
 
-#include "tac-desktop-app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/tac_desktop_event.h"
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
