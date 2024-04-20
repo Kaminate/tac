@@ -44,7 +44,9 @@ namespace Tac
     int                       mShadowResolution = 512;
 
     bool                      mCreatedRenderResources = false;
-    //Render::TextureHandle     mShadowMapColor;
+
+    // this is a texture with a depth stencil view binding. ( depth buffer ) 
+    // basically this will be the only thing bound to the framebuffer, without color buffers.
     Render::TextureHandle     mShadowMapDepth;
     Render::FramebufferHandle mShadowFramebuffer;
     Render::ViewHandle        mShadowView;
@@ -53,11 +55,9 @@ namespace Tac
     float                     mRadiance = 5.0f; // i guess?
   };
 
-
-  Render::ShaderLight                            LightToShaderLight( const Light* );
-
-  void                                   RegisterLightComponent();
-  const char*                            LightTypeToString( Light::Type );
-  Light::Type                            LightTypeFromString( const StringView& );
+  Render::ShaderLight LightToShaderLight( const Light* );
+  void                RegisterLightComponent();
+  const char*         LightTypeToString( Light::Type );
+  Light::Type         LightTypeFromString( const StringView& );
 }
 

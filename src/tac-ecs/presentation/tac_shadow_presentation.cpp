@@ -86,14 +86,28 @@ namespace Tac
 
   static Render::TextureHandle CreateShadowMapDepth( const Light* light )
   {
-    const Render::CreateTextureParams CreateTextureParamsDepth{ .mImage { .mWidth = light->mShadowResolution,
-                                                  .mHeight = light->mShadowResolution ,
-                                                  .mFormat { .mElementCount = 1,
-                                                             .mPerElementByteCount = 4,
-                                                             .mPerElementDataType = Render::GraphicsType::real } },
-                                        .mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource };
-    Render::TextureHandle textureHandleDepth = Render::CreateTexture( CreateTextureParamsDepth, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( textureHandleDepth, "shadowmap-depth" );
+    const Render::Format format
+    {
+      .mElementCount = 1,
+      .mPerElementByteCount = 4,
+      .mPerElementDataType = Render::GraphicsType::real,
+    };
+
+    const Render::Image image
+    {
+      .mWidth{ light->mShadowResolution },
+      .mHeight{ light->mShadowResolution },
+      .mFormat{ format },
+    };
+
+    const Render::CreateTextureParams params
+    {
+      .mImage{ image },
+      .mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource,
+      .mOptionalName = "shadowmap-depth",
+    };
+
+    Render::TextureHandle textureHandleDepth = Render::CreateTexture( params, TAC_STACK_FRAME );
     return textureHandleDepth;
 
   }

@@ -43,8 +43,8 @@ namespace Tac
     const auto ndcAttribs = renderDevice->GetInfo().mNDCAttribs;
     const m4::ProjectionMatrixParams projMtxParams
     {
-      .mNDCMinZ = ndcAttribs.mMin,
-      .mNDCMaxZ = ndcAttribs.mMax,
+      .mNDCMinZ = ndcAttribs.mMinZ,
+      .mNDCMaxZ = ndcAttribs.mMaxZ,
       .mViewSpaceNear = camera->mNearPlane,
       .mViewSpaceFar = camera->mFarPlane,
       .mAspectRatio = ( float )viewWidth / ( float )viewHeight,
@@ -75,7 +75,7 @@ namespace Tac
     Render::DestroyBlendState( mAlphaBlendState, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthLess, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerStateNoCull, TAC_STACK_FRAME );
-    Render::DestroyShader( m3DVertexColorShader, TAC_STACK_FRAME );
+    Render::DestroyProgram( m3DVertexColorShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mVertexColorFormat, TAC_STACK_FRAME );
 #endif
   }

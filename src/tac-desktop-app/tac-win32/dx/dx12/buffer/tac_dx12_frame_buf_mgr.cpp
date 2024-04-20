@@ -18,7 +18,7 @@ namespace Tac::Render
     mCommandQueue = commandQueue;
   }
 
-  void   DX12FrameBufferMgr::CreateFB( FBHandle h, FrameBufferParams params, Errors& errors )
+  void   DX12FrameBufferMgr::CreateFB( SwapChainHandle h, SwapChainParams params, Errors& errors )
   {
     const void* nwh = params.mNWH;
     const v2i size = params.mSize;
@@ -90,7 +90,7 @@ namespace Tac::Render
     };
   }
 
-  void   DX12FrameBufferMgr::ResizeFB( FBHandle h, v2i size )
+  void   DX12FrameBufferMgr::ResizeFB( SwapChainHandle h, v2i size )
   {
 
     DX12FrameBuf& frameBuf = mFrameBufs[ h.GetIndex() ];
@@ -100,19 +100,19 @@ namespace Tac::Render
     OS::OSDebugBreak();
   }
 
-  TexFmt DX12FrameBufferMgr::GetFBFmt( FBHandle h )
+  TexFmt DX12FrameBufferMgr::GetSwapChainParams( SwapChainHandle h )
   {
     return mFrameBufs[ h.GetIndex() ].mFmt;
   }
 
 
-  void   DX12FrameBufferMgr::DestroyFB( FBHandle h )
+  void   DX12FrameBufferMgr::DestroyFB( SwapChainHandle h )
   {
     if( h.IsValid() )
       mFrameBufs[ h.GetIndex() ] = {};
   }
 
-  DX12FrameBuf* DX12FrameBufferMgr::FindFB( FBHandle h )
+  DX12FrameBuf* DX12FrameBufferMgr::FindFB( SwapChainHandle h )
   {
     return h.IsValid() ? &mFrameBufs[ h.GetIndex() ] : nullptr;
   }

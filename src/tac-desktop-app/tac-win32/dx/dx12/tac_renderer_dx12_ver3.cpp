@@ -123,7 +123,7 @@ namespace Tac::Render
   //{
   //}
 
-  //void DX12Context::SetRenderTarget( FBHandle h )
+  //void DX12Context::SetRenderTarget( SwapChainHandle h )
   //{
   //}
 
@@ -262,26 +262,26 @@ namespace Tac::Render
     mProgramMgr.DestroyProgram( h );
   }
 
-  FBHandle    DX12Device::CreateFB(  
-                                 FrameBufferParams params,
+  SwapChainHandle    DX12Device::CreateSwapChain(  
+                                 SwapChainParams params,
                                  Errors& errors )
   {
-    mFrameBufMgr.CreateFB( h, params, errors );
+    mFrameBufMgr.CreateSwapChain( h, params, errors );
   }
 
-  void    DX12Device::ResizeFB( FBHandle h, v2i size )
+  void    DX12Device::ResizeSwapChain( SwapChainHandle h, v2i size )
   {
-    mFrameBufMgr.ResizeFB( h, size );
+    mFrameBufMgr.ResizeSwapChain( h, size );
   }
 
-  TexFmt  DX12Device::GetFBFmt( FBHandle h )
+  TexFmt  DX12Device::GetSwapChainParams( SwapChainHandle h )
   {
-    return mFrameBufMgr.GetFBFmt( h );
+    return mFrameBufMgr.GetSwapChainParams( h );
   }
 
-  void    DX12Device::DestroyFB( FBHandle h )
+  void    DX12Device::DestroySwapChain( SwapChainHandle h )
   {
-    return mFrameBufMgr.DestroyFB( h);
+    return mFrameBufMgr.DestroySwapChain( h);
   }
 
   BufferHandle    DX12Device::CreateBuffer( CreateBufferParams params,

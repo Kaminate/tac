@@ -28,7 +28,7 @@ namespace Tac
 
   void SkyboxPresentationUninit()
   {
-    Render::DestroyShader( mShader, TAC_STACK_FRAME );
+    Render::DestroyProgram( mShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
   }
 

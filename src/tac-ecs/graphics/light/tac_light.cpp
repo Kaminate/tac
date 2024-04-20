@@ -151,9 +151,6 @@ namespace Tac
     Render::DestroyTexture( mShadowMapDepth, TAC_STACK_FRAME );
     mShadowMapDepth = {};
 
-    //Render::DestroyTexture( mShadowMapColor, TAC_STACK_FRAME );
-    //mShadowMapColor = Render::TextureHandle();
-
     Render::DestroyFramebuffer( mShadowFramebuffer, TAC_STACK_FRAME );
     mShadowFramebuffer = {};
 

@@ -38,13 +38,13 @@ namespace Tac
   static IdMgr sIdMgrBuffer;
   static IdMgr sIdMgrTexture;
 
-  Render::FBHandle        Render::AllocFBHandle()        { return FBHandle( sIdMgrFB.Alloc() ); }
+  Render::SwapChainHandle        Render::AllocSwapChainHandle()        { return SwapChainHandle( sIdMgrFB.Alloc() ); }
   Render::PipelineHandle  Render::AllocPipelineHandle()  { return PipelineHandle( sIdMgrPipeline.Alloc() ); }
   Render::ProgramHandle   Render::AllocProgramHandle()   { return ProgramHandle( sIdMgrProgram.Alloc() ); }
   Render::BufferHandle    Render::AllocBufferHandle()    { return BufferHandle( sIdMgrBuffer.Alloc() ); }
   Render::TextureHandle   Render::AllocTextureHandle()   { return TextureHandle( sIdMgrTexture.Alloc() ); }
 
-  void            Render::FreeHandle( FBHandle h )       { sIdMgrFB.Free( h.GetIndex() ); }
+  void            Render::FreeHandle( SwapChainHandle h )       { sIdMgrFB.Free( h.GetIndex() ); }
   void            Render::FreeHandle( PipelineHandle h ) { sIdMgrPipeline.Free( h.GetIndex() ); }
   void            Render::FreeHandle( ProgramHandle h )  { sIdMgrProgram.Free( h.GetIndex() ); }
   void            Render::FreeHandle( BufferHandle h )   { sIdMgrBuffer.Free( h.GetIndex() ); }

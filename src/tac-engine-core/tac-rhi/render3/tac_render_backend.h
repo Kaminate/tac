@@ -6,12 +6,12 @@ namespace Tac{ struct Errors; }
 namespace Tac::Render
 {
 
-  FBHandle        AllocFBHandle();
+  SwapChainHandle        AllocSwapChainHandle();
   PipelineHandle  AllocPipelineHandle();
   ProgramHandle   AllocProgramHandle();
   BufferHandle    AllocBufferHandle();
   TextureHandle   AllocTextureHandle();
-  void            FreeHandle( FBHandle );
+  void            FreeHandle( SwapChainHandle );
   void            FreeHandle( PipelineHandle );
   void            FreeHandle( ProgramHandle );
   void            FreeHandle( BufferHandle );

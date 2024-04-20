@@ -306,8 +306,8 @@ namespace Tac
 #if TAC_TEMPORARILY_DISABLED()
     Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
-    Render::DestroyShader( mShader, TAC_STACK_FRAME );
-    Render::DestroyShader( m2DTextShader, TAC_STACK_FRAME );
+    Render::DestroyProgram( mShader, TAC_STACK_FRAME );
+    Render::DestroyProgram( m2DTextShader, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );

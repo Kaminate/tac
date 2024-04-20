@@ -46,7 +46,7 @@ namespace Tac::Render
     void                       SetSynchronous() override;
     void                       SetViewport( v2i ) override;
     void                       SetScissor( v2i ) override;
-    void                       SetRenderTarget( FBHandle ) override;
+    void                       SetRenderTarget( SwapChainHandle ) override;
 
     void                       DebugEvent( StringView ) override;
     void                       DebugMarker( StringView ) override;

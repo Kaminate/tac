@@ -73,10 +73,10 @@ namespace Tac::Render
     ProgramHandle CreateProgram( ProgramParams, Errors& ) override;
     void          DestroyProgram( ProgramHandle ) override;
 
-    FBHandle    CreateFB( FrameBufferParams, Errors& ) override;
-    void        ResizeFB( FBHandle, v2i ) override;
-    TexFmt      GetFBFmt( FBHandle ) override;
-    void        DestroyFB( FBHandle ) override;
+    SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) override;
+    void            ResizeSwapChain( SwapChainHandle, v2i ) override;
+    SwapChainParams GetSwapChainParams( SwapChainHandle ) override;
+    void            DestroySwapChain( SwapChainHandle ) override;
 
     BufferHandle CreateBuffer( CreateBufferParams, Errors& ) override;
     void         UpdateBuffer( BufferHandle, UpdateBufferParams ) override;

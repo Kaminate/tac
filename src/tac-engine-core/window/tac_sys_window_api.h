@@ -11,7 +11,7 @@
 #define TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN() 1
 
 namespace Tac { struct v2i; struct StringView; }
-namespace Tac::Render { struct FBHandle; }
+namespace Tac::Render { struct SwapChainHandle; }
 namespace Tac
 {
   struct SysWindowApi
@@ -22,7 +22,7 @@ namespace Tac
     StringView       GetName( WindowHandle ) const;
     const void*      GetNWH( WindowHandle ) const; // native window handle
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
-    Render::FBHandle GetFBHandle( WindowHandle ) const;
+    Render::SwapChainHandle GetSwapChainHandle( WindowHandle ) const;
 #endif
     void             DesktopWindowDebugImgui();
   };

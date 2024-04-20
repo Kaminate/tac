@@ -140,7 +140,6 @@ namespace Tac
     const int oldShadowMapResolution = light->mShadowResolution;
     LightDebugImguiType( light );
     ImGuiCheckbox( "Casts shadows", &light->mCastsShadows );
-    //ImGuiImage( ( int )light->mShadowMapColor, { 100, 100 } );
     LightDebugImguiShadowResolution( light );
 
     const Render::TextureHandle viz =

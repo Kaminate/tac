@@ -528,9 +528,10 @@ namespace Tac
       renderDevice->CreateProgram( programParams, errors ) );
 
 #if 1
-    Render::FBHandle fb = windowApi->GetFBHandle( hDesktopWindow );
+    Render::SwapChainHandle fb = windowApi->GetSwapChainHandle( hDesktopWindow );
 #endif
-    const Render::TexFmt fbFmt = renderDevice->GetFBFmt( fb );
+    const Render::SwapChainParams swapChainParams  = renderDevice->GetSwapChainParams( fb );
+    const Render::TexFmt fbFmt = swapChainParams.mColorFmt;
 
     const Render::PipelineParams pipelineParams
     {

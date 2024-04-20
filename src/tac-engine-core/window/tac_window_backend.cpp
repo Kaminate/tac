@@ -31,7 +31,7 @@ namespace Tac::WindowBackend
   using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
   using NWHArray = Array< const void*, kDesktopWindowCapacity >; // Native Window Handles (HWND)
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
-  using FBArray = Array< Render::FBHandle, kDesktopWindowCapacity >; // Window Framebuffers
+  using FBArray = Array< Render::SwapChainHandle, kDesktopWindowCapacity >; // Window Framebuffers
 #endif
 
   // sWindowStateMutex:
@@ -101,13 +101,14 @@ namespace Tac::WindowBackend
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
     {
-      const Render::FrameBufferParams params
+      Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+      const Render::SwapChainParams params
       {
         .mNWH = nwh,
         .mSize = size,
         .mColorFmt = sTexFmt,
       };
-      sFramebuffers[ i ] = Render::RenderApi::CreateFB( params, errors );
+      sFramebuffers[ i ] = renderDevice->CreateSwapChain( params, errors );
     }
 #endif
   }
@@ -119,8 +120,9 @@ namespace Tac::WindowBackend
     sPlatformCurr[ i ] = {};
     sPlatformNative[ i ] = {};
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
     if( mIsRendererEnabled )
-      Render::RenderApi::DestroyFB( sFramebuffers[ i ] );
+      renderDevice->DestroySwapChain( sFramebuffers[ i ] );
     sFramebuffers[ i ] = {};
 #endif
   }
@@ -138,7 +140,10 @@ namespace Tac::WindowBackend
     sPlatformCurr[ i ].mSize = size;
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
-      Render::RenderApi::ResizeFB( sFramebuffers[ i ], size );
+    {
+      Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+      renderDevice->ResizeSwapChain( sFramebuffers[ i ], size );
+    }
 #endif
   }
 
@@ -293,7 +298,7 @@ namespace Tac
   }
 
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
-  Render::FBHandle SysWindowApi::GetFBHandle( WindowHandle h ) const
+  Render::SwapChainHandle SysWindowApi::GetSwapChainHandle( WindowHandle h ) const
   {
     return sFramebuffers[ h.GetIndex() ];
   }

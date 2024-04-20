@@ -21,11 +21,11 @@ namespace Tac::Render
     int mIndex;
   };
 
-  struct FBHandle       : public IHandle { FBHandle      ( int i = -1 ) : IHandle{ i } {} };
-  struct PipelineHandle : public IHandle { PipelineHandle( int i = -1 ) : IHandle( i ) {} };
-  struct ProgramHandle  : public IHandle { ProgramHandle ( int i = -1 ) : IHandle{ i } {} };
-  struct BufferHandle   : public IHandle { BufferHandle  ( int i = -1 ) : IHandle{ i } {} };
-  struct TextureHandle  : public IHandle { TextureHandle ( int i = -1 ) : IHandle{ i } {} };
+  struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = -1 ) : IHandle{ i } {} };
+  struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = -1 ) : IHandle( i ) {} };
+  struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = -1 ) : IHandle{ i } {} };
+  struct BufferHandle    : public IHandle { BufferHandle    ( int i = -1 ) : IHandle{ i } {} };
+  struct TextureHandle   : public IHandle { TextureHandle   ( int i = -1 ) : IHandle{ i } {} };
 
   //enum RasterizerType
   //{
@@ -191,11 +191,12 @@ namespace Tac::Render
   //{
   //};
 
-  struct FrameBufferParams
+  struct SwapChainParams
   {
-    const void* mNWH;
-    v2i         mSize;
-    TexFmt      mColorFmt;
+    const void* mNWH{};
+    v2i         mSize{};
+    TexFmt      mColorFmt{};
+    TexFmt      mDepthFmt{};
   };
 
   enum class Usage
@@ -261,7 +262,7 @@ namespace Tac::Render
     //RasterizerType         mRasterizer;
     //BlendType              mBlend;
     //DepthStencilType       mDepthStencilType;
-    //FBHandle               mRenderTarget;
+    //SwapChainHandle               mRenderTarget;
     FixedVector< TexFmt, 8 > mRTVColorFmts;
     TexFmt                   mDSVDepthFmt = TexFmt::kUnknown;
     // root sig? <-- parse using dx reflection
@@ -274,7 +275,7 @@ namespace Tac::Render
   {
     int         mByteCount = 0;
     const void* mBytes = nullptr;
-    Usage       mAccess = Usage::Default;
+    Usage       mAccess = Usage::Default; // TODO: rename to `mUsage`
     StringView  mOptionalName;
     StackFrame  mStackFrame;
   };
@@ -298,7 +299,7 @@ namespace Tac::Render
     };
     virtual void SetViewport( v2i ) {}
     virtual void SetScissor( v2i ) {}
-    virtual void SetRenderTarget( FBHandle ) {}
+    virtual void SetRenderTarget( SwapChainHandle ) {}
     virtual void SetSynchronous() {}
 
     // represents a region of time ( from the call till the end of scope  StringView )
@@ -352,10 +353,10 @@ namespace Tac::Render
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& ) {}
     virtual void            DestroyProgram( ProgramHandle ) {}
 
-    virtual FBHandle        CreateFB( FrameBufferParams, Errors& ) {}
-    virtual void            ResizeFB( FBHandle, v2i ) {}
-    virtual TexFmt          GetFBFmt( FBHandle ) { return TexFmt::kUnknown; }
-    virtual void            DestroyFB( FBHandle ) {}
+    virtual SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) {}
+    virtual void            ResizeSwapChain( SwapChainHandle, v2i ) {}
+    virtual SwapChainParams GetSwapChainParams( SwapChainHandle ) { return {}; }
+    virtual void            DestroySwapChain( SwapChainHandle ) {}
 
     virtual BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) {}
     virtual void            UpdateBuffer( BufferHandle, UpdateBufferParams ) {}

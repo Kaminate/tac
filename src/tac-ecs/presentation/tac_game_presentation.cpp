@@ -590,7 +590,7 @@ namespace Tac
 
   void        GamePresentationUninit()
   {
-    Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
+    Render::DestroyProgram( m3DShader, TAC_STACK_FRAME );
     Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
     Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
