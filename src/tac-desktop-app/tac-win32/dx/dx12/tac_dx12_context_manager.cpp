@@ -167,11 +167,19 @@ namespace Tac::Render
     cmd->RSSetScissorRects( 1, &rect );
   }
 
-  void DX12Context::DebugEvent( StringView str )
+  void DX12Context::DebugEventBegin( StringView str )
   {
     ID3D12GraphicsCommandList* commandList = GetCommandList();
     PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
     mEventCount++;
+  }
+
+  void DX12Context::DebugEventEnd()
+  {
+    TAC_ASSERT( mEventCount > 0 );
+    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    PIXEndEvent( commandList );
+    mEventCount--;
   }
 
   void DX12Context::DebugMarker( StringView str )
@@ -186,7 +194,7 @@ namespace Tac::Render
 
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
 
-    DX12FrameBuf* frameBuf = mFrameBufferMgr->FindFB( h );
+    DX12SwapChain* frameBuf = mFrameBufferMgr->FindSwapChain( h );
     const UINT bbIdx = frameBuf->mSwapChain->GetCurrentBackBufferIndex();
     DX12SwapChainImage& swapChainImage = frameBuf->mSwapChainImages[ bbIdx ];
 
@@ -241,7 +249,7 @@ namespace Tac::Render
   void DX12ContextManager::Init( DX12CommandAllocatorPool* commandAllocatorPool,
                                  DX12CommandQueue* commandQueue,
                                  DX12UploadPageMgr* uploadPageManager,
-                                 DX12FrameBufferMgr* frameBufferMgr,
+                                 DX12SwapChainMgr* frameBufferMgr,
                                  ID3D12Device* device )
   {
     mCommandAllocatorPool = commandAllocatorPool;

@@ -201,6 +201,7 @@ namespace Tac
   void UI2DCommonData::Init( Errors& errors )
   {
 #if TAC_TEMPORARILY_DISABLED()
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
     const u8 data[] = { 255, 255, 255, 255 };
     const Render::CreateTextureParams textureData =
     {
@@ -222,8 +223,20 @@ namespace Tac
     m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m1x1White, "1x1white" );
 
-    mShader = Render::CreateShader( "2D", TAC_STACK_FRAME );
-    m2DTextShader = Render::CreateShader( "2Dtext", TAC_STACK_FRAME );
+    Render::ProgramParams programParams2D
+    {
+      .mFileStem = "2D",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    mShader = renderDevice->CreateProgram( programParams2D, errors );
+
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams2Dtext
+    {
+      .mFileStem = "2Dtext",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    m2DTextShader = renderDevice->CreateProgram( programParams2Dtext, errors );
 
     const Render::VertexDeclaration posData
     {
@@ -304,14 +317,15 @@ namespace Tac
   void UI2DCommonData::Uninit()
   {
 #if TAC_TEMPORARILY_DISABLED()
-    Render::DestroyTexture( m1x1White, TAC_STACK_FRAME );
-    Render::DestroyVertexFormat( mFormat, TAC_STACK_FRAME );
-    Render::DestroyProgram( mShader, TAC_STACK_FRAME );
-    Render::DestroyProgram( m2DTextShader, TAC_STACK_FRAME );
-    Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
-    Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
-    Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    renderDevice->DestroyTexture( m1x1White );
+    renderDevice->DestroyVertexFormat( mFormat );
+    renderDevice->DestroyProgram( mShader );
+    renderDevice->DestroyProgram( m2DTextShader );
+    renderDevice->DestroyDepthState( mDepthState );
+    renderDevice->DestroyBlendState( mBlendState );
+    renderDevice->DestroyRasterizerState( mRasterizerState );
+    renderDevice->DestroySamplerState( mSamplerState );
 #endif
   }
 

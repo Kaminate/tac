@@ -215,25 +215,29 @@ namespace Tac
   {
 
 
-    m3DShader = Render::CreateShader(  "3DTest" , TAC_STACK_FRAME );
-
-    m3DvertexFormatDecls = Render::VertexDeclarations
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
     {
-      {
-        .mAttribute = Render::Attribute::Position,
-        .mTextureFormat{.mElementCount = 3,
-                       .mPerElementByteCount = sizeof( float ),
-                       .mPerElementDataType = Render::GraphicsType::real },
-        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, pos ),
-      },
-      {
-        .mAttribute = Render::Attribute::Normal,
-        .mTextureFormat{ .mElementCount = 3,
-                       .mPerElementByteCount = sizeof( float ),
-                       .mPerElementDataType = Render::GraphicsType::real},
-        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, nor ),
-      }
+      .mFileStem = "3DTest",
+      .mStackFrame = TAC_STACK_FRAME,
     };
+    m3DShader =renderDevice->CreateProgram( programParams, errors );
+
+    const Render::VertexDeclaration posDecl
+    {
+        .mAttribute = Render::Attribute::Position,
+        .mTextureFormat{ Render::Format::sv3 }
+        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, pos ),
+    };
+
+    const Render::VertexDeclaration norDecl
+    {
+        .mAttribute = Render::Attribute::Normal,
+        .mTextureFormat{ Render::Format::sv3 }
+        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, nor ),
+    };
+
+    m3DvertexFormatDecls = Render::VertexDeclarations { posDecl, norDecl };
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
@@ -298,7 +302,13 @@ namespace Tac
 
     TAC_CALL( PlayGame( errors ) );
 
-    spriteShader = Render::CreateShader(  "3DSprite" , TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
+    {
+      .mFileStem = "3DSprite",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    spriteShader =renderDevice->CreateProgram( programParams, errors );
   }
 
   void CreationGameWindow::MousePickingGizmos()

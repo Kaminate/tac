@@ -96,7 +96,13 @@ namespace Tac
     Render::SetRenderObjectDebugName( mRasterizerStateNoCull, "debug-3d-rast" );
 
 
-    m3DVertexColorShader = Render::CreateShader( "3DDebug", TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
+    {
+      .mFileStem = "3DDebug",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    m3DVertexColorShader = renderDevice->CreateProgram( programParams, errors );
 
     const Render::DepthState depthStateData
     {

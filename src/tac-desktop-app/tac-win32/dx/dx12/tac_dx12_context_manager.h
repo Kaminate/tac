@@ -15,7 +15,7 @@ namespace Tac::Render
   struct DX12CommandAllocatorPool;
   struct DX12ContextManager;
   struct DX12CommandQueue;
-  struct DX12FrameBufferMgr;
+  struct DX12SwapChainMgr;
 
   // A context has a commandlist, even if the context is recycled, the commandlist stays with it
   // forever.
@@ -48,7 +48,8 @@ namespace Tac::Render
     void                       SetScissor( v2i ) override;
     void                       SetRenderTarget( SwapChainHandle ) override;
 
-    void                       DebugEvent( StringView ) override;
+    void                       DebugEventBegin( StringView ) override;
+    void                       DebugEventEnd() override;
     void                       DebugMarker( StringView ) override;
     void                       MoveFrom( DX12Context&& ) noexcept;
 
@@ -66,7 +67,7 @@ namespace Tac::Render
     DX12CommandAllocatorPool*         mCommandAllocatorPool = nullptr;
     DX12ContextManager*               mContextManager = nullptr;
     DX12CommandQueue*                 mCommandQueue = nullptr;
-    DX12FrameBufferMgr*               mFrameBufferMgr{};
+    DX12SwapChainMgr*               mFrameBufferMgr{};
     int                               mEventCount{};
   };
 
@@ -76,7 +77,7 @@ namespace Tac::Render
     void Init( DX12CommandAllocatorPool*,
                DX12CommandQueue*,
                DX12UploadPageMgr*,
-               DX12FrameBufferMgr*,
+               DX12SwapChainMgr*,
                ID3D12Device* );
 
     DX12Context*                      GetContext( Errors& );
@@ -90,7 +91,7 @@ namespace Tac::Render
     DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
     DX12CommandQueue*         mCommandQueue = nullptr;
     DX12UploadPageMgr*        mUploadPageManager = nullptr;
-    DX12FrameBufferMgr*       mFrameBufferMgr{};
+    DX12SwapChainMgr*       mFrameBufferMgr{};
 
     PCom< ID3D12Device4 >     mDevice;
 

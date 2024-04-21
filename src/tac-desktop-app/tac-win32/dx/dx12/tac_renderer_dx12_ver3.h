@@ -44,7 +44,7 @@ namespace Tac::Render
     DX12InfoQueue         mInfoQueue;
 
     // Managers
-    DX12FrameBufferMgr   mFrameBufMgr;
+    DX12SwapChainMgr   mFrameBufMgr;
     DX12BufferMgr        mBufMgr;
     DX12TextureMgr       mTexMgr;
     DX12ProgramMgr       mProgramMgr;

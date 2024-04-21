@@ -35,14 +35,30 @@ namespace Tac
   void SkyboxPresentationInit( Errors& errors )
   {
 
-    mShader = Render::CreateShader(  "Skybox" , TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
+    {
+      .mFileStem = "Skybox",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    mShader = renderDevice->CreateProgram( programParams, errors );
 
-    mVertexDecls = { Render::VertexDeclaration {
+    Render::Format    textureFormat
+    {
+      .mElementCount = 3,
+      .mPerElementByteCount = sizeof( float ),
+      .mPerElementDataType = Render::GraphicsType::real
+    };
+
+    Render::VertexDeclaration vtxDecl
+    {
       .mAttribute = Render::Attribute::Position,
-      .mTextureFormat{ .mElementCount = 3,
-                       .mPerElementByteCount = sizeof( float ),
-                       .mPerElementDataType = Render::GraphicsType::real},
-      .mAlignedByteOffset = 0, } };
+      .mTextureFormat{textureFormat},
+      .mAlignedByteOffset = 0,
+    };
+
+    mVertexDecls.clear();
+    mVertexDecls.push_back( vtxDecl );
 
     mVertexFormat = Render::CreateVertexFormat( mVertexDecls,
                                                 mShader,

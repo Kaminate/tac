@@ -253,7 +253,7 @@ namespace Tac::Render
   struct ProgramParams
   {
     StringView mFileStem;
-    // StackFrame mStackFrame; but like why would i care
+    StackFrame mStackFrame;
   };
 
   struct PipelineParams

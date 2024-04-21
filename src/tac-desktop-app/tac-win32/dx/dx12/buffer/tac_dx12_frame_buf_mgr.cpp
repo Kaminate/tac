@@ -9,7 +9,7 @@
 
 namespace Tac::Render
 {
-  void DX12FrameBufferMgr::Init( ID3D12Device* device,
+  void DX12SwapChainMgr::Init( ID3D12Device* device,
                                  DX12CommandQueue* commandQueue,
                                  DX12DescriptorHeap* cpuDescriptorHeapRTV )
   {
@@ -18,7 +18,7 @@ namespace Tac::Render
     mCommandQueue = commandQueue;
   }
 
-  void   DX12FrameBufferMgr::CreateFB( SwapChainHandle h, SwapChainParams params, Errors& errors )
+  void   DX12SwapChainMgr::CreateSwapChain( SwapChainHandle h, SwapChainParams params, Errors& errors )
   {
     const void* nwh = params.mNWH;
     const v2i size = params.mSize;
@@ -79,41 +79,40 @@ namespace Tac::Render
       };
     }
 
-    mFrameBufs[ iHandle ] = DX12FrameBuf
+    mSwapChains[ iHandle ] = DX12SwapChain
     {
       .mNWH = nwh,
       .mSize = size,
       .mSwapChain = swapChain,
       .mSwapChainDesc = swapChainDesc,
       .mSwapChainImages = swapChainImages,
-      .mFmt = params.mColorFmt,
+      .mSwapChainParams = params,
     };
   }
 
-  void   DX12FrameBufferMgr::ResizeFB( SwapChainHandle h, v2i size )
+  void   DX12SwapChainMgr::ResizeSwapChain( SwapChainHandle h, v2i size )
   {
 
-    DX12FrameBuf& frameBuf = mFrameBufs[ h.GetIndex() ];
+    DX12SwapChain& frameBuf = mSwapChains[ h.GetIndex() ];
     if( frameBuf.mSize == size )
       return;
 
     OS::OSDebugBreak();
   }
 
-  TexFmt DX12FrameBufferMgr::GetSwapChainParams( SwapChainHandle h )
+  SwapChainParams DX12SwapChainMgr::GetSwapChainParams( SwapChainHandle h )
   {
-    return mFrameBufs[ h.GetIndex() ].mFmt;
+    return mSwapChains[ h.GetIndex() ].mSwapChainParams;
   }
 
-
-  void   DX12FrameBufferMgr::DestroyFB( SwapChainHandle h )
+  void   DX12SwapChainMgr::DestroySwapChain( SwapChainHandle h )
   {
     if( h.IsValid() )
-      mFrameBufs[ h.GetIndex() ] = {};
+      mSwapChains[ h.GetIndex() ] = {};
   }
 
-  DX12FrameBuf* DX12FrameBufferMgr::FindFB( SwapChainHandle h )
+  DX12SwapChain* DX12SwapChainMgr::FindSwapChain( SwapChainHandle h )
   {
-    return h.IsValid() ? &mFrameBufs[ h.GetIndex() ] : nullptr;
+    return h.IsValid() ? &mSwapChains[ h.GetIndex() ] : nullptr;
   }
 } // namespace Tac::Render

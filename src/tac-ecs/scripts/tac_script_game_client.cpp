@@ -360,7 +360,9 @@ namespace Tac
 		mName = "Main Menu";
 		mCreateGraveStoryButton = true;
 		mCreatePressStartButton = false;
-		Render::DestroyTexture( mPower, TAC_STACK_FRAME );
+
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+		renderDevice->DestroyTexture( mPower );
 	}
 	void ScriptMainMenu::AddCallbackConnect()
   {

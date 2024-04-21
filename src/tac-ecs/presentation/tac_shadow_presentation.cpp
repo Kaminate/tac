@@ -36,18 +36,22 @@ namespace Tac
   {
     void operator()( Model* model ) override;
 
+    Render::TextureHandle         mShadowDepth;
+    Render::VertexDeclarations    mVertexDeclarations;
+#if TAC_TEMPORARILY_DISABLED()
     Render::ViewHandle            mViewHandle;
     Render::DepthStateHandle      mDepthState;
     Render::BlendStateHandle      mBlendState;
     Render::SamplerStateHandle    mSamplerState;
-    Render::TextureHandle         mShadowDepth;
     Render::VertexFormatHandle    mVertexFormatHandle;
-    Render::VertexDeclarations    mVertexDeclarations;
     Render::RasterizerStateHandle mRasterizerStateHandle;
+#endif
   };
 
   void ShadowModelVisitor::operator()( Model* model )
   {
+    (void)model;
+#if TAC_TEMPORARILY_DISABLED()
     Errors errors;
     Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
                                                          model->mModelIndex,
@@ -82,9 +86,10 @@ namespace Tac
       Render::Submit( mViewHandle, TAC_STACK_FRAME );
       Render::EndGroup( TAC_STACK_FRAME );
     }
+#endif
   }
 
-  static Render::TextureHandle CreateShadowMapDepth( const Light* light )
+  static Render::TextureHandle CreateShadowMapDepth( const Light* light, Errors& errors )
   {
     const Render::Format format
     {
@@ -105,32 +110,28 @@ namespace Tac
       .mImage{ image },
       .mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource,
       .mOptionalName = "shadowmap-depth",
+      .mStackFrame = TAC_STACK_FRAME,
     };
 
-    Render::TextureHandle textureHandleDepth = Render::CreateTexture( params, TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+
+    Render::TextureHandle textureHandleDepth = renderDevice->CreateTexture( params, errors );
     return textureHandleDepth;
 
   }
 
 
-  static void CreateShadowMapFramebuffer( Light* light )
+  static void CreateShadowMapFramebuffer( Light* light, Errors& errors )
   {
-    Render::TextureHandle textureHandleDepth = CreateShadowMapDepth( light );
-    Render::FramebufferTextures framebufferTextures = { textureHandleDepth };
-    Render::FramebufferHandle framebufferHandle
-      = Render::CreateFramebufferForRenderToTexture( framebufferTextures, TAC_STACK_FRAME );
-
-    light->mShadowFramebuffer = framebufferHandle;
-    light->mShadowMapDepth = textureHandleDepth;
+    light->mShadowMapDepth = CreateShadowMapDepth( light, errors );
   }
 
-  static void CreateShadowMapResources( Light* light )
+  static void CreateShadowMapResources( Light* light, Errors& errors )
   {
     if( light->mCreatedRenderResources )
       return;
     light->mCreatedRenderResources = true;
-    light->mShadowView = Render::CreateView();
-    CreateShadowMapFramebuffer( light );
+    CreateShadowMapFramebuffer( light, errors );
   }
 
   struct ShadowLightVisitor : public LightVisitor
@@ -139,6 +140,7 @@ namespace Tac
     void operator()( Light* light ) override;
 
     Graphics* graphics{};
+    Errors mErrors;
   };
 
 
@@ -175,13 +177,16 @@ namespace Tac
 
   void ShadowLightVisitor::operator()( Light* light )
   {
+    Errors& errors = mErrors;
     if( !light->mCastsShadows )
       return;
+
+#if TAC_TEMPORARILY_DISABLED()
 
     TAC_RENDER_GROUP_BLOCK( String()
                             + "Light Shadow "
                             + ToString( ( UUID )light->mEntity->mEntityUUID ) );
-    CreateShadowMapResources( light );
+    CreateShadowMapResources( light, errors );
 
     const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
     const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
@@ -210,11 +215,18 @@ namespace Tac
     modelVisitor.mShadowDepth = light->mShadowMapDepth;
 
     graphics->VisitModels( &modelVisitor );
+#endif
   }
 
   void        ShadowPresentationInit( Errors& errors )
   {
-    sShader = Render::CreateShader(  "Shadow" , TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
+    {
+      .mFileStem = "Shadow",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    sShader =renderDevice->CreateProgram( programParams, errors );
   }
 
   void        ShadowPresentationUninit()

@@ -48,8 +48,6 @@ namespace Tac
     // this is a texture with a depth stencil view binding. ( depth buffer ) 
     // basically this will be the only thing bound to the framebuffer, without color buffers.
     Render::TextureHandle     mShadowMapDepth;
-    Render::FramebufferHandle mShadowFramebuffer;
-    Render::ViewHandle        mShadowView;
 
     v3                        mColor = v3( 1, 1, 1 );
     float                     mRadiance = 5.0f; // i guess?

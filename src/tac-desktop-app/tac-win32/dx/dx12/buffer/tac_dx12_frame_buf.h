@@ -25,13 +25,13 @@ namespace Tac::Render
 
   using DX12SwapChainImages = Array< DX12SwapChainImage, TAC_SWAP_CHAIN_BUF_COUNT >;
 
-  struct DX12FrameBuf
+  struct DX12SwapChain
   {
     const void*             mNWH{};
     v2i                     mSize{};
     PCom< IDXGISwapChain4 > mSwapChain;
     DXGI_SWAP_CHAIN_DESC1   mSwapChainDesc;
     DX12SwapChainImages     mSwapChainImages;
-    TexFmt                  mFmt = TexFmt::kUnknown;
+    SwapChainParams         mSwapChainParams{};
   };
 } // namespace Tac::Render

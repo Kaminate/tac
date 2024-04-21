@@ -6,24 +6,25 @@
 
 #include <d3d12.h>
 
-namespace Tac { struct Errors; }
+namespace Tac         { struct Errors; }
+namespace Tac::Render { struct DX12DescriptorHeap; }
 
 namespace Tac::Render
 {
-  struct DX12DescriptorHeap;
-  struct DX12FrameBufferMgr
+
+  struct DX12SwapChainMgr
   {
     void Init( ID3D12Device*,
                DX12CommandQueue*,
                DX12DescriptorHeap* );
 
-    void          CreateFB( SwapChainHandle, SwapChainParams, Errors& );
-    void          ResizeFB( SwapChainHandle, v2i );
-    TexFmt        GetSwapChainParams( SwapChainHandle );
-    void          DestroyFB( SwapChainHandle );
-    DX12FrameBuf* FindFB( SwapChainHandle );
+    void            CreateSwapChain( SwapChainHandle, SwapChainParams, Errors& );
+    void            ResizeSwapChain( SwapChainHandle, v2i );
+    SwapChainParams GetSwapChainParams( SwapChainHandle );
+    void            DestroySwapChain( SwapChainHandle );
+    DX12SwapChain*  FindSwapChain( SwapChainHandle );
 
-    DX12FrameBuf        mFrameBufs[ 100 ]{};
+    DX12SwapChain       mSwapChains[ 100 ]{};
     ID3D12Device*       mDevice{};
     DX12DescriptorHeap* mCpuDescriptorHeapRTV{};
     DX12CommandQueue*   mCommandQueue{};

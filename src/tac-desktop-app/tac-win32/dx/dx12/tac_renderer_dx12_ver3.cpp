@@ -274,14 +274,14 @@ namespace Tac::Render
     mFrameBufMgr.ResizeSwapChain( h, size );
   }
 
-  TexFmt  DX12Device::GetSwapChainParams( SwapChainHandle h )
+  SwapChainParams  DX12Device::GetSwapChainParams( SwapChainHandle h )
   {
     return mFrameBufMgr.GetSwapChainParams( h );
   }
 
   void    DX12Device::DestroySwapChain( SwapChainHandle h )
   {
-    return mFrameBufMgr.DestroySwapChain( h);
+    return sRenderer.mFrameBufMgr.DestroySwapChain( h);
   }
 
   BufferHandle    DX12Device::CreateBuffer( CreateBufferParams params,

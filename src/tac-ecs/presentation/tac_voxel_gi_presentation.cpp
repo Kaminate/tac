@@ -182,16 +182,29 @@ namespace Tac
     Render::SetRenderObjectDebugName( voxelRasterizerState, "voxel-rasterizer-state" );
   }
 
-  static void                    CreateVoxelVisualizerShader()
+  static void                    CreateVoxelVisualizerShader(Errors& errors)
   {
     // This shader is used to debug visualize the voxel radiance
-    voxelVisualizerShader = Render::CreateShader(  "VoxelVisualizer" , TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
+    {
+      .mFileStem = "VoxelVisualizer",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    voxelVisualizerShader =renderDevice->CreateProgram( programParams, errors );
   }
 
-  static void                    CreateVoxelCopyShader()
+  static void                    CreateVoxelCopyShader(Errors& errors)
   {
     // This shader is used to copy from the 3d magic buffer to the 3d texture
-    voxelCopyShader = Render::CreateShader(  "VoxelCopy" , TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
+    {
+      .mFileStem = "VoxelCopy",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    
+    voxelCopyShader = renderDevice->CreateProgram( programParams, errors );
   }
 
 
@@ -205,6 +218,13 @@ namespace Tac
   {
     // The voxelizer shader turns geometry into a rwstructuredbuffer using atomics
     // to prevent flickering
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::ProgramParams programParams
+    {
+      .mFileStem = "",
+      .mStackFrame = TAC_STACK_FRAME,
+    };
+    renderDevice->CreateProgram( programParams, errors );
     voxelizerShader = Render::CreateShader(  "Voxelizer" , TAC_STACK_FRAME );
   }
 
@@ -578,6 +598,7 @@ namespace Tac
 
   void VoxelGIDebugImgui()
   {
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
     VoxelSettingsUpdateSerialize();
 
     if( !ImGuiCollapsingHeader( "Voxel GI Presentation" ) )
@@ -613,9 +634,9 @@ namespace Tac
     if( oldVoxelDimension != voxelSettingsCurrent.voxelDimension )
     {
       // Destroy old things that need to be resized
-      Render::DestroyTexture( voxelTextureRadianceBounce0, TAC_STACK_FRAME );
-      Render::DestroyTexture( voxelTextureRadianceBounce1, TAC_STACK_FRAME );
-      Render::DestroyMagicBuffer( voxelRWStructuredBuf, TAC_STACK_FRAME );
+      renderDevice->DestroyTexture( voxelTextureRadianceBounce0 );
+      renderDevice->DestroyTexture( voxelTextureRadianceBounce1 );
+      renderDevice->DestroyBuffer( voxelRWStructuredBuf );
       DestroyVoxelView();
 
       // Recreate them with the new size

@@ -148,14 +148,10 @@ namespace Tac
   {
     mCreatedRenderResources = false;
 
-    Render::DestroyTexture( mShadowMapDepth, TAC_STACK_FRAME );
+    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+
+    renderDevice->DestroyTexture( mShadowMapDepth );
     mShadowMapDepth = {};
-
-    Render::DestroyFramebuffer( mShadowFramebuffer, TAC_STACK_FRAME );
-    mShadowFramebuffer = {};
-
-    Render::DestroyView( mShadowView );
-    mShadowView = {};
   }
 
   void LightDebugImgui( Light* );
