@@ -6,7 +6,7 @@
 #include "tac-std-lib/error/tac_error_handling.h" // TAC_CALL_RET
 #include "tac-rhi/render3/tac_render_api.h" // ShaderNameStringView
 #include "tac-std-lib/dataprocess/tac_text_parser.h" // ParseData
-#include "tac-rhi/renderer/tac_renderer_backend.h" // GetShaderAssetPath
+//#include "tac-rhi/renderer/tac_renderer_backend.h" // GetShaderAssetPath
 #include "tac-std-lib/filesystem/tac_asset.h" // LoadAssetPath
 
 namespace Tac::Render

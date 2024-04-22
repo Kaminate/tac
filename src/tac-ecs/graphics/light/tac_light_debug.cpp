@@ -47,7 +47,7 @@ namespace Tac
     }
 
     if( light->mType == Light::kSpot
-        && ImGuiCollapsingHeader( String() +  lightTypeStr + " light parameters" ) )
+        && ImGuiCollapsingHeader( String() + lightTypeStr + " light parameters" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       float fovDeg = light->mSpotHalfFOVRadians * ( 180.0f / 3.14f );
@@ -76,13 +76,13 @@ namespace Tac
     ImGuiText( String() + "Shadow Resolution "
                + ToString( light->mShadowResolution )
                + "x"
-               + ToString( light->mShadowResolution ) ) ;
+               + ToString( light->mShadowResolution ) );
   }
 
-  static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData)
+  static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData )
   {
-    const float nearPlaneHalfSize = camera.mNearPlane * Tan( camera.mFovyrad / 2 ) ;
-    const float farPlaneHalfSize = camera.mFarPlane * Tan( camera.mFovyrad / 2 ) ;
+    const float nearPlaneHalfSize = camera.mNearPlane * Tan( camera.mFovyrad / 2 );
+    const float farPlaneHalfSize = camera.mFarPlane * Tan( camera.mFovyrad / 2 );
 
     v3 nearPoints[ 4 ];
     v3 farPoints[ 4 ];
@@ -91,17 +91,17 @@ namespace Tac
       const v2 offsets[] = { v2( -1,-1 ), v2( 1, -1 ), v2( 1, 1 ), v2( -1,1 ) };
       const v2 offset = offsets[ i ];
 
-      auto GetPlanePoint = [&](float planeDist, float halfSize  )
-      {
-        return
-          camera.mPos
-          + camera.mForwards * planeDist
-          + camera.mRight * offset.x * halfSize
-          + camera.mUp * offset.y * halfSize;
-      };
+      auto GetPlanePoint = [ & ]( float planeDist, float halfSize )
+        {
+          return
+            camera.mPos
+            + camera.mForwards * planeDist
+            + camera.mRight * offset.x * halfSize
+            + camera.mUp * offset.y * halfSize;
+        };
 
       nearPoints[ i ] = GetPlanePoint( camera.mNearPlane, nearPlaneHalfSize );
-      farPoints[i] = GetPlanePoint( camera.mFarPlane, farPlaneHalfSize );
+      farPoints[ i ] = GetPlanePoint( camera.mFarPlane, farPlaneHalfSize );
     }
 
     const v4 color( 1, 1, 1, 1 );
@@ -126,68 +126,76 @@ namespace Tac
     const v3 axes[] = { camera.mRight,camera.mUp,-camera.mForwards };
     for( int i = 0; i < 3; ++i )
       drawData->DebugDraw3DLine( p, p + axes[ i ] * 5.0f, v4( float( 0 == i ),
-                                                              float( 1 == i ),
-                                                              float( 2 == i ),
-                                                              1 ) );
+                                 float( 1 == i ),
+                                 float( 2 == i ),
+                                 1 ) );
 
     Camera3DDraw( camera, drawData );
   }
+}
 
-  void LightDebugImgui( Light* light, Errors& errors )
+void Tac::LightDebugImgui( Light* light )
+{
+  LightDebug3DDraw( light );
+
+  const int oldShadowMapResolution = light->mShadowResolution;
+  LightDebugImguiType( light );
+  ImGuiCheckbox( "Casts shadows", &light->mCastsShadows );
+  LightDebugImguiShadowResolution( light );
+
+  static Errors errors;
+
+  const Render::TextureHandle viz =
+    TAC_CALL( DepthBufferLinearVisualizationRender(
+      light->mShadowMapDepth,
+      light->mShadowResolution,
+      light->mShadowResolution,
+      errors ) );
+
+  if( errors )
   {
-    LightDebug3DDraw( light );
-
-    const int oldShadowMapResolution = light->mShadowResolution;
-    LightDebugImguiType( light );
-    ImGuiCheckbox( "Casts shadows", &light->mCastsShadows );
-    LightDebugImguiShadowResolution( light );
-
-    const Render::TextureHandle viz =
-      TAC_CALL( DepthBufferLinearVisualizationRender(
-        light->mShadowMapDepth,
-        light->mShadowResolution,
-        light->mShadowResolution,
-        errors ) );
-    const v2 shadowMapSize = v2( 1, 1 ) * 256;
-    ImGuiImage( viz.GetIndex(), shadowMapSize );
-
-
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
-    renderDevice->DestroyTexture( viz );
-
-
-    if( light->mShadowResolution != oldShadowMapResolution )
-    {
-      light->FreeRenderResources();
-    }
-
-    m4 world_xform = light->mEntity->mWorldTransform;
-
-    const Camera camera = light->GetCamera();
-    v3 x = camera.mRight;
-    v3 y = camera.mUp;
-    v3 z = -camera.mForwards;
-    ImGuiDragFloat3( "Local x", x.data() );
-    ImGuiDragFloat3( "Local y", y.data() );
-    ImGuiDragFloat3( "Local z", z.data() );
-
-    //ImGuiText( "world xform" );
-    //const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
-    //const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
-    //const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
-    //ImGuiText( r0  );
-    //ImGuiText( r1  );
-    //ImGuiText( r2  );
-
-    ImGuiCheckbox( "override clip planes", &light->mOverrideClipPlanes );
-    if( light->mOverrideClipPlanes )
-    {
-      ImGuiDragFloat( "near", &light->mNearPlaneOverride );
-      ImGuiDragFloat( "far", &light->mFarPlaneOverride );
-      light->mNearPlaneOverride = Max( light->mNearPlaneOverride, 0.01f );
-      light->mFarPlaneOverride = Max( light->mFarPlaneOverride, light->mNearPlaneOverride + 1.0f );
-    }
-
+    ImGuiText( "Errors: " + errors.ToString() );
   }
-} // namespace Tac
+
+  const v2 shadowMapSize = v2( 1, 1 ) * 256;
+  ImGuiImage( viz.GetIndex(), shadowMapSize );
+
+
+  Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+  renderDevice->DestroyTexture( viz );
+
+
+  if( light->mShadowResolution != oldShadowMapResolution )
+  {
+    light->FreeRenderResources();
+  }
+
+  m4 world_xform = light->mEntity->mWorldTransform;
+
+  const Camera camera = light->GetCamera();
+  v3 x = camera.mRight;
+  v3 y = camera.mUp;
+  v3 z = -camera.mForwards;
+  ImGuiDragFloat3( "Local x", x.data() );
+  ImGuiDragFloat3( "Local y", y.data() );
+  ImGuiDragFloat3( "Local z", z.data() );
+
+  //ImGuiText( "world xform" );
+  //const char* r0 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m00, world_xform.m01, world_xform.m02 );
+  //const char* r1 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m10, world_xform.m11, world_xform.m12 );
+  //const char* r2 = FrameMemoryPrintf( "%.2f %.2f %.2f", world_xform.m20, world_xform.m21, world_xform.m22 );
+  //ImGuiText( r0  );
+  //ImGuiText( r1  );
+  //ImGuiText( r2  );
+
+  ImGuiCheckbox( "override clip planes", &light->mOverrideClipPlanes );
+  if( light->mOverrideClipPlanes )
+  {
+    ImGuiDragFloat( "near", &light->mNearPlaneOverride );
+    ImGuiDragFloat( "far", &light->mFarPlaneOverride );
+    light->mNearPlaneOverride = Max( light->mNearPlaneOverride, 0.01f );
+    light->mFarPlaneOverride = Max( light->mFarPlaneOverride, light->mNearPlaneOverride + 1.0f );
+  }
+
+}
 

@@ -17,7 +17,13 @@
 void Tac::GraphicsDebugImgui( System* system )
 {
   auto graphics = ( Graphics* )system;
+
+#if TAC_GAME_PRESENTATION_ENABLED()
   GamePresentationDebugImGui( graphics );
+#endif
+
+#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
   VoxelGIDebugImgui();
+#endif
 }
 

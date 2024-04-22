@@ -1,7 +1,7 @@
 #include "tac_win32_main.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 //#include "tac-engine-core/hid/tac_keyboard_api.h"
@@ -33,7 +33,7 @@
 import std; // #include <iostream> // okay maybe this should also be allowed
 
 static Tac::Win32PlatformFns sWin32PlatformFns;
-static Tac::Render::DX12Backend sDX12Backend;
+static Tac::Render::DX12Device sDX12Backend;
 
 int CALLBACK WinMain( HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,

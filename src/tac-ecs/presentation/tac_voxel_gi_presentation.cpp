@@ -32,6 +32,8 @@
 #pragma warning( disable: 4505 ) // ???
 #endif
 
+#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
+
 namespace Tac
 {
   // https://docs.microsoft.com/en-us/windows/win32/direct3d11/direct3d-11-advanced-stages-cs-resources
@@ -655,4 +657,5 @@ namespace Tac
   }
 }
 
+#endif
 

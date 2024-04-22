@@ -4,6 +4,10 @@
 #include "tac-ecs/tac_space.h"
 
 namespace Tac { struct Camera; }
+
+#define TAC_VOXEL_GI_PRESENTATION_ENABLED() 0
+#if TAC_VOXEL_GI_PRESENTATION_ENABLED
+
 namespace Tac
 {
   void               VoxelGIPresentationInit( Errors& );
@@ -16,3 +20,4 @@ namespace Tac
   void               VoxelGIDebugImgui();
 }
 
+#endif

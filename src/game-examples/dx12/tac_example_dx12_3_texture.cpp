@@ -23,8 +23,8 @@
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-desktop-app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/tac_win32.h"
 
@@ -818,8 +818,8 @@ namespace Tac
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = compileResult.GetBytecode( Render::ShaderType::Vertex ),
-      .PS = compileResult.GetBytecode( Render::ShaderType::Fragment ),
+      .VS = compileResult.mVSBytecode,
+      .PS = compileResult.mPSBytecode,
       .BlendState = BlendState,
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,

@@ -32,21 +32,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static IdMgr sIdMgrFB;
+  static IdMgr sIdMgrSwapChain;
   static IdMgr sIdMgrPipeline;
   static IdMgr sIdMgrProgram;
   static IdMgr sIdMgrBuffer;
   static IdMgr sIdMgrTexture;
 
-  Render::SwapChainHandle        Render::AllocSwapChainHandle()        { return SwapChainHandle( sIdMgrFB.Alloc() ); }
-  Render::PipelineHandle  Render::AllocPipelineHandle()  { return PipelineHandle( sIdMgrPipeline.Alloc() ); }
-  Render::ProgramHandle   Render::AllocProgramHandle()   { return ProgramHandle( sIdMgrProgram.Alloc() ); }
-  Render::BufferHandle    Render::AllocBufferHandle()    { return BufferHandle( sIdMgrBuffer.Alloc() ); }
-  Render::TextureHandle   Render::AllocTextureHandle()   { return TextureHandle( sIdMgrTexture.Alloc() ); }
+  Render::SwapChainHandle Render::AllocSwapChainHandle()  { return SwapChainHandle( sIdMgrSwapChain.Alloc() ); }
+  Render::PipelineHandle  Render::AllocPipelineHandle()   { return PipelineHandle( sIdMgrPipeline.Alloc() ); }
+  Render::ProgramHandle   Render::AllocProgramHandle()    { return ProgramHandle( sIdMgrProgram.Alloc() ); }
+  Render::BufferHandle    Render::AllocBufferHandle()     { return BufferHandle( sIdMgrBuffer.Alloc() ); }
+  Render::TextureHandle   Render::AllocTextureHandle()    { return TextureHandle( sIdMgrTexture.Alloc() ); }
 
-  void            Render::FreeHandle( SwapChainHandle h )       { sIdMgrFB.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( PipelineHandle h ) { sIdMgrPipeline.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( ProgramHandle h )  { sIdMgrProgram.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( BufferHandle h )   { sIdMgrBuffer.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( TextureHandle h )  { sIdMgrTexture.Free( h.GetIndex() ); }
+  void            Render::FreeHandle( SwapChainHandle h ) { sIdMgrSwapChain.Free( h.GetIndex() ); }
+  void            Render::FreeHandle( PipelineHandle h )  { sIdMgrPipeline.Free( h.GetIndex() ); }
+  void            Render::FreeHandle( ProgramHandle h )   { sIdMgrProgram.Free( h.GetIndex() ); }
+  void            Render::FreeHandle( BufferHandle h )    { sIdMgrBuffer.Free( h.GetIndex() ); }
+  void            Render::FreeHandle( TextureHandle h )   { sIdMgrTexture.Free( h.GetIndex() ); }
 }

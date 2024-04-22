@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/error/tac_assert.h"
-#include "tac-desktop-app/tac_desktop_app_threads.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 
 import std; // mutex, lock_guard, is_trivially_copyable_v
 

@@ -29,7 +29,7 @@
 #include "tac-engine-core/window/tac_window_backend.h"
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_desktop_window_settings_tracker.h"
+#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
@@ -684,11 +684,12 @@ namespace Tac
     const DXGI_FORMAT RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
     TAC_ASSERT( WindowBackend::sTexFmt == Render::TexFmt::kRGBA16F );
 
+    const DXGI_SAMPLE_DESC SampleDesc{ .Count = 1 };
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = compileResult.GetBytecode( Render::ShaderType::Vertex ),
-      .PS = compileResult.GetBytecode( Render::ShaderType::Fragment ),
+      .VS = compileResult.mVSBytecode,
+      .PS = compileResult.mPSBytecode,
       .BlendState = BlendState,
       .SampleMask = UINT_MAX,
       .RasterizerState = RasterizerState,
@@ -697,7 +698,7 @@ namespace Tac
       .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
       .NumRenderTargets = 1,
       .RTVFormats = { RTVFormat },
-      .SampleDesc = {.Count = 1 },
+      .SampleDesc = SampleDesc,
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
       &psoDesc,

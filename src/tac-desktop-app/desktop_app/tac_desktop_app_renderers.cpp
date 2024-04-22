@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h" // Tac::asdf
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-rhi/renderer/tac_renderer_backend.h"
+//#include "tac-rhi/renderer/tac_renderer_backend.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/settings/tac_settings.h"
 
@@ -20,6 +20,7 @@
 #define TAC_INCLUDED_RENDERER_DIRECTX11 false
 #endif
 
+#if TAC_TEMPORARILY_DISABLED()
 
 namespace Tac::Render
 {
@@ -100,17 +101,21 @@ namespace Tac::Render
 
 }
 
+#endif
 
-  void Tac::DesktopInitRendering( struct Errors& errors )
-  {
-    Render::RegisterRenderers();
 
-    const Render::RendererFactory factory = Render::GetFactory();
-    TAC_RAISE_ERROR_IF( !factory, "No renderer factories!" );
+void Tac::DesktopInitRendering( struct Errors& errors )
+{
+#if TAC_TEMPORARILY_DISABLED()
+  Render::RegisterRenderers();
 
-    Render::Renderer::Instance = factory();
+  const Render::RendererFactory factory = Render::GetFactory();
+  TAC_RAISE_ERROR_IF( !factory, "No renderer factories!" );
 
-    Render::Init( errors );
-  }
+  Render::Renderer::Instance = factory();
+
+  Render::Init( errors );
+#endif
+}
 
 

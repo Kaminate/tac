@@ -93,10 +93,11 @@ namespace Tac::Render
     v4       mWorldSpacePosition;
     v4       mWorldSpaceUnitDirection;
     v4       mColorRadiance;
-    u32 mFlags;
-    float    mProjA;
-    float    mProjB;
-    TAC_PAD_BYTES( 4 );
+    u32      mFlags;
+    //float    mProjA;
+    //float    mProjB;
+    //TAC_PAD_BYTES( 4 );
+    TAC_PAD_BYTES( 12 );
   };
 
   struct CBufferLights
@@ -110,7 +111,7 @@ namespace Tac::Render
     u32              testNumber = 1234567890;
     bool             TryAddLight( const ShaderLight& );
 
-    static void      Init(Errors&);
+    static void      Init( Errors& );
 
     static Render::BufferHandle sHandle;
   };

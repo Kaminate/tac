@@ -192,7 +192,12 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    const Mesh* mesh = GamePresentationGetModelMesh( model );
+    const Mesh* mesh = nullptr;
+
+#if TAC_GAME_PRESENTATION_ENABLED()
+    mesh = GamePresentationGetModelMesh( model );
+#endif
+
     if( !mesh )
     {
       const String ellipses( "...", ( int )Timestep::GetElapsedTime() % 4 );

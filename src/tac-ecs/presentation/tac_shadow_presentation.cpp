@@ -235,7 +235,7 @@ namespace Tac
 
   void        ShadowPresentationRender( World* world )
   {
-    TAC_RENDER_GROUP_BLOCK( "Render Shadow Maps" );
+    //TAC_RENDER_GROUP_BLOCK( "Render Shadow Maps" );
     Graphics* graphics = GetGraphics( world );
 
     ShadowLightVisitor lightVisitor;

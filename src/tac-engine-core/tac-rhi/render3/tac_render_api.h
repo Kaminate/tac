@@ -287,6 +287,12 @@ namespace Tac::Render
     int          mDstByteOffset;
   };
 
+  struct Targets
+  {
+    TextureHandle mColors[ 8 ];
+    TextureHandle mDepth;
+  };
+
   struct IContext
   {
     struct Scope
@@ -297,9 +303,11 @@ namespace Tac::Render
     private:
       IContext* mContext{};
     };
+
+
     virtual void SetViewport( v2i ) {}
     virtual void SetScissor( v2i ) {}
-    virtual void SetRenderTarget( SwapChainHandle ) {}
+    virtual void SetRenderTargets( Targets ) {}
     virtual void SetSynchronous() {}
 
     // represents a region of time ( from the call till the end of scope  StringView )
@@ -357,6 +365,8 @@ namespace Tac::Render
     virtual void            ResizeSwapChain( SwapChainHandle, v2i ) {}
     virtual SwapChainParams GetSwapChainParams( SwapChainHandle ) { return {}; }
     virtual void            DestroySwapChain( SwapChainHandle ) {}
+    virtual TextureHandle   GetSwapChainCurrentColor( SwapChainHandle ) { return {}; }
+    virtual TextureHandle   GetSwapChainDepth( SwapChainHandle ) { return {}; }
 
     virtual BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) {}
     virtual void            UpdateBuffer( BufferHandle, UpdateBufferParams ) {}

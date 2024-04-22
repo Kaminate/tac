@@ -57,5 +57,6 @@ namespace Tac
   void                RegisterLightComponent();
   const char*         LightTypeToString( Light::Type );
   Light::Type         LightTypeFromString( const StringView& );
+  void                LightDebugImgui( Light* );
 }
 

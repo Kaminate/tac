@@ -2,6 +2,11 @@
 
 namespace Tac::Render { struct ViewHandle; }
 namespace Tac { struct Errors; struct Camera; struct AssetPathStringView; }
+
+#define TAC_SKYBOX_PRESENTATION_ENABLED() 0
+
+#if TAC_SKYBOX_PRESENTATION_ENABLED()
+
 namespace Tac
 {
   void SkyboxPresentationInit( Errors& );
@@ -13,3 +18,5 @@ namespace Tac
                                  const AssetPathStringView& skyboxDir );
 
 }
+
+#endif

@@ -1,7 +1,7 @@
 #include "tac_win32_desktop_window_manager.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_desktop_event.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 //#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"

@@ -37,7 +37,7 @@ namespace Tac::Render
 
     TAC_CALL( mPipelineMgr.Init( mDevice, &mProgramMgr ) );
 
-    mFrameBufMgr.Init( mDevice, &mCommandQueue, &mCpuDescriptorHeapRTV );
+    mSwapChainMgr.Init( mDevice, &mCommandQueue, &mCpuDescriptorHeapRTV );
 
     mBufMgr.Init( mDevice );
 
@@ -62,7 +62,7 @@ namespace Tac::Render
     mContextManager.Init( &mCommandAllocatorPool,
                           &mCommandQueue,
                           &mUploadPageManager,
-                          &mFrameBufMgr,
+                          &mSwapChainMgr,
                           mDevice );
     mUploadPageManager.Init( mDevice, &mCommandQueue );
     /*
@@ -248,9 +248,7 @@ namespace Tac::Render
     sRenderer. mPipelineMgr.DestroyPipeline( h );
   }
 
-  ProgramHandle    DX12Device::CreateProgram(  
-                                      ProgramParams params,
-                                      Errors& errors )
+  ProgramHandle    DX12Device::CreateProgram(  ProgramParams params, Errors& errors )
   {
     ProgramHandle h = AllocProgramHandle();
     sRenderer. mProgramMgr.CreateProgram( h, params, errors );
@@ -259,36 +257,36 @@ namespace Tac::Render
 
   void    DX12Device::DestroyProgram( ProgramHandle h )
   {
-    mProgramMgr.DestroyProgram( h );
+    sRenderer.mProgramMgr.DestroyProgram( h );
   }
 
-  SwapChainHandle    DX12Device::CreateSwapChain(  
-                                 SwapChainParams params,
-                                 Errors& errors )
+  SwapChainHandle    DX12Device::CreateSwapChain(  SwapChainParams params, Errors& errors )
   {
-    mFrameBufMgr.CreateSwapChain( h, params, errors );
+    SwapChainHandle h = AllocSwapChainHandle();
+    sRenderer.mSwapChainMgr.CreateSwapChain( h, params, errors );
+    return h;
   }
 
   void    DX12Device::ResizeSwapChain( SwapChainHandle h, v2i size )
   {
-    mFrameBufMgr.ResizeSwapChain( h, size );
+    sRenderer.mSwapChainMgr.ResizeSwapChain( h, size );
   }
 
   SwapChainParams  DX12Device::GetSwapChainParams( SwapChainHandle h )
   {
-    return mFrameBufMgr.GetSwapChainParams( h );
+    return sRenderer.mSwapChainMgr.GetSwapChainParams( h );
   }
 
   void    DX12Device::DestroySwapChain( SwapChainHandle h )
   {
-    return sRenderer.mFrameBufMgr.DestroySwapChain( h);
+    return sRenderer.mSwapChainMgr.DestroySwapChain( h);
   }
 
   BufferHandle    DX12Device::CreateBuffer( CreateBufferParams params,
                                             Errors& errors )
   {
     BufferHandle h = AllocBufferHandle();
-    sRenderer.mBufMgr.CreateBuffer( params, errors );
+    sRenderer.mBufMgr.CreateBuffer( h, params, errors );
     return h;
   }
 
@@ -318,7 +316,7 @@ namespace Tac::Render
 
   void DX12Device::UpdateTexture( TextureHandle h, UpdateTextureParams params )
   {
-    sRenderer.mTexMgr.UpdateTexture( h, params )
+    sRenderer.mTexMgr.UpdateTexture( h, params );
   }
 
   void DX12Device::DestroyTexture( TextureHandle h )

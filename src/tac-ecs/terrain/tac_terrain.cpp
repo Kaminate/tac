@@ -222,16 +222,12 @@ namespace Tac
     mRowMajorGrid.clear();
     mRowMajorGridNormals.clear();
 
-    if( mVertexBuffer.IsValid() )
+    if( Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice() )
     {
-      Render::DestroyVertexBuffer( mVertexBuffer, TAC_STACK_FRAME );
-      mVertexBuffer = Render::BufferHandle();
-    }
-
-    if( mIndexBuffer.IsValid() )
-    {
-      Render::DestroyIndexBuffer( mIndexBuffer, TAC_STACK_FRAME );
-      mIndexBuffer = Render::BufferHandle();
+      renderDevice->DestroyBuffer( mVertexBuffer );
+      renderDevice->DestroyBuffer( mIndexBuffer );
+      mVertexBuffer = {};
+      mIndexBuffer = {};
     }
   }
 

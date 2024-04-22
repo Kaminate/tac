@@ -14,6 +14,8 @@
 #include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/profile/tac_profile.h"
 
+#if TAC_SKYBOX_PRESENTATION_ENABLED()
+
 namespace Tac
 {
   static Render::VertexFormatHandle    mVertexFormat;
@@ -151,3 +153,5 @@ namespace Tac
     Render::Submit( viewId, TAC_STACK_FRAME );
   }
 }
+
+#endif

@@ -530,7 +530,7 @@ namespace Tac
 #if 1
     Render::SwapChainHandle fb = windowApi->GetSwapChainHandle( hDesktopWindow );
 #endif
-    const Render::SwapChainParams swapChainParams  = renderDevice->GetSwapChainParams( fb );
+    const Render::SwapChainParams swapChainParams = renderDevice->GetSwapChainParams( fb );
     const Render::TexFmt fbFmt = swapChainParams.mColorFmt;
 
     const Render::PipelineParams pipelineParams
@@ -559,7 +559,15 @@ namespace Tac
 
     Render::IContext::Scope renderContext = TAC_CALL( renderDevice->CreateRenderContext( errors ) );
 
-    renderContext->SetRenderTarget( fb );
+    const Render::TextureHandle swapChainColor = renderDevice->GetSwapChainCurrentColor( fb );
+    const Render::TextureHandle swapChainDepth = renderDevice->GetSwapChainDepth( fb );
+    const Render::Targets renderTargets
+    {
+      .mColors = { swapChainColor },
+      .mDepth = swapChainDepth,
+    };
+
+    renderContext->SetRenderTargets( renderTargets );
     renderContext->SetViewport( windowSize );
     renderContext->SetScissor( windowSize );
     renderContext->DebugEventBegin( renderGroupStr );

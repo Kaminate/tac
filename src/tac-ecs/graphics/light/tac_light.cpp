@@ -154,8 +154,6 @@ namespace Tac
     mShadowMapDepth = {};
   }
 
-  void LightDebugImgui( Light* );
-
   void                                   RegisterLightComponent()
   {
     sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
@@ -163,7 +161,10 @@ namespace Tac
     //sComponentRegistryEntry->mNetworkBits = ComponentLightBits;
     sComponentRegistryEntry->mCreateFn = CreateLightComponent;
     sComponentRegistryEntry->mDestroyFn = DestroyLightComponent;
-    sComponentRegistryEntry->mDebugImguiFn = []( Component* component ){ LightDebugImgui( ( Light* )component ); };
+    sComponentRegistryEntry->mDebugImguiFn = []( Component* component )
+      {
+        LightDebugImgui( ( Light* )component );
+      };
     sComponentRegistryEntry->mSaveFn = SaveLightComponent;
     sComponentRegistryEntry->mLoadFn = LoadLightComponent;
   }
@@ -219,8 +220,8 @@ namespace Tac
     shaderLight.mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
     shaderLight.mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
     shaderLight.mWorldToClip = proj * view;
-    shaderLight.mProjA = a;
-    shaderLight.mProjB = b;
+    //shaderLight.mProjA = a;
+    //shaderLight.mProjB = b;
     return shaderLight;
 
   }

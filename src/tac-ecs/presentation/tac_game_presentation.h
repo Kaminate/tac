@@ -1,15 +1,12 @@
 #pragma once
 
-namespace Tac::Render
-{
-  struct BlendStateHandle;
-  struct DepthStateHandle;
-  struct RasterizerStateHandle;
-  struct SamplerStateHandle;
-  struct VertexDeclarations;
-  struct VertexFormatHandle;
-  struct ViewHandle;
-}
+#include "tac-rhi/render3/tac_render_api.h"
+
+#define TAC_GAME_PRESENTATION_ENABLED() 0
+
+#if TAC_GAME_PRESENTATION_ENABLED()
+
+
 
 namespace Tac
 {
@@ -43,3 +40,4 @@ namespace Tac
   Render::VertexFormatHandle    GamePresentationGetVertexFormat();
 }
 
+#endif

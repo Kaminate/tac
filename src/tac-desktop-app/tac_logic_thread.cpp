@@ -72,8 +72,8 @@ namespace Tac
     if( !errors.empty() )
       OS::OSAppStopRunning();
 
-    if( isRenderEnabled )
-      Render::SubmitFinish();
+    //if( isRenderEnabled )
+    //  Render::SubmitFinish();
   }
 
   void LogicThread::Update( Errors& errors )
@@ -139,8 +139,8 @@ namespace Tac
 
         sGameStateManager->Enqueue( gameState );
 
-        if( mApp->IsRenderEnabled() )
-          Render::SubmitFrame();
+        //if( mApp->IsRenderEnabled() )
+        //  Render::SubmitFrame();
       }
 
       std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage

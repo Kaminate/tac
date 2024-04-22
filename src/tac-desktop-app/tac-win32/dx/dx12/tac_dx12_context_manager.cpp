@@ -10,6 +10,10 @@
 
 #include <WinPixEventRuntime/pix3.h>
 
+#if !TAC_DELETE_ME()
+#include "tac-std-lib/os/tac_os.h"
+#endif
+
 
 namespace Tac::Render
 {
@@ -188,11 +192,15 @@ namespace Tac::Render
     PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
   }
 
-  void DX12Context::SetRenderTarget( FBHandle h )
+  void DX12Context::SetRenderTargets( Targets targets )
   {
     ID3D12GraphicsCommandList* commandList = GetCommandList();
 
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
+
+    OS::OSDebugBreak();
+#if TAC_TEMPORARILY_DISABLED()
+
 
     DX12SwapChain* frameBuf = mFrameBufferMgr->FindSwapChain( h );
     const UINT bbIdx = frameBuf->mSwapChain->GetCurrentBackBufferIndex();
@@ -228,6 +236,7 @@ namespace Tac::Render
 
     swapChainImage.mState = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
+#endif
   }
 
 
