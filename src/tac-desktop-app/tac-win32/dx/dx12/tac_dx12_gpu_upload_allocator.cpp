@@ -106,7 +106,7 @@ namespace Tac::Render
 
   void DX12UploadPageMgr::UnretirePages()
   {
-    int n = mRetiredPages.size();
+    int n { mRetiredPages.size() };
     if( !n )
       return;
 
@@ -222,7 +222,11 @@ namespace Tac::Render
 
   void          DX12UploadPageMgr::RetirePage( DX12UploadPage page, FenceSignal signal )
   {
-    RetiredPage retired{ .mPage = page, .mFence = signal };
+    RetiredPage retired
+    {
+      .mPage { page },
+      .mFence { signal },
+    };
     mRetiredPages.push_back( retired );
   }
 
