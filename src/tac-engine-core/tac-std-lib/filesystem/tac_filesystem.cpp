@@ -204,18 +204,27 @@ namespace Tac
     return Time{ .mTime = time, };
   }
 
+  static bool IsEntryDirectory( const std::filesystem::directory_entry& entry )
+  {
+     return entry.is_directory();
+  };
+
+  static bool  IsEntryRegularFile( const std::filesystem::directory_entry& entry )
+  {
+     return entry.is_regular_file(); 
+  }
+
   Filesystem::Paths Filesystem::IterateFiles( const Path& dir, IterateType type, Errors& errors )
   {
-    IterateFn isValid = []( const auto& entry ) { return entry.is_regular_file(); };
-    return IterateFilesHelper( dir, type, isValid, errors );
+    return IterateFilesHelper( dir, type,  &IsEntryRegularFile , errors );
   }
+
 
   Filesystem::Paths Filesystem::IterateDirectories( const Path& dir,
                                                     IterateType type,
                                                     Errors& errors )
   {
-    IterateFn isValid { []( const std::filesystem::directory_entry& entry ) { return entry.is_directory() }; };
-    return IterateFilesHelper( dir, type, isValid, errors );
+    return IterateFilesHelper( dir, type, &IsEntryDirectory, errors );
   }
 
   String            Filesystem::StripExt( const StringView& path )
@@ -227,8 +236,8 @@ namespace Tac
 
   String            Filesystem::StripLeadingSlashes( const StringView& path )
   {
-    int i;
-    for( i = 0; i < path.size(); i++ )
+    int i{ 0 };
+    for( i; i < path.size(); i++ )
       if( path[ i ] != '/' && path[ i ] != '\\' )
         break;
     String result = path.substr( i );
