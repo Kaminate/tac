@@ -81,14 +81,14 @@ namespace Tac
 
 		Map< String, Json* >      mObjectChildrenMap;
 		String                    mString;
-		JsonNumber                mNumber = 0;
+		JsonNumber                mNumber { 0 };
 		Vector< Json* >           mArrayElements;
-		bool                      mBoolean = false;
+		bool                      mBoolean { false };
 
     //                        Some functions want to convert the type of a json node.
     //                        If the type is null, then no data will be lost due during the conversion.
     //                        This assumption could not be made if mType defauts to JsonType::Object
-		JsonType                  mType = JsonType::Null;
+		JsonType                  mType { JsonType::Null };
 	};
 
 } // namespace Tac

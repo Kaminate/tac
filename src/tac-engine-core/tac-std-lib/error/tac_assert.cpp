@@ -12,17 +12,17 @@ namespace Tac
 
   void AssertFns::HandleAssertCase( const char* name, int val, StackFrame sf )
   {
-    const String str = String() + "Invalid switch case: " + name + " = " + Tac::ToString( val );
+    const String str { String() + "Invalid switch case: " + name + " = " + Tac::ToString( val ) };
     HandleAssert( str, sf );
   }
 
   void AssertFns::HandleAssertIndex( unsigned i, unsigned n, StackFrame sf )
   {
-    const String str = String()
+    const String str{ String()
       + "Index "
       + Tac::ToString( i )
       + " out of bounds "
-      + Tac::ToString( n );
+      + Tac::ToString( n ) };
     HandleAssert( str, sf );
   }
 }

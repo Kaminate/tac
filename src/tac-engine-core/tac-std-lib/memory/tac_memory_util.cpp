@@ -12,7 +12,7 @@ namespace Tac
 
   String FormatBytes(const FormatByteSpec& spec )
   {
-    int byteCount = spec.mByteCount;
+    int byteCount { spec.mByteCount };
     TAC_ASSERT( byteCount != -1 );
 
     if( !byteCount )
@@ -23,15 +23,15 @@ namespace Tac
 
     String result;
 
-    const char* sizeStrs[] = { "Bytes", "KB", "MB", "GB", "TB" };
+    const char* sizeStrs[]  { "Bytes", "KB", "MB", "GB", "TB" };
 
-    int denomination = 1;
+    int denomination { 1 };
     int i{};
-    bool approx = false;
-    bool carry = false;
+    bool approx { false };
+    bool carry { false };
     while( byteCount )
     {
-      int n = byteCount % 1024;
+      int n { byteCount % 1024 };
       if( n )
       {
         if( denomination >= spec.mMinDenomination )

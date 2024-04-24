@@ -5,8 +5,8 @@ namespace Tac
   struct v2;
   struct v2i
   {
-    int x = 0;
-    int y = 0;
+    int x { 0 };
+    int y { 0 };
     int*       begin();
     int*       end();
     int*       data();

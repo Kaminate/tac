@@ -54,9 +54,9 @@ namespace Tac::Render
   {
     return
     {
-      .mElementCount { n },
+      .mElementCount        { n },
       .mPerElementByteCount { element.mPerElementByteCount },
-      .mPerElementDataType { element.mPerElementDataType },
+      .mPerElementDataType  { element.mPerElementDataType },
     };
   }
 
@@ -65,15 +65,15 @@ namespace Tac::Render
     return mElementCount * mPerElementByteCount;
   }
 
-  const FormatElement FormatElement::sFloat =
+  const FormatElement FormatElement::sFloat
   {
       .mPerElementByteCount { sizeof( float ) },
       .mPerElementDataType { GraphicsType::real },
   };
-  const Format Format::sfloat = Format::FromElements( FormatElement::sFloat, 1 );
-  const Format Format::sv2 = Format::FromElements( FormatElement::sFloat, 2 );
-  const Format Format::sv3 = Format::FromElements( FormatElement::sFloat, 3 );
-  const Format Format::sv4 = Format::FromElements( FormatElement::sFloat, 4 );
+  const Format Format::sfloat { Format::FromElements( FormatElement::sFloat, 1 ) };
+  const Format Format::sv2 { Format::FromElements( FormatElement::sFloat, 2 ) };
+  const Format Format::sv3 { Format::FromElements( FormatElement::sFloat, 3 ) };
+  const Format Format::sv4 { Format::FromElements( FormatElement::sFloat, 4 ) };
 
 
   // -----------------------------------------------------------------------------------------------

@@ -46,7 +46,7 @@ namespace Tac
   v2           operator *( float f, const v2& v ) { return v * f; }
   float        Dot( const v2& lhs, const v2& rhs )
   {
-    float result = 0;
+    float result { 0 };
     for( int i{}; i < 2; ++i )
       result += lhs[ i ] * rhs[ i ];
     return result;

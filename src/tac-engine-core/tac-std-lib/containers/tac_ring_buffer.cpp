@@ -11,7 +11,7 @@ namespace Tac
   bool RingBuffer::Push( const void* bytes, int byteCount )
   {
     TAC_ASSERT( mBytes );
-    const int remainingByteCount = mCapacity - mSize;
+    const int remainingByteCount { mCapacity - mSize };
     if( remainingByteCount < byteCount )
     {
       if constexpr( IsDebugMode )
@@ -20,10 +20,10 @@ namespace Tac
       }
       return false;
     }
-    const int endIndex = ( mIndex + mSize ) % mCapacity;
+    const int endIndex { ( mIndex + mSize ) % mCapacity };
     if( endIndex + byteCount > mCapacity )
     {
-      char* src = ( char* )bytes;
+      char* src { ( char* )bytes };
       MemCpy( mBytes + endIndex,
               src,
               mCapacity - endIndex );
@@ -53,8 +53,8 @@ namespace Tac
       return false;
     }
 
-    const int origIndex = mIndex;
-    const int remaining = mCapacity - mIndex;
+    const int origIndex { mIndex };
+    const int remaining { mCapacity - mIndex };
     if( dataByteCount > remaining )
     {
       MemCpy( dataBytes, mBytes + mIndex, remaining );

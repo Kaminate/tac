@@ -66,7 +66,7 @@ namespace Tac
   }
   void m2::Invert(bool* valid, m2* m) const
   {
-    const float d = determinant();
+    const float d { determinant() };
     if( !( *valid = d != 0 ) )
       return;
 
@@ -78,13 +78,13 @@ namespace Tac
 
   m2 operator* (float f, const m2& m)
   {
-    m2 r = m;
+    m2 r { m };
     return r *= f;
   }
 
   m2 operator* (const m2& m, float f)
   {
-    m2 r = m;
+    m2 r { m };
     return r *= f;
   }
 

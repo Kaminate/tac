@@ -69,7 +69,7 @@ namespace Tac::Render
                                      const int iBegin,
                                      const int iEnd )
   {
-    const char* uniformBufferData = ( char* )uniformBuffer->data();
+    const char* uniformBufferData { ( char* )uniformBuffer->data() };
     mCur = uniformBufferData + iBegin;
     mEnd = uniformBufferData + iEnd;
   }
@@ -81,7 +81,7 @@ namespace Tac::Render
 
   void*                  UniformBuffer::Iterator::PopData( const int byteCount )
   {
-    auto result = ( void* )mCur;
+    auto result { ( void* )mCur };
     mCur += byteCount;
     return result;
   }
@@ -98,8 +98,8 @@ namespace Tac::Render
 
   StringView             UniformBuffer::Iterator::PopString()
   {
-    const int len = PopNumber();
-    const char* str = ( const char* )PopData( len );
+    const int len { PopNumber() };
+    const char* str { ( const char* )PopData( len ) };
     PopData( 1 );
     return StringView( str, len );
   }
@@ -108,7 +108,7 @@ namespace Tac::Render
 
   static void ExecuteDebugGroupBegin( UniformBuffer::Iterator& iter )
   {
-    const StringView desc = iter.PopString();
+    const StringView desc { iter.PopString() };
     pushed_groups.resize( pushed_group_count + 1 );
     pushed_groups[ pushed_group_count ] = desc;
     pushed_group_count++;
@@ -117,7 +117,7 @@ namespace Tac::Render
 
   static void ExecuteDebugMarker( UniformBuffer::Iterator& iter )
   {
-    const StringView desc = iter.PopString();
+    const StringView desc { iter.PopString() };
     Renderer::Instance->DebugMarker( desc );
   }
 
@@ -131,15 +131,15 @@ namespace Tac::Render
                                            UniformBuffer::Iterator& iter,
                                            Errors& errors )
   {
-    const ConstantBufferHandle constantBufferHandle = { iter.PopNumber() };
-    const int byteCount = iter.PopNumber();
-    const void* bytes = iter.PopPointer();
+    const ConstantBufferHandle constantBufferHandle  { iter.PopNumber() };
+    const int byteCount { iter.PopNumber() };
+    const void* bytes { iter.PopPointer() };
     const CommandDataUpdateConstantBuffer commandData
     {
-      .mStackFrame = header.mStackFrame,
-      .mConstantBufferHandle = constantBufferHandle,
-      .mBytes = bytes,
-      .mByteCount = byteCount,
+      .mStackFrame { header.mStackFrame },
+      .mConstantBufferHandle { constantBufferHandle },
+      .mBytes { bytes },
+      .mByteCount { byteCount },
     };
     Renderer::Instance->UpdateConstantBuffer( &commandData, errors );
   }
@@ -154,7 +154,7 @@ namespace Tac::Render
     UniformBuffer::Iterator iter( uniformBuffer, iUniformBegin, iUniformEnd );
     while( iter.mCur < iter.mEnd )
     {
-      const UniformBufferHeader header = iter.PopHeader();
+      const UniformBufferHeader header { iter.PopHeader() };
       TAC_ASSERT( header.mCorruption == UniformBufferHeader().mCorruption );
       switch( header.mType )
       {

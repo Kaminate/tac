@@ -161,8 +161,8 @@ namespace Tac::Render
 
   struct FormatElement
   {
-    int          mPerElementByteCount = 0;
-    GraphicsType mPerElementDataType = GraphicsType::unknown;
+    int          mPerElementByteCount { 0 };
+    GraphicsType mPerElementDataType { GraphicsType::unknown };
 
     static const FormatElement sFloat;
   };
@@ -171,9 +171,9 @@ namespace Tac::Render
   struct Format
   {
     int          CalculateTotalByteCount() const;
-    int          mElementCount = 0;
-    int          mPerElementByteCount = 0;
-    GraphicsType mPerElementDataType = GraphicsType::unknown;
+    int          mElementCount { 0 };
+    int          mPerElementByteCount { 0 };
+    GraphicsType mPerElementDataType { GraphicsType::unknown };
 
     static Format FromElements( FormatElement, int = 1 );
     static const Format sfloat;
@@ -186,9 +186,9 @@ namespace Tac::Render
   // $$$ Should this still be called an "Image", since the data parameter was removed?
   struct Image
   {
-    int    mWidth = 0;
-    int    mHeight = 0;
-    int    mDepth = 0;
+    int    mWidth { 0 };
+    int    mHeight { 0 };
+    int    mDepth { 0 };
     Format mFormat;
 
     // Note that byte data should be passed as a separate argument,
@@ -202,7 +202,7 @@ namespace Tac::Render
 
     //        Offset of the variable from the vertex buffer
     //        ie: OffsetOf( MyVertexType, mPosition)
-    int       mAlignedByteOffset = 0;
+    int       mAlignedByteOffset { 0 };
   };
 
   struct ScissorRect
@@ -211,10 +211,10 @@ namespace Tac::Render
     ScissorRect( float w, float h );
     ScissorRect( int w, int h );
     ScissorRect( const v2& );
-    float mXMinRelUpperLeftCornerPixel = 0;
-    float mYMinRelUpperLeftCornerPixel = 0;
-    float mXMaxRelUpperLeftCornerPixel = 0;
-    float mYMaxRelUpperLeftCornerPixel = 0;
+    float mXMinRelUpperLeftCornerPixel { 0 };
+    float mYMinRelUpperLeftCornerPixel { 0 };
+    float mXMaxRelUpperLeftCornerPixel { 0 };
+    float mYMaxRelUpperLeftCornerPixel { 0 };
   };
 
   // glViewport lets opengl know how to map the NDC coordinates to the framebuffer coordinates.
@@ -224,12 +224,12 @@ namespace Tac::Render
     Viewport( float w, float h );
     Viewport( int w, int h );
     Viewport( const v2& );
-    float mBottomLeftX = 0;
-    float mBottomLeftY = 0;
-    float mWidth = 0;
-    float mHeight = 0;
-    float mMinDepth = 0;
-    float mMaxDepth = 1;
+    float mBottomLeftX { 0 };
+    float mBottomLeftY { 0 };
+    float mWidth       { 0 };
+    float mHeight      { 0 };
+    float mMinDepth    { 0 };
+    float mMaxDepth    { 1 };
   };
 
 
@@ -252,12 +252,12 @@ namespace Tac::Render
 
   struct BlendState
   {
-    BlendConstants mSrcRGB = BlendConstants::One;
-    BlendConstants mDstRGB = BlendConstants::Zero;
-    BlendMode      mBlendRGB = BlendMode::Add;
-    BlendConstants mSrcA = BlendConstants::One;
-    BlendConstants mDstA = BlendConstants::Zero;
-    BlendMode      mBlendA = BlendMode::Add;
+    BlendConstants mSrcRGB   { BlendConstants::One };
+    BlendConstants mDstRGB   { BlendConstants::Zero };
+    BlendMode      mBlendRGB { BlendMode::Add };
+    BlendConstants mSrcA     { BlendConstants::One };
+    BlendConstants mDstA     { BlendConstants::Zero };
+    BlendMode      mBlendA   { BlendMode::Add };
   };
 
 
@@ -305,51 +305,51 @@ namespace Tac::Render
 
   struct DepthState
   {
-    bool      mDepthTest = false;
-    bool      mDepthWrite = false;
-    DepthFunc mDepthFunc = ( DepthFunc )0;
+    bool      mDepthTest { false };
+    bool      mDepthWrite { false };
+    DepthFunc mDepthFunc { ( DepthFunc )0 };
   };
 
   struct TexSpec
   {
     Image       mImage;
-    int         mPitch = 0; // byte count between texel rows
-    const void* mImageBytes = nullptr;
-    const void* mImageBytesCubemap[ 6 ] = {};
-    Binding     mBinding = Binding::None;
-    Access      mAccess = Access::Default;
-    CPUAccess   mCpuAccess = CPUAccess::None;
+    int         mPitch                  {}; // byte count between texel rows
+    const void* mImageBytes             {};
+    const void* mImageBytesCubemap[ 6 ] {};
+    Binding     mBinding                { Binding::None };
+    Access      mAccess                 { Access::Default };
+    CPUAccess   mCpuAccess              { CPUAccess::None };
   };
 
   struct TexUpdate
   {
     Image       mSrc;
-    int         mDstX = 0; // column indexes, increases to the right
-    int         mDstY = 0; // row indexes, increases downwards
-    const void* mSrcBytes = nullptr;
-    int         mPitch = 0; // byte count between pixel rows
+    int         mDstX     {}; // column indexes, increases to the right
+    int         mDstY     {}; // row indexes, increases downwards
+    const void* mSrcBytes {};
+    int         mPitch    {}; // byte count between pixel rows
   };
 
   struct RasterizerState
   {
-    FillMode mFillMode = ( FillMode )0;
-    CullMode mCullMode = ( CullMode )0;
-    bool     mFrontCounterClockwise = true;
-    bool     mScissor = false;
-    bool     mMultisample = false;
-    bool     mConservativeRasterization = false;
+    FillMode mFillMode                  { ( FillMode )0 };
+    CullMode mCullMode                  { ( CullMode )0 };
+    bool     mFrontCounterClockwise     { true };
+    bool     mScissor                   { false };
+    bool     mMultisample               { false };
+    bool     mConservativeRasterization { false };
   };
 
   struct SamplerState
   {
-    AddressMode mU = ( AddressMode )0;
-    AddressMode mV = ( AddressMode )0;
-    AddressMode mW = ( AddressMode )0;
-    Comparison  mCompare = ( Comparison )0;
-    Filter      mFilter = ( Filter )0;
+    AddressMode mU       { ( AddressMode )0 };
+    AddressMode mV       { ( AddressMode )0 };
+    AddressMode mW       { ( AddressMode )0 };
+    Comparison  mCompare { ( Comparison )0 };
+    Filter      mFilter  { ( Filter )0 };
   };
 
-  struct InProj { float mNear, mFar; };
+  struct InProj  { float mNear, mFar; };
   struct OutProj { float mA, mB; };
 
   void                             Init( Errors& );
@@ -495,7 +495,7 @@ namespace Tac::Render
   template< typename T>
   void             SetRendererFactory( RendererAPI api )
   {
-    const RendererFactory factory = []()->Renderer* { return TAC_NEW T; };
+    const RendererFactory factory { []()->Renderer* { return TAC_NEW T }; };
     SetRendererFactory( api, factory );
   }
 

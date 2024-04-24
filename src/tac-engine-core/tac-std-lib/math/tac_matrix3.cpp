@@ -155,10 +155,10 @@ namespace Tac
   v3 operator * ( const m3& m, const v3& v )
   {
     v3 result;
-    for( int r = 0; r < 3; ++r )
+    for( int r { 0 }; r < 3; ++r )
     {
-      float sum = 0;
-      for( int c = 0; c < 3; ++c )
+      float sum { 0 };
+      for( int c { 0 }; c < 3; ++c )
       {
         sum += m( r, c ) * v[ c ];
       }
@@ -170,11 +170,11 @@ namespace Tac
   m3 operator * ( const m3& lhs, const m3& rhs )
   {
     m3 result;
-    for( int r = 0; r < 3; ++r )
+    for( int r { 0 }; r < 3; ++r )
     {
-      for( int c = 0; c < 3; ++c )
+      for( int c { 0 }; c < 3; ++c )
       {
-        float sum = 0;
+        float sum { 0 };
         for( int i{}; i < 3; ++i )
         {
           sum += lhs( r, i ) * rhs( i, c );
@@ -190,10 +190,10 @@ namespace Tac
     return m.determinant();
   }
 
-    float           m3::Trace() const
-    {
-      return m00 + m11 + m22;
-    }
+  float           m3::Trace() const
+  {
+    return m00 + m11 + m22;
+  }
 
   v3           m3::GetColumn( int i ) const
   {
@@ -219,17 +219,17 @@ namespace Tac
 
   bool m3::Invert(m3* m) const
   {
-    float d = determinant();
+    float d { determinant() };
     if( d == 0 )
       return false;
-    m3 a = adjugate();
+    m3 a { adjugate() };
     *m = ( 1 / d ) * a;
     return true;
   }
 
   m3           m3::adjugate() const
   {
-    m3 result = cofactor();
+    m3 result { cofactor() };
     result.Transpose();
     return result;
   }
@@ -269,14 +269,14 @@ namespace Tac
   // Ortho normalizes a matrix
   static void GramSchmidt( m3& m )
   {
-    v3 x = m.GetColumn( 0 );
+    v3 x { m.GetColumn( 0 ) };
     x.Normalize();
 
-    v3 y = m.GetColumn( 1 );
+    v3 y { m.GetColumn( 1 ) };
     y -= Project( x, y );
     y.Normalize();
 
-    v3 z = m.GetColumn( 2 );
+    v3 z { m.GetColumn( 2 ) };
     z -= Project( x, z );
     z -= Project( y, z );
     z.Normalize();
@@ -341,8 +341,8 @@ namespace Tac
 
   m3 m3::RotRadX( float rotRad )
   {
-    float s = Sin( rotRad );
-    float c = Cos( rotRad );
+    float s { Sin( rotRad ) };
+    float c { Cos( rotRad ) };
     return {
       1, 0, 0,
       0, c, -s,
@@ -351,8 +351,8 @@ namespace Tac
 
   m3 m3::RotRadY( float rotRad )
   {
-    float s = Sin( rotRad );
-    float c = Cos( rotRad );
+    float s { Sin( rotRad ) };
+    float c { Cos( rotRad ) };
     return {
       c, 0, s,
       0, 1, 0,
@@ -361,8 +361,8 @@ namespace Tac
 
   m3 m3::RotRadZ( float rotRad )
   {
-    float s = Sin( rotRad );
-    float c = Cos( rotRad );
+    float s { Sin( rotRad ) };
+    float c { Cos( rotRad ) };
     return {
       c, -s, 0,
       s, c, 0,
@@ -371,18 +371,18 @@ namespace Tac
 
   m3 m3::RotRadAngleAxis( const float angleRadians, const v3& unitAxis )
   {
-    const float c = Cos( angleRadians );
-    const float s = Sin( angleRadians );
-    const float t = 1.0f - c;
-    const float m00 = c + unitAxis[ 0 ] * unitAxis[ 0 ] * t;
-    const float m11 = c + unitAxis[ 1 ] * unitAxis[ 1 ] * t;
-    const float m22 = c + unitAxis[ 2 ] * unitAxis[ 2 ] * t;
-    const float m10 = unitAxis[ 0 ] * unitAxis[ 1 ] * t + unitAxis[ 2 ] * s;
-    const float m01 = unitAxis[ 0 ] * unitAxis[ 1 ] * t - unitAxis[ 2 ] * s;
-    const float m20 = unitAxis[ 0 ] * unitAxis[ 2 ] * t - unitAxis[ 1 ] * s;
-    const float m02 = unitAxis[ 0 ] * unitAxis[ 2 ] * t + unitAxis[ 1 ] * s;
-    const float m21 = unitAxis[ 1 ] * unitAxis[ 2 ] * t + unitAxis[ 0 ] * s;
-    const float m12 = unitAxis[ 1 ] * unitAxis[ 2 ] * t - unitAxis[ 0 ] * s;
+    const float c { Cos( angleRadians ) };
+    const float s { Sin( angleRadians ) };
+    const float t { 1.0f - c };
+    const float m00 { c + unitAxis[ 0 ] * unitAxis[ 0 ] * t };
+    const float m11 { c + unitAxis[ 1 ] * unitAxis[ 1 ] * t };
+    const float m22 { c + unitAxis[ 2 ] * unitAxis[ 2 ] * t };
+    const float m10 { unitAxis[ 0 ] * unitAxis[ 1 ] * t + unitAxis[ 2 ] * s };
+    const float m01 { unitAxis[ 0 ] * unitAxis[ 1 ] * t - unitAxis[ 2 ] * s };
+    const float m20 { unitAxis[ 0 ] * unitAxis[ 2 ] * t - unitAxis[ 1 ] * s };
+    const float m02 { unitAxis[ 0 ] * unitAxis[ 2 ] * t + unitAxis[ 1 ] * s };
+    const float m21 { unitAxis[ 1 ] * unitAxis[ 2 ] * t + unitAxis[ 0 ] * s };
+    const float m12 { unitAxis[ 1 ] * unitAxis[ 2 ] * t - unitAxis[ 0 ] * s };
     return
     {
       m00, m01, m02,

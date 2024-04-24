@@ -57,26 +57,26 @@ namespace Tac::Render
     while( it.IsValid() )
     {
 
-      const CommandType2 commandType = it.PopCommandType();
+      const CommandType2 commandType { it.PopCommandType() };
       TAC_ASSERT_INDEX( commandType, CommandType2::kCount );
 
       switch( commandType )
       {
       case CommandType2::kCreateDynamicBuffer:
       {
-        const DynBufCreateParams params = it.PopDynBufCreateParams();
+        const DynBufCreateParams params { it.PopDynBufCreateParams() };
         TAC_CALL( backend->CreateDynamicBuffer2( params, errors ) );
       } break;
 
       case CommandType2::kUpdateDynamicBuffer:
       {
-        const DynBufUpdateParams params = it.PopDynBufUpdateParams();
+        const DynBufUpdateParams params { it.PopDynBufUpdateParams() };
         backend->UpdateDynamicBuffer2( params );
       } break;
 
       case CommandType2::kSetName:
       {
-        const SetRenderObjectNameParams params = it.PopSetRenderObjectNameParams();
+        const SetRenderObjectNameParams params { it.PopSetRenderObjectNameParams() };
         backend->SetRenderObjectName( params );
       } break;
 

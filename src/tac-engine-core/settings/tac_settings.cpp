@@ -64,7 +64,7 @@ void            Tac::SettingsInit( const Filesystem::Path& path , Errors& errors
   sSavePath = path; 
   if( Filesystem::Exists( sSavePath ))
   {
-    const String loaded = LoadFilePath( sSavePath, errors );
+    const String loaded { LoadFilePath( sSavePath, errors ) };
     sJson.Parse( loaded.data(), ( int )loaded.size(), errors );
   }
   else
@@ -158,8 +158,7 @@ Tac::Json*      Tac::SettingsGetJson( StringView path, Json* root )
       TAC_ASSERT( root->mType == JsonType::Array );
       const int iCloseSquareBracket = path.find_first_of( "]" );
       TAC_ASSERT( iCloseSquareBracket != StringView::npos );
-      const int iElement = Atoi( StringView( path.data() + 1,
-                                 path.data() + iCloseSquareBracket ) );
+      const int iElement { Atoi( StringView( path.data() + 1, path.data() + iCloseSquareBracket ) ) };
       TAC_ASSERT( ( unsigned )iElement < ( unsigned )root->mArrayElements.size() );
       root = root->mArrayElements[ iElement ];
       path.remove_prefix( iCloseSquareBracket );

@@ -335,8 +335,8 @@ namespace Tac::Render::DXC
     };
     TAC_NOT_CONST ExampleDXCArgHelper argHelper( argHelperSetup );
 
-    const auto pArguments = argHelper.GetArgs();
-    const auto argCount = argHelper.GetArgCount();
+    const auto pArguments { argHelper.GetArgs() };
+    const auto argCount { argHelper.GetArgCount() };
 
     const DxcBuffer Source
     {

@@ -25,28 +25,28 @@ namespace Tac
 
     const DesktopAppCreateWindowParams params
     {
-      .mName = sShellAppName,
-      .mX = 0,
-      .mY = 0,
-      .mWidth = ( int )( 0.8f * monitorWidth ),
-      .mHeight = ( int )( 0.8f * monitorHeight ),
+      .mName { sShellAppName },
+      .mX { 0 },
+      .mY { 0 },
+      .mWidth { ( int )( 0.8f * monitorWidth ) },
+      .mHeight { ( int )( 0.8f * monitorHeight ) },
     };
 
     mDesktopWindowHandle = DesktopApp::GetInstance()->CreateWindow(params);
 
 
-    auto ghost = TAC_NEW Ghost;
+    auto ghost { TAC_NEW Ghost };
     //ghost->mRenderView = mDesktopWindow->mRenderView;
     TAC_CALL( ghost->Init( errors ));
   }
 
   static void GameCallbackUpdate( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState { GetDesktopWindowState( mDesktopWindowHandle ) };
     if(!desktopWindowState->mNativeWindowHandle)
           return;
 
-    const v2 size = desktopWindowState->GetSizeV2();
+    const v2 size { desktopWindowState->GetSizeV2() };
     const Render::Viewport viewport( size );
     const Render::ScissorRect scissorRect( size );
 

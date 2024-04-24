@@ -25,9 +25,9 @@ namespace Tac::Render
   template < typename CommandData >
   const CommandData& AddCreateCommand( const CommandData& commandData )
   {
-    Frame* submitFrame = GetSubmitFrame();
-    const CommandType cmdType = GetCreateCommandType< CommandData >();
-    const int n = sizeof( CommandData );
+    Frame* submitFrame { GetSubmitFrame() };
+    const CommandType cmdType { GetCreateCommandType< CommandData >() };
+    const int n { sizeof( CommandData ) };
     submitFrame->mCommandBufferFrameBegin.PushCommand( cmdType, &commandData, n );
     return commandData;
   }
@@ -36,9 +36,9 @@ namespace Tac::Render
   {
     const CommandDataCreateShader commandData
     {
-          .mStackFrame = stackFrame,
-          .mNameStringView = ShaderNameStringView( SubmitAlloc( shaderName ) ),
-          .mShaderHandle = { mIdCollectionShader.Alloc() },
+      .mStackFrame     { stackFrame },
+      .mNameStringView { ShaderNameStringView( SubmitAlloc( shaderName ) ) },
+      .mShaderHandle   { mIdCollectionShader.Alloc() },
     };
     return AddCreateCommand(commandData).mShaderHandle;
   }
@@ -51,12 +51,12 @@ namespace Tac::Render
   {
     const CommandDataCreateVertexBuffer commandData
     {
-      .mStackFrame = stackFrame,
-      .mVertexBufferHandle = { mIdCollectionVertexBuffer.Alloc() },
-      .mByteCount = byteCount,
-      .mOptionalInitialBytes = SubmitAlloc( optionalInitialBytes, byteCount ),
-      .mStride = stride,
-      .mAccess = access,
+      .mStackFrame           { stackFrame },
+      .mVertexBufferHandle   { mIdCollectionVertexBuffer.Alloc() },
+      .mByteCount            { byteCount },
+      .mOptionalInitialBytes { SubmitAlloc( optionalInitialBytes, byteCount ) },
+      .mStride               { stride },
+      .mAccess               { access },
     };
     return AddCreateCommand( commandData ).mVertexBufferHandle;
   }
@@ -70,13 +70,13 @@ namespace Tac::Render
   {
     const CommandDataCreateMagicBuffer commandData
     {
-      .mStackFrame = stackFrame,
-      .mMagicBufferHandle = { mIdCollectionMagicBuffer.Alloc() },
-      .mByteCount = byteCount,
-      .mOptionalInitialBytes = optionalInitialBytes,
-      .mStride = stride,
-      .mBinding = binding,
-      .mAccess = access
+      .mStackFrame { stackFrame },
+      .mMagicBufferHandle { mIdCollectionMagicBuffer.Alloc() },
+      .mByteCount { byteCount },
+      .mOptionalInitialBytes { optionalInitialBytes },
+      .mStride { stride },
+      .mBinding { binding },
+      .mAccess { access },
     };
     return AddCreateCommand( commandData ).mMagicBufferHandle;
   }
@@ -87,10 +87,10 @@ namespace Tac::Render
   {
     const CommandDataCreateConstantBuffer commandData
     {
-      .mStackFrame = stackFrame,
-      .mConstantBufferHandle = { mIdCollectionConstantBuffer.Alloc() },
-      .mByteCount = byteCount,
-      .mName = SubmitAlloc( name )
+      .mStackFrame { stackFrame },
+      .mConstantBufferHandle  { mIdCollectionConstantBuffer.Alloc() },
+      .mByteCount { byteCount },
+      .mName { SubmitAlloc( name ) },
     };
     return AddCreateCommand( commandData ).mConstantBufferHandle;
   }

@@ -69,7 +69,7 @@ namespace Tac
   {
     for( int iMember { 0 }; iMember < GetMemberCount(); ++iMember )
     {
-      const MetaMember& member = GetMember( iMember );
+      const MetaMember& member { GetMember( iMember ) };
       if( Json * child{ json->FindChild( member.mName ) } )
       {
         member.mMetaType->JsonDeserialize( child, member.mOffset + ( char* )v );
@@ -95,10 +95,10 @@ namespace Tac
     const MetaCompositeType& metaStruct = ( MetaCompositeType& )GetMetaType< MetaCompositeTestStruct >();
     for( int i{}; i < metaStruct.GetMemberCount(); ++i )
     {
-      const MetaMember& member = metaStruct.GetMember( i );
-      const char* strType = member.mMetaType->GetName();
-      const char* strStruct = metaStruct.GetName();
-      const char* strMember = member.mName;
+      const MetaMember& member { metaStruct.GetMember( i ) };
+      const char* strType { member.mMetaType->GetName() };
+      const char* strStruct { metaStruct.GetName() };
+      const char* strMember { member.mName };
       OS::OSDebugPrintLine( String() + strType + " " + strStruct + ":: " + strMember );
     }
   }

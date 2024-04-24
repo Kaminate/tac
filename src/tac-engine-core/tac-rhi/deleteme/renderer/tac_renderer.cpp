@@ -16,26 +16,26 @@ namespace Tac::Render
   Binding operator | ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs | ( int )rhs ); }
   Binding operator & ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs & ( int )rhs ); }
 
-  const FormatElement FormatElement::sFloat = 
+  const FormatElement FormatElement::sFloat
   {
-      .mPerElementByteCount = sizeof(float),
-      .mPerElementDataType = GraphicsType::real,
+      .mPerElementByteCount { sizeof(float) },
+      .mPerElementDataType { GraphicsType::real },
   };
 
   Format Format::FromElements( FormatElement element, int n )
   {
     return 
     {
-      .mElementCount = n,
-      .mPerElementByteCount = element.mPerElementByteCount,
-      .mPerElementDataType = element.mPerElementDataType,
+      .mElementCount { n },
+      .mPerElementByteCount { element.mPerElementByteCount },
+      .mPerElementDataType { element.mPerElementDataType },
     };
   }
 
-  const Format Format::sfloat = Format::FromElements( FormatElement::sFloat, 1 );
-  const Format Format::sv2 = Format::FromElements( FormatElement::sFloat, 2 );
-  const Format Format::sv3 = Format::FromElements( FormatElement::sFloat, 3 );
-  const Format Format::sv4 = Format::FromElements( FormatElement::sFloat, 4 );
+  const Format Format::sfloat { Format::FromElements( FormatElement::sFloat, 1 ) };
+  const Format Format::sv2 { Format::FromElements( FormatElement::sFloat, 2 ) };
+  const Format Format::sv3 { Format::FromElements( FormatElement::sFloat, 3 ) };
+  const Format Format::sv4 { Format::FromElements( FormatElement::sFloat, 4 ) };
 
   static void Validate( const StringView& );
 
@@ -43,13 +43,13 @@ namespace Tac::Render
   {
     switch( attribType )
     {
-    case Attribute::Position: return "POSITION";
-    case Attribute::Normal: return "NORMAL";
-    case Attribute::Texcoord: return "TEXCOORD";
-    case Attribute::Color: return "COLOR";
-    case Attribute::BoneIndex: return "BONEINDEX";
+    case Attribute::Position:   return "POSITION";
+    case Attribute::Normal:     return "NORMAL";
+    case Attribute::Texcoord:   return "TEXCOORD";
+    case Attribute::Color:      return "COLOR";
+    case Attribute::BoneIndex:  return "BONEINDEX";
     case Attribute::BoneWeight: return "BONEWEIGHT";
-    case Attribute::Coeffs: return "COEFFS";
+    case Attribute::Coeffs:     return "COEFFS";
     default: TAC_ASSERT_INVALID_CASE( attribType ); return nullptr;
     }
   }
@@ -69,7 +69,7 @@ namespace Tac::Render
   ScissorRect::ScissorRect(const v2& v) : ScissorRect( v.x, v.y ) { }
 
   // ---------------------------------------------------------------------------------------------
-  Viewport::Viewport( int w, int h ) { mWidth = ( float )w; mHeight = ( float )h; }
+  Viewport::Viewport( int w, int h )     { mWidth = ( float )w; mHeight = ( float )h; }
   Viewport::Viewport( float w, float h ) { mWidth = w; mHeight = h; }
   Viewport::Viewport( const v2& v ) : Viewport( v.x, v.y ) {}
 
@@ -79,7 +79,7 @@ namespace Tac::Render
     return mElementCount * mPerElementByteCount;
   }
 
-  const float sizeInMagicUISpaceUnits = 1024.0f;
+  const float sizeInMagicUISpaceUnits { 1024.0f };
 
   // ---------------------------------------------------------------------------------------------
 
@@ -135,10 +135,10 @@ namespace Tac::Render
     TAC_ASSERT( !s.empty() );
     for( char c : s )
     {
-      const StringView blacklist = "./\\";
+      const StringView blacklist { "./\\" };
       TAC_ASSERT( !blacklist.contains( c ) );
 
-      const StringView whitelist = "_ ";
+      const StringView whitelist { "_ " };
       TAC_ASSERT( IsAlpha( c ) || IsDigit( c ) || whitelist.contains( c ) );
     }
   }

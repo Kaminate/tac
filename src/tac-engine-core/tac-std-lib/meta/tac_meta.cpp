@@ -182,7 +182,7 @@ namespace Tac
 
   double      DoubleMetaType::ToDouble( const void* v ) const
   {
-    const double d = *( ( const double* )v );
+    const double d { *( ( const double* )v ) };
     return d;
   }
 

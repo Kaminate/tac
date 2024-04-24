@@ -35,19 +35,19 @@ namespace Tac::Render
     if constexpr( !IsDebugMode )
       return;
 
-    const AssetPathStringView shaderAssetPath = GetShaderAssetPath( shaderName );
+    const AssetPathStringView shaderAssetPath { GetShaderAssetPath( shaderName ) };
     const Filesystem::Path fullPath( shaderAssetPath );
 
-    const Filesystem::Time time =
-      TAC_CALL( Filesystem::GetFileLastModifiedTime( fullPath, errors ) );
+    TAC_CALL( const Filesystem::Time time{
+       Filesystem::GetFileLastModifiedTime( fullPath, errors ) } );
 
     TAC_ASSERT( time.IsValid() );
 
     sShaderReloadInfos[ ( int )shaderHandle ] = ShaderReloadInfo
     {
-      .mShaderName = shaderName,
-      .mFullPath = fullPath,
-      .mFileModifyTime = time,
+      .mShaderName { shaderName },
+      .mFullPath { fullPath },
+      .mFileModifyTime { time },
     };
   }
 
@@ -63,8 +63,8 @@ namespace Tac::Render
   {
     TAC_ASSERT( shaderReloadInfo->mFileModifyTime.IsValid() );
 
-    const Filesystem::Time time = TAC_CALL(
-      Filesystem::GetFileLastModifiedTime( shaderReloadInfo->mFullPath, errors ) );
+    TAC_CALL( const Filesystem::Time time{
+      Filesystem::GetFileLastModifiedTime( shaderReloadInfo->mFullPath, errors ) } );
 
     if( time == shaderReloadInfo->mFileModifyTime )
       return;

@@ -15,9 +15,9 @@ namespace Tac::Render
     template< typename T > T* Pop()            { return ( T* )PopBytes( sizeof( T ) ); }
     template< typename T > T* PopCommandData() { T* t = Pop< T >(); PopCanary(); return t; }
 
-    const char*               bufferBegin = nullptr;
-    const char*               bufferEnd = nullptr;
-    const char*               bufferPos = nullptr;
+    const char*               bufferBegin { nullptr };
+    const char*               bufferEnd { nullptr };
+    const char*               bufferPos { nullptr };
   };
 
   // -----------------------------------------------------------------------------------------------

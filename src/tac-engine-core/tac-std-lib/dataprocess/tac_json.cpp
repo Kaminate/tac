@@ -22,7 +22,7 @@ namespace Tac
   {
     if( parseData->GetRemainingByteCount() < 2 )
       TAC_RAISE_ERROR( "not enough space for quoted string");
-    const char* quotedStrBegin = parseData->GetPos();
+    const char* quotedStrBegin { parseData->GetPos() };
     if( *quotedStrBegin != '\"' )
       TAC_RAISE_ERROR( "string does not begin with quote");
     parseData->EatByte();
@@ -36,11 +36,11 @@ namespace Tac
   {
     json->Clear();
     parseData->EatWhitespace();
-    const char* b = parseData->PeekByte();
+    const char* b { parseData->PeekByte() };
     if( !b )
       return;
 
-    const char c = *b;
+    const char c { *b };
     if( c == '{' )
     {
       ParseObject( json, parseData, errors );
@@ -154,7 +154,7 @@ namespace Tac
   {
     const Indentation defaultIndentation;
     indentation = indentation ? indentation : &defaultIndentation;
-    String tab = indentation->convertTabsToSpaces ? String( indentation->spacesPerTab, ' ' ) : String( "\t" );
+    String tab { indentation->convertTabsToSpaces ? String( indentation->spacesPerTab, ' ' ) : String( "\t" ) };
     String result;
     for( int i{}; i < tabCount; ++i )
       result += tab;
@@ -193,7 +193,7 @@ namespace Tac
   }
   String Json::Stringify( const Indentation* indentation, int tabCount ) const
   {
-    int iChild = 0;
+    int iChild { 0 };
     String result;
     auto GetSeparator = [&]( int childCount ) { return iChild++ != childCount - 1 ? "," : ""; };
     switch( mType )
@@ -280,16 +280,16 @@ namespace Tac
 
   Json*  Json::FindChild( StringView key ) const
   {
-    Optional< Json* > child = mObjectChildrenMap.FindVal( key );
+    Optional< Json* > child { mObjectChildrenMap.FindVal( key ) };
     return child.GetValueOr( nullptr );
   }
 
   Json&  Json::GetChild( StringView key )
   {
-    if( Json* child = mObjectChildrenMap[ key ] )
+    if( Json * child{ mObjectChildrenMap[ key ] } )
       return *child;
 
-    auto child = TAC_NEW Json;
+    auto child { TAC_NEW Json };
     child->mType = JsonType::Null;
 
     mObjectChildrenMap[ key ] = child;
@@ -307,14 +307,14 @@ namespace Tac
 
   void   Json::AddChild( const Json& json )
   {
-    Json* child = AddChild();
+    Json* child { AddChild() };
     *child = json;
   }
 
   Json*  Json::AddChild()
   {
     mType = JsonType::Array;
-    auto child = TAC_NEW Json;
+    auto child { TAC_NEW Json };
     mArrayElements.push_back( child );
     return child;
   }
@@ -327,7 +327,7 @@ namespace Tac
   Json*  Json::AddChild( StringView key )
   {
     mType = JsonType::Object;
-    auto child = TAC_NEW Json;
+    auto child { TAC_NEW Json };
     mObjectChildrenMap[ key ] = child;
     return child;
   }

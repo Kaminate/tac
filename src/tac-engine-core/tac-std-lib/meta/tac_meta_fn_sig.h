@@ -40,9 +40,9 @@ namespace Tac
     const MetaType* ArgType( int i ) const { return mArgs[ i ]; }
     int             ArgCount() const       { return mArgCount; }
   private:
-    const MetaType*  mRet = nullptr;
-    const MetaType** mArgs = nullptr;
-    int              mArgCount = 0;
+    const MetaType*  mRet { nullptr };
+    const MetaType** mArgs { nullptr };
+    int              mArgCount { 0 };
   };
 
   void MetaFnSigUnitTest();

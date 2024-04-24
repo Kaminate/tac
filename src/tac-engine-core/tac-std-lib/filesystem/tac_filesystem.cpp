@@ -214,13 +214,13 @@ namespace Tac
                                                     IterateType type,
                                                     Errors& errors )
   {
-    IterateFn isValid = []( const std::filesystem::directory_entry& entry ) { return entry.is_directory(); };
+    IterateFn isValid { []( const std::filesystem::directory_entry& entry ) { return entry.is_directory() }; };
     return IterateFilesHelper( dir, type, isValid, errors );
   }
 
   String            Filesystem::StripExt( const StringView& path )
   {
-    auto found = path.find_last_of( "." );
+    auto found { path.find_last_of( "." ) };
     TAC_ASSERT( found != String::npos );
     return path.substr( 0, found );
   }

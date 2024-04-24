@@ -25,7 +25,7 @@ namespace Tac::Render
   {
     void                  Submit( ViewHandle, const StackFrame& );
 
-    int                   mUniformBufferIndex = 0;
+    int                   mUniformBufferIndex { 0 };
     DrawCall              mDrawCall;
   };
 
@@ -41,24 +41,24 @@ namespace Tac::Render
   static OS::ISemaphore*      gRenderSemaphore;
   static int                  gFrameCount;
   static Frame                gFrames[ 2 ];
-  static Frame* gRenderFrame = &gFrames[ 0 ];
-  static Frame* gSubmitFrame = &gFrames[ 1 ];
-  static u32                  gCrow = 0xcaacaaaa;
+  static Frame* gRenderFrame { &gFrames[ 0 ] };
+  static Frame* gSubmitFrame { &gFrames[ 1 ] };
+  static u32                  gCrow { 0xcaacaaaa };
   Renderer* Renderer::Instance = nullptr;
 
 
   static void RenderDrawCalls( Errors& errors )
   {
     //TAC_PROFILE_BLOCK;
-    Renderer* renderer = Renderer::Instance;
-    const DrawCall* drawCallBegin = gRenderFrame->mDrawCalls.data();
-    const int drawCallCount = gRenderFrame->mDrawCalls.size();
-    for( int iDrawCall = 0; iDrawCall < drawCallCount; ++iDrawCall )
+    Renderer* renderer { Renderer::Instance };
+    const DrawCall* drawCallBegin { gRenderFrame->mDrawCalls.data() };
+    const int drawCallCount { gRenderFrame->mDrawCalls.size() };
+    for( int iDrawCall { 0 }; iDrawCall < drawCallCount; ++iDrawCall )
     {
       if( gRenderFrame->mBreakOnDrawCall == iDrawCall )
         OS::OSDebugBreak();
 
-      const DrawCall* drawCall = drawCallBegin + iDrawCall;
+      const DrawCall* drawCall { drawCallBegin + iDrawCall };
       ExecuteUniformCommands( &gRenderFrame->mUniformBuffer,
                               drawCall->iUniformBegin,
                               drawCall->iUniformEnd,
@@ -70,12 +70,12 @@ namespace Tac::Render
   static void ExecuteCommands( CommandBuffer* commandBuffer, Errors& errors )
   {
     static const CommandHandlers sCommandHandlers;
-    Renderer* renderer = Renderer::Instance;
+    Renderer* renderer { Renderer::Instance };
 
-    CommandBufferIterator iter = commandBuffer->GetIterator();
+    CommandBufferIterator iter { commandBuffer->GetIterator() };
     while( iter.IsValid() )
     {
-      const auto renderCommandType = *iter.Pop< CommandType >();
+      const auto renderCommandType { *iter.Pop< CommandType >() };
       sCommandHandlers.Invoke( renderer, renderCommandType, &iter, errors );
     }
   }
@@ -89,9 +89,9 @@ namespace Tac::Render
       return;
     }
 
-    int iUniformBegin = 0;
-    int iUniformEnd = 0;
-    const int uniformBufferSize = gSubmitFrame->mUniformBuffer.size();
+    int iUniformBegin { 0 };
+    int iUniformEnd { 0 };
+    const int uniformBufferSize { gSubmitFrame->mUniformBuffer.size() };
     if( mUniformBufferIndex != uniformBufferSize )
     {
       iUniformBegin = mUniformBufferIndex;
@@ -136,10 +136,10 @@ namespace Tac
   {
     const CommandDataResizeFramebuffer commandData
     {
-      .mStackFrame = stackFrame,
-      .mWidth = w,
-      .mHeight = h,
-      .mFramebufferHandle = framebufferHandle
+      .mStackFrame { stackFrame },
+      .mWidth { w },
+      .mHeight { h },
+      .mFramebufferHandle { framebufferHandle },
     };
     gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::ResizeFramebuffer,
                                                         &commandData,
@@ -150,16 +150,16 @@ namespace Tac
                             const TexUpdate& texUpdate,
                             const StackFrame& stackFrame )
   {
-    const int byteCount = texUpdate.mSrc.mHeight * texUpdate.mPitch;
+    const int byteCount { texUpdate.mSrc.mHeight * texUpdate.mPitch };
 
-    TexUpdate allocTexUpdate = texUpdate;
+    TexUpdate allocTexUpdate { texUpdate };
     allocTexUpdate.mSrcBytes = SubmitAlloc( texUpdate.mSrcBytes, byteCount );
 
     const CommandDataUpdateTextureRegion commandData
     {
-      .mStackFrame = stackFrame,
-      .mTextureHandle = handle,
-      .mTexUpdate = allocTexUpdate
+      .mStackFrame { stackFrame },
+      .mTextureHandle { handle },
+      .mTexUpdate { allocTexUpdate },
     };
     gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::UpdateTextureRegion,
                                                         &commandData,
@@ -173,10 +173,10 @@ namespace Tac
   {
     const CommandDataUpdateVertexBuffer commandData
     {
-      .mStackFrame = stackFrame,
-      .mVertexBufferHandle = handle,
-      .mBytes = SubmitAlloc( bytes, byteCount ),
-      .mByteCount = byteCount
+      .mStackFrame { stackFrame },
+      .mVertexBufferHandle { handle },
+      .mBytes { SubmitAlloc( bytes, byteCount )  },
+      .mByteCount { byteCount },
     };
     gSubmitFrame->mCommandBufferFrameBegin.PushCommand( CommandType::UpdateVertexBuffer,
                                                         &commandData,
@@ -190,13 +190,13 @@ namespace Tac
   {
     const CommandDataUpdateIndexBuffer commandData
     {
-      .mStackFrame = stackFrame,
-      .mIndexBufferHandle = handle,
-      .mBytes = SubmitAlloc( bytes, byteCount ),
-      .mByteCount = byteCount
+      .mStackFrame { stackFrame },
+      .mIndexBufferHandle { handle },
+      .mBytes { SubmitAlloc( bytes, byteCount )},
+      .mByteCount { byteCount},
     };
-    const CommandType type = CommandType::UpdateIndexBuffer;
-    const int n = sizeof( CommandDataUpdateIndexBuffer );
+    const CommandType type { CommandType::UpdateIndexBuffer };
+    const int n { sizeof( CommandDataUpdateIndexBuffer ) };
     gSubmitFrame->mCommandBufferFrameBegin.PushCommand( type, &commandData, n );
   }
 
@@ -267,7 +267,7 @@ namespace Tac
                              const int byteCount,
                              const StackFrame& stackFrame )
   {
-    const void* allocd = SubmitAlloc( bytes, byteCount );
+    const void* allocd { SubmitAlloc( bytes, byteCount ) };
     const UniformBufferHeader header( UniformBufferEntryType::UpdateConstantBuffer, stackFrame );
     gSubmitFrame->mUniformBuffer.PushHeader( header );
     gSubmitFrame->mUniformBuffer.PushNumber( ( int )constantBufferHandle );
@@ -288,7 +288,7 @@ namespace Tac
 
     //TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
-    Renderer* renderer = Renderer::Instance;
+    Renderer* renderer { Renderer::Instance };
     if( !renderer )
       return;
 
@@ -349,7 +349,7 @@ namespace Tac
 
     // dont clear the views? because like we can technically call submitframe() several times
     // and like we dont want them to be cleared if that happens
-    const Views views = gSubmitFrame->mViews;
+    const Views views { gSubmitFrame->mViews };
 
     Swap( gRenderFrame, gSubmitFrame );
     gSubmitFrame->Clear();

@@ -92,15 +92,15 @@ namespace Tac
                float deltaTimeSeconds )
   {
     // http://allenchou.net/2015/04/game-math-precise-control-over-numeric-springing/
-    float x = *posCurrent;
-    float v = *velCurrent;
-    float f = 1.0f + 2.0f * deltaTimeSeconds * springyness;
-    float oo = springyness * springyness;
-    float hoo = deltaTimeSeconds * oo;
-    float hhoo = deltaTimeSeconds * hoo;
-    float detInv = 1.0f / ( f + hhoo );
-    float detX = f * x + deltaTimeSeconds * v + hhoo * posTarget;
-    float detV = v + hoo * ( posTarget - x );
+    const float x { *posCurrent };
+    const float v { *velCurrent };
+    const float f { 1.0f + 2.0f * deltaTimeSeconds * springyness };
+    const float oo { springyness * springyness };
+    const float hoo { deltaTimeSeconds * oo };
+    const float hhoo { deltaTimeSeconds * hoo };
+    const float detInv { 1.0f / ( f + hhoo ) };
+    const float detX { f * x + deltaTimeSeconds * v + hhoo * posTarget };
+    const float detV { v + hoo * ( posTarget - x ) };
     *posCurrent = detX * detInv;
     *velCurrent = detV * detInv;
   }
@@ -235,9 +235,9 @@ namespace Tac
 
   v3 SphericalToCartesian( const float r, const float t, const float p ) // radius, theta, phi
   {
-    const float x = r * Cos( p ) * Sin( t );
-    const float y = r * Cos( t );
-    const float z = r * Sin( p ) * Sin( t );
+    const float x { r * Cos( p ) * Sin( t ) };
+    const float y { r * Cos( t ) };
+    const float z { r * Sin( p ) * Sin( t ) };
     return v3( x, y, z );
   }
 
@@ -245,12 +245,12 @@ namespace Tac
 
   v3 CartesianToSpherical( const float x, const float y, const float z )
   {
-    const float q = x * x + y * y + z * z;
+    const float q { x * x + y * y + z * z };
     if( q < 0.01f )
       return {};
-    const float r = Sqrt( q );
-    const float t = Acos( y / r );
-    const float p = Atan2( z, x );
+    const float r { Sqrt( q ) };
+    const float t { Acos( y / r ) };
+    const float p { Atan2( z, x ) };
     return v3( r, t, p );
   }
 
@@ -260,17 +260,17 @@ namespace Tac
 
   float RaySphere( const v3& rayPos, const v3& rayDir, const v3& spherePos, float sphereRadius )
   {
-    const v3 dp = rayPos - spherePos;
-    const float c = Dot( dp, dp ) - Square( sphereRadius );
-    const float b = 2 * Dot( dp, rayDir );
-    const float a = Dot( rayDir, rayDir );
-    const float discriminant = Square( b ) - 4 * a * c;
+    const v3 dp { rayPos - spherePos };
+    const float c { Dot( dp, dp ) - Square( sphereRadius ) };
+    const float b { 2 * Dot( dp, rayDir ) };
+    const float a { Dot( rayDir, rayDir ) };
+    const float discriminant { Square( b ) - 4 * a * c };
     if( discriminant < 0 )
       return -1;
-    const float rt = Sqrt( discriminant );
+    const float rt { Sqrt( discriminant ) };
     for( float sign : { -1.0f, 1.0f } )
     {
-      const float t = ( -b + sign * rt ) / ( 2 * a );
+      const float t { ( -b + sign * rt ) / ( 2 * a ) };
       if( t > 0 )
         return t;
     }
@@ -279,17 +279,17 @@ namespace Tac
 
   v3 ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p )
   {
-    v3 to1 = p1 - p0;
-    v3 toP = p - p0;
-    float toP_dot_to1 = Dot( toP, to1 );
+    const v3 to1 { p1 - p0 };
+    const v3 toP { p - p0 };
+    const float toP_dot_to1 { Dot( toP, to1 ) };
     if( toP_dot_to1 < 0 )
       return p0;
 
-    float q = Dot( to1, to1 );
+    const float q { Dot( to1, to1 ) };
     if( q < 0.001f )
       return p0;
 
-    float t = toP_dot_to1 / q;
+    const float t { toP_dot_to1 / q };
     if( t > 1 - 0.001f )
       return p1;
 
@@ -305,15 +305,15 @@ namespace Tac
                                     v3* c2 ) // closest point on line 2
   {
     // this function ripped from real time collision detection
-    float s = -1;
-    float t = -1;
-    const float EPSILON = 0.001f;
-    v3 d1 = q1 - p1;
-    v3 d2 = q2 - p2;
-    v3 r = p1 - p2;
-    float a = Dot( d1, d1 );
-    float e = Dot( d2, d2 );
-    float f = Dot( d2, r );
+    float s { -1 };
+    float t { -1 };
+    const float EPSILON { 0.001f };
+    v3 d1 { q1 - p1 };
+    v3 d2 { q2 - p2 };
+    v3 r { p1 - p2 };
+    float a { Dot( d1, d1 ) };
+    float e { Dot( d2, d2 ) };
+    float f { Dot( d2, r ) };
     if( a <= EPSILON && e <= EPSILON )
     {
       s = 0;
@@ -333,9 +333,9 @@ namespace Tac
     }
     else
     {
-      float c = Dot( d1, r );
-      float b = Dot( d1, d2 );
-      float denom = a * e - b * b;
+      float c { Dot( d1, r ) };
+      float b { Dot( d1, d2 ) };
+      float denom { a * e - b * b };
       s = denom ? Saturate( ( b * f - c * e ) / denom ) : 0;
       t = ( b * s + f ) / e;
       if( t < 0 )
@@ -360,7 +360,7 @@ namespace Tac
   float Fract( float f )
   {
     float integralpart;
-    float fractionalpart = std::modf( f, &integralpart );
+    float fractionalpart { std::modf( f, &integralpart ) };
     return fractionalpart;
   }
 

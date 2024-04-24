@@ -41,8 +41,8 @@ namespace Tac
   {
     TAC_ASSERT( mFrom != Endianness::Unknown );
     TAC_ASSERT( mTo != Endianness::Unknown );
-    auto dstDiff = ( char* )mEnd - ( char* )mBegin;
-    auto srcDiff = ( std::intptr_t )valueCount * ( intptr_t )sizeOfValue;
+    auto dstDiff { ( char* )mEnd - ( char* )mBegin };
+    auto srcDiff { ( std::intptr_t )valueCount * ( intptr_t )sizeOfValue };
     if( dstDiff < srcDiff )
       return false;
     for( int i{}; i < valueCount; ++i )
@@ -81,8 +81,8 @@ namespace Tac
     mBytes.resize( oldSize + sizeOfValue * valueCount );
     for( int i{}; i < valueCount; ++i )
     {
-      void* dst = ( char* )mBytes.data() + std::ptrdiff_t( oldSize + i * sizeOfValue);
-      const void* src = ( const char* )values + sizeOfValue * i;
+      void* dst { ( char* )mBytes.data() + std::ptrdiff_t( oldSize + i * sizeOfValue) };
+      const void* src { ( const char* )values + sizeOfValue * i };
       CopyValueAccountForEndianness( dst, src, sizeOfValue, mFrom, mTo );
     }
   }
@@ -94,12 +94,12 @@ namespace Tac
     TAC_ASSERT( bitfield );
 
     Write( bitfield );
-    for( int networkBitIndex = 0; networkBitIndex < networkBits.size(); ++networkBitIndex )
+    for( int networkBitIndex { 0 }; networkBitIndex < networkBits.size(); ++networkBitIndex )
     {
       if( !netBitDiff.IsSet( networkBitIndex ) )
         continue;
 
-      const NetworkBit& networkBit = networkBits[ networkBitIndex ];
+      const NetworkBit& networkBit { networkBits[ networkBitIndex ] };
       Write( ( char* )bytes + networkBit.mByteOffset,
              networkBit.mComponentCount,
              networkBit.mComponentByteCount );

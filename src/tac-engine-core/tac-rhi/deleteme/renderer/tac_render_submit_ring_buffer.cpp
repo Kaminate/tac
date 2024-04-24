@@ -12,7 +12,7 @@ namespace Tac::Render
     if( !byteCount )
       return nullptr;
 
-    const int beginPos = mPos + byteCount > sCapacity ? 0 : mPos;
+    const int beginPos { mPos + byteCount > sCapacity ? 0 : mPos };
     mPos = beginPos + byteCount;
     return mBytes + beginPos;
   }
@@ -25,21 +25,21 @@ namespace Tac::Render
     if( IsSubmitAllocated( bytes ) )
       return bytes;
 
-    void* dst = SubmitAlloc( byteCount );
+    void* dst { SubmitAlloc( byteCount ) };
     MemCpy( dst, bytes, byteCount );
     return dst;
   }
 
   StringView            SubmitRingBuffer::SubmitAlloc( const StringView& stringView )
   {
-    const int n = stringView.size();
+    const int n { stringView.size() };
     if( !n )
       return {};
 
     if( IsSubmitAllocated( stringView.data() ) )
       return stringView;
 
-    auto resultData = ( char* )SubmitAlloc( n + 1 );
+    auto resultData { ( char* )SubmitAlloc( n + 1 ) };
     MemCpy( resultData, stringView.c_str(), n );
     resultData[ n ] = '\0';
     return StringView( resultData, n );
@@ -47,9 +47,7 @@ namespace Tac::Render
 
   bool                  SubmitRingBuffer::IsSubmitAllocated( const void* data ) const
   {
-    const bool result =
-      data >= mBytes &&
-      data < mBytes + sCapacity;
+    const bool result { data >= mBytes && data < mBytes + sCapacity };
     return result;
   }
 

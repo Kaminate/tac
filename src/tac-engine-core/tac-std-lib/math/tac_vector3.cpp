@@ -73,12 +73,12 @@ namespace Tac
 
   v3    Project( const v3& onto_b, const v3& of_a )
   {
-    const float b_lengthsq = Quadrance( onto_b );
+    const float b_lengthsq { Quadrance( onto_b ) };
     if( b_lengthsq < 0.0001f )
       return onto_b;
 
-    const v3 onto_b_dir = onto_b / Sqrt( b_lengthsq );
-    const v3 result = onto_b_dir * Dot( onto_b_dir, of_a );
+    const v3 onto_b_dir { onto_b / Sqrt( b_lengthsq ) };
+    const v3 result { onto_b_dir * Dot( onto_b_dir, of_a ) };
     return result;
   }
 

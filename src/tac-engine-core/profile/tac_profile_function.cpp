@@ -14,7 +14,7 @@ namespace Tac
       return;
     }
 
-    ProfileFunction* lastChild = mChildren;
+    ProfileFunction* lastChild { mChildren };
     while( lastChild->mNext )
       lastChild = lastChild->mNext;
 
@@ -23,15 +23,14 @@ namespace Tac
 
   void ProfileFunction::DeepCopy( const ProfileFunction* profileFunction )
   {
-    ProfileFunction* profileFunctionCopy = this;
-
-    ProfileFunction* firstChildCopy = nullptr;
-    ProfileFunction* prevChildCopy = nullptr;
-    for( const ProfileFunction* child = profileFunction->mChildren;
+    ProfileFunction* profileFunctionCopy { this };
+    ProfileFunction* firstChildCopy { nullptr };
+    ProfileFunction* prevChildCopy { nullptr };
+    for( const ProfileFunction* child { profileFunction->mChildren };
          child;
          child = child->mNext )
     {
-      ProfileFunction* childCopy = ProfileFunctionPool::sFunctionPool.AllocCopy( child );
+      ProfileFunction* childCopy { ProfileFunctionPool::sFunctionPool.AllocCopy( child ) };
       childCopy->mParent = this;
 
       if( prevChildCopy )

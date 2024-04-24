@@ -81,15 +81,15 @@ namespace Tac::Render
 
   bool         BackendCmdDeserializer::IsValid() const
   {
-    const int n = mData->mCommands.size();
+    const int n { mData->mCommands.size() };
     return mCmdTypeIdx < n;
   }
 
   const void*  BackendCmdDeserializer::PopBytes( int byteCount )
   {
-    const int n = mData->mCommandByteData.size();
+    const int n { mData->mCommandByteData.size() };
     TAC_ASSERT( mCmdByteIdx + byteCount <= n );
-    const void* bytes = mData->mCommandByteData.data() + mCmdByteIdx;
+    const void* bytes { mData->mCommandByteData.data() + mCmdByteIdx };
     mCmdByteIdx += byteCount;
     return bytes;
   }
@@ -101,22 +101,22 @@ namespace Tac::Render
 
   RenderHandle BackendCmdDeserializer::PopRenderHandle()
   {
-    const int n = mData->mRenderHandles.size();
+    const int n { mData->mRenderHandles.size() };
     TAC_ASSERT_INDEX( mHandleIdx, n );
     return mData->mRenderHandles[ mHandleIdx++ ];
   }
 
   CommandType2 BackendCmdDeserializer::PopCommandType()
   {
-    const int n = mData->mCommands.size();
+    const int n { mData->mCommands.size() };
     TAC_ASSERT_INDEX( mCmdTypeIdx, n );
     return mData->mCommands[ mCmdTypeIdx++ ];
   }
 
   StringView   BackendCmdDeserializer::PopString()
   {
-    const int n = PopInt();
-    const auto bytes = ( const char* )PopBytes( n );
+    const int n { PopInt() };
+    const auto bytes { ( const char* )PopBytes( n ) };
     return StringView( bytes, n );
   }
 

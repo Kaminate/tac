@@ -54,8 +54,8 @@ namespace Tac
     if( mSize == mCapacity )
       reserve( mCapacity ? int( mCapacity * 1.5f ) : 5 );
 
-    const int iDense = mSize++;
-    const int iSparse = mDense[ iDense ]; 
+    const int iDense { mSize++ };
+    const int iSparse { mDense[ iDense ] }; 
 
     TAC_ASSERT( mSparse[ iSparse ] == iDense  );
     return iSparse;
@@ -63,12 +63,12 @@ namespace Tac
 
   void IdCollection::Free( const int id )
   {
-    const int iRemoveSparse = id;
-    const int iRemoveDense = mSparse[ iRemoveSparse ];
+    const int iRemoveSparse { id };
+    const int iRemoveDense { mSparse[ iRemoveSparse ] };
     TAC_ASSERT_INDEX( iRemoveDense, mSize );
 
-    const int iLastDense = --mSize;
-    const int iLastSparse = mDense[ iLastDense ];
+    const int iLastDense { --mSize };
+    const int iLastSparse { mDense[ iLastDense ] };
 
     mDense[ iRemoveDense ] = iLastSparse;
     mDense[ iLastDense ] = iRemoveSparse;

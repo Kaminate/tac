@@ -88,9 +88,9 @@ namespace Tac
   {
     return FixedStringData
     {
-      .mBuf = mBuf,
-      .mSize = &mSize,
-      .mCapacity = N,
+      .mBuf { mBuf },
+      .mSize { &mSize },
+      .mCapacity { N },
     };
   }
 
@@ -106,13 +106,13 @@ void Tac::FixedStringAssign( const FixedStringData& data, const StringView& sv )
 
 void Tac::FixedStringAppend( const FixedStringData& data, const StringView& sv )
 {
-  const int n = sv.size();
-  const int oldSize = *data.mSize;
-  const int newSize = oldSize + n;
+  const int n { sv.size() };
+  const int oldSize { *data.mSize };
+  const int newSize { oldSize + n };
 
   TAC_ASSERT( newSize < data.mCapacity );
 
-  const char* src = sv.data();
+  const char* src { sv.data() };
   MemCpy( data.mBuf + oldSize, src, n );
 
   *data.mSize = newSize;

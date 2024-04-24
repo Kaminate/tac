@@ -50,14 +50,14 @@ namespace Tac
   static void   ExamplesInitCallback( Errors& errors )
   {
     // nav
-    int x = 50;
-    int y = 50;
-    int w = 400;
-    int h = 200;
-    int spacing = 50;
+    int x { 50 };
+    int y { 50 };
+    int w { 400 };
+    int h { 200 };
+    int spacing { 50 };
 
     // demo
-    int size = 600;
+    int size { 600 };
 
     sNavWindow = CreateTrackedWindow( "Example.Nav", x, y, w, h );
     sDemoWindow = CreateTrackedWindow( "Example.Demo", x + w + spacing, y, size, size  );
@@ -65,8 +65,8 @@ namespace Tac
 
     ExampleRegistryPopulate();
 
-    const StringView settingExampleName = SettingsGetString( "Example.Name", "" );
-    const int        settingExampleIndex = GetExampleIndex( settingExampleName );
+    const StringView settingExampleName { SettingsGetString( "Example.Name", "" ) };
+    const int        settingExampleIndex { GetExampleIndex( settingExampleName ) };
 
     SetNextExample(settingExampleIndex);
 
@@ -88,8 +88,8 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd());
 
-    int offset = 0;
-    int iSelected = -1;
+    int offset { 0 };
+    int iSelected { -1 };
     const int iCurrent { GetCurrExampleIndex() };
     const int n { GetExampleCount() };
     if( Example* ex { GetCurrExample()  })
@@ -109,7 +109,7 @@ namespace Tac
     if( ImGuiCollapsingHeader( "Select Example", ImGuiNodeFlags_DefaultOpen ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( int i = 0; i < n; ++i )
+      for( int i { 0 }; i < n; ++i )
         if( ImGuiSelectable( GetExampleName(i), i == iCurrent ) )
           iSelected = i;
     }
@@ -131,15 +131,15 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
-    DesktopWindowState* demoWindowState = GetDesktopWindowState( sDemoWindow );
-    int w = demoWindowState->mWidth;
-    int h = demoWindowState->mHeight;
+    DesktopWindowState* demoWindowState { GetDesktopWindowState( sDemoWindow ) };
+    int w { demoWindowState->mWidth };
+    int h { demoWindowState->mHeight };
 
     if( Example* ex = GetCurrExample() )
     {
 
-      const Render::ViewHandle view = WindowGraphicsGetView( sDemoWindow );
-      const Render::FramebufferHandle fb = WindowGraphicsGetFramebuffer( sDemoWindow );
+      const Render::ViewHandle view { WindowGraphicsGetView( sDemoWindow ) };
+      const Render::FramebufferHandle fb { WindowGraphicsGetFramebuffer( sDemoWindow ) };
       Render::SetViewFramebuffer( view, fb );
       Render::SetViewport( view, Render::Viewport( w, h ) );
       Render::SetViewScissorRect( view, Render::ScissorRect( w, h ) );

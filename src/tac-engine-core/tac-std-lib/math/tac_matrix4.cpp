@@ -301,8 +301,8 @@ namespace Tac
     const v3 s( 1.0f / scale[ 0 ],
                 1.0f / scale[ 1 ],
                 1.0f / scale[ 2 ] );
-    const v3 t = -translate;
-    const v3 zero = {};
+    const v3 t { -translate };
+    const v3 zero  {} ;
     if( eulerRads == zero )
     {
       const m4 result( s[ 0 ], 0, 0, s[ 0 ] * t[ 0 ],
@@ -315,10 +315,10 @@ namespace Tac
     {
       // NOTE( N8 ): this MUST be opposite order of Matrix4::Transform
       // ( Transform goes zyx, so TransformInverse goes xyz )
-      const m3 r = m3::RotRadEulerInv( eulerRads );
-      const float m03 = s[ 0 ] * ( t[ 0 ] * r( 0, 0 ) + t[ 1 ] * r( 0, 1 ) + t[ 2 ] * r( 0, 2 ) );
-      const float m13 = s[ 1 ] * ( t[ 0 ] * r( 1, 0 ) + t[ 1 ] * r( 1, 1 ) + t[ 2 ] * r( 1, 2 ) );
-      const float m23 = s[ 2 ] * ( t[ 0 ] * r( 2, 0 ) + t[ 1 ] * r( 2, 1 ) + t[ 2 ] * r( 2, 2 ) );
+      const m3 r { m3::RotRadEulerInv( eulerRads ) };
+      const float m03 { s[ 0 ] * ( t[ 0 ] * r( 0, 0 ) + t[ 1 ] * r( 0, 1 ) + t[ 2 ] * r( 0, 2 ) ) };
+      const float m13 { s[ 1 ] * ( t[ 0 ] * r( 1, 0 ) + t[ 1 ] * r( 1, 1 ) + t[ 2 ] * r( 1, 2 ) ) };
+      const float m23 { s[ 2 ] * ( t[ 0 ] * r( 2, 0 ) + t[ 1 ] * r( 2, 1 ) + t[ 2 ] * r( 2, 2 ) ) };
       const m4 result( s[ 0 ] * r( 0, 0 ), s[ 0 ] * r( 0, 1 ), s[ 0 ] * r( 0, 2 ), m03,
                        s[ 1 ] * r( 1, 0 ), s[ 1 ] * r( 1, 1 ), s[ 1 ] * r( 1, 2 ), m13,
                        s[ 2 ] * r( 2, 0 ), s[ 2 ] * r( 2, 1 ), s[ 2 ] * r( 2, 2 ), m23,
@@ -329,7 +329,7 @@ namespace Tac
 
   m4           m4::View( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
   {
-    const v3 negZ = -camViewDir;
+    const v3 negZ { -camViewDir };
     const m4 worldToCamRot( camR[ 0 ], camR[ 1 ], camR[ 2 ], 0,
                             camU[ 0 ], camU[ 1 ], camU[ 2 ], 0,
                             negZ[ 0 ], negZ[ 1 ], negZ[ 2 ], 0,
@@ -338,13 +338,13 @@ namespace Tac
                             0, 1, 0, -camPos[ 1 ],
                             0, 0, 1, -camPos[ 2 ],
                             0, 0, 0, 1 );
-    const m4 result = worldToCamRot * worldToCamTra;
+    const m4 result { worldToCamRot * worldToCamTra };
     return result;
   }
 
   m4           m4::ViewInv( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
   {
-    const v3 negZ = -camViewDir;
+    const v3 negZ { -camViewDir };
     const m4 camToWorRot( camR[ 0 ], camU[ 0 ], negZ[ 0 ], 0,
                           camR[ 1 ], camU[ 1 ], negZ[ 1 ], 0,
                           camR[ 2 ], camU[ 2 ], negZ[ 2 ], 0,
@@ -353,7 +353,7 @@ namespace Tac
                           0, 1, 0, camPos[ 1 ],
                           0, 0, 1, camPos[ 2 ],
                           0, 0, 0, 1 );
-    const m4 result = camToWorTra * camToWorRot;
+    const m4 result { camToWorTra * camToWorRot };
     return result;
   }
 
@@ -362,8 +362,8 @@ namespace Tac
     TAC_ASSERT( params.mViewSpaceNear > 0 );
     TAC_ASSERT( params.mViewSpaceFar > 0 );
 
-    const float ndcZMin = params.mNDCMinZ; // 0 in DirectX, -1 in OpenGL
-    const float ndcZMax = params.mNDCMaxZ; // 1 in DirectX, 1 in OpenGL
+    const float ndcZMin { params.mNDCMinZ }; // 0 in DirectX, -1 in OpenGL
+    const float ndcZMax { params.mNDCMaxZ }; // 1 in DirectX, 1 in OpenGL
 
     // Given the following knowns:
     //   -n in view space is projected onto parmas.mNDCNearZ in ndc space
@@ -385,11 +385,11 @@ namespace Tac
     // params.mNDCMinZ = ( -nA + B ) / n
     // params.mNDCMaxZ = ( -fA + B ) / f
 
-    const float f = params.mViewSpaceFar;
-    const float n = params.mViewSpaceNear;
+    const float f { params.mViewSpaceFar };
+    const float n { params.mViewSpaceNear };
 
-    float A = 0;
-    float B = 0;
+    float A { 0 };
+    float B { 0 };
 
     if( params.mNDCMinZ == -1 && params.mNDCMaxZ == 1 ) // OpenGL style
     {
@@ -413,9 +413,9 @@ namespace Tac
       TAC_ASSERT_INVALID_CODE_PATH;
     }
 
-    float cotTheta = 1.0f / Tan( params.mFOVYRadians / 2.0f );
-    float sX = cotTheta / params.mAspectRatio; // sX, sY map to -1, 1
-    float sY = cotTheta;
+    float cotTheta { 1.0f / Tan( params.mFOVYRadians / 2.0f ) };
+    float sX { cotTheta / params.mAspectRatio }; // sX, sY map to -1, 1
+    float sY { cotTheta };
 
     return { sX, 0, 0, 0,
              0, sY, 0, 0,
@@ -448,10 +448,10 @@ namespace Tac
     //
     // sX = d / (pW / 2) = cot(theta) / aspectRatio
     // sY = d / (pH / 2)
-    float theta = mFieldOfViewYRad / 2.0f;
-    float cotTheta = 1.0f / Tan( theta );
-    float sX = cotTheta / mAspectRatio; // sX, sY map to -1, 1
-    float sY = cotTheta;
+    const float theta { mFieldOfViewYRad / 2.0f };
+    const float cotTheta { 1.0f / Tan( theta ) };
+    const float sX { cotTheta / mAspectRatio }; // sX, sY map to -1, 1
+    const float sY { cotTheta };
     return { sX, 0, 0, 0,
              0, sY, 0, 0,
              0, 0, A, B,
@@ -476,7 +476,7 @@ namespace Tac
     v4 result;
     for( int i{}; i < 4; ++i )
     {
-      float sum = 0;
+      float sum { 0 };
       for( int j = 0; j < 4; ++j )
       {
         sum += m( i, j ) * v[ j ];
@@ -489,11 +489,11 @@ namespace Tac
   m4 operator*( const m4& lhs, const m4& rhs )
   {
     m4 result;
-    for( int r = 0; r < 4; ++r )
+    for( int r { 0 }; r < 4; ++r )
     {
-      for( int c = 0; c < 4; ++c )
+      for( int c { 0 }; c < 4; ++c )
       {
-        float sum = 0;
+        float sum { 0 };
         for( int i{}; i < 4; ++i )
         {
           sum += lhs( r, i ) * rhs( i, c );

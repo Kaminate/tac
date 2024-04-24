@@ -61,8 +61,8 @@ Tac::String Tac::FormatPercentage( float num_0_to_1 )
   if( num_0_to_1 >= 1 )
     return "100%";
 
-  float t = num_0_to_1 * 100;
-  const int num_0_to_100 = (int)( num_0_to_1 * 100 );
+  float t { num_0_to_1 * 100 };
+  const int num_0_to_100 { (int)( num_0_to_1 * 100 ) };
   t -= ( int )t;
   t *= 100;
 
@@ -102,11 +102,11 @@ Tac::String Tac::AsciiBoxAround( const StringView& str )
       "+-----+";
   }
 
-  const Vector< String > lines = GetLines( str );
-  const int n = LongestLineSize( lines );
+  const Vector< String > lines { GetLines( str ) };
+  const int n { LongestLineSize( lines ) };
 
 
-  const String topbot = String() + "+-" + String( n, '-' ) + "-+";
+  const String topbot { String() + "+-" + String( n, '-' ) + "-+" };
 
   String result;
   result += topbot + '\n';

@@ -46,7 +46,7 @@ namespace Tac
     if( !IsDebugMode || IsValid( s ) )
       return;
 
-    const char quote = '\"';
+    const char quote { '\"' };
 
     String msg = "Invalid Asset path ";
     msg += quote;
@@ -113,8 +113,8 @@ namespace Tac
     if( empty() )
       return false;
 
-    const int lastSlash = find_last_of( AssetPathSeperator );
-    const int lastDot = find_last_of( '.' );
+    const int lastSlash { find_last_of( AssetPathSeperator ) };
+    const int lastDot { find_last_of( '.' ) };
     TAC_ASSERT( lastSlash != StringView::npos );
     TAC_ASSERT( lastDot != StringView::npos );
     return lastDot > lastSlash;

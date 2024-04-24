@@ -40,7 +40,7 @@ namespace Tac
     const int h { data.mH };
     if( nativeWindowHandle )
     {
-      const int iWindow = desktopWindowHandle.GetIndex();
+      const int iWindow { desktopWindowHandle.GetIndex() };
 
       const Render::FramebufferHandle framebufferHandle{
         Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME ) };

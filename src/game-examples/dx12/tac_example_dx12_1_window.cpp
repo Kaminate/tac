@@ -32,15 +32,15 @@ namespace Tac
 
   void DX12AppHelloWindow::CreateDesktopWindow()
   {
-    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
-    const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
+    const OS::Monitor monitor { OS::OSGetPrimaryMonitor() };
+    const int s { Min( monitor.mWidth, monitor.mHeight ) / 2 };
     const DesktopAppCreateWindowParams desktopParams
     {
-      .mName = "DX12 Window",
-      .mX = ( monitor.mWidth - s ) / 2,
-      .mY = ( monitor.mHeight - s ) / 2,
-      .mWidth = s,
-      .mHeight = s,
+      .mName   { "DX12 Window" },
+      .mX      { ( monitor.mWidth - s ) / 2 },
+      .mY      { ( monitor.mHeight - s ) / 2 },
+      .mWidth  { s },
+      .mHeight { s },
     };
     hDesktopWindow = CreateTrackedWindow( desktopParams );
 
@@ -58,11 +58,11 @@ namespace Tac
     PCom<ID3D12Debug> dx12debug;
     TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
 
-    auto dx12debug5 = dx12debug.QueryInterface< ID3D12Debug5>();
-    auto dx12debug4 = dx12debug.QueryInterface< ID3D12Debug4>();
-    auto dx12debug3 = dx12debug.QueryInterface< ID3D12Debug3>();
-    auto dx12debug2 = dx12debug.QueryInterface< ID3D12Debug2>();
-    auto dx12debug1 = dx12debug.QueryInterface< ID3D12Debug1>();
+    auto dx12debug5 { dx12debug.QueryInterface< ID3D12Debug5>() };
+    auto dx12debug4 { dx12debug.QueryInterface< ID3D12Debug4>() };
+    auto dx12debug3 { dx12debug.QueryInterface< ID3D12Debug3>() };
+    auto dx12debug2 { dx12debug.QueryInterface< ID3D12Debug2>() };
+    auto dx12debug1 { dx12debug.QueryInterface< ID3D12Debug1>() };
 
     // EnableDebugLayer must be called before the device is created
     TAC_ASSERT( ! m_device );
@@ -94,7 +94,7 @@ namespace Tac
   void DX12AppHelloWindow::CreateDevice( Errors& errors )
   {
     
-    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
+    auto adapter { ( IDXGIAdapter* )DXGIGetBestAdapter() };
     PCom< ID3D12Device > device;
     TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
@@ -143,8 +143,8 @@ namespace Tac
     // one allocation for every descriptor.
     const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = bufferCount,
+      .Type { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+      .NumDescriptors { bufferCount },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -214,11 +214,11 @@ namespace Tac
 
     const SwapChainCreateInfo scInfo
     {
-      .mHwnd = hwnd,
-      .mDevice = (IUnknown*)m_commandQueue, // swap chain can force flush the queue
-      .mBufferCount = bufferCount,
-      .mWidth = state->mWidth,
-      .mHeight = state->mHeight,
+      .mHwnd { hwnd },
+      .mDevice { (IUnknown*)m_commandQueue }, // swap chain can force flush the queue
+      .mBufferCount { bufferCount },
+      .mWidth { state->mWidth },
+      .mHeight { state->mHeight },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -226,7 +226,7 @@ namespace Tac
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloWindow::GetRenderTargetDescriptorHandle( int i ) const
   {
-    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { m_rtvHeapStart };
     rtvHandle.ptr += i * m_rtvDescriptorSize;
     return rtvHandle;
   }
@@ -237,7 +237,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i = 0; i < bufferCount; i++ )
+    for( UINT i{ 0 }; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
@@ -260,13 +260,13 @@ namespace Tac
 
     const D3D12_RESOURCE_BARRIER barrier
     {
-      .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+      .Type { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
       .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
       {
-        .pResource = rtResource,
-        .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-        .StateBefore = before,
-        .StateAfter = targetState,
+        .pResource { rtResource },
+        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+        .StateBefore { before },
+        .StateAfter { targetState },
       },
     };
 
@@ -282,9 +282,9 @@ namespace Tac
     // ID3D12CommandList::ResourceBarrier
     // - Notifies the driver that it needs to synchronize multiple accesses to resources.
     //
-    const Array barriers = { barrier };
-    const UINT rtN = ( UINT )barriers.size();
-    const D3D12_RESOURCE_BARRIER* rts = barriers.data();
+    const Array barriers  { barrier };
+    const UINT rtN { ( UINT )barriers.size() };
+    const D3D12_RESOURCE_BARRIER* rts { barriers.data() };
     m_commandList->ResourceBarrier( rtN, rts );
   }
 
@@ -331,19 +331,19 @@ namespace Tac
 
   void DX12AppHelloWindow::ClearRenderTargetView()
   {
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( m_frameIndex );
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRenderTargetDescriptorHandle( m_frameIndex ) };
 
-    const double speed = 3;
-    const auto t = ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f;
+    const double speed { 3 };
+    const auto t { ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f };
 
     // Record commands.
-    const float clearColor[] = { t, 0.2f, 0.4f, 1.0f };
+    const float clearColor[]  { t, 0.2f, 0.4f, 1.0f };
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor, 0, nullptr );
   }
 
   void DX12AppHelloWindow::ExecuteCommandLists()
   {
-    const Array lists =
+    const Array lists
     {
       ( ID3D12CommandList* )( ID3D12GraphicsCommandList* )m_commandList
     };
@@ -378,8 +378,8 @@ namespace Tac
     //   0   - Cancel the remaining time on the previously presented frame
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
-    const UINT SyncInterval = 1;
-    const UINT PresentFlags = 0;
+    const UINT SyncInterval { 1 };
+    const UINT PresentFlags { 0 };
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
@@ -409,7 +409,7 @@ namespace Tac
     //   increment m_fenceValue(2)
     //
 
-    const UINT64 signalValue = m_fenceValue;
+    const UINT64 signalValue { m_fenceValue };
 
     // Use this method to set a fence value from the GPU side
     // [ ] Q: ^ ???
@@ -426,7 +426,7 @@ namespace Tac
 
     // I think this if statement is used because the alternative
     // would be while( m_fence->GetCompletedValue() != fence ) { TAC_NO_OP; }
-    const UINT64 curValue = m_fence->GetCompletedValue();
+    const UINT64 curValue { m_fence->GetCompletedValue() };
     if( curValue < signalValue )
     {
       // m_fenceEvent is only ever used in this scope 
@@ -502,8 +502,8 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName = "DX12 Hello Window",
-      .mDisableRenderer = true,
+      .mName { "DX12 Hello Window" },
+      .mDisableRenderer { true },
     };
     return TAC_NEW DX12AppHelloWindow( config );
   };

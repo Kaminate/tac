@@ -228,10 +228,10 @@ namespace Tac
   void         String::replace( StringView a, StringView b)
   {
     String result;
-    StringView remainder = *this;
+    StringView remainder { *this };
     for( ;; )
     {
-      const int i = remainder.find( a );
+      const int i { remainder.find( a ) };
       if( i == npos )
         break;
 
@@ -249,14 +249,14 @@ namespace Tac
 
   int          String::find_last_of( const char* c ) const
   {
-    int cLen = StrLen( c );
-    int iFound = npos;
+    int cLen { StrLen( c ) };
+    int iFound { npos };
     for( int i { 0 }; i < mLen; ++i )
     {
-      char myStrChar = mStr[ i ];
+      char myStrChar { mStr[ i ] };
       for( int j { 0 }; j < cLen; ++j )
       {
-        char queryChar = c[ j ];
+        char queryChar { c[ j ] };
         if( myStrChar == queryChar )
         {
           iFound = i;
@@ -294,7 +294,7 @@ namespace Tac
 
   void         String::erase( int pos, int len )
   {
-    const int end_pos = len == npos ? mLen : pos + len;
+    const int end_pos { len == npos ? mLen : pos + len };
     String copy;
     for( int i { 0 }; i < mLen; ++i )
       if( i < pos || i >= end_pos )
@@ -324,7 +324,7 @@ namespace Tac
 
   void         String::append( const char* str, int len )
   {
-    int newLen = mLen + len;
+    int newLen { mLen + len };
     reserve( newLen );
     MemCpy( mStr + mLen, str, len );
     mStr[ mLen = newLen ] = '\0';
