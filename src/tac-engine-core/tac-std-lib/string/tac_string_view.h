@@ -58,9 +58,9 @@ namespace Tac
     void        remove_prefix( int );
     void        remove_suffix( int );
 
-    static const int npos = -1; // mimicking the standard library
-    const char*      mStr = ""; // not nullptr, default should be printable
-    int              mLen = 0;
+    static const int npos { -1 }; // mimicking the standard library
+    const char*      mStr { "" }; // not nullptr, default should be printable
+    int              mLen { 0 };
   };
 
 

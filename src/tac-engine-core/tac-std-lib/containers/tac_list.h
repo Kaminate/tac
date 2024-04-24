@@ -19,9 +19,9 @@ struct Tac::List
 private:
   struct Node
   {
-    T        mT;
-    Node*    mPrev = nullptr;
-    Node*    mNext = nullptr;
+    T        mT    {};
+    Node*    mPrev {};
+    Node*    mNext {};
   };
 
 public:
@@ -35,7 +35,7 @@ public:
     void        operator ++() { mNode = mNode->mNext; }
     void        operator --() { mNode = mNode->mPrev; }
 
-    const Node* mNode = nullptr;
+    const Node* mNode { nullptr };
   };
 
   struct Iterator
@@ -48,7 +48,7 @@ public:
     void        operator --() { mNode = mNode->mPrev; } // pre-dec
     Iterator    operator --(int) // post-dec
     {
-      Iterator it = *this;
+      Iterator it { *this };
       mNode = mNode->mPrev;
       return it;
     } 
@@ -94,7 +94,7 @@ private:
   void          InsertBetween( Node*, Node*, T );
 
   Node          mDummy{ .mPrev = &mDummy, .mNext = &mDummy };
-  int           mSize = 0;
+  int           mSize { 0 };
 };
 
 
@@ -110,7 +110,7 @@ template< typename T >
 T          Tac::List<T>::pop_front()
 {
   TAC_ASSERT( !empty() );
-  const T t = mDummy.mNext->mT;
+  const T t { mDummy.mNext->mT };
   EraseNode( mDummy.mNext );
   return t;
 }
@@ -119,7 +119,7 @@ template< typename T >
 T          Tac::List<T>::pop_back()
 {
   TAC_ASSERT( !empty() );
-  T t = mDummy.mPrev.mT;
+  T t { mDummy.mPrev.mT };
   EraseNode( mDummy.mPrev );
   return t;
 }
@@ -127,7 +127,7 @@ T          Tac::List<T>::pop_back()
 template< typename T >
 Tac::List<T>::Node* Tac::List<T>::FindNode( T t )
 {
-  for( Node* node = mDummy.mNext; node != &mDummy; node = node->mNext )
+  for( Node* node { mDummy.mNext }; node != &mDummy; node = node->mNext )
     if( node->mT == t )
       return node;
   return nullptr;
@@ -137,7 +137,7 @@ template< typename T >
 Tac::List<T>::Iterator      Tac::List<T>::erase( Iterator it )
 {
   TAC_ASSERT( it.mNode != &mDummy );
-  Node* next = it.mNode->mNext;
+  Node* next { it.mNode->mNext };
   EraseNode( it.mNode );
   return { next };
 }
@@ -145,10 +145,10 @@ Tac::List<T>::Iterator      Tac::List<T>::erase( Iterator it )
 template< typename T >
 void       Tac::List<T>::clear()
 {
-  Node* node = mDummy.mNext;
+  Node* node { mDummy.mNext };
   while( node != &mDummy )
   {
-    Node* next = node->mNext;
+    Node* next { node->mNext };
     TAC_DELETE node;
     node = next;
   }
@@ -163,9 +163,9 @@ void       Tac::List<T>::InsertBetween( Node* head, Node* tail, T t )
 {
   Node* node = TAC_NEW Node
   {
-    .mT = t,
-    .mPrev = head,
-    .mNext = tail,
+    .mT { t },
+    .mPrev { head },
+    .mNext { tail },
   };
   head->mNext = node;
   tail->mPrev = node;

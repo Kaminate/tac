@@ -22,7 +22,7 @@ namespace Tac
 
     // unowned
     bool         mIsImGuiVisible;
-    Language     mLanguage = Language::English;
+    Language     mLanguage { Language::English };
   };
 
   //

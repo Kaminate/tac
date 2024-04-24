@@ -18,9 +18,9 @@ struct Tac::Set
 {
     struct Node
     {
-      HashValue mHash = 0;
-      T         mT{};
-      bool      mOccupied = false;
+      HashValue mHash     {};
+      T         mT        {};
+      bool      mOccupied {};
     };
 
     struct ConstIterator
@@ -29,8 +29,8 @@ struct Tac::Set
       void        operator ++();
       const T&    operator *()        { return mCur->mT; }
 
-      const Node* mCur = nullptr;
-      int         mRemaining = 0;
+      const Node* mCur       {};
+      int         mRemaining {};
     };
 
     struct Iterator
@@ -39,8 +39,8 @@ struct Tac::Set
       void     operator ++();
       T&       operator *()        { return mCur->mT; }
 
-      Node*    mCur = nullptr;
-      int      mRemaining = 0;
+      Node*    mCur       {};
+      int      mRemaining {};
     };
 
     Set()                            { mNodes = TAC_NEW Node[ mCapacity = 10 ]; }
@@ -64,9 +64,9 @@ struct Tac::Set
     const Node* FindNode( T t ) const { return &mNodes[ FindNodeIndex(t) ]; }
     int         FindNodeIndex( T ) const;
 
-    int      mSize = 0;
-    int      mCapacity = 0;
-    Node*    mNodes = nullptr;
+    int      mSize     {};
+    int      mCapacity {};
+    Node*    mNodes    {};
   };
 
   template< typename T>
@@ -99,10 +99,10 @@ struct Tac::Set
   template< typename T>
   void Tac::Set< T>::Remove( T t )
   {
-    Node* node = FindNode( t );
+    Node* node { FindNode( t ) };
     *node = {};
-    int iEmpty = ( int )( node - mNodes );
-    int i = ( iEmpty + 1 ) % mCapacity;
+    int iEmpty { ( int )( node - mNodes ) };
+    int i { ( iEmpty + 1 ) % mCapacity };
     for( ;; )
     {
       node = &mNodes[ i ];
@@ -126,11 +126,11 @@ struct Tac::Set
   template< typename T>
   int Tac::Set<T>::FindNodeIndex( T t ) const
   {
-    const HashValue hash = Tac::Hash( t );
-    int i = hash % mCapacity;
+    const HashValue hash { Tac::Hash( t ) };
+    int i { hash % mCapacity };
     for( ;; )
     {
-      Node* node = &mNodes[ i ];
+      Node* node { &mNodes[ i ] };
       if( !node->mOccupied || ( node->mHash == hash && node->mT == t ) )
         return i;
 
@@ -143,15 +143,15 @@ struct Tac::Set
   template< typename T>
   bool Tac::Set<T>::insert( T t )
   {
-    Node* node = FindNode( t );
+    Node* node { FindNode( t ) };
     if( node->mOccupied )
       return false;
 
     *node = Node
     {
-      .mHash = Tac::Hash( t ),
-      .mT = t,
-      .mOccupied = true,
+      .mHash     { Tac::Hash( t ) },
+      .mT        { t },
+      .mOccupied { true },
     };
 
     mSize++;
@@ -164,8 +164,8 @@ struct Tac::Set
     if( capacity < mCapacity )
       return;
 
-    int oldCapacity = mCapacity;
-    Node* oldNodes = mNodes;
+    int oldCapacity { mCapacity };
+    Node* oldNodes { mNodes };
 
     mSize = 0;
     mNodes = TAC_NEW Node[ mCapacity = capacity ];

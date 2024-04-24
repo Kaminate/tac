@@ -12,10 +12,10 @@ namespace Tac
   template< typename T >
   struct Span
   {
-    Span( T* ts, int tCount )  : mTs{ ts }, mTCount{ tCount } {}
-    Span( T* t )               : mTs{ t }, mTCount{ 1 } {}
+    Span( T* ts, int tCount )  : mTs{ ts },     mTCount{ tCount } {}
+    Span( T* t )               : mTs{ t },      mTCount{ 1 } {}
     Span( T* tBegin, T* tEnd ) : mTs{ tBegin }, mTCount{ int( tEnd - tBegin ) } {}
-    Span( T& t )               : mTs{ &t }, mTCount{ 1 } {}
+    Span( T& t )               : mTs{ &t },     mTCount{ 1 } {}
     Span( T&& t ) = delete;
 
     int      size() const              { return mTCount; }
@@ -37,7 +37,7 @@ namespace Tac
     }
 
   private:
-    T* mTs;
+    T*  mTs;
     int mTCount;
   };
 

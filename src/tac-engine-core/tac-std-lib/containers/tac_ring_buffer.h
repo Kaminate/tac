@@ -15,10 +15,10 @@ namespace Tac
     int  capacity() const;
 
   private:
-    int   mCapacity = 0;
-    int   mIndex = 0;
-    int   mSize = 0;
-    char* mBytes = nullptr;
+    int   mCapacity {};
+    int   mIndex    {};
+    int   mSize     {};
+    char* mBytes    {};
   };
 
 }

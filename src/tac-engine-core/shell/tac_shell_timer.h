@@ -19,7 +19,7 @@ namespace Tac
     static Timepoint Now();
 
   private:
-    NanosecondDuration mTimeSinceEpoch = 0;
+    NanosecondDuration mTimeSinceEpoch {};
   };
 
   TimestampDifference operator - (const Timepoint&, const Timepoint&);
@@ -34,7 +34,7 @@ namespace Tac
 
   private:
     Timepoint           mLastTick{};
-    bool                mStarted = false;
+    bool                mStarted {};
   };
 
 } // namespace Tac

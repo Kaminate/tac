@@ -136,48 +136,48 @@ namespace Tac::Render
 
     // CPU RTV
     {
-      D3D12_DESCRIPTOR_HEAP_DESC desc
+      const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
-        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-        .NumDescriptors = 25,
-        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-        .NodeMask = 0,
+        .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+        .NumDescriptors { 25 },
+        .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
+        .NodeMask       { 0 },
       };
       TAC_CALL(mCpuDescriptorHeapRTV.Init( desc, device, errors ));
     }
 
     // CPU DSV
     {
-      D3D12_DESCRIPTOR_HEAP_DESC desc
+      const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
-        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV,
-        .NumDescriptors = 25,
-        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-        .NodeMask = 0,
+        .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_DSV },
+        .NumDescriptors { 25 },
+        .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
+        .NodeMask       { 0 },
       };
       TAC_CALL(mCpuDescriptorHeapDSV.Init( desc, device, errors ));
     }
 
     // CPU CBV SRV UAV
     {
-      D3D12_DESCRIPTOR_HEAP_DESC desc
+      const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
-        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-        .NumDescriptors = 100,
-        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-        .NodeMask = 0,
+        .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
+        .NumDescriptors { 100 },
+        .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
+        .NodeMask       { 0 },
       };
       TAC_CALL(mCpuDescriptorHeapCBV_SRV_UAV.Init( desc, device, errors ));
     }
 
     // CPU Sampler
     {
-      D3D12_DESCRIPTOR_HEAP_DESC desc
+      const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
-        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-        .NumDescriptors = 10,
-        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-        .NodeMask = 0,
+        .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
+        .NumDescriptors { 10 },
+        .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
+        .NodeMask       { 0 },
       };
       TAC_CALL(mCpuDescriptorHeapSampler.Init( desc, device, errors ));
     }
@@ -185,24 +185,24 @@ namespace Tac::Render
 
     // GPU Sampler
     {
-      D3D12_DESCRIPTOR_HEAP_DESC desc
+      const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
-        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-        .NumDescriptors = 10,
-        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-        .NodeMask = 0,
+        .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
+        .NumDescriptors { 10 },
+        .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
+        .NodeMask       { 0 },
       };
       TAC_CALL(mGpuDescriptorHeapSampler.Init( desc, device, errors ));
     }
 
     // GPU CBV SRV UAV
     {
-      D3D12_DESCRIPTOR_HEAP_DESC desc
+      const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
-        .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-        .NumDescriptors = 100,
-        .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-        .NodeMask = 0,
+        .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
+        .NumDescriptors { 100 },
+        .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
+        .NodeMask       { 0 },
       };
       TAC_CALL(mGpuDescriptorHeapCBV_SRV_UAV.Init( desc, device, errors ));
     }
@@ -237,21 +237,21 @@ namespace Tac::Render
   PipelineHandle    DX12Device::CreatePipeline(  PipelineParams params,
                                              Errors& errors )
   {
-    PipelineHandle h = AllocPipelineHandle();
-    sRenderer. mPipelineMgr.CreatePipeline( h, params, errors );
+    const PipelineHandle h{ AllocPipelineHandle() };
+    sRenderer.mPipelineMgr.CreatePipeline( h, params, errors );
     return h;
 
   }
 
   void    DX12Device::DestroyPipeline( PipelineHandle h )
   {
-    sRenderer. mPipelineMgr.DestroyPipeline( h );
+    sRenderer.mPipelineMgr.DestroyPipeline( h );
   }
 
-  ProgramHandle    DX12Device::CreateProgram(  ProgramParams params, Errors& errors )
+  ProgramHandle    DX12Device::CreateProgram( ProgramParams params, Errors& errors )
   {
-    ProgramHandle h = AllocProgramHandle();
-    sRenderer. mProgramMgr.CreateProgram( h, params, errors );
+    const ProgramHandle h { AllocProgramHandle() };
+    sRenderer.mProgramMgr.CreateProgram( h, params, errors );
     return h;
   }
 
@@ -262,7 +262,7 @@ namespace Tac::Render
 
   SwapChainHandle    DX12Device::CreateSwapChain(  SwapChainParams params, Errors& errors )
   {
-    SwapChainHandle h = AllocSwapChainHandle();
+    const SwapChainHandle h { AllocSwapChainHandle() };
     sRenderer.mSwapChainMgr.CreateSwapChain( h, params, errors );
     return h;
   }
@@ -285,7 +285,7 @@ namespace Tac::Render
   BufferHandle    DX12Device::CreateBuffer( CreateBufferParams params,
                                             Errors& errors )
   {
-    BufferHandle h = AllocBufferHandle();
+    const BufferHandle h { AllocBufferHandle() };
     sRenderer.mBufMgr.CreateBuffer( h, params, errors );
     return h;
   }
@@ -302,14 +302,13 @@ namespace Tac::Render
 
   IContext::Scope DX12Device::CreateRenderContext( Errors& errors )
   {
-    DX12Context* context = sRenderer.mContextManager.GetContext( errors );
-
+    DX12Context* context { sRenderer.mContextManager.GetContext( errors ) };
     return IContext::Scope( context );
   }
 
   TextureHandle DX12Device::CreateTexture( CreateTextureParams params, Errors& errors )
   {
-    TextureHandle h = AllocTextureHandle();
+    const TextureHandle h { AllocTextureHandle() };
     sRenderer.mTexMgr.CreateTexture( h, params, errors );
     return h;
   }

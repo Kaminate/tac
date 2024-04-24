@@ -9,14 +9,14 @@ namespace Tac
   {
     if( mFunctionsUnused.empty() )
       return TAC_NEW ProfileFunction;
-    ProfileFunction* result = mFunctionsUnused.back();
+    ProfileFunction* result { mFunctionsUnused.back() };
     mFunctionsUnused.pop_back();
     return result;
   }
 
   ProfileFunction* ProfileFunctionPool::AllocCopy( const ProfileFunction* orig )
   {
-    ProfileFunction* copy = ProfileFunctionPool::sFunctionPool.Alloc();
+    ProfileFunction* copy { ProfileFunctionPool::sFunctionPool.Alloc() };
     copy->DeepCopy( orig );
     return copy;
   }

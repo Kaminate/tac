@@ -11,9 +11,9 @@ namespace Tac
     StackFrame( int, const char*, const char* );
 
     //const char* ToString() const;
-    int         mLine = 0;
-    const char* mFile = nullptr;
-    const char* mFunction = nullptr;
+    int         mLine     { 0 };
+    const char* mFile     { nullptr };
+    const char* mFunction { nullptr };
   };
 }
 

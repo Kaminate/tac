@@ -78,9 +78,9 @@ void            Tac::SettingsTick( Errors& errors )
   if( !SettingsShouldUpdate() )
     return;
 
-  const String str = sJson.Stringify();
-  const void* data = ( void* )str.data();
-  const int n = ( int )str.size();
+  const String str { sJson.Stringify() };
+  const void* data { ( void* )str.data() };
+  const int n { ( int )str.size() };
   
   TAC_CALL( Filesystem::SaveToFile( sSavePath, data, n, errors ));
 
@@ -112,7 +112,7 @@ Tac::Json*      Tac::SettingsGetChildByKeyValuePair( StringView key, const Json&
   {
     if( !child->HasChild( key ) )
       continue;
-    Json& childValue = child->GetChild( key );
+    Json& childValue { child->GetChild( key ) };
     if( childValue.mType != value.mType ||
         childValue.mString != value.mString ||
         childValue.mNumber != value.mNumber ||
@@ -121,19 +121,19 @@ Tac::Json*      Tac::SettingsGetChildByKeyValuePair( StringView key, const Json&
     return child;
   }
 
-  Json* child = root->AddChild();
+  Json* child { root->AddChild() };
   SettingsSetValue( key, child, value);
   return child;
 }
 
 Tac::Json*      Tac::SettingsGetJson( StringView path, Json* root )
 {
-  root = root ? root : &sJson;
+  root = root ? root : &sJson  ;
   while( !path.empty() )
   {
     // Non-leaf nodes are either JsonType::Objects/Arrays
-    StringView oldPath = path;
-    Json* oldRoot = root;
+    StringView oldPath { path };
+    Json* oldRoot { root };
     if( path.front() == '.' )
       path.remove_prefix( 1 );
 

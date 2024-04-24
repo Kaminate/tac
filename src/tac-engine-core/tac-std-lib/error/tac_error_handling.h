@@ -35,8 +35,8 @@ namespace Tac
 
     String               mMessage;
     Vector< StackFrame > mFrames;
-    Flags                mFlags = kNone;
-    bool                 mBroken = false;
+    Flags                mFlags { kNone };
+    bool                 mBroken { false };
   };
 
 } // namespace Tac

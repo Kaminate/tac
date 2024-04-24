@@ -25,9 +25,9 @@ struct Tac::Map
 
   struct Node
   {
-    HashValue mHash = 0;
-    Pair      mPair;
-    bool      mOccupied = false;
+    HashValue mHash     {};
+    Pair      mPair     {};
+    bool      mOccupied {};
   };
 
   struct ConstIterator
@@ -39,8 +39,8 @@ struct Tac::Map
     operator bool() const                     { return mCur->mOccupied; }
     TVal GetValue() const                     { return mCur->mPair.mSecond; }
 
-    const Node* mCur = nullptr;
-    int         mRemaining = 0;
+    const Node* mCur       {};
+    int         mRemaining {};
   };
 
   struct Iterator
@@ -52,8 +52,8 @@ struct Tac::Map
     operator bool() const                     { return mCur->mOccupied; }
     TVal GetValue() const                     { return mCur->mPair.mSecond; }
 
-    Node* mCur = nullptr;
-    int   mRemaining = 0;
+    Node* mCur       {};
+    int   mRemaining {};
   };
 
   Map()                                       { mNodes = TAC_NEW Node[ mCapacity = 10 ]; }
@@ -88,9 +88,9 @@ private:
   int              FindNodeIndex( TKey ) const;
   void             assign( const Map& other );
 
-  int              mSize = 0;
-  int              mCapacity = 0;
-  Node*            mNodes = nullptr;
+  int              mSize     {};
+  int              mCapacity {};
+  Node*            mNodes    {};
 };
 
 
@@ -126,18 +126,18 @@ Tac::Map< TKey, TVal >::Iterator Tac::Map< TKey, TVal >::begin()
 template< typename TKey, typename TVal >
 void Tac::Map< TKey, TVal >::erase( TKey key )
 {
-  Node* node = FindNode( key );
+  Node* node { FindNode( key ) };
   *node = {};
 
-  int iEmpty = int(node - mNodes);
-  int i = ( iEmpty + 1 ) % mCapacity;
+  int iEmpty { int(node - mNodes) };
+  int i { ( iEmpty + 1 ) % mCapacity };
   for( ;; )
   {
     node = &mNodes[ i ];
     if( !node->mOccupied )
       break;
 
-    const int iDesired = node->mHash % mCapacity;
+    const int iDesired { node->mHash % mCapacity };
     if( iDesired != i && iDesired <= iEmpty )
     {
       mNodes[ iEmpty ] = *node;
@@ -154,13 +154,13 @@ void Tac::Map< TKey, TVal >::erase( TKey key )
 template< typename TKey, typename TVal >
 Tac::Map<TKey, TVal>::Node* Tac::Map<TKey, TVal>::OccupyNode( TKey key )
 {
-  if( Node* node = FindNode( key ); node->mOccupied )
+  if( Node* node{ FindNode( key ) }; node->mOccupied )
     return node;
 
   if( mSize + 1 > mCapacity / 2 )
     Reserve( mCapacity * 2 );
 
-  Node* node = FindNode( key );
+  Node* node { FindNode( key ) };
   node->mOccupied = true;
   node->mHash = Tac::Hash( key );
   node->mPair.mFirst = key;
@@ -172,11 +172,11 @@ Tac::Map<TKey, TVal>::Node* Tac::Map<TKey, TVal>::OccupyNode( TKey key )
 template< typename TKey, typename TVal >
 int              Tac::Map<TKey, TVal>::FindNodeIndex( TKey key ) const
 {
-  const HashValue hash = Tac::Hash( key );
-  int i = hash % mCapacity;
+  const HashValue hash { Tac::Hash( key ) };
+  int i { hash % mCapacity };
   for( ;; )
   {
-    Node* node = &mNodes[ i ];
+    Node* node { &mNodes[ i ] };
     if( !node->mOccupied || ( node->mHash == hash && node->mPair.mFirst == key ) )
       return i;
 
@@ -192,8 +192,8 @@ void Tac::Map< TKey, TVal >::Reserve( int capacity )
   if( capacity < mCapacity )
     return;
 
-  int oldCapacity = mCapacity;
-  Node* oldNodes = mNodes;
+  int oldCapacity { mCapacity };
+  Node* oldNodes { mNodes };
 
   mNodes = TAC_NEW Node[ mCapacity = capacity ];
   mSize = 0;
@@ -208,14 +208,14 @@ void Tac::Map< TKey, TVal >::Reserve( int capacity )
 template< typename TKey, typename TVal >
 void             Tac::Map< TKey, TVal >::insert_or_assign( TKey key, TVal val )
 {
-  Node* node = OccupyNode( key );
+  Node* node { OccupyNode( key ) };
   node->mPair.mSecond = val;
 }
 
 template< typename TKey, typename TVal >
 TVal& Tac::Map< TKey, TVal >::operator[]( TKey key )
 {
-  Node* node = OccupyNode( key );
+  Node* node { OccupyNode( key ) };
   return node->mPair.mSecond;
 }
 
@@ -240,21 +240,21 @@ void Tac::Map< TKey, TVal >::clear()
 template< typename TKey, typename TVal >
 Tac::Map< TKey, TVal >::Iterator Tac::Map< TKey, TVal >::Find( TKey key )
 {
-  Node* node = FindNode( key );
+  Node* node { FindNode( key ) };
   return node->mOccupied ? Iterator{ .mCur = node } : Iterator{};
 }
 
 template< typename TKey, typename TVal >
 Tac::Map< TKey, TVal >::ConstIterator    Tac::Map< TKey, TVal >::Find( TKey key ) const
 {
-  Node* node = FindNode( key );
+  Node* node { FindNode( key ) };
   return node->mOccupied ? ConstIterator{ .mCur = node } : ConstIterator{};
 }
 
 template< typename TKey, typename TVal >
 Tac::Optional< TVal > Tac::Map<TKey, TVal>::FindVal( TKey key ) const
 {
-  Node* node = &mNodes[ FindNodeIndex( key ) ];
+  Node* node { &mNodes[ FindNodeIndex( key ) ] };
   return node->mOccupied ? Optional( node->mPair.mSecond ) : Optional<TVal>{};
 }
 

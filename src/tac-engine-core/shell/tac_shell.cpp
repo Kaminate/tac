@@ -72,15 +72,15 @@ namespace Tac
 
   AssetPathStringView     ModifyPathRelative( const Filesystem::Path& path, Errors& errors )
   {
-    const Filesystem::Path& workingDir = sShellInitialWorkingDir;
-    const String workingUTF8 = workingDir.u8string();
+    const Filesystem::Path& workingDir { sShellInitialWorkingDir };
+    const String workingUTF8 { workingDir.u8string() };
 
-    String pathUTF8 = path.u8string();
+    String pathUTF8 { path.u8string() };
     if( path.is_absolute() )
     {
       if( !pathUTF8.starts_with( workingUTF8 ) )
       {
-        const String msg = pathUTF8 + String( " is not in " ) + workingUTF8;
+        const String msg { pathUTF8 + String( " is not in " ) + workingUTF8 };
         TAC_RAISE_ERROR_RETURN( msg, {} );
       }
 
@@ -106,12 +106,12 @@ namespace Tac
     const AssetSaveDialogParams& assetSaveDialogParams,
     Errors& errors )
   {
-    Filesystem::Path suggestedFilename = assetSaveDialogParams.mSuggestedFilename;
+    Filesystem::Path suggestedFilename { assetSaveDialogParams.mSuggestedFilename };
     const OS::SaveParams saveParams
     {
       .mSuggestedFilename = &suggestedFilename,
     };
-    const Filesystem::Path fsPath = OS::OSSaveDialog( saveParams, errors );
+    const Filesystem::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
     return ModifyPathRelative( fsPath, errors );
   }
 

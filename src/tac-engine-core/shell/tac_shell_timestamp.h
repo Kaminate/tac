@@ -12,7 +12,7 @@ namespace Tac
     Timestamp( float ) = delete;
     void operator += ( const TimestampDifference& );
     operator double() const;
-    double mSeconds = 0;
+    double mSeconds { 0 };
   };
 
   struct TimestampDifference
@@ -23,7 +23,7 @@ namespace Tac
     void operator += ( const TimestampDifference& );
     void operator -= ( const TimestampDifference& );
     operator float() const;
-    float mSeconds = 0;
+    float mSeconds { 0 };
   };
 
   // TODO: rename to FormatSeconds

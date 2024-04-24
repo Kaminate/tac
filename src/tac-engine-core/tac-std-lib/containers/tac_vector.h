@@ -22,7 +22,7 @@ namespace Tac
 
     Vector( const Vector& v )
     {
-      const int size = v.size();
+      const int size { v.size() };
       resize( size );
       for( int i{}; i < size; ++i )
         mTs[ i ] = v[ i ];
@@ -39,7 +39,7 @@ namespace Tac
 
     Vector( const T* tbegin, const T* tend )
     {
-      int size = ( int )( tend - tbegin );
+      const int size { ( int )( tend - tbegin ) };
       resize( size );
       for( int i{}; i < size; ++i )
         mTs[ i ] = tbegin[ i ];
@@ -59,7 +59,7 @@ namespace Tac
 
     void     assign( const T* begin, const T* end )
     {
-      const int newSize = ( int )( end - begin );
+      const int newSize { ( int )( end - begin ) };
       reserve( newSize );
       for( int i{}; i < newSize; ++i )
         mTs[ i ] = begin[ i ];
@@ -83,7 +83,7 @@ namespace Tac
 
     void     push_back( T t )
     {
-      const int newSize = mTCount + 1;
+      const int newSize { mTCount + 1 };
       if( newSize > mTCapacity )
         reserve( int( newSize * 1.5f ) );
       mTs[ mTCount++ ] = t;
@@ -97,7 +97,7 @@ namespace Tac
     {
       reserve( newSize );
 
-      for( int i = mTCount; i < newSize; ++i )
+      for( int i { mTCount }; i < newSize; ++i )
         mTs[ i ] = Tac::move( newValues );
 
       // Does this handle the case where newSize < mTCount?
@@ -111,7 +111,7 @@ namespace Tac
       if( capacity <= mTCapacity )
         return;
 
-      T* newTs = TAC_NEW T[ capacity ];
+      T* newTs { TAC_NEW T[ capacity ] };
       for( int i{}; i < mTCount; ++i )
         newTs[ i ] = Tac::move( mTs[ i ] );
 
@@ -141,8 +141,8 @@ namespace Tac
     // why do i use this fn?
     T*       insert( T* pos, std::initializer_list< T > ts )
     {
-      const int iPos = int( pos - mTs );
-      const int moveCount = mTCount - iPos;
+      const int iPos { int( pos - mTs ) };
+      const int moveCount { mTCount - iPos };
       reserve( mTCount + ( int )ts.size() );
       pos = mTs + iPos;
       for( int i{}; i < moveCount; ++i )
@@ -156,15 +156,15 @@ namespace Tac
     T&       operator[]( int i )        { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
     const T& operator[]( int i ) const  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
 
-    T*       mTs = nullptr;
-    int      mTCount = 0;
-    int      mTCapacity = 0;
+    T*       mTs        { nullptr };
+    int      mTCount    { 0 };
+    int      mTCapacity { 0 };
   };
 
   template< typename T >
   bool operator == ( const Vector<T>& a, const Vector<T>& b )
   {
-    const int n = a.size();
+    const int n { a.size() };
     if( n != b.size() )
       return false;
 

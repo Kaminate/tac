@@ -131,8 +131,8 @@ namespace Tac::WindowBackend
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       const Render::SwapChainParams params
       {
-        .mNWH { nwh },
-        .mSize { size },
+        .mNWH      { nwh },
+        .mSize     { size },
         .mColorFmt { sTexFmt },
       };
       sFramebuffers[ i ] = renderDevice->CreateSwapChain( params, errors );
@@ -143,7 +143,7 @@ namespace Tac::WindowBackend
   void SysApi::SetWindowDestroyed( WindowHandle h )
   {
     TAC_ASSERT( sModificationAllowed );
-    const int i = h.GetIndex();
+    const int i { h.GetIndex() };
     sPlatformCurr[ i ] = {};
     sPlatformNative[ i ] = {};
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
@@ -163,7 +163,7 @@ namespace Tac::WindowBackend
   void SysApi::SetWindowSize( WindowHandle h, v2i size )
   {
     TAC_ASSERT( sModificationAllowed );
-    const int i = h.GetIndex();
+    const int i { h.GetIndex() };
     sPlatformCurr[ i ].mSize = size;
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
@@ -200,7 +200,7 @@ namespace Tac::WindowBackend
     // but we do need to lock sWindowStateMutex to protect sPlatformCurr.
     TAC_SCOPE_GUARD( std::lock_guard, sWindowStateMutex );
 
-    PlatformFns* platform = PlatformFns::GetInstance();
+    PlatformFns* platform { PlatformFns::GetInstance() };
 
     for( const SimWindowCreate& simParams : sCreateRequests )
     {

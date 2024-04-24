@@ -16,9 +16,9 @@ namespace Tac
   // ie: if( Contains( { 1, 2, 3, 4, 5, 6 }, i )
   template< typename T, typename U > bool Contains( const T& elements, const U& element )
   {
-    auto beginIt = elements.begin();
-    auto endIt = elements.end();
-    for( auto it = beginIt; it != endIt; ++it )
+    auto beginIt { elements.begin() };
+    auto endIt { elements.end() };
+    for( auto it { beginIt }; it != endIt; ++it )
       if( *it == element )
         return true;
     return false;
@@ -26,7 +26,7 @@ namespace Tac
 
   template< typename T> bool              Contains( const T* beginElement, const T* endElement, const T& element )
   {
-    for( const T* curElement = beginElement; curElement != endElement; ++curElement )
+    for( const T* curElement { beginElement }; curElement != endElement; ++curElement )
       if( *curElement == element )
         return true;
     return false;
@@ -63,7 +63,7 @@ namespace Tac
   template< typename T > void             Swap( T& a, T& b )                     { T temp = a; a = b; b = temp; }
   template< typename T > int              Count( const T& ts, decltype ( *ts.begin() ) value )
   {
-    int n = 0;
+    int n { 0 };
     for( auto t : ts )
       if( t == value )
         ++n;
@@ -85,7 +85,7 @@ namespace Tac
   template< typename TIter, typename T >
   TIter Find( TIter first, TIter last, const T& t )
   {
-    for( TIter iter = first; iter != last; ++iter )
+    for( TIter iter { first }; iter != last; ++iter )
       if( *iter == t )
         return iter;
     return last;
@@ -94,7 +94,7 @@ namespace Tac
   template< typename TIter, typename TPred >
   TIter FindIf( TIter first, TIter last, TPred pred )
   {
-    for( TIter iter = first; iter != last; ++iter )
+    for( TIter iter { first }; iter != last; ++iter )
       if( pred( *iter ) )
         return iter;
     return last;

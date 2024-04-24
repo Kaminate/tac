@@ -39,7 +39,7 @@ namespace Tac
 
       FrameMemoryVector( T* tbegin, T* tend )
       {
-        int size = ( int )( tend - tbegin );
+        int size { ( int )( tend - tbegin ) };
         resize( size );
         for( int i{}; i < size; ++i )
           mTs[ i ] = tbegin[ i ];
@@ -55,7 +55,7 @@ namespace Tac
 
       void     push_back( const T& t )
       {
-        const int newSize = mTCount + 1;
+        const int newSize { mTCount + 1 };
         if( newSize > mTCapacity )
           reserve( int( newSize * 1.5f ) );
         mTs[ mTCount++ ] = t;
@@ -72,7 +72,7 @@ namespace Tac
       {
         if( capacity < mTCapacity )
           return;
-        auto newTs = ( T* )FrameMemoryAllocate( sizeof( T ) * capacity );
+        auto newTs { ( T* )FrameMemoryAllocate( sizeof( T ) * capacity ) };
         for( int i{}; i < mTCount; ++i )
           newTs[ i ] = Tac::move( mTs[i ] ); // std::move( mTs[ i ] );
         mTs = newTs;
@@ -94,9 +94,9 @@ namespace Tac
       T&       operator []( int i )       { return mTs[ i ]; }
       const T& operator []( int i ) const { return mTs[ i ]; }
 
-      T*       mTs = nullptr;
-      int      mTCount = 0;
-      int      mTCapacity = 0;
+      T*       mTs        {};
+      int      mTCount    {};
+      int      mTCapacity {};
     };
 } // namespace Tac
 

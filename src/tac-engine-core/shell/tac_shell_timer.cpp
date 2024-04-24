@@ -31,8 +31,8 @@ namespace Tac
 
   TimestampDifference operator - ( const Timepoint& a, const Timepoint& b )
   {
-    const Timepoint::NanosecondDuration ns = a.TimeSinceEpoch() - b.TimeSinceEpoch();
-    const double seconds = ns / 1e9;
+    const Timepoint::NanosecondDuration ns { a.TimeSinceEpoch() - b.TimeSinceEpoch() };
+    const double seconds { ns / 1e9 };
     return TimestampDifference{ ( float )seconds };
   }
 
@@ -48,8 +48,8 @@ namespace Tac
   {
     TAC_ASSERT( mStarted );
 
-    const Timepoint now = Timepoint::Now();
-    const TimestampDifference seconds = now - mLastTick;
+    const Timepoint now { Timepoint::Now() };
+    const TimestampDifference seconds { now - mLastTick };
     mLastTick = now;
     return ( float )seconds;
   }

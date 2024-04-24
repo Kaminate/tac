@@ -13,7 +13,7 @@ namespace Tac::Network
     switch( addressFamily )
     {
       case AddressFamily::IPv4: return "IPv4";
-      case AddressFamily::IPv6:return "IPv6";
+      case AddressFamily::IPv6: return "IPv6";
       default: TAC_ASSERT_INVALID_CASE( addressFamily ); return "";
     }
   }
@@ -80,13 +80,13 @@ namespace Tac::Network
                                        StringView host,
                                        StringView messageBody )
   {
-    String serverRoot = "/";
+    String serverRoot { "/" };
     // uniform resource identifier
-    String& uri = serverRoot;
-    String request = requestMethod + " " + uri + " " + httpVersion;
-    String connectionType = "keep-alive";
-    String fieldConnection = "Connection: " + connectionType;
-    String fieldHost = "Host: " + String(host);
+    String& uri { serverRoot };
+    String request { requestMethod + " " + uri + " " + httpVersion };
+    String connectionType { "keep-alive" };
+    String fieldConnection { "Connection: " + connectionType };
+    String fieldHost { "Host: " + String(host) };
     AddLine( request );
     AddLine( fieldConnection );
     AddLine( fieldHost );
@@ -101,28 +101,28 @@ namespace Tac::Network
     //   - https://en.wikipedia.org/wiki/Base64
     //   - atlenc.h
     String result;
-    const char* lookupTable =
+    const char* lookupTable{
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz"
-      "0123456789+/";
-    int iInput = 0;
+      "0123456789+/" };
+    int iInput { 0 };
     while( iInput < int( input.size() / 3 ) * 3 )
     {
-      u32 accumulator = 0;
+      u32 accumulator { 0 };
       // Push inputs onto the right
-      for( int n = 0; n < 3; n++ )
+      for( int n { 0 }; n < 3; n++ )
       {
         accumulator |= input[ iInput++ ];
         accumulator <<= 8;
       }
       // Pop lookup keys off of the left
-      for( int k = 0; k < 4; k++ )
+      for( int k { 0 }; k < 4; k++ )
       {
         result += lookupTable[ accumulator >> 26 ];
         accumulator <<= 6;
       }
     }
-    int remaining = ( int )input.size() - iInput;
+    int remaining { ( int )input.size() - iInput };
     switch( remaining )
     {
       case 0:
@@ -130,8 +130,8 @@ namespace Tac::Network
         break;
       case 1:
       {
-        int a = ( input[ iInput + 0 ] >> 2 ) & 0b111111;
-        int b = ( input[ iInput + 0 ] << 4 ) & 0b110000;
+        int a { ( input[ iInput + 0 ] >> 2 ) & 0b111111 };
+        int b { ( input[ iInput + 0 ] << 4 ) & 0b110000 };
         result += lookupTable[ a ];
         result += lookupTable[ b ];
         result += '=';
@@ -139,10 +139,10 @@ namespace Tac::Network
       } break;
       case 2:
       {
-        int a = ( input[ iInput + 0 ] >> 2 ) & 0b111111;
-        int b = ( input[ iInput + 0 ] << 4 ) & 0b110000;
-        int c = ( input[ iInput + 1 ] >> 4 ) & 0b001111;
-        int d = ( input[ iInput + 1 ] << 2 ) & 0b111100;
+        int a { ( input[ iInput + 0 ] >> 2 ) & 0b111111 };
+        int b { ( input[ iInput + 0 ] << 4 ) & 0b110000 };
+        int c { ( input[ iInput + 1 ] >> 4 ) & 0b001111 };
+        int d { ( input[ iInput + 1 ] << 2 ) & 0b111100 };
         result += lookupTable[ a ];
         result += lookupTable[ b | c ];
         result += lookupTable[ d ];
@@ -166,7 +166,7 @@ namespace Tac::Network
       String encoded;
     };
 
-    const Test tests[] =
+    const Test tests[]
     {
       { "any carnal pleasure.", "YW55IGNhcm5hbCBwbGVhc3VyZS4=" },
       { "any carnal pleasure", "YW55IGNhcm5hbCBwbGVhc3VyZQ==" },
@@ -177,12 +177,12 @@ namespace Tac::Network
 
     for( const Test& test : tests )
     {
-      const String encoded = Base64Encode( test.decoded );
+      const String encoded { Base64Encode( test.decoded ) };
       TAC_ASSERT( encoded == test.encoded );
     }
   }
 
-  const int websocketKeyByteCount = 16;
+  const int websocketKeyByteCount { 16 };
   Vector< u8 > GenerateSecWebsocketKey()
   {
     Vector< u8 > result;
@@ -199,7 +199,7 @@ namespace Tac::Network
                                             const Vector< u8 > & secWebsocketKey )
   {
     TAC_ASSERT( secWebsocketKey.size() == websocketKeyByteCount );
-    String encoded = Base64Encode( secWebsocketKey );
+    String encoded { Base64Encode( secWebsocketKey ) };
 
     // The Websocket Protocol - Opening Handshake
     // https://tools.ietf.org/html/rfc6455#section-1.3
@@ -213,7 +213,7 @@ namespace Tac::Network
     AddNewline();
   }
 
-  Net* Net::Instance = nullptr;
+  Net* Net::Instance { nullptr };
   Net::Net()
   {
     Instance = this;
@@ -224,11 +224,8 @@ namespace Tac::Network
 
   void NetApi::Update(Errors& errors )
   {
-    Net* net = Net::Instance;
-    if( !net )
-      return;
-
-    net->Update( errors );
+    if( Net* net { Net::Instance } )
+      net->Update( errors );
   }
 
 } // namespace Tac::Network

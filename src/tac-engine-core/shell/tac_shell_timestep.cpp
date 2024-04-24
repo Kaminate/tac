@@ -13,7 +13,7 @@ namespace Tac
   static Timer               sTimer;
   static Timestamp           sElapsedTime;
   static TimestampDifference sAccumulator;
-  static FrameIndex          sElapsedFrames = 0;
+  static FrameIndex          sElapsedFrames { 0 };
 
   bool                Timestep::Update()
   {
@@ -23,7 +23,7 @@ namespace Tac
       return true;
     }
 
-    const TimestampDifference dt = sTimer.Tick();
+    const TimestampDifference dt { sTimer.Tick() };
     sAccumulator = Fmod( ( float )sAccumulator + ( float )dt,
                          ( float )TAC_DELTA_FRAME_SECONDS * 2.0f );
 

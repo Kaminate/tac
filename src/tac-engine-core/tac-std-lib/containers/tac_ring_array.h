@@ -27,9 +27,9 @@ namespace Tac
     void DecrementIndex() { mIndex = ( mIndex - 1 + N ) % N; }
     void IncrementIndex() { mIndex = ( mIndex + 1 ) % N; }
 
-    T*   mTs;
-    int  mSize = 0;
-    int  mIndex = 0;
+    T*   mTs    {};
+    int  mSize  {};
+    int  mIndex {};
   };
 
   template< typename T, int N >
@@ -53,7 +53,7 @@ namespace Tac
   T    RingArray<T,N>::pop_front()
   {
     TAC_ASSERT( mSize );
-    T t = front();
+    T t { front() };
     IncrementIndex();
     mSize--;
     return t;
@@ -63,7 +63,7 @@ namespace Tac
   T    RingArray<T,N>::pop_back()
   {
     TAC_ASSERT( mSize );
-    T t = back();
+    T t { back() };
     mSize--;
     return t;
   }

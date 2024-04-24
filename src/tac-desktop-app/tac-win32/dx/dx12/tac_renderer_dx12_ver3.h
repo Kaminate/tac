@@ -60,31 +60,31 @@ namespace Tac::Render
     DX12DescriptorHeap   mGpuDescriptorHeapCBV_SRV_UAV;
     DX12DescriptorHeap   mGpuDescriptorHeapSampler;
 
-    ID3D12Device* mDevice;
+    ID3D12Device* mDevice{};
   };
 
   struct DX12Device : public IDevice
   {
     void Init( Errors& ) override;
 
-    PipelineHandle CreatePipeline( PipelineParams, Errors& ) override;
-    void           DestroyPipeline( PipelineHandle ) override;
+    PipelineHandle  CreatePipeline( PipelineParams, Errors& ) override;
+    void            DestroyPipeline( PipelineHandle ) override;
 
-    ProgramHandle CreateProgram( ProgramParams, Errors& ) override;
-    void          DestroyProgram( ProgramHandle ) override;
+    ProgramHandle   CreateProgram( ProgramParams, Errors& ) override;
+    void            DestroyProgram( ProgramHandle ) override;
 
     SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) override;
     void            ResizeSwapChain( SwapChainHandle, v2i ) override;
     SwapChainParams GetSwapChainParams( SwapChainHandle ) override;
     void            DestroySwapChain( SwapChainHandle ) override;
 
-    BufferHandle CreateBuffer( CreateBufferParams, Errors& ) override;
-    void         UpdateBuffer( BufferHandle, UpdateBufferParams ) override;
-    void         DestroyBuffer( BufferHandle ) override;
+    BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) override;
+    void            UpdateBuffer( BufferHandle, UpdateBufferParams ) override;
+    void            DestroyBuffer( BufferHandle ) override;
 
-    TextureHandle CreateTexture( CreateTextureParams, Errors& ) override;
-    void          UpdateTexture( TextureHandle, UpdateTextureParams ) override;
-    void          DestroyTexture( TextureHandle ) override;
+    TextureHandle   CreateTexture( CreateTextureParams, Errors& ) override;
+    void            UpdateTexture( TextureHandle, UpdateTextureParams ) override;
+    void            DestroyTexture( TextureHandle ) override;
 
     IContext::Scope CreateRenderContext( Errors& ) override;
 

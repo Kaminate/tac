@@ -23,7 +23,7 @@ namespace Tac
     T        Pop()
     {
       TAC_ASSERT( mCountUsed );
-      T t = mTs[ mStartIndex ];
+      T t { mTs[ mStartIndex ] };
       mStartIndex = ( mStartIndex + 1 ) % mCountAllocated;
       mCountUsed--;
       return t;
@@ -40,7 +40,7 @@ namespace Tac
     void Grow()
     {
         auto newCountAllocated = ( int )( mCountAllocated * 1.5f );
-        T* newTs = new T[ newCountAllocated ];
+        T* newTs { new T[ newCountAllocated ] };
 
         for( int i{}; i < mCountUsed; ++i )
         {
@@ -54,8 +54,8 @@ namespace Tac
     }
     T*   mTs;
     int  mCountAllocated;
-    int  mStartIndex = 0;
-    int  mCountUsed = 0;
+    int  mStartIndex { };
+    int  mCountUsed { };
   };
 }
 

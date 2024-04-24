@@ -130,8 +130,8 @@ namespace Tac::Render
 
   struct FormatElement
   {
-    int          mPerElementByteCount = 0;
-    GraphicsType mPerElementDataType = GraphicsType::unknown;
+    int          mPerElementByteCount { 0 };
+    GraphicsType mPerElementDataType { GraphicsType::unknown };
 
     static const FormatElement sFloat;
   };
@@ -140,9 +140,9 @@ namespace Tac::Render
   struct Format
   {
     int          CalculateTotalByteCount() const;
-    int          mElementCount = 0;
-    int          mPerElementByteCount = 0;
-    GraphicsType mPerElementDataType = GraphicsType::unknown;
+    int          mElementCount { 0 };
+    int          mPerElementByteCount { 0 };
+    GraphicsType mPerElementDataType { GraphicsType::unknown };
 
     static Format FromElements( FormatElement, int = 1 );
     static const Format sfloat;
@@ -158,7 +158,7 @@ namespace Tac::Render
 
     //        Offset of the variable from the vertex buffer
     //        ie: OffsetOf( MyVertexType, mPosition)
-    int       mAlignedByteOffset = 0;
+    int       mAlignedByteOffset { 0 };
   };
 
   struct VertexDeclarations : public FixedVector< VertexDeclaration, 10 > {};
@@ -166,9 +166,9 @@ namespace Tac::Render
   // $$$ Should this still be called an "Image", since the data parameter was removed?
   struct Image
   {
-    int    mWidth = 0;
-    int    mHeight = 0;
-    int    mDepth = 0;
+    int    mWidth { 0 };
+    int    mHeight { 0 };
+    int    mDepth { 0 };
     Format mFormat;
 
     // Note that byte data should be passed as a separate argument,
@@ -236,12 +236,12 @@ namespace Tac::Render
   struct CreateTextureParams
   {
     Image       mImage;
-    int         mPitch = 0; // byte count between texel rows
-    const void* mImageBytes = nullptr;
-    const void* mImageBytesCubemap[ 6 ] = {};
-    Binding     mBinding = Binding::None;
-    Usage       mAccess = Usage::Default; // TODO: rename as Usage
-    CPUAccess   mCpuAccess = CPUAccess::None;
+    int         mPitch { 0 }; // byte count between texel rows
+    const void* mImageBytes { nullptr };
+    const void* mImageBytesCubemap[ 6 ]  {};
+    Binding     mBinding { Binding::None };
+    Usage       mAccess { Usage::Default }; // TODO: rename as Usage
+    CPUAccess   mCpuAccess { CPUAccess::None };
     StringView  mOptionalName;
     StackFrame  mStackFrame;
   };
@@ -264,7 +264,7 @@ namespace Tac::Render
     //DepthStencilType       mDepthStencilType;
     //SwapChainHandle               mRenderTarget;
     FixedVector< TexFmt, 8 > mRTVColorFmts;
-    TexFmt                   mDSVDepthFmt = TexFmt::kUnknown;
+    TexFmt                   mDSVDepthFmt { TexFmt::kUnknown };
     // root sig? <-- parse using dx reflection
     //PrimTopology     mPrimTopo;
   };
@@ -273,9 +273,9 @@ namespace Tac::Render
 
   struct CreateBufferParams
   {
-    int         mByteCount = 0;
-    const void* mBytes = nullptr;
-    Usage       mAccess = Usage::Default; // TODO: rename to `mUsage`
+    int         mByteCount { 0 };
+    const void* mBytes { nullptr };
+    Usage       mAccess { Usage::Default }; // TODO: rename to `mUsage`
     StringView  mOptionalName;
     StackFrame  mStackFrame;
   };
@@ -326,7 +326,7 @@ namespace Tac::Render
   {
     struct InitParams
     {
-      int                     mMaxGPUFrameCount = 2;
+      int                     mMaxGPUFrameCount { 2 };
       const Filesystem::Path& mShaderOutputPath;
     };
 

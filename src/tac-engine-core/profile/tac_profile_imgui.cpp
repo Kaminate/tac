@@ -13,7 +13,7 @@
 
 namespace Tac
 {
-  static float             sMilisecondsToDisplay = 20.0f;
+  static float             sMilisecondsToDisplay { 20.0f };
   static Timepoint         sPauseSec;
   static ProfileFrame      sProfiledFunctions;
   static SimKeyboardApi*   sKeyboardApi;
@@ -31,19 +31,19 @@ namespace Tac
 
   static ImguiProfileWidgetData sDefaultWidgetData;
 
-  static const ImGuiIndex sWidgetID = ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
+  static const ImGuiIndex sWidgetID{ ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
                                                                    &sDefaultWidgetData,
-                                                                   sizeof( ImguiProfileWidgetData ) );
+                                                                   sizeof( ImguiProfileWidgetData ) ) };
 
   static int CalculateProfileHeight( ProfileFunction* profileFunction )
   {
     if( !profileFunction )
       return 0;
 
-    int childDepthMax = 0;
-    for( ProfileFunction* child = profileFunction->mChildren; child; child = child->mNext )
+    int childDepthMax { 0 };
+    for( ProfileFunction* child { profileFunction->mChildren }; child; child = child->mNext )
     {
-      const int childDepth = CalculateProfileHeight( child );
+      const int childDepth { CalculateProfileHeight( child ) };
       childDepthMax = childDepth > childDepthMax ? childDepth : childDepthMax;
     }
 
@@ -52,10 +52,10 @@ namespace Tac
 
   static int GetFPS()
   {
-    Timepoint now = Timepoint::Now();
-    static Timepoint prev = now;
+    Timepoint now { Timepoint::Now() };
+    static Timepoint prev { now };
 
-    const float sec = now - prev;
+    const float sec { now - prev };
     static int frames;
 
     static int fps;
@@ -79,7 +79,7 @@ namespace Tac
 
     int GetProfileThreadNumber( const std::thread::id threadId )
     {
-      const int n = sThreadNumberMap.size();
+      const int n { sThreadNumberMap.size() };
       for( int i{}; i < n; ++i )
         if( sThreadNumberMap[ i ] == threadId )
           return i;
@@ -119,33 +119,33 @@ namespace Tac
   static void ImGuiProfileWidgetCamera( const v2 cameraViewportPos,
                                         const v2 cameraViewportSize )
   {
-    const float fontSize = ImGuiGetFontSize();
-    ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
-    UI2DDrawData* drawData = imguiWindow->mDrawData;
+    const float fontSize { ImGuiGetFontSize() };
+    ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
+    UI2DDrawData* drawData { imguiWindow->mDrawData };
 
-    const UI2DDrawData::Box vpBox =
+    const UI2DDrawData::Box vpBox 
     {
-      .mMini = cameraViewportPos,
-      .mMaxi = cameraViewportPos + cameraViewportSize,
-      .mColor = v4( 0.2f, 0, 0, 1 ),
+      .mMini { cameraViewportPos },
+      .mMaxi { cameraViewportPos + cameraViewportSize },
+      .mColor { v4( 0.2f, 0, 0, 1 ) },
     };
     drawData->AddBox( vpBox );
 
-    IndexedThreadProfileData indexedThreadProfileDatas[ 10 ] = {};
+    IndexedThreadProfileData indexedThreadProfileDatas[ 10 ]  {};
 
     for( PerThreadProfileFrame& threadFrame : sProfiledFunctions.mThreadFrames )
     {
-      List< ProfileFunction* >& profiledFunctionList = threadFrame.mFunctions;
-      const int iThread = sProfileThreadManager.GetProfileThreadNumber( threadFrame.mThreadId );
+      List< ProfileFunction* >& profiledFunctionList { threadFrame.mFunctions };
+      const int iThread { sProfileThreadManager.GetProfileThreadNumber( threadFrame.mThreadId ) };
 
-      int treeHeight = 0;
+      int treeHeight { 0 };
       for( ProfileFunction* profileFunction : profiledFunctionList )
       {
-        const int depth = CalculateProfileHeight( profileFunction );
+        const int depth { CalculateProfileHeight( profileFunction ) };
         treeHeight = depth > treeHeight ? depth : treeHeight;
       }
 
-      IndexedThreadProfileData* indexedThreadProfileData = &indexedThreadProfileDatas[ iThread ];
+      IndexedThreadProfileData* indexedThreadProfileData { &indexedThreadProfileDatas[ iThread ] };
       indexedThreadProfileData->mProfiledFunctionList = &profiledFunctionList;
       indexedThreadProfileData->mTreeHeight = treeHeight;
     }
@@ -169,14 +169,14 @@ namespace Tac
         visitors.push_back( { profileFunction, 0 } );
 
 
-      const float timeScaleSeconds = sMilisecondsToDisplay / 1000.0f;
-      const Timepoint gameBeginTimepoint = ProfileTimepointGetLastGameFrameBegin();
-      const Timepoint timepointLeft = ProfileGetIsRuning() ? gameBeginTimepoint : sPauseSec;
+      const float timeScaleSeconds { sMilisecondsToDisplay / 1000.0f };
+      const Timepoint gameBeginTimepoint { ProfileTimepointGetLastGameFrameBegin() };
+      const Timepoint timepointLeft { ProfileGetIsRuning() ? gameBeginTimepoint : sPauseSec };
 
       while( !visitors.empty() )
       {
-        ProfileFunctionDepth visitor = visitors.back();
-        ProfileFunction* profileFunction = visitor.mProfileFunction;
+        ProfileFunctionDepth visitor { visitors.back() };
+        ProfileFunction* profileFunction { visitor.mProfileFunction };
         visitors.pop_back();
 
         if( profileFunction->mNext )
@@ -186,32 +186,30 @@ namespace Tac
           visitors.push_back( { profileFunction->mChildren, visitor.mDepth + 1 } );
 
 
-        const float     boxDeltaSeconds = profileFunction->mEndTime - profileFunction->mBeginTime;
-        const float     boxDeltaPercent = boxDeltaSeconds / timeScaleSeconds;
+        const float     boxDeltaSeconds { profileFunction->mEndTime - profileFunction->mBeginTime };
+        const float     boxDeltaPercent { boxDeltaSeconds / timeScaleSeconds };
         //                           Max() ensures things are still visible
-        const float     boxWidthPx = Max( boxDeltaPercent * cameraViewportSize.x, 10.0f );
-        const float     boxXMinPercent
-          = ( profileFunction->mBeginTime - timepointLeft )
-          / timeScaleSeconds;
-        const float     boxXMinPx = cameraViewportPos.x + cameraViewportSize.x * boxXMinPercent;
-        const float     boxXMaxPx = boxXMinPx + boxWidthPx;
-        const float     boxY = threadY + visitor.mDepth * boxHeight;
-        const v2        boxMin = { boxXMinPx, boxY };
-        const v2        boxMax = { boxXMaxPx, boxY + boxHeight };
-        const ImGuiRect boxRect = ImGuiRect::FromMinMax( boxMin, boxMax );
-        const v4        boxColor = GetProfileFunctionColor( profileFunction );
+        const float     boxWidthPx { Max( boxDeltaPercent * cameraViewportSize.x, 10.0f ) };
+        const float     boxXMinPercent{ ( profileFunction->mBeginTime - timepointLeft ) / timeScaleSeconds };
+        const float     boxXMinPx { cameraViewportPos.x + cameraViewportSize.x * boxXMinPercent };
+        const float     boxXMaxPx { boxXMinPx + boxWidthPx };
+        const float     boxY { threadY + visitor.mDepth * boxHeight };
+        const v2        boxMin  { boxXMinPx, boxY };
+        const v2        boxMax  { boxXMaxPx, boxY + boxHeight };
+        const ImGuiRect boxRect { ImGuiRect::FromMinMax( boxMin, boxMax ) };
+        const v4        boxColor { GetProfileFunctionColor( profileFunction ) };
 
         const StringView textPrefix( "Tac::" );
-        const char* textFunction = profileFunction->mName;
+        const char* textFunction { profileFunction->mName };
         const v4         textColor( 0, 0, 0, 1 );
-        const char* text = StringView( textFunction ).starts_with( textPrefix )
+        const char* text{ StringView( textFunction ).starts_with( textPrefix )
           ? textFunction + textPrefix.size()
-          : textFunction;
+          : textFunction };
 
         if( imguiWindow->IsHovered( boxRect ) )
         {
-          const v2 textSize = CalculateTextSize( profileFunction->mName, fontSize );
-          const float boxDeltaMsec = ( float )( boxDeltaSeconds * 1000 );
+          const v2 textSize { CalculateTextSize( profileFunction->mName, fontSize ) };
+          const float boxDeltaMsec { ( float )( boxDeltaSeconds * 1000 ) };
 
 
           ImGuiSetNextWindowPosition( sKeyboardApi->GetMousePosScreenspace() );
@@ -222,20 +220,20 @@ namespace Tac
           ImGuiEnd();
         }
 
-        const UI2DDrawData::Box drawBox =
+        const UI2DDrawData::Box drawBox 
         {
-          .mMini = boxMin,
-          .mMaxi = boxMax,
-          .mColor = boxColor,
+          .mMini { boxMin },
+          .mMaxi { boxMax },
+          .mColor { boxColor },
         };
         drawData->AddBox( drawBox );
 
-        const UI2DDrawData::Text drawText =
+        const UI2DDrawData::Text drawText 
         {
-          .mPos = boxMin,
-          .mFontSize = fontSize,
-          .mUtf8 = text,
-          .mColor = textColor,
+          .mPos { boxMin },
+          .mFontSize { fontSize },
+          .mUtf8 { text },
+          .mColor { textColor },
         };
         drawData->AddText( drawText );
       }
@@ -243,7 +241,7 @@ namespace Tac
 
     // Pan camera
     {
-      const ImGuiRect viewRect = ImGuiRect::FromPosSize( cameraViewportPos, cameraViewportSize );
+      const ImGuiRect viewRect { ImGuiRect::FromPosSize( cameraViewportPos, cameraViewportSize ) };
       if( imguiWindow->IsHovered( viewRect ) )
       {
         //static Timestamp mouseMovement;
@@ -253,9 +251,9 @@ namespace Tac
         {
           if( sKeyboardApi->IsPressed( Key::MouseLeft ) )
           {
-            const float movePixels = sKeyboardApi->GetMousePosDelta().x;
-            const float movePercent = movePixels / cameraViewportSize.x;
-            const float moveSeconds = movePercent * ( sMilisecondsToDisplay / 1000 );
+            const float movePixels { sKeyboardApi->GetMousePosDelta().x };
+            const float movePercent { movePixels / cameraViewportSize.x };
+            const float moveSeconds { movePercent * ( sMilisecondsToDisplay / 1000 ) };
             sPauseSec -= moveSeconds;
           }
           sMilisecondsToDisplay -= sKeyboardApi->GetMouseWheelDelta() * 0.4f;
@@ -267,50 +265,50 @@ namespace Tac
   static void ImGuiProfileWidgetTimeScale( const v2 timelinePos,
                                            const v2 timelineSize )
   {
-    const float fontSize = ImGuiGetFontSize();
-    const v4& textColor = ImGuiGetColor( ImGuiCol::Text );
+    const float fontSize { ImGuiGetFontSize() };
+    const v4& textColor { ImGuiGetColor( ImGuiCol::Text ) };
 
-    ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
-    UI2DDrawData* drawData = imguiWindow->mDrawData;
+    ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
+    UI2DDrawData* drawData { imguiWindow->mDrawData };
 
-    const UI2DDrawData::Box box =
+    const UI2DDrawData::Box box 
     {
-      .mMini = timelinePos,
-      .mMaxi = timelinePos + timelineSize,
-      .mColor = v4( 1, 0, 0, 1 )
+      .mMini { timelinePos },
+      .mMaxi { timelinePos + timelineSize },
+      .mColor { v4( 1, 0, 0, 1  )}
     };
     drawData->AddBox( box );
 
-    const float pxPerMs = timelineSize.x / sMilisecondsToDisplay;
+    const float pxPerMs { timelineSize.x / sMilisecondsToDisplay };
 
-    for( int iMs = 0; iMs < ( int )sMilisecondsToDisplay; ++iMs )
+    for( int iMs { 0 }; iMs < ( int )sMilisecondsToDisplay; ++iMs )
     {
-      const float msOffset = pxPerMs * iMs;
+      const float msOffset { pxPerMs * iMs };
 
-      const v2    tickBot = timelinePos + v2( msOffset, timelineSize.y );
-      const v2    tickTop = tickBot - v2( 0, 10 );
+      const v2    tickBot { timelinePos + v2( msOffset, timelineSize.y ) };
+      const v2    tickTop { tickBot - v2( 0, 10 ) };
 
-      auto text = ToString( iMs );
-      const v2    textSize = CalculateTextSize( text, fontSize );
-      const v2    textPos( tickTop.x - textSize.x / 2,
-                           tickTop.y - textSize.y );
+      auto text { ToString( iMs ) };
+      const v2    textSize { CalculateTextSize( text, fontSize ) };
+      const v2    textPos{ tickTop.x - textSize.x / 2,
+                           tickTop.y - textSize.y };
 
 
-      const UI2DDrawData::Line line =
+      const UI2DDrawData::Line line 
       {
-        .mP0 = tickBot,
-        .mP1 = tickTop,
-        .mLineRadius = 2,
-        .mColor = v4( 1, 1, 1, 1 ),
+        .mP0 { tickBot },
+        .mP1 { tickTop },
+        .mLineRadius { 2 },
+        .mColor { v4( 1, 1, 1, 1 ) },
       };
       drawData->AddLine( line );
 
-      const UI2DDrawData::Text drawText =
+      const UI2DDrawData::Text drawText 
       {
-        .mPos = textPos,
-        .mFontSize = fontSize,
-        .mUtf8 = text,
-        .mColor = textColor,
+        .mPos { textPos },
+        .mFontSize { fontSize },
+        .mUtf8 { text },
+        .mColor { textColor },
       };
       drawData->AddText( drawText );
     }
@@ -321,24 +319,24 @@ void Tac::ImGuiProfileWidget( SimKeyboardApi* keyboardApi )
 {
   sKeyboardApi = keyboardApi;
 
-  const float fontSize = ImGuiGetFontSize();
-  ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
-  UI2DDrawData* drawData = imguiWindow->mDrawData;
+  const float fontSize { ImGuiGetFontSize() };
+  ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
+  UI2DDrawData* drawData { imguiWindow->mDrawData };
 
-  const int   fps = GetFPS();
-  const float fpsT = Saturate( ( float )fps / 400.0f ); // 1 = fast, 0 = slow
-  const v2    fpsBoxMin = imguiWindow->mViewportSpaceCurrCursor + v2( 80.0f, 7.0f );
-  const v2    fpsBoxMax = fpsBoxMin + v2( ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
-                                          2.0f );
+  const int   fps { GetFPS() };
+  const float fpsT { Saturate( ( float )fps / 400.0f ); // 1 = fast, 0 = slo }w
+  const v2    fpsBoxMin { imguiWindow->mViewportSpaceCurrCursor + v2( 80.0f, 7.0f ) };
+  const v2    fpsBoxMax{ fpsBoxMin + v2( ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
+                                          2.0f ) };
   const v4    fastColor( 0, 1, 0, 1 );
   const v4    slowColor( 1, 0, 0, 1 );
-  const v4    fpsColor = Lerp( slowColor, fastColor, fpsT );
+  const v4    fpsColor { Lerp( slowColor, fastColor, fpsT ) };
 
   const UI2DDrawData::Box fpsBox
   {
-    .mMini = fpsBoxMin,
-    .mMaxi = fpsBoxMax,
-    .mColor = fpsColor,
+    .mMini { fpsBoxMin },
+    .mMaxi { fpsBoxMax },
+    .mColor { fpsColor },
   };
   drawData->AddBox( fpsBox );
 
@@ -347,7 +345,7 @@ void Tac::ImGuiProfileWidget( SimKeyboardApi* keyboardApi )
 
   if( ProfileGetIsRuning() )
   {
-    const bool hasData = !sProfiledFunctions.empty();
+    const bool hasData { !sProfiledFunctions.empty() };
     if( hasData )
       sProfiledFunctions.Clear();
 
@@ -361,16 +359,16 @@ void Tac::ImGuiProfileWidget( SimKeyboardApi* keyboardApi )
   else if( ImGuiButton( "Resume Profiling" ) )
     ProfileSetIsRuning( true );
 
-  static bool profileDrawGrid = true;
+  static bool profileDrawGrid { true };
   ImGuiCheckbox( "Profile draw grid", &profileDrawGrid );
 
-  const v2    timelinePos = imguiWindow->mViewportSpaceCurrCursor;
-  const v2    timelineSize = v2( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - imguiWindow->mViewportSpaceCurrCursor.x,
-                                 fontSize * 3.0f );
+  const v2    timelinePos { imguiWindow->mViewportSpaceCurrCursor };
+  const v2    timelineSize{ v2( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - imguiWindow->mViewportSpaceCurrCursor.x,
+                                 fontSize * 3.0f ) };
   imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
-  const v2    cameraViewportPos = imguiWindow->mViewportSpaceCurrCursor;
-  const v2    cameraViewportSize = imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos;
+  const v2    cameraViewportPos { imguiWindow->mViewportSpaceCurrCursor };
+  const v2    cameraViewportSize { imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos };
   imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
   if( profileDrawGrid )

@@ -43,7 +43,7 @@ namespace Tac
 
   private:
     T        mTs[ N ]{};
-    int      mTCount = 0;
+    int      mTCount {};
   };
 
 
@@ -84,7 +84,7 @@ namespace Tac
   template< typename T, int N > void     FixedVector<T, N>::append_range( const T* ts, int n )
   {
     TAC_ASSERT( mTCount + n <= N );
-    T* dst = end();
+    T* dst { end() };
     mTCount += n;
     for( int i{}; i < n; ++i )
       *dst++ = *ts++;
@@ -97,7 +97,7 @@ namespace Tac
   template<typename T, int N >
   bool operator ==( const FixedVector<T, N>& a, const FixedVector<T, N>& b )
   {
-    const int n = a.size();
+    const int n { a.size() };
     if( n != b.size() )
       return false;
 

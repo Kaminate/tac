@@ -12,16 +12,16 @@ namespace Tac
     void DeepCopy( const ProfileFunction* );
 
 
-    ProfileFunction* mParent = nullptr;
-    ProfileFunction* mNext = nullptr;
-    ProfileFunction* mChildren = nullptr;
+    ProfileFunction* mParent { nullptr };
+    ProfileFunction* mNext { nullptr };
+    ProfileFunction* mChildren { nullptr };
 
     //               must be a time point, Timestep::GetElapsedTime()
     //               is constant for the entire frame
     Timepoint        mBeginTime;
     Timepoint        mEndTime;
 
-    const char*      mName = nullptr;
+    const char*      mName { nullptr };
   };
 }
 

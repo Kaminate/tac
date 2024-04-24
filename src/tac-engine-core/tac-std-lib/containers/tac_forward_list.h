@@ -20,7 +20,7 @@ private:
     ~Node()                { TAC_DELETE mNext; mNext = nullptr; }
 
     T        mT;
-    Node*    mNext = nullptr;
+    Node*    mNext { nullptr };
   };
 
 public:
@@ -30,7 +30,7 @@ public:
     const T&    operator *()  { return mNode->mT; }
     void        operator ++() { mNode = mNode->mNext; }
 
-    const Node* mNode = nullptr;
+    const Node* mNode { nullptr };
   };
 
   struct Iterator
@@ -39,7 +39,7 @@ public:
     T&          operator *()  { return mNode->mT; }
     void        operator ++() { mNode = mNode->mNext; }
 
-    Node*       mNode = nullptr;
+    Node*       mNode { nullptr };
   };
 
   ~ForwardList()           { Clear(); }
@@ -60,8 +60,8 @@ private:
 
   void            assign( const ForwardList& );
 
-  Node*           mHead = nullptr;
-  int             mSize = 0;
+  Node*           mHead {};
+  int             mSize {};
 };
 
 template< typename T >
@@ -85,7 +85,7 @@ void Tac::ForwardList<T>::PushFront( T t )
 template< typename T >
 T Tac::ForwardList<T>::PopFront()
 {
-  T t = mHead->mT;
+  T t { mHead->mT };
   mSize--;
   mHead = mHead->mNext;
   return t;

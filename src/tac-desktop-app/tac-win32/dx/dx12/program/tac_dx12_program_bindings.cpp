@@ -43,14 +43,14 @@ namespace Tac::Render
     for( int i{}; i < n; ++i )
     {
       const D3D12_SHADER_INPUT_BIND_DESC& info = descs[ i ];
-      D3D12ProgramBinding::Type type = ShaderInputToProgramBindType( info );
-      D3D12ProgramBinding binding
+      const D3D12ProgramBinding::Type type = ShaderInputToProgramBindType( info );
+      const D3D12ProgramBinding binding
       {
-        .mType = type,
-        .mName = info.Name,
-        .mBindCount = ( int )info.BindCount,
-        .mBindRegister = ( int )info.BindPoint,
-        .mRegisterSpace = ( int )info.Space,
+        .mType          { type },
+        .mName          { info.Name },
+        .mBindCount     { ( int )info.BindCount },
+        .mBindRegister  { ( int )info.BindPoint },
+        .mRegisterSpace { ( int )info.Space },
       };
 
       mBindings.push_back( binding );

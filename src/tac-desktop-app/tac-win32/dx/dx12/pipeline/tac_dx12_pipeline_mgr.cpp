@@ -76,7 +76,7 @@ namespace Tac::Render
         .mSpace = binding.mRegisterSpace,
       };
 
-      const bool isArray = binding.mBindCount != 1;
+      const bool isArray { binding.mBindCount != 1 };
 
       if( isArray || binding.mType == D3D12ProgramBinding::Type::kSampler )
       {
@@ -147,9 +147,9 @@ namespace Tac::Render
   {
     switch( fmt )
     {
-    case Tac::Render::kUnknown: return DXGI_FORMAT_UNKNOWN;
-    case Tac::Render::kD24S8: return DXGI_FORMAT_D24_UNORM_S8_UINT;
-    case Tac::Render::kRGBA16F: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    case Tac::Render::kUnknown:              return DXGI_FORMAT_UNKNOWN;
+    case Tac::Render::kD24S8:                return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    case Tac::Render::kRGBA16F:              return DXGI_FORMAT_R16G16B16A16_FLOAT;
     default: TAC_ASSERT_INVALID_CASE( fmt ); return DXGI_FORMAT_UNKNOWN;
     }
   }
@@ -169,55 +169,53 @@ namespace Tac::Render
   void DX12PipelineMgr::CreatePipeline( PipelineHandle h, PipelineParams params, Errors& errors )
   {
 
-    ID3D12Device* device = mDevice;
-
-    DX12Program* program = mProgramMgr->FindProgram( params.mProgram );
+    ID3D12Device* device { mDevice };
+    DX12Program* program { mProgramMgr->FindProgram( params.mProgram ) };
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
-      .FillMode = D3D12_FILL_MODE_SOLID,
-      .CullMode = D3D12_CULL_MODE_BACK,
-      .FrontCounterClockwise = true,
-      .DepthBias = D3D12_DEFAULT_DEPTH_BIAS,
-      .DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
-      .SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-      .DepthClipEnable = true,
+      .FillMode              { D3D12_FILL_MODE_SOLID },
+      .CullMode              { D3D12_CULL_MODE_BACK },
+      .FrontCounterClockwise { true },
+      .DepthBias             { D3D12_DEFAULT_DEPTH_BIAS },
+      .DepthBiasClamp        { D3D12_DEFAULT_DEPTH_BIAS_CLAMP },
+      .SlopeScaledDepthBias  { D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS },
+      .DepthClipEnable       { true },
     };
 
-    const D3D12_BLEND_DESC BlendState
-    {
-      .RenderTarget =
-      {
-        D3D12_RENDER_TARGET_BLEND_DESC
-        {
-          .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
-        },
-      },
-    };
 
-    PCom< ID3D12RootSignature > rootSig = TAC_CALL(
-      BuildRootSignature( device, program->mProgramBindings, errors ) );
+    D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc{};
+    RenderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+    const UINT NumRenderTargets{ ( UINT )params.mRTVColorFmts.size() };
+
+    D3D12_BLEND_DESC BlendState{};
+    for( UINT i{}; i < NumRenderTargets; ++i )
+      BlendState.RenderTarget[ i ] = RenderTargetBlendDesc;
+
+    TAC_CALL( PCom< ID3D12RootSignature > rootSig{
+      BuildRootSignature( device, program->mProgramBindings, errors ) } );
 
     const DXGI_SAMPLE_DESC SampleDesc{ .Count = 1 };
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
-      .pRootSignature = ( ID3D12RootSignature* )rootSig,
-      .VS = program->mVSBytecode,
-      .PS = program->mPSBytecode,
-      .BlendState = BlendState,
-      .SampleMask = UINT_MAX,
-      .RasterizerState = RasterizerState,
-      .DepthStencilState = D3D12_DEPTH_STENCIL_DESC{},
-      .InputLayout = D3D12_INPUT_LAYOUT_DESC{},
-      .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
-      .NumRenderTargets = 1,
-      .DSVFormat = TexFmtToDxgiFormat( params.mDSVDepthFmt ),
-      .SampleDesc = SampleDesc,
+      .pRootSignature        { ( ID3D12RootSignature* )rootSig },
+      .VS                    { program->mVSBytecode },
+      .PS                    { program->mPSBytecode },
+      .BlendState            { BlendState },
+      .SampleMask            { UINT_MAX },
+      .RasterizerState       { RasterizerState },
+      .DepthStencilState     { D3D12_DEPTH_STENCIL_DESC{} },
+      .InputLayout           { D3D12_INPUT_LAYOUT_DESC{} },
+      .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
+      .NumRenderTargets      { NumRenderTargets },
+      .DSVFormat             { TexFmtToDxgiFormat( params.mDSVDepthFmt ) },
+      .SampleDesc            { SampleDesc },
     };
 
 
-    const int n = params.mRTVColorFmts.size();
+    const int n { params.mRTVColorFmts.size() };
     for( int i{}; i < n; ++i )
       psoDesc.RTVFormats[ i ] = TexFmtToDxgiFormat( params.mRTVColorFmts[ i ] );
 
@@ -228,8 +226,8 @@ namespace Tac::Render
 
     mPipelines[ h.GetIndex() ] = DX12Pipeline
     {
-      .mPSO = pso,
-      .mRootSignature = rootSig,
+      .mPSO           { pso },
+      .mRootSignature { rootSig },
     };
   }
 

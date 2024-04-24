@@ -46,7 +46,7 @@ namespace Tac::WindowBackend
     static bool mIsRendererEnabled;
   };
 
-  inline Render::TexFmt sTexFmt = Render::TexFmt::kRGBA16F;
+  inline Render::TexFmt sTexFmt { Render::TexFmt::kRGBA16F };
 
   // Sim thread functions:
 

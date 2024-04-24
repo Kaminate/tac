@@ -15,7 +15,7 @@ namespace Tac::Render
     m_debug->EnableDebugLayer();
     m_debugLayerEnabled = true;
 
-    if( PCom< ID3D12Debug3 > debug3 = m_debug.QueryInterface<ID3D12Debug3>( ) )
+    if( PCom< ID3D12Debug3 > debug3{ m_debug.QueryInterface<ID3D12Debug3>() } )
     {
 
       // ( this should already be enabled by default )

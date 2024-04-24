@@ -60,7 +60,7 @@ namespace Tac::Render
       return mUsedIndexCount++;
     }
 
-    int i = mFreeIndexes.back();
+    const int i { mFreeIndexes.back() };
     mFreeIndexes.pop_back();
     return i;
   }
@@ -69,8 +69,8 @@ namespace Tac::Render
   {
     return DX12DescriptorHeapAllocation
     {
-      .mOwner = this,
-      .mIndex = AllocateIndex(),
+      .mOwner { this },
+      .mIndex { AllocateIndex() },
     };
   }
 

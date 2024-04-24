@@ -22,13 +22,13 @@ namespace Tac
   void       MemCpy( void*, const void*, int );
   void       MemSet( void*, unsigned char, int );
 
-  String ToString( int );
-  String ToString( char );
-  String ToString( unsigned int );
-  String ToString( unsigned long long );
-  String ToString( const void* );
-  String ToString( double );
-  String ToString( float );
+  String     ToString( int );
+  String     ToString( char );
+  String     ToString( unsigned int );
+  String     ToString( unsigned long long );
+  String     ToString( const void* );
+  String     ToString( double );
+  String     ToString( float );
 
   // StringView Va( const char* format, ... );
   int        Atoi( const StringView& );
@@ -113,12 +113,12 @@ namespace Tac
     // allows for String() == StringView()
     constexpr operator StringView() const noexcept { return StringView( mStr, mLen ); }
 
-    static const int ssocapacity = 20;               // small string optimization allocates on stack
-    static const int npos = -1;                      // mimicking the standard library
-    char             mSSOBuffer[ ssocapacity ] = "";
-    char*            mStr = mSSOBuffer;
-    int              mLen = 0;                       // number of bytes before the null-terminator
-    int              mCapacity = ssocapacity;        // includes the null-terminator
+    static const int ssocapacity { 20 };               // small string optimization allocates on stack
+    static const int npos { -1 };                      // mimicking the standard library
+    char             mSSOBuffer[ ssocapacity ] { "" };
+    char*            mStr { mSSOBuffer };
+    int              mLen { 0 };                       // number of bytes before the null-terminator
+    int              mCapacity { ssocapacity };        // includes the null-terminator
   };
 
   // -----------------------------------------------------------------------------------------------
