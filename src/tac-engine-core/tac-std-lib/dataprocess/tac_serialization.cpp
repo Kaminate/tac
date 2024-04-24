@@ -45,7 +45,7 @@ namespace Tac
     auto srcDiff = ( std::intptr_t )valueCount * ( intptr_t )sizeOfValue;
     if( dstDiff < srcDiff )
       return false;
-    for( int i = 0; i < valueCount; ++i )
+    for( int i{}; i < valueCount; ++i )
       CopyValueAccountForEndianness( ( char* )values + ( intptr_t )sizeOfValue * i,
       ( char* )mBegin + ( intptr_t )sizeOfValue * i,
                                      sizeOfValue, mFrom, mTo );
@@ -79,7 +79,7 @@ namespace Tac
     TAC_ASSERT( mTo != Endianness::Unknown );
     const int oldSize = mBytes.size();
     mBytes.resize( oldSize + sizeOfValue * valueCount );
-    for( int i = 0; i < valueCount; ++i )
+    for( int i{}; i < valueCount; ++i )
     {
       void* dst = ( char* )mBytes.data() + std::ptrdiff_t( oldSize + i * sizeOfValue);
       const void* src = ( const char* )values + sizeOfValue * i;

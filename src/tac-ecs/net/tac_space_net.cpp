@@ -31,7 +31,7 @@ namespace Tac
       return NetBitDiff{ 0xff };
 
     u8 bitfield = 0;
-    for( int i = 0; i < networkBits.size(); ++i )
+    for( int i{}; i < networkBits.size(); ++i )
     {
       const NetworkBit& bits = networkBits[ i ];
       auto oldBits = ( char* )oldData + bits.mByteOffset;

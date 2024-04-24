@@ -28,7 +28,7 @@ namespace Tac
 
   template< typename T, int N > bool operator == ( const Array<T, N>& a, const Array<T, N>& b )
   {
-    for( int i = 0; i < N; ++i )
+    for( int i{}; i < N; ++i )
       if( a[ i ] != b[ i ] )
         return false;
       return true;

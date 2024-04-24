@@ -43,7 +43,7 @@ namespace Tac
   bool        StringView::empty() const             { return mLen == 0; }
   int         StringView::find_last_of( const StringView& s ) const
   {
-    for( int i = mLen - 1; i >= 0; --i )
+    for( int i{ mLen - 1 }; i >= 0; --i )
       if( s.contains( mStr[ i ] ) )
         return i;
     return npos;
@@ -51,7 +51,7 @@ namespace Tac
 
   int         StringView::find_last_of( char c ) const
   {
-    for( int i = mLen - 1; i >= 0; --i )
+    for( int i{ mLen - 1 }; i >= 0; --i )
       if( c == mStr[ i ] )
         return i;
     return npos;
@@ -64,7 +64,7 @@ namespace Tac
 
   int         StringView::find_first_of( const StringView& s ) const
   {
-    for( int i = 0; i < mLen; ++i )
+    for( int i{}; i < mLen; ++i )
       if( s.contains( mStr[ i ] ) )
         return i;
     return npos;
@@ -73,7 +73,7 @@ namespace Tac
   {
     if( substr.mLen > mLen )
       return npos;
-    for( int i = 0; i <= mLen - substr.mLen; ++i )
+    for( int i{}; i <= mLen - substr.mLen; ++i )
       if( MemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
         return i;
     return npos;
@@ -81,7 +81,7 @@ namespace Tac
 
   int         StringView::find( const char c ) const
   {
-    for( int i = 0; i < mLen; ++i )
+    for( int i { 0 }; i < mLen; ++i )
       if( c == mStr[ i ] )
         return i;
     return npos;

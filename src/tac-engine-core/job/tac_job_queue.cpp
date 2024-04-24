@@ -90,7 +90,7 @@ namespace Tac
     const int threadCount = Max( ( int )std::thread::hardware_concurrency(), kMinThreadCount );
     sJobQueueThreads.resize( threadCount );
     sJobQueueRunning = true;
-    for( int i = 0; i < threadCount; ++i )
+    for( int i{}; i < threadCount; ++i )
     {
       std::thread& curThread = sJobQueueThreads[ i ];
       curThread = std::thread( WorkerThread );

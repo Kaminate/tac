@@ -170,7 +170,7 @@ struct Tac::Set
     mSize = 0;
     mNodes = TAC_NEW Node[ mCapacity = capacity ];
 
-    for( int i = 0; i < oldCapacity; ++i )
+    for( int i{}; i < oldCapacity; ++i )
       if( oldNodes[i].mOccupied )
         insert( oldNodes[i].mT );
 
@@ -182,7 +182,7 @@ struct Tac::Set
   void Tac::Set< T>::clear()
   {
     mSize = 0;
-    for( int i = 0; i < mCapacity; ++i )
+    for( int i{}; i < mCapacity; ++i )
       mNodes[ i ] = {};
   }
 

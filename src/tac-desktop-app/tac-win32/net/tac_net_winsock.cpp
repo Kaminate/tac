@@ -158,7 +158,7 @@ namespace Tac::Network
         framed[ iByte++ ] = b;
 
       u8 masks[ 4 ];
-      for( int i = 0; i < 4; ++i )
+      for( int i{}; i < 4; ++i )
       {
         u8 mask = std::rand() % 256;
         masks[ i ] = mask;
@@ -166,7 +166,7 @@ namespace Tac::Network
       }
 
       u8* unmaskedBytes = ( u8* )bytes;
-      for( int i = 0; i < byteCount; ++i )
+      for( int i{}; i < byteCount; ++i )
       {
         u8 unmaskedByte = *unmaskedBytes++;
         u8 mask = masks[ i % 4 ];

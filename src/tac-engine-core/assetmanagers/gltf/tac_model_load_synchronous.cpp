@@ -21,7 +21,7 @@ namespace Tac
   {
     auto indiciesData = ( T* )( ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset );
     Vector< int > result( ( int )indices->count );
-    for( int i = 0; i < ( int )indices->count; ++i )
+    for( int i{}; i < ( int )indices->count; ++i )
       result[ i ] = ( int )indiciesData[ i ];
     return result;
   }

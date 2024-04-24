@@ -201,7 +201,7 @@ namespace Tac
   void UI2DCommonData::Init( Errors& errors )
   {
 #if TAC_TEMPORARILY_DISABLED()
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const u8 data[] = { 255, 255, 255, 255 };
     const Render::CreateTextureParams textureData =
     {
@@ -230,7 +230,7 @@ namespace Tac
     };
     mShader = renderDevice->CreateProgram( programParams2D, errors );
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams2Dtext
     {
       .mFileStem = "2Dtext",
@@ -317,7 +317,7 @@ namespace Tac
   void UI2DCommonData::Uninit()
   {
 #if TAC_TEMPORARILY_DISABLED()
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     renderDevice->DestroyTexture( m1x1White );
     renderDevice->DestroyVertexFormat( mFormat );
     renderDevice->DestroyProgram( mShader );
@@ -582,6 +582,7 @@ namespace Tac
 
   void UI2DDrawData::AddText( const Text& text, const ImGuiRect* clipRect )
   {
+#if TAC_FONT_ENABLED()
     const v2& textPos = text.mPos;
     const float fontSize = text.mFontSize;
     const StringView& utf8 = text.mUtf8;
@@ -749,6 +750,7 @@ namespace Tac
     };
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );
+#endif
   }
 
 
@@ -773,6 +775,7 @@ namespace Tac
                         const int codepointCount,
                         const float fontSize )
   {
+#if TAC_FONT_ENABLED()
 
     //float unscaledLineWidthMax = 0; // max width of all lines
     //float unscaledLineWidthCur = 0;
@@ -835,6 +838,9 @@ namespace Tac
     const v2 unscaledTextSize( xUnscaledMax, yUnscaledMax );
     const v2 scaledTextSize = unscaledTextSize * fontSizeScale;
     return scaledTextSize;
+#else
+    return {};
+#endif
   }
 
   Render::TextureHandle Get1x1White() { return gUI2DCommonData.m1x1White; }

@@ -30,7 +30,7 @@ namespace Tac::Render
   static RendererFactory GetFactoryFromSettings()
   {
     const String name = SettingsGetString( "chosen_renderer", "" );
-    for( int i = 0; i < ( int )RendererAPI::Count; ++i )
+    for( int i{}; i < ( int )RendererAPI::Count; ++i )
       if( ToString( ( RendererAPI )i ) == name )
         return GetRendererFactory( ( RendererAPI )i );
 
@@ -48,7 +48,7 @@ namespace Tac::Render
 
   static RendererFactory GetFactoryFromIndex()
   {
-    for( int i = 0; i < ( int )RendererAPI::Count; ++i )
+    for( int i{}; i < ( int )RendererAPI::Count; ++i )
       if( RendererFactory factory = GetRendererFactory( ( RendererAPI )i ) )
         return factory;
 

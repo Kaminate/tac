@@ -24,7 +24,7 @@ namespace Tac
     {
       const int size = v.size();
       resize( size );
-      for( int i = 0; i < size; ++i )
+      for( int i{}; i < size; ++i )
         mTs[ i ] = v[ i ];
     }
 
@@ -33,7 +33,7 @@ namespace Tac
     Vector( int size, T initialValue )
     {
       resize( size );
-      for( int i = 0; i < size; ++i )
+      for( int i{}; i < size; ++i )
         mTs[ i ] = initialValue;
     }
 
@@ -41,7 +41,7 @@ namespace Tac
     {
       int size = ( int )( tend - tbegin );
       resize( size );
-      for( int i = 0; i < size; ++i )
+      for( int i{}; i < size; ++i )
         mTs[ i ] = tbegin[ i ];
     }
 
@@ -61,7 +61,7 @@ namespace Tac
     {
       const int newSize = ( int )( end - begin );
       reserve( newSize );
-      for( int i = 0; i < newSize; ++i )
+      for( int i{}; i < newSize; ++i )
         mTs[ i ] = begin[ i ];
       mTCount = newSize;
     }
@@ -69,7 +69,7 @@ namespace Tac
     void     assign( int n, const T& t )
     {
       reserve( n );
-      for( int i = 0; i < n; ++i )
+      for( int i{}; i < n; ++i )
         mTs[ i ] = t;
       mTCount = n;
     }
@@ -112,7 +112,7 @@ namespace Tac
         return;
 
       T* newTs = TAC_NEW T[ capacity ];
-      for( int i = 0; i < mTCount; ++i )
+      for( int i{}; i < mTCount; ++i )
         newTs[ i ] = Tac::move( mTs[ i ] );
 
       delete[] mTs;
@@ -145,7 +145,7 @@ namespace Tac
       const int moveCount = mTCount - iPos;
       reserve( mTCount + ( int )ts.size() );
       pos = mTs + iPos;
-      for( int i = 0; i < moveCount; ++i )
+      for( int i{}; i < moveCount; ++i )
         pos[ ts.size() + moveCount - i - 1 ] = Tac::move( pos[ moveCount - i - 1 ] ); // std::move( pos[ moveCount - i - 1 ] );
       for( auto it : ts )
         *pos++ = it;
@@ -168,7 +168,7 @@ namespace Tac
     if( n != b.size() )
       return false;
 
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       if( a[ i ] != b[ i ] )
         return false;
 

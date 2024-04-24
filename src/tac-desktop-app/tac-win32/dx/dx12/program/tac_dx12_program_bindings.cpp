@@ -40,7 +40,7 @@ namespace Tac::Render
 
   D3D12ProgramBindings::D3D12ProgramBindings( const D3D12_SHADER_INPUT_BIND_DESC* descs, int n )
   {
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
     {
       const D3D12_SHADER_INPUT_BIND_DESC& info = descs[ i ];
       D3D12ProgramBinding::Type type = ShaderInputToProgramBindType( info );

@@ -47,7 +47,7 @@ namespace Tac::OS
       if constexpr( !IsDebugMode )
         return;
 
-      const char* szstr = s.c_str();
+      const char* szstr { s.c_str() };
 
       //static bool printing; // prevent recursion?
       //if( printing )
@@ -60,7 +60,7 @@ namespace Tac::OS
       std::cout << szstr << std::endl;
       //printing = false;
 
-      const bool good = std::cout.good();
+      const bool good { std::cout.good() };
       if( !good )
       {
         // this should never happen hopefully

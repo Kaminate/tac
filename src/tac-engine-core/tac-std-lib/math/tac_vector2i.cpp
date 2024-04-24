@@ -11,18 +11,18 @@ namespace Tac
   const int* v2i::data() const { return &x; }
   int&       v2i::operator[]( int i ) { return data()[ i ]; }
   int        v2i::operator[]( int i ) const { return data()[ i ]; }
-  void       v2i::operator -= ( const v2i& v ) { for( int i = 0; i < 2; ++i ) data()[ i ] -= v[ i ]; }
-  void       v2i::operator += ( const v2i& v ) { for( int i = 0; i < 2; ++i ) data()[ i ] += v[ i ]; }
+  void       v2i::operator -= ( const v2i& v ) { for( int i{}; i < 2; ++i ) data()[ i ] -= v[ i ]; }
+  void       v2i::operator += ( const v2i& v ) { for( int i{}; i < 2; ++i ) data()[ i ] += v[ i ]; }
   bool       v2i::operator == ( const v2i& v ) const
   {
-    for( int i = 0; i < 2; ++i )
+    for( int i{}; i < 2; ++i )
       if( data()[ i ] != v[ i ] )
         return false;
     return true;
   }
   bool       v2i::operator != ( const v2i& v ) const
   {
-    for( int i = 0; i < 2; ++i )
+    for( int i{}; i < 2; ++i )
       if( data()[ i ] != v[ i ] )
         return true;
     return false;

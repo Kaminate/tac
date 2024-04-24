@@ -18,6 +18,6 @@ namespace Tac
     return gThreadType == type;
   }
 
-  bool DesktopAppThreads::IsMainThread() { return IsType( ThreadType::Main ); }
-  bool DesktopAppThreads::IsLogicThread() { return IsType( ThreadType::Logic ); }
+  bool DesktopAppThreads::IsSysThread() { return IsType( ThreadType::Sys ); }
+  bool DesktopAppThreads::IsSimThread() { return IsType( ThreadType::Sim ); }
 } // namespace Tac

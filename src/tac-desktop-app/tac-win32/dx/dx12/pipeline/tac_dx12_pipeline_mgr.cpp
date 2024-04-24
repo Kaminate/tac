@@ -218,7 +218,7 @@ namespace Tac::Render
 
 
     const int n = params.mRTVColorFmts.size();
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       psoDesc.RTVFormats[ i ] = TexFmtToDxgiFormat( params.mRTVColorFmts[ i ] );
 
     PCom< ID3D12PipelineState > pso;

@@ -26,7 +26,7 @@ namespace Tac
       }
       else
       {
-        unsigned int i = 0;
+        unsigned int i{};
         if( rotation( 1, 1 ) > rotation( 0, 0 ) )
           i = 1;
         if( rotation( 2, 2 ) > rotation( i, i ) )
@@ -175,7 +175,7 @@ namespace Tac
       for( int c = 0; c < 3; ++c )
       {
         float sum = 0;
-        for( int i = 0; i < 3; ++i )
+        for( int i{}; i < 3; ++i )
         {
           sum += lhs( r, i ) * rhs( i, c );
         }
@@ -421,7 +421,7 @@ namespace Tac
 
   void m3::operator*= ( float f )
   {
-    for( int i = 0; i < 3 * 3; ++i )
+    for( int i{}; i < 3 * 3; ++i )
       data()[ i ] *= f;
   }
 
@@ -429,7 +429,7 @@ namespace Tac
   {
     float* dst = this->data();
     const float* src = m.data();
-    for( int i = 0; i < 3 * 3; ++i )
+    for( int i{}; i < 3 * 3; ++i )
     {
       dst[ i ] += src[ i ];
     }

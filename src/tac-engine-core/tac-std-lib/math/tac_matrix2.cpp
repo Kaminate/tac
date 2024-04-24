@@ -47,7 +47,7 @@ namespace Tac
 
   m2&          m2::operator*= (float f)
   {
-    for( int i = 0; i < 4; ++i )
+    for( int i{}; i < 4; ++i )
       data()[i] *= f;
 
     return *this;

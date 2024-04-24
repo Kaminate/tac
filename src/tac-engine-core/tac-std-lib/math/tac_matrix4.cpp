@@ -41,14 +41,14 @@ namespace Tac
   void         m4::operator /= ( const float f )
   {
     const float finv = 1.0f / f;
-    for( int i = 0; i < 16; ++i )
+    for( int i{}; i < 16; ++i )
       data()[ i ] *= finv;
   }
 
 
   bool         m4::operator == ( const m4& m ) const
   {
-    for( int i = 0; i < 16; ++i )
+    for( int i{}; i < 16; ++i )
       if( data()[ i ] != m[ i ] )
         return false;
     return true;
@@ -92,7 +92,7 @@ namespace Tac
 
   void         m4::SetColumn( int c, const v4&  v )
   {
-    for( int i = 0; i < 4; ++i )
+    for( int i{}; i < 4; ++i )
       this->operator()( i, c ) = v[ i ];
   }
 
@@ -474,7 +474,7 @@ namespace Tac
   v4 operator*( const m4& m, const v4& v )
   {
     v4 result;
-    for( int i = 0; i < 4; ++i )
+    for( int i{}; i < 4; ++i )
     {
       float sum = 0;
       for( int j = 0; j < 4; ++j )
@@ -494,7 +494,7 @@ namespace Tac
       for( int c = 0; c < 4; ++c )
       {
         float sum = 0;
-        for( int i = 0; i < 4; ++i )
+        for( int i{}; i < 4; ++i )
         {
           sum += lhs( r, i ) * rhs( i, c );
         }

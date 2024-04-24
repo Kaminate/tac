@@ -33,10 +33,10 @@ namespace Tac
     void         Normalize();
     float        Length() const;
     float        Quadrance() const;
-    float        x = 0;
-    float        y = 0;
-    float        z = 0;
-    float        w = 0;
+    float        x { 0 };
+    float        y { 0 };
+    float        z { 0 };
+    float        w { 0 };
   };
 
   v4             operator*( float, const v4& );

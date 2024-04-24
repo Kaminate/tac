@@ -1,10 +1,11 @@
 #include "tac_level_editor.h" // self-inc
 
-#include "tac-desktop-app/tac_iapp.h" // App
+#include "tac-desktop-app/desktop_app/tac_iapp.h" // App
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 
 //#include "tac-rhi/render/tac_render.h"
 //#include "tac-rhi/render/tac_render_handles.h"
@@ -23,24 +24,28 @@ namespace Tac
   struct LevelEditorApp : public App
   {
     LevelEditorApp( const Config& );
-    void Init( SimInitParams, Errors& ) override;
-    void Update( SimUpdateParams, Errors& ) override;
+    void Init( InitParams, Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
     void Uninit( Errors& ) override;
-    void Render( SysRenderParams, Errors& ) override;
+    void Render( RenderParams, Errors& ) override;
     IState* GetGameState() override;
   };
 
   LevelEditorApp::LevelEditorApp( const Config& cfg ) : App( cfg ) {}
 
-  void LevelEditorApp::Init( SimInitParams initParams, Errors& errors )
+  void LevelEditorApp::Init( InitParams initParams, Errors& errors )
   {
     DesktopApp* desktopApp = DesktopApp::GetInstance();
-    SimWindowApi* windowApi = initParams.mWindowApi;
+    SysWindowApi* windowApi = initParams.mWindowApi;
 
-    sWindowHandle = windowApi->CreateWindow( {
+    const WindowCreateParams windowCreateParams
+    {
       .mName = "level editor",
       .mPos{ 50, 50 },
-      .mSize{ 800, 600 }, } );
+      .mSize{ 800, 600 }, 
+    };
+
+    sWindowHandle = windowApi->CreateWindow( windowCreateParams, errors );
     sCreation.Init( errors );
 
     {
@@ -50,7 +55,7 @@ namespace Tac
 
   }
 
-  void LevelEditorApp::Update( SimUpdateParams, Errors& errors )
+  void LevelEditorApp::Update( UpdateParams, Errors& errors )
   {
     sCreation.Update( errors );
   }
@@ -60,7 +65,7 @@ namespace Tac
     sCreation.Uninit( errors );
   }
 
-  void LevelEditorApp::Render( SysRenderParams, Errors& )
+  void LevelEditorApp::Render( RenderParams, Errors& )
   {
 
   }

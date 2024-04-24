@@ -39,7 +39,7 @@ namespace Tac::Render
     const String spaces( iPad, ' ' );
 
     String result;
-    for( int i = 0; i < padByteCount / 4; ++i )
+    for( int i{}; i < padByteCount / 4; ++i )
     {
       const char* separator = i ? "\n" : "";
       const String varName = "pad" + ToString( count );

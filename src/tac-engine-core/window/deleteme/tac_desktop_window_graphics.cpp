@@ -33,23 +33,23 @@ namespace Tac
 
   void WindowGraphics::NativeHandleChanged( const NativeHandleChangedData& data )
   {
-    DesktopWindowHandle desktopWindowHandle = data.mDesktopWindowHandle;
-    const void* nativeWindowHandle = data.mNativeWindowHandle;
-    const char* name = data.mName;
-    const int w = data.mW;
-    const int h = data.mH;
+    DesktopWindowHandle desktopWindowHandle{ data.mDesktopWindowHandle };
+    const void* nativeWindowHandle { data.mNativeWindowHandle };
+    const char* name { data.mName };
+    const int w { data.mW };
+    const int h { data.mH };
     if( nativeWindowHandle )
     {
       const int iWindow = desktopWindowHandle.GetIndex();
 
-      const Render::FramebufferHandle framebufferHandle =
-        Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME );
+      const Render::FramebufferHandle framebufferHandle{
+        Render::CreateFramebufferForWindow( nativeWindowHandle, w, h, TAC_STACK_FRAME ) };
 
-      const ShortFixedString dbgname = ShortFixedString::Concat( name, ".", ToString( iWindow ) );
+      const ShortFixedString dbgname{ ShortFixedString::Concat( name, ".", ToString( iWindow ) ) };
 
       Render::SetRenderObjectDebugName( framebufferHandle, dbgname );
 
-      const Render::ViewHandle viewHandle = Render::CreateView();
+      const Render::ViewHandle viewHandle{ Render::CreateView() };
 
       sWindowFramebuffers[ iWindow ] = framebufferHandle;
       sWindowViews[ iWindow ] = viewHandle;
@@ -70,9 +70,9 @@ namespace Tac
                                   const int w,
                                   const int h )
   {
-    const int i = desktopWindowHandle.GetIndex();
-    const Render::FramebufferHandle framebufferHandle = sWindowFramebuffers[ i ];
-    const Render::ViewHandle viewHandle = sWindowViews[ i ];
+    const int i{ desktopWindowHandle.GetIndex() };
+    const Render::FramebufferHandle framebufferHandle{ sWindowFramebuffers[ i ] };
+    const Render::ViewHandle viewHandle{ sWindowViews[ i ] };
     Render::ResizeFramebuffer( framebufferHandle, w, h, TAC_STACK_FRAME );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect( ( float )w, ( float )h ) );
     Render::SetViewport( viewHandle, Render::Viewport( ( float )w, ( float )h ) );

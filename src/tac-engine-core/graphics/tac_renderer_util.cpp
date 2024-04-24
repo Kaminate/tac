@@ -55,7 +55,7 @@ namespace Tac::Render
 
   void      DefaultCBufferPerFrame::Init( Errors& errors )
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::CreateBufferParams params
     {
       .mByteCount = sizeof( DefaultCBufferPerFrame ),
@@ -68,7 +68,7 @@ namespace Tac::Render
 
   void      DefaultCBufferPerObject::Init(Errors& errors)
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::CreateBufferParams params
     {
       .mByteCount = sizeof( DefaultCBufferPerObject ),
@@ -134,7 +134,7 @@ namespace Tac::Render
 
   void      CBufferLights::Init(Errors& errors)
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::CreateBufferParams params
     {
       .mByteCount = sizeof( CBufferLights ),

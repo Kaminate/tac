@@ -33,7 +33,7 @@
 import std; // #include <iostream> // okay maybe this should also be allowed
 
 static Tac::Win32PlatformFns sWin32PlatformFns;
-static Tac::Render::DX12Device sDX12Backend;
+static Tac::Render::DX12Device sDX12Device;
 
 int CALLBACK WinMain( HINSTANCE hInstance,
                       HINSTANCE hPrevInstance,
@@ -55,6 +55,8 @@ int CALLBACK WinMain( HINSTANCE hInstance,
   TAC_CALL_RET( 0, Render::AllowPIXDebuggerAttachment( errors ));
   //Render::RegisterRendererDirectX11();
 
+  Render::RenderApi::SetRenderDevice( &sDX12Device );
+  TAC_CALL_RET( 0, sDX12Device.Init( errors ) );
   
   //Render::IRenderBackend3::Set( &dx12Backend );
 

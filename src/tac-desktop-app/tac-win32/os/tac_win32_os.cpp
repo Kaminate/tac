@@ -45,13 +45,11 @@ namespace Tac
     HANDLE mNativeHandle;
   };
 
-  static OS::Monitor Win32OSGetPrimaryMonitor()
+  static Monitor Win32OSGetPrimaryMonitor()
   {
-    return 
-    {
-      .mWidth = GetSystemMetrics( SM_CXSCREEN ),
-      .mHeight = GetSystemMetrics( SM_CYSCREEN ),
-    };
+    const int w = GetSystemMetrics( SM_CXSCREEN );
+    const int h = GetSystemMetrics( SM_CYSCREEN );
+    return Monitor{ .mSize { w, h } };
   }
 
   static Filesystem::Path Win32OSOpenDialog( Errors& errors )

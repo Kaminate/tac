@@ -20,8 +20,8 @@ namespace Tac
 
   void MetaFnUnitTest0()
   {
-    int doubleRet = 0;
-    int doubleArg = 5;
+    int doubleRet { 0 };
+    int doubleArg { 5 };
     Variable doubleRetVar( doubleRet );
     Variable doubleArgVar( doubleArg );
     Apply( DoubleMyGuy, doubleRetVar, &doubleArgVar, 1 );
@@ -34,8 +34,8 @@ namespace Tac
 
   void MetaFnUnitTest1()
   {
-    int doubleRet = 0;
-    int doubleArg = 6;
+    int doubleRet { 0 };
+    int doubleArg { 6 };
     Variable doubleRetVar( doubleRet );
     Variable doubleArgVar( doubleArg );
     doubleMeta.Apply( doubleRetVar, &doubleArgVar, 1 );
@@ -48,9 +48,9 @@ namespace Tac
 
   void MetaFnUnitTest2()
   {
-    int ret = 0;
-    int arg0 = 10;
-    float arg1 = 3.14f;
+    int ret { 0 };
+    int arg0 { 10 };
+    float arg1 { 3.14f };
     Variable variableRet( ret );
     Array variables{ Variable( arg0 ), Variable( arg1 ) };
     addFn.Apply( ret, variables.data(), variables.size() );
@@ -76,7 +76,7 @@ namespace Tac
     {
       String joinedArgs;
       const char* sep = "";
-      for( int i = 0; i < fn->ArgCount(); ++i )
+      for( int i { 0 }; i < fn->ArgCount(); ++i )
       {
         joinedArgs += sep;
         joinedArgs += fn->ArgType( i )->GetName();

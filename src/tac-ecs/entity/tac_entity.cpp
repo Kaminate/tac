@@ -228,7 +228,7 @@ namespace Tac
     ImGui::DragFloat3( "Position", mPosition.data(), 0.1f );
 
     Vector< ComponentRegistryEntryIndex > couldBeAdded;
-    for( int i = 0; i < ( int )ComponentRegistryEntryIndex::Count; i++ )
+    for( int i{}; i < ( int )ComponentRegistryEntryIndex::Count; i++ )
     {
       auto componentType = ( ComponentRegistryEntryIndex )i;
       if( HasComponent( componentType ) )

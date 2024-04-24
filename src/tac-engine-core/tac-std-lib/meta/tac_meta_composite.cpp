@@ -56,21 +56,21 @@ namespace Tac
 
   void              MetaCompositeType::JsonSerialize( Json* json, const void* v ) const
   {
-    for( int iMember = 0; iMember < GetMemberCount(); ++iMember )
+    for( int iMember { 0 }; iMember < GetMemberCount(); ++iMember )
     {
-      const MetaMember& member = GetMember( iMember );
-      void* settingBytes = member.mOffset + ( char* )v;
-      Json& child = json->GetChild( member.mName );
+      const MetaMember& member { GetMember( iMember ) };
+      void* settingBytes { member.mOffset + ( char* )v };
+      Json& child { json->GetChild( member.mName ) };
       member.mMetaType->JsonDeserialize( &child, settingBytes );
     }
   }
 
   void              MetaCompositeType::JsonDeserialize( const Json* json, void* v ) const
   {
-    for( int iMember = 0; iMember < GetMemberCount(); ++iMember )
+    for( int iMember { 0 }; iMember < GetMemberCount(); ++iMember )
     {
       const MetaMember& member = GetMember( iMember );
-      if( Json* child = json->FindChild( member.mName ) )
+      if( Json * child{ json->FindChild( member.mName ) } )
       {
         member.mMetaType->JsonDeserialize( child, member.mOffset + ( char* )v );
       }
@@ -93,7 +93,7 @@ namespace Tac
   void MetaCompositeUnitTest()
   {
     const MetaCompositeType& metaStruct = ( MetaCompositeType& )GetMetaType< MetaCompositeTestStruct >();
-    for( int i = 0; i < metaStruct.GetMemberCount(); ++i )
+    for( int i{}; i < metaStruct.GetMemberCount(); ++i )
     {
       const MetaMember& member = metaStruct.GetMember( i );
       const char* strType = member.mMetaType->GetName();

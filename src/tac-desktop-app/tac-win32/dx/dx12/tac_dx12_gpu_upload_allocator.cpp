@@ -110,7 +110,7 @@ namespace Tac::Render
     if( !n )
       return;
 
-    int i = 0;
+    int i{};
     while( i < n )
     {
       RetiredPage& currPage = mRetiredPages[ i ];

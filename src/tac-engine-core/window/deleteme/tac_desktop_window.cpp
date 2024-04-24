@@ -66,10 +66,10 @@ namespace Tac
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState();
     const DesktopWindowRect desktopWindowRect
     {
-      .mLeft = 0,
-      .mRight = desktopWindowState->mWidth,
-      .mBottom = desktopWindowState->mHeight,
-      .mTop = 0,
+      .mLeft { 0 },
+      .mRight { desktopWindowState->mWidth },
+      .mBottom { desktopWindowState->mHeight },
+      .mTop { 0 },
     };
     return desktopWindowRect;
   }
@@ -95,23 +95,23 @@ void Tac::DesktopWindowDebugImgui()
 
   TAC_IMGUI_INDENT_BLOCK;
 
-  int maxNameLen = 0;
+  int maxNameLen { 0 };
   for( const DesktopWindowState& state : sDesktopWindowStates )
     maxNameLen = Max( maxNameLen, state.mName.size() );
 
 
-  int stateCount = 0;
-  for( int iWindow = 0; iWindow < kDesktopWindowCapacity; ++iWindow )
+  int stateCount { 0 };
+  for( int iWindow{ 0 }; iWindow < kDesktopWindowCapacity; ++iWindow )
   {
     const DesktopWindowState* state = &sDesktopWindowStates[ iWindow ];
     if( !state->mNativeWindowHandle )
       continue;
 
-    String handleStr = ToString( iWindow );
+    String handleStr{ ToString( iWindow ) };
     while( handleStr.size() < 2 )
       handleStr += ' ';
 
-    String nameStr = state->mName;
+    String nameStr{ state->mName };
     while( nameStr.size() < maxNameLen )
       nameStr += ' ';
 

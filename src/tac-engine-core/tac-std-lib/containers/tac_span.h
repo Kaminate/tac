@@ -32,7 +32,7 @@ namespace Tac
     void operator = ( const Span<T> other )
     {
       TAC_ASSERT( mTCount == other.mTCount );
-      for( int i = 0; i < mTCount; ++i )
+      for( int i{}; i < mTCount; ++i )
         mTs[ i ] = other.mTs[ i ];
     }
 

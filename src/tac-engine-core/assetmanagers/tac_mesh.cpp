@@ -34,14 +34,14 @@ namespace Tac
     int triCount = ( int )mTris.size();
     for( int iTri = 0; iTri < triCount; ++iTri )
     {
-      const SubMeshTriangle& tri = mTris[ iTri ];
-      float triDist;
-      const bool triHit = RaycastTriangle( tri[ 0 ],
+      const SubMeshTriangle& tri { mTris[ iTri ] };
+      float triDist{};
+      const bool triHit{ RaycastTriangle( tri[ 0 ],
                                            tri[ 1 ],
                                            tri[ 2 ],
                                            inRayPos,
                                            inRayDir,
-                                           triDist );
+                                           triDist ) };
       if( !triHit )
         continue;
       if( submeshHit && triDist > submeshDist )

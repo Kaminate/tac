@@ -198,7 +198,7 @@ void Tac::Map< TKey, TVal >::Reserve( int capacity )
   mNodes = TAC_NEW Node[ mCapacity = capacity ];
   mSize = 0;
 
-  for( int i = 0; i < oldCapacity; ++i )
+  for( int i{}; i < oldCapacity; ++i )
     if( oldNodes[ i ].mOccupied )
       this->operator[]( oldNodes[i].mPair.mFirst ) =  oldNodes[i].mPair.mSecond;
 
@@ -232,7 +232,7 @@ template< typename TKey, typename TVal >
 void Tac::Map< TKey, TVal >::clear()
 {
   mSize = 0;
-  for( int i = 0; i < mCapacity; ++i )
+  for( int i{}; i < mCapacity; ++i )
     mNodes[ i ] = {};
 }
 

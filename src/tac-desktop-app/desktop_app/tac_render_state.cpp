@@ -26,7 +26,7 @@ namespace Tac
     {
       OS::OSDebugPrintLine( String() + "element count: " + ToString( mElements.size() ) );
 
-      int i = 0;
+      int i{};
       for( auto it = mElements.begin(); it != mElements.end(); ++it )
       {
         OS::OSDebugPrintLine

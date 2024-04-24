@@ -62,7 +62,7 @@ namespace Tac
   //  const int n = 100;
   //  TAC_ASSERT( sv.size() < n );
   //  static WCHAR buf[ n ];
-  //  int i = 0;
+  //  int i{};
   //  for( char c : sv )
   //    buf[ i++ ] = c;
   //  buf[ i ] = '\0';

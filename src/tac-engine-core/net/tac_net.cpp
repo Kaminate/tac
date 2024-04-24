@@ -186,7 +186,7 @@ namespace Tac::Network
   Vector< u8 > GenerateSecWebsocketKey()
   {
     Vector< u8 > result;
-    for( int i = 0; i < websocketKeyByteCount; ++i )
+    for( int i{}; i < websocketKeyByteCount; ++i )
     {
       u8 element( std::rand() % 256 );
       result.push_back( element );

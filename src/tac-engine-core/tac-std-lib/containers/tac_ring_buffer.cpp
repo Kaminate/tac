@@ -68,7 +68,7 @@ namespace Tac
     }
 
     if constexpr( IsDebugMode )
-      for( int i = 0; i < dataByteCount; ++i )
+      for( int i{}; i < dataByteCount; ++i )
         mBytes[ ( origIndex + i ) % mCapacity ] = 0;
 
     mSize -= dataByteCount;

@@ -141,7 +141,7 @@ namespace Tac
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps
     // A descriptor heap is a collection of contiguous allocations of descriptors,
     // one allocation for every descriptor.
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
       .NumDescriptors = bufferCount,
@@ -183,7 +183,7 @@ namespace Tac
   {
     // Create synchronization objects.
 
-    const UINT64 initialVal = 0;
+    const UINT64 initialVal { 0 };
 
     PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence(
@@ -205,7 +205,7 @@ namespace Tac
 
   void DX12AppHelloWindow::DX12CreateSwapChain( Errors& errors )
   {
-    const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
+    const DesktopWindowState* state { GetDesktopWindowState( hDesktopWindow ) };
     const auto hwnd = ( HWND )state->mNativeWindowHandle;
     if( !hwnd )
       return;

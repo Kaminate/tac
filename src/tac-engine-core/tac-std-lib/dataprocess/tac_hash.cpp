@@ -43,7 +43,7 @@ namespace Tac
   HashValue Hash( const char* s, int n)
   {
     Hasher h;
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       h.Eat( s[ i ] );
     return h;
   }
@@ -59,7 +59,7 @@ namespace Tac
   HashValue Hash( HashValue* v, int n)
   {
     Hasher h;
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       h.Eat( v[i] );
     return h;
   }

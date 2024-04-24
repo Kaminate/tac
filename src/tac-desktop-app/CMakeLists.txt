@@ -5,10 +5,10 @@ if( Vulkan_FOUND )
 
     add_library( TacWinVk )
     target_sources( TacWinVk PRIVATE
-      "tac_win_vk.cpp"
-      "tac_win_vk.h"
-      "tac_desktop_vk.h"
-      "tac_desktop_vk.cpp"
+      "desktop_glue/tac_win_vk.cpp"
+      "desktop_glue/tac_win_vk.h"
+      "desktop_glue/tac_desktop_vk.h"
+      "desktop_glue/tac_desktop_vk.cpp"
     )
     target_compile_definitions( TacWinVk PRIVATE TAC_USE_DESKTOP_WIN32 )
 
@@ -30,10 +30,10 @@ if( Vulkan_FOUND )
     # purpose of this library, uhh:
     add_library( TacSDLVk )
     target_sources( TacSDLVk PRIVATE
-      "tac_sdl_vk.cpp"
-      "tac_sdl_vk.h"
-      "tac_desktop_vk.h"
-      "tac_desktop_vk.h" )
+      "desktop_glue/tac_sdl_vk.cpp"
+      "desktop_glue/tac_sdl_vk.h"
+      "desktop_glue/tac_desktop_vk.h"
+      "desktop_glue/tac_desktop_vk.h" )
 
     # target_link_libraries( TacSDLVk Vulkan::Vulkan )
     target_link_libraries( TacSDLVk TacSDL )
@@ -44,28 +44,16 @@ endif() # if( Vulkan_FOUND )
 
 
 add_subdirectory( tac-win32 )
-add_subdirectory( opengl )
 add_subdirectory( sdl )
 add_subdirectory( vulkan )
 
 
 # add_library( TacDesktopApp OBJECT )
 add_library( TacDesktopApp )
-target_sources( TacDesktopApp
-  PRIVATE
-  "tac_render_state.cpp"
-  "tac_logic_thread.cpp"
-  "tac_logic_thread.h"
-  "tac_platform_thread.cpp"
-  "tac_platform_thread.h"
-  PUBLIC
-  "tac_iapp.h"
-  "tac_render_state.h"
-)
-
 add_subdirectory( desktop_app )
 add_subdirectory( desktop_window )
 add_subdirectory( desktop_event )
+add_subdirectory( desktop_thread )
 
 target_include_directories( TacDesktopApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 target_link_libraries( TacDesktopApp TacECS )

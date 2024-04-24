@@ -12,15 +12,19 @@ namespace Tac
   struct Errors;
   struct App;
   struct GameStateManager;
+  struct SysWindowApi;
+  struct SysKeyboardApi;
 
-  struct PlatformThread
+  struct SysThread
   {
     void Init( Errors& );
     void Update( Errors& );
     void Uninit();
 
-    App*              mApp = nullptr;
-    Errors*           mErrors = nullptr;
-    GameStateManager* mGameStateManager = nullptr;
+    App*              mApp{};
+    Errors*           mErrors{};
+    GameStateManager* mGameStateManager{};
+    SysWindowApi*     mWindowApi{};
+    SysKeyboardApi*   mKeyboardApi{};
   };
 }

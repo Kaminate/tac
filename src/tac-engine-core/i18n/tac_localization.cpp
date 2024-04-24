@@ -125,7 +125,7 @@ namespace Tac
 
   Language GetLanguage( StringView str )
   {
-    for( int i = 0; i < ( int )Language::Count; ++i )
+    for( int i{}; i < ( int )Language::Count; ++i )
       if( ( StringView )Languages[ i ] == str )
         return ( Language )i;
     return Language::Count;
@@ -150,7 +150,7 @@ namespace Tac
   void LocalizedStringStuff::SetCodepointsOnly( CodepointView codepoints )
   {
     mCodepoints.resize( codepoints.size() );
-    for( int i = 0; i < codepoints.size(); ++i )
+    for( int i{}; i < codepoints.size(); ++i )
       mCodepoints[ i ] = codepoints[ i ];
   }
 
@@ -273,7 +273,7 @@ namespace Tac
   {
     if( a.size() != b.size() )
       return false;
-    for( int i = 0; i < a.size(); ++i )
+    for( int i{}; i < a.size(); ++i )
       if( a[ i ] != b[ i ] )
         return false;
     return true;

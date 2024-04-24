@@ -70,20 +70,20 @@ namespace Tac
 
   static void CheckShaderPadding()
   {
-    const int sizeofshaderlight_estimated = 4 * ( 16 + 4 + 4 + 4 + 1 + 3 );
-    const int sizeofshaderlight = sizeof( Render::ShaderLight );
-    const int light1Offset = ( int )TAC_OFFSET_OF( Render::CBufferLights, lights[ 1 ] );
-    const int light1OffsetReg = light1Offset / 16;
-    const int light1OffsetAxis = light1Offset % 16;
-    const int lightCountOffset = ( int )TAC_OFFSET_OF( Render::CBufferLights, lightCount );
-    const int lightCountOffsetReg = lightCountOffset / 16;
-    const int lightCountOffsetAxis = lightCountOffset % 16;
-    const bool check1 = sizeofshaderlight % 16 == 0;
-    const bool check2 = sizeofshaderlight == sizeofshaderlight_estimated;
-    const bool check3 = light1OffsetReg == 8;
-    const bool check4 = light1OffsetAxis == 0;
-    const bool check5 = lightCountOffsetReg == 32;
-    const bool check6 = lightCountOffsetAxis == 0;
+    const int sizeofshaderlight_estimated { 4 * ( 16 + 4 + 4 + 4 + 1 + 3 ) };
+    const int sizeofshaderlight { sizeof( Render::ShaderLight ) };
+    const int light1Offset { ( int )TAC_OFFSET_OF( Render::CBufferLights, lights[ 1 ] ) };
+    const int light1OffsetReg { light1Offset / 16 };
+    const int light1OffsetAxis { light1Offset % 16 };
+    const int lightCountOffset { ( int )TAC_OFFSET_OF( Render::CBufferLights, lightCount ) };
+    const int lightCountOffsetReg { lightCountOffset / 16 };
+    const int lightCountOffsetAxis { lightCountOffset % 16 };
+    const bool check1 { sizeofshaderlight % 16 == 0 };
+    const bool check2 { sizeofshaderlight == sizeofshaderlight_estimated };
+    const bool check3 { light1OffsetReg == 8 };
+    const bool check4 { light1OffsetAxis == 0 };
+    const bool check5 { lightCountOffsetReg == 32 };
+    const bool check6 { lightCountOffsetAxis == 0 };
     TAC_ASSERT( check1 );
     TAC_ASSERT( check2 );
     TAC_ASSERT( check3 );
@@ -184,7 +184,7 @@ namespace Tac
     Render::CBufferLights cBufferLights;
     if( mUseLights )
     {
-      for( int i = 0; i < lightCount; ++i )
+      for( int i{}; i < lightCount; ++i )
       {
         const Light* light = lights[ i ];
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
@@ -290,7 +290,7 @@ namespace Tac
   static void CreateTerrainShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "Terrain",
@@ -302,7 +302,7 @@ namespace Tac
   static void Create3DShader( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "GamePresentation",

@@ -20,7 +20,7 @@ namespace Tac
     {
       mNames[ Light::Type::kSpot ] = "Spot";
       mNames[ Light::Type::kDirectional ] = "Directional";
-      for( int i = 0; i < Light::Type::kCount; ++i )
+      for( int i{}; i < Light::Type::kCount; ++i )
         TAC_ASSERT( mNames[ i ] );
     }
     const char* GetName( const Light::Type type ) { return mNames[ type ]; }
@@ -86,7 +86,7 @@ namespace Tac
 
     v3 nearPoints[ 4 ];
     v3 farPoints[ 4 ];
-    for( int i = 0; i < 4; ++i )
+    for( int i{}; i < 4; ++i )
     {
       const v2 offsets[] = { v2( -1,-1 ), v2( 1, -1 ), v2( 1, 1 ), v2( -1,1 ) };
       const v2 offset = offsets[ i ];
@@ -105,7 +105,7 @@ namespace Tac
     }
 
     const v4 color( 1, 1, 1, 1 );
-    for( int i = 0; i < 4; ++i )
+    for( int i{}; i < 4; ++i )
     {
       const int j = ( i + 1 ) % 4;
       drawData->DebugDraw3DLine( nearPoints[ i ], farPoints[ i ], color );
@@ -124,7 +124,7 @@ namespace Tac
     drawData->DebugDraw3DArrow( p, p + camera.mForwards * 10.0f );
 
     const v3 axes[] = { camera.mRight,camera.mUp,-camera.mForwards };
-    for( int i = 0; i < 3; ++i )
+    for( int i{}; i < 3; ++i )
       drawData->DebugDraw3DLine( p, p + axes[ i ] * 5.0f, v4( float( 0 == i ),
                                  float( 1 == i ),
                                  float( 2 == i ),
@@ -161,7 +161,7 @@ void Tac::LightDebugImgui( Light* light )
   ImGuiImage( viz.GetIndex(), shadowMapSize );
 
 
-  Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
   renderDevice->DestroyTexture( viz );
 
 

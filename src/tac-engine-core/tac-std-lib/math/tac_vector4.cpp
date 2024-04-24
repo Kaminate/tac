@@ -23,9 +23,9 @@ namespace Tac
   float&       v4::operator[]( int i ) { return data()[ i ]; }
   float        v4::operator[]( int i ) const { return data()[ i ]; }
   void         v4::operator /= ( float v ) { *this *= ( 1.0f / v ); }
-  void         v4::operator *= ( float v ) { for( int i = 0; i < 4; ++i ) data()[ i ] *= v; }
-  void         v4::operator -= ( const v4& v ) { for( int i = 0; i < 4; ++i ) data()[ i ] -= v[ i ]; }
-  void         v4::operator += ( const v4& v ) { for( int i = 0; i < 4; ++i ) data()[ i ] += v[ i ]; }
+  void         v4::operator *= ( float v ) { for( int i{}; i < 4; ++i ) data()[ i ] *= v; }
+  void         v4::operator -= ( const v4& v ) { for( int i{}; i < 4; ++i ) data()[ i ] -= v[ i ]; }
+  void         v4::operator += ( const v4& v ) { for( int i{}; i < 4; ++i ) data()[ i ] += v[ i ]; }
   bool         v4::operator == ( const v4& v )const
   {
     return

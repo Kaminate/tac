@@ -78,13 +78,13 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::CreateDesktopWindow()
   {
-    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
+    const Monitor monitor = OS::OSGetPrimaryMonitor();
 
-    const v2i monitorSize{ monitor.mWidth, monitor.mHeight };
+    const v2i monitorSize{ monitor.mSize };
     const v2i windowSize = monitorSize / 2;
     const v2i windowPos = ( monitorSize - windowSize ) / 2;
 
-    const SimWindowApi::CreateParams desktopParams
+    const WindowCreateParams desktopParams
     {
       .mName = "DX12 Window",
       .mPos = windowPos,
@@ -99,7 +99,7 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::InitDescriptorSizes()
   {
-    for( int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
       m_descriptorSizes[ i ]
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
@@ -803,7 +803,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++ )
+    for( Uint i{}; i < SWAP_CHAIN_BUFFER_COUNT; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
@@ -1051,7 +1051,7 @@ namespace Tac
 
   DX12AppHelloFrameBuf::DX12AppHelloFrameBuf( const Config& cfg ) : App( cfg ) {}
 
-  void         DX12AppHelloFrameBuf::Init( SimInitParams initParams, Errors& errors )
+  void         DX12AppHelloFrameBuf::Init( InitParams initParams, Errors& errors )
   {
     WindowBackend::SysApi::mIsRendererEnabled = false; // hack
     CreateDesktopWindow();
@@ -1095,7 +1095,7 @@ namespace Tac
     mUploadPageManager.Init( m_device.Get(), &mCommandQueue );
   }
 
-  void         DX12AppHelloFrameBuf::Update( SimUpdateParams updateParams, Errors& errors )
+  void         DX12AppHelloFrameBuf::Update( UpdateParams updateParams, Errors& errors )
   {
     if( !updateParams.mWindowApi->IsShown( hDesktopWindow ) )
       return;
@@ -1142,7 +1142,7 @@ namespace Tac
     TAC_ASSERT( m_gpuFlightFrameIndex == mSentGPUFrameCount % MAX_GPU_FRAME_COUNT );
   }
    
-  void         DX12AppHelloFrameBuf::Render( SysRenderParams renderParams, Errors& errors )
+  void         DX12AppHelloFrameBuf::Render( RenderParams renderParams, Errors& errors )
   {
     SysWindowApi* windowApi = renderParams.mWindowApi;
 

@@ -20,7 +20,6 @@ namespace Tac::Render
 
   void    DX12Renderer::Init( Errors& errors )
   {
-
     TAC_CALL( DXGIInit( errors ) );
 
     TAC_CALL( mDebugLayer.Init( errors ) );
@@ -211,6 +210,7 @@ namespace Tac::Render
 
   void    DX12Device::Init( Errors& errors )
   {
+    sRenderer.Init( errors );
   }
 
 #if 0

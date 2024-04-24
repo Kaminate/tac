@@ -37,19 +37,19 @@ namespace Tac
       bool   mDisableRenderer = false;
     };
 
-    struct SimInitParams
+    struct InitParams
+    {
+      SysWindowApi*   mWindowApi{};
+      SysKeyboardApi* mKeyboardApi{};
+    };
+
+    struct UpdateParams
     {
       SimWindowApi*   mWindowApi{};
       SimKeyboardApi* mKeyboardApi{};
     };
 
-    struct SimUpdateParams
-    {
-      SimWindowApi*   mWindowApi{};
-      SimKeyboardApi* mKeyboardApi{};
-    };
-
-    struct SysRenderParams
+    struct RenderParams
     {
       SysWindowApi*   mWindowApi{};
       SysKeyboardApi* mKeyboardApi{};
@@ -58,19 +58,17 @@ namespace Tac
       float           mT; // [0-1]
     };
 
-    App(const Config& config ) : mConfig( config ) {}
+    App( const Config& config ) : mConfig( config ) {}
     virtual ~App() {};
 
-    virtual void Init( SimInitParams, Errors& ) {};
-    virtual void Update( SimUpdateParams, Errors& ) {};
-    virtual void Uninit( Errors& ) {};
+    virtual void    Init( InitParams, Errors& ) {};
+    virtual void    Update( UpdateParams, Errors& ) {};
+    virtual void    Render( RenderParams, Errors& ) {};
+    virtual void    Uninit( Errors& ) {};
 
-
-    virtual void Render( SysRenderParams, Errors& ) {};
     virtual IState* GetGameState() { return nullptr; }
-
-    static App*  Create();
-    bool         IsRenderEnabled() const { return !mConfig.mDisableRenderer; }
+    static App*     Create();
+    bool            IsRenderEnabled() const { return !mConfig.mDisableRenderer; }
 
     Config          mConfig;
   };

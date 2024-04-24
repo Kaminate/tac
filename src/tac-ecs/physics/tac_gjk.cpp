@@ -99,7 +99,7 @@ namespace Tac
     int iLargestDot = 0;
     float largestDot = -1;
     auto pointCount = ( int )mPoints.size();
-    for( int i = 0; i < pointCount; ++i )
+    for( int i{}; i < pointCount; ++i )
     {
       auto& point = mPoints[ i ];
       auto dot = Dot( dir, point );

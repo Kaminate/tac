@@ -18,9 +18,9 @@ namespace Tac
   extern int asdf; // for edit-and-continue debug shenanigans
 
 #if TAC_IS_DEBUG_MODE()
-  constexpr bool IsDebugMode = true;
+  constexpr bool IsDebugMode { true };
 #else
-  constexpr bool IsDebugMode = false;
+  constexpr bool IsDebugMode { false };
 #endif
 }
 

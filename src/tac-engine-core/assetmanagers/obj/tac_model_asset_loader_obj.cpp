@@ -205,7 +205,7 @@ namespace Tac
       subMeshTriangles.push_back( subMeshTriangle );
     }
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     Render::CreateBufferParams vertexBufferParams
     {

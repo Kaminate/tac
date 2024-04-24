@@ -26,7 +26,7 @@ namespace Tac
     const char* sizeStrs[] = { "Bytes", "KB", "MB", "GB", "TB" };
 
     int denomination = 1;
-    int i = 0;
+    int i{};
     bool approx = false;
     bool carry = false;
     while( byteCount )

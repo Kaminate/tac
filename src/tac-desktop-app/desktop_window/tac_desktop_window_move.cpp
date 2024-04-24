@@ -21,7 +21,7 @@ void Tac::DesktopAppUpdateMove()
 #if 0
   PlatformFns* sPlatformFns = PlatformFns::GetInstance();
 
-  for( int i = 0; i < kDesktopWindowCapacity; ++i )
+  for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
     const WindowHandle WindowHandle = { i };
     if( !WindowHandle.GetDesktopWindowNativeHandle() )

@@ -107,7 +107,7 @@ namespace Tac::Filesystem
 
     String s1;
     s1.resize( n );
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       s1[ i ] = s0[ i ];
 
     return s1;

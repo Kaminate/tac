@@ -3393,7 +3393,7 @@ static void stbi__YCbCr_to_RGB_row(stbi_uc *out, const stbi_uc *y, const stbi_uc
 #if defined(STBI_SSE2) || defined(STBI_NEON)
 static void stbi__YCbCr_to_RGB_simd(stbi_uc *out, stbi_uc const *y, stbi_uc const *pcb, stbi_uc const *pcr, int count, int step)
 {
-   int i = 0;
+   int i{};
 
 #ifdef STBI_SSE2
    // step == 3 is pretty ugly on the final interleave, and i'm not convinced

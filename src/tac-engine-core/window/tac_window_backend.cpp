@@ -64,11 +64,38 @@ namespace Tac::WindowBackend
   //   to update sCreateRequests/sDestroyRequests/sHandleCounter/sFreeHandles
   //
   //   Locked by the platform thread in PlatformApplyRequests() to handle the requests
+  //   Locked by the platform thread in SysWindowApi::CreateWindow()
   static std::mutex                sRequestMutex;
   static Vector< SimWindowCreate > sCreateRequests;
   static Vector< WindowHandle >    sDestroyRequests;
   static int                       sHandleCounter;
   static Vector< int >             sFreeHandles;
+
+  // -----------------------------------------------------------------------------------------------
+
+  static void         FreeWindowHandle( WindowHandle h )
+  {
+    // sRequestMutex must be locked
+    sFreeHandles.push_back( h.GetIndex() );
+  }
+
+  static WindowHandle AllocWindowHandle()
+  {
+    // sRequestMutex must be locked
+
+    int i;
+    if( sFreeHandles.empty() )
+    {
+      i = sHandleCounter++;
+    }
+    else
+    {
+      i = sFreeHandles.back();
+      sFreeHandles.pop_back();
+    }
+
+    return WindowHandle{ i };
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -88,25 +115,25 @@ namespace Tac::WindowBackend
                                  Errors& errors )
   {
     TAC_ASSERT( sModificationAllowed );
-    const int i = h.GetIndex();
+    const int i { h.GetIndex() };
     sPlatformCurr[ i ] = WindowState
     {
-      .mName = name,
-      .mPos = pos,
-      .mSize = size,
-      .mShown = false,
+      .mName { name },
+      .mPos { pos },
+      .mSize { size },
+      .mShown { false },
     };
     sPlatformNative[ i ] = nwh;
 
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
     {
-      Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       const Render::SwapChainParams params
       {
-        .mNWH = nwh,
-        .mSize = size,
-        .mColorFmt = sTexFmt,
+        .mNWH { nwh },
+        .mSize { size },
+        .mColorFmt { sTexFmt },
       };
       sFramebuffers[ i ] = renderDevice->CreateSwapChain( params, errors );
     }
@@ -120,7 +147,7 @@ namespace Tac::WindowBackend
     sPlatformCurr[ i ] = {};
     sPlatformNative[ i ] = {};
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     if( mIsRendererEnabled )
       renderDevice->DestroySwapChain( sFramebuffers[ i ] );
     sFramebuffers[ i ] = {};
@@ -141,7 +168,7 @@ namespace Tac::WindowBackend
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     if( mIsRendererEnabled )
     {
-      Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       renderDevice->ResizeSwapChain( sFramebuffers[ i ], size );
     }
 #endif
@@ -179,20 +206,21 @@ namespace Tac::WindowBackend
     {
       const PlatformSpawnWindowParams platformParams
       {
-        .mHandle = simParams.mHandle,
-        .mName = simParams.mName,
-        .mPos = simParams.mPos,
-        .mSize = simParams.mSize,
+        .mHandle { simParams.mHandle },
+        .mName   { simParams.mName },
+        .mPos    { simParams.mPos },
+        .mSize   { simParams.mSize },
       };
       TAC_CALL( platform->PlatformSpawnWindow( platformParams, errors ) );
     }
 
     for( WindowHandle h : sDestroyRequests )
     {
-      const int i = h.GetIndex();
+      const int i { h.GetIndex() };
       sPlatformCurr[ i ] = {};
       sPlatformNative[ i ] = {};
       platform->PlatformDespawnWindow( h );
+      FreeWindowHandle( h );
     }
 
     sCreateRequests = {};
@@ -217,31 +245,21 @@ namespace Tac
 {
   using namespace WindowBackend;
 
-  WindowHandle SimWindowApi::CreateWindow( CreateParams params ) const
+  WindowHandle SimWindowApi::CreateWindow( WindowCreateParams params ) const
   {
     TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
 
-    int i;
-    if( sFreeHandles.empty() )
-    {
-      i = sHandleCounter++;
-    }
-    else
-    {
-      i = sFreeHandles.back();
-      sFreeHandles.pop_back();
-    }
-
+    const WindowHandle h{ AllocWindowHandle() };
     const SimWindowCreate request
     {
-      .mHandle = WindowHandle{ i },
-      .mName = params.mName,
-      .mPos = params.mPos,
-      .mSize = params.mSize,
+      .mHandle { h },
+      .mName   { params.mName },
+      .mPos    { params.mPos },
+      .mSize   { params.mSize },
     };
     sCreateRequests.push_back( request );
 
-    return WindowHandle{ i };
+    return h;
   }
 
   void         SimWindowApi::DestroyWindow( WindowHandle h ) const
@@ -297,6 +315,32 @@ namespace Tac
     return sPlatformNative[ h.GetIndex() ];
   }
 
+  WindowHandle     SysWindowApi::CreateWindow( WindowCreateParams params, Errors& errors ) const
+  {
+    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
+
+    const WindowHandle h{ AllocWindowHandle() };
+    const PlatformSpawnWindowParams platformParams
+    {
+      .mHandle { h },
+      .mName   { params.mName },
+      .mPos    { params.mPos },
+      .mSize   { params.mSize },
+    };
+
+    PlatformFns* platform = PlatformFns::GetInstance();
+    TAC_CALL_RET( {}, platform->PlatformSpawnWindow( platformParams, errors ) );
+    return h;
+  }
+
+  void             SysWindowApi::DestroyWindow( WindowHandle h ) const
+  {
+    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
+    PlatformFns* platform = PlatformFns::GetInstance();
+    platform->PlatformDespawnWindow( h );
+    FreeWindowHandle( h );
+  }
+
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   Render::SwapChainHandle SysWindowApi::GetSwapChainHandle( WindowHandle h ) const
   {
@@ -312,8 +356,8 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    int stateCount = 0;
-    for( int iWindow = 0; iWindow < kDesktopWindowCapacity; ++iWindow )
+    int stateCount { 0 };
+    for( int iWindow { 0 }; iWindow < kDesktopWindowCapacity; ++iWindow )
     {
       const DesktopWindowState* state = &sDesktopWindowStates[ iWindow ];
       if( !state->mNativeWindowHandle )

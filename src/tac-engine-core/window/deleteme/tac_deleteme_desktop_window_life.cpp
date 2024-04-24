@@ -69,12 +69,12 @@ Tac::DesktopWindowHandle Tac::DesktopAppImplCreateWindow( const DesktopAppCreate
 
     const PlatformSpawnWindowParams info =
     {
-      .mHandle = handle,
-      .mName = desktopParams.mName,
-      .mX = desktopParams.mX,
-      .mY = desktopParams.mY,
-      .mWidth = desktopParams.mWidth,
-      .mHeight = desktopParams.mHeight,
+      .mHandle { handle },
+      .mName { desktopParams }.mName,
+      .mX { desktopParams.mX },
+      .mY { desktopParams.mY },
+      .mWidth { desktopParams.mWidth },
+      .mHeight { desktopParams.mHeight },
     };
     sWindowRequestsCreate.push_back( info );
     sWindowHandleLock.unlock();

@@ -1,10 +1,10 @@
-#include "tac_platform_thread.h" // self-inc
+#include "tac_sys_thread.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-#include "tac-desktop-app/tac_iapp.h"
-#include "tac-desktop-app/tac_render_state.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h" // App
+#include "tac-desktop-app/desktop_app/tac_render_state.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -28,8 +28,6 @@
 namespace Tac
 {
   static WindowBackend::SysApi   sWindowBackendSysApi;
-  static SysWindowApi            sWindowApi;
-  static SysKeyboardApi          sKeyboardApi;
   //static void                ImGuiSimSetWindowPos( WindowHandle handle, v2i pos )
   //{
   //  PlatformFns* platform = PlatformFns::GetInstance();
@@ -44,7 +42,7 @@ namespace Tac
 
   static bool sVerbose;
 
-  void PlatformThread::Uninit()
+  void SysThread::Uninit()
   {
     Errors& errors = *mErrors;
     if( !errors.empty() )
@@ -55,11 +53,11 @@ namespace Tac
 
   }
 
-  void PlatformThread::Init( Errors& errors )
+  void SysThread::Init( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
 
-    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Main );
+    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sys );
 
     FrameMemoryInitThreadAllocator( 1024 * 1024 * 10 );
 
@@ -68,10 +66,9 @@ namespace Tac
 
   }
 
-  void PlatformThread::Update( Errors& errors )
+  void SysThread::Update( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
-    TAC_CALL( Init( errors ) );
 
     PlatformFns* platform = PlatformFns::GetInstance();
     DesktopApp* desktopApp = DesktopApp::GetInstance();
@@ -125,10 +122,10 @@ namespace Tac
                                                       t );
 
 
-        const App::SysRenderParams params
+        const App::RenderParams params
         {
-          .mWindowApi = &sWindowApi,
-          .mKeyboardApi = &sKeyboardApi,
+          .mWindowApi = mWindowApi,
+          .mKeyboardApi = mKeyboardApi,
           .mOldState = pair.mOldState, // A
           .mNewState = pair.mNewState, // B
           .mT = t, // inbetween B and (future) C, but used to lerp A and B
@@ -138,7 +135,7 @@ namespace Tac
         ImGuiSysDrawParams imguiDrawParams
         {
           .mSimFrameDraws = &pair.mNewState->mImGuiDraws,
-          .mWindowApi = &sWindowApi,
+          .mWindowApi = mWindowApi,
           .mTimestamp = interpolatedTimestamp,
         };
         TAC_CALL( ImGuiPlatformRender( &imguiDrawParams, errors ) );

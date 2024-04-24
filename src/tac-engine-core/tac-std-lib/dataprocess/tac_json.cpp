@@ -156,7 +156,7 @@ namespace Tac
     indentation = indentation ? indentation : &defaultIndentation;
     String tab = indentation->convertTabsToSpaces ? String( indentation->spacesPerTab, ' ' ) : String( "\t" );
     String result;
-    for( int i = 0; i < tabCount; ++i )
+    for( int i{}; i < tabCount; ++i )
       result += tab;
     return result;
   }

@@ -82,7 +82,7 @@ namespace Tac
     {
       for( SubMesh& submesh : mesh->mSubMeshes )
       {
-        Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
         renderDevice->DestroyBuffer( submesh.mIndexBuffer );
         renderDevice->DestroyBuffer( submesh.mVertexBuffer );
       }

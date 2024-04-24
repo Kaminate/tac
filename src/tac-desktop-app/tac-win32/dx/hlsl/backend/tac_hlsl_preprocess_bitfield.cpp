@@ -67,7 +67,7 @@ namespace Tac::Render
     }
 
     const int n = line.size();
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
     {
       const char c = line[ n - i - 1 ];
       if( IsDigit( c ) )

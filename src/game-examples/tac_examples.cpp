@@ -90,9 +90,9 @@ namespace Tac
 
     int offset = 0;
     int iSelected = -1;
-    const int iCurrent = GetCurrExampleIndex();
-    const int n = GetExampleCount();
-    if( Example* ex = GetCurrExample() )
+    const int iCurrent { GetCurrExampleIndex() };
+    const int n { GetExampleCount() };
+    if( Example* ex { GetCurrExample()  })
     {
       ImGuiText( String()
                  + "Current Example ("
@@ -150,9 +150,9 @@ namespace Tac
                               view );
     }
 
-    const int iOld = GetCurrExampleIndex();
+    const int iOld { GetCurrExampleIndex() };
     TAC_CALL( ExampleStateMachineUpdate( errors ));
-    const int iNew = GetCurrExampleIndex();
+    const int iNew { GetCurrExampleIndex() };
     if( iOld != iNew )
       SettingsSetString( "Example.Name", GetExampleName( iNew ) );
   }

@@ -31,7 +31,7 @@ namespace Tac
     int* newDense = TAC_NEW int[ ( size_t )capacity * 2 ];
     int* newSparse = newDense + capacity;
 
-    for( int i = 0; i < mCapacity; ++i )
+    for( int i{}; i < mCapacity; ++i )
     {
       newDense[ i ] = mDense[ i ];
       newSparse[ i ] = mSparse[ i ];

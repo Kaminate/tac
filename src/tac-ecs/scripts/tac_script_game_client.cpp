@@ -361,7 +361,7 @@ namespace Tac
 		mCreateGraveStoryButton = true;
 		mCreatePressStartButton = false;
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 		renderDevice->DestroyTexture( mPower );
 	}
 	void ScriptMainMenu::AddCallbackConnect()
@@ -478,7 +478,7 @@ namespace Tac
 		//  TAC_ON_DESTRUCT( stbi_image_free( loaded ) );
 
 		//  stbi_uc* l = loaded;
-		//  for( int i = 0; i < y; ++i )
+		//  for( int i{}; i < y; ++i )
 		//  {
 		//    for( int j = 0; j < x; ++j )
 		//    {
@@ -517,7 +517,7 @@ namespace Tac
 		//  int maxDotCount = 3;
 		//  double elapsedSeconds = Timestep::GetElapsedTime() - scriptMatchmaker->mConnectionAttemptStartSeconds;
 		//  double partialDotSeconds = std::fmod( elapsedSeconds, ( double )( ( maxDotCount + 1 ) * dotPeriodSeconds ) );
-		//  for( int i = 0; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
+		//  for( int i{}; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
 		//    utf8 += '.';
 		//  UITextData uiTextData;
 		//  uiTextData.mColor = colorText;
@@ -913,7 +913,7 @@ namespace Tac
 		//    status == JobState::ThreadRunning )
 		//  {
 		//    String text = "Connecting to server";
-		//    for( int i = 0; i < ( int )Timestep::GetElapsedTime() % 4; ++i )
+		//    for( int i{}; i < ( int )Timestep::GetElapsedTime() % 4; ++i )
 		//      text += ".";
 		//    ImGuiText( text );
 		//  }

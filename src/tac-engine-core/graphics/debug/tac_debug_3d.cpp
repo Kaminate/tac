@@ -39,7 +39,7 @@ namespace Tac
                                                                 const int viewHeight )
 
   {
-    const Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const auto ndcAttribs = renderDevice->GetInfo().mNDCAttribs;
     const m4::ProjectionMatrixParams projMtxParams
     {
@@ -96,7 +96,7 @@ namespace Tac
     Render::SetRenderObjectDebugName( mRasterizerStateNoCull, "debug-3d-rast" );
 
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "3DDebug",
@@ -408,9 +408,9 @@ namespace Tac
       v3( 1, 1, 1 ) };
     v3 transfor_points[ pointCount ];
     auto transform = m4::Transform( halfextents, orientation, pos );
-    for( int i = 0; i < pointCount; ++i )
+    for( int i{}; i < pointCount; ++i )
       transfor_points[ i ] = ( transform * v4( original_points[ i ], 1.0f ) ).xyz();
-    for( int i = 0; i < pointCount; ++i )
+    for( int i{}; i < pointCount; ++i )
     {
       const v3& original_point_i = original_points[ i ];
       const v3& transfor_point_i = transfor_points[ i ];

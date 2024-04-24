@@ -25,8 +25,8 @@ namespace Tac
     String s;
     while( val )
     {
-      const int i = val % base;
-      const char c = "0123456789abcdef"[ i ];
+      const int i{ ( int )( val % base ) };
+      const char c{ "0123456789abcdef"[ i ] };
       val /= base;
       s.push_back(c);
     }
@@ -36,7 +36,7 @@ namespace Tac
   }
   static String ItoaI64( i64 val, int base = 10 )
   {
-    const String s = ItoaU64( ( u64 )val, base );
+    const String s{ ItoaU64( ( u64 )val, base ) };
     return val < 0 ? '-' + s : s;
   }
 
@@ -62,7 +62,7 @@ bool        Tac::IsAlpha( const char c )
 
 int         Tac::MemCmp( const void* lhs, const void* rhs, int len )
 {
-  for( int i = 0; i < len; ++i )
+  for( int i { 0 }; i < len; ++i )
   {
     int diff = ( ( const char* )lhs )[ i ] - ( ( const char* )rhs )[ i ];
     if( diff )
@@ -81,7 +81,7 @@ void        Tac::MemCpy( void* dst, const void* src, int len )
 
 void        Tac::MemSet( void* dst, unsigned char c, int n )
 {
-  for( int i = 0; i < n; ++i )
+  for( int i { 0 }; i < n; ++i )
     ( ( char* )dst )[ i ] = c;
 }
 
@@ -98,7 +98,7 @@ int         Tac::StrCmp( const char* lhs, const char* rhs )
 int         Tac::StrLen( const char* str )
 {
   // do not handle null string
-  int result = 0;
+  int result { 0 };
   while( *str++ )
     ++result;
   return result;
@@ -130,7 +130,7 @@ int         Tac::Atoi( const StringView& s )
 {
   int res = 0;
   int pow = 1;
-  for( int i = 0; i < s.size(); ++i, pow *= 10 )
+  for( int i { 0 }; i < s.size(); ++i, pow *= 10 )
     res += ( s[ s.size() - i - 1 ] - '0' ) * pow;
   return res;
 }
@@ -140,17 +140,17 @@ Tac::String Tac::ToString( unsigned long long val ) { return ItoaU64( ( u64 )val
 Tac::String Tac::ToString( int val )                { return Itoa( val ); }
 Tac::String Tac::ToString( char c )                 { return String( 1, c ); }
 Tac::String Tac::ToString( const void* val )        { return "0x" + ItoaU64( ( u64 )val ); }
-Tac::String Tac::ToString( double val )            
+Tac::String Tac::ToString( double val )
 {
-  const bool isNegative = val < 0;
+  const bool isNegative{ val < 0 };
   if( isNegative )
     val *= -1;
 
   if( val < 0.001 )
     return "0";
 
-  const auto integralPart = ( u64 )val;
-  const auto fractionalPart = ( u64 )( ( val - integralPart ) * 1000 );
+  const auto integralPart{ ( u64 )val };
+  const auto fractionalPart{ ( u64 )( ( val - integralPart ) * 1000 ) };
 
   return String()
     + ( isNegative ? "-" : "" )
@@ -182,7 +182,7 @@ namespace Tac
   String::String( int len, char c )
   {
     reserve( len );
-    for( int i = 0; i < len; ++i )
+    for( int i { 0 }; i < len; ++i )
       mStr[ i ] = c;
     mStr[ mLen = len ] = '\0';
     //mLen = len;
@@ -208,10 +208,10 @@ namespace Tac
   char&        String::operator[]( int i )       { return mStr[ i ]; }
   void         String::reserve( int newLen )
   {
-    const int newCapacity = newLen + 1;
+    const int newCapacity{ newLen + 1 };
     if( newCapacity <= mCapacity )
       return;
-    auto* newStr = TAC_NEW char[ newCapacity ];
+    auto* newStr{ TAC_NEW char[ newCapacity ] };
     MemCpy( newStr, mStr, mLen );
     newStr[ mLen ] = '\0';
     if( mStr != mSSOBuffer )
@@ -251,10 +251,10 @@ namespace Tac
   {
     int cLen = StrLen( c );
     int iFound = npos;
-    for( int i = 0; i < mLen; ++i )
+    for( int i { 0 }; i < mLen; ++i )
     {
       char myStrChar = mStr[ i ];
-      for( int j = 0; j < cLen; ++j )
+      for( int j { 0 }; j < cLen; ++j )
       {
         char queryChar = c[ j ];
         if( myStrChar == queryChar )
@@ -269,7 +269,7 @@ namespace Tac
   {
     if( substr.mLen > mLen )
       return npos;
-    for( int i = 0; i < mLen - substr.mLen; ++i )
+    for( int i{}; i < mLen - substr.mLen; ++i )
       if( MemCmp( mStr + i, substr.mStr, substr.mLen ) == 0 )
         return i;
     return npos;
@@ -296,7 +296,7 @@ namespace Tac
   {
     const int end_pos = len == npos ? mLen : pos + len;
     String copy;
-    for( int i = 0; i < mLen; ++i )
+    for( int i { 0 }; i < mLen; ++i )
       if( i < pos || i >= end_pos )
         copy.push_back( mStr[ i ] );
     *this = copy;
@@ -366,13 +366,13 @@ Tac::String   Tac::operator + ( char c, const String& s )
 }
 Tac::String   Tac::operator + ( const String& s, char c )
 {
-  String result = s;
+  String result { s };
   result += c;
   return result;
 }
 Tac::String   Tac::operator + ( const String& s, const char* c )
 {
-  String result = s;
+  String result { s };
   result += c;
   return result;
 }

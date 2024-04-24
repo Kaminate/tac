@@ -11,12 +11,12 @@ namespace Tac
     v2                        GetPosV2() const;
     v2                        GetSizeV2() const;
 
-    int                       mX = 0;
-    int                       mY = 0;
-    int                       mWidth = 0;
-    int                       mHeight = 0;
+    int                       mX { };
+    int                       mY { };
+    int                       mWidth { };
+    int                       mHeight { };
     //const void*               mNativeWindowHandle = nullptr;
-    bool                      mShown = false;
+    bool                      mShown{ false };
     String                    mName;
   };
 
@@ -27,10 +27,10 @@ namespace Tac
     int  GetWidth() const;
     int  GetHeight() const;
 
-    int  mLeft = 0;
-    int  mRight = 0;
-    int  mBottom = 0;
-    int  mTop = 0;
+    int  mLeft { };
+    int  mRight { };
+    int  mBottom { };
+    int  mTop { };
   };
 
 

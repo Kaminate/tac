@@ -66,7 +66,7 @@ namespace Tac::Render
     if( !commandList )
       return; // This context has been (&&) moved
 
-    for( int i = 0; i < mEventCount; ++i )
+    for( int i{}; i < mEventCount; ++i )
       PIXEndEvent( commandList );
     mEventCount = 0;
 

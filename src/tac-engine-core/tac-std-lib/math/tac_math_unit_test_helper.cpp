@@ -33,7 +33,7 @@ namespace Tac
 
   bool IsAboutEqual( const float* as, const float* bs, int n )
   {
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       if( !IsAboutEqual( as[ i ], bs[ i ] ) )
         return false;
     return true;

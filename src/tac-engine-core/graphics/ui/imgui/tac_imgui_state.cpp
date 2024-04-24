@@ -398,7 +398,7 @@ namespace Tac
   void ImGuiSimWindowDraws::CopyVertexes( ImGuiRenderBuffers* gDrawInterface,
                                          Errors& errors )
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     if( !gDrawInterface->mVB.IsValid() || gDrawInterface->mVBCount < mVertexCount )
     {
       const int byteCount = mVertexCount * sizeof( UI2DVertex );
@@ -430,7 +430,7 @@ namespace Tac
   void ImGuiSimWindowDraws::CopyIndexes( ImGuiRenderBuffers* gDrawInterface,
                                         Errors& errors )
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     if( !gDrawInterface->mIB.IsValid() || gDrawInterface->mIBCount < mIndexCount )
     {
       const int byteCount = mIndexCount * sizeof( UI2DIndex );
@@ -497,7 +497,7 @@ namespace Tac
                                      ImGuiPersistantViewport* sysDraws,
                                      Errors& errors )
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     SysWindowApi* windowApi = sysDrawParams->mWindowApi;
 
     const WindowHandle hDesktopWindow = sysDraws->mWindowHandle;
@@ -553,8 +553,10 @@ namespace Tac
       .mView = m4::Identity(),
       .mProjection = OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ),
       .mSecModTau = ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ),
+#if TAC_FONT_ENABLED()
       .mSDFOnEdge = FontApi::GetSDFOnEdgeValue(),
       .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
+#endif
     };
 
     Render::IContext::Scope renderContext = TAC_CALL( renderDevice->CreateRenderContext( errors ) );

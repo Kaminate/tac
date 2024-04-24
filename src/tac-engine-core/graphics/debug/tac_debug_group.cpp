@@ -17,7 +17,7 @@ namespace Tac::Render::DebugGroup
   {
     // search back to front
     const int n = mNodeStack.size();
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       if( mNodeStack[ n - i - 1 ] == node )
         return true;
 
@@ -83,7 +83,7 @@ namespace Tac::Render::DebugGroup
   void        Stack::IterateEnd( Iterator& it )
   {
     const int n = it.mNodeStack.size();
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       it.mRenderContext->DebugEventEnd();
 
     it.mNodeStack = {};

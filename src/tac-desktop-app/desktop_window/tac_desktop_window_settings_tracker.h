@@ -15,7 +15,7 @@ namespace Tac
                                            int y = 50,
                                            int w = 800,
                                            int h = 600 );
-  WindowHandle CreateTrackedWindow( const SimWindowApi::CreateParams& );
+  WindowHandle CreateTrackedWindow( WindowCreateParams );
 
   void TrackWindowInit( SimWindowApi* );
   void UpdateTrackedWindows();

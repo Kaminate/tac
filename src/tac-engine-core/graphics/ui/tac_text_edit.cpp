@@ -118,7 +118,7 @@ namespace Tac
   void                TextInputData::SetCodepoints( CodepointView codepointView )
   {
     mCodepoints.resize( codepointView.size() );
-    for( int i = 0; i < codepointView.size(); ++i )
+    for( int i{}; i < codepointView.size(); ++i )
       mCodepoints[ i ] = codepointView[ i ];
     mCaretCount = 0;
   }

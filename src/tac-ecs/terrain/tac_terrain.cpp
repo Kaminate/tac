@@ -187,14 +187,14 @@ namespace Tac
     {
       for( int iCol = 0; iCol < mSideVertexCount; ++iCol )
       {
-        const v3 pos = GetGridVal( iRow, iCol );
-        const v3 posR = iCol + 1 < mSideVertexCount ? GetGridVal( iRow, iCol + 1 ) : pos;
-        const v3 posL = iCol - 1 >= 0               ? GetGridVal( iRow, iCol - 1 ) : pos;
-        const v3 posD = iRow - 1 >= 0               ? GetGridVal( iRow - 1, iCol ) : pos;
-        const v3 posU = iRow + 1 < mSideVertexCount ? GetGridVal( iRow + 1, iCol ) : pos;
-        const v3 edgeX = posR - posL;
-        const v3 edgeY = posD - posU;
-        const v3 normal = Normalize( Cross( edgeX, edgeY ) );
+        const v3 pos { GetGridVal( iRow, iCol ) };
+        const v3 posR { iCol + 1 < mSideVertexCount ? GetGridVal( iRow, iCol + 1 ) : pos };
+        const v3 posL { iCol - 1 >= 0               ? GetGridVal( iRow, iCol - 1 ) : pos };
+        const v3 posD { iRow - 1 >= 0               ? GetGridVal( iRow - 1, iCol ) : pos };
+        const v3 posU { iRow + 1 < mSideVertexCount ? GetGridVal( iRow + 1, iCol ) : pos };
+        const v3 edgeX { posR - posL };
+        const v3 edgeY { posD - posU };
+        const v3 normal { Normalize( Cross( edgeX, edgeY ) ) };
 
 
         //const v3 normal
@@ -222,7 +222,7 @@ namespace Tac
     mRowMajorGrid.clear();
     mRowMajorGridNormals.clear();
 
-    if( Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice() )
+    if( Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() } )
     {
       renderDevice->DestroyBuffer( mVertexBuffer );
       renderDevice->DestroyBuffer( mIndexBuffer );

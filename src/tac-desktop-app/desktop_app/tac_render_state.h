@@ -1,8 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/containers/tac_list.h"
-//#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/tac_iapp.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h" // App
 
 namespace Tac
 {

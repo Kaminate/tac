@@ -60,18 +60,18 @@ namespace Tac
     TextInputData* inputData = window->mTextInputData;
     DragData* dragFloatData = ( DragData* )window->GetWindowResource( sDragDataID );
 
-    const v2 pos = window->mViewportSpaceCurrCursor;
+    const v2 pos { window->mViewportSpaceCurrCursor };
     const v2 totalSize( width, fontSize );
-    const ImGuiId id = window->GetID();
-    const ImGuiRect origRect = ImGuiRect::FromPosSize( pos, totalSize );
+    const ImGuiId id { window->GetID() };
+    const ImGuiRect origRect { ImGuiRect::FromPosSize( pos, totalSize ) };
 
     window->ItemSize( totalSize );
     if( !window->Overlaps( origRect ) )
       return false;
 
-    const ImGuiRect clipRect = window->Clip( origRect );
-    const v2 valuePos = pos + v2( buttonPadding, 0 );
-    const bool hovered = window->IsHovered( clipRect );
+    const ImGuiRect clipRect { window->Clip( origRect ) };
+    const v2 valuePos { pos + v2( buttonPadding, 0 ) };
+    const bool hovered { window->IsHovered( clipRect ) };
 
     //static Timestamp consumeMouse;
     //if( hovered )
@@ -212,10 +212,10 @@ namespace Tac
 
     const UI2DDrawData::Text text =
     {
-      .mPos = valuePos,
-      .mFontSize = fontSize,
-      .mUtf8 = valueStr,
-      .mColor = ImGuiGetColor( ImGuiCol::Text ),
+      .mPos { valuePos },
+      .mFontSize { fontSize },
+      .mUtf8 { valueStr },
+      .mColor { ImGuiGetColor( ImGuiCol::Text ) },
     };
     drawData->AddText( text, &clipRect );
 
@@ -246,7 +246,7 @@ namespace Tac
     drawData->PushDebugGroup( "ImGuiDragTypeN", str );
 
     bool changed = false;
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
     {
       void* value = ( char* )values + ( std::ptrdiff_t )( i * sizeOfT );
       changed |= ImguiDragValNoLabel( dragW, value, sizeOfT, getter, setter, mouseHandler );

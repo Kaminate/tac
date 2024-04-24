@@ -80,7 +80,7 @@ namespace Tac
     int GetProfileThreadNumber( const std::thread::id threadId )
     {
       const int n = sThreadNumberMap.size();
-      for( int i = 0; i < n; ++i )
+      for( int i{}; i < n; ++i )
         if( sThreadNumberMap[ i ] == threadId )
           return i;
 
@@ -95,12 +95,12 @@ namespace Tac
 
   static v4 GetProfileFunctionColor( const ProfileFunction* profileFunction )
   {
-    const HashValue hash = Hash( profileFunction->mName );
-    const float t = Sin( ( float )hash ) * 0.5f + 0.5f;
+    const HashValue hash { Hash( profileFunction->mName ) };
+    const float t { Sin( ( float )hash ) * 0.5f + 0.5f };
     //              a      b                             c          d
-    const float r = 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.0f ) );
-    const float g = 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.33f ) );
-    const float b = 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.66f ) );
+    const float r { 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.0f ) ) };
+    const float g { 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.33f ) ) };
+    const float b { 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.66f ) ) };
     return { r, g, b, 1 };
   }
 
@@ -150,13 +150,13 @@ namespace Tac
       indexedThreadProfileData->mTreeHeight = treeHeight;
     }
 
-    float threadY = cameraViewportPos.y;
-    const float boxHeight = fontSize;
+    float threadY { cameraViewportPos.y };
+    const float boxHeight { fontSize };
 
 
     static Vector< ProfileFunctionDepth > visitors;
 
-    for( int iThread = 0; iThread < sProfileThreadManager.GetProfileThreadCount(); ++iThread )
+    for( int iThread { 0 }; iThread < sProfileThreadManager.GetProfileThreadCount(); ++iThread )
     {
       IndexedThreadProfileData* indexedThreadProfileData = &indexedThreadProfileDatas[ iThread ];
 

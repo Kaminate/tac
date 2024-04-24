@@ -16,6 +16,7 @@ target_sources( TacExamples PRIVATE
 target_link_libraries( TacExamples PUBLIC TacECS )
 
 add_subdirectory( dx12 )
+add_subdirectory( render_tutorial )
 add_subdirectory( fluid )
 add_subdirectory( meta )
 add_subdirectory( phy_sim )

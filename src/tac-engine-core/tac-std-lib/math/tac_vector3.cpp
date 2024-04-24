@@ -17,19 +17,19 @@ namespace Tac
   float&       v3::operator[]( int i ) { return data()[ i ]; }
   float        v3::operator[]( int i ) const { return data()[ i ]; }
   void         v3::operator /= ( float v ) { *this *= ( 1.0f / v ); }
-  void         v3::operator *= ( float v ) { for( int i = 0; i < 3; ++i ) data()[ i ] *= v; }
-  void         v3::operator -= ( const v3& v ) { for( int i = 0; i < 3; ++i ) data()[ i ] -= v[ i ]; }
-  void         v3::operator += ( const v3& v ) { for( int i = 0; i < 3; ++i ) data()[ i ] += v[ i ]; }
+  void         v3::operator *= ( float v ) { for( int i{}; i < 3; ++i ) data()[ i ] *= v; }
+  void         v3::operator -= ( const v3& v ) { for( int i{}; i < 3; ++i ) data()[ i ] -= v[ i ]; }
+  void         v3::operator += ( const v3& v ) { for( int i{}; i < 3; ++i ) data()[ i ] += v[ i ]; }
   bool         v3::operator == ( const v3& v )const
   {
-    for( int i = 0; i < 3; ++i )
+    for( int i { 0 }; i < 3; ++i )
       if( data()[ i ] != v[ i ] )
         return false;
     return true;
   }
   bool         v3::operator != ( const v3& v )const
   {
-    for( int i = 0; i < 3; ++i )
+    for( int i { 0 }; i < 3; ++i )
       if( data()[ i ] != v[ i ] )
         return true;
     return false;

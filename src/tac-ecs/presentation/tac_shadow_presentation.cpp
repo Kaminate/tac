@@ -113,7 +113,7 @@ namespace Tac
       .mStackFrame = TAC_STACK_FRAME,
     };
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     Render::TextureHandle textureHandleDepth = renderDevice->CreateTexture( params, errors );
     return textureHandleDepth;
@@ -147,7 +147,7 @@ namespace Tac
   Render::DefaultCBufferPerFrame ShadowLightVisitor::GetPerFrameData( const Light* light )
   {
     const Camera camera = light->GetCamera();
-    const Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndc = renderDevice->GetInfo().mNDCAttribs;
     const m4::ProjectionMatrixParams projParams
     {
@@ -159,10 +159,10 @@ namespace Tac
       .mFOVYRadians = camera.mFovyrad, // uhh should this be asserted to be 90 deg?
     };
 
-    const m4 proj = m4::ProjPerspective(projParams);
-    const float w = ( float )light->mShadowResolution;
-    const float h = ( float )light->mShadowResolution;
-    const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
+    const m4 proj { m4::ProjPerspective(projParams) };
+    const float w { ( float )light->mShadowResolution };
+    const float h { ( float )light->mShadowResolution };
+    const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
 
     return Render::DefaultCBufferPerFrame
     {
@@ -220,7 +220,7 @@ namespace Tac
 
   void        ShadowPresentationInit( Errors& errors )
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "Shadow",

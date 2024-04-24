@@ -42,7 +42,7 @@ namespace Tac
         auto newCountAllocated = ( int )( mCountAllocated * 1.5f );
         T* newTs = new T[ newCountAllocated ];
 
-        for( int i = 0; i < mCountUsed; ++i )
+        for( int i{}; i < mCountUsed; ++i )
         {
           newTs[ i ] = mTs[ ( mStartIndex + i ) % mCountAllocated ];
         }

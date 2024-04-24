@@ -72,7 +72,7 @@ namespace Tac
         populateDuration * modelPaths.size() );
       const int numberOfFilesToShow = Min( ( int )modelPaths.size(), numberOfFilesPopulate );
 
-      for( int i = 0; i < numberOfFilesToShow; ++i )
+      for( int i{}; i < numberOfFilesToShow; ++i )
       {
         const AssetPathStringView filepath = modelPaths[ i ];
         if( ImGuiButton( filepath ) )

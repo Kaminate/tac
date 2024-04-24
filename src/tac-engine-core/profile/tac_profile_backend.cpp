@@ -172,7 +172,7 @@ namespace Tac
       //ProfiledFunctionList& list = sProfiledFunctions[ id ];
       //Vector< ProfileFunction* >& list = mFunctions;
       //ProfiledFunctionList::Iterator it = list.begin();
-      //int i = 0;
+      //int i{};
       //int n = 
       //while( i < n )
       //{

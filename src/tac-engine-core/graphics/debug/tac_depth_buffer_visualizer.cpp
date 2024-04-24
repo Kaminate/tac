@@ -30,7 +30,7 @@ namespace Tac
     sInitialized = true;
 
 #if TAC_TEMPORARILY_DISABLED()
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     sSamplerState = Render::CreateSamplerState( { .mFilter = Render::Filter::Point }, TAC_STACK_FRAME );
 
     Render::CreateBufferParams createBufferParams
@@ -42,7 +42,7 @@ namespace Tac
     };
     sConstantBuffer = TAC_CALL( renderDevice->CreateBuffer( createBufferParams, errors ) );
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     Render::ProgramParams programParams
     {

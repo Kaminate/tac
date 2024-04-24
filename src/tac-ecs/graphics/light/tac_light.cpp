@@ -148,7 +148,7 @@ namespace Tac
   {
     mCreatedRenderResources = false;
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     renderDevice->DestroyTexture( mShadowMapDepth );
     mShadowMapDepth = {};
@@ -181,7 +181,7 @@ namespace Tac
 
   Light::Type                            LightTypeFromString( const StringView& str )
   {
-    for( int i = 0; i < Light::Type::kCount; ++i )
+    for( int i{}; i < Light::Type::kCount; ++i )
     {
       auto curType = ( Light::Type )i;
       const char* curTypeStr = LightTypeToString( curType );
@@ -194,7 +194,7 @@ namespace Tac
   Render::ShaderLight                            LightToShaderLight( const Light* light )
   {
     const Camera camera = light->GetCamera();
-    const Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndcAttribs = renderDevice->GetInfo().mNDCAttribs;
     const m4::ProjectionMatrixParams projParams
     {

@@ -100,7 +100,7 @@ namespace Tac
     static bool verboseCapture = false;
 
     // [ ] Q: wtf is sWindowUnderConstruction???
-    const WindowHandle windowHandleFound = Win32WindowManagerFindWindow( hwnd );
+    const WindowHandle windowHandleFound { Win32WindowManagerFindWindow( hwnd ) };
     const WindowHandle windowHandle
       = windowHandleFound.IsValid()
       ? windowHandleFound
@@ -430,7 +430,7 @@ namespace Tac
 
 Tac::WindowHandle   Tac::Win32WindowManagerFindWindow( HWND hwnd )
 {
-  for( int i = 0; i < kDesktopWindowCapacity; ++i )
+  for( int i{}; i < kDesktopWindowCapacity; ++i )
     if( sHWNDs[ i ] == hwnd )
       return { i };
   return {};
@@ -447,7 +447,7 @@ void                Tac::Win32WindowManagerDebugImGui()
 
 
   int hwndCount = 0;
-  for( int i = 0; i < kDesktopWindowCapacity; ++i )
+  for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
     const HWND hwnd = sHWNDs[ i ];
     if( !hwnd )
@@ -525,11 +525,11 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
   const WindowHandle& windowHandle = params.mHandle;
 
   // Name of the window, displayed in the window's title bar or alt-tab menu
-  const char* name = params.mName;
-  int x = params.mPos.x;
-  int y = params.mPos.y;
-  int w = params.mSize.x;
-  int h = params.mSize.y;
+  const char* name { params.mName };
+  int x { params.mPos.x };
+  int y { params.mPos.y };
+  int w { params.mSize.x };
+  int h { params.mSize.y };
 
   const DWORD windowStyle = WS_POPUP;
   if( w && h )
@@ -551,7 +551,9 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
     }
     else
     {
-      auto [monitorW, monitorH] = OS::OSGetPrimaryMonitor();
+      const v2i monitorSize { OS::OSGetPrimaryMonitor().mSize };
+      const int monitorW { monitorSize.x };
+      const int monitorH { monitorSize.y };
       x = monitorW / 4;
       y = monitorH / 4;
       w = monitorW / 2;

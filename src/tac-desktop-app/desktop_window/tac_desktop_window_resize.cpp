@@ -19,7 +19,7 @@ void Tac::DesktopAppUpdateResize()
 #if 0
   PlatformFns* platform = PlatformFns::GetInstance();
 
-  for( int i = 0; i < kDesktopWindowCapacity; ++i )
+  for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
     const WindowHandle windowHandle = { i };
     if( !windowHandle.GetDesktopWindowNativeHandle() )

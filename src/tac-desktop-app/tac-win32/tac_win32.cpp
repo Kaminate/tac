@@ -42,10 +42,10 @@ namespace Tac
     if( !winErrorValue )
       return "no error";
     LPVOID lpMsgBuf;
-    const DWORD flags =
+    const DWORD flags{
       FORMAT_MESSAGE_ALLOCATE_BUFFER |
       FORMAT_MESSAGE_FROM_SYSTEM |
-      FORMAT_MESSAGE_IGNORE_INSERTS;
+      FORMAT_MESSAGE_IGNORE_INSERTS };
     const DWORD bufLen = FormatMessage( flags,
                                         NULL,
                                         winErrorValue,

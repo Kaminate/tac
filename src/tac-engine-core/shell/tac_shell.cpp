@@ -36,7 +36,9 @@ namespace Tac
     UI2DCommonDataUninit();
     Debug3DCommonDataUninit();
 
+#if TAC_FONT_ENABLED()
     FontApi::Uninit();
+#endif
 
     //delete mLog;
 

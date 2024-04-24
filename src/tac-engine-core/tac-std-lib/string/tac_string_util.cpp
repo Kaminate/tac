@@ -32,7 +32,7 @@ namespace Tac
 
   static int LongestLineSize( const Vector<String>& lines )
   {
-    int longest = 0;
+    int longest { 0 };
     for( const String& str : lines )
       longest = Max( longest, str.size() );
     return longest;

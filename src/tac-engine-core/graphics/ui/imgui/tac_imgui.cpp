@@ -438,7 +438,7 @@ namespace Tac
 
         const v2i pos{ x, y };
         const v2i size{ w, h };
-        const SimWindowApi::CreateParams params
+        const WindowCreateParams params
         {
           .mName = name,
           .mPos{ pos },

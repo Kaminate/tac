@@ -32,14 +32,14 @@ namespace Tac::Render
 
     const char* p = sv.data();
 
-    for( int i = 0; i < 4; ++i )
+    for( int i{}; i < 4; ++i )
       if( !IsDigit( *p++ ) )
         return false;
 
     if( '.' != *p++ )
       return false;
 
-    for( int i = 0; i < 2; ++i )
+    for( int i{}; i < 2; ++i )
       if( !IsDigit( *p++ ) )
         return false;
 

@@ -33,7 +33,7 @@ namespace Tac
       FrameMemoryVector( int size, T initialValue )
       {
         resize( size );
-        for( int i = 0; i < size; ++i )
+        for( int i{}; i < size; ++i )
           mTs[ i ] = initialValue;
       }
 
@@ -41,14 +41,14 @@ namespace Tac
       {
         int size = ( int )( tend - tbegin );
         resize( size );
-        for( int i = 0; i < size; ++i )
+        for( int i{}; i < size; ++i )
           mTs[ i ] = tbegin[ i ];
       }
 
       FrameMemoryVector( std::initializer_list< T > ts )
       {
         resize( ( int )ts.size() );
-        int i = 0;
+        int i{};
         for( T t : ts )
           mTs[ i++ ] = t;
       }
@@ -73,7 +73,7 @@ namespace Tac
         if( capacity < mTCapacity )
           return;
         auto newTs = ( T* )FrameMemoryAllocate( sizeof( T ) * capacity );
-        for( int i = 0; i < mTCount; ++i )
+        for( int i{}; i < mTCount; ++i )
           newTs[ i ] = Tac::move( mTs[i ] ); // std::move( mTs[ i ] );
         mTs = newTs;
         mTCapacity = capacity;

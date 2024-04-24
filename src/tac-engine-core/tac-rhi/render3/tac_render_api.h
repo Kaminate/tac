@@ -335,6 +335,7 @@ namespace Tac::Render
     static int              GetMaxGPUFrameCount();
     static Filesystem::Path GetShaderOutputPath();
     static IDevice*         GetRenderDevice();
+    static void             SetRenderDevice( IDevice* );
   };
 
   struct NDCAttribs

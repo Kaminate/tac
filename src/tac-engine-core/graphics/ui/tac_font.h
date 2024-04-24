@@ -13,6 +13,10 @@
 //#include "tac-std-lib/tac_core.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 
+#define TAC_FONT_ENABLED() 0
+
+#if TAC_FONT_ENABLED()
+
 namespace Tac
 {
   struct FontFile;
@@ -117,4 +121,6 @@ namespace Tac
     static float                 GetSDFPixelDistScale(); // [0,1]
   };
 
+
 } // namespace Tac
+#endif

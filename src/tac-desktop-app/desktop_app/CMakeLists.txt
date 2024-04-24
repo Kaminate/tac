@@ -8,5 +8,9 @@ target_sources( TacDesktopApp
   "tac_desktop_app_renderers.h"
   "tac_desktop_app_threads.cpp"
   "tac_desktop_app_threads.h"
+  "tac_iapp.cpp"
+  "tac_iapp.h"
+  "tac_render_state.cpp"
+  "tac_render_state.h"
 )
 

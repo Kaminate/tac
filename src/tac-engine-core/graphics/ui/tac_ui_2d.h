@@ -106,9 +106,11 @@ namespace Tac
   };
 
   Render::TextureHandle Get1x1White();
+
   v2                    CalculateTextSize( const StringView&, float fontSize );
   v2                    CalculateTextSize( const CodepointView&, float fontSize );
   v2                    CalculateTextSize( const Codepoint*, int, float fontSize );
+
   m4                    OrthographicUIMatrix( const float w, const float h );
 
 } // namespace Tac

@@ -48,9 +48,9 @@ namespace Tac
     if( !sDirty )
       return false;
 
-    const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
-    const TimestampDifference saveFrequencySecs = 0.1f;
-    const bool savedRecently = elapsedSeconds < sLastSaveSeconds + saveFrequencySecs;
+    const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
+    const TimestampDifference saveFrequencySecs { 0.1f };
+    const bool savedRecently { elapsedSeconds < sLastSaveSeconds + saveFrequencySecs };
     if( savedRecently )
       return false;
 

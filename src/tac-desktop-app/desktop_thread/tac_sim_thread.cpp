@@ -1,9 +1,9 @@
-#include "tac_logic_thread.h" // self-inc
+#include "tac_sim_thread.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-#include "tac-desktop-app/tac_iapp.h"
-#include "tac-desktop-app/tac_render_state.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h" // App
+#include "tac-desktop-app/desktop_app/tac_render_state.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
 #include "tac-ecs/tac_space.h"
@@ -28,37 +28,30 @@
 
 namespace Tac
 {
-
   KeyboardBackend::SimApi sKeyboardBackendSimApi;
   WindowBackend::SimApi   sWindowBackend;
-  SimWindowApi            sWindowApi;
-  SimKeyboardApi          sKeyboardApi;
 
-  void LogicThread::Init( Errors& errors )
+  void SimThread::Init( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
 
-    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Logic );
+    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sim );
 
     FrameMemoryInitThreadAllocator( 1024 * 1024 * 10  );
 
     TAC_CALL( ShellInit( errors ) );
 
+#if TAC_FONT_ENABLED()
     TAC_CALL( FontApi::Init( errors ) );
+#endif
 
-    TrackWindowInit( &sWindowApi );
+    TrackWindowInit( sWindowApi );
 
     SpaceInit();
 
-    App::SimInitParams initParams
-    {
-      .mWindowApi = &sWindowApi,
-      .mKeyboardApi = &sKeyboardApi,
-    };
-    TAC_CALL( mApp->Init( initParams, errors ) );
   }
 
-  void LogicThread::Uninit()
+  void SimThread::Uninit()
   {
     const bool isRenderEnabled = mApp->IsRenderEnabled();
     Errors& errors = *mErrors;
@@ -76,12 +69,11 @@ namespace Tac
     //  Render::SubmitFinish();
   }
 
-  void LogicThread::Update( Errors& errors )
+  void SimThread::Update( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
     //PlatformFns* platform = PlatformFns::GetInstance();
 
-    TAC_CALL( Init( errors ) );
     while( OS::OSAppIsRunning() )
     {
       TAC_CALL( DesktopEventApi::Apply( errors ) );
@@ -116,10 +108,10 @@ namespace Tac
 
         Controller::UpdateJoysticks();
 
-        App::SimUpdateParams updateParams
+        App::UpdateParams updateParams
         {
-          .mWindowApi = &sWindowApi,
-          .mKeyboardApi = &sKeyboardApi,
+          .mWindowApi = sWindowApi,
+          .mKeyboardApi = sKeyboardApi,
         };
         TAC_CALL( mApp->Update( updateParams, errors ) );
 
@@ -147,6 +139,6 @@ namespace Tac
 
 
     } // while
-  } // LogicThread::Update
+  }
 
 } // namespace Tac

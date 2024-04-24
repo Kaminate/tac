@@ -14,7 +14,7 @@ namespace Tac
     v3 b = { 0.2f, 0.4f, 0.2f };
     v3 c = { 2.0f, 1.0f, 1.0f };
     v3 d = { 0.0f, 0.25f, 0.25f };
-    for( int i = 0; i < 3; ++i )
+    for( int i{}; i < 3; ++i )
     {
       float v = c[ i ];
       v *= ( float )t;

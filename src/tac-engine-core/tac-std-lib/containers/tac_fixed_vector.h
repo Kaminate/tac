@@ -57,7 +57,7 @@ namespace Tac
   FixedVector<T, N>::FixedVector( int size, T initialValue )
   {
     resize( size );
-    for( int i = 0; i < size; ++i )
+    for( int i{}; i < size; ++i )
       mTs[ i ] = initialValue;
   }
 
@@ -66,7 +66,7 @@ namespace Tac
   {
     int size = ( int )( tend - tbegin );
     resize( size );
-    for( int i = 0; i < size; ++i )
+    for( int i{}; i < size; ++i )
       mTs[ i ] = tbegin[ i ];
   }
 
@@ -86,7 +86,7 @@ namespace Tac
     TAC_ASSERT( mTCount + n <= N );
     T* dst = end();
     mTCount += n;
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       *dst++ = *ts++;
   }
 
@@ -101,7 +101,7 @@ namespace Tac
     if( n != b.size() )
       return false;
 
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
       if( a[ i ] != b[ i ] )
         return false;
 

@@ -68,7 +68,7 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreateDesktopWindow()
   {
-    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
+    const Monitor monitor = OS::OSGetPrimaryMonitor();
     const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
     const DesktopAppCreateWindowParams desktopParams
     {

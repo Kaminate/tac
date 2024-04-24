@@ -13,13 +13,13 @@ namespace Tac
   {
     String              mPath;
     WindowHandle        mWindowHandle;
-    int                 mX = 0;
-    int                 mY = 0;
-    int                 mW = 0;
-    int                 mH = 0;
-    bool                mQuitOnClose = false;
-    bool                mEverOpened = false;
-    bool                mTrackSettings = false;
+    int                 mX { 0 };
+    int                 mY { 0 };
+    int                 mW { 0 };
+    int                 mH { 0 };
+    bool                mQuitOnClose { false };
+    bool                mEverOpened { false };
+    bool                mTrackSettings { false };
   };
 
   static Vector< TrackInfo > sTrackInfos;
@@ -35,35 +35,35 @@ namespace Tac
 
   static String GetJsonPath( StringView oldName )
   {
-    String name = oldName;
+    String name { oldName };
     for( char& c : name )
       if( !IsAlpha( c ) && !IsDigit( c ) )
         c = '_';
     return name;
-
   }
 }
 
-Tac::WindowHandle Tac::CreateTrackedWindow( const SimWindowApi::CreateParams& params )
+Tac::WindowHandle Tac::CreateTrackedWindow( WindowCreateParams params )
 {
  
-  const WindowHandle windowHandle = sWindowApi->CreateWindow( params );
+  const WindowHandle windowHandle { sWindowApi->CreateWindow( params ) };
   //DesktopApp::GetInstance()->MoveControls( WindowHandle );
   //DesktopApp::GetInstance()->ResizeControls( WindowHandle );
 
-  const char* path = params.mName; // just reuse it
+  const char* path{ params.mName }; // just reuse it
   const TrackInfo info
   {
-    .mPath = path,
-    .mWindowHandle = windowHandle,
-    .mX = params.mPos.x,
-    .mY = params.mPos.y,
-    .mW = params.mSize.x,
-    .mH = params.mSize.y,
-    .mTrackSettings = true,
+    .mPath { path },
+    .mWindowHandle { windowHandle },
+    .mX { params.mPos.x },
+    .mY { params.mPos.y },
+    .mW { params.mSize.x },
+    .mH { params.mSize.y },
+    .mTrackSettings { true },
   };
   sTrackInfos.push_back( info );
-  return windowHandle;}
+  return windowHandle;
+}
 
 Tac::WindowHandle Tac::CreateTrackedWindow( const StringView& path,
                                             int x,
@@ -71,20 +71,20 @@ Tac::WindowHandle Tac::CreateTrackedWindow( const StringView& path,
                                             int w,
                                             int h )
 {
-  String jsonPath = GetJsonPath( path );
-  Json* json = SettingsGetJson( jsonPath );
+  const String jsonPath { GetJsonPath( path ) };
+  Json* json { SettingsGetJson( jsonPath ) };
   x = ( int )SettingsGetNumber( "x", x, json );
   y = ( int )SettingsGetNumber( "y", y, json );
   w = ( int )SettingsGetNumber( "w", w, json );
   h = ( int )SettingsGetNumber( "h", h, json );
-  const char* name = path; // just reuse it
+  const char* name{ path }; // just reuse it
 
   //const WindowApi::CreateParams createParams
-  const SimWindowApi::CreateParams createParams
+  const WindowCreateParams createParams
   {
-    .mName = path,
-    .mPos = v2i( x, y ),
-    .mSize = v2i( w, h ),
+    .mName { path },
+    .mPos  { v2i( x, y ) },
+    .mSize { v2i( w, h ) },
   };
 
   return CreateTrackedWindow( createParams );
@@ -94,7 +94,7 @@ void Tac::UpdateTrackedWindows()
 {
   for( TrackInfo& info : sTrackInfos )
   {
-    WindowHandle windowHandle = info.mWindowHandle;
+    WindowHandle windowHandle { info.mWindowHandle };
     if( !sWindowApi->IsShown( windowHandle ) && info.mEverOpened )
       OS::OSAppStopRunning();
 
@@ -105,12 +105,12 @@ void Tac::UpdateTrackedWindows()
 
     if( info.mTrackSettings )
     {
-      const v2i pos = sWindowApi->GetPos( windowHandle );
-      const v2i size = sWindowApi->GetSize( windowHandle );
-      const int x = pos.x;
-      const int y = pos.y;
-      const int w = size.x;
-      const int h = size.y;
+      const v2i pos { sWindowApi->GetPos( windowHandle ) };
+      const v2i size { sWindowApi->GetSize( windowHandle ) };
+      const int x { pos.x };
+      const int y { pos.y };
+      const int w { size.x };
+      const int h { size.y };
       if( x == info.mX &&
           y == info.mY &&
           w == info.mW &&
@@ -133,19 +133,18 @@ void Tac::UpdateTrackedWindows()
 
 void Tac::QuitProgramOnWindowClose( const WindowHandle& h )
 {
-  TrackInfo* trackInfo = FindTrackInfo( h );
-  if( !trackInfo )
+  if( TrackInfo* trackInfo { FindTrackInfo( h ) } )
   {
-    const TrackInfo info
-    {
-      .mWindowHandle = h,
-      .mQuitOnClose = true,
-    };
-    sTrackInfos.push_back( info );
+    trackInfo->mQuitOnClose = true;
   }
   else
   {
-    trackInfo->mQuitOnClose = true;
+    const TrackInfo info
+    {
+      .mWindowHandle { h },
+      .mQuitOnClose { true },
+    };
+    sTrackInfos.push_back( info );
   }
 }
 

@@ -22,6 +22,7 @@
 #include "tac-engine-core/thirdparty/stb_image_write.h"
 #endif
 
+#if TAC_FONT_ENABLED()
 
 namespace Tac
 {
@@ -203,7 +204,7 @@ namespace Tac
       delete fontAtlasCell;
     }
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     renderDevice->DestroyTexture( mTextureId );
   }
@@ -212,7 +213,7 @@ namespace Tac
   //{
   //  const int bytesPerCell = FontCellWidth * FontCellHeight;
   //  const int atlasVramByteCount = mRowCount * mColCount * bytesPerCell;
-  //  for( int i = 0; i < atlasVramByteCount; ++i )
+  //  for( int i{}; i < atlasVramByteCount; ++i )
   //    ( ( u8* )initialAtlasMemory )[ i ] = val;
   //}
 
@@ -220,7 +221,7 @@ namespace Tac
   {
     auto mem = ( u8* )initialAtlasMemory;
     u8* memRegionTL = mem + (std::ptrdiff_t)(region.mBeginColumn + region.mBeginRow * mPxStride);
-    for( int i = 0; i < region.mHeight; ++i )
+    for( int i{}; i < region.mHeight; ++i )
       MemSet( memRegionTL + (std::ptrdiff_t)(i * mPxStride), val, region.mWidth );
   }
 
@@ -301,7 +302,7 @@ namespace Tac
 
   void FontAtlas::Load( Errors& errors )
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const int maxCells = 1000;
     mCellRowCount = ( int )Sqrt( maxCells );
     mCellColCount = mCellRowCount;
@@ -389,7 +390,7 @@ namespace Tac
   FontAtlasCell* FontAtlas::GetCharacter( Language defaultLanguage, Codepoint codepoint )
   {
 #if TAC_TEMPORARILY_DISABLED()
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     //LanguageStuff* languageStuff = mLanguageStuffs[ defaultLanguage ];
     //FontStyle fontStyle = FontStyle::NormalText;
     //FontFile* fontFile = languageStuff->mFontStylePaths[ fontStyle ];
@@ -679,4 +680,6 @@ namespace Tac
     //  }
     //}
   }
+
 }
+#endif

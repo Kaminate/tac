@@ -59,7 +59,7 @@ namespace Tac
                                          const void* dataBytes,
                                          const int dataByteCount )
   {
-    TAC_ASSERT( DesktopAppThreads::IsMainThread() );
+    TAC_ASSERT( DesktopAppThreads::IsSysThread() );
     std::lock_guard< std::mutex > lockGuard( mMutex );
     // Tac::WindowProc still spews out events while a popupbox is open
     if( mQueue.capacity() - mQueue.size() < ( int )sizeof( DesktopEventType ) + dataByteCount )
@@ -110,7 +110,7 @@ namespace Tac
 
   void DesktopEventApi::Apply( Errors& errors )
   {
-    TAC_ASSERT( DesktopAppThreads::IsLogicThread() );
+    TAC_ASSERT( DesktopAppThreads::IsSimThread() );
     sHandler->HandleBegin();
     while( !sEventQueue.Empty() )
     {

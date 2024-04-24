@@ -122,20 +122,20 @@ namespace Tac
     TAC_ASSERT( m_debugLayerEnabled );
 
     m_device.QueryInterface( m_infoQueue );
-    TAC_ASSERT(m_infoQueue);
+    TAC_ASSERT( m_infoQueue );
 
     // Make the application debug break when bad things happen
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
+    if( auto infoQueue1 { m_infoQueue.QueryInterface<ID3D12InfoQueue1>()  })
     {
-      const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
-      void* pContext = this;
+      const D3D12MessageFunc CallbackFunc { MyD3D12MessageFunc };
+      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
+      void* pContext { this };
       DWORD pCallbackCookie;
 
       TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
@@ -148,7 +148,7 @@ namespace Tac
 
   void DX12AppHelloTexture::CreateDevice( Errors& errors )
   {
-    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
+    auto adapter { ( IDXGIAdapter* )DXGIGetBestAdapter() };
     PCom< ID3D12Device > device;
     TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
@@ -169,7 +169,7 @@ namespace Tac
 
   void DX12AppHelloTexture::InitDescriptorSizes()
   {
-    for( int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    for( int i { 0 }; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
       m_descriptorSizes[ i ]
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
@@ -220,7 +220,7 @@ namespace Tac
 
   void DX12AppHelloTexture::CreateSamplerDescriptorHeap( Errors& errors )
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
       .NumDescriptors = ( UINT )1,
@@ -237,7 +237,7 @@ namespace Tac
 
   void DX12AppHelloTexture::CreateSRVDescriptorHeap( Errors& errors )
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
       .NumDescriptors = ( UINT )SRVIndexes::Count,
@@ -258,22 +258,24 @@ namespace Tac
     // srv --> byteaddressbuffer
     // uav --> rwbyteaddressbuffer
 
+    const D3D12_BUFFER_SRV Buffer
+    {
+      .FirstElement { 0 },
+      .NumElements  { m_vertexBufferByteCount / 4 },
+      .Flags        { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
+    };
+
     const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
     {
-      .Format = DXGI_FORMAT_R32_TYPELESS, // for byteaddressbuffer
-      .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-      .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING, // swizzling?
-      .Buffer = D3D12_BUFFER_SRV
-      {
-        .FirstElement = 0,
-        .NumElements = m_vertexBufferByteCount / 4,
-        .Flags = D3D12_BUFFER_SRV_FLAG_RAW, // for byteaddressbuffer
-      },
+      .Format                  { DXGI_FORMAT_R32_TYPELESS }, // for byteaddressbuffer
+      .ViewDimension           { D3D12_SRV_DIMENSION_BUFFER },
+      .Shader4ComponentMapping { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING }, // swizzling?
+      .Buffer                  { Buffer },
     };
 
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
-      GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer );
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{
+      GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer ) };
     
     m_device->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
                                         &Desc,
@@ -284,13 +286,13 @@ namespace Tac
   {
     const D3D12_SAMPLER_DESC Desc
     {
-      .Filter = D3D12_FILTER_MIN_MAG_MIP_POINT,
-      .AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
-      .MinLOD = 0,
-      .MaxLOD = D3D12_FLOAT32_MAX,
+      .Filter { D3D12_FILTER_MIN_MAG_MIP_POINT },
+      .AddressU { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressV { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressW { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
+      .MinLOD { 0 },
+      .MaxLOD { D3D12_FLOAT32_MAX },
     };
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
     m_device->CreateSampler( &Desc, DestDescriptor );
@@ -314,16 +316,18 @@ namespace Tac
 
     // Create the texture.
 
+    const DXGI_SAMPLE_DESC SampleDesc { .Count = 1, .Quality = 0 };
+
     // Describe and create a Texture2D.
     const D3D12_RESOURCE_DESC resourceDesc =
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-      .Width = Checkerboard::TextureWidth,
-      .Height = Checkerboard::TextureHeight,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-      .SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 },
+      .Dimension        { D3D12_RESOURCE_DIMENSION_TEXTURE2D },
+      .Width            { Checkerboard::TextureWidth },
+      .Height           { Checkerboard::TextureHeight },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_R8G8B8A8_UNORM },
+      .SampleDesc       { SampleDesc },
     };
 
     m_textureDesc = resourceDesc;
@@ -355,13 +359,13 @@ namespace Tac
 
     const D3D12_RESOURCE_DESC uploadBufferResourceDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-      .Width = totalBytes,
-      .Height = 1,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .SampleDesc = DXGI_SAMPLE_DESC { .Count = 1, .Quality = 0, },
-      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+      .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
+      .Width            { totalBytes },
+      .Height           { 1 },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .SampleDesc       { SampleDesc },
+      .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
     // Create the GPU upload buffer.
@@ -380,14 +384,14 @@ namespace Tac
 
     const D3D12_SUBRESOURCE_DATA textureData =
     {
-      .pData = texture.data(),
-      .RowPitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth,
-      .SlicePitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight,
+      .pData      { texture.data() },
+      .RowPitch   { Checkerboard::TexturePixelSize * Checkerboard::TextureWidth },
+      .SlicePitch { Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight },
     };
 
     // --- update subresource begin ---
 
-    const int nSubRes = 1;
+    const int nSubRes { 1 };
     Vector< D3D12_PLACED_SUBRESOURCE_FOOTPRINT > footprints( nSubRes ); // aka layouts?
     Vector< UINT64 > rowByteCounts( nSubRes );
     Vector< UINT > rowCounts( nSubRes );
@@ -402,7 +406,7 @@ namespace Tac
                                      &requiredByteCount );
 
     // for each subresource
-    for( int subresourceIndex = 0; subresourceIndex < nSubRes; ++subresourceIndex )
+    for( int subresourceIndex { 0 }; subresourceIndex < nSubRes; ++subresourceIndex )
     {
 
       TAC_ASSERT( totalBytes >= requiredByteCount );
@@ -412,28 +416,28 @@ namespace Tac
       TAC_DX12_CALL( textureUploadHeap->Map( (UINT)subresourceIndex, &readRange, &mappedData ) );
 
       const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout = footprints[ subresourceIndex ];
-      const UINT rowCount = rowCounts[ subresourceIndex];
+      const UINT rowCount { rowCounts[ subresourceIndex] };
 
       const D3D12_MEMCPY_DEST DestData 
       {
-        .pData = (char*)mappedData + layout.Offset,
-        .RowPitch = layout.Footprint.RowPitch,
-        .SlicePitch = SIZE_T( layout.Footprint.RowPitch ) * SIZE_T( rowCount ),
+        .pData { (char*)mappedData + layout.Offset },
+        .RowPitch { layout.Footprint.RowPitch },
+        .SlicePitch { SIZE_T( layout.Footprint.RowPitch ) * SIZE_T( rowCount ) },
       };
 
-      const int rowByteCount = ( int )rowByteCounts[ subresourceIndex ];
+      const int rowByteCount { ( int )rowByteCounts[ subresourceIndex ] };
 
-      const UINT NumSlices = layout.Footprint.Depth;
+      const UINT NumSlices { layout.Footprint.Depth };
 
       // For each slice
-      for (UINT z = 0; z < NumSlices; ++z)
+      for (UINT z { 0 }; z < NumSlices; ++z)
       {
-          auto pDestSlice = (BYTE*)DestData.pData + DestData.SlicePitch * z;
-          auto pSrcSlice = (const BYTE*)textureData.pData + textureData.SlicePitch * LONG_PTR(z);
-          for (UINT y = 0; y < rowCount; ++y)
+          auto pDestSlice { (BYTE*)DestData.pData + DestData.SlicePitch * z };
+          auto pSrcSlice { (const BYTE*)textureData.pData + textureData.SlicePitch * LONG_PTR(z) };
+          for (UINT y { 0 }; y < rowCount; ++y)
           {
-            void* dst = pDestSlice + DestData.RowPitch * y;
-            const void* src = pSrcSlice + textureData.RowPitch * LONG_PTR(y);
+            void* dst { pDestSlice + DestData.RowPitch * y };
+            const void* src { pSrcSlice + textureData.RowPitch * LONG_PTR(y) };
 
             MemCpy(dst, src, rowByteCount);
           }
@@ -449,20 +453,20 @@ namespace Tac
       nullptr ) );
 
 
-    for( int iSubRes = 0; iSubRes < nSubRes; ++iSubRes )
+    for( int iSubRes { 0 }; iSubRes < nSubRes; ++iSubRes )
     {
         const D3D12_TEXTURE_COPY_LOCATION Dst
         {
-          .pResource = (ID3D12Resource *)m_texture,
-          .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-          .SubresourceIndex = (UINT)iSubRes,
+          .pResource        { (ID3D12Resource *)m_texture },
+          .Type             { D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX },
+          .SubresourceIndex { (UINT)iSubRes },
         };
 
         const D3D12_TEXTURE_COPY_LOCATION Src
         {
-          .pResource = (ID3D12Resource *)textureUploadHeap,
-          .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-          .PlacedFootprint = footprints[ iSubRes ],
+          .pResource       { (ID3D12Resource *)textureUploadHeap },
+          .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
+          .PlacedFootprint { footprints[ iSubRes ] },
         };
 
         m_commandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
@@ -472,23 +476,23 @@ namespace Tac
 
     const TransitionParams transitionParams
     {
-       .mResource = ( ID3D12Resource* )m_texture,
-       .mCurrentState = &m_textureResourceStates,
-       .mTargetState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+       .mResource     { ( ID3D12Resource* )m_texture },
+       .mCurrentState { &m_textureResourceStates },
+       .mTargetState  { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
     };
 
     TransitionResource( transitionParams );
 
     // Describe and create a SRV for the texture.
-    const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {
+    const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc  {
       .Format = resourceDesc.Format,
       .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
       .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
       .Texture2D = D3D12_TEX2D_SRV { .MipLevels = 1, },
     };
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
-      GetSRVCpuDescHandle( SRVIndexes::TriangleTexture );
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{
+      GetSRVCpuDescHandle( SRVIndexes::TriangleTexture ) };
     m_device->CreateShaderResourceView((ID3D12Resource*)m_texture.Get(),
                                         &srvDesc,
                                         DestDescriptor);
@@ -935,7 +939,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i = 0; i < bufferCount; i++ )
+    for( Uint i{}; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
@@ -1236,22 +1240,24 @@ namespace Tac
 
   DX12AppHelloTexture::DX12AppHelloTexture( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloTexture::Init( SimInitParams params, Errors& errors )
+  void DX12AppHelloTexture::Init( InitParams params, Errors& errors )
   {
     WindowBackend::SysApi::mIsRendererEnabled = false; // hack
 
-    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
-    const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
-    int X = ( monitor.mWidth - s ) / 2;
-    int Y = ( monitor.mHeight - s ) / 2;
+    const Monitor monitor = OS::OSGetPrimaryMonitor();
+    const int monitorW = monitor.mSize.x;
+    const int monitorH = monitor.mSize.y;
+    const int s = Min( monitorW, monitorH ) / 2;
+    const int X = ( monitorW - s ) / 2;
+    const int Y = ( monitorH - s ) / 2;
 
-    SimWindowApi::CreateParams windowParams
+    WindowCreateParams windowParams
     {
-      .mName = "DX12 Window",
-      .mPos{ X, Y },
-      .mSize{ s, s },
+      .mName { "DX12 Window" },
+      .mPos  { X, Y },
+      .mSize { s, s },
     };
-    hDesktopWindow = params.mWindowApi->CreateWindow( windowParams );
+    hDesktopWindow = params.mWindowApi->CreateWindow( windowParams, errors );
 
     QuitProgramOnWindowClose( hDesktopWindow );
   }
@@ -1259,7 +1265,7 @@ namespace Tac
   void DX12AppHelloTexture::PreSwapChainInit( Errors& errors)
   {
     static bool didPreSwapChainInit;
-    if(didPreSwapChainInit)
+    if( didPreSwapChainInit )
       return;
 
     didPreSwapChainInit = true;
@@ -1281,7 +1287,7 @@ namespace Tac
   }
 
 
-  void DX12AppHelloTexture::Render( SysRenderParams renderParams , Errors& errors )
+  void DX12AppHelloTexture::Render( RenderParams renderParams , Errors& errors )
   {
     SysWindowApi* windowApi = renderParams.mWindowApi;
     if( !windowApi->IsShown( hDesktopWindow ) )
@@ -1300,7 +1306,7 @@ namespace Tac
     TAC_CALL( WaitForPreviousFrame( errors ) );
   }
 
-  void DX12AppHelloTexture::Update( SimUpdateParams params, Errors& errors )
+  void DX12AppHelloTexture::Update( UpdateParams params, Errors& errors )
   {
   }
 

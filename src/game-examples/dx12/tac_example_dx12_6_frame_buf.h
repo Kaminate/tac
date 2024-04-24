@@ -49,10 +49,10 @@ namespace Tac
 
     DX12AppHelloFrameBuf( const Config& );
 
-    void     Init( SimInitParams, Errors& ) override;
-    void     Update( SimUpdateParams, Errors& ) override;
+    void     Init( InitParams, Errors& ) override;
+    void     Update( UpdateParams, Errors& ) override;
     void     Uninit( Errors& ) override;
-    void     Render( SysRenderParams, Errors& ) override;
+    void     Render( RenderParams, Errors& ) override;
     IState*  GetGameState() override;
 
   private:

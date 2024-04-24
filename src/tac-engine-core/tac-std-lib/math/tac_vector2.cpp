@@ -17,19 +17,19 @@ namespace Tac
   float&       v2::operator[]( int i ) { return data()[ i ]; }
   float        v2::operator[]( int i ) const { return data()[ i ]; }
   void         v2::operator /= ( float v ) { *this *= ( 1.0f / v ); }
-  void         v2::operator *= ( float v ) { for( int i = 0; i < 2; ++i ) data()[ i ] *= v; }
-  void         v2::operator -= ( const v2& v ) { for( int i = 0; i < 2; ++i ) data()[ i ] -= v[ i ]; }
-  void         v2::operator += ( const v2& v ) { for( int i = 0; i < 2; ++i ) data()[ i ] += v[ i ]; }
+  void         v2::operator *= ( float v ) { for( int i{}; i < 2; ++i ) data()[ i ] *= v; }
+  void         v2::operator -= ( const v2& v ) { for( int i{}; i < 2; ++i ) data()[ i ] -= v[ i ]; }
+  void         v2::operator += ( const v2& v ) { for( int i{}; i < 2; ++i ) data()[ i ] += v[ i ]; }
   bool         v2::operator == ( const v2& v ) const
   {
-    for( int i = 0; i < 2; ++i )
+    for( int i{}; i < 2; ++i )
       if( data()[ i ] != v[ i ] )
         return false;
     return true;
   }
   bool         v2::operator != ( const v2& v ) const
   {
-    for( int i = 0; i < 2; ++i )
+    for( int i{}; i < 2; ++i )
       if( data()[ i ] != v[ i ] )
         return true;
     return false;
@@ -47,7 +47,7 @@ namespace Tac
   float        Dot( const v2& lhs, const v2& rhs )
   {
     float result = 0;
-    for( int i = 0; i < 2; ++i )
+    for( int i{}; i < 2; ++i )
       result += lhs[ i ] * rhs[ i ];
     return result;
   }

@@ -187,7 +187,7 @@ namespace Tac
   static void                    CreateVoxelVisualizerShader(Errors& errors)
   {
     // This shader is used to debug visualize the voxel radiance
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "VoxelVisualizer",
@@ -199,7 +199,7 @@ namespace Tac
   static void                    CreateVoxelCopyShader(Errors& errors)
   {
     // This shader is used to copy from the 3d magic buffer to the 3d texture
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "VoxelCopy",
@@ -220,7 +220,7 @@ namespace Tac
   {
     // The voxelizer shader turns geometry into a rwstructuredbuffer using atomics
     // to prevent flickering
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "",
@@ -354,7 +354,7 @@ namespace Tac
     if( !voxelSettingsCurrent.voxelDebugDrawVoxelOutlines )
       return;
     TAC_PROFILE_BLOCK;
-    for( int i = 0; i < voxelSettingsCurrent.voxelDimension; ++i )
+    for( int i{}; i < voxelSettingsCurrent.voxelDimension; ++i )
     {
       for( int j = 0; j < voxelSettingsCurrent.voxelDimension; ++j )
       {
@@ -600,7 +600,7 @@ namespace Tac
 
   void VoxelGIDebugImgui()
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     VoxelSettingsUpdateSerialize();
 
     if( !ImGuiCollapsingHeader( "Voxel GI Presentation" ) )

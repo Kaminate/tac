@@ -1,7 +1,6 @@
 #pragma once
 
-//#include "tac-std-lib/identifier/tac_handle.h"
-
+#include "tac-std-lib/math/tac_vector2i.h"
 
 namespace Tac::Filesystem { struct Path; }
 
@@ -11,15 +10,16 @@ namespace Tac
 {
   //TAC_DEFINE_HANDLE( SemaphoreHandle );
   //TAC_DEFINE_HANDLE( MutexHandle );
+
+  struct Monitor
+  {
+    v2i mSize;
+  };
 }
+
 
 namespace Tac::OS
 {
-  struct Monitor
-  {
-    int mWidth;
-    int mHeight;
-  };
 
   extern void        ( *OSDebugBreak )( );
 

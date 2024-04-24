@@ -27,7 +27,7 @@ namespace Tac
   {
     auto indiciesData = ( T* )( ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset );
     Vector< int > result( ( int )indices->count );
-    for( int i = 0; i < ( int )indices->count; ++i )
+    for( int i{}; i < ( int )indices->count; ++i )
       result[ i ] = ( int )indiciesData[ i ];
     return result;
   }
@@ -127,10 +127,10 @@ namespace Tac
     const int dstVtxStride = ComputeStride( decls );
     TAC_ASSERT( dstVtxStride );
 
-    const int vertexCount = ( int )parsedPrim->attributes[ 0 ].data->count;
+    const int vertexCount { ( int )parsedPrim->attributes[ 0 ].data->count };
     Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
 
-    for( int iVertexDeclaration = 0;
+    for( int iVertexDeclaration { 0 };
          iVertexDeclaration < decls.size();
          iVertexDeclaration++ )
     {
@@ -185,7 +185,7 @@ namespace Tac
       .mStackFrame = TAC_STACK_FRAME
        //dstVtxStride,
     };
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::BufferHandle vertexBuffer = renderDevice->CreateBuffer( createBufferParams, errors );
     return vertexBuffer;
   }

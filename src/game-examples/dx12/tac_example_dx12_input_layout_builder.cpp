@@ -23,7 +23,7 @@ namespace Tac::Render
   {
     const int n = vtxDecls.size();
     mElementDescs.resize( n );
-    for( int i = 0; i < n; ++i )
+    for( int i{}; i < n; ++i )
     {
       const auto& decl = vtxDecls[ i ];
       mElementDescs[ i ] = D3D12_INPUT_ELEMENT_DESC

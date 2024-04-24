@@ -7,12 +7,12 @@ namespace Tac
     enum class ThreadType
     {
       Unknown,
-      Main,
-      Logic
+      Sys,
+      Sim
     };
     static void SetType( ThreadType );
     static bool IsType( ThreadType );
-    static bool IsMainThread();
-    static bool IsLogicThread();
+    static bool IsSysThread();
+    static bool IsSimThread();
   };
 } // namespace Tac

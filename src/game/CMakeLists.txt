@@ -17,17 +17,14 @@ target_link_libraries( TacGravestory
   TacDesktopApp
 )
 
-if(TARGET TacVkRenderer)
+if( TARGET TacVkRenderer )
 
-  if (TARGET TacSDLVk)
+  if ( TARGET TacSDLVk )
     target_link_libraries( TacGravestory TacSDLVk )
   endif()
 
   target_link_libraries( TacGravestory TacVkRenderer  )
-  target_sources( TacGravestory PRIVATE
-      "${CMAKE_SOURCE_DIR}/src/tac-desktop-app/tac_win_vk.cpp"
-      "${CMAKE_SOURCE_DIR}/src/tac-desktop-app/tac_win_vk.h"
-    )
+  target_link_libraries( TacGravestory TacWinVk  )
 endif()
 
 

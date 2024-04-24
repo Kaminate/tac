@@ -20,7 +20,7 @@ namespace Tac
   StringView FrameMemoryFormat( std::format_string< Args ... > fmt_str, Args&& ... args )
   {
     const std::size_t n = std::formatted_size( fmt_str, std::forward<Args>( args )... );
-    char* bytes = ( char* )FrameMemoryAllocate( ( int )n + 1 );
+    char* bytes{ ( char* )FrameMemoryAllocate( ( int )n + 1 ) };
     std::format_to_n( bytes, n, fmt_str, std::forward<Args>( args )... );
     bytes[ n ] = '\0';
     return StringView( bytes, (int)n );

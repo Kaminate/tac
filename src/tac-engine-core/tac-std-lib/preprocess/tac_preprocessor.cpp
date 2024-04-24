@@ -11,6 +11,6 @@ namespace Tac
 {
 
 
-  int asdf = 0;
+  int asdf { 0 };
 
 } // namespace Tac

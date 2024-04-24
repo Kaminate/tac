@@ -37,7 +37,7 @@ namespace Tac
   void SkyboxPresentationInit( Errors& errors )
   {
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
       .mFileStem = "Skybox",

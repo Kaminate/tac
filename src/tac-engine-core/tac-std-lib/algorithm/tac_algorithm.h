@@ -42,7 +42,7 @@ namespace Tac
   {
     int c = RandomIndex( ts.size() );
     auto it = ts.begin();
-    for( int i = 0; i < c; ++i )
+    for( int i{}; i < c; ++i )
       ++it;
     return *it;
   }
@@ -51,7 +51,7 @@ namespace Tac
   //{
   //  int c = RandomIndex( ( int )ts.size() );
   //  auto it = ts.begin();
-  //  for( int i = 0; i < c; ++i )
+  //  for( int i{}; i < c; ++i )
   //    ++it;
   //  return *it;
   //}

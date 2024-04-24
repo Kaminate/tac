@@ -145,7 +145,7 @@ namespace Tac::TextureAssetManager
     if( shouldConvertToPremultipliedAlpha )
     {
       stbi_uc* l = loaded;
-      for( int i = 0; i < y; ++i )
+      for( int i{}; i < y; ++i )
       {
         for( int j = 0; j < x; ++j )
         {
@@ -198,7 +198,7 @@ namespace Tac::TextureAssetManager
 
     auto TrySortPart = [ & ]( StringView face, int desiredIndex )
     {
-      for( int i = 0; i < 6; ++i )
+      for( int i{}; i < 6; ++i )
       {
         Filesystem::Path filepath = files[ i ];
         if( ToLower( filepath.u8string() ).find( ToLower( face ) ) == String::npos )
@@ -235,14 +235,14 @@ namespace Tac::TextureAssetManager
       int y;
       int previousChannelCount;
       // rgba
-      const auto memoryByteCount = ( int )memory.size();
-      const auto memoryData = ( const stbi_uc* )memory.data();
-      stbi_uc* loaded = stbi_load_from_memory( memoryData,
+      const auto memoryByteCount { ( int )memory.size() };
+      const auto memoryData { ( const stbi_uc* )memory.data() };
+      stbi_uc* loaded{ stbi_load_from_memory( memoryData,
                                                memoryByteCount,
                                                &x,
                                                &y,
                                                &previousChannelCount,
-                                               format.mElementCount );
+                                               format.mElementCount ) };
       TAC_ON_DESTRUCT
       (
         stbi_image_free( loaded );
@@ -268,9 +268,9 @@ namespace Tac::TextureAssetManager
         TAC_RAISE_ERROR( errorMsg);
       }
 
-      const int pitch = x * format.mElementCount * format.mPerElementByteCount;
-      const int imageDataByteCount = y * pitch;
-      Vector< char >& imageData = mData->mImageData[ iFile ];
+      const int pitch { x * format.mElementCount * format.mPerElementByteCount };
+      const int imageDataByteCount { y * pitch };
+      Vector< char >& imageData { mData->mImageData[ iFile ] };
       imageData.resize( imageDataByteCount );
       MemCpy( imageData.data(), loaded, imageDataByteCount );
       mData->mPitch = pitch;
@@ -302,8 +302,8 @@ namespace Tac::TextureAssetManager
                                                    AsyncTexture* asyncTexture,
                                                    Errors& errors )
   {
-    const Job* job = asyncTexture->mJob;
-    const JobState status = job->GetStatus();
+    const Job* job { asyncTexture->mJob };
+    const JobState status { job->GetStatus() };
     const StringID id ( key );
     if( status == JobState::ThreadFinished )
     {

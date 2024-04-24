@@ -1362,7 +1362,7 @@ void cgltf_node_transform_world(const cgltf_node* node, cgltf_float* out_matrix)
 		float pm[16];
 		cgltf_node_transform_local(parent, pm);
 
-		for (int i = 0; i < 4; ++i)
+		for (int i{}; i < 4; ++i)
 		{
 			float l0 = lm[i * 4 + 0];
 			float l1 = lm[i * 4 + 1];

@@ -71,3 +71,15 @@ Write a `StringView EnumNameToString( EnumName )` that uses a simple switch stat
 
 ---
 
+## Initializers
+
+Prefer to initialize variables with braces, leaving `=` for assignment.
+
+```cpp
+Foo f{ bar() }; // good
+Foo f = bar();  // bad
+```
+
+---
+
+

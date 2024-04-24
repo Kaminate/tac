@@ -168,7 +168,7 @@ namespace Tac
   {
     const char* pos = GetPos();
     const int   remainingCharCount = GetRemainingByteCount();
-    for( int i = 0; i < remainingCharCount; ++i )
+    for( int i{}; i < remainingCharCount; ++i )
     {
       const char c = pos[ i ];
       if( !IsSpace( c ) )
