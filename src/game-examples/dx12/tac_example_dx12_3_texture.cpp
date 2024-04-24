@@ -939,9 +939,9 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( Uint i{}; i < bufferCount; i++ )
+    for( UINT i{}; i < bufferCount; i++ )
     {
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{ GetRTVCpuDescHandle( i ) };
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
       TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );

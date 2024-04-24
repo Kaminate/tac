@@ -145,9 +145,9 @@ namespace Tac
   {
     const D3D12_DESCRIPTOR_HEAP_DESC desc =
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-      .NumDescriptors = ( UINT )SRVIndexes::Count,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
+      .NumDescriptors { ( UINT )SRVIndexes::Count },
+      .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -164,22 +164,24 @@ namespace Tac
     // srv --> byteaddressbuffer
     // uav --> rwbyteaddressbuffer
 
+    const D3D12_BUFFER_SRV Buffer
+    {
+      .FirstElement  { 0 },
+      .NumElements   { m_vertexBufferByteCount / 4 },
+      .Flags         { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
+    };
+
     const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
     {
-      .Format = DXGI_FORMAT_R32_TYPELESS, // for byteaddressbuffer
-      .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-      .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING, // swizzling?
-      .Buffer = D3D12_BUFFER_SRV
-      {
-        .FirstElement = 0,
-        .NumElements = m_vertexBufferByteCount / 4,
-        .Flags = D3D12_BUFFER_SRV_FLAG_RAW, // for byteaddressbuffer
-      },
+      .Format                  { DXGI_FORMAT_R32_TYPELESS }, // for byteaddressbuffer
+      .ViewDimension           { D3D12_SRV_DIMENSION_BUFFER },
+      .Shader4ComponentMapping { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING }, // swizzling?
+      .Buffer                  { Buffer },
     };
 
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
-      GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer );
+     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{
+       GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer ) };
     
     m_device->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
                                         &Desc,
@@ -190,13 +192,13 @@ namespace Tac
   {
     const D3D12_SAMPLER_DESC Desc
     {
-      .Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR, // D3D12_FILTER_MIN_MAG_MIP_POINT,
-      .AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
-      .MinLOD = 0,
-      .MaxLOD = D3D12_FLOAT32_MAX,
+      .Filter         { D3D12_FILTER_MIN_MAG_MIP_LINEAR }, // D3D12_FILTER_MIN_MAG_MIP_POINT,
+      .AddressU       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressV       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressW       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
+      .MinLOD         { 0 },
+      .MaxLOD         { D3D12_FLOAT32_MAX },
     };
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
     m_device->CreateSampler( &Desc, DestDescriptor );
@@ -217,16 +219,18 @@ namespace Tac
 
     // Create the texture.
 
+    DXGI_SAMPLE_DESC SampleDesc { .Count = 1, .Quality = 0 };
+
     // Describe and create a Texture2D.
     const D3D12_RESOURCE_DESC resourceDesc =
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-      .Width = Checkerboard::TextureWidth,
-      .Height = Checkerboard::TextureHeight,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-      .SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 },
+      .Dimension        { D3D12_RESOURCE_DIMENSION_TEXTURE2D },
+      .Width            { Checkerboard::TextureWidth },
+      .Height           { Checkerboard::TextureHeight },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_R8G8B8A8_UNORM },
+      .SampleDesc       {SampleDesc },
     };
 
     m_textureDesc = resourceDesc;
@@ -803,31 +807,31 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( Uint i{}; i < SWAP_CHAIN_BUFFER_COUNT; i++ )
+    for( UINT i{}; i < SWAP_CHAIN_BUFFER_COUNT; i++ )
     {
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
-      PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( i ) };
+      PCom< ID3D12Resource >& renderTarget { m_renderTargets[ i ] };
       TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
       DX12SetName( renderTarget, "Render Target " + ToString( i ) );
 
-      m_renderTargetDescs[i] = renderTarget->GetDesc();
+      m_renderTargetDescs[ i ] = renderTarget->GetDesc();
 
       // the render target resource is created in a state that is ready to be displayed on screen
-      m_renderTargetStates[i] = D3D12_RESOURCE_STATE_PRESENT;
+      m_renderTargetStates[ i ] = D3D12_RESOURCE_STATE_PRESENT;
     }
 
     m_viewport = D3D12_VIEWPORT
     {
-     .Width = ( float )m_swapChainDesc.Width,
-     .Height = ( float )m_swapChainDesc.Height,
+     .Width  { ( float )m_swapChainDesc.Width },
+     .Height { ( float )m_swapChainDesc.Height },
     };
 
     m_scissorRect = D3D12_RECT
     {
-      .right = ( LONG )m_swapChainDesc.Width,
-      .bottom = ( LONG )m_swapChainDesc.Height,
+      .right  { ( LONG )m_swapChainDesc.Width },
+      .bottom { ( LONG )m_swapChainDesc.Height },
     };
 
     m_viewports = { m_viewport };
@@ -868,10 +872,10 @@ namespace Tac
 
     const D3D12_DRAW_ARGUMENTS drawArgs
     {
-      .VertexCountPerInstance = 3,
-      .InstanceCount = 1,
-      .StartVertexLocation = 0,
-      .StartInstanceLocation = 0,
+      .VertexCountPerInstance { 3 },
+      .InstanceCount          { 1 },
+      .StartVertexLocation    { 0 },
+      .StartInstanceLocation  { 0 },
     };
 
     m_commandListBundle->Reset( m_commandAllocatorBundle.Get(), mPipelineState.Get() );
@@ -918,7 +922,7 @@ namespace Tac
     // sets the scissor rect of the pipeline state's rasterizer state?
     m_commandList->RSSetScissorRects( ( UINT )m_scissorRects.size(), m_scissorRects.data() );
 
-    const Array descHeaps = {
+    const Array descHeaps{
       ( ID3D12DescriptorHeap* )m_srvHeap,
       ( ID3D12DescriptorHeap* )m_samplerHeap,
     };
