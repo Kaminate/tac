@@ -28,8 +28,8 @@ namespace Tac
   {
     TAC_ASSERT( capacity > mCapacity );
 
-    int* newDense = TAC_NEW int[ ( size_t )capacity * 2 ];
-    int* newSparse = newDense + capacity;
+    int* newDense { TAC_NEW int[ ( size_t )capacity * 2 ] };
+    int* newSparse { newDense + capacity };
 
     for( int i{}; i < mCapacity; ++i )
     {

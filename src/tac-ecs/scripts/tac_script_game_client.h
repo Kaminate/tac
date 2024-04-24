@@ -26,11 +26,11 @@ namespace Tac
     virtual void Begin();
     virtual void End();
     virtual void Update( float percent );
-    double       mTimeBegin = 0;
-    double       mTimeEnd = 0;
-    bool         mPlayedBegin = false;
-    bool         mPlayedEnd = false;
-    bool         mPlayedUpdate = false;
+    double       mTimeBegin    {};
+    double       mTimeEnd      {};
+    bool         mPlayedBegin  {};
+    bool         mPlayedEnd    {};
+    bool         mPlayedUpdate {};
   };
 
   struct Timeline
@@ -47,10 +47,10 @@ namespace Tac
     ~ScriptSplash();
     void    Update( float seconds, Errors& ) override;
     void    DebugImgui( Errors& ) override;
-    UIText* mStudioName = nullptr;
-    float   mFullyVisibleSec;
-    float   mFadeSecTotal;
-    bool    mSkipSplashScreen;
+    UIText* mStudioName       {};
+    float   mFullyVisibleSec  {};
+    float   mFadeSecTotal     {};
+    bool    mSkipSplashScreen {};
   };
 
   struct ScriptGameClient : public ScriptThread
@@ -76,17 +76,17 @@ namespace Tac
     static void TCPOnConnectionClosed( void*, Network::Socket* );
     static void KeepAlive( void*, Network::Socket* );
 
-    Network::Socket* mSocket = nullptr;
-    String           mHostname;
-    Errors           mConnectionErrors;
-    u16              mPort = 0;
-    bool             mPrintHTTPRequest = false;
-    bool             mPretendWebsocketHandshakeDone = false;
-    bool             mShouldSpamServer = false;
-    bool             mShouldLog = false;
-    bool             mLogReceivedMessages = false;
-    bool             mTryAutoConnect = false;
-    Timestamp        mConnectionAttemptStartSeconds;
+    Network::Socket* mSocket                        {};
+    String           mHostname                      {};
+    Errors           mConnectionErrors              {};
+    u16              mPort                          {};
+    bool             mPrintHTTPRequest              {};
+    bool             mPretendWebsocketHandshakeDone {};
+    bool             mShouldSpamServer              {};
+    bool             mShouldLog                     {};
+    bool             mLogReceivedMessages           {};
+    bool             mTryAutoConnect                {};
+    Timestamp        mConnectionAttemptStartSeconds {};
   };
 
   // Mirrored in server.js
@@ -106,20 +106,20 @@ namespace Tac
     void                  DebugImgui( Errors& ) override;
     void                  AddCallbackConnect();
     void                  AddCallbackDisconnect();
-    float                 mFadeSecTotal = 0.2f;
-    ScriptCallbacks       mMsgCallbacks;
-    ScriptCallbacks       mMsgCallbacksToRemove;
-    Timeline              mTimeline;
-    UILayout*             mMenu = nullptr;
-    UIText*               mUITextServerConnectionStatus = nullptr;
-    UIText*               mUITextDisconnectFromServer = nullptr;
-    UIText*               mUITextCreateRoom = nullptr;
-    UIText*               mUITextServerAutoconnect = nullptr;
-    UIText*               mUITextPressStart = nullptr;
-    bool                  mPressStart = false;
-    bool                  mCreatePressStartButton;
-    bool                  mCreateGraveStoryButton;
-    Render::TextureHandle mPower;
+    float                 mFadeSecTotal                 { 0.2f };
+    ScriptCallbacks       mMsgCallbacks                 {};
+    ScriptCallbacks       mMsgCallbacksToRemove         {};
+    Timeline              mTimeline                     {};
+    UILayout*             mMenu                         {};
+    UIText*               mUITextServerConnectionStatus {};
+    UIText*               mUITextDisconnectFromServer   {};
+    UIText*               mUITextCreateRoom             {};
+    UIText*               mUITextServerAutoconnect      {};
+    UIText*               mUITextPressStart             {};
+    bool                  mPressStart                   {};
+    bool                  mCreatePressStartButton       {};
+    bool                  mCreateGraveStoryButton       {};
+    Render::TextureHandle mPower                        {};
   };
 
   struct ScriptMainMenu2 : public ScriptThread
@@ -128,6 +128,6 @@ namespace Tac
     ~ScriptMainMenu2();
     void RenderMainMenu();
     void Update( float seconds, Errors& ) override;
-    Job* mConnectToServerJob = nullptr;
+    Job* mConnectToServerJob {};
   };
 }

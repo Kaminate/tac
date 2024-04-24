@@ -51,7 +51,7 @@ namespace Tac
 
   void DesktopEventQueueImpl::Init()
   {
-    const int kQueueCapacity = 1024;
+    const int kQueueCapacity { 1024 };
     mQueue.Init( kQueueCapacity );
   }
 

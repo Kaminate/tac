@@ -34,7 +34,7 @@ namespace Tac::Render
   {
     TAC_ASSERT(!setup.mFilename.empty());
 
-    const HRESULT hr = setup.mUtils->BuildArguments(
+    const HRESULT hr{ setup.mUtils->BuildArguments(
       ToWStr( setup.mFilename ).data(),
       ToWStr( setup.mEntryPoint ).data(),
       ToWStr( setup.mTargetProfile ).data(),
@@ -42,7 +42,7 @@ namespace Tac::Render
       0,
       nullptr,
       0,
-      mArgs.CreateAddress() );
+      mArgs.CreateAddress() ) };
     TAC_ASSERT( SUCCEEDED(hr) );
 
 
@@ -79,15 +79,15 @@ namespace Tac::Render
 
   void DXCArgHelper::AddArg( StringView arg )
   {
-    TAC_NOT_CONST Array args = { arg.data() };
-    const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
+    TAC_NOT_CONST Array args  { arg.data() };
+    const HRESULT hr { mArgs->AddArgumentsUTF8( args.data(), args.size() ) };
     TAC_ASSERT( SUCCEEDED( hr ) );
   }
 
   void DXCArgHelper::SetFilename( StringView s )
   {
-    const Filesystem::Path fsPath = s;
-    auto ext = fsPath.extension();
+    const Filesystem::Path fsPath { s };
+    auto ext { fsPath.extension() };
     TAC_ASSERT( fsPath.has_extension() && ext == ".hlsl" );
     TAC_ASSERT( !fsPath.has_parent_path() );
     TAC_ASSERT( fsPath.has_stem() );
@@ -121,7 +121,7 @@ namespace Tac::Render
   void DXCArgHelper::SaveDebug( const Filesystem::Path& pdbDir )
   {
     TAC_ASSERT( Filesystem::IsDirectory( pdbDir ) );
-    String dir = pdbDir.u8string();
+    String dir { pdbDir.u8string() };
     if( !dir.ends_with( "/" ) ||
         !dir.ends_with( "\\" ) )
       dir += '\\'; // ensure trailing slash

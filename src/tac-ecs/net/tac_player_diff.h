@@ -10,9 +10,9 @@ namespace Tac
 
   struct PlayerDifference
   {
-    NetBitDiff mBitfield{};
-    Player*    mNewPlayer = nullptr;
-    PlayerUUID playerUUID{};
+    NetBitDiff mBitfield  {};
+    Player*    mNewPlayer {};
+    PlayerUUID playerUUID {};
   };
 
   struct PlayerDiffs

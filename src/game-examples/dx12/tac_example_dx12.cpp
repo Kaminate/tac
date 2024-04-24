@@ -35,7 +35,7 @@ namespace Tac::Render
     m_debug->EnableDebugLayer();
     m_debugLayerEnabled = true;
 
-    if( PCom< ID3D12Debug3 > debug3 = m_debug.QueryInterface<ID3D12Debug3>( ) )
+    if( PCom< ID3D12Debug3 > debug3{ m_debug.QueryInterface<ID3D12Debug3>() } )
     {
 
       // ( this should already be enabled by default )
@@ -65,7 +65,7 @@ namespace Tac::Render
   {
     TAC_ASSERT( !IsDebugMode || debugLayer.IsEnabled() );
 
-    auto adapter = ( IDXGIAdapter* )Tac::Render::DXGIGetBestAdapter();
+    auto adapter { ( IDXGIAdapter* )Tac::Render::DXGIGetBestAdapter() };
     TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
                    D3D_FEATURE_LEVEL_12_1,
@@ -103,10 +103,10 @@ namespace Tac::Render
     // But as of 2023-12-11 not available on my machine :(
     if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
     {
-      const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
-      void* pContext = this;
-      DWORD pCallbackCookie = 0;
+      const D3D12MessageFunc CallbackFunc { MyD3D12MessageFunc };
+      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
+      void* pContext { this };
+      DWORD pCallbackCookie { 0 };
 
       TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
                      CallbackFunc,

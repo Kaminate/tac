@@ -18,8 +18,8 @@ namespace Tac::Render
   //  return s;
   //}
 
-  static const Filesystem::Path pixInstallPath = "C:/Program Files/Microsoft PIX";
-  static const char* pixDllName = "WinPixGpuCapturer.dll";
+  static const Filesystem::Path pixInstallPath { "C:/Program Files/Microsoft PIX" };
+  static const char* pixDllName { "WinPixGpuCapturer.dll" };
 
 
 
@@ -30,7 +30,7 @@ namespace Tac::Render
     if( sv.size() != 7 )
       return false;
 
-    const char* p = sv.data();
+    const char* p { sv.data() };
 
     for( int i{}; i < 4; ++i )
       if( !IsDigit( *p++ ) )
@@ -51,10 +51,10 @@ namespace Tac::Render
     if( !Filesystem::Exists( pixInstallPath ) )
       return {};
 
-    const Filesystem::Paths subdirs = TAC_CALL_RET( {}, Filesystem::IterateDirectories(
+    TAC_CALL_RET( {}, const Filesystem::Paths subdirs{ Filesystem::IterateDirectories(
       pixInstallPath,
       Filesystem::IterateType::Default,
-      errors ) );
+      errors ) }  );
 
     if( subdirs.empty() )
       return {};
@@ -62,7 +62,7 @@ namespace Tac::Render
     String bestVer;
     for( const Filesystem::Path& subdir : subdirs )
     {
-      const String ver = subdir.dirname().u8string();
+      const String ver { subdir.dirname().u8string() };
       if( !IsVersionPattern( ver ) || ver < bestVer )// ( !bestSubdir.empty() && ver < bestSubdir ) )
         continue;
 
@@ -71,7 +71,7 @@ namespace Tac::Render
 
     if( !bestVer.empty() )
     {
-      const String minVer = "2312.08" ;
+      const String minVer { "2312.08"  };
       TAC_RAISE_ERROR_IF_RETURN( bestVer < minVer,
                                  "Most recent pix version " + bestVer + " "
                                  "is below min required PIX ver " + minVer + " "
@@ -92,8 +92,8 @@ namespace Tac::Render
     if( OS::OSGetLoadedDLL( pixDllName ) )
       return;
 
-    const Filesystem::Path path = TryFindPIXDllPath( errors );
-    const String path8 = path.u8string();
+    const Filesystem::Path path { TryFindPIXDllPath( errors ) };
+    const String path8 { path.u8string() };
     if( path8.empty() )
     {
       OS::OSDebugPrintLine( String() + "Warning: Could not find PIX dll " + pixDllName
@@ -102,7 +102,7 @@ namespace Tac::Render
       return;
     }
 
-    void* lib = OS::OSLoadDLL( path.u8string() );
+    void* lib { OS::OSLoadDLL( path.u8string() ) };
     if( !lib )
     {
       OS::OSDebugPrintLine( String() +

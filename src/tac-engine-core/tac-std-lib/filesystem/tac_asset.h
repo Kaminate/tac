@@ -24,7 +24,7 @@ namespace Tac
   struct AssetPathStringView;
 
 
-  inline const char     AssetPathSeperator { '/' };
+  inline const char     AssetPathSeperator      { '/' };
   inline const char*    AssetPathRootFolderName { "assets" };
 
   struct AssetPathString : public String

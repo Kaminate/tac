@@ -39,7 +39,7 @@ namespace Tac
     int  LastIdx() const   { return ( mStartIndex + mCountUsed ) % mCountAllocated; }
     void Grow()
     {
-        auto newCountAllocated = ( int )( mCountAllocated * 1.5f );
+        const int newCountAllocated { ( int )( mCountAllocated * 1.5f ) };
         T* newTs { new T[ newCountAllocated ] };
 
         for( int i{}; i < mCountUsed; ++i )
@@ -52,10 +52,10 @@ namespace Tac
         mCountAllocated = newCountAllocated;
         mStartIndex = 0;
     }
-    T*   mTs;
-    int  mCountAllocated;
-    int  mStartIndex { };
-    int  mCountUsed { };
+    T* mTs               {};
+    int  mCountAllocated {};
+    int  mStartIndex     {};
+    int  mCountUsed      {};
   };
 }
 

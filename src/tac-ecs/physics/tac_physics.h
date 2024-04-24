@@ -43,7 +43,7 @@ namespace Tac
 
     Colliders mColliders;
     Terrains  mTerrains;
-    bool      mDebugDrawCollision = true;
+    bool      mDebugDrawCollision { true };
     float     mGravity;
     bool      mGravityOn;
     v3        mDebugDrawCapsuleColor;
@@ -53,9 +53,9 @@ namespace Tac
     bool      mShouldDebugDrawTerrains;
     bool      mShouldIntegrate;
     bool      mShouldNarrowphase;
-    bool      mGJKDebugging = true;
-    int       mGJKDebugMaxIter = 10;
-    int       mGJKDebugMaxEPAIter = 0;
+    bool      mGJKDebugging { true };
+    int       mGJKDebugMaxIter { 10 };
+    int       mGJKDebugMaxEPAIter { 0 };
   };
 
 } // namespace Tac

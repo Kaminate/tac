@@ -35,22 +35,22 @@ namespace Tac
 
   void ClientData::ApplyPrediction( Timestamp lastTime )
   {
-    Entity* entity = mWorld->FindEntity( mPlayerUUID );
+    Entity* entity { mWorld->FindEntity( mPlayerUUID ) };
     if( !entity )
       return;
 
-    Player* player = mWorld->FindPlayer( mPlayerUUID );
+    Player* player { mWorld->FindPlayer( mPlayerUUID ) };
     if( !player )
       return;
 
     for( const SavedInput& savedInput : mSavedInputs )
     {
-      auto timeDifference = ( float )( savedInput.mTimestamp - lastTime );
+      auto timeDifference { ( float )( savedInput.mTimestamp - lastTime ) };
       if( timeDifference < 0 )
         continue;
 
       lastTime = savedInput.mTimestamp;
-      Collider* collider = Collider::GetCollider( entity );
+      Collider* collider { Collider::GetCollider( entity ) };
       if( !collider )
         continue;
 
@@ -65,15 +65,15 @@ namespace Tac
   void ClientData::ReadSnapshotBody( Reader* reader,
                                      Errors& errors )
   {
-    const auto newGameTime = TAC_CALL( reader->Read< Timestamp >( errors ) );
+    TAC_CALL( const Timestamp newGameTime{ reader->Read< Timestamp >( errors ) } );
     if( newGameTime < mMostRecentSnapshotTime )
       return;
 
     mMostRecentSnapshotTime = newGameTime;
 
-    const auto oldGameTime = TAC_CALL( reader->Read<Timestamp >( errors ) );
+    TAC_CALL( const Timestamp oldGameTime{ reader->Read<Timestamp >( errors ) } );
 
-    World* snapshotFrom = mSnapshots.FindSnapshot( oldGameTime );
+    World* snapshotFrom { mSnapshots.FindSnapshot( oldGameTime ) };
     if( !snapshotFrom )
     {
       if( oldGameTime ) // we need the server to send us the full state
@@ -111,13 +111,13 @@ namespace Tac
   {
     Reader reader
     {
-      .mFrom = GameEndianness,
-      .mTo = GetEndianness(),
-      .mBegin = bytes,
-      .mEnd = ( char* )bytes + byteCount,
+      .mFrom  { GameEndianness },
+      .mTo    { GetEndianness() },
+      .mBegin { bytes },
+      .mEnd   { ( char* )bytes + byteCount },
     };
 
-    const auto networkMessage = TAC_CALL( ReadNetMsgHeader( &reader, errors ) );
+    TAC_CALL( const NetMsgType networkMessage{ ReadNetMsgHeader( &reader, errors ) } );
 
     switch( networkMessage )
     {
@@ -144,16 +144,16 @@ namespace Tac
 
     Writer writer
     {
-      .mFrom = GetEndianness(),
-      .mTo = GameEndianness,
+      .mFrom { GetEndianness() },
+      .mTo   { GameEndianness },
     };
 
     WriteNetMsgHeader( &writer, NetMsgType::Input );
 
     SavedInput newInput
     {
-      .mTimestamp = mWorld->mElapsedSecs,
-      .mInputDirection = inputDir,
+      .mTimestamp { mWorld->mElapsedSecs },
+      .mInputDirection { inputDir },
     };
 
     if( mSavedInputs.size() == ClientData::sMaxSavedInputCount )

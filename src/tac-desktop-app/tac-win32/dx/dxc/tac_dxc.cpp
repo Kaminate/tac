@@ -29,13 +29,13 @@ namespace Tac::Render
 
     Optional< String > FindEntryPoint( StringView shader ) const
     {
-      String entryPoint0 = String( 1, Tac::ToUpper( mLetter ) ) + "S";
-      String entryPoint1 = entryPoint0 + "Main";
-      StringView entryPoints[] = { entryPoint0, entryPoint1 };
+      String entryPoint0 { String( 1, Tac::ToUpper( mLetter ) ) + "S" };
+      String entryPoint1 { entryPoint0 + "Main" };
+      StringView entryPoints[]  { entryPoint0, entryPoint1 };
 
       for( StringView& entryPoint : entryPoints )
       {
-        String search = entryPoint + "(";
+        String search { entryPoint + "(" };
         if( shader.contains( search ) )
         {
           return ( String )entryPoint;
@@ -57,8 +57,8 @@ namespace Tac::Render
                               const Filesystem::Path& path,
                               Errors& errors )
   {
-    const void* bytes = blob->GetBufferPointer();
-    const int byteCount = ( int )blob->GetBufferSize();
+    const void* bytes { blob->GetBufferPointer() };
+    const int byteCount { ( int )blob->GetBufferSize() };
     TAC_CALL( Filesystem::SaveToFile( path, bytes, byteCount, errors ) );
   }
 
@@ -172,10 +172,9 @@ namespace Tac::Render
     D3D12_SHADER_DESC shaderDesc{};
     shaderReflection->GetDesc( &shaderDesc );
 
-    for( UINT iCBuf = 0; iCBuf < shaderDesc.ConstantBuffers; ++iCBuf )
+    for( UINT iCBuf { 0 }; iCBuf < shaderDesc.ConstantBuffers; ++iCBuf )
     {
-      ID3D12ShaderReflectionConstantBuffer* cBuf =
-        shaderReflection->GetConstantBufferByIndex( iCBuf );
+      ID3D12ShaderReflectionConstantBuffer* cBuf { shaderReflection->GetConstantBufferByIndex( iCBuf ) };
 
       D3D12_SHADER_BUFFER_DESC desc{}; // ie CBufferPerFrame, CBufferPerObject
       cBuf->GetDesc( &desc );
@@ -183,7 +182,7 @@ namespace Tac::Render
       ++asdf;
     }
 
-    for( UINT iRsc = 0; iRsc < shaderDesc.BoundResources; ++iRsc )
+    for( UINT iRsc { 0 }; iRsc < shaderDesc.BoundResources; ++iRsc )
     {
       // ie: CBufferPerFrame, CBufferPerObject, "linearSampler", "image"
       D3D12_SHADER_INPUT_BIND_DESC desc; 
@@ -203,7 +202,7 @@ namespace Tac::Render
       reflInfo->AddBinding( desc );
     }
 
-    for( UINT iInput = 0; iInput < shaderDesc.InputParameters; ++iInput )
+    for( UINT iInput { 0 }; iInput < shaderDesc.InputParameters; ++iInput )
     {
       // ie: POSITION, TEXCOORD, etc
       D3D12_SIGNATURE_PARAMETER_DESC inputParamDesc;
@@ -211,7 +210,7 @@ namespace Tac::Render
       ++asdf;
     }
 
-    for( UINT iOutput = 0; iOutput < shaderDesc.OutputParameters; ++iOutput )
+    for( UINT iOutput { 0 }; iOutput < shaderDesc.OutputParameters; ++iOutput )
     {
       // ie: SV_POSITION, SV_TARGET, etc
       D3D12_SIGNATURE_PARAMETER_DESC desc;
@@ -241,8 +240,8 @@ namespace Tac::Render
                        pPDB.ppv(),
                        pPDBName.CreateAddress() ) );
     TAC_RAISE_ERROR_IF( !pShader, "No shader pdb" );
-    const String pdbName = GetBlob16AsUTF8( pPDBName.Get(), pUtils );
-    const Filesystem::Path pdbPath = outputDir / pdbName;
+    const String pdbName { GetBlob16AsUTF8( pPDBName.Get(), pUtils ) };
+    const Filesystem::Path pdbPath { outputDir / pdbName };
     TAC_CALL( SaveBlobToFile( pPDB, pdbPath, errors ) );
 
     PrintCompilerInfo( pdbUtils, pPDB.Get() );
@@ -280,7 +279,7 @@ namespace Tac::Render
   {
     TAC_ASSERT( !input.mOutputDir.empty() );
 
-    Optional< String > entryPoint = typeData.FindEntryPoint( input.mPreprocessedShader );
+    Optional< String > entryPoint { typeData.FindEntryPoint( input.mPreprocessedShader ) };
     if( !entryPoint.HasValue() )
       return {};
 
@@ -305,52 +304,52 @@ namespace Tac::Render
     if( false )
     {
       //PCom<IDxcCompilerArgs> mArgs;
-      TAC_NOT_CONST Array args = { L"--version" };
+      TAC_NOT_CONST Array args  { L"--version" };
       //const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
       PCom<IDxcResult> pResults;
 
       // E_INVALIDARG
-      HRESULT hr = pCompiler->Compile( nullptr,
+      HRESULT hr{ pCompiler->Compile( nullptr,
                           args.data(),
                           args.size(),
                           nullptr,
                           pResults.iid(),
-                          pResults.ppv() );
+                          pResults.ppv() ) };
 
-      const UINT32 n = pResults->GetNumOutputs();
-      for( UINT32 i = 0; i < n; ++i )
+      const UINT32 n { pResults->GetNumOutputs() };
+      for( UINT32 i { 0 }; i < n; ++i )
       {
-        DXC_OUT_KIND kind = pResults->GetOutputByIndex( i );
+        DXC_OUT_KIND kind { pResults->GetOutputByIndex( i ) };
         ++asdf;
       }
       ++asdf;
     }
 
-    const String target = typeData.GetTarget( input.mShaderModel );
-    const String inputShaderName =  input.mFileName;
-    const Filesystem::Path hlslShaderPath = input.mOutputDir / inputShaderName;
+    const String target { typeData.GetTarget( input.mShaderModel ) };
+    const String inputShaderName {  input.mFileName };
+    const Filesystem::Path hlslShaderPath { input.mOutputDir / inputShaderName };
 
     TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
 
     TAC_NOT_CONST DXCArgHelper::Params argHelperSetup
     {
-      .mEntryPoint = entryPoint.GetValueUnchecked(),
-      .mTargetProfile = target,
-      .mFilename = inputShaderName,
-      .mPDBDir = input.mOutputDir,
-      .mUtils = pUtils,
+      .mEntryPoint    { entryPoint.GetValueUnchecked() },
+      .mTargetProfile { target },
+      .mFilename      { inputShaderName },
+      .mPDBDir        { input.mOutputDir },
+      .mUtils         { pUtils },
     };
     TAC_NOT_CONST DXCArgHelper argHelper( argHelperSetup );
 
-    const auto pArguments = argHelper.GetArgs();
-    const auto argCount = argHelper.GetArgCount();
+    const auto pArguments { argHelper.GetArgs() };
+    const auto argCount { argHelper.GetArgCount() };
 
     const DxcBuffer Source
     {
-      .Ptr = input.mPreprocessedShader.data(),
-      .Size = (SIZE_T)input.mPreprocessedShader.size(),
-      .Encoding = DXC_CP_ACP,
+      .Ptr      { input.mPreprocessedShader.data() },
+      .Size     { ( SIZE_T )input.mPreprocessedShader.size() },
+      .Encoding { DXC_CP_ACP },
     };
 
     PCom< IDxcResult > pResults;
@@ -376,8 +375,8 @@ namespace Tac::Render
                        pShader.ppv(),
                        pShaderName.CreateAddress() ) );
     TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
-    const String outputShaderName = GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() );
-    const Filesystem::Path dxilShaderPath = input.mOutputDir / outputShaderName;
+    const String outputShaderName { GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() ) };
+    const Filesystem::Path dxilShaderPath { input.mOutputDir / outputShaderName };
     TAC_CALL_RET( {}, SaveBlobToFile( pShader, dxilShaderPath, errors ) );
 
     SavePDB( pUtils.Get(),
@@ -408,9 +407,9 @@ namespace Tac
 
     return DXCCompileOutput
     {
-      .mVSBlob = vsBlob,
-      .mPSBlob = psBlob,
-      .mReflInfo = reflInfo,
+      .mVSBlob   { vsBlob },
+      .mPSBlob   { psBlob },
+      .mReflInfo { reflInfo },
     };
   }
 

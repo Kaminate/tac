@@ -25,7 +25,7 @@ namespace Tac
 
 	static void       SaveModelComponent( Json& modelJson, Component* component )
 	{
-		auto model = ( Model* )component;
+		auto model { ( Model* )component };
 		Json colorRGBJson;
 		colorRGBJson[ "r" ].SetNumber( model->mColorRGB[ 0 ] );
 		colorRGBJson[ "g" ].SetNumber( model->mColorRGB[ 1 ] );
@@ -38,8 +38,8 @@ namespace Tac
 
 	static void       LoadModelComponent( Json& modelJson, Component* component )
 	{
-		auto model = ( Model* )component;
-		Json& colorRGBJson = modelJson[ "mColorRGB" ];
+		auto model { ( Model* )component };
+		Json& colorRGBJson { modelJson[ "mColorRGB" ] };
     model->mModelIndex = ( int )modelJson[ "mModelIndex" ].mNumber;
 		model->mModelPath = modelJson[ "mModelPath" ].mString;
 		model->mColorRGB.x = ( float )colorRGBJson[ "r" ].mNumber;
@@ -74,17 +74,17 @@ namespace Tac
 
 	void RegisterModelComponent()
 	{
-    ComponentRegistryEntry* entry = ComponentRegistry_RegisterComponent();
+    ComponentRegistryEntry* entry { ComponentRegistry_RegisterComponent() };
     sRegistryIndex = entry->GetIndex(); 
     *entry = ComponentRegistryEntry
     {
-      .mName = "Model",
+      .mName { "Model" },
       //.mNetworkBits = ComponentModelBits,
-      .mCreateFn = CreateModelComponent,
-      .mDestroyFn = DestroyModelComponent,
-      .mDebugImguiFn = DebugImguiFn,
-      .mSaveFn = SaveModelComponent,
-      .mLoadFn = LoadModelComponent,
+      .mCreateFn { CreateModelComponent },
+      .mDestroyFn { DestroyModelComponent },
+      .mDebugImguiFn { DebugImguiFn },
+      .mSaveFn { SaveModelComponent },
+      .mLoadFn { LoadModelComponent },
     };
 	}
 

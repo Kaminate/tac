@@ -13,7 +13,7 @@ namespace Tac::Render
                              DX12DescriptorHeap* heap )
   {
     TAC_ASSERT( heap->GetType() == D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER );
-    const D3D12_CPU_DESCRIPTOR_HANDLE dst = heap->IndexCPUDescriptorHandle( ( int )type );
+    const D3D12_CPU_DESCRIPTOR_HANDLE dst { heap->IndexCPUDescriptorHandle( ( int )type ) };
     device->CreateSampler( &desc, dst );
   }
 
@@ -21,13 +21,13 @@ namespace Tac::Render
   {
     const D3D12_SAMPLER_DESC pointDesc
     {
-      .Filter = D3D12_FILTER_MIN_MAG_MIP_POINT,
-      .AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
-      .MinLOD = 0,
-      .MaxLOD = D3D12_FLOAT32_MAX,
+      .Filter { D3D12_FILTER_MIN_MAG_MIP_POINT },
+      .AddressU { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressV { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressW { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
+      .MinLOD { 0 },
+      .MaxLOD { D3D12_FLOAT32_MAX },
     };
     CreateSampler( pointDesc, Type::kPoint, device, heap );
   }

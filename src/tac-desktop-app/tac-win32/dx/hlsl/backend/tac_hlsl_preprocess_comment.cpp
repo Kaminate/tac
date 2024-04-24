@@ -15,7 +15,7 @@ namespace Tac::Render
   //        seems to me like it might as well not exist?
   Optional< String > HLSLLinePreprocessorComment::Preprocess( StringView line, Errors& )
   {
-    const bool isComment = IsSingleLineCommented( line );
+    const bool isComment { IsSingleLineCommented( line ) };
     return isComment ? Optional< String >( line ) : Optional< String >{};
   }
 } // namespace Tac::Render

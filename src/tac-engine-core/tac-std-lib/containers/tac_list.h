@@ -53,7 +53,7 @@ public:
       return it;
     } 
 
-    Node*       mNode = nullptr;
+    Node*       mNode { nullptr };
   };
 
   List() = default;
@@ -94,7 +94,7 @@ private:
   void          InsertBetween( Node*, Node*, T );
 
   Node          mDummy{ .mPrev = &mDummy, .mNext = &mDummy };
-  int           mSize { 0 };
+  int           mSize {  };
 };
 
 

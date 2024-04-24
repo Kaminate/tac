@@ -102,10 +102,10 @@ namespace Tac
         sWindowBackend.Sync();
         sKeyboardBackendSimApi.Sync();
 
-        const BeginFrameData data =
+        const BeginFrameData data
         {
-          .mElapsedSeconds = Timestep::GetElapsedTime(),
-          .mMouseHoveredWindow = {} // platform->PlatformGetMouseHoveredWindow(),
+          .mElapsedSeconds { Timestep::GetElapsedTime() },
+          .mMouseHoveredWindow  {}, // platform->PlatformGetMouseHoveredWindow(),
         };
         ImGuiBeginFrame( data );
 
@@ -113,8 +113,8 @@ namespace Tac
 
         App::UpdateParams updateParams
         {
-          .mWindowApi = sWindowApi,
-          .mKeyboardApi = sKeyboardApi,
+          .mWindowApi { sWindowApi },
+          .mKeyboardApi { sKeyboardApi },
         };
         TAC_CALL( mApp->Update( updateParams, errors ) );
 
@@ -123,7 +123,7 @@ namespace Tac
         //KeyboardEndFrame();
         //Mouse::MouseEndFrame();
 
-        App::IState* gameState = mApp->GetGameState();
+        App::IState* gameState { mApp->GetGameState() };
         if( !gameState )
           gameState = TAC_NEW App::IState;
 

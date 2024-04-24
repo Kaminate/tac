@@ -11,39 +11,41 @@ namespace Tac::Render
 
   void DX12BufferMgr::CreateBuffer( BufferHandle h, CreateBufferParams params, Errors& errors)
   {
-    int byteCount = params.mByteCount;
-    StackFrame sf = params.mStackFrame;
+    const int byteCount { params.mByteCount };
+    const StackFrame sf { params.mStackFrame };
 
     const D3D12_HEAP_PROPERTIES HeapProps
     {
-      .Type = D3D12_HEAP_TYPE_UPLOAD,
-      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-      .CreationNodeMask = 1,
-      .VisibleNodeMask = 1,
+      .Type                 { D3D12_HEAP_TYPE_UPLOAD },
+      .CPUPageProperty      { D3D12_CPU_PAGE_PROPERTY_UNKNOWN },
+      .MemoryPoolPreference { D3D12_MEMORY_POOL_UNKNOWN },
+      .CreationNodeMask     { 1 },
+      .VisibleNodeMask      { 1 },
+    };
+
+    const  DXGI_SAMPLE_DESC SampleDesc
+    {
+      .Count   { 1 },
+      .Quality { 0 },
     };
 
     const D3D12_RESOURCE_DESC ResourceDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-      .Alignment = 0,
-      .Width = ( UINT64 )byteCount,
-      .Height = 1,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_UNKNOWN,
-      .SampleDesc = DXGI_SAMPLE_DESC
-      {
-        .Count = 1,
-        .Quality = 0
-      },
-      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-      .Flags = D3D12_RESOURCE_FLAG_NONE,
+      .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
+      .Alignment        { 0 },
+      .Width            { ( UINT64 )byteCount },
+      .Height           { 1 },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_UNKNOWN },
+      .SampleDesc       { SampleDesc },
+      .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
+      .Flags            { D3D12_RESOURCE_FLAG_NONE },
     };
 
     const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
 
-    ID3D12Device* device = mDevice;
+    ID3D12Device* device { mDevice };
 
     PCom< ID3D12Resource > buffer;
     TAC_DX12_CALL( device->CreateCommittedResource(
@@ -68,15 +70,15 @@ namespace Tac::Render
 
     mBuffers[ i ] = DX12Buffer
     {
-      .mResource = buffer,
-      .mMappedCPUAddr = cpuAddr,
+      .mResource      { buffer },
+      .mMappedCPUAddr { cpuAddr },
     };
   }
 
   void DX12BufferMgr::UpdateBuffer( BufferHandle h, UpdateBufferParams params )
   {
-    DX12Buffer& Buffer = mBuffers[ h.GetIndex() ];
-    char* dstBytes = ( char* )Buffer.mMappedCPUAddr + params.mDstByteOffset;
+    DX12Buffer& Buffer { mBuffers[ h.GetIndex() ] };
+    char* dstBytes { ( char* )Buffer.mMappedCPUAddr + params.mDstByteOffset };
     MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
   }
 

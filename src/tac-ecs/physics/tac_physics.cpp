@@ -52,13 +52,13 @@ namespace Tac
   {
     if( !gjk.mIsColliding )
     {
-      for( int iSupport = 0; iSupport < gjk.mSupports.size(); ++iSupport )
+      for( int iSupport { 0 }; iSupport < gjk.mSupports.size(); ++iSupport )
       {
-        auto supporti = gjk.mSupports[ iSupport ];
+        auto supporti { gjk.mSupports[ iSupport ] };
         graphics->DebugDrawSphere( supporti.mDiffPt, 0.1f );
-        for( int jSupport = iSupport + 1; jSupport < gjk.mSupports.size(); ++jSupport )
+        for( int jSupport { iSupport + 1 }; jSupport < gjk.mSupports.size(); ++jSupport )
         {
-          auto supportj = gjk.mSupports[ jSupport ];
+          auto supportj { gjk.mSupports[ jSupport ] };
           graphics->DebugDrawLine( supporti.mDiffPt, supportj.mDiffPt );
         }
       }
@@ -103,14 +103,14 @@ namespace Tac
 
   Collider* Physics::CreateCollider()
   {
-    auto collider = TAC_NEW Collider;
+    auto collider { TAC_NEW Collider };
     mColliders.insert( collider );
     return collider;
   }
 
   Terrain*  Physics::CreateTerrain()
   {
-    auto terrain = TAC_NEW Terrain;
+    auto terrain { TAC_NEW Terrain };
     mTerrains.insert( terrain );
     return terrain;
   }
@@ -165,7 +165,7 @@ namespace Tac
   {
     /*TAC_PROFILE_BLOCK*/;
     const v3 a( 0, mGravity, 0 );
-    const auto dt = 1.0f / 60.0f;
+    const auto dt { 1.0f / 60.0f };
     for( Collider* collider : mColliders )
     {
       if( mGravityOn )
@@ -186,7 +186,7 @@ namespace Tac
         const ConvexPolygonSupport terrainSupport( obb.mPos, obb.mHalfExtents, obb.mEulerRads );
         for( Collider* collider : mColliders )
         {
-          const CapsuleSupport capsuleSupport = GetSupport( collider );
+          const CapsuleSupport capsuleSupport { GetSupport( collider ) };
 
           GJK gjk( &terrainSupport, &capsuleSupport );
 
@@ -215,7 +215,7 @@ namespace Tac
             continue;
 
           collider->mEntity->mRelativeSpace.mPosition += gjk.mEPALeftNormal * gjk.mEPAPenetrationDist;
-          const v3 projectedVel = Project( gjk.mEPALeftNormal, collider->mVelocity );
+          const v3 projectedVel { Project( gjk.mEPALeftNormal, collider->mVelocity ) };
           if( Dot( projectedVel, gjk.mEPALeftNormal ) < 0.0f )
           {
             collider->mVelocity -= projectedVel;

@@ -72,8 +72,8 @@ namespace Tac::Render
 
       const DX12RootSigBuilder::Location loc
       {
-        .mRegister = binding.mBindRegister,
-        .mSpace = binding.mRegisterSpace,
+        .mRegister { binding.mBindRegister },
+        .mSpace    { binding.mRegisterSpace },
       };
 
       const bool isArray { binding.mBindCount != 1 };

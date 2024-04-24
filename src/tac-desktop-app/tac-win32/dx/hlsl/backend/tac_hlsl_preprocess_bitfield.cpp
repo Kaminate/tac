@@ -45,11 +45,11 @@ namespace Tac::Render
 {
   static String GetFunctionName( const StringView& line )
   {
-    int iFunctionNameBegin = line.find( '(' ) + 1;
+    int iFunctionNameBegin { line.find( '(' ) + 1 };
     while( IsSpace( line[ iFunctionNameBegin ] ) )
       iFunctionNameBegin++;
 
-    int iFunctionNameEnd = line.find( ',' );
+    const int iFunctionNameEnd { line.find( ',' ) };
     return String( line.data() + iFunctionNameBegin,
                    line.data() + iFunctionNameEnd );
   }
@@ -58,7 +58,7 @@ namespace Tac::Render
   {
     if constexpr( IsDebugMode )
     {
-      int digitCount = 0;
+      int digitCount { 0 };
       for( char c : line )
         if( IsDigit( c ) )
           digitCount++;
@@ -66,10 +66,10 @@ namespace Tac::Render
       TAC_ASSERT( digitCount == 1 );
     }
 
-    const int n = line.size();
+    const int n { line.size() };
     for( int i{}; i < n; ++i )
     {
-      const char c = line[ n - i - 1 ];
+      const char c { line[ n - i - 1 ] };
       if( IsDigit( c ) )
       {
         return c - '0';
@@ -107,23 +107,22 @@ namespace Tac::Render
     {
       TAC_ASSERT( mProcessing );
 
-      const int spacesPerTab = 2;
+      const int spacesPerTab { 2 };
       const String tab( spacesPerTab, ' ' );
-      const int shift = mRunningBitCount;
+      const int shift { mRunningBitCount };
 
-      const String functionName = GetFunctionName( line );
-      const int bitCount = GetBitCount( line );
-      const String space = GetLeadingWhitespace( line );
+      const String functionName { GetFunctionName( line ) };
+      const int bitCount { GetBitCount( line ) };
+      const String space { GetLeadingWhitespace( line ) };
 
-      const int mask = ( 1 << bitCount ) - 1;
+      const int mask { ( 1 << bitCount ) - 1 };
 
-      const String bitCountStr = String( 1, '0' + ( char )bitCount );
-      const String maskStr = ToString( mask );
+      const String bitCountStr { String( 1, '0' + ( char )bitCount ) };
+      const String maskStr { ToString( mask ) };
 
-      const String shifted
-        = shift
-        ? "( flags >> " + ToString( shift ) + " )"
-        : String( "flags" );
+      const String shifted{ shift
+      ? "( flags >> " + ToString( shift ) + " )"
+      : String( "flags" ) };
 
       mRunningBitCount += bitCount;
 

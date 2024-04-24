@@ -12,12 +12,12 @@ namespace Tac
   struct Player
   {
     void       DebugImgui();
-    PlayerUUID mPlayerUUID = NullPlayerUUID;
-    EntityUUID mEntityUUID = NullEntityUUID;
-    v2         mInputDirection = {};
-    bool       mIsSpaceJustDown = false;
-    v3         mCameraPos = {};
-    World*     mWorld = nullptr;
+    PlayerUUID mPlayerUUID      { NullPlayerUUID };
+    EntityUUID mEntityUUID      { NullEntityUUID };
+    v2         mInputDirection  {};
+    bool       mIsSpaceJustDown {};
+    v3         mCameraPos       {};
+    World*     mWorld           {};
   };
 
   void               PlayerNetworkBitsRegister();

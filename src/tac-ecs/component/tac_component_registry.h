@@ -18,16 +18,16 @@ namespace Tac
     //                     Used for
     //                     - debugging network bits
     //                     - prefab serialization
-    const char*            mName = nullptr;
+    const char*            mName         {};
 
     //                     Used to create components at runtime
     //                     ( from prefabs, or hardcode, or in editor, or whenever )
     //                     Component* ( *mCreateFn )( World* ) = nullptr;
-    ComponentCreateFn*     mCreateFn = nullptr;
-    ComponentDestroyFn*    mDestroyFn = nullptr;
-    ComponentDebugImguiFn* mDebugImguiFn = nullptr;
-    ComponentSaveFn*       mSaveFn = nullptr;
-    ComponentLoadFn*       mLoadFn = nullptr;
+    ComponentCreateFn*     mCreateFn     {};
+    ComponentDestroyFn*    mDestroyFn    {};
+    ComponentDebugImguiFn* mDebugImguiFn {};
+    ComponentSaveFn*       mSaveFn       {};
+    ComponentLoadFn*       mLoadFn       {};
 
 
     //                     Used for serializing components over the network

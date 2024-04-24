@@ -11,7 +11,7 @@ namespace Tac::Render
   static D3D12ProgramBinding::Type ShaderInputToProgramBindType(
     const D3D12_SHADER_INPUT_BIND_DESC& info )
   {
-    const D3D_SHADER_INPUT_TYPE Type = info.Type;
+    const D3D_SHADER_INPUT_TYPE Type { info.Type };
     switch( Type )
     {
     case D3D_SIT_CBUFFER: return D3D12ProgramBinding::Type::kConstantBuffer;
@@ -42,8 +42,8 @@ namespace Tac::Render
   {
     for( int i{}; i < n; ++i )
     {
-      const D3D12_SHADER_INPUT_BIND_DESC& info = descs[ i ];
-      const D3D12ProgramBinding::Type type = ShaderInputToProgramBindType( info );
+      const D3D12_SHADER_INPUT_BIND_DESC& info { descs[ i ] };
+      const D3D12ProgramBinding::Type type { ShaderInputToProgramBindType( info ) };
       const D3D12ProgramBinding binding
       {
         .mType          { type },

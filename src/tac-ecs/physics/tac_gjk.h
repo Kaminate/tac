@@ -20,8 +20,8 @@ namespace Tac
     SphereSupport( v3 origin,
                    float radius );
     v3 GetFurthestPoint( const v3& dir ) const override;
-    v3 mOrigin = {};
-    float mRadius = 0;
+    v3 mOrigin  {};
+    float mRadius { };
   };
 
   struct CapsuleSupport : public Support
@@ -31,9 +31,9 @@ namespace Tac
                     float height,
                     float radius );
     v3 GetFurthestPoint( const v3& dir ) const override;
-    v3 mBotSpherePos = {};
-    v3 mTopSpherePos = {};
-    float mRadius = 0;
+    v3 mBotSpherePos {};
+    v3 mTopSpherePos {};
+    float mRadius    {};
   };
 
   struct ConvexPolygonSupport : public Support
@@ -49,10 +49,10 @@ namespace Tac
   struct CompoundSupport
   {
     // what is a diffpt
-    v3 mDiffPt = {};
+    v3 mDiffPt  {};
 
     // what is a leftpt
-    v3 mLeftPoint = {};
+    v3 mLeftPoint  {};
   };
 
   struct EPATriangle
@@ -71,8 +71,8 @@ namespace Tac
     CompoundSupport mV0;
     CompoundSupport mV1;
     CompoundSupport mV2;
-    v3 mNormal = {};
-    float mPlaneDist = 0;
+    v3 mNormal  {};
+    float mPlaneDist {  };
   };
 
   struct EPAHalfEdge
@@ -94,27 +94,27 @@ namespace Tac
     void EPAStep();
     CompoundSupport GetCompountSupport( const v3& dir );
 
-    bool mIsRunning = true;
-    bool mIsColliding = false;
-    int mIteration = 0;
-    v3 mNormalizedSearchDir = { 1, 0, 0 };
-    v3 mClosestPoint = {};
+    bool mIsRunning                                  { true };
+    bool mIsColliding                                {};
+    int mIteration                                   {};
+    v3 mNormalizedSearchDir                          { 1, 0, 0 };
+    v3 mClosestPoint                                 {};
     Vector< CompoundSupport > mSupports;
-    const Support* mLeft = nullptr;
-    const Support* mRight = nullptr;
+    const Support* mLeft                             {};
+    const Support* mRight                            {};
 
-    bool                     mEPAIsComplete = false;
+    bool                     mEPAIsComplete          {};
 
     // why in the fuck is this a list
-    List< EPATriangle >      mEPATriangles;
-    int                      mEPATriangleCount = 4;
-    EPATriangle              mEPAClosest;
-    CompoundSupport          mEPAClosestSupportPoint;
-    v3                       mEPALeftPoint = {};
-    v3                       mEPALeftNormal = {};
-    bool                     mEPABarycentricFucked = true;
-    float                    mEPAPenetrationDist = 0;
-    int                      mEPAIteration = 0;
+    List< EPATriangle >      mEPATriangles           {};
+    int                      mEPATriangleCount       { 4 };
+    EPATriangle              mEPAClosest             {};
+    CompoundSupport          mEPAClosestSupportPoint {};
+    v3                       mEPALeftPoint           {};
+    v3                       mEPALeftNormal          {};
+    bool                     mEPABarycentricFucked   { true };
+    float                    mEPAPenetrationDist     {};
+    int                      mEPAIteration           {};
 
   };
 

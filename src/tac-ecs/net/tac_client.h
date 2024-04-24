@@ -35,9 +35,9 @@ namespace Tac
     PlayerUUID              mPlayerUUID = NullPlayerUUID;
 
     // < Prediction >
-    static const int        sMaxSavedInputCount = 60;
+    static const int        sMaxSavedInputCount { 60 };
     List< SavedInput >      mSavedInputs;
-    bool                    mIsPredicting = true;
+    bool                    mIsPredicting { true };
     // </>
 
     Timestamp               mMostRecentSnapshotTime;

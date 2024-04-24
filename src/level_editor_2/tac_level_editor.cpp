@@ -40,9 +40,9 @@ namespace Tac
 
     const WindowCreateParams windowCreateParams
     {
-      .mName = "level editor",
-      .mPos{ 50, 50 },
-      .mSize{ 800, 600 }, 
+      .mName { "level editor" },
+      .mPos  { 50, 50 },
+      .mSize { 800, 600 }, 
     };
 
     sWindowHandle = windowApi->CreateWindow( windowCreateParams, errors );
@@ -79,9 +79,10 @@ namespace Tac
 
   App* App::Create()
   {
-    const Config config{
-        .mName = "Level Editor",
-        .mDisableRenderer = true, // todo
+    const Config config
+    {
+        .mName { "Level Editor" },
+        .mDisableRenderer { true }, // todo
     };
 
     return TAC_NEW LevelEditorApp( config );

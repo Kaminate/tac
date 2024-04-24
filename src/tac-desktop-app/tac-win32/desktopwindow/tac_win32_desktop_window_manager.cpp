@@ -19,12 +19,12 @@
 
 namespace Tac
 {
-  static const char* classname = "tac";
+  static const char* classname { "tac" };
 
   //                  Elements in this array are added/removed by wndproc
   static HWND         sHWNDs[ kDesktopWindowCapacity ];
 
-  static HWND         mParentHWND = nullptr;
+  static HWND         mParentHWND { nullptr };
 
   static WindowHandle sWindowUnderConstruction;
 
@@ -94,17 +94,17 @@ namespace Tac
                                          const WPARAM wParam,
                                          const LPARAM lParam )
   {
-    static bool verboseMouseInWindow = false;
-    static bool verboseFocus = false;
-    static bool verboseActivate = false;
-    static bool verboseCapture = false;
+    static bool verboseMouseInWindow { false };
+    static bool verboseFocus { false };
+    static bool verboseActivate { false };
+    static bool verboseCapture { false };
 
     // [ ] Q: wtf is sWindowUnderConstruction???
     const WindowHandle windowHandleFound { Win32WindowManagerFindWindow( hwnd ) };
     const WindowHandle windowHandle
-      = windowHandleFound.IsValid()
-      ? windowHandleFound
-      : sWindowUnderConstruction;
+    { windowHandleFound.IsValid()
+    ? windowHandleFound
+    : sWindowUnderConstruction };
     if( !windowHandle.IsValid() )
     {
       switch( uMsg )
@@ -122,8 +122,8 @@ namespace Tac
     {
       const DesktopEventApi::WindowVisibleEvent data
       {
-          .mWindowHandle = windowHandle,
-          .mVisible = ( wParam == TRUE ),
+          .mWindowHandle { windowHandle },
+          .mVisible {  wParam == TRUE  },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -140,7 +140,7 @@ namespace Tac
     case WM_DESTROY:
     {
       ImGuiSaveWindowSettings();
-      const int i = windowHandle.GetIndex();
+      const int i { windowHandle.GetIndex() };
       sHWNDs[ i ] = nullptr;
       const DesktopEventApi::WindowDestroyEvent data
       {
@@ -151,7 +151,7 @@ namespace Tac
 
     case WM_CREATE:
     {
-      const int i = windowHandle.GetIndex();
+      const int i { windowHandle.GetIndex() };
       sHWNDs[ i ] = hwnd;
       sWindowUnderConstruction = {};
       auto windowInfo = ( const CREATESTRUCT* )lParam;
@@ -159,13 +159,13 @@ namespace Tac
       TAC_ASSERT( windowInfo->lpszName );
       const DesktopEventApi::WindowCreateEvent data
       {
-          .mWindowHandle = windowHandle,
-          .mName = windowInfo->lpszName,
-          .mNativeWindowHandle = hwnd,
-          .mX = windowInfo->x,
-          .mY = windowInfo->y,
-          .mW = windowInfo->cx,
-          .mH = windowInfo->cy,
+          .mWindowHandle       { windowHandle },
+          .mName               { windowInfo->lpszName },
+          .mNativeWindowHandle { hwnd },
+          .mX                  { windowInfo->x },
+          .mY                  { windowInfo->y },
+          .mW                  { windowInfo->cx },
+          .mH                  { windowInfo->cy },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -183,9 +183,9 @@ namespace Tac
     {
       const DesktopEventApi::WindowResizeEvent data
       {
-        .mWindowHandle = windowHandle,
-        .mWidth = ( int )LOWORD( lParam ),
-        .mHeight = ( int )HIWORD( lParam ),
+        .mWindowHandle { windowHandle },
+        .mWidth { ( int )LOWORD( lParam ) },
+        .mHeight { ( int )HIWORD( lParam ) },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -193,9 +193,9 @@ namespace Tac
     {
       const DesktopEventApi::WindowMoveEvent data
       {
-        .mWindowHandle = windowHandle,
-        .mX = ( int )LOWORD( lParam ),
-        .mY = ( int )HIWORD( lParam ),
+        .mWindowHandle { windowHandle,
+        .mX { ( int )LOWORD( lParam ) },
+        .mY { ( int )HIWORD( lParam ) },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -212,19 +212,19 @@ namespace Tac
     case WM_KEYDOWN: // fallthrough
     case WM_KEYUP: // fallthrough
     {
-      const bool wasDown = ( lParam & ( ( LPARAM )1 << 30 ) ) != 0;
-      const bool isDown = ( lParam & ( ( LPARAM )1 << 31 ) ) == 0;
+      const bool wasDown { ( lParam & ( ( LPARAM )1 << 30 ) ) != 0 };
+      const bool isDown { ( lParam & ( ( LPARAM )1 << 31 ) ) == 0 };
       if( isDown == wasDown )
         break;
 
-      const Key key = GetKey( ( u8 )wParam );
+      const Key key { GetKey( ( u8 )wParam ) };
       if( key == Key::Count )
         break;
 
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey = key,
-        .mDown = isDown,
+        .mKey { key },
+        .mDown { isDown },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -288,8 +288,8 @@ namespace Tac
     {
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey = Key::MouseLeft,
-        .mDown = true,
+        .mKey { Key::MouseLeft },
+        .mDown { true },
       };
       DesktopEventApi::Queue( data );
 
@@ -304,8 +304,8 @@ namespace Tac
     {
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey = Key::MouseLeft,
-        .mDown = false,
+        .mKey { Key::MouseLeft },
+        .mDown { false },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -314,8 +314,8 @@ namespace Tac
     {
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey = Key::MouseRight,
-        .mDown = true,
+        .mKey { Key::MouseRight },
+        .mDown { true },
       };
       DesktopEventApi::Queue( data );
       //BringWindowToTop( mHWND );
@@ -326,8 +326,8 @@ namespace Tac
     {
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey = Key::MouseRight,
-        .mDown = false,
+        .mKey { Key::MouseRight },
+        .mDown { false },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -336,8 +336,8 @@ namespace Tac
     {
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey = Key::MouseMiddle,
-        .mDown = true,
+        .mKey { Key::MouseMiddle },
+        .mDown { true },
       };
       DesktopEventApi::Queue( data );
       //BringWindowToTop( mHWND );
@@ -350,8 +350,8 @@ namespace Tac
     {
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey = Key::MouseMiddle,
-        .mDown = false,
+        .mKey { Key::MouseMiddle },
+        .mDown { false },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -367,22 +367,22 @@ namespace Tac
         mouseTracking = hwnd;
       }
 
-      const int xPos = GET_X_LPARAM( lParam );
-      const int yPos = GET_Y_LPARAM( lParam );
+      const int xPos { GET_X_LPARAM( lParam ) };
+      const int yPos { GET_Y_LPARAM( lParam ) };
 
       const DesktopEventApi::MouseMoveEvent data
       {
-        .mWindowHandle = windowHandle,
-        .mX = xPos,
-        .mY = yPos,
+        .mWindowHandle { windowHandle },
+        .mX { xPos },
+        .mY { yPos },
       };
       DesktopEventApi::Queue( data );
     } break;
 
     case WM_MOUSEWHEEL:
     {
-      const short delta = GET_WHEEL_DELTA_WPARAM( wParam );
-      const float deltaScaled = ( float )delta / WHEEL_DELTA;
+      const short delta { GET_WHEEL_DELTA_WPARAM( wParam ) };
+      const float deltaScaled { ( float )delta / WHEEL_DELTA };
       const DesktopEventApi::MouseWheelEvent data{ deltaScaled };
       DesktopEventApi::Queue( data );
     } break;
@@ -403,25 +403,27 @@ namespace Tac
     // If you set the cursor here, calls to SetCursor cause it to flicker to the new cursor
     // before reverting back to the old cursor.
 
-    const UINT fuLoad
-      = LR_LOADFROMFILE // load a file ( not a resource )
-      | LR_DEFAULTSIZE // default metrics based on the type (IMAGE_ICON, 32x32)
-      | LR_SHARED;
-    const char* iconPath = "assets/grave.ico";
-    const auto icon = ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad );;
+    const UINT fuLoad{
+      LR_LOADFROMFILE // load a file ( not a resource )
+    | LR_DEFAULTSIZE // default metrics based on the type (IMAGE_ICON, 32x32)
+    | LR_SHARED };
+
+    const char* iconPath { "assets/grave.ico" };
+    const auto icon { ( HICON )LoadImage( nullptr, iconPath, IMAGE_ICON, 0, 0, fuLoad ) };;
     TAC_RAISE_ERROR_IF( !icon,
                         ShortFixedString::Concat( "Failed to load icon from: \"", iconPath, "\"" ) );
 
-    WNDCLASSEX wc = {};
-    wc.cbSize = sizeof( WNDCLASSEX );
-    wc.hCursor = nullptr; // LoadCursor( NULL, IDC_ARROW );
-    wc.hIcon = icon;
-    wc.hIconSm = nullptr; // If null, the system searches for a small icon from the hIcon member
-    wc.hInstance = Win32GetStartupInstance();
-    wc.hbrBackground = ( HBRUSH )GetStockObject( BLACK_BRUSH );
-    wc.lpfnWndProc = WindowProc;
-    wc.lpszClassName = classname;
-    wc.style = CS_HREDRAW | CS_VREDRAW; // redraw window on movement or size adjustment
+    const WNDCLASSEX wc{
+      .cbSize        { sizeof( WNDCLASSEX ) },
+      .style         { CS_HREDRAW | CS_VREDRAW }, // redraw window on movement or size adjustment
+      .lpfnWndProc   { WindowProc },
+      .hInstance     { Win32GetStartupInstance() },
+      .hIcon         { icon },
+      .hCursor       { nullptr }, // LoadCursor( NULL, IDC_ARROW );
+      .hbrBackground { ( HBRUSH )GetStockObject( BLACK_BRUSH ) },
+      .lpszClassName { classname },
+      .hIconSm       { nullptr }, // If null, the system searches for a small icon from the hIcon member
+    };
 
     TAC_RAISE_ERROR_IF( !RegisterClassEx( &wc ),
                         "Failed to register window class " + String( classname ) );
@@ -441,22 +443,19 @@ void                Tac::Win32WindowManagerDebugImGui()
   if( !ImGuiCollapsingHeader( "Win32WindowManagerDebugImGui" ) )
     return;
 
-
-
   TAC_IMGUI_INDENT_BLOCK;
 
-
-  int hwndCount = 0;
+  int hwndCount { 0 };
   for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
-    const HWND hwnd = sHWNDs[ i ];
+    const HWND hwnd { sHWNDs[ i ] };
     if( !hwnd )
       continue;
 
-    const ShortFixedString text = ShortFixedString::Concat( "Window ",
+    const ShortFixedString text{ ShortFixedString::Concat( "Window ",
                                                             ToString( i ),
                                                             " has HWND ",
-                                                            ToString( ( void* )hwnd ) );
+                                                            ToString( ( void* )hwnd ) ) };
 
     ImGuiText( text );
 
@@ -488,7 +487,7 @@ Tac::WindowHandle   Tac::Win32WindowManagerGetCursorUnobscuredWindow()
 void                Tac::Win32WindowManagerPoll( Errors& )
 {
   //TAC_PROFILE_BLOCK;
-  MSG msg = {};
+  MSG msg  {};
   while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
   {
     TranslateMessage( &msg );
@@ -498,8 +497,8 @@ void                Tac::Win32WindowManagerPoll( Errors& )
 
 void                Tac::Win32WindowManagerDespawnWindow( WindowHandle windowHandle )
 {
-  const auto i = windowHandle.GetIndex();
-  const HWND hwnd = sHWNDs[ i ];
+  const auto i { windowHandle.GetIndex() };
+  const HWND hwnd { sHWNDs[ i ] };
 
   // unparent the children to prevent them from being
   // sent WM_DESTROY when the parent is destroyed
@@ -531,10 +530,10 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
   int w { params.mSize.x };
   int h { params.mSize.y };
 
-  const DWORD windowStyle = WS_POPUP;
+  const DWORD windowStyle { WS_POPUP };
   if( w && h )
   {
-    RECT requestedRect = { 0, 0, w, h };
+    RECT requestedRect  { 0, 0, w, h };
     if( !AdjustWindowRect( &requestedRect, windowStyle, FALSE ) )
       TAC_ASSERT_INVALID_CODE_PATH;
     w = requestedRect.right - requestedRect.left;
@@ -542,9 +541,9 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
   }
   else
   {
-    const bool isOverlappedWindow =
+    const bool isOverlappedWindow{
       ( windowStyle == WS_OVERLAPPED ) ||
-      ( ( windowStyle & WS_OVERLAPPEDWINDOW ) == WS_OVERLAPPEDWINDOW );
+      ( ( windowStyle & WS_OVERLAPPEDWINDOW ) == WS_OVERLAPPEDWINDOW ) };
     if( isOverlappedWindow )
     {
       x = y = w = h = CW_USEDEFAULT;
@@ -577,7 +576,7 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
 
   sWindowUnderConstruction = windowHandle;
 
-  static HWND parentHWND = nullptr;
+  static HWND parentHWND { nullptr };
 
   if( parentHWND )
   {
@@ -585,8 +584,8 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
     TAC_ASSERT_MSG( hParent.IsValid(), "The parent was deleted!" );
   }
 
-  const HINSTANCE hinst = Win32GetStartupInstance();
-  const HWND hwnd = CreateWindowA( classname,
+  const HINSTANCE hinst { Win32GetStartupInstance() };
+  const HWND hwnd{ CreateWindowA( classname,
                                    name,
                                    windowStyle,
                                    x,
@@ -596,13 +595,13 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
                                    parentHWND,
                                    nullptr,
                                    hinst,
-                                   nullptr );
+                                   nullptr ) };
 
 
   if( !hwnd )
   {
 
-    const String lastErrorString = Win32GetLastErrorString();
+    const String lastErrorString { Win32GetLastErrorString() };
 
     String msg;
     msg += "\nhttps://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa";

@@ -26,9 +26,9 @@ namespace Tac::Controller
     ~DirectInputPerController();
     void DebugImguiInner() override;
 
-    DIDEVICEINSTANCE          mInstance = {};
-    IDirectInputDevice8*      mDevice = nullptr;
-    DIJOYSTATE2               mJoystate = {};
+    DIDEVICEINSTANCE          mInstance {  };
+    IDirectInputDevice8*      mDevice { nullptr };
+    DIJOYSTATE2               mJoystate {  };
   };
 
   struct XInput : public ControllerInput
@@ -39,15 +39,15 @@ namespace Tac::Controller
     void                      EnumerateController( const DIDEVICEINSTANCE* );
     DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* );
 
-    IDirectInput8*            mDirectInput = nullptr;
-    float                     mSecondsTillDiscover = 0;
-    float                     mSecondsTillDiscoverMax = 1;
+    IDirectInput8*            mDirectInput { nullptr };
+    float                     mSecondsTillDiscover { 0 };
+    float                     mSecondsTillDiscoverMax { 1 };
   };
 
   static BOOL CALLBACK enumDirectInputDevices( const DIDEVICEINSTANCE* pdidInstance,
                                                LPVOID pvRef )
   {
-    XInput* xInput = ( XInput* )pvRef;
+    XInput* xInput { ( XInput* )pvRef };
     xInput->EnumerateController( pdidInstance );
     return DIENUM_CONTINUE;
   }
@@ -62,11 +62,11 @@ namespace Tac::Controller
 
   static float ConvertDirectInputSigned( LONG inputVal, float deadzonePercent )
   {
-    float result = ( float )inputVal;
+    float result { ( float )inputVal };
     result /= 65535.0f;
     result *= 2.0f;
     result -= 1.0f;
-    float sign = result < 0 ? -1.0f : 1.0f;
+    float sign { result < 0 ? -1.0f : 1.0f };
     result *= sign;
     result -= deadzonePercent;
     result /= 1.0f - deadzonePercent;
@@ -77,8 +77,8 @@ namespace Tac::Controller
 
   ControllerState ToControllerState( const DIJOYSTATE2& js )
   {
-    float deadzone = 0.1f;
-    ControllerState controllerState = {};
+    float deadzone { 0.1f };
+    ControllerState controllerState  {};
     controllerState.mLeftStick.x = ConvertDirectInputSigned( js.lX, deadzone );
     //controllerState.mLeftStick.y = ConvertDirectInputSigned( js.lY, deadzone );
 
@@ -136,9 +136,9 @@ namespace Tac::Controller
     switch( hr )
     {
       case DIERR_BETADIRECTINPUTVERSION: return "beta ver"; 
-      case DIERR_INVALIDPARAM: return "invalid param"; 
-      case DIERR_OLDDIRECTINPUTVERSION: return "old ver"; 
-      case DIERR_OUTOFMEMORY: return "oom"; 
+      case DIERR_INVALIDPARAM:           return "invalid param"; 
+      case DIERR_OLDDIRECTINPUTVERSION:  return "old ver"; 
+      case DIERR_OUTOFMEMORY:            return "oom"; 
     }
 
     return "???";
@@ -146,11 +146,11 @@ namespace Tac::Controller
 
   void XInput::Init( Errors& errors )
   {
-    const HRESULT hr = DirectInput8Create( GetModuleHandleA(nullptr),
+    const HRESULT hr{ DirectInput8Create( GetModuleHandleA( nullptr ),
                                            DIRECTINPUT_VERSION,
                                            IID_IDirectInput8,
                                            ( LPVOID* )&mDirectInput,
-                                           NULL );
+                                           NULL ) };
     TAC_RAISE_ERROR_IF( hr != DI_OK, GetDirectInput8CreateErr( hr ) );
   }
 
@@ -161,7 +161,7 @@ namespace Tac::Controller
       if( !controller )
         continue;
 
-      DirectInputPerController* directInputPerController = ( DirectInputPerController * )controller;
+      DirectInputPerController* directInputPerController { ( DirectInputPerController * )controller };
       if( mDeviceInstance->guidInstance == directInputPerController->mInstance.guidInstance )
         return directInputPerController;
     }
@@ -188,17 +188,17 @@ namespace Tac::Controller
                                 DIEDFL_ATTACHEDONLY );
     }
 
-    HRESULT hr = S_OK;
-    for( int iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController)
+    HRESULT hr { S_OK };
+    for( int iController { 0 }; iController < TAC_CONTROLLER_COUNT_MAX; ++iController)
     {
-      Controller* controller = mControllers[ iController ];
+      Controller* controller { mControllers[ iController ] };
       if( !controller )
         continue;
-      DirectInputPerController* directInputPerController = ( DirectInputPerController* )controller;
+      DirectInputPerController* directInputPerController { ( DirectInputPerController* )controller };
       if( mForceIndexOverride && ( iController != mIndexOverride ) )
         continue;
 
-      IDirectInputDevice8* joystick = directInputPerController->mDevice;
+      IDirectInputDevice8* joystick { directInputPerController->mDevice };
       hr = joystick->Poll();
       if( FAILED( hr ) )
       {
@@ -206,7 +206,7 @@ namespace Tac::Controller
       }
 
 
-      DIJOYSTATE2 js = {};
+      DIJOYSTATE2 js  {};
       hr = joystick->GetDeviceState( sizeof( DIJOYSTATE2 ), &js );
       if( hr == S_OK )
       {
@@ -235,13 +235,13 @@ namespace Tac::Controller
 
   void XInput::EnumerateController( const DIDEVICEINSTANCE* pdidInstance )
   {
-    DirectInputPerController* controller = FindDInputController( pdidInstance );
+    DirectInputPerController* controller { FindDInputController( pdidInstance ) };
     if( controller )
       return;
-    IDirectInputDevice8* joystick = nullptr;
-    HRESULT hr = mDirectInput->CreateDevice( pdidInstance->guidInstance,
+    IDirectInputDevice8* joystick { nullptr };
+    HRESULT hr{ mDirectInput->CreateDevice( pdidInstance->guidInstance,
                                             &joystick,
-                                            NULL );
+                                            NULL ) };
     TAC_ASSERT( SUCCEEDED( hr ) ); // ???
     controller = TAC_NEW DirectInputPerController;
     controller->mDevice = joystick;
@@ -261,7 +261,7 @@ namespace Tac::Controller
 
   void XInputInit( Errors& errors )
   {
-    auto xInput = TAC_NEW XInput();
+    auto xInput { TAC_NEW XInput() };
     xInput->Init( errors );
   }
 

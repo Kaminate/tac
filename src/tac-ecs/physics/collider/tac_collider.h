@@ -12,9 +12,9 @@ namespace Tac
     static Collider*               CreateCollider( World* );
     static Collider*               GetCollider( Entity* );
     const ComponentRegistryEntry*  GetEntry() const override;
-    v3                             mVelocity = {};
-    float                          mRadius = 0.5f;
-    float                          mTotalHeight = 2.0f;
+    v3                             mVelocity    {};
+    float                          mRadius      { 0.5f };
+    float                          mTotalHeight { 2.0f };
   };
   void RegisterColliderComponent();
 }

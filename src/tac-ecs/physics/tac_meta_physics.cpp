@@ -6,7 +6,7 @@ namespace Tac
 
   void RegisterMetaphysics()
   {
-    static bool registered = false;
+    static bool registered { false };
     if( registered )
       return;
     registered = true;

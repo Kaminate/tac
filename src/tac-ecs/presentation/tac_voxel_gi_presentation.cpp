@@ -57,15 +57,15 @@ namespace Tac
 
   struct VoxelSettings
   {
-    int   voxelDimension = 1; // eventually 128
-    bool  voxelDebug = true;
-    bool  voxelDebugDrawVoxelOutlines = false;
-    bool  voxelDebugDrawGridOutline = true;
-    bool  voxelDebugDrawVoxels = true;
-    bool  voxelEnabled = true;
-    v3    voxelGridCenter = { 0, 0, 0 };
-    float voxelGridHalfWidth = 10.0f;
-    bool  voxelGridSnapCamera = false;
+    int   voxelDimension              { 1 }; // eventually 128
+    bool  voxelDebug                  { true };
+    bool  voxelDebugDrawVoxelOutlines { false };
+    bool  voxelDebugDrawGridOutline   { true };
+    bool  voxelDebugDrawVoxels        { true };
+    bool  voxelEnabled                { true };
+    v3    voxelGridCenter             { 0, 0, 0 };
+    float voxelGridHalfWidth          { 10.0f };
+    bool  voxelGridSnapCamera         { false };
   };
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( VoxelSettings )
@@ -136,16 +136,16 @@ namespace Tac
     {
       .mImage
       {
-        .mWidth = voxelSettingsCurrent.voxelDimension,
-        .mHeight = voxelSettingsCurrent.voxelDimension,
+        .mWidth { voxelSettingsCurrent.voxelDimension },
+        .mHeight { voxelSettingsCurrent.voxelDimension },
         .mFormat
         {
-          .mElementCount = 4,
-          .mPerElementByteCount = 1,
-          .mPerElementDataType = Render::GraphicsType::unorm
+          .mElementCount { 4 },
+          .mPerElementByteCount { 1 },
+          .mPerElementDataType { Render::GraphicsType::unorm },
         },
       },
-      .mBinding = Render::Binding::RenderTarget
+      .mBinding { Render::Binding::RenderTarget },
     };
 
     voxelFramebufferTexture = Render::CreateTexture( CreateTextureParams, TAC_STACK_FRAME );
@@ -190,8 +190,8 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem = "VoxelVisualizer",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "VoxelVisualizer" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     voxelVisualizerShader =renderDevice->CreateProgram( programParams, errors );
   }
@@ -200,10 +200,10 @@ namespace Tac
   {
     // This shader is used to copy from the 3d magic buffer to the 3d texture
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams programParams
+    const Render::ProgramParams programParams
     {
-      .mFileStem = "VoxelCopy",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "VoxelCopy" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     
     voxelCopyShader = renderDevice->CreateProgram( programParams, errors );
@@ -221,10 +221,10 @@ namespace Tac
     // The voxelizer shader turns geometry into a rwstructuredbuffer using atomics
     // to prevent flickering
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams programParams
+    const Render::ProgramParams programParams
     {
-      .mFileStem = "",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     renderDevice->CreateProgram( programParams, errors );
     voxelizerShader = Render::CreateShader(  "Voxelizer" , TAC_STACK_FRAME );
@@ -282,20 +282,20 @@ namespace Tac
     {
       .mImage =
       {
-        .mWidth = voxelSettingsCurrent.voxelDimension,
-        .mHeight = voxelSettingsCurrent.voxelDimension,
-        .mDepth = voxelSettingsCurrent.voxelDimension,
+        .mWidth { voxelSettingsCurrent.voxelDimension },
+        .mHeight { voxelSettingsCurrent.voxelDimension },
+        .mDepth { voxelSettingsCurrent.voxelDimension },
         .mFormat =
         {
-          .mElementCount = 4,
-          .mPerElementByteCount = 2,
-          .mPerElementDataType = Render::GraphicsType::real,
+          .mElementCount { 4 },
+          .mPerElementByteCount { 2 },
+          .mPerElementDataType { Render::GraphicsType::real },
         },
       },
-      .mPitch = 0,
-      .mBinding = Render::Binding::ShaderResource | Render::Binding::UnorderedAccess,
-      .mAccess = Render::Access::Default, 
-      .mCpuAccess = Render::CPUAccess::None
+      .mPitch { 0 },
+      .mBinding { Render::Binding::ShaderResource | Render::Binding::UnorderedAccess },
+      .mAccess { Render::Access::Default }, 
+      .mCpuAccess { Render::CPUAccess::None },
     };
   }
 
@@ -313,14 +313,14 @@ namespace Tac
 
   static void                    CreateVoxelRWStructredBuf()
   {
-    const int voxelStride = sizeof( u32 ) * 2;
+    const int voxelStride { sizeof( u32 ) * 2 };
     const int voxelCount
-      = voxelSettingsCurrent.voxelDimension
+      { voxelSettingsCurrent.voxelDimension
       * voxelSettingsCurrent.voxelDimension
-      * voxelSettingsCurrent.voxelDimension;
-    const Render::Binding binding = ( Render::Binding )(
+      * voxelSettingsCurrent.voxelDimension };
+    const Render::Binding binding{ ( Render::Binding )(
       ( int )Render::Binding::ShaderResource |
-      ( int )Render::Binding::UnorderedAccess );
+      ( int )Render::Binding::UnorderedAccess ) };
     voxelRWStructuredBuf = Render::CreateMagicBuffer( voxelStride * voxelCount,
                                                       nullptr,
                                                       voxelStride,
@@ -332,20 +332,23 @@ namespace Tac
 
   static CBufferVoxelizer        VoxelGetCBuffer()
   {
-    const float gVoxelWidth = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )
-                            / voxelSettingsCurrent.voxelDimension;
-    return { .gVoxelGridCenter    = voxelSettingsCurrent.voxelGridCenter,
-             .gVoxelGridHalfWidth = voxelSettingsCurrent.voxelGridHalfWidth,
-             .gVoxelWidth         = gVoxelWidth,
-             .gVoxelGridSize      = (u32)voxelSettingsCurrent.voxelDimension };
+    const float gVoxelWidth{ ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )
+                            / voxelSettingsCurrent.voxelDimension };
+    return
+    {
+      .gVoxelGridCenter    { voxelSettingsCurrent.voxelGridCenter },
+      .gVoxelGridHalfWidth { voxelSettingsCurrent.voxelGridHalfWidth },
+      .gVoxelWidth         { gVoxelWidth },
+      .gVoxelGridSize      { (u32)voxelSettingsCurrent.voxelDimension },
+    };
   }
 
   static void                    RenderDebugVoxelOutlineGrid( Debug3DDrawData* drawData )
   {
     if( !voxelSettingsCurrent.voxelDebugDrawGridOutline )
       return;
-    const v3 mini = voxelSettingsCurrent.voxelGridCenter - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 );
-    const v3 maxi = voxelSettingsCurrent.voxelGridCenter + voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 );
+    const v3 mini { voxelSettingsCurrent.voxelGridCenter - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 ) };
+    const v3 maxi { voxelSettingsCurrent.voxelGridCenter + voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 ) };
     drawData->DebugDraw3DAABB( mini, maxi );
   }
 
@@ -356,21 +359,21 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     for( int i{}; i < voxelSettingsCurrent.voxelDimension; ++i )
     {
-      for( int j = 0; j < voxelSettingsCurrent.voxelDimension; ++j )
+      for( int j { 0 }; j < voxelSettingsCurrent.voxelDimension; ++j )
       {
-        for( int k = 0; k < voxelSettingsCurrent.voxelDimension; ++k )
+        for( int k { 0 }; k < voxelSettingsCurrent.voxelDimension; ++k )
         {
           const float voxelWidth
-            = ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )
-            / voxelSettingsCurrent.voxelDimension;
+          { ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )
+          / voxelSettingsCurrent.voxelDimension };
           const v3 iVoxel( ( float )i, ( float )j, ( float )k );
           const v3 minPos
-            = voxelSettingsCurrent.voxelGridCenter
-            - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 )
-            + iVoxel * voxelWidth;
-          const v3 maxPos = minPos + voxelWidth * v3( 1, 1, 1 );
-          const v3 minColor = iVoxel / ( float )voxelSettingsCurrent.voxelDimension;
-          const v3 maxColor = ( iVoxel + v3( 1, 1, 1 ) ) / ( float )voxelSettingsCurrent.voxelDimension;
+          { voxelSettingsCurrent.voxelGridCenter
+          - voxelSettingsCurrent.voxelGridHalfWidth * v3( 1, 1, 1 )
+          + iVoxel * voxelWidth };
+          const v3 maxPos { minPos + voxelWidth * v3( 1, 1, 1 ) };
+          const v3 minColor { iVoxel / ( float )voxelSettingsCurrent.voxelDimension };
+          const v3 maxColor { ( iVoxel + v3( 1, 1, 1 ) ) / ( float )voxelSettingsCurrent.voxelDimension };
           drawData->DebugDraw3DAABB( minPos, maxPos, minColor, maxColor );
         }
       }
@@ -454,17 +457,17 @@ namespace Tac
       void operator()( Model* model ) override
       {
         Errors errors;
-        Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+        Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
                                                              model->mModelIndex,
                                                              voxelVertexDeclarations,
-                                                             errors );
+                                                             errors ) };
         if( !mesh )
           return;
 
         const Render::DefaultCBufferPerObject objBuf =
         {
-          .World = model->mEntity->mWorldTransform,
-          .Color = Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ),
+          .World { model->mEntity->mWorldTransform },
+          .Color { Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ) },
         };
 
         for( const SubMesh& subMesh : mesh->mSubMeshes )
@@ -496,21 +499,21 @@ namespace Tac
 
       Render::ViewHandle            mViewHandle;
       Render::SamplerStateHandle    mSamplerState;
-      Render::DrawCallTextures* textures = nullptr;
-      Render::CBufferLights* cBufferLights = nullptr;
+      Render::DrawCallTextures* textures { nullptr };
+      Render::CBufferLights* cBufferLights { nullptr };
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
     modelVisitor.mSamplerState = GamePresentationGetSamplerState();
     modelVisitor.textures = &textures;
     modelVisitor.cBufferLights = &cBufferLights;
 
-    const CBufferVoxelizer cpuCBufferVoxelizer = VoxelGetCBuffer();
+    const CBufferVoxelizer cpuCBufferVoxelizer { VoxelGetCBuffer() };
     Render::UpdateConstantBuffer( CBufferVoxelizer::Handle,
                                   &cpuCBufferVoxelizer,
                                   sizeof( CBufferVoxelizer ),
                                   TAC_STACK_FRAME );
 
-    const Graphics* graphics = GetGraphics( world );
+    const Graphics* graphics { GetGraphics( world ) };
     graphics->VisitLights( &lightVisitor );
     graphics->VisitModels( &modelVisitor );
   }
@@ -613,8 +616,8 @@ namespace Tac
 
     ImGuiCheckbox( "snap voxel grid to camera", &voxelSettingsCurrent.voxelGridSnapCamera );
     ImGuiDragFloat3( "voxel grid center", voxelSettingsCurrent.voxelGridCenter.data() );
-    const float oldVoxelGridHalfWidth = voxelSettingsCurrent.voxelGridHalfWidth;
-    float width = voxelSettingsCurrent.voxelGridHalfWidth * 2.0f;
+    const float oldVoxelGridHalfWidth { voxelSettingsCurrent.voxelGridHalfWidth };
+    float width { voxelSettingsCurrent.voxelGridHalfWidth * 2.0f };
     ImGuiDragFloat( "voxel grid width", &width );
     voxelSettingsCurrent.voxelGridHalfWidth = Max( width, 1.0f ) / 2.0f;
 
@@ -626,7 +629,7 @@ namespace Tac
     */
 
 
-    const int oldVoxelDimension = voxelSettingsCurrent.voxelDimension;
+    const int oldVoxelDimension { voxelSettingsCurrent.voxelDimension };
     voxelSettingsCurrent.voxelDimension -= ImGuiButton( "-" ) ? 1 : 0;
     ImGuiSameLine();
     voxelSettingsCurrent.voxelDimension += ImGuiButton( "+" ) ? 1 : 0;

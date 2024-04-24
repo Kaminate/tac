@@ -24,7 +24,7 @@ namespace Tac
     u64 Mask( const ComponentRegistryEntry* ) const;
 
     // Each bit of the bitfield represents an entry in the Component Registry
-    u64 mBitfield = 0;
+    u64 mBitfield { 0 };
   };
 
   //bool operator == ( const ComponentRegistryBits&,  const ComponentRegistryBits&  );
@@ -38,15 +38,15 @@ namespace Tac
   private:
     // Each element in this array is a bitfield which represents dirty NetworkBits corresponding
     // to a single a component registry entry
-    NetBitDiff mData[ 64 ] = {};
-    bool       mDirty = false;
+    NetBitDiff mData[ 64 ]  {};
+    bool       mDirty { false };
   };
 
   struct EntityMod
   {
     ChangedComponentBitfields mChangedComponentBitfields;
     ComponentRegistryBits     mComponents;
-    Entity*                   mEntity = nullptr;
+    Entity*                   mEntity { nullptr };
   };
 
   struct EntityDiffs
@@ -77,7 +77,7 @@ namespace Tac
     // Needed for Created and Modified
 
     // Needed for Created, Modified, and Destroyed
-    EntityUUID                mEntityUUID = NullEntityUUID;
+    EntityUUID                mEntityUUID { NullEntityUUID };
   };
 
 } // namespace Tac

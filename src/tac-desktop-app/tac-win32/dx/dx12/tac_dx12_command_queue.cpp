@@ -20,7 +20,7 @@ namespace Tac::Render
 
   FenceSignal DX12CommandQueue::GetLastCompletedFenceValue()
   {
-    u64 val = m_fence->GetCompletedValue();
+    const u64 val { m_fence->GetCompletedValue() };
     mLastCompletedFenceValue = val;
     return val;
   }
@@ -29,7 +29,7 @@ namespace Tac::Render
 
   FenceSignal DX12CommandQueue::IncrementFence( Errors& errors )
   {
-    const UINT64 signalValue = mNextFenceValue;
+    const UINT64 signalValue { mNextFenceValue };
 
     // Use this method to set a fence value from the GPU side
     TAC_DX12_CALL_RET( {}, m_commandQueue->Signal( ( ID3D12Fence* )m_fence, mNextFenceValue ) );
@@ -59,11 +59,11 @@ namespace Tac::Render
     //
     // the event will be 'complete' when it reaches the specified value.
     // This value is set by the cmdqueue::Signal
-    const u64 val = signalValue.GetValue();
+    const u64 val { signalValue.GetValue() };
     TAC_DX12_CALL( m_fence->SetEventOnCompletion( val, ( HANDLE )m_fenceEvent ) );
     WaitForSingleObject( ( HANDLE )m_fenceEvent, INFINITE );
     mLastCompletedFenceValue = val;
-    UINT64 completedValue = m_fence->GetCompletedValue();
+    const UINT64 completedValue { m_fence->GetCompletedValue() };
     TAC_ASSERT( mLastCompletedFenceValue == completedValue );
   }
 
@@ -78,7 +78,7 @@ namespace Tac::Render
 
   bool DX12CommandQueue::IsFenceComplete( FenceSignal fenceValue )
   {
-    const u64 val = fenceValue.GetValue();
+    const u64 val { fenceValue.GetValue() };
     if( val <= mLastCompletedFenceValue )
       return true;
 
@@ -122,7 +122,7 @@ namespace Tac::Render
       // [ ] A: 
 
       // This command queue manages direct command lists (direct = for graphics rendering)
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+      .Type { D3D12_COMMAND_LIST_TYPE_DIRECT },
     };
 
     TAC_DX12_CALL( device->CreateCommandQueue(
@@ -135,7 +135,7 @@ namespace Tac::Render
 
   void DX12CommandQueue::WaitForIdle( Errors& errors )
   {
-    FenceSignal fenceValue = TAC_CALL( IncrementFence( errors ) );
+    TAC_CALL( FenceSignal fenceValue { IncrementFence( errors )  });
     TAC_CALL( WaitForFence( fenceValue, errors ) );
   };
 

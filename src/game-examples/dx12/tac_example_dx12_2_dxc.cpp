@@ -21,11 +21,11 @@ namespace Tac::Render::DXC
   {
     struct BasicSetup
     {
-      StringView mEntryPoint;
-      StringView mTargetProfile;
-      StringView mFilename;
+      StringView       mEntryPoint;
+      StringView       mTargetProfile;
+      StringView       mFilename;
       Filesystem::Path mPDBDir;
-      PCom<IDxcUtils> mUtils;
+      PCom<IDxcUtils>  mUtils;
     };
 
     ExampleDXCArgHelper( BasicSetup );

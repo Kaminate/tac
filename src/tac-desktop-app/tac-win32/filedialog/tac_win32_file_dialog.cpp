@@ -58,7 +58,7 @@ namespace Tac
 
     void FileDialogHelper::Show( Errors& errors )
     {
-      const HRESULT hr = mDialog->Show( nullptr );
+      const HRESULT hr { mDialog->Show( nullptr ) };
       mCancelled = hr == HRESULT_FROM_WIN32( ERROR_CANCELLED );
       TAC_RAISE_ERROR_IF( FAILED( hr ) && !mCancelled, "Failed to show dialog");
     }

@@ -17,7 +17,7 @@ namespace Tac::Render
 
     if( line.contains( "sampler_state" ) )
     {
-      String replacement = line;
+      String replacement { line };
       replacement.replace( "sampler_state", "SamplerState" );
       TAC_RAISE_ERROR_RETURN( "Please replace `" + line + "` with `" + replacement + "`. "
                               "sampler_state is hella old",
@@ -27,7 +27,7 @@ namespace Tac::Render
 
     if( line.contains( "sampler" ) && line.contains( "register" ) )
     {
-      String replacement = line;
+      String replacement { line };
       replacement.replace( "sampler", "SamplerState");
 
       TAC_RAISE_ERROR_RETURN(

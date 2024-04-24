@@ -83,11 +83,11 @@ namespace Tac::Render
 
   void DX12CommandList::Draw()
   {
-    ID3D12GraphicsCommandList* cmdList = mContext.GetCommandList();
-    const UINT vtxCountPerInstance = 0;
-    const UINT instanceCount = 0;
-    const UINT startVertexLocation = 0;
-    const UINT startIndexLocation = 0;
+    ID3D12GraphicsCommandList* cmdList { mContext.GetCommandList() };
+    const UINT vtxCountPerInstance { 0 };
+    const UINT instanceCount { 0 };
+    const UINT startVertexLocation { 0 };
+    const UINT startIndexLocation { 0 };
     cmdList->DrawInstanced( vtxCountPerInstance,
                             instanceCount,
                             startVertexLocation,
@@ -217,16 +217,16 @@ namespace Tac::Render
 
   SmartPtr< ICommandList > DX12Backend::GetCommandList( ContextHandle handle, Errors& errors )
   {
-    const int i = handle.GetHandleIndex();
+    const int i { handle.GetHandleIndex() };
     if( !( i < mContexts.size() ) )
     {
       mContexts.resize( i + 1 );
     }
 
-    DX12Context context = mContextManager.GetContextNoScope( errors );
+    DX12Context context { mContextManager.GetContextNoScope( errors ) };
     mContexts[ i ] = context;
 
-    DX12CommandList* dx12CmdList = TAC_NEW DX12CommandList;
+    DX12CommandList* dx12CmdList { TAC_NEW DX12CommandList };
     dx12CmdList->mContext = context;
 
     return SmartPtr< ICommandList >{ dx12CmdList };

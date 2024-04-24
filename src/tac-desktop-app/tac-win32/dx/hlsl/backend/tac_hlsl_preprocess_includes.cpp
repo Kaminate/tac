@@ -13,7 +13,7 @@ namespace Tac::Render
 {
   String HLSLLinePreprocessorIncludes::IncludeFile(  AssetPathStringView path, Errors& errors )
   {
-    const String includeSource = TAC_CALL_RET( {}, LoadAssetPath( path, errors ) );
+    TAC_CALL_RET( {}, const String includeSource {  LoadAssetPath( path, errors ) } );
 
     String result;
     result += "//===----- (begin include " + path + ") -----===//\n";
@@ -39,9 +39,9 @@ namespace Tac::Render
       return {};
 
     lineParseData.EatUntilCharIsPrev( '\"' );
-    const char* includeBegin = lineParseData.GetPos();
+    const char* includeBegin { lineParseData.GetPos() };
     lineParseData.EatUntilCharIsNext( '\"' );
-    const char* includeEnd = lineParseData.GetPos();
+    const char* includeEnd { lineParseData.GetPos() };
     const StringView includeName( includeBegin, includeEnd );
 
     {
@@ -51,8 +51,8 @@ namespace Tac::Render
       mIncluded.push_back( includeName );
     }
 
-    const AssetPathString assetDir = ( ( AssetPathStringView )mAssetPath ).GetDirectory();
-    const AssetPathString assetPath = AssetPathStringView( ( String )assetDir + '/' + includeName );
+    const AssetPathString assetDir { ( ( AssetPathStringView )mAssetPath ).GetDirectory() };
+    const AssetPathString assetPath { AssetPathStringView( ( String )assetDir + '/' + includeName ) };
 
     String result;
     if( Exists( assetPath ) )
@@ -60,7 +60,7 @@ namespace Tac::Render
 
     if( includeName.ends_with( ".hlsli" ) )
     {
-      AssetPathString hlslPath = assetPath;
+      AssetPathString hlslPath { assetPath };
       hlslPath.replace( ".hlsli", ".hlsl" );
 
       if( Exists( hlslPath ) )

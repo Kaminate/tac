@@ -25,7 +25,7 @@ namespace Tac
   struct UUIDCounter
   {
     T AllocateNewUUID() { return ( T )( ++mUUIDCounter ); }
-    UUID mUUIDCounter = NullUUID;
+    UUID mUUIDCounter { NullUUID };
   };
 
   typedef UUIDCounter< EntityUUID > EntityUUIDCounter;

@@ -6,9 +6,9 @@ namespace Tac
 
   struct FixedStringData
   {
-    char* mBuf      { nullptr };
-    int*  mSize     { nullptr };
-    int   mCapacity { 0 };
+    char* mBuf      {};
+    int*  mSize     {};
+    int   mCapacity {};
   };
 
   // move to static fn inside fixedstringdata?
@@ -75,7 +75,7 @@ namespace Tac
 
     static const int N { 100 };
 
-    int mSize { 0 };
+    int mSize {  };
     char mBuf[ N ] { "" };
   };
 

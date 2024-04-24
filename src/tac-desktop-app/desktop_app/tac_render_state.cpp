@@ -27,7 +27,7 @@ namespace Tac
       OS::OSDebugPrintLine( String() + "element count: " + ToString( mElements.size() ) );
 
       int i{};
-      for( auto it = mElements.begin(); it != mElements.end(); ++it )
+      for( auto it { mElements.begin() }; it != mElements.end(); ++it )
       {
         OS::OSDebugPrintLine
         (
@@ -43,7 +43,7 @@ namespace Tac
       }
     }
 
-    auto it = mElements.rbegin();
+    auto it { mElements.rbegin() };
 
 
     // Don't remove most recent 2 elements, so a pair can be dequeueud
@@ -53,10 +53,10 @@ namespace Tac
     // remove all the unused elements
     while( it != mElements.end() )
     {
-      auto elementIt = it;
+      auto elementIt { it };
       --it;
 
-      if( Element& element = *elementIt; !element.mUsedCounter )
+      if( Element& element { *elementIt }; !element.mUsedCounter )
       {
         TAC_DELETE element.mState;
         mElements.erase( elementIt );
@@ -75,8 +75,8 @@ namespace Tac
 
     Element element
     {
-      .mState = state,
-      .mUsedCounter = 0,
+      .mState { state },
+      .mUsedCounter { 0 },
     };
     mElements.push_back( element );
     TAC_ASSERT_MSG( mElements.size() < 10, "sanity check" );
@@ -86,22 +86,22 @@ namespace Tac
   {
     TAC_SCOPE_GUARD( std::lock_guard, sMutex );
 
-    if( const int n = mElements.size(); n < 2 )
+    if( const int n { mElements.size() }; n < 2 )
       return {};
 
     //Timestamp ts = Timestep::GetElapsedTime();
     //FrameIndex fi = ShellGetFrameIndex();
     //float t = ShellGetInterpolationPercent();
 
-    auto it = mElements.rbegin();
+    auto it { mElements.rbegin() };
     //while( it != mElements.end() )
     //{
     //  Element& element = *it--;
     //  if( element.mState->mTimestamp 
     //}
 
-    Element& newStateElement = *it--;
-    Element& oldStateElement = *it--;
+    Element& newStateElement { *it-- };
+    Element& oldStateElement { *it-- };
 
     TAC_ASSERT( oldStateElement.mState != newStateElement.mState );
     oldStateElement.mUsedCounter++;
@@ -109,10 +109,10 @@ namespace Tac
 
     return Pair 
     {
-      .mOldState = oldStateElement.mState,
-      .mOldUsedCounter = &oldStateElement.mUsedCounter,
-      .mNewState = newStateElement.mState,
-      .mNewUsedCounter = &newStateElement.mUsedCounter,
+      .mOldState       { oldStateElement.mState },
+      .mOldUsedCounter { &oldStateElement.mUsedCounter },
+      .mNewState       { newStateElement.mState },
+      .mNewUsedCounter { &newStateElement.mUsedCounter },
     };
   }
 
@@ -121,8 +121,8 @@ namespace Tac
     if( !IsValid() )
       return;
 
-    int& n1 = *mOldUsedCounter;
-    int& n2 = *mNewUsedCounter;
+    int& n1 { *mOldUsedCounter };
+    int& n2 { *mNewUsedCounter };
     n1--;
     n2--;
 

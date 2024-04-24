@@ -43,13 +43,13 @@ namespace Tac
     mKeyboardApi = keyboardApi;
     mName = name;
     mGhost = ghost;
-    auto serverData = mGhost->mServerData;
-    auto player = serverData->SpawnPlayer();
+    ServerData* serverData { mGhost->mServerData };
+    Player* player { serverData->SpawnPlayer() };
     player->mCameraPos = v3( -15, 12, 25 );
     mPlayer = player;
     if( mGhost->mShouldPopulateWorldInitial )
     {
-      Entity* entity = serverData->SpawnEntity();
+      Entity* entity { serverData->SpawnEntity() };
       entity->mRelativeSpace.mPosition = v3( RandomFloatMinus1To1() * 3.0f,
                                              5.2f,
                                              RandomFloatMinus1To1() * 3.0f );
@@ -72,7 +72,7 @@ namespace Tac
       return;
 
     //auto serverData = mGhost->mServerData;
-    v2 inputDirection = { 0, 0 };
+    v2 inputDirection  { 0, 0 };
     if( mKeyboardApi->IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
     if( mKeyboardApi->IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
     if( mKeyboardApi->IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
@@ -135,10 +135,10 @@ namespace Tac
     //Renderer::Instance->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
     //_HANDLE_ERROR( errors );
 
-    const String serverTypeGameClient = TAC_STRINGIFY( ScriptGameClient );
-    const String serverType = SettingsGetString( "server type",  serverTypeGameClient );
+    const String serverTypeGameClient { TAC_STRINGIFY( ScriptGameClient ) };
+    const String serverType { SettingsGetString( "server type",  serverTypeGameClient ) };
 
-    ScriptThread* child = nullptr;
+    ScriptThread* child { nullptr };
     if( serverType == serverTypeGameClient )
       child = TAC_NEW ScriptGameClient;
     else
@@ -166,14 +166,14 @@ namespace Tac
   User* Ghost::AddPlayer( StringView name, 
                           Errors& errors )
   {
-    Ghost* ghost = this;
-    auto* user = TAC_NEW User( name, ghost, mKeyboardApi, errors );
+    Ghost* ghost { this };
+    auto* user { TAC_NEW User( name, ghost, mKeyboardApi, errors ) };
     mUsers.push_back( user );
 
     const ScriptMsg scriptMsg
     {
-      .mType = scriptMsgNameUserConnect,
-      .mData = user,
+      .mType { scriptMsgNameUserConnect },
+      .mData { user },
     };
     mScriptRoot->OnMsg( &scriptMsg );
     return user;
@@ -253,15 +253,15 @@ namespace Tac
       if( Contains( claimedControllerIndexes, controllerIndex ) )
         continue;
 
-      Controller::Controller* controller = Controller::GetController( controllerIndex );
+      Controller::Controller* controller { Controller::GetController( controllerIndex ) };
       if( !controller )
         continue;
 
       if( !Controller::IsButtonJustPressed( Controller::ControllerButton::Start, controller ) )
         continue;
 
-      const String playerName = String() + "Player " + ToString( mUsers.size() );
-      User* user = AddPlayer( playerName, errors );
+      const String playerName { String() + "Player " + ToString( mUsers.size() ) };
+      User* user { AddPlayer( playerName, errors ) };
       if( errors )
         return;
 
@@ -275,7 +275,7 @@ namespace Tac
 
   bool Ghost::IsPartyFull()
   {
-    bool result = ( int )mUsers.size() == sPlayerCountMax;
+    bool result { ( int )mUsers.size() == sPlayerCountMax };
     return result;
   }
 
@@ -295,10 +295,10 @@ namespace Tac
 
     if( CanDrawImgui() )
     {
-      float aspect = mFBOTexture->GetAspect();
-      auto w = ( int )ImGui::GetWindowContentRegionWidth();
-      auto h = ( int )( w / aspect );
-      auto size = ImVec2( ( float )w, ( float )h );
+      float aspect { mFBOTexture->GetAspect() };
+      auto w { ( int )ImGui::GetWindowContentRegionWidth() };
+      auto h { ( int )( w / aspect ) };
+      auto size { ImVec2( ( float )w, ( float )h ) };
       ImGui::Image( mFBOTexture->GetImguiTextureID(), size );
       mMouseHoveredOverWindow = ImGui::IsItemHovered();
 
@@ -306,9 +306,9 @@ namespace Tac
       mImguiImageH = ( float )h;
 
 
-      ImVec2 itemRectMin = ImGui::GetItemRectMin();
-      ImVec2 itemRectMax = ImGui::GetItemRectMax();
-      ImVec2 itemRectSize = ImGui::GetItemRectSize();
+      ImVec2 itemRectMin { ImGui::GetItemRectMin() };
+      ImVec2 itemRectMax { ImGui::GetItemRectMax() };
+      ImVec2 itemRectSize { ImGui::GetItemRectSize() };
 
       mImguiImagePosRelTopLeftX = itemRectMin.x;
       mImguiImagePosRelTopLeftY = itemRectMin.y;
@@ -373,7 +373,7 @@ namespace Tac
     //  ( float )fboTexture->myImage.mHeight ); // height increasing up
 
 
-    v3 camPos = {};
+    v3 camPos  {};
     if( !mUsers.empty() )
     {
       for( User* user : mUsers )
@@ -384,15 +384,15 @@ namespace Tac
     v3 camViewDir( 0, 0, -1 );
     v3 camR( 1, 0, 0 );
     v3 camU( 0, 1, 0 );
-    float farPlane = 10000.0f;
-    float nearPlane = 0.1f;
+    float farPlane { 10000.0f };
+    float nearPlane { 0.1f };
     //float fovYRad = 100.0f * ( 3.14f / 180.0f );
     //const Render::InProj inProj = { .mNear = nearPlane, .mFar = farPlane };
     //const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
     //const float projA = outProj.mA;
     //const float projB = outProj.mB;
 
-    const m4 world_to_view = m4::View( camPos, camViewDir, camR, camU );
+    const m4 world_to_view { m4::View( camPos, camViewDir, camR, camU ) };
     //auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
 
     //InvalidCodePath;

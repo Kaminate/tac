@@ -48,12 +48,12 @@ namespace Tac
   static Render::VertexDeclarations    m3DVertexFormatDecls;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
-  static bool                          mRenderEnabledModel = true;
-  static bool                          mRenderEnabledSkybox = true;
-  static bool                          mRenderEnabledTerrain = true;
-  static bool                          mRenderEnabledDebug3D = true;
-  static bool                          mUseLights = true;
-  static Render::CBufferLights         mDebugCBufferLights = {};
+  static bool                          mRenderEnabledModel { true };
+  static bool                          mRenderEnabledSkybox { true };
+  static bool                          mRenderEnabledTerrain { true };
+  static bool                          mRenderEnabledDebug3D { true };
+  static bool                          mUseLights { true };
+  static Render::CBufferLights         mDebugCBufferLights  {};
 
   struct TerrainVertex
   {
@@ -71,19 +71,19 @@ namespace Tac
   static void CheckShaderPadding()
   {
     const int sizeofshaderlight_estimated { 4 * ( 16 + 4 + 4 + 4 + 1 + 3 ) };
-    const int sizeofshaderlight { sizeof( Render::ShaderLight ) };
-    const int light1Offset { ( int )TAC_OFFSET_OF( Render::CBufferLights, lights[ 1 ] ) };
-    const int light1OffsetReg { light1Offset / 16 };
-    const int light1OffsetAxis { light1Offset % 16 };
-    const int lightCountOffset { ( int )TAC_OFFSET_OF( Render::CBufferLights, lightCount ) };
-    const int lightCountOffsetReg { lightCountOffset / 16 };
-    const int lightCountOffsetAxis { lightCountOffset % 16 };
-    const bool check1 { sizeofshaderlight % 16 == 0 };
-    const bool check2 { sizeofshaderlight == sizeofshaderlight_estimated };
-    const bool check3 { light1OffsetReg == 8 };
-    const bool check4 { light1OffsetAxis == 0 };
-    const bool check5 { lightCountOffsetReg == 32 };
-    const bool check6 { lightCountOffsetAxis == 0 };
+    const int sizeofshaderlight           { sizeof( Render::ShaderLight ) };
+    const int light1Offset                { ( int )TAC_OFFSET_OF( Render::CBufferLights, lights[ 1 ] ) };
+    const int light1OffsetReg             { light1Offset / 16 };
+    const int light1OffsetAxis            { light1Offset % 16 };
+    const int lightCountOffset            { ( int )TAC_OFFSET_OF( Render::CBufferLights, lightCount ) };
+    const int lightCountOffsetReg         { lightCountOffset / 16 };
+    const int lightCountOffsetAxis        { lightCountOffset % 16 };
+    const bool check1                     { sizeofshaderlight % 16 == 0 };
+    const bool check2                     { sizeofshaderlight == sizeofshaderlight_estimated };
+    const bool check3                     { light1OffsetReg == 8 };
+    const bool check4                     { light1OffsetAxis == 0 };
+    const bool check5                     { lightCountOffsetReg == 32 };
+    const bool check6                     { lightCountOffsetAxis == 0 };
     TAC_ASSERT( check1 );
     TAC_ASSERT( check2 );
     TAC_ASSERT( check3 );
@@ -96,21 +96,21 @@ namespace Tac
                                                 const int viewWidth,
                                                 const int viewHeight )
   {
-    const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
-    const Render::InProj inProj = { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
-    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
-    const float a = outProj.mA;
-    const float b = outProj.mB;
-    const float w = ( float )viewWidth;
-    const float h = ( float )viewHeight;
+    const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
+    const Render::InProj inProj  { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
+    const Render::OutProj outProj { Render::GetPerspectiveProjectionAB( inProj ) };
+    const float a { outProj.mA };
+    const float b { outProj.mB };
+    const float w { ( float )viewWidth };
+    const float h { ( float )viewHeight };
     return Render::DefaultCBufferPerFrame
     {
-      .mView = camera->View(),
-      .mProjection = camera->Proj( a, b, w / h ),
-      .mFar = camera->mFarPlane,
-      .mNear = camera->mNearPlane,
-      .mGbufferSize = { w, h },
-      .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 )
+      .mView        { camera->View() },
+      .mProjection  { camera->Proj( a, b, w / h ) },
+      .mFar         { camera->mFarPlane },
+      .mNear        { camera->mNearPlane },
+      .mGbufferSize { w, h },
+      .mSecModTau   { ( float )Fmod( elapsedSeconds, 6.2831853 ) },
     };
   }
 
@@ -131,10 +131,10 @@ namespace Tac
       void operator()( Model* model ) override
       {
         Errors errors;
-        Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+        Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
                                                              model->mModelIndex,
                                                              GamePresentationGetVertexDeclarations(),
-                                                             errors );
+                                                             errors ) };
         if( !mesh )
           return;
 
@@ -142,15 +142,15 @@ namespace Tac
         {
           for( const SubMeshTriangle& tri : subMesh.mTris )
           {
-            const v3 p0 = ( model->mEntity->mWorldTransform *  v4( tri[ 0 ], 1 ) ).xyz();
-            const v3 p1 = ( model->mEntity->mWorldTransform *  v4( tri[ 1 ], 1 ) ).xyz();
-            const v3 p2 = ( model->mEntity->mWorldTransform *  v4( tri[ 2 ], 1 ) ).xyz();
+            const v3 p0 { ( model->mEntity->mWorldTransform *  v4( tri[ 0 ], 1 ) ).xyz() };
+            const v3 p1 { ( model->mEntity->mWorldTransform *  v4( tri[ 1 ], 1 ) ).xyz() };
+            const v3 p2 { ( model->mEntity->mWorldTransform *  v4( tri[ 2 ], 1 ) ).xyz() };
             mDrawData->DebugDraw3DTriangle( p0, p1, p2 );
           }
         }
       }
-      Debug3DDrawData* mDrawData = nullptr;
-    } visitor = {};
+      Debug3DDrawData* mDrawData { nullptr };
+    } visitor  {};
     visitor.mDrawData = graphics->mWorld->mDebug3DDrawData;
 
     graphics->VisitModels( &visitor );
@@ -170,14 +170,14 @@ namespace Tac
                                           const Model* model,
                                           const Render::ViewHandle viewId )
   {
-    const Mesh* mesh = LoadModel( model );
+    const Mesh* mesh { LoadModel( model ) };
     if( !mesh )
       return;
 
     const Render::DefaultCBufferPerObject perObjectData
     {
-      .World = model->mEntity->mWorldTransform,
-      .Color = Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ),
+      .World { model->mEntity->mWorldTransform },
+      .Color { Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ) },
     };
 
     Render::DrawCallTextures drawCallTextures;
@@ -186,7 +186,7 @@ namespace Tac
     {
       for( int i{}; i < lightCount; ++i )
       {
-        const Light* light = lights[ i ];
+        const Light* light { lights[ i ] };
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
           drawCallTextures.push_back( light->mShadowMapDepth );
       }
@@ -236,20 +236,20 @@ namespace Tac
     Vector< TerrainVertex > vertexes;
     Vector< TerrainIndex > indexes;
 
-    for( int iRow = 1; iRow < terrain->mSideVertexCount; ++iRow )
+    for( int iRow { 1 }; iRow < terrain->mSideVertexCount; ++iRow )
     {
-      for( int iCol = 1; iCol < terrain->mSideVertexCount; ++iCol )
+      for( int iCol { 1 }; iCol < terrain->mSideVertexCount; ++iCol )
       {
-        const int iVertexTL = vertexes.size();
+        const int iVertexTL { vertexes.size() };
         vertexes.push_back( GetTerrainVertex( terrain, iRow - 1, iCol - 1, { 0, 1 } ) );
 
-        const int iVertexTR = vertexes.size();
+        const int iVertexTR { vertexes.size() };
         vertexes.push_back( GetTerrainVertex( terrain, iRow - 1, iCol, { 1, 1 } ) );
 
-        const int iVertexBL = vertexes.size();
+        const int iVertexBL { vertexes.size() };
         vertexes.push_back( GetTerrainVertex( terrain, iRow, iCol - 1, { 0, 0 } ) );
 
-        const int iVertexBR = vertexes.size();
+        const int iVertexBR { vertexes.size() };
         vertexes.push_back( GetTerrainVertex( terrain, iRow, iCol, { 1, 0 } ) );
 
         // lower left triangle
@@ -273,9 +273,9 @@ namespace Tac
 
     const Render::Format format
     {
-      .mElementCount = 1,
-      .mPerElementByteCount = sizeof( TerrainIndex ),
-      .mPerElementDataType = Render::GraphicsType::uint
+      .mElementCount        { 1 },
+      .mPerElementByteCount { sizeof( TerrainIndex ) },
+      .mPerElementDataType  { Render::GraphicsType::uint},
     };
     terrain->mIndexBuffer = Render::CreateIndexBuffer( indexes.size() * sizeof( TerrainIndex ),
                                                        indexes.data(),
@@ -293,8 +293,8 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem = "Terrain",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "Terrain" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     mTerrainShader =renderDevice->CreateProgram( programParams, errors );
   }
@@ -305,8 +305,8 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem = "GamePresentation",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "GamePresentation" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     m3DShader =renderDevice->CreateProgram( programParams, errors );
   }
@@ -317,16 +317,16 @@ namespace Tac
 
     const Render::VertexDeclaration posDecl
     {
-      .mAttribute = Render::Attribute::Position,
-      .mTextureFormat = Render::Format::sv3,
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mPos ),
+      .mAttribute { Render::Attribute::Position },
+      .mTextureFormat { Render::Format::sv3 },
+      .mAlignedByteOffset{ ( int )TAC_OFFSET_OF( GameModelVtx, mPos ) },
     };
 
     const Render::VertexDeclaration norDecl 
     {
-      .mAttribute = Render::Attribute::Normal,
-      .mTextureFormat = Render::Format::sv3,
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( GameModelVtx, mNor ),
+      .mAttribute { Render::Attribute::Normal },
+      .mTextureFormat { Render::Format::sv3 },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mNor ) },
     };
 
     m3DVertexFormatDecls.clear();
@@ -343,21 +343,21 @@ namespace Tac
 
     const Render::VertexDeclaration posDecl
     {
-      .mAttribute = Render::Attribute::Position,
-      .mTextureFormat = Render::Format::sv3,
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mPos ),
+      .mAttribute { Render::Attribute::Position },
+      .mTextureFormat { Render::Format::sv3 },
+      .mAlignedByteOffset {( int )TAC_OFFSET_OF( TerrainVertex, mPos ) },
     };
     const Render::VertexDeclaration norDecl
     {
-      .mAttribute = Render::Attribute::Normal,
-      .mTextureFormat = Render::Format::sv3,
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mNor ),
+      .mAttribute { Render::Attribute::Normal },
+      .mTextureFormat { Render::Format::sv3 },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mNor ) },
     };
     const Render::VertexDeclaration uvDecl
     {
-      .mAttribute = Render::Attribute::Texcoord,
-      .mTextureFormat = Render::Format::sv2,
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( TerrainVertex, mUV ),
+      .mAttribute { Render::Attribute::Texcoord },
+      .mTextureFormat { Render::Format::sv2 },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mUV ) },
     };
 
     Render::VertexDeclarations decls;
@@ -383,12 +383,12 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     const Render::BlendState state
     {
-      .mSrcRGB = Render::BlendConstants::One,
-      .mDstRGB = Render::BlendConstants::Zero,
-      .mBlendRGB = Render::BlendMode::Add,
-      .mSrcA = Render::BlendConstants::Zero,
-      .mDstA = Render::BlendConstants::One,
-      .mBlendA = Render::BlendMode::Add
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::Zero },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::Zero },
+      .mDstA     { Render::BlendConstants::One },
+      .mBlendA   { Render::BlendMode::Ad }d
     };
     mBlendState = Render::CreateBlendState( state, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "game-pres-blend" );
@@ -399,11 +399,11 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
     const Render::RasterizerState state
     {
-      .mFillMode = Render::FillMode::Solid,
-      .mCullMode = Render::CullMode::Back,
-      .mFrontCounterClockwise = true,
-      .mScissor = true,
-      .mMultisample = false
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::Back },
+      .mFrontCounterClockwise { true },
+      .mScissor               { true },
+      .mMultisample           { false },
     };
     mRasterizerState = Render::CreateRasterizerState( state, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState, "game-pres-rast" );
@@ -432,15 +432,14 @@ namespace Tac
   {
     if( !mRenderEnabledModel )
       return;
-    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
-                                                                viewWidth,
-                                                                viewHeight );
+    const Render::DefaultCBufferPerFrame perFrameData{
+      GetPerFrameBuf( camera, viewWidth, viewHeight ) };
     Render::UpdateConstantBuffer( Render::DefaultCBufferPerFrame::Handle,
                                   &perFrameData,
                                   sizeof( Render::DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
 
-    Graphics* graphics = GetGraphics( world );
+    Graphics* graphics { GetGraphics( world ) };
     struct : public ModelVisitor
     {
       void operator()( Model* model ) override
@@ -468,7 +467,7 @@ namespace Tac
 
       Render::ViewHandle mViewId;
       //World*             mWorld;
-      Graphics*          mGraphics = nullptr;
+      Graphics*          mGraphics { nullptr };
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
     myModelVisitor.mGraphics = graphics;
@@ -491,14 +490,13 @@ namespace Tac
     if( !mRenderEnabledTerrain )
       return;
 
-    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameBuf( camera,
-                                                                viewWidth,
-                                                                viewHeight );
+    const Render::DefaultCBufferPerFrame perFrameData{
+      GetPerFrameBuf( camera, viewWidth, viewHeight ) };
     Render::UpdateConstantBuffer( Render::DefaultCBufferPerFrame::Handle,
                                   &perFrameData,
                                   sizeof( Render::DefaultCBufferPerFrame ),
                                   TAC_STACK_FRAME );
-    Physics* physics = Physics::GetSystem( world );
+    Physics* physics { Physics::GetSystem( world ) };
 
     TAC_RENDER_GROUP_BLOCK( "Visit Terrains" );
     //Render::BeginGroup( "Visit Terrains", TAC_STACK_FRAME );
@@ -548,7 +546,7 @@ namespace Tac
 
     if( !mRenderEnabledSkybox )
       return;
-    Graphics* graphics = GetGraphics( world );
+    Graphics* graphics { GetGraphics( world ) };
     struct : public SkyboxVisitor
     {
       void operator()( Skybox* skybox ) override
@@ -559,10 +557,10 @@ namespace Tac
                                   mViewId,
                                   skybox->mSkyboxDir );
       }
-      int                mViewWidth = 0;
-      int                mViewHeight = 0;
-      Render::ViewHandle mViewId;
-      const Camera*      mCamera = nullptr;
+      int                mViewWidth  {};
+      int                mViewHeight {};
+      Render::ViewHandle mViewId     {};
+      const Camera*      mCamera     {};
     } mySkyboxVisitor;
     mySkyboxVisitor.mViewWidth = viewWidth;
     mySkyboxVisitor.mViewHeight = viewHeight;
@@ -653,17 +651,17 @@ namespace Tac
     if( !ImGuiCollapsingHeader( ShortFixedString::Concat( "Light ", ToString( iLight ) ) ) )
       return;
 
-    Render::ShaderLight* shaderLight = &mDebugCBufferLights.lights[ iLight ];
+    Render::ShaderLight* shaderLight { &mDebugCBufferLights.lights[ iLight ] };
     String rowsStrs[ 4 ];
-    for( int r = 0; r < 4; ++r )
-      for( int c = 0; c < 4; ++c )
+    for( int r { 0 }; r < 4; ++r )
+      for( int c { 0 }; c < 4; ++c )
         rowsStrs[ r ] += ToString( shaderLight->mWorldToClip( r, c ) );
 
-    const Render::ShaderFlags::Info* lightTypeInfo = Render::GetShaderLightFlagType();
-    const Render::ShaderFlags::Info* castsShadowsInfo = Render::GetShaderLightFlagCastsShadows();
+    const Render::ShaderFlags::Info* lightTypeInfo { Render::GetShaderLightFlagType() };
+    const Render::ShaderFlags::Info* castsShadowsInfo { Render::GetShaderLightFlagCastsShadows() };
 
-    const Light::Type lightType = ( Light::Type )lightTypeInfo->Extract( shaderLight->mFlags );
-    const bool castsShadows = ( bool )castsShadowsInfo->Extract( shaderLight->mFlags );
+    const Light::Type lightType { ( Light::Type )lightTypeInfo->Extract( shaderLight->mFlags ) };
+    const bool castsShadows { ( bool )castsShadowsInfo->Extract( shaderLight->mFlags ) };
 
     TAC_IMGUI_INDENT_BLOCK;
     ImGuiText( "World to clip matrix" );
@@ -699,8 +697,8 @@ namespace Tac
     ImGuiText( String() + "light count " + ToString( mDebugCBufferLights.lightCount ) );
     ImGuiText( String() + "text number " + ToString( mDebugCBufferLights.testNumber ) );
 
-    const int n = ( int )mDebugCBufferLights.lightCount;
-    for( int iLight = 0; iLight < n; iLight++ )
+    const int n { ( int )mDebugCBufferLights.lightCount };
+    for( int iLight { 0 }; iLight < n; iLight++ )
       DebugImguiCBufferLight( iLight );
   }
 

@@ -15,9 +15,9 @@ namespace Tac
 {
   struct RelativeSpace
   {
-    v3 mPosition = {};
-    v3 mEulerRads = {};
-    v3 mScale = { 1, 1, 1 };
+    v3 mPosition  {};
+    v3 mEulerRads {};
+    v3 mScale     { 1, 1, 1 };
   };
 
   RelativeSpace RelativeSpaceFromMatrix( const m4& );
@@ -52,10 +52,10 @@ namespace Tac
     Json              Save();
     void              Load( Json& );
 
-    Entity*           mParent = nullptr;
+    Entity*           mParent { nullptr };
     Vector< Entity* > mChildren;
-    World*            mWorld = nullptr;
-    EntityUUID        mEntityUUID = NullEntityUUID;
+    World*            mWorld { nullptr };
+    EntityUUID        mEntityUUID { NullEntityUUID };
     Components        mComponents;
 
 
@@ -63,16 +63,16 @@ namespace Tac
     //                Used to construct mWorldPosition and mWorldTransform
     RelativeSpace     mRelativeSpace;
 
-    bool              mInheritParentScale = false;
-    bool              mActive = true;
+    bool              mInheritParentScale { false };
+    bool              mActive { true };
 
     //                Position of this entity in worldspace.
     //                Computed automatically during the hierarchical world traversl.
-    v3                mWorldPosition = {};
+    v3                mWorldPosition  {};
 
     //                World transformation matrix ( aka world matrix ) of this entity.
     //                Computed automatically during the hierarchical world traversl.
-    m4                mWorldTransform = m4::Identity();
+    m4                mWorldTransform { m4::Identity() };
 
     //                can this be a tag or smthn
     String            mName;

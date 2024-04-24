@@ -24,9 +24,9 @@ namespace Tac::Render
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
-    const D3D_SHADER_MODEL lowestDefined = D3D_SHADER_MODEL_5_1;
-    const D3D_SHADER_MODEL highestDefined = D3D_SHADER_MODEL_6_7; // D3D_HIGHEST_SHADER_MODEL undefined?;
-    for( D3D_SHADER_MODEL shaderModel = highestDefined;
+    const D3D_SHADER_MODEL lowestDefined { D3D_SHADER_MODEL_5_1 };
+    const D3D_SHADER_MODEL highestDefined { D3D_SHADER_MODEL_6_7 }; // D3D_HIGHEST_SHADER_MODEL undefined?;
+    for( D3D_SHADER_MODEL shaderModel { highestDefined };
          shaderModel >= lowestDefined;
          shaderModel = D3D_SHADER_MODEL( shaderModel - 1 ) )
     {
@@ -101,7 +101,7 @@ namespace Tac::Render
   {
     mDevice = device;
 
-    const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( device );
+    const D3D_SHADER_MODEL highestShaderModel { GetHighestShaderModel( device ) };
     TAC_RAISE_ERROR_IF( sShaderModel > highestShaderModel, "Shader model too high" );
   }
 
@@ -120,18 +120,18 @@ namespace Tac::Render
                                                   ProgramParams params,
                                                   Errors& errors)
   {
-    const String fileName = params.mFileStem + ".hlsl";
-    const String preprocessedShader = TAC_CALL( HLSLPreprocess( "assets/hlsl/" + fileName, errors ) );
+    const String fileName { params.mFileStem + ".hlsl"};
+    TAC_CALL( const String preprocessedShader{ HLSLPreprocess( "assets/hlsl/" + fileName, errors ) } );
 
     const DXCCompileParams input
     {
-      .mFileName = fileName,
-      .mPreprocessedShader = preprocessedShader,
-      .mShaderModel = sShaderModel,
-      .mOutputDir = RenderApi::GetShaderOutputPath(),
+      .mFileName           { fileName },
+      .mPreprocessedShader { preprocessedShader },
+      .mShaderModel        { sShaderModel },
+      .mOutputDir          { RenderApi::GetShaderOutputPath() },
     };
 
-    DXCCompileOutput output = TAC_CALL( DXCCompile( input, errors ) );
+    TAC_CALL( DXCCompileOutput output { DXCCompile( input, errors )  });
 
     D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
                                    output.mReflInfo.mReflBindings.size() );
@@ -149,12 +149,12 @@ namespace Tac::Render
 
     mPrograms[ h.GetIndex() ] = DX12Program
     {
-      .mFileStem = params.mFileStem,
-      .mVSBlob = output.mVSBlob,
-      .mVSBytecode = IDxcBlobToBytecode( output.mVSBlob ),
-      .mPSBlob = output.mPSBlob,
-      .mPSBytecode = IDxcBlobToBytecode( output.mPSBlob ),
-      .mProgramBindings = bindings,
+      .mFileStem        { params.mFileStem },
+      .mVSBlob          { output.mVSBlob },
+      .mVSBytecode      { IDxcBlobToBytecode( output.mVSBlob ) },
+      .mPSBlob          { output.mPSBlob },
+      .mPSBytecode      { IDxcBlobToBytecode( output.mPSBlob ) },
+      .mProgramBindings { bindings },
     };
 
   }

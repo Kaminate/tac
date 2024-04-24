@@ -20,7 +20,7 @@ namespace Tac
 
   static void        TerrainSavePrefab( Json& json, Component* component )
   {
-    auto terrain = ( Terrain* )component;
+    auto terrain { ( Terrain* )component };
     json[ "mSideVertexCount" ].SetNumber( terrain->mSideVertexCount );
     json[ "mSideLength" ].SetNumber( terrain->mSideLength );
     json[ "mHeight" ].SetNumber( terrain->mUpwardsHeight );
@@ -31,7 +31,7 @@ namespace Tac
 
   static void        TerrainLoadPrefab( Json& json, Component* component )
   {
-    auto terrain = ( Terrain* )component;
+    auto terrain { ( Terrain* )component };
     terrain->mSideVertexCount = ( int )json[ "mSideVertexCount" ].mNumber;
     terrain->mSideLength = ( float )json[ "mSideLength" ].mNumber;
     terrain->mUpwardsHeight = ( float )json[ "mHeight" ].mNumber;
@@ -84,20 +84,20 @@ namespace Tac
     if( mTestHeightmapLoadErrors )
       return; // tried to load already, but load failed
 
-    const String imageMemory = LoadAssetPath( mHeightmapTexturePath, mTestHeightmapLoadErrors );
+    const String imageMemory { LoadAssetPath( mHeightmapTexturePath, mTestHeightmapLoadErrors ) };
     if( mTestHeightmapLoadErrors )
       return;
 
     int imageWidth;
     int imageHeight;
-    stbi_uc* loaded = stbi_load_from_memory( ( stbi_uc const * )imageMemory.data(),
+    stbi_uc* loaded{ stbi_load_from_memory( ( stbi_uc const* )imageMemory.data(),
                                              imageMemory.size(),
                                              &imageWidth,
                                              &imageHeight,
                                              nullptr,
-                                             STBI_grey );
+                                             STBI_grey ) };
 
-    int byteCount = imageWidth * imageHeight;
+    const int byteCount { imageWidth * imageHeight };
     mTestHeightmapImageMemory.resize( byteCount );
 
     MemCpy( mTestHeightmapImageMemory.data(), loaded, byteCount );
@@ -124,8 +124,7 @@ namespace Tac
 
   void                    Terrain::PopulateGrid()
   {
-    Terrain* terrain = this;
-
+    Terrain* terrain { this };
 
     if( MemCmp(
       mEntity->mWorldTransform.data(),
@@ -148,21 +147,22 @@ namespace Tac
 
     mWorldLevelEditorTransform = mEntity->mWorldTransform;
 
-    const int totalVertexCount = mSideVertexCount * mSideVertexCount;
+    const int totalVertexCount { mSideVertexCount * mSideVertexCount };
     terrain->mRowMajorGrid.reserve( totalVertexCount );
 
-    float width = mSideLength;
-    float height = mSideLength;
-    for( int iRow = 0; iRow < mSideVertexCount; ++iRow )
+    const float width { mSideLength };
+    const float height { mSideLength };
+    for( int iRow { 0 }; iRow < mSideVertexCount; ++iRow )
     {
-      for( int iCol = 0; iCol < mSideVertexCount; ++iCol )
+      for( int iCol { 0 }; iCol < mSideVertexCount; ++iCol )
       {
-        float xPercent = ( float )iRow / ( float )( mSideVertexCount - 1 );
-        float zPercent = ( float )iCol / ( float )( mSideVertexCount - 1 );
+        const float xPercent { ( float )iRow / ( float )( mSideVertexCount - 1 ) };
+        const float zPercent { ( float )iCol / ( float )( mSideVertexCount - 1 ) };
 
-        int heightmapX = ( int )( xPercent * ( mTestHeightmapWidth - 1 ) );
-        int heightmapY = ( int )( zPercent * ( mTestHeightmapHeight - 1 ) );
-        u8 heightmapValue = mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ];
+        const int heightmapX { ( int )( xPercent * ( mTestHeightmapWidth - 1 ) ) };
+        const int heightmapY { ( int )( zPercent * ( mTestHeightmapHeight - 1 ) ) };
+        const u8 heightmapValue { mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ] };
+
         float heightmapPercent = heightmapValue / 255.0f;
         heightmapPercent *= heightmapPercent;
         heightmapPercent = Pow( heightmapPercent, mPower );
@@ -172,7 +172,7 @@ namespace Tac
         pos.y = heightmapPercent * mUpwardsHeight;
         pos.z = zPercent * height;
 
-        const float halfWidth = mSideLength / 2.0f;
+        const float halfWidth { mSideLength / 2.0f };
         pos.x -= halfWidth;
         pos.z -= halfWidth;
 
@@ -183,9 +183,9 @@ namespace Tac
       }
     }
 
-    for( int iRow = 0; iRow < mSideVertexCount; ++iRow )
+    for( int iRow { 0 }; iRow < mSideVertexCount; ++iRow )
     {
-      for( int iCol = 0; iCol < mSideVertexCount; ++iCol )
+      for( int iCol { 0 }; iCol < mSideVertexCount; ++iCol )
       {
         const v3 pos { GetGridVal( iRow, iCol ) };
         const v3 posR { iCol + 1 < mSideVertexCount ? GetGridVal( iRow, iCol + 1 ) : pos };

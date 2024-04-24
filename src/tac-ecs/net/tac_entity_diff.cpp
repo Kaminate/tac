@@ -99,11 +99,11 @@ namespace Tac
       if( !newComponents.HasComponent( &componentData ) )
         continue;
 
-      const Component* oldComponent = oldEntity->GetComponent( &componentData );
-      const Component* newComponent = newEntity->GetComponent( &componentData );
-      const NetBitDiff netBit = GetNetworkBitfield( oldComponent,
+      const Component* oldComponent { oldEntity->GetComponent( &componentData ) };
+      const Component* newComponent { newEntity->GetComponent( &componentData ) };
+      const NetBitDiff netBit{ GetNetworkBitfield( oldComponent,
                                                     newComponent,
-                                                    componentData.mNetworkBits );
+                                                    componentData.mNetworkBits ) };
 
       changedComponentBitfields.Set( &componentData, netBit );
     }
@@ -113,9 +113,9 @@ namespace Tac
 
     const EntityMod mod
     {
-      .mChangedComponentBitfields = changedComponentBitfields,
-      .mComponents = newComponents,
-      .mEntity = newEntity,
+      .mChangedComponentBitfields { changedComponentBitfields },
+      .mComponents                { newComponents },
+      .mEntity                    { newEntity },
     };
 
     mModified.push_back( mod );
@@ -182,7 +182,7 @@ namespace Tac
   void EntityDiffs::ReadDeleted( World* world, Reader* reader, Errors& errors )
   {
     const auto numDeletedEntities = TAC_CALL( reader->Read<EntityCount>( errors ) );
-    for( EntityCount i = 0; i < numDeletedEntities; ++i )
+    for( EntityCount i { 0 }; i < numDeletedEntities; ++i )
     {
       const auto entityUUID = TAC_CALL( reader->Read<EntityUUID >( errors ) );
       world->KillEntity( entityUUID );
@@ -191,18 +191,18 @@ namespace Tac
 
   void EntityDiffs::ReadCreated( World* world, Reader* reader, Errors& errors )
   {
-    const auto n = TAC_CALL( reader->Read<EntityCount>( errors ) );
-    for( EntityCount i = 0; i < n; ++i )
+    TAC_CALL( const auto n { reader->Read<EntityCount>( errors )  });
+    for( EntityCount i { 0 }; i < n; ++i )
     {
-      const auto entityUUID = TAC_CALL( reader->Read<EntityUUID>( errors ) );
-      const auto componentRegistryBits = TAC_CALL( reader->Read<ComponentRegistryBits>( errors ) );
+      TAC_CALL( const auto entityUUID { reader->Read<EntityUUID>( errors ) });
+      TAC_CALL( const auto componentRegistryBits { reader->Read<ComponentRegistryBits>( errors ) });
 
-      Entity* entity = world->SpawnEntity( entityUUID );
+      Entity* entity { world->SpawnEntity( entityUUID ) };
       for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
       {
         if( componentRegistryBits.HasComponent( &componentRegistryEntry ) )
         {
-          Component* component = entity->AddNewComponent( &componentRegistryEntry );
+          Component* component { entity->AddNewComponent( &componentRegistryEntry ) };
           component->PreReadDifferences();
           TAC_CALL( reader->Read( component, componentRegistryEntry.mNetworkBits, errors ) );
           component->PostReadDifferences();
@@ -213,20 +213,20 @@ namespace Tac
 
   void EntityDiffs::ReadModified( World* world, Reader* reader, Errors& errors )
   {
-    const auto n = TAC_CALL( reader->Read<EntityCount >( errors ) );
+    TAC_CALL( const auto n{ reader->Read<EntityCount >( errors ) } );
     for( EntityCount i = 0; i < n; ++i )
     {
-      const auto entityUUID = TAC_CALL( reader->Read<EntityUUID >( errors ) );
+      TAC_CALL( const auto entityUUID{ reader->Read<EntityUUID >( errors ) } );
 
-      Entity* entity = world->FindEntity( entityUUID );
+      Entity* entity { world->FindEntity( entityUUID ) };
 
-      const auto oldComponents = ComponentRegistryBits( entity );
-      const auto newComponents = TAC_CALL( reader->Read<ComponentRegistryBits>( errors ) );
+      const auto oldComponents { ComponentRegistryBits( entity ) };
+      TAC_CALL( const auto newComponents{ reader->Read<ComponentRegistryBits>( errors ) } );
 
       for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
       {
-        const bool had = oldComponents.HasComponent( &componentRegistryEntry );
-        const bool has = newComponents.HasComponent( &componentRegistryEntry );
+        const bool had { oldComponents.HasComponent( &componentRegistryEntry ) };
+        const bool has { newComponents.HasComponent( &componentRegistryEntry ) };
         if( !had && !has )
           continue;
 
@@ -236,9 +236,9 @@ namespace Tac
           continue;
         }
 
-        Component* component = has
+        Component* component{ has
           ? entity->GetComponent( &componentRegistryEntry )
-          : entity->AddNewComponent( &componentRegistryEntry );
+        : entity->AddNewComponent( &componentRegistryEntry ) };
 
         component->PreReadDifferences();
         TAC_CALL( reader->Read( component, componentRegistryEntry.mNetworkBits, errors ) );

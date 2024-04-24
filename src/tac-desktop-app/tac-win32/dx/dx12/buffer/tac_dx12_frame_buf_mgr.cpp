@@ -20,13 +20,13 @@ namespace Tac::Render
 
   void   DX12SwapChainMgr::CreateSwapChain( SwapChainHandle h, SwapChainParams params, Errors& errors )
   {
-    const void* nwh = params.mNWH;
-    const v2i size = params.mSize;
-    const int iHandle = h.GetIndex();
+    const void* nwh { params.mNWH };
+    const v2i size { params.mSize };
+    const int iHandle { h.GetIndex() };
 
-    ID3D12Device* device = mDevice;
+    ID3D12Device* device { mDevice };
 
-    DXGI_FORMAT fmt = DXGI_FORMAT_UNKNOWN;
+    DXGI_FORMAT fmt { DXGI_FORMAT_UNKNOWN };
     switch( params.mColorFmt )
     {
     case kD24S8: fmt = DXGI_FORMAT_D24_UNORM_S8_UINT; break;
@@ -36,12 +36,12 @@ namespace Tac::Render
     
     const SwapChainCreateInfo scInfo
     {
-      .mHwnd = ( HWND )nwh,
-      .mDevice = ( IUnknown* )mCommandQueue->GetCommandQueue(),
-      .mBufferCount = TAC_SWAP_CHAIN_BUF_COUNT,
-      .mWidth = size.x,
-      .mHeight = size.y,
-      .mFmt = fmt,
+      .mHwnd        { ( HWND )nwh },
+      .mDevice      { ( IUnknown* )mCommandQueue->GetCommandQueue() },
+      .mBufferCount { TAC_SWAP_CHAIN_BUF_COUNT },
+      .mWidth       { size.x },
+      .mHeight      { size.y },
+      .mFmt         { fmt },
     };
     TAC_ASSERT( scInfo.mDevice );
 
@@ -51,12 +51,12 @@ namespace Tac::Render
 
     DX12SwapChainImages swapChainImages;
 
-    for( UINT iSwapChainBuf = 0; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
+    for( UINT iSwapChainBuf { 0 }; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
     {
-      const int iRTVDescriptor = iHandle * TAC_SWAP_CHAIN_BUF_COUNT;
+      const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
 
-      DX12DescriptorHeapAllocation rtv = mCpuDescriptorHeapRTV->Allocate();
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtv.GetCPUHandle();
+      DX12DescriptorHeapAllocation rtv { mCpuDescriptorHeapRTV->Allocate() };
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { rtv.GetCPUHandle() };
 
       PCom< ID3D12Resource > renderTarget;
       TAC_DX12_CALL( swapChain->GetBuffer(
@@ -70,30 +70,29 @@ namespace Tac::Render
 
       swapChainImages[ iSwapChainBuf ] = DX12SwapChainImage
       {
-        .mResource = renderTarget,
-        .mDesc = renderTarget->GetDesc(),
+        .mResource { renderTarget },
+        .mDesc { renderTarget->GetDesc() },
 
         // the render target resource is created in a state that is ready to be displayed on screen
-        .mState = D3D12_RESOURCE_STATE_PRESENT,
-        .mRTV = rtv,
+        .mState { D3D12_RESOURCE_STATE_PRESENT },
+        .mRTV { rtv },
       };
     }
 
     mSwapChains[ iHandle ] = DX12SwapChain
     {
-      .mNWH = nwh,
-      .mSize = size,
-      .mSwapChain = swapChain,
-      .mSwapChainDesc = swapChainDesc,
-      .mSwapChainImages = swapChainImages,
-      .mSwapChainParams = params,
+      .mNWH             { nwh },
+      .mSize            { size },
+      .mSwapChain       { swapChain },
+      .mSwapChainDesc   { swapChainDesc },
+      .mSwapChainImages { swapChainImages },
+      .mSwapChainParams { params },
     };
   }
 
   void   DX12SwapChainMgr::ResizeSwapChain( SwapChainHandle h, v2i size )
   {
-
-    DX12SwapChain& frameBuf = mSwapChains[ h.GetIndex() ];
+    DX12SwapChain& frameBuf { mSwapChains[ h.GetIndex() ] };
     if( frameBuf.mSize == size )
       return;
 

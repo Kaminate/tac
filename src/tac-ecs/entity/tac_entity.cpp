@@ -13,7 +13,7 @@ namespace Tac
 {
   static v3 Vector3FromJson( Json& json )
   {
-    v3 v =
+    v3 v 
     {
       ( float )json[ "x" ].mNumber,
       ( float )json[ "y" ].mNumber,
@@ -32,11 +32,11 @@ namespace Tac
 
   RelativeSpace RelativeSpaceFromMatrix( const m4& mLocal )
   {
-    v3 c0 = { mLocal.m00, mLocal.m10, mLocal.m20 };
-    v3 c1 = { mLocal.m01, mLocal.m11, mLocal.m21 };
-    v3 c2 = { mLocal.m02, mLocal.m12, mLocal.m22 };
-    v3 c3 = { mLocal.m03, mLocal.m13, mLocal.m23 };
-    v3 scale = { Length( c0 ), Length( c1 ), Length( c2 ) };
+    v3 c0  { mLocal.m00, mLocal.m10, mLocal.m20 };
+    v3 c1  { mLocal.m01, mLocal.m11, mLocal.m21 };
+    v3 c2  { mLocal.m02, mLocal.m12, mLocal.m22 };
+    v3 c3  { mLocal.m03, mLocal.m13, mLocal.m23 };
+    v3 scale  { Length( c0 ), Length( c1 ), Length( c2 ) };
     c0 /= scale.x;
     c1 /= scale.y;
     c2 /= scale.z;
@@ -64,9 +64,9 @@ namespace Tac
 
     // On-rotation-deformation-zones-for-finite-strain-Cosserat-plasticity.pdf
     // Rot( x, y, z ) = rotZ(phi) * rotY(theta) * rotX(psi)
-    float zPhi = 0;
-    float yTheta = 0;
-    float xPsi = 0;
+    float zPhi { 0 };
+    float yTheta { 0 };
+    float xPsi { 0 };
 
 
     if( r31 != 1.0f && r31 != -1.0f )
@@ -105,9 +105,9 @@ namespace Tac
 
   Component*                Components::Remove( const ComponentRegistryEntry* componentRegistryEntry )
   {
-    for( auto it = mComponents.begin(); it != mComponents.end(); ++it )
+    for( auto it { mComponents.begin() }; it != mComponents.end(); ++it )
     {
-      Component* component = *it;
+      Component* component { *it };
       if( component->GetEntry() == componentRegistryEntry )
       {
         mComponents.erase(it);
@@ -132,7 +132,7 @@ namespace Tac
   {
     for( Component* component : mComponents )
     {
-      const ComponentRegistryEntry* entry = component->GetEntry();
+      const ComponentRegistryEntry* entry { component->GetEntry() };
       entry->mDestroyFn( mWorld, component );
     }
     mComponents.Clear();
@@ -143,7 +143,7 @@ namespace Tac
     TAC_ASSERT( entry );
     TAC_ASSERT( !HasComponent( entry ) );
     TAC_ASSERT( entry->mCreateFn );
-    Component* component = entry->mCreateFn( mWorld );
+    Component* component { entry->mCreateFn( mWorld ) };
     TAC_ASSERT( component );
     mComponents.Add( component );
     component->mEntity = this;
@@ -173,7 +173,7 @@ namespace Tac
 
   void             Entity::RemoveComponent( const ComponentRegistryEntry* entry )
   {
-    Component* component = mComponents.Remove( entry );
+    Component* component { mComponents.Remove( entry ) };
     entry->mDestroyFn( mWorld, component );
   }
 
@@ -277,7 +277,7 @@ namespace Tac
   {
     if( !mParent )
       return;
-    for( int iChild = 0; iChild < mParent->mChildren.size(); ++iChild )
+    for( int iChild { 0 }; iChild < mParent->mChildren.size(); ++iChild )
     {
       if( mParent->mChildren[ iChild ] == this )
       {
@@ -292,7 +292,7 @@ namespace Tac
 
   Json             Entity::Save()
   {
-    Entity* entity = this;
+    Entity* entity { this };
 
     Json entityJson;
     entityJson[ "mPosition" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mPosition ) );
@@ -304,7 +304,7 @@ namespace Tac
 
     for( Component* component : entity->mComponents )
     {
-      auto entry = component->GetEntry();
+      const ComponentRegistryEntry* entry { component->GetEntry() };
       Json componentJson;
       if( entry->mSaveFn )
         entry->mSaveFn( componentJson, component );
@@ -313,7 +313,7 @@ namespace Tac
 
     if( !entity->mChildren.empty() )
     {
-      Json& childrenJson = entityJson[ "mChildren" ];
+      Json& childrenJson { entityJson[ "mChildren" ] };
       for( Entity* childEntity : entity->mChildren )
         childrenJson.AddChild( childEntity->Save() );
     }
@@ -323,13 +323,13 @@ namespace Tac
 
   void             Entity::Load( Json& prefabJson )
   {
-    Json* jsonPos = prefabJson.FindChild( "mPosition" );
-    Json* jsonScale = prefabJson.FindChild( "mScale" );
-    Json* jsonEuler = prefabJson.FindChild( "mEulerRads" );
-    Json* jsonName = prefabJson.FindChild( "mName" );
-    Json* jsonUUID = prefabJson.FindChild( "mEntityUUID" );
-    Json* jsonActive = prefabJson.FindChild( "mActive" );
-    Entity* entity = this;
+    Json* jsonPos { prefabJson.FindChild( "mPosition" ) };
+    Json* jsonScale { prefabJson.FindChild( "mScale" ) };
+    Json* jsonEuler { prefabJson.FindChild( "mEulerRads" ) };
+    Json* jsonName { prefabJson.FindChild( "mName" ) };
+    Json* jsonUUID { prefabJson.FindChild( "mEntityUUID" ) };
+    Json* jsonActive { prefabJson.FindChild( "mActive" ) };
+    Entity* entity { this };
     entity->mRelativeSpace.mPosition = Vector3FromJson( *jsonPos );
     entity->mRelativeSpace.mScale = Vector3FromJson( *jsonScale );
     entity->mRelativeSpace.mEulerRads = Vector3FromJson( *jsonEuler );
@@ -340,24 +340,24 @@ namespace Tac
     // I think these should have its own mComponents json node
     for( auto& pair : prefabJson.mObjectChildrenMap )
     {
-      StringView key = pair.mFirst;
-      Json* componentJson = pair.mSecond;
+      StringView key { pair.mFirst };
+      Json* componentJson { pair.mSecond };
 
-      ComponentRegistryEntry* componentRegistryEntry = ComponentRegistry_FindComponentByName( key );
+      ComponentRegistryEntry* componentRegistryEntry { ComponentRegistry_FindComponentByName( key ) };
       if( !componentRegistryEntry )
         continue; // This key-value pair is not a component
 
       TAC_ASSERT( componentRegistryEntry );
-      Component* component = entity->AddNewComponent( componentRegistryEntry );
+      Component* component { entity->AddNewComponent( componentRegistryEntry ) };
       if( componentRegistryEntry->mLoadFn )
         componentRegistryEntry->mLoadFn( *componentJson, component );
     }
 
-    if( Json* childrenJson = prefabJson.mObjectChildrenMap[ "mChildren" ] )
+    if( Json * childrenJson{ prefabJson.mObjectChildrenMap[ "mChildren" ] } )
     {
       for( Json* childJson : childrenJson->mArrayElements )
       {
-        Entity* childEntity = mWorld->SpawnEntity( NullEntityUUID );
+        Entity* childEntity { mWorld->SpawnEntity( NullEntityUUID ) };
         childEntity->Load( *childJson );
 
         entity->AddChild( childEntity );

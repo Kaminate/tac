@@ -44,7 +44,7 @@ namespace Tac
 
   void SysThread::Uninit()
   {
-    Errors& errors = *mErrors;
+    Errors& errors { *mErrors };
     if( !errors.empty() )
       OS::OSAppStopRunning();
 
@@ -67,8 +67,8 @@ namespace Tac
     FrameMemorySetThreadAllocator( & sSysThreadAllocator );
     TAC_ASSERT( mErrors && mApp );
 
-    PlatformFns* platform = PlatformFns::GetInstance();
-    DesktopApp* desktopApp = DesktopApp::GetInstance();
+    PlatformFns* platform { PlatformFns::GetInstance() };
+    DesktopApp* desktopApp { DesktopApp::GetInstance() };
 
     while( OS::OSAppIsRunning() )
     {
@@ -94,15 +94,15 @@ namespace Tac
       //   the future. If the current time is 25% of the way from B to C, we render (25% A + 75% B).
       //   This introduces some latency at the expense of misprediction (the alternative is 
       //   predicting 125% B)
-      if( GameStateManager::Pair pair = mGameStateManager->Dequeue(); pair.IsValid() )
+      if( GameStateManager::Pair pair { mGameStateManager->Dequeue() }; pair.IsValid() )
       {
-        const TimestampDifference dt = pair.mNewState->mTimestamp - pair.mOldState->mTimestamp;
+        const TimestampDifference dt { pair.mNewState->mTimestamp - pair.mOldState->mTimestamp };
         TAC_ASSERT( dt.mSeconds != 0 );
 
-        const Timepoint prevTime = pair.mNewState->mTimepoint;
-        const Timepoint currTime = Timestep::GetLastTick();
+        const Timepoint prevTime { pair.mNewState->mTimepoint };
+        const Timepoint currTime { Timestep::GetLastTick() };
 
-        float t = ( currTime - prevTime ) / dt;
+        float t { ( currTime - prevTime ) / dt };
 
         // if currTime is inbetween pair.mOldState->mTimestamp and pair.mNewState->mTimestamp,
         // then we should instead of picking the two most recent simulation states, should pick
@@ -121,19 +121,19 @@ namespace Tac
 
         const App::RenderParams params
         {
-          .mWindowApi = mWindowApi,
-          .mKeyboardApi = mKeyboardApi,
-          .mOldState = pair.mOldState, // A
-          .mNewState = pair.mNewState, // B
-          .mT = t, // inbetween B and (future) C, but used to lerp A and B
+          .mWindowApi   { mWindowApi },
+          .mKeyboardApi { mKeyboardApi },
+          .mOldState    { pair.mOldState }, // A
+          .mNewState    { pair.mNewState }, // B
+          .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
         };
         TAC_CALL( mApp->Render( params, errors ) );
 
         ImGuiSysDrawParams imguiDrawParams
         {
-          .mSimFrameDraws = &pair.mNewState->mImGuiDraws,
-          .mWindowApi = mWindowApi,
-          .mTimestamp = interpolatedTimestamp,
+          .mSimFrameDraws { &pair.mNewState->mImGuiDraws },
+          .mWindowApi     { mWindowApi },
+          .mTimestamp     { interpolatedTimestamp },
         };
         TAC_CALL( ImGuiPlatformRender( &imguiDrawParams, errors ) );
         //Render::FrameEnd();

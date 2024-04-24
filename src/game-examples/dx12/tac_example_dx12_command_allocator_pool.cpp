@@ -18,8 +18,8 @@ namespace Tac::Render
   {
     Element element
     {
-      .mCmdAllocator = allocator,
-      .mSignalValue = signalVal,
+      .mCmdAllocator { allocator },
+      .mSignalValue { signalVal },
     };
 
     mElements.Push( element );
@@ -49,7 +49,7 @@ namespace Tac::Render
   PCom< ID3D12CommandAllocator > DX12ExampleCommandAllocatorPool::GetAllocator(
     FenceSignal signalVal, Errors& errors )
   {
-    if( auto allocator = TryReuseAllocator( signalVal ) )
+    if( PCom< ID3D12CommandAllocator > allocator{ TryReuseAllocator( signalVal ) }  )
       return allocator;
 
     return CreateNewCmdAllocator(errors);
@@ -61,11 +61,11 @@ namespace Tac::Render
     if( mElements.empty() )
       return {};
 
-    Element& element = mElements.front();
+    Element& element { mElements.front() };
     if( signalVal < element.mSignalValue )
       return {};
 
-    PCom< ID3D12CommandAllocator > result = element.mCmdAllocator;
+    PCom< ID3D12CommandAllocator > result { element.mCmdAllocator };
     mElements.Pop();
     return result;
   }

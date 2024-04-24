@@ -21,7 +21,7 @@ namespace Tac
 {
   // decreasing to 0 for easier debugging
   // ( consistant update between server/client )
-  const float sSnapshotUntilNextSecondsMax = 0; //0.1f;
+  const float sSnapshotUntilNextSecondsMax { 0 }; //0.1f;
 
   ServerData::ServerData()
   {
@@ -47,10 +47,10 @@ namespace Tac
 
   void ServerData::OnClientJoin( ConnectionUUID connectionID )
   {
-    Player* player = SpawnPlayer();
+    Player* player { SpawnPlayer() };
     TAC_ASSERT( player );
     TAC_ASSERT( mOtherPlayers.size() < ServerData::sOtherPlayerCountMax );
-    OtherPlayer* otherPlayer = new OtherPlayer();
+    OtherPlayer* otherPlayer { new OtherPlayer() };
     otherPlayer->mPlayerUUID = player->mPlayerUUID;
     otherPlayer->mConnectionUUID = connectionID;
     mOtherPlayers.push_back( otherPlayer );
@@ -69,9 +69,9 @@ namespace Tac
   {
     auto it = [ & ]()
       {
-        for( auto it = mOtherPlayers.begin(); it != mOtherPlayers.end(); ++it )
+        for( auto it { mOtherPlayers.begin() }; it != mOtherPlayers.end(); ++it )
         {
-          OtherPlayer* otherPlayer = *it;
+          OtherPlayer* otherPlayer { *it };
           if( otherPlayer->mConnectionUUID == connectionID )
             return it;
         }
@@ -81,7 +81,7 @@ namespace Tac
     if( it == mOtherPlayers.end() )
       return;
 
-    OtherPlayer* otherPlayer = *it;
+    OtherPlayer* otherPlayer { *it };
     mWorld->KillPlayer( otherPlayer->mPlayerUUID );
     delete otherPlayer;
     mOtherPlayers.erase( it );
@@ -91,10 +91,10 @@ namespace Tac
                               ConnectionUUID connectionID,
                               Errors& errors )
   {
-    OtherPlayer* otherPlayer = FindOtherPlayer( connectionID );
+    OtherPlayer* otherPlayer { FindOtherPlayer( connectionID ) };
     TAC_ASSERT( otherPlayer );
 
-    Player* player = mWorld->FindPlayer( otherPlayer->mPlayerUUID );
+    Player* player { mWorld->FindPlayer( otherPlayer->mPlayerUUID ) };
     if( !player )
       return;
 
@@ -128,13 +128,13 @@ namespace Tac
   {
     Reader reader
     {
-      .mFrom = GameEndianness,
-      .mTo = GetEndianness(),
-      .mBegin = bytes,
-      .mEnd = ( char* )bytes + byteCount,
+      .mFrom  { GameEndianness },
+      .mTo    { GetEndianness() },
+      .mBegin { bytes },
+      .mEnd   { ( char* )bytes + byteCount },
     };
 
-    const auto networkMessage = TAC_CALL( ReadNetMsgHeader( &reader, errors ) );
+    TAC_CALL( const auto networkMessage { ReadNetMsgHeader( &reader, errors )  });
     switch( networkMessage )
     {
       case NetMsgType::Input:
@@ -168,7 +168,7 @@ namespace Tac
                                    int byteCount,
                                    Errors& errors )
   {
-    OtherPlayer* otherPlayer = FindOtherPlayer( connectionID );
+    OtherPlayer* otherPlayer { FindOtherPlayer( connectionID ) };
     if( !otherPlayer )
       return;
 
@@ -199,8 +199,8 @@ namespace Tac
       Vector< char > savedNetMsg;
       while( otherPlayer->delayedNetMsg.TryPopSavedMessage( savedNetMsg, mWorld->mElapsedSecs ) )
       {
-        const void* bytes = savedNetMsg.data();
-        const int byteCount = ( int )savedNetMsg.size();
+        const void* bytes { savedNetMsg.data() };
+        const int byteCount { ( int )savedNetMsg.size() };
         TAC_CALL( ExecuteNetMsg( otherPlayer->mConnectionUUID, bytes, byteCount, errors ) );
       }
     }
@@ -225,8 +225,8 @@ namespace Tac
       WriteSnapshotBody( otherPlayer, &writer );
       if( sendNetworkMessageCallback )
       {
-        const void* bytes = writer.mBytes.data();
-        const int byteCount = ( int )writer.mBytes.size();
+        const void* bytes { writer.mBytes.data() };
+        const int byteCount { ( int )writer.mBytes.size() };
         sendNetworkMessageCallback( otherPlayer->mConnectionUUID,
                                     bytes,
                                     byteCount,

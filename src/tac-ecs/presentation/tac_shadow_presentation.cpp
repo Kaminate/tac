@@ -53,21 +53,21 @@ namespace Tac
     (void)model;
 #if TAC_TEMPORARILY_DISABLED()
     Errors errors;
-    Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+    Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
                                                          model->mModelIndex,
                                                          mVertexDeclarations,
-                                                         errors );
+                                                         errors ) };
     if( !mesh )
       return;
 
     const Render::DefaultCBufferPerObject objBuf
     {
-      .World = model->mEntity->mWorldTransform,
-      .Color = Render::PremultipliedAlpha::From_sRGB(  model->mColorRGB ),
+      .World { model->mEntity->mWorldTransform },
+      .Color{ Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ) },
     };
 
-    const Render::BufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
-    const int perObjSize = sizeof( Render::DefaultCBufferPerObject );
+    const Render::BufferHandle hPerObj { Render::DefaultCBufferPerObject::Handle };
+    const int perObjSize { sizeof( Render::DefaultCBufferPerObject ) };
 
     Render::UpdateConstantBuffer( hPerObj, &objBuf, perObjSize, TAC_STACK_FRAME );
 
@@ -93,31 +93,29 @@ namespace Tac
   {
     const Render::Format format
     {
-      .mElementCount = 1,
-      .mPerElementByteCount = 4,
-      .mPerElementDataType = Render::GraphicsType::real,
+      .mElementCount { 1 },
+      .mPerElementByteCount { 4 },
+      .mPerElementDataType { Render::GraphicsType::real },
     };
 
     const Render::Image image
     {
-      .mWidth{ light->mShadowResolution },
-      .mHeight{ light->mShadowResolution },
-      .mFormat{ format },
+      .mWidth  { light->mShadowResolution },
+      .mHeight { light->mShadowResolution },
+      .mFormat { format },
     };
 
     const Render::CreateTextureParams params
     {
-      .mImage{ image },
-      .mBinding = Render::Binding::DepthStencil | Render::Binding::ShaderResource,
-      .mOptionalName = "shadowmap-depth",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mImage        { image },
+      .mBinding      { Render::Binding::DepthStencil | Render::Binding::ShaderResource },
+      .mOptionalName { "shadowmap-depth" },
+      .mStackFrame   { TAC_STACK_FRAME },
     };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    Render::TextureHandle textureHandleDepth = renderDevice->CreateTexture( params, errors );
-    return textureHandleDepth;
-
+    return renderDevice->CreateTexture( params, errors );
   }
 
 
@@ -136,27 +134,27 @@ namespace Tac
 
   struct ShadowLightVisitor : public LightVisitor
   {
-    Render::DefaultCBufferPerFrame GetPerFrameData( const Light* light );
-    void operator()( Light* light ) override;
+    Render::DefaultCBufferPerFrame GetPerFrameData( const Light* );
+    void operator()( Light* ) override;
 
     Graphics* graphics{};
-    Errors mErrors;
+    Errors    mErrors;
   };
 
 
   Render::DefaultCBufferPerFrame ShadowLightVisitor::GetPerFrameData( const Light* light )
   {
-    const Camera camera = light->GetCamera();
+    const Camera camera { light->GetCamera() };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::NDCAttribs ndc = renderDevice->GetInfo().mNDCAttribs;
+    const Render::NDCAttribs ndc { renderDevice->GetInfo().mNDCAttribs };
     const m4::ProjectionMatrixParams projParams
     {
-      .mNDCMinZ = ndc.mMinZ,
-      .mNDCMaxZ = ndc.mMaxZ,
-      .mViewSpaceNear = camera.mNearPlane,
-      .mViewSpaceFar = camera.mFarPlane,
-      .mAspectRatio = 1,
-      .mFOVYRadians = camera.mFovyrad, // uhh should this be asserted to be 90 deg?
+      .mNDCMinZ       { ndc.mMinZ },
+      .mNDCMaxZ       { ndc.mMaxZ },
+      .mViewSpaceNear { camera.mNearPlane },
+      .mViewSpaceFar  { camera.mFarPlane },
+      .mAspectRatio   { 1 },
+      .mFOVYRadians   { camera.mFovyrad }, // uhh should this be asserted to be 90 deg?
     };
 
     const m4 proj { m4::ProjPerspective(projParams) };
@@ -166,18 +164,18 @@ namespace Tac
 
     return Render::DefaultCBufferPerFrame
     {
-      .mView = camera.View(),
-      .mProjection = proj,
-      .mFar = camera.mFarPlane,
-      .mNear = camera.mNearPlane,
-      .mGbufferSize = { w, h },
-      .mSecModTau = ( float )Fmod( elapsedSeconds, 6.2831853 ),
+      .mView        { camera.View() },
+      .mProjection  { proj },
+      .mFar         { camera.mFarPlane },
+      .mNear        { camera.mNearPlane },
+      .mGbufferSize { w, h },
+      .mSecModTau   { ( float )Fmod( elapsedSeconds, 6.2831853 ) },
     };
   }
 
   void ShadowLightVisitor::operator()( Light* light )
   {
-    Errors& errors = mErrors;
+    Errors& errors { mErrors };
     if( !light->mCastsShadows )
       return;
 
@@ -188,9 +186,9 @@ namespace Tac
                             + ToString( ( UUID )light->mEntity->mEntityUUID ) );
     CreateShadowMapResources( light, errors );
 
-    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrameData( light );
-    const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
-    const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
+    const Render::DefaultCBufferPerFrame perFrameData { GetPerFrameData( light ) };
+    const Render::BufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
+    const int perFrameSize { sizeof( Render::DefaultCBufferPerFrame ) };
 
 
     Render::SetViewFramebuffer( light->mShadowView, light->mShadowFramebuffer );
@@ -223,8 +221,8 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem = "Shadow",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "Shadow" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     sShader =renderDevice->CreateProgram( programParams, errors );
   }
@@ -236,7 +234,7 @@ namespace Tac
   void        ShadowPresentationRender( World* world )
   {
     //TAC_RENDER_GROUP_BLOCK( "Render Shadow Maps" );
-    Graphics* graphics = GetGraphics( world );
+    Graphics* graphics { GetGraphics( world ) };
 
     ShadowLightVisitor lightVisitor;
     lightVisitor.graphics = graphics;

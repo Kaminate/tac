@@ -25,18 +25,18 @@ namespace Tac
 
     for( Player* newPlayer : newWorld->mPlayers )
     {
-      const PlayerUUID playerUUID = newPlayer->mPlayerUUID;
-      const Player* oldPlayer = oldWorld->FindPlayer( playerUUID );
+      const PlayerUUID playerUUID { newPlayer->mPlayerUUID };
+      const Player* oldPlayer { oldWorld->FindPlayer( playerUUID ) };
 
-      const NetBitDiff bitfield = GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() );
+      const NetBitDiff bitfield { GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() ) };
       if( bitfield.Empty() )
         continue;
 
       const PlayerDifference diff
       {
-        .mBitfield = bitfield,
-        .mNewPlayer = newPlayer,
-        .playerUUID = playerUUID,
+        .mBitfield  { bitfield },
+        .mNewPlayer { newPlayer },
+        .playerUUID { playerUUID },
       };
       oldAndNewPlayers.push_back( diff );
     }
@@ -61,21 +61,21 @@ namespace Tac
   void PlayerDiffs::Read( World* world, Reader* reader, Errors& errors )
   {
 
-    const auto numPlayerDeleted = TAC_CALL( reader->Read<PlayerCount>( errors ) );
+    TAC_CALL( const auto numPlayerDeleted{ reader->Read<PlayerCount>( errors ) } );
 
-    for( PlayerCount i = 0; i < numPlayerDeleted; ++i )
+    for( PlayerCount i{ 0 }; i < numPlayerDeleted; ++i )
     {
-      const auto deletedPlayerUUID = TAC_CALL( reader->Read<PlayerUUID >( errors ) );
+      TAC_CALL( const auto deletedPlayerUUID{ reader->Read<PlayerUUID >( errors ) } );
       world->KillPlayer( deletedPlayerUUID );
     }
 
-    const auto numPlayersDifferent = TAC_CALL(reader->Read<PlayerCount>(errors));
+    TAC_CALL( const auto numPlayersDifferent{ reader->Read<PlayerCount>( errors ) } );
 
     for( PlayerCount i = 0; i < numPlayersDifferent; ++i )
     {
-      const auto differentPlayerUUID = TAC_CALL( reader->Read<PlayerUUID>( errors ) );
+      TAC_CALL( const auto differentPlayerUUID{ reader->Read<PlayerUUID>( errors ) } );
 
-      Player* player = world->FindPlayer( differentPlayerUUID );
+      Player* player { world->FindPlayer( differentPlayerUUID ) };
       if( !player )
         player = world->SpawnPlayer( differentPlayerUUID );
 

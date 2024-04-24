@@ -19,9 +19,9 @@ namespace Tac
 {
   struct Light : public Component
   {
-    static Light*                        GetLight( Entity* );
-    static const Light*                  GetLight( const Entity* );
-    const ComponentRegistryEntry*        GetEntry() const override;
+    static Light* GetLight( Entity* );
+    static const Light* GetLight( const Entity* );
+    const ComponentRegistryEntry* GetEntry() const override;
     void                                 FreeRenderResources();
     Camera                               GetCamera() const;
     v3                                   GetUnitDirection() const;
@@ -35,22 +35,20 @@ namespace Tac
       kCount,
     };
 
-    bool                      mOverrideClipPlanes = false;
-    float                     mFarPlaneOverride = 10000.0f;
-    float                     mNearPlaneOverride = 0.1f;
-    float                     mSpotHalfFOVRadians = 0.5f;
-    Type                      mType = kSpot;
-    bool                      mCastsShadows = true;
-    int                       mShadowResolution = 512;
-
-    bool                      mCreatedRenderResources = false;
+    bool                      mOverrideClipPlanes     { false };
+    float                     mFarPlaneOverride       { 10000.0f };
+    float                     mNearPlaneOverride      { 0.1f };
+    float                     mSpotHalfFOVRadians     { 0.5f };
+    Type                      mType                   { kSpot };
+    bool                      mCastsShadows           { true };
+    int                       mShadowResolution       { 512 };
+    bool                      mCreatedRenderResources { false };
 
     // this is a texture with a depth stencil view binding. ( depth buffer ) 
     // basically this will be the only thing bound to the framebuffer, without color buffers.
     Render::TextureHandle     mShadowMapDepth;
-
-    v3                        mColor = v3( 1, 1, 1 );
-    float                     mRadiance = 5.0f; // i guess?
+    v3                        mColor                  {  1, 1, 1 } ;
+    float                     mRadiance               { 5.0f }; // i guess?
   };
 
   Render::ShaderLight LightToShaderLight( const Light* );

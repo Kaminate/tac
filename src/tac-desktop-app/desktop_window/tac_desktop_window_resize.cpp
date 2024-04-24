@@ -7,8 +7,8 @@ namespace Tac
 {
   struct RequestResize
   {
-    bool              mRequested = false;
-    int               mEdgePx = 0;
+    bool              mRequested {};
+    int               mEdgePx    {};
   };
 
   //static RequestResize                 sRequestResize[ kDesktopWindowCapacity ];
@@ -41,8 +41,8 @@ void Tac::DesktopAppImplResizeControls( [[maybe_unused]] const WindowHandle& Win
 #if 0
   sRequestResize[ WindowHandle.GetIndex() ] = RequestResize
   {
-   .mRequested = true,
-   .mEdgePx = edgePx,
+   .mRequested { true },
+   .mEdgePx { edgePx },
   };
 #endif
 }

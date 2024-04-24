@@ -18,7 +18,7 @@ namespace Tac
   private:
     void Init( const StringView& ) const;
 
-    HashValue mHashedValue { 0 };
+    HashValue mHashedValue {};
   };
 
   bool          operator <  ( StringID, StringID );

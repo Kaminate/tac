@@ -22,16 +22,16 @@ namespace Tac
   struct ScriptMsg
   {
     String mType;
-    void* mData = nullptr;
+    void* mData {};
   };
 
   typedef void ScriptCallbackFunction( ScriptCallbackData*, const ScriptMsg* );
 
   struct ScriptCallbackData
   {
-    void*                   mUserData = nullptr;
-    ScriptCallbackFunction* mScriptCallbackFunction = nullptr;
-    bool                    mRequestDeletion = false;
+    void*                   mUserData               {};
+    ScriptCallbackFunction* mScriptCallbackFunction {};
+    bool                    mRequestDeletion        {};
   };
 
   struct ScriptThread
@@ -44,15 +44,15 @@ namespace Tac
     void                            OnMsg( const ScriptMsg* );
     void                            AddScriptCallback( void* userData, ScriptCallbackFunction* );
     void                            RunForever() { mRunForever = true; };
-    ScriptRoot*                     mScriptRoot = nullptr;
-    int                             mLine = 0;
-    bool                            mIsSleeping = false;
-    float                           mSecondsSlept = 0;
-    float                           mSecondsToSleep = 0;
-    bool                            mIsComplete = false;
-    bool                            mRunForever = false;
-    String                          mName ;
-    Set< ScriptCallbackData* >      mMsgCallbacks;
+    ScriptRoot*                     mScriptRoot     {};
+    int                             mLine           {};
+    bool                            mIsSleeping     {};
+    float                           mSecondsSlept   {};
+    float                           mSecondsToSleep {};
+    bool                            mIsComplete     {};
+    bool                            mRunForever     {};
+    String                          mName           {};
+    Set< ScriptCallbackData* >      mMsgCallbacks   {};
   };
 
   struct ScriptRoot
@@ -65,7 +65,7 @@ namespace Tac
     void                      OnMsg( StringView scriptMsgType );
     ScriptThread*             GetThread( StringView name );
     Set< ScriptThread* >      mChildren;
-    Ghost*                    mGhost = nullptr;
+    Ghost*                    mGhost { nullptr };
   };
 
 }

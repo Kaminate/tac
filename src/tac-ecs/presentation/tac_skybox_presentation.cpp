@@ -40,23 +40,23 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem = "Skybox",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "Skybox" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     mShader = renderDevice->CreateProgram( programParams, errors );
 
     Render::Format    textureFormat
     {
-      .mElementCount = 3,
-      .mPerElementByteCount = sizeof( float ),
-      .mPerElementDataType = Render::GraphicsType::real
+      .mElementCount { 3 },
+      .mPerElementByteCount { sizeof( float ) },
+      .mPerElementDataType { Render::GraphicsType::real},
     };
 
     Render::VertexDeclaration vtxDecl
     {
-      .mAttribute = Render::Attribute::Position,
+      .mAttribute { Render::Attribute::Position },
       .mTextureFormat{textureFormat},
-      .mAlignedByteOffset = 0,
+      .mAlignedByteOffset { 0 },
     };
 
     mVertexDecls.clear();
@@ -101,40 +101,39 @@ namespace Tac
                                  const AssetPathStringView& skyboxDir )
   {
     /*TAC_PROFILE_BLOCK*/;
-    const AssetPathStringView defaultSkybox = "assets/skybox/daylight";
-    const AssetPathStringView skyboxDirToUse = skyboxDir.empty() ? defaultSkybox : skyboxDir;
-    const Render::TextureHandle cubemap = TextureAssetManager::GetTextureCube( skyboxDirToUse,
-                                                                               mGetSkyboxTextureErrors );
+    const AssetPathStringView defaultSkybox { "assets/skybox/daylight" };
+    const AssetPathStringView skyboxDirToUse { skyboxDir.empty() ? defaultSkybox : skyboxDir };
+    const Render::TextureHandle cubemap { TextureAssetManager::GetTextureCube( skyboxDirToUse, mGetSkyboxTextureErrors ) };
     TAC_ASSERT( mGetSkyboxTextureErrors.empty() );
     if( !cubemap.IsValid() )
       return;
 
-    Mesh* mesh = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
+    Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
                                                          0,
                                                          mVertexDecls,
-                                                         mGetSkyboxMeshErrors );
+                                                         mGetSkyboxMeshErrors ) };
     TAC_ASSERT( mGetSkyboxMeshErrors.empty() );
     if( !mesh )
       return;
 
-    const Render::InProj inProj = { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
-    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
-    const float a = outProj.mA;
-    const float b = outProj.mB;
-    const float aspect = ( float )viewWidth / ( float )viewHeight;
-    const m4 view = m4::ViewInv( v3( 0, 0, 0 ),
+    const Render::InProj inProj { { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane } };
+    const Render::OutProj outProj { Render::GetPerspectiveProjectionAB( inProj ) };
+    const float a { outProj.mA };
+    const float b { outProj.mB };
+    const float aspect { ( float )viewWidth / ( float )viewHeight };
+    const m4 view{ m4::ViewInv( v3( 0, 0, 0 ),
                                  camera->mForwards,
                                  camera->mRight,
-                                 camera->mUp );
+                                 camera->mUp ) };
     const Render::DefaultCBufferPerFrame perFrame
     {
-      .mView = view,
-      .mProjection = camera->Proj( a, b, aspect ),
-      .mFar = camera->mFarPlane,
-      .mNear = camera->mNearPlane,
-      .mGbufferSize = { ( float )viewWidth, ( float )viewHeight }
+      .mView { view },
+      .mProjection{ camera->Proj( a, b, aspect ) },
+      .mFar { camera->mFarPlane },
+      .mNear { camera->mNearPlane },
+      .mGbufferSize  { ( float )viewWidth, ( float )viewHeight }
     };
-    const SubMesh* subMesh = &mesh->mSubMeshes[ 0 ];
+    const SubMesh* subMesh { &mesh->mSubMeshes[ 0 ] };
     Render::SetViewport( viewId, Render::Viewport( viewWidth, viewHeight ) );
     Render::SetViewScissorRect( viewId, Render::ScissorRect( viewWidth, viewHeight ) );
     Render::UpdateConstantBuffer( Render::DefaultCBufferPerFrame::Handle,

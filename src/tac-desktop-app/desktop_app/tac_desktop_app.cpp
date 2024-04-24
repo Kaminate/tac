@@ -71,17 +71,17 @@ namespace Tac
     DesktopApp* desktopApp = DesktopApp::GetInstance();
 
     // todo: ... mixing v2 and v2i bad
-    const v2 imPos = imguiParams.mPos;
-    const v2 imSize = imguiParams.mSize;
-    const v2i simPos = v2i( ( int )imPos.x, ( int )imPos.y );
-    const v2i simSize = v2i( ( int )imSize.x, ( int )imSize.y );
+    const v2 imPos { imguiParams.mPos };
+    const v2 imSize { imguiParams.mSize };
+    const v2i simPos { v2i( ( int )imPos.x, ( int )imPos.y ) };
+    const v2i simSize { v2i( ( int )imSize.x, ( int )imSize.y ) };
 
     //const WindowApi::CreateParams desktopParams
     const SimWindowApi::CreateParams platformParams
     {
-      .mName = "<unnamed>",
-      .mPos = simPos,
-      .mSize = simSize,
+      .mName { "<unnamed>" },
+      .mPos { simPos },
+      .mSize { simSize },
     };
     //return desktopApp->CreateWindow( desktopParams );
 

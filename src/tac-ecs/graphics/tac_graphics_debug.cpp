@@ -16,7 +16,7 @@
 
 void Tac::GraphicsDebugImgui( System* system )
 {
-  auto graphics = ( Graphics* )system;
+  Graphics* graphics { ( Graphics* )system };
 
 #if TAC_GAME_PRESENTATION_ENABLED()
   GamePresentationDebugImGui( graphics );

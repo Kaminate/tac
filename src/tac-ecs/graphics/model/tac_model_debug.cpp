@@ -17,7 +17,7 @@ namespace Tac
 {
   static bool IsModelPath( const AssetPathStringView& path )
   {
-    const char* exts[] =
+    const char* exts[]
     {
       "glb",
       "gltf",
@@ -43,17 +43,16 @@ namespace Tac
       if( getfilesErrors )
         ImGuiText( getfilesErrors.ToString() );
 
-      static bool needsRefresh = true;
+      static bool needsRefresh { true };
       static Timestamp refreshSecTimestamp;
-      const Timestamp curSecTimestamp = Timestep::GetElapsedTime();
+      const Timestamp curSecTimestamp { Timestep::GetElapsedTime() };
       if( needsRefresh || ImGuiButton( "Refresh Model List" ) )
       {
         getfilesErrors.clear();
         needsRefresh = false;
         modelPaths.clear();
-        const AssetPathStrings allfiles = IterateAssetsInDir( "assets",
-                                                              AssetIterateType::Recursive,
-                                                              getfilesErrors );
+        const AssetPathStrings allfiles{
+          IterateAssetsInDir( "assets", AssetIterateType::Recursive, getfilesErrors ) };
         if( getfilesErrors )
           return;
 
@@ -65,16 +64,15 @@ namespace Tac
       }
 
       // how long (in seconds) it should take to populate the list
-      const float populateDuration = 0.1f;
+      const float populateDuration { 0.1f };
 
-      const int numberOfFilesPopulate = int(
-        ( curSecTimestamp - refreshSecTimestamp ) /
-        populateDuration * modelPaths.size() );
-      const int numberOfFilesToShow = Min( ( int )modelPaths.size(), numberOfFilesPopulate );
+      const int numberOfFilesPopulate{
+        int( ( curSecTimestamp - refreshSecTimestamp ) / populateDuration * modelPaths.size() ) };
+      const int numberOfFilesToShow { Min( ( int )modelPaths.size(), numberOfFilesPopulate ) };
 
       for( int i{}; i < numberOfFilesToShow; ++i )
       {
-        const AssetPathStringView filepath = modelPaths[ i ];
+        const AssetPathStringView filepath { modelPaths[ i ] };
         if( ImGuiButton( filepath ) )
         {
           model->mModelPath = filepath;
@@ -192,7 +190,7 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    const Mesh* mesh = nullptr;
+    const Mesh* mesh { nullptr };
 
 #if TAC_GAME_PRESENTATION_ENABLED()
     mesh = GamePresentationGetModelMesh( model );
@@ -228,23 +226,23 @@ namespace Tac
 
     ImGuiText( ShortFixedString::Concat( "model index: ", ToString( model->mModelIndex ) ) );
     ImGuiDragInt( "model index", &model->mModelIndex );
-    static int iSelectedSubmesh = -1;
+    static int iSelectedSubmesh { -1 };
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      const int iSubMesh = ( int )( &subMesh - mesh->mSubMeshes.data() );
-      const bool selected = iSubMesh == iSelectedSubmesh;
+      const int iSubMesh { ( int )( &subMesh - mesh->mSubMeshes.data() ) };
+      const bool selected { iSubMesh == iSelectedSubmesh };
 
-      const ShortFixedString str = ShortFixedString::Concat( "submesh ",
+      const ShortFixedString str{ ShortFixedString::Concat( "submesh ",
                                                              ToString( iSubMesh ),
                                                              ": ",
-                                                             subMesh.mName );
+                                                             subMesh.mName ) };
 
       if( ImGuiSelectable( str, selected ) )
         iSelectedSubmesh = iSubMesh;
     }
     if( ( unsigned )iSelectedSubmesh < ( unsigned )mesh->mSubMeshes.size() )
     {
-      const SubMesh& subMesh = mesh->mSubMeshes[ iSelectedSubmesh ];
+      const SubMesh& subMesh { mesh->mSubMeshes[ iSelectedSubmesh ] };
 
       ImGuiIndent();
       ImGuiText( subMesh.mName );

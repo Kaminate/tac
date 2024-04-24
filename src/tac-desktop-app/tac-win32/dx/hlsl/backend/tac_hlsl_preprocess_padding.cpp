@@ -21,7 +21,7 @@ namespace Tac::Render
 
     TAC_ASSERT( !numberStr.empty() );
 
-    const int padByteCount = Atoi( numberStr );
+    const int padByteCount { Atoi( numberStr ) };
     TAC_ASSERT( padByteCount );
     TAC_ASSERT( padByteCount % 4 == 0 ); // <-- why?
     return padByteCount;
@@ -32,17 +32,17 @@ namespace Tac::Render
     if( !line.contains("TAC_PAD_BYTES") )
       return {};
 
-    const int iPad = line.find( "TAC_PAD_BYTES" );
-    const int padByteCount = GetPadByteCount( line );
-    const int count = mCounter++;
+    const int iPad { line.find( "TAC_PAD_BYTES" ) };
+    const int padByteCount { GetPadByteCount( line ) };
+    const int count { mCounter++ };
 
     const String spaces( iPad, ' ' );
 
     String result;
     for( int i{}; i < padByteCount / 4; ++i )
     {
-      const char* separator = i ? "\n" : "";
-      const String varName = "pad" + ToString( count );
+      const char* separator { i ? "\n" : "" };
+      const String varName { "pad" + ToString( count ) };
 
       result += separator;
       result += spaces + "uint ";

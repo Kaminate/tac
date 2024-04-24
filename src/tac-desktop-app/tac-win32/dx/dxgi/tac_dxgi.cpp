@@ -115,7 +115,7 @@ namespace Tac::Render
     PCom<IDXGIAdapter1> bestAdapter;
     DXGI_ADAPTER_DESC1 bestdesc{};
 
-    UINT iAdapter = 0;
+    UINT iAdapter { 0 };
     for( ;; )
     {
       PCom<IDXGIAdapter1> currAdapter;
@@ -142,7 +142,7 @@ namespace Tac::Render
   {
     PCom<IDXGIFactory4> mFactory;
 
-    DXGI_ADAPTER_DESC3          mAdapterDesc{};
+    DXGI_ADAPTER_DESC3  mAdapterDesc{};
     PCom<IDXGIAdapter4> mAdapter;
 
     void Init( Errors& );
@@ -150,7 +150,7 @@ namespace Tac::Render
 
   struct FormatPair
   {
-    Format mFormat;
+    Format         mFormat;
     DXGI_FORMAT    mFormatDXGI;
   };
 
@@ -190,7 +190,7 @@ namespace Tac
   void Render::DXGIImpl::Init( Errors& errors )
   {
     // Only CreateDXGIFactory2 allows the use of flags
-    const UINT flags = IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0;
+    const UINT flags { IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0 };
     PCom< IDXGIFactory2 > factory2;
     TAC_DXGI_CALL( CreateDXGIFactory2( flags, factory2.iid(), factory2.ppv() ) );
     TAC_ASSERT( factory2 );
@@ -199,7 +199,7 @@ namespace Tac
     TAC_ASSERT( mFactory );
     DXGISetObjectName( ( IDXGIFactory4* )mFactory, "my-dxgi-factory" );
 
-    auto bestAdapter = TAC_CALL( GetBestAdapter( ( IDXGIFactory1* )mFactory, errors ) );
+    TAC_CALL( auto bestAdapter{ GetBestAdapter( ( IDXGIFactory1* )mFactory, errors ) } );
 
     mAdapter = bestAdapter.QueryInterface<IDXGIAdapter4>();
     TAC_ASSERT(mAdapter);

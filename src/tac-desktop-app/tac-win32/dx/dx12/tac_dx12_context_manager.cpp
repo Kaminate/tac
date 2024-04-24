@@ -146,34 +146,33 @@ namespace Tac::Render
 
   void DX12Context::SetViewport( v2i size )
   {
-    ID3D12GraphicsCommandList* cmd = GetCommandList();
-
-    D3D12_VIEWPORT vp
+    ID3D12GraphicsCommandList* cmd { GetCommandList() };
+    const D3D12_VIEWPORT vp
     {
-      .TopLeftX = 0,
-      .TopLeftY = 0,
-      .Width = ( FLOAT )size.x,
-      .Height = ( FLOAT )size.y,
-      .MinDepth = 0,
-      .MaxDepth = 1,
+      .TopLeftX { 0 },
+      .TopLeftY { 0 },
+      .Width    { ( FLOAT )size.x },
+      .Height   { ( FLOAT )size.y },
+      .MinDepth { 0 },
+      .MaxDepth { 1 },
     };
     cmd->RSSetViewports( 1, &vp );
   }
 
   void DX12Context::SetScissor( v2i size )
   {
-    ID3D12GraphicsCommandList* cmd = GetCommandList();
-    D3D12_RECT rect
+    ID3D12GraphicsCommandList* cmd { GetCommandList() };
+    const D3D12_RECT rect
     {
-      .right = ( LONG )size.x,
-      .bottom = ( LONG )size.y,
+      .right  { ( LONG )size.x },
+      .bottom { ( LONG )size.y },
     };
     cmd->RSSetScissorRects( 1, &rect );
   }
 
   void DX12Context::DebugEventBegin( StringView str )
   {
-    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
     PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
     mEventCount++;
   }
@@ -181,20 +180,20 @@ namespace Tac::Render
   void DX12Context::DebugEventEnd()
   {
     TAC_ASSERT( mEventCount > 0 );
-    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
     PIXEndEvent( commandList );
     mEventCount--;
   }
 
   void DX12Context::DebugMarker( StringView str )
   {
-    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
     PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
   }
 
   void DX12Context::SetRenderTargets( Targets targets )
   {
-    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
 
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
 
@@ -202,29 +201,29 @@ namespace Tac::Render
 #if TAC_TEMPORARILY_DISABLED()
 
 
-    DX12SwapChain* frameBuf = mFrameBufferMgr->FindSwapChain( h );
-    const UINT bbIdx = frameBuf->mSwapChain->GetCurrentBackBufferIndex();
-    DX12SwapChainImage& swapChainImage = frameBuf->mSwapChainImages[ bbIdx ];
+    DX12SwapChain* frameBuf { mFrameBufferMgr->FindSwapChain( h ) };
+    const UINT bbIdx { frameBuf->mSwapChain->GetCurrentBackBufferIndex() };
+    DX12SwapChainImage& swapChainImage { frameBuf->mSwapChainImages[ bbIdx ] };
 
-    D3D12_CPU_DESCRIPTOR_HANDLE descHandle = swapChainImage.mRTV.GetCPUHandle();
+    D3D12_CPU_DESCRIPTOR_HANDLE descHandle { swapChainImage.mRTV.GetCPUHandle() };
     rtDescs.push_back( descHandle );
 
-    BOOL RTsSingleHandleToDescriptorRange = false;
+    BOOL RTsSingleHandleToDescriptorRange { false };
 
     D3D12_RESOURCE_BARRIER barrier
     {
-      .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-      .Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+      .Type { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+      .Flags { D3D12_RESOURCE_BARRIER_FLAG_NONE },
       .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
       {
-        .pResource = swapChainImage.mResource.Get(),
-        .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-        .StateBefore = swapChainImage.mState,
-        .StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
+        .pResource { swapChainImage.mResource.Get() },
+        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+        .StateBefore { swapChainImage.mState },
+        .StateAfter { D3D12_RESOURCE_STATE_RENDER_TARGET },
       },
     };
 
-    const Array barriers = { barrier };
+    const Array barriers  { barrier };
     commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
 
     // if null, no depth stencil is bound

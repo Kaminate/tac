@@ -68,7 +68,7 @@ namespace Tac
 
   String           Win32GetLastErrorString()
   {
-    const DWORD winErrorValue = GetLastError();
+    const DWORD winErrorValue { GetLastError() };
     return Win32ErrorStringFromDWORD( winErrorValue );
   }
 

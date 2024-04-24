@@ -15,9 +15,6 @@ namespace Tac
 {
   static ComponentRegistryEntry* sComponentRegistryEntry;
 
-
-
-
   static Component* CreateLightComponent( World* world )
   {
     return GetGraphics( world )->CreateLightComponent();
@@ -30,7 +27,7 @@ namespace Tac
 
   static void       SaveLightComponent( Json& lightJson, Component* component )
   {
-    auto light = ( Light* )component;
+    auto light { ( Light* )component };
     lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].SetNumber( light->mSpotHalfFOVRadians );
     lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].SetNumber( light->mSpotHalfFOVRadians );
     lightJson[ TAC_MEMBER_NAME( Light, mType ) ].SetString( LightTypeToString( light->mType ) );
@@ -81,21 +78,21 @@ namespace Tac
 
   v3                            Light::GetUnitDirection() const
   {
-    v3 z = mEntity->mWorldTransform.GetColumn( 2 ).xyz();
+    v3 z { mEntity->mWorldTransform.GetColumn( 2 ).xyz() };
     z = Normalize( z );
     return -z;
   }
 
   Camera                        Light::GetCamera() const
   {
-    v3 z = -GetUnitDirection();
+    v3 z { -GetUnitDirection() };
     v3 x, y;
     GetFrameRH( z, x, y );
 
     v3 up( 0, 1, 0 );
-    float rads = Acos( Dot( up, y ) );
+    const float rads { Acos( Dot( up, y ) ) };
 
-    m3 m = m3::RotRadAngleAxis( rads, z );
+    m3 m { m3::RotRadAngleAxis( rads, z ) };
     x = m * x;
     y = m * y;
 
@@ -113,22 +110,24 @@ namespace Tac
       {
         return v3( Round( v.x ),
                    Round( v.y ),
-                   Round( v.z ) ); };
-      const v3 roundedZ = round3( z );
-      const v3 roundedX = round3( x );
-      const v3 roundedY = round3( y );
-      const float roundEps = 0.01f;
-      const bool canRound =
+                   Round( v.z ) );
+        };
+
+      const v3 roundedZ { round3( z ) };
+      const v3 roundedX { round3( x ) };
+      const v3 roundedY { round3( y ) };
+      const float roundEps { 0.01f };
+      const bool canRound{
         Distance( roundedZ, z ) < roundEps &&
         Distance( roundedX, x ) < roundEps &&
-        Distance( roundedY, y ) < roundEps;
+        Distance( roundedY, y ) < roundEps };
       x = canRound ? roundedX : x;
       y = canRound ? roundedY : y;
       z = canRound ? roundedZ : z;
     }
 
 
-    Camera camera = {};
+    Camera camera  {};
     camera.mForwards = -z;
     camera.mRight = x;
     camera.mUp = y;
@@ -183,8 +182,8 @@ namespace Tac
   {
     for( int i{}; i < Light::Type::kCount; ++i )
     {
-      auto curType = ( Light::Type )i;
-      const char* curTypeStr = LightTypeToString( curType );
+      auto curType { ( Light::Type )i };
+      const char* curTypeStr { LightTypeToString( curType ) };
       if( ( StringView )curTypeStr == str )
         return curType;
     }
@@ -193,27 +192,27 @@ namespace Tac
 
   Render::ShaderLight                            LightToShaderLight( const Light* light )
   {
-    const Camera camera = light->GetCamera();
+    const Camera camera { light->GetCamera() };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::NDCAttribs ndcAttribs = renderDevice->GetInfo().mNDCAttribs;
+    const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
     const m4::ProjectionMatrixParams projParams
     {
-      .mNDCMinZ = ndcAttribs.mMinZ,
-      .mNDCMaxZ = ndcAttribs.mMaxZ,
-      .mViewSpaceNear = camera.mNearPlane,
-      .mViewSpaceFar = camera.mFarPlane,
-      .mAspectRatio = 1,
-      .mFOVYRadians = camera.mFovyrad,
+      .mNDCMinZ       { ndcAttribs.mMinZ },
+      .mNDCMaxZ       { ndcAttribs.mMaxZ },
+      .mViewSpaceNear { camera.mNearPlane },
+      .mViewSpaceFar  { camera.mFarPlane },
+      .mAspectRatio   { 1 },
+      .mFOVYRadians   { camera.mFovyrad },
     };
 
-    const m4 view = camera.View();
-    const m4 proj = m4::ProjPerspective( projParams );
+    const m4 view { camera.View() };
+    const m4 proj { m4::ProjPerspective( projParams ) };
 
-    const u32 flags = 0
+    const u32 flags{ 0
       | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
-      | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows );
+      | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows ) };
 
-    Render::ShaderLight shaderLight = {};
+    Render::ShaderLight shaderLight  {};
     shaderLight.mColorRadiance.xyz() = light->mColor;
     shaderLight.mColorRadiance.w = light->mRadiance;
     shaderLight.mFlags = flags;

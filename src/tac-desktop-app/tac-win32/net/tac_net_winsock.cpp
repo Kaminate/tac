@@ -33,9 +33,9 @@ namespace Tac::Network
     void        TCPTryConnect( StringView hostname,
                                u16 port,
                                Errors& ) override;
-    SOCKET      mSocket = INVALID_SOCKET;
-    int         mWinsockAddressFamily = 0;
-    int         mWinsockSocketType = 0;
+    SOCKET      mSocket { INVALID_SOCKET };
+    int         mWinsockAddressFamily { 0 };
+    int         mWinsockSocketType { 0 };
     String      mHostname;
   };
 
@@ -51,10 +51,10 @@ namespace Tac::Network
                                              Errors& ) override;
     Vector< Socket* >          GetSockets() override;
     Set< SocketWinsock* > mSocketWinsocks;
-    bool                       mPrintReceivedMessages = false;
+    bool                       mPrintReceivedMessages { false };
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
-    Timestamp                  mKeepaliveNextSeconds = 0.0;
-    TimestampDifference        mKeepaliveIntervalSeconds = 30.0f;
+    Timestamp                  mKeepaliveNextSeconds { 0.0 };
+    TimestampDifference        mKeepaliveIntervalSeconds { 30.0f };
   };
 
   static NetWinsock sNetWinsock;
@@ -107,8 +107,8 @@ namespace Tac::Network
 
   void SocketWinsock::SetIsBlocking( const bool isBlocking, Errors& errors )
   {
-    u_long iMode = isBlocking ? 0 : 1;
-    const int wsaErrorCode = ioctlsocket( mSocket, FIONBIO, &iMode );
+    u_long iMode { isBlocking ? 0 : 1 };
+    const int wsaErrorCode { ioctlsocket( mSocket, FIONBIO, &iMode ) };
     if( wsaErrorCode == SOCKET_ERROR )
     {
       const String errMsg = GetLastWSAErrorString();
@@ -121,12 +121,12 @@ namespace Tac::Network
     Vector< u8 > framed;
     if( mRequiresWebsocketFrame )
     {
-      u8 payloadByteCount7Bit = 0;
+      u8 payloadByteCount7Bit { 0 };
 
       Writer writer
       {
-        .mFrom = GetEndianness(),
-        .mTo = Endianness::Big,
+        .mFrom { GetEndianness() },
+        .mTo { Endianness::Big },
       };
 
       if( byteCount < 126 )
@@ -142,10 +142,10 @@ namespace Tac::Network
         writer.Write( ( u64 )byteCount );
       }
 
-      const int frameByteCount = 2 + ( int )writer.mBytes.size() + 4 + byteCount;
+      const int frameByteCount { 2 + ( int )writer.mBytes.size() + 4 + byteCount };
       framed.resize( frameByteCount );
 
-      int iByte = 0;
+      int iByte { 0 };
       framed[ iByte++ ] =
         0b10000000 | // fin
         0x2; // opcode binary frame
@@ -165,12 +165,12 @@ namespace Tac::Network
         framed[ iByte++ ] = mask;
       }
 
-      u8* unmaskedBytes = ( u8* )bytes;
+      u8* unmaskedBytes { ( u8* )bytes };
       for( int i{}; i < byteCount; ++i )
       {
-        u8 unmaskedByte = *unmaskedBytes++;
-        u8 mask = masks[ i % 4 ];
-        u8 maskedByte = unmaskedByte ^ mask;
+        u8 unmaskedByte { *unmaskedBytes++ };
+        u8 mask { masks[ i % 4 ] };
+        u8 maskedByte { unmaskedByte ^ mask };
         framed[ iByte++ ] = maskedByte;
       }
 
@@ -181,11 +181,11 @@ namespace Tac::Network
     }
 
     // Should we send right now or queue it for NetWinsock::Update?
-    const char* sendBytes = ( const char* )bytes;
-    int wsaErrorCode = send( mSocket,
+    const char* sendBytes { ( const char* )bytes };
+    int wsaErrorCode{ send( mSocket,
                              sendBytes,
                              byteCount,
-                             0 );
+                             0 ) };
     if( wsaErrorCode == SOCKET_ERROR )
     {
       wsaErrorCode = WSAGetLastError();
@@ -195,22 +195,22 @@ namespace Tac::Network
         mRequestDeletion = true;
         return;
       }
-      const String errMsg = GetWSAErrorString( wsaErrorCode );
+      const String errMsg { GetWSAErrorString( wsaErrorCode ) };
       TAC_RAISE_ERROR( errMsg);
     }
   }
 
   void SocketWinsock::SetKeepalive( bool keepAlive, Errors& errors )
   {
-    const DWORD enableKeepalive = keepAlive ? TRUE : FALSE;
-    const int wsaErrorCode = setsockopt( mSocket,
+    const DWORD enableKeepalive { keepAlive ? TRUE : FALSE };
+    const int wsaErrorCode{ setsockopt( mSocket,
                                          SOL_SOCKET,
                                          SO_KEEPALIVE,
                                          ( const char* )&enableKeepalive,
-                                         sizeof( enableKeepalive ) );
+                                         sizeof( enableKeepalive ) ) };
     if( wsaErrorCode == SOCKET_ERROR )
     {
-      const String errMsg =  GetLastWSAErrorString();
+      const String errMsg {  GetLastWSAErrorString() };
       TAC_RAISE_ERROR( errMsg);
     }
   }
@@ -220,20 +220,20 @@ namespace Tac::Network
                                      Errors& errors )
   {
     TAC_ASSERT( mSocketType == SocketType::TCP );
-    const String portString = Tac::ToString( port );
+    const String portString { Tac::ToString( port ) };
 
     addrinfo* addrinfos;
-    int wsaErrorCode = 0;
+    int wsaErrorCode { 0 };
       
     wsaErrorCode = getaddrinfo( hostname.c_str(), portString.c_str(), nullptr, &addrinfos );
     if( wsaErrorCode )
     {
-      const String errorMsg = GetWSAErrorString( wsaErrorCode );
+      const String errorMsg { GetWSAErrorString( wsaErrorCode ) };
       TAC_RAISE_ERROR( errorMsg);
     }
     TAC_ON_DESTRUCT( freeaddrinfo( addrinfos ) );
-    addrinfo* targetAddrInfo = nullptr;
-    for( addrinfo* curAddrInfo = addrinfos; curAddrInfo; curAddrInfo = curAddrInfo->ai_next )
+    addrinfo* targetAddrInfo { nullptr };
+    for( addrinfo* curAddrInfo { addrinfos }; curAddrInfo; curAddrInfo = curAddrInfo->ai_next )
     {
       if( curAddrInfo->ai_family != mWinsockAddressFamily )
         continue;
@@ -253,7 +253,7 @@ namespace Tac::Network
       if( wsaErrorCode == WSAEWOULDBLOCK || // 10035 non-blocking socket
           wsaErrorCode == WSAEALREADY ) // 10037 already connected
         return;
-      const String errorMsg = GetLastWSAErrorString();
+      const String errorMsg { GetLastWSAErrorString() };
       TAC_RAISE_ERROR( errorMsg);
     }
     mTCPIsConnected = true;
@@ -261,12 +261,12 @@ namespace Tac::Network
 
   void NetWinsock::Init( Errors& errors )
   {
-    const WORD wsaVersion = MAKEWORD( 2, 2 );
+    const WORD wsaVersion { MAKEWORD( 2, 2 ) };
     WSAData wsaData;
-    const int wsaErrorCode = WSAStartup( wsaVersion, &wsaData );
+    const int wsaErrorCode { WSAStartup( wsaVersion, &wsaData ) };
     if( wsaErrorCode )
     {
-      const String errorMsg = GetWSAErrorString( wsaErrorCode );
+      const String errorMsg { GetWSAErrorString( wsaErrorCode ) };
       TAC_RAISE_ERROR( errorMsg);
     }
     mPrintReceivedMessages = true;
@@ -284,15 +284,15 @@ namespace Tac::Network
                                     SocketType socketType,
                                     Errors& errors )
   {
-    const int winsockSocketType = GetWinsockSocketType( socketType );
-    const int winsockAddressFamily = GetWinsockAddressFamily( addressFamily );
-    const int winsockProtocol = 0; // don't really know what this is
-    const SOCKET winsockSocket = socket( winsockAddressFamily, winsockSocketType, winsockProtocol );
+    const int winsockSocketType { GetWinsockSocketType( socketType ) };
+    const int winsockAddressFamily { GetWinsockAddressFamily( addressFamily ) };
+    const int winsockProtocol { 0 }; // don't really know what this is
+    const SOCKET winsockSocket { socket( winsockAddressFamily, winsockSocketType, winsockProtocol ) };
     TAC_RAISE_ERROR_IF_RETURN( winsockSocket == INVALID_SOCKET,
                                String() + "socket failed with: " + GetLastWSAErrorString(),
                                nullptr );
 
-    auto netWinsocket = TAC_NEW SocketWinsock;
+    auto netWinsocket { TAC_NEW SocketWinsock };
     TAC_ON_DESTRUCT( if( errors ) delete netWinsocket );
     netWinsocket->mSocket = winsockSocket;
     netWinsocket->mName = name;
@@ -335,7 +335,7 @@ namespace Tac::Network
 
   void NetWinsock::Update( Errors& errors )
   {
-    bool shouldSendKeepalive = Timestep::GetElapsedTime() > mKeepaliveNextSeconds;
+    bool shouldSendKeepalive { Timestep::GetElapsedTime() > mKeepaliveNextSeconds };
     if( shouldSendKeepalive )
       mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
@@ -360,12 +360,12 @@ namespace Tac::Network
         }
       }
 
-      const int recvBufByteCount = 1024;
-      char recvBuf[ recvBufByteCount ] = {};
-      int recvResult = recv( socketWinsock->mSocket, recvBuf, recvBufByteCount, 0 );
+      const int recvBufByteCount { 1024 };
+      char recvBuf[ recvBufByteCount ]  {};
+      int recvResult { recv( socketWinsock->mSocket, recvBuf, recvBufByteCount, 0 ) };
       if( recvResult == SOCKET_ERROR )
       {
-        const int wsaErrorCode = WSAGetLastError();
+        const int wsaErrorCode { WSAGetLastError() };
         if( wsaErrorCode == WSAEWOULDBLOCK )
           continue;
 
@@ -376,7 +376,7 @@ namespace Tac::Network
           continue;
         }
 
-        const String errorMsg = GetWSAErrorString( wsaErrorCode );
+        const String errorMsg { GetWSAErrorString( wsaErrorCode ) };
         TAC_RAISE_ERROR( errorMsg);
       }
       else if( recvResult == 0 )

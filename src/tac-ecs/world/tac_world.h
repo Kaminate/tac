@@ -44,14 +44,14 @@ namespace Tac
     Player* FindPlayer( EntityUUID );
 
     Timestamp            mElapsedSecs;
-    bool                 mDebugDrawEntityOrigins = true;
+    bool                 mDebugDrawEntityOrigins { true };
     List< Player* >      mPlayers;
     List< Entity* >      mEntities;
     Vector< System* >    mSystems;
 
     //                   The world owns a debug draw data so that
     //                   each system can access it
-    Debug3DDrawData* mDebug3DDrawData = nullptr;
+    Debug3DDrawData*     mDebug3DDrawData {};
   };
 }
 

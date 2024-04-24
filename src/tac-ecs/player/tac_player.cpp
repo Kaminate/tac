@@ -28,19 +28,19 @@ namespace Tac
     sNetworkBits.Add(
       NetworkBit
       {
-        .mDebugName = "mEntityUUID",
-        .mByteOffset = ( int )TAC_OFFSET_OF( Player, mEntityUUID ),
-        .mComponentByteCount = sizeof( EntityUUID ),
-        .mComponentCount = 1
+        .mDebugName          { "mEntityUUID" },
+        .mByteOffset         { ( int )TAC_OFFSET_OF( Player, mEntityUUID ) },
+        .mComponentByteCount { sizeof ( EntityUUID )},
+        .mComponentCount     {  1},
       } );
 
     sNetworkBits.Add(
       NetworkBit
       {
-        .mDebugName = "mInputDirection",
-        .mByteOffset = (int)TAC_OFFSET_OF( Player, mInputDirection ),
-        .mComponentByteCount = sizeof( float ),
-        .mComponentCount = 2
+        .mDebugName          { "mInputDirection" },
+        .mByteOffset         { ( int )TAC_OFFSET_OF( Player, mInputDirection ) },
+        .mComponentByteCount { sizeof ( float )},
+        .mComponentCount     {  2}
       } );
   }
 

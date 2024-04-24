@@ -16,7 +16,7 @@ namespace Tac
   {
     for( const char cExpected : tac )
     {
-      const char cActual = TAC_CALL_RET( {}, reader->Read< char >( errors ) );
+      TAC_CALL_RET( {}, const char cActual{ reader->Read< char >( errors ) } );
       TAC_RAISE_ERROR_IF_RETURN( cExpected != cActual, "net msg header mismatch", {} );
     }
 
@@ -30,13 +30,13 @@ namespace Tac
     if( !oldData )
       return NetBitDiff{ 0xff };
 
-    u8 bitfield = 0;
+    u8 bitfield { 0 };
     for( int i{}; i < networkBits.size(); ++i )
     {
-      const NetworkBit& bits = networkBits[ i ];
-      auto oldBits = ( char* )oldData + bits.mByteOffset;
-      auto newBits = ( char* )newData + bits.mByteOffset;
-      auto componentTotalSize = bits.mComponentCount * bits.mComponentByteCount;
+      const NetworkBit& bits { networkBits[ i ] };
+      char* oldBits { ( char* )oldData + bits.mByteOffset };
+      char* newBits { ( char* )newData + bits.mByteOffset };
+      const int componentTotalSize { bits.mComponentCount * bits.mComponentByteCount };
       if( MemCmp( oldBits, newBits, componentTotalSize ) )
         bitfield |= 1 << i;
     }
@@ -45,12 +45,12 @@ namespace Tac
 
   void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )
   {
-    const TimestampDifference lagSimSecs = mLagSimulationMS * 0.001f;
-    const Timestamp delayedTillSecs = elapsedSecs + lagSimSecs;
+    const TimestampDifference lagSimSecs { mLagSimulationMS * 0.001f };
+    const Timestamp delayedTillSecs { elapsedSecs + lagSimSecs };
     const DelayedNetMsg delayedNetMsg
     {
-      .mDelayedTillSecs = delayedTillSecs,
-      .mData = data,
+      .mDelayedTillSecs { delayedTillSecs },
+      .mData            { data },
     };
     mSavedNetworkMessages.push_back( delayedNetMsg );
   }
@@ -60,7 +60,7 @@ namespace Tac
     if( mSavedNetworkMessages.empty() )
       return false;
 
-    auto savedNetMsg = mSavedNetworkMessages.front();
+    const DelayedNetMsg& savedNetMsg { mSavedNetworkMessages.front() };
     if( elapsedSecs < savedNetMsg.mDelayedTillSecs )
       return false;
 
@@ -78,8 +78,8 @@ namespace Tac
 
   void SnapshotBuffer::AddSnapshot( const World* world )
   {
-    World* snapshot = nullptr;
-    if( (int)mSnapshots.size() == maxSnapshots )
+    World* snapshot { nullptr };
+    if( mSnapshots.size() == maxSnapshots )
     {
       snapshot = mSnapshots.front();
       mSnapshots.pop_front();

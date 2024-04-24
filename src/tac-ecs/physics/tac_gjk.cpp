@@ -34,11 +34,11 @@ namespace Tac
                                                const v3& c,
                                                const v3& d )
   {
-    const v3 ab = b - a;
-    const v3 ac = c - a;
-    const v3 ad = d - a;
-    const v3 abc = Cross( ab, ac );
-    const bool result = Dot( abc, ad ) < 0;
+    const v3 ab { b - a };
+    const v3 ac { c - a };
+    const v3 ad { d - a };
+    const v3 abc { Cross( ab, ac ) };
+    const bool result { Dot( abc, ad ) < 0 };
     return result;
   }
 
@@ -62,7 +62,7 @@ namespace Tac
       { 1, 1, -1 },
       { 1, 1, 1 },
     };
-    auto transform = m4::Transform( obbHalfExtents, obbEulerRads, obbPos );
+    const m4 transform { m4::Transform( obbHalfExtents, obbEulerRads, obbPos ) };
     for( v3& point : mPoints )
       point = ( transform * v4( point, 1.0f ) ).xyz();
   }
@@ -70,7 +70,7 @@ namespace Tac
   v3 SphereSupport::GetFurthestPoint( const v3& dir ) const
   {
     TAC_ASSERT( Abs( dir.Length() - 1 ) < 0.001f );
-    auto result = mOrigin + mRadius * dir;
+    const v3 result { mOrigin + mRadius * dir };
     return result;
   }
 
@@ -87,8 +87,8 @@ namespace Tac
   v3 CapsuleSupport::GetFurthestPoint( const v3& dir ) const
   {
     TAC_ASSERT( Abs( dir.Length() - 1 ) < 0.001f );
-    const float botDot = Dot( dir, mBotSpherePos );
-    const float topDot = Dot( dir, mTopSpherePos );
+    const float botDot { Dot( dir, mBotSpherePos ) };
+    const float topDot { Dot( dir, mTopSpherePos ) };
     return botDot > topDot
       ? mBotSpherePos + dir * mRadius
       : mTopSpherePos + dir * mRadius;
@@ -96,19 +96,19 @@ namespace Tac
 
   v3 ConvexPolygonSupport::GetFurthestPoint( const v3& dir ) const
   {
-    int iLargestDot = 0;
-    float largestDot = -1;
-    auto pointCount = ( int )mPoints.size();
+    int iLargestDot { 0 };
+    float largestDot { -1 };
+    const int pointCount { ( int )mPoints.size() };
     for( int i{}; i < pointCount; ++i )
     {
-      auto& point = mPoints[ i ];
-      auto dot = Dot( dir, point );
+      const v3& point { mPoints[ i ] };
+      const float dot { Dot( dir, point ) };
       if( dot < largestDot )
         continue;
       largestDot = dot;
       iLargestDot = i;
     }
-    auto result = mPoints[ iLargestDot ];
+    const v3 result = mPoints[ iLargestDot ];
     return result;
   }
 
@@ -141,8 +141,8 @@ namespace Tac
       return;
     }
     mIteration++;
-    CompoundSupport support = GetCompountSupport( mNormalizedSearchDir );
-    float dot = Dot( support.mDiffPt, mNormalizedSearchDir );
+    CompoundSupport support { GetCompountSupport( mNormalizedSearchDir ) };
+    const float dot { Dot( support.mDiffPt, mNormalizedSearchDir ) };
     if( dot < 0 )
     {
       mIsRunning = false;
@@ -151,25 +151,25 @@ namespace Tac
 
     mSupports.push_back( support );
 
-    const v3 o = {};
-    auto supportCount = ( int )mSupports.size();
+    const v3 o  {};
+    const int supportCount { ( int )mSupports.size() };
     switch( supportCount )
     {
       case 1:
       {
-        const CompoundSupport& a = mSupports[ 0 ];
+        const CompoundSupport& a { mSupports[ 0 ] };
         mClosestPoint = a.mDiffPt;
       } break;
       case 2:
       {
-        const CompoundSupport& b = mSupports[ 0 ];
-        const CompoundSupport& a = mSupports[ 1 ];
-        const v3 ab = b.mDiffPt - a.mDiffPt;
-        const v3 ao = o - a.mDiffPt;
+        const CompoundSupport& b { mSupports[ 0 ] };
+        const CompoundSupport& a { mSupports[ 1 ] };
+        const v3 ab { b.mDiffPt - a.mDiffPt };
+        const v3 ao { o - a.mDiffPt };
         if( Dot( ao, ab ) > 0 )
         {
-          const v3 bo = o - b.mDiffPt;
-          const v3 ba = -ab;
+          const v3 bo { o - b.mDiffPt };
+          const v3 ba { -ab };
           if( Dot( bo, ba ) > 0 )
           {
             mClosestPoint = a.mDiffPt + Project( ab, ao );
@@ -188,26 +188,26 @@ namespace Tac
       } break;
       case 3:
       {
-        const CompoundSupport& c = mSupports[ 0 ];
-        const CompoundSupport& b = mSupports[ 1 ];
-        const CompoundSupport& a = mSupports[ 2 ];
+        const CompoundSupport& c { mSupports[ 0 ] };
+        const CompoundSupport& b { mSupports[ 1 ] };
+        const CompoundSupport& a { mSupports[ 2 ] };
 
-        const v3 ao = o - a.mDiffPt;
-        const v3 ab = b.mDiffPt - a.mDiffPt;
-        const v3 ac = c.mDiffPt - a.mDiffPt;
+        const v3 ao { o - a.mDiffPt };
+        const v3 ab { b.mDiffPt - a.mDiffPt };
+        const v3 ac { c.mDiffPt - a.mDiffPt };
 
-        const v3 bo = o - b.mDiffPt;
-        const v3 ba = a.mDiffPt - b.mDiffPt;
-        const v3 bc = c.mDiffPt - b.mDiffPt;
+        const v3 bo { o - b.mDiffPt };
+        const v3 ba { a.mDiffPt - b.mDiffPt };
+        const v3 bc { c.mDiffPt - b.mDiffPt };
 
-        const v3 co = o - c.mDiffPt;
-        const v3 ca = a.mDiffPt - c.mDiffPt;
-        const v3 cb = b.mDiffPt - c.mDiffPt;
+        const v3 co { o - c.mDiffPt };
+        const v3 ca { a.mDiffPt - c.mDiffPt };
+        const v3 cb { b.mDiffPt - c.mDiffPt };
 
-        const v3 n = Cross( ac, ab );
-        const v3 abOut = Cross( n, ab );
-        const v3 acOut = Cross( ac, n );
-        const v3 bcOut = Cross( n, bc );
+        const v3 n { Cross( ac, ab ) };
+        const v3 abOut { Cross( n, ab ) };
+        const v3 acOut { Cross( ac, n ) };
+        const v3 bcOut { Cross( n, bc ) };
 
         // vertex voronoi region
         if( Dot( ao, ab ) < 0 &&
@@ -257,37 +257,37 @@ namespace Tac
       {
         EnsureCorrectTetrahedronOrientation();
 
-        const auto& d = mSupports[ 0 ];
-        const auto& c = mSupports[ 1 ];
-        const auto& b = mSupports[ 2 ];
-        const auto& a = mSupports[ 3 ];
+        const auto& d { mSupports[ 0 ] };
+        const auto& c { mSupports[ 1 ] };
+        const auto& b { mSupports[ 2 ] };
+        const auto& a { mSupports[ 3 ] };
 
 
-        auto ao = o - a.mDiffPt;
-        auto bo = o - b.mDiffPt;
-        auto co = o - c.mDiffPt;
-        auto d_o = o - d.mDiffPt;
+        const v3 ao { o - a.mDiffPt };
+        const v3 bo { o - b.mDiffPt };
+        const v3 co { o - c.mDiffPt };
+        const v3 d_o { o - d.mDiffPt };
 
-        auto ab = b.mDiffPt - a.mDiffPt;
-        auto ac = c.mDiffPt - a.mDiffPt;
-        auto ad = d.mDiffPt - a.mDiffPt;
+        const v3 ab { b.mDiffPt - a.mDiffPt };
+        const v3 ac { c.mDiffPt - a.mDiffPt };
+        const v3 ad { d.mDiffPt - a.mDiffPt };
 
-        auto ba = a.mDiffPt - b.mDiffPt;
-        auto bc = c.mDiffPt - b.mDiffPt;
-        auto bd = d.mDiffPt - b.mDiffPt;
+        const v3 ba { a.mDiffPt - b.mDiffPt };
+        const v3 bc { c.mDiffPt - b.mDiffPt };
+        const v3 bd { d.mDiffPt - b.mDiffPt };
 
-        auto ca = a.mDiffPt - c.mDiffPt;
-        auto cb = b.mDiffPt - c.mDiffPt;
-        auto cd = d.mDiffPt - c.mDiffPt;
+        const v3 ca { a.mDiffPt - c.mDiffPt };
+        const v3 cb { b.mDiffPt - c.mDiffPt };
+        const v3 cd { d.mDiffPt - c.mDiffPt };
 
-        auto da = a.mDiffPt - d.mDiffPt;
-        auto db = b.mDiffPt - d.mDiffPt;
-        auto dc = c.mDiffPt - d.mDiffPt;
+        const v3 da { a.mDiffPt - d.mDiffPt };
+        const v3 db { b.mDiffPt - d.mDiffPt };
+        const v3 dc { c.mDiffPt - d.mDiffPt };
 
-        auto abc = Cross( ab, ac );
-        auto bdc = Cross( bd, bc );
-        auto acd = Cross( ac, ad );
-        auto adb = Cross( ad, ab );
+        const v3 abc { Cross( ab, ac ) };
+        const v3 bdc { Cross( bd, bc ) };
+        const v3 acd { Cross( ac, ad ) };
+        const v3 adb { Cross( ad, ab ) };
 
         if( // vertex a
             Dot( ao, ab ) < 0 &&
@@ -407,7 +407,7 @@ namespace Tac
       default: TAC_ASSERT_INVALID_CASE( supportCount ); return;
     }
 
-    const float searchDirLen = Length( mClosestPoint );
+    const float searchDirLen { Length( mClosestPoint ) };
     if( searchDirLen < 0.001f )
     {
       mIsRunning = false;
@@ -426,8 +426,8 @@ namespace Tac
 
       for( const v3& supportDir : supportDirs )
       {
-        const CompoundSupport compoundSupport = GetCompountSupport( supportDir );
-        bool valid = true;
+        const CompoundSupport compoundSupport { GetCompountSupport( supportDir ) };
+        bool valid { true };
         for( const CompoundSupport& point : mSupports )
         {
           if( Quadrance( point.mDiffPt, compoundSupport.mDiffPt ) < 0.001f )
@@ -474,7 +474,7 @@ namespace Tac
     mEPAIteration++;
 
     // We are trying to find the face on hull that is closest to the origin
-    bool isFirstLoop = true;
+    bool isFirstLoop { true };
     for( const EPATriangle& tri : mEPATriangles )
     {
       if( isFirstLoop || tri.mPlaneDist < mEPAClosest.mPlaneDist )
@@ -484,21 +484,21 @@ namespace Tac
 
     mEPAClosestSupportPoint = GetCompountSupport( mEPAClosest.mNormal );
     // wrong --> mEPAClosestSupportPoint.mDiffPt.Lenght()
-    auto pointDist = Dot( mEPAClosestSupportPoint.mDiffPt, mEPAClosest.mNormal );
+    const float pointDist { Dot( mEPAClosestSupportPoint.mDiffPt, mEPAClosest.mNormal ) };
     if( pointDist - mEPAClosest.mPlaneDist < 0.1f )
     {
       mEPAIsComplete = true;
-      v3 closestPointOnTri = mEPAClosest.mNormal * mEPAClosest.mPlaneDist;
+      const v3 closestPointOnTri { mEPAClosest.mNormal * mEPAClosest.mPlaneDist };
 
-      BarycentricTriInput baryIn
+      const BarycentricTriInput baryIn
       {
-        .mP = closestPointOnTri,
-        .mTri0 = mEPAClosest.mV0.mDiffPt,
-        .mTri1 = mEPAClosest.mV1.mDiffPt,
-        .mTri2 = mEPAClosest.mV2.mDiffPt,
+        .mP    { closestPointOnTri },
+        .mTri0 { mEPAClosest.mV0.mDiffPt },
+        .mTri1 { mEPAClosest.mV1.mDiffPt },
+        .mTri2 { mEPAClosest.mV2.mDiffPt },
       };
 
-      const Optional< BarycentricTriOutput > optBaryOut = BarycentricTriangle( baryIn );
+      const Optional< BarycentricTriOutput > optBaryOut { BarycentricTriangle( baryIn ) };
       if( optBaryOut.HasValue() )
         return;
 
@@ -518,19 +518,19 @@ namespace Tac
 
     // why the fuck is this a list
     List< EPAHalfEdge > epaHalfEdges;
-    auto iTri = mEPATriangles.begin();
+    auto iTri { mEPATriangles.begin() };
     while( iTri != mEPATriangles.end() )
     {
-      bool doesTriFacePoint = Dot(
+      const bool doesTriFacePoint{ Dot(
         iTri->mNormal,
-        mEPAClosestSupportPoint.mDiffPt - iTri->GetArbitraryPointOnTriangle() ) > 0;
+        mEPAClosestSupportPoint.mDiffPt - iTri->GetArbitraryPointOnTriangle() ) > 0 };
       if( !doesTriFacePoint )
       {
         ++iTri;
         continue;
       }
 
-      const EPAHalfEdge edges[] =
+      const EPAHalfEdge edges[]
       {
         EPAHalfEdge{ .mFrom = iTri->mV0, .mTo = iTri->mV1 },
         EPAHalfEdge{ .mFrom = iTri->mV1, .mTo = iTri->mV2 },
@@ -540,7 +540,7 @@ namespace Tac
       for( const EPAHalfEdge& edge : edges )
       {
         const EPAHalfEdge reversed = edge.Reverse();
-        if( auto iEdge = epaHalfEdges.Find( reversed ) )
+        if( auto iEdge{ epaHalfEdges.Find( reversed ) } )
           epaHalfEdges.erase( iEdge );
         else
           epaHalfEdges.push_back( edge );
@@ -561,14 +561,14 @@ namespace Tac
 
   CompoundSupport GJK::GetCompountSupport( const v3& dir )
   {
-    const v3 leftSupport = mLeft->GetFurthestPoint( dir );
-    const v3 rightSupport = mRight->GetFurthestPoint( -dir );
-    const v3 minkowskiDiffSupport = leftSupport - rightSupport;
+    const v3 leftSupport { mLeft->GetFurthestPoint( dir ) };
+    const v3 rightSupport { mRight->GetFurthestPoint( -dir ) };
+    const v3 minkowskiDiffSupport { leftSupport - rightSupport };
 
     const CompoundSupport result
     {
-      .mDiffPt = minkowskiDiffSupport,
-      .mLeftPoint = leftSupport,
+      .mDiffPt { minkowskiDiffSupport },
+      .mLeftPoint { leftSupport },
     };
     return result;
   }
@@ -613,12 +613,12 @@ namespace Tac
 
   EPAHalfEdge EPAHalfEdge::Reverse() const
   {
-    EPAHalfEdge result
+    return EPAHalfEdge
     {
-      .mFrom = mTo,
-      .mTo = mFrom,
+      .mFrom { mTo },
+      .mTo   { mFrom },
     };
-    return result;
+;
   }
 
   bool EPAHalfEdge::operator==( const EPAHalfEdge& other ) const

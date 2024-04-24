@@ -48,7 +48,7 @@ namespace Tac
     void                AddSnapshot( const World* );
     World*              FindSnapshot( Timestamp elapsedGameSecs );
     List< World* >      mSnapshots;
-    const int           maxSnapshots = 32;
+    const int           maxSnapshots { 32 };
   };
 
 }

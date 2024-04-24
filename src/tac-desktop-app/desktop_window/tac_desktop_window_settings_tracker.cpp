@@ -11,15 +11,15 @@ namespace Tac
   static SimWindowApi* sWindowApi;
   struct TrackInfo
   {
-    String              mPath;
-    WindowHandle        mWindowHandle;
-    int                 mX { 0 };
-    int                 mY { 0 };
-    int                 mW { 0 };
-    int                 mH { 0 };
-    bool                mQuitOnClose { false };
-    bool                mEverOpened { false };
-    bool                mTrackSettings { false };
+    String              mPath          {};
+    WindowHandle        mWindowHandle  {};
+    int                 mX             {};
+    int                 mY             {};
+    int                 mW             {};
+    int                 mH             {};
+    bool                mQuitOnClose   {};
+    bool                mEverOpened    {};
+    bool                mTrackSettings {};
   };
 
   static Vector< TrackInfo > sTrackInfos;
@@ -53,12 +53,12 @@ Tac::WindowHandle Tac::CreateTrackedWindow( WindowCreateParams params )
   const char* path{ params.mName }; // just reuse it
   const TrackInfo info
   {
-    .mPath { path },
-    .mWindowHandle { windowHandle },
-    .mX { params.mPos.x },
-    .mY { params.mPos.y },
-    .mW { params.mSize.x },
-    .mH { params.mSize.y },
+    .mPath          { path },
+    .mWindowHandle  { windowHandle },
+    .mX             { params.mPos.x },
+    .mY             { params.mPos.y },
+    .mW             { params.mSize.x },
+    .mH             { params.mSize.y },
     .mTrackSettings { true },
   };
   sTrackInfos.push_back( info );

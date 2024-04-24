@@ -19,7 +19,8 @@ namespace Tac::Render
   {
     for( auto lineProcessor : mProcessors )
     {
-      Optional< String > optNewLines = TAC_CALL_RET( {}, lineProcessor->Preprocess( line, errors ) );
+      TAC_CALL_RET( {},
+                    Optional< String > optNewLines{ lineProcessor->Preprocess( line, errors ) } );
       if( optNewLines.HasValue() )
       {
         return optNewLines;
@@ -36,11 +37,11 @@ namespace Tac::Render
     ParseData shaderParseData( sourceCode.data(), sourceCode.size() );
     while( shaderParseData.GetRemainingByteCount() )
     {
-      const StringView origLine = shaderParseData.EatRestOfLine();
-      Optional< String > optResult = TAC_CALL_RET( {}, PreprocessLine( origLine, errors ) );
-      String procLine = optResult.GetValueOr( origLine );
+      const StringView origLine { shaderParseData.EatRestOfLine() };
+      TAC_CALL_RET( {}, Optional< String > optResult{ PreprocessLine( origLine, errors ) } );
+      String procLine { optResult.GetValueOr( origLine ) };
       String recursed;
-      const bool isSame = ( StringView )procLine == origLine;
+      const bool isSame { ( StringView )procLine == origLine };
       if( !isSame )
       {
         // Recurse
@@ -58,7 +59,7 @@ namespace Tac::Render
   String HLSLFilePreprocessor::PreprocessFile( const AssetPathStringView assetPath,
                                                Errors& errors )
   {
-    const String sourceCode = TAC_CALL_RET( {}, LoadAssetPath( assetPath, errors ) );
+    TAC_CALL_RET( {}, const String sourceCode{ LoadAssetPath( assetPath, errors ) } );
     return PreprocessSource( sourceCode, errors );
 
   }

@@ -26,7 +26,7 @@ namespace Tac
 
     Model*              CreateModelComponent() override
     {
-      auto model = TAC_NEW Model;
+      auto model { TAC_NEW Model };
       mModels.insert( model );
       return model;
     }
@@ -49,7 +49,7 @@ namespace Tac
 
     Skybox*             CreateSkyboxComponent() override
     {
-      auto skybox = TAC_NEW Skybox;
+      auto skybox { TAC_NEW Skybox };
       mSkyboxes.insert( skybox );
       return skybox;
     }
@@ -71,7 +71,7 @@ namespace Tac
 
     Light*              CreateLightComponent() override
     {
-      auto light = TAC_NEW Light;
+      auto light { TAC_NEW Light };
       mLights.insert( light );
       return light;
     }

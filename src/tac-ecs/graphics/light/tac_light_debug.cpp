@@ -24,7 +24,7 @@ namespace Tac
         TAC_ASSERT( mNames[ i ] );
     }
     const char* GetName( const Light::Type type ) { return mNames[ type ]; }
-    const char* mNames[ Light::Type::kCount ] = {};
+    const char* mNames[ Light::Type::kCount ]     {};
   } sLightTypeNames;
 
   static const char* LightTypeToName( const Light::Type type ) { return sLightTypeNames.GetName( type ); }
@@ -36,12 +36,14 @@ namespace Tac
     const char* lightTypeStr = LightTypeToName( light->mType );
     ImGuiText( String() + "Light type: " + ToString( lightTypeStr ) );
     ImGuiText( "Change light type: " );
-    for( Light::Type type = ( Light::Type )0; type < Light::Type::kCount; type = ( Light::Type )( type + 1 ) )
+    for( Light::Type type { ( Light::Type )0 };
+         type < Light::Type::kCount;
+         type = ( Light::Type )( type + 1 ) )
     {
       if( type == light->mType )
         continue;
       ImGuiSameLine();
-      const char* name = LightTypeToName( type );
+      const char* name { LightTypeToName( type ) };
       if( ImGuiButton( name ) )
         light->mType = type;
     }
@@ -50,10 +52,10 @@ namespace Tac
         && ImGuiCollapsingHeader( String() + lightTypeStr + " light parameters" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      float fovDeg = light->mSpotHalfFOVRadians * ( 180.0f / 3.14f );
+      float fovDeg { light->mSpotHalfFOVRadians * ( 180.0f / 3.14f ) };
       if( ImGuiDragFloat( "half fov deg", &fovDeg ) )
       {
-        const float eps = 1.0f;
+        const float eps { 1.0f };
         fovDeg = Max( fovDeg, eps );
         fovDeg = Min( fovDeg, 90.0f - eps );
         light->mSpotHalfFOVRadians = fovDeg * ( 3.14f / 180.0f );
@@ -64,7 +66,7 @@ namespace Tac
 
   static void LightDebugImguiShadowResolution( Light* light )
   {
-    int newDim = light->mShadowResolution;
+    int newDim { light->mShadowResolution };
     if( ImGuiButton( "-" ) )
       newDim /= 2;
     ImGuiSameLine();
@@ -81,15 +83,15 @@ namespace Tac
 
   static void Camera3DDraw( const Camera& camera, Debug3DDrawData* drawData )
   {
-    const float nearPlaneHalfSize = camera.mNearPlane * Tan( camera.mFovyrad / 2 );
-    const float farPlaneHalfSize = camera.mFarPlane * Tan( camera.mFovyrad / 2 );
+    const float nearPlaneHalfSize { camera.mNearPlane * Tan( camera.mFovyrad / 2 ) };
+    const float farPlaneHalfSize { camera.mFarPlane * Tan( camera.mFovyrad / 2 ) };
 
     v3 nearPoints[ 4 ];
     v3 farPoints[ 4 ];
     for( int i{}; i < 4; ++i )
     {
-      const v2 offsets[] = { v2( -1,-1 ), v2( 1, -1 ), v2( 1, 1 ), v2( -1,1 ) };
-      const v2 offset = offsets[ i ];
+      const v2 offsets[]  { v2( -1,-1 ), v2( 1, -1 ), v2( 1, 1 ), v2( -1,1 ) };
+      const v2 offset { offsets[ i ] };
 
       auto GetPlanePoint = [ & ]( float planeDist, float halfSize )
         {
@@ -107,7 +109,7 @@ namespace Tac
     const v4 color( 1, 1, 1, 1 );
     for( int i{}; i < 4; ++i )
     {
-      const int j = ( i + 1 ) % 4;
+      const int j { ( i + 1 ) % 4 };
       drawData->DebugDraw3DLine( nearPoints[ i ], farPoints[ i ], color );
       drawData->DebugDraw3DLine( nearPoints[ i ], nearPoints[ j ], color );
       drawData->DebugDraw3DLine( farPoints[ i ], farPoints[ j ], color );
@@ -116,11 +118,11 @@ namespace Tac
 
   static void LightDebug3DDraw( Light* light )
   {
-    Entity* entity = light->mEntity;
-    World* world = entity->mWorld;
-    Debug3DDrawData* drawData = world->mDebug3DDrawData;
-    Camera camera = light->GetCamera();
-    const v3 p = entity->mWorldPosition;
+    Entity* entity { light->mEntity };
+    World* world { entity->mWorld };
+    Debug3DDrawData* drawData { world->mDebug3DDrawData };
+    const Camera camera { light->GetCamera() };
+    const v3 p { entity->mWorldPosition };
     drawData->DebugDraw3DArrow( p, p + camera.mForwards * 10.0f );
 
     const v3 axes[] = { camera.mRight,camera.mUp,-camera.mForwards };
@@ -145,19 +147,19 @@ void Tac::LightDebugImgui( Light* light )
 
   static Errors errors;
 
-  const Render::TextureHandle viz =
-    TAC_CALL( DepthBufferLinearVisualizationRender(
+  TAC_CALL( const Render::TextureHandle viz{
+    DepthBufferLinearVisualizationRender(
       light->mShadowMapDepth,
       light->mShadowResolution,
       light->mShadowResolution,
-      errors ) );
+      errors ) }  );
 
   if( errors )
   {
     ImGuiText( "Errors: " + errors.ToString() );
   }
 
-  const v2 shadowMapSize = v2( 1, 1 ) * 256;
+  const v2 shadowMapSize { v2( 1, 1 ) * 256 };
   ImGuiImage( viz.GetIndex(), shadowMapSize );
 
 
@@ -170,12 +172,12 @@ void Tac::LightDebugImgui( Light* light )
     light->FreeRenderResources();
   }
 
-  m4 world_xform = light->mEntity->mWorldTransform;
+  const m4 world_xform { light->mEntity->mWorldTransform };
 
   const Camera camera = light->GetCamera();
-  v3 x = camera.mRight;
-  v3 y = camera.mUp;
-  v3 z = -camera.mForwards;
+  v3 x { camera.mRight };
+  v3 y { camera.mUp };
+  v3 z { -camera.mForwards };
   ImGuiDragFloat3( "Local x", x.data() );
   ImGuiDragFloat3( "Local y", y.data() );
   ImGuiDragFloat3( "Local z", z.data() );

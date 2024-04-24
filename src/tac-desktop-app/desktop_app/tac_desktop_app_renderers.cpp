@@ -29,7 +29,7 @@ namespace Tac::Render
 
   static RendererFactory GetFactoryFromSettings()
   {
-    const String name = SettingsGetString( "chosen_renderer", "" );
+    const String name { SettingsGetString( "chosen_renderer", "" ) };
     for( int i{}; i < ( int )RendererAPI::Count; ++i )
       if( ToString( ( RendererAPI )i ) == name )
         return GetRendererFactory( ( RendererAPI )i );
@@ -57,7 +57,7 @@ namespace Tac::Render
 
   static RendererFactory GetFactory()
   {
-    const RendererFactory factories[] =
+    const RendererFactory factories[]
     {
         GetFactoryFromSettings(),
         GetFactoryFromPlatform(),
@@ -109,7 +109,7 @@ void Tac::DesktopInitRendering( struct Errors& errors )
 #if TAC_TEMPORARILY_DISABLED()
   Render::RegisterRenderers();
 
-  const Render::RendererFactory factory = Render::GetFactory();
+  const Render::RendererFactory factory { Render::GetFactory() };
   TAC_RAISE_ERROR_IF( !factory, "No renderer factories!" );
 
   Render::Renderer::Instance = factory();

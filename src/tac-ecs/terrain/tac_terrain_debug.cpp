@@ -107,11 +107,11 @@ namespace Tac
 
     void DebugDraw()
     {
-      Entity* entity = mTerrain->mEntity;
-      World* world = entity->mWorld;
-      Debug3DDrawData* debug3DDrawData = world->mDebug3DDrawData;
-      v3 gridColor = { 0, 0, 0 };
-      v3 offset = { 0, 0.1f, 0 }; // for zfighting against the tri mesh
+      Entity* entity { mTerrain->mEntity };
+      World* world { entity->mWorld };
+      Debug3DDrawData* debug3DDrawData { world->mDebug3DDrawData };
+      v3 gridColor  { 0, 0, 0 };
+      v3 offset  { 0, 0.1f, 0 }; // for zfighting against the tri mesh
 
       if( mTerrain->mRowMajorGrid.empty() )
         return;
@@ -119,38 +119,38 @@ namespace Tac
       if( !mDrawGrid )
         return;
 
-      for( int iRow = 0; iRow < mTerrain->mSideVertexCount; ++iRow )
+      for( int iRow { 0 }; iRow < mTerrain->mSideVertexCount; ++iRow )
       {
-        for( int iCol = 0; iCol < mTerrain->mSideVertexCount; ++iCol )
+        for( int iCol { 0 }; iCol < mTerrain->mSideVertexCount; ++iCol )
         {
-          v3 topLeft = mTerrain->GetGridVal( iRow, iCol ) + offset;
+          const v3 topLeft { mTerrain->GetGridVal( iRow, iCol ) + offset };
 
           if( iCol + 1 < mTerrain->mSideVertexCount )
           {
-            v3 topRight = mTerrain->GetGridVal( iRow, iCol + 1 ) + offset;
+            const v3 topRight { mTerrain->GetGridVal( iRow, iCol + 1 ) + offset };
             debug3DDrawData->DebugDraw3DLine( topLeft, topRight, gridColor );
           }
           if( iRow + 1 < mTerrain->mSideVertexCount )
           {
-            v3 bottomLeft = mTerrain->GetGridVal( iRow + 1, iCol ) + offset;
+            const v3 bottomLeft { mTerrain->GetGridVal( iRow + 1, iCol ) + offset };
             debug3DDrawData->DebugDraw3DLine( topLeft, bottomLeft, gridColor );
           }
           if( iCol + 1 < mTerrain->mSideVertexCount && iRow + 1 < mTerrain->mSideVertexCount )
           {
-            v3 bottomRight = mTerrain->GetGridVal( iRow + 1, iCol + 1 ) + offset;
+            const v3 bottomRight { mTerrain->GetGridVal( iRow + 1, iCol + 1 ) + offset };
             debug3DDrawData->DebugDraw3DLine( topLeft, bottomRight, gridColor );
           }
         }
       }
     }
 
-    bool mDrawGrid = false;
+    bool mDrawGrid { false };
     Errors mNoiseTextureDialogErrors;
     Errors mTerrainTextureDialogErrors;
     Errors mHeightmapFileDialogErrors;
     Errors mHeightmapDirectoryIterateErrors;
-    Terrain* mTerrain = nullptr;
-    bool iterated = false;
+    Terrain* mTerrain { nullptr };
+    bool iterated { false };
     Vector< Filesystem::Path > heightmapPaths;
   } gTerrainDebugger;
 

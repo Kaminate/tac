@@ -5,20 +5,20 @@ namespace Tac
 {
   Vector<u8> Checkerboard::GenerateCheckerboardTextureData()
   {
-    const int rowPitch = TextureWidth * TexturePixelSize;
-    const int cellPitch = rowPitch >> 3;        // The width of a cell in the checkboard texture.
-    const int cellHeight = TextureWidth >> 3;    // The height of a cell in the checkerboard texture.
-    const int textureSize = rowPitch * TextureHeight;
+    const int rowPitch { TextureWidth * TexturePixelSize };
+    const int cellPitch { rowPitch >> 3 };        // The width of a cell in the checkboard texture.
+    const int cellHeight { TextureWidth >> 3 };    // The height of a cell in the checkerboard texture.
+    const int textureSize { rowPitch * TextureHeight };
 
     Vector<u8> data( textureSize );
-    u8* pData = &data[ 0 ];
+    u8* pData { &data[ 0 ] };
 
-    for( int n = 0; n < textureSize; n += TexturePixelSize )
+    for( int n { 0 }; n < textureSize; n += TexturePixelSize )
     {
-      int x = n % rowPitch;
-      int y = n / rowPitch;
-      int i = x / cellPitch;
-      int j = y / cellHeight;
+      int x { n % rowPitch };
+      int y { n / rowPitch };
+      int i { x / cellPitch };
+      int j { y / cellHeight };
 
       if( i % 2 == j % 2 )
       {

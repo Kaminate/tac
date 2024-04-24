@@ -18,16 +18,16 @@ namespace Tac::Render
   {
     const D3D12_ROOT_DESCRIPTOR1 desc
     {
-      .ShaderRegister = ( UINT )loc.mRegister,
-      .RegisterSpace = ( UINT )loc.mSpace,
-      .Flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
+      .ShaderRegister { ( UINT )loc.mRegister },
+      .RegisterSpace  { ( UINT )loc.mSpace },
+      .Flags          { D3D12_ROOT_DESCRIPTOR_FLAG_NONE },
     };
 
     const D3D12_ROOT_PARAMETER1 rootParam
     {
-      .ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV,
-      .Descriptor = desc,
-      .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL,
+      .ParameterType { D3D12_ROOT_PARAMETER_TYPE_CBV },
+      .Descriptor { desc },
+      .ShaderVisibility { D3D12_SHADER_VISIBILITY_ALL },
     };
 
     mRootParams.push_back( rootParam );
@@ -36,7 +36,7 @@ namespace Tac::Render
 
   D3D12_DESCRIPTOR_RANGE1* DX12RootSigBuilder::AddRange( int n )
   {
-    const int rangeOffset = mRanges.size();
+    const int rangeOffset { mRanges.size() };
     mRangeOffsets.push_back( rangeOffset );
     mRanges.resize( mRanges.size() + n );
     return &mRanges[ rangeOffset ];
@@ -51,28 +51,28 @@ namespace Tac::Render
                                              UINT NumDescriptors,
                                              Location loc )
   {
-    D3D12_DESCRIPTOR_RANGE1* range = AddRange();
+    D3D12_DESCRIPTOR_RANGE1* range { AddRange() };
     *range = D3D12_DESCRIPTOR_RANGE1
     {
-      .RangeType = type,
-      .NumDescriptors = NumDescriptors,
-      .BaseShaderRegister = ( UINT )loc.mRegister,
-      .RegisterSpace = ( UINT )loc.mSpace,
-      .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE,
-      .OffsetInDescriptorsFromTableStart = 0,
+      .RangeType                         { type },
+      .NumDescriptors                    { NumDescriptors },
+      .BaseShaderRegister                { ( UINT )loc.mRegister },
+      .RegisterSpace                     { ( UINT )loc.mSpace },
+      .Flags                             { D3D12_DESCRIPTOR_RANGE_FLAG_NONE },
+      .OffsetInDescriptorsFromTableStart { 0 },
     };
 
     const D3D12_ROOT_DESCRIPTOR_TABLE1 DescriptorTable
     {
-      .NumDescriptorRanges = 1,
-      .pDescriptorRanges = range,
+      .NumDescriptorRanges { 1 },
+      .pDescriptorRanges { range },
     };
 
     const D3D12_ROOT_PARAMETER1 rootParam
     {
-      .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
-      .DescriptorTable = DescriptorTable,
-      .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL,
+      .ParameterType { D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE },
+      .DescriptorTable { DescriptorTable },
+      .ShaderVisibility { D3D12_SHADER_VISIBILITY_ALL },
     };
 
     mRootParams.push_back( rootParam );
@@ -86,16 +86,16 @@ namespace Tac::Render
   {
     const D3D12_ROOT_DESCRIPTOR1 Descriptor
     {
-      .ShaderRegister = ( UINT )loc.mRegister,
-      .RegisterSpace = ( UINT )loc.mSpace,
-      .Flags = D3D12_ROOT_DESCRIPTOR_FLAG_NONE,
+      .ShaderRegister{ ( UINT )loc.mRegister },
+      .RegisterSpace { ( UINT )loc.mSpace },
+      .Flags         { D3D12_ROOT_DESCRIPTOR_FLAG_NONE },
     };
 
     const D3D12_ROOT_PARAMETER1 rootParam
     {
-      .ParameterType = type,
-      .Descriptor = Descriptor,
-      .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL,
+      .ParameterType    { type },
+      .Descriptor       { Descriptor },
+      .ShaderVisibility { D3D12_SHADER_VISIBILITY_ALL },
     };
 
     mRootParams.push_back( rootParam );
@@ -108,9 +108,9 @@ namespace Tac::Render
   {
     const D3D12_ROOT_PARAMETER1 rootParam
     {
-      .ParameterType = paramType,
-      .Descriptor = desc,
-      .ShaderVisibility = vis,
+      .ParameterType { paramType },
+      .Descriptor { desc },
+      .ShaderVisibility { vis },
     };
 
     mRootParams.push_back( rootParam );
@@ -122,9 +122,9 @@ namespace Tac::Render
   {
     const D3D12_ROOT_PARAMETER1 rootParam
     {
-      .ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV,
-      .Descriptor = descriptor,
-      .ShaderVisibility = vis,
+      .ParameterType { D3D12_ROOT_PARAMETER_TYPE_CBV },
+      .Descriptor { descriptor },
+      .ShaderVisibility { vis },
     };
 
     mRootParams.push_back( rootParam );
@@ -139,13 +139,13 @@ namespace Tac::Render
 
     const D3D12_ROOT_PARAMETER1 rootParam
     {
-      .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
+      .ParameterType { D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE },
       .DescriptorTable = D3D12_ROOT_DESCRIPTOR_TABLE1
       {
-        .NumDescriptorRanges = ( UINT )dst.size(),
-        .pDescriptorRanges = dst.data(),
+        .NumDescriptorRanges { ( UINT )dst.size() },
+        .pDescriptorRanges { dst.data() },
       },
-      .ShaderVisibility = vis,
+      .ShaderVisibility { vis },
     };
 
     mRootParams.push_back( rootParam );
@@ -156,7 +156,7 @@ namespace Tac::Render
   {
     TAC_ASSERT( !mRootParams.empty() );
 
-    int* rangeOffset = mRangeOffsets.data();
+    int* rangeOffset { mRangeOffsets.data() };
     for( D3D12_ROOT_PARAMETER1& rootParam : mRootParams )
       if( rootParam.ParameterType == D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE )
         rootParam.DescriptorTable.pDescriptorRanges = mRanges.data() + *rangeOffset++;
@@ -169,15 +169,17 @@ namespace Tac::Render
     //   defines a set of vertex buffer bindings.
     const D3D12_ROOT_SIGNATURE_FLAGS rootSigFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
+    const D3D12_ROOT_SIGNATURE_DESC1 Desc_1_1
+    {
+      .NumParameters { ( UINT )mRootParams.size() },
+      .pParameters   { mRootParams.data() },
+      .Flags         { rootSigFlags },
+    },
+
     const D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc
     {
-      .Version = D3D_ROOT_SIGNATURE_VERSION_1_1,
-      .Desc_1_1 = D3D12_ROOT_SIGNATURE_DESC1
-      {
-        .NumParameters = ( UINT )mRootParams.size(),
-        .pParameters = mRootParams.data(),
-        .Flags = rootSigFlags,
-      },
+      .Version  { D3D_ROOT_SIGNATURE_VERSION_1_1 },
+      .Desc_1_1 { Desc_1_1 },
     };
 
     PCom<ID3DBlob> blob;

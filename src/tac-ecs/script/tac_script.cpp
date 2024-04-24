@@ -40,7 +40,7 @@ namespace Tac
 
   void ScriptThread::AddScriptCallback( void* userData, ScriptCallbackFunction* scriptCallbackFunction )
   {
-    auto* scriptCallbackData = TAC_NEW ScriptCallbackData;
+    auto* scriptCallbackData { TAC_NEW ScriptCallbackData };
     scriptCallbackData->mUserData = userData;
     scriptCallbackData->mScriptCallbackFunction = scriptCallbackFunction;
     mMsgCallbacks.insert( scriptCallbackData );

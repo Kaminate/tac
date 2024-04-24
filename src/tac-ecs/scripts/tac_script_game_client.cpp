@@ -22,10 +22,10 @@ namespace Tac
 {
 
 
-	const String defaultHostname = "tac.nate.rocks";
-	const u16 defaultPort = 8081;
+	const String defaultHostname { "tac.nate.rocks" };
+	const u16 defaultPort { 8081 };
 
-	v4 colorText = v4( 202, 234, 241, 255 ) / 255.0f;
+	const v4 colorText { v4( 202, 234, 241, 255 ) / 255.0f };
 
 	//ScriptFader::ScriptFader()
 	//{
@@ -85,10 +85,10 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
 		TAC_TIMELINE_BEGIN;
 
-		auto scriptMatchmaker = TAC_NEW ScriptMatchmaker;
+		auto scriptMatchmaker { TAC_NEW ScriptMatchmaker };
 		mScriptRoot->AddChild( scriptMatchmaker );
 
-		auto scriptSplash = TAC_NEW ScriptSplash;
+		auto scriptSplash { TAC_NEW ScriptSplash };
 		mScriptRoot->AddChild( scriptSplash );
 
 		TAC_TIMELINE_KEYFRAME;
@@ -186,20 +186,20 @@ namespace Tac
 		if( !mSocket->mTCPIsConnected )
 			return;
 
-		const String s =
-			"ScriptGameClient messsage: elapsed time is " +
-			FormatFrameTime( Timestep::GetElapsedTime() );
+    const String s{
+      "ScriptGameClient messsage: elapsed time is " +
+      FormatFrameTime( Timestep::GetElapsedTime() ) };
 
 		Json json;
 		json[ "name" ].SetString( "Ping" );
 		Json& args = json[ "args" ];
 		args.mType = JsonType::Array;
 
-		Json* arg0 = TAC_NEW( kHappyGrl ) Json;
+		Json* arg0 { TAC_NEW( kHappyGrl ) Json };
 		arg0->SetString( s );
 		args.mArrayElements.push_back( arg0 );
 
-		String toSend = json.Stringify();
+		String toSend { json.Stringify() };
 		mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
 	}
 	void ScriptMatchmaker::ClearServerLog( Errors& errors )
@@ -209,7 +209,7 @@ namespace Tac
 			return;
 		Json json;
 		json[ "name" ] = "clear console";
-		String toSend = json.Stringify();
+		String toSend { json.Stringify() };
 		mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
 	}
 	void ScriptMatchmaker::Log( StringView text )
@@ -235,19 +235,19 @@ namespace Tac
                                        void* bytes,
                                        int byteCount )
   {
-    auto matchMaker = ( ScriptMatchmaker* )userData;
+    auto matchMaker { ( ScriptMatchmaker* )userData };
     matchMaker->OnScriptGameMessage( socket, bytes, byteCount );
   };
 
   void ScriptMatchmaker::TCPOnConnectionClosed( void* userData, Network::Socket* socket )
   {
-    auto matchMaker = ( ScriptMatchmaker* )userData;
+    auto matchMaker { ( ScriptMatchmaker* )userData };
     matchMaker->OnScriptGameConnectionClosed( socket );
   };
 
   void ScriptMatchmaker::KeepAlive(void* userData, Network::Socket* )
   {
-    auto* scriptMatchmaker = ( ScriptMatchmaker* )userData;
+    auto* scriptMatchmaker { ( ScriptMatchmaker* )userData };
     Errors errors; // ???
     scriptMatchmaker->PokeServer( errors );
   };
@@ -264,15 +264,15 @@ namespace Tac
 
     const Network::SocketCallbackDataMessage socketCallbackDataMessage =
     {
-      .mCallback = ScriptMatchmaker::TCPOnMessage,
-      .mUserData = this,
+      .mCallback { ScriptMatchmaker::TCPOnMessage },
+      .mUserData { this },
     };
 		mSocket->mTCPOnMessage.push_back( socketCallbackDataMessage );
 
     const Network::SocketCallbackData socketCallbackData =
     {
-      .mCallback = TCPOnConnectionClosed,
-      .mUserData = this,
+      .mCallback { TCPOnConnectionClosed },
+      .mUserData { this },
     };
 		mSocket->mTCPOnConnectionClosed.push_back( socketCallbackData );
 
@@ -312,7 +312,7 @@ namespace Tac
 
 		TAC_TIMELINE_KEYFRAME;
 		Network::HTTPRequest httpRequest;
-		auto websocketKey = Network::GenerateSecWebsocketKey();
+		Vector<u8> websocketKey { Network::GenerateSecWebsocketKey() };
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
           OS::OSDebugPrintLine(httpRequest.ToString());
@@ -835,7 +835,7 @@ namespace Tac
 				timelineAction->mPlayedBegin = true;
 			}
 
-			float percent = ( float )( ( time - timelineAction->mTimeBegin ) / ( timelineAction->mTimeEnd - timelineAction->mTimeBegin ) );
+			float percent { ( float )( ( time - timelineAction->mTimeBegin ) / ( timelineAction->mTimeEnd - timelineAction->mTimeBegin ) ) };
 			percent = Saturate( percent );
 			timelineAction->Update( percent );
 
