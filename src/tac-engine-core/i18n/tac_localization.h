@@ -10,7 +10,7 @@
 //#include "tac-std-lib/tac_core.h"
 
 #include "tac-std-lib/tac_ints.h"
-
+#include "tac-std-lib/containers/tac_vector.h"
 
 namespace Tac{ struct StringView; struct Errors; }
 namespace Tac::Filesystem { struct Path; }
@@ -31,10 +31,6 @@ namespace Tac
     Count
   };
 
-  StringView LanguageToStr( Language );
-  Language   GetLanguage( StringView );
-  void       LanguageDebugImgui( StringView name, Language* );
-  bool       IsAsciiCharacter( Codepoint );
 
   struct CodepointView
   {
@@ -50,13 +46,20 @@ namespace Tac
     int              mCodepointCount = 0;
   };
 
+  using CodepointString = Vector< Codepoint >;
+
   bool operator == ( CodepointView, CodepointView );
   bool operator != ( CodepointView, CodepointView );
 
-  CodepointView UTF8ToCodepoints( StringView );
-  StringView    CodepointsToUTF8( CodepointView );
+  StringView      LanguageToStr( Language );
+  Language        GetLanguage( StringView );
+  void            LanguageDebugImgui( StringView name, Language* );
+  bool            IsAsciiCharacter( Codepoint );
 
-  CodepointView LocalizationGetString( Language, StringView );
-  void          LocalizationLoad( const Filesystem::Path&, Errors& );
-  void          LocalizationDebugImgui();
+  CodepointString UTF8ToCodepointString( StringView );
+  StringView      CodepointsToUTF8( CodepointView );
+
+  CodepointView   LocalizationGetString( Language, StringView );
+  void            LocalizationLoad( const Filesystem::Path&, Errors& );
+  void            LocalizationDebugImgui();
 } // namespace Tac

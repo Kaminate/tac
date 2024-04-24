@@ -132,7 +132,8 @@ namespace Tac
 
   void                TextInputData::SetText( StringView text )
   {
-    const CodepointView codepointView = UTF8ToCodepoints( text );
+    const CodepointString codepointString { UTF8ToCodepointString( text ) };
+    const CodepointView codepointView{ codepointString.data(), codepointString.size() };
     SetCodepoints( codepointView );
   }
 

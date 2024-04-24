@@ -15,6 +15,11 @@ namespace Tac
   struct LocalizedStringStuff
   {
     LocalizedStringStuff() = default;
+    LocalizedStringStuff( CodepointString cv, StringView sv )
+    {
+      SetCodepointsOnly( cv );
+      SetUTF8StringOnly( sv );
+    }
     LocalizedStringStuff( CodepointView cv, StringView sv )
     {
       SetCodepointsOnly( cv );
@@ -45,6 +50,7 @@ namespace Tac
   private:
     void SetUTF8StringOnly( StringView );
     void SetCodepointsOnly( CodepointView );
+    void SetCodepointsOnly( CodepointString );
 
     // TODO: don't bother storing the codepoints, just compute them on the fly
     Vector< Codepoint > mCodepoints;
@@ -63,17 +69,17 @@ namespace Tac
 
   static void             LoadLanguageMapEntry( LanguageMap* languageMap, ParseData& parseData )
   {
-    const StringView word = parseData.EatWord();
-    const Language language = GetLanguage( word );
+    const StringView word{ parseData.EatWord() };
+    const Language language{ GetLanguage( word ) };
     TAC_ASSERT( language != Language::Count );
     parseData.EatWhitespace();
-    const StringView utf8String = parseData.EatRestOfLine();
-    const CodepointView codepointView = UTF8ToCodepoints( utf8String );
-    TAC_ASSERT( !codepointView.empty() );
+    const StringView utf8String{ parseData.EatRestOfLine() };
+    const CodepointString codepointString{ UTF8ToCodepointString( utf8String ) };
+    const CodepointView codepointView{ codepointString.data(), codepointString.size() };
+    TAC_ASSERT( !codepointString.empty() );
 
-    LocalizedStringStuff localizedStringStuff( codepointView, utf8String );
-
-    ( *languageMap )[ language ] = localizedStringStuff;
+    LocalizedStringStuff& localizedStringStuff = ( *languageMap )[ language ];
+    localizedStringStuff.SetCodepointsAndUTF8String( codepointView, utf8String );
   }
 
   static bool             LoadLocalizedString( LocalizedString* localizedString, ParseData& parseData )
@@ -83,7 +89,7 @@ namespace Tac
       return false;
 
     LanguageMap codepointMap;
-    while( !parseData.EatWhitespace() && parseData.GetRemainingByteCount())
+    while( !parseData.EatWhitespace() && parseData.GetRemainingByteCount() )
       LoadLanguageMapEntry( &codepointMap, parseData );
 
     //localizedString->mReference = reference;
@@ -118,18 +124,6 @@ namespace Tac
     "Spanish",
   };
 
-  StringView LanguageToStr( Language language )
-  {
-    return Languages[ ( int )language ];
-  }
-
-  Language GetLanguage( StringView str )
-  {
-    for( int i{}; i < ( int )Language::Count; ++i )
-      if( ( StringView )Languages[ i ] == str )
-        return ( Language )i;
-    return Language::Count;
-  }
 
   bool IsAsciiCharacter( Codepoint codepoint )
   {
@@ -139,14 +133,20 @@ namespace Tac
   void LocalizedStringStuff::SetUTF8String( StringView utf8String )
   {
     SetUTF8StringOnly( utf8String );
-    SetCodepointsOnly( UTF8ToCodepoints( utf8String ) );
+    SetCodepointsOnly( UTF8ToCodepointString( utf8String ) );
   }
 
-  void LocalizedStringStuff::SetUTF8StringOnly( StringView utf8String)
+  void LocalizedStringStuff::SetUTF8StringOnly( StringView utf8String )
   {
     mUTF8String = utf8String;
   }
-      
+
+  void LocalizedStringStuff::SetCodepointsOnly( CodepointString codepoints )
+  {
+    CodepointView view( codepoints.data(), codepoints.size() );
+    SetCodepointsOnly( view );
+  }
+
   void LocalizedStringStuff::SetCodepointsOnly( CodepointView codepoints )
   {
     mCodepoints.resize( codepoints.size() );
@@ -279,117 +279,129 @@ namespace Tac
     return true;
   }
 
+}
 
-  CodepointView UTF8ToCodepoints( StringView stringView )
+Tac::StringView      Tac::LanguageToStr( Language language )
+{
+  return Languages[ ( int )language ];
+}
+
+Tac::Language        Tac::GetLanguage( StringView str )
   {
-    auto codepoints = ( Codepoint* )FrameMemoryAllocate( stringView.size() * sizeof( Codepoint ) );
-    int n = 0;
-    Converter converter( stringView );
-    while( Codepoint codepoint = converter.Extract() )
-      codepoints[ n++ ] = codepoint;
-    return CodepointView( codepoints, n );
+    for( int i{}; i < ( int )Language::Count; ++i )
+      if( ( StringView )Languages[ i ] == str )
+        return ( Language )i;
+    return Language::Count;
   }
 
-  StringView CodepointsToUTF8( CodepointView codepointView )
-  {
-    auto str = ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) );
-    int len = 0;
+Tac::CodepointString Tac::UTF8ToCodepointString( StringView stringView )
+{
+  Vector< Codepoint > codepoints;
+  Converter converter( stringView );
+  while( Codepoint codepoint = converter.Extract() )
+    codepoints.push_back( codepoint );
+  return codepoints;
+}
 
-    for( Codepoint codepoint : codepointView )
+Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
+{
+  auto str = ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) );
+  int len = 0;
+
+  for( Codepoint codepoint : codepointView )
+  {
+    if( codepoint >= 0x10000 )
     {
-      if( codepoint >= 0x10000 )
-      {
-        str[ len++ ] = 0b11110000 | ( 0b00000111 & ( codepoint >> 18 ) );
-        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 12 ) );
-        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) );
-        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
-      }
-      else if( codepoint >= 0x800 )
-      {
-        str[ len++ ] = 0b11100000 | ( 0b00001111 & ( codepoint >> 12 ) );
-        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) );
-        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
-      }
-      else if( codepoint > 0x80 )
-      {
-        str[ len++ ] = 0b11000000 | ( 0b00011111 & ( codepoint >> 6 ) );
-        str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
-      }
-      else
-      {
-        str[ len++ ] = 0b01111111 & codepoint;
-      }
-
+      str[ len++ ] = 0b11110000 | ( 0b00000111 & ( codepoint >> 18 ) );
+      str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 12 ) );
+      str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) );
+      str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
     }
-    return StringView( str, len );
+    else if( codepoint >= 0x800 )
+    {
+      str[ len++ ] = 0b11100000 | ( 0b00001111 & ( codepoint >> 12 ) );
+      str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 6 ) );
+      str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
+    }
+    else if( codepoint > 0x80 )
+    {
+      str[ len++ ] = 0b11000000 | ( 0b00011111 & ( codepoint >> 6 ) );
+      str[ len++ ] = 0b10000000 | ( 0b00111111 & ( codepoint >> 0 ) );
+    }
+    else
+    {
+      str[ len++ ] = 0b01111111 & codepoint;
+    }
+
   }
+  return StringView( str, len );
+}
 
-  //===--- Localization ---===//
+//===--- Localization ---===//
 
-  CodepointView LocalizationGetString( Language language, StringView reference )
-  {
-    LocalizedString* str = FindLocalizedString( reference );
-    if( !str )
-      return {};
-
-
-    auto it = str->mCodepoints.Find(language);
-    TAC_ASSERT( it );
-
-    const LocalizedStringStuff& localizedStringStuff = (*it).mSecond;
-    return localizedStringStuff.GetCodepointView();
-  }
-
-  void          LocalizationLoad( const Filesystem::Path& path, Errors& errors )
-  {
-    TAC_CALL( const String str = LoadFilePath( path, errors ) );
-
-    ParseData parseData( str.data(), str.size() );
-
-    LocalizedString localizedString;
-    while( LoadLocalizedString( &localizedString, parseData ) )
-      mLocalizedStrings.push_back( localizedString );
-  }
-
-  void          LocalizationDebugImgui()
-  {
-    //if( !ImGui::CollapsingHeader( "Localization" ) )
-    //  return;
-    //ImGui::Indent();
-    //OnDestruct( ImGui::Unindent() );
-    //for( auto & localizedStrings : mLocalizedStrings )
-    //{
-    //  if( !ImGui::CollapsingHeader( localizedStrings.mReference.c_str() ) )
-    //    continue;
-    //  ImGui::Indent();
-    //  OnDestruct( ImGui::Unindent() );
-    //  for( auto kvp : localizedStrings.mCodepoints )
-    //  {
-    //    auto language = kvp.first;
-    //    auto& languageStr = LanguageToStr( language );
-    //    auto& codepoints = kvp.second;
-    //    if( !ImGui::CollapsingHeader( languageStr.c_str() ) )
-    //      continue;
-    //    ImGui::Indent();
-    //    OnDestruct( ImGui::Unindent() );
-    //    ImGui::InputText( "", codepoints.mUTF8String );
-    //  }
-    //}
-  }
+Tac::CodepointView   Tac::LocalizationGetString( Language language, StringView reference )
+{
+  LocalizedString* str = FindLocalizedString( reference );
+  if( !str )
+    return {};
 
 
-  // Should I make an ImGui::Enum?
-  void LanguageDebugImgui( StringView , Language* )
-  {
-    //auto currentItem = ( int )( *language );
-    //auto itemGetter = []( void* data, int idx, const char** outText )
-    //{
-    //  UnusedParameter( data );
-    //  *outText = LanguageToStr( ( Language )idx ).c_str();
-    //  return true;
-    //};
-    //if( !ImGui::Combo( name.c_str(), &currentItem, itemGetter, nullptr, ( int )Language::Count ) )
-    //  return;
-    //*language = ( Language )currentItem;
-  }
+  auto it = str->mCodepoints.Find(language);
+  TAC_ASSERT( it );
+
+  const LocalizedStringStuff& localizedStringStuff = (*it).mSecond;
+  return localizedStringStuff.GetCodepointView();
+}
+
+void                 Tac::LocalizationLoad( const Filesystem::Path& path, Errors& errors )
+{
+  TAC_CALL( const String str{ LoadFilePath( path, errors ) }  );
+
+  ParseData parseData( str.data(), str.size() );
+
+  LocalizedString localizedString;
+  while( LoadLocalizedString( &localizedString, parseData ) )
+    mLocalizedStrings.push_back( localizedString );
+}
+
+void                 Tac::LocalizationDebugImgui()
+{
+  //if( !ImGui::CollapsingHeader( "Localization" ) )
+  //  return;
+  //ImGui::Indent();
+  //OnDestruct( ImGui::Unindent() );
+  //for( auto & localizedStrings : mLocalizedStrings )
+  //{
+  //  if( !ImGui::CollapsingHeader( localizedStrings.mReference.c_str() ) )
+  //    continue;
+  //  ImGui::Indent();
+  //  OnDestruct( ImGui::Unindent() );
+  //  for( auto kvp : localizedStrings.mCodepoints )
+  //  {
+  //    auto language = kvp.first;
+  //    auto& languageStr = LanguageToStr( language );
+  //    auto& codepoints = kvp.second;
+  //    if( !ImGui::CollapsingHeader( languageStr.c_str() ) )
+  //      continue;
+  //    ImGui::Indent();
+  //    OnDestruct( ImGui::Unindent() );
+  //    ImGui::InputText( "", codepoints.mUTF8String );
+  //  }
+  //}
+}
+
+
+// Should I make an ImGui::Enum?
+void                 Tac::LanguageDebugImgui( StringView , Language* )
+{
+  //auto currentItem = ( int )( *language );
+  //auto itemGetter = []( void* data, int idx, const char** outText )
+  //{
+  //  UnusedParameter( data );
+  //  *outText = LanguageToStr( ( Language )idx ).c_str();
+  //  return true;
+  //};
+  //if( !ImGui::Combo( name.c_str(), &currentItem, itemGetter, nullptr, ( int )Language::Count ) )
+  //  return;
+  //*language = ( Language )currentItem;
 }

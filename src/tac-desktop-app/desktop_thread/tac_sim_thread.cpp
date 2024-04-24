@@ -28,16 +28,17 @@
 
 namespace Tac
 {
-  KeyboardBackend::SimApi sKeyboardBackendSimApi;
-  WindowBackend::SimApi   sWindowBackend;
+  static KeyboardBackend::SimApi sKeyboardBackendSimApi;
+  static WindowBackend::SimApi   sWindowBackend;
+  static ThreadAllocator         sSysThreadAllocator;
+
 
   void SimThread::Init( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
 
-    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sim );
 
-    FrameMemoryInitThreadAllocator( 1024 * 1024 * 10  );
+    sSysThreadAllocator.Init( 1024 * 1024 * 10  ); // 10MB
 
     TAC_CALL( ShellInit( errors ) );
 
@@ -48,7 +49,6 @@ namespace Tac
     TrackWindowInit( sWindowApi );
 
     SpaceInit();
-
   }
 
   void SimThread::Uninit()
@@ -71,6 +71,9 @@ namespace Tac
 
   void SimThread::Update( Errors& errors )
   {
+    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sim );
+    FrameMemorySetThreadAllocator( &sSysThreadAllocator );
+
     TAC_ASSERT( mErrors && mApp );
     //PlatformFns* platform = PlatformFns::GetInstance();
 

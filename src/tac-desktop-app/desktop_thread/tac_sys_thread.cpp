@@ -53,21 +53,18 @@ namespace Tac
 
   }
 
+  static ThreadAllocator sSysThreadAllocator;
+
   void SysThread::Init( Errors& errors )
   {
     TAC_ASSERT( mErrors && mApp );
-
-    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sys );
-
-    FrameMemoryInitThreadAllocator( 1024 * 1024 * 10 );
-
-    
+    sSysThreadAllocator.Init(  1024 * 1024 * 10  ); // 10 MB
     //TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
-
   }
 
   void SysThread::Update( Errors& errors )
   {
+    FrameMemorySetThreadAllocator( & sSysThreadAllocator );
     TAC_ASSERT( mErrors && mApp );
 
     PlatformFns* platform = PlatformFns::GetInstance();

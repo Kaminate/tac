@@ -591,7 +591,8 @@ namespace Tac
     if( utf8.empty() )
       return;
 
-    CodepointView codepoints = UTF8ToCodepoints( utf8 );
+    const CodepointString codepointString{ UTF8ToCodepointString( utf8 ) };
+    const CodepointView codepoints{ codepointString.data(), codepointString.size() };
 
     Language defaultLanguage = Language::English;
     auto fontFile = FontApi::GetLanguageFontDims( defaultLanguage );
@@ -757,7 +758,8 @@ namespace Tac
 
   v2 CalculateTextSize( const StringView& text, const float fontSize )
   {
-    const CodepointView codepoints = UTF8ToCodepoints( text );
+    const CodepointString codepointString{ UTF8ToCodepointString( text ) };
+    const CodepointView codepoints{ codepointString.data(), codepointString.size() };
     return CalculateTextSize( codepoints, fontSize );
   }
 
@@ -779,13 +781,13 @@ namespace Tac
 
     //float unscaledLineWidthMax = 0; // max width of all lines
     //float unscaledLineWidthCur = 0;
-    float xUnscaled = 0;
-    float xUnscaledMax = 0;
+    float xUnscaled { 0 };
+    float xUnscaledMax { 0 };
 
-    Language defaultLanguage = Language::English;
-    auto fontFile = FontApi::GetLanguageFontDims( defaultLanguage );
+    Language defaultLanguage { Language::English };
+    auto fontFile { FontApi::GetLanguageFontDims( defaultLanguage ) };
 
-    int lineCount = 1;
+    int lineCount { 1 };
 
     //auto AccountForLine = [ &unscaledLineWidthMax, &unscaledLineWidth, &xUnscaled ]()
     //{
@@ -795,9 +797,9 @@ namespace Tac
     //  unscaledLineWidthMax = Max( unscaledLineWidthMax, xUnscaled );
     //};
 
-    for( int iCodepoint = 0; iCodepoint < codepointCount; ++iCodepoint )
+    for( int iCodepoint{ 0 }; iCodepoint < codepointCount; ++iCodepoint )
     {
-      Codepoint codepoint = codepoints[ iCodepoint ];
+      Codepoint codepoint { codepoints[ iCodepoint ] };
       if( !codepoint )
         continue;
 
@@ -828,12 +830,12 @@ namespace Tac
 
     //AccountForLine();
 
-    float fontSizeScale = fontFile->mScale * ( fontSize / TextPxHeight );
+    const float fontSizeScale { fontFile->mScale * ( fontSize / TextPxHeight ) };
 
-    int gapCount = lineCount - 1;
-    float unscaledLineHeight = fontFile->mUnscaledAscent - fontFile->mUnscaledDescent;
+    const int gapCount { lineCount - 1 };
+    const float unscaledLineHeight { fontFile->mUnscaledAscent - fontFile->mUnscaledDescent };
 
-    float yUnscaledMax = lineCount * unscaledLineHeight + gapCount * fontFile->mUnscaledLinegap;
+    const float yUnscaledMax { lineCount * unscaledLineHeight + gapCount * fontFile->mUnscaledLinegap };
 
     const v2 unscaledTextSize( xUnscaledMax, yUnscaledMax );
     const v2 scaledTextSize = unscaledTextSize * fontSizeScale;

@@ -45,20 +45,20 @@ namespace Tac
                                    Drag_Setter setter,
                                    Drag_MouseHandler mouseHandler )
   {
-    ImGuiGlobals& globals = ImGuiGlobals::Instance;
-    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
-    SimWindowApi* windowApi = globals.mSimWindowApi;
+    ImGuiGlobals& globals { ImGuiGlobals::Instance };
+    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
+    SimWindowApi* windowApi { globals.mSimWindowApi };
 
-    const float fontSize = ImGuiGetFontSize();
-    const float buttonPadding = ImGuiGetButtonPadding();
+    const float fontSize { ImGuiGetFontSize() };
+    const float buttonPadding { ImGuiGetButtonPadding() };
 
-    String valueStr = getter( valueBytes );
-    bool changed = false;
+    String valueStr { getter( valueBytes ) };
+    bool changed { false };
 
-    ImGuiWindow* window = globals.mCurrentWindow;
-    UI2DDrawData* drawData = window->mDrawData;
-    TextInputData* inputData = window->mTextInputData;
-    DragData* dragFloatData = ( DragData* )window->GetWindowResource( sDragDataID );
+    ImGuiWindow* window { globals.mCurrentWindow };
+    UI2DDrawData* drawData { window->mDrawData };
+    TextInputData* inputData { window->mTextInputData };
+    DragData* dragFloatData { ( DragData* )window->GetWindowResource( sDragDataID ) };
 
     const v2 pos { window->mViewportSpaceCurrCursor };
     const v2 totalSize( width, fontSize );
@@ -87,7 +87,7 @@ namespace Tac
     {
       if( dragFloatData->mMode == DragMode::Drag )
       {
-        v2 screenspaceMousePos = keyboardApi->GetMousePosScreenspace();
+        v2 screenspaceMousePos { keyboardApi->GetMousePosScreenspace() };
         static float lastMouseXDesktopWindowspace;
 
 
@@ -127,12 +127,13 @@ namespace Tac
         static v2 lastMousePositionDesktopWindowspace;
         if( keyboardApi->JustDepressed( Key::MouseLeft ) && hovered )
         {
-          const Timestamp mouseReleaseSeconds = ImGuiGlobals::Instance.mElapsedSeconds;
+          const Timestamp mouseReleaseSeconds { ImGuiGlobals::Instance.mElapsedSeconds };
           const TimestampDifference kDoubleClickSecs = 0.5f;
           if( mouseReleaseSeconds - lastMouseReleaseSeconds < kDoubleClickSecs &&
               lastMousePositionDesktopWindowspace == screenspaceMousePos )
           {
-            const CodepointView codepoints = UTF8ToCodepoints( valueStr );
+            const CodepointString codepointString{ UTF8ToCodepointString( valueStr ) };
+            const CodepointView codepoints{ codepointString.data(), codepointString.size() };
             inputData->SetCodepoints( codepoints );
             inputData->mCaretCount = 2;
             inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;

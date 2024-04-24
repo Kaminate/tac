@@ -215,6 +215,9 @@ namespace Tac
     DesktopEventApi::Init( &sDesktopEventHandler );
 
 
+    // this is kinda hacky
+    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sys );
+
     TAC_CALL( sSysThread.Init( errors ) );
     TAC_CALL( sSimThread.Init( errors ) );
 
