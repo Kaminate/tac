@@ -54,11 +54,11 @@ namespace Tac::Render
 
     TAC_ASSERT( pageToAllocateFrom );
 
-    const u64 offset { mCurPageUsedByteCount };
+    const u64 offset { (u64)mCurPageUsedByteCount };
     mCurPageUsedByteCount += byteCount;
 
-    D3D12_GPU_VIRTUAL_ADDRESS const gpuAddr { pageToAllocateFrom->mGPUAddr + offset };
-    void* const cpuAddr { ( u8* )pageToAllocateFrom->mCPUAddr + offset };
+    const D3D12_GPU_VIRTUAL_ADDRESS gpuAddr{ pageToAllocateFrom->mGPUAddr + offset };
+    void* cpuAddr{ ( u8* )pageToAllocateFrom->mCPUAddr + offset };
 
 
     return DynAlloc

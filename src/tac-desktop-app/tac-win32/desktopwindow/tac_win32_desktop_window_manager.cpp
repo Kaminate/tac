@@ -184,8 +184,8 @@ namespace Tac
       const DesktopEventApi::WindowResizeEvent data
       {
         .mWindowHandle { windowHandle },
-        .mWidth { ( int )LOWORD( lParam ) },
-        .mHeight { ( int )HIWORD( lParam ) },
+        .mWidth        { ( int )LOWORD( lParam ) },
+        .mHeight       { ( int )HIWORD( lParam ) },
       };
       DesktopEventApi::Queue( data );
     } break;
@@ -193,9 +193,9 @@ namespace Tac
     {
       const DesktopEventApi::WindowMoveEvent data
       {
-        .mWindowHandle { windowHandle,
-        .mX { ( int )LOWORD( lParam ) },
-        .mY { ( int )HIWORD( lParam ) },
+        .mWindowHandle { windowHandle },
+        .mX            { ( int )LOWORD( lParam ) },
+        .mY            { ( int )HIWORD( lParam ) },
       };
       DesktopEventApi::Queue( data );
     } break;

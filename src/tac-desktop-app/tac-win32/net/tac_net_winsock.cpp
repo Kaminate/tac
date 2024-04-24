@@ -107,7 +107,7 @@ namespace Tac::Network
 
   void SocketWinsock::SetIsBlocking( const bool isBlocking, Errors& errors )
   {
-    u_long iMode { isBlocking ? 0 : 1 };
+    u_long iMode { isBlocking ? (u_long)0 : (u_long)1 };
     const int wsaErrorCode { ioctlsocket( mSocket, FIONBIO, &iMode ) };
     if( wsaErrorCode == SOCKET_ERROR )
     {
@@ -168,9 +168,9 @@ namespace Tac::Network
       u8* unmaskedBytes { ( u8* )bytes };
       for( int i{}; i < byteCount; ++i )
       {
-        u8 unmaskedByte { *unmaskedBytes++ };
-        u8 mask { masks[ i % 4 ] };
-        u8 maskedByte { unmaskedByte ^ mask };
+        const u8 unmaskedByte { *unmaskedBytes++ };
+        const u8 mask { masks[ i % 4 ] };
+        const u8 maskedByte { (u8)(unmaskedByte ^ mask) };
         framed[ iByte++ ] = maskedByte;
       }
 
@@ -202,7 +202,7 @@ namespace Tac::Network
 
   void SocketWinsock::SetKeepalive( bool keepAlive, Errors& errors )
   {
-    const DWORD enableKeepalive { keepAlive ? TRUE : FALSE };
+    const DWORD enableKeepalive { keepAlive ? (DWORD)TRUE : (DWORD)FALSE };
     const int wsaErrorCode{ setsockopt( mSocket,
                                          SOL_SOCKET,
                                          SO_KEEPALIVE,

@@ -79,7 +79,7 @@ namespace Tac
     ClientData*     mClientData                 {};
     ScriptRoot*     mScriptRoot                 {};
     Errors          mLevelLoadErrors            {};
-    v4              mClearColor                 { v4 { ( v3( 27, 33, 40 ) / 255.0f, 1 ) } };
+    v4              mClearColor                 { v3( 27, 33, 40 ) / 255.0f, 1 };
     bool            mDrawText                   { true };
     float           mSplashAlpha                {};
     bool            mIsGrabbingInput            { true };
