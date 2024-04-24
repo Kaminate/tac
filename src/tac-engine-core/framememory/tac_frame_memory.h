@@ -13,9 +13,9 @@ namespace Tac
     bool  IsAllocated( const void* );
 
   private:
-    int   mCapacity = 0;
-    int   mIndex = 0;
-    char* mBytes = nullptr;
+    int   mCapacity {};
+    int   mIndex    {};
+    char* mBytes    {};
   };
 
 

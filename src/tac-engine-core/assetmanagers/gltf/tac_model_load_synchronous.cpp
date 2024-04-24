@@ -19,7 +19,7 @@ namespace Tac
   template< typename T >
   static Vector< int >        ConvertIndexes( cgltf_accessor* indices )
   {
-    auto indiciesData = ( T* )( ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset );
+    auto indiciesData { ( T* )( ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset ) };
     Vector< int > result( ( int )indices->count );
     for( int i{}; i < ( int )indices->count; ++i )
       result[ i ] = ( int )indiciesData[ i ];
@@ -28,8 +28,8 @@ namespace Tac
 
   static void                 GetTris( const cgltf_primitive* parsedPrim, SubMeshTriangles& tris )
   {
-    const cgltf_attribute* posAttribute =
-      FindAttributeOfType( parsedPrim, cgltf_attribute_type_position );
+    const cgltf_attribute* posAttribute{
+      FindAttributeOfType( parsedPrim, cgltf_attribute_type_position ) };
     if( !posAttribute )
       return;
 
@@ -47,15 +47,15 @@ namespace Tac
     if( indexes.empty() )
       return;
 
-    auto srcVtx = ( char* )
+    auto srcVtx{ ( char* )
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->offset +
-      posAttribute->data->offset;
-    SubMeshTriangle tri = {};
-    int iVert = 0;
+      posAttribute->data->offset };
+    SubMeshTriangle tri  {};
+    int iVert { 0 };
     for( int i : indexes )
     {
-      auto vert = ( v3* )( srcVtx + posAttribute->data->stride * i );
+      auto vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };
       tri[ iVert++ ] = *vert;
       if( iVert == 3 )
       {

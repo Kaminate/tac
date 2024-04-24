@@ -28,7 +28,7 @@ namespace Tac
     TAC_ASSERT( byteCount < mCapacity );
     if( mIndex + byteCount > mCapacity )
       mIndex = 0;
-    void* result = mBytes + mIndex;
+    void* result { mBytes + mIndex };
     mIndex += byteCount;
     return result;
   }
@@ -67,16 +67,16 @@ void        Tac::FrameMemoryInitThreadAllocator( int byteCount )
 
 Tac::StringView  Tac::FrameMemoryCopy( const void* src, int n )
 {
-  auto dst = ( char* )FrameMemoryAllocate( n );
+  auto dst { ( char* )FrameMemoryAllocate( n ) };
   MemCpy( dst, src, n );
   return StringView( dst, n );
 }
 
 Tac::StringView  Tac::FrameMemoryCopy( const StringView& s)
 {
-  const char* src = s.data();
-  const int n = s.size();
-  auto dst = ( char* )FrameMemoryAllocate( n + 1 );
+  const char* src { s.data() };
+  const int n { s.size() };
+  auto dst { ( char* )FrameMemoryAllocate( n + 1 ) };
   MemCpy( dst, src, n );
   dst[ n ] = '\0';
   return StringView( dst, n );

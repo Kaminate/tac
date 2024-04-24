@@ -55,7 +55,7 @@ namespace Tac
     if( !mCaretCount )
       return;
 
-    int deletedCodepointCount = 1;
+    int deletedCodepointCount { 1 };
     if( mCaretCount > 1 )
     {
       deletedCodepointsStartIndex = GetMinCaret();
@@ -63,7 +63,7 @@ namespace Tac
     }
 
     Vector< Codepoint > newCodepoints;
-    for( int iCodepoint = 0; iCodepoint < mCodepoints.size(); ++iCodepoint )
+    for( int iCodepoint { 0 }; iCodepoint < mCodepoints.size(); ++iCodepoint )
     {
       if( iCodepoint >= deletedCodepointsStartIndex &&
           iCodepoint < deletedCodepointsStartIndex + deletedCodepointCount )
@@ -105,7 +105,7 @@ namespace Tac
     if( mCaretCount == 2 )
       OnDestructivePressed( -1 ); // -1 will be overridden
     Vector< Codepoint > newCodepoints;
-    int iCodepoint = 0;
+    int iCodepoint { 0 };
     while( iCodepoint < mNumGlyphsBeforeCaret[ 0 ] )
       newCodepoints.push_back( mCodepoints[ iCodepoint++ ] );
     newCodepoints.push_back( codepoint );
@@ -126,7 +126,7 @@ namespace Tac
   String              TextInputData::GetText()
   {
     const CodepointView codepointView( mCodepoints.data(), mCodepoints.size());
-    const String text = CodepointsToUTF8( codepointView );
+    const String text { CodepointsToUTF8( codepointView ) };
     return text;
   }
 

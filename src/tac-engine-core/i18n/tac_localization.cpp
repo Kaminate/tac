@@ -84,7 +84,7 @@ namespace Tac
 
   static bool             LoadLocalizedString( LocalizedString* localizedString, ParseData& parseData )
   {
-    const StringView reference = parseData.EatRestOfLine();
+    const StringView reference { parseData.EatRestOfLine() };
     if( reference.empty() )
       return false;
 
@@ -96,8 +96,8 @@ namespace Tac
     //localizedString->mCodepoints = codepointMap;
     *localizedString = LocalizedString
     {
-      .mReference = reference,
-      .mCodepoints = codepointMap,
+      .mReference { reference },
+      .mCodepoints { codepointMap },
     };
     return true;
   }
@@ -341,12 +341,12 @@ Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
 
 Tac::CodepointView   Tac::LocalizationGetString( Language language, StringView reference )
 {
-  LocalizedString* str = FindLocalizedString( reference );
+  LocalizedString* str { FindLocalizedString( reference ) };
   if( !str )
     return {};
 
 
-  auto it = str->mCodepoints.Find(language);
+  auto it { str->mCodepoints.Find(language) };
   TAC_ASSERT( it );
 
   const LocalizedStringStuff& localizedStringStuff = (*it).mSecond;

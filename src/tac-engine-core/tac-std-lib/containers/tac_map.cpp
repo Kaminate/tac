@@ -30,19 +30,19 @@ void Tac::MapUnitTest()
 
   for( auto [first, second] : myMap )
   {
-    const String str = String() + ToString( first ) + " " + second;
+    const String str { String() + ToString( first ) + " " + second };
     OS::OSDebugPrintLine(str); 
   }
 
   if( auto it = myMap.Find( 0 ); it )
   {
-    const String s = it.GetValue();
+    const String s { it.GetValue() };
     OS::OSDebugPrintLine( s );
   }
 
   if( auto it = myMap.Find( 3 ); it != myMap.end() )
   {
-    String s = it.GetValue();
+    String s { it.GetValue() };
     OS::OSDebugPrintLine( s );
   }
 

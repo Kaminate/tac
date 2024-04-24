@@ -41,7 +41,7 @@ int CALLBACK WinMain( HINSTANCE hInstance,
                       int nCmdShow )
 {
   using namespace Tac;
-  Errors& errors = GetMainErrors();
+  Errors& errors { GetMainErrors() };
 
   TAC_SCOPE_GUARD( LogScope );
 

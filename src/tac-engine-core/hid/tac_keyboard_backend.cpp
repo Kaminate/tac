@@ -55,7 +55,7 @@ namespace Tac::KeyboardBackend
   void SysApi::SetKeyState( Key key, KeyState state )
   {
     TAC_ASSERT( sModificationAllowed );
-    if( const int i = ( int )key; sKeyStates[ i ] != state )
+    if( const int i{ ( int )key }; sKeyStates[ i ] != state )
     {
       sKeyStates[ i ] = state;
       sKeyToggleCount[ i ]++;
@@ -90,17 +90,17 @@ namespace Tac::KeyboardBackend
     sGameLogicPrev = sGameLogicCurr;
     sGameLogicCurr = KeyboardMouseState
     {
-      .mMouseWheel = sMouseWheel,
-      .mMousePosScreenspace = sMousePosScreenspace,
-      .mKeyStates = sKeyStates,
-      .mKeyTimes = sKeyTimes,
-      .mTime = Timepoint::Now(),
+      .mMouseWheel          { sMouseWheel },
+      .mMousePosScreenspace { sMousePosScreenspace },
+      .mKeyStates           { sKeyStates },
+      .mKeyTimes            { sKeyTimes },
+      .mTime                { Timepoint::Now() },
     };
 
     sGameLogicDelta = KeyboardDelta
     {
-      .mToggles = sKeyToggleCount,
-      .mCodepointDelta = sCodepointDelta,
+      .mToggles        { sKeyToggleCount },
+      .mCodepointDelta { sCodepointDelta },
     };
 
     sKeyToggleCount = {};
@@ -127,7 +127,7 @@ namespace Tac
 
   bool                SimKeyboardApi::JustPressed( Key key )
   {
-    const int toggleCount = sGameLogicDelta.mToggles[ ( int )key ] >= 1;
+    const int toggleCount { sGameLogicDelta.mToggles[ ( int )key ] >= 1 };
     return IsPressed( key ) && toggleCount;
   }
 
@@ -136,7 +136,7 @@ namespace Tac
     if( key == Key::Myself )
       return true; // :(
 
-    const int toggleCount = sGameLogicDelta.mToggles[ ( int )key ] >= 1;
+    const int toggleCount { sGameLogicDelta.mToggles[ ( int )key ] >= 1 };
     return IsDepressed( key ) && toggleCount;
   }
 

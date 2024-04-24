@@ -127,7 +127,7 @@ struct Tac::Set
   int Tac::Set<T>::FindNodeIndex( T t ) const
   {
     const HashValue hash { Tac::Hash( t ) };
-    int i { hash % mCapacity };
+    int i { (int)(hash % mCapacity )};
     for( ;; )
     {
       Node* node { &mNodes[ i ] };

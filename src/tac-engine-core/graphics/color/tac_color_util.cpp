@@ -16,7 +16,7 @@ namespace Tac
     v3 d = { 0.0f, 0.25f, 0.25f };
     for( int i{}; i < 3; ++i )
     {
-      float v = c[ i ];
+      float v { c[ i ] };
       v *= ( float )t;
       v *= 0.15f;
       v += d[ i ];
@@ -35,12 +35,12 @@ namespace Tac
 
   void      RGBToHSV( const v3& inputRGB, float* h, float* s, float* v )
   {
-    float r = inputRGB.x;
-    float g = inputRGB.y;
-    float b = inputRGB.z;
-    float maxi = Max( Max( r, g ), b );
-    float mini = Min( Min( r, g ), b );
-    float delta = maxi - mini;
+    float r { inputRGB.x };
+    float g { inputRGB.y };
+    float b { inputRGB.z };
+    float maxi { Max( Max( r, g ), b ) };
+    float mini { Min( Min( r, g ), b ) };
+    float delta { maxi - mini };
     if( maxi == r ) *h = ( ( ( g - b ) / delta ) + 0 ) / 6.0f;
     else if( maxi == g ) *h = ( ( ( b - r ) / delta ) + 2 ) / 6.0f;
     else if( maxi == b ) *h = ( ( ( r - g ) / delta ) + 4 ) / 6.0f;
@@ -58,17 +58,17 @@ namespace Tac
 
   void      HSVToRGB( float h, float s, float v, v3* outputRGB )
   {
-    float c = v * s; // c = chroma
-    float h_prime = h * 6.0f;
-    float x = c * ( 1 - Abs( Fmod( h_prime, 2.0f ) - 1 ) );
-    v3 rgb1 = {};
+    float c{ v * s }; // c = chroma
+    float h_prime { h * 6.0f };
+    float x { c * ( 1 - Abs( Fmod( h_prime, 2.0f ) - 1 ) ) };
+    v3 rgb1  {};
     if( h_prime <= 6 ) rgb1 = { c, 0, x };
     if( h_prime <= 5 ) rgb1 = { x, 0, c };
     if( h_prime <= 4 ) rgb1 = { 0, x, c };
     if( h_prime <= 3 ) rgb1 = { 0, c, x };
     if( h_prime <= 2 ) rgb1 = { x, c, 0 };
     if( h_prime <= 1 ) rgb1 = { c, x, 0 };
-    float m = v - c;
+    float m { v - c };
     *outputRGB = rgb1 + v3( 1, 1, 1 ) * m;
   }
 

@@ -49,19 +49,19 @@ namespace Tac
     if(path.empty())
       return nullptr;
 
-    const HashValue hashedValue = Hash( Hash( (StringView)path ),
+    const HashValue hashedValue{ Hash( Hash( ( StringView )path ),
                                         HashVertexDeclarations( vtxDecls ),
-                                        ( HashValue )iModel );
+                                        ( HashValue )iModel ) };
 
-    if( Optional< Mesh* > mesh = sTryNewTHingMeshes.FindVal( hashedValue ) )
+    if( Optional< Mesh* > mesh{ sTryNewTHingMeshes.FindVal( hashedValue ) } )
       return *mesh;
 
-    const StringView pathExt = path.GetFileExtension();
-    MeshLoadFunction meshLoadFunction = ModelLoadFunctionFind( pathExt );
+    const StringView pathExt { path.GetFileExtension() };
+    MeshLoadFunction meshLoadFunction { ModelLoadFunctionFind( pathExt ) };
     if( !meshLoadFunction )
       return nullptr;
 
-    auto mesh = TAC_NEW Mesh;
+    auto mesh { TAC_NEW Mesh };
     *mesh = TAC_CALL_RET( {}, meshLoadFunction( path, iModel, vtxDecls, errors ) );
 
     sTryNewTHingMeshes[ hashedValue ] = mesh;

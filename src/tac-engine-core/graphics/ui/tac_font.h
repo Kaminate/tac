@@ -23,18 +23,18 @@ namespace Tac
   struct Errors;
 
   //        The height and width in pixels of a cell in the font atlas
-  const int FontCellPxSize = 64;
-  const int FontCellPxWidth = FontCellPxSize;
-  const int FontCellPxHeight = FontCellPxSize;
+  const int FontCellPxSize { 64 };
+  const int FontCellPxWidth { FontCellPxSize };
+  const int FontCellPxHeight { FontCellPxSize };
 
   //        Padding inside a font cell for sdf effects like stroke borders, glow, and drop shadow
-  const int FontCellInnerSDFPadding = 5;
+  const int FontCellInnerSDFPadding { 5 };
 
    //       Number of pixels between font cells
-  const int BilinearFilteringPadding = 1;
+  const int BilinearFilteringPadding { 1 };
 
   //        This is the font size for a sdf glyph rendered into a cell
-  const int TextPxHeight = FontCellPxSize - ( 2 * FontCellInnerSDFPadding );
+  const int TextPxHeight { FontCellPxSize - ( 2 * FontCellInnerSDFPadding ) };
 
   struct FontDims
   {
@@ -63,50 +63,50 @@ namespace Tac
     // |      --------
 
     //            ascent is the coordinate above the baseline the font extends
-    float         mUnscaledAscent = 0;
+    float         mUnscaledAscent { 0 };
 
     //            descent is the coordinate below the baseline the font extends
     //            (i.e. it is typically negative)
-    float         mUnscaledDescent = 0;
+    float         mUnscaledDescent { 0 };
 
     //            lineGap is the spacing between one row's descent and the next row's ascent
-    float         mUnscaledLinegap = 0;
+    float         mUnscaledLinegap { 0 };
 
     //            mScale is from stbtt_ScaleForPixelHeight( FontCellPxHeight )
-    float         mScale = 0;
+    float         mScale { 0 };
   };
 
   struct FontAtlasCell
   {
-    Codepoint      mCodepoint = 0;
+    Codepoint      mCodepoint { 0 };
 
     //             mCodepointAscii = (char)mCodepoint.
     //             This parameter exists for debug convenience, so that you can see
     //             [mCodepointAscii 97'a' char] in the watch window instead of
     //             [mCodepoint 97 unsigned int] saving yourself a cast.
-    char           mCodepointAscii = 0; 
+    char           mCodepointAscii { 0; } 
 
-    FontFile*      mOwner = nullptr;
-    int            mPxRow = 0;
-    int            mPxColumn = 0;
-    int            mCellRow = 0;
-    int            mCellColumn = 0;
+    FontFile*      mOwner { nullptr };
+    int            mPxRow { 0 };
+    int            mPxColumn { 0 };
+    int            mCellRow { 0 };
+    int            mCellColumn { 0 };
     Timestamp      mWriteTime;
     Timestamp      mReadTime;
     
     //             DX uvs are better then GL uvs when rendering UI
-    v2             mMinDXTexCoord = {};
-    v2             mMaxDXTexCoord = {};
+    v2             mMinDXTexCoord  {};
+    v2             mMaxDXTexCoord  {};
 
-    float          mUnscaledAdvanceWidth = 0;
-    float          mUnscaledLeftSideBearing = 0;
+    float          mUnscaledAdvanceWidth { 0 };
+    float          mUnscaledLeftSideBearing { 0 };
 
-    int            mSDFxOffset = 0;
-    int            mSDFyOffset = 0;
+    int            mSDFxOffset { 0 };
+    int            mSDFyOffset { 0 };
 
     //             the width of the sdf image in px, having been generated for a specific scale
-    int            mSDFWidth = 0;
-    int            mSDFHeight = 0;
+    int            mSDFWidth { 0 };
+    int            mSDFHeight { 0 };
   };
 
   struct FontApi

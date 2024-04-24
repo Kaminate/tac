@@ -26,7 +26,7 @@ namespace Tac::Render
     };
 
     Info       Add( int bitCount );
-    int        mRunningBitCount = 0;
+    int        mRunningBitCount { 0 };
   };
 
   // this should really be called like per camera data
@@ -58,7 +58,7 @@ namespace Tac::Render
 
     explicit PremultipliedAlpha( const v4& );
     PremultipliedAlpha() = default;
-    v4 Color = { 1, 1, 1, 1 };
+    v4 Color {  1, 1, 1, 1 } ;
   };
 
 
@@ -77,7 +77,7 @@ namespace Tac::Render
     const v4&                           GetColor() const;
 
   //private:
-    m4                                  World = m4::Identity();
+    m4                                  World { m4::Identity() };
     PremultipliedAlpha                  Color;
   };
 
@@ -102,13 +102,13 @@ namespace Tac::Render
 
   struct CBufferLights
   {
-    static const int TAC_MAX_SHADER_LIGHTS = 4;
-    static const int sShaderRegister = 2;
+    static const int TAC_MAX_SHADER_LIGHTS { 4 };
+    static const int sShaderRegister { 2 };
 
-    ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ] = {};
-    u32              lightCount = 0;
-    u32              useLights = true;
-    u32              testNumber = 1234567890;
+    ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ]  {};
+    u32              lightCount { 0 };
+    u32              useLights { true };
+    u32              testNumber { 1234567890 };
     bool             TryAddLight( const ShaderLight& );
 
     static void      Init( Errors& );

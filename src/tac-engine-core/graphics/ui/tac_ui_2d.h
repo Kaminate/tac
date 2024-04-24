@@ -18,8 +18,8 @@ namespace Tac
 
   struct UI2DVertex
   {
-    v2 mPosition = {};
-    v2 mGLTexCoord = {};
+    v2 mPosition  {};
+    v2 mGLTexCoord  {};
   };
 
   void UI2DCommonDataInit( Errors& );
@@ -27,23 +27,23 @@ namespace Tac
 
   struct UI2DDrawCall
   {
-    int                             mIVertexStart = 0;
-    int                             mVertexCount = 0;
-    int                             mIIndexStart = 0;
-    int                             mIndexCount = 0;
+    int                             mIVertexStart { 0 };
+    int                             mVertexCount { 0 };
+    int                             mIIndexStart { 0 };
+    int                             mIndexCount { 0 };
     Render::ProgramHandle           mShader;
     Render::TextureHandle           mTexture;
     Render::DefaultCBufferPerObject mUniformSource;
     StackFrame                      mStackFrame;
-    Render::DebugGroup::NodeIndex   mDebugGroupIndex = Render::DebugGroup::NullNodeIndex;
+    Render::DebugGroup::NodeIndex   mDebugGroupIndex { Render::DebugGroup::NullNodeIndex };
   };
 
   struct ImGuiRect;
 
   struct UI2DDrawGpuInterface
   {
-    int                  mVertexCapacity = 0;
-    int                  mIndexCapacity = 0;
+    int                  mVertexCapacity { 0 };
+    int                  mIndexCapacity { 0 };
     Render::BufferHandle mVertexBufferHandle;
     Render::BufferHandle mIndexBufferHandle;
   };
@@ -57,14 +57,14 @@ namespace Tac
       v2                    mPos;
       float                 mFontSize;
       StringView            mUtf8;
-      v4                    mColor = { 1, 1, 1, 1 };
+      v4                    mColor  { 1, 1, 1, 1 };
     };
 
     struct Box
     {
       v2                    mMini;
       v2                    mMaxi;
-      v4                    mColor = { 1, 1, 1, 1 };
+      v4                    mColor  { 1, 1, 1, 1 };
       Render::TextureHandle mTextureHandle;
     };
 
@@ -72,8 +72,8 @@ namespace Tac
     {
       v2                    mP0;
       v2                    mP1;
-      float                 mLineRadius = 1.0f;
-      v4                    mColor = { 1, 1, 1, 1 };
+      float                 mLineRadius { 1.0f };
+      v4                    mColor  { 1, 1, 1, 1 };
     };
 
     UI2DDrawData() = default;

@@ -18,7 +18,7 @@ namespace Tac
   {
     for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
     {
-      System* system = entry.mCreateFn();
+      System* system { entry.mCreateFn() };
       TAC_ASSERT( system );
       system->mWorld = this;
       mSystems.push_back( system );
@@ -40,7 +40,7 @@ namespace Tac
 
   Entity* World::SpawnEntity( EntityUUID entityUUID )
   {
-    auto entity = TAC_NEW Entity();
+    auto entity { TAC_NEW Entity() };
     entity->mEntityUUID = entityUUID;
     entity->mWorld = this;
     mEntities.push_front( entity );
@@ -49,7 +49,7 @@ namespace Tac
 
   Entity* World::FindEntity( PlayerUUID playerUUID )
   {
-    Player* player = FindPlayer( playerUUID );
+    Player* player { FindPlayer( playerUUID ) };
     return player ? FindEntity( player->mEntityUUID ) : nullptr;
   }
 
@@ -75,10 +75,10 @@ namespace Tac
     Entity* entity = *it;
 
     // Remove this entity from its parent's list of children
-    if( Entity* parent = entity->mParent )
+    if( Entity * parent{ entity->mParent } )
     {
-      int iEntity = 0;
-      int entityCount = parent->mChildren.size();
+      int iEntity { 0 };
+      int entityCount { parent->mChildren.size() };
       while( iEntity < entityCount )
       {
         if( parent->mChildren[ iEntity ] == entity )
@@ -92,18 +92,18 @@ namespace Tac
       parent->mChildren.pop_back();
     }
 
-    Vector< EntityIterator > treeIterators = { it };
-    int iTreeIterator = 0;
+    Vector< EntityIterator > treeIterators  { it };
+    int iTreeIterator { 0 };
     for( ;; )
     {
       if( iTreeIterator == treeIterators.size() )
         break;
 
-      EntityIterator treeIterator = treeIterators[ iTreeIterator ];
-      Entity* treeEntity = *treeIterator;
+      EntityIterator treeIterator { treeIterators[ iTreeIterator ] };
+      Entity* treeEntity { *treeIterator };
       for( Entity* treeEntityChild : treeEntity->mChildren )
       {
-        EntityIterator treeEntityChildIterator = mEntities.Find( treeEntityChild );
+        EntityIterator treeEntityChildIterator { mEntities.Find( treeEntityChild ) };
         treeIterators.push_back( treeEntityChildIterator );
       }
       iTreeIterator++;
@@ -111,8 +111,8 @@ namespace Tac
 
     for( EntityIterator treeIterator : treeIterators )
     {
-      Entity* treeEntity = *treeIterator;
-      if( Player* player = FindPlayer( treeEntity->mEntityUUID ) )
+      Entity* treeEntity { *treeIterator };
+      if( Player * player{ FindPlayer( treeEntity->mEntityUUID ) } )
         player->mEntityUUID = NullEntityUUID;
 
       mEntities.erase( treeIterator );
@@ -122,21 +122,21 @@ namespace Tac
 
   void               World::KillEntity( Entity* entity )
   {
-    auto it = Find( mEntities.begin(), mEntities.end(), entity );
+    auto it { Find( mEntities.begin(), mEntities.end(), entity ) };
     KillEntity( it );
   }
 
   void               World::KillEntity( EntityUUID entityUUID )
   {
-    auto it = FindIf( mEntities.begin(),
+    auto it{ FindIf( mEntities.begin(),
                       mEntities.end(),
-                      [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } );
+                      [ & ]( Entity* entity ) { return entity->mEntityUUID == entityUUID; } ) };
     KillEntity( it );
   }
 
   Player* World::SpawnPlayer( PlayerUUID playerUUID )
   {
-    auto player = TAC_NEW Player();
+    auto player { TAC_NEW Player() };
     player->mPlayerUUID = playerUUID;
     player->mWorld = this;
     mPlayers.push_front( player );
@@ -161,11 +161,11 @@ namespace Tac
 
   void               World::KillPlayer( PlayerUUID playerUUID )
   {
-    auto it = FindIf( mPlayers.begin(),
+    auto it{ FindIf( mPlayers.begin(),
                       mPlayers.end(),
-                      [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } );
+                      [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } ) };
     TAC_ASSERT( it != mPlayers.end() );
-    auto player = *it;
+    auto player { *it };
     KillEntity( player->mEntityUUID );
     delete player;
     mPlayers.erase( it );
@@ -174,20 +174,20 @@ namespace Tac
   void               World::ApplyInput( Player* player, float seconds )
   {
     TAC_UNUSED_PARAMETER( seconds );
-    auto entity = FindEntity( player->mEntityUUID );
+    auto entity { FindEntity( player->mEntityUUID ) };
     if( !entity )
       return;
     // update velocity
-    Collider* collider = Collider::GetCollider( entity );
+    Collider* collider { Collider::GetCollider( entity ) };
     if( !collider )
       return;
-    float speedHorizontal = 5;
-    float speedVertical = 7;
+    float speedHorizontal { 5 };
+    float speedVertical { 7 };
     // temp, align camera with player movement shit
-    float hack = -1;
-    float velX = player->mInputDirection.x * speedHorizontal;
-    float velY = player->mIsSpaceJustDown ? speedVertical : collider->mVelocity.y;
-    float velZ = player->mInputDirection.y * speedHorizontal * hack;
+    float hack { -1 };
+    float velX { player->mInputDirection.x * speedHorizontal };
+    float velY { player->mIsSpaceJustDown ? speedVertical : collider->mVelocity.y };
+    float velZ { player->mInputDirection.y * speedHorizontal * hack };
     collider->mVelocity = v3( velX, velY, velZ );
 
     // update rotation
@@ -199,15 +199,15 @@ namespace Tac
   void               World::ComputeTransformsRecursively( const m4& parentTransform,
                                                           Entity* entity )
   {
-    m4 localTransform = m4::Transform( entity->mRelativeSpace.mScale,
+    m4 localTransform{ m4::Transform( entity->mRelativeSpace.mScale,
                                        entity->mRelativeSpace.mEulerRads,
-                                       entity->mRelativeSpace.mPosition );
-    m4 worldTransform = parentTransform * localTransform;
+                                       entity->mRelativeSpace.mPosition ) };
+    m4 worldTransform { parentTransform * localTransform };
 
-    m4 localTransformNoScale = m4::Transform( v3( 1, 1, 1 ),
+    m4 localTransformNoScale{ m4::Transform( v3( 1, 1, 1 ),
                                               entity->mRelativeSpace.mEulerRads,
-                                              entity->mRelativeSpace.mPosition );
-    m4 worldTransformNoScale = parentTransform * localTransformNoScale;
+                                              entity->mRelativeSpace.mPosition ) };
+    m4 worldTransformNoScale { parentTransform * localTransformNoScale };
 
     //entity->mLocalTransform = localTransform;
     entity->mWorldTransform = worldTransform;
@@ -216,7 +216,7 @@ namespace Tac
 
     for( Entity* child : entity->mChildren )
     {
-      const m4* parentTransformForChild = &worldTransform;
+      const m4* parentTransformForChild { &worldTransform };
       if( !child->mInheritParentScale )
         parentTransformForChild = &worldTransformNoScale;
       ComputeTransformsRecursively( *parentTransformForChild, child );
@@ -226,7 +226,7 @@ namespace Tac
   void               World::Step( float seconds )
   {
     TAC_PROFILE_BLOCK;
-    const m4 identity = m4::Identity();
+    const m4 identity { m4::Identity() };
     for( Entity* entity : mEntities )
     {
       if( !entity->mParent )
@@ -249,9 +249,9 @@ namespace Tac
     mElapsedSecs += seconds;
     if( mDebugDrawEntityOrigins )
     {
-      auto boxSize = v3( 1, 1, 1 ) * 0.1f;
-      v3 boxRot = {};
-      Graphics* graphics = GetGraphics( this );
+      auto boxSize { v3( 1, 1, 1 ) * 0.1f };
+      v3 boxRot  {};
+      Graphics* graphics { GetGraphics( this ) };
       if( graphics )
       {
         for( Entity* entity : mEntities )
@@ -279,7 +279,7 @@ namespace Tac
 
     for( const Player* fromPlayer : world.mPlayers )
     {
-      auto player = TAC_NEW Player;
+      auto player { TAC_NEW Player };
       *player = *fromPlayer;
       mPlayers.push_front( player );
     }

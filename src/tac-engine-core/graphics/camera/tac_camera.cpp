@@ -7,7 +7,7 @@ namespace Tac
 
   void  Camera::SetForwards( v3 v )
   {
-    const float q = v.Quadrance();
+    const float q { v.Quadrance() };
     if( q < 0.01f )
       return;
     mForwards = v / Sqrt( q );

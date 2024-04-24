@@ -16,9 +16,9 @@
 namespace Tac
 {
 
-  static const int cylinderSegmentCount = 10;
-  static const int hemisphereSegmentCount = 4;
-  static const int numdivisions = 20;
+  static const int cylinderSegmentCount { 10 };
+  static const int hemisphereSegmentCount { 4 };
+  static const int numdivisions { 20 };
 
   static struct Debug3DCommonData
   {
@@ -40,28 +40,28 @@ namespace Tac
 
   {
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const auto ndcAttribs = renderDevice->GetInfo().mNDCAttribs;
+    const auto ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
     const m4::ProjectionMatrixParams projMtxParams
     {
-      .mNDCMinZ = ndcAttribs.mMinZ,
-      .mNDCMaxZ = ndcAttribs.mMaxZ,
-      .mViewSpaceNear = camera->mNearPlane,
-      .mViewSpaceFar = camera->mFarPlane,
-      .mAspectRatio = ( float )viewWidth / ( float )viewHeight,
-      .mFOVYRadians = camera->mFovyrad,
+      .mNDCMinZ { ndcAttribs.mMinZ },
+      .mNDCMaxZ { ndcAttribs.mMaxZ },
+      .mViewSpaceNear { camera->mNearPlane },
+      .mViewSpaceFar { camera->mFarPlane },
+      .mAspectRatio { ( float )viewWidth / ( float )viewHeight },
+      .mFOVYRadians { camera->mFovyrad },
     };
 
-    const m4 view = camera->View();
-    const m4 proj = m4::ProjPerspective( projMtxParams );
-    const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
+    const m4 view { camera->View() };
+    const m4 proj { m4::ProjPerspective( projMtxParams ) };
+    const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
     return Render::DefaultCBufferPerFrame
     {
-      .mView = view,
-      .mProjection = proj,
-      .mFar = camera->mFarPlane,
-      .mNear = camera->mNearPlane,
-      .mGbufferSize = { ( float )viewWidth, ( float )viewHeight },
-      .mSecModTau = ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ),
+      .mView { view },
+      .mProjection { proj },
+      .mFar { camera->mFarPlane },
+      .mNear { camera->mNearPlane },
+      .mGbufferSize  { ( float )viewWidth, ( float )viewHeight } ,
+      .mSecModTau { ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ) },
     };
   }
 
@@ -85,56 +85,56 @@ namespace Tac
 #if TAC_TEMPORARILY_DISABLED()
     const Render::RasterizerState rasterizerState
     {
-      .mFillMode = Render::FillMode::Solid,
-      .mCullMode = Render::CullMode::None,
-      .mFrontCounterClockwise = true,
-      .mScissor = true,
-      .mMultisample = false, 
+      .mFillMode { Render::FillMode::Solid },
+      .mCullMode { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mScissor { true },
+      .mMultisample { false }, 
     };
-    mRasterizerStateNoCull = Render::CreateRasterizerState( rasterizerState,
-                                                            TAC_STACK_FRAME );
+    mRasterizerStateNoCull{ Render::CreateRasterizerState( rasterizerState,
+                                                            TAC_STACK_FRAME ) };
     Render::SetRenderObjectDebugName( mRasterizerStateNoCull, "debug-3d-rast" );
 
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem = "3DDebug",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "3DDebug" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
-    m3DVertexColorShader = renderDevice->CreateProgram( programParams, errors );
+    m3DVertexColorShader { renderDevice->CreateProgram( programParams, errors ) };
 
     const Render::DepthState depthStateData
     {
-      .mDepthTest = true,
-      .mDepthWrite = true,
-      .mDepthFunc = Render::DepthFunc::Less
+      .mDepthTest { true },
+      .mDepthWrite { true },
+      .mDepthFunc { Render::DepthFunc::Less },
     };
     mDepthLess = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mDepthLess, "debug-3d-depth-state" );
 
     const Render::VertexDeclaration posDecl
     {
-      .mAttribute = Render::Attribute::Position,
+      .mAttribute { Render::Attribute::Position },
       .mTextureFormat
       {
-        .mElementCount = 3,
-        .mPerElementByteCount = sizeof( float ),
-        .mPerElementDataType = Render::GraphicsType::real
+        .mElementCount { 3 },
+        .mPerElementByteCount { sizeof( float ) },
+        .mPerElementDataType { Render::GraphicsType::real },
       },
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( DefaultVertexColor, mPosition )
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( DefaultVertexColor, mPosition ) },
     } ;
 
     const Render::VertexDeclaration colDecl
     {
-      .mAttribute = Render::Attribute::Color,
+      .mAttribute { Render::Attribute::Color },
       .mTextureFormat
       {
-        .mElementCount = 4,
-        .mPerElementByteCount = sizeof( float ),
-        .mPerElementDataType = Render::GraphicsType::real
+        .mElementCount { 4 },
+        .mPerElementByteCount { sizeof( float ) },
+        .mPerElementDataType { Render::GraphicsType::real },
       },
-      .mAlignedByteOffset = (int)TAC_OFFSET_OF( DefaultVertexColor, mColor )
+      .mAlignedByteOffset { (int)TAC_OFFSET_OF( DefaultVertexColor, mColor  )},
     } ;
 
     Render::VertexDeclarations decls;
@@ -144,12 +144,12 @@ namespace Tac
     mVertexColorFormat = Render::CreateVertexFormat( decls, m3DVertexColorShader, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mVertexColorFormat, "debug-3d-vtx-fmt" );
 
-    const Render::BlendState alphaBlendStateData{ .mSrcRGB = Render::BlendConstants::SrcA,
-                                                  .mDstRGB = Render::BlendConstants::OneMinusSrcA,
-                                                  .mBlendRGB = Render::BlendMode::Add,
-                                                  .mSrcA = Render::BlendConstants::Zero,
-                                                  .mDstA = Render::BlendConstants::One,
-                                                  .mBlendA = Render::BlendMode::Add,};
+    const Render::BlendState alphaBlendStateData{ .mSrcRGB { Render::BlendConstants::SrcA },
+                                                  .mDstRGB { Render::BlendConstants::OneMinusSrcA },
+                                                  .mBlendRGB { Render::BlendMode::Add },
+                                                  .mSrcA { Render::BlendConstants::Zero },
+                                                  .mDstA { Render::BlendConstants::One },
+                                                  .mBlendA { Render::BlendMode::Add}, };
     mAlphaBlendState = Render::CreateBlendState( alphaBlendStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mAlphaBlendState, "debug-3d-alpha-blend" );
 #endif
@@ -177,8 +177,19 @@ namespace Tac
     if constexpr( !IsDebugMode )
       return;
 
-    mDebugDrawVerts.push_back( { .mPosition = p0, .mColor = v4( color0, 1.0f ) } );
-    mDebugDrawVerts.push_back( { .mPosition = p1, .mColor = v4( color1, 1.0f ) } );
+    const DefaultVertexColor v0
+    {
+       .mPosition { p0 },
+       .mColor { v4( color0, 1.0f ) } ,
+    };
+    const DefaultVertexColor v1
+    {
+       .mPosition { p1 },
+       .mColor { v4( color1, 1.0f ) },
+    };
+
+    mDebugDrawVerts.push_back(v0);
+    mDebugDrawVerts.push_back(v1);
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -195,9 +206,19 @@ namespace Tac
   {
     if constexpr( !IsDebugMode )
       return;
+    const DefaultVertexColor v0
+    {
+       .mPosition { p0 },
+       .mColor {color0} ,
+    };
+    const DefaultVertexColor v1
+    {
+       .mPosition { p1 },
+       .mColor {color1},
+    };
 
-    mDebugDrawVerts.push_back( { .mPosition = p0, .mColor = color0, } );
-    mDebugDrawVerts.push_back( { .mPosition = p1, .mColor = color1, } );
+    mDebugDrawVerts.push_back(v0);
+    mDebugDrawVerts.push_back(v1);
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -212,23 +233,20 @@ namespace Tac
                                            float rad,
                                            const v3& color )
   {
-    float length = Length( dir );
+    float length { Length( dir ) };
     if( length < 0.001f || Abs( rad ) < 0.001f )
       return;
-    const v3 unitDir = dir / length;
+    const v3 unitDir { dir / length };
     v3 tan1;
     v3 tan2;
     GetFrameRH( unitDir, tan1, tan2 );
     tan1 *= rad;
     tan2 *= rad;
-    v3 prevPoint = p0 + tan1;
-    for( int i = 1; i <= numdivisions; ++i )
+    v3 prevPoint { p0 + tan1 };
+    for( int i { 1 }; i <= numdivisions; ++i )
     {
-      float theta = 3.14f * 2.0f * ( float )i / ( float )numdivisions;
-      v3 point
-        = p0
-        + Cos( theta ) * tan1
-        + Sin( theta ) * tan2;
+      const float theta { 3.14f * 2.0f * ( float )i / ( float )numdivisions };
+      const v3 point{ p0 + Cos( theta ) * tan1 + Sin( theta ) * tan2 };
       DebugDraw3DLine( prevPoint, point, color );
       prevPoint = point;
     }
@@ -248,8 +266,8 @@ namespace Tac
                                             float radius,
                                             const v3& color )
   {
-    auto dir = p1 - p0;
-    auto dirlen = Length( dir );
+    auto dir { p1 - p0 };
+    auto dirlen { Length( dir ) };
     if( dirlen < 0.001f )
     {
       DebugDraw3DSphere( p0, radius, color );
@@ -268,23 +286,23 @@ namespace Tac
   {
     Vector< v3 > mPrevPts( cylinderSegmentCount );
     Vector< v3 > mCurrPts( cylinderSegmentCount );
-    float hemisphereRads = 0;
-    float dHemisphereRads = ( 3.14f * 0.5f ) / hemisphereSegmentCount;
+    float hemisphereRads { 0 };
+    float dHemisphereRads { ( 3.14f * 0.5f ) / hemisphereSegmentCount };
     v3 tan1;
     v3 tan2;
     GetFrameRH( mDirection, tan1, tan2 );
-    for( int iCylinder = 0; iCylinder < cylinderSegmentCount; ++iCylinder )
+    for( int iCylinder { 0 }; iCylinder < cylinderSegmentCount; ++iCylinder )
       mPrevPts[ iCylinder ] = mOrigin + mDirection * radius;
-    for( int iHemisphere = 0; iHemisphere < hemisphereSegmentCount; ++iHemisphere )
+    for( int iHemisphere { 0 }; iHemisphere < hemisphereSegmentCount; ++iHemisphere )
     {
       hemisphereRads += dHemisphereRads;
-      float circleRadius = radius * Sin( hemisphereRads );
-      float circleOffset = radius * Cos( hemisphereRads );
-      v3 circleOrigin = mOrigin + mDirection * circleOffset;
+      float circleRadius { radius * Sin( hemisphereRads ) };
+      float circleOffset { radius * Cos( hemisphereRads ) };
+      v3 circleOrigin { mOrigin + mDirection * circleOffset };
 
-      float circleRads = 0;
-      float dCircleRads = ( 3.14f * 2.0f ) / cylinderSegmentCount;
-      for( int iCylinder = 0; iCylinder < cylinderSegmentCount; ++iCylinder )
+      float circleRads { 0 };
+      float dCircleRads { ( 3.14f * 2.0f ) / cylinderSegmentCount };
+      for( int iCylinder { 0 }; iCylinder < cylinderSegmentCount; ++iCylinder )
       {
         mCurrPts[ iCylinder ]
           = circleOrigin
@@ -292,9 +310,9 @@ namespace Tac
           + tan2 * circleRadius * Sin( circleRads );
         circleRads += dCircleRads;
       }
-      for( int iCylinder = 0; iCylinder < cylinderSegmentCount; ++iCylinder )
+      for( int iCylinder { 0 }; iCylinder < cylinderSegmentCount; ++iCylinder )
       {
-        const int iCylinderNext = ( iCylinder + 1 ) % cylinderSegmentCount;
+        const int iCylinderNext { ( iCylinder + 1 ) % cylinderSegmentCount };
         DebugDraw3DLine( mPrevPts[ iCylinder ], mCurrPts[ iCylinder ], color );
         DebugDraw3DLine( mCurrPts[ iCylinder ], mCurrPts[ iCylinderNext ], color );
       }
@@ -307,8 +325,8 @@ namespace Tac
                                              float radius,
                                              const v3& color )
   {
-    auto dir = p1 - p0;
-    auto dirlen = Length( dir );
+    auto dir { p1 - p0 };
+    auto dirlen { Length( dir ) };
     if( dirlen < 0.001f )
       return;
     dir /= dirlen;
@@ -319,18 +337,18 @@ namespace Tac
     GetFrameRH( dir, tan1, tan2 );
     tan1 *= radius;
     tan2 *= radius;
-    for( int iSegment = 0; iSegment < cylinderSegmentCount; ++iSegment )
+    for( int iSegment { 0 }; iSegment < cylinderSegmentCount; ++iSegment )
     {
-      auto angle = ( 3.14f * 2.0f ) * iSegment / ( float )cylinderSegmentCount;
-      auto s = Sin( angle );
-      auto c = Cos( angle );
-      auto offset = c * tan1 + s * tan2;
+      auto angle { ( 3.14f * 2.0f ) * iSegment / ( float )cylinderSegmentCount };
+      auto s { Sin( angle ) };
+      auto c { Cos( angle ) };
+      auto offset { c * tan1 + s * tan2 };
       p0Points[ iSegment ] = p0 + offset;
       p1Points[ iSegment ] = p1 + offset;
     }
-    for( int iSegment = 0; iSegment < cylinderSegmentCount; ++iSegment )
+    for( int iSegment { 0 }; iSegment < cylinderSegmentCount; ++iSegment )
     {
-      int iSegmentNext = ( iSegment + 1 ) % cylinderSegmentCount;
+      int iSegmentNext { ( iSegment + 1 ) % cylinderSegmentCount };
       DebugDraw3DLine( p0Points[ iSegment ], p0Points[ iSegmentNext ], color );
       DebugDraw3DLine( p1Points[ iSegment ], p1Points[ iSegmentNext ], color );
       DebugDraw3DLine( p0Points[ iSegment ], p1Points[ iSegment ], color );
@@ -339,11 +357,11 @@ namespace Tac
 
   void Debug3DDrawData::DebugDraw3DGrid( const v3& lineColor )
   {
-    float d = 10.0f; // Fade distance
+    float d { 10.0f }; // Fade distance
     const v4 f( lineColor, 0.0f ); // Far Color
-    for( float i = -d; i <= d; i += 1.0f )
+    for( float i { -d }; i <= d; i += 1.0f )
     {
-      float a = 1 - ( Abs( i ) / d );
+      float a { 1 - ( Abs( i ) / d ) };
       v4 n( lineColor, a ); // Near Color
 #if 1 // rainbow
       n.x += a * 1.0f * ( ( Sin( ( float )Timestep::GetElapsedTime() * 3.0f + i ) ) * 0.5f + 0.5f );
@@ -369,15 +387,15 @@ namespace Tac
                                           const v3& to,
                                           const v3& color )
   {
-    auto arrowDiff = to - from;
-    auto arrowDiffLenSq = Quadrance( arrowDiff );
+    auto arrowDiff { to - from };
+    auto arrowDiffLenSq { Quadrance( arrowDiff ) };
     if( arrowDiffLenSq < 0.001f )
       return;
-    auto arrowDiffLen = Sqrt( arrowDiffLenSq );
-    auto arrowDir = arrowDiff / arrowDiffLen;
+    auto arrowDiffLen { Sqrt( arrowDiffLenSq ) };
+    auto arrowDir { arrowDiff / arrowDiffLen };
 
-    auto arrowHeadLen = arrowDiffLen * 0.2f;
-    auto arrowHeadRadius = arrowHeadLen * 0.4f;
+    auto arrowHeadLen { arrowDiffLen * 0.2f };
+    auto arrowHeadRadius { arrowHeadLen * 0.4f };
 
     v3 tan1, tan2;
     GetFrameRH( arrowDir, tan1, tan2 );
@@ -396,8 +414,8 @@ namespace Tac
                                         const m3& orientation,
                                         const v3& color )
   {
-    const int pointCount = 8;
-    v3 original_points[] = {
+    const int pointCount { 8 };
+    v3 original_points[]  {
       v3( -1, -1, -1 ),
       v3( -1, -1, 1 ),
       v3( -1, 1, -1 ),
@@ -407,7 +425,7 @@ namespace Tac
       v3( 1, 1, -1 ),
       v3( 1, 1, 1 ) };
     v3 transfor_points[ pointCount ];
-    auto transform = m4::Transform( halfextents, orientation, pos );
+    auto transform { m4::Transform( halfextents, orientation, pos ) };
     for( int i{}; i < pointCount; ++i )
       transfor_points[ i ] = ( transform * v4( original_points[ i ], 1.0f ) ).xyz();
     for( int i{}; i < pointCount; ++i )
@@ -419,8 +437,8 @@ namespace Tac
         const v3& original_point_j = original_points[ j ];
         const v3& transfor_point_j = transfor_points[ j ];
 
-        int numSame = 0;
-        for( int axis = 0; axis < 3; ++axis )
+        int numSame { 0 };
+        for( int axis { 0 }; axis < 3; ++axis )
           if( original_point_i[ axis ] == original_point_j[ axis ] )
             numSame++;
         if( numSame != 2 )
@@ -435,7 +453,7 @@ namespace Tac
                                         const v3& eulerAnglesRad,
                                         const v3& color )
   {
-    m3 orientation = m3::RotRadEuler(eulerAnglesRad);
+    m3 orientation { m3::RotRadEuler(eulerAnglesRad) };
     DebugDraw3DOBB( pos, halfextents, orientation, color );
   }
 
@@ -464,8 +482,8 @@ namespace Tac
       v3 v1Color;
       v1[ a0 ] = maxi[ a0 ];
       v1Color[ a0 ] = maxiColor[ a0 ];
-      int a1 = ( a0 + 1 ) % 3;
-      int a2 = ( a0 + 2 ) % 3;
+      int a1 { ( a0 + 1 ) % 3 };
+      int a2 { ( a0 + 2 ) % 3 };
       for( float a1Val : { mini[ a1 ], maxi[ a1 ] } )
       {
         v0[ a1 ] = a1Val;
@@ -488,15 +506,15 @@ namespace Tac
                                          const v3& maxi,
                                          const v3& color )
   {
-    for( int a0 = 0; a0 < 3; ++a0 )
+    for( int a0 { 0 }; a0 < 3; ++a0 )
     {
       v3 v0;
       v0[ a0 ] = mini[ a0 ];
 
       v3 v1;
       v1[ a0 ] = maxi[ a0 ];
-      int a1 = ( a0 + 1 ) % 3;
-      int a2 = ( a0 + 2 ) % 3;
+      int a1 { ( a0 + 1 ) % 3 };
+      int a2 { ( a0 + 2 ) % 3 };
       for( float a1Val : { mini[ a1 ], maxi[ a1 ] } )
       {
         v0[ a1 ] = v1[ a1 ] = a1Val;
@@ -538,7 +556,7 @@ namespace Tac
   {
 #if TAC_TEMPORARILY_DISABLED()
     TAC_PROFILE_BLOCK;
-    const int vertexCount = mDebugDrawVerts.size();
+    const int vertexCount { mDebugDrawVerts.size() };
     if( mDebugDrawVerts.size() )
     {
       if( !mVerts.IsValid() || mCapacity < mDebugDrawVerts.size() )
@@ -570,8 +588,8 @@ namespace Tac
                                                                           viewWidth,
                                                                           viewHeight );
 
-    const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
-    const int size = sizeof( Render::DefaultCBufferPerFrame );
+    const Render::BufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
+    const int size { sizeof( Render::DefaultCBufferPerFrame ) };
     Render::UpdateConstantBuffer( hPerFrame, &perFrameData, size, TAC_STACK_FRAME );
 
     Render::BeginGroup( "debug 3d", TAC_STACK_FRAME );

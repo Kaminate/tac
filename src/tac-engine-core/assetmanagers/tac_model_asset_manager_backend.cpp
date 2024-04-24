@@ -34,7 +34,7 @@ void Tac::ModelLoadFunctionRegister( MeshLoadFunction meshLoadFunction,
 {
   ValidateExt( ext );
 
-  const HashValue hashedValue = ModelExtensionHash( ext );
+  const HashValue hashedValue { ModelExtensionHash( ext ) };
   functionMap[ hashedValue ] = meshLoadFunction;
 }
 
@@ -42,7 +42,7 @@ Tac::MeshLoadFunction Tac::ModelLoadFunctionFind( MeshFileExt ext )
 {
   ValidateExt(ext);
 
-  const HashValue hashedValue = ModelExtensionHash( ext );
+  const HashValue hashedValue { ModelExtensionHash( ext ) };
   const Optional< MeshLoadFunction > fn = functionMap.FindVal( hashedValue );
 
   return fn.GetValueOr( nullptr );

@@ -24,8 +24,8 @@ namespace Tac
     Render::BufferHandle mVertexBuffer;
     Render::BufferHandle mIndexBuffer;
     SubMeshTriangles           mTris;
-    int                        mIndexCount = 0;
-    int                        mVertexCount = 0;
+    int                        mIndexCount { 0 };
+    int                        mVertexCount { 0 };
     String                     mName;
   };
 

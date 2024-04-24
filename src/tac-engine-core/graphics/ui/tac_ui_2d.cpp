@@ -57,7 +57,7 @@ namespace Tac
           0, 0, 1, 0,
           0, 0, 0, 1 )
     };
-    m4 projection = m4::Identity();
+    m4 projection { m4::Identity() };
     for( const m4& projectionPiece : projectionPieces )
       projection = projectionPiece * projection;
     return projection;
@@ -76,14 +76,14 @@ namespace Tac
     //
     // this function has the same output as OrthographicUIMatrix2(w,h)
 
-    const float L = 0;
-    const float R = w;
-    const float T = 0;
-    const float B = h;
-    const float sX = 2 / ( R - L );
-    const float sY = 2 / ( T - B );
-    const float tX = ( R + L ) / ( L - R );
-    const float tY = ( T + B ) / ( B - T );
+    const float L { 0 };
+    const float R { w };
+    const float T { 0 };
+    const float B { h };
+    const float sX { 2 / ( R - L ) };
+    const float sY { 2 / ( T - B ) };
+    const float tX { ( R + L ) / ( L - R ) };
+    const float tY { ( T + B ) / ( B - T ) };
     return
     {
       sX, 0, 0, tX,
@@ -97,16 +97,16 @@ namespace Tac
   {
     const v4 in4( in, 0, 1 );
     const v4 out4( out, 0, 1 );
-    const v4 actual = m * in4;
-    const float dist = Distance( actual, out4 );
+    const v4 actual { m * in4 };
+    const float dist { Distance( actual, out4 ) };
     TAC_ASSERT( dist < 0.01f );
   }
 
   static void OrthographicUIMatrixUnitTest( m4( *mtxFn )( float, float ) )
   {
-    const float w = 400;
-    const float h = 300;
-    const m4 m = mtxFn( w, h );
+    const float w { 400 };
+    const float h { 300 };
+    const m4 m { mtxFn( w, h ) };
     OrthographicUIMatrixUnitTest( m, { 0, 0 }, { -1, 1 } );
     OrthographicUIMatrixUnitTest( m, { w, 0 }, { 1, 1 } );
     OrthographicUIMatrixUnitTest( m, { 0, h }, { -1, -1 } );
@@ -119,20 +119,20 @@ namespace Tac
   {
     OrthographicUIMatrixUnitTest( OrthographicUIMatrix );
     OrthographicUIMatrixUnitTest( OrthographicUIMatrix2 );
-    const float w = 400;
-    const float h = 300;
-    const m4 m0 = OrthographicUIMatrix( w, h );
-    const m4 m1 = OrthographicUIMatrix2( w, h );
+    const float w { 400 };
+    const float h { 300 };
+    const m4 m0 { OrthographicUIMatrix( w, h ) };
+    const m4 m1 { OrthographicUIMatrix2( w, h ) };
     AssertAboutEqual( m0, m1 );
 
     {
       v4 test1( 0, 0, 0, 1 );
-      v4 test1prime = m0 * test1;
+      v4 test1prime { m0 * test1 };
       v4 test1primeexpected( -1, 1, 0, 1 );
       AssertAboutEqual( test1prime, test1primeexpected );
 
       v4 test2( (float)w, (float)h, 0, 1 );
-      v4 test2prime = m0 * test2;
+      v4 test2prime { m0 * test2 };
       v4 test2primeexpected( 1, -1, 0, 1 );
       AssertAboutEqual( test2prime, test2primeexpected );
     }
@@ -202,7 +202,7 @@ namespace Tac
   {
 #if TAC_TEMPORARILY_DISABLED()
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const u8 data[] = { 255, 255, 255, 255 };
+    const u8 data[]  { 255, 255, 255, 255 };
     const Render::CreateTextureParams textureData =
     {
       .mImage
@@ -440,8 +440,8 @@ namespace Tac
   void                   UI2DDrawData::PushDebugGroup( const StringView& prefix,
                                                        const StringView& suffix )
   {
-    const int n = 30;
-    String& debugGroup = mDebugGroupStack.Push();
+    const int n { 30 };
+    String& debugGroup { mDebugGroupStack.Push() };
     debugGroup += prefix.substr( 0, Min( prefix.size(), n ) );
     debugGroup += prefix.size() > n ? "..." : "";
     debugGroup += ' ';
@@ -461,7 +461,7 @@ namespace Tac
 
   void UI2DDrawData::AddDrawCall( const UI2DDrawCall& drawCall, const StackFrame& stackFrame )
   {
-    UI2DDrawCall modified = drawCall;
+    UI2DDrawCall modified { drawCall };
     modified.mStackFrame = stackFrame;
     modified.mDebugGroupIndex = mDebugGroupStack.GetInfo();
 
@@ -470,13 +470,13 @@ namespace Tac
 
   void UI2DDrawData::AddBox( const Box& box, const ImGuiRect* clipRect )
   {
-    const v2& mini = box.mMini;
-    const v2& maxi = box.mMaxi;
-    const v4& color = box.mColor;
-    const Render::TextureHandle texture = box.mTextureHandle;
+    const v2& mini { box.mMini };
+    const v2& maxi { box.mMaxi };
+    const v4& color { box.mColor };
+    const Render::TextureHandle texture { box.mTextureHandle };
 
-    v2 clippedMini = mini;
-    v2 clippedMaxi = maxi;
+    v2 clippedMini { mini };
+    v2 clippedMaxi { maxi };
     if( clipRect )
     {
       clippedMini = { Max( mini.x, clipRect->mMini.x ), Max( mini.y, clipRect->mMini.y ) };
@@ -486,16 +486,16 @@ namespace Tac
     if( clippedMini.x >= clippedMaxi.x || clippedMini.y >= clippedMaxi.y )
       return;
 
-    const int oldVtxCount = mVtxs.size();
-    const int oldIdxCount = mIdxs.size();
-    const int idxCount = 6;
+    const int oldVtxCount { mVtxs.size() };
+    const int oldIdxCount { mIdxs.size() };
+    const int idxCount { 6 };
     mIdxs.resize( oldIdxCount + idxCount );
-    UI2DIndex* pIdx = mIdxs.data() + oldIdxCount;
-    const UI2DIndex idxs[] = { 0, 1, 2, 0, 2, 3 };
+    UI2DIndex* pIdx { mIdxs.data() + oldIdxCount };
+    const UI2DIndex idxs[]  { 0, 1, 2, 0, 2, 3 };
     for( UI2DIndex idx : idxs )
       *pIdx++ = (UI2DIndex)oldVtxCount + idx;
 
-    const int vtxCount = 4;
+    const int vtxCount { 4 };
     mVtxs.resize( oldVtxCount + 4 );
     UI2DVertex* pVtx = mVtxs.data() + oldVtxCount;
     *pVtx++ = { .mPosition = { clippedMini.x, clippedMini.y }, .mGLTexCoord = { 0, 1 } };
@@ -503,10 +503,10 @@ namespace Tac
     *pVtx++ = { .mPosition = { clippedMaxi.x, clippedMaxi.y }, .mGLTexCoord = { 1, 0 } };
     *pVtx++ = { .mPosition = { clippedMaxi.x, clippedMini.y }, .mGLTexCoord = { 1, 1 } };
 
-    const Render::DefaultCBufferPerObject perObjectData =
+    const Render::DefaultCBufferPerObject perObjectData
     {
-      .World = m4::Identity(),
-      .Color = Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ),
+      .World { m4::Identity() },
+      .Color { Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ) },
     };
 
     TAC_ASSERT( oldVtxCount + vtxCount == mVtxs.size() );
@@ -514,13 +514,13 @@ namespace Tac
 
     const UI2DDrawCall drawCall
     {
-      .mIVertexStart = oldVtxCount,
-      .mVertexCount = vtxCount,
-      .mIIndexStart = oldIdxCount,
-      .mIndexCount = idxCount,
-      .mShader = gUI2DCommonData.mShader,
-      .mTexture = texture,
-      .mUniformSource = perObjectData,
+      .mIVertexStart { oldVtxCount },
+      .mVertexCount { vtxCount },
+      .mIIndexStart { oldIdxCount },
+      .mIndexCount { idxCount },
+      .mShader { gUI2DCommonData.mShader },
+      .mTexture { texture },
+      .mUniformSource { perObjectData },
     };
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );
@@ -529,22 +529,22 @@ namespace Tac
 
   void UI2DDrawData::AddLine( const Line& line)
   {
-    const v2& p0 = line.mP0;
-    const v2& p1 = line.mP1;
-    const float radius = line.mLineRadius;
-    const v4& color = line.mColor;
+    const v2& p0 { line.mP0 };
+    const v2& p1 { line.mP1 };
+    const float radius { line.mLineRadius };
+    const v4& color { line.mColor };
 
     // This function creates a long thin rectangle to act as a line
-    const v2 dp = p1 - p0;
-    const float quadrance = dp.Quadrance();
+    const v2 dp { p1 - p0 };
+    const float quadrance { dp.Quadrance() };
     if( dp.Quadrance() < 0.01f )
       return;
 
-    const float length = Sqrt( quadrance );
-    const v2 dp_hat = dp / length;
-    const v2 dp_hat_ccw_scaled = v2( -dp_hat.y, dp_hat.x ) * radius;
+    const float length { Sqrt( quadrance ) };
+    const v2 dp_hat { dp / length };
+    const v2 dp_hat_ccw_scaled { v2( -dp_hat.y, dp_hat.x ) * radius };
 
-    const int iVert = mVtxs.size();
+    const int iVert { mVtxs.size() };
     mVtxs.resize( iVert + 4 );
     mVtxs[ iVert + 0 ] = UI2DVertex( p0 + dp_hat_ccw_scaled );
     mVtxs[ iVert + 1 ] = UI2DVertex( p0 - dp_hat_ccw_scaled );
@@ -560,20 +560,20 @@ namespace Tac
     mIdxs[ iIndex + 4 ] = ( UI2DIndex )iVert + 3;
     mIdxs[ iIndex + 5 ] = ( UI2DIndex )iVert + 2;
 
-    const Render::DefaultCBufferPerObject perObjectData =
+    const Render::DefaultCBufferPerObject perObjectData
     {
-      .World = m4::Identity(),
-      .Color = Render::PremultipliedAlpha::From_sRGB_linearAlpha(color),
+      .World { m4::Identity() },
+      .Color { Render::PremultipliedAlpha::From_sRGB_linearAlpha(color) },
     };
 
     const UI2DDrawCall drawCall
     {
-      .mIVertexStart = iVert,
-      .mVertexCount = 4,
-      .mIIndexStart = iIndex,
-      .mIndexCount = 6,
-      .mShader = gUI2DCommonData.mShader,
-      .mUniformSource = perObjectData,
+      .mIVertexStart { iVert },
+      .mVertexCount { 4 },
+      .mIIndexStart { iIndex },
+      .mIndexCount { 6 },
+      .mShader { gUI2DCommonData.mShader },
+      .mUniformSource { perObjectData },
     };
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );

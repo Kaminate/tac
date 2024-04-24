@@ -10,15 +10,15 @@ namespace Tac
                                const v3& normalizedRayDir,
                                float & dist )
   {
-    v3 edge2 = p2 - p0;
-    v3 edge1 = p1 - p0;
-    v3 b = rayPos - p0;
-    v3 p = Cross( normalizedRayDir, edge2 );
-    v3 q = Cross( b, edge1 );
-    float pdotv1 = Dot( p, edge1 );
-    float t = Dot( q, edge2 ) / pdotv1;
-    float u = Dot( p, b ) / pdotv1;
-    float v = Dot( q, normalizedRayDir ) / pdotv1;
+    v3 edge2 { p2 - p0 };
+    v3 edge1{ p1 - p0 };
+    v3 b { rayPos - p0 };
+    v3 p { Cross( normalizedRayDir, edge2 ) };
+    v3 q { Cross( b, edge1 ) };
+    float pdotv1 { Dot( p, edge1 ) };
+    float t { Dot( q, edge2 ) / pdotv1 };
+    float u { Dot( p, b ) / pdotv1 };
+    float v { Dot( q, normalizedRayDir ) / pdotv1 };
     if( t > 0 && u >= 0 && v >= 0 && u + v <= 1 )
     {
       dist = t;
@@ -29,10 +29,10 @@ namespace Tac
 
   void SubMesh::SubMeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist ) const
   {
-    bool submeshHit = false;
-    float submeshDist = 0;
-    int triCount = ( int )mTris.size();
-    for( int iTri = 0; iTri < triCount; ++iTri )
+    bool submeshHit { false };
+    float submeshDist { 0 };
+    int triCount { ( int )mTris.size() };
+    for( int iTri { 0 }; iTri < triCount; ++iTri )
     {
       const SubMeshTriangle& tri { mTris[ iTri ] };
       float triDist{};
@@ -55,12 +55,12 @@ namespace Tac
 
   void Mesh::MeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist ) const
   {
-    bool meshHit = false;
-    float meshDist = 0;
+    bool meshHit { false };
+    float meshDist { 0 };
     for( const SubMesh& subMesh : mSubMeshes )
     {
-      bool subMeshHit = false;
-      float submeshDist = 0;
+      bool subMeshHit { false };
+      float submeshDist { 0 };
       subMesh.SubMeshModelSpaceRaycast( inRayPos, inRayDir, &subMeshHit, &submeshDist );
       if( !subMeshHit )
         continue;

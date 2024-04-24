@@ -17,14 +17,14 @@ namespace Tac
 {
   struct WavefrontObjVertex
   {
-    int miPosition = 0;
-    int miNormal = 0;
-    int miTexCoord = 0;
+    int miPosition { 0 };
+    int miNormal { 0 };
+    int miTexCoord { 0 };
   };
 
   struct WavefrontObjFace
   {
-    WavefrontObjVertex mVertexes[ 3 ] = {};
+    WavefrontObjVertex mVertexes[ 3 ]  {};
   };
 
   struct WavefrontObj
@@ -65,10 +65,10 @@ namespace Tac
   static WavefrontObjFace   WavefrontObjParseFace( ParseData* parseData )
   {
     //ParseData parseData( line.begin(), line.end() );
-    WavefrontObjFace face = {};
+    WavefrontObjFace face  {};
     for( WavefrontObjVertex* vertex = face.mVertexes; vertex < face.mVertexes + 3; ++vertex )
     {
-      StringView vertexString = parseData->EatWord();
+      StringView vertexString { parseData->EatWord() };
       if( vertexString.empty() )
         break;
       *vertex = WavefrontObjParseVertex( vertexString );
@@ -78,16 +78,16 @@ namespace Tac
 
   v2 EatV2Unchecked( ParseData* parseData )
   {
-    float x = parseData->EatFloat().GetValueUnchecked();
-    float y = parseData->EatFloat().GetValueUnchecked();
+    float x { parseData->EatFloat().GetValueUnchecked() };
+    float y { parseData->EatFloat().GetValueUnchecked() };
     return { x, y };
   }
 
   v3 EatV3Unchecked( ParseData* parseData )
   {
-    float x = parseData->EatFloat().GetValueUnchecked();
-    float y = parseData->EatFloat().GetValueUnchecked();
-    float z = parseData->EatFloat().GetValueUnchecked();
+    float x { parseData->EatFloat().GetValueUnchecked() };
+    float y { parseData->EatFloat().GetValueUnchecked() };
+    float z { parseData->EatFloat().GetValueUnchecked() };
     return { x, y, z };
   }
 
@@ -104,7 +104,7 @@ namespace Tac
       if( parseData.GetRemainingByteCount() == 0 )
         break;
 
-      const StringView word = parseData.EatWord();
+      const StringView word { parseData.EatWord() };
       if( word == StringView("f" ) )
         faces.push_back( WavefrontObjParseFace( &parseData ) );
 
@@ -121,19 +121,19 @@ namespace Tac
     }
 
     return WavefrontObj{
-      .normals = normals,
-      .texcoords = texcoords,
-      .positions = positions,
-      .faces = faces,
+      .normals { normals },
+      .texcoords { texcoords },
+      .positions { positions },
+      .faces { faces },
     };
   }
 
   static int                WavefrontObjCalculateStride( const Render::VertexDeclarations& vertexDeclarations )
   {
-    int maxStride = 0;
+    int maxStride { 0 };
     for( const Render::VertexDeclaration& decl : vertexDeclarations )
     {
-      const int curStride = decl.mAlignedByteOffset + decl.mTextureFormat.CalculateTotalByteCount();
+      const int curStride { decl.mAlignedByteOffset + decl.mTextureFormat.CalculateTotalByteCount() };
       maxStride = Max( maxStride, curStride );
     }
 
@@ -155,10 +155,10 @@ namespace Tac
 
     for( const WavefrontObjFace& face : wavefrontObj.faces )
     {
-      SubMeshTriangle subMeshTriangle = {};
-      for( int iTriVert = 0; iTriVert < 3; ++iTriVert )
+      SubMeshTriangle subMeshTriangle  {};
+      for( int iTriVert { 0 }; iTriVert < 3; ++iTriVert )
       {
-        const WavefrontObjVertex& tri = face.mVertexes[ iTriVert ];
+        const WavefrontObjVertex& tri { face.mVertexes[ iTriVert ] };
         subMeshTriangle[ iTriVert ] = wavefrontObj.positions[ tri.miPosition ];
 
         MemSet( vertexBytes.data(), 0, vertexBytes.size() );
@@ -209,27 +209,27 @@ namespace Tac
 
     Render::CreateBufferParams vertexBufferParams
     {
-      .mByteCount = dstVtxBytes.size(),
-      .mBytes = dstVtxBytes.data(),
-      .mAccess = Render::Usage::Default,
-      .mOptionalName = name,
-      .mStackFrame = TAC_STACK_FRAME,
+      .mByteCount { dstVtxBytes.size() },
+      .mBytes { dstVtxBytes.data() },
+      .mAccess { Render::Usage::Default },
+      .mOptionalName { name },
+      .mStackFrame { TAC_STACK_FRAME },
     };
-    const Render::BufferHandle vertexBuffer =
-      TAC_CALL_RET( {}, renderDevice->CreateBuffer( vertexBufferParams, errors ) );
+    TAC_CALL_RET( {},const Render::BufferHandle vertexBuffer {
+       renderDevice->CreateBuffer( vertexBufferParams, errors ) } );
 
     const SubMesh subMesh
     {
-      .mPrimitiveTopology = Render::PrimitiveTopology::TriangleList,
-      .mVertexBuffer = vertexBuffer,
-      .mTris = subMeshTriangles,
-      .mVertexCount = wavefrontObj.faces.size() * 3,
-      .mName = name,
+      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+      .mVertexBuffer { vertexBuffer },
+      .mTris { subMeshTriangles },
+      .mVertexCount { wavefrontObj.faces.size() * 3 },
+      .mName { name },
     };
 
     const Mesh mesh
     {
-      .mSubMeshes = { subMesh },
+      .mSubMeshes  { subMesh },
     };
 
     return mesh;
@@ -240,10 +240,10 @@ namespace Tac
                                                       const Render::VertexDeclarations& vertexDeclarations,
                                                       Errors& errors )
   {
-    const StringView name = assetPath.GetFilename();
-    const String bytes = LoadAssetPath( assetPath, errors );
-    const WavefrontObj wavefrontObj = WavefrontObjLoad( bytes.data(), bytes.size() );
-    const Mesh mesh = WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations, errors );
+    const StringView name { assetPath.GetFilename() };
+    const String bytes { LoadAssetPath( assetPath, errors ) };
+    const WavefrontObj wavefrontObj { WavefrontObjLoad( bytes.data(), bytes.size() ) };
+    const Mesh mesh { WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations, errors ) };
     return mesh;
   }
 

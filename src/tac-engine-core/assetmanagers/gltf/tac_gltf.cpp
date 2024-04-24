@@ -44,7 +44,7 @@ namespace Tac
 
   const char*                 GetcgltfErrorAsString( const cgltf_result parseResult )
   {
-    const char* results[] =
+    const char* results[]
     {
       "cgltf_result_success",
       "cgltf_result_data_too_short",
@@ -87,7 +87,7 @@ namespace Tac
                                     const char* fnArgs )
   {
 
-    const char* gltfErrorStr = GetcgltfErrorAsString( fnResult );
+    const char* gltfErrorStr { GetcgltfErrorAsString( fnResult ) };
 
     String msg;
     msg += fnName;
@@ -103,11 +103,11 @@ namespace Tac
 
   Render::Format              FillDataType( const cgltf_accessor* accessor )
   {
-    const Render::Format result =
+    const Render::Format result
     {
-      .mElementCount = FillDataTypeElementCount( accessor ),
-      .mPerElementByteCount = FillDataTypePerElementByteCount( accessor ),
-      .mPerElementDataType = FillDataTypePerElementDataType( accessor ),
+      .mElementCount         { FillDataTypeElementCount( accessor ) },
+      .mPerElementByteCount  { FillDataTypePerElementByteCount( accessor ) },
+      .mPerElementDataType   { FillDataTypePerElementDataType( accessor ) },
     };
     return result;
   }
@@ -115,9 +115,9 @@ namespace Tac
   const cgltf_attribute*      FindAttributeOfType( const cgltf_primitive* parsedPrim,
                                                   const cgltf_attribute_type type )
   {
-    for( int iAttrib = 0; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
+    for( int iAttrib { 0 }; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
     {
-      cgltf_attribute* gltfVertAttributeCurr = &parsedPrim->attributes[ iAttrib ];
+      cgltf_attribute* gltfVertAttributeCurr { &parsedPrim->attributes[ iAttrib ] };
       if( gltfVertAttributeCurr->type == type )
         return gltfVertAttributeCurr;
     }

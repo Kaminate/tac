@@ -324,7 +324,7 @@ void Tac::ImGuiProfileWidget( SimKeyboardApi* keyboardApi )
   UI2DDrawData* drawData { imguiWindow->mDrawData };
 
   const int   fps { GetFPS() };
-  const float fpsT { Saturate( ( float )fps / 400.0f ); // 1 = fast, 0 = slo }w
+  const float fpsT{ Saturate( ( float )fps / 400.0f ) }; // 1 = fast, 0 = slow
   const v2    fpsBoxMin { imguiWindow->mViewportSpaceCurrCursor + v2( 80.0f, 7.0f ) };
   const v2    fpsBoxMax{ fpsBoxMin + v2( ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
                                           2.0f ) };

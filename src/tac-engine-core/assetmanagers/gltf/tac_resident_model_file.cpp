@@ -18,21 +18,21 @@ namespace Tac
 
     String           bytes;
     Filesystem::Path mPath;
-    cgltf_data*      mParsedData = nullptr;
+    cgltf_data*      mParsedData { nullptr };
   };
 
   // -----------------------------------------------------------------------------------------------
 
   void   LoadJob::Execute() 
   {
-    Errors& errors = mErrors;
+    Errors& errors { mErrors };
 
-    TAC_CALL( bytes = LoadFilePath( mPath, errors ));
+    TAC_CALL( bytes = LoadFilePath( mPath, errors ) );
 
-    const cgltf_options options = {};
+    const cgltf_options options  {};
 
-    [[maybe_unused]] const String u8Path = mPath.u8string();
-    [[maybe_unused]] const char* u8Pathcstr = u8Path.c_str();
+    [[maybe_unused]] const String u8Path { mPath.u8string() };
+    [[maybe_unused]] const char* u8Pathcstr { u8Path.c_str() };
 
     TAC_GLTF_CALL( cgltf_parse, &options, bytes.data(), bytes.size(), &mParsedData );
 
@@ -57,7 +57,7 @@ namespace Tac
     Filesystem::Path mPath;
     StringID         mAssetPathID;
     Timestamp        mLastRequestSeconds;
-    cgltf_data*      mParsedData = nullptr;
+    cgltf_data*      mParsedData { nullptr };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -114,12 +114,12 @@ namespace Tac
   static void          ResidentModelFileUpdate()
   {
     static Timestamp lastUpdateSeconds;
-    const Timestamp currUpdateSeconds = Timestep::GetElapsedTime();
+    const Timestamp currUpdateSeconds { Timestep::GetElapsedTime() };
     if( lastUpdateSeconds == currUpdateSeconds )
       return;
     lastUpdateSeconds = currUpdateSeconds;
 
-    const TimestampDifference persistSeconds = 1.0f;
+    const TimestampDifference persistSeconds { 1.0f };
 
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( loadedStuff.mLastRequestSeconds + persistSeconds > currUpdateSeconds )
@@ -136,7 +136,7 @@ namespace Tac
         continue;
       }
 
-      LoadedStuff* loadedStuff = TryGetEmptyLoadedStuff();
+      LoadedStuff* loadedStuff { TryGetEmptyLoadedStuff() };
       if( !loadedStuff )
         continue;
 
@@ -170,7 +170,7 @@ namespace Tac
 
     const StringID id{ assetPath };
 
-    if( LoadedStuff* stuff = FindLoadedStuff( id ) )
+    if( LoadedStuff * stuff{ FindLoadedStuff( id ) } )
     {
         stuff->mLastRequestSeconds = Timestep::GetElapsedTime();
         return stuff->mParsedData;
@@ -180,7 +180,7 @@ namespace Tac
     if( FindLoadingStuff( id ) )
       return nullptr;
 
-    LoadingStuff* loadingStuff = TryGetEmptyLoadingStuff();
+    LoadingStuff* loadingStuff { TryGetEmptyLoadingStuff() };
     if( !loadingStuff )
       return nullptr;
 

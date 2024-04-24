@@ -30,10 +30,10 @@ namespace Tac
     void                SetText( StringView );
     CodepointView       GetCodepointView() const;
 
-    int                 mNumGlyphsBeforeCaret[ 2 ] = {};
+    int                 mNumGlyphsBeforeCaret[ 2 ]  {};
 
     //                  https://en.wikipedia.org/wiki/Cursor_(user_interface)
-    int                 mCaretCount = 0;
+    int                 mCaretCount { 0 };
     Vector< Codepoint > mCodepoints;
 
   private:

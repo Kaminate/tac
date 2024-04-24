@@ -28,14 +28,14 @@ namespace Tac::TextureAssetManager
   struct AsyncTexture
   {
     ~AsyncTexture();
-    Job*              mJob = nullptr;
-    AsyncTextureData* mData = nullptr;
+    Job*              mJob { nullptr };
+    AsyncTextureData* mData { nullptr };
   };
 
   struct AsyncTextureSingleData : AsyncTextureData
   {
     Render::TextureHandle CreateTexture( Errors& ) override;
-    int              mPitch = 0;
+    int              mPitch { 0 };
     Render::Image    mImage;
     Vector< char >   mImageData;
     Filesystem::Path mFilepath;
@@ -45,7 +45,7 @@ namespace Tac::TextureAssetManager
   {
     Render::TextureHandle CreateTexture( Errors& ) override;
 
-    int              mPitch = 0;
+    int              mPitch { 0 };
     Render::Image    mImage;
     Vector< char >   mImageData[ 6 ];
     Filesystem::Path mDir;
@@ -54,13 +54,13 @@ namespace Tac::TextureAssetManager
   struct AsyncTextureSingleJob : Job
   {
     void Execute() override;
-    AsyncTextureSingleData* mData = nullptr;
+    AsyncTextureSingleData* mData { nullptr };
   };
 
   struct AsyncTextureCubeJob : Job
   {
     void Execute() override;
-    AsyncTextureCubeData* mData = nullptr;
+    AsyncTextureCubeData* mData { nullptr };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -85,11 +85,11 @@ namespace Tac::TextureAssetManager
   {
       const Render::CreateTextureParams createTextureParams
       {
-         .mImage = mImage,
-         .mPitch = mPitch,
-         .mImageBytes = mImageData.data(),
-         .mBinding = Render::Binding::ShaderResource,
-         .mStackFrame = TAC_STACK_FRAME,
+         .mImage       { mImage },
+         .mPitch       { mPitch },
+         .mImageBytes  { mImageData.data() },
+         .mBinding     { Render::Binding::ShaderResource },
+         .mStackFrame  { TAC_STACK_FRAME },
       };
       return Render::RenderApi::GetRenderDevice()->CreateTexture( createTextureParams, errors );
   }
@@ -100,8 +100,8 @@ namespace Tac::TextureAssetManager
   {
     const Render::CreateTextureParams commandData =
     { 
-      .mImage = mImage,
-      .mPitch = mPitch,
+      .mImage { mImage },
+      .mPitch { mPitch },
       .mImageBytesCubemap
       {
         mImageData[ 0 ].data(),
@@ -111,8 +111,8 @@ namespace Tac::TextureAssetManager
         mImageData[ 4 ].data(),
         mImageData[ 5 ].data()
       },
-      .mBinding = Render::Binding::ShaderResource,
-      .mStackFrame  = TAC_STACK_FRAME ,
+      .mBinding { Render::Binding::ShaderResource },
+      .mStackFrame  { TAC_STACK_FRAME },
     };
     return Render::RenderApi::GetRenderDevice()->CreateTexture( commandData, errors );
   }
@@ -128,32 +128,32 @@ namespace Tac::TextureAssetManager
     int x;
     int y;
     int previousChannelCount;
-    int desiredChannelCount = 4;
+    int desiredChannelCount { 4 };
 
     // rgba
-    const auto memoryByteCount = ( int )memory.size();
-    const auto memoryData = ( const stbi_uc* )memory.data();
-    stbi_uc* loaded = stbi_load_from_memory( memoryData,
+    const auto memoryByteCount { ( int )memory.size() };
+    const auto memoryData { ( const stbi_uc* )memory.data() };
+    stbi_uc* loaded{ stbi_load_from_memory( memoryData,
                                              memoryByteCount,
                                              &x,
                                              &y,
                                              &previousChannelCount,
-                                             desiredChannelCount );
+                                             desiredChannelCount ) };
     TAC_ON_DESTRUCT( stbi_image_free( loaded ) );
 
-    bool shouldConvertToPremultipliedAlpha = true;
+    bool shouldConvertToPremultipliedAlpha { true };
     if( shouldConvertToPremultipliedAlpha )
     {
-      stbi_uc* l = loaded;
+      stbi_uc* l { loaded };
       for( int i{}; i < y; ++i )
       {
-        for( int j = 0; j < x; ++j )
+        for( int j { 0 }; j < x; ++j )
         {
           u8* r = l++;
           u8* g = l++;
           u8* b = l++;
           u8* a = l++;
-          const float percent = *a / 255.0f;
+          const float percent { *a / 255.0f };
           *r = ( u8 )( *r * percent );
           *g = ( u8 )( *g * percent );
           *b = ( u8 )( *b * percent );
@@ -164,8 +164,8 @@ namespace Tac::TextureAssetManager
     const Render::Format format{ .mElementCount = desiredChannelCount,
                                  .mPerElementByteCount = 1,
                                  .mPerElementDataType = Render::GraphicsType::unorm};
-    const int pitch = x * format.mElementCount * format.mPerElementByteCount;
-    const int imageDataByteCount = y * pitch;
+    const int pitch { x * format.mElementCount * format.mPerElementByteCount };
+    const int imageDataByteCount { y * pitch };
     mData->mImageData.resize( imageDataByteCount );
     MemCpy( mData->mImageData.data(), loaded, imageDataByteCount );
 
@@ -180,19 +180,19 @@ namespace Tac::TextureAssetManager
 
   void AsyncTextureCubeJob::Execute()
   {
-    Errors& errors = mErrors;
+    Errors& errors { mErrors };
 
-    Vector< Filesystem::Path > files = TAC_CALL( Filesystem::IterateFiles( mData->mDir,
+    TAC_CALL( Vector< Filesystem::Path > files{ Filesystem::IterateFiles( mData->mDir,
                                                                  Filesystem::IterateType::Recursive,
-                                                                 errors ));
+                                                                 errors ) } );
 
     if( files.size() != 6 )
     {
-      const String errorMsg
-        = "found "
-        + ToString( files.size() )
-        + " textures in "
-        + mData->mDir.u8string();
+      const String errorMsg{ "found "
+      + ToString( files.size() )
+      + " textures in "
+      + mData->mDir.u8string() };
+
       TAC_RAISE_ERROR( errorMsg);
     }
 
@@ -200,7 +200,7 @@ namespace Tac::TextureAssetManager
     {
       for( int i{}; i < 6; ++i )
       {
-        Filesystem::Path filepath = files[ i ];
+        Filesystem::Path filepath { files[ i ] };
         if( ToLower( filepath.u8string() ).find( ToLower( face ) ) == String::npos )
           continue;
 
@@ -220,16 +220,16 @@ namespace Tac::TextureAssetManager
 
     const Render::Format format
     {
-      .mElementCount = 4,
-      .mPerElementByteCount = 1,
-      .mPerElementDataType = Render::GraphicsType::unorm
+      .mElementCount { 4 },
+      .mPerElementByteCount { 1 },
+      .mPerElementDataType { Render::GraphicsType::unorm },
     };
-    int prevWidth = 0;
-    int prevHeight = 0;
-    for( int iFile = 0; iFile < 6; ++iFile )
+    int prevWidth { 0 };
+    int prevHeight { 0 };
+    for( int iFile { 0 }; iFile < 6; ++iFile )
     {
-      const Filesystem::Path& filepath = files[ iFile ];
-      const String memory = TAC_CALL( LoadFilePath( filepath, errors ));
+      const Filesystem::Path& filepath { files[ iFile ] };
+      TAC_CALL( const String memory { LoadFilePath( filepath, errors ) });
 
       int x;
       int y;
@@ -252,7 +252,7 @@ namespace Tac::TextureAssetManager
 
       if( iFile && !( x == prevWidth && y == prevHeight ) )
       {
-        const Filesystem::Path& filepathPrev = files[ iFile - 1 ];
+        const Filesystem::Path& filepathPrev { files[ iFile - 1 ] };
         String errorMsg;
         errorMsg += filepath.u8string();
         errorMsg += " has dimensions ";
@@ -276,7 +276,7 @@ namespace Tac::TextureAssetManager
       mData->mPitch = pitch;
     }
 
-    Render::Image& image = mData->mImage;
+    Render::Image& image { mData->mImage };
     image.mFormat = format;
     image.mWidth = prevWidth;
     image.mHeight = prevHeight;
@@ -309,7 +309,7 @@ namespace Tac::TextureAssetManager
     {
       TAC_RAISE_ERROR_IF( job->mErrors, job->mErrors.ToString() );
 
-      Render::TextureHandle texture = TAC_CALL( asyncTexture->mData->CreateTexture( errors ) );
+      TAC_CALL( Render::TextureHandle texture { asyncTexture->mData->CreateTexture( errors )  } );
       mLoadingTextures.erase( id );
       TAC_DELETE asyncTexture;
       mLoadedTextures[ id ] = texture;
@@ -325,21 +325,21 @@ namespace Tac::TextureAssetManager
 
     const StringID id( textureFilepath );
 
-    Render::TextureHandle texture = FindLoadedTexture( id );
+    Render::TextureHandle texture { FindLoadedTexture( id ) };
     if( texture.IsValid() )
       return texture;
 
-    AsyncTexture* asyncTexture = FindLoadingTexture( id );
+    AsyncTexture* asyncTexture { FindLoadingTexture( id ) };
     if( asyncTexture )
     {
       UpdateAsyncTexture( textureFilepath, asyncTexture, errors );
       return texture;
     }
 
-    auto data = TAC_NEW AsyncTextureSingleData;
+    auto data { TAC_NEW AsyncTextureSingleData };
     data->mFilepath = textureFilepath;
 
-    auto job = TAC_NEW AsyncTextureSingleJob;
+    auto job { TAC_NEW AsyncTextureSingleJob };
     job->mData = data;
 
     asyncTexture = TAC_NEW AsyncTexture;
@@ -354,21 +354,21 @@ namespace Tac::TextureAssetManager
   Render::TextureHandle GetTextureCube( const AssetPathStringView& textureDir, Errors& errors )
   {
     const StringID id ( textureDir);
-    const Render::TextureHandle texture = FindLoadedTexture( id );
+    const Render::TextureHandle texture { FindLoadedTexture( id ) };
     if( texture.IsValid() )
       return texture;
 
-    AsyncTexture* asyncTexture = FindLoadingTexture( id );
+    AsyncTexture* asyncTexture { FindLoadingTexture( id ) };
     if( asyncTexture )
     {
       UpdateAsyncTexture( textureDir, asyncTexture, errors );
       return texture;
     }
 
-    auto data = TAC_NEW AsyncTextureCubeData;
+    auto data { TAC_NEW AsyncTextureCubeData };
     data->mDir = textureDir;
 
-    auto job = TAC_NEW AsyncTextureCubeJob;
+    auto job { TAC_NEW AsyncTextureCubeJob };
     job->mData = data;
 
     asyncTexture = TAC_NEW AsyncTexture;

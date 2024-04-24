@@ -137,7 +137,7 @@ void Tac::Map< TKey, TVal >::erase( TKey key )
     if( !node->mOccupied )
       break;
 
-    const int iDesired { node->mHash % mCapacity };
+    const int iDesired { (int)(node->mHash % mCapacity )};
     if( iDesired != i && iDesired <= iEmpty )
     {
       mNodes[ iEmpty ] = *node;
@@ -173,7 +173,7 @@ template< typename TKey, typename TVal >
 int              Tac::Map<TKey, TVal>::FindNodeIndex( TKey key ) const
 {
   const HashValue hash { Tac::Hash( key ) };
-  int i { hash % mCapacity };
+  int i{ ( int )( hash % mCapacity ) };
   for( ;; )
   {
     Node* node { &mNodes[ i ] };
