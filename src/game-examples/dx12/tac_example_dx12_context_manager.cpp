@@ -109,8 +109,8 @@ namespace Tac::Render
     context.mCommandAllocator = 
         TAC_CALL_RET( {}, mCommandAllocatorPool->GetAllocator( errors ) );
 
-    ID3D12GraphicsCommandList* dxCommandList = context.GetCommandList();
-    ID3D12CommandAllocator* dxCommandAllocator = context.mCommandAllocator.Get();
+    ID3D12GraphicsCommandList* dxCommandList { context.GetCommandList() };
+    ID3D12CommandAllocator* dxCommandAllocator { context.mCommandAllocator.Get() };
 
     // Command list allocators can only be reset when the associated 
     // command lists have finished execution on the GPU; apps should use 

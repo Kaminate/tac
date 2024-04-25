@@ -7,11 +7,11 @@ namespace Tac::Render
   struct DX12DescriptorHeap;
   struct DX12DescriptorHeapAllocation
   {
-    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle();
-    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const;
+    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const;
 
-    DX12DescriptorHeap* mOwner = nullptr;
-    int                 mIndex = -1;
+    DX12DescriptorHeap* mOwner { nullptr };
+    int                 mIndex { -1 };
   };
 
 } // namespace Tac::Render

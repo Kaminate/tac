@@ -1,7 +1,9 @@
 #include "tac_dx12_frame_buf_mgr.h" // self-inc
 #include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dx12/texture/tac_dx12_texture_mgr.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
+#include "tac-rhi/render3/tac_render_backend.h"
 
 #if !TAC_DELETE_ME()
 #include "tac-std-lib/os/tac_os.h"
@@ -9,22 +11,23 @@
 
 namespace Tac::Render
 {
-  void DX12SwapChainMgr::Init( ID3D12Device* device,
-                                 DX12CommandQueue* commandQueue,
-                                 DX12DescriptorHeap* cpuDescriptorHeapRTV )
+  void DX12SwapChainMgr::Init( Params params )
   {
-    mDevice = device;
-    mCpuDescriptorHeapRTV = cpuDescriptorHeapRTV;
-    mCommandQueue = commandQueue;
+    //mDevice = device;
+    //mCpuDescriptorHeapRTV = cpuDescriptorHeapRTV;
+    mTextureMgr = params.mTextureManager;
+    mCommandQueue = params.mCommandQueue;
   }
 
-  void   DX12SwapChainMgr::CreateSwapChain( SwapChainHandle h, SwapChainParams params, Errors& errors )
+  void   DX12SwapChainMgr::CreateSwapChain( SwapChainHandle h,
+                                            SwapChainParams params,
+                                            Errors& errors )
   {
     const void* nwh { params.mNWH };
     const v2i size { params.mSize };
     const int iHandle { h.GetIndex() };
 
-    ID3D12Device* device { mDevice };
+    //ID3D12Device* device { mDevice };
 
     DXGI_FORMAT fmt { DXGI_FORMAT_UNKNOWN };
     switch( params.mColorFmt )
@@ -53,30 +56,21 @@ namespace Tac::Render
 
     for( UINT iSwapChainBuf { 0 }; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
     {
-      const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
-
-      DX12DescriptorHeapAllocation rtv { mCpuDescriptorHeapRTV->Allocate() };
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { rtv.GetCPUHandle() };
+      //const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
+      //const DX12DescriptorHeapAllocation rtv { mCpuDescriptorHeapRTV->Allocate() };
+      //const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { rtv.GetCPUHandle() };
 
       PCom< ID3D12Resource > renderTarget;
       TAC_DX12_CALL( swapChain->GetBuffer(
         iSwapChainBuf,
         renderTarget.iid(),
         renderTarget.ppv() ) );
-
-      device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
-
       DX12SetName( renderTarget, "Render Target " + Tac::ToString( iHandle ) );
 
-      swapChainImages[ iSwapChainBuf ] = DX12SwapChainImage
-      {
-        .mResource { renderTarget },
-        .mDesc { renderTarget->GetDesc() },
+      const TextureHandle textureHandle { AllocTextureHandle() };
+      TAC_CALL( mTextureMgr->CreateRenderTargetTexture( textureHandle, renderTarget, errors ) );
 
-        // the render target resource is created in a state that is ready to be displayed on screen
-        .mState { D3D12_RESOURCE_STATE_PRESENT },
-        .mRTV { rtv },
-      };
+      swapChainImages.push_back( textureHandle );
     }
 
     mSwapChains[ iHandle ] = DX12SwapChain
@@ -113,5 +107,18 @@ namespace Tac::Render
   DX12SwapChain* DX12SwapChainMgr::FindSwapChain( SwapChainHandle h )
   {
     return h.IsValid() ? &mSwapChains[ h.GetIndex() ] : nullptr;
+  }
+
+  TextureHandle   DX12SwapChainMgr::GetSwapChainCurrentColor( SwapChainHandle h)
+  {
+    DX12SwapChain* swapChain { FindSwapChain( h ) };
+    const UINT iBackBuffer{ swapChain->mSwapChain->GetCurrentBackBufferIndex() };
+    return swapChain->mSwapChainImages[ iBackBuffer ];
+  }
+
+  TextureHandle   DX12SwapChainMgr::GetSwapChainDepth( SwapChainHandle h)
+  {
+    DX12SwapChain* swapChain { FindSwapChain( h ) };
+    return {};
   }
 } // namespace Tac::Render

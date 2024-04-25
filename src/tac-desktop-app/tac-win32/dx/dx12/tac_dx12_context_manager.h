@@ -16,6 +16,7 @@ namespace Tac::Render
   struct DX12ContextManager;
   struct DX12CommandQueue;
   struct DX12SwapChainMgr;
+  struct DX12TextureMgr;
 
   // A context has a commandlist, even if the context is recycled, the commandlist stays with it
   // forever.
@@ -55,20 +56,21 @@ namespace Tac::Render
 
     void Retire() override;
 
-    PCom< ID3D12GraphicsCommandList > mCommandList;
-    PCom< ID3D12CommandAllocator >    mCommandAllocator;
+    PCom< ID3D12GraphicsCommandList > mCommandList          {};
+    PCom< ID3D12CommandAllocator >    mCommandAllocator     {};
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
-    DX12UploadAllocator               mGPUUploadAllocator;
-    bool                              mSynchronous = false;
-    bool                              mExecuted = false;
+    DX12UploadAllocator               mGPUUploadAllocator   {};
+    bool                              mSynchronous          {};
+    bool                              mExecuted             {};
 
     // singletons
-    DX12CommandAllocatorPool*         mCommandAllocatorPool = nullptr;
-    DX12ContextManager*               mContextManager = nullptr;
-    DX12CommandQueue*                 mCommandQueue = nullptr;
-    DX12SwapChainMgr*               mFrameBufferMgr{};
-    int                               mEventCount{};
+    DX12CommandAllocatorPool*         mCommandAllocatorPool {};
+    DX12ContextManager*               mContextManager       {};
+    DX12CommandQueue*                 mCommandQueue         {};
+    DX12SwapChainMgr*                 mFrameBufferMgr       {};
+    DX12TextureMgr*                   mTextureMgr           {};
+    int                               mEventCount           {};
   };
 
   // a contextmanager manages contexts

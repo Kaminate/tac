@@ -1,7 +1,8 @@
 #include "tac_dx12_context_manager.h" // self-inc
-#include "tac_dx12_command_allocator_pool.h"
-#include "tac_dx12_gpu_upload_allocator.h"
 
+#include "tac-win32/dx/dx12/tac_dx12_command_allocator_pool.h"
+#include "tac-win32/dx/dx12/tac_dx12_gpu_upload_allocator.h"
+#include "tac-win32/dx/dx12/texture/tac_dx12_texture_mgr.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 
@@ -112,7 +113,7 @@ namespace Tac::Render
     //   Indicates to re-use the memory that is associated with the command allocator.
     //   From this call to Reset, the runtime and driver determine that the GPU is no longer
     //   executing any command lists that have recorded commands with the command allocator.
-    ID3D12CommandAllocator* dxCommandAllocator = GetCommandAllocator();
+    ID3D12CommandAllocator* dxCommandAllocator { GetCommandAllocator() };
     TAC_DX12_CALL( mCommandAllocator->Reset() );
 
 
@@ -128,7 +129,7 @@ namespace Tac::Render
     //   you can re-use command list tracking structures without any allocations
     //   you can call Reset while the command list is still being executed
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
-    ID3D12GraphicsCommandList* dxCommandList = GetCommandList();
+    ID3D12GraphicsCommandList* dxCommandList { GetCommandList() };
     TAC_DX12_CALL( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
   }
@@ -197,6 +198,13 @@ namespace Tac::Render
 
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
 
+    for( TextureHandle colorTarget : targets.mColors )
+    {
+      DX12Texture* colorTexture { mTextureMgr->FindTexture( colorTarget ) };
+
+      //rtDescs.push_back( colorTexture->??? );
+    }
+
     OS::OSDebugBreak();
 #if TAC_TEMPORARILY_DISABLED()
 
@@ -210,20 +218,22 @@ namespace Tac::Render
 
     BOOL RTsSingleHandleToDescriptorRange { false };
 
-    D3D12_RESOURCE_BARRIER barrier
+    const D3D12_RESOURCE_TRANSITION_BARRIER Transition
     {
-      .Type { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-      .Flags { D3D12_RESOURCE_BARRIER_FLAG_NONE },
-      .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-      {
-        .pResource { swapChainImage.mResource.Get() },
-        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-        .StateBefore { swapChainImage.mState },
-        .StateAfter { D3D12_RESOURCE_STATE_RENDER_TARGET },
-      },
+      .pResource   { swapChainImage.mResource.Get() },
+      .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+      .StateBefore { swapChainImage.mState },
+      .StateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
     };
 
-    const Array barriers  { barrier };
+    const D3D12_RESOURCE_BARRIER barrier
+    {
+      .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+      .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
+      .Transition { Transition },
+    };
+
+    const Array barriers{ barrier };
     commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
 
     // if null, no depth stencil is bound

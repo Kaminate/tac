@@ -5,6 +5,7 @@
 
 #include "tac_window_handle.h"
 #include "tac_window_api.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 // Maybe this shouldn't be done here... the framebuffer texture format should be specified by
 // the user somehow... maybe when creating the window? maybe never ( ie in render code )?
@@ -24,6 +25,8 @@ namespace Tac
     const void*      GetNWH( WindowHandle ) const; // native window handle
     WindowHandle     CreateWindow( WindowCreateParams, Errors& ) const;
     void             DestroyWindow( WindowHandle ) const;
+    void             SetSwapChainColorFormat( Render::TexFmt );
+    Render::TexFmt   GetSwapChainColorFormat();
 
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     Render::SwapChainHandle GetSwapChainHandle( WindowHandle ) const;

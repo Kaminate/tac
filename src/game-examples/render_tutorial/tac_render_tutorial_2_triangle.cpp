@@ -11,7 +11,7 @@ namespace Tac
   struct ClipSpacePosition3
   {
     explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
-    explicit ClipSpacePosition3(float x, float y, float z) : mValue{ x,y,z } {}
+    explicit ClipSpacePosition3( float x, float y, float z ) : mValue{ x,y,z } {}
     v3 mValue;
   };
 
@@ -51,10 +51,14 @@ namespace Tac
     Render::BufferHandle   mVtxBuf;
     Render::ProgramHandle  mShader;
     Render::PipelineHandle mPipeline;
+    Render::TexFmt         mRTVFormat = Render::TexFmt::kRGBA16F;
   };
 
   void HelloTriangle::Init( InitParams initParams, Errors& errors )
   {
+    SysWindowApi* windowApi{ initParams.mWindowApi };
+    windowApi->SetSwapChainColorFormat( mRTVFormat );
+
     InitWindow( initParams, errors );
     InitBuffer( errors );
     InitShader( errors );
@@ -122,15 +126,15 @@ namespace Tac
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    Render::PipelineParams params
+    const Render::PipelineParams params
     {
-      .mProgram{ mShader },
-    //RasterizerType         mRasterizer;
-    //BlendType              mBlend;
-    //DepthStencilType       mDepthStencilType;
-    //SwapChainHandle               mRenderTarget;
-    .mRTVColorFmts{ },
-    .mDSVDepthFmt { Render::TexFmt::kUnknown },
+      .mProgram      { mShader },
+      // RasterizerType         mRasterizer;
+      // BlendType              mBlend;
+      // DepthStencilType       mDepthStencilType;
+      // SwapChainHandle               mRenderTarget;
+      .mRTVColorFmts { mRTVFormat },
+      .mDSVDepthFmt  { Render::TexFmt::kUnknown },
     };
     mPipeline = renderDevice->CreatePipeline( params, errors );
 

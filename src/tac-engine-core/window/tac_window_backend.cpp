@@ -18,8 +18,9 @@ import std; // mutex
 
 namespace Tac::WindowBackend
 {
+  static Render::TexFmt sTexFmt { Render::TexFmt::kRGBA16F };
 
-  bool SysApi::mIsRendererEnabled = true;
+  bool SysApi::mIsRendererEnabled { true };
   struct WindowState
   {
     String mName;
@@ -340,6 +341,9 @@ namespace Tac
     platform->PlatformDespawnWindow( h );
     FreeWindowHandle( h );
   }
+
+  void             SysWindowApi::SetSwapChainColorFormat( Render::TexFmt fmt ) { sTexFmt = fmt; }
+  Render::TexFmt   SysWindowApi::GetSwapChainColorFormat()                     { return sTexFmt; }
 
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   Render::SwapChainHandle SysWindowApi::GetSwapChainHandle( WindowHandle h ) const

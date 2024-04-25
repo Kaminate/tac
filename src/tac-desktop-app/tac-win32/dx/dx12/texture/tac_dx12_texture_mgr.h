@@ -12,13 +12,20 @@ namespace Tac::Render
 {
   struct DX12TextureMgr
   {
-    void Init( ID3D12Device* );
+    struct Params
+    {
+      ID3D12Device*       mDevice{};
+      DX12DescriptorHeap* mCpuDescriptorHeapRTV{};
+    };
+    void          Init( Params );
+    void          CreateTexture( TextureHandle, CreateTextureParams, Errors& );
+    void          CreateRenderTargetTexture( TextureHandle, PCom<ID3D12Resource>, Errors& );
+    void          UpdateTexture( TextureHandle, UpdateTextureParams );
+    void          DestroyTexture( TextureHandle );
+    DX12Texture*  FindTexture( TextureHandle );
 
-    void CreateTexture( TextureHandle, CreateTextureParams, Errors& );
-    void UpdateTexture( TextureHandle, UpdateTextureParams );
-    void DestroyTexture( TextureHandle );
-
-    DX12Texture   mTextures[ 100 ];
-    ID3D12Device* mDevice{};
+    DX12Texture         mTextures[ 100 ];
+    ID3D12Device*       mDevice{};
+    DX12DescriptorHeap* mCpuDescriptorHeapRTV{};
   };
 } // namespace Tac::Render

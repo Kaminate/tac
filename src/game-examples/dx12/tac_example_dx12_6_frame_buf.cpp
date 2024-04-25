@@ -72,6 +72,8 @@ namespace Tac
 
   using namespace Render;
 
+  static DXGI_FORMAT RTVFormat = DXGI_FORMAT_UNKNOWN;
+
   // -----------------------------------------------------------------------------------------------
 
   // Helper functions for App::Init
@@ -685,8 +687,6 @@ namespace Tac
       },
     };
 
-    const DXGI_FORMAT RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    TAC_ASSERT( WindowBackend::sTexFmt == Render::TexFmt::kRGBA16F );
 
     const DXGI_SAMPLE_DESC SampleDesc{ .Count = 1 };
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
@@ -1057,6 +1057,9 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::Init( InitParams initParams, Errors& errors )
   {
+    initParams.mWindowApi->SetSwapChainColorFormat( Render::TexFmt::kRGBA16F );
+    RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
     WindowBackend::SysApi::mIsRendererEnabled = false; // hack
     CreateDesktopWindow();
   }
