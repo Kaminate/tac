@@ -89,8 +89,8 @@ namespace Tac
       ( *mRefCounter )++;
     }
 
-    mutable int* mRefCounter = nullptr;
-    mutable T*   mT = nullptr;
+    mutable int* mRefCounter {};
+    mutable T*   mT          {};
   };
 } // namespace Tac
 

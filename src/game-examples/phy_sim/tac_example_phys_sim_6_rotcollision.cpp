@@ -11,19 +11,19 @@
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/...
 
-static bool dorot = false;
-static bool drawCapsules = true;
-static bool drawCapsuleCollision = false;
-static bool drawLinPos = false;
-static bool drawBoundingSphere = false;
-static bool drawClosestPointLineSegmentTest = false;
+static bool dorot                           {};
+static bool drawCapsules                    { true };
+static bool drawCapsuleCollision            {};
+static bool drawLinPos                      {};
+static bool drawBoundingSphere              {};
+static bool drawClosestPointLineSegmentTest {};
 
 namespace Tac
 {
 
   struct Sim6CollisionResult
   {
-    bool mCollided = false;
+    bool mCollided { false };
     v3 mNormal; // collision normal from obj A to obj B
     v3 mPoint; // collision point
     float mDist; // penetration distance
@@ -32,10 +32,10 @@ namespace Tac
   static bool IsBroadphaseOverlapping( const ExamplePhys6SimObj& objA,
                                        const ExamplePhys6SimObj& objB )
   {
-    float rSum = objA.mBoundingSphereRadius + objB.mBoundingSphereRadius;
-    float rSumSq = rSum * rSum;
-    float q = Quadrance( objA.mLinPos, objB.mLinPos );
-    bool result = q < rSumSq;
+    float rSum { objA.mBoundingSphereRadius + objB.mBoundingSphereRadius };
+    float rSumSq { rSum * rSum };
+    float q { Quadrance( objA.mLinPos, objB.mLinPos ) };
+    bool result { q < rSumSq };
     return result;
   }
 
@@ -48,7 +48,7 @@ namespace Tac
   struct Sim6Capsule
   {
     Sim6LineSegment mLineSegment;
-    float mRadius = 0;
+    float mRadius { 0 };
   };
 
   Sim6LineSegment SimObjToLineSegment( const ExamplePhys6SimObj& obj )
@@ -63,8 +63,8 @@ namespace Tac
   static Sim6CollisionResult Sim6CollideCapsuleCapsule( const ExamplePhys6SimObj& objA,
                                                         const ExamplePhys6SimObj& objB )
   {
-    const Sim6LineSegment lineSegmentA = SimObjToLineSegment( objA );
-    const Sim6LineSegment lineSegmentB = SimObjToLineSegment( objB );
+    const Sim6LineSegment lineSegmentA { SimObjToLineSegment( objA ) };
+    const Sim6LineSegment lineSegmentB { SimObjToLineSegment( objB ) };
     v3 closestA;
     v3 closestB;
     ClosestPointTwoLineSegments( lineSegmentA.p0,
@@ -73,23 +73,23 @@ namespace Tac
                                  lineSegmentB.p1,
                                  &closestA,
                                  &closestB );
-    const float radiusSum = objA.mCapsuleRadius + objB.mCapsuleRadius;
-    const v3 v = closestB - closestA;
-    const float q = v.Quadrance();
+    const float radiusSum { objA.mCapsuleRadius + objB.mCapsuleRadius };
+    const v3 v { closestB - closestA };
+    const float q { v.Quadrance() };
     if( Square( radiusSum ) < q )
       return {};
-    const float d = Sqrt( q );
+    const float d { Sqrt( q ) };
 
-    const v3 n = v / d;
-    const v3 intersectionPoint = ( ( closestA + n * objA.mCapsuleRadius ) +
-                                   ( closestB - n * objB.mCapsuleRadius ) ) / 2;
-    const float penetrationDistance = radiusSum - d;
+    const v3 n { v / d };
+    const v3 intersectionPoint{ ( ( closestA + n * objA.mCapsuleRadius ) +
+                                   ( closestB - n * objB.mCapsuleRadius ) ) / 2 };
+    const float penetrationDistance { radiusSum - d };
 
     return {
-      .mCollided = true,
-      .mNormal = n,
-      .mPoint = intersectionPoint,
-      .mDist = penetrationDistance,
+      .mCollided { true },
+      .mNormal { n },
+      .mPoint { intersectionPoint },
+      .mDist { penetrationDistance },
     };
   }
 
@@ -107,32 +107,32 @@ namespace Tac
     if( !collisionResult.mCollided )
       return;
 
-    const v3& n = collisionResult.mNormal;
+    const v3& n { collisionResult.mNormal };
 
     // Push out, scaling penetration distance by relative mass
-    const float tA = objA.mMass / ( objA.mMass + objB.mMass );
-    const float tB = objB.mMass / ( objA.mMass + objB.mMass );
+    const float tA { objA.mMass / ( objA.mMass + objB.mMass ) };
+    const float tB { objB.mMass / ( objA.mMass + objB.mMass ) };
 
     // compute relative velocity
-    const v3 rA = collisionResult.mPoint - objA.mLinPos;
-    const v3 rB = collisionResult.mPoint - objB.mLinPos;
-    const v3 velA = objA.mLinVel + Cross( objA.mAngVel, rA );
-    const v3 velB = objB.mLinVel + Cross( objB.mAngVel, rB );
-    const v3 relVel = velA - velB;
+    const v3 rA { collisionResult.mPoint - objA.mLinPos };
+    const v3 rB { collisionResult.mPoint - objB.mLinPos };
+    const v3 velA { objA.mLinVel + Cross( objA.mAngVel, rA ) };
+    const v3 velB { objB.mLinVel + Cross( objB.mAngVel, rB ) };
+    const v3 relVel { velA - velB };
 
     // objects are already going away
-    const float vDotN = Dot( relVel, n );
+    const float vDotN { Dot( relVel, n ) };
     if( vDotN < 0 )
       return;
 
-    const float restitution = objA.mElasticity * objB.mElasticity;
+    const float restitution { objA.mElasticity * objB.mElasticity };
 
     const float j = [&](){
-      const float numerator = -( 1 + restitution ) * vDotN;
-      const float denomPartMass = 1.0f / objA.mMass + 1.0f / objB.mMass;
-      const v3 denomPartA = Cross( objA.mAngInvInertiaTensor * Cross( rA, n ), rA );
-      const v3 denomPartB = Cross( objB.mAngInvInertiaTensor * Cross( rB, n ), rB );
-      const float denominator = denomPartMass + Dot( denomPartA + denomPartB, n );
+      const float numerator { -( 1 + restitution ) * vDotN };
+      const float denomPartMass { 1.0f / objA.mMass + 1.0f / objB.mMass };
+      const v3 denomPartA { Cross( objA.mAngInvInertiaTensor * Cross( rA, n ), rA ) };
+      const v3 denomPartB { Cross( objB.mAngInvInertiaTensor * Cross( rB, n ), rB ) };
+      const float denominator { denomPartMass + Dot( denomPartA + denomPartB, n ) };
       return numerator / denominator;
     }( );
 
@@ -161,19 +161,14 @@ namespace Tac
   static m3 InertiaTensorCapsule( float h, float r )
   {
     // mass of the cylindar
-    float mcy = h * r * r * 3.14f;
+    float mcy { h * r * r * 3.14f };
 
     // mass of each hemisphere
-    float mhs = ( 2.0f / 3.0f ) * r * r * r * 3.14f;
+    float mhs { ( 2.0f / 3.0f ) * r * r * r * 3.14f };
 
-    float ixx = mcy * ( ( 1 / 12.0f ) * h * h
-                        + ( 1 / 4.0f ) * r * r )
-      + 2 * mhs * ( ( 2 / 5.0f ) * r * r
-                    + ( 1 / 2.0f ) * h * h
-                    + ( 3 / 8.0f ) * h * r );
-    float iyy = mcy * ( ( 1 / 2.0f ) * r * r )
-      + 2 * mhs * ( ( 2 / 5.0f ) * r * r );
-    float izz = ixx;
+    float ixx { mcy * ( ( 1 / 12.0f ) * h * h + ( 1 / 4.0f ) * r * r ) + 2 * mhs * ( ( 2 / 5.0f ) * r * r + ( 1 / 2.0f ) * h * h + ( 3 / 8.0f ) * h * r ) };
+    float iyy { mcy * ( ( 1 / 2.0f ) * r * r ) + 2 * mhs * ( ( 2 / 5.0f ) * r * r ) };
+    float izz { ixx };
     return { ixx, 0, 0,
              0, iyy, 0,
              0, 0, izz };
@@ -187,8 +182,8 @@ namespace Tac
 
   void ExamplePhys6SimObj::ComputeInertiaTensor()
   {
-    const m3 inertiaTensor = InertiaTensorCapsule( mCapsuleHeight, mCapsuleRadius );
-    const bool inverted = inertiaTensor.Invert( &mAngInvInertiaTensor );
+    const m3 inertiaTensor { InertiaTensorCapsule( mCapsuleHeight, mCapsuleRadius ) };
+    const bool inverted { inertiaTensor.Invert( &mAngInvInertiaTensor ) };
     TAC_ASSERT( inverted );
   }
 
@@ -200,8 +195,8 @@ namespace Tac
 
   void ExamplePhys6SimObj::Integrate()
   {
-    const float dt = TAC_DELTA_FRAME_SECONDS;
-    const v3 a = mLinForceAccum / mMass;
+    const float dt { TAC_DELTA_FRAME_SECONDS };
+    const v3 a { mLinForceAccum / mMass };
 
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;
@@ -265,14 +260,14 @@ namespace Tac
                               v3 color,
                               Debug3DDrawData* drawData )
   {
-    v3 t = p1 - p0;
-    float n = 10;
+    v3 t { p1 - p0 };
+    float n { 10 };
     t /= n;
-    v3 p = p0;
-    for( int i = 0; i < n; ++i )
+    v3 p { p0 };
+    for( int i { 0 }; i < n; ++i )
     {
-      v3 q = p + t;
-      float f = i % 2 ? 1 : 0.1f;
+      v3 q { p + t };
+      float f { i % 2 ? 1 : 0.1f };
       drawData->DebugDraw3DLine( p, q, color * f );
       p = q;
     }
@@ -287,21 +282,21 @@ namespace Tac
   {
     v3 closest0{};
     v3 closest1{};
-     ClosestPointTwoLineSegments( capsule0.mLineSegment.p0,
+    ClosestPointTwoLineSegments( capsule0.mLineSegment.p0,
                                                       capsule0.mLineSegment.p1,
                                                       capsule1.mLineSegment.p0,
                                                       capsule1.mLineSegment.p1,
                                                       &closest0,
                                                       &closest1 );
 
-    bool intersecting = Quadrance( closest0, closest1 ) < Square( capsule0.mRadius + capsule1.mRadius );
-    v3 colors[] = { color0, color1 };
-    Sim6Capsule* caps[] = { &capsule0, &capsule1 };
-    v3 closests[] = { closest0, closest1 };
-    for( int i = 0; i < 2; ++i )
+    bool intersecting { Quadrance( closest0, closest1 ) < Square( capsule0.mRadius + capsule1.mRadius ) };
+    v3 colors[]  { color0, color1 };
+    Sim6Capsule* caps[]  { &capsule0, &capsule1 };
+    v3 closests[]  { closest0, closest1 };
+    for( int i { 0 }; i < 2; ++i )
     {
-      v3 color = colors[ i ];
-      Sim6Capsule* cap = caps[ i ];
+      v3 color { colors[ i ] };
+      Sim6Capsule* cap { caps[ i ] };
       DrawLineSegment( cap->mLineSegment, color, drawData, mCamera );
       v3 closest = closests[ i ];
 
@@ -313,13 +308,12 @@ namespace Tac
 
     if( intersecting )
     {
-      v3 n = closest1 - closest0;
-      float d = n.Length();
+      v3 n { closest1 - closest0 };
+      float d { n.Length() };
       if( d > 0 )
         n /= d;
-      v3 collisionPt = ( ( closest0 + n * capsule0.mRadius ) +
-                         ( closest1 - n * capsule1.mRadius ) ) / 2;
-      float penetration = d - capsule0.mRadius - capsule1.mRadius;
+      v3 collisionPt { ( ( closest0 + n * capsule0.mRadius ) + ( closest1 - n * capsule1.mRadius ) ) / 2 };
+      float penetration { d - capsule0.mRadius - capsule1.mRadius };
       drawData->DebugDraw3DCircle( collisionPt, mCamera->mForwards, penetration / 2, avgcolor );
     }
 
@@ -329,9 +323,9 @@ namespace Tac
   {
     if( !drawBoundingSphere )
       return;
-    Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
-    bool broadphaseoverlapping = IsBroadphaseOverlapping( mPlayer, mObstacle );
-    v3 color = broadphaseoverlapping ? v3( 0, 1, 0 ) : v3( 1, 0, 0 );
+    Debug3DDrawData* drawData { mWorld->mDebug3DDrawData };
+    bool broadphaseoverlapping { IsBroadphaseOverlapping( mPlayer, mObstacle ) };
+    v3 color { broadphaseoverlapping ? v3( 0, 1, 0 ) : v3( 1, 0, 0 ) };
     for( const ExamplePhys6SimObj* obj : { &mPlayer, &mObstacle } )
       drawData->DebugDraw3DCircle( obj->mLinPos, mCamera->mForwards, obj->mBoundingSphereRadius, color );
   }
@@ -351,8 +345,8 @@ namespace Tac
       return;
     Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
 
-    Sim6Capsule cap0 = SimObjToCapsule( mPlayer );
-    Sim6Capsule cap1 = SimObjToCapsule( mObstacle );
+    Sim6Capsule cap0 { SimObjToCapsule( mPlayer ) };
+    Sim6Capsule cap1 { SimObjToCapsule( mObstacle ) };
 
     DrawCapsuleCapsuleCollision( cap0, mPlayer.mColor, cap1, mObstacle.mColor, drawData, mCamera );
   }
@@ -393,18 +387,18 @@ namespace Tac
     static v3 p1{ -.2f, .8f, 0 };
     static v3 p{};
 
-    float r = 1.4f;
-    float speed = 2.0f;
+    float r { 1.4f };
+    float speed { 2.0f };
     p.x = ( float )Cos( speed * Timestep::GetElapsedTime() ) * r;
     p.y = ( float )Sin( speed * Timestep::GetElapsedTime() ) * r;
 
     p += GetWorldspaceKeyboardDir() * 0.1f;
 
-    v3 lineColor = v3( 0.2f, 0.8f, 0.3f ) * 0.5f;
-    v3 pointColor = v3( 0.6f, 0.3f, 0.4f );
-    v3 closest = ClosestPointLineSegment( p0, p1, p );
+    v3 lineColor { v3( 0.2f, 0.8f, 0.3f ) * 0.5f };
+    v3 pointColor { v3( 0.6f, 0.3f, 0.4f ) };
+    v3 closest { ClosestPointLineSegment( p0, p1, p ) };
 
-    Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
+    Debug3DDrawData* drawData { mWorld->mDebug3DDrawData };
 
     drawData->DebugDraw3DCircle( p0, mCamera->mForwards, 0.05f, lineColor );
     drawData->DebugDraw3DCircle( p1, mCamera->mForwards, 0.05f, lineColor );
@@ -426,14 +420,14 @@ namespace Tac
     mObstacle.BeginFrame();
 
     ImGuiText( "Controls: WASD" );
-    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 9;
+    const v3 keyboardForce { GetWorldspaceKeyboardDir() * 9 };
     mPlayer.AddForce( keyboardForce );
 
-    ExamplePhys6SimObj* simobjs[] = { &mPlayer, &mObstacle };
+    ExamplePhys6SimObj* simobjs[]  { &mPlayer, &mObstacle };
     for( ExamplePhys6SimObj* obj : simobjs )
       obj->Integrate();
 
-    const Sim6CollisionResult collisionResult = Sim6Collide( mPlayer, mObstacle );
+    const Sim6CollisionResult collisionResult { Sim6Collide( mPlayer, mObstacle ) };
     Sim6ResolveCollision( collisionResult, mPlayer, mObstacle );
 
     Render();
@@ -447,11 +441,11 @@ namespace Tac
 
   void ExamplePhysSim6RotCollision::Draw( const ExamplePhys6SimObj& obj )
   {
-    Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
+    Debug3DDrawData* drawData { mWorld->mDebug3DDrawData };
 
     if( drawCapsules )
     {
-      Sim6LineSegment cap = SimObjToLineSegment( obj );
+      Sim6LineSegment cap { SimObjToLineSegment( obj ) };
       drawData->DebugDraw3DCapsule( cap.p0, cap.p1, obj.mCapsuleRadius, obj.mColor );
     }
 

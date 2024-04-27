@@ -12,8 +12,8 @@ namespace Tac
     MetaMember() = default;
     MetaMember( const char* name, int offset, const MetaType* metaType );
     StringView            mName;
-    int                   mOffset = 0;
-    const MetaType*       mMetaType = nullptr;
+    int                   mOffset {};
+    const MetaType*       mMetaType {};
   };
 
 #define TAC_META_MEMBER( T, M ) MetaMember( #M, TAC_OFFSET_OF( T, M ), &GetMetaType< decltype( T::M ) >() )

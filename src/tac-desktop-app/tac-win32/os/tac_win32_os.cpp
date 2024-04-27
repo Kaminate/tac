@@ -47,8 +47,8 @@ namespace Tac
 
   static Monitor Win32OSGetPrimaryMonitor()
   {
-    const int w = GetSystemMetrics( SM_CXSCREEN );
-    const int h = GetSystemMetrics( SM_CYSCREEN );
+    const int w { GetSystemMetrics( SM_CXSCREEN ) };
+    const int h { GetSystemMetrics( SM_CYSCREEN ) };
     return Monitor{ .mSize { w, h } };
   }
 
@@ -71,13 +71,13 @@ namespace Tac
 
   static void* Win32OSGetLoadedDLL( const StringView& name )
   {
-    HMODULE moduleHandle = GetModuleHandleA( name.c_str() );
+    HMODULE moduleHandle { GetModuleHandleA( name.c_str() ) };
     return moduleHandle;
   }
 
   static void* Win32OSLoadDLL( const StringView& path )
   {
-    HMODULE lib = LoadLibraryA( path.c_str() );
+    HMODULE lib { LoadLibraryA( path.c_str() ) };
     return lib;
   }
 
@@ -92,15 +92,15 @@ namespace Tac
     if( path.size() < 3 )
       return false;
 
-    const char drive = path[ 0 ];
+    const char drive { path[ 0 ] };
     if( !IsAlpha( drive ) )
       return false;
 
-    const char colon = path[ 1 ];
+    const char colon { path[ 1 ] };
     if( colon != ':' )
       return false;
 
-    const char slash = path[ 2 ];
+    const char slash { path[ 2 ] };
     if( !IsDirectorySeparator( slash ) )
       return false;
 
@@ -118,7 +118,7 @@ namespace Tac
 
   static Filesystem::Path GetRoamingAppDataPathUTF8( Errors& errors )
   {
-    PWSTR outPath = nullptr;
+    PWSTR outPath { nullptr };
     const HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
     TAC_ON_DESTRUCT( CoTaskMemFree( outPath ) );
     TAC_RAISE_ERROR_IF_RETURN( hr != S_OK, "Failed to get roaming folder", "" );
@@ -127,7 +127,7 @@ namespace Tac
 
   static Filesystem::Path Win32OSGetApplicationDataPath( Errors& errors )
   {
-    Filesystem::Path path = TAC_CALL_RET( {}, GetRoamingAppDataPathUTF8( errors ));
+    TAC_CALL_RET( {}, Filesystem::Path path{ GetRoamingAppDataPathUTF8( errors ) } );
     TAC_ASSERT( Filesystem::Exists( path ) );
 
     path /= sShellStudioName;

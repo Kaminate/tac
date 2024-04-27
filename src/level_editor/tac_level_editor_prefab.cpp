@@ -90,15 +90,15 @@ namespace Tac
     if( prefab->mAssetPath.empty() )
       return;
 
-    for( int iAxis = 0; iAxis < 3; ++iAxis )
+    for( int iAxis { 0 }; iAxis < 3; ++iAxis )
     {
-      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
-      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson );
+      Json* refFramesJson { SettingsGetJson( { "prefabCameraRefFrames" } ) };
+      Json* refFrameJson { SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson ) };
 
-      const ShortFixedString numberPath = ShortFixedString::Concat(
+      const ShortFixedString numberPath{ ShortFixedString::Concat(
         refFrameVecName,
         ".",
-        StringView( "xyz" + iAxis, 1 ) );
+        StringView( "xyz" + iAxis, 1 ) } );
 
       SettingsSetNumber( numberPath, refFrameVec[ iAxis ], refFrameJson );
     }
@@ -129,13 +129,13 @@ namespace Tac
                                         Errors& errors )
   {
     //ModifyPathRelative( prefabPath );
-    TAC_CALL( const String memory = LoadAssetPath( prefabPath, errors ) );
+    TAC_CALL( const String memory{ LoadAssetPath( prefabPath, errors ) }  );
 
     Json prefabJson;
     prefabJson.Parse( memory.data(), memory.size(), errors );
 
 
-    Entity* entity = world->SpawnEntity( NullEntityUUID );
+    Entity* entity { world->SpawnEntity( NullEntityUUID ) };
     entity->Load( prefabJson );
 
     AllocateEntityUUIDsRecursively( entityUUIDCounter, entity );
@@ -161,7 +161,7 @@ namespace Tac
                                   Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    Json* prefabs = SettingsGetJson( prefabSettingsPath );
+    Json* prefabs { SettingsGetJson( prefabSettingsPath ) };
     Vector< String > paths;
     for( Json* child : prefabs->mArrayElements )
       paths.push_back( child->mString );
@@ -201,10 +201,10 @@ namespace Tac
     // Get document paths for prefabs missing them
     if( prefab->mAssetPath.empty() )
     {
-      Filesystem::Path suggestedFilename = entity->mName + ".prefab";
+      Filesystem::Path suggestedFilename { entity->mName + ".prefab" };
       const OS::SaveParams saveParams
       {
-        .mSuggestedFilename = &suggestedFilename,
+        .mSuggestedFilename { &suggestedFilename },
       };
       
       TAC_CALL( Filesystem::Path savePath = OS::OSSaveDialog( saveParams, errors ) );
@@ -214,10 +214,10 @@ namespace Tac
       prefab->mAssetPath = assetPath;
     }
 
-    const Json entityJson = entity->Save();
-    const String prefabJsonString = entityJson.Stringify();
-    const void* bytes = prefabJsonString.data();
-    const int byteCount = prefabJsonString.size();
+    const Json entityJson { entity->Save() };
+    const String prefabJsonString { entityJson.Stringify() };
+    const void* bytes { prefabJsonString.data() };
+    const int byteCount { prefabJsonString.size() };
     const Filesystem::Path fsPath( prefab->mAssetPath );
     TAC_CALL( Filesystem::SaveToFile( fsPath, bytes, byteCount, errors ) );
   }
@@ -244,13 +244,13 @@ namespace Tac
 
   static void         PrefabRemoveEntityRecursivelyAux( Entity* entity )
   {
-    int prefabCount = mPrefabs.size();
-    for( int iPrefab = 0; iPrefab < prefabCount; ++iPrefab )
+    int prefabCount { mPrefabs.size() };
+    for( int iPrefab { 0 }; iPrefab < prefabCount; ++iPrefab )
     {
-      Prefab* prefab = mPrefabs[ iPrefab ];
-      bool removedEntityFromPrefab = false;
-      int prefabEntityCount = prefab->mEntities.size();
-      for( int iPrefabEntity = 0; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
+      Prefab* prefab { mPrefabs[ iPrefab ] };
+      bool removedEntityFromPrefab { false };
+      int prefabEntityCount { prefab->mEntities.size() };
+      for( int iPrefabEntity { 0 }; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
       {
         if( prefab->mEntities[ iPrefabEntity ] == entity )
         {

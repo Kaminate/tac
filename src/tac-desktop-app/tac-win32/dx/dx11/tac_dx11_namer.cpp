@@ -26,7 +26,7 @@ namespace Tac::Render
     DXGINamer( IDXGIObject* );
     void SetName( const StringView& ) override;
     String GetName() override;
-    IDXGIObject* mObj = nullptr;
+    IDXGIObject* mObj { nullptr };
   };
 
   struct ID3D11DeviceChildNamer : public Namer
@@ -34,7 +34,7 @@ namespace Tac::Render
     ID3D11DeviceChildNamer( ID3D11DeviceChild* );
     void SetName( const StringView& ) override;
     String GetName() override;
-    ID3D11DeviceChild* mDeviceChild = nullptr;
+    ID3D11DeviceChild* mDeviceChild { nullptr };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ namespace Tac::Render
   private:
 
     FixedVector< D3D11_MESSAGE_ID, 100 > denyList;
-    int pushCount = 0;
+    int pushCount { 0 };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -97,13 +97,13 @@ namespace Tac::Render
     if constexpr( !IsDebugMode )
       return;
 
-    const String oldName = namer->GetName();
+    const String oldName { namer->GetName() };
 
     String prefix;
 
     ScopedDXFilter filter;
 
-    const bool kAppendInsteadOfReplace = false;
+    const bool kAppendInsteadOfReplace { false };
 
     if( !oldName.empty() )
     {
@@ -113,7 +113,7 @@ namespace Tac::Render
         filter.Push( { D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS } );
     }
 
-    const String newname = prefix + String(name) + String(" ") + String(suffix);
+    const String newname { prefix + String(name) + String(" ") + String(suffix) };
 
     namer->SetName( newname );
   }
@@ -123,9 +123,9 @@ namespace Tac::Render
   String ID3D11DeviceChildGetName(ID3D11DeviceChild* deviceChild)
   {
     TAC_ASSERT( deviceChild );
-    const int kBufSize = 256;
+    const int kBufSize { 256 };
     char buf[ kBufSize ]{};
-    UINT size = kBufSize;
+    UINT size { kBufSize };
     const HRESULT getHr = deviceChild->GetPrivateData( WKPDID_D3DDebugObjectName, &size, buf );
     TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
     return buf;
@@ -135,8 +135,8 @@ namespace Tac::Render
   void ID3D11DeviceChildSetName(ID3D11DeviceChild* deviceChild, const StringView& name)
   {
     TAC_ASSERT( deviceChild );
-    const UINT n = ( UINT )name.size();
-    const void* s = name.c_str();
+    const UINT n { ( UINT )name.size() };
+    const void* s { name.c_str() };
     const HRESULT setHr = deviceChild->SetPrivateData( WKPDID_D3DDebugObjectName, n, s );
     TAC_ASSERT( SUCCEEDED( setHr ) );
   }
@@ -149,8 +149,8 @@ namespace Tac::Render
 
   ScopedDXFilter::~ScopedDXFilter()
   {
-    ID3D11InfoQueue* mInfoQueueDEBUG = RendererDirectX11::GetInfoQueue();
-    for( int i = 0; i < pushCount; ++i )
+    ID3D11InfoQueue* mInfoQueueDEBUG { RendererDirectX11::GetInfoQueue() };
+    for( int i { 0 }; i < pushCount; ++i )
       mInfoQueueDEBUG->PopStorageFilter();
   }
 
@@ -158,21 +158,21 @@ namespace Tac::Render
 
   void ScopedDXFilter::Push(  D3D11_MESSAGE_ID* msgs, int n )
   {
-    D3D11_MESSAGE_ID* dst = denyList.end();
+    D3D11_MESSAGE_ID* dst { denyList.end() };
     denyList.append_range( msgs, n );
 
     const D3D11_INFO_QUEUE_FILTER_DESC DenyList =
     {
-      .NumIDs = (UINT)n,
-      .pIDList = dst,
+      .NumIDs { (UINT)n },
+      .pIDList { dst },
     };
 
     D3D11_INFO_QUEUE_FILTER filter =
     {
-      .DenyList = DenyList
+      .DenyList { DenyList },
     };
 
-    ID3D11InfoQueue* mInfoQueueDEBUG = RendererDirectX11::GetInfoQueue();
+    ID3D11InfoQueue* mInfoQueueDEBUG { RendererDirectX11::GetInfoQueue() };
     mInfoQueueDEBUG->PushStorageFilter( &filter );
     pushCount++;
   }

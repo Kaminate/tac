@@ -5,6 +5,7 @@
 namespace Tac::Render
 {
 
+
   D3D12_TEXTURE_ADDRESS_MODE GetDX12AddressMode( AddressMode );
   D3D12_COMPARISON_FUNC      GetDX12Compare( Comparison );
   D3D12_FILTER               GetDX12Filter( Filter );

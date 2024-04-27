@@ -18,6 +18,7 @@ namespace Tac
 {
   struct SysWindowApi
   {
+
     bool             IsShown( WindowHandle ) const;
     v2i              GetPos( WindowHandle ) const;
     v2i              GetSize( WindowHandle ) const;
@@ -25,8 +26,8 @@ namespace Tac
     const void*      GetNWH( WindowHandle ) const; // native window handle
     WindowHandle     CreateWindow( WindowCreateParams, Errors& ) const;
     void             DestroyWindow( WindowHandle ) const;
-    void             SetSwapChainColorFormat( Render::TexFmt );
-    Render::TexFmt   GetSwapChainColorFormat();
+    Render::TexFmt&  GetSwapChainColorFormat() const;
+    Render::TexFmt&  GetSwapChainDepthFormat() const;
 
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
     Render::SwapChainHandle GetSwapChainHandle( WindowHandle ) const;

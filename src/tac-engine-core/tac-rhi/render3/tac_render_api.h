@@ -220,7 +220,7 @@ namespace Tac::Render
     Write = 0b10 // can be mapped for cpu writing
   };
 
-  enum class Binding : int
+  enum Binding
   {
     None            = 0b00000000,
     ShaderResource  = 0b00000001, // SRV
@@ -230,8 +230,8 @@ namespace Tac::Render
     ConstantBuffer  = 0b00010000, // CBV
   };
 
-  Binding operator | ( Binding, Binding );
-  Binding operator & ( Binding, Binding );
+  //Binding operator | ( Binding, Binding );
+  //Binding operator & ( Binding, Binding );
 
   struct CreateTextureParams
   {
@@ -308,6 +308,7 @@ namespace Tac::Render
     virtual void SetViewport( v2i ) {}
     virtual void SetScissor( v2i ) {}
     virtual void SetRenderTargets( Targets ) {}
+    virtual void SetPipeline( PipelineHandle ) {}
     virtual void SetSynchronous() {}
 
     // represents a region of time ( from the call till the end of scope  StringView )

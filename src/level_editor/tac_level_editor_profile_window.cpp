@@ -16,7 +16,7 @@
 
 namespace Tac
 {
-  CreationProfileWindow* CreationProfileWindow::Instance = nullptr;
+  CreationProfileWindow* CreationProfileWindow::Instance { nullptr };
   CreationProfileWindow::CreationProfileWindow()
   {
     Instance = this;

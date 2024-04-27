@@ -168,8 +168,8 @@ namespace Tac
     Codepoint   Extract();
   private:
     char        GetNextByte();
-    const char* mBegin = nullptr;
-    const char* mEnd = nullptr;
+    const char* mBegin { nullptr };
+    const char* mEnd { nullptr };
   };
 
   Converter::Converter( StringView stringView )
@@ -180,7 +180,7 @@ namespace Tac
 
   Codepoint Converter::Extract()
   {
-    const char b0 = GetNextByte();
+    const char b0 { GetNextByte() };
     if( !b0 )
       return 0;
     if( ( b0 & 0b10000000 ) == 0 )
@@ -188,7 +188,7 @@ namespace Tac
       return ( 0b01111111 & b0 ) << 0;
     }
 
-    const char b1 = GetNextByte();
+    const char b1 { GetNextByte() };
     if( !b1 )
       return 0;
     if( ( b0 & 0b00100000 ) == 0 )
@@ -198,7 +198,7 @@ namespace Tac
         ( ( 0b00011111 & b0 ) << 6 );
     }
 
-    const char b2 = GetNextByte();
+    const char b2 { GetNextByte() };
     if( !b2 )
       return 0;
     if( ( b0 & 0b00010000 ) == 0 )
@@ -209,7 +209,7 @@ namespace Tac
         ( ( 0b00001111 & b0 ) << 12 );
     }
 
-    const char b3 = GetNextByte();
+    const char b3 { GetNextByte() };
     if( !b3 )
       return 0;
     return
@@ -305,8 +305,8 @@ Tac::CodepointString Tac::UTF8ToCodepointString( StringView stringView )
 
 Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
 {
-  auto str = ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) );
-  int len = 0;
+  auto str { ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) ) };
+  int len { 0 };
 
   for( Codepoint codepoint : codepointView )
   {

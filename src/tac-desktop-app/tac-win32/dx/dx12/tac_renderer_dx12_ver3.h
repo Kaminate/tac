@@ -39,26 +39,26 @@ namespace Tac::Render
     DX12CommandAllocatorPool   mCommandAllocatorPool;
     DX12ContextManager         mContextManager;
     DX12UploadPageMgr          mUploadPageManager;
-    DX12DeviceInitializer mDeviceInitializer;
-    DX12DebugLayer        mDebugLayer;
-    DX12InfoQueue         mInfoQueue;
+    DX12DeviceInitializer      mDeviceInitializer;
+    DX12DebugLayer             mDebugLayer;
+    DX12InfoQueue              mInfoQueue;
 
     // Managers
-    DX12SwapChainMgr     mSwapChainMgr;
-    DX12BufferMgr        mBufMgr;
-    DX12TextureMgr       mTexMgr;
-    DX12ProgramMgr       mProgramMgr;
-    DX12PipelineMgr      mPipelineMgr;
+    DX12SwapChainMgr           mSwapChainMgr;
+    DX12BufferMgr              mBufMgr;
+    DX12TextureMgr             mTexMgr;
+    DX12ProgramMgr             mProgramMgr;
+    DX12PipelineMgr            mPipelineMgr;
 
     // CPU Heaps (used for creating resources)
-    DX12DescriptorHeap   mCpuDescriptorHeapRTV;
-    DX12DescriptorHeap   mCpuDescriptorHeapDSV;
-    DX12DescriptorHeap   mCpuDescriptorHeapCBV_SRV_UAV;
-    DX12DescriptorHeap   mCpuDescriptorHeapSampler;
+    DX12DescriptorHeap         mCpuDescriptorHeapRTV;
+    DX12DescriptorHeap         mCpuDescriptorHeapDSV;
+    DX12DescriptorHeap         mCpuDescriptorHeapCBV_SRV_UAV;
+    DX12DescriptorHeap         mCpuDescriptorHeapSampler;
 
     // GPU Heaps (used for rendering)
-    DX12DescriptorHeap   mGpuDescriptorHeapCBV_SRV_UAV;
-    DX12DescriptorHeap   mGpuDescriptorHeapSampler;
+    DX12DescriptorHeap         mGpuDescriptorHeapCBV_SRV_UAV;
+    DX12DescriptorHeap         mGpuDescriptorHeapSampler;
 
     ID3D12Device* mDevice{};
   };

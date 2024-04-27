@@ -15,7 +15,7 @@
 
 namespace Tac
 {
-  CreationGameObjectMenuWindow* CreationGameObjectMenuWindow::Instance = nullptr;
+  CreationGameObjectMenuWindow* CreationGameObjectMenuWindow::Instance { nullptr };
   CreationGameObjectMenuWindow::CreationGameObjectMenuWindow()
   {
     Instance = this;

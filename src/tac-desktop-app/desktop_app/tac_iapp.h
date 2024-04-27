@@ -39,23 +39,23 @@ namespace Tac
 
     struct InitParams
     {
-      SysWindowApi*   mWindowApi{};
-      SysKeyboardApi* mKeyboardApi{};
+      const SysWindowApi*   mWindowApi{};
+      const SysKeyboardApi* mKeyboardApi{};
     };
 
     struct UpdateParams
     {
-      SimWindowApi*   mWindowApi{};
-      SimKeyboardApi* mKeyboardApi{};
+      const SimWindowApi*   mWindowApi{};
+      const SimKeyboardApi* mKeyboardApi{};
     };
 
     struct RenderParams
     {
-      SysWindowApi*   mWindowApi{};
-      SysKeyboardApi* mKeyboardApi{};
-      IState*         mOldState;
-      IState*         mNewState;
-      float           mT; // [0-1]
+      const SysWindowApi*   mWindowApi{};
+      const SysKeyboardApi* mKeyboardApi{};
+      IState*               mOldState;
+      IState*               mNewState;
+      float                 mT; // [0-1]
     };
 
     App( const Config& config ) : mConfig( config ) {}

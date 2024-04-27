@@ -15,9 +15,9 @@ namespace Tac
   {
     void DebugImgui()
     {
-      bool changed = false;
+      bool changed { false };
 
-      const Filesystem::Path oldHeightmapPath = mTerrain->mHeightmapTexturePath;
+      const Filesystem::Path oldHeightmapPath { mTerrain->mHeightmapTexturePath };
 
       if( ImGuiCollapsingHeader( "Heightmap" ) )
       {

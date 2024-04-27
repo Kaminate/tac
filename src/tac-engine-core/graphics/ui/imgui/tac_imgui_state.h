@@ -85,7 +85,7 @@ namespace Tac
 
 
     String                        mName;
-    ImGuiWindow*                  mParent = nullptr;
+    ImGuiWindow*                  mParent { nullptr };
 
     //                            The most bottom right the cursor has ever been,
     //                            updated during ItemSize()
@@ -95,21 +95,21 @@ namespace Tac
 
     //                            Position of this ImGuiWindow relative to its viewport ( native desktop window )
     //                            A value of (0,0) is at the top left ( probably mParent == nullptr )
-    v2                            mViewportSpacePos = {};
-    v2                            mSize = {};
+    v2                            mViewportSpacePos  {};
+    v2                            mSize  {};
 
     //                            The viewport-space region in which visible ui is displayed on the screen
     //                            "Visible" here meaning not offscreen due to scrolling
     ImGuiRect                     mViewportSpaceVisibleRegion{};
 
-    float                         mCurrLineHeight = 0;
-    float                         mPrevLineHeight = 0;
+    float                         mCurrLineHeight { 0 };
+    float                         mPrevLineHeight { 0 };
 
     //                            The viewport-space pixel offset that the cursor should start at before
     //                            rendering any ui elements.
-    float                         mScroll = 0;
+    float                         mScroll { 0 };
     v2                            mScrollMousePosScreenspaceInitial{};
-    bool                          mScrolling = false;
+    bool                          mScrolling { false };
 
     Vector< GroupData >           mGroupSK;
 
@@ -118,22 +118,22 @@ namespace Tac
     Vector< float >               mXOffsets;
 
     //                            Shared between sub-windows
-    ImGuiIDAllocator*             mIDAllocator = nullptr;
-    struct TextInputData*         mTextInputData = nullptr;
+    ImGuiIDAllocator*             mIDAllocator { nullptr };
+    struct TextInputData*         mTextInputData { nullptr };
     Map< ImGuiId, bool >          mCollapsingHeaderStates;
-    bool                          mIsAppendingToMenu = false;
+    bool                          mIsAppendingToMenu { false };
     Vector< ImGuiWindowResource > mResources;
-    struct UI2DDrawData*          mDrawData = nullptr;
+    struct UI2DDrawData*          mDrawData { nullptr };
 
     ImGuiDesktopWindow*           mDesktopWindow;
-    bool                          mWindowHandleOwned = false;
+    bool                          mWindowHandleOwned { false };
 
     //                            [ ] Q: What does this parameter do
-    bool                          mStretchWindow = false;
+    bool                          mStretchWindow { false };
     
     //                            [ ] Q: What does this parameter do
-    bool                          mMoveResizeWindow = false;
-    bool                          mEnableBG = true;
+    bool                          mMoveResizeWindow { false };
+    bool                          mEnableBG { true };
 
     //                            [ ] Q: What does this parameter do
     Timestamp                     mRequestTime{};
@@ -143,8 +143,8 @@ namespace Tac
   {
     Render::BufferHandle mVB;
     Render::BufferHandle mIB;
-    int mVBCount = 0;
-    int mIBCount = 0;
+    int mVBCount { 0 };
+    int mIBCount { 0 };
   };
 
   struct ImGuiSimWindowDraws
@@ -208,11 +208,11 @@ namespace Tac
     Vector< ImGuiWindow* >            mAllWindows;
     Vector< ImGuiWindow* >            mWindowStack;
     Vector< ImGuiDesktopWindowImpl* > mDesktopWindows;
-    ImGuiWindow*                      mCurrentWindow = nullptr;
+    ImGuiWindow*                      mCurrentWindow { nullptr };
     Vector< float >                   mFontSizeSK; // wtf does sk stand for?
     UIStyle                           mUIStyle;
     WindowHandle                      mMouseHoveredWindow;
-    bool                              mScrollBarEnabled = true;
+    bool                              mScrollBarEnabled { true };
     int                               mMaxGpuFrameCount{};
 
     // Ok so here's a problem:
@@ -229,12 +229,12 @@ namespace Tac
 
   struct ImGuiNextWindow
   {
-    v2           mPosition = {};
-    v2           mSize = {};
+    v2           mPosition  {};
+    v2           mSize  {};
 		WindowHandle mWindowHandle;
-    bool         mStretch = false;
-    bool         mMoveResize = false;
-    bool         mEnableBG = true; // Set false to disable background render
+    bool         mStretch { false };
+    bool         mMoveResize { false };
+    bool         mEnableBG { true }; // Set false to disable background render
   };
 
   extern ImGuiNextWindow gNextWindow;

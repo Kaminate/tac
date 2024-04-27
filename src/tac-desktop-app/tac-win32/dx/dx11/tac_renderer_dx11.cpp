@@ -200,16 +200,15 @@ namespace Tac::Render
 
   static void WaitUntilDrawCallFinishes( ID3D11Device* device, ID3D11DeviceContext* deviceContext )
   {
-    D3D11_QUERY_DESC desc = {};
-    desc.Query = D3D11_QUERY_EVENT;
-    ID3D11Query* query = nullptr;
-    auto createQueryResult = device->CreateQuery( &desc, &query );
+    D3D11_QUERY_DESC desc  { .Query { D3D11_QUERY_EVENT } };
+    ID3D11Query* query { nullptr };
+    auto createQueryResult { device->CreateQuery( &desc, &query ) };
     TAC_ASSERT( SUCCEEDED( createQueryResult ) );
     deviceContext->End( query );
 
     for( ;; )
     {
-      HRESULT getDataResult = deviceContext->GetData( query, nullptr, 0, 0 );
+      HRESULT getDataResult { deviceContext->GetData( query, nullptr, 0, 0 ) };
       if( getDataResult == S_FALSE )
       {
         // not finished gpu commands executing
@@ -244,11 +243,11 @@ namespace Tac::Render
 
   struct TransientWchar
   {
-    static const int N = 100;
+    static const int N { 100 };
     TransientWchar( const StringView str )
     {
       TAC_ASSERT( str.size() < N );
-      WCHAR* resultIter = mBuffer;
+      WCHAR* resultIter { mBuffer };
       for( char c : str )
         *resultIter++ = ( WCHAR )c;
       *resultIter++ = 0;
@@ -385,7 +384,7 @@ namespace Tac::Render
 //         mDeviceContext->ClearRenderTargetView( renderTargetView, ClearColorRGBA );
 //       }
 
-    for( int i = 0; i < kMaxFramebuffers; ++i )
+    for( int i { 0 }; i < kMaxFramebuffers; ++i )
       mBoundFramebuffersThisFrame[ i ] = false;
 
     mBoundBlendState = nullptr;
@@ -399,8 +398,8 @@ namespace Tac::Render
                                         const ShaderNameStringView& shaderName,
                                         Errors& errors )
   {
-    const int iProgram = shaderHandle.GetIndex();
-    RendererDirectX11* renderer = RendererDirectX11::GetInstance();
+    const int iProgram { shaderHandle.GetIndex() };
+    RendererDirectX11* renderer { RendererDirectX11::GetInstance() };
     renderer->mPrograms[ iProgram ] = DX11LoadProgram( shaderName, errors );
   }
 
@@ -421,11 +420,11 @@ namespace Tac::Render
 
     const bool isSameUAV = [ & ]() // this could be replaced with a uav hash
     {
-      for( int i = 0; i < TAC_ARRAY_SIZE( DrawCallUAVs::mUAVTextures ); ++i )
+      for( int i { 0 }; i < TAC_ARRAY_SIZE( DrawCallUAVs::mUAVTextures ); ++i )
         if( drawCall->mDrawCallUAVs.mUAVTextures[ i ] != mBoundDrawCallUAVs.mUAVTextures[ i ] )
           return false;
 
-      for( int i = 0; i < TAC_ARRAY_SIZE( DrawCallUAVs::mUAVMagicBuffers ); ++i )
+      for( int i { 0 }; i < TAC_ARRAY_SIZE( DrawCallUAVs::mUAVMagicBuffers ); ++i )
         if( drawCall->mDrawCallUAVs.mUAVMagicBuffers[ i ] != mBoundDrawCallUAVs.mUAVMagicBuffers[ i ] )
           return false;
 
@@ -439,8 +438,8 @@ namespace Tac::Render
     FixedVector< ID3D11RenderTargetView*, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT > views = {};
     if( drawCall->mViewHandle.IsValid() )
     {
-      const View* view = frame->mViews.FindView( drawCall->mViewHandle );
-      const Framebuffer* framebuffer = &mFramebuffers[ ( int )view->mFrameBufferHandle ];
+      const View* view { frame->mViews.FindView( drawCall->mViewHandle ) };
+      const Framebuffer* framebuffer { &mFramebuffers[ ( int )view->mFrameBufferHandle ] };
 
 
       // Should dsv be optional?
@@ -468,7 +467,7 @@ namespace Tac::Render
                                                  framebuffer->mClearColorRGBA );
         }
 
-        ID3D11ShaderResourceView* nullViews[ 16 ] = {};
+        ID3D11ShaderResourceView* nullViews[ 16 ]  {};
         mDeviceContext->VSSetShaderResources( 0, 16, nullViews );
         mDeviceContext->PSSetShaderResources( 0, 16, nullViews );
         mDeviceContext->GSSetShaderResources( 0, 16, nullViews );
@@ -477,12 +476,12 @@ namespace Tac::Render
       TAC_ASSERT( view->mViewportSet );
       const D3D11_VIEWPORT viewport
       {
-        .TopLeftX = view->mViewport.mBottomLeftX,
-        .TopLeftY = -view->mViewport.mBottomLeftY, // convert opengl to directx
-        .Width = view->mViewport.mWidth,
-        .Height = view->mViewport.mHeight,
-        .MinDepth = view->mViewport.mMinDepth,
-        .MaxDepth = view->mViewport.mMaxDepth,
+        .TopLeftX { view->mViewport.mBottomLeftX },
+        .TopLeftY { -view->mViewport.mBottomLeftY }, // convert opengl to directx
+        .Width { view->mViewport.mWidth },
+        .Height { view->mViewport.mHeight },
+        .MinDepth { view->mViewport.mMinDepth },
+        .MaxDepth { view->mViewport.mMaxDepth },
       };
       mDeviceContext->RSSetViewports( 1, &viewport );
 
@@ -490,10 +489,10 @@ namespace Tac::Render
       TAC_ASSERT( view->mScissorSet );
       const D3D11_RECT scissor
       {
-        .left = ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel,
-        .top = ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel,
-        .right = ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel,
-        .bottom = ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel,
+        .left { ( LONG )view->mScissorRect.mXMinRelUpperLeftCornerPixel },
+        .top { ( LONG )view->mScissorRect.mYMinRelUpperLeftCornerPixel },
+        .right { ( LONG )view->mScissorRect.mXMaxRelUpperLeftCornerPixel },
+        .bottom { ( LONG )view->mScissorRect.mYMaxRelUpperLeftCornerPixel },
       };
       mDeviceContext->RSSetScissorRects( 1, &scissor );
     }
@@ -504,14 +503,14 @@ namespace Tac::Render
       FixedVector< ID3D11UnorderedAccessView*, 10 > uavs;
 
       // populate uavs
-      for( int i = 0; i < 2; ++i )
+      for( int i { 0 }; i < 2; ++i )
       {
-        MagicBufferHandle magicBuffer = drawCall->mDrawCallUAVs.mUAVMagicBuffers[ i ];
-        TextureHandle texture = drawCall->mDrawCallUAVs.mUAVTextures[ i ];
-        if( ID3D11UnorderedAccessView* uav =
+        MagicBufferHandle magicBuffer { drawCall->mDrawCallUAVs.mUAVMagicBuffers[ i ] };
+        TextureHandle texture { drawCall->mDrawCallUAVs.mUAVTextures[ i ] };
+        if( ID3D11UnorderedAccessView * uav{
             magicBuffer.IsValid() ? mMagicBuffers[ ( int )magicBuffer ].mUAV :
             texture.IsValid() ? mTextures[ ( int )texture ].mTextureUAV :
-            nullptr )
+            nullptr }  )
         {
           uavs.resize( Max( i + 1, uavs.size() ) );
           uavs[ i ] = uav;
@@ -538,21 +537,21 @@ namespace Tac::Render
   BoundCBufs BoundCBufs::ShaderCBufs( const ConstantBuffers& shaderCBs )
   {
     BoundCBufSlots mBoundConstantBuffers;
-    int            mMaxUsedIndex = -1;
-    int            mBoundCBufCount = 0;
+    int            mMaxUsedIndex { -1 };
+    int            mBoundCBufCount { 0 };
     Hasher         mHash;
 
-    RendererDirectX11* renderer = RendererDirectX11::GetInstance();
-    const ConstantBuffer* pCBs = renderer->mConstantBuffers;
+    RendererDirectX11* renderer { RendererDirectX11::GetInstance() };
+    const ConstantBuffer* pCBs { renderer->mConstantBuffers };
 
     const int shaderCBufCount = shaderCBs.size();
-    for( int iSlot = 0; iSlot < shaderCBufCount; iSlot++ )
+    for( int iSlot { 0 }; iSlot < shaderCBufCount; iSlot++ )
     {
       const ConstantBufferHandle hCBuf = shaderCBs[ iSlot ];
       TAC_ASSERT( hCBuf.IsValid() );
 
-      const int iBuf = ( int )hCBuf;
-      const ConstantBuffer& cBuf = pCBs[iBuf];
+      const int iBuf { ( int )hCBuf };
+      const ConstantBuffer& cBuf { pCBs[iBuf] };
 
       mBoundConstantBuffers[ iSlot ] = cBuf.mBuffer;
       mMaxUsedIndex = Max( mMaxUsedIndex, iSlot );
@@ -563,17 +562,17 @@ namespace Tac::Render
 
     return BoundCBufs
     {
-      .mBoundConstantBuffers = mBoundConstantBuffers,
-      .mMaxUsedIndex = mMaxUsedIndex,
-      .mBoundCBufCount = mBoundCBufCount,
-      .mHash = mHash,
+      .mBoundConstantBuffers { mBoundConstantBuffers },
+      .mMaxUsedIndex { mMaxUsedIndex },
+      .mBoundCBufCount { mBoundCBufCount },
+      .mHash { mHash },
     };
   }
 
 
   void RendererDirectX11::RenderDrawCallShader( const DrawCall* drawCall )
   {
-    const DX11Program* program = FindProgram( drawCall->mShaderHandle );
+    const DX11Program* program { FindProgram( drawCall->mShaderHandle ) };
     if( !program )
       return;
 
@@ -584,16 +583,16 @@ namespace Tac::Render
     mDeviceContext->PSSetShader( program->mPixelShader, NULL, 0 );
     mDeviceContext->GSSetShader( program->mGeometryShader, NULL, 0 );
 
-    const BoundCBufs shaderBoundCBufs = BoundCBufs::ShaderCBufs( program->mConstantBuffers );
+    const BoundCBufs shaderBoundCBufs { BoundCBufs::ShaderCBufs( program->mConstantBuffers ) };
     if( shaderBoundCBufs.mHash != mBoundConstantBuffers.mHash )
     {
       mBoundConstantBuffers = shaderBoundCBufs;
 
       using CBufSlotPointer = ID3D11Buffer**;
 
-      const UINT StartSlot = 0;
-      const UINT NumBuffers = mBoundConstantBuffers.mMaxUsedIndex + 1;
-      const CBufSlotPointer ppConstantBuffers = mBoundConstantBuffers.mBoundConstantBuffers.data();
+      const UINT StartSlot { 0 };
+      const UINT NumBuffers { mBoundConstantBuffers.mMaxUsedIndex + 1 };
+      const CBufSlotPointer ppConstantBuffers { mBoundConstantBuffers.mBoundConstantBuffers.data() };
 
       mDeviceContext->PSSetConstantBuffers( StartSlot, NumBuffers, ppConstantBuffers );
       mDeviceContext->VSSetConstantBuffers( StartSlot, NumBuffers, ppConstantBuffers );
@@ -609,8 +608,8 @@ namespace Tac::Render
     {
       mBoundBlendState = mBlendStates[ ( int )drawCall->mBlendStateHandle ];
       TAC_ASSERT( mBoundBlendState );
-      const FLOAT blendFactorRGBA[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-      const UINT sampleMask = 0xffffffff;
+      const FLOAT blendFactorRGBA[]  { 1.0f, 1.0f, 1.0f, 1.0f };
+      const UINT sampleMask { 0xffffffff };
       mDeviceContext->OMSetBlendState( mBoundBlendState, blendFactorRGBA, sampleMask );
     }
   }
@@ -622,7 +621,7 @@ namespace Tac::Render
     {
       mBoundDepthStencilState = mDepthStencilStates[ ( int )drawCall->mDepthStateHandle ];
       TAC_ASSERT( mBoundDepthStencilState );
-      const UINT stencilRef = 0;
+      const UINT stencilRef { 0 };
       mDeviceContext->OMSetDepthStencilState( mBoundDepthStencilState, stencilRef );
     }
   }
@@ -634,12 +633,12 @@ namespace Tac::Render
       mBoundIndexBuffer = drawCall->mIndexBufferHandle;
       if( drawCall->mIndexBufferHandle.IsValid() )
       {
-        const IndexBuffer* indexBuffer = &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ];
+        const IndexBuffer* indexBuffer { &mIndexBuffers[ ( int )drawCall->mIndexBufferHandle ] };
         if( !indexBuffer->mBuffer )
           OS::OSDebugBreak();
         TAC_ASSERT( indexBuffer->mBuffer );
-        const DXGI_FORMAT dxgiFormat = GetDXGIFormatTexture( indexBuffer->mFormat );
-        const UINT byteOffset = 0; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
+        const DXGI_FORMAT dxgiFormat { GetDXGIFormatTexture( indexBuffer->mFormat ) };
+        const UINT byteOffset { 0 }; //  drawCall->mStartIndex * indexBuffer->mFormat.mPerElementByteCount;
         mDeviceContext->IASetIndexBuffer( indexBuffer->mBuffer,
                                           dxgiFormat,
                                           byteOffset );
@@ -663,11 +662,11 @@ namespace Tac::Render
     {
       TAC_ASSERT( vertexBuffer->mBuffer );
       using PointerToBuffer = ID3D11Buffer*;
-      const UINT startSlot = 0;
-      const UINT NumBuffers = 1;
-      const UINT Strides[ NumBuffers ] = { ( UINT )vertexBuffer->mStride };
-      const UINT ByteOffsets[ NumBuffers ] = { 0 };
-      const PointerToBuffer buffers[ NumBuffers ] = { vertexBuffer->mBuffer };
+      const UINT startSlot { 0 };
+      const UINT NumBuffers { 1 };
+      const UINT Strides[ NumBuffers ]  { ( UINT )vertexBuffer->mStride };
+      const UINT ByteOffsets[ NumBuffers ]  { 0 };
+      const PointerToBuffer buffers[ NumBuffers ]  { vertexBuffer->mBuffer };
       mDeviceContext->IASetVertexBuffers( startSlot,
                                           NumBuffers,
                                           buffers,
@@ -677,11 +676,11 @@ namespace Tac::Render
     }
     else
     {
-      UINT         StartSlot = 0;
-      UINT         NumBuffers = 16;
-      ID3D11Buffer *VertexBuffers[ 16 ] = {};
-      UINT         Strides[ 16 ] = {};
-      UINT         Offsets[ 16 ] = {};
+      UINT         StartSlot { 0 };
+      UINT         NumBuffers { 16 };
+      ID3D11Buffer *VertexBuffers[ 16 ]  {};
+      UINT         Strides[ 16 ]  {};
+      UINT         Offsets[ 16 ]  {};
       mDeviceContext->IASetVertexBuffers( StartSlot, NumBuffers, VertexBuffers, Strides, Offsets );
     }
   }
@@ -707,7 +706,7 @@ namespace Tac::Render
       FixedVector< ID3D11SamplerState*, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT > Samplers;
       for( const SamplerStateHandle& sampler : drawCall->mSamplerStateHandle )
       {
-        ID3D11SamplerState* samplerState = mSamplerStates[ sampler.GetIndex() ];
+        ID3D11SamplerState* samplerState { mSamplerStates[ sampler.GetIndex() ] };
         TAC_ASSERT( samplerState );
         Samplers.push_back( samplerState );
       }
@@ -723,9 +722,9 @@ namespace Tac::Render
       return;
     mBoundDrawCallVertexFormat = drawCall->mVertexFormatHandle;
     ID3D11InputLayout* inputLayout
-      = drawCall->mVertexFormatHandle.IsValid()
-      ? mInputLayouts[ ( int )drawCall->mVertexFormatHandle ]
-      : nullptr;
+    { drawCall->mVertexFormatHandle.IsValid()
+    ? mInputLayouts[ ( int )drawCall->mVertexFormatHandle ]
+    : nullptr };
     mDeviceContext->IASetInputLayout( inputLayout );
   }
 
@@ -733,20 +732,20 @@ namespace Tac::Render
   BoundSRVs BoundSRVs::DrawCallSRVs( const DrawCall* drawCall )
   {
     BoundSrvSlots mBoundShaderResourceViews;
-    int           mMaxUsedIndex = -1;
-    int           mBoundTextureCount = 0;
+    int           mMaxUsedIndex { -1 };
+    int           mBoundTextureCount { 0 };
     Hasher        mHash;
 
-    RendererDirectX11* renderer = RendererDirectX11::GetInstance();
-    const Texture* mTextures = renderer->mTextures;
+    RendererDirectX11* renderer { RendererDirectX11::GetInstance() };
+    const Texture* mTextures { renderer->mTextures };
 
 
-    const int n = drawCall->mDrawCallTextures.size();
+    const int n { drawCall->mDrawCallTextures.size() };
     mHash.Eat( n );
-    for( int iSlot = 0; iSlot < n; ++iSlot )
+    for( int iSlot { 0 }; iSlot < n; ++iSlot )
     {
-      const TextureHandle hTex = drawCall->mDrawCallTextures[ iSlot ];
-      const Texture* pTex = renderer->FindTexture( hTex );
+      const TextureHandle hTex { drawCall->mDrawCallTextures[ iSlot ] };
+      const Texture* pTex { renderer->FindTexture( hTex ) };
       if( !pTex )
         continue;
 
@@ -761,10 +760,10 @@ namespace Tac::Render
 
     return BoundSRVs
     {
-      .mBoundShaderResourceViews = mBoundShaderResourceViews,
-      .mMaxUsedIndex = mMaxUsedIndex,
-      .mBoundTextureCount = mBoundTextureCount,
-      .mHash = mHash,
+      .mBoundShaderResourceViews { mBoundShaderResourceViews },
+      .mMaxUsedIndex { mMaxUsedIndex },
+      .mBoundTextureCount { mBoundTextureCount },
+      .mHash { mHash },
     };
   }
 
@@ -773,7 +772,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RenderDrawCallTextures( const DrawCall* drawCall )
   {
-    const BoundSRVs drawCallSRVs = BoundSRVs::DrawCallSRVs( drawCall );
+    const BoundSRVs drawCallSRVs { BoundSRVs::DrawCallSRVs( drawCall ) };
     if( drawCallSRVs.mHash == mBoundSRVs.mHash )
       return;
 
@@ -781,8 +780,8 @@ namespace Tac::Render
 
     using PointerToSRVs = ID3D11ShaderResourceView**;
 
-    const UINT StartSlot = 0;
-    const UINT NumViews = mBoundSRVs.mMaxUsedIndex + 1;
+    const UINT StartSlot { 0 };
+    const UINT NumViews { mBoundSRVs.mMaxUsedIndex + 1 };
     const PointerToSRVs ShaderResourceViews = mBoundSRVs.mBoundShaderResourceViews.data();
 
     mDeviceContext->VSSetShaderResources( StartSlot, NumViews, ShaderResourceViews );
@@ -797,13 +796,13 @@ namespace Tac::Render
       return;
 
     const PrimitiveTopology newPrimitiveTopology
-      = drawCall->mPrimitiveTopology == PrimitiveTopology::Unknown
-      ? PrimitiveTopology::TriangleList
-      : drawCall->mPrimitiveTopology;
+    { drawCall->mPrimitiveTopology == PrimitiveTopology::Unknown
+    ? PrimitiveTopology::TriangleList
+    : drawCall->mPrimitiveTopology };
     if( newPrimitiveTopology != mBoundPrimitiveTopology )
     {
       mBoundPrimitiveTopology = newPrimitiveTopology;
-      const D3D11_PRIMITIVE_TOPOLOGY primitiveTopology = GetPrimitiveTopology( drawCall->mPrimitiveTopology );
+      const D3D11_PRIMITIVE_TOPOLOGY primitiveTopology { GetPrimitiveTopology( drawCall->mPrimitiveTopology ) };
       mDeviceContext->IASetPrimitiveTopology( primitiveTopology );
     }
   }
@@ -819,10 +818,10 @@ namespace Tac::Render
 
     if( drawCall->mIndexCount )
     {
-      const UINT IndexCount = drawCall->mIndexCount;
-      const UINT StartIndexLocation = drawCall->mStartIndex; //  *indexBuffer->mFormat.CalculateTotalByteCount();
+      const UINT IndexCount { drawCall->mIndexCount };
+      const UINT StartIndexLocation { drawCall->mStartIndex }; //  *indexBuffer->mFormat.CalculateTotalByteCount();
       // should this be multiplied by the sizeof vertex?
-      const INT BaseVertexLocation = 0; // drawCall->mStartVertex;
+      const INT BaseVertexLocation { 0 }; // drawCall->mStartVertex;
 
       mDeviceContext->DrawIndexed( IndexCount, StartIndexLocation, BaseVertexLocation );
     }
@@ -867,9 +866,9 @@ namespace Tac::Render
     if( gVerbose )
       OS::OSDebugPrintLine("SwapBuffers::Begin");
 
-    for( int iWindow = 0; iWindow < mWindowCount; ++iWindow )
+    for( int iWindow { 0 }; iWindow < mWindowCount; ++iWindow )
     {
-      FramebufferHandle framebufferHandle = mWindows[ iWindow ];
+      FramebufferHandle framebufferHandle { mWindows[ iWindow ] };
       Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
       if( !framebuffer->mSwapChain )
         continue;
@@ -898,8 +897,8 @@ namespace Tac::Render
   // Q: Should this function just return the clip space dimensions instead of A, B?
   OutProj RendererDirectX11::GetPerspectiveProjectionAB(InProj in)
   {
-    const float f = in.mFar;
-    const float n = in.mNear;
+    const float f { in.mFar };
+    const float n { in.mNear };
     TAC_ASSERT( f > n );
 
     // ( A, B ) maps ( -n, -f )vs to ( 0, 1 )ndc in directx
@@ -930,16 +929,16 @@ namespace Tac::Render
     // B = nf/(n-f) <-- Solved for B
     //
 
-    const float a = f / ( n - f );
-    const float b = ( n * f ) / ( n - f );
+    const float a { f / ( n - f ) };
+    const float b { ( n * f ) / ( n - f ) };
 
     // note that https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
     // uses -A and -B from ours, but their perspective matrix uses a 1 instead of our -1
 
     return OutProj
     {
-      .mA = a,
-      .mB = b,
+      .mA { a },
+      .mB { b },
     };
   }
 
@@ -956,7 +955,7 @@ namespace Tac::Render
                                           Errors& errors )
   {
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
-    D3D11_BUFFER_DESC desc = {};
+    D3D11_BUFFER_DESC desc  {};
     desc.BindFlags = GetBindFlags( commandDataCreateMagicBuffer->mBinding );
     desc.ByteWidth = commandDataCreateMagicBuffer->mByteCount;
     desc.CPUAccessFlags = 0;
@@ -981,22 +980,22 @@ namespace Tac::Render
     InitialData.SysMemSlicePitch = commandDataCreateMagicBuffer->mByteCount;
 
     const D3D11_SUBRESOURCE_DATA *pInitialData
-      = commandDataCreateMagicBuffer->mOptionalInitialBytes
-      ? &InitialData
-      : nullptr;
+    { commandDataCreateMagicBuffer->mOptionalInitialBytes
+    ? &InitialData
+    : nullptr };
 
     TAC_DX11_CALL( mDevice->CreateBuffer( &desc, pInitialData, &magicBuffer->mBuffer ));
     SetDebugName( magicBuffer->mBuffer, commandDataCreateMagicBuffer->mStackFrame );
 
     // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/sm5-object-structuredbuffer
     // The UAV format bound to this resource needs to be created with the DXGI_FORMAT_UNKNOWN format.
-    const DXGI_FORMAT Format = DXGI_FORMAT_UNKNOWN;
+    const DXGI_FORMAT Format { DXGI_FORMAT_UNKNOWN };
 
-    const int NumElements = desc.ByteWidth / desc.StructureByteStride;
+    const int NumElements { desc.ByteWidth / desc.StructureByteStride };
 
     if( desc.BindFlags & D3D11_BIND_UNORDERED_ACCESS )
     {
-      D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+      D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc  {};
       uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
       uavDesc.Format = Format;
       uavDesc.Buffer.FirstElement = 0; // index, not byte offset
@@ -1011,7 +1010,7 @@ namespace Tac::Render
 
     if( desc.BindFlags & D3D11_BIND_SHADER_RESOURCE )
     {
-      D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+      D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc  {};
       srvDesc.Format = Format;
       srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER; // D3D11_SRV_DIMENSION_BUFFEREX;
       srvDesc.Buffer.FirstElement = 0; // index, not byte offset
@@ -1030,21 +1029,21 @@ namespace Tac::Render
     TAC_ASSERT( !data->mOptionalInitialBytes || IsSubmitAllocated( data->mOptionalInitialBytes ) );
 
     const D3D11_BUFFER_DESC bd {
-      .ByteWidth = (UINT)data->mByteCount,
-      .Usage = GetUsage( data->mAccess ),
-      .BindFlags = D3D11_BIND_VERTEX_BUFFER,
-      .CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : (UINT)0,
+      .ByteWidth { (UINT)data->mByteCount },
+      .Usage { GetUsage( data->mAccess ) },
+      .BindFlags { D3D11_BIND_VERTEX_BUFFER },
+      .CPUAccessFlags { data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : ( UINT )0 },
     };
-    const D3D11_SUBRESOURCE_DATA initData { .pSysMem = data->mOptionalInitialBytes, };
-    const D3D11_SUBRESOURCE_DATA* pInitData = data->mOptionalInitialBytes ? &initData : nullptr;
+    const D3D11_SUBRESOURCE_DATA initData{ .pSysMem { data->mOptionalInitialBytes }, };
+    const D3D11_SUBRESOURCE_DATA* pInitData { data->mOptionalInitialBytes ? &initData : nullptr };
 
     ID3D11Buffer* buffer;
     TAC_DX11_CALL( mDevice->CreateBuffer( &bd, pInitData, &buffer ));
 
     mVertexBuffers[ ( int )data->mVertexBufferHandle ] = VertexBuffer
     {
-      .mBuffer = buffer,
-      .mStride = ( UINT )data->mStride,
+      .mBuffer { buffer },
+      .mStride { ( UINT )data->mStride },
     };
 
     SetDebugName( buffer, data->mStackFrame );
@@ -1068,13 +1067,13 @@ namespace Tac::Render
 
     Vector< D3D11_INPUT_ELEMENT_DESC > inputElementDescs;
 
-    for( int iVertexFormatData = 0;
+    for( int iVertexFormatData { 0 };
          iVertexFormatData < commandData->mVertexDeclarations.size();
          ++iVertexFormatData )
     {
-      const VertexDeclaration& curFormat = commandData->mVertexDeclarations[ iVertexFormatData ];
+      const VertexDeclaration& curFormat { commandData->mVertexDeclarations[ iVertexFormatData ] };
 
-      D3D11_INPUT_ELEMENT_DESC curDX11Input = {};
+      D3D11_INPUT_ELEMENT_DESC curDX11Input  {};
       curDX11Input.Format = GetDXGIFormatTexture( curFormat.mTextureFormat );
       curDX11Input.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
       curDX11Input.InstanceDataStepRate = 0;
@@ -1088,7 +1087,7 @@ namespace Tac::Render
       curDX11Input.AlignedByteOffset = curFormat.mAlignedByteOffset;
       inputElementDescs.push_back( curDX11Input );
     }
-    ID3DBlob* inputSig = mPrograms[ ( int )commandData->mShaderHandle ].mInputSig;
+    ID3DBlob* inputSig { mPrograms[ ( int )commandData->mShaderHandle ].mInputSig };
     ID3D11InputLayout* inputLayout;
     TAC_DX11_CALL( mDevice->CreateInputLayout(
                    inputElementDescs.data(),
@@ -1111,13 +1110,16 @@ namespace Tac::Render
     TAC_ASSERT( data->mFormat.mPerElementByteCount == 2 ||
                 data->mFormat.mPerElementByteCount == 4 );
     TAC_ASSERT( !data->mOptionalInitialBytes || IsSubmitAllocated( data->mOptionalInitialBytes ) );
-    D3D11_BUFFER_DESC bd = {};
+
+    D3D11_BUFFER_DESC bd  {};
     bd.ByteWidth = data->mByteCount;
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.Usage = GetUsage( data->mAccess );
     bd.CPUAccessFlags = data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
-    D3D11_SUBRESOURCE_DATA initData = {};
+
+    D3D11_SUBRESOURCE_DATA initData  {};
     initData.pSysMem = data->mOptionalInitialBytes;
+
     ID3D11Buffer* buffer;
     TAC_DX11_CALL( mDevice->CreateBuffer(
                    &bd,
@@ -1136,16 +1138,16 @@ namespace Tac::Render
   {
     const D3D11_RASTERIZER_DESC2 desc2
     {
-      .FillMode = GetFillMode( commandData->mRasterizerState.mFillMode ),
-      .CullMode = GetCullMode( commandData->mRasterizerState.mCullMode ),
-      .FrontCounterClockwise = commandData->mRasterizerState.mFrontCounterClockwise,
-      .DepthClipEnable = true,
-      .ScissorEnable = commandData->mRasterizerState.mScissor,
-      .MultisampleEnable = commandData->mRasterizerState.mMultisample,
+      .FillMode { GetFillMode( commandData->mRasterizerState.mFillMode ) },
+      .CullMode { GetCullMode( commandData->mRasterizerState.mCullMode ) },
+      .FrontCounterClockwise { commandData->mRasterizerState.mFrontCounterClockwise },
+      .DepthClipEnable { true },
+      .ScissorEnable { commandData->mRasterizerState.mScissor },
+      .MultisampleEnable { commandData->mRasterizerState.mMultisample },
       .ConservativeRaster
-        = commandData->mRasterizerState.mConservativeRasterization
+        { commandData->mRasterizerState.mConservativeRasterization
         ? D3D11_CONSERVATIVE_RASTERIZATION_MODE_ON
-        : D3D11_CONSERVATIVE_RASTERIZATION_MODE_OFF,
+        : D3D11_CONSERVATIVE_RASTERIZATION_MODE_OFF },
     };
 
     ID3D11RasterizerState2* rasterizerState2;
@@ -1161,12 +1163,12 @@ namespace Tac::Render
 
     const D3D11_SAMPLER_DESC desc =
     {
-      .Filter = GetFilter( commandData->mSamplerState.mFilter ),
-      .AddressU = GetAddressMode( commandData->mSamplerState.mU ),
-      .AddressV = GetAddressMode( commandData->mSamplerState.mV ),
-      .AddressW = GetAddressMode( commandData->mSamplerState.mW ),
-      .ComparisonFunc = GetCompare( commandData->mSamplerState.mCompare ),
-      .BorderColor = { 1, 0, 0, 1 },
+      .Filter { GetFilter( commandData->mSamplerState.mFilter ) },
+      .AddressU { GetAddressMode( commandData->mSamplerState.mU ) },
+      .AddressV { GetAddressMode( commandData->mSamplerState.mV ) },
+      .AddressW { GetAddressMode( commandData->mSamplerState.mW ) },
+      .ComparisonFunc { GetCompare( commandData->mSamplerState.mCompare ) },
+      .BorderColor  { 1, 0, 0, 1 },
     };
 
     ID3D11SamplerState* samplerStateDX11;
@@ -1195,31 +1197,31 @@ namespace Tac::Render
   {
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
 
-   CommandDataCreateTexture newData = *oldData;
-   const CommandDataCreateTexture* data = &newData;
+   CommandDataCreateTexture newData { *oldData };
+   const CommandDataCreateTexture* data { &newData };
 
-    TexSpec& mTexSpec = newData.mTexSpec;
+    TexSpec& mTexSpec { newData.mTexSpec };
     if( mTexSpec.mImageBytes && !mTexSpec.mPitch )
     {
-      mTexSpec.mPitch =
+      mTexSpec.mPitch{
         mTexSpec.mImage.mWidth *
-        mTexSpec.mImage.mFormat.CalculateTotalByteCount();
+        mTexSpec.mImage.mFormat.CalculateTotalByteCount() };
     }
 
     // D3D11_SUBRESOURCE_DATA structure
     // https://msdn.microsoft.com/en-us/library/windows/desktop/ff476220(v=vs.85).aspx
     // You set SysMemPitch to the distance between any two adjacent pixels on different lines.
     // You set SysMemSlicePitch to the size of the entire 2D surface in bytes.
-    D3D11_SUBRESOURCE_DATA subResources[ 6 ] = {};
-    int                    subResourceCount = 0;
+    D3D11_SUBRESOURCE_DATA subResources[ 6 ]  {};
+    int                    subResourceCount { 0 };
 
     if( data->mTexSpec.mImageBytes )
     {
       subResources[ subResourceCount++ ] = D3D11_SUBRESOURCE_DATA
       {
-        .pSysMem = data->mTexSpec.mImageBytes,
-        .SysMemPitch = ( UINT )data->mTexSpec.mPitch,
-        .SysMemSlicePitch = ( UINT )data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight,
+        .pSysMem { data->mTexSpec.mImageBytes },
+        .SysMemPitch { ( UINT )data->mTexSpec.mPitch },
+        .SysMemSlicePitch { ( UINT )data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight },
       };
     }
 
@@ -1230,16 +1232,16 @@ namespace Tac::Render
 
        subResources[ subResourceCount++ ] = D3D11_SUBRESOURCE_DATA
        {
-         .pSysMem = imageBytesCubemap,
-         .SysMemPitch = (UINT)data->mTexSpec.mPitch,
-         .SysMemSlicePitch = (UINT) data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight,
+         .pSysMem { imageBytesCubemap },
+         .SysMemPitch { ( UINT )data->mTexSpec.mPitch },
+         .SysMemSlicePitch { ( UINT )data->mTexSpec.mPitch * data->mTexSpec.mImage.mHeight },
        };
     }
-    const bool isCubemap = subResourceCount == 6;
-    D3D11_SUBRESOURCE_DATA* pInitialData = subResourceCount ? subResources : nullptr;
+    const bool isCubemap { subResourceCount == 6 };
+    D3D11_SUBRESOURCE_DATA* pInitialData { subResourceCount ? subResources : nullptr };
 
-    const UINT MiscFlagsBinding = GetMiscFlags( data->mTexSpec.mBinding );
-    const UINT MiscFlagsCubemap = isCubemap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0;
+    const UINT MiscFlagsBinding { GetMiscFlags( data->mTexSpec.mBinding ) };
+    const UINT MiscFlagsCubemap { isCubemap ? D3D11_RESOURCE_MISC_TEXTURECUBE : 0 };
 
     // remove this assert if we ever use texture arrays of arbitary size
     TAC_ASSERT( subResourceCount == 0 || // empty texture
@@ -1247,13 +1249,13 @@ namespace Tac::Render
                 subResourceCount == 6 ); // cubemap texture
 
     const int dimension
-      = ( data->mTexSpec.mImage.mWidth ? 1 : 0 )
-      + ( data->mTexSpec.mImage.mHeight ? 1 : 0 )
-      + ( data->mTexSpec.mImage.mDepth ? 1 : 0 );
+    { ( data->mTexSpec.mImage.mWidth ? 1 : 0 )
+    + ( data->mTexSpec.mImage.mHeight ? 1 : 0 )
+    + ( data->mTexSpec.mImage.mDepth ? 1 : 0 ) };
 
     TAC_ASSERT( dimension );
 
-    const DXGI_FORMAT Format = GetDXGIFormatTexture( data->mTexSpec.mImage.mFormat );
+    const DXGI_FORMAT Format { GetDXGIFormatTexture( data->mTexSpec.mImage.mFormat ) };
     const DXGI_FORMAT FormatTexture2D = [ & ]()
     {
       if( ( int )( data->mTexSpec.mBinding & Binding::DepthStencil ) )
@@ -1261,23 +1263,23 @@ namespace Tac::Render
       return Format;
     } ( );
 
-    const DXGI_SAMPLE_DESC SampleDesc = { .Count = 1 };
+    const DXGI_SAMPLE_DESC SampleDesc  { .Count = 1 };
 
-    ID3D11Texture2D* texture2D = nullptr;
+    ID3D11Texture2D* texture2D { nullptr };
     if( dimension == 2 )
     {
       const D3D11_TEXTURE2D_DESC texDesc =
       {
-        .Width = (UINT)data->mTexSpec.mImage.mWidth,
-        .Height = (UINT)data->mTexSpec.mImage.mHeight,
-        .MipLevels = 1,
-        .ArraySize = (UINT)Max( 1, subResourceCount ),
-        .Format = FormatTexture2D,
-        .SampleDesc= SampleDesc,
-        .Usage = GetUsage( data->mTexSpec.mAccess ),
-        .BindFlags = GetBindFlags( data->mTexSpec.mBinding ),
-        .CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess ),
-        .MiscFlags = MiscFlagsBinding | MiscFlagsCubemap,
+        .Width          { (UINT)data->mTexSpec.mImage.mWidth },
+        .Height         { (UINT)data->mTexSpec.mImage.mHeight },
+        .MipLevels      { 1 },
+        .ArraySize      { ( UINT )Max( 1, subResourceCount ) },
+        .Format         { FormatTexture2D },
+        .SampleDesc     { SampleDesc },
+        .Usage          { GetUsage( data->mTexSpec.mAccess ) },
+        .BindFlags      { GetBindFlags( data->mTexSpec.mBinding ) },
+        .CPUAccessFlags { GetCPUAccessFlags( data->mTexSpec.mCpuAccess ) },
+        .MiscFlags      { MiscFlagsBinding | MiscFlagsCubemap },
       };
       TAC_DX11_CALL( mDevice->CreateTexture2D(
                      &texDesc,
@@ -1286,20 +1288,20 @@ namespace Tac::Render
       SetDebugName( texture2D, data->mStackFrame );
     }
 
-    ID3D11Texture3D* texture3D = nullptr;
+    ID3D11Texture3D* texture3D { nullptr };
     if( dimension == 3 )
     {
       const D3D11_TEXTURE3D_DESC texDesc =
       {
-        .Width = (UINT)data->mTexSpec.mImage.mWidth,
-        .Height = (UINT)data->mTexSpec.mImage.mHeight,
-        .Depth = (UINT)data->mTexSpec.mImage.mDepth,
-        .MipLevels = 1,
-        .Format = Format,
-        .Usage = GetUsage( data->mTexSpec.mAccess ),
-        .BindFlags = GetBindFlags( data->mTexSpec.mBinding ),
-        .CPUAccessFlags = GetCPUAccessFlags( data->mTexSpec.mCpuAccess ),
-        .MiscFlags = MiscFlagsBinding | MiscFlagsCubemap,
+        .Width          { (UINT)data->mTexSpec.mImage.mWidth },
+        .Height         { (UINT)data->mTexSpec.mImage.mHeight },
+        .Depth          { (UINT)data->mTexSpec.mImage.mDepth },
+        .MipLevels      { 1 },
+        .Format         { Format },
+        .Usage          { GetUsage( data->mTexSpec.mAccess ) },
+        .BindFlags      { GetBindFlags( data->mTexSpec.mBinding ) },
+        .CPUAccessFlags { GetCPUAccessFlags( data->mTexSpec.mCpuAccess ) },
+        .MiscFlags      { MiscFlagsBinding | MiscFlagsCubemap },
       };
 
       TAC_DX11_CALL( mDevice->CreateTexture3D( &texDesc, pInitialData, &texture3D ));
@@ -1307,25 +1309,25 @@ namespace Tac::Render
     }
 
     ID3D11Resource* resource
-      = texture2D ? ( ID3D11Resource* )texture2D
-      : texture3D ? ( ID3D11Resource* )texture3D : nullptr;
+    { texture2D ? ( ID3D11Resource* )texture2D
+    : texture3D ? ( ID3D11Resource* )texture3D : nullptr };
 
-    ID3D11RenderTargetView* rtv = nullptr;
+    ID3D11RenderTargetView* rtv { nullptr };
     if( ( int )data->mTexSpec.mBinding & ( int )Binding::RenderTarget )
     {
       TAC_DX11_CALL( mDevice->CreateRenderTargetView( resource, nullptr, &rtv ) );
       SetDebugName( rtv, data->mStackFrame );
     }
 
-    ID3D11UnorderedAccessView* uav = nullptr;
+    ID3D11UnorderedAccessView* uav { nullptr };
     if( ( int )data->mTexSpec.mBinding & ( int )Binding::UnorderedAccess )
     {
-      D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+      D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc  {};
       uavDesc.Format = Format;
 
       if( dimension == 2 )
       {
-        const D3D11_TEX2D_UAV Texture2D = {};
+        const D3D11_TEX2D_UAV Texture2D  {};
 
         uavDesc.Texture2D = Texture2D;
         uavDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
@@ -1333,11 +1335,11 @@ namespace Tac::Render
       }
       else if( dimension == 3 )
       {
-        const D3D11_TEX3D_UAV Texture3D =
+        const D3D11_TEX3D_UAV Texture3D 
         {
-          .MipSlice = 0,
-          .FirstWSlice = 0,
-          .WSize = (UINT)data->mTexSpec.mImage.mDepth,
+          .MipSlice { 0 },
+          .FirstWSlice { 0 },
+          .WSize { (UINT)data->mTexSpec.mImage.mDepth },
         };
 
         uavDesc.Texture3D = Texture3D;
@@ -1352,22 +1354,22 @@ namespace Tac::Render
       SetDebugName( uav, data->mStackFrame );
     }
 
-    ID3D11ShaderResourceView* srv = nullptr;
+    ID3D11ShaderResourceView* srv { nullptr };
     if( ( int )data->mTexSpec.mBinding & ( int )Binding::ShaderResource )
     {
       const D3D_SRV_DIMENSION srvDimension
-        = isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE
-        : dimension == 2 ? D3D11_SRV_DIMENSION_TEXTURE2D
-        : dimension == 3 ? D3D11_SRV_DIMENSION_TEXTURE3D
-        : D3D_SRV_DIMENSION_UNKNOWN;
+      { isCubemap ? D3D11_SRV_DIMENSION_TEXTURECUBE
+      : dimension == 2 ? D3D11_SRV_DIMENSION_TEXTURE2D
+      : dimension == 3 ? D3D11_SRV_DIMENSION_TEXTURE3D
+      : D3D_SRV_DIMENSION_UNKNOWN };
 
       if( srvDimension != D3D_SRV_DIMENSION_UNKNOWN )
       {
-        const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc =
+        const D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc
         {
-          .Format = Format,
-          .ViewDimension = srvDimension,
-          .Texture2D = D3D11_TEX2D_SRV{.MipLevels = 1 },
+          .Format { Format },
+          .ViewDimension { srvDimension },
+          .Texture2D { D3D11_TEX2D_SRV{.MipLevels { 1 } } },
         };
 
         TAC_DX11_CALL( mDevice->CreateShaderResourceView( resource, &srvDesc, &srv ) );
@@ -1379,10 +1381,10 @@ namespace Tac::Render
         mDeviceContext->GenerateMips( srv );
     }
 
-    ID3D11DepthStencilView* dsv = nullptr;
+    ID3D11DepthStencilView* dsv { nullptr };
     if( ( int )data->mTexSpec.mBinding & ( int )Binding::DepthStencil )
     {
-      D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+      D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc  {};
       depthStencilViewDesc.Format = GetDXGIFormatDepth( data->mTexSpec.mImage.mFormat.mPerElementByteCount );
       depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
       TAC_DX11_CALL( mDevice->CreateDepthStencilView(
@@ -1392,7 +1394,7 @@ namespace Tac::Render
       SetDebugName( dsv, data->mStackFrame );
     }
 
-    Texture* texture = &mTextures[ ( int )data->mTextureHandle ];
+    Texture* texture { &mTextures[ ( int )data->mTextureHandle ] };
     texture->mTexture2D = texture2D;
     texture->mTexture3D = texture3D;
     texture->mTextureSRV = srv;
@@ -1405,21 +1407,21 @@ namespace Tac::Render
                                          Errors& errors )
   {
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
-    const BlendState* blendState = &commandData->mBlendState;
+    const BlendState* blendState { &commandData->mBlendState };
 
     const D3D11_RENDER_TARGET_BLEND_DESC blendDesc
     {
-      .BlendEnable = true,
-      .SrcBlend = GetBlend( blendState->mSrcRGB ),
-      .DestBlend = GetBlend( blendState->mDstRGB ),
-      .BlendOp = GetBlendOp( blendState->mBlendRGB ),
-      .SrcBlendAlpha = GetBlend( blendState->mSrcA ),
-      .DestBlendAlpha = GetBlend( blendState->mDstA ),
-      .BlendOpAlpha = GetBlendOp( blendState->mBlendA ),
-      .RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL,
+      .BlendEnable           { true },
+      .SrcBlend              { GetBlend( blendState->mSrcRGB ) },
+      .DestBlend             { GetBlend( blendState->mDstRGB ) },
+      .BlendOp               { GetBlendOp( blendState->mBlendRGB ) },
+      .SrcBlendAlpha         { GetBlend( blendState->mSrcA ) },
+      .DestBlendAlpha        { GetBlend( blendState->mDstA ) },
+      .BlendOpAlpha          { GetBlendOp( blendState->mBlendA ) },
+      .RenderTargetWriteMask { D3D11_COLOR_WRITE_ENABLE_ALL },
     };
 
-    const D3D11_BLEND_DESC desc = { .RenderTarget = { blendDesc } };
+    const D3D11_BLEND_DESC desc  { .RenderTarget  { blendDesc } };
 
     ID3D11BlendState* blendStateDX11;
     TAC_DX11_CALL( mDevice->CreateBlendState( &desc, &blendStateDX11 ) );
@@ -1438,10 +1440,10 @@ namespace Tac::Render
     const int iCB = commandData->mConstantBufferHandle.GetIndex();
     const D3D11_BUFFER_DESC bd =
     {
-      .ByteWidth = (UINT)RoundUpToNearestMultiple( commandData->mByteCount, 16 ),
-      .Usage = D3D11_USAGE_DYNAMIC, // i guess?
-      .BindFlags = D3D11_BIND_CONSTANT_BUFFER,
-      .CPUAccessFlags = D3D11_CPU_ACCESS_WRITE, // i guess?
+      .ByteWidth      { ( UINT )RoundUpToNearestMultiple( commandData->mByteCount, 16 ) },
+      .Usage          { D3D11_USAGE_DYNAMIC }, // i guess?
+      .BindFlags      { D3D11_BIND_CONSTANT_BUFFER },
+      .CPUAccessFlags { D3D11_CPU_ACCESS_WRITE }, // i guess?
     };
 
     ID3D11Buffer* cbufferhandle;
@@ -1450,8 +1452,8 @@ namespace Tac::Render
 
     mConstantBuffers[ iCB ] = ConstantBuffer
     {
-      .mBuffer = cbufferhandle,
-      .mName = commandData->mName,
+      .mBuffer { cbufferhandle },
+      .mName { commandData->mName },
     };
   }
 
@@ -1460,21 +1462,21 @@ namespace Tac::Render
   {
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     const D3D11_DEPTH_WRITE_MASK DepthWriteMask
-      = commandData->mDepthState.mDepthWrite
-      ? D3D11_DEPTH_WRITE_MASK_ALL
-      : D3D11_DEPTH_WRITE_MASK_ZERO;
+    { commandData->mDepthState.mDepthWrite
+    ? D3D11_DEPTH_WRITE_MASK_ALL
+    : D3D11_DEPTH_WRITE_MASK_ZERO };
 
-    const D3D11_COMPARISON_FUNC DepthFunc = GetDepthFunc( commandData->mDepthState.mDepthFunc );
+    const D3D11_COMPARISON_FUNC DepthFunc { GetDepthFunc( commandData->mDepthState.mDepthFunc ) };
 
-    const D3D11_DEPTH_STENCIL_DESC desc =
+    const D3D11_DEPTH_STENCIL_DESC desc 
     {
-      .DepthEnable = commandData->mDepthState.mDepthTest,
-      .DepthWriteMask = DepthWriteMask,
-      .DepthFunc = DepthFunc,
+      .DepthEnable    { commandData->mDepthState.mDepthTest },
+      .DepthWriteMask { DepthWriteMask },
+      .DepthFunc      { DepthFunc },
     };
 
-    const DepthStateHandle hDepth = commandData->mDepthStateHandle;
-    const int iDepth = hDepth.GetIndex();
+    const DepthStateHandle hDepth { commandData->mDepthStateHandle };
+    const int iDepth { hDepth.GetIndex() };
 
     ID3D11DepthStencilState* depthStencilState;
     TAC_DX11_CALL( mDevice->CreateDepthStencilState( &desc, &depthStencilState ) );
@@ -1489,14 +1491,14 @@ namespace Tac::Render
 
     TAC_ASSERT( !data->mFramebufferTextures.empty() );
 
-    ID3D11DepthStencilView* dsv = nullptr;
-    ID3D11RenderTargetView* rtv = nullptr;
-    ID3D11Texture2D*        depthTexture = nullptr;
+    ID3D11DepthStencilView* dsv { nullptr };
+    ID3D11RenderTargetView* rtv { nullptr };
+    ID3D11Texture2D*        depthTexture { nullptr };
 
     for( TextureHandle textureHandle : data->mFramebufferTextures )
     {
       TAC_ASSERT( textureHandle.IsValid() );
-      Texture* texture = &mTextures[ ( int )textureHandle ];
+      Texture* texture { &mTextures[ ( int )textureHandle ] };
 
       D3D11_TEXTURE2D_DESC desc;
       texture->mTexture2D->GetDesc( &desc );
@@ -1509,7 +1511,7 @@ namespace Tac::Render
         desc.Format == DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
       if( isDepthTexture )
       {
-        D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
+        D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc  {};
         depthStencilViewDesc.Format = desc.Format;
         depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
         TAC_DX11_CALL( mDevice->CreateDepthStencilView(
@@ -1532,8 +1534,8 @@ namespace Tac::Render
       }
     }
 
-    const String debugName = String()
-      + data->mStackFrame.mFile + ":" + Tac::ToString( data->mStackFrame.mLine );
+    const String debugName{ String()
+      + data->mStackFrame.mFile + ":" + Tac::ToString( data->mStackFrame.mLine ) };
 
     Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
     framebuffer->mDebugName = debugName;
@@ -1550,20 +1552,20 @@ namespace Tac::Render
     TAC_ASSERT( data->mFramebufferTextures.empty() );
     TAC_ASSERT( data->mNativeWindowHandle && data->mWidth && data->mHeight );
 
-    const auto hwnd = ( HWND )data->mNativeWindowHandle;
-    const int bufferCount = 4;
-    const UINT width = data->mWidth;
-    const UINT height = data->mHeight;
+    const auto hwnd { ( HWND )data->mNativeWindowHandle };
+    const int bufferCount { 4 };
+    const UINT width { data->mWidth };
+    const UINT height { data->mHeight };
 
     const SwapChainCreateInfo scInfo
     {
-      .mHwnd = hwnd,
-      .mDevice = (IUnknown*)mDevice,
-      .mBufferCount = bufferCount,
-      .mWidth = data->mWidth,
-      .mHeight = data->mWidth,
+      .mHwnd        { hwnd },
+      .mDevice      { (IUnknown*)mDevice },
+      .mBufferCount { bufferCount },
+      .mWidth       { data->mWidth },
+      .mHeight      { data->mWidth },
     };
-    auto swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ));
+    auto swapChain { TAC_CALL( DXGICreateSwapChain( scInfo, errors )) };
 
 
     // this seems to be unused...
@@ -1571,13 +1573,13 @@ namespace Tac::Render
     // DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
     // swapChain->GetDesc( &swapChainDesc );
 
-    ID3D11Texture2D* pBackBuffer = nullptr;
+    ID3D11Texture2D* pBackBuffer { nullptr };
     TAC_DXGI_CALL( swapChain->GetBuffer( 0, IID_PPV_ARGS( &pBackBuffer ) ) );
     TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize" );
     TAC_ON_DESTRUCT(pBackBuffer->Release());
 
-    ID3D11RenderTargetView* rtv = nullptr;
-    D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
+    ID3D11RenderTargetView* rtv { nullptr };
+    D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc { nullptr };
     TAC_DX11_CALL( mDevice->CreateRenderTargetView( pBackBuffer, rtvDesc, &rtv ) );
     SetDebugName( rtv, data->mStackFrame );
 
@@ -1588,19 +1590,19 @@ namespace Tac::Render
 
     const DXGI_SAMPLE_DESC SampleDesc =
     {
-      .Count = 1,
-      .Quality = 0,
+      .Count { 1 },
+      .Quality { 0 },
     };
 
     const D3D11_TEXTURE2D_DESC texture2dDesc =
     {
-      .Width = width,
-      .Height = height,
-      .MipLevels = 1,
-      .ArraySize = 1,
-      .Format = DXGI_FORMAT_D24_UNORM_S8_UINT,
-      .SampleDesc = SampleDesc,
-      .BindFlags = D3D11_BIND_DEPTH_STENCIL,
+      .Width      { width },
+      .Height     { height },
+      .MipLevels  { 1 },
+      .ArraySize  { 1 },
+      .Format     { DXGI_FORMAT_D24_UNORM_S8_UINT },
+      .SampleDesc { SampleDesc },
+      .BindFlags  { D3D11_BIND_DEPTH_STENCIL },
     };
 
     ID3D11Texture2D* texture;
@@ -1609,8 +1611,8 @@ namespace Tac::Render
 
     const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
     {
-      .Format = texture2dDesc.Format,
-      .ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
+      .Format { texture2dDesc.Format },
+      .ViewDimension { D3D11_DSV_DIMENSION_TEXTURE2D },
     };
 
     ID3D11DepthStencilView* dsv;
@@ -1618,20 +1620,20 @@ namespace Tac::Render
     SetDebugName( dsv, data->mStackFrame );
 
 
-    const FramebufferHandle hFB = data->mFramebufferHandle;
-    const int iFB = hFB.GetIndex();
+    const FramebufferHandle hFB { data->mFramebufferHandle };
+    const int iFB { hFB.GetIndex() };
 
-    const String debugName = String()
-      + data->mStackFrame.mFile + ":" + Tac::ToString( data->mStackFrame.mLine );
+    const String debugName{ String()
+      + data->mStackFrame.mFile + ":" + Tac::ToString( data->mStackFrame.mLine ) };
     mFramebuffers[iFB] = Framebuffer
     {
-      .mBufferCount = bufferCount,
-      .mSwapChain = Tac::move(swapChain),
-      .mDepthStencilView = dsv,
-      .mRenderTargetView = rtv,
-      .mDepthTexture = texture,
-      .mHwnd = hwnd,
-      .mDebugName = debugName,
+      .mBufferCount      { bufferCount },
+      .mSwapChain        { Tac::move(swapChain) },
+      .mDepthStencilView { dsv },
+      .mRenderTargetView { rtv },
+      .mDepthTexture     { texture },
+      .mHwnd             { hwnd },
+      .mDebugName        { debugName },
     };
 
     mWindows[ mWindowCount++ ] = hFB;
@@ -1659,7 +1661,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RemoveVertexBuffer( VertexBufferHandle vertexBufferHandle, Errors& )
   {
-    VertexBuffer* vertexBuffer = &mVertexBuffers[ ( int )vertexBufferHandle ];
+    VertexBuffer* vertexBuffer { &mVertexBuffers[ ( int )vertexBufferHandle ] };
     TAC_RELEASE_IUNKNOWN( vertexBuffer->mBuffer );
     *vertexBuffer = VertexBuffer();
   }
@@ -1671,7 +1673,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RemoveIndexBuffer( IndexBufferHandle indexBufferHandle, Errors& )
   {
-    IndexBuffer* indexBuffer = &mIndexBuffers[ ( int )indexBufferHandle ];
+    IndexBuffer* indexBuffer { &mIndexBuffers[ ( int )indexBufferHandle ] };
     TAC_RELEASE_IUNKNOWN( indexBuffer->mBuffer );
     *indexBuffer = IndexBuffer();
   }
@@ -1688,7 +1690,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RemoveShader( const ShaderHandle shaderHandle, Errors& )
   {
-    DX11Program* program = &mPrograms[ ( int )shaderHandle ];
+    DX11Program* program { &mPrograms[ ( int )shaderHandle ] };
     TAC_RELEASE_IUNKNOWN( program->mInputSig );
     TAC_RELEASE_IUNKNOWN( program->mVertexShader );
     TAC_RELEASE_IUNKNOWN( program->mPixelShader );
@@ -1698,7 +1700,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RemoveTexture( TextureHandle textureHandle, Errors& )
   {
-    Texture* texture = &mTextures[ ( int )textureHandle ];
+    Texture* texture { &mTextures[ ( int )textureHandle ] };
     TAC_RELEASE_IUNKNOWN( texture->mTexture2D );
     TAC_RELEASE_IUNKNOWN( texture->mTexture3D );
     TAC_RELEASE_IUNKNOWN( texture->mTextureRTV );
@@ -1713,7 +1715,7 @@ namespace Tac::Render
 
   void RendererDirectX11::RemoveFramebuffer( FramebufferHandle framebufferHandle, Errors& )
   {
-    for( int i = 0; i < mWindowCount; ++i )
+    for( int i { 0 }; i < mWindowCount; ++i )
       if( mWindows[ i ] == framebufferHandle )
         mWindows[ i ] = mWindows[ --mWindowCount ];
     Framebuffer* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
@@ -1751,19 +1753,19 @@ namespace Tac::Render
                                                Errors& errors )
   {
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
-    const TexUpdate* data = &commandData->mTexUpdate;
+    const TexUpdate* data { &commandData->mTexUpdate };
     TAC_ASSERT( IsSubmitAllocated( data->mSrcBytes ) );
 
-    const UINT dstX = data->mDstX;
-    const UINT dstY = data->mDstY;
-    const UINT dstZ = 0;
+    const UINT dstX { data->mDstX };
+    const UINT dstY { data->mDstY };
+    const UINT dstZ { 0 };
 
-    D3D11_BOX srcBox = {};
+    D3D11_BOX srcBox  {};
     srcBox.right = data->mSrc.mWidth;
     srcBox.bottom = data->mSrc.mHeight;
     srcBox.back = 1;
 
-    D3D11_TEXTURE2D_DESC texDesc = {};
+    D3D11_TEXTURE2D_DESC texDesc  {};
     texDesc.Width = data->mSrc.mWidth;
     texDesc.Height = data->mSrc.mHeight;
     texDesc.MipLevels = 1;
@@ -1775,12 +1777,12 @@ namespace Tac::Render
     texDesc.CPUAccessFlags = 0;
     texDesc.MiscFlags = 0;
 
-    D3D11_SUBRESOURCE_DATA subResource = {};
+    D3D11_SUBRESOURCE_DATA subResource  {};
     subResource.pSysMem = data->mSrcBytes;
     subResource.SysMemPitch = data->mPitch;
     subResource.SysMemSlicePitch = data->mPitch * data->mSrc.mHeight;
 
-    ID3D11Resource* dstTex = mTextures[ ( int )commandData->mTextureHandle ].mTexture2D;
+    ID3D11Resource* dstTex { mTextures[ ( int )commandData->mTextureHandle ].mTexture2D };
     TAC_ASSERT( dstTex );
     ID3D11Texture2D* srcTex;
     TAC_DX11_CALL( mDevice->CreateTexture2D( &texDesc, &subResource, &srcTex ));
@@ -1799,14 +1801,14 @@ namespace Tac::Render
   void RendererDirectX11::UpdateVertexBuffer( const CommandDataUpdateVertexBuffer* commandData,
                                               Errors& errors )
   {
-    ID3D11Buffer* buffer = mVertexBuffers[ ( int )commandData->mVertexBufferHandle ].mBuffer;
+    ID3D11Buffer* buffer { mVertexBuffers[ ( int )commandData->mVertexBufferHandle ].mBuffer };
     UpdateBuffer( buffer, commandData->mBytes, commandData->mByteCount, errors );
   }
 
   void RendererDirectX11::UpdateConstantBuffer( const CommandDataUpdateConstantBuffer* commandData,
                                                 Errors& errors )
   {
-    const ConstantBuffer* constantBuffer = FindConstantBuffer( commandData->mConstantBufferHandle );
+    const ConstantBuffer* constantBuffer { FindConstantBuffer( commandData->mConstantBufferHandle ) };
     TAC_ASSERT(constantBuffer);
     UpdateBuffer( constantBuffer->mBuffer,
                   commandData->mBytes,
@@ -1818,14 +1820,14 @@ namespace Tac::Render
   void RendererDirectX11::UpdateIndexBuffer( const CommandDataUpdateIndexBuffer* commandData,
                                              Errors& errors )
   {
-    ID3D11Buffer* buffer = mIndexBuffers[ ( int )commandData->mIndexBufferHandle ].mBuffer;
+    ID3D11Buffer* buffer { mIndexBuffers[ ( int )commandData->mIndexBufferHandle ].mBuffer };
     UpdateBuffer( buffer, commandData->mBytes, commandData->mByteCount, errors );
   }
 
   void RendererDirectX11::ResizeFramebuffer( const CommandDataResizeFramebuffer* data,
                                              Errors& errors )
   {
-    Framebuffer* framebuffer = &mFramebuffers[ ( int )data->mFramebufferHandle ];
+    Framebuffer* framebuffer { &mFramebuffers[ ( int )data->mFramebufferHandle ] };
     TAC_ASSERT( framebuffer->mSwapChain );
 
     D3D11_TEXTURE2D_DESC depthTextureDesc;
@@ -1848,13 +1850,13 @@ namespace Tac::Render
                                             data->mHeight,
                                             DXGI_FORMAT_UNKNOWN,
                                             desc.Flags );
-    ID3D11Texture2D* pBackBuffer = nullptr;
+    ID3D11Texture2D* pBackBuffer { nullptr };
     TAC_DXGI_CALL( framebuffer->mSwapChain->GetBuffer( 0, IID_PPV_ARGS( &pBackBuffer ) ));
     TAC_RAISE_ERROR_IF( !pBackBuffer, "no buffer to resize" );
 
-    const D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc = nullptr;
+    const D3D11_RENDER_TARGET_VIEW_DESC* rtvDesc { nullptr };
 
-    ID3D11RenderTargetView* rtv = nullptr;
+    ID3D11RenderTargetView* rtv { nullptr };
     TAC_DX11_CALL( mDevice->CreateRenderTargetView( pBackBuffer, rtvDesc, &rtv ));
 
     TAC_RELEASE_IUNKNOWN( pBackBuffer );
@@ -1864,10 +1866,10 @@ namespace Tac::Render
     TAC_DX11_CALL( mDevice->CreateTexture2D( &depthTextureDesc, nullptr, &depthTexture ));
     SetDebugName( depthTexture, framebuffer->mDebugName );
 
-    const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc =
+    const D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc
     {
-      .Format = depthTextureDesc.Format,
-      .ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D,
+      .Format { depthTextureDesc.Format },
+      .ViewDimension { D3D11_DSV_DIMENSION_TEXTURE2D },
     };
 
     ID3D11DepthStencilView* dsv;

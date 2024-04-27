@@ -4,6 +4,7 @@
 #include "tac-win32/dx/dx12/tac_dx12_gpu_upload_allocator.h"
 #include "tac-win32/dx/dx12/texture/tac_dx12_texture_mgr.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -95,8 +96,6 @@ namespace Tac::Render
 
   void DX12Context::Reset( Errors& errors )
   {
-    mSynchronous = false;
-    mExecuted = false;
     //mGPUUploadAllocator; // <-- should be clear
 
     TAC_ASSERT( !mCommandAllocator );
@@ -132,6 +131,7 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* dxCommandList { GetCommandList() };
     TAC_DX12_CALL( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
+    mState = {};
   }
 
   void DX12Context::SetName( StringView name )
@@ -142,7 +142,7 @@ namespace Tac::Render
 
   void DX12Context::SetSynchronous()
   {
-    mSynchronous = true;
+    mState.  mSynchronous = true;
   }
 
   void DX12Context::SetViewport( v2i size )
@@ -194,60 +194,91 @@ namespace Tac::Render
 
   void DX12Context::SetRenderTargets( Targets targets )
   {
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
-
+    TAC_ASSERT( mRenderer );
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
+    FixedVector< D3D12_RESOURCE_BARRIER, 10 > barriers;
+
+    DX12TextureMgr* textureMgr = &mRenderer->mTexMgr;
 
     for( TextureHandle colorTarget : targets.mColors )
     {
-      DX12Texture* colorTexture { mTextureMgr->FindTexture( colorTarget ) };
+      if( DX12Texture * colorTexture{ textureMgr->FindTexture( colorTarget ) } )
+      {
+        const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+        {
+          .pResource   { colorTexture->mResource.Get() },
+          .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+          .StateBefore { colorTexture->mState },
+          .StateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
+        };
 
-      //rtDescs.push_back( colorTexture->??? );
+        const D3D12_RESOURCE_BARRIER barrier
+        {
+          .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+          .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
+          .Transition { Transition },
+        };
+
+        rtDescs.push_back(  colorTexture->mRTV->GetCPUHandle()  );
+        barriers.push_back( barrier );
+        colorTexture->mState = D3D12_RESOURCE_STATE_RENDER_TARGET ;
+      }
     }
 
-    OS::OSDebugBreak();
-#if TAC_TEMPORARILY_DISABLED()
-
-
-    DX12SwapChain* frameBuf { mFrameBufferMgr->FindSwapChain( h ) };
-    const UINT bbIdx { frameBuf->mSwapChain->GetCurrentBackBufferIndex() };
-    DX12SwapChainImage& swapChainImage { frameBuf->mSwapChainImages[ bbIdx ] };
-
-    D3D12_CPU_DESCRIPTOR_HANDLE descHandle { swapChainImage.mRTV.GetCPUHandle() };
-    rtDescs.push_back( descHandle );
-
-    BOOL RTsSingleHandleToDescriptorRange { false };
-
-    const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+    D3D12_CPU_DESCRIPTOR_HANDLE DSV{};
+    D3D12_CPU_DESCRIPTOR_HANDLE* pDSV{};
+    if( DX12Texture * depthTexture{ textureMgr->FindTexture( targets.mDepth ) } )
     {
-      .pResource   { swapChainImage.mResource.Get() },
-      .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-      .StateBefore { swapChainImage.mState },
-      .StateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
-    };
+      DSV = depthTexture->mRTV->GetCPUHandle();
+      pDSV = &DSV;
+      mState.mRenderTargetDepth = DSV;
+    }
 
-    const D3D12_RESOURCE_BARRIER barrier
-    {
-      .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-      .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
-      .Transition { Transition },
-    };
+    mState.mRenderTargetColors = rtDescs;
 
-    const Array barriers{ barrier };
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
-
-    // if null, no depth stencil is bound
-    const D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor{};
-    commandList->OMSetRenderTargets( ( UINT )rtDescs.size(),
-                                     rtDescs.data(),
-                                     RTsSingleHandleToDescriptorRange,
-                                     pDepthStencilDescriptor );
-
-    swapChainImage.mState = D3D12_RESOURCE_STATE_RENDER_TARGET;
-
-#endif
+    commandList->OMSetRenderTargets( ( UINT )rtDescs.size(), rtDescs.data(), false, pDSV );
   }
 
+  void DX12Context::SetPipeline( PipelineHandle h )
+  {
+    DX12PipelineMgr* pipelineMgr { &mRenderer->mPipelineMgr };
+    DX12Pipeline* pipeline { pipelineMgr->FindPipeline( h ) };
+    ID3D12PipelineState* pipelineState { pipeline->mPSO.Get() };
+    ID3D12RootSignature* rootSignature { pipeline->mRootSignature.Get() };
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    commandList->SetPipelineState( pipelineState );
+    commandList->SetGraphicsRootSignature( rootSignature );
+  }
+
+  void DX12Context::ClearColor( TextureHandle h, v4 values )
+  {
+    DX12TextureMgr* textureMgr { &mRenderer->mTexMgr };
+    const DX12Texture* texture{ textureMgr->FindTexture( h ) };
+    TAC_ASSERT( texture );
+
+    const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV.GetCPUHandle() };
+
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    commandList->ClearRenderTargetView( RTV, values.data(), 0, nullptr );
+  }
+
+  void DX12Context::ClearDepth( TextureHandle h, float value )
+  {
+    DX12TextureMgr* textureMgr = &mRenderer->mTexMgr;
+    const DX12Texture* texture{ textureMgr->FindTexture( h ) };
+    TAC_ASSERT( texture );
+
+    const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV.GetCPUHandle() };
+
+    const D3D12_CPU_DESCRIPTOR_HANDLE DSV { mState.mRenderTargetDepth.GetValueUnchecked() };
+    const D3D12_CLEAR_FLAGS ClearFlags { D3D12_CLEAR_FLAG_DEPTH };// | D3D12_CLEAR_FLAG_STENCIL;
+    const FLOAT Depth { 1.0f };
+
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    commandList->ClearDepthStencilView( DSV, ClearFlags,Depth, 0, 0, nullptr );
+  }
 
   void DX12Context::Retire()
   {
@@ -268,12 +299,15 @@ namespace Tac::Render
                                  DX12CommandQueue* commandQueue,
                                  DX12UploadPageMgr* uploadPageManager,
                                  DX12SwapChainMgr* frameBufferMgr,
-                                 ID3D12Device* device )
+                                 ID3D12Device* device,
+                                 DX12Renderer* renderer )
   {
     mCommandAllocatorPool = commandAllocatorPool;
     mCommandQueue = commandQueue;
     mUploadPageManager = uploadPageManager;
     mFrameBufferMgr = frameBufferMgr;
+    mRenderer = renderer;
+
     device->QueryInterface( mDevice.iid(), mDevice.ppv() );
     TAC_ASSERT( mDevice );
   }
@@ -292,6 +326,7 @@ namespace Tac::Render
       dx12Context->mCommandQueue = mCommandQueue;
       dx12Context->mFrameBufferMgr = mFrameBufferMgr;
       dx12Context->mCommandList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
+      dx12Context->mRenderer = mRenderer;
     }
     else
     {

@@ -9,10 +9,11 @@ namespace Tac::Render
 {
   struct DX12Texture
   {
-    PCom< ID3D12Resource >         mResource;
-    D3D12_RESOURCE_DESC            mDesc{};
-    D3D12_RESOURCE_STATES          mState{};
-    DX12DescriptorHeapAllocation   mRTV;
+    PCom< ID3D12Resource >                    mResource;
+    D3D12_RESOURCE_DESC                       mDesc{};
+    D3D12_RESOURCE_STATES                     mState{};
+    Optional< DX12DescriptorHeapAllocation >  mRTV;
+    Optional< DX12DescriptorHeapAllocation >  mDSV;
   };
 
 } // namespace Tac::Render

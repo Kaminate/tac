@@ -12,14 +12,14 @@ namespace Tac::Render
 
   struct DX12ExampleGPUUploadPage
   {
-    PCom<ID3D12Resource>      mBuffer;
+    PCom< ID3D12Resource >    mBuffer;
 
-    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0;
-    void*                     mCPUAddr = nullptr;
-    int                       mByteCount = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr { 0 };
+    void*                     mCPUAddr { nullptr };
+    int                       mByteCount { 0 };
 
 
-    static const int          kDefaultByteCount = 2 * 1024 * 1024;
+    static const int          kDefaultByteCount { 2 * 1024 * 1024 };
   };
 
   struct DX12ExampleGPUUploadPageManager
@@ -48,7 +48,7 @@ namespace Tac::Render
 
     // singletons
     PCom< ID3D12Device > m_device;
-    DX12ExampleCommandQueue* mCommandQueue = nullptr;
+    DX12ExampleCommandQueue* mCommandQueue { nullptr };
   };
 
   struct DX12ExampleGPUUploadAllocator
@@ -61,11 +61,11 @@ namespace Tac::Render
 
     struct DynAlloc
     {
-      ID3D12Resource*           mResource = nullptr;
-      u64                       mResourceOffest = 0;
-      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0; // already offset
-      void*                     mCPUAddr = 0; // already offset
-      int                       mByteCount = 0;
+      ID3D12Resource*           mResource       {};
+      u64                       mResourceOffest {};
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr        {}; // already offset
+      void*                     mCPUAddr        {}; // already offset
+      int                       mByteCount      {};
     };
 
 
@@ -74,7 +74,7 @@ namespace Tac::Render
 
   private:
 
-    int            mCurPageUsedByteCount = 0;
+    int            mCurPageUsedByteCount { 0 };
 
     // Currently in use by command queues the current frame, memory cannot be freed.
     // The last page is the current page

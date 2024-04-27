@@ -74,10 +74,10 @@ namespace Tac
       TAC_RAISE_ERROR_IF_RETURN( !Read( &t, 1, sizeof( T ) ), "read failed", t );
       return t;
     }
-    Endianness  mFrom = Endianness::Unknown;
-    Endianness  mTo = Endianness::Unknown;
-    const void* mBegin = nullptr;
-    const void* mEnd = nullptr;
+    Endianness  mFrom  { Endianness::Unknown };
+    Endianness  mTo    { Endianness::Unknown };
+    const void* mBegin {};
+    const void* mEnd   {};
   };
 
   template<> inline bool Reader::Read( v2* values, int valueCount ) { return Read( values->data(), 2 * valueCount, sizeof( float ) ); }
@@ -91,8 +91,8 @@ namespace Tac
     void Write( const void* bytes, NetBitDiff bitfield, const NetworkBits& networkBits );
     template< typename T > void Write( T t )                    { return Write( &t, 1, sizeof( T ) ); }
     template< typename T > void Write( const T* t, int tCount ) { return Write( t, tCount, sizeof( T ) ); }
-    Endianness     mFrom = Endianness::Unknown;
-    Endianness     mTo = Endianness::Unknown;
+    Endianness     mFrom { Endianness::Unknown };
+    Endianness     mTo   { Endianness::Unknown };
     Vector< char > mBytes;
   };
   template<> inline void Writer::Write( const v2& t ) { return Write( t.data(), 2, sizeof( float ) ); }

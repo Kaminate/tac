@@ -20,7 +20,7 @@ namespace Tac
 {
   static m3 InertiaTensorSphere( float mass, float radius )
   {
-    const float s = ( 2.0f / 5.0f ) * mass * radius * radius;
+    const float s { ( 2.0f / 5.0f ) * mass * radius * radius };
     return { s, 0, 0,
              0, s, 0,
              0, 0, s };
@@ -28,7 +28,7 @@ namespace Tac
 
   struct Sim5CollisionResult
   {
-    bool mCollided = false;
+    bool mCollided { false };
     v3 mNormal; // collision normal from obj A to obj B
     v3 mPoint; // collision point
     float mDist; // penetration distance
@@ -36,28 +36,28 @@ namespace Tac
 
   static Sim5CollisionResult Sim5CollideSphereSphere(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
   {
-    const v3 dx = objB.mLinPos - objA.mLinPos; // vector from objA to objB
-    const float q = dx.Quadrance(); // quadrance between circles
-    const float rSum = objA.mRadius + objB.mRadius;
-    const float d = Sqrt(q);
-    const v3 n = dx / d;
-    const float penetrationDist = rSum - d;
-    const v3 ptA = objA.mLinPos + objA.mRadius * n;
-    const v3 ptB = objB.mLinPos - objB.mRadius * n;
-    const v3 pt = ( ptA + ptB ) / 2;
+    const v3 dx { objB.mLinPos - objA.mLinPos }; // vector from objA to objB
+    const float q { dx.Quadrance() }; // quadrance between circles
+    const float rSum { objA.mRadius + objB.mRadius };
+    const float d { Sqrt(q) };
+    const v3 n { dx / d };
+    const float penetrationDist { rSum - d };
+    const v3 ptA { objA.mLinPos + objA.mRadius * n };
+    const v3 ptB { objB.mLinPos - objB.mRadius * n };
+    const v3 pt { ( ptA + ptB ) / 2 };
     return {
-      .mCollided = true,
-      .mNormal = n,
-      .mPoint = pt,
-      .mDist = penetrationDist
+      .mCollided { true },
+      .mNormal { n },
+      .mPoint { pt },
+      .mDist { penetrationDist },
     };
   }
 
   static Sim5CollisionResult Sim5Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
   {
-    const v3 dx = objB.mLinPos - objA.mLinPos; // vector from objA to objB
-    const float q = dx.Quadrance(); // quadrance between circles
-    const float rSum = objA.mRadius + objB.mRadius;
+    const v3 dx { objB.mLinPos - objA.mLinPos }; // vector from objA to objB
+    const float q { dx.Quadrance() }; // quadrance between circles
+    const float rSum { objA.mRadius + objB.mRadius };
     if( q > rSum * rSum )
       return {};
     
@@ -72,12 +72,12 @@ namespace Tac
       return;
     objA.mLinPos -= 0.5f * collisionResult.mDist * collisionResult.mNormal;
     objB.mLinPos += 0.5f * collisionResult.mDist * collisionResult.mNormal;
-    const v3 relVel = objA.mLinVel - objB.mLinVel;
-    const float vDotn = Dot( relVel, collisionResult.mNormal );
+    const v3 relVel { objA.mLinVel - objB.mLinVel };
+    const float vDotn { Dot( relVel, collisionResult.mNormal ) };
     if( vDotn < 0 )
       return;
-    const float restitution = objA.mElasticity * objB.mElasticity;
-    const float j = vDotn * ( -restitution - 1 ) / ( 1 / objA.mMass + 1 / objB.mMass );
+    const float restitution { objA.mElasticity * objB.mElasticity };
+    const float j { vDotn * ( -restitution - 1 ) / ( 1 / objA.mMass + 1 / objB.mMass ) };
     objA.mLinVel += ( j / objA.mMass ) * collisionResult.mNormal;
     objB.mLinVel -= ( j / objB.mMass ) * collisionResult.mNormal;
   }
@@ -90,8 +90,8 @@ namespace Tac
 
   void ExamplePhys5SimObj::ComputeInertiaTensor()
   {
-    const m3 inertiaTensor = InertiaTensorSphere( mMass, mRadius );
-    const bool inverted = inertiaTensor.Invert( &mAngInvInertiaTensor );
+    const m3 inertiaTensor { InertiaTensorSphere( mMass, mRadius ) };
+    const bool inverted { inertiaTensor.Invert( &mAngInvInertiaTensor ) };
     TAC_ASSERT( inverted );
   }
 
@@ -103,8 +103,8 @@ namespace Tac
 
   void ExamplePhys5SimObj::Integrate()
   {
-    float dt = (float)TAC_DELTA_FRAME_SECONDS;
-    const v3 a = mLinForceAccum / mMass;
+    float dt { (float)TAC_DELTA_FRAME_SECONDS };
+    const v3 a { mLinForceAccum / mMass };
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;
   }
@@ -121,8 +121,8 @@ namespace Tac
 
   ExamplePhysSim5LinCollision::ExamplePhysSim5LinCollision()
   {
-    v3 pA = { 2, 0, 0 };
-    v3 pB = { -5, 0, 0 };
+    v3 pA  { 2, 0, 0 };
+    v3 pB  { -5, 0, 0 };
     mPlayer.mLinPos = pB;
     mPlayer.mElasticity = 0.75f;
     mPlayer.mColor = v3{ 37, 150, 190 } / 255.0f;
@@ -151,7 +151,7 @@ namespace Tac
     if (!ImGuiCollapsingHeader(obj.mName))
       return;
 
-    bool changed = false;
+    bool changed { false };
     changed |= ImGuiDragFloat("radius", &obj.mRadius);
     if (changed)
       obj.Recompute();
@@ -163,7 +163,7 @@ namespace Tac
     mObstacle.BeginFrame();
 
     ImGuiText( "Controls: WASD" );
-    const v3 keyboardForce = GetWorldspaceKeyboardDir() * 150.0f;
+    const v3 keyboardForce { GetWorldspaceKeyboardDir() * 150.0f };
 
     mPlayer.AddForce( keyboardForce );
 
@@ -175,9 +175,9 @@ namespace Tac
 
     if (sEnableGravity)
     {
-      float g = 10;
-      float r = Distance(mPlayer.mLinPos, mObstacle.mLinPos);
-      float f = g * mPlayer.mMass * mObstacle.mMass / (r * r);
+      float g { 10 };
+      float r { Distance(mPlayer.mLinPos, mObstacle.mLinPos) };
+      float f { g * mPlayer.mMass * mObstacle.mMass / (r * r) };
       grav = Normalize(mObstacle.mLinPos - mPlayer.mLinPos) * f;
       mPlayer.AddForce(grav);
       mObstacle.AddForce(-grav);

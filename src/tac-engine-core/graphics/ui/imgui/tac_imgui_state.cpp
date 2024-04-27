@@ -238,7 +238,7 @@ namespace Tac
     mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPadding;
     mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPadding;
 
-    const v2 drawPos = mViewportSpaceVisibleRegion.mMini - v2( 0, mScroll );
+    const v2 drawPos { mViewportSpaceVisibleRegion.mMini - v2( 0, mScroll ) };
     
     mViewportSpaceCurrCursor = drawPos;
     mViewportSpacePrevCursor = drawPos;
@@ -275,10 +275,12 @@ namespace Tac
 
   ImGuiRect    ImGuiWindow::Clip( const ImGuiRect& clipRect) const
   {
+    const v2 mini { Max( clipRect.mMini, mViewportSpaceVisibleRegion.mMini ) };
+    const v2 maxi { Min( clipRect.mMaxi, mViewportSpaceVisibleRegion.mMaxi ) };
     return ImGuiRect
     {
-      .mMini = Max( clipRect.mMini, mViewportSpaceVisibleRegion.mMini ),
-      .mMaxi = Min( clipRect.mMaxi, mViewportSpaceVisibleRegion.mMaxi ),
+      .mMini {mini},
+      .mMaxi {maxi},
     };
   }
 
@@ -318,7 +320,7 @@ namespace Tac
 
   bool         ImGuiWindow::IsHovered( const ImGuiRect& rectViewport )
   {
-    const WindowHandle mouseHoveredWindow = ImGuiGlobals::Instance.mMouseHoveredWindow;
+    const WindowHandle mouseHoveredWindow { ImGuiGlobals::Instance.mMouseHoveredWindow };
     if( !mouseHoveredWindow.IsValid() )
       return false;
 
@@ -346,27 +348,26 @@ namespace Tac
 
   v2           ImGuiWindow::GetMousePosViewport()
   {
-    ImGuiGlobals& globals = ImGuiGlobals::Instance;
-    SimWindowApi* windowApi = ImGuiGlobals::Instance.mSimWindowApi;
-    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
-
-    const v2 mouseScreenspace = keyboardApi->GetMousePosScreenspace();
-    const v2 windowScreenspace = windowApi->GetPos( mDesktopWindow->mWindowHandle );
+    ImGuiGlobals& globals { ImGuiGlobals::Instance };
+    SimWindowApi* windowApi { ImGuiGlobals::Instance.mSimWindowApi };
+    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
+    const v2 mouseScreenspace { keyboardApi->GetMousePosScreenspace() };
+    const v2 windowScreenspace { windowApi->GetPos( mDesktopWindow->mWindowHandle ) };
     return mouseScreenspace - windowScreenspace;
   }
 
   void*        ImGuiWindow::GetWindowResource( ImGuiIndex index )
   {
-    ImGuiId imGuiId = GetID();
+    ImGuiId imGuiId { GetID() };
     for( ImGuiWindowResource& resource : mResources )
       if( resource.mImGuiId == imGuiId && resource.mIndex == index )
         return resource.mData.data();
 
-    RegisteredWindowResource* pRegistered = WindowResourceRegistry::GetInstance()->FindResource( index );
+    RegisteredWindowResource* pRegistered { WindowResourceRegistry::GetInstance()->FindResource( index ) };
     TAC_ASSERT( pRegistered );
 
     mResources.resize( mResources.size() + 1 );
-    ImGuiWindowResource& resource = mResources.back();
+    ImGuiWindowResource& resource { mResources.back() };
     resource.mData = pRegistered->mInitialData;
     resource.mImGuiId = imGuiId;
     resource.mIndex = index;
@@ -401,26 +402,26 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     if( !gDrawInterface->mVB.IsValid() || gDrawInterface->mVBCount < mVertexCount )
     {
-      const int byteCount = mVertexCount * sizeof( UI2DVertex );
+      const int byteCount { mVertexCount * (int)sizeof( UI2DVertex ) };
       const Render::CreateBufferParams params
       {
-        .mByteCount = byteCount,
-        .mOptionalName = "imgui_vtx_buf",
-        .mStackFrame = TAC_STACK_FRAME,
+        .mByteCount    { byteCount },
+        .mOptionalName { "imgui_vtx_buf" },
+        .mStackFrame   { TAC_STACK_FRAME },
       };
       gDrawInterface->mVB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
       gDrawInterface->mVBCount = mVertexCount;
     }
 
-    int byteOffset = 0;
+    int byteOffset { 0 };
     for( SmartPtr< UI2DDrawData>& drawData : mDrawData )
     {
-      const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
+      const int srcByteCount { drawData->mVtxs.size() * (int)sizeof( UI2DVertex ) };
       const Render::UpdateBufferParams updateParams
       {
-        .mSrcBytes = drawData->mVtxs.data(),
-        .mSrcByteCount = srcByteCount,
-        .mDstByteOffset = byteOffset,
+        .mSrcBytes      { drawData->mVtxs.data() },
+        .mSrcByteCount  { srcByteCount },
+        .mDstByteOffset { byteOffset },
       };
       renderDevice->UpdateBuffer( gDrawInterface->mVB, updateParams );
       byteOffset += srcByteCount;
@@ -433,26 +434,26 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     if( !gDrawInterface->mIB.IsValid() || gDrawInterface->mIBCount < mIndexCount )
     {
-      const int byteCount = mIndexCount * sizeof( UI2DIndex );
+      const int byteCount { mIndexCount * (int)sizeof( UI2DIndex ) };
       const Render::CreateBufferParams params
       {
-        .mByteCount = byteCount,
-        .mOptionalName = "imgui_idx_buf",
-        .mStackFrame = TAC_STACK_FRAME,
+        .mByteCount    { byteCount },
+        .mOptionalName { "imgui_idx_buf" },
+        .mStackFrame   { TAC_STACK_FRAME },
       };
       gDrawInterface->mIB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
       gDrawInterface->mIBCount = mIndexCount;
     }
 
-    int byteOffset = 0;
+    int byteOffset { 0 };
     for( SmartPtr< UI2DDrawData >& drawData : mDrawData )
     {
-      const int srcByteCount = drawData->mVtxs.size() * sizeof( UI2DVertex );
+      const int srcByteCount { drawData->mVtxs.size() * (int)sizeof( UI2DVertex ) };
       const Render::UpdateBufferParams updateParams
       {
-        .mSrcBytes = drawData->mIdxs.data(),
-        .mSrcByteCount = srcByteCount,
-        .mDstByteOffset = byteOffset,
+        .mSrcBytes      { drawData->mIdxs.data() },
+        .mSrcByteCount  { srcByteCount },
+        .mDstByteOffset { byteOffset },
       };
 
       renderDevice->UpdateBuffer( gDrawInterface->mIB, updateParams );
@@ -485,10 +486,10 @@ namespace Tac
 
     return ImGuiSimWindowDraws
     {
-      .mHandle = handle,
-      .mDrawData = drawData,
-      .mVertexCount = vertexCount,
-      .mIndexCount = indexCount,
+      .mHandle      { handle },
+      .mDrawData    { drawData },
+      .mVertexCount { vertexCount },
+      .mIndexCount  { indexCount },
     };
   }
 
@@ -500,15 +501,15 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     SysWindowApi* windowApi = sysDrawParams->mWindowApi;
 
-    const WindowHandle hDesktopWindow = sysDraws->mWindowHandle;
+    const WindowHandle hDesktopWindow { sysDraws->mWindowHandle };
     if( !windowApi->IsShown( hDesktopWindow ) )
       return;
 
-    const int n = ImGuiGlobals::Instance.mMaxGpuFrameCount;
+    const int n { ImGuiGlobals::Instance.mMaxGpuFrameCount };
     if( sysDraws->mRenderBuffers.size() < n )
       sysDraws->mRenderBuffers.resize( n );
 
-    ImGuiRenderBuffers& renderBuffers = sysDraws->mRenderBuffers[ sysDraws->mFrameIndex ];
+    ImGuiRenderBuffers& renderBuffers { sysDraws->mRenderBuffers[ sysDraws->mFrameIndex ] };
     ( ++sysDraws->mFrameIndex ) %= n;
 
     // combine draw data
@@ -516,57 +517,61 @@ namespace Tac
     simDraws->CopyIndexes( &renderBuffers, errors );
 
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
-    void* context = nullptr;
+    void* context { nullptr };
 
     // TODO obviously move this to init
     const Render::ProgramParams programParams
     {
-      .mFileStem = "DX12HelloFrameBuf", // test
+      .mFileStem { "DX12HelloFrameBuf" }, // test
       //.mFileStem = "2D",
     };
-    Render::ProgramHandle program = TAC_CALL(
-      renderDevice->CreateProgram( programParams, errors ) );
+    TAC_CALL( Render::ProgramHandle program{
+      renderDevice->CreateProgram( programParams, errors ) } );
 
 #if 1
-    Render::SwapChainHandle fb = windowApi->GetSwapChainHandle( hDesktopWindow );
+    Render::SwapChainHandle fb { windowApi->GetSwapChainHandle( hDesktopWindow ) };
 #endif
-    const Render::SwapChainParams swapChainParams = renderDevice->GetSwapChainParams( fb );
-    const Render::TexFmt fbFmt = swapChainParams.mColorFmt;
+    const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
+    const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
 
     const Render::PipelineParams pipelineParams
     {
-      .mProgram = program,
+      .mProgram { program },
       .mRTVColorFmts{ fbFmt },
     };
-    Render::PipelineHandle pipeline = TAC_CALL(
-      renderDevice->CreatePipeline( pipelineParams, errors ) );
+    TAC_CALL( Render::PipelineHandle pipeline{
+      renderDevice->CreatePipeline( pipelineParams, errors ) } );
 
-    const String renderGroupStr = String()
-      + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")";
+    const String renderGroupStr{ String()
+      + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
 
-    const v2i windowSize = windowApi->GetSize( hDesktopWindow );
+    const v2i windowSize { windowApi->GetSize( hDesktopWindow ) };
 
 
-    const Timestamp elapsedSeconds = sysDrawParams->mTimestamp;
+    const Timestamp elapsedSeconds { sysDrawParams->mTimestamp };
+
+    const m4 view { m4::Identity() };
+    const m4 proj { OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
+    const float secModTau{ ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ) };
     const Render::DefaultCBufferPerFrame perFrameData
     {
-      .mView = m4::Identity(),
-      .mProjection = OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ),
-      .mSecModTau = ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ),
+      .mView       { view },
+      .mProjection { proj },
+      .mSecModTau  { secModTau },
 #if TAC_FONT_ENABLED()
       .mSDFOnEdge = FontApi::GetSDFOnEdgeValue(),
       .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
 #endif
     };
 
-    Render::IContext::Scope renderContext = TAC_CALL( renderDevice->CreateRenderContext( errors ) );
+    TAC_CALL( Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) } );
 
-    const Render::TextureHandle swapChainColor = renderDevice->GetSwapChainCurrentColor( fb );
-    const Render::TextureHandle swapChainDepth = renderDevice->GetSwapChainDepth( fb );
+    const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
+    const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };
     const Render::Targets renderTargets
     {
-      .mColors = { swapChainColor },
-      .mDepth = swapChainDepth,
+      .mColors  { swapChainColor },
+      .mDepth { swapChainDepth },
     };
 
     renderContext->SetRenderTargets( renderTargets );
@@ -590,8 +595,8 @@ namespace Tac
 #if 0
     //Render::DebugGroup::Iterator debugGroupIterator = mDebugGroupStack.IterateBegin();
 
-    const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
-    const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
+    const Render::BufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
+    const int perFrameSize { sizeof( Render::DefaultCBufferPerFrame ) };
     Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
 
     for( UI2DDrawData* drawData : frameData.mDrawData )
@@ -607,8 +612,8 @@ namespace Tac
         //  gUI2DCommonData.m1x1White;
 
 
-        const Render::BufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
-        const int perObjSize = sizeof( Render::DefaultCBufferPerObject );
+        const Render::BufferHandle hPerObj { Render::DefaultCBufferPerObject::Handle };
+        const int perObjSize { sizeof( Render::DefaultCBufferPerObject ) };
         //Render::UpdateConstantBuffer( hPerObj,
         //                              &uidrawCall.mUniformSource,
         //                              perObjSize,

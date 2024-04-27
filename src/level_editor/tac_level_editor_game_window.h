@@ -60,7 +60,7 @@ namespace Tac
 
     void                          SetStatusMessage( const StringView&, const TimestampDifference& );
     DesktopWindowHandle           mDesktopWindowHandle;
-    Soul*                         mSoul = nullptr;
+    Soul*                         mSoul {};
     Render::ShaderHandle          m3DShader;
     Render::VertexFormatHandle    m3DVertexFormat;
     Render::DepthStateHandle      mDepthState;
@@ -69,15 +69,15 @@ namespace Tac
     Render::RasterizerStateHandle mRasterizerState;
     Render::SamplerStateHandle    mSamplerState;
     Render::VertexDeclarations    m3DvertexFormatDecls;
-    Debug3DDrawData*              mDebug3DDrawData = nullptr;
-    Mesh*                         mArrow = nullptr;
-    Mesh*                         mCenteredUnitCube = nullptr;
-    v3                            mViewSpaceUnitMouseDir = {};
-    v3                            mWorldSpaceMouseDir = {};
-    float                         mArrowLen = 0;
+    Debug3DDrawData*              mDebug3DDrawData {};
+    Mesh*                         mArrow {};
+    Mesh*                         mCenteredUnitCube {};
+    v3                            mViewSpaceUnitMouseDir {};
+    v3                            mWorldSpaceMouseDir {};
+    float                         mArrowLen {};
     String                        mStatusMessage;
     Timestamp                     mStatusMessageEndTime;
-    bool                          mCloseRequested = false;
+    bool                          mCloseRequested {};
   };
 
 

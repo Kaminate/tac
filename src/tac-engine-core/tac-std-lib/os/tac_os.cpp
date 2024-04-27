@@ -9,9 +9,9 @@ import std; // <cstdio> ( printf ), <thread>, <iostream>
 namespace Tac::OS
 {
 
-    static bool mStopRunRequested = false;
+    static bool mStopRunRequested { false };
 
-#define TAC_INIT_PTR( ptr ) decltype( ptr ) ptr = nullptr
+#define TAC_INIT_PTR( ptr ) decltype( ptr ) ptr { nullptr }
 
     TAC_INIT_PTR( OSDebugBreak );
     TAC_INIT_PTR( OSDebugPopupBox );
@@ -30,9 +30,9 @@ namespace Tac::OS
 
     void        OSDebugAssert( const StringView& msg, const StackFrame& frame )
     {
-      const String str = String()
+      const String str{ String()
         + "ASSERT FAILED( " + msg + " ) "
-        + "in " + frame.mFile + ":" + ToString( frame.mLine ) + " " + frame.mFunction;
+        + "in " + frame.mFile + ":" + ToString( frame.mLine ) + " " + frame.mFunction };
 
       OSDebugPrintLine( str );
       LogApi::LogMessage( str );

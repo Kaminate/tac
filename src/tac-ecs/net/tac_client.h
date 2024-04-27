@@ -30,9 +30,9 @@ namespace Tac
   struct ClientData
   {
     LagTest                 mSavedNetworkMessages;
-    World*                  mWorld = nullptr;
-    World*                  mEmptyWorld = nullptr;
-    PlayerUUID              mPlayerUUID = NullPlayerUUID;
+    World*                  mWorld { nullptr };
+    World*                  mEmptyWorld { nullptr };
+    PlayerUUID              mPlayerUUID { NullPlayerUUID };
 
     // < Prediction >
     static const int        sMaxSavedInputCount { 60 };

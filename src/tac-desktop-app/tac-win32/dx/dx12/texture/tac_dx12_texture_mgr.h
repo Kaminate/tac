@@ -19,7 +19,7 @@ namespace Tac::Render
     };
     void          Init( Params );
     void          CreateTexture( TextureHandle, CreateTextureParams, Errors& );
-    void          CreateRenderTargetTexture( TextureHandle, PCom<ID3D12Resource>, Errors& );
+    void          CreateRenderTargetColor( TextureHandle, PCom<ID3D12Resource>, Errors& );
     void          UpdateTexture( TextureHandle, UpdateTextureParams );
     void          DestroyTexture( TextureHandle );
     DX12Texture*  FindTexture( TextureHandle );

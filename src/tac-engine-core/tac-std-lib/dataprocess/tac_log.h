@@ -33,15 +33,15 @@ namespace Tac
     void      DebugImgui();
     String    VisualizeLog();
 
-    char*     mBytes = nullptr;
-    int       mBeginIndex = 0;
-    int       mByteCount = 0;
-    int       mBytesUsed = 0;
-    bool      mIsVisible = false;
-    int       mStringCount = 0;
-    String    mText = "";
-    int       mNewSize = 100;
-    bool      mScrollToBottom = false;
+    char*     mBytes          {};
+    int       mBeginIndex     {};
+    int       mByteCount      {};
+    int       mBytesUsed      {};
+    bool      mIsVisible      {};
+    int       mStringCount    {};
+    String    mText           { "" };
+    int       mNewSize        { 100 };
+    bool      mScrollToBottom {};
   };
 #endif
 

@@ -28,10 +28,10 @@ namespace Tac
     void                    Show( Errors& );
     Filesystem::Path        GetResult( Errors& );
 
-    IFileDialog*            mDialog = nullptr;
+    IFileDialog*            mDialog { nullptr };
     PCom< IFileOpenDialog > mOpenDialog;
     PCom< IFileSaveDialog > mSaveDialog;
-    bool                    mCancelled = false;
+    bool                    mCancelled { false };
     Type                    mType;
   };
 

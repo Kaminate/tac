@@ -42,7 +42,7 @@ namespace Tac::Render
     ShaderPreprocessorFunction( ShaderPreprocessFn );
     Optional<String> Preprocess( const StringView , Errors&  ) override;
   private:
-    ShaderPreprocessFn mFn = nullptr;
+    ShaderPreprocessFn mFn { nullptr };
   };
 
   String           DX11PreprocessShader( const AssetPathStringView& assetPath, Errors& );

@@ -24,19 +24,19 @@ namespace Tac
 
     // ...
     SelectedEntities    mSelectedEntities;
-    World*              mWorld = nullptr;
+    World*              mWorld                   {};
 
     // Gizmos
-    bool                mSelectedHitOffsetExists = false;
-    v3                  mSelectedHitOffset = {};
-    bool                mSelectedGizmo = false;
-    v3                  mTranslationGizmoDir = {};
-    float               mTranslationGizmoOffset = 0;
+    bool                mSelectedHitOffsetExists {};
+    v3                  mSelectedHitOffset       {};
+    bool                mSelectedGizmo           {};
+    v3                  mTranslationGizmoDir     {};
+    float               mTranslationGizmoOffset  {};
 
     // ...
-    Camera*             mEditorCamera{};
+    Camera*             mEditorCamera            {};
 
-    bool                mUpdateAssetView = false;
+    bool                mUpdateAssetView         {};
     EntityUUIDCounter   mEntityUUIDCounter;
     LevelEditorWindowManager mWindowManager;
   };

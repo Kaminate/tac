@@ -447,15 +447,15 @@ namespace Tac
 
   static void UIFilesImages( const Filesystem::Paths& paths )
   {
-    int shownImageCount = 0;
-    bool goSameLine = false;
+    int shownImageCount { 0 };
+    bool goSameLine { false };
     for( const Filesystem::Path& path : paths )
     {
       if( goSameLine )
         ImGuiSameLine();
       goSameLine = false;
 
-      const String pathUTF8 = path.u8string();
+      const String pathUTF8 { path.u8string() };
 
       ImGuiBeginChild( pathUTF8, { 200, 100 } );
       ImGuiText(  pathUTF8 );
@@ -498,7 +498,7 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowMoveResize();
-    const bool open = ImGuiBegin( "Asset View" );
+    const bool open { ImGuiBegin( "Asset View" ) };
     if( open )
     {
       ImGuiText( "--- Asset View ---" );

@@ -17,7 +17,7 @@ namespace Tac
     void                          Update( Errors& );
     void                          ImGui();
     DesktopWindowHandle           mDesktopWindowHandle;
-    bool                          mCloseRequested = false;
+    bool                          mCloseRequested { false };
   };
 
   const char* const gProfileWindowName = "ProfileWindow";

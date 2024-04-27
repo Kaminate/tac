@@ -51,13 +51,13 @@ namespace Tac
     Render::BufferHandle   mVtxBuf;
     Render::ProgramHandle  mShader;
     Render::PipelineHandle mPipeline;
-    Render::TexFmt         mRTVFormat = Render::TexFmt::kRGBA16F;
+    Render::TexFmt         mColorFormat;
   };
 
   void HelloTriangle::Init( InitParams initParams, Errors& errors )
   {
     SysWindowApi* windowApi{ initParams.mWindowApi };
-    windowApi->SetSwapChainColorFormat( mRTVFormat );
+    mColorFormat = windowApi->GetSwapChainColorFormat();
 
     InitWindow( initParams, errors );
     InitBuffer( errors );
@@ -133,7 +133,7 @@ namespace Tac
       // BlendType              mBlend;
       // DepthStencilType       mDepthStencilType;
       // SwapChainHandle               mRenderTarget;
-      .mRTVColorFmts { mRTVFormat },
+      .mRTVColorFmts { mColorFormat },
       .mDSVDepthFmt  { Render::TexFmt::kUnknown },
     };
     mPipeline = renderDevice->CreatePipeline( params, errors );
@@ -263,7 +263,8 @@ namespace Tac
 
   void    HelloTriangle::Render( RenderParams sysRenderParams, Errors& errors )
   {
-    SysWindowApi* windowApi { sysRenderParams.mWindowApi };
+    const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
+    const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
     Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( sWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
@@ -271,37 +272,21 @@ namespace Tac
     TAC_CALL( Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) } );
     const Render::Targets renderTargets
     {
-      .mColors{swapChainColor}
+      .mColors{ swapChainColor }
     };
     renderContext->SetRenderTargets( renderTargets );
-    TAC_CALL( renderContext->Execute(errors) );
+
+    renderContext->SetPipeline( mPipeline );
+    renderContext->SetViewport( windowSize );
+    renderContext->SetScissor( windowSize );
+
+    TAC_CALL( renderContext->Execute( errors ) );
 
 
+    ID3D12GraphicsCommandList* m_commandList;
+    m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
 #if 0
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
-      return;
 
-    // You can pass nullptr to unbind the current root signature.
-    //
-    // Since you can share root signatures between pipelines you only need to set the root sig
-    // when that should change
-    m_commandList->SetGraphicsRootSignature( m_rootSignature.Get() );
-
-    // sets the viewport of the pipeline state's rasterizer state?
-    m_commandList->RSSetViewports( (UINT)m_viewports.size(), m_viewports.data() );
-
-    // sets the scissor rect of the pipeline state's rasterizer state?
-    m_commandList->RSSetScissorRects( (UINT)m_scissorRects.size(), m_scissorRects.data() );
-
-    // Indicate that the back buffer will be used as a render target.
-    TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
-
-    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
-
-    m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
-                                       rtCpuHDescs.data(),
-                                       false,
-                                       nullptr );
 
     const v4 clearColor = v4{ 91, 128, 193, 255.0f } / 255.0f;
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );

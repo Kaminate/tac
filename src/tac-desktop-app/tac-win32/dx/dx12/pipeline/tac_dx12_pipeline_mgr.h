@@ -11,7 +11,7 @@ namespace Tac::Render
     void          Init( ID3D12Device*, DX12ProgramMgr* );
     void          CreatePipeline( PipelineHandle, PipelineParams, Errors& );
     void          DestroyPipeline( PipelineHandle );
-    DX12Pipeline* FindPipeline( ProgramHandle );
+    DX12Pipeline* FindPipeline( PipelineHandle );
 
   private:
     DX12Pipeline    mPipelines[ 100 ];

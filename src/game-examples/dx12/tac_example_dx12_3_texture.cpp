@@ -618,12 +618,12 @@ namespace Tac
     };
 
     // must be null for resources of dimension buffer
-    const D3D12_CLEAR_VALUE* pOptimizedClearValue = nullptr;
+    const D3D12_CLEAR_VALUE* pOptimizedClearValue { nullptr };
 
     // D3D12_RESOURCE_STATE_GENERIC_READ
     //   An OR'd combination of other read-state bits.
     //   The required starting state for an upload heap
-    const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
+    const D3D12_RESOURCE_STATES uploadHeapResourceStates { D3D12_RESOURCE_STATE_GENERIC_READ };
     TAC_CALL( m_device->CreateCommittedResource(
               &uploadHeapProps,
               D3D12_HEAP_FLAG_NONE,
@@ -633,7 +633,7 @@ namespace Tac
               m_vertexBufferUploadHeap.iid(),
               m_vertexBufferUploadHeap.ppv() ) );
 
-    const D3D12_HEAP_PROPERTIES defaultHeapProps { .Type = D3D12_HEAP_TYPE_DEFAULT, };
+    const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type { D3D12_HEAP_TYPE_DEFAULT }, };
 
     // we want to copy into here from the upload buffer
     D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COPY_DEST;

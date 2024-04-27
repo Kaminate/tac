@@ -42,8 +42,8 @@ namespace Tac
     const Codepoint* end() const;
     int              size() const;
     bool             empty() const;
-    const Codepoint* mCodepoints = nullptr;
-    int              mCodepointCount = 0;
+    const Codepoint* mCodepoints     {};
+    int              mCodepointCount {};
   };
 
   using CodepointString = Vector< Codepoint >;

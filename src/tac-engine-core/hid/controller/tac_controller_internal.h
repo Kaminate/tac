@@ -27,13 +27,13 @@ namespace Tac::Controller
     void                   DebugImgui();
 
     // x = [ 0, 1 ], y = [ 0, 1 ]
-    v2                      mLeftStick = {};
-    v2                      mRightStick = {};
+    v2                      mLeftStick    {};
+    v2                      mRightStick   {};
 
     // [ 0, 1 ]
-    float                   mLeftTrigger = {};
-    float                   mRightTrigger = {};
-    ControllerBitfield      mButtons = {};
+    float                   mLeftTrigger  {};
+    float                   mRightTrigger {};
+    ControllerBitfield      mButtons      {};
   };
 
   struct Controller
@@ -47,11 +47,11 @@ namespace Tac::Controller
     void                    DebugImgui();
     virtual void            DebugImguiInner();
     ControllerIndex         FindControllerIndex();
-    ControllerState         mControllerStatePrev = {};
-    ControllerState         mControllerStateCurr = {};
+    ControllerState         mControllerStatePrev  {};
+    ControllerState         mControllerStateCurr  {};
     bool                    mDebugging;
     String                  mName;
-    ControllerInput*        mInput = nullptr;
+    ControllerInput*        mInput { nullptr };
   };
 
 
@@ -68,10 +68,10 @@ namespace Tac::Controller
     ControllerIndex         GetConnectedControllerCount();
     ControllerIndex         AddController( Controller* );
     Controller*             GetController( ControllerIndex );
-    Controller*             mControllers[ TAC_CONTROLLER_COUNT_MAX ] = {};
+    Controller*             mControllers[ TAC_CONTROLLER_COUNT_MAX ]  {};
     bool                    mDebugging;
-    bool                    mForceIndexOverride = false;
-    int                     mIndexOverride = 0;
+    bool                    mForceIndexOverride {};
+    int                     mIndexOverride {};
   };
 
 } // namespace Tac::Controller

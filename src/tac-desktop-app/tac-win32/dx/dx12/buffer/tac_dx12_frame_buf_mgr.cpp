@@ -29,13 +29,7 @@ namespace Tac::Render
 
     //ID3D12Device* device { mDevice };
 
-    DXGI_FORMAT fmt { DXGI_FORMAT_UNKNOWN };
-    switch( params.mColorFmt )
-    {
-    case kD24S8: fmt = DXGI_FORMAT_D24_UNORM_S8_UINT; break;
-    case kRGBA16F: fmt = DXGI_FORMAT_R16G16B16A16_FLOAT; break;
-    default: TAC_ASSERT_INVALID_CASE( params.mColorFmt ); break;
-    };
+    const DXGI_FORMAT fmt{ TexFmtToDxgiFormat( params.mColorFmt ) };
     
     const SwapChainCreateInfo scInfo
     {
@@ -48,7 +42,7 @@ namespace Tac::Render
     };
     TAC_ASSERT( scInfo.mDevice );
 
-    PCom< IDXGISwapChain4 > swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    TAC_CALL( PCom< IDXGISwapChain4 > swapChain{ DXGICreateSwapChain( scInfo, errors ) } );
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
     TAC_CALL( swapChain->GetDesc1( &swapChainDesc ) );
 
@@ -68,7 +62,7 @@ namespace Tac::Render
       DX12SetName( renderTarget, "Render Target " + Tac::ToString( iHandle ) );
 
       const TextureHandle textureHandle { AllocTextureHandle() };
-      TAC_CALL( mTextureMgr->CreateRenderTargetTexture( textureHandle, renderTarget, errors ) );
+      TAC_CALL( mTextureMgr->CreateRenderTargetColor( textureHandle, renderTarget, errors ) );
 
       swapChainImages.push_back( textureHandle );
     }

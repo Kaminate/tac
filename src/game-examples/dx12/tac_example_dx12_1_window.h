@@ -45,8 +45,8 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    static const int                   bufferCount = 2;
-    bool                               m_dbgLayerEnabled = false;
+    static const int                   bufferCount { 2 };
+    bool                               m_dbgLayerEnabled { false };
 
     DesktopWindowHandle                hDesktopWindow;
 

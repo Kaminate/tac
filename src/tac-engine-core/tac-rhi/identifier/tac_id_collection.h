@@ -22,10 +22,10 @@ namespace Tac
   private:
     void   reserve( int );
 
-    int    mCapacity = 0; // Capacity of both the dense and sparse arrays
-    int    mSize = 0; // Number of allocated IDs
-    int*   mDense = nullptr;
-    int*   mSparse = nullptr;
+    int    mCapacity {}; // Capacity of both the dense and sparse arrays
+    int    mSize     {}; // Number of allocated IDs
+    int*   mDense    {};
+    int*   mSparse   {};
   };
 
   void UnitTestIdCollection();

@@ -2,6 +2,8 @@
 
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_optional.h"
+#include "tac-std-lib/math/tac_vector4.h"
 #include "tac_dx12_gpu_upload_allocator.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_backend.h"
@@ -17,6 +19,8 @@ namespace Tac::Render
   struct DX12CommandQueue;
   struct DX12SwapChainMgr;
   struct DX12TextureMgr;
+  //struct DX12Device;
+  struct DX12Renderer;
 
   // A context has a commandlist, even if the context is recycled, the commandlist stays with it
   // forever.
@@ -48,28 +52,45 @@ namespace Tac::Render
     void                       SetViewport( v2i ) override;
     void                       SetScissor( v2i ) override;
     void                       SetRenderTargets( Targets ) override;
+    void                       SetPipeline( PipelineHandle ) override;
+    void                       ClearColor( TextureHandle, v4 ) override;
+    void                       ClearDepth( TextureHandle, float ) override;
 
     void                       DebugEventBegin( StringView ) override;
     void                       DebugEventEnd() override;
     void                       DebugMarker( StringView ) override;
     void                       MoveFrom( DX12Context&& ) noexcept;
 
-    void Retire() override;
+    void                       Retire() override;
+
+    // begin state
+
+    struct State
+    {
+      FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > mRenderTargetColors;
+      Optional< D3D12_CPU_DESCRIPTOR_HANDLE >        mRenderTargetDepth; 
+      bool                              mSynchronous          {};
+      bool                              mExecuted             {};
+    };
+
+    State mState{};
+
+
+    // end state
 
     PCom< ID3D12GraphicsCommandList > mCommandList          {};
     PCom< ID3D12CommandAllocator >    mCommandAllocator     {};
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
     DX12UploadAllocator               mGPUUploadAllocator   {};
-    bool                              mSynchronous          {};
-    bool                              mExecuted             {};
 
     // singletons
     DX12CommandAllocatorPool*         mCommandAllocatorPool {};
     DX12ContextManager*               mContextManager       {};
     DX12CommandQueue*                 mCommandQueue         {};
     DX12SwapChainMgr*                 mFrameBufferMgr       {};
-    DX12TextureMgr*                   mTextureMgr           {};
+    //DX12TextureMgr*                   mTextureMgr           {};
+    DX12Renderer*                     mRenderer             {};
     int                               mEventCount           {};
   };
 
@@ -80,7 +101,9 @@ namespace Tac::Render
                DX12CommandQueue*,
                DX12UploadPageMgr*,
                DX12SwapChainMgr*,
-               ID3D12Device* );
+               ID3D12Device*,
+               DX12Renderer*
+    );
 
     DX12Context*                      GetContext( Errors& );
     void                              RetireContext( DX12Context* );
@@ -90,12 +113,13 @@ namespace Tac::Render
     Vector< DX12Context* >         mAvailableContexts;
 
     // singletons
-    DX12CommandAllocatorPool* mCommandAllocatorPool = nullptr;
-    DX12CommandQueue*         mCommandQueue = nullptr;
-    DX12UploadPageMgr*        mUploadPageManager = nullptr;
-    DX12SwapChainMgr*       mFrameBufferMgr{};
+    DX12CommandAllocatorPool* mCommandAllocatorPool {};
+    DX12CommandQueue*         mCommandQueue         {};
+    DX12UploadPageMgr*        mUploadPageManager    {};
+    DX12SwapChainMgr*         mFrameBufferMgr       {};
 
     PCom< ID3D12Device4 >     mDevice;
+    DX12Renderer*             mRenderer{};
 
   };
 }

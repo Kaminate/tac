@@ -23,7 +23,7 @@
 
 namespace Tac
 {
-  CreationMainWindow* CreationMainWindow::Instance = nullptr;
+  CreationMainWindow* CreationMainWindow::Instance { nullptr };
 
   CreationMainWindow::CreationMainWindow()
   {

@@ -75,7 +75,7 @@ namespace Tac::Render
   }
 
 
-  static void PrintCompilerInfo( IDxcPdbUtils* pdbUtils, IDxcBlob* pPDB)
+  static void PrintCompilerInfo( IDxcPdbUtils* pdbUtils, IDxcBlob* pPDB )
   {
     static bool printed;
     if( printed )
@@ -83,7 +83,7 @@ namespace Tac::Render
 
     printed = true;
 
-    if constexpr ( not IsDebugMode )
+    if constexpr( not IsDebugMode )
       return;
 
 
@@ -101,15 +101,15 @@ namespace Tac::Render
     UINT32 flags{};
     UINT32 major{};
     UINT32 minor{};
-    if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
+    if( PCom<IDxcVersionInfo2> verInfo2{ verInfo.QueryInterface<IDxcVersionInfo2>() } )
     {
       verInfo2->GetCommitInfo( &commitCount, &commitHash );
       verInfo2->GetFlags( &flags );
       verInfo2->GetVersion( &major, &minor );
     }
 
-    char* ver = nullptr;
-    if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
+    char* ver { nullptr };
+    if( PCom<IDxcVersionInfo3> verInfo3{ verInfo.QueryInterface<IDxcVersionInfo3>() } )
     {
       verInfo3->GetCustomVersionString( &ver );
     }
@@ -158,9 +158,9 @@ namespace Tac::Render
 
     const DxcBuffer reflBuf
     {
-        .Ptr = reflBlob->GetBufferPointer(),
-        .Size = reflBlob->GetBufferSize(),
-        .Encoding = 0,
+        .Ptr { reflBlob->GetBufferPointer() },
+        .Size { reflBlob->GetBufferSize() },
+        .Encoding { 0 },
     };
 
     PCom< ID3D12ShaderReflection > shaderReflection{};

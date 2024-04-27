@@ -18,7 +18,8 @@ import std; // mutex
 
 namespace Tac::WindowBackend
 {
-  static Render::TexFmt sTexFmt { Render::TexFmt::kRGBA16F };
+  static Render::TexFmt sSwapChainColorFormat = Render::TexFmt::kRGBA16F;
+  static Render::TexFmt sSwapChainDepthFormat = Render::TexFmt::kD24S8;
 
   bool SysApi::mIsRendererEnabled { true };
   struct WindowState
@@ -134,7 +135,8 @@ namespace Tac::WindowBackend
       {
         .mNWH      { nwh },
         .mSize     { size },
-        .mColorFmt { sTexFmt },
+        .mColorFmt { sSwapChainColorFormat },
+        .mDepthFmt { sSwapChainDepthFormat },
       };
       sFramebuffers[ i ] = renderDevice->CreateSwapChain( params, errors );
     }
@@ -246,6 +248,8 @@ namespace Tac
 {
   using namespace WindowBackend;
 
+  // -----------------------------------------------------------------------------------------------
+
   WindowHandle SimWindowApi::CreateWindow( WindowCreateParams params ) const
   {
     TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
@@ -342,8 +346,8 @@ namespace Tac
     FreeWindowHandle( h );
   }
 
-  void             SysWindowApi::SetSwapChainColorFormat( Render::TexFmt fmt ) { sTexFmt = fmt; }
-  Render::TexFmt   SysWindowApi::GetSwapChainColorFormat()                     { return sTexFmt; }
+  Render::TexFmt&  SysWindowApi::GetSwapChainColorFormat() const { return sSwapChainColorFormat; }
+  Render::TexFmt&  SysWindowApi::GetSwapChainDepthFormat() const { return sSwapChainDepthFormat; }
 
 #if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   Render::SwapChainHandle SysWindowApi::GetSwapChainHandle( WindowHandle h ) const

@@ -202,62 +202,62 @@ namespace Tac
   {
 #if TAC_TEMPORARILY_DISABLED()
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const u8 data[]  { 255, 255, 255, 255 };
+    const u8 data[] { 255, 255, 255, 255 };
     const Render::CreateTextureParams textureData =
     {
       .mImage
       {
-        .mWidth = 1,
-        .mHeight = 1,
+        .mWidth { 1 },
+        .mHeight { 1 },
         .mFormat
         {
-          .mElementCount = 4,
-          .mPerElementByteCount = 1,
+          .mElementCount { 4 },
+          .mPerElementByteCount { 1 },
           .mPerElementDataType = Render::GraphicsType::unorm,
         },
       },
-      .mPitch = 1,
-      .mImageBytes = data,
-      .mBinding = Render::Binding::ShaderResource,
+      .mPitch { 1 },
+      .mImageBytes { data },
+      .mBinding { Render::Binding::ShaderResource },
     };
     m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m1x1White, "1x1white" );
 
     Render::ProgramParams programParams2D
     {
-      .mFileStem = "2D",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "2D" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     mShader = renderDevice->CreateProgram( programParams2D, errors );
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams2Dtext
     {
-      .mFileStem = "2Dtext",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "2Dtext" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     m2DTextShader = renderDevice->CreateProgram( programParams2Dtext, errors );
 
     const Render::VertexDeclaration posData
     {
-      .mAttribute = Render::Attribute::Position,
+      .mAttribute { Render::Attribute::Position },
       .mTextureFormat = Render::Format
       {
-        .mElementCount = 2,
+        .mElementCount { 2 },
         .mPerElementByteCount = sizeof( float ),
-        .mPerElementDataType = Render::GraphicsType::real
+        .mPerElementDataType { Render::GraphicsType::rea }l
       },
       .mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mPosition ),
     };
 
     const Render::VertexDeclaration uvData
     {
-      .mAttribute = Render::Attribute::Texcoord,
+      .mAttribute { Render::Attribute::Texcoord },
       .mTextureFormat
       { 
-        .mElementCount = 2,
+        .mElementCount { 2 },
         .mPerElementByteCount = sizeof( float ),
-        .mPerElementDataType = Render::GraphicsType::real
+        .mPerElementDataType { Render::GraphicsType::rea }l
       },
       .mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ),
     };
@@ -271,32 +271,32 @@ namespace Tac
 
     const Render::BlendState blendStateData
     {
-      .mSrcRGB = Render::BlendConstants::One,
-      .mDstRGB = Render::BlendConstants::OneMinusSrcA,
-      .mBlendRGB = Render::BlendMode::Add,
-      .mSrcA = Render::BlendConstants::One,
-      .mDstA = Render::BlendConstants::OneMinusSrcA,
-      .mBlendA = Render::BlendMode::Add,
+      .mSrcRGB { Render::BlendConstants::One },
+      .mDstRGB { Render::BlendConstants::OneMinusSrcA },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA { Render::BlendConstants::One },
+      .mDstA { Render::BlendConstants::OneMinusSrcA },
+      .mBlendA { Render::BlendMode::Add },
     };
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "2dalphablend" );
 
     const Render::DepthState depthStateData
     {
-      .mDepthTest = false,
-      .mDepthWrite = false,
-      .mDepthFunc = Render::DepthFunc::Less,
+      .mDepthTest { false },
+      .mDepthWrite { false },
+      .mDepthFunc { Render::DepthFunc::Less },
     };
     mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mDepthState, "2d-no-depth" );
 
     const Render::RasterizerState rasterizerStateData
     {
-      .mFillMode = Render::FillMode::Solid,
-      .mCullMode = Render::CullMode::None,
-      .mFrontCounterClockwise = true,
-      .mScissor = true,
-      .mMultisample = false,
+      .mFillMode { Render::FillMode::Solid },
+      .mCullMode { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mScissor { true },
+      .mMultisample { false },
     };
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState , "2d-rast" );

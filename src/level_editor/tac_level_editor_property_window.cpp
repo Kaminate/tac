@@ -191,7 +191,7 @@ namespace Tac
     }
   }
 
-  CreationPropertyWindow* CreationPropertyWindow::Instance = nullptr;
+  CreationPropertyWindow* CreationPropertyWindow::Instance { nullptr };
 
   CreationPropertyWindow::CreationPropertyWindow()
   {
@@ -263,7 +263,7 @@ namespace Tac
 
       if( prefabAssetPath.size() )
       {
-        Camera* cam = world->mEntities.size() ? nullptr : gCreation.mEditorCamera;
+        Camera* cam { world->mEntities.size() ? nullptr : gCreation.mEditorCamera };
         TAC_CALL( PrefabLoadAtPath(
           &gCreation.mEntityUUIDCounter,
           world,

@@ -8,8 +8,8 @@ namespace Tac::Render
   struct CommandDataResizeFramebuffer
   {
     StackFrame            mStackFrame;
-    int                   mWidth = 0;
-    int                   mHeight = 0;
+    int                   mWidth { 0 };
+    int                   mHeight { 0 };
     FramebufferHandle     mFramebufferHandle;
   };
 
@@ -24,7 +24,7 @@ namespace Tac::Render
   {
     StackFrame            mStackFrame;
     ConstantBufferHandle  mConstantBufferHandle;
-    int                   mByteCount = 0;
+    int                   mByteCount { 0 };
     const char*           mName;
   };
 
@@ -32,21 +32,21 @@ namespace Tac::Render
   {
     StackFrame            mStackFrame;
     MagicBufferHandle     mMagicBufferHandle;
-    int                   mByteCount = 0;
-    const void*           mOptionalInitialBytes = nullptr;
-    int                   mStride = 0;
-    Binding               mBinding = Binding::None;
-    Access                mAccess = Access::Default;
+    int                   mByteCount { 0 };
+    const void*           mOptionalInitialBytes { nullptr };
+    int                   mStride { 0 };
+    Binding               mBinding { Binding::None };
+    Access                mAccess { Access::Default };
   };
 
   struct CommandDataCreateVertexBuffer
   {
     StackFrame            mStackFrame;
     VertexBufferHandle    mVertexBufferHandle;
-    int                   mByteCount = 0;
-    const void*           mOptionalInitialBytes = nullptr;
-    int                   mStride = 0;
-    Access                mAccess = Access::Default;
+    int                   mByteCount { 0 };
+    const void*           mOptionalInitialBytes { nullptr };
+    int                   mStride { 0 };
+    Access                mAccess { Access::Default };
   };
 
   struct CommandDataCreateIndexBuffer
@@ -79,7 +79,7 @@ namespace Tac::Render
     TextureHandle         mTextureHandle;
     VertexBufferHandle    mVertexBufferHandle;
     IndexBufferHandle     mIndexBufferHandle;
-    const char*           mName = nullptr;
+    const char*           mName { nullptr };
   };
 
   struct CommandDataCreateVertexFormat
@@ -94,24 +94,24 @@ namespace Tac::Render
   {
     StackFrame            mStackFrame;
     VertexBufferHandle    mVertexBufferHandle;
-    const void*           mBytes = nullptr;
-    int                   mByteCount = 0;
+    const void*           mBytes { nullptr };
+    int                   mByteCount { 0 };
   };
 
   struct CommandDataUpdateIndexBuffer
   {
     StackFrame            mStackFrame;
     IndexBufferHandle     mIndexBufferHandle;
-    const void*           mBytes = nullptr;
-    int                   mByteCount = 0;
+    const void*           mBytes { nullptr };
+    int                   mByteCount { 0 };
   };
 
   struct CommandDataUpdateConstantBuffer
   {
     StackFrame            mStackFrame;
     ConstantBufferHandle  mConstantBufferHandle;
-    const void*           mBytes = nullptr;
-    int                   mByteCount = 0;
+    const void*           mBytes { nullptr };
+    int                   mByteCount { 0 };
   };
 
   struct CommandDataCreateFramebuffer
@@ -120,9 +120,9 @@ namespace Tac::Render
     FramebufferHandle     mFramebufferHandle;
 
     //                    Used when creating a framebuffer for a window
-    const void*           mNativeWindowHandle = nullptr;
-    int                   mWidth = 0;
-    int                   mHeight = 0;
+    const void*           mNativeWindowHandle { nullptr };
+    int                   mWidth { 0 };
+    int                   mHeight { 0 };
     FramebufferTextures   mFramebufferTextures;
   };
 

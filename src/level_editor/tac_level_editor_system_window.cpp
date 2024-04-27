@@ -22,7 +22,7 @@ namespace Tac
 
   static const char* GetNSysPath() { return "SystemWindow.nSys"; }
 
-  CreationSystemWindow* CreationSystemWindow::Instance = nullptr;
+  CreationSystemWindow* CreationSystemWindow::Instance { nullptr };
 
   CreationSystemWindow::CreationSystemWindow() { Instance = this; }
 

@@ -11,12 +11,12 @@ namespace Tac::Render
 {
   struct DX12UploadPage
   {
-    static const int          kDefaultByteCount = 2 * 1024 * 1024;
+    static const int          kDefaultByteCount { 2 * 1024 * 1024 };
 
     PCom< ID3D12Resource >    mBuffer;
-    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0;
-    void*                     mCPUAddr = nullptr;
-    int                       mByteCount = 0;
+    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr   {};
+    void*                     mCPUAddr   {};
+    int                       mByteCount {};
   };
 
   struct DX12UploadPageMgr
@@ -32,26 +32,26 @@ namespace Tac::Render
     struct RetiredPage
     {
       DX12UploadPage mPage;
-      FenceSignal   mFence{};
+      FenceSignal    mFence{};
     };
 
-    Vector< RetiredPage >   mRetiredPages;
+    Vector< RetiredPage >    mRetiredPages;
     Vector< DX12UploadPage > mAvailablePages;
 
     // singletons
     PCom< ID3D12Device >    mDevice;
-    DX12CommandQueue*       mCommandQueue = nullptr;
+    DX12CommandQueue*       mCommandQueue { nullptr };
   };
 
   struct DX12UploadAllocator
   {
     struct DynAlloc
     {
-      ID3D12Resource*           mResource = nullptr;
-      u64                       mResourceOffest = 0;
-      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr = 0; // already offset
-      void*                     mCPUAddr = 0; // already offset
-      int                       mByteCount = 0;
+      ID3D12Resource*           mResource       {};
+      u64                       mResourceOffest {};
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr        {}; // already offset
+      void*                     mCPUAddr        {}; // already offset
+      int                       mByteCount      {};
     };
 
     void     Init( DX12UploadPageMgr* );
@@ -65,9 +65,9 @@ namespace Tac::Render
     // The last page is the current page
     Vector< DX12UploadPage > mActivePages;
     Vector< DX12UploadPage > mLargePages;
-    int                      mCurPageUsedByteCount = 0;
+    int                      mCurPageUsedByteCount {};
 
     // singletons
-    DX12UploadPageMgr*       mPageManager = nullptr;
+    DX12UploadPageMgr*       mPageManager {};
   };
 }//namespace Tac::Render

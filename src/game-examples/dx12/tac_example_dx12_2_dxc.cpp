@@ -255,7 +255,7 @@ namespace Tac::Render::DXC
         verInfo2->GetVersion( &major, &minor );
       }
 
-      char* ver = nullptr;
+      char* ver { nullptr };
       if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
       {
         verInfo3->GetCustomVersionString( &ver );
@@ -310,10 +310,10 @@ namespace Tac::Render::DXC
                           pResults.iid(),
                           pResults.ppv() );
 
-      const UINT32 n = pResults->GetNumOutputs();
-      for( UINT32 i = 0; i < n; ++i )
+      const UINT32 n { pResults->GetNumOutputs() };
+      for( UINT32 i { 0 }; i < n; ++i )
       {
-        DXC_OUT_KIND kind = pResults->GetOutputByIndex( i );
+        DXC_OUT_KIND kind { pResults->GetOutputByIndex( i ) };
         ++asdf;
       }
       ++asdf;
@@ -327,11 +327,11 @@ namespace Tac::Render::DXC
 
     TAC_NOT_CONST ExampleDXCArgHelper::BasicSetup argHelperSetup
     {
-      .mEntryPoint = input.mEntryPoint ,
-      .mTargetProfile = target,
-      .mFilename = inputShaderName,
-      .mPDBDir = input.mOutputDir,
-      .mUtils = pUtils,
+      .mEntryPoint { input.mEntryPoint },
+      .mTargetProfile { target },
+      .mFilename { inputShaderName },
+      .mPDBDir { input.mOutputDir },
+      .mUtils { pUtils },
     };
     TAC_NOT_CONST ExampleDXCArgHelper argHelper( argHelperSetup );
 
@@ -340,9 +340,9 @@ namespace Tac::Render::DXC
 
     const DxcBuffer Source
     {
-      .Ptr = input.mPreprocessedShader.data(),
-      .Size = (SIZE_T)input.mPreprocessedShader.size(),
-      .Encoding = DXC_CP_ACP,
+      .Ptr { input.mPreprocessedShader.data() },
+      .Size { ( SIZE_T )input.mPreprocessedShader.size() },
+      .Encoding { DXC_CP_ACP },
     };
 
     PCom<IDxcResult> pResults;

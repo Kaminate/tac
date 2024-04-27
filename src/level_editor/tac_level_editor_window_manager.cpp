@@ -207,7 +207,7 @@ namespace Tac
 
   bool                LevelEditorWindowManager::ShouldCreateWindowNamed( StringView name )
   {
-    const String mOnlyCreateWindowNamed = SettingsGetString( "onlyCreateWindowNamed", "" );
+    const String mOnlyCreateWindowNamed { SettingsGetString( "onlyCreateWindowNamed", "" ) };
     if( !mOnlyCreateWindowNamed.empty() && name != mOnlyCreateWindowNamed )
       return false;
 
@@ -216,7 +216,7 @@ namespace Tac
       return false;
 
     Errors errors;
-    const bool create = SettingsGetBool( "is_open", false, windowJson );
+    const bool create { SettingsGetBool( "is_open", false, windowJson ) };
     if( errors )
       return false;
 
@@ -233,8 +233,8 @@ namespace Tac
     const struct
     {
       const char* mName;
-      const Fn mFn;
-    } params [] =
+      const Fn    mFn;
+    } params [] 
     {
       { gPropertyWindowName, &LevelEditorWindowManager::CreatePropertyWindow},
       { gGameWindowName, &LevelEditorWindowManager::CreateGameWindow},
@@ -254,7 +254,7 @@ namespace Tac
 
   Json*               LevelEditorWindowManager::FindWindowJson( StringView windowName )
   {
-    Json* windows = GetWindowsJson();
+    Json* windows { GetWindowsJson() };
     if( !windows )
       return nullptr;
 

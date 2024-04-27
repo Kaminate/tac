@@ -45,15 +45,15 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* GetCommandList();
     void                       ExecuteSynchronously();
 
-    DX12ExampleContext         mContext;
-    bool                       mSynchronous = false;
+    DX12ExampleContext                mContext;
+    bool                              mSynchronous          {};
 
     // singletons
-    DX12ExampleCommandAllocatorPool*  mCommandAllocatorPool = nullptr;
-    DX12ExampleContextManager*        mContextManager = nullptr;
-    DX12ExampleCommandQueue*          mCommandQueue = nullptr;
-    Errors*                    mParentScopeErrors = nullptr;
-    bool                       mMoved = false;
+    DX12ExampleCommandAllocatorPool*  mCommandAllocatorPool {};
+    DX12ExampleContextManager*        mContextManager       {};
+    DX12ExampleCommandQueue*          mCommandQueue         {};
+    Errors*                           mParentScopeErrors    {};
+    bool                              mMoved                {};
   };
 
   // a contextmanager manages contexts
@@ -73,9 +73,9 @@ namespace Tac::Render
     Vector< DX12ExampleContext >     mAvailableContexts;
 
     // singletons
-    DX12ExampleCommandAllocatorPool* mCommandAllocatorPool = nullptr;
-    DX12ExampleCommandQueue*         mCommandQueue = nullptr;
-    DX12ExampleGPUUploadPageManager*     mUploadPageManager = nullptr;
-    PCom< ID3D12Device5 >     mDevice; // device4 needed for createcommandlist1
+    DX12ExampleCommandAllocatorPool* mCommandAllocatorPool {};
+    DX12ExampleCommandQueue*         mCommandQueue         {};
+    DX12ExampleGPUUploadPageManager* mUploadPageManager    {};
+    PCom< ID3D12Device5 >            mDevice; // device4 needed for createcommandlist1
   };
 }

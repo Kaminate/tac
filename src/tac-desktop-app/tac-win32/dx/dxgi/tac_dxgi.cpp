@@ -331,6 +331,16 @@ namespace Tac
     return swapChain1.QueryInterface<IDXGISwapChain4>();
   }
 
+  DXGI_FORMAT Render::TexFmtToDxgiFormat( TexFmt fmt )
+  {
+    switch( fmt )
+    {
+    case Tac::Render::kUnknown:              return DXGI_FORMAT_UNKNOWN;
+    case Tac::Render::kD24S8:                return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    case Tac::Render::kRGBA16F:              return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    default: TAC_ASSERT_INVALID_CASE( fmt ); return DXGI_FORMAT_UNKNOWN;
+    }
+  }
 
 
   DXGI_FORMAT      Render::GetDXGIFormatDepth( const int i )

@@ -27,9 +27,9 @@ namespace Tac
 
   struct MouseEdge
   {
-    MouseEdgeFlags    mFlags = MouseEdgeFlags::kNone;
+    MouseEdgeFlags    mFlags { MouseEdgeFlags::kNone };
     //DesktopWindowRect mWindowSpaceMoveRect;
-    int               mResizeBorder = false;
+    int               mResizeBorder { false };
   };
 
   enum HandlerType
@@ -45,10 +45,10 @@ namespace Tac
 
   static MouseEdge    sMouseEdges[ kDesktopWindowCapacity ];
 
-  const CursorDir     CursorDirN = 0b0001;
-  const CursorDir     CursorDirW = 0b0010;
-  const CursorDir     CursorDirS = 0b0100;
-  const CursorDir     CursorDirE = 0b1000;
+  const CursorDir     CursorDirN { 0b0001 };
+  const CursorDir     CursorDirW { 0b0010 };
+  const CursorDir     CursorDirS { 0b0100 };
+  const CursorDir     CursorDirE { 0b1000 };
 
   static HCURSOR      cursorArrow;
   static HCURSOR      cursorArrowNS;
@@ -94,7 +94,7 @@ namespace Tac
   {
     if( !cursorType )
       return "Default";
-    static char result[ 10 ] = {};
+    static char result[ 10 ]  {};
     int iResult = 0;
     if( cursorType & CursorDirN ) result[ iResult++ ] = 'N';
     if( cursorType & CursorDirW ) result[ iResult++ ] = 'W';
@@ -107,7 +107,7 @@ namespace Tac
   // care to describe what this function does?
   static void SetCursorLock( CursorDir cursorDir )
   {
-    bool verbose = false;
+    bool verbose { false };
     if( verbose )
       OS::OSDebugPrintLine( ShortFixedString( "Cursor lock: ", cursorDir ) );
 
@@ -125,7 +125,7 @@ namespace Tac
 
   static void SetCursor( const CursorDir cursorDir )
   {
-    const HCURSOR cursor = GetCursor( cursorDir );
+    const HCURSOR cursor { GetCursor( cursorDir ) };
     SetCursor( cursor );
   }
 
@@ -154,12 +154,12 @@ namespace Tac
         cursorPos.y < windowRect.top )
       return;
 
-    const int i = WindowHandle.GetIndex();
-    MouseEdge& mouseEdge = sMouseEdges[ i ];
-    const bool mouseEdgeMovable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable;
-    const bool mouseEdgeResizable = ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable;
+    const int i { WindowHandle.GetIndex() };
+    MouseEdge& mouseEdge { sMouseEdges[ i ] };
+    const bool mouseEdgeMovable { ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable };
+    const bool mouseEdgeResizable { ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable };
 
-    CursorDir cursorLock = {};
+    CursorDir cursorLock  {};
     if( mouseEdgeResizable )
     {
       edgeDistResizePx = mouseEdge.mResizeBorder;
@@ -172,25 +172,25 @@ namespace Tac
     if( mCursorLock != cursorLock || !mEverSet )
     {
       mEverSet = true;
-      const HCURSOR cursor = GetCursor( cursorLock );
+      const HCURSOR cursor { GetCursor( cursorLock ) };
       SetCursor( cursor );
       SetCursorLock( cursorLock );
     }
 
     if( mMouseDownCurr && !mMouseDownPrev )
     {
-      const int moveH = mouseEdge.mWindowSpaceMoveRect.mBottom - mouseEdge.mWindowSpaceMoveRect.mTop;
-      const int moveW = mouseEdge.mWindowSpaceMoveRect.mRight - mouseEdge.mWindowSpaceMoveRect.mLeft;
-      const int moveL = windowRect.left + mouseEdge.mWindowSpaceMoveRect.mLeft;
-      const int moveR = windowRect.left + moveW;
-      const int moveB = windowRect.top + moveH;
-      const int moveT = windowRect.top + mouseEdge.mWindowSpaceMoveRect.mTop;
-      const RECT screenMoveRect = { moveL, moveT, moveR, moveB };
+      const int moveH { mouseEdge.mWindowSpaceMoveRect.mBottom - mouseEdge.mWindowSpaceMoveRect.mTop };
+      const int moveW { mouseEdge.mWindowSpaceMoveRect.mRight - mouseEdge.mWindowSpaceMoveRect.mLeft };
+      const int moveL { windowRect.left + mouseEdge.mWindowSpaceMoveRect.mLeft };
+      const int moveR { windowRect.left + moveW };
+      const int moveB { windowRect.top + moveH };
+      const int moveT { windowRect.top + mouseEdge.mWindowSpaceMoveRect.mTop };
+      const RECT screenMoveRect  { moveL, moveT, moveR, moveB };
       if( mouseEdgeResizable && cursorLock )
         mHandlerType = HandlerType::Resize;
       else if( mouseEdgeMovable )
       {
-        const bool hovered = PtInRect( &screenMoveRect, cursorPos );
+        const bool hovered { PtInRect( &screenMoveRect, cursorPos ) };
         if( hovered )
         {
           //Mouse::TryConsumeMouseMovement( &keyboardMoveT, TAC_STACK_FRAME );
@@ -222,19 +222,19 @@ namespace Tac
     if( !GetCursorPos( &cursorPos ) )
       return;
 
-    LONG dx = cursorPos.x - mCursorPositionOnClick.x;
-    LONG dy = cursorPos.y - mCursorPositionOnClick.y;
+    LONG dx { cursorPos.x - mCursorPositionOnClick.x };
+    LONG dy { cursorPos.y - mCursorPositionOnClick.y };
 
-    RECT rect = mWindowRectOnClick;
+    RECT rect { mWindowRectOnClick };
     rect.bottom += mCursorLock & CursorDirN ? dy : 0;
     rect.top += mCursorLock & CursorDirS ? dy : 0;
     rect.left += mCursorLock & CursorDirE ? dx : 0;
     rect.right += mCursorLock & CursorDirW ? dx : 0;
 
-    int x = rect.left;
-    int y = rect.top;
-    int w = rect.right - rect.left;
-    int h = rect.bottom - rect.top;
+    int x { rect.left };
+    int y { rect.top };
+    int w { rect.right - rect.left };
+    int h { rect.bottom - rect.top };
     SetWindowPos( mHwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 
@@ -252,10 +252,10 @@ namespace Tac
     if( !GetCursorPos( &cursorPos ) )
       return;
 
-    int x = mWindowRectOnClick.left + cursorPos.x - mCursorPositionOnClick.x;
-    int y = mWindowRectOnClick.top + cursorPos.y - mCursorPositionOnClick.y;
-    int w = mWindowRectOnClick.right - mWindowRectOnClick.left;
-    int h = mWindowRectOnClick.bottom - mWindowRectOnClick.top;
+    int x { mWindowRectOnClick.left + cursorPos.x - mCursorPositionOnClick.x };
+    int y { mWindowRectOnClick.top + cursorPos.y - mCursorPositionOnClick.y };
+    int w { mWindowRectOnClick.right - mWindowRectOnClick.left };
+    int h { mWindowRectOnClick.bottom - mWindowRectOnClick.top };
     SetWindowPos( mHwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 }
@@ -296,10 +296,10 @@ void Tac::Win32MouseEdgeSetMovable( [[maybe_unused]] const WindowHandle& WindowH
                                     [[maybe_unused]] const DesktopWindowRect& windowSpaceRect )
 {
 #if 0
-  const int i = WindowHandle.GetIndex();
+  const int i { WindowHandle.GetIndex() };
   TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
 
-  MouseEdge& mouseEdge = sMouseEdges[ i ];
+  MouseEdge& mouseEdge { sMouseEdges[ i ] };
   mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kMovable );
   mouseEdge.mWindowSpaceMoveRect = windowSpaceRect;
 #endif
@@ -308,9 +308,9 @@ void Tac::Win32MouseEdgeSetMovable( [[maybe_unused]] const WindowHandle& WindowH
 void Tac::Win32MouseEdgeSetResizable( const WindowHandle& WindowHandle,
                                       int borderPx )
 {
-  const int i = WindowHandle.GetIndex();
+  const int i { WindowHandle.GetIndex() };
   TAC_ASSERT_INDEX( i, kDesktopWindowCapacity );
-  MouseEdge& mouseEdge = sMouseEdges[i];
+  MouseEdge& mouseEdge { sMouseEdges[i] };
   mouseEdge.mFlags = MouseEdgeFlags( ( int )mouseEdge.mFlags | ( int )MouseEdgeFlags::kResizable );
   mouseEdge.mResizeBorder = borderPx;
 }

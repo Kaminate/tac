@@ -17,7 +17,7 @@ namespace Tac
     void                         Update( Errors& );
     void                         ImGui();
     DesktopWindowHandle          mDesktopWindowHandle;
-    bool                         mCloseRequested = false;
+    bool                         mCloseRequested { false };
     //String                       mSystemName;
   };
 

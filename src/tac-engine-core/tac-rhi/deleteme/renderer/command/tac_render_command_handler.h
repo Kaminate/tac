@@ -12,7 +12,7 @@ namespace Tac::Render
   struct CommandHandlerBase
   {
     virtual void Invoke( Renderer*, CommandBufferIterator*, Errors& ) const = 0;
-    const char* mName = nullptr; // <-- mName is only used for debug log
+    const char* mName { nullptr }; // <-- mName is only used for debug log
   };
 
   struct CommandHandlers

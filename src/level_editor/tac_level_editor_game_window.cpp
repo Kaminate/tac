@@ -36,13 +36,12 @@
 
 namespace Tac
 {
-  static bool drawGrid = false;
-  static bool sGizmosEnabled = true;
-  static float sWASDCameraPanSpeed = 10;
-  static float sWASDCameraOrbitSpeed = 0.1f;
-  static bool sWASDCameraOrbitSnap;
-
-  float lightWidgetSize = 6.0f;
+  static bool drawGrid               { false };
+  static bool sGizmosEnabled         { true };
+  static float sWASDCameraPanSpeed   { 10 };
+  static float sWASDCameraOrbitSpeed { 0.1f };
+  static bool sWASDCameraOrbitSnap   {};
+  float lightWidgetSize              { 6.0f };
 
   static Render::ShaderHandle spriteShader;
 
@@ -120,13 +119,13 @@ namespace Tac
                                    float* d,
                                    float* e )
   {
-    const v3 c = B - A;
-    const float ab = Dot( a, b );
-    const float bc = Dot( b, c );
-    const float ac = Dot( a, c );
-    const float aa = Dot( a, a );
-    const float bb = Dot( b, b );
-    const float denom = aa * bb - ab * ab;
+    const v3 c { B - A };
+    const float ab { Dot( a, b ) };
+    const float bc { Dot( b, c ) };
+    const float ac { Dot( a, c ) };
+    const float aa { Dot( a, a ) };
+    const float bb { Dot( b, b ) };
+    const float denom { aa * bb - ab * ab };
     if( d )
     {
       *d = ( -ab * bc + ac * bb ) / denom;
@@ -139,30 +138,30 @@ namespace Tac
 
   static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
   {
-    const Camera* camera = gCreation.mEditorCamera;
-    const Render::InProj inProj = { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
-    const Render::OutProj outProj = Render::GetPerspectiveProjectionAB(inProj);
+    const Camera* camera { gCreation.mEditorCamera };
+    const Render::InProj inProj  { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
+    const Render::OutProj outProj { Render::GetPerspectiveProjectionAB(inProj) };
     return Render::DefaultCBufferPerFrame
     {
-      .mView = camera->View(),
-      .mProjection = m4::ProjPerspective( outProj.mA, outProj.mB, camera->mFovyrad, w / h ),
-      .mFar = camera->mFarPlane,
-      .mNear = camera->mNearPlane,
-      .mGbufferSize = { w, h }
+      .mView { camera->View() },
+      .mProjection{ m4::ProjPerspective( outProj.mA, outProj.mB, camera->mFovyrad, w / h ) },
+      .mFar { camera->mFarPlane },
+      .mNear { camera->mNearPlane },
+      .mGbufferSize  { w, h }
     };
   }
 
   static v3 SnapToUnitDir( const v3 v ) // Returns the unit vector that best aligns with v
   {
-    float biggestDot = 0;
-    v3 biggestUnitDir = {};
-    for( int iAxis = 0; iAxis < 3; ++iAxis )
+    float biggestDot { 0 };
+    v3 biggestUnitDir  {};
+    for( int iAxis { 0 }; iAxis < 3; ++iAxis )
     {
       for( float sign : { -1.0f, 1.0f } )
       {
-        v3 unitDir = {};
+        v3 unitDir  {};
         unitDir[ iAxis ] = sign;
-        const float d = Dot( v, unitDir );
+        const float d { Dot( v, unitDir ) };
         if( d > biggestDot )
         {
           biggestDot = d;
@@ -191,7 +190,7 @@ namespace Tac
   }
 
 
-  CreationGameWindow* CreationGameWindow::Instance = nullptr;
+  CreationGameWindow* CreationGameWindow::Instance { nullptr };
 
   CreationGameWindow::CreationGameWindow()
   {
@@ -213,28 +212,26 @@ namespace Tac
 
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
-
-
     Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
     Render::ProgramParams programParams
     {
-      .mFileStem = "3DTest",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "3DTest" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     m3DShader =renderDevice->CreateProgram( programParams, errors );
 
     const Render::VertexDeclaration posDecl
     {
-        .mAttribute = Render::Attribute::Position,
+        .mAttribute { Render::Attribute::Position },
         .mTextureFormat{ Render::Format::sv3 }
-        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, pos ),
+        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, pos ) },
     };
 
     const Render::VertexDeclaration norDecl
     {
-        .mAttribute = Render::Attribute::Normal,
+        .mAttribute { Render::Attribute::Normal },
         .mTextureFormat{ Render::Format::sv3 }
-        .mAlignedByteOffset = TAC_OFFSET_OF( GameWindowVertex, nor ),
+        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, nor ) },
     };
 
     m3DvertexFormatDecls = Render::VertexDeclarations { posDecl, norDecl };
@@ -302,11 +299,11 @@ namespace Tac
 
     TAC_CALL( PlayGame( errors ) );
 
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
+    Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem = "3DSprite",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mFileStem { "3DSprite" },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     spriteShader =renderDevice->CreateProgram( programParams, errors );
   }
@@ -316,23 +313,23 @@ namespace Tac
     if( gCreation.mSelectedEntities.empty() || !sGizmosEnabled )
       return;
 
-    const v3 selectionGizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
+    const v3 selectionGizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
 
-    const m4 invArrowRots[] = {
+    const m4 invArrowRots[]  {
       m4::RotRadZ( 3.14f / 2.0f ),
       m4::Identity(),
       m4::RotRadX( -3.14f / 2.0f ), };
 
-    for( int i = 0; i < 3; ++i )
+    for( int i { 0 }; i < 3; ++i )
     {
       // 1/3: inverse transform
-      v3 modelSpaceRayPos3 = gCreation.mEditorCamera->mPos - selectionGizmoOrigin;
-      v4 modelSpaceRayPos4 = v4( modelSpaceRayPos3, 1 );
-      v3 modelSpaceRayDir3 = mWorldSpaceMouseDir;
-      v4 modelSpaceRayDir4 = v4( mWorldSpaceMouseDir, 0 );
+      v3 modelSpaceRayPos3 { gCreation.mEditorCamera->mPos - selectionGizmoOrigin };
+      v4 modelSpaceRayPos4 { v4( modelSpaceRayPos3, 1 ) };
+      v3 modelSpaceRayDir3 { mWorldSpaceMouseDir };
+      v4 modelSpaceRayDir4 { v4( mWorldSpaceMouseDir, 0 ) };
 
       // 2/3: inverse rotate
-      const m4& invArrowRot = invArrowRots[ i ];
+      const m4& invArrowRot { invArrowRots[ i ] };
       modelSpaceRayPos4 = invArrowRot * modelSpaceRayPos4;
       modelSpaceRayPos3 = modelSpaceRayPos4.xyz();
       modelSpaceRayDir4 = invArrowRot * modelSpaceRayDir4;
@@ -341,8 +338,8 @@ namespace Tac
       // 3/3: inverse scale
       modelSpaceRayPos3 /= mArrowLen;
 
-      bool hit = false;
-      float dist = 0;
+      bool hit { false };
+      float dist { 0 };
       mArrow->MeshModelSpaceRaycast( modelSpaceRayPos3, modelSpaceRayDir3, &hit, &dist );
       dist *= mArrowLen;
       if( !hit || !pickData.IsNewClosest( dist ) )
@@ -357,8 +354,8 @@ namespace Tac
   {
     for( Entity* entity : gCreation.mWorld->mEntities )
     {
-      bool hit = false;
-      float dist = 0;
+      bool hit { false };
+      float dist { 0 };
       MousePickingEntity( entity, &hit, &dist );
       if( !hit || !pickData.IsNewClosest( dist ) )
         continue;
@@ -373,14 +370,14 @@ namespace Tac
     if( !Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
       return;
 
-    const v3 worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
+    const v3 worldSpaceHitPoint { gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
 
     switch( pickData.pickedObject )
     {
       case PickedObject::WidgetTranslationArrow:
       {
-        const v3 gizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
-        v3 arrowDir = {};
+        const v3 gizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
+        v3 arrowDir  {};
         arrowDir[ pickData.arrowAxis ] = 1;
         gCreation.mSelectedGizmo = true;
         gCreation.mTranslationGizmoDir = arrowDir;
@@ -388,7 +385,7 @@ namespace Tac
       } break;
       case PickedObject::Entity:
       {
-        const v3 entityWorldOrigin = ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
+        const v3 entityWorldOrigin { ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz() };
         gCreation.mSelectedEntities.Select( pickData.closest );
         gCreation.mSelectedHitOffsetExists = true;
         gCreation.mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
@@ -424,36 +421,36 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    const float w = ( float )desktopWindowState->mWidth;
-    const float h = ( float )desktopWindowState->mHeight;
-    const float x = ( float )desktopWindowState->mX;
-    const float y = ( float )desktopWindowState->mY;
-    const v2 screenspaceCursorPos = Mouse::GetScreenspaceCursorPos();
-    float xNDC = ( ( screenspaceCursorPos.x - x ) / w );
-    float yNDC = ( ( screenspaceCursorPos.y - y ) / h );
+    const float w { ( float )desktopWindowState->mWidth };
+    const float h { ( float )desktopWindowState->mHeight };
+    const float x { ( float )desktopWindowState->mX };
+    const float y { ( float )desktopWindowState->mY };
+    const v2 screenspaceCursorPos { Mouse::GetScreenspaceCursorPos() };
+    float xNDC { ( ( screenspaceCursorPos.x - x ) / w ) };
+    float yNDC { ( ( screenspaceCursorPos.y - y ) / h ) };
     yNDC = 1 - yNDC;
     xNDC = xNDC * 2 - 1;
     yNDC = yNDC * 2 - 1;
-    const float aspect = w / h;
-    const float theta = gCreation.mEditorCamera->mFovyrad / 2.0f;
-    const float cotTheta = 1.0f / Tan( theta );
-    const float sX = cotTheta / aspect;
-    const float sY = cotTheta;
+    const float aspect { w / h };
+    const float theta { gCreation.mEditorCamera->mFovyrad / 2.0f };
+    const float cotTheta { 1.0f / Tan( theta ) };
+    const float sX { cotTheta / aspect };
+    const float sY { cotTheta };
 
-    const m4 viewInv = m4::ViewInv( gCreation.mEditorCamera->mPos,
+    const m4 viewInv{ m4::ViewInv( gCreation.mEditorCamera->mPos,
                                     gCreation.mEditorCamera->mForwards,
                                     gCreation.mEditorCamera->mRight,
-                                    gCreation.mEditorCamera->mUp );
-    const v3 viewSpaceMousePosNearPlane =
+                                    gCreation.mEditorCamera->mUp ) };
+    const v3 viewSpaceMousePosNearPlane 
     {
       xNDC / sX,
       yNDC / sY,
       -1,
     };
 
-    const v3 viewSpaceMouseDir = Normalize( viewSpaceMousePosNearPlane );
-    const v4 viewSpaceMouseDir4 = v4( viewSpaceMouseDir, 0 );
-    const v4 worldSpaceMouseDir4 = viewInv * viewSpaceMouseDir4;
+    const v3 viewSpaceMouseDir { Normalize( viewSpaceMousePosNearPlane ) };
+    const v4 viewSpaceMouseDir4 { v4( viewSpaceMouseDir, 0 ) };
+    const v4 worldSpaceMouseDir4 { viewInv * viewSpaceMouseDir4 };
     mWorldSpaceMouseDir = worldSpaceMouseDir4.xyz();
     mViewSpaceUnitMouseDir = viewSpaceMouseDir;
   }
@@ -470,10 +467,10 @@ namespace Tac
 
     //lightWidgetSize;
 
-    const float t = RaySphere( gCreation.mEditorCamera->mPos,
+    const float t{ RaySphere( gCreation.mEditorCamera->mPos,
                          mWorldSpaceMouseDir,
                          light->mEntity->mWorldPosition,
-                         lightWidgetSize );
+                         lightWidgetSize ) };
     if( t > 0 )
     {
       *hit = true;
@@ -483,8 +480,8 @@ namespace Tac
 
   void CreationGameWindow::MousePickingEntityModel( const Model* model, bool* hit, float* dist )
   {
-    const Entity* entity = model->mEntity;
-    const Mesh* mesh = GamePresentationGetModelMesh( model );
+    const Entity* entity { model->mEntity };
+    const Mesh* mesh { GamePresentationGetModelMesh( model ) };
     if( !mesh )
     {
       *hit = false;
@@ -492,17 +489,17 @@ namespace Tac
     }
 
     bool transformInvExists;
-    const m4 transformInv = m4::Inverse( entity->mWorldTransform, &transformInvExists );
+    const m4 transformInv { m4::Inverse( entity->mWorldTransform, &transformInvExists ) };
     if( !transformInvExists )
     {
       *hit = false;
       return;
     }
 
-    const Camera* camera = gCreation.mEditorCamera;
+    const Camera* camera { gCreation.mEditorCamera };
 
-    const v3 modelSpaceMouseRayPos3 = ( transformInv * v4( camera->mPos, 1 ) ).xyz();
-    const v3 modelSpaceMouseRayDir3 = Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() );
+    const v3 modelSpaceMouseRayPos3 { ( transformInv * v4( camera->mPos, 1 ) ).xyz() };
+    const v3 modelSpaceMouseRayDir3 { Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() ) };
     float modelSpaceDist;
     mesh->MeshModelSpaceRaycast( modelSpaceMouseRayPos3, modelSpaceMouseRayDir3, hit, &modelSpaceDist );
 
@@ -510,8 +507,8 @@ namespace Tac
     // account for non-uniform scaling
     if( *hit )
     {
-      const v3 modelSpaceHitPoint = modelSpaceMouseRayPos3 + modelSpaceMouseRayDir3 * modelSpaceDist;
-      const v3 worldSpaceHitPoint = ( entity->mWorldTransform * v4( modelSpaceHitPoint, 1 ) ).xyz();
+      const v3 modelSpaceHitPoint { modelSpaceMouseRayPos3 + modelSpaceMouseRayDir3 * modelSpaceDist };
+      const v3 worldSpaceHitPoint { ( entity->mWorldTransform * v4( modelSpaceHitPoint, 1 ) ).xyz() };
       *dist = Distance( camera->mPos, worldSpaceHitPoint );
     }
   }
@@ -520,14 +517,14 @@ namespace Tac
                                                bool* hit,
                                                float* dist )
   {
-    if( const Model* model = Model::GetModel( entity ) )
+    if( const Model * model{ Model::GetModel( entity ) } )
     {
       MousePickingEntityModel( model, hit, dist );
       if( hit )
         return;
     }
 
-    if( const Light* light = Light::GetLight( entity ) )
+    if( const Light * light{ Light::GetLight( entity ) } )
     {
       MousePickingEntityLight( light, hit, dist );
       if( hit )
@@ -539,21 +536,21 @@ namespace Tac
   {
     if( gCreation.mSelectedEntities.empty() )
       return;
-    m4 view = m4::View( gCreation.mEditorCamera->mPos,
+    m4 view{ m4::View( gCreation.mEditorCamera->mPos,
                         gCreation.mEditorCamera->mForwards,
                         gCreation.mEditorCamera->mRight,
-                        gCreation.mEditorCamera->mUp );
-    v3 pos = gCreation.mSelectedEntities.GetGizmoOrigin();
-    v4 posVS4 = view * v4( pos, 1 );
-    float clip_height = Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f );
-    float arrowLen = clip_height * 0.2f;
+                        gCreation.mEditorCamera->mUp ) };
+    v3 pos { gCreation.mSelectedEntities.GetGizmoOrigin() };
+    v4 posVS4 { view * v4( pos, 1 ) };
+    float clip_height { Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f ) };
+    float arrowLen { clip_height * 0.2f };
     mArrowLen = arrowLen;
   }
 
 
   void CreationGameWindow::RenderEditorWidgetsPicking( Render::ViewHandle viewHandle )
   {
-    v3 worldSpaceHitPoint = {};
+    v3 worldSpaceHitPoint  {};
     if( pickData.pickedObject != PickedObject::None )
     {
       worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
@@ -567,7 +564,7 @@ namespace Tac
 
   static v3 GetAxis( int i )
   {
-    v3 v = { 0, 0, 0 };
+    v3 v  { 0, 0, 0 };
     v[ i ] = 1;
     return v;
   }
@@ -579,8 +576,8 @@ namespace Tac
 
     Render::BeginGroup( "Selection", TAC_STACK_FRAME );
 
-    const v3 selectionGizmoOrigin = gCreation.mSelectedEntities.GetGizmoOrigin();
-    const m4 rots[] = {
+    const v3 selectionGizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
+    const m4 rots[]  {
       m4::RotRadZ( -3.14f / 2.0f ),
       m4::Identity(),
       m4::RotRadX( 3.14f / 2.0f ), };
@@ -589,29 +586,29 @@ namespace Tac
                                          gCreation.mEditorCamera->mForwards,
                                          mArrowLen );
 
-    for( int i = 0; i < 3; ++i )
+    for( int i { 0 }; i < 3; ++i )
     {
 
-      const v3 axis = GetAxis( i );
+      const v3 axis { GetAxis( i ) };
       const Render::PremultipliedAlpha axisPremultipliedColor = Render::PremultipliedAlpha::From_sRGB( axis );
 
 
       // Widget Translation Arrow
       {
-        const bool picked =
+        const bool picked{
           pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
-          pickData.arrowAxis == i;
+          pickData.arrowAxis == i };
 
-        const bool usingTranslationArrow =
+        const bool usingTranslationArrow{
           gCreation.mSelectedGizmo &&
-          gCreation.mTranslationGizmoDir == axis;
+          gCreation.mTranslationGizmoDir == axis };
 
-        const bool shine = picked || usingTranslationArrow;
+        const bool shine { picked || usingTranslationArrow };
 
-        Render::PremultipliedAlpha arrowColor = axisPremultipliedColor;
+        Render::PremultipliedAlpha arrowColor { axisPremultipliedColor };
         if( shine )
         {
-          float t = float( Sin( Timestep::GetElapsedTime() * 6.0 ) );
+          float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
           t *= t;
           arrowColor.Color = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.Color, t );
 
@@ -619,14 +616,14 @@ namespace Tac
 
 
         const m4 World
-          = m4::Translate( selectionGizmoOrigin )
-          * rots[ i ]
-          * m4::Scale( v3( 1, 1, 1 ) * mArrowLen  );
+        { m4::Translate( selectionGizmoOrigin )
+        * rots[ i ]
+        * m4::Scale( v3( 1, 1, 1 ) * mArrowLen ) };
 
         const Render::DefaultCBufferPerObject perObjectData
         {
-          .World = World,
-          .Color = arrowColor,
+          .World { World },
+          .Color { arrowColor },
         };
 
         Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
@@ -641,16 +638,16 @@ namespace Tac
       // ( it is not current interactable )
       if( false )
       {
-        const m4 World =
+        const m4 World{
           m4::Translate( selectionGizmoOrigin ) *
           m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
           rots[ i ] *
-          m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f );
+          m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f ) };
 
         const Render::DefaultCBufferPerObject perObjectData
         {
-          .World = World,
-          .Color = axisPremultipliedColor,
+          .World { World },
+          .Color { axisPremultipliedColor },
         };
 
         Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
@@ -675,22 +672,22 @@ namespace Tac
     Graphics* graphics = GetGraphics( gCreation.mWorld );
     graphics->VisitLights( &lightVisitor );
 
-    for( int iLight = 0; iLight < lightVisitor.mLights.size(); ++iLight )
+    for( int iLight { 0 }; iLight < lightVisitor.mLights.size(); ++iLight )
     {
-      const Light* light = lightVisitor.mLights[ iLight ];
+      const Light* light { lightVisitor.mLights[ iLight ] };
 
 
       // Q: why am ii only scaling the m00, and not the m11 and m22?
-      m4 world = light->mEntity->mWorldTransform;
+      m4 world { light->mEntity->mWorldTransform };
       world.m00 = lightWidgetSize;
 
       const Render::DefaultCBufferPerObject perObjectData
       {
-        .World = world,
+        .World { world },
       };
 
-      const Render::ConstantBufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
-      const int perObjSize = sizeof(Render::DefaultCBufferPerObject);
+      const Render::ConstantBufferHandle hPerObj { Render::DefaultCBufferPerObject::Handle };
+      const int perObjSize { sizeof(Render::DefaultCBufferPerObject) };
 
       Errors errors;
       const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );
@@ -725,8 +722,8 @@ namespace Tac
       return;
 
     Render::BeginGroup( "Editor Widgets", TAC_STACK_FRAME );
-    const float w = ( float )desktopWindowState->mWidth;
-    const float h = ( float )desktopWindowState->mHeight;
+    const float w { ( float )desktopWindowState->mWidth };
+    const float h { ( float )desktopWindowState->mHeight };
     const Render::DefaultCBufferPerFrame perFrameData = GetPerFrame( w, h );
     const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
     const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
@@ -742,7 +739,7 @@ namespace Tac
   {
     if( mSoul )
       return;
-    auto ghost = TAC_NEW Ghost;
+    auto ghost { TAC_NEW Ghost };
     //ghost->mRenderView = mDesktopWindow->mRenderView;
     TAC_CALL( ghost->Init( errors ) );
     mSoul = ghost;
@@ -750,12 +747,12 @@ namespace Tac
 
   void CreationGameWindow::ImGuiOverlay( Errors& errors )
   {
-    static bool mHideUI = false;
+    static bool mHideUI { false };
     if( mHideUI )
       return;
 
-    const float w = 400;
-    const float h = (float)GetDesktopWindowState( mDesktopWindowHandle )->mHeight;
+    const float w { 400 };
+    const float h { (float)GetDesktopWindowState( mDesktopWindowHandle )->mHeight };
 
     ImGuiSetNextWindowSize( { w, h } );
     ImGuiSetNextWindowHandle( mDesktopWindowHandle );
@@ -833,15 +830,15 @@ namespace Tac
 
   static void CameraWASDControlsPan( Camera* camera )
   {
-    v3 combinedDir = {};
+    v3 combinedDir  {};
      
     struct PanKeyDir
     {
       Keyboard::Key key;
-      v3 dir;
+      v3            dir;
     };
     
-    const PanKeyDir keyDirs[] =
+    const PanKeyDir keyDirs[]
     {
       { Keyboard::Key::W, camera->mForwards},
       { Keyboard::Key::A, -camera->mRight},
@@ -860,7 +857,7 @@ namespace Tac
 
   static void CameraWASDControlsOrbit( Camera* camera, const v3 orbitCenter )
   {
-    const float vertLimit = 0.1f;
+    const float vertLimit { 0.1f };
 
     struct OrbitKeyDir
     {
@@ -868,7 +865,7 @@ namespace Tac
       v3            spherical;
     };
     
-    OrbitKeyDir keyDirs[] =
+    OrbitKeyDir keyDirs[]
     {
       { Keyboard::Key::W, v3( 0, -1, 0 ) },
       { Keyboard::Key::A, v3( 0,  0, 1 ) },
@@ -877,14 +874,14 @@ namespace Tac
     };
 
 
-    v3 camOrbitSphericalOffset = {};
+    v3 camOrbitSphericalOffset  {};
     for( const OrbitKeyDir& keyDir : keyDirs )
       if( KeyboardIsKeyDown( keyDir.key ) )
         camOrbitSphericalOffset += keyDir.spherical;
     if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
       return;
 
-    v3 camOrbitSpherical = CartesianToSpherical( camera->mPos - orbitCenter );
+    v3 camOrbitSpherical { CartesianToSpherical( camera->mPos - orbitCenter ) };
     camOrbitSpherical += camOrbitSphericalOffset * sWASDCameraOrbitSpeed;
     camOrbitSpherical.y = Clamp( camOrbitSpherical.y, vertLimit, 3.14f - vertLimit );
 
@@ -896,12 +893,12 @@ namespace Tac
     }
     else
     {
-      v3 dirCart = camera->mForwards;
-      v3 dirSphe = CartesianToSpherical( dirCart );
+      v3 dirCart { camera->mForwards };
+      v3 dirSphe { CartesianToSpherical( dirCart ) };
       dirSphe.y += -camOrbitSphericalOffset.y * sWASDCameraOrbitSpeed;
       dirSphe.z += camOrbitSphericalOffset.z * sWASDCameraOrbitSpeed;
       dirSphe.y = Clamp( dirSphe.y, vertLimit, 3.14f - vertLimit );
-      v3 newForwards = SphericalToCartesian( dirSphe );
+      v3 newForwards { SphericalToCartesian( dirSphe ) };
       camera->SetForwards( newForwards );
     }
   }
@@ -930,11 +927,11 @@ namespace Tac
       savedCamera = *gCreation.mEditorCamera;
     }
 
-    const bool cameraSame =
-      savedCamera.mPos == gCreation.mEditorCamera->mPos  &&
+    const bool cameraSame{
+      savedCamera.mPos == gCreation.mEditorCamera->mPos &&
       savedCamera.mForwards == gCreation.mEditorCamera->mForwards &&
       savedCamera.mRight == gCreation.mEditorCamera->mRight &&
-      savedCamera.mUp == gCreation.mEditorCamera->mUp;
+      savedCamera.mUp == gCreation.mEditorCamera->mUp };
     if( cameraSame )
       return;
 
@@ -944,24 +941,24 @@ namespace Tac
 
   void CreationGameWindow::CameraUpdateControls()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState { GetDesktopWindowState( mDesktopWindowHandle ) };
     if( !desktopWindowState->mNativeWindowHandle )
       return;
     if( !IsWindowHovered( mDesktopWindowHandle ) )
       return;
-    const Camera oldCamera = *gCreation.mEditorCamera;
+    const Camera oldCamera { *gCreation.mEditorCamera };
 
-    const v2 mouseDeltaPos = Mouse::GetMouseDeltaPos();
+    const v2 mouseDeltaPos { Mouse::GetMouseDeltaPos() };
     if( Mouse::ButtonIsDown( Mouse::Button::MouseRight ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
-      const float pixelsPerDeg = 400.0f / 90.0f;
-      const float radiansPerPixel = ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f );
-      const v2 angleRadians = mouseDeltaPos * radiansPerPixel;
+      const float pixelsPerDeg { 400.0f / 90.0f };
+      const float radiansPerPixel { ( 1.0f / pixelsPerDeg ) * ( 3.14f / 180.0f ) };
+      const v2 angleRadians { mouseDeltaPos * radiansPerPixel };
 
       if( angleRadians.x != 0 )
       {
-        m3 matrix = m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera->mUp );
+        m3 matrix { m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera->mUp ) };
         gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
         gCreation.mEditorCamera->mRight = Cross( gCreation.mEditorCamera->mForwards,
                                                  gCreation.mEditorCamera->mUp );
@@ -969,7 +966,7 @@ namespace Tac
 
       if( angleRadians.y != 0 )
       {
-        m3 matrix = m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera->mRight );
+        m3 matrix { m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera->mRight ) };
         gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
         gCreation.mEditorCamera->mUp = Cross( gCreation.mEditorCamera->mRight,
                                               gCreation.mEditorCamera->mForwards );
@@ -987,7 +984,7 @@ namespace Tac
     if( Mouse::ButtonIsDown( Mouse::Button::MouseMiddle ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
-      const float unitsPerPixel = 5.0f / 100.0f;
+      const float unitsPerPixel { 5.0f / 100.0f };
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mRight *
         -mouseDeltaPos.x *
@@ -998,14 +995,14 @@ namespace Tac
         unitsPerPixel;
     }
 
-    const int mouseDeltaScroll = Mouse::GetMouseDeltaScroll();
+    const int mouseDeltaScroll { Mouse::GetMouseDeltaScroll() };
     if( mouseDeltaScroll )
     {
-      float unitsPerTick = 1.0f;
+      float unitsPerTick { 1.0f };
 
       if( gCreation.mSelectedEntities.size() )
       {
-        const v3 origin = gCreation.mSelectedEntities.GetGizmoOrigin();
+        const v3 origin { gCreation.mSelectedEntities.GetGizmoOrigin() };
         unitsPerTick = Distance( origin, gCreation.mEditorCamera->mPos ) * 0.1f;
       }
 
@@ -1022,16 +1019,16 @@ namespace Tac
   {
     TAC_PROFILE_BLOCK;
 
-    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
-    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    const Render::ViewHandle viewHandle { WindowGraphicsGetView( mDesktopWindowHandle ) };
+    const Render::FramebufferHandle framebufferHandle { WindowGraphicsGetFramebuffer( mDesktopWindowHandle ) };
 
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    const DesktopWindowState* desktopWindowState { GetDesktopWindowState( mDesktopWindowHandle ) };
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
 
-    const v2 size = desktopWindowState->GetSizeV2();
+    const v2 size { desktopWindowState->GetSizeV2() };
     const Render::Viewport viewport(size);
     const Render::ScissorRect scissorRect(size);
 
@@ -1093,7 +1090,7 @@ namespace Tac
     if( !gCreation.mSelectedGizmo )
       return;
 
-    const v3 origin = gCreation.mSelectedEntities.GetGizmoOrigin();
+    const v3 origin { gCreation.mSelectedEntities.GetGizmoOrigin() };
     float gizmoMouseDist;
     float secondDist;
     ClosestPointTwoRays( gCreation.mEditorCamera->mPos,
@@ -1102,8 +1099,7 @@ namespace Tac
                          gCreation.mTranslationGizmoDir,
                          &gizmoMouseDist,
                          &secondDist );
-    const v3 translate = gCreation.mTranslationGizmoDir *
-      ( secondDist - gCreation.mTranslationGizmoOffset );
+    const v3 translate { gCreation.mTranslationGizmoDir * ( secondDist - gCreation.mTranslationGizmoOffset ) };
     for( Entity* entity : gCreation.mSelectedEntities )
     {
       entity->mRelativeSpace.mPosition += translate;
@@ -1122,7 +1118,7 @@ namespace Tac
   void CreationGameWindow::SetStatusMessage( const StringView& msg,
                                              const TimestampDifference& duration )
   {
-    const Timestamp curTime = Timestep::GetElapsedTime();
+    const Timestamp curTime { Timestep::GetElapsedTime() };
     mStatusMessage = msg;
     mStatusMessageEndTime = curTime + duration;
   }

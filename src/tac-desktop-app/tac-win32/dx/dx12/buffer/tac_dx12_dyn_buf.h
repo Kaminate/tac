@@ -13,7 +13,7 @@ namespace Tac::Render
     D3D12_RESOURCE_DESC            mDesc{};
     D3D12_RESOURCE_STATES          mState{};
     DX12DescriptorHeapAllocation   mRTV;
-    void*                          mMappedCPUAddr = nullptr;
+    void*                          mMappedCPUAddr {};
   };
 
 } // namespace Tac::Render

@@ -18,7 +18,7 @@ namespace Tac::Render
     bool IsEnabled() const { return m_debugLayerEnabled; }
 
   private:
-    bool m_debugLayerEnabled = false;
+    bool m_debugLayerEnabled { false };
     PCom< ID3D12Debug > m_debug;
   };
 

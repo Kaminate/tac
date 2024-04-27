@@ -66,7 +66,7 @@ namespace Tac
 #if 0
   struct CollideResult
   {
-    bool mCollided = false;
+    bool mCollided { false };
 
   };
 

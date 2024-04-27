@@ -231,25 +231,25 @@ namespace Tac
                               Drag_Setter setter,
                               Drag_MouseHandler mouseHandler )
   {
-    const ImGuiWindow* window = ImGuiGlobals::Instance.mCurrentWindow;
-    const float xMax = window->mViewportSpaceVisibleRegion.mMaxi.x;
-    const float xCur = window->mViewportSpaceCurrCursor.x;
+    const ImGuiWindow* window { ImGuiGlobals::Instance.mCurrentWindow };
+    const float xMax { window->mViewportSpaceVisibleRegion.mMaxi.x };
+    const float xCur { window->mViewportSpaceCurrCursor.x };
 
-    static const float dragNumbersPercentage = 0.66f;
+    static const float dragNumbersPercentage { 0.66f };
 
-    float dragW = xMax - xCur; // total remaining usable width
+    float dragW { xMax - xCur }; // total remaining usable width
     dragW *= dragNumbersPercentage; // width usable for the drag widgets (not the label)
     dragW -= ( n - 1 ) * ImGuiGlobals::Instance.mUIStyle.itemSpacing.x; // account for sameline
     dragW /= n; // width usable for a single drag widget
 
 
-    UI2DDrawData* drawData = window->mDrawData;
+    UI2DDrawData* drawData { window->mDrawData };
     drawData->PushDebugGroup( "ImGuiDragTypeN", str );
 
-    bool changed = false;
+    bool changed { false };
     for( int i{}; i < n; ++i )
     {
-      void* value = ( char* )values + ( std::ptrdiff_t )( i * sizeOfT );
+      void* value { ( char* )values + ( std::ptrdiff_t )( i * sizeOfT ) };
       changed |= ImguiDragValNoLabel( dragW, value, sizeOfT, getter, setter, mouseHandler );
       ImGuiSameLine();
     }
@@ -263,15 +263,15 @@ namespace Tac
 
   static String DragFloatGetter( const void* from )
   {
-    const float f = *( float* )from;
+    const float f { *( float* )from };
 
     // TODO: replace with return FormatString( "{:.2}", f );
     //       once visual studio doesnt fuck the syntax highlighting
-    String s = ToString( f );
-    const int iDot = s.find( '.' );
+    String s { ToString( f ) };
+    const int iDot { s.find( '.' ) };
     if( iDot != s.npos )
     {
-      const int numDigitsAfterDecimal = 2;
+      const int numDigitsAfterDecimal { 2 };
       s.resize( Min( s.size(), iDot + numDigitsAfterDecimal + 1 ) );
     }
     return s;
@@ -286,9 +286,9 @@ namespace Tac
                                      const void* valAtDragStart,
                                      void* curVal )
   {
-    const float& valAtDragStartRef = *( const float* )valAtDragStart;
-    float& curValRef = *( float* )curVal;
-    const float offset = ( float )( mouseChangeSinceBeginningOfDrag * 0.1f );
+    const float& valAtDragStartRef { *( const float* )valAtDragStart };
+    float& curValRef { *( float* )curVal };
+    const float offset { ( float )( mouseChangeSinceBeginningOfDrag * 0.1f ) };
     curValRef = valAtDragStartRef + offset;
   };
 
@@ -305,9 +305,9 @@ namespace Tac
                                        const void* valAtDragStart,
                                        void* curVal )
   {
-    const int& valAtDragStartRef = *( const int* )valAtDragStart;
-    int& curValRef = *( int* )curVal;
-    const int offset = ( int )( mouseChangeSinceBeginningOfDrag / 50.0f );
+    const int& valAtDragStartRef { *( const int* )valAtDragStart };
+    int& curValRef { *( int* )curVal };
+    const int offset { ( int )( mouseChangeSinceBeginningOfDrag / 50.0f ) };
     curValRef = valAtDragStartRef + offset;
   };
 

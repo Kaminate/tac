@@ -72,7 +72,8 @@ namespace Tac::Render
                           &mCommandQueue,
                           &mUploadPageManager,
                           &mSwapChainMgr,
-                          mDevice );
+                          mDevice,
+                          this );
     mUploadPageManager.Init( mDevice, &mCommandQueue );
     /*
 

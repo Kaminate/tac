@@ -27,8 +27,8 @@ using Microsoft::WRL::ComPtr;
 
 #define TAC_DX11_CALL( call )                                                                      \
 {                                                                                                  \
-  const HRESULT hr = call;                                                                         \
-  const bool failed = FAILED( hr );                                                                \
+  const HRESULT hr { call };                                                                       \
+  const bool failed { FAILED( hr ) };                                                              \
   if( failed )                                                                                     \
   {                                                                                                \
     TAC_CALL( Tac::Render::DX11CallAux( #call, hr, errors ) );                                     \
@@ -37,8 +37,8 @@ using Microsoft::WRL::ComPtr;
 
 #define TAC_DX11_CALL_RETURN( retval, call )                                                       \
 {                                                                                                  \
-  const HRESULT hr = call;                                                                         \
-  const bool failed = FAILED( hr );                                                                \
+  const HRESULT hr { call };                                                                       \
+  const bool failed { FAILED( hr ) };                                                              \
   if( failed )                                                                                     \
   {                                                                                                \
     TAC_CALL_RET( retval, Tac::Render::DX11CallAux( #call, hr, errors ) );                         \
@@ -55,7 +55,7 @@ namespace Tac::Render
   struct ConstantBuffer
   {
     //ComPtr<ID3D11Buffer> mBuffer;
-    ID3D11Buffer* mBuffer = nullptr;
+    ID3D11Buffer* mBuffer { nullptr };
 
     //            mName is used to
     //            1) Insure that multiple cbuffers aren't created with the same name
@@ -69,22 +69,20 @@ namespace Tac::Render
   struct DX11Program
   {
     ConstantBuffers            mConstantBuffers;
-
-    ID3D11VertexShader*        mVertexShader = nullptr;
-    ID3D11GeometryShader*      mGeometryShader = nullptr;
-    ID3D11PixelShader*         mPixelShader = nullptr;
-
-    ID3DBlob*                  mInputSig = nullptr;
+    ID3D11VertexShader*        mVertexShader { nullptr };
+    ID3D11GeometryShader*      mGeometryShader { nullptr };
+    ID3D11PixelShader*         mPixelShader { nullptr };
+    ID3DBlob*                  mInputSig { nullptr };
   };
 
   struct Texture
   {
-    ID3D11DepthStencilView*    mTextureDSV = {};
-    ID3D11Texture2D*           mTexture2D = {};
-    ID3D11Texture3D*           mTexture3D = {};
-    ID3D11RenderTargetView*    mTextureRTV = {};
-    ID3D11ShaderResourceView*  mTextureSRV = {};
-    ID3D11UnorderedAccessView* mTextureUAV = {};
+    ID3D11DepthStencilView*    mTextureDSV  {};
+    ID3D11Texture2D*           mTexture2D   {};
+    ID3D11Texture3D*           mTexture3D   {};
+    ID3D11RenderTargetView*    mTextureRTV  {};
+    ID3D11ShaderResourceView*  mTextureSRV  {};
+    ID3D11UnorderedAccessView* mTextureUAV  {};
   };
 
   struct Framebuffer
@@ -93,36 +91,36 @@ namespace Tac::Render
     //
     // Render-to-texture framebuffers do not.
 
-    FLOAT                      mClearColorRGBA[ 4 ] = { 0, 0, 0, 1 };
-    bool                       mClearEachFrame = true;
+    FLOAT                      mClearColorRGBA[ 4 ]  { 0, 0, 0, 1 };
+    bool                       mClearEachFrame { true };
 
-    int                        mBufferCount = 0;
-    PCom<IDXGISwapChain4>      mSwapChain;
-    ID3D11DepthStencilView*    mDepthStencilView = nullptr;
-    ID3D11RenderTargetView*    mRenderTargetView = nullptr;
-    ID3D11Texture2D*           mDepthTexture = nullptr;
-    HWND                       mHwnd = nullptr;
+    int                        mBufferCount {};
+    PCom< IDXGISwapChain4 >    mSwapChain;
+    ID3D11DepthStencilView*    mDepthStencilView {};
+    ID3D11RenderTargetView*    mRenderTargetView {};
+    ID3D11Texture2D*           mDepthTexture {};
+    HWND                       mHwnd {};
     String                     mDebugName; // Used when resizing the framebuffer
   };
 
   struct VertexBuffer
   {
-    ID3D11Buffer* mBuffer = nullptr;
-    UINT          mStride = 0;
+    ID3D11Buffer* mBuffer {};
+    UINT          mStride {};
     //Format mFormat; bad. format is in the vertexformat
   };
 
   struct IndexBuffer
   {
-    ID3D11Buffer* mBuffer = nullptr;
-    Format        mFormat;
+    ID3D11Buffer* mBuffer {};
+    Format        mFormat {};
   };
 
   struct MagicBuffer
   {
-    ID3D11Buffer*              mBuffer = nullptr;
-    ID3D11UnorderedAccessView* mUAV = nullptr;
-    ID3D11ShaderResourceView*  mSRV = nullptr;
+    ID3D11Buffer*              mBuffer { nullptr };
+    ID3D11UnorderedAccessView* mUAV { nullptr };
+    ID3D11ShaderResourceView*  mSRV { nullptr };
     void SetDebugName( const StringView& );
     void clear();
   };
@@ -138,9 +136,9 @@ namespace Tac::Render
     //            Slots are allowed to be empty (ie, not memory contiguous)
     BoundSrvSlots mBoundShaderResourceViews;
 
-    int           mMaxUsedIndex = -1;
-    int           mBoundTextureCount = 0;
-    HashValue     mHash = 0;
+    int           mMaxUsedIndex      { -1 };
+    int           mBoundTextureCount { 0 };
+    HashValue     mHash              { 0 };
   };
 
   using BoundCBufSlots = Array<
@@ -152,9 +150,9 @@ namespace Tac::Render
     static BoundCBufs ShaderCBufs( const ConstantBuffers& );
 
     BoundCBufSlots mBoundConstantBuffers;
-    int            mMaxUsedIndex = -1;
-    int            mBoundCBufCount = 0;
-    HashValue      mHash = 0;
+    int            mMaxUsedIndex   { -1 };
+    int            mBoundCBufCount { 0 };
+    HashValue      mHash           { 0 };
   };
 
   struct RendererDirectX11 : public Renderer
@@ -242,7 +240,7 @@ namespace Tac::Render
 
     ConstantBufferHandle FindCbufferOfName( const StringView& );
 
-    DX11Program*          FindProgram( ShaderHandle ) ;
+    DX11Program*      FindProgram( ShaderHandle ) ;
     Framebuffer*      FindFramebuffer( FramebufferHandle );
     Texture*          FindTexture( TextureHandle );
     IndexBuffer*      FindIndexBuffer( IndexBufferHandle );
@@ -250,31 +248,31 @@ namespace Tac::Render
     MagicBuffer*      FindMagicBuffer( MagicBufferHandle );
     ConstantBuffer*   FindConstantBuffer( ConstantBufferHandle );
 
-    ID3D11InfoQueue*           mInfoQueueDEBUG = nullptr;
-    ID3DUserDefinedAnnotation* mUserAnnotationDEBUG = nullptr;
+    ID3D11InfoQueue*           mInfoQueueDEBUG                               {};
+    ID3DUserDefinedAnnotation* mUserAnnotationDEBUG                          {};
     PCom<ID3D11Device3>        mDevice;
     PCom<ID3D11DeviceContext4> mDeviceContext;
 
-    Texture                    mTextures[ kMaxTextures ] = {};
-    MagicBuffer                mMagicBuffers[ kMaxMagicBuffers ] = {};
-    VertexBuffer               mVertexBuffers[ kMaxVertexBuffers ] = {};
-    IndexBuffer                mIndexBuffers[ kMaxIndexBuffers ] = {};
-    Framebuffer                mFramebuffers[ kMaxFramebuffers ] = {};
-    FramebufferHandle          mWindows[ kMaxFramebuffers ];
-    int                        mWindowCount = 0;
-    ID3D11RasterizerState*     mRasterizerStates[ kMaxRasterizerStates ] = {};
-    ID3D11SamplerState*        mSamplerStates[ kMaxSamplerStates ] = {};
-    ID3D11DepthStencilState*   mDepthStencilStates[ kMaxDepthStencilStates ] = {};
-    ID3D11InputLayout*         mInputLayouts[ kMaxInputLayouts ] = {};
-    ID3D11BlendState*          mBlendStates[ kMaxBlendStates ] = {};
-    ConstantBuffer             mConstantBuffers[ kMaxConstantBuffers ] = {};
-    DX11Program                mPrograms[ kMaxPrograms ] = {};
+    Texture                    mTextures[ kMaxTextures ]                     {};
+    MagicBuffer                mMagicBuffers[ kMaxMagicBuffers ]             {};
+    VertexBuffer               mVertexBuffers[ kMaxVertexBuffers ]           {};
+    IndexBuffer                mIndexBuffers[ kMaxIndexBuffers ]             {};
+    Framebuffer                mFramebuffers[ kMaxFramebuffers ]             {};
+    FramebufferHandle          mWindows[ kMaxFramebuffers ]                  {};
+    int                        mWindowCount                                  {};
+    ID3D11RasterizerState*     mRasterizerStates[ kMaxRasterizerStates ]     {};
+    ID3D11SamplerState*        mSamplerStates[ kMaxSamplerStates ]           {};
+    ID3D11DepthStencilState*   mDepthStencilStates[ kMaxDepthStencilStates ] {};
+    ID3D11InputLayout*         mInputLayouts[ kMaxInputLayouts ]             {};
+    ID3D11BlendState*          mBlendStates[ kMaxBlendStates ]               {};
+    ConstantBuffer             mConstantBuffers[ kMaxConstantBuffers ]       {};
+    DX11Program                mPrograms[ kMaxPrograms ]                     {};
 
 
     //                         Currently bound render variables
-    PrimitiveTopology          mBoundPrimitiveTopology = PrimitiveTopology::Unknown;
-    ID3D11BlendState*          mBoundBlendState = nullptr;
-    ID3D11DepthStencilState*   mBoundDepthStencilState = nullptr;
+    PrimitiveTopology          mBoundPrimitiveTopology { PrimitiveTopology::Unknown };
+    ID3D11BlendState*          mBoundBlendState        {};
+    ID3D11DepthStencilState*   mBoundDepthStencilState {};
     BoundCBufs                 mBoundConstantBuffers;
     BoundSRVs                  mBoundSRVs;
 
@@ -284,7 +282,7 @@ namespace Tac::Render
     ViewHandle                 mBoundViewHandle;
     VertexBufferHandle         mBoundVertexBuffer;
     IndexBufferHandle          mBoundIndexBuffer;
-    bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ] = {};
+    bool                       mBoundFramebuffersThisFrame[ kMaxFramebuffers ]  {};
     DrawCallUAVs               mBoundDrawCallUAVs;
     VertexFormatHandle         mBoundDrawCallVertexFormat;
 

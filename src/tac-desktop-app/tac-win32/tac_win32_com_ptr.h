@@ -107,7 +107,7 @@ namespace Tac
 
   private:
     
-    T* mT = nullptr;
+    T* mT {};
   };
 
 } // namespace Tac
