@@ -56,7 +56,7 @@ namespace Tac
 
   void HelloTriangle::Init( InitParams initParams, Errors& errors )
   {
-    SysWindowApi* windowApi{ initParams.mWindowApi };
+    const SysWindowApi* windowApi{ initParams.mWindowApi };
     mColorFormat = windowApi->GetSwapChainColorFormat();
 
     InitWindow( initParams, errors );
@@ -268,6 +268,7 @@ namespace Tac
     Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( sWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
+    Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };
 
     TAC_CALL( Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) } );
     const Render::Targets renderTargets
@@ -279,12 +280,12 @@ namespace Tac
     renderContext->SetPipeline( mPipeline );
     renderContext->SetViewport( windowSize );
     renderContext->SetScissor( windowSize );
+    renderContext->ClearColor( swapChainColor, { 0,0,1,0 } );
+    renderContext->ClearDepth( swapChainDepth, 1 );
 
     TAC_CALL( renderContext->Execute( errors ) );
 
 
-    ID3D12GraphicsCommandList* m_commandList;
-    m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
 #if 0
 
 

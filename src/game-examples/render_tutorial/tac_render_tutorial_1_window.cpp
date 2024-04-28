@@ -24,7 +24,7 @@ namespace Tac
     RenderTutorial1Window( App::Config cfg ) : App( cfg ) {}
     void Init( InitParams initParams, Errors& errors ) override
     {
-      SysWindowApi* windowApi = initParams.mWindowApi;
+      const SysWindowApi* windowApi = initParams.mWindowApi;
       const Monitor monitor = OS::OSGetPrimaryMonitor();
       const v2i windowSize{ monitor.mSize / 2 };
       const v2i windowPos{ ( monitor.mSize - windowSize ) / 2 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/math/tac_vector2i.h"
+#include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/error/tac_stack_frame.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/memory/tac_smart_ptr.h"
@@ -130,7 +131,7 @@ namespace Tac::Render
 
   struct FormatElement
   {
-    int          mPerElementByteCount { 0 };
+    int          mPerElementByteCount {};
     GraphicsType mPerElementDataType { GraphicsType::unknown };
 
     static const FormatElement sFloat;
@@ -139,12 +140,13 @@ namespace Tac::Render
   // Used so the gpu can translate from cpu types to gpu types
   struct Format
   {
-    int          CalculateTotalByteCount() const;
-    int          mElementCount { 0 };
-    int          mPerElementByteCount { 0 };
-    GraphicsType mPerElementDataType { GraphicsType::unknown };
-
+    int           CalculateTotalByteCount() const;
     static Format FromElements( FormatElement, int = 1 );
+
+    int           mElementCount        {};
+    int           mPerElementByteCount {};
+    GraphicsType  mPerElementDataType  { GraphicsType::unknown };
+
     static const Format sfloat;
     static const Format sv2;
     static const Format sv3;
@@ -158,7 +160,7 @@ namespace Tac::Render
 
     //        Offset of the variable from the vertex buffer
     //        ie: OffsetOf( MyVertexType, mPosition)
-    int       mAlignedByteOffset { 0 };
+    int       mAlignedByteOffset {};
   };
 
   struct VertexDeclarations : public FixedVector< VertexDeclaration, 10 > {};
@@ -166,10 +168,11 @@ namespace Tac::Render
   // $$$ Should this still be called an "Image", since the data parameter was removed?
   struct Image
   {
-    int    mWidth  { 0 };
-    int    mHeight { 0 };
-    int    mDepth  { 0 };
+    int    mWidth  {};
+    int    mHeight {};
+    int    mDepth  {};
     Format mFormat;
+    TexFmt mFormat2{ kUnknown };
 
     // Note that byte data should be passed as a separate argument,
     // and not as a member of this class
@@ -193,8 +196,8 @@ namespace Tac::Render
 
   struct SwapChainParams
   {
-    const void* mNWH{};
-    v2i         mSize{};
+    const void* mNWH     {};
+    v2i         mSize    {};
     TexFmt      mColorFmt{};
     TexFmt      mDepthFmt{};
   };
@@ -220,7 +223,7 @@ namespace Tac::Render
     Write = 0b10 // can be mapped for cpu writing
   };
 
-  enum Binding
+  enum class Binding
   {
     None            = 0b00000000,
     ShaderResource  = 0b00000001, // SRV
@@ -230,8 +233,8 @@ namespace Tac::Render
     ConstantBuffer  = 0b00010000, // CBV
   };
 
-  //Binding operator | ( Binding, Binding );
-  //Binding operator & ( Binding, Binding );
+  Binding operator | ( Binding, Binding );
+  Binding operator & ( Binding, Binding );
 
   struct CreateTextureParams
   {
@@ -317,6 +320,9 @@ namespace Tac::Render
 
     // represents a single point in time
     virtual void DebugMarker( StringView ) {}
+
+    virtual void ClearColor( TextureHandle, v4 ) {}
+    virtual void ClearDepth( TextureHandle, float ) {}
     virtual void Execute( Errors& ) {}
 
   protected:

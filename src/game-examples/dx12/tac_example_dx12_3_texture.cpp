@@ -1289,7 +1289,7 @@ namespace Tac
 
   void DX12AppHelloTexture::Render( RenderParams renderParams , Errors& errors )
   {
-    SysWindowApi* windowApi = renderParams.mWindowApi;
+    const SysWindowApi* windowApi = renderParams.mWindowApi;
     if( !windowApi->IsShown( hDesktopWindow ) )
       return;
 

@@ -36,7 +36,7 @@ namespace Tac
   void LevelEditorApp::Init( InitParams initParams, Errors& errors )
   {
     DesktopApp* desktopApp = DesktopApp::GetInstance();
-    SysWindowApi* windowApi = initParams.mWindowApi;
+    const SysWindowApi* windowApi = initParams.mWindowApi;
 
     const WindowCreateParams windowCreateParams
     {

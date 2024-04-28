@@ -93,9 +93,9 @@ namespace Tac
   {
     const Render::Format format
     {
-      .mElementCount { 1 },
+      .mElementCount        { 1 },
       .mPerElementByteCount { 4 },
-      .mPerElementDataType { Render::GraphicsType::real },
+      .mPerElementDataType  { Render::GraphicsType::real },
     };
 
     const Render::Image image
@@ -105,10 +105,16 @@ namespace Tac
       .mFormat { format },
     };
 
+    const Render::Binding binding
+    {
+      Render::Binding::DepthStencil |
+      Render::Binding::ShaderResource
+    };
+
     const Render::CreateTextureParams params
     {
       .mImage        { image },
-      .mBinding      { Render::Binding::DepthStencil | Render::Binding::ShaderResource },
+      .mBinding      { binding },
       .mOptionalName { "shadowmap-depth" },
       .mStackFrame   { TAC_STACK_FRAME },
     };

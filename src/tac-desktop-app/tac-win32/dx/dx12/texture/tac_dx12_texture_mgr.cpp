@@ -2,9 +2,29 @@
 #include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
+
+#if !TAC_DELETE_ME()
+#include "tac-std-lib/os/tac_os.h"
+#endif
 
 namespace Tac::Render
 {
+
+  static DXGI_FORMAT GetImageDXGIFmt( const Image& image )
+  {
+    if( const TexFmt fmt{ image.mFormat2 }; fmt != TexFmt::kUnknown )
+      return TexFmtToDxgiFormat( fmt );
+
+    if( const Format& fmt{ image.mFormat };
+        !( fmt.mElementCount == 0
+        && fmt.mPerElementByteCount == 0
+        && fmt.mPerElementDataType == GraphicsType::unknown ) )
+      return GetDXGIFormatTexture( fmt );
+
+    return DXGI_FORMAT_UNKNOWN;
+  }
+
   void DX12TextureMgr::Init( Params params )
   {
     mDevice = params.mDevice;
@@ -25,6 +45,7 @@ namespace Tac::Render
 
 
 
+#if 0
 
 
 
@@ -234,6 +255,7 @@ namespace Tac::Render
 
 
 
+#endif
 
 
 
@@ -248,37 +270,42 @@ namespace Tac::Render
 
 
 
+    OS::OSDebugBreak();
 
+#if 0
 
-
-    if( params.mBinding & Binding::DepthStencil )
+    PCom< ID3D12Resource > resource;
+    ID3D12Resource* pResource = resource.Get();
+    if( Binding{} != ( params.mBinding & Binding::DepthStencil ) )
     {
       const D3D12_TEX2D_DSV depthTex2D
       {
       };
 
-      DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-      const DXGI_FORMAT Format = TexFmtToDxgiFormat( params.mf;
+      const DXGI_FORMAT dxgiFmt = GetImageDXGIFmt(params.mImage);
+      TAC_ASSERT( dxgiFmt != DXGI_FORMAT_UNKNOWN );
 
       const D3D12_DEPTH_STENCIL_VIEW_DESC desc
       {
-        .Format{Format},
+        .Format       { dxgiFmt },
         .ViewDimension{ D3D12_DSV_DIMENSION_TEXTURE2D },
       };
-      ID3D12Resource* pResource = ;
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor = ;
       mDevice->CreateDepthStencilView( pResource, &desc, descDescriptor );
     }
+
+    Optional< DX12DescriptorHeapAllocation > DSV;
+    Optional< DX12DescriptorHeapAllocation > RTV;
 
     *texture = DX12Texture
     {
       .mResource { resource },
       .mDesc     { resource->GetDesc() },
       .mState    { D3D12_RESOURCE_STATE_PRESENT }, // Render targets are created in present state
-      .mRTV      { allocation },
-      .mDSV      { allocation },
+      .mRTV      { RTV },
+      .mDSV      { DSV },
     };
+#endif
   }
 
   void DX12TextureMgr::CreateRenderTargetColor( TextureHandle h,

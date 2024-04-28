@@ -6,6 +6,9 @@
 
 namespace Tac
 {
+  // still needed, even if Binding is not an enum class
+  Render::Binding Render::operator | ( Binding lhs, Binding rhs ) { return Binding{ ( int )lhs | ( int )rhs }; }
+  Render::Binding Render::operator & ( Binding lhs, Binding rhs ) { return Binding{ ( int )lhs & ( int )rhs }; }
 }
 
 namespace Tac::Render
@@ -16,8 +19,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  Binding operator | ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs | ( int )rhs ); }
-  Binding operator & ( Binding lhs, Binding rhs ) { return ( Binding )( ( int )lhs & ( int )rhs ); }
 
   // -----------------------------------------------------------------------------------------------
 

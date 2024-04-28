@@ -2,6 +2,7 @@
 
 #include "tac-win32/dx/dx12/program/tac_dx12_program_mgr.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
 #include "tac-win32/dx/dx12/pipeline/tac_dx12_root_sig_builder.h"
 
 //#include "tac-win32/dx/hlsl/tac_hlsl_preprocess.h"

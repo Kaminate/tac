@@ -62,7 +62,7 @@ namespace Tac::Render
 
   void DX12Context::Execute( Errors& errors )
   {
-    TAC_ASSERT( !mExecuted );
+    TAC_ASSERT( !mState.mExecuted );
 
     ID3D12GraphicsCommandList* commandList = GetCommandList();
     if( !commandList )
@@ -78,7 +78,7 @@ namespace Tac::Render
     const FenceSignal fenceSignal = TAC_CALL(
       mCommandQueue->ExecuteCommandList( commandList, errors ) );
 
-    if( mSynchronous )
+    if( mState.mSynchronous )
     {
       mCommandQueue->WaitForFence( fenceSignal, errors );
       TAC_ASSERT( !errors );
@@ -88,7 +88,7 @@ namespace Tac::Render
     mCommandAllocator = {};
     mGPUUploadAllocator.FreeAll( fenceSignal );
 
-    mExecuted = true;
+    mState.mExecuted = true;
   }
 
   ID3D12GraphicsCommandList* DX12Context::GetCommandList() { return mCommandList.Get(); }
@@ -258,7 +258,7 @@ namespace Tac::Render
     const DX12Texture* texture{ textureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV.GetCPUHandle() };
+    const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV->GetCPUHandle() };
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->ClearRenderTargetView( RTV, values.data(), 0, nullptr );
@@ -270,7 +270,7 @@ namespace Tac::Render
     const DX12Texture* texture{ textureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV.GetCPUHandle() };
+    const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV->GetCPUHandle() };
 
     const D3D12_CPU_DESCRIPTOR_HANDLE DSV { mState.mRenderTargetDepth.GetValueUnchecked() };
     const D3D12_CLEAR_FLAGS ClearFlags { D3D12_CLEAR_FLAG_DEPTH };// | D3D12_CLEAR_FLAG_STENCIL;
