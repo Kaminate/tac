@@ -34,7 +34,8 @@ namespace Tac::Render
     v2i                     mSize{};
     PCom< IDXGISwapChain4 > mSwapChain;
     DXGI_SWAP_CHAIN_DESC1   mSwapChainDesc;
-    DX12SwapChainImages     mSwapChainImages;
+    DX12SwapChainImages     mSwapChainImages; // Color backbuffer
+    TextureHandle           mSwapChainDepth; // Depth backbuffer
     SwapChainParams         mSwapChainParams{};
   };
 } // namespace Tac::Render
