@@ -847,7 +847,7 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloTexture::DX12CreateSwapChain( SysWindowApi* windowApi, Errors& errors )
+  void DX12AppHelloTexture::DX12CreateSwapChain( const SysWindowApi* windowApi, Errors& errors )
   {
     if( m_swapChain )
       return;

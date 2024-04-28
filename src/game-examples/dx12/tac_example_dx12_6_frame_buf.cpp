@@ -410,18 +410,18 @@ namespace Tac
   void DX12AppHelloFrameBuf::TransitionResource( ID3D12GraphicsCommandList* m_commandList,
                                                  TransitionParams params )
   {
-    const D3D12_RESOURCE_STATES StateBefore = *params.mCurrentState;
+    const D3D12_RESOURCE_STATES StateBefore { *params.mCurrentState };
 
     TAC_ASSERT( params.mResource );
     TAC_ASSERT( StateBefore != params.mTargetState );
 
-      const D3D12_RESOURCE_TRANSITION_BARRIER Transition 
-      {
-        .pResource   { params.mResource },
-        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-        .StateBefore { StateBefore },
-        .StateAfter  { params.mTargetState },
-      },
+    const D3D12_RESOURCE_TRANSITION_BARRIER Transition 
+    {
+      .pResource   { params.mResource },
+      .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+      .StateBefore { StateBefore },
+      .StateAfter  { params.mTargetState },
+    };
 
     const D3D12_RESOURCE_BARRIER barrier
     {
@@ -478,21 +478,21 @@ namespace Tac
     {
       Vertex
       {
-        .mPos = ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 1.0f, 0.0f, 0.0f},
-        .mUVs = TextureCoordinate2{.5f, 0},
+        .mPos { ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 1.0f, 0.0f, 0.0f} },
+        .mUVs { TextureCoordinate2{.5f, 0} },
       },
       Vertex
       {
-        .mPos = ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 0.0f, 0.0f, 1.0f},
-        .mUVs = TextureCoordinate2{0,1},
+        .mPos { ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 0.0f, 0.0f, 1.0f} },
+        .mUVs { TextureCoordinate2{0,1} },
       },
       Vertex
       {
-        .mPos = ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 0.0f, 1.0f, 0.0f},
-        .mUVs = TextureCoordinate2{1,1},
+        .mPos { ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 0.0f, 1.0f, 0.0f} },
+        .mUVs { TextureCoordinate2{1,1} },
       },
     };
 
@@ -684,7 +684,7 @@ namespace Tac
     const D3D12_RENDER_TARGET_BLEND_DESC blendDesc
     {
       .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
-    },
+    };
 
     const D3D12_BLEND_DESC BlendState
     {

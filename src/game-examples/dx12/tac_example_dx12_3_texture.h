@@ -61,7 +61,7 @@ namespace Tac
     
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( SysWindowApi*, Errors& );
+    void DX12CreateSwapChain( const SysWindowApi*, Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
@@ -97,7 +97,7 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    static const int                   bufferCount = 2;
+    static const int                   bufferCount { 2 };
 
     WindowHandle                       hDesktopWindow{};
 
@@ -152,7 +152,7 @@ namespace Tac
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
     D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
-    bool                               m_renderTargetInitialized = false;
+    bool                               m_renderTargetInitialized { false };
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
@@ -180,7 +180,7 @@ namespace Tac
     PCom<ID3D12Resource>               m_vertexBuffer;
     //D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
     UINT                               m_vertexBufferByteCount{};
-    bool                               m_vertexBufferCopied = false;
+    bool                               m_vertexBufferCopied { false };
 
     D3D12_VIEWPORT                     m_viewport{};
     D3D12_RECT                         m_scissorRect{};
