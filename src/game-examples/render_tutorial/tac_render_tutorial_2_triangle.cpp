@@ -11,7 +11,7 @@ namespace Tac
   struct ClipSpacePosition3
   {
     explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
-    explicit ClipSpacePosition3( float x, float y, float z ) : mValue{ x,y,z } {}
+    explicit ClipSpacePosition3( float x, float y, float z ) : mValue{ x, y, z } {}
     v3 mValue;
   };
 
@@ -271,16 +271,15 @@ namespace Tac
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };
 
     TAC_CALL( Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) } );
-    const Render::Targets renderTargets
-    {
-      .mColors{ swapChainColor }
-    };
+    const Render::Targets renderTargets { .mColors{ swapChainColor } };
+    const v4 clearColor{ 0, 0, 1, 0 };
+
     renderContext->SetRenderTargets( renderTargets );
 
     renderContext->SetPipeline( mPipeline );
     renderContext->SetViewport( windowSize );
     renderContext->SetScissor( windowSize );
-    renderContext->ClearColor( swapChainColor, { 0,0,1,0 } );
+    renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
 
     TAC_CALL( renderContext->Execute( errors ) );

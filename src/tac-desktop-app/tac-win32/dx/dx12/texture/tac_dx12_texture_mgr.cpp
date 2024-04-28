@@ -35,7 +35,7 @@ namespace Tac::Render
   {
     TAC_ASSERT_UNIMPLEMENTED;
 
-    DX12Texture* texture = FindTexture( h );
+    DX12Texture* texture { FindTexture( h ) };
     TAC_ASSERT( texture );
 
 
@@ -312,13 +312,13 @@ namespace Tac::Render
                                                   PCom<ID3D12Resource> resource,
                                                   Errors& errors)
   {
-    DX12Texture* texture = FindTexture( h );
+    DX12Texture* texture { FindTexture( h ) };
     TAC_ASSERT( texture );
 
     const DX12DescriptorHeapAllocation allocation  { mCpuDescriptorHeapRTV->Allocate() };
     const D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle { allocation.GetCPUHandle() };
 
-    ID3D12Resource* pResource = resource.Get();
+    ID3D12Resource* pResource { resource.Get() };
     mDevice->CreateRenderTargetView( pResource, nullptr, cpuHandle );
 
     *texture = DX12Texture

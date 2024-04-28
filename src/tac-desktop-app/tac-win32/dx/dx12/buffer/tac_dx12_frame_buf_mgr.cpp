@@ -66,6 +66,20 @@ namespace Tac::Render
 
       swapChainImages.push_back( textureHandle );
     }
+    
+
+    TextureHandle swapChainDepth;
+    if( params.mDepthFmt != kUnknown )
+    {
+      swapChainDepth = AllocTextureHandle();
+      const CreateTextureParams depthParams
+      {
+        . { params.mDepthFmt },
+        ...
+      };
+      TAC_CALL(mTextureMgr->CreateTexture( swapChainDepth, depthParams, errors ));
+
+    }
 
     mSwapChains[ iHandle ] = DX12SwapChain
     {
@@ -74,6 +88,7 @@ namespace Tac::Render
       .mSwapChain       { swapChain },
       .mSwapChainDesc   { swapChainDesc },
       .mSwapChainImages { swapChainImages },
+      .mSwapChainDepth  { swapChainDepth },
       .mSwapChainParams { params },
     };
   }
