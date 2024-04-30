@@ -280,48 +280,49 @@ namespace Tac
 
     const DXGI_SAMPLE_DESC SampleDesc = 
     {
-      .Count = 1,
+      .Count { 1 },
     };
 
     const DXGI_SWAP_CHAIN_DESC1 scd1 =
     {
-      .Width = ( UINT )info.mWidth,
-      .Height = ( UINT )info.mHeight,
-      .Format = info.mFmt,
-      .SampleDesc = SampleDesc,
-      .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-      .BufferCount = ( UINT )info.mBufferCount,
-      .SwapEffect = SwapEffect,
-      .Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH,
+      .Width       { ( UINT )info.mWidth },
+      .Height      { ( UINT )info.mHeight },
+      .Format      { info.mFmt },
+      .SampleDesc  { SampleDesc },
+      .BufferUsage { DXGI_USAGE_RENDER_TARGET_OUTPUT },
+      .BufferCount { ( UINT )info.mBufferCount },
+      .SwapEffect  { SwapEffect },
+      .Flags       { DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH },
     };
 
     const DXGI_RATIONAL RefreshRate
     {
-      .Numerator = 1,
-      .Denominator = 60,
+      .Numerator { 1 },
+      .Denominator { 60 },
     };
 
-    const DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd = {
-      .RefreshRate = RefreshRate,
-      .ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
-      .Scaling = DXGI_MODE_SCALING_UNSPECIFIED,
-      .Windowed = TRUE,
+    const DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd 
+    {
+      .RefreshRate { RefreshRate },
+      .ScanlineOrdering { DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED },
+      .Scaling { DXGI_MODE_SCALING_UNSPECIFIED },
+      .Windowed { TRUE },
     };
 
     PCom<IDXGISwapChain1> swapChain1;
 
-    const HRESULT createSwapChainHR =
+    const HRESULT createSwapChainHR{
       sImpl.mFactory->CreateSwapChainForHwnd( info.mDevice,
                                               info.mHwnd,
                                               &scd1,
                                               &scfsd,
                                               nullptr,
-                                              swapChain1.CreateAddress() );
+                                              swapChain1.CreateAddress() ) };
     if( FAILED( createSwapChainHR ) )
     {
-      const DWORD dwError = HRESULT_CODE( createSwapChainHR ); // ???
-      const String dxgiErrStr = TryInferDXGIErrorStr( createSwapChainHR );
-      const String win32ErrStr = Win32ErrorStringFromDWORD( dwError );
+      const DWORD dwError{ ( DWORD )HRESULT_CODE( createSwapChainHR ) }; // ???
+      const String dxgiErrStr { TryInferDXGIErrorStr( createSwapChainHR ) };
+      const String win32ErrStr { Win32ErrorStringFromDWORD( dwError ) };
       TAC_RAISE_ERROR_RETURN( String()
                               + "CreateSwapChainForHwnd failed, "
                               + dxgiErrStr
@@ -414,7 +415,7 @@ namespace Tac
   String Render::DXGIGetObjectName(IDXGIObject* obj)
   {
     TAC_ASSERT( obj );
-    const int kBufSize = 256;
+    const int kBufSize { 256 };
     char buf[ kBufSize ]{};
     UINT size = kBufSize;
     const HRESULT getHr = obj->GetPrivateData( WKPDID_D3DDebugObjectName, &size, buf );
@@ -427,10 +428,10 @@ namespace Tac
   // Appends the failed function call error message to Errors
   String Render::DXGICallAux( const char* fnCallWithArgs, HRESULT res )
   {
-    String inferredErrorMessage = TryInferDXGIErrorStr( res );
-    String str = String()
+    String inferredErrorMessage { TryInferDXGIErrorStr( res ) };
+    String str{ String()
       + fnCallWithArgs + " returned 0x" + Tac::Itoa( ( int )res )
-      + "(" + inferredErrorMessage + ")";
+      + "(" + inferredErrorMessage + ")" };
     return str;
   }
 

@@ -227,7 +227,7 @@ namespace Tac
     };
 
     // Describe and create a Texture2D.
-    const D3D12_RESOURCE_DESC resourceDesc =
+    const D3D12_RESOURCE_DESC resourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_TEXTURE2D },
       .Width            { Checkerboard::TextureWidth },

@@ -4,6 +4,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_window_backend.h"
 
 namespace Tac
 {
@@ -58,6 +59,7 @@ namespace Tac
   {
     const SysWindowApi* windowApi{ initParams.mWindowApi };
     mColorFormat = windowApi->GetSwapChainColorFormat();
+    WindowBackend::SysApi::mIsRendererEnabled = false; // hack
 
     InitWindow( initParams, errors );
     InitBuffer( errors );
@@ -218,37 +220,37 @@ namespace Tac
           // [x] Q: Why is BlendEnable = false? Why not just leave it out?
           //     A: You can leave it out.
 #if 0
-          .BlendEnable = false,
-          .LogicOpEnable = false,
-          .SrcBlend = D3D12_BLEND_ONE,
-          .DestBlend = D3D12_BLEND_ZERO,
-          .BlendOp = D3D12_BLEND_OP_ADD,
-          .SrcBlendAlpha = D3D12_BLEND_ONE,
-          .DestBlendAlpha = D3D12_BLEND_ZERO,
-          .BlendOpAlpha = D3D12_BLEND_OP_ADD,
-          .LogicOp = D3D12_LOGIC_OP_NOOP,
+          .BlendEnable { false },
+          .LogicOpEnable { false },
+          .SrcBlend { D3D12_BLEND_ONE },
+          .DestBlend { D3D12_BLEND_ZERO },
+          .BlendOp { D3D12_BLEND_OP_ADD },
+          .SrcBlendAlpha { D3D12_BLEND_ONE },
+          .DestBlendAlpha { D3D12_BLEND_ZERO },
+          .BlendOpAlpha { D3D12_BLEND_OP_ADD },
+          .LogicOp { D3D12_LOGIC_OP_NOOP },
 #endif
-          .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
+          .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
         },
       },
     };
 
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
-      .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = program.GetBytecode(Render::ShaderType::Vertex ),
-      .PS = program.GetBytecode(Render::ShaderType::Fragment ),
-      .BlendState = BlendState,
-      .SampleMask = UINT_MAX,
-      .RasterizerState = RasterizerState,
-      .DepthStencilState = D3D12_DEPTH_STENCIL_DESC{},
+      .pRootSignature { ( ID3D12RootSignature* )m_rootSignature },
+      .VS { program.GetBytecode( Render::ShaderType::Vertex ) },
+      .PS { program.GetBytecode( Render::ShaderType::Fragment ) },
+      .BlendState { BlendState },
+      .SampleMask { UINT_MAX },
+      .RasterizerState { RasterizerState },
+      .DepthStencilState { D3D12_DEPTH_STENCIL_DESC{} },
       .InputLayout = sUseInputLayout
           ? ( D3D12_INPUT_LAYOUT_DESC )inputLayout
           : D3D12_INPUT_LAYOUT_DESC{},
-      .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
-      .NumRenderTargets = 1,
-      .RTVFormats = { DXGIGetSwapChainFormat() },
-      .SampleDesc = { .Count = 1 },
+      .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
+      .NumRenderTargets { 1 },
+      .RTVFormats  { DXGIGetSwapChainFormat() },
+      .SampleDesc  {.Count { 1 } },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
               &psoDesc,
@@ -281,15 +283,15 @@ namespace Tac
     renderContext->SetScissor( windowSize );
     renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
+    Render::DrawArgs drawArgs
+    {
+      .mVertexCount { 3 },
+    };
+    renderContext->Draw( drawArgs );
 
     TAC_CALL( renderContext->Execute( errors ) );
 
-
 #if 0
-
-
-    const v4 clearColor = v4{ 91, 128, 193, 255.0f } / 255.0f;
-    m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
 
     if( sUseInputLayout )
     {

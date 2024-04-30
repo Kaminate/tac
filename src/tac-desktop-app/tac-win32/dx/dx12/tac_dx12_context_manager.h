@@ -55,6 +55,7 @@ namespace Tac::Render
     void                       SetPipeline( PipelineHandle ) override;
     void                       ClearColor( TextureHandle, v4 ) override;
     void                       ClearDepth( TextureHandle, float ) override;
+    void                       Draw( DrawArgs ) override;
 
     void                       DebugEventBegin( StringView ) override;
     void                       DebugEventEnd() override;
@@ -65,12 +66,15 @@ namespace Tac::Render
 
     // begin state
 
+    using RenderTargetColors = FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 >;
+    using RenderTargetDepth = Optional< D3D12_CPU_DESCRIPTOR_HANDLE >;
+
     struct State
     {
-      FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > mRenderTargetColors;
-      Optional< D3D12_CPU_DESCRIPTOR_HANDLE >        mRenderTargetDepth; 
-      bool                              mSynchronous          {};
-      bool                              mExecuted             {};
+      RenderTargetColors mRenderTargetColors;
+      RenderTargetDepth  mRenderTargetDepth; 
+      bool               mSynchronous          {};
+      bool               mExecuted             {};
     };
 
     State mState{};

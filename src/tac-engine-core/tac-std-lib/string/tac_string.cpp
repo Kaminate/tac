@@ -139,7 +139,7 @@ Tac::String Tac::ToString( unsigned int val )       { return ItoaU64( ( u64 )val
 Tac::String Tac::ToString( unsigned long long val ) { return ItoaU64( ( u64 )val ); }
 Tac::String Tac::ToString( int val )                { return Itoa( val ); }
 Tac::String Tac::ToString( char c )                 { return String( 1, c ); }
-Tac::String Tac::ToString( const void* val )        { return "0x" + ItoaU64( ( u64 )val ); }
+Tac::String Tac::ToString( const void* val )        { return "0x" + ItoaU64( ( u64 )val, 16 ); }
 Tac::String Tac::ToString( double val )
 {
   const bool isNegative{ val < 0 };

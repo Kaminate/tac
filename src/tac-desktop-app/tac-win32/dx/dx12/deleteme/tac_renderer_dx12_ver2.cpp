@@ -17,11 +17,11 @@ namespace Tac::Render
 
   void DX12CommandList::Draw()
   {
-    ID3D12GraphicsCommandList* cmdList = mContext.GetCommandList();
-    const UINT vtxCountPerInstance = 0;
-    const UINT instanceCount = 0;
-    const UINT startVertexLocation = 0;
-    const UINT startIndexLocation = 0;
+    ID3D12GraphicsCommandList* cmdList { mContext.GetCommandList() };
+    const UINT vtxCountPerInstance { 0 };
+    const UINT instanceCount { 0 };
+    const UINT startVertexLocation { 0 };
+    const UINT startIndexLocation { 0 };
     cmdList->DrawInstanced( vtxCountPerInstance,
                             instanceCount,
                             startVertexLocation,
@@ -43,7 +43,7 @@ namespace Tac::Render
 
   void DX12Backend::Init( Errors& errors )
   {
-    const int maxGPUFrameCount = Render::GetMaxGPUFrameCount();
+    const int maxGPUFrameCount { Render::GetMaxGPUFrameCount() };
     TAC_ASSERT( maxGPUFrameCount );
     mFenceValues.resize( maxGPUFrameCount );
 
@@ -75,16 +75,16 @@ namespace Tac::Render
 
   SmartPtr< ICommandList > DX12Backend::GetCommandList( ContextHandle handle, Errors& errors )
   {
-    const int i = handle.GetHandleIndex();
+    const int i { handle.GetHandleIndex() };
     if( !( i < mContexts.size() ) )
     {
       mContexts.resize( i + 1 );
     }
 
-    DX12Context context = mContextManager.GetContextNoScope( errors );
+    DX12Context context { mContextManager.GetContextNoScope( errors ) };
     mContexts[ i ] = context;
 
-    DX12CommandList* dx12CmdList = TAC_NEW DX12CommandList;
+    DX12CommandList* dx12CmdList { TAC_NEW DX12CommandList };
     dx12CmdList->mContext = context;
 
     return SmartPtr< ICommandList >{ dx12CmdList };
@@ -94,34 +94,36 @@ namespace Tac::Render
   {
     const D3D12_HEAP_PROPERTIES HeapProps
     {
-      .Type = D3D12_HEAP_TYPE_UPLOAD,
-      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-      .CreationNodeMask = 1,
-      .VisibleNodeMask = 1,
+      .Type { D3D12_HEAP_TYPE_UPLOAD },
+      .CPUPageProperty { D3D12_CPU_PAGE_PROPERTY_UNKNOWN },
+      .MemoryPoolPreference { D3D12_MEMORY_POOL_UNKNOWN },
+      .CreationNodeMask { 1 },
+      .VisibleNodeMask { 1 },
+    };
+
+    const DXGI_SAMPLE_DESC SampleDesc 
+    {
+      .Count   { 1 },
+      .Quality { 0 },
     };
 
     const D3D12_RESOURCE_DESC ResourceDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-      .Alignment = 0,
-      .Width = ( UINT64 )params.mByteCount,
-      .Height = 1,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_UNKNOWN,
-      .SampleDesc = DXGI_SAMPLE_DESC
-      {
-        .Count = 1,
-        .Quality = 0
-      },
-      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-      .Flags = D3D12_RESOURCE_FLAG_NONE,
+      .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
+      .Alignment        { 0 },
+      .Width            { ( UINT64 )params.mByteCount },
+      .Height           { 1 },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_UNKNOWN },
+      .SampleDesc       { SampleDesc },
+      .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
+      .Flags            { D3D12_RESOURCE_FLAG_NONE },
     };
 
     const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
 
-    ID3D12Device* device = mDevice.GetID3D12Device();
+    ID3D12Device* device { mDevice.GetID3D12Device() };
 
     PCom< ID3D12Resource > buffer;
     TAC_DX12_CALL( device->CreateCommittedResource(
@@ -142,8 +144,8 @@ namespace Tac::Render
       nullptr, // nullptr indicates the whole subrsc may be read by cpu
       &cpuAddr ) );
 
-    const int i = params.mHandle.GetHandleIndex();
-    const int n = mDynBufs.size();
+    const int i { params.mHandle.GetHandleIndex() };
+    const int n { mDynBufs.size() };
     if( !( i < n ) )
       mDynBufs.resize( i + 1 );
 
@@ -156,20 +158,20 @@ namespace Tac::Render
 
   void DX12Backend::UpdateDynamicBuffer2( const DynBufUpdateParams& params )
   {
-    const void* srcBytes = params.mUpdateMemory->GetBytes();
-    const int srcByteCount = params.mUpdateMemory->GetByteCount();
+    const void* srcBytes { params.mUpdateMemory->GetBytes() };
+    const int srcByteCount { params.mUpdateMemory->GetByteCount() };
 
-    const int iBuf = params.mHandle.GetHandleIndex();
-    DX12DynBuf& dynBuf = mDynBufs[ iBuf ];
-    void* dstBytes = ( char* )dynBuf.mMappedCPUAddr + params.mByteOffset;
+    const int iBuf { params.mHandle.GetHandleIndex() };
+    DX12DynBuf& dynBuf { mDynBufs[ iBuf ] };
+    void* dstBytes { ( char* )dynBuf.mMappedCPUAddr + params.mByteOffset };
 
     MemCpy( dstBytes, srcBytes, srcByteCount );
   }
 
   void DX12Backend::SetRenderObjectName( const SetRenderObjectNameParams& params )
   {
-    const int i = params.mHandle.GetHandleIndex();
-    const HandleType type = params.mHandle.GetHandleType();
+    const int i { params.mHandle.GetHandleIndex() };
+    const HandleType type { params.mHandle.GetHandleType() };
     switch( type )
     {
     case HandleType::kDynamicBuffer: mDynBufs[ i ].SetName( params.mName ); break;

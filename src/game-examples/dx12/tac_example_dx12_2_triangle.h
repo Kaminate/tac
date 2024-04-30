@@ -1,10 +1,9 @@
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
-
-#include "tac_example_dx12_win32_event.h"
+#include "tac-win32/tac_win32_com_ptr.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
+#include "tac-win32/event/tac_win32_event.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 
 #include <d3d12.h> // D3D12...
 
@@ -25,16 +24,17 @@ namespace Tac
   {
     DX12AppHelloTriangle( const Config& );
 
-    void Init( Errors& ) override;
-    void Update( Errors& ) override;
+    void Init( InitParams, Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
+    void Render( RenderParams, Errors& ) override;
     void Uninit( Errors& ) override;
 
   private:
 
     // Helper functions for Init
-    void PreSwapChainInit(Errors&);
+    void PreSwapChainInit(InitParams, Errors&);
     void PostSwapChainInit(Errors&);
-    void CreateDesktopWindow();
+    void CreateDesktopWindow(InitParams, Errors& );
 
     void EnableDebug( Errors& );
 
@@ -54,7 +54,7 @@ namespace Tac
     
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( Errors& );
+    void DX12CreateSwapChain( HWND, v2i, Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
@@ -80,7 +80,8 @@ namespace Tac
 
     static const int                   bufferCount = 2;
 
-    DesktopWindowHandle                hDesktopWindow;
+    WindowHandle                       hDesktopWindow;
+    float                              mT;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -163,6 +164,7 @@ namespace Tac
 
     PCom< IDXGISwapChain4 >            m_swapChain;
     DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc;
+    Render::TexFmt                     mRTVFmt{ kUnknown };
  
     // ---------------------------------------------------------------------------------------------
 
@@ -176,6 +178,7 @@ namespace Tac
 
     // UINT64 is big enough to run at 1000 fps for 500 million years
     UINT64                             m_fenceValue{};
+
   };
 } // namespace Tac
 

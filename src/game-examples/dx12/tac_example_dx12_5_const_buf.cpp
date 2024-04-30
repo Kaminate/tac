@@ -208,7 +208,7 @@ namespace Tac
 
   void DX12AppHelloConstBuf::CreateTexture( Errors& errors )
   {
-    
+
     static bool sCreated;
     if( sCreated )
       return;
@@ -223,21 +223,27 @@ namespace Tac
 
     // Create the texture.
 
-    // Describe and create a Texture2D.
-    const D3D12_RESOURCE_DESC resourceDesc =
+    const DXGI_SAMPLE_DESC SampleDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-      .Width = Checkerboard::TextureWidth,
-      .Height = Checkerboard::TextureHeight,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_R8G8B8A8_UNORM,
-      .SampleDesc = DXGI_SAMPLE_DESC{ .Count = 1, .Quality = 0 },
+     .Count   { 1 },
+     .Quality { 0 },
+    };
+
+    // Describe and create a Texture2D.
+    const D3D12_RESOURCE_DESC resourceDesc
+    {
+      .Dimension        { D3D12_RESOURCE_DIMENSION_TEXTURE2D },
+      .Width            { Checkerboard::TextureWidth },
+      .Height           { Checkerboard::TextureHeight },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_R8G8B8A8_UNORM },
+      .SampleDesc       {SampleDesc},
     };
 
     m_textureDesc = resourceDesc;
 
-    const D3D12_HEAP_PROPERTIES defaultHeapProps { .Type = D3D12_HEAP_TYPE_DEFAULT, };
+    const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type = D3D12_HEAP_TYPE_DEFAULT, };
 
     TAC_CALL( m_device->CreateCommittedResource(
       &defaultHeapProps,
@@ -254,17 +260,17 @@ namespace Tac
     m_device->GetCopyableFootprints(
       &resourceDesc, 0, 1, 0, nullptr, nullptr, nullptr, &totalBytes );
 
-    const D3D12_HEAP_PROPERTIES uploadHeapProps { .Type = D3D12_HEAP_TYPE_UPLOAD, };
+    const D3D12_HEAP_PROPERTIES uploadHeapProps{ .Type = D3D12_HEAP_TYPE_UPLOAD, };
 
     const D3D12_RESOURCE_DESC uploadBufferResourceDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-      .Width = totalBytes,
-      .Height = 1,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .SampleDesc = DXGI_SAMPLE_DESC { .Count = 1, .Quality = 0, },
-      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+      .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
+      .Width            { totalBytes },
+      .Height           { 1 },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .SampleDesc       { DXGI_SAMPLE_DESC {.Count { 1 }, .Quality { 0 }, } },
+      .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
     // Create the GPU upload buffer.
@@ -283,14 +289,14 @@ namespace Tac
 
     const D3D12_SUBRESOURCE_DATA textureData =
     {
-      .pData = texture.data(),
-      .RowPitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth,
-      .SlicePitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight,
+      .pData      { texture.data() },
+      .RowPitch   { Checkerboard::TexturePixelSize * Checkerboard::TextureWidth },
+      .SlicePitch { Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight },
     };
 
     // --- update subresource begin ---
 
-    const int nSubRes = 1;
+    const int nSubRes{ 1 };
     Vector< D3D12_PLACED_SUBRESOURCE_FOOTPRINT > footprints( nSubRes ); // aka layouts?
     Vector< UINT64 > rowByteCounts( nSubRes );
     Vector< UINT > rowCounts( nSubRes );
@@ -305,45 +311,45 @@ namespace Tac
                                      &requiredByteCount );
 
     // for each subresource
-    for( int subresourceIndex = 0; subresourceIndex < nSubRes; ++subresourceIndex )
+    for( int subresourceIndex{ 0 }; subresourceIndex < nSubRes; ++subresourceIndex )
     {
 
       TAC_ASSERT( totalBytes >= requiredByteCount );
 
       const D3D12_RANGE readRange{}; // not reading from CPU
       void* mappedData;
-      TAC_DX12_CALL( textureUploadHeap->Map( (UINT)subresourceIndex, &readRange, &mappedData ) );
+      TAC_DX12_CALL( textureUploadHeap->Map( ( UINT )subresourceIndex, &readRange, &mappedData ) );
 
-      const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout = footprints[ subresourceIndex ];
-      const UINT rowCount = rowCounts[ subresourceIndex];
+      const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout{ footprints[ subresourceIndex ] };
+      const UINT rowCount{ rowCounts[ subresourceIndex ] };
 
-      const D3D12_MEMCPY_DEST DestData 
+      const D3D12_MEMCPY_DEST DestData
       {
-        .pData = (char*)mappedData + layout.Offset,
-        .RowPitch = layout.Footprint.RowPitch,
-        .SlicePitch = SIZE_T( layout.Footprint.RowPitch ) * SIZE_T( rowCount ),
+        .pData      { ( char* )mappedData + layout.Offset },
+        .RowPitch   { layout.Footprint.RowPitch },
+        .SlicePitch { SIZE_T( layout.Footprint.RowPitch ) * SIZE_T( rowCount ) },
       };
 
-      const int rowByteCount = ( int )rowByteCounts[ subresourceIndex ];
+      const int rowByteCount{ ( int )rowByteCounts[ subresourceIndex ] };
 
-      const UINT NumSlices = layout.Footprint.Depth;
+      const UINT NumSlices{ layout.Footprint.Depth };
 
       // For each slice
-      for (UINT z = 0; z < NumSlices; ++z)
+      for( UINT z{ 0 }; z < NumSlices; ++z )
       {
-          auto pDestSlice = (BYTE*)DestData.pData + DestData.SlicePitch * z;
-          auto pSrcSlice = (const BYTE*)textureData.pData + textureData.SlicePitch * LONG_PTR(z);
-          for (UINT y = 0; y < rowCount; ++y)
-          {
-            void* dst = pDestSlice + DestData.RowPitch * y;
-            const void* src = pSrcSlice + textureData.RowPitch * LONG_PTR(y);
+        auto pDestSlice{ ( BYTE* )DestData.pData + DestData.SlicePitch * z };
+        auto pSrcSlice{ ( const BYTE* )textureData.pData + textureData.SlicePitch * LONG_PTR( z ) };
+        for( UINT y{ 0 }; y < rowCount; ++y )
+        {
+          void* dst{ pDestSlice + DestData.RowPitch * y };
+          const void* src{ pSrcSlice + textureData.RowPitch * LONG_PTR( y ) };
 
-            MemCpy(dst, src, rowByteCount);
-          }
+          MemCpy( dst, src, rowByteCount );
+        }
       }
 
 
-      textureUploadHeap->Unmap( subresourceIndex, nullptr);
+      textureUploadHeap->Unmap( subresourceIndex, nullptr );
     }
 
     TAC_DX12_CALL( m_commandAllocator->Reset() );
@@ -352,55 +358,54 @@ namespace Tac
       nullptr ) );
 
 
-    for( int iSubRes = 0; iSubRes < nSubRes; ++iSubRes )
+    for( int iSubRes{ 0 }; iSubRes < nSubRes; ++iSubRes )
     {
-        const D3D12_TEXTURE_COPY_LOCATION Dst
-        {
-          .pResource = (ID3D12Resource *)m_texture,
-          .Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX,
-          .SubresourceIndex = (UINT)iSubRes,
-        };
+      const D3D12_TEXTURE_COPY_LOCATION Dst
+      {
+        .pResource        { ( ID3D12Resource* )m_texture },
+        .Type             { D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX },
+        .SubresourceIndex { ( UINT )iSubRes },
+      };
 
-        const D3D12_TEXTURE_COPY_LOCATION Src
-        {
-          .pResource = (ID3D12Resource *)textureUploadHeap,
-          .Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
-          .PlacedFootprint = footprints[ iSubRes ],
-        };
+      const D3D12_TEXTURE_COPY_LOCATION Src
+      {
+        .pResource       { ( ID3D12Resource* )textureUploadHeap },
+        .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
+        .PlacedFootprint { footprints[ iSubRes ] },
+      };
 
-        m_commandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
+      m_commandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
     }
 
     // --- update subresource end ---
 
     const TransitionParams transitionParams
     {
-       .mResource = ( ID3D12Resource* )m_texture,
-       .mCurrentState = &m_textureResourceStates,
-       .mTargetState = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+       .mResource     { ( ID3D12Resource* )m_texture },
+       .mCurrentState { &m_textureResourceStates },
+       .mTargetState  { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
     };
 
     TransitionResource( transitionParams );
 
     // Describe and create a SRV for the texture.
-    const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {
-      .Format = resourceDesc.Format,
-      .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
-      .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-      .Texture2D = D3D12_TEX2D_SRV { .MipLevels = 1, },
+    const D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc
+    {
+      .Format                   { resourceDesc.Format },
+      .ViewDimension            { D3D12_SRV_DIMENSION_TEXTURE2D },
+      .Shader4ComponentMapping  { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING },
+      .Texture2D                { D3D12_TEX2D_SRV {.MipLevels { 1 }, } },
     };
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
-      GetSRVCpuDescHandle( SRVIndexes::TriangleTexture );
-    m_device->CreateShaderResourceView((ID3D12Resource*)m_texture.Get(),
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ GetSRVCpuDescHandle( SRVIndexes::TriangleTexture ) };
+    m_device->CreateShaderResourceView( ( ID3D12Resource* )m_texture.Get(),
                                         &srvDesc,
-                                        DestDescriptor);
-    
+                                        DestDescriptor );
+
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    const FenceSignal signalValue =
-      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ));
+    TAC_CALL( const FenceSignal signalValue { mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) } );
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
@@ -417,16 +422,18 @@ namespace Tac
     TAC_ASSERT( params.mResource );
     TAC_ASSERT( StateBefore != params.mTargetState );
 
+    const D3D12_RESOURCE_TRANSITION_BARRIER Transition 
+    {
+      .pResource   { params.mResource },
+      .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+      .StateBefore { StateBefore },
+      .StateAfter  { params.mTargetState },
+    };
+
     const D3D12_RESOURCE_BARRIER barrier
     {
-      .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-      .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-      {
-        .pResource = params.mResource,
-        .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-        .StateBefore = StateBefore,
-        .StateAfter = params.mTargetState,
-      },
+      .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+      .Transition { Transition },
     };
 
     ResourceBarrier( barrier );
@@ -500,28 +507,28 @@ namespace Tac
       return;
     sCreated = true;
 
-    const float m_aspectRatio = ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height;
+    const float m_aspectRatio { ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height };
 
     // Define the geometry for a triangle.
-    const Vertex triangleVertices[] =
+    const Vertex triangleVertices[]
     {
       Vertex
       {
-        .mPos = ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 1.0f, 0.0f, 0.0f},
-        .mUVs = TextureCoordinate2{.5f, 0},
+        .mPos { ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 1.0f, 0.0f, 0.0f} },
+        .mUVs { TextureCoordinate2{.5f, 0} },
       },
       Vertex
       {
-        .mPos = ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 0.0f, 0.0f, 1.0f},
-        .mUVs = TextureCoordinate2{0,1},
+        .mPos { ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 0.0f, 0.0f, 1.0f} },
+        .mUVs { TextureCoordinate2{0,1} },
       },
       Vertex
       {
-        .mPos = ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 0.0f, 1.0f, 0.0f},
-        .mUVs = TextureCoordinate2{1,1},
+        .mPos { ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 0.0f, 1.0f, 0.0f} },
+        .mUVs { TextureCoordinate2{1,1} },
       },
     };
 
@@ -531,29 +538,25 @@ namespace Tac
     // used for both default and upload heaps
     const D3D12_RESOURCE_DESC resourceDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-      .Alignment = 0,
-      .Width = m_vertexBufferByteCount,
-      .Height = 1,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_UNKNOWN,
-      .SampleDesc
-      {
-        .Count = 1,
-        .Quality = 0,
-      },
-      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+      .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
+      .Alignment        { 0 },
+      .Width            { m_vertexBufferByteCount },
+      .Height           { 1 },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_UNKNOWN },
+      .SampleDesc       { .Count{ 1 }, .Quality{ 0 }, },
+      .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
     // Create upload heap
     {
-      const D3D12_HEAP_PROPERTIES uploadHeapProps{ .Type = D3D12_HEAP_TYPE_UPLOAD, };
+      const D3D12_HEAP_PROPERTIES uploadHeapProps{ .Type { D3D12_HEAP_TYPE_UPLOAD }, };
 
       // D3D12_RESOURCE_STATE_GENERIC_READ
       //   An OR'd combination of other read-state bits.
       //   The required starting state for an upload heap
-      const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
+      const D3D12_RESOURCE_STATES uploadHeapResourceStates { D3D12_RESOURCE_STATE_GENERIC_READ };
 
       TAC_CALL( m_device->CreateCommittedResource(
         &uploadHeapProps,
@@ -568,10 +571,10 @@ namespace Tac
     }
 
     // Create default heap
-    D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COMMON;
+    D3D12_RESOURCE_STATES defaultHeapState { D3D12_RESOURCE_STATE_COMMON };
     {
 
-      const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type = D3D12_HEAP_TYPE_DEFAULT, };
+      const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type { D3D12_HEAP_TYPE_DEFAULT } };
 
       // we want to copy into here from the upload buffer
       //D3D12_RESOURCE_STATES defaultHeapState = D3D12_RESOURCE_STATE_COPY_DEST;
@@ -625,11 +628,11 @@ namespace Tac
 
       const TransitionParams transition1
       {
-        .mResource = (ID3D12Resource*)m_vertexBuffer,
-        .mCurrentState = &defaultHeapState,
+        .mResource     { (ID3D12Resource*)m_vertexBuffer },
+        .mCurrentState { &defaultHeapState },
 
         // for the vertex shader byteaddressbuffer
-        .mTargetState = D3D12_RESOURCE_STATE_COPY_DEST,
+        .mTargetState  { D3D12_RESOURCE_STATE_COPY_DEST },
       };
       TransitionResource( transition1 );
 
@@ -641,11 +644,11 @@ namespace Tac
 
       const TransitionParams transitionParams
       {
-        .mResource = (ID3D12Resource*)m_vertexBuffer,
-        .mCurrentState = &defaultHeapState,
+        .mResource     { (ID3D12Resource*)m_vertexBuffer },
+        .mCurrentState { &defaultHeapState },
 
         // for the vertex shader byteaddressbuffer
-        .mTargetState = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE,
+        .mTargetState  { D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE },
       };
       TransitionResource( transitionParams );
     }
@@ -676,30 +679,33 @@ namespace Tac
     // register(s0)  samplers
     builder.AddRootDescriptorTable( D3D12_SHADER_VISIBILITY_PIXEL,
                                     D3D12_DESCRIPTOR_RANGE1{
-                                      .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER,
-                                      .NumDescriptors = 1 } );
+                                      .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER },
+                                      .NumDescriptors     { 1 },
+                                    } );
 
     // register(t0+, space0) vertex buffers
     builder.AddRootDescriptorTable( D3D12_SHADER_VISIBILITY_VERTEX,
                                     D3D12_DESCRIPTOR_RANGE1{
-                                      .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                                      .NumDescriptors = 1,
-                                      .BaseShaderRegister = 0,
-                                      .RegisterSpace = 0, } );
+                                      .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
+                                      .NumDescriptors     { 1 },
+                                      .BaseShaderRegister { 0 },
+                                      .RegisterSpace      { 0 },
+                                    } );
 
     // register(t0+, space1) textures
     builder.AddRootDescriptorTable( D3D12_SHADER_VISIBILITY_PIXEL,
                                     D3D12_DESCRIPTOR_RANGE1{
-                                      .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-                                      .NumDescriptors = 1,
-                                      .BaseShaderRegister = 0,
-                                      .RegisterSpace = 1, } );
+                                      .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
+                                      .NumDescriptors     { 1 },
+                                      .BaseShaderRegister { 0 },
+                                      .RegisterSpace      { 1 },
+                                    } );
 
     builder.AddConstantBuffer( D3D12_SHADER_VISIBILITY_ALL,
                              D3D12_ROOT_DESCRIPTOR1
                              {
-                                .ShaderRegister = 0,
-                                .RegisterSpace = 0,
+                                .ShaderRegister { 0 },
+                                .RegisterSpace  { 0 },
                              } );
 
     m_rootSignature = TAC_CALL( builder.Build( errors ) );
@@ -710,7 +716,7 @@ namespace Tac
 
   void DX12AppHelloConstBuf::CreatePipelineState( Errors& errors )
   {
-    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloConstBuf.hlsl";
+    const AssetPathStringView shaderAssetPath { "assets/hlsl/DX12HelloConstBuf.hlsl" };
 
     TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
 
@@ -721,28 +727,28 @@ namespace Tac
       {
         VertexDeclaration
         {
-          .mAttribute = Attribute::Position,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
+          .mAttribute                { Attribute::Position },
+          .mTextureFormat                { Format::sv3 },
+          .mAlignedByteOffset                { TAC_OFFSET_OF( Vertex, mPos ) },
         },
         VertexDeclaration
         {
-          .mAttribute = Attribute::Color,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
+          .mAttribute                { Attribute::Color },
+          .mTextureFormat                { Format::sv3 },
+          .mAlignedByteOffset                { TAC_OFFSET_OF( Vertex, mCol ) },
         },
       } };
 
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
-      .FillMode = D3D12_FILL_MODE_SOLID,
-      .CullMode = D3D12_CULL_MODE_BACK,
-      .FrontCounterClockwise = true,
-      .DepthBias = D3D12_DEFAULT_DEPTH_BIAS,
-      .DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
-      .SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-      .DepthClipEnable = true,
+      .FillMode              { D3D12_FILL_MODE_SOLID },
+      .CullMode              { D3D12_CULL_MODE_BACK },
+      .FrontCounterClockwise { true },
+      .DepthBias             { D3D12_DEFAULT_DEPTH_BIAS },
+      .DepthBiasClamp        { D3D12_DEFAULT_DEPTH_BIAS_CLAMP },
+      .SlopeScaledDepthBias  { D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS },
+      .DepthClipEnable       { true },
     };
 
     const D3D12_BLEND_DESC BlendState
@@ -758,18 +764,18 @@ namespace Tac
 
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
-      .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = compileResult.GetBytecode(Render::ShaderType::Vertex ),
-      .PS = compileResult.GetBytecode(Render::ShaderType::Fragment ),
-      .BlendState = BlendState,
-      .SampleMask = UINT_MAX,
-      .RasterizerState = RasterizerState,
-      .DepthStencilState = D3D12_DEPTH_STENCIL_DESC{},
-      .InputLayout = D3D12_INPUT_LAYOUT_DESC{},
-      .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
-      .NumRenderTargets = 1,
-      .RTVFormats = { DXGIGetSwapChainFormat() },
-      .SampleDesc = { .Count = 1 },
+      .pRootSignature        { ( ID3D12RootSignature* )m_rootSignature },
+      .VS                    { compileResult.GetBytecode(Render::ShaderType::Vertex ) },
+      .PS                    { compileResult.GetBytecode(Render::ShaderType::Fragment ) },
+      .BlendState            { BlendState },
+      .SampleMask            { UINT_MAX },
+      .RasterizerState       { RasterizerState },
+      .DepthStencilState     { D3D12_DEPTH_STENCIL_DESC{} },
+      .InputLayout           { D3D12_INPUT_LAYOUT_DESC{} },
+      .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
+      .NumRenderTargets      { 1 },
+      .RTVFormats            { DXGIGetSwapChainFormat() },
+      .SampleDesc            { .Count { 1 } },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
               &psoDesc,
@@ -789,21 +795,21 @@ namespace Tac
     if( m_swapChain )
       return;
 
-    const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
-    const auto hwnd = ( HWND )state->mNativeWindowHandle;
+    const DesktopWindowState* state { GetDesktopWindowState( hDesktopWindow ) };
+    const auto hwnd { ( HWND )state->mNativeWindowHandle };
     if( !hwnd )
       return;
 
-    ID3D12CommandQueue* commandQueue = mCommandQueue.GetCommandQueue();
+    ID3D12CommandQueue* commandQueue { mCommandQueue.GetCommandQueue() };
     TAC_ASSERT( commandQueue );
 
     const SwapChainCreateInfo scInfo
     {
-      .mHwnd = hwnd,
-      .mDevice = (IUnknown*)commandQueue, // swap chain can force flush the queue
-      .mBufferCount = bufferCount,
-      .mWidth = state->mWidth,
-      .mHeight = state->mHeight,
+      .mHwnd        { hwnd },
+      .mDevice      { (IUnknown*)commandQueue, // swap chain can force flush the queu }e
+      .mBufferCount { bufferCount },
+      .mWidth       { state->mWidth },
+      .mHeight      { state->mHeight },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -814,8 +820,8 @@ namespace Tac
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
     int iOffset ) const
   {
-    const UINT descriptorSize = m_descriptorSizes[heapType];
-    const SIZE_T ptr = heapStart.ptr + iOffset * descriptorSize;
+    const UINT descriptorSize { m_descriptorSizes[heapType] };
+    const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
     return D3D12_CPU_DESCRIPTOR_HANDLE{ ptr };
   }
 
@@ -824,8 +830,8 @@ namespace Tac
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
     int iOffset ) const
   {
-    const UINT descriptorSize = m_descriptorSizes[heapType];
-    const SIZE_T ptr = heapStart.ptr + iOffset * descriptorSize;
+    const UINT descriptorSize { m_descriptorSizes[heapType] };
+    const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
     return D3D12_GPU_DESCRIPTOR_HANDLE{ ptr };
   }
 
@@ -876,10 +882,10 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i = 0; i < bufferCount; i++ )
+    for( UINT i { 0 }; i < bufferCount; i++ )
     {
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
-      PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( i ) };
+      PCom< ID3D12Resource >& renderTarget { m_renderTargets[ i ] };
       TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
@@ -893,14 +899,14 @@ namespace Tac
 
     m_viewport = D3D12_VIEWPORT
     {
-     .Width = ( float )m_swapChainDesc.Width,
-     .Height = ( float )m_swapChainDesc.Height,
+     .Width   { ( float )m_swapChainDesc.Width },
+     .Height  { ( float )m_swapChainDesc.Height },
     };
 
     m_scissorRect = D3D12_RECT
     {
-      .right = ( LONG )m_swapChainDesc.Width,
-      .bottom = ( LONG )m_swapChainDesc.Height,
+      .right  { ( LONG )m_swapChainDesc.Width },
+      .bottom { ( LONG )m_swapChainDesc.Height },
     };
 
     m_viewports = { m_viewport };
@@ -912,9 +918,9 @@ namespace Tac
   {
     TransitionParams params
     {
-       .mResource = ( ID3D12Resource* )m_renderTargets[ iRT ],
-       .mCurrentState = &m_renderTargetStates[ iRT ],
-       .mTargetState = targetState,
+       .mResource     { ( ID3D12Resource* )m_renderTargets[ iRT ] },
+       .mCurrentState { &m_renderTargetStates[ iRT ] },
+       .mTargetState  { targetState },
     };
 
     TransitionResource( params );
@@ -926,7 +932,7 @@ namespace Tac
 
     // ID3D12CommandList::ResourceBarrier
     // - Notifies the driver that it needs to synchronize multiple accesses to resources.
-    const Array barriers = { barrier };
+    const Array barriers { barrier };
     m_commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
   }
 
@@ -972,7 +978,7 @@ namespace Tac
 
 
 
-    const Array descHeaps = {
+    const Array descHeaps {
       ( ID3D12DescriptorHeap* )m_srvHeap,
       ( ID3D12DescriptorHeap* )m_samplerHeap,
     };
@@ -989,15 +995,13 @@ namespace Tac
 
       // vtx buffers
       {
-        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor =
-          GetSRVGpuDescHandle( SRVIndexes::TriangleVertexBuffer );
+        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor { GetSRVGpuDescHandle( SRVIndexes::TriangleVertexBuffer ) };
         m_commandList->SetGraphicsRootDescriptorTable( 1, BaseDescriptor );
       }
 
       // textures
       {
-        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor =
-          GetSRVGpuDescHandle( SRVIndexes::TriangleTexture );
+        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor { GetSRVGpuDescHandle( SRVIndexes::TriangleTexture ) };
 
         m_commandList->SetGraphicsRootDescriptorTable( 2, BaseDescriptor );
       }
@@ -1013,29 +1017,27 @@ namespace Tac
           u32          mTexture;
         };
 
-        const float t = (float) Sin( Timestep::GetElapsedTime().mSeconds );
-        const m4 transform = m4::Translate( v3( t, 0, 0 ) );
-        MyCBufType cbuf
+        const float t { (float) Sin( Timestep::GetElapsedTime().mSeconds ) };
+        const m4 transform { m4::Translate( v3( t, 0, 0 ) ) };
+
+        const MyCBufType cbuf
         {
-          .mWorld = transform,
-          .mVertexBuffer = 0,
-          .mTexture = 0,
+          .mWorld        { transform },
+          .mVertexBuffer { 0 },
+          .mTexture      { 0 },
         };
 
         // So I was supposed to learn about D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT from
         // https://learn.microsoft.com/en-us/windows/win32/direct3d12/uploading-resources
         // maybe
 
-        const int byteCount = RoundUpToNearestMultiple(
-          sizeof( MyCBufType ),
-          D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT );
+        const int byteCount { RoundUpToNearestMultiple( sizeof( MyCBufType ), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
 
-        GPUUploadAllocator::DynAlloc allocation =
-          TAC_CALL(mUploadAllocator.Allocate(byteCount, errors));
+        TAC_CALL( GPUUploadAllocator::DynAlloc allocation{ mUploadAllocator.Allocate( byteCount, errors ) } );
 
         MemCpy( allocation.mCPUAddr, &cbuf, sizeof( MyCBufType ) );
 
-        const D3D12_GPU_VIRTUAL_ADDRESS BufferLocation = allocation.mGPUAddr;
+        const D3D12_GPU_VIRTUAL_ADDRESS BufferLocation { allocation.mGPUAddr };
 
         // Here we are using SetGraphicsRootConstantBufferView to set a root CBV, as opposed to
         // using SetGraphicsRootDescriptorTable to set a table containing an element 
@@ -1049,10 +1051,10 @@ namespace Tac
     {
       const D3D12_DRAW_ARGUMENTS drawArgs
       {
-        .VertexCountPerInstance = 3,
-        .InstanceCount = 1,
-        .StartVertexLocation = 0,
-        .StartInstanceLocation = 0,
+        .VertexCountPerInstance { 3 },
+        .InstanceCount          { 1 },
+        .StartVertexLocation    { 0 },
+        .StartInstanceLocation  { 0 },
       };
 
 #if 0
@@ -1090,18 +1092,17 @@ namespace Tac
 
       // Calculate the descriptor offset due to multiple frame resources.
       // 1 SRV + how many CBVs we have currently.
-      UINT frameResourceDescriptorOffset =
-        1 + ( frameResourceIndex * m_cityRowCount * m_cityColumnCount );
+      UINT frameResourceDescriptorOffset { 1 + ( frameResourceIndex * m_cityRowCount * m_cityColumnCount ) };
 
       CD3DX12_GPU_DESCRIPTOR_HANDLE cbvSrvHandle(
         pCbvSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart(),
         frameResourceDescriptorOffset,
         cbvSrvDescriptorSize );
 
-      BOOL usePso1 = TRUE;
-      for( UINT i = 0; i < m_cityRowCount; i++ )
+      BOOL usePso1 { TRUE };
+      for( UINT i { 0 }; i < m_cityRowCount; i++ )
       {
-        for( UINT j = 0; j < m_cityColumnCount; j++ )
+        for( UINT j { 0 }; j < m_cityColumnCount; j++ )
         {
           // Alternate which PSO to use; the pixel shader is different on 
           // each just as a PSO setting demonstration.
@@ -1131,7 +1132,7 @@ namespace Tac
     // Indicate that the back buffer will be used as a render target.
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
-    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
+    const Array rtCpuHDescs  { GetRTVCpuDescHandle( m_frameIndex ) };
 
     m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
                                        rtCpuHDescs.data(),
@@ -1161,13 +1162,13 @@ namespace Tac
     const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_frameIndex );
 
 #if 0
-    const double speed = 3;
-    const auto t = ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f;
+    const double speed { 3 };
+    const auto t { ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f };
 
     // Record commands.
-    const v4 clearColor = { t, 0.2f, 0.4f, 1.0f };
+    const v4 clearColor { { t, 0.2f, 0.4f, 1.0f } };
 #else
-    const v4 clearColor = v4{ 91, 128, 193, 255.0f } / 255.0f;
+    const v4 clearColor { v4{ 91, 128, 193, 255.0f } / 255.0f };
 #endif
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
@@ -1202,8 +1203,8 @@ namespace Tac
     //   0   - Cancel the remaining time on the previously presented frame
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
-    const UINT SyncInterval = 1;
-    const UINT PresentFlags = 0;
+    const UINT SyncInterval { 1 };
+    const UINT PresentFlags { 0 };
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
@@ -1305,8 +1306,8 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName = "DX12 Hello Const Buf",
-      .mDisableRenderer = true,
+      .mName            { "DX12 Hello Const Buf" },
+      .mDisableRenderer { true },
     };
     return TAC_NEW DX12AppHelloConstBuf( config );
   };

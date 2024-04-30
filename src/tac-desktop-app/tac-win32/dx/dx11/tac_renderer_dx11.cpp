@@ -1588,13 +1588,13 @@ namespace Tac::Render
     // D3D11_RENDER_TARGET_VIEW_DESC createdDesc = {};
     // rtv->GetDesc( &createdDesc );
 
-    const DXGI_SAMPLE_DESC SampleDesc =
+    const DXGI_SAMPLE_DESC SampleDesc
     {
-      .Count { 1 },
+      .Count   { 1 },
       .Quality { 0 },
     };
 
-    const D3D11_TEXTURE2D_DESC texture2dDesc =
+    const D3D11_TEXTURE2D_DESC texture2dDesc
     {
       .Width      { width },
       .Height     { height },

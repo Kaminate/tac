@@ -64,7 +64,7 @@ namespace Tac::Render
   {
     TAC_ASSERT( !mState.mExecuted );
 
-    ID3D12GraphicsCommandList* commandList = GetCommandList();
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
     if( !commandList )
       return; // This context has been (&&) moved
 
@@ -204,24 +204,30 @@ namespace Tac::Render
     {
       if( DX12Texture * colorTexture{ textureMgr->FindTexture( colorTarget ) } )
       {
-        const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+        const D3D12_RESOURCE_STATES StateBefore { colorTexture->mState };
+        const D3D12_RESOURCE_STATES StateAfter { D3D12_RESOURCE_STATE_RENDER_TARGET };
+        if( StateBefore != StateAfter )
         {
-          .pResource   { colorTexture->mResource.Get() },
-          .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-          .StateBefore { colorTexture->mState },
-          .StateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
-        };
+          colorTexture->mState = StateAfter;
 
-        const D3D12_RESOURCE_BARRIER barrier
-        {
-          .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-          .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
-          .Transition { Transition },
-        };
+          const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+          {
+            .pResource   { colorTexture->mResource.Get() },
+            .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+            .StateBefore { StateBefore },
+            .StateAfter  { StateAfter },
+          };
 
-        rtDescs.push_back(  colorTexture->mRTV->GetCPUHandle()  );
-        barriers.push_back( barrier );
-        colorTexture->mState = D3D12_RESOURCE_STATE_RENDER_TARGET ;
+          const D3D12_RESOURCE_BARRIER barrier
+          {
+            .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+            .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
+            .Transition { Transition },
+          };
+          barriers.push_back( barrier );
+        }
+
+        rtDescs.push_back( colorTexture->mRTV->GetCPUHandle() );
       }
     }
 
@@ -237,7 +243,8 @@ namespace Tac::Render
     mState.mRenderTargetColors = rtDescs;
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
+    if( !barriers.empty() )
+      commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
     commandList->OMSetRenderTargets( ( UINT )rtDescs.size(), rtDescs.data(), false, pDSV );
   }
 
@@ -266,18 +273,50 @@ namespace Tac::Render
 
   void DX12Context::ClearDepth( TextureHandle h, float value )
   {
-    DX12TextureMgr* textureMgr = &mRenderer->mTexMgr;
-    const DX12Texture* texture{ textureMgr->FindTexture( h ) };
+    DX12TextureMgr* textureMgr { &mRenderer->mTexMgr };
+    DX12Texture* texture{ textureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
-
-    const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV->GetCPUHandle() };
-
-    const D3D12_CPU_DESCRIPTOR_HANDLE DSV { mState.mRenderTargetDepth.GetValueUnchecked() };
-    const D3D12_CLEAR_FLAGS ClearFlags { D3D12_CLEAR_FLAG_DEPTH };// | D3D12_CLEAR_FLAG_STENCIL;
+    TAC_ASSERT( texture->mDSV.HasValue() );
+    
+    const D3D12_CPU_DESCRIPTOR_HANDLE DSV { texture->mDSV.GetValueUnchecked().GetCPUHandle() };
+    const D3D12_CLEAR_FLAGS ClearFlags { D3D12_CLEAR_FLAG_DEPTH };
     const FLOAT Depth { 1.0f };
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    const D3D12_RESOURCE_STATES StateBefore { texture->mState };
+    const D3D12_RESOURCE_STATES StateAfter { D3D12_RESOURCE_STATE_DEPTH_WRITE };
+
+    if( StateBefore != StateAfter )
+    {
+      texture->mState = StateAfter;
+
+      const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+      {
+        .pResource   { texture->mResource.Get() },
+        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+        .StateBefore { StateBefore },
+        .StateAfter  { StateAfter },
+      };
+
+      const D3D12_RESOURCE_BARRIER barrier
+      {
+        .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+        .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
+        .Transition { Transition },
+      };
+
+      commandList->ResourceBarrier( 1, &barrier );
+    }
+
     commandList->ClearDepthStencilView( DSV, ClearFlags,Depth, 0, 0, nullptr );
+  }
+
+  void DX12Context::Draw( DrawArgs args )
+  {
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    OS::OSDebugBreak();
+    //commandList->DrawIndexedInstanced(..);
+    //commandList->DrawInstanced(..);
   }
 
   void DX12Context::Retire()
@@ -325,7 +364,6 @@ namespace Tac::Render
       dx12Context->mContextManager = this;
       dx12Context->mCommandQueue = mCommandQueue;
       dx12Context->mFrameBufferMgr = mFrameBufferMgr;
-      dx12Context->mCommandList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
       dx12Context->mRenderer = mRenderer;
     }
     else
@@ -353,8 +391,8 @@ namespace Tac::Render
                        commandList.ppv() ) );
     TAC_ASSERT( commandList );
 
-    PCom<ID3D12GraphicsCommandList > graphicsList =
-      commandList.QueryInterface<ID3D12GraphicsCommandList>();
+    PCom< ID3D12GraphicsCommandList > graphicsList{
+      commandList.QueryInterface<ID3D12GraphicsCommandList>() };
 
     TAC_ASSERT( graphicsList );
     DX12SetName( graphicsList, "My Command List" );

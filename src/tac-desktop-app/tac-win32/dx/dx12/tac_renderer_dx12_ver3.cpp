@@ -41,11 +41,13 @@ namespace Tac::Render
     mTexMgr.Init( {
                     .mDevice               { mDevice },
                     .mCpuDescriptorHeapRTV { &mCpuDescriptorHeapRTV },
+                    .mCpuDescriptorHeapDSV { &mCpuDescriptorHeapDSV },
+                    .mContextManager       { &mContextManager },
                   } );
 
     mSwapChainMgr.Init( {
-                          .mTextureManager { &mTexMgr },
-                          .mCommandQueue   { &mCommandQueue },
+                          .mTextureManager   { &mTexMgr },
+                          .mCommandQueue     { &mCommandQueue },
                         } );
 
     mBufMgr.Init( mDevice );

@@ -173,7 +173,11 @@ namespace Tac::Render
       .VisibleNodeMask      { 1 },
     };
 
-    const DXGI_SAMPLE_DESC SampleDesc {.Count = 1, .Quality = 0 };
+    const DXGI_SAMPLE_DESC SampleDesc
+    {
+      .Count { 1 },
+      .Quality { 0 },
+    };
 
     const D3D12_RESOURCE_DESC ResourceDesc
     {

@@ -187,7 +187,7 @@ namespace Tac::Render
     TAC_CALL( PCom< ID3D12RootSignature > rootSig{
       BuildRootSignature( device, program->mProgramBindings, errors ) } );
 
-    const DXGI_SAMPLE_DESC SampleDesc{ .Count = 1 };
+    const DXGI_SAMPLE_DESC SampleDesc{ .Count { 1 } };
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {

@@ -1,38 +1,36 @@
 #include "tac_example_dx12_2_triangle.h" // self-inc
 #include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_input_layout_builder.h"
-
-// todo: dx12ify
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-
 #include "tac_example_dx12_2_dxc.h"
-#include "src/common/containers/tac_array.h"
-#include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/containers/tac_frame_vector.h"
-#include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/math/tac_vector4.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/math/tac_vector3.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/shell/windows/tac_win32.h"
+
+#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_frame_vector.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
+#include "tac-win32/tac_win32.h"
 
 // set to true to use IASetVertexBuffers with an input layout
 // set to false to use bindless through a descriptor table
 // ( technically both use a vertex buffer, but only one uses input layout )
-static const bool sUseInputLayout = false;
+static const bool sUseInputLayout { false };
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
-const UINT myParamIndex = 0;
+const UINT myParamIndex { 0 };
 
 namespace Tac
 {
@@ -66,22 +64,19 @@ namespace Tac
 
   // Helper functions for App::Init
 
-  void DX12AppHelloTriangle::CreateDesktopWindow()
+  void DX12AppHelloTriangle::CreateDesktopWindow(InitParams initParams, Errors& errors)
   {
-    const Monitor monitor = OS::OSGetPrimaryMonitor();
-    const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
-    const DesktopAppCreateWindowParams desktopParams
+    const SysWindowApi* windowApi{ initParams.mWindowApi };
+    const Monitor monitor { OS::OSGetPrimaryMonitor() };
+    const int s { Min( monitor.mSize.x, monitor.mSize.y ) / 2 };
+    const v2i size{ s, s };
+    const WindowCreateParams desktopParams
     {
-      .mName = "DX12 Window",
-      .mX = ( monitor.mWidth - s ) / 2,
-      .mY = ( monitor.mHeight - s ) / 2,
-      .mWidth = s,
-      .mHeight = s,
+      .mName                { "DX12 Window" },
+      .mPos                 { ( monitor.mSize - size ) / 2 },
+      .mSize                { size },
     };
-    hDesktopWindow = CreateTrackedWindow( desktopParams );
-
-    DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
-    DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
+    hDesktopWindow = windowApi->CreateWindow( desktopParams, errors );
     QuitProgramOnWindowClose( hDesktopWindow );
   }
 
@@ -127,12 +122,12 @@ namespace Tac
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
+    if( auto infoQueue1{ m_infoQueue.QueryInterface<ID3D12InfoQueue1>() } )
     {
-      const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
-      void* pContext = this;
-      DWORD pCallbackCookie = 0;
+      const D3D12MessageFunc CallbackFunc { MyD3D12MessageFunc };
+      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
+      void* pContext { this };
+      DWORD pCallbackCookie { 0 };
 
       TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
                      CallbackFunc,
@@ -144,7 +139,7 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreateDevice( Errors& errors )
   {
-    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
+    auto adapter { ( IDXGIAdapter* )DXGIGetBestAdapter() };
     PCom< ID3D12Device > device;
     TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
@@ -165,7 +160,7 @@ namespace Tac
 
   void DX12AppHelloTriangle::InitDescriptorSizes()
   {
-    for( int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    for( int i { 0 }; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
       m_descriptorSizes[ i ]
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
@@ -183,7 +178,7 @@ namespace Tac
       // [ ] A: 
 
       // This command queue manages direct command lists (direct = for graphics rendering)
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+      .Type { D3D12_COMMAND_LIST_TYPE_DIRECT },
     };
 
     TAC_DX12_CALL( m_device->CreateCommandQueue(
@@ -201,10 +196,10 @@ namespace Tac
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps
     // A descriptor heap is a collection of contiguous allocations of descriptors,
     // one allocation for every descriptor.
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = bufferCount,
+      .Type { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+      .NumDescriptors { bufferCount },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -216,11 +211,11 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreateSRVDescriptorHeap( Errors& errors )
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-      .NumDescriptors = 1,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
+      .NumDescriptors { 1 },
+      .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -230,6 +225,7 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
+  // IS THIS USED AT ALL?
   void DX12AppHelloTriangle::CreateSRV( Errors& errors )
   {
     TAC_ASSERT( m_vertexBuffer );
@@ -237,26 +233,26 @@ namespace Tac
     // srv --> byteaddressbuffer
     // uav --> rwbyteaddressbuffer
 
-    const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
+    const D3D12_BUFFER_SRV Buffer
     {
-      .Format = DXGI_FORMAT_R32_TYPELESS, // for byteaddressbuffer
-      .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-      .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING, // swizzling?
-      .Buffer = D3D12_BUFFER_SRV
-      {
-        .FirstElement = 0,
-        .NumElements = m_vertexBufferView.SizeInBytes / 4,
-        .Flags = D3D12_BUFFER_SRV_FLAG_RAW, // for byteaddressbuffer
-      },
+      .FirstElement { 0 },
+      .NumElements  { m_vertexBufferView.SizeInBytes / 4 },
+      .Flags        { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
     };
 
+    const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
+    {
+      .Format                  { DXGI_FORMAT_R32_TYPELESS }, // for byteaddressbuffer
+      .ViewDimension           { D3D12_SRV_DIMENSION_BUFFER },
+      .Shader4ComponentMapping { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING }, // swizzling?
+      .Buffer                  { Buffer },
+    };
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSRVCpuDescHandle( 0 );
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor { GetSRVCpuDescHandle( 0 ) };
     
     m_device->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
                                         &Desc,
                                         DestDescriptor );
-
   }
 
   void DX12AppHelloTriangle::CreateCommandAllocator( Errors& errors )
@@ -289,27 +285,27 @@ namespace Tac
     DX12SetName( m_commandList, "My Command List" );
   }
 
-  void DX12AppHelloTriangle::CreateBuffer( Errors& errors )
+  void DX12AppHelloTriangle::CreateVertexBuffer( Errors& errors )
   {
-    const float m_aspectRatio = ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height;
+    const float m_aspectRatio { ( float )m_swapChainDesc.Width / ( float )m_swapChainDesc.Height };
 
     // Define the geometry for a triangle.
-    const Vertex triangleVertices[] =
+    const Vertex triangleVertices[]
     {
       Vertex
       {
-        .mPos = ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 1.0f, 0.0f, 0.0f}
+        .mPos { ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 1.0f, 0.0f, 0.0f }}
       },
       Vertex
       {
-        .mPos = ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 0.0f, 0.0f, 1.0f}
+        .mPos { ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 0.0f, 0.0f, 1.0f }}
       },
       Vertex
       {
-        .mPos = ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f},
-        .mCol = LinearColor3{ 0.0f, 1.0f, 0.0f}
+        .mPos { ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mCol { LinearColor3{ 0.0f, 1.0f, 0.0f }}
       },
     };
 
@@ -318,26 +314,28 @@ namespace Tac
 
     const D3D12_HEAP_PROPERTIES uploadHeapProps
     {
-      .Type = D3D12_HEAP_TYPE_UPLOAD,
-      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+      .Type                 { D3D12_HEAP_TYPE_UPLOAD },
+      .CPUPageProperty      { D3D12_CPU_PAGE_PROPERTY_UNKNOWN },
+      .MemoryPoolPreference { D3D12_MEMORY_POOL_UNKNOWN },
+    };
+
+    const DXGI_SAMPLE_DESC SampleDesc
+    {
+      .Count   { 1 },
+      .Quality { 0 },
     };
 
     const D3D12_RESOURCE_DESC resourceDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-      .Alignment = 0,
-      .Width = m_vertexBufferSize,
-      .Height = 1,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_UNKNOWN,
-      .SampleDesc
-      {
-        .Count = 1,
-        .Quality = 0,
-      },
-      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+      .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
+      .Alignment        { 0 },
+      .Width            { m_vertexBufferSize },
+      .Height           { 1 },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_UNKNOWN },
+      .SampleDesc       { SampleDesc, },
+      .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
     // must be null for buffer
@@ -346,7 +344,7 @@ namespace Tac
     // D3D12_RESOURCE_STATE_GENERIC_READ
     //   An OR'd combination of other read-state bits.
     //   The required starting state for an upload heap
-    const D3D12_RESOURCE_STATES uploadHeapResourceStates = D3D12_RESOURCE_STATE_GENERIC_READ;
+    const D3D12_RESOURCE_STATES uploadHeapResourceStates { D3D12_RESOURCE_STATE_GENERIC_READ };
     TAC_CALL( m_device->CreateCommittedResource(
               &uploadHeapProps,
               D3D12_HEAP_FLAG_NONE,
@@ -358,9 +356,9 @@ namespace Tac
 
     const D3D12_HEAP_PROPERTIES defaultHeapProps
     {
-      .Type = D3D12_HEAP_TYPE_DEFAULT,
-      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+      .Type                 { D3D12_HEAP_TYPE_DEFAULT },
+      .CPUPageProperty      { D3D12_CPU_PAGE_PROPERTY_UNKNOWN },
+      .MemoryPoolPreference { D3D12_MEMORY_POOL_UNKNOWN },
     };
 
     // Creates both a resource and an implicit heap,
@@ -390,9 +388,9 @@ namespace Tac
     // Initialize the vertex buffer view.
     m_vertexBufferView = D3D12_VERTEX_BUFFER_VIEW 
     {
-      .BufferLocation = m_vertexBuffer->GetGPUVirtualAddress(),
-      .SizeInBytes = m_vertexBufferSize,
-      .StrideInBytes = sizeof( Vertex ),
+      .BufferLocation { m_vertexBuffer->GetGPUVirtualAddress() },
+      .SizeInBytes    { m_vertexBufferSize },
+      .StrideInBytes  { sizeof( Vertex ) },
     };
 
   }
@@ -401,7 +399,7 @@ namespace Tac
   {
     // Create synchronization objects.
 
-    const UINT64 initialVal = 0;
+    const UINT64 initialVal{ 0 };
 
     PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence(
@@ -425,32 +423,30 @@ namespace Tac
 
     const D3D12_DESCRIPTOR_RANGE1 descRange
     {
-      .RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
-      .NumDescriptors = 1,
-      .BaseShaderRegister = 0, // t0
-      .RegisterSpace = 0, // space0
-      .Flags = D3D12_DESCRIPTOR_RANGE_FLAG_NONE,
-      .OffsetInDescriptorsFromTableStart = 0,
+      .RangeType                         { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
+      .NumDescriptors                    { 1 },
+      .BaseShaderRegister                { 0 }, // t0
+      .RegisterSpace                     { 0 }, // space0
+      .Flags                             { D3D12_DESCRIPTOR_RANGE_FLAG_NONE },
+      .OffsetInDescriptorsFromTableStart { 0 },
     };
 
-    const Array descRanges =
+    const Array descRanges { descRange };
+
+    const D3D12_ROOT_DESCRIPTOR_TABLE1 DescriptorTable
     {
-      descRange
+      .NumDescriptorRanges { (UINT)descRanges.size() },
+      .pDescriptorRanges   { descRanges.data() },
     };
 
-    const Array params =
+    const D3D12_ROOT_PARAMETER1 rootParam
     {
-      D3D12_ROOT_PARAMETER1
-      {
-        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
-        .DescriptorTable = D3D12_ROOT_DESCRIPTOR_TABLE1
-        {
-          .NumDescriptorRanges = (UINT)descRanges.size(),
-          .pDescriptorRanges = descRanges.data()
-        },
-        .ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
-      },
+      .ParameterType    { D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE },
+      .DescriptorTable  { DescriptorTable },
+      .ShaderVisibility { D3D12_SHADER_VISIBILITY_VERTEX },
     };
+
+    const Array params { rootParam };
 
     TAC_ASSERT( myParamIndex == 0 && params.size() > myParamIndex );
 
@@ -466,32 +462,35 @@ namespace Tac
 
     const D3D12_ROOT_SIGNATURE_DESC1 Desc_1_1
     {
-      .NumParameters = (UINT)params.size(),
-      .pParameters = params.data(),
-
-
-      .Flags = rootSigFlags,
+      .NumParameters { (UINT)params.size() },
+      .pParameters   { params.data() },
+      .Flags         { rootSigFlags },
     };
 
     const D3D12_VERSIONED_ROOT_SIGNATURE_DESC desc
     {
-      .Version = D3D_ROOT_SIGNATURE_VERSION_1_1,
-      .Desc_1_1 = Desc_1_1,
+      .Version  { D3D_ROOT_SIGNATURE_VERSION_1_1 },
+      .Desc_1_1 { Desc_1_1 },
     };
 
     PCom<ID3DBlob> blob;
-    PCom<ID3DBlob> blobErr;
 
-    // cursed or based?
-    TAC_RAISE_ERROR_IF( const HRESULT hr =
-                        D3D12SerializeVersionedRootSignature(
-                        &desc,
-                        blob.CreateAddress(),
-                        blobErr.CreateAddress() ); FAILED( hr ),
-                        String() +
-                        "Failed to serialize root signature! "
-                        "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
-                        "HRESULT = " + DX12_HRESULT_ToString( hr ) );
+    {
+      PCom<ID3DBlob> blobErr;
+      const HRESULT rootSigHR{
+                           D3D12SerializeVersionedRootSignature(
+                           &desc,
+                           blob.CreateAddress(),
+                           blobErr.CreateAddress() ) };
+
+      TAC_RAISE_ERROR_IF(
+        FAILED( rootSigHR ),
+        String() +
+        "Failed to serialize root signature! "
+        "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
+        "HRESULT = " + DX12_HRESULT_ToString( rootSigHR ) );
+    }
+
 
     TAC_DX12_CALL( m_device->CreateRootSignature(
                    0,
@@ -508,82 +507,94 @@ namespace Tac
 
   void DX12AppHelloTriangle::CreatePipelineState( Errors& errors )
   {
-    const AssetPathStringView shaderAssetPath = sUseInputLayout
+    const AssetPathStringView shaderAssetPath{ sUseInputLayout
       ? "assets/hlsl/DX12HelloTriangle.hlsl"
-      : "assets/hlsl/DX12HelloTriangleBindless.hlsl";
+      : "assets/hlsl/DX12HelloTriangleBindless.hlsl" };
 
-    TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
-    TAC_CALL( DX12ProgramCompiler::Result program = compiler.Compile( shaderAssetPath, errors ) );
+    ID3D12Device* device{ m_device.Get() };
 
-    const DX12BuiltInputLayout inputLayout{
-      VertexDeclarations
-      {
-        VertexDeclaration
-        {
-          .mAttribute = Attribute::Position,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mPos ),
-        },
-        VertexDeclaration
-        {
-          .mAttribute = Attribute::Color,
-          .mTextureFormat = Format::sv3,
-          .mAlignedByteOffset = TAC_OFFSET_OF( Vertex, mCol ),
-        },
-      } };
+    DX12ExampleProgramCompiler::Params programCompilerParams
+    {
+      .mOutputDir { sShellPrefPath },
+      .mDevice    { device },
+    };
+
+    TAC_CALL( DX12ExampleProgramCompiler compiler( programCompilerParams, errors ) );
+    TAC_CALL( DX12ExampleProgramCompiler::Result program{ compiler.Compile( shaderAssetPath, errors ) } );
+
+    const VertexDeclaration posDecl
+    {
+      .mAttribute         { Attribute::Position },
+      .mTextureFormat     { Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
+    };
+
+    const VertexDeclaration colDecl
+    {
+      .mAttribute         { Attribute::Color },
+      .mTextureFormat     { Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
+    };
+
+    VertexDeclarations decls;
+    decls.push_back( posDecl );
+    decls.push_back( colDecl );
+
+    const DX12BuiltInputLayout inputLayout{ decls };
 
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
-      .FillMode = D3D12_FILL_MODE_SOLID,
-      .CullMode = D3D12_CULL_MODE_BACK,
-      .FrontCounterClockwise = true,
-      .DepthBias = D3D12_DEFAULT_DEPTH_BIAS,
-      .DepthBiasClamp = D3D12_DEFAULT_DEPTH_BIAS_CLAMP,
-      .SlopeScaledDepthBias = D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS,
-      .DepthClipEnable = true,
+      .FillMode              { D3D12_FILL_MODE_SOLID },
+      .CullMode              { D3D12_CULL_MODE_BACK },
+      .FrontCounterClockwise { true },
+      .DepthBias             { D3D12_DEFAULT_DEPTH_BIAS },
+      .DepthBiasClamp        { D3D12_DEFAULT_DEPTH_BIAS_CLAMP },
+      .SlopeScaledDepthBias  { D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS },
+      .DepthClipEnable       { true },
     };
 
-    const D3D12_BLEND_DESC BlendState
+    const D3D12_RENDER_TARGET_BLEND_DESC RTBlendDesc
     {
-      .RenderTarget = 
-      {
-        D3D12_RENDER_TARGET_BLEND_DESC
-        {
-          // [x] Q: Why is BlendEnable = false? Why not just leave it out?
-          //     A: You can leave it out.
+      // [x] Q: Why is BlendEnable = false? Why not just leave it out?
+      //     A: You can leave it out.
 #if 0
-          .BlendEnable = false,
-          .LogicOpEnable = false,
-          .SrcBlend = D3D12_BLEND_ONE,
-          .DestBlend = D3D12_BLEND_ZERO,
-          .BlendOp = D3D12_BLEND_OP_ADD,
-          .SrcBlendAlpha = D3D12_BLEND_ONE,
-          .DestBlendAlpha = D3D12_BLEND_ZERO,
-          .BlendOpAlpha = D3D12_BLEND_OP_ADD,
-          .LogicOp = D3D12_LOGIC_OP_NOOP,
+      .BlendEnable           { false },
+      .LogicOpEnable         { false },
+      .SrcBlend              { D3D12_BLEND_ONE },
+      .DestBlend             { D3D12_BLEND_ZERO },
+      .BlendOp               { D3D12_BLEND_OP_ADD },
+      .SrcBlendAlpha         { D3D12_BLEND_ONE },
+      .DestBlendAlpha        { D3D12_BLEND_ZERO },
+      .BlendOpAlpha          { D3D12_BLEND_OP_ADD },
+      .LogicOp               { D3D12_LOGIC_OP_NOOP },
 #endif
-          .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
-        },
-      },
+      .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
     };
+
+    const D3D12_BLEND_DESC BlendState { .RenderTarget { RTBlendDesc }, };
+
+
+    const D3D12_INPUT_LAYOUT_DESC InputLayout{ sUseInputLayout
+          ? ( D3D12_INPUT_LAYOUT_DESC )inputLayout
+          : D3D12_INPUT_LAYOUT_DESC{} };
+
+    const DXGI_FORMAT rtvDXVIFmt{ TexFmtToDxgiFormat( mRTVFmt ) };
 
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
-      .pRootSignature = ( ID3D12RootSignature* )m_rootSignature,
-      .VS = program.GetBytecode(Render::ShaderType::Vertex ),
-      .PS = program.GetBytecode(Render::ShaderType::Fragment ),
-      .BlendState = BlendState,
-      .SampleMask = UINT_MAX,
-      .RasterizerState = RasterizerState,
-      .DepthStencilState = D3D12_DEPTH_STENCIL_DESC{},
-      .InputLayout = sUseInputLayout
-          ? ( D3D12_INPUT_LAYOUT_DESC )inputLayout
-          : D3D12_INPUT_LAYOUT_DESC{},
-      .PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
-      .NumRenderTargets = 1,
-      .RTVFormats = { DXGIGetSwapChainFormat() },
-      .SampleDesc = { .Count = 1 },
+      .pRootSignature        { ( ID3D12RootSignature* )m_rootSignature },
+      .VS                    { program.mVSBytecode },
+      .PS                    { program.mPSBytecode },
+      .BlendState            { BlendState },
+      .SampleMask            { UINT_MAX },
+      .RasterizerState       { RasterizerState },
+      .DepthStencilState     { D3D12_DEPTH_STENCIL_DESC{} },
+      .InputLayout           { InputLayout },
+      .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
+      .NumRenderTargets      { 1 },
+      .RTVFormats            { rtvDXVIFmt },
+      .SampleDesc            { .Count { 1 } },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
               &psoDesc,
@@ -598,22 +609,18 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloTriangle::DX12CreateSwapChain( Errors& errors )
+  void DX12AppHelloTriangle::DX12CreateSwapChain( HWND hwnd, v2i size, Errors& errors )
   {
-    const DesktopWindowState* state = GetDesktopWindowState( hDesktopWindow );
-    const auto hwnd = ( HWND )state->mNativeWindowHandle;
-    if( !hwnd )
-      return;
-
     TAC_ASSERT( m_commandQueue );
+    TAC_ASSERT( hwnd );
 
     const SwapChainCreateInfo scInfo
     {
-      .mHwnd = hwnd,
-      .mDevice = (IUnknown*)m_commandQueue, // swap chain can force flush the queue
-      .mBufferCount = bufferCount,
-      .mWidth = state->mWidth,
-      .mHeight = state->mHeight,
+      .mHwnd        { hwnd },
+      .mDevice      { ( IUnknown* )m_commandQueue }, // swap chain can force flush the queue
+      .mBufferCount { bufferCount },
+      .mWidth       { size.x },
+      .mHeight      { size.y },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ));
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -624,8 +631,8 @@ namespace Tac
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
     int iOffset ) const
   {
-    const UINT descriptorSize = m_descriptorSizes[heapType];
-    const SIZE_T ptr = heapStart.ptr + iOffset * descriptorSize;
+    const UINT descriptorSize { m_descriptorSizes[heapType] };
+    const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
     return D3D12_CPU_DESCRIPTOR_HANDLE{ ptr };
   }
 
@@ -634,8 +641,8 @@ namespace Tac
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
     int iOffset ) const
   {
-    const UINT descriptorSize = m_descriptorSizes[heapType];
-    const SIZE_T ptr = heapStart.ptr + iOffset * descriptorSize;
+    const UINT descriptorSize { m_descriptorSizes[heapType] };
+    const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
     return D3D12_GPU_DESCRIPTOR_HANDLE{ ptr };
   }
 
@@ -669,10 +676,10 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i = 0; i < bufferCount; i++ )
+    for( UINT i { 0 }; i < bufferCount; i++ )
     {
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( i );
-      PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( i ) };
+      PCom< ID3D12Resource >& renderTarget { m_renderTargets[ i ] };
       TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
@@ -694,16 +701,18 @@ namespace Tac
     const D3D12_RESOURCE_STATES before = m_renderTargetStates[ iRT ];
     TAC_ASSERT( before != targetState );
 
+    const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+    {
+      .pResource   { rtResource },
+      .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+      .StateBefore { before },
+      .StateAfter  { targetState },
+    };
+
     const D3D12_RESOURCE_BARRIER barrier
     {
-      .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-      .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-      {
-        .pResource = rtResource,
-        .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-        .StateBefore = before,
-        .StateAfter = targetState,
-      },
+      .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+      .Transition { Transition      },
     };
 
     m_renderTargetStates[ iRT ] = targetState;
@@ -718,9 +727,9 @@ namespace Tac
     // ID3D12CommandList::ResourceBarrier
     // - Notifies the driver that it needs to synchronize multiple accesses to resources.
     //
-    const Array barriers = { barrier };
-    const UINT rtN = ( UINT )barriers.size();
-    const D3D12_RESOURCE_BARRIER* rts = barriers.data();
+    const Array barriers  { barrier };
+    const UINT rtN { ( UINT )barriers.size() };
+    const D3D12_RESOURCE_BARRIER* rts { barriers.data() };
     m_commandList->ResourceBarrier( rtN, rts );
   }
 
@@ -759,21 +768,23 @@ namespace Tac
     if( !m_vertexBufferCopied )
     {
       m_vertexBufferCopied = true;
-      const D3D12_RESOURCE_STATES StateAfter = sUseInputLayout
+      const D3D12_RESOURCE_STATES StateAfter{ sUseInputLayout
           ? D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // <-- vtx buffer
-          : D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE; // <-- byteaddressbuffer
+          : D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE }; // <-- byteaddressbuffer
+
+      const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+      {
+        .pResource   { (ID3D12Resource*)m_vertexBuffer },
+        .StateBefore { D3D12_RESOURCE_STATE_COPY_DEST },
+        .StateAfter  {  StateAfter },
+      };
 
       const D3D12_RESOURCE_BARRIER barrier
       {
-       .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-        .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-        {
-          .pResource = (ID3D12Resource*)m_vertexBuffer,
-          .StateBefore = D3D12_RESOURCE_STATE_COPY_DEST,
-          .StateAfter =  StateAfter
-        },
+        .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+        .Transition { Transition },
       };
-      const Array barriers = { barrier };
+      const Array barriers  { barrier };
 
       m_commandList->CopyBufferRegion( (ID3D12Resource*)m_vertexBuffer,
                                        0,
@@ -805,7 +816,7 @@ namespace Tac
     // Indicate that the back buffer will be used as a render target.
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
-    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
+    const Array rtCpuHDescs{ GetRTVCpuDescHandle( m_frameIndex ) };
 
     m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
                                        rtCpuHDescs.data(),
@@ -816,17 +827,17 @@ namespace Tac
 
     if( sUseInputLayout )
     {
-      const Array vbViews = { m_vertexBufferView };
+      const Array vbViews { m_vertexBufferView };
       m_commandList->IASetVertexBuffers(0, (UINT)vbViews.size(), vbViews.data() );
     }
     else
     {
       // ...
-      const Array descHeaps = { ( ID3D12DescriptorHeap* )m_srvHeap };
+      const Array descHeaps { ( ID3D12DescriptorHeap* )m_srvHeap };
       m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
       // ...
-      const UINT RootParameterIndex = 0;
+      const UINT RootParameterIndex { 0 };
       static_assert( RootParameterIndex == myParamIndex );
       m_commandList->SetGraphicsRootDescriptorTable( RootParameterIndex, m_srvGpuHeapStart );
     }
@@ -835,10 +846,10 @@ namespace Tac
 
     const D3D12_DRAW_ARGUMENTS drawArgs
     {
-      .VertexCountPerInstance = 3,
-      .InstanceCount = 1,
-      .StartVertexLocation = 0,
-      .StartInstanceLocation = 0,
+      .VertexCountPerInstance { 3 },
+      .InstanceCount          { 1 },
+      .StartVertexLocation    { 0 },
+      .StartInstanceLocation  { 0 },
     };
     m_commandList->DrawInstanced( drawArgs.VertexCountPerInstance,
                                   drawArgs.InstanceCount,
@@ -858,25 +869,16 @@ namespace Tac
 
   void DX12AppHelloTriangle::ClearRenderTargetView()
   {
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_frameIndex );
-
-#if 0
-    const double speed = 3;
-    const auto t = ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f;
-
-    // Record commands.
-    const v4 clearColor = { t( 0.2f, 0.4f, 1.0f } );
-#else
-    const v4 clearColor = v4{ 91, 128, 193, 255.0f } / 255.0f;
-#endif
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( m_frameIndex ) };
+    const v4 clearColor { v4{ mT * 255, 128, 193, 255.0f } / 255.0f };
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
 
   void DX12AppHelloTriangle::ExecuteCommandLists()
   {
-    const FrameMemoryVector< ID3D12CommandList* > cmdLists =
+    const FrameMemoryVector< ID3D12CommandList* > cmdLists
     {
-      (ID3D12CommandList*)m_commandList
+      ( ID3D12CommandList* )m_commandList,
     };
 
     // Submits an array of command lists for execution.
@@ -910,8 +912,8 @@ namespace Tac
     //   0   - Cancel the remaining time on the previously presented frame
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
-    const UINT SyncInterval = 1;
-    const UINT PresentFlags = 0;
+    const UINT SyncInterval { 1 };
+    const UINT PresentFlags { 0 };
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
@@ -941,7 +943,7 @@ namespace Tac
     //   increment m_fenceValue(2)
     //
 
-    const UINT64 signalValue = m_fenceValue;
+    const UINT64 signalValue { m_fenceValue };
 
     // Use this method to set a fence value from the GPU side
     // [ ] Q: ^ ???
@@ -958,7 +960,7 @@ namespace Tac
 
     // I think this if statement is used because the alternative
     // would be while( m_fence->GetCompletedValue() != fence ) { TAC_NO_OP; }
-    const UINT64 curValue = m_fence->GetCompletedValue();
+    const UINT64 curValue { m_fence->GetCompletedValue() };
     if( curValue < signalValue )
     {
       // m_fenceEvent is only ever used in this scope 
@@ -981,14 +983,21 @@ namespace Tac
 
   DX12AppHelloTriangle::DX12AppHelloTriangle( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloTriangle::Init( Errors& errors )
+  void DX12AppHelloTriangle::Init( InitParams initParams, Errors& errors )
   {
-    TAC_CALL( PreSwapChainInit( errors ));
+    const SysWindowApi* windowApi{ initParams.mWindowApi };
+    WindowBackend::SysApi::mIsRendererEnabled = false;
+
+    mRTVFmt = windowApi->GetSwapChainColorFormat();
+
+    TAC_CALL( PreSwapChainInit( initParams, errors ));
+
+
   }
 
-  void DX12AppHelloTriangle::PreSwapChainInit( Errors& errors)
+  void DX12AppHelloTriangle::PreSwapChainInit( InitParams initParams,Errors& errors)
   {
-    CreateDesktopWindow();
+    TAC_CALL( CreateDesktopWindow(initParams, errors ) );
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
     TAC_CALL( CreateDevice( errors ) );
@@ -1005,46 +1014,61 @@ namespace Tac
 
   void DX12AppHelloTriangle::PostSwapChainInit( Errors& errors)
   {
-    if( m_swapChain )
-      return;
-
-    TAC_CALL( DX12CreateSwapChain( errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
-    TAC_CALL( CreateBuffer( errors ) );
+    TAC_CALL( CreateVertexBuffer( errors ) );
     TAC_CALL( CreateSRV( errors ) );
 
     m_viewport = D3D12_VIEWPORT
     {
-     .Width = ( float )m_swapChainDesc.Width,
-     .Height = ( float )m_swapChainDesc.Height,
+     .Width   { ( float )m_swapChainDesc.Width },
+     .Height  { ( float )m_swapChainDesc.Height },
     };
 
     m_scissorRect = D3D12_RECT
     {
-      .right = ( LONG )m_swapChainDesc.Width,
-      .bottom = ( LONG )m_swapChainDesc.Height,
+      .right  { ( LONG )m_swapChainDesc.Width },
+      .bottom { ( LONG )m_swapChainDesc.Height },
     };
 
     m_viewports = { m_viewport };
     m_scissorRects = { m_scissorRect };
   }
 
-  void DX12AppHelloTriangle::Update( Errors& errors )
+  void DX12AppHelloTriangle::Render( RenderParams renderParams, Errors& errors )
   {
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+    const SysWindowApi* windowApi{ renderParams.mWindowApi };
+
+    if( !windowApi->GetNWH( hDesktopWindow ) )
       return;
 
-    TAC_CALL( PostSwapChainInit( errors ));
+    if( !m_swapChain )
+    {
+      const auto hwnd{ ( HWND )windowApi->GetNWH( hDesktopWindow ) };
+      const v2i size{ windowApi->GetSize( hDesktopWindow ) };
+      TAC_CALL( DX12CreateSwapChain( hwnd, size, errors ) );
+      TAC_CALL( PostSwapChainInit( errors ) );
+    }
+    
+    if( !windowApi->IsShown( hDesktopWindow ) )
+      return;
+    double t = Lerp(
+    renderParams.mOldState->mTimestamp.mSeconds, 
+    renderParams.mNewState->mTimestamp.mSeconds, 
+    renderParams.mT );
+    mT = (float)Sin( t ) * .5f + .5f;
 
     // Record all the commands we need to render the scene into the command list.
-    TAC_CALL( PopulateCommandList( errors ));
+    TAC_CALL( PopulateCommandList( errors ) );
 
     ExecuteCommandLists();
 
-    TAC_CALL( SwapChainPresent( errors ));
+    TAC_CALL( SwapChainPresent( errors ) );
 
-    TAC_CALL( WaitForPreviousFrame( errors ));
+    TAC_CALL( WaitForPreviousFrame( errors ) );
+  }
 
+  void DX12AppHelloTriangle::Update( UpdateParams updateParams, Errors& errors )
+  {
   }
 
   void DX12AppHelloTriangle::Uninit( Errors& errors )
@@ -1060,8 +1084,8 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName = "DX12 Hello Triangle",
-      .mDisableRenderer = true,
+      .mName            { "DX12 Hello Triangle" },
+      .mDisableRenderer { true },
     };
     return TAC_NEW DX12AppHelloTriangle( config );
   };

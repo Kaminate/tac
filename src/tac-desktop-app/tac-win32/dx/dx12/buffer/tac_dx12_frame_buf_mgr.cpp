@@ -72,13 +72,24 @@ namespace Tac::Render
     if( params.mDepthFmt != kUnknown )
     {
       swapChainDepth = AllocTextureHandle();
+
+      const Image image
+      {
+        .mWidth   { params.mSize.x },
+        .mHeight  { params.mSize.y },
+        .mFormat2 { params.mDepthFmt },
+      };
+
+      const String name{ "zbuf " + Tac::ToString( iHandle ) };
       const CreateTextureParams depthParams
       {
-        . { params.mDepthFmt },
-        ...
+        .mImage        { image },
+        .mBinding      { Binding::DepthStencil },
+        .mAccess       { Usage::Default },
+        .mCpuAccess    { CPUAccess::None },
+        .mOptionalName { name },
       };
-      TAC_CALL(mTextureMgr->CreateTexture( swapChainDepth, depthParams, errors ));
-
+      TAC_CALL( mTextureMgr->CreateTexture( swapChainDepth, depthParams, errors ) );
     }
 
     mSwapChains[ iHandle ] = DX12SwapChain
@@ -125,9 +136,9 @@ namespace Tac::Render
     return swapChain->mSwapChainImages[ iBackBuffer ];
   }
 
-  TextureHandle   DX12SwapChainMgr::GetSwapChainDepth( SwapChainHandle h)
+  TextureHandle   DX12SwapChainMgr::GetSwapChainDepth( SwapChainHandle h )
   {
     DX12SwapChain* swapChain { FindSwapChain( h ) };
-    return {};
+    return swapChain ? swapChain->mSwapChainDepth : TextureHandle{};
   }
 } // namespace Tac::Render

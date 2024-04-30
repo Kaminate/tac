@@ -19,8 +19,8 @@ LinearColor4 LinearColor3to4( const LinearColor3 col )
 
 struct Vertex
 {
-  ClipSpacePosition3 mPosition;
-  LinearColor3       mColor;
+  ClipSpacePosition3 mPosition : POSITION;
+  LinearColor3       mColor    : COLOR;
 };
 
 struct VSOutput
@@ -31,13 +31,8 @@ struct VSOutput
 
 typedef VSOutput PSInput;
 
-ByteAddressBuffer BufferTable[] : register( t0, space0 );
-
-VSOutput VSMain( uint iVtx : SV_VertexID )
+VSOutput VSMain( Vertex input )
 {
-  const uint byteOffset = sizeof( Vertex ) * iVtx;
-  const Vertex input = BufferTable[ 0 ].Load < Vertex >( byteOffset );
-
   VSOutput result;
   result.mPosition = ClipSpacePosition3to4( input.mPosition );
   result.mColor = input.mColor;

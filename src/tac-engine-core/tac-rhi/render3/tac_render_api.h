@@ -296,6 +296,11 @@ namespace Tac::Render
     TextureHandle mDepth;
   };
 
+  struct DrawArgs
+  {
+    int mVertexCount   {};
+  };
+
   struct IContext
   {
     struct Scope
@@ -324,6 +329,8 @@ namespace Tac::Render
     virtual void ClearColor( TextureHandle, v4 ) {}
     virtual void ClearDepth( TextureHandle, float ) {}
     virtual void Execute( Errors& ) {}
+
+    virtual void Draw( DrawArgs ) {};
 
   protected:
     virtual void Retire() = 0;

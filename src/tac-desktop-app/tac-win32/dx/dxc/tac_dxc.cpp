@@ -326,7 +326,11 @@ namespace Tac::Render
     }
 
     const String target { typeData.GetTarget( input.mShaderModel ) };
-    const String inputShaderName {  input.mFileName };
+
+    const int iSlash{ input.mFileName.find_last_of( "/\\" ) };
+    const StringView inputShaderName{
+      iSlash == StringView::npos ? input.mFileName : input.mFileName.substr( iSlash + 1 ) };
+
     const Filesystem::Path hlslShaderPath { input.mOutputDir / inputShaderName };
 
     TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
