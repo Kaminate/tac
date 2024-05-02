@@ -1,4 +1,4 @@
-#include "tac_dx12_context_manager.h" // self-inc
+#include "tac_dx12_context.h" // self-inc
 
 #include "tac-win32/dx/dx12/tac_dx12_command_allocator_pool.h"
 #include "tac-win32/dx/dx12/tac_dx12_gpu_upload_allocator.h"
@@ -21,53 +21,14 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  // DX12Context
-#if 0
-
-  DX12Context::DX12Context( DX12CommandAllocatorPool* pool,
-                            DX12ContextManager* mgr,
-                            DX12CommandQueue* q,
-                            Errors* e )
-  {
-    mCommandAllocatorPool = mCommandAllocatorPool;
-    mContextManager = mgr;
-    mCommandQueue = mCommandQueue;
-    mParentScopeErrors = e;
-  }
-
-  DX12Context::DX12Context( DX12Context&& other ) noexcept
-  {
-    MoveFrom( ( DX12Context&& )other );
-  }
-
-  void DX12Context::MoveFrom( DX12Context&& other ) noexcept
-  {
-    mCommandList = other.mCommandList;
-    mCommandAllocator = other.mCommandAllocator;
-    mGPUUploadAllocator = other.mGPUUploadAllocator;
-    mExecuted = other.mExecuted;
-    mSynchronous = other.mSynchronous;
-    mCommandAllocatorPool = other.mCommandAllocatorPool;
-    mContextManager = other.mContextManager;
-    mCommandQueue = other.mCommandQueue;
-  }
-
-  void DX12Context::operator = ( DX12Context&& other ) noexcept
-  {
-    MoveFrom( ( DX12Context&& )other );
-  }
-
-
-#endif
-
   void DX12Context::UpdateTexture( TextureHandle h, UpdateTextureParams params )
   {
-    sRenderer.mTexMgr.UpdateTexture( h, params );
+    mTextureMgr->UpdateTexture( h, params, this );
   }
 
   void DX12Context::UpdateBuffer( BufferHandle h, UpdateBufferParams params )
   {
-    sRenderer.mBufMgr.UpdateBuffer( h, params );
+    mBufferMgr->UpdateBuffer( h, params, this );
   }
 
 
@@ -79,9 +40,8 @@ namespace Tac::Render
     if( !commandList )
       return; // This context has been (&&) moved
 
-    for( int i{}; i < mEventCount; ++i )
-      PIXEndEvent( commandList );
-    mEventCount = 0;
+    while( mState.mEventCount )
+      DebugEventEnd();
 
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( commandList->Close() );
@@ -186,15 +146,15 @@ namespace Tac::Render
   {
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
-    mEventCount++;
+    mState.mEventCount++;
   }
 
   void DX12Context::DebugEventEnd()
   {
-    TAC_ASSERT( mEventCount > 0 );
+    TAC_ASSERT( mState.mEventCount > 0 );
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     PIXEndEvent( commandList );
-    mEventCount--;
+    mState.mEventCount--;
   }
 
   void DX12Context::DebugMarker( StringView str )
@@ -205,15 +165,12 @@ namespace Tac::Render
 
   void DX12Context::SetRenderTargets( Targets targets )
   {
-    TAC_ASSERT( mRenderer );
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
     FixedVector< D3D12_RESOURCE_BARRIER, 10 > barriers;
 
-    DX12TextureMgr* textureMgr = &mRenderer->mTexMgr;
-
     for( TextureHandle colorTarget : targets.mColors )
     {
-      if( DX12Texture * colorTexture{ textureMgr->FindTexture( colorTarget ) } )
+      if( DX12Texture * colorTexture{ mTextureMgr->FindTexture( colorTarget ) } )
       {
         const D3D12_RESOURCE_STATES StateBefore { colorTexture->mState };
         const D3D12_RESOURCE_STATES StateAfter { D3D12_RESOURCE_STATE_RENDER_TARGET };
@@ -244,7 +201,7 @@ namespace Tac::Render
 
     D3D12_CPU_DESCRIPTOR_HANDLE DSV{};
     D3D12_CPU_DESCRIPTOR_HANDLE* pDSV{};
-    if( DX12Texture * depthTexture{ textureMgr->FindTexture( targets.mDepth ) } )
+    if( DX12Texture* depthTexture{ mTextureMgr->FindTexture( targets.mDepth ) } )
     {
       DSV = depthTexture->mRTV->GetCPUHandle();
       pDSV = &DSV;
@@ -261,8 +218,7 @@ namespace Tac::Render
 
   void DX12Context::SetPipeline( PipelineHandle h )
   {
-    DX12PipelineMgr* pipelineMgr { &mRenderer->mPipelineMgr };
-    DX12Pipeline* pipeline { pipelineMgr->FindPipeline( h ) };
+    DX12Pipeline* pipeline { mPipelineMgr->FindPipeline( h ) };
     ID3D12PipelineState* pipelineState { pipeline->mPSO.Get() };
     ID3D12RootSignature* rootSignature { pipeline->mRootSignature.Get() };
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
@@ -272,8 +228,7 @@ namespace Tac::Render
 
   void DX12Context::ClearColor( TextureHandle h, v4 values )
   {
-    DX12TextureMgr* textureMgr { &mRenderer->mTexMgr };
-    const DX12Texture* texture{ textureMgr->FindTexture( h ) };
+    const DX12Texture* texture{ mTextureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
 
     const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV->GetCPUHandle() };
@@ -284,8 +239,7 @@ namespace Tac::Render
 
   void DX12Context::ClearDepth( TextureHandle h, float value )
   {
-    DX12TextureMgr* textureMgr { &mRenderer->mTexMgr };
-    DX12Texture* texture{ textureMgr->FindTexture( h ) };
+    DX12Texture* texture{ mTextureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
     TAC_ASSERT( texture->mDSV.HasValue() );
     
@@ -364,81 +318,5 @@ namespace Tac::Render
   {
     mContextManager->RetireContext( this );
   }
-
-  // -----------------------------------------------------------------------------------------------
-
-  // DX12ContextManager
-
-  void DX12ContextManager::RetireContext( DX12Context* context )
-  {
-    mAvailableContexts.push_back( context );
-  }
-
-
-  void DX12ContextManager::Init( DX12CommandAllocatorPool* commandAllocatorPool,
-                                 DX12CommandQueue* commandQueue,
-                                 DX12UploadPageMgr* uploadPageManager,
-                                 DX12SwapChainMgr* frameBufferMgr,
-                                 ID3D12Device* device,
-                                 DX12Renderer* renderer )
-  {
-    mCommandAllocatorPool = commandAllocatorPool;
-    mCommandQueue = commandQueue;
-    mUploadPageManager = uploadPageManager;
-    mFrameBufferMgr = frameBufferMgr;
-    mRenderer = renderer;
-
-    device->QueryInterface( mDevice.iid(), mDevice.ppv() );
-    TAC_ASSERT( mDevice );
-  }
-
-  DX12Context* DX12ContextManager::GetContext( Errors& errors )
-  {
-    DX12Context* dx12Context{};
-
-    if( mAvailableContexts.empty() )
-    {
-      dx12Context = TAC_NEW DX12Context;
-      dx12Context->mCommandList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
-      dx12Context->mGPUUploadAllocator.Init( mUploadPageManager );
-      dx12Context->mCommandAllocatorPool = mCommandAllocatorPool;
-      dx12Context->mContextManager = this;
-      dx12Context->mCommandQueue = mCommandQueue;
-      dx12Context->mFrameBufferMgr = mFrameBufferMgr;
-      dx12Context->mRenderer = mRenderer;
-    }
-    else
-    {
-      dx12Context = mAvailableContexts.back();
-      mAvailableContexts.pop_back();
-    }
-
-    TAC_CALL_RET( {}, dx12Context->Reset( errors ) );
-
-    return dx12Context;
-  }
-
-  PCom< ID3D12GraphicsCommandList > DX12ContextManager::CreateCommandList( Errors& errors )
-  {
-    // Create the command list
-    //
-    // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
-    //       CreateCommandList, which creates in a open state.
-    PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL_RET( {}, mDevice->CreateCommandList1( 0,
-                       D3D12_COMMAND_LIST_TYPE_DIRECT,
-                       D3D12_COMMAND_LIST_FLAG_NONE,
-                       commandList.iid(),
-                       commandList.ppv() ) );
-    TAC_ASSERT( commandList );
-
-    PCom< ID3D12GraphicsCommandList > graphicsList{
-      commandList.QueryInterface<ID3D12GraphicsCommandList>() };
-
-    TAC_ASSERT( graphicsList );
-    DX12SetName( graphicsList, "My Command List" );
-    return graphicsList;
-  }
-
 
 } // namespace Tac::Render

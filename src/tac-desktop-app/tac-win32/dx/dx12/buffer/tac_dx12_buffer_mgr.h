@@ -8,7 +8,7 @@
 
 namespace Tac { struct Errors; }
 
-namespace Tac::Render { struct DX12Context; }
+namespace Tac::Render { struct DX12Context; struct DX12ContextManager; }
 namespace Tac::Render
 {
   struct DX12BufferMgr
@@ -17,6 +17,7 @@ namespace Tac::Render
     {
       ID3D12Device*       mDevice{};
       DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV{};
+      DX12ContextManager* mContextManager{};
     };
 
     void Init( Params );
@@ -36,6 +37,7 @@ namespace Tac::Render
 
     ID3D12Device*       mDevice{};
     DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV{};
+    DX12ContextManager* mContextManager{};
 
     DX12Buffer          mBuffers[ 100 ];
   };

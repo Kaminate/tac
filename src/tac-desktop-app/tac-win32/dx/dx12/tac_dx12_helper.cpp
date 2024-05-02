@@ -75,7 +75,7 @@ namespace Tac
     return String() + fn + " failed with " + hrStr;
   }
 
-  void Render::DX12SetNameAux( ID3D12Object* obj, StringView sv )
+  void Render::DX12SetName( ID3D12Object* obj, StringView sv )
   {
     std::wstring ws;
     for( char c : sv )
@@ -85,9 +85,9 @@ namespace Tac
     TAC_ASSERT( hr == S_OK );
   }
 
-  void Render::DX12SetNameAux( ID3D12Object* obj, StackFrame sf )
+  void Render::DX12SetName( ID3D12Object* obj, StackFrame sf )
   {
-    DX12SetNameAux( obj, String() + sf.mFile + ":" + Tac::ToString( sf.mLine ) );
+    DX12SetName( obj, String() + sf.mFile + ":" + Tac::ToString( sf.mLine ) );
   }
 
 } // namespace Tac::Render

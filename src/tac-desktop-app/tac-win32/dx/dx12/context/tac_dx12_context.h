@@ -4,7 +4,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac_dx12_gpu_upload_allocator.h"
+#include "tac-win32/dx/dx12/tac_dx12_gpu_upload_allocator.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 
@@ -19,8 +19,8 @@ namespace Tac::Render
   struct DX12CommandQueue;
   struct DX12SwapChainMgr;
   struct DX12TextureMgr;
-  //struct DX12Device;
-  struct DX12Renderer;
+  struct DX12BufferMgr;
+  struct DX12PipelineMgr;
 
   // A context has a commandlist, even if the context is recycled, the commandlist stays with it
   // forever.
@@ -29,16 +29,6 @@ namespace Tac::Render
   struct DX12Context : public IContext
   {
     DX12Context() = default;
-#if 0
-    DX12Context( DX12CommandAllocatorPool*,
-                 DX12ContextManager*,
-                 DX12CommandQueue*,
-                 Errors* );
-    ~DX12Context() override;
-    DX12Context( DX12Context&& ) noexcept;
-    void operator = ( DX12Context& ) = delete;
-    void operator = ( DX12Context&& ) noexcept;
-#endif
 
     // note(n473): i dont like how with dx12context::Begin and dx12context::Finish,
     // there is no protection (afaict) to prevent someone from forgetting to call Finish.
@@ -77,6 +67,7 @@ namespace Tac::Render
       BufferHandle       mIndexBuffer;
       bool               mSynchronous          {};
       bool               mExecuted             {};
+      int                mEventCount           {};
     };
 
     State mState{};
@@ -95,37 +86,9 @@ namespace Tac::Render
     DX12ContextManager*               mContextManager       {};
     DX12CommandQueue*                 mCommandQueue         {};
     DX12SwapChainMgr*                 mFrameBufferMgr       {};
-    //DX12TextureMgr*                   mTextureMgr           {};
-    DX12Renderer*                     mRenderer             {};
-    int                               mEventCount           {};
+    DX12TextureMgr*                   mTextureMgr           {};
+    DX12BufferMgr*                    mBufferMgr            {};
+    DX12PipelineMgr*                  mPipelineMgr          {};
   };
 
-  // a contextmanager manages contexts
-  struct DX12ContextManager
-  {
-    void Init( DX12CommandAllocatorPool*,
-               DX12CommandQueue*,
-               DX12UploadPageMgr*,
-               DX12SwapChainMgr*,
-               ID3D12Device*,
-               DX12Renderer*
-    );
-
-    DX12Context*                      GetContext( Errors& );
-    void                              RetireContext( DX12Context* );
-    PCom< ID3D12GraphicsCommandList > CreateCommandList( Errors& );
-
-  private:
-    Vector< DX12Context* >         mAvailableContexts;
-
-    // singletons
-    DX12CommandAllocatorPool* mCommandAllocatorPool {};
-    DX12CommandQueue*         mCommandQueue         {};
-    DX12UploadPageMgr*        mUploadPageManager    {};
-    DX12SwapChainMgr*         mFrameBufferMgr       {};
-
-    PCom< ID3D12Device4 >     mDevice;
-    DX12Renderer*             mRenderer{};
-
-  };
 }

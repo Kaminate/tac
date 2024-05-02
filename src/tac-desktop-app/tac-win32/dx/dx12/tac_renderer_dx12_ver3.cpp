@@ -73,12 +73,18 @@ namespace Tac::Render
     */
     TAC_CALL( mCommandQueue.Create( mDevice, errors ) );
     mCommandAllocatorPool.Init( mDevice, &mCommandQueue );
-    mContextManager.Init( &mCommandAllocatorPool,
-                          &mCommandQueue,
-                          &mUploadPageManager,
-                          &mSwapChainMgr,
-                          mDevice,
-                          this );
+
+    mContextManager.Init( {
+      .mCommandAllocatorPool = &mCommandAllocatorPool,
+      .mCommandQueue = &mCommandQueue,
+      .mUploadPageManager = &mUploadPageManager,
+      .mSwapChainMgr = &mSwapChainMgr,
+      .mTextureMgr = &mTexMgr,
+      .mBufferMgr = &mBufMgr,
+      .mPipelineMgr = &mPipelineMgr,
+      .mDevice = mDevice,
+                          } );
+      
     mUploadPageManager.Init( mDevice, &mCommandQueue );
     /*
 

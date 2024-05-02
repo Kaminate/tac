@@ -19,7 +19,7 @@
 #include "tac-win32/dx/dx12/tac_dx12_command_queue.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-win32/dx/dx12/tac_dx12_command_allocator_pool.h"
-#include "tac-win32/dx/dx12/tac_dx12_context_manager.h"
+#include "tac-win32/dx/dx12/context/tac_dx12_context_manager.h"
 #include "tac-win32/dx/dx12/tac_dx12_gpu_upload_allocator.h"
 
 
