@@ -149,8 +149,8 @@ namespace Tac
 
   struct ImGuiSimWindowDraws
   {
-    void CopyVertexes( ImGuiRenderBuffers*, Errors& );
-    void CopyIndexes( ImGuiRenderBuffers*, Errors& );
+    void CopyVertexes( Render::IContext*, ImGuiRenderBuffers*, Errors& );
+    void CopyIndexes( Render::IContext*, ImGuiRenderBuffers*, Errors& );
 
     WindowHandle                       mHandle;
     Vector< SmartPtr< UI2DDrawData > > mDrawData;

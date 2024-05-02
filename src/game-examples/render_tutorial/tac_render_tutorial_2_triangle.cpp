@@ -50,16 +50,19 @@ namespace Tac
 
     WindowHandle           sWindowHandle;
     Render::BufferHandle   mVtxBuf;
-    Render::ProgramHandle  mShader;
-    Render::PipelineHandle mPipeline;
+    Render::ProgramHandle  mShaderBindless;
+    Render::ProgramHandle  mShaderInputLayout;
+    Render::PipelineHandle mPipelineBindless;
+    Render::PipelineHandle mPipelineInputLayout;
     Render::TexFmt         mColorFormat;
+    bool                   mBindless{};
   };
 
   void HelloTriangle::Init( InitParams initParams, Errors& errors )
   {
     const SysWindowApi* windowApi{ initParams.mWindowApi };
     mColorFormat = windowApi->GetSwapChainColorFormat();
-    WindowBackend::SysApi::mIsRendererEnabled = false; // hack
+    //WindowBackend::SysApi::mIsRendererEnabled = t; // hack
 
     InitWindow( initParams, errors );
     InitBuffer( errors );
@@ -67,7 +70,7 @@ namespace Tac
     InitRootSig( errors );
   }
 
-  void HelloTriangle::InitWindow( InitParams initParams  , Errors& errors )
+  void HelloTriangle::InitWindow( InitParams initParams, Errors& errors )
   {
     const Monitor monitor { OS::OSGetPrimaryMonitor() };
     const v2i windowSize{ monitor.mSize / 2 };
@@ -84,11 +87,10 @@ namespace Tac
   void HelloTriangle::InitShader( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams params
-    {
-      .mFileStem { "HelloTriangleBindless" },
-    };
-    mShader = renderDevice->CreateProgram( params, errors );
+    Render::ProgramParams paramsBindless    { .mFileStem { "HelloTriangleBindless" }, };
+    Render::ProgramParams paramsInputLayout { .mFileStem { "HelloTriangleInputLayout" }, };
+    TAC_CALL( mShaderInputLayout = renderDevice->CreateProgram( paramsInputLayout, errors ) );
+    TAC_CALL( mShaderBindless = renderDevice->CreateProgram( paramsBindless, errors ) );
   }
 
   void HelloTriangle::InitBuffer( Errors& errors )
@@ -118,7 +120,8 @@ namespace Tac
     {
       .mByteCount    { sizeof( triangleVertices ) },
       .mBytes        { triangleVertices },
-      .mAccess       { Render::Usage::Default },
+      .mUsage        { Render::Usage::Default },
+      .mBinding      { Render::Binding::ShaderResource },
       .mOptionalName { "tri verts" },
     };
     mVtxBuf = renderDevice->CreateBuffer( params, errors );
@@ -128,9 +131,9 @@ namespace Tac
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    const Render::PipelineParams params
+    const Render::PipelineParams paramsBindless
     {
-      .mProgram      { mShader },
+      .mProgram      { mShaderBindless },
       // RasterizerType         mRasterizer;
       // BlendType              mBlend;
       // DepthStencilType       mDepthStencilType;
@@ -138,7 +141,19 @@ namespace Tac
       .mRTVColorFmts { mColorFormat },
       .mDSVDepthFmt  { Render::TexFmt::kUnknown },
     };
-    mPipeline = renderDevice->CreatePipeline( params, errors );
+
+    const Render::PipelineParams paramsInputLayout
+    {
+      .mProgram      { mShaderInputLayout },
+      // RasterizerType         mRasterizer;
+      // BlendType              mBlend;
+      // DepthStencilType       mDepthStencilType;
+      // SwapChainHandle               mRenderTarget;
+      .mRTVColorFmts { mColorFormat },
+      .mDSVDepthFmt  { Render::TexFmt::kUnknown },
+    };
+    mPipelineBindless = renderDevice->CreatePipeline( paramsBindless, errors );
+    mPipelineInputLayout = renderDevice->CreatePipeline( paramsInputLayout, errors );
 
 
 #if 0
@@ -175,12 +190,6 @@ namespace Tac
 
     TAC_ASSERT( myParamIndex == 0 && params.size() > myParamIndex );
     DX12SetName( m_rootSignature, "My Root Signature" );
-    const AssetPathStringView shaderAssetPath = sUseInputLayout
-      ? "assets/hlsl/DX12HelloTriangle.hlsl"
-      : "assets/hlsl/DX12HelloTriangleBindless.hlsl";
-
-    TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
-    TAC_CALL( DX12ProgramCompiler::Result program = compiler.Compile( shaderAssetPath, errors ) );
 
     const DX12BuiltInputLayout inputLayout{
       VertexDeclarations
@@ -262,9 +271,11 @@ namespace Tac
 #endif
   }
 
-
-  void    HelloTriangle::Render( RenderParams sysRenderParams, Errors& errors )
+  void HelloTriangle::Render( RenderParams sysRenderParams, Errors& errors )
   {
+    // Test bindless vs not bindless by flipping it every frame
+    mBindless = !mBindless;
+
     const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
     const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
     Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( sWindowHandle ) };
@@ -278,12 +289,25 @@ namespace Tac
 
     renderContext->SetRenderTargets( renderTargets );
 
-    renderContext->SetPipeline( mPipeline );
+    if( mBindless )
+      renderContext->SetPipeline( mPipelineBindless );
+    else
+      renderContext->SetPipeline( mPipelineInputLayout );
+
     renderContext->SetViewport( windowSize );
     renderContext->SetScissor( windowSize );
     renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
-    Render::DrawArgs drawArgs
+
+    if( mBindless )
+    {
+    }
+    else
+    {
+      //renderContext->SetVertexBuffer();
+    }
+
+    const Render::DrawArgs drawArgs
     {
       .mVertexCount { 3 },
     };

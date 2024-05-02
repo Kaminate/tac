@@ -145,7 +145,7 @@ namespace Tac
                                                        const Render::VertexDeclarations& vertexDeclarations,
                                                        Errors& errors )
   {
-    const int stride = WavefrontObjCalculateStride( vertexDeclarations );
+    const int stride { WavefrontObjCalculateStride( vertexDeclarations ) };
 
     Vector< char > dstVtxBytes;
     Vector< char > dstIdxBytes;
@@ -207,13 +207,13 @@ namespace Tac
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    Render::CreateBufferParams vertexBufferParams
+    const Render::CreateBufferParams vertexBufferParams
     {
-      .mByteCount { dstVtxBytes.size() },
-      .mBytes { dstVtxBytes.data() },
-      .mAccess { Render::Usage::Default },
+      .mByteCount    { dstVtxBytes.size() },
+      .mBytes        { dstVtxBytes.data() },
+      .mUsage        { Render::Usage::Default },
       .mOptionalName { name },
-      .mStackFrame { TAC_STACK_FRAME },
+      .mStackFrame   { TAC_STACK_FRAME },
     };
     TAC_CALL_RET( {},const Render::BufferHandle vertexBuffer {
        renderDevice->CreateBuffer( vertexBufferParams, errors ) } );
@@ -221,18 +221,13 @@ namespace Tac
     const SubMesh subMesh
     {
       .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
-      .mVertexBuffer { vertexBuffer },
-      .mTris { subMeshTriangles },
-      .mVertexCount { wavefrontObj.faces.size() * 3 },
-      .mName { name },
+      .mVertexBuffer      { vertexBuffer },
+      .mTris              { subMeshTriangles },
+      .mVertexCount       { wavefrontObj.faces.size() * 3 },
+      .mName              { name },
     };
 
-    const Mesh mesh
-    {
-      .mSubMeshes  { subMesh },
-    };
-
-    return mesh;
+    return Mesh{ .mSubMeshes { subMesh } };
   }
 
   static Mesh               WavefrontObjLoadIntoMesh( const AssetPathStringView& assetPath,

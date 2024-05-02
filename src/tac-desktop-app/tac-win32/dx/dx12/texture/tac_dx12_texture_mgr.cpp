@@ -389,7 +389,9 @@ namespace Tac::Render
     };
   }
 
-  void DX12TextureMgr::UpdateTexture( TextureHandle h, UpdateTextureParams params )
+  void DX12TextureMgr::UpdateTexture( TextureHandle h,
+                                      UpdateTextureParams params,
+                                      DX12Context* context  )
   {
     DX12Texture& dynTex { mTextures[ h.GetIndex() ] };
     TAC_ASSERT_UNIMPLEMENTED;

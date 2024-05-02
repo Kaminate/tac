@@ -132,6 +132,9 @@ namespace Tac::Render
   TextureHandle   DX12SwapChainMgr::GetSwapChainCurrentColor( SwapChainHandle h)
   {
     DX12SwapChain* swapChain { FindSwapChain( h ) };
+    if( !swapChain )
+      return {};
+
     const UINT iBackBuffer{ swapChain->mSwapChain->GetCurrentBackBufferIndex() };
     return swapChain->mSwapChainImages[ iBackBuffer ];
   }

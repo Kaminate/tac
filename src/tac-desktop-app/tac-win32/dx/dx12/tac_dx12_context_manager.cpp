@@ -60,6 +60,17 @@ namespace Tac::Render
 
 #endif
 
+  void DX12Context::UpdateTexture( TextureHandle h, UpdateTextureParams params )
+  {
+    sRenderer.mTexMgr.UpdateTexture( h, params );
+  }
+
+  void DX12Context::UpdateBuffer( BufferHandle h, UpdateBufferParams params )
+  {
+    sRenderer.mBufMgr.UpdateBuffer( h, params );
+  }
+
+
   void DX12Context::Execute( Errors& errors )
   {
     TAC_ASSERT( !mState.mExecuted );
@@ -314,9 +325,39 @@ namespace Tac::Render
   void DX12Context::Draw( DrawArgs args )
   {
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    OS::OSDebugBreak();
-    //commandList->DrawIndexedInstanced(..);
-    //commandList->DrawInstanced(..);
+    if( mState.mIndexBuffer.IsValid() )
+    {
+      const D3D12_DRAW_INDEXED_ARGUMENTS dx12DrawArgs
+      {
+        // Is it weird to pass the "vertexcount" parameter to an "indexcount" value?
+        .IndexCountPerInstance { (UINT)args.mVertexCount },
+
+        .InstanceCount         { 1 },
+        .StartIndexLocation    {},
+        .BaseVertexLocation    {},
+        .StartInstanceLocation {},
+      };
+
+      commandList->DrawIndexedInstanced( dx12DrawArgs.IndexCountPerInstance,
+                                         dx12DrawArgs.InstanceCount,
+                                         dx12DrawArgs.StartIndexLocation,
+                                         dx12DrawArgs.BaseVertexLocation,
+                                         dx12DrawArgs.StartInstanceLocation );
+    }
+    else
+    {
+      const D3D12_DRAW_ARGUMENTS dx12DrawArgs
+      {
+        .VertexCountPerInstance { ( UINT )args.mVertexCount },
+        .InstanceCount          { 1 },
+        .StartVertexLocation    {},
+        .StartInstanceLocation  {},
+      };
+      commandList->DrawInstanced( dx12DrawArgs.VertexCountPerInstance,
+                                  dx12DrawArgs.InstanceCount,
+                                  dx12DrawArgs.StartVertexLocation,
+                                  dx12DrawArgs.StartInstanceLocation );
+    }
   }
 
   void DX12Context::Retire()

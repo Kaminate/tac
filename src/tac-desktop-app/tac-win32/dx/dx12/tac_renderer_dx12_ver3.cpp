@@ -39,18 +39,21 @@ namespace Tac::Render
     TAC_CALL( mPipelineMgr.Init( mDevice, &mProgramMgr ) );
 
     mTexMgr.Init( {
-                    .mDevice               { mDevice },
-                    .mCpuDescriptorHeapRTV { &mCpuDescriptorHeapRTV },
-                    .mCpuDescriptorHeapDSV { &mCpuDescriptorHeapDSV },
-                    .mContextManager       { &mContextManager },
+      .mDevice               { mDevice },
+      .mCpuDescriptorHeapRTV { &mCpuDescriptorHeapRTV },
+      .mCpuDescriptorHeapDSV { &mCpuDescriptorHeapDSV },
+      .mContextManager       { &mContextManager },
                   } );
 
     mSwapChainMgr.Init( {
-                          .mTextureManager   { &mTexMgr },
-                          .mCommandQueue     { &mCommandQueue },
+      .mTextureManager   { &mTexMgr },
+      .mCommandQueue     { &mCommandQueue },
                         } );
 
-    mBufMgr.Init( mDevice );
+    mBufMgr.Init( {
+      .mDevice { mDevice },
+      .mCpuDescriptorHeapCBV_SRV_UAV { &mCpuDescriptorHeapCBV_SRV_UAV },
+                  } );
 
     //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();
     /*
@@ -238,10 +241,6 @@ namespace Tac::Render
     return h;
   }
 
-  void              DX12Device::UpdateBuffer( BufferHandle h, UpdateBufferParams params )
-  {
-    sRenderer.mBufMgr.UpdateBuffer( h, params );
-  }
 
   void              DX12Device::DestroyBuffer( BufferHandle h )
   {
@@ -261,15 +260,12 @@ namespace Tac::Render
     return h;
   }
 
-  void              DX12Device::UpdateTexture( TextureHandle h, UpdateTextureParams params )
-  {
-    sRenderer.mTexMgr.UpdateTexture( h, params );
-  }
-
   void              DX12Device::DestroyTexture( TextureHandle h )
   {
     sRenderer.mTexMgr.DestroyTexture( h );
   }
+
+
 
 } // namespace Tac::Render
 

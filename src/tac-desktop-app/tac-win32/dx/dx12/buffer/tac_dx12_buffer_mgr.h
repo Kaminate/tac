@@ -8,16 +8,35 @@
 
 namespace Tac { struct Errors; }
 
+namespace Tac::Render { struct DX12Context; }
 namespace Tac::Render
 {
   struct DX12BufferMgr
   {
-    void Init( ID3D12Device* );
+    struct Params
+    {
+      ID3D12Device*       mDevice{};
+      DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV{};
+    };
+
+    void Init( Params );
     void CreateBuffer( BufferHandle, CreateBufferParams, Errors& );
-    void UpdateBuffer( BufferHandle, UpdateBufferParams );
+    void UpdateBuffer( BufferHandle, UpdateBufferParams, DX12Context* );
     void DestroyBuffer( BufferHandle );
 
-    DX12Buffer    mBuffers[ 100 ];
-    ID3D12Device* mDevice{};
+  private:
+
+    struct DescriptorBindings
+    {
+      Optional< DX12DescriptorHeapAllocation > mSRV;
+      Optional< DX12DescriptorHeapAllocation > mUAV;
+    };
+
+    DescriptorBindings CreateBindings( ID3D12Resource* , Binding );
+
+    ID3D12Device*       mDevice{};
+    DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV{};
+
+    DX12Buffer          mBuffers[ 100 ];
   };
 } // namespace Tac::Render

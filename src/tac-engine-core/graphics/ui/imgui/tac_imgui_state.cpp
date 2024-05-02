@@ -396,8 +396,9 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiSimWindowDraws::CopyVertexes( ImGuiRenderBuffers* gDrawInterface,
-                                         Errors& errors )
+  void ImGuiSimWindowDraws::CopyVertexes( Render::IContext* renderContext,
+                                          ImGuiRenderBuffers* gDrawInterface,
+                                          Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     if( !gDrawInterface->mVB.IsValid() || gDrawInterface->mVBCount < mVertexCount )
@@ -406,8 +407,8 @@ namespace Tac
       const Render::CreateBufferParams params
       {
         .mByteCount    { byteCount },
+        .mUsage        { Render::Usage::Dynamic },
         .mOptionalName { "imgui_vtx_buf" },
-        .mStackFrame   { TAC_STACK_FRAME },
       };
       gDrawInterface->mVB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
       gDrawInterface->mVBCount = mVertexCount;
@@ -423,23 +424,24 @@ namespace Tac
         .mSrcByteCount  { srcByteCount },
         .mDstByteOffset { byteOffset },
       };
-      renderDevice->UpdateBuffer( gDrawInterface->mVB, updateParams );
+      renderContext->UpdateBuffer( gDrawInterface->mVB, updateParams );
       byteOffset += srcByteCount;
     }
   }
 
-  void ImGuiSimWindowDraws::CopyIndexes( ImGuiRenderBuffers* gDrawInterface,
-                                        Errors& errors )
+  void ImGuiSimWindowDraws::CopyIndexes( Render::IContext* renderContext,
+                                         ImGuiRenderBuffers* gDrawInterface,
+                                         Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     if( !gDrawInterface->mIB.IsValid() || gDrawInterface->mIBCount < mIndexCount )
     {
-      const int byteCount { mIndexCount * (int)sizeof( UI2DIndex ) };
+      const int byteCount{ mIndexCount * ( int )sizeof( UI2DIndex ) };
       const Render::CreateBufferParams params
       {
         .mByteCount    { byteCount },
+        .mUsage        { Render::Usage::Dynamic },
         .mOptionalName { "imgui_idx_buf" },
-        .mStackFrame   { TAC_STACK_FRAME },
       };
       gDrawInterface->mIB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
       gDrawInterface->mIBCount = mIndexCount;
@@ -456,7 +458,7 @@ namespace Tac
         .mDstByteOffset { byteOffset },
       };
 
-      renderDevice->UpdateBuffer( gDrawInterface->mIB, updateParams );
+      renderContext->UpdateBuffer( gDrawInterface->mIB, updateParams );
       byteOffset += srcByteCount;
     }
   }
@@ -512,9 +514,13 @@ namespace Tac
     ImGuiRenderBuffers& renderBuffers { sysDraws->mRenderBuffers[ sysDraws->mFrameIndex ] };
     ( ++sysDraws->mFrameIndex ) %= n;
 
+    TAC_CALL( Render::IContext::Scope renderContextScope{
+      renderDevice->CreateRenderContext( errors ) } );
+    Render::IContext* renderContext { renderContextScope.GetContext() };
+
     // combine draw data
-    simDraws->CopyVertexes( &renderBuffers, errors );
-    simDraws->CopyIndexes( &renderBuffers, errors );
+    simDraws->CopyVertexes( renderContext, &renderBuffers, errors );
+    simDraws->CopyIndexes( renderContext, &renderBuffers, errors );
 
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
     void* context { nullptr };
@@ -564,7 +570,6 @@ namespace Tac
 #endif
     };
 
-    TAC_CALL( Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) } );
 
     const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
     const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };

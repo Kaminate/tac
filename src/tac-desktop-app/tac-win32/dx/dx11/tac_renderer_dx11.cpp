@@ -1028,10 +1028,11 @@ namespace Tac::Render
     TAC_ASSERT( DesktopAppThreads::IsMainThread() );
     TAC_ASSERT( !data->mOptionalInitialBytes || IsSubmitAllocated( data->mOptionalInitialBytes ) );
 
-    const D3D11_BUFFER_DESC bd {
-      .ByteWidth { (UINT)data->mByteCount },
-      .Usage { GetUsage( data->mAccess ) },
-      .BindFlags { D3D11_BIND_VERTEX_BUFFER },
+    const D3D11_BUFFER_DESC bd
+    {
+      .ByteWidth      { ( UINT )data->mByteCount },
+      .Usage          { GetUsage( data->mAccess ) },
+      .BindFlags      { D3D11_BIND_VERTEX_BUFFER },
       .CPUAccessFlags { data->mAccess == Access::Dynamic ? D3D11_CPU_ACCESS_WRITE : ( UINT )0 },
     };
     const D3D11_SUBRESOURCE_DATA initData{ .pSysMem { data->mOptionalInitialBytes }, };

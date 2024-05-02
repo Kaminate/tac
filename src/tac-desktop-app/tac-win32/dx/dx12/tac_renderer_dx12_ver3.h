@@ -81,11 +81,9 @@ namespace Tac::Render
     TextureHandle   GetSwapChainDepth( SwapChainHandle ) override;
 
     BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) override;
-    void            UpdateBuffer( BufferHandle, UpdateBufferParams ) override;
     void            DestroyBuffer( BufferHandle ) override;
 
     TextureHandle   CreateTexture( CreateTextureParams, Errors& ) override;
-    void            UpdateTexture( TextureHandle, UpdateTextureParams ) override;
     void            DestroyTexture( TextureHandle ) override;
 
     IContext::Scope CreateRenderContext( Errors& ) override;

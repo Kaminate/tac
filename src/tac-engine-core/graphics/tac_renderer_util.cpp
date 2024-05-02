@@ -59,9 +59,8 @@ namespace Tac::Render
     const Render::CreateBufferParams params
     {
       .mByteCount    { sizeof( DefaultCBufferPerFrame ) },
-      .mAccess       { Render::Usage::Dynamic },
+      .mUsage        { Render::Usage::Dynamic },
       .mOptionalName {  "CBufferPerFrame" },
-      .mStackFrame   { TAC_STACK_FRAME },
     };
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }
@@ -71,10 +70,9 @@ namespace Tac::Render
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::CreateBufferParams params
     {
-      .mByteCount { sizeof( DefaultCBufferPerObject ) },
-      .mAccess { Render::Usage::Dynamic },
+      .mByteCount    { sizeof( DefaultCBufferPerObject ) },
+      .mUsage        { Render::Usage::Dynamic },
       .mOptionalName {  "CBufferPerObject" },
-      .mStackFrame { TAC_STACK_FRAME },
     };
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }
@@ -137,10 +135,9 @@ namespace Tac::Render
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::CreateBufferParams params
     {
-      .mByteCount { sizeof( CBufferLights ) },
-      .mAccess { Render::Usage::Dynamic },
+      .mByteCount    { sizeof( CBufferLights ) },
+      .mUsage        { Render::Usage::Dynamic },
       .mOptionalName {  "CBufferLights" },
-      .mStackFrame { TAC_STACK_FRAME },
     };
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }

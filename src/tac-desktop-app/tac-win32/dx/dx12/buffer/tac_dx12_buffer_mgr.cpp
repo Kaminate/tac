@@ -1,12 +1,45 @@
 #include "tac_dx12_buffer_mgr.h" // self-inc
 #include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
+#include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 
 namespace Tac::Render
 {
-  void DX12BufferMgr::Init( ID3D12Device* device )
+
+  DX12BufferMgr::DescriptorBindings DX12BufferMgr::CreateBindings( ID3D12Resource* resource,
+                                                                   Binding binding )
   {
-    mDevice = device;
+    Optional< DX12DescriptorHeapAllocation > srv;
+    Optional< DX12DescriptorHeapAllocation > uav;
+
+    if( Binding{} != ( binding & Binding::ShaderResource ) )
+    {
+      const DX12DescriptorHeapAllocation allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
+      const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
+      mDevice->CreateShaderResourceView( resource, nullptr, DestDescriptor );
+      srv = allocation;
+    }
+
+    if( Binding{} != ( binding & Binding::ShaderResource ) )
+    {
+      const DX12DescriptorHeapAllocation allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
+      const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
+      mDevice->CreateUnorderedAccessView( resource, nullptr, nullptr, DestDescriptor );
+      srv = allocation;
+    }
+
+    return DescriptorBindings
+    {
+      .mSRV { srv },
+      .mUAV { uav },
+    };
+  }
+
+  void DX12BufferMgr::Init( Params params )
+  {
+    mDevice = params.mDevice;
+    mCpuDescriptorHeapCBV_SRV_UAV = params.mCpuDescriptorHeapCBV_SRV_UAV;
+    TAC_ASSERT( mDevice && mCpuDescriptorHeapCBV_SRV_UAV );
   }
 
   void DX12BufferMgr::CreateBuffer( BufferHandle h, CreateBufferParams params, Errors& errors)
@@ -14,9 +47,23 @@ namespace Tac::Render
     const int byteCount { params.mByteCount };
     const StackFrame sf { params.mStackFrame };
 
+    Optional< D3D12_HEAP_TYPE > heapType;
+    if( params.mUsage == Usage::Staging )
+    {
+      heapType = D3D12_HEAP_TYPE_UPLOAD;
+    }
+    else if( params.mUsage == Usage::Dynamic )
+    {
+      // Don't create a heap now, instead the context allocates a temporary when mapping
+    }
+    else
+    {
+      heapType = D3D12_HEAP_TYPE_DEFAULT;
+    }
+
     const D3D12_HEAP_PROPERTIES HeapProps
     {
-      .Type                 { D3D12_HEAP_TYPE_UPLOAD },
+      .Type                 { heapType },
       .CPUPageProperty      { D3D12_CPU_PAGE_PROPERTY_UNKNOWN },
       .MemoryPoolPreference { D3D12_MEMORY_POOL_UNKNOWN },
       .CreationNodeMask     { 1 },
@@ -59,25 +106,37 @@ namespace Tac::Render
 
     DX12SetName( buffer, sf );
 
-    void* cpuAddr;
+    void* cpuAddr{};
+    if( params.mUsage == Usage::Dynamic )
+    {
+      const UINT iSubresource{};
+      TAC_DX12_CALL( buffer->Map(
+        iSubresource, // subrsc idx
+        nullptr, // D3D12_RANGE* nullptr indicates the whole subrsc may be read by cpu
+        &cpuAddr ) );
+    }
 
-    TAC_DX12_CALL( buffer->Map(
-      0, // subrsc idx
-      nullptr, // nullptr indicates the whole subrsc may be read by cpu
-      &cpuAddr ) );
+    const DescriptorBindings descriptorBindings{ CreateBindings( buffer.Get(), params.mBinding ) };
 
-    const int i = h.GetIndex();
-
+    const int i { h.GetIndex() };
     mBuffers[ i ] = DX12Buffer
     {
       .mResource      { buffer },
+      .mDesc          { ResourceDesc },
+      .mState         { DefaultUsage },
+      .mSRV           { descriptorBindings.mSRV },
+      .mUAV           { descriptorBindings.mUAV },
       .mMappedCPUAddr { cpuAddr },
     };
   }
 
-  void DX12BufferMgr::UpdateBuffer( BufferHandle h, UpdateBufferParams params )
+
+  void DX12BufferMgr::UpdateBuffer( BufferHandle h,
+                                    UpdateBufferParams params,
+                                    DX12Context* context )
   {
     DX12Buffer& Buffer { mBuffers[ h.GetIndex() ] };
+    TAC_ASSERT( Buffer.mMappedCPUAddr );
     char* dstBytes { ( char* )Buffer.mMappedCPUAddr + params.mDstByteOffset };
     MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
   }

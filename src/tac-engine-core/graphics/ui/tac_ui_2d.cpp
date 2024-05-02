@@ -28,8 +28,8 @@ namespace Tac
     void Uninit();
 
     Render::TextureHandle         m1x1White;
-    Render::ProgramHandle          mShader;
-    Render::ProgramHandle          m2DTextShader;
+    Render::ProgramHandle         mShader;
+    Render::ProgramHandle         m2DTextShader;
 #if TAC_TEMPORARILY_DISABLED()
     Render::VertexFormatHandle    mFormat;
     Render::DepthStateHandle      mDepthState;
@@ -146,14 +146,14 @@ namespace Tac
     Vector< UI2DVertex >& mDefaultVertex2Ds = drawData->mVtxs;
     Vector< UI2DIndex >& mDefaultIndex2Ds = drawData->mIdxs;
 
-    int& mVertexCapacity = gDrawInterface->mVertexCapacity;
-    int& mIndexCapacity = gDrawInterface->mIndexCapacity;
-    Render::BufferHandle& mBufferHandle = gDrawInterface->mBufferHandle;
-    Render::BufferHandle& mBufferHandle = gDrawInterface->mBufferHandle;
+    int& mVertexCapacity { gDrawInterface->mVertexCapacity };
+    int& mIndexCapacity { gDrawInterface->mIndexCapacity };
+    Render::BufferHandle& mBufferHandle { gDrawInterface->mBufferHandle };
+    Render::BufferHandle& mBufferHandle { gDrawInterface->mBufferHandle };
 
 
-    const int vertexCount = mDefaultVertex2Ds.size();
-    const int indexCount = mDefaultIndex2Ds.size();
+    const int vertexCount { mDefaultVertex2Ds.size() };
+    const int indexCount { mDefaultIndex2Ds.size() };
     if( !mBufferHandle.IsValid() || mVertexCapacity < vertexCount )
     {
       if( mBufferHandle.IsValid() )
@@ -171,9 +171,11 @@ namespace Tac
     {
       if( mBufferHandle.IsValid() )
         Render::DestroyIndexBuffer( mBufferHandle, TAC_STACK_FRAME );
-      Render::Format format{ .mElementCount = 1,
-                             .mPerElementByteCount = sizeof( UI2DIndex ),
-                             .mPerElementDataType = Render::GraphicsType::uint };
+      Render::Format format{
+                             .mElementCount        { 1 },
+                             .mPerElementByteCount { sizeof( UI2DIndex ) },
+                             .mPerElementDataType  { Render::GraphicsType::uint },
+      };
       mBufferHandle = Render::CreateIndexBuffer( indexCount * sizeof( UI2DIndex ),
                                                       nullptr,
                                                       Render::Access::Dynamic,
@@ -203,7 +205,7 @@ namespace Tac
 #if TAC_TEMPORARILY_DISABLED()
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const u8 data[] { 255, 255, 255, 255 };
-    const Render::CreateTextureParams textureData =
+    const Render::CreateTextureParams textureData
     {
       .mImage
       {
@@ -223,17 +225,17 @@ namespace Tac
     m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( m1x1White, "1x1white" );
 
-    Render::ProgramParams programParams2D
+    const Render::ProgramParams programParams2D
     {
-      .mFileStem { "2D" },
+      .mFileStem   { "2D" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     mShader = renderDevice->CreateProgram( programParams2D, errors );
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams programParams2Dtext
+    const Render::ProgramParams programParams2Dtext
     {
-      .mFileStem { "2Dtext" },
+      .mFileStem   { "2Dtext" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     m2DTextShader = renderDevice->CreateProgram( programParams2Dtext, errors );
@@ -243,11 +245,11 @@ namespace Tac
       .mAttribute { Render::Attribute::Position },
       .mTextureFormat = Render::Format
       {
-        .mElementCount { 2 },
-        .mPerElementByteCount = sizeof( float ),
-        .mPerElementDataType { Render::GraphicsType::rea }l
+        .mElementCount        { 2 },
+        .mPerElementByteCount { sizeof( float ) },
+        .mPerElementDataType  { Render::GraphicsType::rea }l
       },
-      .mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mPosition ),
+      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
     };
 
     const Render::VertexDeclaration uvData
@@ -255,11 +257,11 @@ namespace Tac
       .mAttribute { Render::Attribute::Texcoord },
       .mTextureFormat
       { 
-        .mElementCount { 2 },
-        .mPerElementByteCount = sizeof( float ),
-        .mPerElementDataType { Render::GraphicsType::rea }l
+        .mElementCount        { 2 },
+        .mPerElementByteCount { sizeof( float ) },
+        .mPerElementDataType  { Render::GraphicsType::rea }l
       },
-      .mAlignedByteOffset = TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ),
+      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
     };
 
     Render::VertexDeclarations decls;
@@ -271,32 +273,32 @@ namespace Tac
 
     const Render::BlendState blendStateData
     {
-      .mSrcRGB { Render::BlendConstants::One },
-      .mDstRGB { Render::BlendConstants::OneMinusSrcA },
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
       .mBlendRGB { Render::BlendMode::Add },
-      .mSrcA { Render::BlendConstants::One },
-      .mDstA { Render::BlendConstants::OneMinusSrcA },
-      .mBlendA { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::One },
+      .mDstA     { Render::BlendConstants::OneMinusSrcA },
+      .mBlendA   { Render::BlendMode::Add },
     };
     mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "2dalphablend" );
 
     const Render::DepthState depthStateData
     {
-      .mDepthTest { false },
+      .mDepthTest  { false },
       .mDepthWrite { false },
-      .mDepthFunc { Render::DepthFunc::Less },
+      .mDepthFunc  { Render::DepthFunc::Less },
     };
     mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mDepthState, "2d-no-depth" );
 
     const Render::RasterizerState rasterizerStateData
     {
-      .mFillMode { Render::FillMode::Solid },
-      .mCullMode { Render::CullMode::None },
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::None },
       .mFrontCounterClockwise { true },
-      .mScissor { true },
-      .mMultisample { false },
+      .mScissor               { true },
+      .mMultisample           { false },
     };
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState , "2d-rast" );
@@ -304,9 +306,9 @@ namespace Tac
 
     const Render::SamplerState samplerStateData
     {
-      .mU = Render::AddressMode::Clamp,
-      .mV = Render::AddressMode::Clamp,
-      .mFilter = Render::Filter::Linear,
+      .mU      { Render::AddressMode::Clamp },
+      .mV      { Render::AddressMode::Clamp },
+      .mFilter { Render::Filter::Linear },
     };
     mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerState  , "2d-samp" );
@@ -363,27 +365,27 @@ namespace Tac
                                     int h,
                                     Errors& errors )
   {
-    Render::DebugGroup::Iterator debugGroupIterator = mDebugGroupStack.IterateBegin();
+    Render::DebugGroup::Iterator debugGroupIterator { mDebugGroupStack.IterateBegin() };
     if( mVtxs.size() && mIdxs.size() )
     {
       UpdateDrawInterface( this, &gDrawInterface, errors );
-      Render::BufferHandle& mBufferHandle = gDrawInterface.mBufferHandle;
-      Render::BufferHandle& mBufferHandle = gDrawInterface.mBufferHandle;
+      Render::BufferHandle& mBufferHandle { gDrawInterface.mBufferHandle };
+      Render::BufferHandle& mBufferHandle { gDrawInterface.mBufferHandle };
 
       OrthographicUIMatrixUnitTest();
 
-      const Timestamp elapsedSeconds = Timestep::GetElapsedTime();
+      const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
       const Render::DefaultCBufferPerFrame perFrameData
       {
-        .mView = m4::Identity(),
-        .mProjection = OrthographicUIMatrix( ( float )w, ( float )h ),
-        .mSecModTau = ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ),
-        .mSDFOnEdge = FontApi::GetSDFOnEdgeValue(),
-        .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
+        .mView              { m4::Identity() },
+        .mProjection        { OrthographicUIMatrix( ( float )w, ( float )h ) },
+        .mSecModTau         { ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ) },
+        .mSDFOnEdge         { FontApi::GetSDFOnEdgeValue() },
+        .mSDFPixelDistScale { FontApi::GetSDFPixelDistScale() },
       };
 
-      const Render::BufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
-      const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
+      const Render::BufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
+      const int perFrameSize { sizeof( Render::DefaultCBufferPerFrame ) };
       Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
 
 
@@ -393,13 +395,13 @@ namespace Tac
                                          uidrawCall.mDebugGroupIndex,
                                          uidrawCall.mStackFrame );
 
-        const Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
+        const Render::TextureHandle texture{ uidrawCall.mTexture.IsValid() ?
           uidrawCall.mTexture :
-          gUI2DCommonData.m1x1White;
+          gUI2DCommonData.m1x1White };
 
 
-        const Render::BufferHandle hPerObj = Render::DefaultCBufferPerObject::Handle;
-        const int perObjSize = sizeof( Render::DefaultCBufferPerObject );
+        const Render::BufferHandle hPerObj { Render::DefaultCBufferPerObject::Handle };
+        const int perObjSize { sizeof( Render::DefaultCBufferPerObject ) };
         Render::UpdateConstantBuffer( hPerObj,
                                       &uidrawCall.mUniformSource,
                                       perObjSize,
@@ -491,7 +493,7 @@ namespace Tac
     const int idxCount { 6 };
     mIdxs.resize( oldIdxCount + idxCount );
     UI2DIndex* pIdx { mIdxs.data() + oldIdxCount };
-    const UI2DIndex idxs[]  { 0, 1, 2, 0, 2, 3 };
+    const UI2DIndex idxs[] { 0, 1, 2, 0, 2, 3 };
     for( UI2DIndex idx : idxs )
       *pIdx++ = (UI2DIndex)oldVtxCount + idx;
 
@@ -514,12 +516,12 @@ namespace Tac
 
     const UI2DDrawCall drawCall
     {
-      .mIVertexStart { oldVtxCount },
-      .mVertexCount { vtxCount },
-      .mIIndexStart { oldIdxCount },
-      .mIndexCount { idxCount },
-      .mShader { gUI2DCommonData.mShader },
-      .mTexture { texture },
+      .mIVertexStart  { oldVtxCount },
+      .mVertexCount   { vtxCount },
+      .mIIndexStart   { oldIdxCount },
+      .mIndexCount    { idxCount },
+      .mShader        { gUI2DCommonData.mShader },
+      .mTexture       { texture },
       .mUniformSource { perObjectData },
     };
 

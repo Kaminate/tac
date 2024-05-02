@@ -383,8 +383,6 @@ namespace Tac
     MemCpy( pVertexDataBegin, triangleVertices, m_vertexBufferSize );
     m_vertexBufferUploadHeap->Unmap( 0, nullptr );
 
-    
-
     // Initialize the vertex buffer view.
     m_vertexBufferView = D3D12_VERTEX_BUFFER_VIEW 
     {
@@ -392,7 +390,6 @@ namespace Tac
       .SizeInBytes    { m_vertexBufferSize },
       .StrideInBytes  { sizeof( Vertex ) },
     };
-
   }
 
   void DX12AppHelloTriangle::CreateFence( Errors& errors )

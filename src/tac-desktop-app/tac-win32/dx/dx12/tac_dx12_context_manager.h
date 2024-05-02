@@ -44,25 +44,25 @@ namespace Tac::Render
     // there is no protection (afaict) to prevent someone from forgetting to call Finish.
     ID3D12GraphicsCommandList* GetCommandList();
     ID3D12CommandAllocator*    GetCommandAllocator();
-    void                       SetName( StringView );
-    void                       Reset( Errors& );
 
-    void                       Execute( Errors& ) override;
-    void                       SetSynchronous() override;
-    void                       SetViewport( v2i ) override;
-    void                       SetScissor( v2i ) override;
-    void                       SetRenderTargets( Targets ) override;
-    void                       SetPipeline( PipelineHandle ) override;
-    void                       ClearColor( TextureHandle, v4 ) override;
-    void                       ClearDepth( TextureHandle, float ) override;
-    void                       Draw( DrawArgs ) override;
-
-    void                       DebugEventBegin( StringView ) override;
-    void                       DebugEventEnd() override;
-    void                       DebugMarker( StringView ) override;
-    void                       MoveFrom( DX12Context&& ) noexcept;
-
-    void                       Retire() override;
+    void SetName( StringView );
+    void Reset( Errors& );
+    void Execute( Errors& ) override;
+    void SetSynchronous() override;
+    void SetViewport( v2i ) override;
+    void SetScissor( v2i ) override;
+    void SetRenderTargets( Targets ) override;
+    void SetPipeline( PipelineHandle ) override;
+    void ClearColor( TextureHandle, v4 ) override;
+    void ClearDepth( TextureHandle, float ) override;
+    void Draw( DrawArgs ) override;
+    void DebugEventBegin( StringView ) override;
+    void DebugEventEnd() override;
+    void DebugMarker( StringView ) override;
+    void MoveFrom( DX12Context&& ) noexcept;
+    void UpdateBuffer( BufferHandle, UpdateBufferParams ) override;
+    void UpdateTexture( TextureHandle, UpdateTextureParams ) override;
+    void Retire() override;
 
     // begin state
 
@@ -73,6 +73,8 @@ namespace Tac::Render
     {
       RenderTargetColors mRenderTargetColors;
       RenderTargetDepth  mRenderTargetDepth; 
+      BufferHandle       mVertexBuffer;
+      BufferHandle       mIndexBuffer;
       bool               mSynchronous          {};
       bool               mExecuted             {};
     };

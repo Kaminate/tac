@@ -204,13 +204,13 @@ namespace Tac::Render
 
   enum class Usage
   {
-    // D3D11_USAGE_DEFAULT / GL_DYNAMIC_DRAW
+    // D3D11_USAGE_DEFAULT / GL_DYNAMIC_DRAW / Default heap ( D3D12 )
     Default = 0,
 
-    // D3D11_USAGE_IMMUTABLE / GL_STATIC_DRAW
+    // D3D11_USAGE_IMMUTABLE / GL_STATIC_DRAW / Default Heap ( D3D12 )
     Static,
 
-    // D3D11_USAGE_DYNAMIC / GL_STREAM_DRAW
+    // D3D11_USAGE_DYNAMIC / GL_STREAM_DRAW / Upload Heap ( D3D12 )
     Dynamic,
 
     Staging,
@@ -226,10 +226,10 @@ namespace Tac::Render
   enum class Binding
   {
     None            = 0b00000000,
-    ShaderResource  = 0b00000001, // SRV
+    ShaderResource  = 0b00000001, // SRV (buffer, texture, ... )
     RenderTarget    = 0b00000010, // RTV
     DepthStencil    = 0b00000100, // DSV
-    UnorderedAccess = 0b00001000, // UAV
+    UnorderedAccess = 0b00001000, // UAV (rwbuffer, rwstructuredbuffer, rwtexture, append/consume)
     ConstantBuffer  = 0b00010000, // CBV
   };
 
@@ -245,9 +245,21 @@ namespace Tac::Render
     Binding     mBinding                { Binding::None };
     Usage       mAccess                 { Usage::Default }; // TODO: rename as Usage
     CPUAccess   mCpuAccess              { CPUAccess::None };
-    StringView  mOptionalName;
-    StackFrame  mStackFrame;
+    StringView  mOptionalName           {};
+    StackFrame  mStackFrame             {};
   };
+
+  struct CreateBufferParams
+  {
+    int         mByteCount    {};
+    const void* mBytes        {};
+    Usage       mUsage        { Usage::Default }; // TODO: rename to `mUsage`
+    Binding     mBinding      { Binding::None };
+    CPUAccess   mCpuAccess    { CPUAccess::None };
+    StringView  mOptionalName {};
+    StackFrame  mStackFrame   {};
+  };
+
 
   struct UpdateTextureParams
   {
@@ -274,14 +286,6 @@ namespace Tac::Render
 
   // i think like a view could be a higher order construct, like in Tac::Space
 
-  struct CreateBufferParams
-  {
-    int         mByteCount {};
-    const void* mBytes     {};
-    Usage       mAccess    { Usage::Default }; // TODO: rename to `mUsage`
-    StringView  mOptionalName;
-    StackFrame  mStackFrame;
-  };
 
   struct UpdateBufferParams
   {
@@ -308,6 +312,7 @@ namespace Tac::Render
       Scope( IContext* );
       ~Scope();
       IContext* operator ->();
+      IContext* GetContext() { return mContext; }
     private:
       IContext* mContext{};
     };
@@ -328,9 +333,10 @@ namespace Tac::Render
 
     virtual void ClearColor( TextureHandle, v4 ) {}
     virtual void ClearDepth( TextureHandle, float ) {}
-    virtual void Execute( Errors& ) {}
-
+    virtual void UpdateTexture( TextureHandle, UpdateTextureParams ) {}
+    virtual void UpdateBuffer( BufferHandle, UpdateBufferParams ) {}
     virtual void Draw( DrawArgs ) {};
+    virtual void Execute( Errors& ) {}
 
   protected:
     virtual void Retire() = 0;
@@ -384,11 +390,9 @@ namespace Tac::Render
     virtual TextureHandle   GetSwapChainDepth( SwapChainHandle ) { return {}; }
 
     virtual BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) {}
-    virtual void            UpdateBuffer( BufferHandle, UpdateBufferParams ) {}
     virtual void            DestroyBuffer( BufferHandle ) {}
 
     virtual TextureHandle   CreateTexture( CreateTextureParams, Errors& ) {}
-    virtual void            UpdateTexture( TextureHandle, UpdateTextureParams ) {}
     virtual void            DestroyTexture( TextureHandle ) {}
 
     virtual IContext::Scope CreateRenderContext( Errors& );

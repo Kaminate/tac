@@ -8,7 +8,7 @@
 
 namespace Tac { struct Errors; }
 
-namespace Tac::Render { struct DX12ContextManager; }
+namespace Tac::Render { struct DX12Context; struct DX12ContextManager; }
 
 namespace Tac::Render
 {
@@ -25,7 +25,7 @@ namespace Tac::Render
     void          Init( Params );
     void          CreateTexture( TextureHandle, CreateTextureParams, Errors& );
     void          CreateRenderTargetColor( TextureHandle, PCom< ID3D12Resource >, Errors& );
-    void          UpdateTexture( TextureHandle, UpdateTextureParams );
+    void          UpdateTexture( TextureHandle, UpdateTextureParams, DX12Context* );
     void          DestroyTexture( TextureHandle );
     DX12Texture*  FindTexture( TextureHandle );
 
