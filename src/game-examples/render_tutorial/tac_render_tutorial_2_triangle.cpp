@@ -120,6 +120,7 @@ namespace Tac
     {
       .mByteCount    { sizeof( triangleVertices ) },
       .mBytes        { triangleVertices },
+      .mStride       { sizeof( Vertex ) },
       .mUsage        { Render::Usage::Default },
       .mBinding      { Render::Binding::ShaderResource },
       .mOptionalName { "tri verts" },

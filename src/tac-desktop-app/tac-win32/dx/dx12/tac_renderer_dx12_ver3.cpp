@@ -51,8 +51,9 @@ namespace Tac::Render
                         } );
 
     mBufMgr.Init( {
-      .mDevice { mDevice },
+      .mDevice                       { mDevice },
       .mCpuDescriptorHeapCBV_SRV_UAV { &mCpuDescriptorHeapCBV_SRV_UAV },
+      .mContextManager               { &mContextManager },
                   } );
 
     //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();

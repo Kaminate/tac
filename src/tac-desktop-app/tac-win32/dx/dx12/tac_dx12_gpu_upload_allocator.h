@@ -54,9 +54,14 @@ namespace Tac::Render
       int                       mByteCount      {};
     };
 
+    DX12UploadAllocator() = default;
+    DX12UploadAllocator( const DX12UploadAllocator& ) = delete;
+
     void     Init( DX12UploadPageMgr* );
     DynAlloc Allocate( int const byteCount, Errors& );
     void     FreeAll( FenceSignal );
+
+    void operator = ( const DX12UploadAllocator& ) = delete;
 
   private:
 

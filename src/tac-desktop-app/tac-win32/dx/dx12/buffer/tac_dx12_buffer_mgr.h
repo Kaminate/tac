@@ -33,7 +33,7 @@ namespace Tac::Render
       Optional< DX12DescriptorHeapAllocation > mUAV;
     };
 
-    DescriptorBindings CreateBindings( ID3D12Resource* , Binding );
+    DescriptorBindings CreateBindings( ID3D12Resource* , CreateBufferParams );
 
     ID3D12Device*       mDevice{};
     DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV{};

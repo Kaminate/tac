@@ -253,6 +253,7 @@ namespace Tac::Render
   {
     int         mByteCount    {};
     const void* mBytes        {};
+    int         mStride       {}; // used in creating the SRV
     Usage       mUsage        { Usage::Default }; // TODO: rename to `mUsage`
     Binding     mBinding      { Binding::None };
     CPUAccess   mCpuAccess    { CPUAccess::None };
