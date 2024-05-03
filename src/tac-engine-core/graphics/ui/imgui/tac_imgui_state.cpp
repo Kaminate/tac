@@ -396,71 +396,110 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiSimWindowDraws::CopyVertexes( Render::IContext* renderContext,
-                                          ImGuiRenderBuffers* gDrawInterface,
-                                          Errors& errors )
+  struct CopyHelper
   {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    if( !gDrawInterface->mVB.IsValid() || gDrawInterface->mVBCount < mVertexCount )
+    using GetDrawElementBytes = void* ( * )( const UI2DDrawData* );
+    using GetDrawElementCount = int ( * )( const UI2DDrawData* );
+
+    void Copy( Render::IContext* renderContext, Errors& errors )
     {
-      const int byteCount { mVertexCount * (int)sizeof( UI2DVertex ) };
-      const Render::CreateBufferParams params
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+      const int srcTotByteCount{ mSrcTotElemCount * mSizeOfElem };
+      if( !mDst->mBuffer.IsValid() || mDst->mByteCount < srcTotByteCount )
       {
-        .mByteCount    { byteCount },
-        .mUsage        { Render::Usage::Dynamic },
-        .mOptionalName { "imgui_vtx_buf" },
-      };
-      gDrawInterface->mVB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
-      gDrawInterface->mVBCount = mVertexCount;
+        const Render::CreateBufferParams createBufferParams
+        {
+          .mByteCount    { srcTotByteCount },
+          .mUsage        { Render::Usage::Dynamic },
+          .mOptionalName { mBufName },
+        };
+
+        renderDevice->DestroyBuffer( mDst->mBuffer );
+
+        TAC_CALL( mDst->mBuffer =
+                  renderDevice->CreateBuffer( createBufferParams, errors ) );
+        mDst->mByteCount = srcTotByteCount;
+      }
+
+      int byteOffset { 0 };
+      for( SmartPtr< UI2DDrawData >& drawData : mDraws->mDrawData )
+      {
+        const UI2DDrawData* pDrawData { drawData.Get() };
+        void* srcBytes { mGetDrawElementBytes( pDrawData ) };
+        const int srcElementCount{ mGetDrawElementCount( pDrawData ) };
+        const int srcByteCount { srcElementCount * mSizeOfElem };
+        const Render::UpdateBufferParams updateParams
+        {
+          .mSrcBytes      { srcBytes },
+          .mSrcByteCount  { srcByteCount },
+          .mDstByteOffset { byteOffset },
+        };
+
+        TAC_CALL( renderContext->UpdateBuffer( mDst->mBuffer, updateParams, errors ) );
+        byteOffset += srcByteCount;
+      }
+
     }
 
-    int byteOffset { 0 };
-    for( SmartPtr< UI2DDrawData>& drawData : mDrawData )
+    ImGuiRenderBuffer*    mDst;
+    int                   mSizeOfElem;
+    int                   mSrcTotElemCount;
+    GetDrawElementBytes   mGetDrawElementBytes;
+    GetDrawElementCount   mGetDrawElementCount;
+    StringView            mBufName;
+    ImGuiSimWindowDraws*  mDraws;
+  };
+
+  void ImGuiSimWindowDraws::CopyIdxBuffer( Render::IContext* renderContext,
+                                           ImGuiRenderBuffers* renderBuffers,
+                                           Errors& errors )
+  {
+    auto getIdxBytes = []( const UI2DDrawData* dd ) { return ( void* )dd->mIdxs.data(); };
+    auto getIdxCount = []( const UI2DDrawData* dd ) { return dd->mIdxs.size(); };
+
+    CopyHelper idxCopyHelper
     {
-      const int srcByteCount { drawData->mVtxs.size() * (int)sizeof( UI2DVertex ) };
-      const Render::UpdateBufferParams updateParams
-      {
-        .mSrcBytes      { drawData->mVtxs.data() },
-        .mSrcByteCount  { srcByteCount },
-        .mDstByteOffset { byteOffset },
-      };
-      renderContext->UpdateBuffer( gDrawInterface->mVB, updateParams );
-      byteOffset += srcByteCount;
-    }
+      .mDst                 { &renderBuffers->mIB },
+      .mSizeOfElem          { sizeof( UI2DIndex ) },
+      .mSrcTotElemCount     { mIndexCount },
+      .mGetDrawElementBytes { getIdxBytes },
+      .mGetDrawElementCount { getIdxCount },
+      .mBufName             { "imgui_idx_buf" },
+      .mDraws               {  this  },
+    };
+
+    TAC_CALL( idxCopyHelper.Copy( renderContext, errors ) );
+
   }
 
-  void ImGuiSimWindowDraws::CopyIndexes( Render::IContext* renderContext,
-                                         ImGuiRenderBuffers* gDrawInterface,
+  void ImGuiSimWindowDraws::CopyVtxBuffer( Render::IContext* renderContext,
+                                           ImGuiRenderBuffers* renderBuffers,
+                                           Errors& errors )
+  {
+    auto getVtxBytes = []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); };
+    auto getVtxCount = []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); };
+    CopyHelper vtxCopyHelper
+    {
+      .mDst                 { &renderBuffers->mVB },
+      .mSizeOfElem          { sizeof( UI2DVertex ) },
+      .mSrcTotElemCount     { mVertexCount },
+      .mGetDrawElementBytes { getVtxBytes },
+      .mGetDrawElementCount { getVtxCount },
+      .mBufName             { "imgui_vtx_buf" },
+      .mDraws               {  this  },
+    };
+
+    TAC_CALL( vtxCopyHelper.Copy( renderContext, errors ) );
+
+  }
+
+  void ImGuiSimWindowDraws::CopyBuffers( Render::IContext* renderContext,
+                                         ImGuiRenderBuffers* renderBuffers,
                                          Errors& errors )
   {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    if( !gDrawInterface->mIB.IsValid() || gDrawInterface->mIBCount < mIndexCount )
-    {
-      const int byteCount{ mIndexCount * ( int )sizeof( UI2DIndex ) };
-      const Render::CreateBufferParams params
-      {
-        .mByteCount    { byteCount },
-        .mUsage        { Render::Usage::Dynamic },
-        .mOptionalName { "imgui_idx_buf" },
-      };
-      gDrawInterface->mIB = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
-      gDrawInterface->mIBCount = mIndexCount;
-    }
-
-    int byteOffset { 0 };
-    for( SmartPtr< UI2DDrawData >& drawData : mDrawData )
-    {
-      const int srcByteCount { drawData->mVtxs.size() * (int)sizeof( UI2DVertex ) };
-      const Render::UpdateBufferParams updateParams
-      {
-        .mSrcBytes      { drawData->mIdxs.data() },
-        .mSrcByteCount  { srcByteCount },
-        .mDstByteOffset { byteOffset },
-      };
-
-      renderContext->UpdateBuffer( gDrawInterface->mIB, updateParams );
-      byteOffset += srcByteCount;
-    }
+    CopyVtxBuffer( renderContext, renderBuffers, errors );
+    CopyIdxBuffer( renderContext, renderBuffers, errors );
   }
    
 
@@ -519,8 +558,7 @@ namespace Tac
     Render::IContext* renderContext { renderContextScope.GetContext() };
 
     // combine draw data
-    simDraws->CopyVertexes( renderContext, &renderBuffers, errors );
-    simDraws->CopyIndexes( renderContext, &renderBuffers, errors );
+    simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
 
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
     void* context { nullptr };

@@ -139,23 +139,30 @@ namespace Tac
     Timestamp                     mRequestTime{};
   };
 
+  struct ImGuiRenderBuffer
+  {
+    Render::BufferHandle mBuffer    {};
+    int                  mByteCount {};
+  };
+
   struct ImGuiRenderBuffers
   {
-    Render::BufferHandle mVB;
-    Render::BufferHandle mIB;
-    int mVBCount { 0 };
-    int mIBCount { 0 };
+    ImGuiRenderBuffer mVB;
+    ImGuiRenderBuffer mIB;
   };
 
   struct ImGuiSimWindowDraws
   {
-    void CopyVertexes( Render::IContext*, ImGuiRenderBuffers*, Errors& );
-    void CopyIndexes( Render::IContext*, ImGuiRenderBuffers*, Errors& );
+    void CopyBuffers( Render::IContext*, ImGuiRenderBuffers*, Errors& );
 
     WindowHandle                       mHandle;
     Vector< SmartPtr< UI2DDrawData > > mDrawData;
     int                                mVertexCount{};
     int                                mIndexCount{};
+
+  private:
+    void CopyIdxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );
+    void CopyVtxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );
   };
 
   // generated once per game logic update frame,

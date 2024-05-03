@@ -21,14 +21,14 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  void DX12Context::UpdateTexture( TextureHandle h, UpdateTextureParams params )
+  void DX12Context::UpdateTexture( TextureHandle h, UpdateTextureParams params, Errors& errors )
   {
-    mTextureMgr->UpdateTexture( h, params, this );
+    mTextureMgr->UpdateTexture( h, params, this, errors );
   }
 
-  void DX12Context::UpdateBuffer( BufferHandle h, UpdateBufferParams params )
+  void DX12Context::UpdateBuffer( BufferHandle h, UpdateBufferParams params, Errors& errors )
   {
-    mBufferMgr->UpdateBuffer( h, params, this );
+    mBufferMgr->UpdateBuffer( h, params, this, errors );
   }
 
 

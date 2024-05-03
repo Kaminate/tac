@@ -333,8 +333,8 @@ namespace Tac::Render
 
     virtual void ClearColor( TextureHandle, v4 ) {}
     virtual void ClearDepth( TextureHandle, float ) {}
-    virtual void UpdateTexture( TextureHandle, UpdateTextureParams ) {}
-    virtual void UpdateBuffer( BufferHandle, UpdateBufferParams ) {}
+    virtual void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) {}
+    virtual void UpdateBuffer( BufferHandle, UpdateBufferParams, Errors& ) {}
     virtual void Draw( DrawArgs ) {};
     virtual void Execute( Errors& ) {}
 

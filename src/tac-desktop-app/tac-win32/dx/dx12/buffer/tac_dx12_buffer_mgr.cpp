@@ -191,7 +191,8 @@ namespace Tac::Render
 
   void DX12BufferMgr::UpdateBuffer( BufferHandle h,
                                     UpdateBufferParams params,
-                                    DX12Context* context )
+                                    DX12Context* context,
+                                    Errors& errors )
   {
 
     DX12Buffer& buffer { mBuffers[ h.GetIndex() ] };
@@ -200,9 +201,6 @@ namespace Tac::Render
     {
       const int byteCount{ buffer.mCreateParams.mByteCount };
 
-      Errors errors;
-        DX12Context* context { mContextManager->GetContext( errors ) };
-        TAC_ASSERT( !errors ); // hack temp
         ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
         DX12UploadAllocator GPUUploadAllocator{ context->mGPUUploadAllocator };
 
