@@ -159,7 +159,6 @@ namespace Tac::Render
 
   void DX12PipelineMgr::CreatePipeline( PipelineHandle h, PipelineParams params, Errors& errors )
   {
-
     ID3D12Device* device { mDevice };
     DX12Program* program { mProgramMgr->FindProgram( params.mProgram ) };
 
@@ -188,6 +187,7 @@ namespace Tac::Render
       BuildRootSignature( device, program->mProgramBindings, errors ) } );
 
     const DXGI_SAMPLE_DESC SampleDesc{ .Count { 1 } };
+    const DXGI_FORMAT DSVFormat{ TexFmtToDxgiFormat( params.mDSVDepthFmt ) };
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
@@ -201,7 +201,7 @@ namespace Tac::Render
       .InputLayout           { D3D12_INPUT_LAYOUT_DESC{} },
       .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
       .NumRenderTargets      { NumRenderTargets },
-      .DSVFormat             { TexFmtToDxgiFormat( params.mDSVDepthFmt ) },
+      .DSVFormat             { DSVFormat },
       .SampleDesc            { SampleDesc },
     };
 

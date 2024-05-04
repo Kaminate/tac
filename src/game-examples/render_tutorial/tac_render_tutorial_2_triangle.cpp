@@ -116,14 +116,15 @@ namespace Tac
     };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::CreateBufferParams params
+    const Render::CreateBufferParams params
     {
-      .mByteCount    { sizeof( triangleVertices ) },
-      .mBytes        { triangleVertices },
-      .mStride       { sizeof( Vertex ) },
-      .mUsage        { Render::Usage::Default },
-      .mBinding      { Render::Binding::ShaderResource },
-      .mOptionalName { "tri verts" },
+      .mByteCount     { sizeof( triangleVertices ) },
+      .mBytes         { triangleVertices },
+      .mStride        { sizeof( Vertex ) },
+      .mUsage         { Render::Usage::Static },
+      .mBinding       { Render::Binding::ShaderResource },
+      .mGpuBufferMode { Render::GpuBufferMode::kByteAddress },
+      .mOptionalName  { "tri verts" },
     };
     mVtxBuf = renderDevice->CreateBuffer( params, errors );
   }

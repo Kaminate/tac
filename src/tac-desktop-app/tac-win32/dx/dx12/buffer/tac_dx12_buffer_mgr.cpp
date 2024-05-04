@@ -1,9 +1,11 @@
 #include "tac_dx12_buffer_mgr.h" // self-inc
+
 #include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/context/tac_dx12_context.h"
 #include "tac-win32/dx/dx12/context/tac_dx12_context_manager.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
 
 namespace Tac::Render
 {
@@ -21,6 +23,18 @@ namespace Tac::Render
     return ResourceFlags;
   }
 
+  static DXGI_FORMAT GetSRVFormat( CreateBufferParams params )
+  {
+    if( params.mGpuBufferMode == GpuBufferMode::kStructured )
+      return GetDXGIFormatTexture( params.mGpuBufferFmt );
+
+    if( params.mGpuBufferMode == GpuBufferMode::kByteAddress )
+      return DXGI_FORMAT_R32_TYPELESS;
+
+    return DXGI_FORMAT_UNKNOWN;
+  }
+
+
   DX12BufferMgr::DescriptorBindings DX12BufferMgr::CreateBindings( ID3D12Resource* resource,
                                                                    CreateBufferParams params )
   {
@@ -35,22 +49,29 @@ namespace Tac::Render
       const DX12DescriptorHeapAllocation allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
 
-      // set Flags to D3D12_BUFFER_SRV_FLAG_RAW if byte address buffer
-      const D3D12_BUFFER_SRV_FLAGS Flags{ D3D12_BUFFER_SRV_FLAG_NONE };
+      TAC_ASSERT( params.mGpuBufferMode != GpuBufferMode::kUndefined );
+      const D3D12_BUFFER_SRV_FLAGS Flags{ params.mGpuBufferMode == GpuBufferMode::kByteAddress
+        ? D3D12_BUFFER_SRV_FLAG_RAW
+        : D3D12_BUFFER_SRV_FLAG_NONE };
 
       const UINT NumElements{ ( UINT )params.mByteCount / ( UINT )params.mStride };
+      const UINT StructureByteStride{ params.mGpuBufferMode == GpuBufferMode::kStructured
+        ? ( UINT )params.mStride
+        : ( UINT )0 };
 
       const D3D12_BUFFER_SRV Buffer
       {
         .FirstElement        { 0 },
         .NumElements         { NumElements },
-        .StructureByteStride { 0 },
+        .StructureByteStride { StructureByteStride },
         .Flags               { Flags },
       };
 
+      const DXGI_FORMAT Format{ GetSRVFormat( params ) };
+
       const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
       {
-        .Format                  { DXGI_FORMAT_UNKNOWN },
+        .Format                  { Format },
         .ViewDimension           { D3D12_SRV_DIMENSION_BUFFER },
         .Shader4ComponentMapping { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING },
         .Buffer                  { Buffer },

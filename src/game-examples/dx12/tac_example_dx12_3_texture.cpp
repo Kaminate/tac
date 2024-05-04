@@ -771,12 +771,12 @@ namespace Tac
 
   void DX12AppHelloTexture::CreatePipelineState( Errors& errors )
   {
-    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloTexture.hlsl";
+    const AssetPathStringView shaderAssetPath { "assets/hlsl/DX12HelloTexture.hlsl" };
 
-    DX12ExampleProgramCompiler::Params params
+    const DX12ExampleProgramCompiler::Params params
     {
       .mOutputDir { sShellPrefPath },
-      .mDevice{ ( ID3D12Device* )m_device },
+      .mDevice    { ( ID3D12Device* )m_device },
     };
 
     TAC_CALL( DX12ExampleProgramCompiler compiler( params, errors ) );
@@ -784,17 +784,17 @@ namespace Tac
     TAC_CALL( DX12ExampleProgramCompiler::Result compileResult
               { compiler.Compile( shaderAssetPath, errors ) } );
 
-    VertexDeclaration posDecl
+    const VertexDeclaration posDecl
     {
-      .mAttribute { Attribute::Position },
-      .mTextureFormat { Format::sv3 },
+      .mAttribute         { Attribute::Position },
+      .mFormat            { Format::sv3 },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
     };
 
-    VertexDeclaration colDecl
+    const VertexDeclaration colDecl
     {
-      .mAttribute { Attribute::Color },
-      .mTextureFormat { Format::sv3 },
+      .mAttribute         { Attribute::Color },
+      .mFormat            { Format::sv3 },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
     };
 
@@ -803,7 +803,6 @@ namespace Tac
     decls.push_back( colDecl );
 
     const DX12BuiltInputLayout inputLayout( decls );
-
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {

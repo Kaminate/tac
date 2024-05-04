@@ -121,7 +121,8 @@ namespace Tac::Render
                                                   Errors& errors)
   {
     const String fileName { params.mFileStem + ".hlsl"};
-    TAC_CALL( const String preprocessedShader{ HLSLPreprocess( "assets/hlsl/" + fileName, errors ) } );
+    TAC_CALL( const String preprocessedShader{
+      HLSLPreprocess( "assets/hlsl/" + fileName, errors ) } );
 
     const DXCCompileParams input
     {
@@ -133,7 +134,7 @@ namespace Tac::Render
 
     TAC_CALL( DXCCompileOutput output { DXCCompile( input, errors )  });
 
-    D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
+    const D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
                                    output.mReflInfo.mReflBindings.size() );
 
     // Here's what im thinking.

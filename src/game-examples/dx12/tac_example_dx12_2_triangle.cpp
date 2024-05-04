@@ -225,7 +225,8 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  // IS THIS USED AT ALL?
+  // This is used to create a hlsl ByteAddressBuffer in DX12HelloTriangleBindless.hlsl
+  // It is passed to the shader via the descriptor heap
   void DX12AppHelloTriangle::CreateSRV( Errors& errors )
   {
     TAC_ASSERT( m_vertexBuffer );
@@ -522,14 +523,14 @@ namespace Tac
     const VertexDeclaration posDecl
     {
       .mAttribute         { Attribute::Position },
-      .mTextureFormat     { Format::sv3 },
+      .mFormat            { Format::sv3 },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
     };
 
     const VertexDeclaration colDecl
     {
       .mAttribute         { Attribute::Color },
-      .mTextureFormat     { Format::sv3 },
+      .mFormat            { Format::sv3 },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
     };
 

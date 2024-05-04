@@ -28,9 +28,9 @@ namespace Tac
   {
     return Hash( ( HashValue )vertexDeclaration.mAlignedByteOffset,
                  ( HashValue )vertexDeclaration.mAttribute,
-                 ( HashValue )vertexDeclaration.mTextureFormat.mElementCount,
-                 ( HashValue )vertexDeclaration.mTextureFormat.mPerElementByteCount,
-                 ( HashValue )vertexDeclaration.mTextureFormat.mPerElementDataType );
+                 ( HashValue )vertexDeclaration.mFormat.mElementCount,
+                 ( HashValue )vertexDeclaration.mFormat.mPerElementByteCount,
+                 ( HashValue )vertexDeclaration.mFormat.mPerElementDataType );
   }
 
   static HashValue HashVertexDeclarations( const Render::VertexDeclarations& vertexDeclarations )

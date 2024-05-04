@@ -36,6 +36,9 @@ namespace Tac::Render
   //{
   //};
 
+  // this is like... inferior to Render::Format in almost every way, except for specifying
+  // typeless formats and depth stencil formats, and compressed formats, afaik
+  // maybe i can split them into a single class that contains both?
   enum TexFmt
   {
     kUnknown = 0,
@@ -155,8 +158,8 @@ namespace Tac::Render
 
   struct VertexDeclaration
   {
-    Attribute mAttribute { Attribute::Count };
-    Format    mTextureFormat;
+    Attribute mAttribute         { Attribute::Count };
+    Format    mFormat            {};
 
     //        Offset of the variable from the vertex buffer
     //        ie: OffsetOf( MyVertexType, mPosition)
@@ -249,18 +252,27 @@ namespace Tac::Render
     StackFrame  mStackFrame             {};
   };
 
-  struct CreateBufferParams
+  enum class GpuBufferMode
   {
-    int         mByteCount    {};
-    const void* mBytes        {};
-    int         mStride       {}; // used in creating the SRV
-    Usage       mUsage        { Usage::Default }; // TODO: rename to `mUsage`
-    Binding     mBinding      { Binding::None };
-    CPUAccess   mCpuAccess    { CPUAccess::None };
-    StringView  mOptionalName {};
-    StackFrame  mStackFrame   {};
+    kUndefined = 0,
+    kFormatted,
+    kStructured,
+    kByteAddress,
   };
 
+  struct CreateBufferParams
+  {
+    int           mByteCount     {};
+    const void*   mBytes         {};
+    int           mStride        {}; // used in creating the SRV
+    Usage         mUsage         { Usage::Default }; // TODO: rename to `mUsage`
+    Binding       mBinding       { Binding::None };
+    CPUAccess     mCpuAccess     { CPUAccess::None };
+    GpuBufferMode mGpuBufferMode { GpuBufferMode::kUndefined };
+    Format        mGpuBufferFmt  {}; // used if the GpuBufferMode is kFormatted
+    StringView    mOptionalName  {};
+    StackFrame    mStackFrame    {};
+  };
 
   struct UpdateTextureParams
   {

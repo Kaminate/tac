@@ -144,7 +144,8 @@ namespace Tac::Render
 
   static void ReflectShader( IDxcUtils* pUtils,
                              IDxcResult* pResults,
-                             DXCReflInfo* reflInfo )
+                             DXCReflInfo* reflInfo,
+                             bool reflectShaderInputs )
   {
     PCom< IDxcBlob > reflBlob;
     if( !pResults->HasOutput( DXC_OUT_REFLECTION ) )
@@ -207,6 +208,16 @@ namespace Tac::Render
       // ie: POSITION, TEXCOORD, etc
       D3D12_SIGNATURE_PARAMETER_DESC inputParamDesc;
       shaderReflection->GetInputParameterDesc( iInput, &inputParamDesc );
+      if( reflectShaderInputs )
+      {
+        const DXCReflInfo::Input input
+        {
+          .mName     { inputParamDesc.SemanticName },
+          .mIndex    { ( int )inputParamDesc.SemanticIndex },
+          .mRegister { ( int )inputParamDesc.Register },
+        };
+        reflInfo->mInputs.push_back( input );
+      }
       ++asdf;
     }
 
@@ -275,6 +286,7 @@ namespace Tac::Render
   static PCom< IDxcBlob > DXCCompileBlob( const ShaderTypeData& typeData,
                                           DXCReflInfo* reflInfo,
                                           const DXCCompileParams& input,
+                                          bool reflectShaderInputs,
                                           Errors& errors  )
   {
     TAC_ASSERT( !input.mOutputDir.empty() );
@@ -367,7 +379,7 @@ namespace Tac::Render
 
     CheckCompileSuccess( pResults.Get(), errors );
 
-    ReflectShader( pUtils.Get(), pResults.Get(), reflInfo );
+    ReflectShader( pUtils.Get(), pResults.Get(), reflInfo, reflectShaderInputs );
     
     TAC_RAISE_ERROR_IF_RETURN( !pResults->HasOutput( DXC_OUT_OBJECT ), "no shader binary", {} );
     PCom< IDxcBlob > pShader;
@@ -404,8 +416,8 @@ namespace Tac
 
     DXCReflInfo reflInfo;
 
-    vsBlob = DXCCompileBlob( sVSData, &reflInfo, input, errors );
-    psBlob = DXCCompileBlob( sPSData, &reflInfo, input, errors );
+    vsBlob = DXCCompileBlob( sVSData, &reflInfo, input, true, errors );
+    psBlob = DXCCompileBlob( sPSData, &reflInfo, input, false, errors );
 
     TAC_RAISE_ERROR_IF_RETURN( !vsBlob && !psBlob, "Failed to find any shaders", {} );
 

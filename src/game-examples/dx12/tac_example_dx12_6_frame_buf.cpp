@@ -653,14 +653,14 @@ namespace Tac
     const VertexDeclaration posDecl
     {
       .mAttribute         { Attribute::Position },
-      .mTextureFormat     { Format::sv3 },
+      .mFormat            { Format::sv3 },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
     };
 
     const VertexDeclaration colDecl
     {
       .mAttribute         { Attribute::Color },
-      .mTextureFormat     { Format::sv3 },
+      .mFormat            { Format::sv3 },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
     };
 

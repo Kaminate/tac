@@ -24,6 +24,13 @@ namespace Tac::Render
     void AddBinding( D3D12_SHADER_INPUT_BIND_DESC );
     bool HasBinding( StringView );
 
+    struct Input
+    {
+      String mName;
+      int    mIndex;
+      int    mRegister;
+    };
+
     // Storing IDxcBlob / ID3D12ShaderReflection because I assume that the string pointers in the
     // D3D12_SHADER_INPUT_BIND_DESC go inside one of these
     Vector< PCom< IDxcBlob > >               mReflBlobs;
@@ -31,6 +38,8 @@ namespace Tac::Render
 
     // Combined bindings from all shader stanges
     Vector< D3D12_SHADER_INPUT_BIND_DESC >   mReflBindings;
+
+    Vector< Input >                          mInputs;
   };
 
   struct DXCCompileOutput

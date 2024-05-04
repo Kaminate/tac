@@ -727,15 +727,15 @@ namespace Tac
       {
         VertexDeclaration
         {
-          .mAttribute                { Attribute::Position },
-          .mTextureFormat                { Format::sv3 },
-          .mAlignedByteOffset                { TAC_OFFSET_OF( Vertex, mPos ) },
+          .mAttribute         { Attribute::Position },
+          .mFormat            { Format::sv3 },
+          .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
         },
         VertexDeclaration
         {
-          .mAttribute                { Attribute::Color },
-          .mTextureFormat                { Format::sv3 },
-          .mAlignedByteOffset                { TAC_OFFSET_OF( Vertex, mCol ) },
+          .mAttribute         { Attribute::Color },
+          .mFormat            { Format::sv3 },
+          .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
         },
       } };
 
