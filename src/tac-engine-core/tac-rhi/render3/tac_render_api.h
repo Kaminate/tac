@@ -162,7 +162,7 @@ namespace Tac::Render
     Format    mFormat            {};
 
     //        Offset of the variable from the vertex buffer
-    //        ie: OffsetOf( MyVertexType, mPosition)
+    //        ie: TAC_OFFSET_OF( MyVertexType, mPosition)
     int       mAlignedByteOffset {};
   };
 

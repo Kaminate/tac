@@ -208,6 +208,10 @@ namespace Tac::Render
       // ie: POSITION, TEXCOORD, etc
       D3D12_SIGNATURE_PARAMETER_DESC inputParamDesc;
       shaderReflection->GetInputParameterDesc( iInput, &inputParamDesc );
+
+      if( inputParamDesc.SystemValueType != D3D_NAME_UNDEFINED )
+        continue; // don't reflect SV_ semantics
+
       if( reflectShaderInputs )
       {
         const DXCReflInfo::Input input

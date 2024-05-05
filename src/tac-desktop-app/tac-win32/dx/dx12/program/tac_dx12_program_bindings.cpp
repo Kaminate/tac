@@ -53,7 +53,7 @@ namespace Tac::Render
         .mRegisterSpace { ( int )info.Space },
       };
 
-      mBindings.push_back( binding );
+      push_back( binding );
     }
   }
 } // namespace Tac::Render

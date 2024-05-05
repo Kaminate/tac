@@ -42,6 +42,7 @@ namespace Tac::Render
     void SetViewport( v2i ) override;
     void SetScissor( v2i ) override;
     void SetRenderTargets( Targets ) override;
+    void SetPrimitiveTopology( PrimitiveTopology ) override;
     void SetPipeline( PipelineHandle ) override;
     void ClearColor( TextureHandle, v4 ) override;
     void ClearDepth( TextureHandle, float ) override;

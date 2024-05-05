@@ -157,6 +157,11 @@ namespace Tac::Render
     mState.mEventCount--;
   }
 
+  void DX12Context::MoveFrom( DX12Context&& ) noexcept
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+  }
+
   void DX12Context::DebugMarker( StringView str )
   {
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
@@ -214,6 +219,25 @@ namespace Tac::Render
     if( !barriers.empty() )
       commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
     commandList->OMSetRenderTargets( ( UINT )rtDescs.size(), rtDescs.data(), false, pDSV );
+  }
+
+  void DX12Context::SetPrimitiveTopology( PrimitiveTopology primitiveTopology )
+  {
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    D3D12_PRIMITIVE_TOPOLOGY dx12Topology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+
+        D3D_PRIMITIVE_TOPOLOGY_UNDEFINED	= 0,
+        D3D_PRIMITIVE_TOPOLOGY_POINTLIST	= 1,
+        D3D_PRIMITIVE_TOPOLOGY_LINELIST	= 2,
+        D3D_PRIMITIVE_TOPOLOGY_LINESTRIP	= 3,
+        D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST	= 4,
+        D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP	= 5,
+        D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ	= 10,
+        D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ	= 11,
+        D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ	= 12,
+        D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ	= 13,
+
+    commandList->IASetPrimitiveTopology( dx12Topology );
   }
 
   void DX12Context::SetPipeline( PipelineHandle h )

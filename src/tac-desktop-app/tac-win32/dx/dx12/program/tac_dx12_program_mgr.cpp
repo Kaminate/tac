@@ -135,7 +135,7 @@ namespace Tac::Render
     TAC_CALL( DXCCompileOutput output { DXCCompile( input, errors )  });
 
     const D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
-                                   output.mReflInfo.mReflBindings.size() );
+                                         output.mReflInfo.mReflBindings.size() );
 
     // Here's what im thinking.
     // Every descriptor table has its own root parameter,
@@ -148,6 +148,19 @@ namespace Tac::Render
     }
 #endif
 
+    const int programInputCount{ output.mReflInfo.mInputs.size() };
+    Vector< DX12Program::Input > programInputs( programInputCount );
+    for( int i{ 0 }; i < programInputCount; ++i )
+    {
+      const DXCReflInfo::Input& reflInput{ output.mReflInfo.mInputs[ i ] };
+      programInputs[ i ] = DX12Program::Input
+      {
+        .mName     { reflInput.mName },
+        .mIndex    { reflInput.mIndex },
+        .mRegister { reflInput.mRegister },
+      };
+    }
+
     mPrograms[ h.GetIndex() ] = DX12Program
     {
       .mFileStem        { params.mFileStem },
@@ -156,6 +169,7 @@ namespace Tac::Render
       .mPSBlob          { output.mPSBlob },
       .mPSBytecode      { IDxcBlobToBytecode( output.mPSBlob ) },
       .mProgramBindings { bindings },
+      .mInputs          { programInputs },
     };
 
   }

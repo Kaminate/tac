@@ -9,6 +9,7 @@
 
 namespace Tac { struct Errors; }
 
+namespace Tac::Render { struct D3D12ProgramBinding; }
 namespace Tac::Render
 {
 
@@ -44,14 +45,13 @@ namespace Tac::Render
     //void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
     //                             Span< D3D12_DESCRIPTOR_RANGE1 > );
     
+    void AddBindings( const D3D12ProgramBinding* , int );
+    void SetInputLayoutEnabled( bool );
 
     PCom< ID3D12RootSignature > Build( Errors& errors );
     
 
   private:
-    struct DescriptorTable
-    {
-    };
 
     D3D12_DESCRIPTOR_RANGE1* AddRange( int n = 1 );
     void AddArrayInternal( D3D12_DESCRIPTOR_RANGE_TYPE, UINT, Location );
@@ -60,5 +60,6 @@ namespace Tac::Render
     Vector< D3D12_DESCRIPTOR_RANGE1 > mRanges;
     Vector< int >                     mRangeOffsets;
     ID3D12Device*                     mDevice;
+    bool                              mHasInputLayout{};
   };
 }

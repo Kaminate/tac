@@ -144,6 +144,24 @@ namespace Tac
       .mDSVDepthFmt  { Render::TexFmt::kUnknown },
     };
 
+    const Render::VertexDeclaration vtxDeclPos
+    {
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
+    };
+
+    const Render::VertexDeclaration vtxDeclCol
+    {
+      .mAttribute         { Render::Attribute::Color },
+      .mFormat            { Render::Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
+    };
+
+    Render::VertexDeclarations vtxDecls;
+    vtxDecls.push_back( vtxDeclPos );
+    vtxDecls.push_back( vtxDeclCol );
+
     const Render::PipelineParams paramsInputLayout
     {
       .mProgram      { mShaderInputLayout },
@@ -153,6 +171,7 @@ namespace Tac
       // SwapChainHandle               mRenderTarget;
       .mRTVColorFmts { mColorFormat },
       .mDSVDepthFmt  { Render::TexFmt::kUnknown },
+      .mVtxDecls     { vtxDecls },
     };
     mPipelineBindless = renderDevice->CreatePipeline( paramsBindless, errors );
     mPipelineInputLayout = renderDevice->CreatePipeline( paramsInputLayout, errors );

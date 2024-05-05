@@ -21,6 +21,14 @@ namespace Tac::Render
     D3D12_SHADER_BYTECODE mPSBytecode;
 
     D3D12ProgramBindings  mProgramBindings;
+
+    struct Input
+    {
+      String mName;
+      int    mIndex;
+      int    mRegister;
+    };
+    Vector< Input >       mInputs;
   };
 } // namespace Tac::Render
 

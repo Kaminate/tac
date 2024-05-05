@@ -2,9 +2,56 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/dx/dx12/program/tac_dx12_program_bindings.h"
 
 namespace Tac::Render
 {
+
+  static D3D12_DESCRIPTOR_RANGE_TYPE
+    D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( D3D12ProgramBinding::Type type )
+  {
+    switch( type )
+    {
+    case D3D12ProgramBinding::Type::kTextureUAV:
+    case D3D12ProgramBinding::Type::kBufferUAV:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+
+    case D3D12ProgramBinding::Type::kTextureSRV:
+    case D3D12ProgramBinding::Type::kBufferSRV:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+
+    case D3D12ProgramBinding::Type::kSampler:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+
+    case D3D12ProgramBinding::Type::kConstantBuffer:
+      return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+
+    default: TAC_ASSERT_INVALID_CASE( type ); return ( D3D12_DESCRIPTOR_RANGE_TYPE )0;
+    }
+  }
+
+  static D3D12_ROOT_PARAMETER_TYPE
+    D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( D3D12ProgramBinding::Type type )
+  {
+    switch( type )
+    {
+    case D3D12ProgramBinding::Type::kTextureUAV:
+    case D3D12ProgramBinding::Type::kBufferUAV:
+      return D3D12_ROOT_PARAMETER_TYPE_UAV;
+
+    case D3D12ProgramBinding::Type::kTextureSRV:
+    case D3D12ProgramBinding::Type::kBufferSRV:
+      return D3D12_ROOT_PARAMETER_TYPE_SRV;
+
+    case D3D12ProgramBinding::Type::kConstantBuffer:
+      return D3D12_ROOT_PARAMETER_TYPE_CBV;
+
+    default: TAC_ASSERT_INVALID_CASE( type ); return ( D3D12_ROOT_PARAMETER_TYPE )0;
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
   DX12RootSigBuilder::DX12RootSigBuilder( ID3D12Device* device ) : mDevice( device ) {}
 #if 0
 
@@ -33,6 +80,11 @@ namespace Tac::Render
     mRootParams.push_back( rootParam );
   }
 #endif
+
+  void DX12RootSigBuilder::SetInputLayoutEnabled( bool enabled )
+  {
+    mHasInputLayout = enabled;
+  }
 
   D3D12_DESCRIPTOR_RANGE1* DX12RootSigBuilder::AddRange( int n )
   {
@@ -101,60 +153,10 @@ namespace Tac::Render
     mRootParams.push_back( rootParam );
   }
 
-#if 0
-  void DX12RootSigBuilder::AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE paramType,
-                                              D3D12_SHADER_VISIBILITY vis,
-                                              D3D12_ROOT_DESCRIPTOR1 desc )
-  {
-    const D3D12_ROOT_PARAMETER1 rootParam
-    {
-      .ParameterType { paramType },
-      .Descriptor { desc },
-      .ShaderVisibility { vis },
-    };
-
-    mRootParams.push_back( rootParam );
-  }
-
-
-  void DX12RootSigBuilder::AddConstantBuffer( D3D12_SHADER_VISIBILITY vis,
-                                              D3D12_ROOT_DESCRIPTOR1 descriptor )
-  {
-    const D3D12_ROOT_PARAMETER1 rootParam
-    {
-      .ParameterType { D3D12_ROOT_PARAMETER_TYPE_CBV },
-      .Descriptor { descriptor },
-      .ShaderVisibility { vis },
-    };
-
-    mRootParams.push_back( rootParam );
-  }
-
-  void DX12RootSigBuilder::AddRootDescriptorTable( D3D12_SHADER_VISIBILITY vis,
-                                                   Span<D3D12_DESCRIPTOR_RANGE1> toAdd )
-  {
-    Span dst( &mRanges[ mRanges.size() ], toAdd.size() );
-    dst = toAdd;
-    mRanges.resize( mRanges.size() + toAdd.size() );
-
-    const D3D12_ROOT_PARAMETER1 rootParam
-    {
-      .ParameterType { D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE },
-      .DescriptorTable = D3D12_ROOT_DESCRIPTOR_TABLE1
-      {
-        .NumDescriptorRanges { ( UINT )dst.size() },
-        .pDescriptorRanges { dst.data() },
-      },
-      .ShaderVisibility { vis },
-    };
-
-    mRootParams.push_back( rootParam );
-  }
-#endif
-
   PCom< ID3D12RootSignature > DX12RootSigBuilder::Build( Errors& errors )
   {
-    TAC_ASSERT( !mRootParams.empty() );
+    // root param is allowed to be empty
+    //TAC_ASSERT( !mRootParams.empty() );
 
     int* rangeOffset { mRangeOffsets.data() };
     for( D3D12_ROOT_PARAMETER1& rootParam : mRootParams )
@@ -167,7 +169,10 @@ namespace Tac::Render
     //   Omit this flag if the Input Assembler is not required, though the optimization is minor.
     //   This flat opts in to using the input assembler, which requires an input layout that
     //   defines a set of vertex buffer bindings.
-    const D3D12_ROOT_SIGNATURE_FLAGS rootSigFlags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+    D3D12_ROOT_SIGNATURE_FLAGS rootSigFlags{ D3D12_ROOT_SIGNATURE_FLAG_NONE };
+    if( mHasInputLayout )
+      rootSigFlags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
 
     const D3D12_ROOT_SIGNATURE_DESC1 Desc_1_1
     {
@@ -211,5 +216,40 @@ namespace Tac::Render
     return rootSignature;
   }
 
+  void DX12RootSigBuilder::AddBindings( const D3D12ProgramBinding* bindings, int n )
+  {
+    for( int i{}; i < n; ++i )
+    {
+      const D3D12ProgramBinding& binding{ bindings[ i ] };
+
+      const DX12RootSigBuilder::Location loc
+      {
+        .mRegister { binding.mBindRegister },
+        .mSpace    { binding.mRegisterSpace },
+      };
+
+      const bool isArray{ binding.mBindCount != 1 };
+
+      if( isArray || binding.mType == D3D12ProgramBinding::Type::kSampler )
+      {
+        // Create a root descriptor table
+        const D3D12_DESCRIPTOR_RANGE_TYPE descriptorRangeType =
+          D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( binding.mType );
+
+        if( binding.mBindCount == 0 )
+          AddUnboundedArray( descriptorRangeType, loc );
+        else
+          AddBoundedArray( descriptorRangeType, binding.mBindCount, loc );
+      }
+      else
+      {
+        // Create a root descriptor
+        const D3D12_ROOT_PARAMETER_TYPE type =
+          D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( binding.mType );
+        AddRootDescriptor( type, loc );
+      }
+
+    }
+  }
 
 } // namespace Tac::Render

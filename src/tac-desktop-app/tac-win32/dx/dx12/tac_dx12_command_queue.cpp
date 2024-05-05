@@ -140,7 +140,7 @@ namespace Tac::Render
   };
 
 
-  void   DX12CommandQueue::MoveFrom( DX12CommandQueue&& other )
+  void   DX12CommandQueue::MoveFrom( DX12CommandQueue&& other ) noexcept
   {
     m_fence = move( other.m_fence );
     m_fenceEvent = move( other.m_fenceEvent );
@@ -150,12 +150,12 @@ namespace Tac::Render
   }
 
 
-  DX12CommandQueue::DX12CommandQueue( DX12CommandQueue&& other )
+  DX12CommandQueue::DX12CommandQueue( DX12CommandQueue&& other ) noexcept
   {
     MoveFrom( move( other ) );
   }
 
-  void DX12CommandQueue::operator = ( DX12CommandQueue&& other )
+  void DX12CommandQueue::operator = ( DX12CommandQueue&& other ) noexcept
   {
     MoveFrom( move( other ) );
   }

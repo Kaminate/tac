@@ -22,8 +22,8 @@ namespace Tac::Render
   struct DX12CommandQueue
   {
     DX12CommandQueue() = default;
-    DX12CommandQueue( DX12CommandQueue&& );
-    void operator = ( DX12CommandQueue&& );
+    DX12CommandQueue( DX12CommandQueue&& ) noexcept ;
+    void operator = ( DX12CommandQueue&& ) noexcept ;
 
     void        Create( ID3D12Device*, Errors& );
     bool        IsFenceComplete( FenceSignal );
@@ -39,7 +39,7 @@ namespace Tac::Render
     //void   UpdateLastCompletedFenceValue(u64);
     void   CreateFence( ID3D12Device*, Errors& );
     void   CreateCommandQueue( ID3D12Device*, Errors& );
-    void   MoveFrom( DX12CommandQueue&& );
+    void   MoveFrom( DX12CommandQueue&& ) noexcept ;
   public:
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
