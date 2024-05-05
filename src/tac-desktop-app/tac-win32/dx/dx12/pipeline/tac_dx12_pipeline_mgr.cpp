@@ -159,8 +159,8 @@ namespace Tac::Render
 
   void DX12PipelineMgr::CreatePipeline( PipelineHandle h, PipelineParams params, Errors& errors )
   {
-    ID3D12Device* device { mDevice };
-    DX12Program* program { mProgramMgr->FindProgram( params.mProgram ) };
+    ID3D12Device* device{ mDevice };
+    DX12Program* program{ mProgramMgr->FindProgram( params.mProgram ) };
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
@@ -189,6 +189,20 @@ namespace Tac::Render
     const DXGI_SAMPLE_DESC SampleDesc{ .Count { 1 } };
     const DXGI_FORMAT DSVFormat{ TexFmtToDxgiFormat( params.mDSVDepthFmt ) };
 
+
+    FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > InputElementDescs;
+
+    for( const VertexDeclaration& vtxDecl : params.mVtxDecls )
+    {
+      ++asdf;
+    }
+
+    D3D12_INPUT_LAYOUT_DESC InputLayoutDesc
+    {
+      .pInputElementDescs { InputElementDescs.data() },
+      .NumElements        { ( UINT )InputElementDescs.size() },
+    };
+
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )rootSig },
@@ -198,7 +212,7 @@ namespace Tac::Render
       .SampleMask            { UINT_MAX },
       .RasterizerState       { RasterizerState },
       .DepthStencilState     { D3D12_DEPTH_STENCIL_DESC{} },
-      .InputLayout           { D3D12_INPUT_LAYOUT_DESC{} },
+      .InputLayout           { InputLayoutDesc },
       .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
       .NumRenderTargets      { NumRenderTargets },
       .DSVFormat             { DSVFormat },

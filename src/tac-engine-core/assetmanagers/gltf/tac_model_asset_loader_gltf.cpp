@@ -83,7 +83,7 @@ namespace Tac
     {
       const int vertexEnd{
         decl.mAlignedByteOffset +
-        decl.mTextureFormat.CalculateTotalByteCount() };
+        decl.mFormat.CalculateTotalByteCount() };
       dstVtxStride = Max( dstVtxStride, vertexEnd );
     }
 
@@ -135,7 +135,7 @@ namespace Tac
          iVertexDeclaration++ )
     {
       const Render::VertexDeclaration& vertexDeclaration { decls[ iVertexDeclaration ] };
-      const Render::Format& dstFormat { vertexDeclaration.mTextureFormat };
+      const Render::Format& dstFormat { vertexDeclaration.mFormat };
       const cgltf_attribute_type gltfVertAttributeType { GetGltfFromAttribute( vertexDeclaration.mAttribute ) };
       const cgltf_attribute* gltfVertAttribute { FindAttributeOfType( parsedPrim, gltfVertAttributeType ) };
       if( !gltfVertAttribute )

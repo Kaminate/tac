@@ -293,6 +293,7 @@ namespace Tac::Render
     //SwapChainHandle               mRenderTarget;
     FixedVector< TexFmt, 8 > mRTVColorFmts;
     TexFmt                   mDSVDepthFmt { TexFmt::kUnknown };
+    VertexDeclarations       mVtxDecls;
     // root sig? <-- parse using dx reflection
     //PrimTopology     mPrimTopo;
   };

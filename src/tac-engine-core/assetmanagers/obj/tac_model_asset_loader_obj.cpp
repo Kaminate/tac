@@ -133,7 +133,7 @@ namespace Tac
     int maxStride { 0 };
     for( const Render::VertexDeclaration& decl : vertexDeclarations )
     {
-      const int curStride { decl.mAlignedByteOffset + decl.mTextureFormat.CalculateTotalByteCount() };
+      const int curStride { decl.mAlignedByteOffset + decl.mFormat.CalculateTotalByteCount() };
       maxStride = Max( maxStride, curStride );
     }
 
@@ -167,9 +167,9 @@ namespace Tac
         {
           if( decl.mAttribute == Render::Attribute::Position && wavefrontObj.positions.size() )
           {
-            TAC_ASSERT( decl.mTextureFormat.mElementCount == 3 );
-            TAC_ASSERT( decl.mTextureFormat.mPerElementByteCount == sizeof( float ) );
-            TAC_ASSERT( decl.mTextureFormat.mPerElementDataType == Render::GraphicsType::real );
+            TAC_ASSERT( decl.mFormat.mElementCount == 3 );
+            TAC_ASSERT( decl.mFormat.mPerElementByteCount == sizeof( float ) );
+            TAC_ASSERT( decl.mFormat.mPerElementDataType == Render::GraphicsType::real );
             TAC_ASSERT_INDEX( tri.miPosition, wavefrontObj.positions.size() );
             MemCpy( vertexBytes.data() + decl.mAlignedByteOffset,
                     wavefrontObj.positions[ tri.miPosition ].data(),
@@ -178,9 +178,9 @@ namespace Tac
           }
           if( decl.mAttribute == Render::Attribute::Normal && wavefrontObj.normals.size() )
           {
-            TAC_ASSERT( decl.mTextureFormat.mElementCount == 3 );
-            TAC_ASSERT( decl.mTextureFormat.mPerElementByteCount == sizeof( float ) );
-            TAC_ASSERT( decl.mTextureFormat.mPerElementDataType == Render::GraphicsType::real );
+            TAC_ASSERT( decl.mFormat.mElementCount == 3 );
+            TAC_ASSERT( decl.mFormat.mPerElementByteCount == sizeof( float ) );
+            TAC_ASSERT( decl.mFormat.mPerElementDataType == Render::GraphicsType::real );
             TAC_ASSERT_INDEX( tri.miNormal, wavefrontObj.normals.size() );
             MemCpy( vertexBytes.data() + decl.mAlignedByteOffset,
                     wavefrontObj.normals[ tri.miNormal ].data(),
@@ -188,9 +188,9 @@ namespace Tac
           }
           if( decl.mAttribute == Render::Attribute::Texcoord && wavefrontObj.texcoords.size() )
           {
-            TAC_ASSERT( decl.mTextureFormat.mElementCount == 2 );
-            TAC_ASSERT( decl.mTextureFormat.mPerElementByteCount == sizeof( float ) );
-            TAC_ASSERT( decl.mTextureFormat.mPerElementDataType == Render::GraphicsType::real );
+            TAC_ASSERT( decl.mFormat.mElementCount == 2 );
+            TAC_ASSERT( decl.mFormat.mPerElementByteCount == sizeof( float ) );
+            TAC_ASSERT( decl.mFormat.mPerElementDataType == Render::GraphicsType::real );
             TAC_ASSERT_INDEX( tri.miTexCoord, wavefrontObj.texcoords.size() );
             MemCpy( vertexBytes.data() + decl.mAlignedByteOffset,
                     wavefrontObj.texcoords[ tri.miTexCoord ].data(),
