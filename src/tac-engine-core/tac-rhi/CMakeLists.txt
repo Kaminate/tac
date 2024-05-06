@@ -3,6 +3,13 @@
 # Create a library named TacEngineCore
 add_library( TacRHI )
 
+if( MSVC )
+  target_sources( TacRHI PRIVATE
+    tac_rhi.natvis
+    tac_rhi.natstepfilter
+  )
+endif()
+
 add_subdirectory( identifier )
 # add_subdirectory( render )
 add_subdirectory( render3 )

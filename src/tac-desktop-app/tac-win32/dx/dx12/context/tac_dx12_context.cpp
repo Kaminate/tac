@@ -6,6 +6,7 @@
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
+#include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
@@ -30,7 +31,6 @@ namespace Tac::Render
   {
     mBufferMgr->UpdateBuffer( h, params, this, errors );
   }
-
 
   void DX12Context::Execute( Errors& errors )
   {
@@ -63,7 +63,7 @@ namespace Tac::Render
   }
 
   ID3D12GraphicsCommandList* DX12Context::GetCommandList() { return mCommandList.Get(); }
-  ID3D12CommandAllocator* DX12Context::GetCommandAllocator() { return mCommandAllocator.Get(); }
+  ID3D12CommandAllocator*    DX12Context::GetCommandAllocator() { return mCommandAllocator.Get(); }
 
   void DX12Context::Reset( Errors& errors )
   {
@@ -224,19 +224,7 @@ namespace Tac::Render
   void DX12Context::SetPrimitiveTopology( PrimitiveTopology primitiveTopology )
   {
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    D3D12_PRIMITIVE_TOPOLOGY dx12Topology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-
-        D3D_PRIMITIVE_TOPOLOGY_UNDEFINED	= 0,
-        D3D_PRIMITIVE_TOPOLOGY_POINTLIST	= 1,
-        D3D_PRIMITIVE_TOPOLOGY_LINELIST	= 2,
-        D3D_PRIMITIVE_TOPOLOGY_LINESTRIP	= 3,
-        D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST	= 4,
-        D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP	= 5,
-        D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ	= 10,
-        D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ	= 11,
-        D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ	= 12,
-        D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ	= 13,
-
+    const D3D12_PRIMITIVE_TOPOLOGY dx12Topology { GetDX12PrimitiveTopology( primitiveTopology ) };
     commandList->IASetPrimitiveTopology( dx12Topology );
   }
 
@@ -259,6 +247,30 @@ namespace Tac::Render
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->ClearRenderTargetView( RTV, values.data(), 0, nullptr );
+  }
+
+  void DX12Context::SetVertexBuffer( BufferHandle h )
+  {
+    if( DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) } )
+    {
+      const UINT StartSlot{};
+      const UINT NumViews{ 1 };
+      const D3D12_VERTEX_BUFFER_VIEW view
+      {
+        .BufferLocation { buffer->mGPUVirtualAddr },
+        .SizeInBytes    { ( UINT )buffer->mCreateParams.mByteCount },
+        .StrideInBytes  { ( UINT )buffer->mCreateParams.mStride },
+      };
+
+      // When BufferLocation is valid, but SizeInBytes is 0, d3d can throw a
+      // COMMAND_LIST_DRAW_VERTEX_BUFFER_NOT_SET warning when drawing
+      TAC_ASSERT( view.BufferLocation );
+      TAC_ASSERT( view.SizeInBytes );
+      TAC_ASSERT( view.StrideInBytes );
+
+      ID3D12GraphicsCommandList* commandList { GetCommandList() };
+      commandList->IASetVertexBuffers( StartSlot, NumViews, &view );
+    }
   }
 
   void DX12Context::ClearDepth( TextureHandle h, float value )
@@ -338,8 +350,12 @@ namespace Tac::Render
     }
   }
 
+
   void DX12Context::Retire()
   {
+    TAC_ASSERT( !mState.mRetired );
+    TAC_ASSERT( mState.mExecuted );
+    mState.mRetired = true;
     mContextManager->RetireContext( this );
   }
 

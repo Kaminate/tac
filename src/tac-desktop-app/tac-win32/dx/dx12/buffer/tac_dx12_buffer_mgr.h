@@ -20,10 +20,11 @@ namespace Tac::Render
       DX12ContextManager* mContextManager{};
     };
 
-    void Init( Params );
-    void CreateBuffer( BufferHandle, CreateBufferParams, Errors& );
-    void UpdateBuffer( BufferHandle, UpdateBufferParams, DX12Context*, Errors& );
-    void DestroyBuffer( BufferHandle );
+    void        Init( Params );
+    void        CreateBuffer( BufferHandle, CreateBufferParams, Errors& );
+    void        UpdateBuffer( BufferHandle, UpdateBufferParams, DX12Context*, Errors& );
+    DX12Buffer* FindBuffer( BufferHandle );
+    void        DestroyBuffer( BufferHandle );
 
   private:
 

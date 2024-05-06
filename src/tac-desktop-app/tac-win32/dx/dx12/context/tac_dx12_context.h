@@ -46,6 +46,7 @@ namespace Tac::Render
     void SetPipeline( PipelineHandle ) override;
     void ClearColor( TextureHandle, v4 ) override;
     void ClearDepth( TextureHandle, float ) override;
+    void SetVertexBuffer( BufferHandle ) override;
     void Draw( DrawArgs ) override;
     void DebugEventBegin( StringView ) override;
     void DebugEventEnd() override;
@@ -69,6 +70,7 @@ namespace Tac::Render
       bool               mSynchronous          {};
       bool               mExecuted             {};
       int                mEventCount           {};
+      bool               mRetired              {};
     };
 
     State mState{};

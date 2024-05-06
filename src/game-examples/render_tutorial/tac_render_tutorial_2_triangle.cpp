@@ -44,7 +44,7 @@ namespace Tac
 
   private:
     void InitWindow( InitParams, Errors& );
-    void InitBuffer( Errors& );
+    void InitVertexBuffer( Errors& );
     void InitShader( Errors& );
     void InitRootSig( Errors& );
 
@@ -65,7 +65,7 @@ namespace Tac
     //WindowBackend::SysApi::mIsRendererEnabled = t; // hack
 
     InitWindow( initParams, errors );
-    InitBuffer( errors );
+    InitVertexBuffer( errors );
     InitShader( errors );
     InitRootSig( errors );
   }
@@ -93,10 +93,10 @@ namespace Tac
     TAC_CALL( mShaderBindless = renderDevice->CreateProgram( paramsBindless, errors ) );
   }
 
-  void HelloTriangle::InitBuffer( Errors& errors )
+  void HelloTriangle::InitVertexBuffer( Errors& errors )
   {
     // Define the geometry for a triangle.
-    const Vertex triangleVertices[]
+    Vertex triangleVertices[]
     {
       Vertex
       {
@@ -114,6 +114,9 @@ namespace Tac
         .mCol { LinearColor3{ 0.0f, 1.0f, 0.0f }}
       },
     };
+
+    for( auto& vtx : triangleVertices )
+      vtx.mPos.mValue *= 0.3f;
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::CreateBufferParams params
@@ -295,7 +298,7 @@ namespace Tac
   void HelloTriangle::Render( RenderParams sysRenderParams, Errors& errors )
   {
     // Test bindless vs not bindless by flipping it every frame
-    mBindless = !mBindless;
+    //mBindless = !mBindless;
 
     const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
     const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
@@ -317,15 +320,26 @@ namespace Tac
 
     renderContext->SetViewport( windowSize );
     renderContext->SetScissor( windowSize );
+    renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
     renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
 
     if( mBindless )
     {
+#if 0
+      const Array descHeaps = { ( ID3D12DescriptorHeap* )m_srvHeap };
+      m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
+
+      // ...
+      const UINT RootParameterIndex = 0;
+      static_assert( RootParameterIndex == myParamIndex );
+      m_commandList->SetGraphicsRootDescriptorTable( RootParameterIndex, m_srvGpuHeapStart );
+#endif
+
     }
     else
     {
-      //renderContext->SetVertexBuffer();
+      renderContext->SetVertexBuffer( mVtxBuf );
     }
 
     const Render::DrawArgs drawArgs
@@ -335,48 +349,8 @@ namespace Tac
     renderContext->Draw( drawArgs );
 
     TAC_CALL( renderContext->Execute( errors ) );
-
-#if 0
-
-    if( sUseInputLayout )
-    {
-      const Array vbViews = { m_vertexBufferView };
-      m_commandList->IASetVertexBuffers(0, (UINT)vbViews.size(), vbViews.data() );
-    }
-    else
-    {
-      // ...
-      const Array descHeaps = { ( ID3D12DescriptorHeap* )m_srvHeap };
-      m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
-
-      // ...
-      const UINT RootParameterIndex = 0;
-      static_assert( RootParameterIndex == myParamIndex );
-      m_commandList->SetGraphicsRootDescriptorTable( RootParameterIndex, m_srvGpuHeapStart );
-    }
-
-    m_commandList->IASetPrimitiveTopology( D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-
-    const D3D12_DRAW_ARGUMENTS drawArgs
-    {
-      .VertexCountPerInstance = 3,
-      .InstanceCount = 1,
-      .StartVertexLocation = 0,
-      .StartInstanceLocation = 0,
-    };
-    m_commandList->DrawInstanced( drawArgs.VertexCountPerInstance,
-                                  drawArgs.InstanceCount,
-                                  drawArgs.StartVertexLocation,
-                                  drawArgs.StartInstanceLocation );
-
-
-    // Indicates that recording to the command list has finished.
-    TAC_DX12_CALL( m_commandList->Close() );
-
-    m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
-
-    TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );
-#endif
+    
+    TAC_CALL( renderDevice->Present( swapChain, errors ) );
   }
 
   //App::IState* HelloTriangle::GetGameState() { } 

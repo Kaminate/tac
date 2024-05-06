@@ -240,6 +240,60 @@ namespace Tac::Render
     return sRenderer.mSwapChainMgr.GetSwapChainDepth( h );
   }
 
+  void              DX12Device::Present( SwapChainHandle h, Errors& errors )
+  {
+    DX12SwapChain* swapChain{ sRenderer.mSwapChainMgr.FindSwapChain( h ) };
+    TAC_ASSERT( swapChain );
+
+
+    IDXGISwapChain4* swapChain4 { swapChain->mSwapChain.Get() };
+
+    TextureHandle textureHandle{ sRenderer.mSwapChainMgr.GetSwapChainCurrentColor( h ) };
+
+    DX12Texture* texture{ sRenderer.mTexMgr.FindTexture( textureHandle ) };
+
+    const D3D12_RESOURCE_STATES StateBefore { texture->mState };
+    const D3D12_RESOURCE_STATES StateAfter { D3D12_RESOURCE_STATE_PRESENT };
+
+    if( StateBefore != StateAfter )
+    {
+      texture->mState = StateAfter;
+
+      const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+      {
+        .pResource   { texture->mResource.Get() },
+        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+        .StateBefore { StateBefore },
+        .StateAfter  { StateAfter },
+      };
+
+      const D3D12_RESOURCE_BARRIER barrier
+      {
+        .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+        .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
+        .Transition { Transition },
+      };
+
+      IContext::Scope scope{ CreateRenderContext( errors ) };
+      DX12Context* context{ ( DX12Context* )scope.GetContext() };
+      ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
+      commandList->ResourceBarrier( 1, &barrier );
+      TAC_CALL(context->Execute(errors ));
+    }
+
+    const DXGI_PRESENT_PARAMETERS params{};
+
+    // For the flip model (DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL), values are:
+    //   0   - Cancel the remaining time on the previously presented frame
+    //         and discard this frame if a newer frame is queued.
+    //   1-4 - Synchronize presentation for at least n vertical blanks.
+    const UINT SyncInterval { 1 };
+    const UINT PresentFlags { 0 };
+
+    // I think this technically adds a frame onto the present queue
+    TAC_DX12_CALL( swapChain4->Present1( SyncInterval, PresentFlags, &params ) );
+  }
+
   BufferHandle      DX12Device::CreateBuffer( CreateBufferParams params,
                                               Errors& errors )
   {

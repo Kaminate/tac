@@ -183,7 +183,12 @@ namespace Tac::Render
       buffer.ppv() ) );
 
     ID3D12Resource* resource{ buffer.Get() };
-    DX12SetName( resource, sf );
+    if( params.mOptionalName )
+      DX12SetName( resource, params.mOptionalName );
+    else if( params.mStackFrame.mFile )
+      DX12SetName( resource, params.mStackFrame );
+    else
+      DX12SetName( resource, "Buffer " + ToString( h.GetIndex() ) );
 
     void* mappedCPUAddr{};
     if( heapType == D3D12_HEAP_TYPE_UPLOAD )
@@ -205,14 +210,14 @@ namespace Tac::Render
           GPUUploadAllocator->Allocate( byteCount, errors ) };
         MemCpy( allocation.mCPUAddr, params.mBytes, params.mByteCount );
 
-        ID3D12Resource* dstResource { buffer.Get() };
         const UINT64 dstResourceOffset{};
-        commandList->CopyBufferRegion( dstResource,
+        commandList->CopyBufferRegion( resource,
                                        dstResourceOffset,
                                        allocation.mResource,
                                        allocation.mResourceOffest,
                                        params.mByteCount );
 
+        context->SetSynchronous(); // ?
         TAC_CALL( context->Execute( errors ) );
         context->Retire();
       }
@@ -222,18 +227,26 @@ namespace Tac::Render
     if( resource )
       descriptorBindings = CreateBindings( resource, params );
 
+    const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
+
     const int i { h.GetIndex() };
     mBuffers[ i ] = DX12Buffer
     {
-      .mResource      { buffer },
-      .mDesc          { ResourceDesc },
-      .mState         { DefaultUsage },
-      .mSRV           { descriptorBindings.mSRV },
-      .mUAV           { descriptorBindings.mUAV },
-      .mMappedCPUAddr { mappedCPUAddr },
+      .mResource       { buffer },
+      .mDesc           { ResourceDesc },
+      .mState          { DefaultUsage },
+      .mGPUVirtualAddr { gpuVritualAddress },
+      .mSRV            { descriptorBindings.mSRV },
+      .mUAV            { descriptorBindings.mUAV },
+      .mMappedCPUAddr  { mappedCPUAddr },
+      .mCreateParams   { params },
     };
   }
 
+  DX12Buffer* DX12BufferMgr::FindBuffer( BufferHandle h )
+  {
+    return h.IsValid() ? &mBuffers[ h.GetIndex() ] : nullptr;
+  }
 
   void DX12BufferMgr::UpdateBuffer( BufferHandle h,
                                     UpdateBufferParams params,

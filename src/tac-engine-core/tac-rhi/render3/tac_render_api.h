@@ -335,6 +335,7 @@ namespace Tac::Render
     virtual void SetViewport( v2i ) {}
     virtual void SetScissor( v2i ) {}
     virtual void SetRenderTargets( Targets ) {}
+    virtual void SetPrimitiveTopology( PrimitiveTopology ) {};
     virtual void SetPipeline( PipelineHandle ) {}
     virtual void SetSynchronous() {}
 
@@ -348,7 +349,10 @@ namespace Tac::Render
     virtual void ClearColor( TextureHandle, v4 ) {}
     virtual void ClearDepth( TextureHandle, float ) {}
     virtual void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) {}
+
+    virtual void SetVertexBuffer( BufferHandle ) {}
     virtual void UpdateBuffer( BufferHandle, UpdateBufferParams, Errors& ) {}
+
     virtual void Draw( DrawArgs ) {};
     virtual void Execute( Errors& ) {}
 
@@ -402,6 +406,7 @@ namespace Tac::Render
     virtual void            DestroySwapChain( SwapChainHandle ) {}
     virtual TextureHandle   GetSwapChainCurrentColor( SwapChainHandle ) { return {}; }
     virtual TextureHandle   GetSwapChainDepth( SwapChainHandle ) { return {}; }
+    virtual void            Present( SwapChainHandle, Errors& ) {};
 
     virtual BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) {}
     virtual void            DestroyBuffer( BufferHandle ) {}

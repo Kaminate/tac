@@ -15,14 +15,15 @@ namespace Tac::Render
     using SRV = Optional< DX12DescriptorHeapAllocation >;
     using UAV = Optional< DX12DescriptorHeapAllocation >;
 
-    PCom< ID3D12Resource > mResource      {};
-    D3D12_RESOURCE_DESC    mDesc          {};
-    D3D12_RESOURCE_STATES  mState         {};
-    SRV                    mSRV           {};
-    UAV                    mUAV           {};
-    void*                  mMappedCPUAddr {};
-    CreateBufferParams     mCreateParams  {};
-    String                 mCreateName    {};
+    PCom< ID3D12Resource >    mResource       {};
+    D3D12_RESOURCE_DESC       mDesc           {};
+    D3D12_RESOURCE_STATES     mState          {};
+    D3D12_GPU_VIRTUAL_ADDRESS mGPUVirtualAddr {}; // used in D3D12_VERTEX_BUFFER_VIEW
+    SRV                       mSRV            {};
+    UAV                       mUAV            {};
+    void*                     mMappedCPUAddr  {};
+    CreateBufferParams        mCreateParams   {};
+    String                    mCreateName     {};
   };
 
 } // namespace Tac::Render

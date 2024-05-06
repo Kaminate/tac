@@ -1,6 +1,7 @@
 #include "tac_dx12_debug_layer.h" // self-inc
    
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
+//#include <d3d12sdklayers.h>
 
 namespace Tac::Render
 {
@@ -15,7 +16,7 @@ namespace Tac::Render
     m_debug->EnableDebugLayer();
     m_debugLayerEnabled = true;
 
-    if( PCom< ID3D12Debug3 > debug3{ m_debug.QueryInterface<ID3D12Debug3>() } )
+    if( PCom< ID3D12Debug3 > debug3{ m_debug.QueryInterface< ID3D12Debug3 >() } )
     {
 
       // ( this should already be enabled by default )
@@ -35,6 +36,12 @@ namespace Tac::Render
       debug3->SetEnableGPUBasedValidation( TRUE );
 
     }
+
+    if( PCom< ID3D12Debug5 > debug5{ m_debug.QueryInterface< ID3D12Debug5 >() } )
+    {
+      debug5->SetEnableAutoName( TRUE );
+    }
+
 
   }
 

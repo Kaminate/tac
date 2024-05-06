@@ -59,7 +59,11 @@ namespace Tac::Render
         iSwapChainBuf,
         renderTarget.iid(),
         renderTarget.ppv() ) );
-      DX12SetName( renderTarget, "Render Target " + Tac::ToString( iHandle ) );
+      DX12SetName( renderTarget,
+                   "Render Target "
+                   + Tac::ToString( iHandle )
+                   + ", "
+                   + Tac::ToString( iSwapChainBuf ) );
 
       const TextureHandle textureHandle { AllocTextureHandle() };
       TAC_CALL( mTextureMgr->CreateRenderTargetColor( textureHandle, renderTarget, errors ) );
@@ -129,7 +133,7 @@ namespace Tac::Render
     return h.IsValid() ? &mSwapChains[ h.GetIndex() ] : nullptr;
   }
 
-  TextureHandle   DX12SwapChainMgr::GetSwapChainCurrentColor( SwapChainHandle h)
+  TextureHandle   DX12SwapChainMgr::GetSwapChainCurrentColor( SwapChainHandle h )
   {
     DX12SwapChain* swapChain { FindSwapChain( h ) };
     if( !swapChain )

@@ -64,18 +64,18 @@ namespace Tac::Render
                DX12ExampleGPUUploadPageManager*,
                PCom<ID3D12Device> );
     
-    DX12ExampleContextScope                 GetContext( Errors& );
-    void                             RetireContext( DX12ExampleContext context );
+    DX12ExampleContextScope           GetContext( Errors& );
+    void                              RetireContext( DX12ExampleContext );
     
-    PCom<ID3D12GraphicsCommandList > CreateCommandList(Errors&);
+    PCom< ID3D12GraphicsCommandList > CreateCommandList(Errors&);
 
   private:
-    Vector< DX12ExampleContext >     mAvailableContexts;
+    Vector< DX12ExampleContext >      mAvailableContexts;
 
     // singletons
-    DX12ExampleCommandAllocatorPool* mCommandAllocatorPool {};
-    DX12ExampleCommandQueue*         mCommandQueue         {};
-    DX12ExampleGPUUploadPageManager* mUploadPageManager    {};
-    PCom< ID3D12Device5 >            mDevice; // device4 needed for createcommandlist1
+    DX12ExampleCommandAllocatorPool*  mCommandAllocatorPool {};
+    DX12ExampleCommandQueue*          mCommandQueue         {};
+    DX12ExampleGPUUploadPageManager*  mUploadPageManager    {};
+    PCom< ID3D12Device5 >             mDevice; // device4 needed for createcommandlist1
   };
 }

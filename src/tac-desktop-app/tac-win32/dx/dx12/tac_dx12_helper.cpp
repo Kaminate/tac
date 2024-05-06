@@ -77,12 +77,20 @@ namespace Tac
 
   void Render::DX12SetName( ID3D12Object* obj, StringView sv )
   {
-    std::wstring ws;
-    for( char c : sv )
-      ws += c;
+    // test test begin
+    obj->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )sv.size(), sv.data() );
+    //char buf[ 1000 ];
+    //UINT n{ 1000 };
+    //obj->GetPrivateData( WKPDID_D3DDebugObjectName, &n, buf );
+    //buf[ n ] = 0;
+    //return;
+    // test test end
+    //std::wstring ws;
+    //for( char c : sv )
+    //  ws += c;
 
-    const HRESULT hr { obj->SetName( ws.c_str() ) };
-    TAC_ASSERT( hr == S_OK );
+    //const HRESULT hr { obj->SetName( ws.c_str() ) };
+    //TAC_ASSERT( hr == S_OK );
   }
 
   void Render::DX12SetName( ID3D12Object* obj, StackFrame sf )
