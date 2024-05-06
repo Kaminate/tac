@@ -354,7 +354,7 @@ namespace Tac::Render
   void DX12Context::Retire()
   {
     TAC_ASSERT( !mState.mRetired );
-    TAC_ASSERT( mState.mExecuted );
+    TAC_ASSERT( mState.mExecuted ); // this should be a warning instead
     mState.mRetired = true;
     mContextManager->RetireContext( this );
   }

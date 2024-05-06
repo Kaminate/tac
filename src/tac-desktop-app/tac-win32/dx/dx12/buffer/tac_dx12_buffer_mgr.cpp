@@ -202,7 +202,8 @@ namespace Tac::Render
       }
       else
       {
-        DX12Context* context { mContextManager->GetContext(errors ) };
+        DX12Context::Scope contextScope{ mContextManager->GetContext( errors ) };
+        DX12Context* context{ ( DX12Context* )contextScope.GetContext() };
         ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
         DX12UploadAllocator* GPUUploadAllocator{ &context->mGPUUploadAllocator };
 
@@ -217,9 +218,8 @@ namespace Tac::Render
                                        allocation.mResourceOffest,
                                        params.mByteCount );
 
-        context->SetSynchronous(); // ?
+        //context->SetSynchronous(); // ? nope no need
         TAC_CALL( context->Execute( errors ) );
-        context->Retire();
       }
     }
 
