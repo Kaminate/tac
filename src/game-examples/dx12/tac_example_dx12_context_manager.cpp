@@ -88,7 +88,7 @@ namespace Tac::Render
     mCommandQueue = commandQueue;
     mUploadPageManager = uploadPageManager;
     mDevice = device.QueryInterface<ID3D12Device5>();
-    }
+  }
 
   DX12ExampleContextScope DX12ExampleContextManager::GetContext( Errors& errors )
   {

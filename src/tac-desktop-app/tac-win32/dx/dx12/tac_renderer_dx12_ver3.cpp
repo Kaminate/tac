@@ -76,14 +76,16 @@ namespace Tac::Render
     mCommandAllocatorPool.Init( mDevice, &mCommandQueue );
 
     mContextManager.Init( {
-      .mCommandAllocatorPool = &mCommandAllocatorPool,
-      .mCommandQueue = &mCommandQueue,
-      .mUploadPageManager = &mUploadPageManager,
-      .mSwapChainMgr = &mSwapChainMgr,
-      .mTextureMgr = &mTexMgr,
-      .mBufferMgr = &mBufMgr,
-      .mPipelineMgr = &mPipelineMgr,
-      .mDevice = mDevice,
+      .mCommandAllocatorPool         { &mCommandAllocatorPool },
+      .mCommandQueue                 { &mCommandQueue },
+      .mUploadPageManager            { &mUploadPageManager },
+      .mSwapChainMgr                 { &mSwapChainMgr },
+      .mTextureMgr                   { &mTexMgr },
+      .mBufferMgr                    { &mBufMgr },
+      .mPipelineMgr                  { &mPipelineMgr },
+      .mDevice                       { mDevice },
+      .mGpuDescriptorHeapCBV_SRV_UAV { &mGpuDescriptorHeapCBV_SRV_UAV },
+      .mGpuDescriptorHeapSampler     { &mGpuDescriptorHeapSampler },
                           } );
       
     mUploadPageManager.Init( mDevice, &mCommandQueue );
@@ -189,6 +191,16 @@ namespace Tac::Render
     const PipelineHandle h{ AllocPipelineHandle() };
     sRenderer.mPipelineMgr.CreatePipeline( h, params, errors );
     return h;
+  }
+
+  IShaderVar*       DX12Device::GetShaderVariable( PipelineHandle h, StringView sv )
+  {
+    DX12Pipeline* pipeline { sRenderer.mPipelineMgr.FindPipeline( h ) };
+    for( DX12Pipeline::Variable& var : pipeline->mShaderVariables )
+      if( var.GetName() == sv )
+        return &var;
+
+    return nullptr;
   }
 
   void              DX12Device::DestroyPipeline( PipelineHandle h )

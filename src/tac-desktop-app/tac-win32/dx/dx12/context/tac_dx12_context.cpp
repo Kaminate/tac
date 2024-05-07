@@ -22,6 +22,111 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
+  void DX12Context::CommitShaderVariables()
+  {
+    DX12Pipeline* pipeline{ mPipelineMgr->FindPipeline( mState.mPipeline ) };
+    if( !pipeline )
+      return;
+
+    TAC_ASSERT( mGpuDescriptorHeapCBV_SRV_UAV );
+    ID3D12DescriptorHeap* heap_cbv_srv_uav{
+      mGpuDescriptorHeapCBV_SRV_UAV->GetID3D12DescriptorHeap() };
+    TAC_ASSERT( heap_cbv_srv_uav );
+
+    TAC_ASSERT( mGpuDescriptorHeapSampler );
+    ID3D12DescriptorHeap* heap_sampler{
+      mGpuDescriptorHeapSampler->GetID3D12DescriptorHeap() };
+    TAC_ASSERT( heap_sampler );
+
+    const Array descHeaps{ heap_cbv_srv_uav, heap_sampler };
+
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
+
+
+    const UINT descriptorSize{ mGpuDescriptorHeapCBV_SRV_UAV->GetDescriptorSize() };
+
+    UINT gpuVisibleDescriptorIndex{};
+
+
+    const int n{ pipeline->mShaderVariables.size() };
+    for( int i{}; i < n; ++i )
+    {
+      const DX12Pipeline::Variable& var{ pipeline->mShaderVariables[ i ] };
+
+      const D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor{
+          mGpuDescriptorHeapCBV_SRV_UAV->IndexGPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
+
+
+      commandList->SetGraphicsRootDescriptorTable( ( UINT )i, baseDescriptor );
+
+      for( int iHandle : var.mHandleIndexes )
+      {
+        D3D12_CPU_DESCRIPTOR_HANDLE src{};
+
+        if( var.mBinding->IsTexture() )
+        {
+          DX12Texture* texture{ mTextureMgr->FindTexture( TextureHandle{ iHandle } ) };
+          if( !texture )
+            continue;
+
+          if( var.mBinding->mType == D3D12ProgramBinding::kTextureSRV )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else if( var.mBinding->mType == D3D12ProgramBinding::kTextureSRV )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else
+          {
+            TAC_ASSERT_INVALID_CODE_PATH;
+          }
+
+        }
+        else if( var.mBinding->IsBuffer() ) // this includes constant buffers
+        {
+          DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
+          if( !buffer )
+            continue;
+
+          if( var.mBinding->mType == D3D12ProgramBinding::kBufferSRV )
+          {
+            TAC_ASSERT( buffer->mSRV.HasValue() );
+            DX12DescriptorHeapAllocation srv{ buffer->mSRV.GetValue() };
+            src = srv.GetCPUHandle();
+          }
+          else if( var.mBinding->mType == D3D12ProgramBinding::kBufferUAV )
+          {
+            TAC_ASSERT( buffer->mUAV.HasValue() );
+            DX12DescriptorHeapAllocation uav{ buffer->mUAV.GetValue() };
+            src = uav.GetCPUHandle();
+          }
+          else
+          {
+            TAC_ASSERT_INVALID_CODE_PATH;
+          }
+
+        }
+        else if( var.mBinding->mType == D3D12ProgramBinding::kConstantBuffer )
+        {
+        }
+        else
+        {
+          TAC_ASSERT_INVALID_CODE_PATH;
+        }
+
+        const UINT NumDescriptors{1};
+        const D3D12_CPU_DESCRIPTOR_HANDLE dst{
+            mGpuDescriptorHeapCBV_SRV_UAV->IndexCPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
+        const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ mGpuDescriptorHeapCBV_SRV_UAV->GetType() };
+        mDevice->CopyDescriptorsSimple( NumDescriptors, dst, src, heapType );
+
+        gpuVisibleDescriptorIndex++;
+      }
+    }
+  }
+
   void DX12Context::UpdateTexture( TextureHandle h, UpdateTextureParams params, Errors& errors )
   {
     mTextureMgr->UpdateTexture( h, params, this, errors );
@@ -236,6 +341,7 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->SetPipelineState( pipelineState );
     commandList->SetGraphicsRootSignature( rootSignature );
+    mState.mPipeline = h;
   }
 
   void DX12Context::ClearColor( TextureHandle h, v4 values )

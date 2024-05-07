@@ -30,14 +30,16 @@ namespace Tac::Render
   {
     struct Params
     {
-      DX12CommandAllocatorPool* mCommandAllocatorPool {};
-      DX12CommandQueue*         mCommandQueue         {};
-      DX12UploadPageMgr*        mUploadPageManager    {};
-      DX12SwapChainMgr*         mSwapChainMgr         {};
-      DX12TextureMgr*           mTextureMgr           {};
-      DX12BufferMgr*            mBufferMgr            {};
-      DX12PipelineMgr*          mPipelineMgr          {};
-      ID3D12Device*             mDevice               {};
+      DX12CommandAllocatorPool* mCommandAllocatorPool         {};
+      DX12CommandQueue*         mCommandQueue                 {};
+      DX12UploadPageMgr*        mUploadPageManager            {};
+      DX12SwapChainMgr*         mSwapChainMgr                 {};
+      DX12TextureMgr*           mTextureMgr                   {};
+      DX12BufferMgr*            mBufferMgr                    {};
+      DX12PipelineMgr*          mPipelineMgr                  {};
+      ID3D12Device*             mDevice                       {};
+      DX12DescriptorHeap*       mGpuDescriptorHeapCBV_SRV_UAV {};
+      DX12DescriptorHeap*       mGpuDescriptorHeapSampler     {};
     };
     void Init( Params );
 
@@ -49,13 +51,15 @@ namespace Tac::Render
     Vector< DX12Context* >         mAvailableContexts;
 
     // singletons
-    DX12CommandAllocatorPool* mCommandAllocatorPool {};
-    DX12CommandQueue*         mCommandQueue         {};
-    DX12UploadPageMgr*        mUploadPageManager    {};
-    DX12SwapChainMgr*         mSwapChainMgr         {};
-    DX12TextureMgr*           mTextureMgr           {};
-    DX12BufferMgr*            mBufferMgr            {};
-    DX12PipelineMgr*          mPipelineMgr          {};
+    DX12CommandAllocatorPool* mCommandAllocatorPool         {};
+    DX12CommandQueue*         mCommandQueue                 {};
+    DX12UploadPageMgr*        mUploadPageManager            {};
+    DX12SwapChainMgr*         mSwapChainMgr                 {};
+    DX12TextureMgr*           mTextureMgr                   {};
+    DX12BufferMgr*            mBufferMgr                    {};
+    DX12PipelineMgr*          mPipelineMgr                  {};
+    DX12DescriptorHeap*       mGpuDescriptorHeapCBV_SRV_UAV {};
+    DX12DescriptorHeap*       mGpuDescriptorHeapSampler     {};
 
     PCom< ID3D12Device4 >     mDevice;
     //DX12Renderer*             mRenderer{};

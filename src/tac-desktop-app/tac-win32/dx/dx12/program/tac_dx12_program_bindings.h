@@ -22,6 +22,13 @@ namespace Tac::Render
       kBufferSRV,
     };
 
+    bool IsBuffer() const;
+    bool IsTexture() const;
+    bool IsFixedArray() const;
+    bool IsUnboundedArray() const;
+    bool IsArray() const;
+    bool IsSingleElement() const;
+
     Type   mType = Type::kUnknown;
     String mName;
     int    mBindCount = -1; // A value of 0 represents an unbounded array

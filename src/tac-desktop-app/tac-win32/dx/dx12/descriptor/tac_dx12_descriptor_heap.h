@@ -21,11 +21,13 @@ namespace Tac::Render
     void InitSampler( int, ID3D12Device*, Errors& );
 #endif
 
+    ID3D12DescriptorHeap*        GetID3D12DescriptorHeap();
     D3D12_DESCRIPTOR_HEAP_TYPE   GetType() const;
     UINT                         GetDescriptorCount() const;
 
     D3D12_CPU_DESCRIPTOR_HANDLE  IndexCPUDescriptorHandle( int ) const;
     D3D12_GPU_DESCRIPTOR_HANDLE  IndexGPUDescriptorHandle( int ) const;
+    UINT                         GetDescriptorSize() const;
 
     DX12DescriptorHeapAllocation Allocate();
     void                         Free( DX12DescriptorHeapAllocation );

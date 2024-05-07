@@ -36,6 +36,8 @@ namespace Tac::Render
     return { mHeapStartCPU.ptr + i * mDescriptorSize };
   }
 
+  UINT DX12DescriptorHeap::GetDescriptorSize() const { return mDescriptorSize; }
+
   // This function call is used for the following ID3D12GraphicsCommandList:: functions
   // ::ClearUnorderedAccessViewFloat
   // ::ClearUnorderedAccessViewUint
@@ -48,6 +50,8 @@ namespace Tac::Render
 
     return { mHeapStartGPU.ptr + i * mDescriptorSize };
   }
+
+  ID3D12DescriptorHeap* DX12DescriptorHeap::GetID3D12DescriptorHeap() { return mHeap.Get(); }
 
   D3D12_DESCRIPTOR_HEAP_TYPE DX12DescriptorHeap::GetType() const { return mDesc.Type; }
 

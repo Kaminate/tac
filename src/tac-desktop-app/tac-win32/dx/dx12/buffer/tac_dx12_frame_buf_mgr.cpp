@@ -73,7 +73,7 @@ namespace Tac::Render
     
 
     TextureHandle swapChainDepth;
-    if( params.mDepthFmt != kUnknown )
+    if( params.mDepthFmt != TexFmt::kUnknown )
     {
       swapChainDepth = AllocTextureHandle();
 

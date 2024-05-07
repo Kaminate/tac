@@ -129,6 +129,7 @@ namespace Tac::Render
 
     mRootParams.push_back( rootParam );
   }
+
   void DX12RootSigBuilder::AddUnboundedArray( D3D12_DESCRIPTOR_RANGE_TYPE type, Location loc )
   {
     AddArrayInternal( type, UINT_MAX, loc );
@@ -228,15 +229,13 @@ namespace Tac::Render
         .mSpace    { binding.mRegisterSpace },
       };
 
-      const bool isArray{ binding.mBindCount != 1 };
-
-      if( isArray || binding.mType == D3D12ProgramBinding::Type::kSampler )
+      if( binding.IsArray() || binding.mType == D3D12ProgramBinding::Type::kSampler )
       {
         // Create a root descriptor table
         const D3D12_DESCRIPTOR_RANGE_TYPE descriptorRangeType =
           D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( binding.mType );
 
-        if( binding.mBindCount == 0 )
+        if( binding.IsUnboundedArray() )
           AddUnboundedArray( descriptorRangeType, loc );
         else
           AddBoundedArray( descriptorRangeType, binding.mBindCount, loc );

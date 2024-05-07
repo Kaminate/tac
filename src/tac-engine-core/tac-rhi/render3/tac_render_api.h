@@ -4,7 +4,10 @@
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/error/tac_stack_frame.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
+#include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/memory/tac_smart_ptr.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/tac_ints.h"
 
 namespace Tac{ struct Errors; }
 namespace Tac::Filesystem{ struct Path; }
@@ -39,7 +42,7 @@ namespace Tac::Render
   // this is like... inferior to Render::Format in almost every way, except for specifying
   // typeless formats and depth stencil formats, and compressed formats, afaik
   // maybe i can split them into a single class that contains both?
-  enum TexFmt
+  enum class TexFmt
   {
     kUnknown = 0,
     kD24S8,
@@ -175,7 +178,7 @@ namespace Tac::Render
     int    mHeight {};
     int    mDepth  {};
     Format mFormat;
-    TexFmt mFormat2{ kUnknown };
+    TexFmt mFormat2{ TexFmt::kUnknown };
 
     // Note that byte data should be passed as a separate argument,
     // and not as a member of this class
@@ -319,6 +322,14 @@ namespace Tac::Render
     int mVertexCount   {};
   };
 
+  struct IShaderVar
+  {
+    virtual void SetBuffer( BufferHandle ) {};
+    virtual void SetTexture( TextureHandle ) {};
+    virtual void SetBufferAtIndex( int, BufferHandle ) {};
+    virtual void SetTextureAtIndex( int, TextureHandle ) {};
+  };
+
   struct IContext
   {
     struct Scope
@@ -353,8 +364,9 @@ namespace Tac::Render
     virtual void SetVertexBuffer( BufferHandle ) {}
     virtual void UpdateBuffer( BufferHandle, UpdateBufferParams, Errors& ) {}
 
-    virtual void Draw( DrawArgs ) {};
+    virtual void Draw( DrawArgs ) {}
     virtual void Execute( Errors& ) {}
+    virtual void CommitShaderVariables() {}
 
   protected:
     virtual void Retire() = 0;
@@ -395,6 +407,7 @@ namespace Tac::Render
     virtual Info            GetInfo() const { return {}; }
 
     virtual PipelineHandle  CreatePipeline( PipelineParams, Errors& ) {}
+    virtual IShaderVar*     GetShaderVariable( PipelineHandle, StringView ) { return {}; }
     virtual void            DestroyPipeline( PipelineHandle ) {}
 
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& ) {}
@@ -413,6 +426,7 @@ namespace Tac::Render
 
     virtual TextureHandle   CreateTexture( CreateTextureParams, Errors& ) {}
     virtual void            DestroyTexture( TextureHandle ) {}
+
 
     virtual IContext::Scope CreateRenderContext( Errors& );
   };

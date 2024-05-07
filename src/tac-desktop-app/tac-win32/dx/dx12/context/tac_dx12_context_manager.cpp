@@ -31,6 +31,8 @@ namespace Tac::Render
     mTextureMgr = params.mTextureMgr;
     mBufferMgr = params.mBufferMgr;
     mPipelineMgr = params.mPipelineMgr;
+    mGpuDescriptorHeapCBV_SRV_UAV = params.mGpuDescriptorHeapCBV_SRV_UAV;
+    mGpuDescriptorHeapSampler = params.mGpuDescriptorHeapSampler;
     params.mDevice->QueryInterface( mDevice.iid(), mDevice.ppv() );
     TAC_ASSERT( mCommandAllocatorPool &&
                 mCommandQueue &&
@@ -39,6 +41,8 @@ namespace Tac::Render
                 mTextureMgr &&
                 mBufferMgr &&
                 mPipelineMgr &&
+                mGpuDescriptorHeapCBV_SRV_UAV &&
+                mGpuDescriptorHeapSampler &&
                 mDevice );
   }
 
@@ -58,6 +62,9 @@ namespace Tac::Render
       dx12Context->mTextureMgr = mTextureMgr;
       dx12Context->mBufferMgr = mBufferMgr;
       dx12Context->mPipelineMgr = mPipelineMgr;
+      dx12Context->mGpuDescriptorHeapCBV_SRV_UAV = mGpuDescriptorHeapCBV_SRV_UAV;
+      dx12Context->mGpuDescriptorHeapSampler = mGpuDescriptorHeapSampler;
+      dx12Context->mDevice = mDevice.Get();
     }
     else
     {

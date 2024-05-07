@@ -21,6 +21,11 @@ namespace Tac::Render
   struct DX12TextureMgr;
   struct DX12BufferMgr;
   struct DX12PipelineMgr;
+  struct DX12DescriptorHeap;
+}
+
+namespace Tac::Render
+{
 
   // A context has a commandlist, even if the context is recycled, the commandlist stays with it
   // forever.
@@ -54,6 +59,7 @@ namespace Tac::Render
     void MoveFrom( DX12Context&& ) noexcept;
     void UpdateBuffer( BufferHandle, UpdateBufferParams, Errors& ) override;
     void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) override;
+    void CommitShaderVariables() override;
     void Retire() override;
 
     // begin state
@@ -67,6 +73,7 @@ namespace Tac::Render
       RenderTargetDepth  mRenderTargetDepth; 
       BufferHandle       mVertexBuffer;
       BufferHandle       mIndexBuffer;
+      PipelineHandle     mPipeline             {};
       bool               mSynchronous          {};
       bool               mExecuted             {};
       int                mEventCount           {};
@@ -92,6 +99,9 @@ namespace Tac::Render
     DX12TextureMgr*                   mTextureMgr           {};
     DX12BufferMgr*                    mBufferMgr            {};
     DX12PipelineMgr*                  mPipelineMgr          {};
+    DX12DescriptorHeap*               mGpuDescriptorHeapCBV_SRV_UAV{};
+    DX12DescriptorHeap*               mGpuDescriptorHeapSampler{};
+    ID3D12Device*                     mDevice{};
   };
 
 }

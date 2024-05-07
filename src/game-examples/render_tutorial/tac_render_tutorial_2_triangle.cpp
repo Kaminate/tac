@@ -55,7 +55,7 @@ namespace Tac
     Render::PipelineHandle mPipelineBindless;
     Render::PipelineHandle mPipelineInputLayout;
     Render::TexFmt         mColorFormat;
-    bool                   mBindless{};
+    bool                   mBindless{true};
   };
 
   void HelloTriangle::Init( InitParams initParams, Errors& errors )
@@ -326,12 +326,17 @@ namespace Tac
 
     if( mBindless )
     {
+      Render::IShaderVar* shaderVar {
+        renderDevice->GetShaderVariable( mPipelineBindless, "BufferTable" ) };
+      shaderVar->SetBufferAtIndex( 0, mVtxBuf );
+      renderContext->CommitShaderVariables();
+
 #if 0
-      const Array descHeaps = { ( ID3D12DescriptorHeap* )m_srvHeap };
+      const Array descHeaps  { ( ID3D12DescriptorHeap* )m_srvHeap };
       m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
       // ...
-      const UINT RootParameterIndex = 0;
+      const UINT RootParameterIndex { 0 };
       static_assert( RootParameterIndex == myParamIndex );
       m_commandList->SetGraphicsRootDescriptorTable( RootParameterIndex, m_srvGpuHeapStart );
 #endif

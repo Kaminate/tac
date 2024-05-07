@@ -19,10 +19,11 @@ More information at: https://docs.microsoft.com/en-us/visualstudio/debugger/just
 <StepFilter xmlns="http://schemas.microsoft.com/vstudio/debugger/natstepfilter/2010">
 
     <!-- Disable stepping into trivial functions -->
-    <!-- OKAY BUT LIKE WE DO WANT TO STEP INTO THE DESCRUTOR OF ICONTEXT::SCOPE-->
-    <!--Function>
-      <Name>(Tac::Render::IContext::Scope::.*)</Name>
+    <!-- OKAY BUT LIKE WE DO WANT TO STEP INTO THE DESCRUTOR OF ICONTEXT::SCOPE -->
+
+    <Function>
+      <Name>Tac::Render::IContext::Scope::operator.*</Name>
       <Action>NoStepInto</Action>
-    </Function-->
+    </Function>
 
 </StepFilter>
