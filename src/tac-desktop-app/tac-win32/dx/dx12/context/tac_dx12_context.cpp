@@ -58,7 +58,6 @@ namespace Tac::Render
           mGpuDescriptorHeapCBV_SRV_UAV->IndexGPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
 
 
-      commandList->SetGraphicsRootDescriptorTable( ( UINT )i, baseDescriptor );
 
       for( int iHandle : var.mHandleIndexes )
       {
@@ -110,6 +109,7 @@ namespace Tac::Render
         }
         else if( var.mBinding->mType == D3D12ProgramBinding::kConstantBuffer )
         {
+          TAC_ASSERT_UNIMPLEMENTED;
         }
         else
         {
@@ -119,11 +119,18 @@ namespace Tac::Render
         const UINT NumDescriptors{1};
         const D3D12_CPU_DESCRIPTOR_HANDLE dst{
             mGpuDescriptorHeapCBV_SRV_UAV->IndexCPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
+
+        TAC_ASSERT( src.ptr );
+        TAC_ASSERT( dst.ptr );
+
         const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ mGpuDescriptorHeapCBV_SRV_UAV->GetType() };
         mDevice->CopyDescriptorsSimple( NumDescriptors, dst, src, heapType );
 
         gpuVisibleDescriptorIndex++;
       }
+
+      // set descriptor table after having copied all descriptors within it
+      commandList->SetGraphicsRootDescriptorTable( ( UINT )i, baseDescriptor );
     }
   }
 
