@@ -7,6 +7,7 @@
 #include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 #include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
+#include "tac-win32/dx/dx12/tac_dx12_transition_helper.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
@@ -21,6 +22,7 @@
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
+
 
   void DX12Context::CommitShaderVariables()
   {
@@ -43,7 +45,6 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
-
     const UINT descriptorSize{ mGpuDescriptorHeapCBV_SRV_UAV->GetDescriptorSize() };
 
     UINT gpuVisibleDescriptorIndex{};
@@ -57,11 +58,9 @@ namespace Tac::Render
       const D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor{
           mGpuDescriptorHeapCBV_SRV_UAV->IndexGPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
 
-
-
       for( int iHandle : var.mHandleIndexes )
       {
-        D3D12_CPU_DESCRIPTOR_HANDLE src{};
+        DX12DescriptorHeapAllocation srcAllocation;
 
         if( var.mBinding->IsTexture() )
         {
@@ -89,17 +88,23 @@ namespace Tac::Render
           if( !buffer )
             continue;
 
+          TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+
           if( var.mBinding->mType == D3D12ProgramBinding::kBufferSRV )
           {
             TAC_ASSERT( buffer->mSRV.HasValue() );
-            DX12DescriptorHeapAllocation srv{ buffer->mSRV.GetValue() };
-            src = srv.GetCPUHandle();
+            srcAllocation = buffer->mSRV.GetValue();
           }
           else if( var.mBinding->mType == D3D12ProgramBinding::kBufferUAV )
           {
             TAC_ASSERT( buffer->mUAV.HasValue() );
-            DX12DescriptorHeapAllocation uav{ buffer->mUAV.GetValue() };
-            src = uav.GetCPUHandle();
+            TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
+            srcAllocation = buffer->mUAV.GetValue();
+          }
+          else if( var.mBinding->mType == D3D12ProgramBinding::kConstantBuffer )
+          {
+            TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
+            TAC_ASSERT_UNIMPLEMENTED;
           }
           else
           {
@@ -107,18 +112,22 @@ namespace Tac::Render
           }
 
         }
-        else if( var.mBinding->mType == D3D12ProgramBinding::kConstantBuffer )
-        {
-          TAC_ASSERT_UNIMPLEMENTED;
-        }
         else
         {
           TAC_ASSERT_INVALID_CODE_PATH;
         }
 
-        const UINT NumDescriptors{1};
+        TAC_ASSERT( srcAllocation.Valid() );
+
+        DX12DescriptorHeap* srcHeap { srcAllocation.mOwner };
+        DX12DescriptorHeap* dstHeap { mGpuDescriptorHeapCBV_SRV_UAV };
+
+        TAC_ASSERT( srcHeap && dstHeap && ( srcHeap->GetType() == dstHeap->GetType() ) );
+
+        const UINT NumDescriptors{ 1 };
+        const D3D12_CPU_DESCRIPTOR_HANDLE src{ srcAllocation.GetCPUHandle() };
         const D3D12_CPU_DESCRIPTOR_HANDLE dst{
-            mGpuDescriptorHeapCBV_SRV_UAV->IndexCPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
+            dstHeap->IndexCPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
 
         TAC_ASSERT( src.ptr );
         TAC_ASSERT( dst.ptr );
@@ -129,7 +138,6 @@ namespace Tac::Render
         gpuVisibleDescriptorIndex++;
       }
 
-      // set descriptor table after having copied all descriptors within it
       commandList->SetGraphicsRootDescriptorTable( ( UINT )i, baseDescriptor );
     }
   }
@@ -158,8 +166,8 @@ namespace Tac::Render
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( commandList->Close() );
 
-    const FenceSignal fenceSignal = TAC_CALL(
-      mCommandQueue->ExecuteCommandList( commandList, errors ) );
+    TAC_CALL( const FenceSignal fenceSignal{
+      mCommandQueue->ExecuteCommandList( commandList, errors ) }  );
 
     if( mState.mSynchronous )
     {
@@ -217,11 +225,11 @@ namespace Tac::Render
     mState = {};
   }
 
-  void DX12Context::SetName( StringView name )
-  {
-    DX12SetName( mCommandAllocator, name );
-    DX12SetName( mCommandList, name );
-  }
+  //void DX12Context::SetName( StringView name )
+  //{
+  //  DX12SetName( mCommandAllocator, name );
+  //  DX12SetName( mCommandList, name );
+  //}
 
   void DX12Context::SetSynchronous()
   {
@@ -283,37 +291,24 @@ namespace Tac::Render
   void DX12Context::SetRenderTargets( Targets targets )
   {
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
-    FixedVector< D3D12_RESOURCE_BARRIER, 10 > barriers;
+
+    DX12TransitionHelper transitionHelper;
 
     for( TextureHandle colorTarget : targets.mColors )
     {
-      if( DX12Texture * colorTexture{ mTextureMgr->FindTexture( colorTarget ) } )
+      DX12Texture* colorTexture{ mTextureMgr->FindTexture( colorTarget ) };
+      if( ! colorTexture )
+        continue;
+
+      const DX12TransitionHelper::Params transitionParams
       {
-        const D3D12_RESOURCE_STATES StateBefore { colorTexture->mState };
-        const D3D12_RESOURCE_STATES StateAfter { D3D12_RESOURCE_STATE_RENDER_TARGET };
-        if( StateBefore != StateAfter )
-        {
-          colorTexture->mState = StateAfter;
+        .mResource    { colorTexture->mResource.Get() },
+        .mStateBefore { &colorTexture->mState },
+        .mStateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
+      };
+      transitionHelper.Append( transitionParams );
 
-          const D3D12_RESOURCE_TRANSITION_BARRIER Transition
-          {
-            .pResource   { colorTexture->mResource.Get() },
-            .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-            .StateBefore { StateBefore },
-            .StateAfter  { StateAfter },
-          };
-
-          const D3D12_RESOURCE_BARRIER barrier
-          {
-            .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-            .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
-            .Transition { Transition },
-          };
-          barriers.push_back( barrier );
-        }
-
-        rtDescs.push_back( colorTexture->mRTV->GetCPUHandle() );
-      }
+      rtDescs.push_back( colorTexture->mRTV->GetCPUHandle() );
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE DSV{};
@@ -323,13 +318,15 @@ namespace Tac::Render
       DSV = depthTexture->mRTV->GetCPUHandle();
       pDSV = &DSV;
       mState.mRenderTargetDepth = DSV;
+
+      // [ ] Q: Should the depth texture resource be transitioned
+      //        to a specific D3D12_RESOURCE_STATE?
     }
 
     mState.mRenderTargetColors = rtDescs;
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    if( !barriers.empty() )
-      commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
+    transitionHelper.ResourceBarrier( commandList );
     commandList->OMSetRenderTargets( ( UINT )rtDescs.size(), rtDescs.data(), false, pDSV );
   }
 
@@ -397,31 +394,16 @@ namespace Tac::Render
     const FLOAT Depth { 1.0f };
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    const D3D12_RESOURCE_STATES StateBefore { texture->mState };
-    const D3D12_RESOURCE_STATES StateAfter { D3D12_RESOURCE_STATE_DEPTH_WRITE };
 
-    if( StateBefore != StateAfter )
+    DX12TransitionHelper transitionHelper;
+    const DX12TransitionHelper::Params transitionParams
     {
-      texture->mState = StateAfter;
-
-      const D3D12_RESOURCE_TRANSITION_BARRIER Transition
-      {
-        .pResource   { texture->mResource.Get() },
-        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-        .StateBefore { StateBefore },
-        .StateAfter  { StateAfter },
-      };
-
-      const D3D12_RESOURCE_BARRIER barrier
-      {
-        .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-        .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
-        .Transition { Transition },
-      };
-
-      commandList->ResourceBarrier( 1, &barrier );
-    }
-
+      .mResource    { texture->mResource.Get() },
+      .mStateBefore { & texture->mState  },
+      .mStateAfter  { D3D12_RESOURCE_STATE_DEPTH_WRITE },
+    };
+    transitionHelper.Append( transitionParams );
+    transitionHelper.ResourceBarrier( commandList );
     commandList->ClearDepthStencilView( DSV, ClearFlags,Depth, 0, 0, nullptr );
   }
 

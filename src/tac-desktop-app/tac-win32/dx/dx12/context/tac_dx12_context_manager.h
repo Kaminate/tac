@@ -48,20 +48,21 @@ namespace Tac::Render
     PCom< ID3D12GraphicsCommandList > CreateCommandList( Errors& );
 
   private:
-    Vector< DX12Context* >         mAvailableContexts;
+    Vector< DX12Context* >     mAvailableContexts;
+    int                        mCommandListCount             {};
 
     // singletons
-    DX12CommandAllocatorPool* mCommandAllocatorPool         {};
-    DX12CommandQueue*         mCommandQueue                 {};
-    DX12UploadPageMgr*        mUploadPageManager            {};
-    DX12SwapChainMgr*         mSwapChainMgr                 {};
-    DX12TextureMgr*           mTextureMgr                   {};
-    DX12BufferMgr*            mBufferMgr                    {};
-    DX12PipelineMgr*          mPipelineMgr                  {};
-    DX12DescriptorHeap*       mGpuDescriptorHeapCBV_SRV_UAV {};
-    DX12DescriptorHeap*       mGpuDescriptorHeapSampler     {};
+    DX12CommandAllocatorPool*  mCommandAllocatorPool         {};
+    DX12CommandQueue*          mCommandQueue                 {};
+    DX12UploadPageMgr*         mUploadPageManager            {};
+    DX12SwapChainMgr*          mSwapChainMgr                 {};
+    DX12TextureMgr*            mTextureMgr                   {};
+    DX12BufferMgr*             mBufferMgr                    {};
+    DX12PipelineMgr*           mPipelineMgr                  {};
+    DX12DescriptorHeap*        mGpuDescriptorHeapCBV_SRV_UAV {};
+    DX12DescriptorHeap*        mGpuDescriptorHeapSampler     {};
 
-    PCom< ID3D12Device4 >     mDevice;
+    PCom< ID3D12Device4 >      mDevice;
     //DX12Renderer*             mRenderer{};
   };
 }

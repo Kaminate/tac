@@ -550,7 +550,7 @@ namespace Tac
         m_vertexBuffer.iid(),
         m_vertexBuffer.ppv() ) );
 
-      DX12SetName( m_vertexBuffer, "vtxbuf" );
+      DX12SetName( m_vertexBuffer.Get(), "vtxbuf" );
 
     }
 
@@ -1078,9 +1078,9 @@ namespace Tac
     DX12ExampleDevice deviceInitializer;
     TAC_CALL( deviceInitializer.Init( debugLayer, errors ) );
 
-    m_device0 = deviceInitializer.m_device;
-    m_device = m_device0.QueryInterface<ID3D12Device5>();
-    m_debugDevice0 = deviceInitializer.m_debugDevice;
+    m_device0 = deviceInitializer.mDevice;
+    m_device = m_device0.QueryInterface< ID3D12Device5 >();
+    m_debugDevice0 = deviceInitializer.mDebugDevice;
     m_debugDevice = m_debugDevice0.QueryInterface<ID3D12DebugDevice2 >();
 
     DX12ExampleInfoQueue infoQueue;

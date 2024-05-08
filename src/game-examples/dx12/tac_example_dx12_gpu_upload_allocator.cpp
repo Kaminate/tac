@@ -178,7 +178,7 @@ namespace Tac::Render
 
     const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
 
-    PCom<ID3D12Resource> buffer;
+    PCom< ID3D12Resource > buffer;
     TAC_DX12_CALL_RET( {}, m_device->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
@@ -188,7 +188,8 @@ namespace Tac::Render
       buffer.iid(),
       buffer.ppv() ) );
 
-    DX12SetName( buffer, "upload page" );
+    ID3D12Resource* pBuffer{ buffer.Get() };
+    DX12SetName( pBuffer, "upload page" );
 
     void* cpuAddr;
 

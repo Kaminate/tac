@@ -237,6 +237,8 @@ namespace Tac::Render
     DepthStencil    = 0b00000100, // DSV
     UnorderedAccess = 0b00001000, // UAV (rwbuffer, rwstructuredbuffer, rwtexture, append/consume)
     ConstantBuffer  = 0b00010000, // CBV
+    VertexBuffer    = 0b00100000, // IA vtx buf
+    IndexBuffer     = 0b01000000, // IA idx buf
   };
 
   Binding operator | ( Binding, Binding );
@@ -299,6 +301,8 @@ namespace Tac::Render
     VertexDeclarations       mVtxDecls;
     // root sig? <-- parse using dx reflection
     //PrimTopology     mPrimTopo;
+    StringView               mName;
+    StackFrame               mStackFrame;
   };
 
   // i think like a view could be a higher order construct, like in Tac::Space

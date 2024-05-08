@@ -19,7 +19,7 @@ namespace Tac::Render
     const Element element
     {
       .mCmdAllocator { allocator },
-      .mSignalValue { signalVal },
+      .mSignalValue  { signalVal },
     };
 
     mElements.Push( element );
@@ -36,6 +36,8 @@ namespace Tac::Render
                        D3D12_COMMAND_LIST_TYPE_DIRECT,
                        allocator.iid(),
                        allocator.ppv() ) );
+
+    DX12SetName( allocator.Get(), "Cmd allocator " + Tac::ToString( mAllocatorCount++ ) );
 
     return allocator;
   }

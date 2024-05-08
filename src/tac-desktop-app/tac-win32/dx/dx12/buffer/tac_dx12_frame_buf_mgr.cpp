@@ -59,10 +59,11 @@ namespace Tac::Render
         iSwapChainBuf,
         renderTarget.iid(),
         renderTarget.ppv() ) );
-      DX12SetName( renderTarget,
-                   "Render Target "
+      ID3D12Resource* resource{ renderTarget.Get() };
+      DX12SetName( resource,
+                   "RT "
                    + Tac::ToString( iHandle )
-                   + ", "
+                   + " buf "
                    + Tac::ToString( iSwapChainBuf ) );
 
       const TextureHandle textureHandle { AllocTextureHandle() };

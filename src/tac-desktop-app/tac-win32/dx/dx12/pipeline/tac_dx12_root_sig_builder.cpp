@@ -104,20 +104,31 @@ namespace Tac::Render
                                              Location loc )
   {
     D3D12_DESCRIPTOR_RANGE1* range { AddRange() };
+
+    // ????????????
+    // read https://learn.microsoft.com/en-us/windows/win32/direct3d12/root-signature-version-1-1
+    // maybe
+    const D3D12_DESCRIPTOR_RANGE_FLAGS Flags
+    {
+      D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE,
+      //D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE,
+      //D3D12_DESCRIPTOR_RANGE_FLAG_NONE,
+    };
+
     *range = D3D12_DESCRIPTOR_RANGE1
     {
       .RangeType                         { type },
       .NumDescriptors                    { NumDescriptors },
       .BaseShaderRegister                { ( UINT )loc.mRegister },
       .RegisterSpace                     { ( UINT )loc.mSpace },
-      .Flags                             { D3D12_DESCRIPTOR_RANGE_FLAG_NONE },
+      .Flags                             { Flags },
       .OffsetInDescriptorsFromTableStart { 0 },
     };
 
     const D3D12_ROOT_DESCRIPTOR_TABLE1 DescriptorTable
     {
       .NumDescriptorRanges { 1 },
-      .pDescriptorRanges { range },
+      .pDescriptorRanges   { nullptr }, // fill this in later
     };
 
     const D3D12_ROOT_PARAMETER1 rootParam

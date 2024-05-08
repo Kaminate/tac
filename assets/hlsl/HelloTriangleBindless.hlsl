@@ -1,3 +1,4 @@
+#define JUST_FLOATS 0
 struct ClipSpacePosition3 { float3 mValue; };
 struct ClipSpacePosition4 { float4 mValue; };
 struct LinearColor3 { float3 mValue; };
@@ -19,8 +20,17 @@ LinearColor4 LinearColor3to4( const LinearColor3 col )
 
 struct Vertex
 {
+#if JUST_FLOATS
+  float mPositionX;
+  float mPositionY;
+  float mPositionZ;
+  float mColorX;
+  float mColorY;
+  float mColorZ;
+#else
   ClipSpacePosition3 mPosition;
   LinearColor3       mColor;
+#endif
 };
 
 struct VSOutput
@@ -39,8 +49,18 @@ VSOutput VSMain( uint iVtx : SV_VertexID )
   const Vertex input = BufferTable[ 0 ].Load < Vertex >( byteOffset );
 
   VSOutput result;
+#if JUST_FLOATS
+  result.mPosition.mValue = float4( input.mPositionX,
+                                    input.mPositionY,
+                                    input.mPositionZ,
+                                    1.0 );
+  result.mColor.mValue = float3( input.mColorX,
+                                 input.mColorY,
+                                 input.mColorZ );
+#else
   result.mPosition = ClipSpacePosition3to4( input.mPosition );
   result.mColor = input.mColor;
+#endif
   return result;
 }
 

@@ -71,11 +71,13 @@ namespace Tac::Render
                        commandList.ppv() ) );
     TAC_ASSERT( commandList );
 
+    ID3D12CommandList* pCommandList{ commandList.Get() };
+    DX12SetName( pCommandList, "My Command List" );
+
     PCom< ID3D12GraphicsCommandList > graphicsList =
-      commandList.QueryInterface<ID3D12GraphicsCommandList>();
+      commandList.QueryInterface< ID3D12GraphicsCommandList >();
 
     TAC_ASSERT( graphicsList );
-    DX12SetName( graphicsList, "My Command List" );
     return graphicsList;
   }
 

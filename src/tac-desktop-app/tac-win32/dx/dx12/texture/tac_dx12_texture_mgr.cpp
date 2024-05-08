@@ -55,7 +55,7 @@ namespace Tac::Render
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_TEXTURE2D },
       .Width            { ( UINT64 )image.mWidth  },
-      .Height           { ( UINT64 )image.mWidth },
+      .Height           { ( UINT64 )image.mHeight },
       .DepthOrArraySize { 1 },
       .MipLevels        { 1 },
       .Format           { dxgiFmt },
@@ -118,8 +118,6 @@ namespace Tac::Render
     const bool hasImageBytes { params.mImageBytes || *params.mImageBytesCubemap };
     const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
 
-    params.mBinding & Binding::DepthStencil;
-
     D3D12_RESOURCE_STATES defaultHeapResourceStates{ D3D12_RESOURCE_STATE_COMMON };
     if( hasImageBytes )
       defaultHeapResourceStates = D3D12_RESOURCE_STATE_COPY_DEST;
@@ -139,6 +137,17 @@ namespace Tac::Render
           clearValue.mClearValuePointer,
           defaultHeapResource.iid(),
           defaultHeapResource.ppv() );
+
+        ID3D12Resource* pResource{ defaultHeapResource.Get() };
+
+        const DX12Name name
+        {
+          .mName          { params.mOptionalName },
+          .mStackFrame    { params.mStackFrame },
+          .mResourceType  { "Texture" },
+          .mResourceIndex { h.GetIndex() },
+        };
+        DX12SetName( pResource, name );
     }
 
 #if 0

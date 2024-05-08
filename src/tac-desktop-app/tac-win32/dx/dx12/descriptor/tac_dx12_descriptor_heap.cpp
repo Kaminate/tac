@@ -9,6 +9,7 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
   void DX12DescriptorHeap::Init( const D3D12_DESCRIPTOR_HEAP_DESC& desc,
                                  ID3D12Device* device,
+                                 StringView name,
                                  Errors& errors )
   {
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptors
@@ -21,9 +22,15 @@ namespace Tac::Render
       &desc,
       mHeap.iid(),
       mHeap.ppv() ) );
-    mHeapStartCPU = mHeap->GetCPUDescriptorHandleForHeapStart();
+
+    ID3D12DescriptorHeap* pHeap{ mHeap.Get() };
+    DX12SetName( pHeap, name );
+
+    mHeapStartCPU = pHeap->GetCPUDescriptorHandleForHeapStart();
+
     if( desc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE )
-      mHeapStartGPU = mHeap->GetGPUDescriptorHandleForHeapStart();
+      mHeapStartGPU = pHeap->GetGPUDescriptorHandleForHeapStart();
+
     mDescriptorSize = device->GetDescriptorHandleIncrementSize( desc.Type );
     mDesc = desc;
   }
@@ -71,10 +78,11 @@ namespace Tac::Render
 
   DX12DescriptorHeapAllocation DX12DescriptorHeap::Allocate()
   {
+    const int index{ AllocateIndex() };
     return DX12DescriptorHeapAllocation
     {
       .mOwner { this },
-      .mIndex { AllocateIndex() },
+      .mIndex { index },
     };
   }
 

@@ -15,11 +15,11 @@ namespace Tac::Render
   struct DX12ExampleDebugLayer
   {
     void Init( Errors& );
-    bool IsEnabled() const { return m_debugLayerEnabled; }
+    bool IsEnabled() const;
 
   private:
-    bool m_debugLayerEnabled { false };
-    PCom< ID3D12Debug > m_debug;
+    bool                mDebugLayerEnabled { false };
+    PCom< ID3D12Debug > mDebug;
   };
 
   struct DX12ExampleDevice
@@ -27,14 +27,14 @@ namespace Tac::Render
     // Responsible for creating the device
     void Init( const DX12ExampleDebugLayer&, Errors& );
 
-    PCom< ID3D12Device >              m_device;
-    PCom< ID3D12DebugDevice >         m_debugDevice;
+    PCom< ID3D12Device >              mDevice;
+    PCom< ID3D12DebugDevice >         mDebugDevice;
   };
 
   struct DX12ExampleInfoQueue
   {
     void Init( const DX12ExampleDebugLayer&, ID3D12Device*, Errors& );
-    PCom< ID3D12InfoQueue >            m_infoQueue;
+    PCom< ID3D12InfoQueue >            mInfoQueue;
   };
 
   bool DX12SupportsRayTracing( ID3D12Device*, Errors& );

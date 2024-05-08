@@ -12,20 +12,18 @@ namespace Tac::Render
 
   const char* DX12_HRESULT_ToString( HRESULT );
 
+  struct DX12Name
+  {
+    StringView mName          {};
+    StackFrame mStackFrame    {};
+    StringView mResourceType  {};
+    int        mResourceIndex { -1 };
+  };
+
   void        DX12SetName( ID3D12Object*, StringView );
-  void        DX12SetName( ID3D12Object*, StackFrame );
+  void        DX12SetName( ID3D12Object*, DX12Name );
+  template< typename T > void DX12SetName( const PCom<T>& t, StringView sv ) { DX12SetName( t.Get(), sv ); }
 
-  template< typename T >
-  void DX12SetName( const PCom<T>& t, StringView sv )
-  {
-    DX12SetName( t.Get(), sv );
-  }
-
-  template< typename T >
-  void DX12SetName( const PCom<T>& t, StackFrame sf )
-  {
-    DX12SetName( t.Get(), sf );
-  }
 
 } // namespace Tac::Render
 

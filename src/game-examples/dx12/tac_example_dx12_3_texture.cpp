@@ -83,7 +83,7 @@ namespace Tac
     dx12debug.QueryInterface( m_debug );
 
     // EnableDebugLayer must be called before the device is created
-    TAC_ASSERT( !m_device );
+    TAC_ASSERT( !mDevice );
     m_debug->EnableDebugLayer();
 
     // ( this should already be enabled by default )
@@ -121,7 +121,7 @@ namespace Tac
 
     TAC_ASSERT( m_debugLayerEnabled );
 
-    m_device.QueryInterface( m_infoQueue );
+    mDevice.QueryInterface( m_infoQueue );
     TAC_ASSERT( m_infoQueue );
 
     // Make the application debug break when bad things happen
@@ -155,12 +155,13 @@ namespace Tac
                    D3D_FEATURE_LEVEL_12_1,
                    device.iid(),
                    device.ppv() ) );
-    m_device = device.QueryInterface<ID3D12Device5>();
-    DX12SetName( m_device, "Device" );
+    mDevice = device.QueryInterface<ID3D12Device5>();
+    ID3D12Device* pDevice{ device.Get() };
+    DX12SetName( pDevice, "Device" );
 
     if constexpr( IsDebugMode )
     {
-      m_device.QueryInterface( m_debugDevice );
+      mDevice.QueryInterface( m_debugDevice );
       TAC_ASSERT( m_debugDevice );
     }
 
@@ -171,7 +172,7 @@ namespace Tac
   {
     for( int i { 0 }; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
       m_descriptorSizes[ i ]
-      = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
+      = mDevice->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
 
   void DX12AppHelloTexture::CreateCommandQueue( Errors& errors )
@@ -190,7 +191,7 @@ namespace Tac
       .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
     };
 
-    TAC_DX12_CALL( m_device->CreateCommandQueue(
+    TAC_DX12_CALL( mDevice->CreateCommandQueue(
                    &queueDesc,
                    m_commandQueue.iid(),
                    m_commandQueue.ppv() ) );
@@ -210,7 +211,7 @@ namespace Tac
       .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
       .NumDescriptors = bufferCount,
     };
-    TAC_DX12_CALL( m_device->CreateDescriptorHeap(
+    TAC_DX12_CALL( mDevice->CreateDescriptorHeap(
                    &desc,
                    m_rtvHeap.iid(),
                    m_rtvHeap.ppv() ) );
@@ -226,7 +227,7 @@ namespace Tac
       .NumDescriptors = ( UINT )1,
       .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
     };
-    TAC_DX12_CALL( m_device->CreateDescriptorHeap(
+    TAC_DX12_CALL( mDevice->CreateDescriptorHeap(
                    &desc,
                    m_samplerHeap.iid(),
                    m_samplerHeap.ppv() ) );
@@ -243,7 +244,7 @@ namespace Tac
       .NumDescriptors = ( UINT )SRVIndexes::Count,
       .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
     };
-    TAC_DX12_CALL( m_device->CreateDescriptorHeap(
+    TAC_DX12_CALL( mDevice->CreateDescriptorHeap(
                    &desc,
                    m_srvHeap.iid(),
                    m_srvHeap.ppv() ) );
@@ -277,7 +278,7 @@ namespace Tac
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{
       GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer ) };
     
-    m_device->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
+    mDevice->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
                                         &Desc,
                                         DestDescriptor );
   }
@@ -295,7 +296,7 @@ namespace Tac
       .MaxLOD { D3D12_FLOAT32_MAX },
     };
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
-    m_device->CreateSampler( &Desc, DestDescriptor );
+    mDevice->CreateSampler( &Desc, DestDescriptor );
   }
 
 
@@ -338,7 +339,7 @@ namespace Tac
 
     const D3D12_HEAP_PROPERTIES defaultHeapProps { .Type = D3D12_HEAP_TYPE_DEFAULT, };
 
-    TAC_CALL( m_device->CreateCommittedResource(
+    TAC_CALL( mDevice->CreateCommittedResource(
       &defaultHeapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
@@ -350,7 +351,7 @@ namespace Tac
     m_textureResourceStates = D3D12_RESOURCE_STATE_COPY_DEST;
 
     UINT64 totalBytes;
-    m_device->GetCopyableFootprints( &resourceDesc,
+    mDevice->GetCopyableFootprints( &resourceDesc,
                                      0,
                                      1,
                                      0,
@@ -373,7 +374,7 @@ namespace Tac
     };
 
     // Create the GPU upload buffer.
-    TAC_CALL( m_device->CreateCommittedResource(
+    TAC_CALL( mDevice->CreateCommittedResource(
       &uploadHeapProps,
       D3D12_HEAP_FLAG_NONE,
       &uploadBufferResourceDesc,
@@ -400,7 +401,7 @@ namespace Tac
     Vector< UINT64 > rowByteCounts( nSubRes );
     Vector< UINT > rowCounts( nSubRes );
     UINT64 requiredByteCount;
-    m_device->GetCopyableFootprints( &m_textureDesc,
+    mDevice->GetCopyableFootprints( &m_textureDesc,
                                      0, // first subresource
                                      nSubRes,
                                      0, // base offset
@@ -497,7 +498,7 @@ namespace Tac
 
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{
       GetSRVCpuDescHandle( SRVIndexes::TriangleTexture ) };
-    m_device->CreateShaderResourceView((ID3D12Resource*)m_texture.Get(),
+    mDevice->CreateShaderResourceView((ID3D12Resource*)m_texture.Get(),
                                         &srvDesc,
                                         DestDescriptor);
     
@@ -541,12 +542,12 @@ namespace Tac
   void DX12AppHelloTexture::CreateCommandAllocator( Errors& errors )
   {
     // a command allocator manages storage for cmd lists and bundles
-    TAC_ASSERT( m_device );
-    TAC_DX12_CALL( m_device->CreateCommandAllocator(
+    TAC_ASSERT( mDevice );
+    TAC_DX12_CALL( mDevice->CreateCommandAllocator(
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    m_commandAllocator.iid(),
                    m_commandAllocator.ppv()  ) );
-    DX12SetName( m_commandAllocator, "My Command Allocator");
+    DX12SetName( m_commandAllocator.Get(), "My Command Allocator");
   }
 
   void DX12AppHelloTexture::CreateCommandList( Errors& errors )
@@ -556,7 +557,7 @@ namespace Tac
     // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
     //       CreateCommandList, which creates in a open state.
     PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL( m_device->CreateCommandList1(
+    TAC_DX12_CALL( mDevice->CreateCommandList1(
                    0,
                    D3D12_COMMAND_LIST_TYPE_DIRECT,
                    D3D12_COMMAND_LIST_FLAG_NONE,
@@ -565,7 +566,7 @@ namespace Tac
     TAC_ASSERT( commandList );
     commandList.QueryInterface( m_commandList );
     TAC_ASSERT( m_commandList );
-    DX12SetName( m_commandList, "My Command List" );
+    DX12SetName( m_commandList.Get(), "My Command List" );
   }
 
   void DX12AppHelloTexture::CreateBuffer( Errors& errors )
@@ -630,7 +631,7 @@ namespace Tac
     //   An OR'd combination of other read-state bits.
     //   The required starting state for an upload heap
     const D3D12_RESOURCE_STATES uploadHeapResourceStates { D3D12_RESOURCE_STATE_GENERIC_READ };
-    TAC_CALL( m_device->CreateCommittedResource(
+    TAC_CALL( mDevice->CreateCommittedResource(
               &uploadHeapProps,
               D3D12_HEAP_FLAG_NONE,
               &resourceDesc,
@@ -647,7 +648,7 @@ namespace Tac
     // Creates both a resource and an implicit heap,
     // such that the heap is big enough to contain the entire resource,
     // and the resource is mapped to the heap.
-    TAC_CALL( m_device->CreateCommittedResource(
+    TAC_CALL( mDevice->CreateCommittedResource(
       &defaultHeapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
@@ -719,7 +720,7 @@ namespace Tac
     const UINT64 initialVal { 0 };
 
     PCom< ID3D12Fence > fence;
-    TAC_DX12_CALL( m_device->CreateFence(
+    TAC_DX12_CALL( mDevice->CreateFence(
                    initialVal,
                    D3D12_FENCE_FLAG_NONE,
                    fence.iid(),
@@ -737,7 +738,7 @@ namespace Tac
 
   void DX12AppHelloTexture::CreateRootSignature( Errors& errors )
   {
-    DX12ExampleRootSignatureBuilder builder( ( ID3D12Device* )m_device );
+    DX12ExampleRootSignatureBuilder builder( ( ID3D12Device* )mDevice );
 
     // register(s0)  samplers
     builder.AddRootDescriptorTable( D3D12_SHADER_VISIBILITY_PIXEL,
@@ -776,7 +777,7 @@ namespace Tac
     const DX12ExampleProgramCompiler::Params params
     {
       .mOutputDir { sShellPrefPath },
-      .mDevice    { ( ID3D12Device* )m_device },
+      .mDevice    { ( ID3D12Device* )mDevice },
     };
 
     TAC_CALL( DX12ExampleProgramCompiler compiler( params, errors ) );
@@ -842,7 +843,7 @@ namespace Tac
       .RTVFormats            { RTVFormat },
       .SampleDesc            {.Count { 1 } },
     };
-    TAC_CALL( m_device->CreateGraphicsPipelineState(
+    TAC_CALL( mDevice->CreateGraphicsPipelineState(
               &psoDesc,
               mPipelineState.iid(),
               mPipelineState.ppv() ) );
@@ -944,7 +945,7 @@ namespace Tac
     m_renderTargetInitialized = true;
 
     TAC_ASSERT( m_swapChain );
-    TAC_ASSERT( m_device );
+    TAC_ASSERT( mDevice );
 
     // Create a RTV for each frame.
     for( UINT i{}; i < bufferCount; i++ )
@@ -952,9 +953,9 @@ namespace Tac
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{ GetRTVCpuDescHandle( i ) };
       PCom< ID3D12Resource >& renderTarget { m_renderTargets[ i ] };
       TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
-      m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
+      mDevice->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
-      DX12SetName( renderTarget, "Render Target " + ToString( i ) );
+      DX12SetName( renderTarget.Get(), "Render Target " + ToString( i ) );
 
       m_renderTargetDescs[i] = renderTarget->GetDesc();
 

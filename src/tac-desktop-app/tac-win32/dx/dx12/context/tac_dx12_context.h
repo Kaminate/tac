@@ -40,7 +40,7 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* GetCommandList();
     ID3D12CommandAllocator*    GetCommandAllocator();
 
-    void SetName( StringView );
+    //void SetName( StringView );
     void Reset( Errors& );
     void Execute( Errors& ) override;
     void SetSynchronous() override;

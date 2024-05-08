@@ -5,6 +5,7 @@
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/context/tac_dx12_context.h"
 #include "tac-win32/dx/dx12/context/tac_dx12_context_manager.h"
+#include "tac-win32/dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
 
 namespace Tac::Render
@@ -50,12 +51,20 @@ namespace Tac::Render
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
 
       TAC_ASSERT( params.mGpuBufferMode != GpuBufferMode::kUndefined );
-      const D3D12_BUFFER_SRV_FLAGS Flags{ params.mGpuBufferMode == GpuBufferMode::kByteAddress
+
+      const D3D12_BUFFER_SRV_FLAGS Flags{
+        params.mGpuBufferMode == GpuBufferMode::kByteAddress
         ? D3D12_BUFFER_SRV_FLAG_RAW
         : D3D12_BUFFER_SRV_FLAG_NONE };
 
-      const UINT NumElements{ ( UINT )params.mByteCount / ( UINT )params.mStride };
-      const UINT StructureByteStride{ params.mGpuBufferMode == GpuBufferMode::kStructured
+      const UINT NumElements{
+        params.mGpuBufferMode == GpuBufferMode::kByteAddress
+        ? ( UINT )params.mByteCount / 4 // due to DXGI_FORMAT_R32_TYPELESS
+        : ( UINT )params.mByteCount / ( UINT )params.mStride
+      };
+
+      const UINT StructureByteStride{
+        params.mGpuBufferMode == GpuBufferMode::kStructured
         ? ( UINT )params.mStride
         : ( UINT )0 };
 
@@ -160,13 +169,15 @@ namespace Tac::Render
       .Flags            { ResourceFlags },
     };
 
-    const D3D12_RESOURCE_STATES DefaultUsage{
+    D3D12_RESOURCE_STATES resourceStates{
       [ & ]()
       {
         if( heapType == D3D12_HEAP_TYPE_UPLOAD )
           return D3D12_RESOURCE_STATE_GENERIC_READ;
+
         if( params.mBytes )
           return D3D12_RESOURCE_STATE_COPY_DEST;
+
         return D3D12_RESOURCE_STATE_COMMON;
       }( ) };
 
@@ -177,22 +188,25 @@ namespace Tac::Render
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
       &ResourceDesc,
-      DefaultUsage,
+      resourceStates,
       nullptr,
       buffer.iid(),
       buffer.ppv() ) );
 
     ID3D12Resource* resource{ buffer.Get() };
-    if( params.mOptionalName )
-      DX12SetName( resource, params.mOptionalName );
-    else if( params.mStackFrame.mFile )
-      DX12SetName( resource, params.mStackFrame );
-    else
-      DX12SetName( resource, "Buffer " + ToString( h.GetIndex() ) );
+
+    const DX12Name name
+    {
+      .mName          { params.mOptionalName },
+      .mStackFrame    { params.mStackFrame },
+      .mResourceType  { "Buffer" },
+      .mResourceIndex { h.GetIndex() },
+    };
+    DX12SetName( resource, name );
 
     void* mappedCPUAddr{};
     if( heapType == D3D12_HEAP_TYPE_UPLOAD )
-        buffer->Map( 0, nullptr, &mappedCPUAddr );
+        resource->Map( 0, nullptr, &mappedCPUAddr );
 
     if( params.mBytes )
     {
@@ -218,7 +232,7 @@ namespace Tac::Render
                                        allocation.mResourceOffest,
                                        params.mByteCount );
 
-        //context->SetSynchronous(); // ? nope no need
+        // do we context->SetSynchronous() ?
         TAC_CALL( context->Execute( errors ) );
       }
     }
@@ -227,6 +241,60 @@ namespace Tac::Render
     if( resource )
       descriptorBindings = CreateBindings( resource, params );
 
+
+    // Transition to the intended usage so that the state will be correct for a descriptor table
+    {
+      D3D12_RESOURCE_STATES usageFromBinding{ D3D12_RESOURCE_STATE_COMMON };
+
+      if( Binding{} != ( params.mBinding & Binding::ShaderResource ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+
+      if( Binding{} != ( params.mBinding & Binding::RenderTarget ) )
+      {
+        usageFromBinding |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+        // D3D12_RESOURCE_STATE_PRESENT ?
+      }
+
+      if( Binding{} != ( params.mBinding & Binding::DepthStencil ) )
+      {
+        usageFromBinding |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        // D3D12_RESOURCE_STATE_DEPTH_READ ?
+      }
+
+      if( Binding{} != ( params.mBinding & Binding::UnorderedAccess ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+      if( Binding{} != ( params.mBinding & Binding::ConstantBuffer ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+
+      if( Binding{} != ( params.mBinding & Binding::VertexBuffer ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      
+      if( Binding{} != ( params.mBinding & Binding::IndexBuffer ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+
+
+      DX12Context::Scope contextScope{ mContextManager->GetContext( errors ) };
+      DX12Context* context{ ( DX12Context* )contextScope.GetContext() };
+      ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
+
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { resource },
+        .mStateBefore { &resourceStates },
+        .mStateAfter  { usageFromBinding },
+      };
+      DX12TransitionHelper transitionHelper;
+      transitionHelper.Append( transitionParams );
+      transitionHelper.ResourceBarrier( commandList );
+      // do we context->SetSynchronous() ?
+      TAC_CALL( context->Execute( errors ) );
+    }
+
+
+
+
+
     const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
 
     const int i { h.GetIndex() };
@@ -234,7 +302,7 @@ namespace Tac::Render
     {
       .mResource       { buffer },
       .mDesc           { ResourceDesc },
-      .mState          { DefaultUsage },
+      .mState          { resourceStates },
       .mGPUVirtualAddr { gpuVritualAddress },
       .mSRV            { descriptorBindings.mSRV },
       .mUAV            { descriptorBindings.mUAV },

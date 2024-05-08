@@ -105,7 +105,7 @@ namespace Tac
 
     // ID3D12 objects
 
-    PCom< ID3D12Device5 >              m_device;
+    PCom< ID3D12Device5 >              mDevice;
 
     PCom< ID3D12Debug3 >               m_debug;
     bool                               m_debugLayerEnabled = false;

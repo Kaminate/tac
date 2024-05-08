@@ -104,7 +104,7 @@ namespace Tac::Render
       fence.ppv() ) );
 
     fence.QueryInterface( m_fence );
-    DX12SetName( fence, "fence" );
+    DX12SetName( fence.Get(), "fence" );
 
     TAC_CALL( m_fenceEvent.Init( errors ) );
   }
@@ -129,7 +129,7 @@ namespace Tac::Render
       &queueDesc,
       m_commandQueue.iid(),
       m_commandQueue.ppv() ) );
-    DX12SetName( m_commandQueue, "Command Queue" );
+    DX12SetName( m_commandQueue.Get(), "Command Queue" );
   }
 
 

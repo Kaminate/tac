@@ -27,6 +27,7 @@ namespace Tac
     void     push_back( const T& t )       { TAC_ASSERT( mTCount < N ); mTs[ mTCount++ ] = t; }
     void     pop_back()                    { TAC_ASSERT( mTCount ); mTCount--; }
     void     append_range( const T*, int );
+    int      max_size() const              { return N; }
 
     T*       data()                        { return mTs; }
     const T* data() const                  { return mTs; }

@@ -99,7 +99,15 @@ namespace Tac::Render
     PCom< ID3D12PipelineState > pso;
     TAC_CALL( device->CreateGraphicsPipelineState( &psoDesc, pso.iid(), pso.ppv() ) );
 
-    DX12SetName( pso, "Pipeline State" + Tac::ToString( h.GetIndex() ) );
+    ID3D12PipelineState* pPS{ pso.Get() };
+    const DX12Name name
+    {
+      .mName          { params.mName },
+      .mStackFrame    { params.mStackFrame },
+      .mResourceType  { "PSO" },
+      .mResourceIndex { h.GetIndex() },
+    };
+    DX12SetName( pPS, name );
 
     Vector< DX12Pipeline::Variable > shaderVariables;
     for( const D3D12ProgramBinding& binding : program->mProgramBindings )

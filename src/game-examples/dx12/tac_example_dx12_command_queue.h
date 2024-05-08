@@ -28,7 +28,7 @@ namespace Tac::Render
     FenceSignal IncrementFence( Errors& );
     FenceSignal GetLastCompletedFenceValue();
 
-    ID3D12CommandQueue* GetCommandQueue() { return m_commandQueue.Get(); }
+    ID3D12CommandQueue* GetCommandQueue() { return mCommandQueue.Get(); }
     
   private:
     //void   UpdateLastCompletedFenceValue(u64);
@@ -62,6 +62,6 @@ namespace Tac::Render
     // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
     //
     // tldr: A command queue can submit command lists
-    PCom< ID3D12CommandQueue >         m_commandQueue;
+    PCom< ID3D12CommandQueue >         mCommandQueue;
   };
 }

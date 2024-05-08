@@ -18,8 +18,8 @@ namespace Tac::Render
     // Creates the device
     void Init( const DX12DebugLayer&, Errors& );
 
-    PCom< ID3D12Device >              m_device;
-    PCom< ID3D12DebugDevice >         m_debugDevice;
+    PCom< ID3D12Device >              mDevice;
+    PCom< ID3D12DebugDevice >         mDebugDevice;
   };
 
 } // namespace Tac::Render

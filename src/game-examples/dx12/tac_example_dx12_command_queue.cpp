@@ -14,7 +14,7 @@ namespace Tac::Render
     const Array cmdLists{ cmdlist };
 
     // Submits an array of command lists for execution.
-    m_commandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
+    mCommandQueue->ExecuteCommandLists( ( UINT )cmdLists.size(), cmdLists.data() );
 
     return IncrementFence( errors );
   }
@@ -31,7 +31,7 @@ namespace Tac::Render
     const UINT64 signalValue = mNextFenceValue;
 
     // Use this method to set a fence value from the GPU side
-    TAC_DX12_CALL_RET( {}, m_commandQueue->Signal( ( ID3D12Fence* )m_fence, mNextFenceValue ) );
+    TAC_DX12_CALL_RET( {}, mCommandQueue->Signal( ( ID3D12Fence* )m_fence, mNextFenceValue ) );
     mNextFenceValue++;
     return { signalValue };
   }
@@ -102,8 +102,10 @@ namespace Tac::Render
       fence.iid(),
       fence.ppv() ) );
 
+    ID3D12Fence* pFence{ fence.Get() };
+    DX12SetName( pFence, "fence" );
+
     fence.QueryInterface( m_fence );
-    DX12SetName( fence, "fence" );
 
     TAC_CALL( m_fenceEvent.Init( errors ) );
   }
@@ -126,9 +128,11 @@ namespace Tac::Render
 
     TAC_DX12_CALL( device->CreateCommandQueue(
       &queueDesc,
-      m_commandQueue.iid(),
-      m_commandQueue.ppv() ) );
-    DX12SetName( m_commandQueue, "Command Queue" );
+      mCommandQueue.iid(),
+      mCommandQueue.ppv() ) );
+
+    ID3D12CommandQueue* pCommandQueue{ mCommandQueue.Get() };
+    DX12SetName( pCommandQueue, "Command Queue" );
   }
 
 

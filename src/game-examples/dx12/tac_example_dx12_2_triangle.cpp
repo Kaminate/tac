@@ -767,8 +767,11 @@ namespace Tac
     {
       m_vertexBufferCopied = true;
       const D3D12_RESOURCE_STATES StateAfter{ sUseInputLayout
-          ? D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // <-- vtx buffer
-          : D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE }; // <-- byteaddressbuffer
+        // vtx buffer (input layout) or constant buffer
+          ? D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER
+
+        // byteaddressbuffer, used in vertex (non-pixel) shader
+          : D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE };
 
       const D3D12_RESOURCE_TRANSITION_BARRIER Transition
       {
@@ -782,11 +785,11 @@ namespace Tac
         .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
         .Transition { Transition },
       };
-      const Array barriers  { barrier };
+      const Array barriers{ barrier };
 
-      m_commandList->CopyBufferRegion( (ID3D12Resource*)m_vertexBuffer,
+      m_commandList->CopyBufferRegion( ( ID3D12Resource* )m_vertexBuffer,
                                        0,
-                                       (ID3D12Resource*)m_vertexBufferUploadHeap,
+                                       ( ID3D12Resource* )m_vertexBufferUploadHeap,
                                        0,
                                        m_vertexBufferSize );
 

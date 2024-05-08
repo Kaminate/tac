@@ -15,14 +15,16 @@ namespace Tac::Render
     TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
                    D3D_FEATURE_LEVEL_12_1,
-                   m_device.iid(),
-                   m_device.ppv() ) );
-    DX12SetName( m_device, "Device" );
+                   mDevice.iid(),
+                   mDevice.ppv() ) );
+
+    ID3D12Device* pDevice{ mDevice.Get() };
+    DX12SetName( pDevice, "Device" );
 
     if constexpr( IsDebugMode )
     {
-      m_device.QueryInterface( m_debugDevice );
-      TAC_ASSERT( m_debugDevice );
+      mDevice.QueryInterface( mDebugDevice );
+      TAC_ASSERT( mDebugDevice );
     }
   }
 

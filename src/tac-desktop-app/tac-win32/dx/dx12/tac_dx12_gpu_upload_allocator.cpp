@@ -54,7 +54,7 @@ namespace Tac::Render
 
     TAC_ASSERT( pageToAllocateFrom );
 
-    const u64 offset { (u64)mCurPageUsedByteCount };
+    const u64 offset{ ( u64 )mCurPageUsedByteCount };
     mCurPageUsedByteCount += byteCount;
 
     const D3D12_GPU_VIRTUAL_ADDRESS gpuAddr{ pageToAllocateFrom->mGPUAddr + offset };
@@ -195,7 +195,7 @@ namespace Tac::Render
 
     const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
 
-    PCom<ID3D12Resource> buffer;
+    PCom< ID3D12Resource > buffer;
     TAC_DX12_CALL_RET( {}, mDevice->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
@@ -205,7 +205,7 @@ namespace Tac::Render
       buffer.iid(),
       buffer.ppv() ) );
 
-    DX12SetName( buffer, "upload page" );
+    DX12SetName( buffer.Get(), "upload page" );
 
     void* cpuAddr;
 

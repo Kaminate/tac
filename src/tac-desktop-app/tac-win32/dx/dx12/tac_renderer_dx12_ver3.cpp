@@ -1,4 +1,5 @@
 #include "tac_renderer_dx12_ver3.h" // self-inc
+#include "tac_dx12_transition_helper.h"
 
 //#include "tac-rhi/render3/tac_render_api.h"
 
@@ -28,7 +29,7 @@ namespace Tac::Render
 
     TAC_CALL( mDeviceInitializer.Init( mDebugLayer, errors ) );
 
-    mDevice = mDeviceInitializer.m_device.Get();
+    mDevice = mDeviceInitializer.mDevice.Get();
 
     TAC_CALL( mInfoQueue.Init( mDebugLayer, mDevice, errors ) );
 
@@ -113,7 +114,7 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL(mCpuDescriptorHeapRTV.Init( desc, device, errors ));
+      TAC_CALL( mCpuDescriptorHeapRTV.Init( desc, device, "cpu rtv heap", errors ) );
     }
 
     // CPU DSV
@@ -125,7 +126,7 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL(mCpuDescriptorHeapDSV.Init( desc, device, errors ));
+      TAC_CALL( mCpuDescriptorHeapDSV.Init( desc, device, "cpu dsv heap", errors ) );
     }
 
     // CPU CBV SRV UAV
@@ -137,7 +138,8 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL(mCpuDescriptorHeapCBV_SRV_UAV.Init( desc, device, errors ));
+      TAC_CALL( mCpuDescriptorHeapCBV_SRV_UAV.Init(
+        desc, device, "cpu cbv srv uav heap", errors ) );
     }
 
     // CPU Sampler
@@ -149,7 +151,7 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL(mCpuDescriptorHeapSampler.Init( desc, device, errors ));
+      TAC_CALL( mCpuDescriptorHeapSampler.Init( desc, device, "cpu sampler heap", errors ) );
     }
 
 
@@ -162,7 +164,7 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
         .NodeMask       { 0 },
       };
-      TAC_CALL(mGpuDescriptorHeapSampler.Init( desc, device, errors ));
+      TAC_CALL( mGpuDescriptorHeapSampler.Init( desc, device, "gpu sampler heap", errors ) );
     }
 
     // GPU CBV SRV UAV
@@ -174,7 +176,8 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
         .NodeMask       { 0 },
       };
-      TAC_CALL(mGpuDescriptorHeapCBV_SRV_UAV.Init( desc, device, errors ));
+      TAC_CALL( mGpuDescriptorHeapCBV_SRV_UAV.Init(
+        desc, device, "gpu cbv srv uav heap", errors ) );
     }
   }
 
@@ -257,40 +260,28 @@ namespace Tac::Render
     DX12SwapChain* swapChain{ sRenderer.mSwapChainMgr.FindSwapChain( h ) };
     TAC_ASSERT( swapChain );
 
-
     IDXGISwapChain4* swapChain4 { swapChain->mSwapChain.Get() };
 
     TextureHandle textureHandle{ sRenderer.mSwapChainMgr.GetSwapChainCurrentColor( h ) };
 
     DX12Texture* texture{ sRenderer.mTexMgr.FindTexture( textureHandle ) };
 
-    const D3D12_RESOURCE_STATES StateBefore { texture->mState };
-    const D3D12_RESOURCE_STATES StateAfter { D3D12_RESOURCE_STATE_PRESENT };
-
-    if( StateBefore != StateAfter )
+    const DX12TransitionHelper::Params transitionParams
     {
-      texture->mState = StateAfter;
+      .mResource    { texture->mResource.Get() },
+      .mStateBefore { &texture->mState },
+      .mStateAfter  { D3D12_RESOURCE_STATE_PRESENT },
+    };
 
-      const D3D12_RESOURCE_TRANSITION_BARRIER Transition
-      {
-        .pResource   { texture->mResource.Get() },
-        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-        .StateBefore { StateBefore },
-        .StateAfter  { StateAfter },
-      };
-
-      const D3D12_RESOURCE_BARRIER barrier
-      {
-        .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-        .Flags      { D3D12_RESOURCE_BARRIER_FLAG_NONE },
-        .Transition { Transition },
-      };
-
+    DX12TransitionHelper transitionHelper;
+    transitionHelper.Append( transitionParams );
+    if( !transitionHelper.empty() )
+    {
       IContext::Scope scope{ CreateRenderContext( errors ) };
       DX12Context* context{ ( DX12Context* )scope.GetContext() };
       ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
-      commandList->ResourceBarrier( 1, &barrier );
-      TAC_CALL(context->Execute(errors ));
+      transitionHelper.ResourceBarrier( commandList );
+      TAC_CALL( context->Execute( errors ) );
     }
 
     const DXGI_PRESENT_PARAMETERS params{};
