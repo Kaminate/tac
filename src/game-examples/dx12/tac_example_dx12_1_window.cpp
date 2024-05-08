@@ -1,18 +1,16 @@
 #include "tac_example_dx12_1_window.h" // self-inc
 
-#include "tac_example_dx12_win32_event.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-std-lib/os/tac_os.h"
 
-#include "src/common/containers/tac_array.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/system/tac_os.h"
-
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/shell/windows/tac_win32.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+//#include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/tac_win32.h"
 
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -32,7 +30,7 @@ namespace Tac
 
   void DX12AppHelloWindow::CreateDesktopWindow()
   {
-    const OS::Monitor monitor { OS::OSGetPrimaryMonitor() };
+    const Monitor monitor { OS::OSGetPrimaryMonitor() };
     const int s { Min( monitor.mWidth, monitor.mHeight ) / 2 };
     const DesktopAppCreateWindowParams desktopParams
     {
@@ -449,7 +447,7 @@ namespace Tac
 
   DX12AppHelloWindow::DX12AppHelloWindow( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloWindow::Init( Errors& errors )
+  void DX12AppHelloWindow::Init( InitParams initParams, Errors& errors )
   {
     CreateDesktopWindow();
 
@@ -464,7 +462,7 @@ namespace Tac
     TAC_CALL( CreateFence( errors ) );
   }
 
-  void DX12AppHelloWindow::Update( Errors& errors )
+  void DX12AppHelloWindow::Update( UpdateParams updateParams, Errors& errors )
   {
 
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )

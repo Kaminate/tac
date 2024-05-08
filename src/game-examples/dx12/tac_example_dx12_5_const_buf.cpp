@@ -6,32 +6,32 @@
 #include "tac_example_dx12_checkerboard.h"
 #include "tac_example_dx12.h"
 
-#include "src/common/algorithm/tac_algorithm.h"
-#include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/containers/tac_array.h"
-#include "src/common/containers/tac_forward_list.h"
-#include "src/common/containers/tac_list.h"
-#include "src/common/containers/tac_map.h"
-#include "src/common/containers/tac_set.h"
-#include "src/common/containers/tac_span.h"
-#include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/math/tac_matrix4.h"
-#include "src/common/math/tac_vector3.h"
-#include "src/common/math/tac_vector4.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/system/tac_os.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_forward_list.h"
+#include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/containers/tac_map.h"
+#include "tac-std-lib/containers/tac_set.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_matrix4.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_vector4.h"
+//#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/os/tac_os.h"
 
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/shell/windows/tac_win32.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+//#include "src/shell/tac_desktop_window_settings_tracker.h"
+//#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -80,7 +80,7 @@ namespace Tac
 
   void DX12AppHelloConstBuf::CreateDesktopWindow()
   {
-    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
+    const Monitor monitor = OS::OSGetPrimaryMonitor();
     const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
     const DesktopAppCreateWindowParams desktopParams
     {

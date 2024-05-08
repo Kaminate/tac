@@ -2,43 +2,33 @@ if( NOT WIN32 )
   return()
 endif()
 
-add_executable( standalone_win_dx12_1_window WIN32 
+add_executable( dx12_tutorial_1_window WIN32 
                 "tac_example_dx12_1_window.cpp"
                 "tac_example_dx12_1_window.h" )
 
-add_executable( standalone_win_dx12_2_triangle WIN32 
+add_executable( dx12_tutorial_2_triangle WIN32 
                 "tac_example_dx12_2_triangle.cpp"
                 "tac_example_dx12_2_triangle.h" )
 
-add_executable( standalone_win_dx12_3_texture WIN32 
+add_executable( dx12_tutorial_3_texture WIN32 
                 "tac_example_dx12_3_texture.cpp"
                 "tac_example_dx12_3_texture.h" )
 
-add_executable( standalone_win_dx12_4_bundle WIN32 
+add_executable( dx12_tutorial_4_bundle WIN32 
                 "tac_example_dx12_4_bundle.cpp"
                 "tac_example_dx12_4_bundle.h" )
 
-add_executable( standalone_win_dx12_5_const_buf WIN32 
+add_executable( dx12_tutorial_5_const_buf WIN32 
                 "tac_example_dx12_5_const_buf.cpp"
                 "tac_example_dx12_5_const_buf.h" )
 
-add_executable( standalone_win_dx12_6_frame_buf WIN32 
+add_executable( dx12_tutorial_6_frame_buf WIN32 
                 "tac_example_dx12_6_frame_buf.cpp"
                 "tac_example_dx12_6_frame_buf.h" )
 
 
-set_property( TARGET standalone_win_dx12_1_window    PROPERTY OUTPUT_NAME "DX12 1 Window" )
-set_property( TARGET standalone_win_dx12_2_triangle  PROPERTY OUTPUT_NAME "DX12 2 Triangle" )
-set_property( TARGET standalone_win_dx12_3_texture   PROPERTY OUTPUT_NAME "DX12 3 Texture" )
-set_property( TARGET standalone_win_dx12_4_bundle    PROPERTY OUTPUT_NAME "DX12 4 Bundle" )
-set_property( TARGET standalone_win_dx12_5_const_buf PROPERTY OUTPUT_NAME "DX12 5 Const Buf" )
-set_property( TARGET standalone_win_dx12_6_frame_buf PROPERTY OUTPUT_NAME "DX12 6 Frame Buf" )
 
-# temp
-# target_link_libraries( standalone_win_dx12_6_frame_buf TacStdLib )
-
-# Get a semicolon-separated list of executable target names
-get_property(targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+get_property( targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS )
 
 add_library( TacDX12ShaderCompile
   tac_example_dx12_shader_compile.cpp
@@ -49,8 +39,7 @@ add_library( TacDX12ShaderCompile
 
 target_link_libraries( TacDX12ShaderCompile TacWin32 TacRHI TacStdLib )
 
-
-add_library( TacDX12ExampleHelpers 
+add_library( TacDX12ExampleHelpers
   tac_example_dx12_command_queue.cpp
   tac_example_dx12_command_queue.h
   tac_example_dx12_gpu_upload_allocator.cpp
@@ -73,7 +62,8 @@ add_library( TacDX12ExampleHelpers
 target_link_libraries( TacDX12ExampleHelpers TacWin32 TacStdLib TacDesktopApp )
 
 foreach( targetname ${targetnames} )
-  message( "targetname: ${targetname}" )
+
+  set_target_properties( ${targetname} PROPERTIES FOLDER "D3D12 Tutorial" )
   target_link_libraries( ${targetname}
     TacStdLib
     TacEngineCore

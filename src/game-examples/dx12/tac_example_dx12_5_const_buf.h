@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
+#include "tac-win32/tac_win32_com_ptr.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
 
 #include "tac_example_dx12_command_queue.h"
 #include "tac_example_dx12_gpu_upload_allocator.h"
@@ -38,8 +38,8 @@ namespace Tac
 
     DX12AppHelloConstBuf( const Config& );
 
-    void Init( Errors& ) override;
-    void Update( Errors& ) override;
+    void Init( InitParams, Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
     void Uninit( Errors& ) override;
 
   private:
@@ -102,7 +102,7 @@ namespace Tac
 
     static const int                   bufferCount = 2;
 
-    DesktopWindowHandle                hDesktopWindow{};
+    WindowHandle                       hDesktopWindow{};
 
     // ---------------------------------------------------------------------------------------------
 
@@ -187,10 +187,9 @@ namespace Tac
     // 2. our swap chain will present to the monitor
     UINT                               m_frameIndex{};
 
-
-    DX12CommandQueue                   mCommandQueue;
-    GPUUploadAllocator                 mUploadAllocator;
-    GPUUploadPageManager               mUploadPageManager;
+    DX12ExampleCommandQueue            mCommandQueue;
+    DX12ExampleGPUUploadAllocator      mUploadAllocator;
+    DX12ExampleGPUUploadPageManager    mUploadPageManager;
   };
 } // namespace Tac
 

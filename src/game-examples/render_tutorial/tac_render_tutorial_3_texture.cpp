@@ -29,35 +29,12 @@ namespace Tac
     LinearColor3       mCol;
   };
 
-  // -----------------------------------------------------------------------------------------------
-
-  static Render::VertexDeclarations GetVertexDeclarations()
-  {
-    const Render::VertexDeclaration vtxDeclPos
-    {
-      .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::Format::sv3 },
-      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
-    };
-
-    const Render::VertexDeclaration vtxDeclCol
-    {
-      .mAttribute         { Render::Attribute::Color },
-      .mFormat            { Render::Format::sv3 },
-      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
-    };
-
-    Render::VertexDeclarations vtxDecls;
-    vtxDecls.push_back( vtxDeclPos );
-    vtxDecls.push_back( vtxDeclCol );
-    return vtxDecls;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
-  struct HelloTriangle : public App
+  struct HelloTexture : public App
   {
-    HelloTriangle( App::Config );
+    HelloTexture( App::Config );
 
   protected:
     void Init( InitParams, Errors& ) override;
@@ -71,18 +48,15 @@ namespace Tac
 
     WindowHandle           sWindowHandle;
     Render::BufferHandle   mVtxBuf;
-    Render::ProgramHandle  mShaderBindless;
-    Render::ProgramHandle  mShaderInputLayout;
-    Render::PipelineHandle mPipelineBindless;
-    Render::PipelineHandle mPipelineInputLayout;
+    Render::ProgramHandle  mShader;
+    Render::PipelineHandle mPipeline;
     Render::TexFmt         mColorFormat;
     Render::TexFmt         mDepthFormat;
-    bool                   mBindless{ true };
   };
 
-  HelloTriangle::HelloTriangle( App::Config cfg ) : App{ cfg } {}
+  HelloTexture::HelloTexture( App::Config cfg ) : App{ cfg } {}
 
-  void HelloTriangle::Init( InitParams initParams, Errors& errors )
+  void HelloTexture::Init( InitParams initParams, Errors& errors )
   {
     const SysWindowApi* windowApi{ initParams.mWindowApi };
     mColorFormat = windowApi->GetSwapChainColorFormat();
@@ -94,7 +68,7 @@ namespace Tac
     InitRootSig( errors );
   }
 
-  void HelloTriangle::InitWindow( InitParams initParams, Errors& errors )
+  void HelloTexture::InitWindow( InitParams initParams, Errors& errors )
   {
     const Monitor monitor { OS::OSGetPrimaryMonitor() };
     const v2i windowSize{ monitor.mSize / 2 };
@@ -108,16 +82,14 @@ namespace Tac
     sWindowHandle = initParams.mWindowApi->CreateWindow( windowCreateParams, errors );
   }
 
-  void HelloTriangle::InitShader( Errors& errors )
+  void HelloTexture::InitShader( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::ProgramParams paramsBindless    { .mFileStem { "HelloTriangleBindless" }, };
-    const Render::ProgramParams paramsInputLayout { .mFileStem { "HelloTriangleInputLayout" }, };
-    TAC_CALL( mShaderInputLayout = renderDevice->CreateProgram( paramsInputLayout, errors ) );
-    TAC_CALL( mShaderBindless = renderDevice->CreateProgram( paramsBindless, errors ) );
+    const Render::ProgramParams programParams{ .mFileStem { "HelloTexture" }, };
+    TAC_CALL( mShader = renderDevice->CreateProgram( programParams, errors ) );
   }
 
-  void HelloTriangle::InitVertexBuffer( Errors& errors )
+  void HelloTexture::InitVertexBuffer( Errors& errors )
   {
     const Vertex triangleVertices[]
     {
@@ -152,36 +124,22 @@ namespace Tac
     mVtxBuf = renderDevice->CreateBuffer( params, errors );
   }
 
-  void HelloTriangle::InitRootSig( Errors& errors )
+  void HelloTexture::InitRootSig( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    const Render::VertexDeclarations vtxDecls{ GetVertexDeclarations() };
-
-    const Render::PipelineParams paramsBindless
+    const Render::PipelineParams pipelineParams
     {
-      .mProgram      { mShaderBindless },
+      .mProgram      { mShader },
       .mRTVColorFmts { mColorFormat },
       .mDSVDepthFmt  { mDepthFormat },
     };
 
-    const Render::PipelineParams paramsInputLayout
-    {
-      .mProgram      { mShaderInputLayout },
-      .mRTVColorFmts { mColorFormat },
-      .mDSVDepthFmt  { mDepthFormat },
-      .mVtxDecls     { vtxDecls },
-    };
-
-    mPipelineBindless = renderDevice->CreatePipeline( paramsBindless, errors );
-    mPipelineInputLayout = renderDevice->CreatePipeline( paramsInputLayout, errors );
+    mPipeline = renderDevice->CreatePipeline( pipelineParams, errors );
   }
 
-  void HelloTriangle::Render( RenderParams sysRenderParams, Errors& errors )
+  void HelloTexture::Render( RenderParams sysRenderParams, Errors& errors )
   {
-    // Test bindless vs not bindless by flipping it every frame
-    mBindless = !mBindless;
-
     const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
     const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
     Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( sWindowHandle ) };
@@ -195,10 +153,7 @@ namespace Tac
 
     renderContext->SetRenderTargets( renderTargets );
 
-    if( mBindless )
-      renderContext->SetPipeline( mPipelineBindless );
-    else
-      renderContext->SetPipeline( mPipelineInputLayout );
+    renderContext->SetPipeline( mPipeline );
 
     renderContext->SetViewport( windowSize );
     renderContext->SetScissor( windowSize );
@@ -206,17 +161,12 @@ namespace Tac
     renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
 
-    if( mBindless )
-    {
-      Render::IShaderVar* shaderVar {
-        renderDevice->GetShaderVariable( mPipelineBindless, "BufferTable" ) };
-      shaderVar->SetBufferAtIndex( 0, mVtxBuf );
-      renderContext->CommitShaderVariables();
-    }
-    else
-    {
-      renderContext->SetVertexBuffer( mVtxBuf );
-    }
+    // TODO: store this variable
+    Render::IShaderVar* shaderVar {
+      renderDevice->GetShaderVariable( mPipeline, "BufferTable" ) };
+
+    shaderVar->SetBufferAtIndex( 0, mVtxBuf );
+    renderContext->CommitShaderVariables();
 
     const Render::DrawArgs drawArgs
     {
@@ -233,9 +183,9 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName { "Hello Triangle" },
+      .mName { "Hello Texture" },
     };
-    return TAC_NEW HelloTriangle( config );
+    return TAC_NEW HelloTexture( config );
   };
 
 } // namespace Tac

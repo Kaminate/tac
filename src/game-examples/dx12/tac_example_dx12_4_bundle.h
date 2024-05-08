@@ -1,9 +1,9 @@
 #pragma once
 
-#include "src/shell/windows/tac_win32_com_ptr.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/windows/renderer/dxgi/tac_dxgi.h"
-#include "tac_example_dx12_win32_event.h"
+#include "tac-win32/tac_win32_com_ptr.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-win32/dx/dxgi/tac_dxgi.h"
+#include "tac-win32/event/tac_win32_event.h"
 
 #include <d3d12.h> // D3D12...
 
@@ -30,8 +30,8 @@ namespace Tac
 
     DX12AppHelloBundle( const Config& );
 
-    void Init( Errors& ) override;
-    void Update( Errors& ) override;
+    void Init( InitParams, Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
     void Uninit( Errors& ) override;
 
   private:
@@ -101,7 +101,7 @@ namespace Tac
 
     static const int                   bufferCount = 2;
 
-    DesktopWindowHandle                hDesktopWindow{};
+    WindowHandle                       hDesktopWindow{};
 
     // ---------------------------------------------------------------------------------------------
 

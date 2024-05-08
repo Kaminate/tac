@@ -1,30 +1,30 @@
 #include "tac_example_dx12_4_bundle.h" // self-inc
-#include "tac_example_dx12_shader_compile.h"
+
 #include "tac_example_dx12_shader_compile.h"
 #include "tac_example_dx12_2_dxc.h"
 #include "tac_example_dx12_root_sig_builder.h"
 #include "tac_example_dx12_input_layout_builder.h"
 #include "tac_example_dx12_checkerboard.h"
 
-#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-#include "src/common/containers/tac_array.h"
-#include "src/common/dataprocess/tac_text_parser.h"
-#include "src/common/containers/tac_span.h"
-#include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/memory/tac_frame_memory.h"
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/math/tac_math.h"
-#include "src/common/math/tac_vector4.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/math/tac_vector3.h"
-#include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/system/tac_os.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/shell/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "src/shell/windows/renderer/dx12/tac_dx12_helper.h"
-#include "src/shell/windows/tac_win32.h"
+//#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+//#include "tac-std-lib/memory/tac_frame_memory.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+//#include "src/shell/tac_desktop_window_settings_tracker.h"
+#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -72,7 +72,7 @@ namespace Tac
 
   void DX12AppHelloBundle::CreateDesktopWindow()
   {
-    const OS::Monitor monitor = OS::OSGetPrimaryMonitor();
+    const Monitor monitor { OS::OSGetPrimaryMonitor() };
     const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
     const DesktopAppCreateWindowParams desktopParams
     {
@@ -84,8 +84,8 @@ namespace Tac
     };
     hDesktopWindow = CreateTrackedWindow( desktopParams );
 
-    DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
-    DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
+    //DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
+    //DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
     QuitProgramOnWindowClose( hDesktopWindow );
   }
 
@@ -1308,7 +1308,7 @@ namespace Tac
 
   DX12AppHelloBundle::DX12AppHelloBundle( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloBundle::Init( Errors& errors )
+  void DX12AppHelloBundle::Init( InitParams initParams, Errors& errors )
   {
     CreateDesktopWindow();
   }
@@ -1339,7 +1339,7 @@ namespace Tac
     TAC_CALL( CreateSampler( errors ) );
   }
 
-  void DX12AppHelloBundle::Update( Errors& errors )
+  void DX12AppHelloBundle::Update( UpdateParams updateParams, Errors& errors )
   {
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;
