@@ -1,12 +1,17 @@
 #pragma once
 
 #include "tac-win32/tac_win32_com_ptr.h"
+#include "tac-std-lib/string/tac_string_view.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 
 #include <d3d12.h> // D3D12...
 
+namespace Tac { struct Errors; }
+
 namespace Tac
 {
-  struct Errors;
+  WindowHandle DX12ExampleCreateWindow( const SysWindowApi*, StringView, Errors& );
 }
 
 namespace Tac::Render
@@ -38,8 +43,6 @@ namespace Tac::Render
   };
 
   bool DX12SupportsRayTracing( ID3D12Device*, Errors& );
-
-
 
 } // namespace Tac::Render
 

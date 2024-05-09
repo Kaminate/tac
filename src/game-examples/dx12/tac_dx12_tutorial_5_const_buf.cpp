@@ -1,10 +1,11 @@
-#include "tac_example_dx12_5_const_buf.h" // self-inc
-#include "tac_example_dx12_shader_compile.h"
-#include "tac_example_dx12_2_dxc.h"
-#include "tac_example_dx12_root_sig_builder.h"
-#include "tac_example_dx12_input_layout_builder.h"
-#include "tac_example_dx12_checkerboard.h"
-#include "tac_example_dx12.h"
+#include "tac_dx12_tutorial_5_const_buf.h" // self-inc
+#include "tac_dx12_tutorial_shader_compile.h"
+#include "tac_dx12_tutorial_2_dxc.h"
+#include "tac_dx12_tutorial.h"
+#include "tac_dx12_tutorial_root_sig_builder.h"
+#include "tac_dx12_tutorial_input_layout_builder.h"
+#include "tac_dx12_tutorial_checkerboard.h"
+#include "tac_dx12_tutorial.h"
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
@@ -78,24 +79,6 @@ namespace Tac
 
   // Helper functions for App::Init
 
-  void DX12AppHelloConstBuf::CreateDesktopWindow()
-  {
-    const Monitor monitor = OS::OSGetPrimaryMonitor();
-    const int s = Min( monitor.mWidth, monitor.mHeight ) / 2;
-    const DesktopAppCreateWindowParams desktopParams
-    {
-      .mName = "DX12 Window",
-      .mX = ( monitor.mWidth - s ) / 2,
-      .mY = ( monitor.mHeight - s ) / 2,
-      .mWidth = s,
-      .mHeight = s,
-    };
-    hDesktopWindow = CreateTrackedWindow( desktopParams );
-
-    DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
-    DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
-    QuitProgramOnWindowClose( hDesktopWindow );
-  }
 
   void DX12AppHelloConstBuf::InitDescriptorSizes()
   {
@@ -1222,9 +1205,10 @@ namespace Tac
 
   DX12AppHelloConstBuf::DX12AppHelloConstBuf( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloConstBuf::Init( Errors& errors )
+  void DX12AppHelloConstBuf::Init( InitParams initParams, Errors& errors )
   {
-    CreateDesktopWindow();
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
+      initParams.mWindowApi, "DX12 Const Buf", errors ) );
   }
 
   void DX12AppHelloConstBuf::PreSwapChainInit( Errors& errors)
@@ -1270,7 +1254,7 @@ namespace Tac
     mUploadAllocator.Init( &mUploadPageManager );
   }
 
-  void DX12AppHelloConstBuf::Update( Errors& errors )
+  void DX12AppHelloConstBuf::Update( UpdateParams updateParams, Errors& errors )
   {
     if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
       return;

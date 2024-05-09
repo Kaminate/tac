@@ -38,7 +38,6 @@ namespace Tac
 
     // Helper functions for Init
     void PreSwapChainInit(Errors&);
-    void CreateDesktopWindow();
 
     void EnableDebug( Errors& );
 

@@ -3,67 +3,63 @@ if( NOT WIN32 )
 endif()
 
 add_executable( dx12_tutorial_1_window WIN32 
-                "tac_example_dx12_1_window.cpp"
-                "tac_example_dx12_1_window.h" )
+                "tac_dx12_tutorial_1_window.cpp"
+                "tac_dx12_tutorial_1_window.h" )
 
 add_executable( dx12_tutorial_2_triangle WIN32 
-                "tac_example_dx12_2_triangle.cpp"
-                "tac_example_dx12_2_triangle.h" )
+                "tac_dx12_tutorial_2_triangle.cpp"
+                "tac_dx12_tutorial_2_triangle.h" )
 
 add_executable( dx12_tutorial_3_texture WIN32 
-                "tac_example_dx12_3_texture.cpp"
-                "tac_example_dx12_3_texture.h" )
+                "tac_dx12_tutorial_3_texture.cpp"
+                "tac_dx12_tutorial_3_texture.h" )
 
 add_executable( dx12_tutorial_4_bundle WIN32 
-                "tac_example_dx12_4_bundle.cpp"
-                "tac_example_dx12_4_bundle.h" )
+                "tac_dx12_tutorial_4_bundle.cpp"
+                "tac_dx12_tutorial_4_bundle.h" )
 
 add_executable( dx12_tutorial_5_const_buf WIN32 
-                "tac_example_dx12_5_const_buf.cpp"
-                "tac_example_dx12_5_const_buf.h" )
+                "tac_dx12_tutorial_5_const_buf.cpp"
+                "tac_dx12_tutorial_5_const_buf.h" )
 
 add_executable( dx12_tutorial_6_frame_buf WIN32 
-                "tac_example_dx12_6_frame_buf.cpp"
-                "tac_example_dx12_6_frame_buf.h" )
+                "tac_dx12_tutorial_6_frame_buf.cpp"
+                "tac_dx12_tutorial_6_frame_buf.h" )
 
-
-
-get_property( targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS )
+get_property( exe_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS )
 
 add_library( TacDX12ShaderCompile
-  tac_example_dx12_shader_compile.cpp
-  tac_example_dx12_shader_compile.h
-  tac_example_dx12_2_dxc.cpp
-  tac_example_dx12_2_dxc.h
+  tac_dx12_tutorial_shader_compile.cpp
+  tac_dx12_tutorial_shader_compile.h
+  tac_dx12_tutorial_2_dxc.cpp
+  tac_dx12_tutorial_2_dxc.h
 )
 
 target_link_libraries( TacDX12ShaderCompile TacWin32 TacRHI TacStdLib )
 
 add_library( TacDX12ExampleHelpers
-  tac_example_dx12_command_queue.cpp
-  tac_example_dx12_command_queue.h
-  tac_example_dx12_gpu_upload_allocator.cpp
-  tac_example_dx12_gpu_upload_allocator.h
-  tac_example_dx12_input_layout_builder.cpp
-  tac_example_dx12_input_layout_builder.h
-  tac_example_dx12_root_sig_builder.cpp
-  tac_example_dx12_root_sig_builder.h
-  tac_example_dx12_checkerboard.cpp
-  tac_example_dx12_checkerboard.h
-  tac_example_dx12.cpp
-  tac_example_dx12.h
-  tac_example_dx12_command_allocator_pool.cpp
-  tac_example_dx12_command_allocator_pool.h
-  tac_example_dx12_context_manager.cpp
-  tac_example_dx12_context_manager.h
-  tac_example_dx12_fence.h
+  tac_dx12_tutorial_command_queue.cpp
+  tac_dx12_tutorial_command_queue.h
+  tac_dx12_tutorial_gpu_upload_allocator.cpp
+  tac_dx12_tutorial_gpu_upload_allocator.h
+  tac_dx12_tutorial_input_layout_builder.cpp
+  tac_dx12_tutorial_input_layout_builder.h
+  tac_dx12_tutorial_root_sig_builder.cpp
+  tac_dx12_tutorial_root_sig_builder.h
+  tac_dx12_tutorial_checkerboard.cpp
+  tac_dx12_tutorial_checkerboard.h
+  tac_dx12_tutorial.cpp
+  tac_dx12_tutorial.h
+  tac_dx12_tutorial_command_allocator_pool.cpp
+  tac_dx12_tutorial_command_allocator_pool.h
+  tac_dx12_tutorial_context_manager.cpp
+  tac_dx12_tutorial_context_manager.h
+  tac_dx12_tutorial_fence.h
 )
 
 target_link_libraries( TacDX12ExampleHelpers TacWin32 TacStdLib TacDesktopApp )
 
-foreach( targetname ${targetnames} )
-
-  set_target_properties( ${targetname} PROPERTIES FOLDER "D3D12 Tutorial" )
+foreach( targetname ${exe_targets} )
   target_link_libraries( ${targetname}
     TacStdLib
     TacEngineCore
@@ -74,7 +70,11 @@ foreach( targetname ${targetnames} )
     TacDX12ShaderCompile
     TacDX12ExampleHelpers
   )
+endforeach()
 
+get_property( all_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS )
+foreach( targetname ${all_targets} )
+  set_target_properties( ${targetname} PROPERTIES FOLDER "D3D12 Tutorial" )
 endforeach()
 
 # -------------------------------------------------------------------------------------------------

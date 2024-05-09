@@ -1,4 +1,5 @@
-#include "tac_example_dx12_1_window.h" // self-inc
+#include "tac_dx12_tutorial_1_window.h" // self-inc
+#include "tac_dx12_tutorial.h"
 
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -31,12 +32,12 @@ namespace Tac
   void DX12AppHelloWindow::CreateDesktopWindow()
   {
     const Monitor monitor { OS::OSGetPrimaryMonitor() };
-    const int s { Min( monitor.mWidth, monitor.mHeight ) / 2 };
+    const int s{ Min(monitor.mSize.x, monitor.mSize.y) / 2 };
     const DesktopAppCreateWindowParams desktopParams
     {
       .mName   { "DX12 Window" },
-      .mX      { ( monitor.mWidth - s ) / 2 },
-      .mY      { ( monitor.mHeight - s ) / 2 },
+      .mX      { ( monitor.mSize.x - s ) / 2 },
+      .mY      { ( monitor.mSize.y - s ) / 2 },
       .mWidth  { s },
       .mHeight { s },
     };
@@ -46,6 +47,7 @@ namespace Tac
     DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
     DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
     QuitProgramOnWindowClose( hDesktopWindow );
+
   }
 
   void DX12AppHelloWindow::EnableDebug( Errors& errors )
@@ -449,7 +451,8 @@ namespace Tac
 
   void DX12AppHelloWindow::Init( InitParams initParams, Errors& errors )
   {
-    CreateDesktopWindow();
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
+      initParams.mWindowApi, "DX12 Window", errors ) );
 
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );

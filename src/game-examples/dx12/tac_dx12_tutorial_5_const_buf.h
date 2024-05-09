@@ -4,8 +4,8 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
 
-#include "tac_example_dx12_command_queue.h"
-#include "tac_example_dx12_gpu_upload_allocator.h"
+#include "tac_dx12_tutorial_command_queue.h"
+#include "tac_dx12_tutorial_gpu_upload_allocator.h"
 
 #include <d3d12.h> // D3D12...
 
@@ -46,7 +46,6 @@ namespace Tac
 
     // Helper functions for Init
     void PreSwapChainInit(Errors&);
-    void CreateDesktopWindow();
 
 
     void CreateRTVDescriptorHeap( Errors& );

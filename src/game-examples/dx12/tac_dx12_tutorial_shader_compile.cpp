@@ -1,6 +1,6 @@
-#include "tac_example_dx12_shader_compile.h" // self-inc
+#include "tac_dx12_tutorial_shader_compile.h" // self-inc
 
-//#include "tac_example_dx12_2_dxc.h"
+//#include "tac_dx12_tutorial_2_dxc.h"
 #include "tac-win32/dx/dxc/tac_dxc.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"

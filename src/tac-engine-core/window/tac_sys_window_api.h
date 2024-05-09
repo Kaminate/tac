@@ -11,6 +11,7 @@
 // the user somehow... maybe when creating the window? maybe never ( ie in render code )?
 // Also imgui can create windows too
 #define TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN() 1
+#undef CreateWindow
 
 namespace Tac { struct v2i; struct StringView; struct Errors; }
 namespace Tac::Render { struct SwapChainHandle; }

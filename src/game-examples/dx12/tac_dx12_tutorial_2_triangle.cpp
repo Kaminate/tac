@@ -1,7 +1,8 @@
-#include "tac_example_dx12_2_triangle.h" // self-inc
-#include "tac_example_dx12_shader_compile.h"
-#include "tac_example_dx12_input_layout_builder.h"
-#include "tac_example_dx12_2_dxc.h"
+#include "tac_dx12_tutorial_2_triangle.h" // self-inc
+#include "tac_dx12_tutorial_shader_compile.h"
+#include "tac_dx12_tutorial_input_layout_builder.h"
+#include "tac_dx12_tutorial_2_dxc.h"
+#include "tac_dx12_tutorial.h"
 
 #include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-engine-core/shell/tac_shell.h"
@@ -59,26 +60,9 @@ namespace Tac
 
   using namespace Render;
 
-
   // -----------------------------------------------------------------------------------------------
 
   // Helper functions for App::Init
-
-  void DX12AppHelloTriangle::CreateDesktopWindow(InitParams initParams, Errors& errors)
-  {
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
-    const Monitor monitor { OS::OSGetPrimaryMonitor() };
-    const int s { Min( monitor.mSize.x, monitor.mSize.y ) / 2 };
-    const v2i size{ s, s };
-    const WindowCreateParams desktopParams
-    {
-      .mName                { "DX12 Window" },
-      .mPos                 { ( monitor.mSize - size ) / 2 },
-      .mSize                { size },
-    };
-    hDesktopWindow = windowApi->CreateWindow( desktopParams, errors );
-    QuitProgramOnWindowClose( hDesktopWindow );
-  }
 
   void DX12AppHelloTriangle::EnableDebug( Errors& errors )
   {
@@ -414,7 +398,6 @@ namespace Tac
     TAC_CALL( m_fenceEvent.Init( errors ) );
   }
 
-
   void DX12AppHelloTriangle::CreateRootSignature( Errors& errors )
   {
     // Create an empty root signature.
@@ -499,9 +482,6 @@ namespace Tac
 
     DX12SetName( m_rootSignature, "My Root Signature" );
   }
-
-
-
 
   void DX12AppHelloTriangle::CreatePipelineState( Errors& errors )
   {
@@ -998,7 +978,9 @@ namespace Tac
 
   void DX12AppHelloTriangle::PreSwapChainInit( InitParams initParams,Errors& errors)
   {
-    TAC_CALL( CreateDesktopWindow(initParams, errors ) );
+    TAC_CALL(
+      hDesktopWindow = DX12ExampleCreateWindow( initParams.mWindowApi, "DX12 Window", errors );
+    );
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
     TAC_CALL( CreateDevice( errors ) );

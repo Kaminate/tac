@@ -1,6 +1,6 @@
-#include "tac_example_dx12_context_manager.h" // self-inc
-#include "tac_example_dx12_command_allocator_pool.h"
-#include "tac_example_dx12_gpu_upload_allocator.h"
+#include "tac_dx12_tutorial_context_manager.h" // self-inc
+#include "tac_dx12_tutorial_command_allocator_pool.h"
+#include "tac_dx12_tutorial_gpu_upload_allocator.h"
 
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 

@@ -1,4 +1,4 @@
-#include "tac_example_dx12_gpu_upload_allocator.h"
+#include "tac_dx12_tutorial_gpu_upload_allocator.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"

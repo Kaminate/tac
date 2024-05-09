@@ -1,11 +1,11 @@
-#include "tac_example_dx12_6_frame_buf.h" // self-inc
+#include "tac_dx12_tutorial_6_frame_buf.h" // self-inc
 
-#include "tac_example_dx12_shader_compile.h"
-#include "tac_example_dx12_2_dxc.h"
-#include "tac_example_dx12_root_sig_builder.h"
-#include "tac_example_dx12_input_layout_builder.h"
-#include "tac_example_dx12_checkerboard.h"
-#include "tac_example_dx12.h"
+#include "tac_dx12_tutorial_shader_compile.h"
+#include "tac_dx12_tutorial_2_dxc.h"
+#include "tac_dx12_tutorial_root_sig_builder.h"
+#include "tac_dx12_tutorial_input_layout_builder.h"
+#include "tac_dx12_tutorial_checkerboard.h"
+#include "tac_dx12_tutorial.h"
 
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/error/tac_assert.h"
@@ -78,25 +78,6 @@ namespace Tac
 
   // Helper functions for App::Init
 
-  void DX12AppHelloFrameBuf::CreateDesktopWindow()
-  {
-    const Monitor monitor { OS::OSGetPrimaryMonitor() };
-    const v2i monitorSize{ monitor.mSize };
-    const v2i windowSize { monitorSize / 2 };
-    const v2i windowPos { ( monitorSize - windowSize ) / 2 };
-
-    const WindowCreateParams desktopParams
-    {
-      .mName { "DX12 Window" },
-      .mPos  { windowPos },
-      .mSize { windowSize },
-    };
-    hDesktopWindow = CreateTrackedWindow( desktopParams );
-
-    //DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
-    //DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
-    QuitProgramOnWindowClose( hDesktopWindow );
-  }
 
   void DX12AppHelloFrameBuf::InitDescriptorSizes()
   {
@@ -1065,7 +1046,8 @@ namespace Tac
     RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
     WindowBackend::SysApi::mIsRendererEnabled = false; // hack
-    CreateDesktopWindow();
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
+      initParams.mWindowApi, "DX12 Frame Buf", errors ) );
   }
 
   void         DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)

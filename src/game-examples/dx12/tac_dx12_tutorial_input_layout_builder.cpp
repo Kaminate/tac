@@ -1,4 +1,4 @@
-#include "tac_example_dx12_input_layout_builder.h" // self-inc
+#include "tac_dx12_tutorial_input_layout_builder.h" // self-inc
 
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
 

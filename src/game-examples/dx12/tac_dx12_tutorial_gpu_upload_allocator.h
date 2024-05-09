@@ -5,7 +5,7 @@
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_vector.h"
 
-#include "tac_example_dx12_command_queue.h"
+#include "tac_dx12_tutorial_command_queue.h"
 
 namespace Tac::Render
 {

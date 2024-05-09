@@ -32,9 +32,8 @@ namespace Tac
   private:
 
     // Helper functions for Init
-    void PreSwapChainInit(InitParams, Errors&);
-    void PostSwapChainInit(Errors&);
-    void CreateDesktopWindow(InitParams, Errors& );
+    void PreSwapChainInit( InitParams, Errors& );
+    void PostSwapChainInit( Errors& );
 
     void EnableDebug( Errors& );
 

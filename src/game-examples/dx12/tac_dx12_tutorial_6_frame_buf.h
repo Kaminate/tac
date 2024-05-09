@@ -6,10 +6,10 @@
 
 #include "tac-std-lib/containers/tac_ring_vector.h"
 
-#include "tac_example_dx12_command_queue.h"
-#include "tac_example_dx12_command_allocator_pool.h"
-#include "tac_example_dx12_context_manager.h"
-#include "tac_example_dx12_gpu_upload_allocator.h"
+#include "tac_dx12_tutorial_command_queue.h"
+#include "tac_dx12_tutorial_command_allocator_pool.h"
+#include "tac_dx12_tutorial_context_manager.h"
+#include "tac_dx12_tutorial_gpu_upload_allocator.h"
 
 
 #include <d3d12.h> // D3D12...
@@ -59,7 +59,6 @@ namespace Tac
 
     // Helper functions for Init
     void PreSwapChainInit(Errors&);
-    void CreateDesktopWindow();
 
     void CreateRTVDescriptorHeap( Errors& );
     void CreateSamplerDescriptorHeap( Errors& );
