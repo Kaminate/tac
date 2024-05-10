@@ -733,15 +733,14 @@ namespace Tac
       .DepthClipEnable       { true },
     };
 
+    const D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc
+    {
+      .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
+    };
+
     const D3D12_BLEND_DESC BlendState
     {
-      .RenderTarget = 
-      {
-        D3D12_RENDER_TARGET_BLEND_DESC
-        {
-          .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
-        },
-      },
+      .RenderTarget { RenderTargetBlendDesc },
     };
 
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
@@ -756,7 +755,7 @@ namespace Tac
       .InputLayout           { D3D12_INPUT_LAYOUT_DESC{} },
       .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
       .NumRenderTargets      { 1 },
-      .RTVFormats            { DXGIGetSwapChainFormat() },
+      .RTVFormats            { RTVFormat },
       .SampleDesc            { .Count { 1 } },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(

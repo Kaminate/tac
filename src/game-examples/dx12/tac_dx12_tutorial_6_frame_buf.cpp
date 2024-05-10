@@ -1023,10 +1023,10 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::Init( InitParams initParams, Errors& errors )
   {
-    initParams.mWindowApi->GetSwapChainColorFormat() = Render::TexFmt::kRGBA16F;
+    const SysWindowApi* windowApi{ initParams.mWindowApi };
+    windowApi->SetSwapChainAutoCreate( false );
     RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-    WindowBackend::SysApi::mIsRendererEnabled = false; // hack
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
       initParams.mWindowApi, "DX12 Frame Buf", errors ) );
   }

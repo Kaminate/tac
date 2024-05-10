@@ -170,7 +170,7 @@ namespace Tac
       // [ ] A: 
 
       // This command queue manages direct command lists (direct = for graphics rendering)
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+      .Type { D3D12_COMMAND_LIST_TYPE_DIRECT },
     };
 
     TAC_DX12_CALL( mDevice->CreateCommandQueue(
@@ -188,10 +188,10 @@ namespace Tac
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps
     // A descriptor heap is a collection of contiguous allocations of descriptors,
     // one allocation for every descriptor.
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = bufferCount,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+      .NumDescriptors { bufferCount },
     };
     TAC_DX12_CALL( mDevice->CreateDescriptorHeap(
                    &desc,
@@ -205,9 +205,9 @@ namespace Tac
   {
     const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-      .NumDescriptors = ( UINT )1,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
+      .NumDescriptors { ( UINT )1 },
+      .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
     };
     TAC_DX12_CALL( mDevice->CreateDescriptorHeap(
                    &desc,
@@ -280,7 +280,6 @@ namespace Tac
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
     mDevice->CreateSampler( &Desc, DestDescriptor );
   }
-
 
   void DX12AppHelloTexture::CreateTexture( Errors& errors )
   {
@@ -496,24 +495,25 @@ namespace Tac
     TAC_CALL( WaitForPreviousFrame( errors ) );
   }
 
-
   void DX12AppHelloTexture::TransitionResource( TransitionParams params )
   {
-    const D3D12_RESOURCE_STATES StateBefore = *params.mCurrentState;
+    const D3D12_RESOURCE_STATES StateBefore { *params.mCurrentState };
 
     TAC_ASSERT( params.mResource );
     TAC_ASSERT( StateBefore != params.mTargetState );
 
+    const D3D12_RESOURCE_TRANSITION_BARRIER Transition 
+    {
+      .pResource   { params.mResource },
+      .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+      .StateBefore { StateBefore },
+      .StateAfter  { params.mTargetState },
+    };
+
     const D3D12_RESOURCE_BARRIER barrier
     {
-      .Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-      .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-      {
-        .pResource = params.mResource,
-        .Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-        .StateBefore = StateBefore,
-        .StateAfter = params.mTargetState,
-      },
+      .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+      .Transition { Transition },
     };
 
     ResourceBarrier( barrier );
@@ -565,19 +565,19 @@ namespace Tac
     {
       Vertex
       {
-        .mPos { ClipSpacePosition3{0.0f, 0.25f * m_aspectRatio, 0.0f} },
+        .mPos { ClipSpacePosition3{ 0.0f, 0.25f * m_aspectRatio, 0.0f } },
         .mCol { LinearColor3{ 1.0f, 0.0f, 0.0f} },
         .mUVs { TextureCoordinate2{.5f, 0} },
       },
       Vertex
       {
-        .mPos { ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mPos { ClipSpacePosition3{ -0.25f, -0.25f * m_aspectRatio, 0.0f } },
         .mCol { LinearColor3{ 0.0f, 0.0f, 1.0f} },
         .mUVs { TextureCoordinate2{0,1} },
       },
       Vertex
       {
-        .mPos { ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f} },
+        .mPos { ClipSpacePosition3{ 0.25f, -0.25f * m_aspectRatio, 0.0f } },
         .mCol { LinearColor3{ 0.0f, 1.0f, 0.0f} },
         .mUVs { TextureCoordinate2{1,1} },
       },
@@ -947,8 +947,8 @@ namespace Tac
 
     m_viewport = D3D12_VIEWPORT
     {
-     .Width { ( float )m_swapChainDesc.Width },
-     .Height { ( float )m_swapChainDesc.Height },
+      .Width { ( float )m_swapChainDesc.Width },
+      .Height { ( float )m_swapChainDesc.Height },
     };
 
     m_scissorRect = D3D12_RECT
@@ -964,11 +964,11 @@ namespace Tac
   void DX12AppHelloTexture::TransitionRenderTarget( const int iRT,
                                                     const D3D12_RESOURCE_STATES targetState )
   {
-    TransitionParams params
+    const TransitionParams params
     {
-       .mResource { ( ID3D12Resource* )m_renderTargets[ iRT ] },
+       .mResource     { ( ID3D12Resource* )m_renderTargets[ iRT ] },
        .mCurrentState { &m_renderTargetStates[ iRT ] },
-       .mTargetState { targetState },
+       .mTargetState  { targetState },
     };
 
     TransitionResource( params );
@@ -980,7 +980,7 @@ namespace Tac
 
     // ID3D12CommandList::ResourceBarrier
     // - Notifies the driver that it needs to synchronize multiple accesses to resources.
-    const Array barriers  { barrier };
+    const Array barriers { barrier };
     m_commandList->ResourceBarrier( ( UINT )barriers.size(), barriers.data() );
   }
 
@@ -1040,7 +1040,7 @@ namespace Tac
     // Indicate that the back buffer will be used as a render target.
     TransitionRenderTarget( m_frameIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
-    const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_frameIndex ) };
+    const Array rtCpuHDescs { GetRTVCpuDescHandle( m_frameIndex ) };
 
     m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
                                        rtCpuHDescs.data(),
@@ -1080,9 +1080,9 @@ namespace Tac
     const D3D12_DRAW_ARGUMENTS drawArgs
     {
       .VertexCountPerInstance { 3 },
-      .InstanceCount { 1 },
-      .StartVertexLocation { 0 },
-      .StartInstanceLocation { 0 },
+      .InstanceCount          { 1 },
+      .StartVertexLocation    { 0 },
+      .StartInstanceLocation  { 0 },
     };
     m_commandList->DrawInstanced( drawArgs.VertexCountPerInstance,
                                   drawArgs.InstanceCount,
@@ -1102,17 +1102,8 @@ namespace Tac
 
   void DX12AppHelloTexture::ClearRenderTargetView()
   {
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_frameIndex );
-
-#if 0
-    const double speed { 3 };
-    const auto t { ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f };
-
-    // Record commands.
-    const v4 clearColor  { t, 0.2f, 0.4f, 1.0f };
-#else
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( m_frameIndex ) };
     const v4 clearColor { v4{ 91, 128, 193, 255.0f } / 255.0f };
-#endif
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
 
@@ -1222,7 +1213,6 @@ namespace Tac
 
   }
 
-
   // -----------------------------------------------------------------------------------------------
 
   // DX12AppHelloTexture
@@ -1231,9 +1221,11 @@ namespace Tac
 
   void DX12AppHelloTexture::Init( InitParams params, Errors& errors )
   {
-    WindowBackend::SysApi::mIsRendererEnabled = false; // hack
+    const SysWindowApi* windowApi{ params.mWindowApi };
+    windowApi->SetSwapChainAutoCreate( false );
 
-    hDesktopWindow = DX12ExampleCreateWindow( params.mWindowApi, "DX12 Texture", errors );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
+      params.mWindowApi, "DX12 Texture", errors ) );
   }
 
   void DX12AppHelloTexture::PreSwapChainInit( Errors& errors)
@@ -1260,7 +1252,6 @@ namespace Tac
     TAC_CALL( CreateSampler( errors ) );
   }
 
-
   void DX12AppHelloTexture::Render( RenderParams renderParams , Errors& errors )
   {
     const SysWindowApi* windowApi { renderParams.mWindowApi };
@@ -1286,7 +1277,6 @@ namespace Tac
 
   void DX12AppHelloTexture::Uninit( Errors& errors )
   {
-
     if( m_commandQueue && m_fence && m_fenceEvent )
       // Ensure that the GPU is no longer referencing resources that are about to be
       // cleaned up by the destructor.

@@ -9,9 +9,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 
 
-#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
 #include "tac-rhi/render3/tac_render_api.h"
-#endif
 
 import std; // mutex
 
@@ -21,7 +19,7 @@ namespace Tac::WindowBackend
   static Render::TexFmt sSwapChainColorFormat = Render::TexFmt::kRGBA16F;
   static Render::TexFmt sSwapChainDepthFormat = Render::TexFmt::kD24S8;
 
-  bool SysApi::mIsRendererEnabled { true };
+  bool SysApi::mCreatesSwapChain { true };
   struct WindowState
   {
     String mName;
@@ -32,9 +30,7 @@ namespace Tac::WindowBackend
 
   using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
   using NWHArray = Array< const void*, kDesktopWindowCapacity >; // Native Window Handles (HWND)
-#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   using FBArray = Array< Render::SwapChainHandle, kDesktopWindowCapacity >; // Window Framebuffers
-#endif
 
   // sWindowStateMutex:
   //   Locked by the platform thread inbetween calls to
@@ -48,9 +44,7 @@ namespace Tac::WindowBackend
   static WindowStates sPlatformCurr;
   static bool         sModificationAllowed;
   static NWHArray     sPlatformNative;
-#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
   static FBArray      sFramebuffers;
-#endif
 
   // Contains data for a window to be created as requested by game logic simulation
   struct SimWindowCreate
@@ -120,15 +114,14 @@ namespace Tac::WindowBackend
     const int i { h.GetIndex() };
     sPlatformCurr[ i ] = WindowState
     {
-      .mName { name },
-      .mPos { pos },
-      .mSize { size },
+      .mName  { name },
+      .mPos   { pos },
+      .mSize  { size },
       .mShown { false },
     };
     sPlatformNative[ i ] = nwh;
 
-#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
-    if( mIsRendererEnabled )
+    if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       const Render::SwapChainParams params
@@ -140,7 +133,6 @@ namespace Tac::WindowBackend
       };
       sFramebuffers[ i ] = renderDevice->CreateSwapChain( params, errors );
     }
-#endif
   }
 
   void SysApi::SetWindowDestroyed( WindowHandle h )
@@ -149,12 +141,12 @@ namespace Tac::WindowBackend
     const int i { h.GetIndex() };
     sPlatformCurr[ i ] = {};
     sPlatformNative[ i ] = {};
-#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    if( mIsRendererEnabled )
+    if( mCreatesSwapChain )
+    {
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       renderDevice->DestroySwapChain( sFramebuffers[ i ] );
+    }
     sFramebuffers[ i ] = {};
-#endif
   }
 
   void SysApi::SetWindowIsVisible( WindowHandle h, bool shown )
@@ -168,13 +160,11 @@ namespace Tac::WindowBackend
     TAC_ASSERT( sModificationAllowed );
     const int i { h.GetIndex() };
     sPlatformCurr[ i ].mSize = size;
-#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
-    if( mIsRendererEnabled )
+    if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       renderDevice->ResizeSwapChain( sFramebuffers[ i ], size );
     }
-#endif
   }
 
   void SysApi::SetWindowPos( WindowHandle h, v2i pos )
@@ -346,15 +336,29 @@ namespace Tac
     FreeWindowHandle( h );
   }
 
-  Render::TexFmt&  SysWindowApi::GetSwapChainColorFormat() const { return sSwapChainColorFormat; }
-  Render::TexFmt&  SysWindowApi::GetSwapChainDepthFormat() const { return sSwapChainDepthFormat; }
+  void             SysWindowApi::SetSwapChainAutoCreate( bool autoCreate ) const
+  {
+    SysApi::mCreatesSwapChain = autoCreate;
+  }
 
-#if TAC_WINDOW_BACKEND_CREATES_SWAP_CHAIN()
+  void             SysWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt ) const
+  {
+    sSwapChainColorFormat = texFmt;
+  }
+
+  void             SysWindowApi::SetSwapChainDepthFormat( Render::TexFmt texFmt ) const
+  {
+    sSwapChainDepthFormat = texFmt;
+  }
+
+  Render::TexFmt   SysWindowApi::GetSwapChainColorFormat() const { return sSwapChainColorFormat; }
+
+  Render::TexFmt   SysWindowApi::GetSwapChainDepthFormat() const { return sSwapChainDepthFormat; }
+
   Render::SwapChainHandle SysWindowApi::GetSwapChainHandle( WindowHandle h ) const
   {
     return sFramebuffers[ h.GetIndex() ];
   }
-#endif
 
   void             SysWindowApi::DesktopWindowDebugImgui()
   {
