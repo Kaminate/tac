@@ -31,8 +31,6 @@
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
-static const UINT myParamIndex = 0;
-
 
 namespace Tac
 {
@@ -216,7 +214,6 @@ namespace Tac
     m_samplerCpuHeapStart = m_samplerHeap->GetCPUDescriptorHandleForHeapStart();
     m_samplerGpuHeapStart = m_samplerHeap->GetGPUDescriptorHandleForHeapStart();
   }
-
 
   void DX12AppHelloTexture::CreateSRVDescriptorHeap( Errors& errors )
   {
@@ -716,8 +713,6 @@ namespace Tac
     TAC_CALL( m_fenceEvent.Init( errors ) );
   }
 
-
-
   void DX12AppHelloTexture::CreateRootSignature( Errors& errors )
   {
     DX12ExampleRootSignatureBuilder builder( ( ID3D12Device* )mDevice );
@@ -750,7 +745,6 @@ namespace Tac
     m_rootSignature = TAC_CALL( builder.Build( errors ) );
     DX12SetName( m_rootSignature, "My Root Signature" );
   }
-
 
   void DX12AppHelloTexture::CreatePipelineState( Errors& errors )
   {
@@ -798,18 +792,16 @@ namespace Tac
       .DepthClipEnable       { true },
     };
 
-    const D3D12_BLEND_DESC BlendState
+    const D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc
     {
-      .RenderTarget = 
-      {
-        D3D12_RENDER_TARGET_BLEND_DESC
-        {
-          .RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL,
-        },
-      },
+      .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
     };
 
-    const DXGI_FORMAT RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    const D3D12_BLEND_DESC BlendState
+    {
+      .RenderTarget { RenderTargetBlendDesc },
+    };
+
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )m_rootSignature },
@@ -854,10 +846,11 @@ namespace Tac
     const SwapChainCreateInfo scInfo
     {
       .mHwnd        { hwnd },
-      .mDevice      { (IUnknown*)m_commandQueue }, // swap chain can force flush the queue
+      .mDevice      { ( IUnknown* )m_commandQueue }, // swap chain can force flush the queue
       .mBufferCount { bufferCount },
       .mWidth       { size.x },
       .mHeight      { size.y },
+      .mFmt         { RTVFormat },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -939,21 +932,21 @@ namespace Tac
 
       DX12SetName( renderTarget.Get(), "Render Target " + ToString( i ) );
 
-      m_renderTargetDescs[i] = renderTarget->GetDesc();
+      m_renderTargetDescs[ i ] = renderTarget->GetDesc();
 
       // the render target resource is created in a state that is ready to be displayed on screen
-      m_renderTargetStates[i] = D3D12_RESOURCE_STATE_PRESENT;
+      m_renderTargetStates[ i ] = D3D12_RESOURCE_STATE_PRESENT;
     }
 
     m_viewport = D3D12_VIEWPORT
     {
-      .Width { ( float )m_swapChainDesc.Width },
+      .Width  { ( float )m_swapChainDesc.Width },
       .Height { ( float )m_swapChainDesc.Height },
     };
 
     m_scissorRect = D3D12_RECT
     {
-      .right { ( LONG )m_swapChainDesc.Width },
+      .right  { ( LONG )m_swapChainDesc.Width },
       .bottom { ( LONG )m_swapChainDesc.Height },
     };
 
