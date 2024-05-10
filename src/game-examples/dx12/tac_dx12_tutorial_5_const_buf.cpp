@@ -5,10 +5,11 @@
 #include "tac_dx12_tutorial_root_sig_builder.h"
 #include "tac_dx12_tutorial_input_layout_builder.h"
 #include "tac_dx12_tutorial_checkerboard.h"
-#include "tac_dx12_tutorial.h"
 
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_forward_list.h"
 #include "tac-std-lib/containers/tac_list.h"
@@ -17,31 +18,22 @@
 #include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
-//#include "tac-std-lib/memory/tac_frame_memory.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
-
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-//#include "src/shell/tac_desktop_window_settings_tracker.h"
-//#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
-static const UINT myParamIndex = 0;
-
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-
 
   struct Vertex
   {
@@ -53,8 +45,6 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   using namespace Render;
-
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -68,8 +58,6 @@ namespace Tac
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
 
-
-
   void DX12AppHelloConstBuf::CreateRTVDescriptorHeap( Errors& errors )
   {
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptors
@@ -78,10 +66,10 @@ namespace Tac
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps
     // A descriptor heap is a collection of contiguous allocations of descriptors,
     // one allocation for every descriptor.
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = bufferCount,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+      .NumDescriptors { bufferCount },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -93,11 +81,11 @@ namespace Tac
 
   void DX12AppHelloConstBuf::CreateSamplerDescriptorHeap( Errors& errors )
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-      .NumDescriptors = ( UINT )1,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
+      .NumDescriptors { ( UINT )1 },
+      .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -110,11 +98,11 @@ namespace Tac
 
   void DX12AppHelloConstBuf::CreateSRVDescriptorHeap( Errors& errors )
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-      .NumDescriptors = ( UINT )SRVIndexes::Count,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
+      .NumDescriptors { ( UINT )SRVIndexes::Count },
+      .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -131,19 +119,20 @@ namespace Tac
     // srv --> byteaddressbuffer
     // uav --> rwbyteaddressbuffer
 
-    const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
+    const D3D12_BUFFER_SRV Buffer
     {
-      .Format = DXGI_FORMAT_R32_TYPELESS, // for byteaddressbuffer
-      .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-      .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING, // swizzling?
-      .Buffer = D3D12_BUFFER_SRV
-      {
-        .FirstElement = 0,
-        .NumElements = m_vertexBufferByteCount / 4,
-        .Flags = D3D12_BUFFER_SRV_FLAG_RAW, // for byteaddressbuffer
-      },
+      .FirstElement { 0 },
+      .NumElements  { m_vertexBufferByteCount / 4 },
+      .Flags        { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
     };
 
+    const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
+    {
+      .Format                  { DXGI_FORMAT_R32_TYPELESS }, // for byteaddressbuffer
+      .ViewDimension           { D3D12_SRV_DIMENSION_BUFFER },
+      .Shader4ComponentMapping { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING }, // swizzling?
+      .Buffer                  { Buffer },
+    };
 
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
       GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer );
@@ -157,15 +146,15 @@ namespace Tac
   {
     const D3D12_SAMPLER_DESC Desc
     {
-      .Filter = D3D12_FILTER_MIN_MAG_MIP_POINT,
-      .AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
-      .MinLOD = 0,
-      .MaxLOD = D3D12_FLOAT32_MAX,
+      .Filter         { D3D12_FILTER_MIN_MAG_MIP_POINT },
+      .AddressU       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressV       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressW       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
+      .MinLOD         { 0 },
+      .MaxLOD         { D3D12_FLOAT32_MAX },
     };
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor { GetSamplerCpuDescHandle( 0 ) };
     m_device->CreateSampler( &Desc, DestDescriptor );
   }
 
@@ -182,7 +171,7 @@ namespace Tac
     // the command list that references it has finished executing on the GPU.
     // We will flush the GPU at the end of this method to ensure the resource is not
     // prematurely destroyed.
-    PCom<ID3D12Resource> textureUploadHeap;
+    PCom< ID3D12Resource > textureUploadHeap;
 
 
     // Create the texture.
@@ -202,12 +191,12 @@ namespace Tac
       .DepthOrArraySize { 1 },
       .MipLevels        { 1 },
       .Format           { DXGI_FORMAT_R8G8B8A8_UNORM },
-      .SampleDesc       {SampleDesc},
+      .SampleDesc       { SampleDesc },
     };
 
     m_textureDesc = resourceDesc;
 
-    const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type = D3D12_HEAP_TYPE_DEFAULT, };
+    const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type { D3D12_HEAP_TYPE_DEFAULT }, };
 
     TAC_CALL( m_device->CreateCommittedResource(
       &defaultHeapProps,
@@ -358,7 +347,7 @@ namespace Tac
       .Format                   { resourceDesc.Format },
       .ViewDimension            { D3D12_SRV_DIMENSION_TEXTURE2D },
       .Shader4ComponentMapping  { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING },
-      .Texture2D                { D3D12_TEX2D_SRV {.MipLevels { 1 }, } },
+      .Texture2D                { D3D12_TEX2D_SRV { .MipLevels { 1 }, } },
     };
 
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ GetSRVCpuDescHandle( SRVIndexes::TriangleTexture ) };
@@ -369,19 +358,20 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    TAC_CALL( const FenceSignal signalValue { mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) } );
+    TAC_CALL( const FenceSignal signalValue {
+      mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) } );
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
     // list in our main loop but for now, we just want to wait for setup to 
     // complete before continuing.
-    TAC_CALL(mCommandQueue.WaitForFence(signalValue, errors ));
+    TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
 
 
   void DX12AppHelloConstBuf::TransitionResource( TransitionParams params )
   {
-    const D3D12_RESOURCE_STATES StateBefore = *params.mCurrentState;
+    const D3D12_RESOURCE_STATES StateBefore { *params.mCurrentState };
 
     TAC_ASSERT( params.mResource );
     TAC_ASSERT( StateBefore != params.mTargetState );
@@ -564,7 +554,6 @@ namespace Tac
         m_vertexBuffer.ppv() ) );
 
       DX12SetName( m_vertexBuffer, "vtxbuf" );
-
     }
 
 
@@ -583,7 +572,6 @@ namespace Tac
     if( !m_vertexBufferCopied )
     {
       m_vertexBufferCopied = true;
-
 
       TAC_DX12_CALL( m_commandAllocator->Reset() );
       TAC_DX12_CALL( m_commandList->Reset(
@@ -620,14 +608,14 @@ namespace Tac
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( m_commandList->Close() );
 
-    const FenceSignal signalValue =
-      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
+    TAC_CALL( const FenceSignal signalValue{
+      mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) } );
 
     // wait until assets have been uploaded to the GPU.
     // Wait for the command list to execute; we are reusing the same command 
     // list in our main loop but for now, we just want to wait for setup to 
     // complete before continuing.
-    TAC_CALL( mCommandQueue.WaitForFence(signalValue, errors ) ) ;
+    TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
 
 
     TAC_CALL( CreateVertexBufferSRV( errors ) );
@@ -771,15 +759,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloConstBuf::DX12CreateSwapChain( Errors& errors )
+  void DX12AppHelloConstBuf::DX12CreateSwapChain(const SysWindowApi* windowApi, Errors& errors )
   {
     if( m_swapChain )
       return;
 
-    const DesktopWindowState* state { GetDesktopWindowState( hDesktopWindow ) };
-    const auto hwnd { ( HWND )state->mNativeWindowHandle };
+    auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
+
+    const v2i size { windowApi->GetSize( hDesktopWindow ) };
 
     ID3D12CommandQueue* commandQueue { mCommandQueue.GetCommandQueue() };
     TAC_ASSERT( commandQueue );
@@ -787,10 +776,11 @@ namespace Tac
     const SwapChainCreateInfo scInfo
     {
       .mHwnd        { hwnd },
-      .mDevice      { ( IUnknown* )commandQueue, // swap chain can force flush the queu }e
+      .mDevice      { ( IUnknown* )commandQueue }, // swap chain can force flush the queue
       .mBufferCount { bufferCount },
-      .mWidth       { state->mWidth },
-      .mHeight      { state->mHeight },
+      .mWidth       { size.x },
+      .mHeight      { size.y },
+      .mFmt         { RTVFormat },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -957,12 +947,11 @@ namespace Tac
     // sets the scissor rect of the pipeline state's rasterizer state?
     m_commandList->RSSetScissorRects( ( UINT )m_scissorRects.size(), m_scissorRects.data() );
 
-
-
     const Array descHeaps {
       ( ID3D12DescriptorHeap* )m_srvHeap,
       ( ID3D12DescriptorHeap* )m_samplerHeap,
     };
+
     m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
     // The TriangleVertexBuffer and TriangleTexture SRVs both live in the m_srvHeap.
@@ -1014,7 +1003,7 @@ namespace Tac
 
         const int byteCount { RoundUpToNearestMultiple( sizeof( MyCBufType ), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
 
-        TAC_CALL( GPUUploadAllocator::DynAlloc allocation{ mUploadAllocator.Allocate( byteCount, errors ) } );
+        TAC_CALL( DX12ExampleGPUUploadAllocator::DynAlloc allocation{ mUploadAllocator.Allocate( byteCount, errors ) } );
 
         MemCpy( allocation.mCPUAddr, &cbuf, sizeof( MyCBufType ) );
 
@@ -1140,17 +1129,8 @@ namespace Tac
 
   void DX12AppHelloConstBuf::ClearRenderTargetView()
   {
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_frameIndex );
-
-#if 0
-    const double speed { 3 };
-    const auto t { ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f };
-
-    // Record commands.
-    const v4 clearColor { { t, 0.2f, 0.4f, 1.0f } };
-#else
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( m_frameIndex ) };
     const v4 clearColor { v4{ 91, 128, 193, 255.0f } / 255.0f };
-#endif
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
   }
 
@@ -1195,8 +1175,6 @@ namespace Tac
 
   }
 
-
-
   // -----------------------------------------------------------------------------------------------
 
   // DX12AppHelloConstBuf
@@ -1219,22 +1197,19 @@ namespace Tac
 
     TAC_CALL( DXGIInit( errors ) );
 
-    DX12DebugLayer debugLayer;
+    DX12ExampleDebugLayer debugLayer;
     TAC_CALL( debugLayer.Init( errors ) );
 
-    DX12DeviceInitializer deviceInitializer;
-    TAC_CALL(deviceInitializer.Init( debugLayer, errors ));
+    DX12ExampleDevice deviceInitializer;
+    TAC_CALL( deviceInitializer.Init( debugLayer, errors ) );
 
-    m_device = deviceInitializer.GetDevice()
-      .QueryInterface<ID3D12Device5>();
-    m_debugDevice = deviceInitializer.GetDebugDevice()
-      .QueryInterface<ID3D12DebugDevice2 >();
+    m_device = deviceInitializer.mDevice
+      .QueryInterface< ID3D12Device5 >();
+    m_debugDevice = deviceInitializer.mDebugDevice
+      .QueryInterface< ID3D12DebugDevice2 >();
 
-
-
-
-    DX12InfoQueue infoQueue;
-    TAC_CALL(infoQueue.Init( debugLayer, m_device.Get(), errors ));
+    DX12ExampleInfoQueue infoQueue;
+    TAC_CALL( infoQueue.Init( debugLayer, m_device.Get(), errors ) );
 
     InitDescriptorSizes();
     TAC_CALL( mCommandQueue.Create( m_device.Get(), errors ) );
@@ -1254,11 +1229,16 @@ namespace Tac
 
   void DX12AppHelloConstBuf::Update( UpdateParams updateParams, Errors& errors )
   {
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+  }
+
+  void DX12AppHelloConstBuf::Render( RenderParams renderParams, Errors&  errors )
+  {
+    const SysWindowApi* windowApi{ renderParams.mWindowApi };
+    if( !windowApi->IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( errors ) );
+    TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
     TAC_CALL( CreateVertexBuffer( errors ) );
     TAC_CALL( CreateTexture( errors ) );

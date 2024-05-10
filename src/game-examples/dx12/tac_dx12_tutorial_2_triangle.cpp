@@ -373,12 +373,12 @@ namespace Tac
 
     PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence(
-                   initialVal,
-                   D3D12_FENCE_FLAG_NONE,
-                   fence.iid(),
-                   fence.ppv() ) );
+      initialVal,
+      D3D12_FENCE_FLAG_NONE,
+      fence.iid(),
+      fence.ppv() ) );
 
-    fence.QueryInterface(m_fence);
+    fence.QueryInterface( m_fence );
     DX12SetName( fence, "fence" );
 
     m_fenceValue = 1;
@@ -587,6 +587,7 @@ namespace Tac
       .mBufferCount { bufferCount },
       .mWidth       { size.x },
       .mHeight      { size.y },
+      .mFmt         { TexFmtToDxgiFormat( mRTVFmt ) },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ));
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -955,13 +956,9 @@ namespace Tac
   void DX12AppHelloTriangle::Init( InitParams initParams, Errors& errors )
   {
     const SysWindowApi* windowApi{ initParams.mWindowApi };
-    WindowBackend::SysApi::mIsRendererEnabled = false;
-
-    mRTVFmt = windowApi->GetSwapChainColorFormat();
+    windowApi->SetSwapChainAutoCreate( false );
 
     TAC_CALL( PreSwapChainInit( initParams, errors ));
-
-
   }
 
   void DX12AppHelloTriangle::PreSwapChainInit( InitParams initParams,Errors& errors)

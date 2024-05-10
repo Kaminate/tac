@@ -29,27 +29,6 @@ namespace Tac
 
   // Helper functions for App::Init
 
-  void DX12AppHelloWindow::CreateDesktopWindow()
-  {
-    const Monitor monitor { OS::OSGetPrimaryMonitor() };
-    const int s{ Min(monitor.mSize.x, monitor.mSize.y) / 2 };
-    const DesktopAppCreateWindowParams desktopParams
-    {
-      .mName   { "DX12 Window" },
-      .mX      { ( monitor.mSize.x - s ) / 2 },
-      .mY      { ( monitor.mSize.y - s ) / 2 },
-      .mWidth  { s },
-      .mHeight { s },
-    };
-    hDesktopWindow = CreateTrackedWindow( desktopParams );
-
-    //hDesktopWindow = DesktopApp::GetInstance()->CreateWindow( desktopParams );
-    DesktopApp::GetInstance()->ResizeControls( hDesktopWindow );
-    DesktopApp::GetInstance()->MoveControls( hDesktopWindow );
-    QuitProgramOnWindowClose( hDesktopWindow );
-
-  }
-
   void DX12AppHelloWindow::EnableDebug( Errors& errors )
   {
     if constexpr( !IsDebugMode )
@@ -203,22 +182,28 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloWindow::DX12CreateSwapChain( Errors& errors )
+  void DX12AppHelloWindow::DX12CreateSwapChain( const SysWindowApi* windowApi,
+                                                Errors& errors )
   {
-    const DesktopWindowState* state { GetDesktopWindowState( hDesktopWindow ) };
-    const auto hwnd = ( HWND )state->mNativeWindowHandle;
+    if( m_swapChain )
+      return;
+
+    auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
+
+    const v2i size { windowApi->GetSize( hDesktopWindow ) };
 
     TAC_ASSERT( m_commandQueue );
 
     const SwapChainCreateInfo scInfo
     {
-      .mHwnd { hwnd },
-      .mDevice { (IUnknown*)m_commandQueue }, // swap chain can force flush the queue
+      .mHwnd        { hwnd },
+      .mDevice      { (IUnknown*)m_commandQueue }, // swap chain can force flush the queue
       .mBufferCount { bufferCount },
-      .mWidth { state->mWidth },
-      .mHeight { state->mHeight },
+      .mWidth       { size.x },
+      .mHeight      { size.y },
+      .mFmt         { RTVFormat },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -467,13 +452,17 @@ namespace Tac
 
   void DX12AppHelloWindow::Update( UpdateParams updateParams, Errors& errors )
   {
+  }
 
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+  void DX12AppHelloWindow::Render( RenderParams renderParams, Errors& errors )
+  {
+    const SysWindowApi* windowApi { renderParams.mWindowApi };
+    if( !windowApi->IsShown( hDesktopWindow ) )
       return;
 
     if( !m_swapChain )
     {
-      TAC_CALL( DX12CreateSwapChain( errors ) );
+      TAC_CALL( DX12CreateSwapChain( renderParams.mWindowApi, errors ) );
       TAC_CALL( CreateRenderTargetViews( errors ) );
     }
 
@@ -483,11 +472,7 @@ namespace Tac
     ExecuteCommandLists();
 
     TAC_CALL( SwapChainPresent( errors ) );
-
-
     TAC_CALL( WaitForPreviousFrame( errors ) );
-
-    ++asdf;
   }
 
   void DX12AppHelloWindow::Uninit( Errors& errors )

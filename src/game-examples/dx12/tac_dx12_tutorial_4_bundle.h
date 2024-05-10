@@ -32,6 +32,7 @@ namespace Tac
 
     void Init( InitParams, Errors& ) override;
     void Update( UpdateParams, Errors& ) override;
+    void Render( RenderParams, Errors& ) override;
     void Uninit( Errors& ) override;
 
   private:
@@ -62,7 +63,7 @@ namespace Tac
     
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( Errors& );
+    void DX12CreateSwapChain( const SysWindowApi*, Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
@@ -199,6 +200,7 @@ namespace Tac
 
     PCom< IDXGISwapChain4 >            m_swapChain;
     DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc{};
+    DXGI_FORMAT                        RTVFormat{ DXGI_FORMAT_R16G16B16A16_FLOAT };
  
     // ---------------------------------------------------------------------------------------------
 

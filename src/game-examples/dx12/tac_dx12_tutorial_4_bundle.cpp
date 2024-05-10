@@ -771,30 +771,14 @@ namespace Tac
   {
     const AssetPathStringView shaderAssetPath { "assets/hlsl/DX12HelloBundle.hlsl" };
 
-    TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
-
-    TAC_CALL( DX12ProgramCompiler::Result compileResult{ compiler.Compile( shaderAssetPath, errors ) } );
-
-    const VertexDeclaration posDecl
+    const DX12ExampleProgramCompiler::Params programInput
     {
-      .mAttribute         { Attribute::Position },
-      .mTextureFormat     { Format::sv3 },
-      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
+      .mOutputDir { sShellPrefPath },
+      .mDevice    { ( ID3D12Device* )m_device },
     };
+    TAC_CALL( DX12ExampleProgramCompiler compiler( programInput, errors ) );
 
-    const VertexDeclaration colDecl
-    {
-      .mAttribute         { Attribute::Color },
-      .mTextureFormat     { Format::sv3 },
-      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
-    };
-
-    VertexDeclarations decls;
-    decls.push_back( posDecl );
-    decls.push_back( colDecl );
-
-    const DX12BuiltInputLayout inputLayout{ decls };
-
+    TAC_CALL( DX12ExampleProgramCompiler::Result compileResult{ compiler.Compile( shaderAssetPath, errors ) } );
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
@@ -807,23 +791,24 @@ namespace Tac
       .DepthClipEnable       { true },
     };
 
+    const D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc
+    {
+      .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
+    };
+
     const D3D12_BLEND_DESC BlendState
     {
-      .RenderTarget = 
-      {
-        D3D12_RENDER_TARGET_BLEND_DESC
-        {
-          .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
-        },
-      },
+      .RenderTarget { RenderTargetBlendDesc },
     };
+
+    const DXGI_SAMPLE_DESC SampleDesc{ .Count{ 1 } };
 
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       // If the root signature doesn't match shader state, it throws an error
       .pRootSignature        { ( ID3D12RootSignature* )m_rootSignature },
-      .VS                    { compileResult.GetBytecode( Render::ShaderType::Vertex )},
-      .PS                    { compileResult.GetBytecode(Render::ShaderType::Fragment )},
+      .VS                    { compileResult.mVSBytecode },
+      .PS                    { compileResult.mPSBytecode },
       .BlendState            { BlendState },
       .SampleMask            { UINT_MAX },
       .RasterizerState       { RasterizerState },
@@ -831,8 +816,8 @@ namespace Tac
       .InputLayout           { D3D12_INPUT_LAYOUT_DESC{} },
       .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
       .NumRenderTargets      { 1 },
-      .RTVFormats            { DXGIGetSwapChainFormat() },
-      .SampleDesc            { .Count = 1 },
+      .RTVFormats            { RTVFormat },
+      .SampleDesc            { SampleDesc },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
               &psoDesc,
@@ -847,15 +832,18 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloBundle::DX12CreateSwapChain( Errors& errors )
+  void DX12AppHelloBundle::DX12CreateSwapChain( const SysWindowApi* windowApi,
+                                                Errors& errors )
   {
     if( m_swapChain )
       return;
 
-    const DesktopWindowState* state { GetDesktopWindowState( hDesktopWindow ) };
-    const auto hwnd { ( HWND )state->mNativeWindowHandle };
+    auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
+
+    const v2i size { windowApi->GetSize( hDesktopWindow ) };
+
 
     TAC_ASSERT( m_commandQueue );
 
@@ -864,8 +852,9 @@ namespace Tac
       .mHwnd        { hwnd },
       .mDevice      { (IUnknown*)m_commandQueue }, // swap chain can force flush the queue
       .mBufferCount { bufferCount },
-      .mWidth       { state->mWidth },
-      .mHeight      { state->mHeight },
+      .mWidth       { size.x },
+      .mHeight      { size.y },
+      .mFmt         { RTVFormat },
     };
     m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -1306,11 +1295,16 @@ namespace Tac
 
   void DX12AppHelloBundle::Update( UpdateParams updateParams, Errors& errors )
   {
-    if( !GetDesktopWindowNativeHandle( hDesktopWindow ) )
+  }
+
+  void DX12AppHelloBundle::Render( RenderParams renderParams, Errors& errors )
+  {
+    const SysWindowApi* windowApi { renderParams.mWindowApi };
+    if( !windowApi->IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( errors ) );
+    TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
     TAC_CALL( CreateVertexBuffer( errors ) );
     TAC_CALL( CreateTexture( errors ) );

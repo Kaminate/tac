@@ -43,10 +43,31 @@ namespace Tac
     TextureCoordinate2 mUVs;
   };
 
+  static VertexDeclarations GetVertexDecls()
+  {
+    const VertexDeclaration posDecl
+    {
+      .mAttribute         { Attribute::Position },
+      .mFormat            { Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
+    };
+
+    const VertexDeclaration colDecl
+    {
+      .mAttribute         { Attribute::Color },
+      .mFormat            { Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
+    };
+
+    VertexDeclarations decls;
+    decls.push_back( posDecl );
+    decls.push_back( colDecl );
+    return decls;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   using namespace Render;
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -761,23 +782,9 @@ namespace Tac
     TAC_CALL( DX12ExampleProgramCompiler::Result compileResult
               { compiler.Compile( shaderAssetPath, errors ) } );
 
-    const VertexDeclaration posDecl
-    {
-      .mAttribute         { Attribute::Position },
-      .mFormat            { Format::sv3 },
-      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
-    };
 
-    const VertexDeclaration colDecl
-    {
-      .mAttribute         { Attribute::Color },
-      .mFormat            { Format::sv3 },
-      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
-    };
+    const VertexDeclarations decls{ GetVertexDecls() };
 
-    VertexDeclarations decls;
-    decls.push_back( posDecl );
-    decls.push_back( colDecl );
 
     const DX12BuiltInputLayout inputLayout( decls );
 
