@@ -75,8 +75,9 @@ namespace Tac::Render
 
   // you know... this code assumes all the shaders are in the same file... why would that
   // even be a fair assumption...
-  DX12ExampleProgramCompiler::Result DX12ExampleProgramCompiler::Compile( const AssetPathStringView& path,
-                                                                          Errors& errors )
+  DX12ExampleProgramCompiler::Result DX12ExampleProgramCompiler::Compile(
+    const AssetPathStringView& path,
+    Errors& errors ) const
   {
 
     const String shaderStrProcessed = HLSLPreprocess( path, errors );

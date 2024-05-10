@@ -4,6 +4,10 @@ add_executable( render_tutorial_3_texture  WIN32 "tac_render_tutorial_3_texture.
 
 get_property( targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS )
 foreach( targetname ${targetnames} )
+  target_sources ( ${targetname} PRIVATE
+    tac_render_tutorial.cpp 
+    tac_render_tutorial.h
+  )
 
   set_target_properties( ${targetname} PROPERTIES FOLDER "Render Tutorial" )
 

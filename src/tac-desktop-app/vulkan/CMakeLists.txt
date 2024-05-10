@@ -6,9 +6,9 @@ if( NOT Vulkan_FOUND )
   return()
 endif()
 
-add_library(TacVkRenderer)
+add_library( TacVkRenderer )
 
-add_subdirectory(thirdparty)
+add_subdirectory( thirdparty )
 
 
 target_link_libraries( TacVkRenderer TacEngineCore )
@@ -17,7 +17,7 @@ if( TARGET TacDesktopVk)
   target_link_libraries( TacVkRenderer TacDesktopVk )
 endif()
 
-target_sources(TacVkRenderer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.cpp"
+target_sources( TacVkRenderer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.cpp"
                                      "${CMAKE_CURRENT_SOURCE_DIR}/tac_vk_types.h"
                               PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tac_renderer_vulkan.h" )
 

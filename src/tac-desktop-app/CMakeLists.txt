@@ -45,7 +45,16 @@ endif() # if( Vulkan_FOUND )
 
 add_subdirectory( tac-win32 )
 add_subdirectory( sdl )
-add_subdirectory( vulkan )
+# add_subdirectory( vulkan )
+# ^^^^^^
+# CMake Error in src/tac-desktop-app/vulkan/CMakeLists.txt:
+# Imported target "Vulkan::Vulkan" includes non-existent path
+# "E:/VulkanSDK/1.2.189.2/Include"
+# in its INTERFACE_INCLUDE_DIRECTORIES.  Possible reasons include:
+# * The path was deleted, renamed, or moved to another location.
+# * An install or uninstall procedure did not complete successfully.
+# * The installation package was faulty and references files it does not
+# provide.
 
 
 # add_library( TacDesktopApp OBJECT )

@@ -27,7 +27,7 @@ namespace Tac::Render
     };
 
     DX12ExampleProgramCompiler( Params, Errors& );
-    Result Compile( const AssetPathStringView&, Errors& );
+    Result Compile( const AssetPathStringView&, Errors& ) const;
 
   };
 

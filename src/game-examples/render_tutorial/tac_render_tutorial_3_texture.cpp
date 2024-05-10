@@ -1,7 +1,8 @@
+#include "tac_render_tutorial.h"
 #include "tac-std-lib/math/tac_vector3.h"
-#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
@@ -9,19 +10,6 @@
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-  struct ClipSpacePosition3
-  {
-    explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
-    explicit ClipSpacePosition3( float x, float y, float z ) : mValue{ x, y, z } {}
-    v3 mValue;
-  };
-
-  struct LinearColor3
-  {
-    explicit LinearColor3( v3 v ) : mValue( v ) {}
-    explicit LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
-    v3 mValue;
-  };
 
   struct Vertex
   {
@@ -41,12 +29,11 @@ namespace Tac
     void Render( RenderParams, Errors& ) override;
 
   private:
-    void InitWindow( InitParams, Errors& );
     void InitVertexBuffer( Errors& );
     void InitShader( Errors& );
     void InitRootSig( Errors& );
 
-    WindowHandle           sWindowHandle;
+    WindowHandle           mWindowHandle;
     Render::BufferHandle   mVtxBuf;
     Render::ProgramHandle  mShader;
     Render::PipelineHandle mPipeline;
@@ -61,25 +48,11 @@ namespace Tac
     const SysWindowApi* windowApi{ initParams.mWindowApi };
     mColorFormat = windowApi->GetSwapChainColorFormat();
     mDepthFormat = windowApi->GetSwapChainDepthFormat();
-
-    InitWindow( initParams, errors );
+    TAC_CALL( mWindowHandle = RenderTutorialCreateWindow(
+      initParams.mWindowApi, "Hello Texture", errors ) );
     InitVertexBuffer( errors );
     InitShader( errors );
     InitRootSig( errors );
-  }
-
-  void HelloTexture::InitWindow( InitParams initParams, Errors& errors )
-  {
-    const Monitor monitor { OS::OSGetPrimaryMonitor() };
-    const v2i windowSize{ monitor.mSize / 2 };
-    const v2i windowPos{ ( monitor.mSize - windowSize ) / 2 };
-    const WindowCreateParams windowCreateParams
-    {
-      .mName{ "Hello Triangle" },
-      .mPos { windowPos },
-      .mSize{ windowSize },
-    };
-    sWindowHandle = initParams.mWindowApi->CreateWindow( windowCreateParams, errors );
   }
 
   void HelloTexture::InitShader( Errors& errors )
@@ -141,8 +114,8 @@ namespace Tac
   void HelloTexture::Render( RenderParams sysRenderParams, Errors& errors )
   {
     const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
-    const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
-    Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( sWindowHandle ) };
+    const v2i windowSize{ windowApi->GetSize( mWindowHandle ) };
+    Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( mWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };

@@ -36,19 +36,7 @@ const UINT myParamIndex { 0 };
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-  struct ClipSpacePosition3
-  {
-    explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
-    explicit ClipSpacePosition3(float x, float y, float z) : mValue{ x,y,z } {}
-    v3 mValue;
-  };
 
-  struct LinearColor3
-  {
-    explicit LinearColor3( v3 v ) : mValue( v ) {}
-    explicit LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
-    v3 mValue;
-  };
 
   struct Vertex
   {

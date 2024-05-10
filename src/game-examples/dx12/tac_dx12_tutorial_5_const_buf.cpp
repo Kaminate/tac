@@ -42,25 +42,6 @@ namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
 
-  struct ClipSpacePosition3
-  {
-    explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
-    explicit ClipSpacePosition3(float x, float y, float z) : mValue{ x,y,z } {}
-    v3 mValue;
-  };
-
-  struct LinearColor3
-  {
-    explicit LinearColor3( v3 v ) : mValue( v ) {}
-    explicit LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
-    v3 mValue;
-  };
-
-  struct TextureCoordinate2
-  {
-    explicit TextureCoordinate2( float u, float v ) : mValue{ u, v } {}
-    v2 mValue;
-  };
 
   struct Vertex
   {
@@ -696,31 +677,49 @@ namespace Tac
   }
 
 
+  static VertexDeclarations GetVertexDeclarations()
+  {
+    const VertexDeclaration posDecl
+    {
+      .mAttribute         { Attribute::Position },
+      .mFormat            { Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
+    };
+
+    const VertexDeclaration colDecl
+    {
+      .mAttribute         { Attribute::Color },
+      .mFormat            { Format::sv3 },
+      .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
+    };
+
+    VertexDeclarations vtxDecls;
+    vtxDecls.push_back( posDecl );
+    vtxDecls.push_back( colDecl );
+
+    return vtxDecls;
+  }
 
   void DX12AppHelloConstBuf::CreatePipelineState( Errors& errors )
   {
     const AssetPathStringView shaderAssetPath { "assets/hlsl/DX12HelloConstBuf.hlsl" };
 
-    TAC_CALL( DX12ProgramCompiler compiler( ( ID3D12Device* )m_device, errors ) );
 
-    DX12ProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile(shaderAssetPath, errors) );
+    const DX12ExampleProgramCompiler::Params programParams
+    {
+      .mOutputDir { sShellPrefPath },
+      .mDevice    { m_device.Get() },
+    };
 
-    const DX12BuiltInputLayout inputLayout{
-      VertexDeclarations
-      {
-        VertexDeclaration
-        {
-          .mAttribute         { Attribute::Position },
-          .mFormat            { Format::sv3 },
-          .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
-        },
-        VertexDeclaration
-        {
-          .mAttribute         { Attribute::Color },
-          .mFormat            { Format::sv3 },
-          .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
-        },
-      } };
+    TAC_CALL( const DX12ExampleProgramCompiler compiler( programParams, errors ) );
+
+    TAC_CALL( const DX12ExampleProgramCompiler::Result compileResult{
+      compiler.Compile( shaderAssetPath, errors ) } );
+
+
+    const VertexDeclarations vtxDecls{ GetVertexDeclarations() };
+
+    const DX12BuiltInputLayout inputLayout{ vtxDecls };
 
 
     const D3D12_RASTERIZER_DESC RasterizerState
@@ -748,8 +747,8 @@ namespace Tac
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )m_rootSignature },
-      .VS                    { compileResult.GetBytecode(Render::ShaderType::Vertex ) },
-      .PS                    { compileResult.GetBytecode(Render::ShaderType::Fragment ) },
+      .VS                    { compileResult.mVSBytecode },
+      .PS                    { compileResult.mPSBytecode },
       .BlendState            { BlendState },
       .SampleMask            { UINT_MAX },
       .RasterizerState       { RasterizerState },
@@ -789,7 +788,7 @@ namespace Tac
     const SwapChainCreateInfo scInfo
     {
       .mHwnd        { hwnd },
-      .mDevice      { (IUnknown*)commandQueue, // swap chain can force flush the queu }e
+      .mDevice      { ( IUnknown* )commandQueue, // swap chain can force flush the queu }e
       .mBufferCount { bufferCount },
       .mWidth       { state->mWidth },
       .mHeight      { state->mHeight },

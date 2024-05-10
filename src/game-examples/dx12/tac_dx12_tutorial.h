@@ -2,6 +2,8 @@
 
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/math/tac_vector2.h"
+#include "tac-std-lib/math/tac_vector3.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
 
@@ -40,6 +42,26 @@ namespace Tac::Render
   {
     void Init( const DX12ExampleDebugLayer&, ID3D12Device*, Errors& );
     PCom< ID3D12InfoQueue >            mInfoQueue;
+  };
+
+  struct ClipSpacePosition3
+  {
+    explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
+    explicit ClipSpacePosition3(float x, float y, float z) : mValue{ x,y,z } {}
+    v3 mValue;
+  };
+
+  struct LinearColor3
+  {
+    explicit LinearColor3( v3 v ) : mValue( v ) {}
+    explicit LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
+    v3 mValue;
+  };
+
+  struct TextureCoordinate2
+  {
+    explicit TextureCoordinate2( float u, float v ) : mValue{ u, v } {}
+    v2 mValue;
   };
 
   bool DX12SupportsRayTracing( ID3D12Device*, Errors& );

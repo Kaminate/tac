@@ -1,5 +1,6 @@
-#include "tac-std-lib/math/tac_vector3.h"
+#include "tac_render_tutorial.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
+#include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
@@ -9,19 +10,7 @@
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-  struct ClipSpacePosition3
-  {
-    explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
-    explicit ClipSpacePosition3( float x, float y, float z ) : mValue{ x, y, z } {}
-    v3 mValue;
-  };
 
-  struct LinearColor3
-  {
-    explicit LinearColor3( v3 v ) : mValue( v ) {}
-    explicit LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
-    v3 mValue;
-  };
 
   struct Vertex
   {
@@ -96,16 +85,8 @@ namespace Tac
 
   void HelloTriangle::InitWindow( InitParams initParams, Errors& errors )
   {
-    const Monitor monitor { OS::OSGetPrimaryMonitor() };
-    const v2i windowSize{ monitor.mSize / 2 };
-    const v2i windowPos{ ( monitor.mSize - windowSize ) / 2 };
-    const WindowCreateParams windowCreateParams
-    {
-      .mName{ "Hello Triangle" },
-      .mPos { windowPos },
-      .mSize{ windowSize },
-    };
-    sWindowHandle = initParams.mWindowApi->CreateWindow( windowCreateParams, errors );
+      TAC_CALL( sWindowHandle = RenderTutorialCreateWindow(
+        initParams.mWindowApi, "Hello Triangle", errors ) );
   }
 
   void HelloTriangle::InitShader( Errors& errors )
