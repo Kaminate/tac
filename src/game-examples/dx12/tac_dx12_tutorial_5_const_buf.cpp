@@ -1183,8 +1183,9 @@ namespace Tac
 
   void DX12AppHelloConstBuf::Init( InitParams initParams, Errors& errors )
   {
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
-      initParams.mWindowApi, "DX12 Const Buf", errors ) );
+    const SysWindowApi* windowApi{ initParams.mWindowApi };
+    windowApi->SetSwapChainAutoCreate( false );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Const Buf", errors ) );
   }
 
   void DX12AppHelloConstBuf::PreSwapChainInit( Errors& errors)

@@ -1263,8 +1263,9 @@ namespace Tac
 
   void DX12AppHelloBundle::Init( InitParams initParams, Errors& errors )
   {
-    TAC_CALL(
-      hDesktopWindow = DX12ExampleCreateWindow( initParams.mWindowApi, "DX12 Bundle", errors ) );
+    const SysWindowApi* windowApi{ initParams.mWindowApi };
+    windowApi->SetSwapChainAutoCreate( false );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Bundle", errors ) );
   }
 
   void DX12AppHelloBundle::PreSwapChainInit( Errors& errors)

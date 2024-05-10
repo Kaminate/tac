@@ -958,14 +958,8 @@ namespace Tac
     const SysWindowApi* windowApi{ initParams.mWindowApi };
     windowApi->SetSwapChainAutoCreate( false );
 
-    TAC_CALL( PreSwapChainInit( initParams, errors ));
-  }
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Window", errors ) );
 
-  void DX12AppHelloTriangle::PreSwapChainInit( InitParams initParams,Errors& errors)
-  {
-    TAC_CALL(
-      hDesktopWindow = DX12ExampleCreateWindow( initParams.mWindowApi, "DX12 Window", errors );
-    );
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
     TAC_CALL( CreateDevice( errors ) );

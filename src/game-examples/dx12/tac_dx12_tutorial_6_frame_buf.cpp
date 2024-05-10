@@ -53,7 +53,7 @@ namespace Tac
 
   using namespace Render;
 
-  static DXGI_FORMAT RTVFormat { DXGI_FORMAT_UNKNOWN };
+  static const DXGI_FORMAT RTVFormat { DXGI_FORMAT_R16G16B16A16_FLOAT };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -1025,10 +1025,8 @@ namespace Tac
   {
     const SysWindowApi* windowApi{ initParams.mWindowApi };
     windowApi->SetSwapChainAutoCreate( false );
-    RTVFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
-      initParams.mWindowApi, "DX12 Frame Buf", errors ) );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Frame Buf", errors ) );
   }
 
   void         DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)

@@ -436,8 +436,9 @@ namespace Tac
 
   void DX12AppHelloWindow::Init( InitParams initParams, Errors& errors )
   {
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
-      initParams.mWindowApi, "DX12 Window", errors ) );
+    const SysWindowApi* windowApi{ initParams.mWindowApi };
+    windowApi->SetSwapChainAutoCreate( false );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Window", errors ) );
 
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
