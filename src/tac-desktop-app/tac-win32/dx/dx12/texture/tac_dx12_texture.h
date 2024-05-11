@@ -13,8 +13,8 @@ namespace Tac::Render
     PCom< ID3D12Resource >                    mResource;
     D3D12_RESOURCE_DESC                       mDesc{};
     D3D12_RESOURCE_STATES                     mState{};
-    Optional< DX12DescriptorHeapAllocation >  mRTV;
-    Optional< DX12DescriptorHeapAllocation >  mDSV;
+    Optional< DX12Descriptor >  mRTV;
+    Optional< DX12Descriptor >  mDSV;
   };
 
 } // namespace Tac::Render

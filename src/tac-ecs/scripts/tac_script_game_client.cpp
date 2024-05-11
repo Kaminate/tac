@@ -816,7 +816,7 @@ namespace Tac
 	Timeline::~Timeline()
 	{
 		for( TimelineAction* timelineAction : mTimelineActions )
-			delete timelineAction;
+			TAC_DELETE timelineAction;
 	}
 
 	void Timeline::Update( double time, Errors& errors )

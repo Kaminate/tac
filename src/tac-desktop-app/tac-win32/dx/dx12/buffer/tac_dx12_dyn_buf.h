@@ -12,8 +12,8 @@ namespace Tac::Render
 {
   struct DX12Buffer
   {
-    using SRV = Optional< DX12DescriptorHeapAllocation >;
-    using UAV = Optional< DX12DescriptorHeapAllocation >;
+    using SRV = Optional< DX12Descriptor >;
+    using UAV = Optional< DX12Descriptor >;
 
     PCom< ID3D12Resource >    mResource       {};
     D3D12_RESOURCE_DESC       mDesc           {};

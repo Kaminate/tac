@@ -25,16 +25,16 @@ namespace Tac
 
   ServerData::ServerData()
   {
-    mWorld = new World();
-    mEmptyWorld = new World();
+    mWorld = TAC_NEW World();
+    mEmptyWorld = TAC_NEW World();
   }
 
   ServerData::~ServerData()
   {
     for( OtherPlayer* otherPlayer : mOtherPlayers )
-      delete otherPlayer;
-    delete mWorld;
-    delete mEmptyWorld;
+      TAC_DELETE otherPlayer;
+    TAC_DELETE mWorld;
+    TAC_DELETE mEmptyWorld;
   }
 
   void ServerData::DebugImgui()
@@ -50,7 +50,7 @@ namespace Tac
     Player* player { SpawnPlayer() };
     TAC_ASSERT( player );
     TAC_ASSERT( mOtherPlayers.size() < ServerData::sOtherPlayerCountMax );
-    OtherPlayer* otherPlayer { new OtherPlayer() };
+    OtherPlayer* otherPlayer { TAC_NEW OtherPlayer() };
     otherPlayer->mPlayerUUID = player->mPlayerUUID;
     otherPlayer->mConnectionUUID = connectionID;
     mOtherPlayers.push_back( otherPlayer );
@@ -83,7 +83,7 @@ namespace Tac
 
     OtherPlayer* otherPlayer { *it };
     mWorld->KillPlayer( otherPlayer->mPlayerUUID );
-    delete otherPlayer;
+    TAC_DELETE otherPlayer;
     mOtherPlayers.erase( it );
   }
 

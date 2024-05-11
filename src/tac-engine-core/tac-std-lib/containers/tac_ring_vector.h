@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/memory/tac_memory.h"
 
 namespace Tac
 {
@@ -10,8 +11,8 @@ namespace Tac
   template< typename T >
   struct RingVector
   {
-    RingVector()           { mTs = new T[ mCountAllocated = 10 ]; }
-    ~RingVector()          { delete[] mTs; }
+    RingVector()           { mTs = TAC_NEW T[ mCountAllocated = 10 ]; }
+    ~RingVector()          { TAC_DELETE[] mTs; }
     void     Push( T t )
     {
       if( mCountUsed == mCountAllocated )
@@ -40,14 +41,14 @@ namespace Tac
     void Grow()
     {
         const int newCountAllocated { ( int )( mCountAllocated * 1.5f ) };
-        T* newTs { new T[ newCountAllocated ] };
+        T* newTs { TAC_NEW T[ newCountAllocated ] };
 
         for( int i{}; i < mCountUsed; ++i )
         {
           newTs[ i ] = mTs[ ( mStartIndex + i ) % mCountAllocated ];
         }
 
-        delete mTs;
+        TAC_DELETE[] mTs;
         mTs = newTs;
         mCountAllocated = newCountAllocated;
         mStartIndex = 0;

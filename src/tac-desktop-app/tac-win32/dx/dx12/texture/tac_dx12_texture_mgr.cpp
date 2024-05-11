@@ -3,6 +3,7 @@
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-win32/dx/dx12/context/tac_dx12_context_manager.h"
+#include "tac-win32/dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-win32/dx/dxgi/tac_dxgi.h"
 
 #if !TAC_DELETE_ME()
@@ -103,8 +104,13 @@ namespace Tac::Render
     mDevice = params.mDevice;
     mCpuDescriptorHeapRTV = params.mCpuDescriptorHeapRTV;
     mCpuDescriptorHeapDSV = params.mCpuDescriptorHeapDSV;
+    mCpuDescriptorHeapCBV_SRV_UAV = params.mCpuDescriptorHeapCBV_SRV_UAV;
     mContextManager = params.mContextManager;
-    TAC_ASSERT( mDevice && mCpuDescriptorHeapRTV && mCpuDescriptorHeapDSV && mContextManager );
+    TAC_ASSERT( mDevice );
+    TAC_ASSERT( mCpuDescriptorHeapRTV );
+    TAC_ASSERT( mCpuDescriptorHeapDSV );
+    TAC_ASSERT( mCpuDescriptorHeapCBV_SRV_UAV );
+    TAC_ASSERT( mContextManager );
   }
 
   void DX12TextureMgr::CreateTexture( TextureHandle h,
@@ -339,6 +345,29 @@ namespace Tac::Render
     ID3D12Resource* pResource { defaultHeapResource.Get() };
     Bindings bindings{ CreateBindings( pResource, params.mBinding ) };
 
+    {
+      D3D12_RESOURCE_STATES usageFromBinding{ D3D12_RESOURCE_STATE_COMMON };
+      if( Binding{} != ( params.mBinding & Binding::ShaderResource ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+      DX12Context::Scope contextScope{ mContextManager->GetContext( errors ) };
+      DX12Context* context{ ( DX12Context* )contextScope.GetContext() };
+      ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
+
+      ID3D12Resource* mResource{ defaultHeapResource.Get() };
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { mResource },
+        .mStateBefore { &defaultHeapResourceStates },
+        .mStateAfter  { usageFromBinding },
+      };
+      DX12TransitionHelper transitionHelper;
+      transitionHelper.Append( transitionParams );
+      transitionHelper.ResourceBarrier( commandList );
+      // do we context->SetSynchronous() ?
+      TAC_CALL( context->Execute( errors ) );
+    }
+
+
     *texture = DX12Texture
     {
       .mResource { defaultHeapResource },
@@ -353,7 +382,7 @@ namespace Tac::Render
                                                            Binding binding )
   {
 
-    Optional< DX12DescriptorHeapAllocation > RTV;
+    Optional< DX12Descriptor > RTV;
     if( Binding{} != ( binding & Binding::RenderTarget ) )
     {
       RTV = mCpuDescriptorHeapRTV->Allocate();
@@ -361,7 +390,7 @@ namespace Tac::Render
       mDevice->CreateRenderTargetView( pResource, nullptr, descDescriptor );
     }
 
-    Optional< DX12DescriptorHeapAllocation > DSV;
+    Optional< DX12Descriptor > DSV;
     if( Binding{} != ( binding & Binding::DepthStencil ) )
     {
       DSV = mCpuDescriptorHeapDSV->Allocate();
@@ -369,10 +398,19 @@ namespace Tac::Render
       mDevice->CreateDepthStencilView( pResource, nullptr, descDescriptor );
     }
 
+    Optional< DX12Descriptor > SRV;
+    if( Binding{} != ( binding & Binding::ShaderResource ) )
+    {
+      SRV = mCpuDescriptorHeapCBV_SRV_UAV->Allocate();
+      const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { SRV->GetCPUHandle() };
+      mDevice->CreateShaderResourceView( pResource, nullptr, descDescriptor );
+    }
+
     return Bindings
     {
       .mRTV{ RTV },
       .mDSV{ DSV },
+      .mSRV{ SRV },
     };
   }
 
@@ -383,7 +421,7 @@ namespace Tac::Render
     DX12Texture* texture { FindTexture( h ) };
     TAC_ASSERT( texture );
 
-    const DX12DescriptorHeapAllocation allocation  { mCpuDescriptorHeapRTV->Allocate() };
+    const DX12Descriptor allocation  { mCpuDescriptorHeapRTV->Allocate() };
     const D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle { allocation.GetCPUHandle() };
 
     ID3D12Resource* pResource { resource.Get() };

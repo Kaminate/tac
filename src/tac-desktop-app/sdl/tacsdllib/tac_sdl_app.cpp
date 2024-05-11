@@ -58,7 +58,7 @@ namespace Tac
   //          {
   //            case SDL_WINDOWEVENT_CLOSE:
   //            {
-  //              delete sdlWindow;
+  //              TAC_DELETE sdlWindow;
   //            } break;
   //            case SDL_WINDOWEVENT_RESIZED:
   //            {

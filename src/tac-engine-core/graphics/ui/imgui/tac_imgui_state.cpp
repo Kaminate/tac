@@ -96,8 +96,8 @@ namespace Tac
 
   ImGuiWindow::~ImGuiWindow()
   {
-    delete mTextInputData;
-    delete mDrawData;
+    TAC_DELETE mTextInputData;
+    TAC_DELETE mDrawData;
   }
 
   void         ImGuiWindow::Scrollbar()

@@ -58,7 +58,7 @@ namespace Tac
     for( ScriptCallbackData* deleteMe : toDelete )
     {
       mMsgCallbacks.erase( deleteMe );
-      delete deleteMe;
+      TAC_DELETE deleteMe;
     }
   }
 
@@ -66,7 +66,7 @@ namespace Tac
   {
     for( ScriptThread* child : mChildren )
     {
-      delete child;
+      TAC_DELETE child;
     }
   }
 
@@ -98,7 +98,7 @@ namespace Tac
     for( ScriptThread* child : childrenToKill )
     {
       mChildren.erase( child );
-      delete child;
+      TAC_DELETE child;
     }
   }
 

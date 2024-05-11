@@ -293,7 +293,7 @@ namespace Tac::Network
                                nullptr );
 
     auto netWinsocket { TAC_NEW SocketWinsock };
-    TAC_ON_DESTRUCT( if( errors ) delete netWinsocket );
+    TAC_ON_DESTRUCT( if( errors ) TAC_DELETE netWinsocket );
     netWinsocket->mSocket = winsockSocket;
     netWinsocket->mName = name;
     netWinsocket->mNet = this;
@@ -405,7 +405,7 @@ namespace Tac::Network
       for( SocketCallbackData socketCallback : socketWinsock->mTCPOnConnectionClosed )
         socketCallback.mCallback( socketCallback.mUserData, socketWinsock );
       mSocketWinsocks.erase( socketWinsock );
-      delete socketWinsock;
+      TAC_DELETE socketWinsock;
     }
   }
 

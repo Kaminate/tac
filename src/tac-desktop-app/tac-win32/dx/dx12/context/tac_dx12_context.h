@@ -21,6 +21,7 @@ namespace Tac::Render
   struct DX12TextureMgr;
   struct DX12BufferMgr;
   struct DX12PipelineMgr;
+  struct DX12SamplerMgr;
   struct DX12DescriptorHeap;
 }
 
@@ -99,6 +100,7 @@ namespace Tac::Render
     DX12TextureMgr*                   mTextureMgr           {};
     DX12BufferMgr*                    mBufferMgr            {};
     DX12PipelineMgr*                  mPipelineMgr          {};
+    DX12SamplerMgr*                   mSamplerMgr           {};
     DX12DescriptorHeap*               mGpuDescriptorHeapCBV_SRV_UAV{};
     DX12DescriptorHeap*               mGpuDescriptorHeapSampler{};
     ID3D12Device*                     mDevice{};

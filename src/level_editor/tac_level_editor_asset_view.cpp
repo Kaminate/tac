@@ -392,14 +392,14 @@ namespace Tac
       { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME );
     Render::ViewHandle viewHandle = Render::CreateView();
 
-    auto* result = new AssetViewImportedModel
+    AssetViewImportedModel* result{ TAC_NEW AssetViewImportedModel
     {
        .mTextureHandleColor = textureHandleColor,
        .mTextureHandleDepth = textureHandleDepth,
        .mFramebufferHandle = framebufferHandle,
        .mViewHandle = viewHandle,
        .mAssetPath = assetPath,
-    };
+    } };
 
     sLoadedModels[ assetPath ] = result;
     return result;

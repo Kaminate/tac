@@ -1,47 +1,28 @@
-#define JUST_FLOATS 0
-struct ClipSpacePosition3 { float3 mValue; };
-struct ClipSpacePosition4 { float4 mValue; };
-struct LinearColor3 { float3 mValue; };
-struct LinearColor4 { float4 mValue; };
+struct ClipSpacePosition3 { float3 mFloat3; };
+struct ClipSpacePosition4 { float4 mFloat4; };
 
-ClipSpacePosition4 ClipSpacePosition3to4( const ClipSpacePosition3 pos )
-{
-  ClipSpacePosition4 result;
-  result.mValue = float4( pos.mValue, 1.0f );
-  return result;
-}
+struct TextureCoordinate2 { float2 mFloat2; };
 
-LinearColor4 LinearColor3to4( const LinearColor3 col )
-{
-  LinearColor4 result;
-  result.mValue = float4( col.mValue, 1.0f );
-  return result;
-}
+struct LinearColor3 { float3 mFloat3; };
+struct LinearColor4 { float4 mFloat4; };
 
 struct Vertex
 {
-#if JUST_FLOATS
-  float mPositionX;
-  float mPositionY;
-  float mPositionZ;
-  float mColorX;
-  float mColorY;
-  float mColorZ;
-#else
   ClipSpacePosition3 mPosition;
-  LinearColor3       mColor;
-#endif
+  TextureCoordinate2 mTexCoords;
 };
 
 struct VSOutput
 {
-  ClipSpacePosition4 mPosition : SV_POSITION;
-  LinearColor3       mColor    : TAC_AUTO_SEMANTIC;
+  ClipSpacePosition4 mPosition  : SV_POSITION;
+  TextureCoordinate2 mTexCoords : TAC_AUTO_SEMANTIC;
 };
 
 typedef VSOutput PSInput;
 
 ByteAddressBuffer BufferTable[] : register( t0, space0 );
+Texture2D         Textures[]    : register( t0, space1 );
+SamplerState      Samplers[]    : register( s0, space0 );
 
 VSOutput VSMain( uint iVtx : SV_VertexID )
 {
@@ -49,22 +30,17 @@ VSOutput VSMain( uint iVtx : SV_VertexID )
   const Vertex input = BufferTable[ 0 ].Load < Vertex >( byteOffset );
 
   VSOutput result;
-#if JUST_FLOATS
-  result.mPosition.mValue = float4( input.mPositionX,
-                                    input.mPositionY,
-                                    input.mPositionZ,
-                                    1.0 );
-  result.mColor.mValue = float3( input.mColorX,
-                                 input.mColorY,
-                                 input.mColorZ );
-#else
-  result.mPosition = ClipSpacePosition3to4( input.mPosition );
-  result.mColor = input.mColor;
-#endif
+  result.mPosition = ClipSpacePosition4( float4( input.mPosition.mFloat3, 1.0 ) );
+  result.mTexCoords = input.mTexCoords;
   return result;
 }
 
 LinearColor4 PSMain( PSInput input ) : SV_TARGET
 {
-  return LinearColor3to4( input.mColor );
+  Texture2D texture = Textures[ 0 ];
+  SamplerState samplerState = Samplers[ 0 ];
+  const float4 sample = texture.Sample( samplerState , input.mTexCoords.mFloat2 );
+
+  // return LinearColor4(float4(input.mTexCoords.mValue, 0, 1) );
+  return LinearColor4( sample );
 }

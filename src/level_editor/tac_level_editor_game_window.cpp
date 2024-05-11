@@ -207,7 +207,7 @@ namespace Tac
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
     DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
-    delete mDebug3DDrawData;
+    TAC_DELETE mDebug3DDrawData;
   }
 
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
@@ -770,7 +770,7 @@ namespace Tac
     {
       if( ImGuiButton( "End simulation" ) )
       {
-        delete mSoul;
+        TAC_DELETE mSoul;
         mSoul = nullptr;
       }
     }

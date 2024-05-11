@@ -115,7 +115,7 @@ namespace Tac
       for( int i{}; i < mTCount; ++i )
         newTs[ i ] = Tac::move( mTs[ i ] );
 
-      delete[] mTs;
+      TAC_DELETE[] mTs;
       mTs = newTs;
       mTCapacity = capacity;
     }

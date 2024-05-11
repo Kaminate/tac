@@ -26,6 +26,7 @@ namespace Tac::Render
       void SetTexture( TextureHandle ) override;
       void SetBufferAtIndex( int, BufferHandle ) override;
       void SetTextureAtIndex( int, TextureHandle ) override;
+      void SetSamplerAtIndex( int, SamplerHandle ) override;
       StringView GetName() const;
 
     private:

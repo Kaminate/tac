@@ -34,7 +34,7 @@ namespace Tac
     void                DestroyModelComponent( Model* model ) override
     {
       mModels.erase( model );
-      delete model;
+      TAC_DELETE model;
     }
 
     void                VisitModels( ModelVisitor* modelVisitor ) const override
@@ -57,7 +57,7 @@ namespace Tac
     void                DestroySkyboxComponent( Skybox* skybox ) override
     {
       mSkyboxes.erase( skybox );
-      delete skybox;
+      TAC_DELETE skybox;
     }
 
     void                VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) const override
@@ -79,7 +79,7 @@ namespace Tac
     void                DestroyLightComponent( Light* light ) override
     {
        mLights.erase( light );
-      delete light;
+      TAC_DELETE light;
     }
 
     void                VisitLights( LightVisitor* lightVisitor ) const override

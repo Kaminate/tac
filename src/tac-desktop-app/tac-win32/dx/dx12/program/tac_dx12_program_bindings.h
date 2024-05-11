@@ -22,11 +22,15 @@ namespace Tac::Render
       kBufferSRV,
     };
 
+    // Type checks
     bool IsBuffer() const;
+    bool IsSampler() const;
     bool IsTexture() const;
+
+    // Size checks
+    bool IsArray() const;
     bool IsFixedArray() const;
     bool IsUnboundedArray() const;
-    bool IsArray() const;
     bool IsSingleElement() const;
 
     Type   mType = Type::kUnknown;

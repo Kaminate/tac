@@ -24,26 +24,30 @@ namespace Tac::Render
 
   void DX12ContextManager::Init( Params params )
   {
+    mBufferMgr = params.mBufferMgr;
     mCommandAllocatorPool = params.mCommandAllocatorPool;
     mCommandQueue = params.mCommandQueue;
-    mUploadPageManager = params.mUploadPageManager;
-    mSwapChainMgr = params.mSwapChainMgr;
-    mTextureMgr = params.mTextureMgr;
-    mBufferMgr = params.mBufferMgr;
-    mPipelineMgr = params.mPipelineMgr;
     mGpuDescriptorHeapCBV_SRV_UAV = params.mGpuDescriptorHeapCBV_SRV_UAV;
     mGpuDescriptorHeapSampler = params.mGpuDescriptorHeapSampler;
+    mPipelineMgr = params.mPipelineMgr;
+    mSamplerMgr = params.mSamplerMgr;
+    mSwapChainMgr = params.mSwapChainMgr;
+    mTextureMgr = params.mTextureMgr;
+    mUploadPageManager = params.mUploadPageManager;
+
     params.mDevice->QueryInterface( mDevice.iid(), mDevice.ppv() );
-    TAC_ASSERT( mCommandAllocatorPool &&
-                mCommandQueue &&
-                mUploadPageManager &&
-                mSwapChainMgr &&
-                mTextureMgr &&
-                mBufferMgr &&
-                mPipelineMgr &&
-                mGpuDescriptorHeapCBV_SRV_UAV &&
-                mGpuDescriptorHeapSampler &&
-                mDevice );
+    TAC_ASSERT( mDevice );
+
+    TAC_ASSERT( mBufferMgr );
+    TAC_ASSERT( mCommandAllocatorPool );
+    TAC_ASSERT( mCommandQueue );
+    TAC_ASSERT( mGpuDescriptorHeapCBV_SRV_UAV );
+    TAC_ASSERT( mGpuDescriptorHeapSampler );
+    TAC_ASSERT( mPipelineMgr );
+    TAC_ASSERT( mSamplerMgr );
+    TAC_ASSERT( mSwapChainMgr );
+    TAC_ASSERT( mTextureMgr );
+    TAC_ASSERT( mUploadPageManager );
   }
 
   DX12Context* DX12ContextManager::GetContext( Errors& errors )

@@ -56,7 +56,8 @@ Auto should be used if it avoids a type nobody cares about
 `auto it = ... // Map< Foo, Bar >::Iterator `
 
 Auto can be used if it avoids repeating types
-`auto foo = new Foo` 
+`auto foo { TAC_NEW Foo }`
+`Foo foo { TAC_NEW Foo } // also ok`
 
 Auto should not be used when it hides useful type information
 `auto whatIsThisType = SomeFnCall()`

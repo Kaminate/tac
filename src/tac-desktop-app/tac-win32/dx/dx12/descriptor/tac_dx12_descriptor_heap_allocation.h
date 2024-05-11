@@ -5,7 +5,9 @@
 namespace Tac::Render
 {
   struct DX12DescriptorHeap;
-  struct DX12DescriptorHeapAllocation
+
+  // Represents an allocation from a descriptor heap, which can hold a CPU descriptor handle
+  struct DX12Descriptor
   {
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() const;
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle() const;

@@ -30,8 +30,8 @@ namespace Tac::Render
 
     struct DescriptorBindings
     {
-      Optional< DX12DescriptorHeapAllocation > mSRV;
-      Optional< DX12DescriptorHeapAllocation > mUAV;
+      Optional< DX12Descriptor > mSRV;
+      Optional< DX12Descriptor > mUAV;
     };
 
     DescriptorBindings CreateBindings( ID3D12Resource* , CreateBufferParams );

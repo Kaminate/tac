@@ -98,10 +98,10 @@ namespace Tac
     //delete mFBOTexture;
     //delete mFBODepthBuffer;
     for( User* user : mUsers )
-      delete user;
+      TAC_DELETE user;
     //delete mUIRoot;
-    delete mServerData;
-    delete mClientData;
+    TAC_DELETE mServerData;
+    TAC_DELETE mClientData;
   }
 
   void Ghost::Init( Errors& errors )

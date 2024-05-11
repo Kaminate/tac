@@ -29,13 +29,13 @@ namespace Tac
   World::~World()
   {
     for( System* system : mSystems )
-      delete system;
+      TAC_DELETE system;
 
     for( Player* player : mPlayers )
-      delete player;
+      TAC_DELETE player;
 
     for( Entity* entity : mEntities )
-      delete entity;
+      TAC_DELETE entity;
   }
 
   Entity* World::SpawnEntity( EntityUUID entityUUID )
@@ -116,7 +116,7 @@ namespace Tac
         player->mEntityUUID = NullEntityUUID;
 
       mEntities.erase( treeIterator );
-      delete treeEntity;
+      TAC_DELETE treeEntity;
     }
   }
 
@@ -165,22 +165,24 @@ namespace Tac
                       mPlayers.end(),
                       [ & ]( Player* player ) { return player->mPlayerUUID == playerUUID; } ) };
     TAC_ASSERT( it != mPlayers.end() );
-    auto player { *it };
+    Player* player { *it };
     KillEntity( player->mEntityUUID );
-    delete player;
+    TAC_DELETE player;
     mPlayers.erase( it );
   }
 
   void               World::ApplyInput( Player* player, float seconds )
   {
     TAC_UNUSED_PARAMETER( seconds );
-    auto entity { FindEntity( player->mEntityUUID ) };
+    Entity* entity { FindEntity( player->mEntityUUID ) };
     if( !entity )
       return;
+
     // update velocity
     Collider* collider { Collider::GetCollider( entity ) };
     if( !collider )
       return;
+
     float speedHorizontal { 5 };
     float speedVertical { 7 };
     // temp, align camera with player movement shit
@@ -266,12 +268,12 @@ namespace Tac
   void               World::DeepCopy( const World& world )
   {
     for( Player* player : mPlayers )
-      delete player;
+      TAC_DELETE player;
 
     mPlayers.clear();
 
     for( Entity* entity : mEntities )
-      delete entity;
+      TAC_DELETE entity;
 
     mEntities.clear();
 

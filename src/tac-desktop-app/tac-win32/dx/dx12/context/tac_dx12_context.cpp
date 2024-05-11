@@ -21,52 +21,71 @@
 
 namespace Tac::Render
 {
+
+  static D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( const DX12Pipeline::Variable& var )
+  {
+    if( var.mBinding->IsBuffer() || var.mBinding->IsTexture() )
+      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+    if( var.mBinding->IsSampler() )
+      return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+
+    TAC_ASSERT_INVALID_CODE_PATH;
+    return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
 
   void DX12Context::CommitShaderVariables()
   {
+    TAC_ASSERT( mGpuDescriptorHeapCBV_SRV_UAV );
+    TAC_ASSERT( mGpuDescriptorHeapSampler );
+
     DX12Pipeline* pipeline{ mPipelineMgr->FindPipeline( mState.mPipeline ) };
     if( !pipeline )
       return;
 
-    TAC_ASSERT( mGpuDescriptorHeapCBV_SRV_UAV );
-    ID3D12DescriptorHeap* heap_cbv_srv_uav{
-      mGpuDescriptorHeapCBV_SRV_UAV->GetID3D12DescriptorHeap() };
-    TAC_ASSERT( heap_cbv_srv_uav );
+    DX12DescriptorHeap* gpuHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ] {};
+    gpuHeaps[ mGpuDescriptorHeapCBV_SRV_UAV->GetType() ] = mGpuDescriptorHeapCBV_SRV_UAV;
+    gpuHeaps[ mGpuDescriptorHeapSampler->GetType() ] = mGpuDescriptorHeapSampler;
 
-    TAC_ASSERT( mGpuDescriptorHeapSampler );
-    ID3D12DescriptorHeap* heap_sampler{
-      mGpuDescriptorHeapSampler->GetID3D12DescriptorHeap() };
-    TAC_ASSERT( heap_sampler );
-
-    const Array descHeaps{ heap_cbv_srv_uav, heap_sampler };
+    FixedVector< ID3D12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES > descHeaps;
+    for( DX12DescriptorHeap* heap : gpuHeaps )
+      if( heap )
+        descHeaps.push_back( heap->GetID3D12DescriptorHeap() );
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
-    const UINT descriptorSize{ mGpuDescriptorHeapCBV_SRV_UAV->GetDescriptorSize() };
-
-    UINT gpuVisibleDescriptorIndex{};
-
+    UINT gpuHeapIndexes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 
     const int n{ pipeline->mShaderVariables.size() };
     for( int i{}; i < n; ++i )
     {
       const DX12Pipeline::Variable& var{ pipeline->mShaderVariables[ i ] };
 
-      const D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor{
-          mGpuDescriptorHeapCBV_SRV_UAV->IndexGPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
+      const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( var ) };
+      DX12DescriptorHeap* dstHeap{ gpuHeaps[ heapType ] };
+      TAC_ASSERT( dstHeap );
 
+      const UINT iBaseDescriptor{ gpuHeapIndexes[ heapType ]++ };
+
+      const D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor{
+          dstHeap->IndexGPUDescriptorHandle( iBaseDescriptor ) };
+
+      UINT arrayOffest{};
       for( int iHandle : var.mHandleIndexes )
       {
-        DX12DescriptorHeapAllocation srcAllocation;
+        DX12Descriptor srcAllocation;
 
         if( var.mBinding->IsTexture() )
         {
           DX12Texture* texture{ mTextureMgr->FindTexture( TextureHandle{ iHandle } ) };
           if( !texture )
             continue;
+
+          TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
 
           if( var.mBinding->mType == D3D12ProgramBinding::kTextureSRV )
           {
@@ -112,6 +131,14 @@ namespace Tac::Render
           }
 
         }
+        else if( var.mBinding->IsSampler() )
+        {
+          DX12Sampler* sampler{ mSamplerMgr->FindSampler( SamplerHandle{ iHandle } ) };
+          if( !sampler )
+            continue;
+
+          srcAllocation = sampler->mDescriptor;
+        }
         else
         {
           TAC_ASSERT_INVALID_CODE_PATH;
@@ -120,22 +147,20 @@ namespace Tac::Render
         TAC_ASSERT( srcAllocation.Valid() );
 
         DX12DescriptorHeap* srcHeap { srcAllocation.mOwner };
-        DX12DescriptorHeap* dstHeap { mGpuDescriptorHeapCBV_SRV_UAV };
-
-        TAC_ASSERT( srcHeap && dstHeap && ( srcHeap->GetType() == dstHeap->GetType() ) );
+        TAC_ASSERT( srcHeap );
+        TAC_ASSERT( srcHeap->GetType() == heapType );
 
         const UINT NumDescriptors{ 1 };
         const D3D12_CPU_DESCRIPTOR_HANDLE src{ srcAllocation.GetCPUHandle() };
         const D3D12_CPU_DESCRIPTOR_HANDLE dst{
-            dstHeap->IndexCPUDescriptorHandle( gpuVisibleDescriptorIndex ) };
+            dstHeap->IndexCPUDescriptorHandle( iBaseDescriptor + arrayOffest ) };
 
         TAC_ASSERT( src.ptr );
         TAC_ASSERT( dst.ptr );
 
-        const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ mGpuDescriptorHeapCBV_SRV_UAV->GetType() };
         mDevice->CopyDescriptorsSimple( NumDescriptors, dst, src, heapType );
 
-        gpuVisibleDescriptorIndex++;
+        arrayOffest++;
       }
 
       commandList->SetGraphicsRootDescriptorTable( ( UINT )i, baseDescriptor );

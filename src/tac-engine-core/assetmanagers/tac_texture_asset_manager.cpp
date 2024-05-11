@@ -96,7 +96,7 @@ namespace Tac::TextureAssetManager
 
   // -----------------------------------------------------------------------------------------------
 
-  Render::TextureHandle AsyncTextureCubeData::CreateTexture(  Errors& errors )
+  Render::TextureHandle AsyncTextureCubeData::CreateTexture( Errors& errors )
   {
     const Render::CreateTextureParams commandData =
     { 
@@ -111,8 +111,8 @@ namespace Tac::TextureAssetManager
         mImageData[ 4 ].data(),
         mImageData[ 5 ].data()
       },
-      .mBinding { Render::Binding::ShaderResource },
-      .mStackFrame  { TAC_STACK_FRAME },
+      .mBinding    { Render::Binding::ShaderResource },
+      .mStackFrame { TAC_STACK_FRAME },
     };
     return Render::RenderApi::GetRenderDevice()->CreateTexture( commandData, errors );
   }

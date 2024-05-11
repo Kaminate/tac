@@ -287,15 +287,15 @@ namespace Tac
   {
     const D3D12_SAMPLER_DESC Desc
     {
-      .Filter { D3D12_FILTER_MIN_MAG_MIP_POINT },
-      .AddressU { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
-      .AddressV { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
-      .AddressW { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .Filter         { D3D12_FILTER_MIN_MAG_MIP_POINT },
+      .AddressU       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressV       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressW       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
       .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
-      .MinLOD { 0 },
-      .MaxLOD { D3D12_FLOAT32_MAX },
+      .MinLOD         { 0 },
+      .MaxLOD         { D3D12_FLOAT32_MAX },
     };
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor { GetSamplerCpuDescHandle( 0 ) };
     mDevice->CreateSampler( &Desc, DestDescriptor );
   }
 
@@ -822,7 +822,7 @@ namespace Tac
       .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
       .NumRenderTargets      { 1 },
       .RTVFormats            { RTVFormat },
-      .SampleDesc            {.Count { 1 } },
+      .SampleDesc            { .Count { 1 } },
     };
     TAC_CALL( mDevice->CreateGraphicsPipelineState(
               &psoDesc,

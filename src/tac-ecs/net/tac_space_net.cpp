@@ -73,7 +73,7 @@ namespace Tac
   SnapshotBuffer::~SnapshotBuffer()
   {
     for( World* world : mSnapshots )
-      delete world;
+      TAC_DELETE world;
   }
 
   void SnapshotBuffer::AddSnapshot( const World* world )

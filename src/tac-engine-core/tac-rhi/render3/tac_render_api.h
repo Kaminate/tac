@@ -30,6 +30,7 @@ namespace Tac::Render
   struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = -1 ) : IHandle{ i } {} };
   struct BufferHandle    : public IHandle { BufferHandle    ( int i = -1 ) : IHandle{ i } {} };
   struct TextureHandle   : public IHandle { TextureHandle   ( int i = -1 ) : IHandle{ i } {} };
+  struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = -1 ) : IHandle{ i } {} };
 
   //enum RasterizerType
   //{
@@ -251,7 +252,9 @@ namespace Tac::Render
     const void* mImageBytes             {};
     const void* mImageBytesCubemap[ 6 ] {};
     Binding     mBinding                { Binding::None };
-    Usage       mAccess                 { Usage::Default }; // TODO: rename as Usage
+    Usage       mUsage                  { Usage::Default };
+
+    //          Whether the cpu can read or write to the resource after it's been mapped
     CPUAccess   mCpuAccess              { CPUAccess::None };
     StringView  mOptionalName           {};
     StackFrame  mStackFrame             {};
@@ -332,6 +335,7 @@ namespace Tac::Render
     virtual void SetTexture( TextureHandle ) {};
     virtual void SetBufferAtIndex( int, BufferHandle ) {};
     virtual void SetTextureAtIndex( int, TextureHandle ) {};
+    virtual void SetSamplerAtIndex( int, SamplerHandle ) {};
   };
 
   struct IContext
@@ -416,6 +420,9 @@ namespace Tac::Render
 
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& ) {}
     virtual void            DestroyProgram( ProgramHandle ) {}
+
+    virtual SamplerHandle   CreateSampler( Filter ) {}
+    virtual void            DestroySampler( SamplerHandle ) {}
 
     virtual SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) {}
     virtual void            ResizeSwapChain( SwapChainHandle, v2i ) {}

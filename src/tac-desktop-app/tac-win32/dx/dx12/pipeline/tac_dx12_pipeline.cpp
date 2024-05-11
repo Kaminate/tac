@@ -36,6 +36,12 @@ namespace Tac::Render
     SetArrayElement( i, h.GetIndex() );
   }
 
+  void DX12Pipeline::Variable::SetSamplerAtIndex( int i, SamplerHandle h )
+  {
+    TAC_ASSERT( mBinding->IsSampler() );
+    SetArrayElement( i, h.GetIndex() );
+  }
+
   void DX12Pipeline::Variable::SetElement( int iHandle )
   {
     TAC_ASSERT( mHandleIndexes.size() == 1 );

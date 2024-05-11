@@ -9,7 +9,7 @@ Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi* windowApi
                                                    StringView name,
                                                    Errors& errors )
 {
-  const Monitor monitor = OS::OSGetPrimaryMonitor();
+  const Monitor monitor { OS::OSGetPrimaryMonitor() };
   const v2i windowSize{ monitor.mSize / 2 };
   const v2i windowPos{ ( monitor.mSize - windowSize ) / 2 };
   const WindowCreateParams windowCreateParams

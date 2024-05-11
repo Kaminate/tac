@@ -37,6 +37,7 @@ namespace Tac::Render
       DX12TextureMgr*           mTextureMgr                   {};
       DX12BufferMgr*            mBufferMgr                    {};
       DX12PipelineMgr*          mPipelineMgr                  {};
+      DX12SamplerMgr*           mSamplerMgr                   {};
       ID3D12Device*             mDevice                       {};
       DX12DescriptorHeap*       mGpuDescriptorHeapCBV_SRV_UAV {};
       DX12DescriptorHeap*       mGpuDescriptorHeapSampler     {};
@@ -59,6 +60,7 @@ namespace Tac::Render
     DX12TextureMgr*            mTextureMgr                   {};
     DX12BufferMgr*             mBufferMgr                    {};
     DX12PipelineMgr*           mPipelineMgr                  {};
+    DX12SamplerMgr*            mSamplerMgr                   {};
     DX12DescriptorHeap*        mGpuDescriptorHeapCBV_SRV_UAV {};
     DX12DescriptorHeap*        mGpuDescriptorHeapSampler     {};
 

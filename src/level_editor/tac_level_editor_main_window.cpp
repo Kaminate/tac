@@ -34,7 +34,7 @@ namespace Tac
   {
     DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
-    //delete mUI2DDrawData;
+    //TAC_DELETE mUI2DDrawData;
   }
 
   void CreationMainWindow::Init( Errors& )
@@ -220,7 +220,7 @@ namespace Tac
           && !IsWindowHovered( desktopWindowHandle )
           && Timestep::GetElapsedTime() != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
-        delete CreationGameObjectMenuWindow::Instance;
+        TAC_DELETE CreationGameObjectMenuWindow::Instance;
       }
     }
   }

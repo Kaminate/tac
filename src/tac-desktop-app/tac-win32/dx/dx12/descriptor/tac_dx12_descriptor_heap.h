@@ -29,8 +29,8 @@ namespace Tac::Render
     D3D12_GPU_DESCRIPTOR_HANDLE  IndexGPUDescriptorHandle( int ) const;
     UINT                         GetDescriptorSize() const;
 
-    DX12DescriptorHeapAllocation Allocate();
-    void                         Free( DX12DescriptorHeapAllocation );
+    DX12Descriptor               Allocate();
+    void                         Free( DX12Descriptor );
 
   private:
     int                          AllocateIndex();

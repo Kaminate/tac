@@ -385,7 +385,7 @@ namespace Tac
 
   void Render::Uninit()
   {
-    delete Renderer::Instance;
+    TAC_DELETE Renderer::Instance;
   }
 
   void Render::SetBreakpointWhenThisFrameIsRendered()

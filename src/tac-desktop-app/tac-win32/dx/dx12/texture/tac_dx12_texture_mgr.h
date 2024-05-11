@@ -17,10 +17,11 @@ namespace Tac::Render
   {
     struct Params
     {
-      ID3D12Device*       mDevice               {};
-      DX12DescriptorHeap* mCpuDescriptorHeapRTV {};
-      DX12DescriptorHeap* mCpuDescriptorHeapDSV {};
-      DX12ContextManager* mContextManager       {};
+      ID3D12Device*       mDevice                       {};
+      DX12DescriptorHeap* mCpuDescriptorHeapRTV         {};
+      DX12DescriptorHeap* mCpuDescriptorHeapDSV         {};
+      DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV {};
+      DX12ContextManager* mContextManager               {};
     };
     void          Init( Params );
     void          CreateTexture( TextureHandle, CreateTextureParams, Errors& );
@@ -33,8 +34,9 @@ namespace Tac::Render
 
     struct Bindings
     {
-      Optional< DX12DescriptorHeapAllocation > mRTV;
-      Optional< DX12DescriptorHeapAllocation > mDSV;
+      Optional< DX12Descriptor > mRTV;
+      Optional< DX12Descriptor > mDSV;
+      Optional< DX12Descriptor > mSRV;
     };
 
     Bindings CreateBindings( ID3D12Resource*, Binding );
@@ -43,9 +45,10 @@ namespace Tac::Render
     //Optional< DX12DescriptorHeapAllocation > CreateBindingRTV();
 
     DX12Texture         mTextures[ 100 ];
-    ID3D12Device*       mDevice               {};
-    DX12DescriptorHeap* mCpuDescriptorHeapRTV {};
-    DX12DescriptorHeap* mCpuDescriptorHeapDSV {};
-    DX12ContextManager* mContextManager       {};
+    ID3D12Device*       mDevice                       {};
+    DX12DescriptorHeap* mCpuDescriptorHeapRTV         {};
+    DX12DescriptorHeap* mCpuDescriptorHeapDSV         {};
+    DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV {};
+    DX12ContextManager* mContextManager               {};
   };
 } // namespace Tac::Render

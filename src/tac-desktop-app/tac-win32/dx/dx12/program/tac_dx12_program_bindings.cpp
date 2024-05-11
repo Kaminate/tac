@@ -43,6 +43,8 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  bool D3D12ProgramBinding::IsSampler() const { return mType == Type::kSampler; }
+
   bool D3D12ProgramBinding::IsBuffer() const
   {
     return

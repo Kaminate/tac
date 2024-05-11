@@ -11,10 +11,10 @@
 #include "tac-win32/dx/dx12/buffer/tac_dx12_buffer_mgr.h"
 #include "tac-win32/dx/dx12/texture/tac_dx12_texture_mgr.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
+#include "tac-win32/dx/dx12/sampler/tac_dx12_sampler_mgr.h"
 #include "tac-win32/dx/dx12/device/tac_dx12_device.h"
 #include "tac-win32/dx/dx12/device/tac_dx12_info_queue.h"
 #include "tac-win32/dx/dx12/device/tac_dx12_debug_layer.h"
-#include "tac-win32/dx/dx12/tac_dx12_samplers.h"
 //#include "tac-win32/dx/dx12/program/tac_dx12_program_bindings.h"
 #include "tac-win32/dx/dx12/tac_dx12_command_queue.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
@@ -49,6 +49,7 @@ namespace Tac::Render
     DX12TextureMgr             mTexMgr;
     DX12ProgramMgr             mProgramMgr;
     DX12PipelineMgr            mPipelineMgr;
+    DX12SamplerMgr             mSamplerMgr;
 
     // CPU Heaps (used for creating resources)
     DX12DescriptorHeap         mCpuDescriptorHeapRTV;
@@ -73,6 +74,9 @@ namespace Tac::Render
 
     ProgramHandle   CreateProgram( ProgramParams, Errors& ) override;
     void            DestroyProgram( ProgramHandle ) override;
+
+    SamplerHandle   CreateSampler( Filter ) override;
+    void            DestroySampler( SamplerHandle ) override;
 
     SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) override;
     void            ResizeSwapChain( SwapChainHandle, v2i ) override;

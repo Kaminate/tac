@@ -118,13 +118,13 @@ namespace Tac
   void      Physics::DestroyCollider( Collider* collider )
   {
     mColliders.erase( collider );
-    delete collider;
+    TAC_DELETE collider;
   }
 
   void      Physics::DestroyTerrain( Terrain* terrain )
   {
     mTerrains.erase( terrain );
-    delete terrain;
+    TAC_DELETE terrain;
   }
 
 

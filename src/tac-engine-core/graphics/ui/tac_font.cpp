@@ -201,7 +201,7 @@ namespace Tac
   {
     for( FontAtlasCell* fontAtlasCell : mCells )
     {
-      delete fontAtlasCell;
+      TAC_DELETE fontAtlasCell;
     }
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -629,7 +629,7 @@ namespace Tac
     //  for( auto cell : mCells )
     //  {
     //    cell->mOwner->mCells.erase( cell->mCodepoint );
-    //    delete cell;
+    //    TAC_DELETE cell;
     //  }
     //  mCells.clear();
     //}

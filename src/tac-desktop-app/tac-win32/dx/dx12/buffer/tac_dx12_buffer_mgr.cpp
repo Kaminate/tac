@@ -42,12 +42,12 @@ namespace Tac::Render
 
     const Binding binding{ params.mBinding };
 
-    Optional< DX12DescriptorHeapAllocation > srv;
-    Optional< DX12DescriptorHeapAllocation > uav;
+    Optional< DX12Descriptor > srv;
+    Optional< DX12Descriptor > uav;
 
     if( Binding{} != ( binding & Binding::ShaderResource ) )
     {
-      const DX12DescriptorHeapAllocation allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
+      const DX12Descriptor allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
 
       TAC_ASSERT( params.mGpuBufferMode != GpuBufferMode::kUndefined );
@@ -92,7 +92,7 @@ namespace Tac::Render
 
     if( Binding{} != ( binding & Binding::UnorderedAccess ) )
     {
-      const DX12DescriptorHeapAllocation allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
+      const DX12Descriptor allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
       mDevice->CreateUnorderedAccessView( resource, nullptr, nullptr, DestDescriptor );
       srv = allocation;

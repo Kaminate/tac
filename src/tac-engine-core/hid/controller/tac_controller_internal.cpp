@@ -2,15 +2,18 @@
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/memory/tac_memory.h"
+
+namespace Tac
+{
+  Controller::ControllerBitfield Controller::ToBitfield( ControllerButton button )
+  {
+    return 1 << ( ControllerBitfield )button;
+  }
+}
 
 namespace Tac::Controller
 {
-
-  ControllerBitfield ToBitfield( ControllerButton controllerButton )
-  {
-    return 1 << ( ControllerBitfield )controllerButton;
-  }
-
 
   bool ControllerState::IsButtonDown( ControllerButton controllerButton )
   {
@@ -29,6 +32,8 @@ namespace Tac::Controller
     //  ImGui::Checkbox( ToString( controllerButton ), &down );
     //}
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   Controller::Controller()
   {
@@ -76,6 +81,8 @@ namespace Tac::Controller
   {
   }
 
+  // -----------------------------------------------------------------------------------------------
+
   ControllerInput* ControllerInput::Instance = nullptr;
   ControllerInput::ControllerInput()
   {
@@ -87,7 +94,7 @@ namespace Tac::Controller
 
     for( Controller* controller : mControllers )
     {
-      delete controller;
+      TAC_DELETE controller;
     }
 
   }
@@ -154,20 +161,15 @@ namespace Tac::Controller
   }
   bool ControllerInput::CanAddController()
   {
-    auto c = GetConnectedControllerCount();
-    bool result = c < TAC_CONTROLLER_COUNT_MAX;
-    return result;
+    const ControllerIndex n{ GetConnectedControllerCount() };
+    return n < TAC_CONTROLLER_COUNT_MAX;
   }
   ControllerIndex ControllerInput::GetConnectedControllerCount()
   {
-    ControllerIndex connectedControllerCount = 0;
+    ControllerIndex n{ 0 };
     for( Controller* controller : mControllers )
-    {
-      if( !controller )
-        continue;
-      connectedControllerCount++;
-    }
-    return connectedControllerCount;
+      n += controller ? 1 : 0;
+    return n;
   }
   ControllerIndex ControllerInput::AddController( Controller* controller )
   {

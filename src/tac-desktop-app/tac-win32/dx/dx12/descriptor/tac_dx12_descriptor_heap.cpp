@@ -76,17 +76,17 @@ namespace Tac::Render
     return i;
   }
 
-  DX12DescriptorHeapAllocation DX12DescriptorHeap::Allocate()
+  DX12Descriptor DX12DescriptorHeap::Allocate()
   {
     const int index{ AllocateIndex() };
-    return DX12DescriptorHeapAllocation
+    return DX12Descriptor
     {
       .mOwner { this },
       .mIndex { index },
     };
   }
 
-  void DX12DescriptorHeap::Free( DX12DescriptorHeapAllocation allocation )
+  void DX12DescriptorHeap::Free( DX12Descriptor allocation )
   {
     TAC_ASSERT( allocation.mOwner == this );
     mFreeIndexes.push_back( allocation.mIndex );

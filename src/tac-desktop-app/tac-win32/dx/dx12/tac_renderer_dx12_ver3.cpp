@@ -40,10 +40,11 @@ namespace Tac::Render
     TAC_CALL( mPipelineMgr.Init( mDevice, &mProgramMgr ) );
 
     mTexMgr.Init( {
-      .mDevice               { mDevice },
-      .mCpuDescriptorHeapRTV { &mCpuDescriptorHeapRTV },
-      .mCpuDescriptorHeapDSV { &mCpuDescriptorHeapDSV },
-      .mContextManager       { &mContextManager },
+      .mDevice                       { mDevice },
+      .mCpuDescriptorHeapRTV         { &mCpuDescriptorHeapRTV },
+      .mCpuDescriptorHeapDSV         { &mCpuDescriptorHeapDSV },
+      .mCpuDescriptorHeapCBV_SRV_UAV { &mCpuDescriptorHeapCBV_SRV_UAV },
+      .mContextManager               { &mContextManager },
                   } );
 
     mSwapChainMgr.Init( {
@@ -84,6 +85,7 @@ namespace Tac::Render
       .mTextureMgr                   { &mTexMgr },
       .mBufferMgr                    { &mBufMgr },
       .mPipelineMgr                  { &mPipelineMgr },
+      .mSamplerMgr                   { &mSamplerMgr },
       .mDevice                       { mDevice },
       .mGpuDescriptorHeapCBV_SRV_UAV { &mGpuDescriptorHeapCBV_SRV_UAV },
       .mGpuDescriptorHeapSampler     { &mGpuDescriptorHeapSampler },
@@ -99,6 +101,11 @@ namespace Tac::Render
 
     mSamplers.Init( device, &mSamplerDescriptorHeap );
     */
+
+    mSamplerMgr.Init( {
+      .mDevice                   { mDevice },
+      .mCpuDescriptorHeapSampler { &mCpuDescriptorHeapSampler },
+                      });
   }
 
   void DX12Renderer::InitDescriptorHeaps( Errors& errors )
@@ -221,6 +228,18 @@ namespace Tac::Render
   void              DX12Device::DestroyProgram( ProgramHandle h )
   {
     sRenderer.mProgramMgr.DestroyProgram( h );
+  }
+
+  SamplerHandle     DX12Device::CreateSampler( Filter filter )
+  {
+    const SamplerHandle h{ AllocSamplerHandle() };
+    sRenderer.mSamplerMgr.CreateSampler( h, filter );
+    return h;
+  }
+
+  void              DX12Device::DestroySampler( SamplerHandle h )
+  {
+    sRenderer.mSamplerMgr.DestroySampler( h );
   }
 
   SwapChainHandle   DX12Device::CreateSwapChain( SwapChainParams params, Errors& errors )
