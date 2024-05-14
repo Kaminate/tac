@@ -11,6 +11,7 @@
 #include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
@@ -232,6 +233,7 @@ namespace Tac
     // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
     SimWindowApi*                     mSimWindowApi{};
     SimKeyboardApi*                   mSimKeyboardApi{};
+    SettingsNode                      mSettingsNode;
   };
 
   struct ImGuiNextWindow

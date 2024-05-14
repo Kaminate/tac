@@ -7,7 +7,7 @@ import std; // <filesystem>, <ctime> ( std::time_t )
 
 namespace Tac { struct String; struct StringView; struct Errors; }
 
-namespace Tac::Filesystem
+namespace Tac::FileSys
 {
   // Minimal wrapper for std::filesystem.
   // Hard to roll your own because of OS formats (wchar_t) for example, and being able to handle
@@ -55,6 +55,7 @@ namespace Tac::Filesystem
     //Path& operator /= ( const char* );
     Path& operator /= ( const StringView& );
     Path& operator = ( const Path& ) = default;
+    Path& operator += ( const StringView& );
 
   private:
 
@@ -122,5 +123,7 @@ namespace Tac::Filesystem
   Time GetFileLastModifiedTime( const Path&, Errors& );
 
   // -----------------------------------------------------------------------------------------------
+
+  //void DeleteThisFilesystemFn();
 
 } // namespace Tac::Filesystem

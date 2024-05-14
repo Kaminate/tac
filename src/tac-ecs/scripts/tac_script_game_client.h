@@ -2,6 +2,7 @@
 
 #include "tac-ecs/script/tac_script.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-std-lib/containers/tac_set.h"
 
 namespace Tac::Network
@@ -55,14 +56,16 @@ namespace Tac
 
   struct ScriptGameClient : public ScriptThread
   {
-    ScriptGameClient();
+    ScriptGameClient( SettingsNode );
     void Update( float seconds, Errors& ) override;
     void DebugImgui( Errors& ) override;
+
+    SettingsNode mSettingsNode;
   };
 
   struct ScriptMatchmaker : public ScriptThread
   {
-    ScriptMatchmaker();
+    ScriptMatchmaker( SettingsNode );
     void     Update( float seconds, Errors& ) override;
     void     DebugImgui( Errors& ) override;
     void     OnScriptGameConnectionClosed( Network::Socket* );
@@ -87,6 +90,7 @@ namespace Tac
     bool             mLogReceivedMessages           {};
     bool             mTryAutoConnect                {};
     Timestamp        mConnectionAttemptStartSeconds {};
+    SettingsNode     mSettingsNode;
   };
 
   // Mirrored in server.js

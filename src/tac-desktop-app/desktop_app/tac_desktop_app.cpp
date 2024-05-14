@@ -24,7 +24,7 @@
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/settings/tac_settings.h"
+#include "tac-engine-core/settings/tac_settings_root.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
@@ -62,6 +62,8 @@ namespace Tac
   static SysKeyboardApi                sSysKeyboardApi;
   static SimWindowApi                  sSimWindowApi;
   static SysWindowApi                  sSysWindowApi;
+
+  static SettingsRoot                  sSettingsRoot;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -147,7 +149,7 @@ namespace Tac
     sShellAppName = sApp->mConfig.mName;
     sShellStudioName = sApp->mConfig.mStudioName;
     sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
-    sShellInitialWorkingDir = Filesystem::GetCurrentWorkingDirectory();
+    sShellInitialWorkingDir = FileSys::GetCurrentWorkingDirectory();
     TAC_ASSERT( !sShellAppName.empty() && !sShellPrefPath.empty() );
 
     // for macos standalone_sdl_vk_1_tri, appDataPath =
@@ -157,12 +159,14 @@ namespace Tac
     // for win32 project standalone_win_vk_1_tri, appDataPath =
     //
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    TAC_RAISE_ERROR_IF( !Filesystem::Exists( sShellPrefPath ),
+    TAC_RAISE_ERROR_IF( !FileSys::Exists( sShellPrefPath ),
                         String() + "app data path " + sShellPrefPath.u8string() + " doesnt exist" );
 
-    LogApi::LogSetPath( sShellPrefPath / ( ToStem( sShellAppName ) + ".tac.log" ) );
+    const FileSys::Path logPath{ sShellPrefPath / ( ToStem( sShellAppName ) + ".tac.log" ) };
+    LogApi::LogSetPath( logPath );
 
-    TAC_CALL( SettingsInit( sShellPrefPath / ( sShellAppName + "Settings.txt" ), errors ) );
+    const FileSys::Path settingsPath{ sShellPrefPath / ( sShellAppName + "Settings.txt" ) };
+    TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
 
     if( sApp->IsRenderEnabled() )
     {
@@ -199,21 +203,15 @@ namespace Tac
     const ImGuiInitParams imguiInitParams
     {
       .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
-      //.mSetWindowPos { ImGuiSimSetWindowPos },
-      //.mSetWindowSize { ImGuiSimSetWindowSize },
-      //.mCreateWindow { ImGuiSimCreateWindow },
-      //.mDestroyWindow { ImGuiSimDestroyWindow },
       .mSimWindowApi     { &sSimWindowApi },
       .mSimKeyboardApi   { &sSimKeyboardApi },
+      .mSettingsNode     { sSettingsRoot.GetRootNode() },
     };
     ImGuiInit( imguiInitParams );
-
-    //sWindowBackend.mIsRendererEnabled = sApp->IsRenderEnabled();
 
     sDesktopEventHandler.mKeyboardBackend = &sKeyboardBackend;
     sDesktopEventHandler.mWindowBackend = &sWindowBackend;
     DesktopEventApi::Init( &sDesktopEventHandler );
-
 
     // this is kinda hacky
     DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sys );
@@ -248,38 +246,10 @@ namespace Tac
 
   void                DesktopApp::Update( Errors& errors )
   {
-    //TAC_CALL( DesktopAppUpdateWindowRequests( errors ) );
     DesktopAppUpdateMove();
     DesktopAppUpdateResize();
     UpdateTrackedWindows();
   }
-
-  //void                DesktopApp::ResizeControls( const WindowHandle& WindowHandle,
-  //                                                int edgePx )
-  //{
-  //  DesktopAppImplResizeControls( WindowHandle, edgePx );
-  //}
-
-  //void                DesktopApp::MoveControls( const WindowHandle& WindowHandle,
-  //                                              const DesktopWindowRect& rect )
-  //{
-  //  DesktopAppImplMoveControls( WindowHandle, rect );
-  //}
-
-  //void                DesktopApp::MoveControls( const WindowHandle& WindowHandle )
-  //{
-  //  DesktopAppImplMoveControls( WindowHandle );
-  //}
-
-  //WindowHandle DesktopApp::CreateWindow( const WindowApi::CreateParams& desktopParams )
-  //{
-  //  return DesktopAppImplCreateWindow( desktopParams );
-  //}
-
-  //void                DesktopApp::DestroyWindow( const WindowHandle& WindowHandle )
-  //{
-  //  return DesktopAppImplDestroyWindow(WindowHandle);
-  //}
 
   void                DesktopApp::DebugImGui(Errors& errors)
   {
@@ -288,17 +258,14 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    //DesktopWindowDebugImgui();
-
     DesktopAppDebugImGuiHoveredWindow();
 
     PlatformFns* platform { PlatformFns::GetInstance() };
     platform->PlatformImGui( errors );
   }
 
-  // -----------------------------------------------------------------------------------------------
+  Errors& DesktopApp::GetMainErrors() { return gMainFunctionErrors; }
 
 } // namespace Tac
 
-Tac::Errors&             Tac::GetMainErrors() { return gMainFunctionErrors; }
 

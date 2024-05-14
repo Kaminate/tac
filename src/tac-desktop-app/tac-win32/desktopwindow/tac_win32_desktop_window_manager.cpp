@@ -5,7 +5,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 //#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
@@ -139,7 +139,7 @@ namespace Tac
     // Sent when a window is being destroyed
     case WM_DESTROY:
     {
-      ImGuiSaveWindowSettings();
+      ImGuiSaveWindowSettings( windowHandle );
       const int i { windowHandle.GetIndex() };
       sHWNDs[ i ] = nullptr;
       const DesktopEventApi::WindowDestroyEvent data

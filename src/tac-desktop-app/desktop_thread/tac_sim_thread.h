@@ -1,10 +1,12 @@
 #pragma once
 
+#include "tac-engine-core/settings/tac_settings_root.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h" // App
+#include "tac-desktop-app/desktop_app/tac_render_state.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+
 namespace Tac
 {
-  struct App;
-  struct Errors;
-  struct GameStateManager;
   struct SimWindowApi;
   struct SimKeyboardApi;
 
@@ -19,6 +21,7 @@ namespace Tac
     GameStateManager* sGameStateManager{};
     SimWindowApi*     sWindowApi{};
     SimKeyboardApi*   sKeyboardApi{};
+    SettingsRoot*     mSettingsRoot{};
   };
 
 }

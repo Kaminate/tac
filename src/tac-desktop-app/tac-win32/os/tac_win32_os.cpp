@@ -52,13 +52,13 @@ namespace Tac
     return Monitor{ .mSize { w, h } };
   }
 
-  static Filesystem::Path Win32OSOpenDialog( Errors& errors )
+  static FileSys::Path Win32OSOpenDialog( Errors& errors )
   {
     FileDialogHelper helper( FileDialogHelper::kOpen );
     return helper.Run( errors );
   }
 
-  static Filesystem::Path Win32OSSaveDialog( const OS::SaveParams&, Errors& errors )
+  static FileSys::Path Win32OSSaveDialog( const OS::SaveParams&, Errors& errors )
   {
     FileDialogHelper helper( FileDialogHelper::kSave );
     return helper.Run( errors );
@@ -116,7 +116,7 @@ namespace Tac
     }
   }
 
-  static Filesystem::Path GetRoamingAppDataPathUTF8( Errors& errors )
+  static FileSys::Path GetRoamingAppDataPathUTF8( Errors& errors )
   {
     PWSTR outPath { nullptr };
     const HRESULT hr = SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath );
@@ -125,19 +125,19 @@ namespace Tac
     return std::filesystem::path( outPath );
   }
 
-  static Filesystem::Path Win32OSGetApplicationDataPath( Errors& errors )
+  static FileSys::Path Win32OSGetApplicationDataPath( Errors& errors )
   {
-    TAC_CALL_RET( {}, Filesystem::Path path{ GetRoamingAppDataPathUTF8( errors ) } );
-    TAC_ASSERT( Filesystem::Exists( path ) );
+    TAC_CALL_RET( {}, FileSys::Path path{ GetRoamingAppDataPathUTF8( errors ) } );
+    TAC_ASSERT( FileSys::Exists( path ) );
 
     path /= sShellStudioName;
-    Filesystem::CreateDirectory2( path );
-    TAC_ASSERT( Filesystem::Exists( path ) );
+    FileSys::CreateDirectory2( path );
+    TAC_ASSERT( FileSys::Exists( path ) );
 
     
     path /= sShellAppName;
-    Filesystem::CreateDirectory2( path );
-    TAC_ASSERT( Filesystem::Exists( path ) );
+    FileSys::CreateDirectory2( path );
+    TAC_ASSERT( FileSys::Exists( path ) );
 
     return path;
   }

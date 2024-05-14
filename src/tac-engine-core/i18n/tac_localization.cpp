@@ -353,7 +353,7 @@ Tac::CodepointView   Tac::LocalizationGetString( Language language, StringView r
   return localizedStringStuff.GetCodepointView();
 }
 
-void                 Tac::LocalizationLoad( const Filesystem::Path& path, Errors& errors )
+void                 Tac::LocalizationLoad( const FileSys::Path& path, Errors& errors )
 {
   TAC_CALL( const String str{ LoadFilePath( path, errors ) }  );
 

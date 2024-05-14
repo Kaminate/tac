@@ -1,7 +1,7 @@
 #include "tac_font.h" // self-inc
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/thirdparty/stb_truetype.h"
 
 //#include "tac-rhi/render3/tac_render_api.h"

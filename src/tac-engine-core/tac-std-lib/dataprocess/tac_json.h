@@ -17,12 +17,12 @@ namespace Tac
 
 	enum class JsonType
 	{
+		Null = 0,
 		String,
 		Number,
 		Object,
 		Array,
 		Bool,
-		Null
 	};
 
 	struct Indentation

@@ -18,7 +18,7 @@ namespace Tac::Render
   //  return s;
   //}
 
-  static const Filesystem::Path pixInstallPath { "C:/Program Files/Microsoft PIX" };
+  static const FileSys::Path pixInstallPath { "C:/Program Files/Microsoft PIX" };
   static const char* pixDllName { "WinPixGpuCapturer.dll" };
 
 
@@ -46,21 +46,21 @@ namespace Tac::Render
     return true;
   }
 
-  static Filesystem::Path TryFindPIXDllPath(Errors& errors)
+  static FileSys::Path TryFindPIXDllPath(Errors& errors)
   {
-    if( !Filesystem::Exists( pixInstallPath ) )
+    if( !FileSys::Exists( pixInstallPath ) )
       return {};
 
-    TAC_CALL_RET( {}, const Filesystem::Paths subdirs{ Filesystem::IterateDirectories(
+    TAC_CALL_RET( {}, const FileSys::Paths subdirs{ FileSys::IterateDirectories(
       pixInstallPath,
-      Filesystem::IterateType::Default,
+      FileSys::IterateType::Default,
       errors ) }  );
 
     if( subdirs.empty() )
       return {};
 
     String bestVer;
-    for( const Filesystem::Path& subdir : subdirs )
+    for( const FileSys::Path& subdir : subdirs )
     {
       const String ver { subdir.dirname().u8string() };
       if( !IsVersionPattern( ver ) || ver < bestVer )// ( !bestSubdir.empty() && ver < bestSubdir ) )
@@ -92,7 +92,7 @@ namespace Tac::Render
     if( OS::OSGetLoadedDLL( pixDllName ) )
       return;
 
-    const Filesystem::Path path { TryFindPIXDllPath( errors ) };
+    const FileSys::Path path { TryFindPIXDllPath( errors ) };
     const String path8 { path.u8string() };
     if( path8.empty() )
     {

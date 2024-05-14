@@ -14,7 +14,7 @@ namespace Tac
 namespace Tac::Render
 {
   static int              sMaxGPUFrameCount; 
-  static Filesystem::Path sShaderOutputPath; 
+  static FileSys::Path sShaderOutputPath; 
   static IDevice*         sDevice;
 
 
@@ -37,12 +37,14 @@ namespace Tac::Render
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
     sShaderOutputPath = params.mShaderOutputPath;
   }
+
   void             RenderApi::Uninit()
   {
     // ...
   }
+
   int              RenderApi::GetMaxGPUFrameCount()              { return sMaxGPUFrameCount; }
-  Filesystem::Path RenderApi::GetShaderOutputPath()              { return sShaderOutputPath; }
+  FileSys::Path    RenderApi::GetShaderOutputPath()              { return sShaderOutputPath; }
   IDevice*         RenderApi::GetRenderDevice()                  { return sDevice; }
   void             RenderApi::SetRenderDevice( IDevice* device ) { sDevice = device; }
 

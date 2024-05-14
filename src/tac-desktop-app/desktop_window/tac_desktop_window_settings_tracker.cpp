@@ -2,13 +2,16 @@
 
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 namespace Tac
 {
   static SimWindowApi* sWindowApi;
+  static SettingsNode sSettingsNode;
+
+
   struct TrackInfo
   {
     String              mPath          {};
@@ -41,6 +44,19 @@ namespace Tac
         c = '_';
     return name;
   }
+
+  static void UpdateSettings( const StringView path,
+                              int& x,
+                              int& y,
+                              int& w,
+                              int& h )
+  {
+    const String jsonPath{ GetJsonPath( path ) };
+    SettingsNode node{ sSettingsNode.GetChild( jsonPath ) };
+    x = node.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x );
+    y = node.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y );
+    w = node.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w );
+  }
 }
 
 Tac::WindowHandle Tac::CreateTrackedWindow( WindowCreateParams params )
@@ -65,24 +81,17 @@ Tac::WindowHandle Tac::CreateTrackedWindow( WindowCreateParams params )
   return windowHandle;
 }
 
-Tac::WindowHandle Tac::CreateTrackedWindow( const StringView& path,
+Tac::WindowHandle Tac::CreateTrackedWindow( const StringView path,
                                             int x,
                                             int y,
                                             int w,
                                             int h )
 {
-  const String jsonPath { GetJsonPath( path ) };
-  Json* json { SettingsGetJson( jsonPath ) };
-  x = ( int )SettingsGetNumber( "x", x, json );
-  y = ( int )SettingsGetNumber( "y", y, json );
-  w = ( int )SettingsGetNumber( "w", w, json );
-  h = ( int )SettingsGetNumber( "h", h, json );
-  const char* name{ path }; // just reuse it
+  UpdateSettings( path, x, y, w, h );
 
-  //const WindowApi::CreateParams createParams
   const WindowCreateParams createParams
   {
-    .mName { path },
+    .mName { path }, // reuse
     .mPos  { v2i( x, y ) },
     .mSize { v2i( w, h ) },
   };
@@ -121,11 +130,8 @@ void Tac::UpdateTrackedWindows()
       info.mY = y;
       info.mW = w;
       info.mH = h;
-      Json* json = SettingsGetJson( info.mPath );
-      SettingsSetNumber( "x", info.mX, json );
-      SettingsSetNumber( "y", info.mY, json );
-      SettingsSetNumber( "w", info.mW, json );
-      SettingsSetNumber( "h", info.mH, json );
+
+      UpdateSettings( info.mPath, info.mX, info.mY, info.mW, info.mH );
     }
   }
 }
@@ -149,8 +155,9 @@ void Tac::QuitProgramOnWindowClose( const WindowHandle& h )
 }
 
 
-void Tac::TrackWindowInit( SimWindowApi* windowApi )
+void Tac::TrackWindowInit( SimWindowApi* windowApi, SettingsNode settingsNode )
 {
   sWindowApi = windowApi;
+  sSettingsNode = settingsNode;
 }
 

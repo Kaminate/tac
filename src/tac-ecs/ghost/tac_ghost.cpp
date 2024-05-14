@@ -16,7 +16,7 @@
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/i18n/tac_localization.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 
@@ -104,8 +104,9 @@ namespace Tac
     TAC_DELETE mClientData;
   }
 
-  void Ghost::Init( Errors& errors )
+  void Ghost::Init( SettingsNode settingsNode, Errors& errors )
   {
+    mSettingsNode = settingsNode;
     mShouldPopulateWorldInitial = false;
     mScriptRoot->mGhost = this;
     //int w = shell->mWindowWidth;
@@ -136,11 +137,11 @@ namespace Tac
     //_HANDLE_ERROR( errors );
 
     const String serverTypeGameClient { TAC_STRINGIFY( ScriptGameClient ) };
-    const String serverType { SettingsGetString( "server type",  serverTypeGameClient ) };
+    const String serverType { settingsNode.GetChild( "server type" ).GetValueWithFallback( serverTypeGameClient ) };
 
     ScriptThread* child { nullptr };
     if( serverType == serverTypeGameClient )
-      child = TAC_NEW ScriptGameClient;
+      child = TAC_NEW ScriptGameClient( mSettingsNode );
     else
       TAC_ASSERT_INVALID_CODE_PATH;
 

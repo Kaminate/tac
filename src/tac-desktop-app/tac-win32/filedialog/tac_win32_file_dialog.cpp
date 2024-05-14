@@ -22,7 +22,7 @@ namespace Tac
       CoUninitialize();
     }
 
-    Filesystem::Path FileDialogHelper::Run( Errors& errors )
+    FileSys::Path FileDialogHelper::Run( Errors& errors )
     {
       TAC_HR_CALL_RET( {}, CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
       TAC_CALL_RET( {}, CreateDialogInstance( errors ) );
@@ -35,7 +35,7 @@ namespace Tac
 
     void FileDialogHelper::SetDefaultFolder( Errors& errors )
     {
-      const Filesystem::Path dir = sShellInitialWorkingDir / AssetPathRootFolderName;
+      const FileSys::Path dir = sShellInitialWorkingDir / AssetPathRootFolderName;
       const std::wstring wDir = dir.Get().wstring();
 
       PCom<IShellItem> shDir;
@@ -63,7 +63,7 @@ namespace Tac
       TAC_RAISE_ERROR_IF( FAILED( hr ) && !mCancelled, "Failed to show dialog");
     }
 
-    Filesystem::Path FileDialogHelper::GetResult( Errors& errors )
+    FileSys::Path FileDialogHelper::GetResult( Errors& errors )
     {
       PCom<IShellItem> pItem;
       TAC_HR_CALL_RET( {}, mDialog->GetResult( pItem.CreateAddress() ) );

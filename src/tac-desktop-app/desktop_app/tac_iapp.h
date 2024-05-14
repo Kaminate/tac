@@ -71,6 +71,7 @@ namespace Tac
     bool            IsRenderEnabled() const { return !mConfig.mDisableRenderer; }
 
     Config          mConfig;
+    //SettingsNode    GetSettings();
   };
 } // namespace Tac
 

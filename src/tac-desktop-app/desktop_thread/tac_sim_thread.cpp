@@ -2,7 +2,6 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-#include "tac-desktop-app/desktop_app/tac_iapp.h" // App
 #include "tac-desktop-app/desktop_app/tac_render_state.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
@@ -18,10 +17,9 @@
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
 
-#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/os/tac_os.h"
 
 #include "tac-engine-core/window/tac_window_backend.h"
@@ -46,15 +44,17 @@ namespace Tac
     TAC_CALL( FontApi::Init( errors ) );
 #endif
 
-    TrackWindowInit( sWindowApi );
+    SettingsNode settingsNode{ mSettingsRoot->GetRootNode() };
+    TrackWindowInit( sWindowApi, settingsNode );
 
     SpaceInit();
   }
 
   void SimThread::Uninit()
   {
-    const bool isRenderEnabled = mApp->IsRenderEnabled();
-    Errors& errors = *mErrors;
+    //const bool isRenderEnabled = mApp->IsRenderEnabled();
+    Errors& errors { *mErrors };
+
     {
       mApp->Uninit( errors );
       TAC_DELETE mApp;
@@ -81,7 +81,7 @@ namespace Tac
     {
       TAC_CALL( DesktopEventApi::Apply( errors ) );
       TAC_CALL( Network::NetApi::Update( errors ) );
-      TAC_CALL( SettingsTick( errors ) );
+      TAC_CALL( mSettingsRoot->Tick( errors ) );
 
       if( Timestep::Update() )
       {

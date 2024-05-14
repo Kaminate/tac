@@ -117,22 +117,23 @@ namespace Tac::Render
   }
 
   void DX12ProgramMgr::CreateProgram( ProgramHandle h,
-                                                  ProgramParams params,
-                                                  Errors& errors)
+                                      ProgramParams params,
+                                      Errors& errors )
   {
-    const String fileName { params.mFileStem + ".hlsl"};
+    const String fileName{ params.mFileStem + ".hlsl" };
     TAC_CALL( const String preprocessedShader{
       HLSLPreprocess( "assets/hlsl/" + fileName, errors ) } );
 
+    const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
     const DXCCompileParams input
     {
       .mFileName           { fileName },
       .mPreprocessedShader { preprocessedShader },
       .mShaderModel        { sShaderModel },
-      .mOutputDir          { RenderApi::GetShaderOutputPath() },
+      .mOutputDir          { outputDir },
     };
 
-    TAC_CALL( DXCCompileOutput output { DXCCompile( input, errors )  });
+    TAC_CALL( DXCCompileOutput output{ DXCCompile( input, errors ) } );
 
     const D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
                                          output.mReflInfo.mReflBindings.size() );

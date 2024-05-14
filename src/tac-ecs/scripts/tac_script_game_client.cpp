@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
@@ -75,17 +75,19 @@ namespace Tac
 	//  TAC_TIMELINE_END
 	//}
 
-	ScriptGameClient::ScriptGameClient()
+  ScriptGameClient::ScriptGameClient( SettingsNode settingsNode )
 	{
 		mName = "Game Client";
+    mSettingsNode = settingsNode;
 	}
+
 	void ScriptGameClient::Update( float seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
 		TAC_TIMELINE_BEGIN;
 
-		auto scriptMatchmaker { TAC_NEW ScriptMatchmaker };
+    auto scriptMatchmaker{ TAC_NEW ScriptMatchmaker( mSettingsNode ) };
 		mScriptRoot->AddChild( scriptMatchmaker );
 
 		auto scriptSplash { TAC_NEW ScriptSplash };
@@ -157,9 +159,10 @@ namespace Tac
 		//ImGui::Checkbox( "Skip splash screen", &mSkipSplashScreen );
 	}
 
-	ScriptMatchmaker::ScriptMatchmaker()
+	ScriptMatchmaker::ScriptMatchmaker(SettingsNode settingsNode )
 	{
 		mName = scriptMatchmakerName;
+    mSettingsNode = settingsNode;
 	}
 
 	void ScriptMatchmaker::OnScriptGameConnectionClosed( [[maybe_unused]] Network::Socket* socket )
@@ -277,7 +280,9 @@ namespace Tac
 		mSocket->mTCPOnConnectionClosed.push_back( socketCallbackData );
 
 		//String hostname = SettingsGetString( "hostname" , defaultHostname );
-		mPort = ( u16 )SettingsGetNumber( "port" , ( JsonNumber )defaultPort );
+    mPort = ( u16 )mSettingsNode
+      .GetChild( "port" )
+      .GetValueWithFallback( ( JsonNumber )defaultPort ).mNumber;
 
 		mConnectionAttemptStartSeconds = Timestep::GetElapsedTime();
 

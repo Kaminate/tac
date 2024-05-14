@@ -5,6 +5,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/i18n/tac_localization.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/math/tac_vector2.h"
 //#include "tac-rhi/render3/tac_render_api.h"
@@ -63,7 +64,7 @@ namespace Tac
   {
     Ghost();
     virtual ~Ghost();
-    void            Init( Errors& ) override;
+    void            Init( SettingsNode, Errors& ) override;
     void            Update( Errors& ) override;
     void            ImguiCreatePlayerPopup( Errors& );
     User*           AddPlayer( StringView name, Errors& );
@@ -91,6 +92,8 @@ namespace Tac
     float           mImguiImagePosRelTopLeftX   {};
     float           mImguiImagePosRelTopLeftY   {};
     bool            mShouldPopulateWorldInitial {};
+
+    SettingsNode    mSettingsNode;
   };
 
   const String scriptMsgNameUserConnect = "user connect";

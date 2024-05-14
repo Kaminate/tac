@@ -8,6 +8,7 @@
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h" // UI2DDrawData
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/math/tac_vector2i.h"
 #include "tac-std-lib/math/tac_vector4.h"
@@ -124,6 +125,7 @@ namespace Tac
     int                mMaxGpuFrameCount{};
     SimWindowApi*      mSimWindowApi{};
     SimKeyboardApi*    mSimKeyboardApi{};
+    SettingsNode       mSettingsNode;
     //ImGuiSetWindowPos  mSetWindowPos{};
     //ImGuiSetWindowSize mSetWindowSize{};
     //ImGuiCreateWindow  mCreateWindow{};
@@ -133,7 +135,7 @@ namespace Tac
   //   ImGui System Functions
   void ImGuiInit( const ImGuiInitParams& );
   void ImGuiUninit();
-  void ImGuiSaveWindowSettings();
+  void ImGuiSaveWindowSettings( WindowHandle );
   void ImGuiDebugDraw();
   // called by the main thread
 

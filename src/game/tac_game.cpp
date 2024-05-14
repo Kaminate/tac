@@ -32,7 +32,8 @@ namespace Tac
       .mHeight { ( int )( 0.8f * monitorHeight ) },
     };
 
-    mDesktopWindowHandle = DesktopApp::GetInstance()->CreateWindow(params);
+    SysWindowApi* windowApi{};
+    mDesktopWindowHandle = windowApi->CreateWindow( params );
 
 
     auto ghost { TAC_NEW Ghost };

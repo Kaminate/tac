@@ -15,7 +15,7 @@
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
-  static Filesystem::Path sOutputDir; // = sShellPrefPath,
+  static FileSys::Path sOutputDir; // = sShellPrefPath,
 
   // static helper functions
 

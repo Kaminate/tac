@@ -206,7 +206,8 @@ namespace Tac
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-    DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
+    SimWindowApi* windowApi{};
+    windowApi->DestroyWindow( mDesktopWindowHandle );
     TAC_DELETE mDebug3DDrawData;
   }
 
@@ -1026,7 +1027,6 @@ namespace Tac
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
 
     const v2 size { desktopWindowState->GetSizeV2() };
     const Render::Viewport viewport(size);

@@ -20,13 +20,13 @@ namespace Tac
     FileDialogHelper( Type );
     ~FileDialogHelper();
 
-    Filesystem::Path        Run( Errors& );
+    FileSys::Path        Run( Errors& );
 
   private:
     void                    SetDefaultFolder( Errors& );
     void                    CreateDialogInstance( Errors& );
     void                    Show( Errors& );
-    Filesystem::Path        GetResult( Errors& );
+    FileSys::Path        GetResult( Errors& );
 
     IFileDialog*            mDialog { nullptr };
     PCom< IFileOpenDialog > mOpenDialog;

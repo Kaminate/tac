@@ -1,4 +1,4 @@
-#include "tac_settings.h" // self-inc
+#include "tac_settings_root.h" // self-inc
 
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
@@ -12,81 +12,60 @@
 
 namespace Tac
 {
-  static Json             sJson;
-  static bool             sDirty;
-  static bool             sFlush;
-  static Timestamp        sLastSaveSeconds;
-  static Filesystem::Path sSavePath;
-
-  static void   SettingCheckFallback( Json* leaf, Json* fallback )
+  void          SettingsRoot::Init( const FileSys::Path& path , Errors& errors )
   {
-    if( leaf->mType != fallback->mType )
-    {
-      *leaf = *fallback;
-      SettingsSave();
-    }
-  }
+    sSavePath = path;
+    if( !FileSys::Exists( sSavePath ) )
+      Flush( errors );
 
-  static void   SettingsSetValue( StringView path, Json* root, const Json& setValue )
-  {
-    *SettingsGetJson( path, root ) = setValue;
-    SettingsSave();
-  }
-
-  static Json*  SettingsGetValue( StringView path, Json* fallback, Json* root )
-  {
-    Json* leaf = SettingsGetJson( path, root );
-    SettingCheckFallback( leaf, fallback );
-    return leaf;
-  }
-
-  static bool   SettingsShouldUpdate()
-  {
-    if( sFlush )
-      return true;
-
-    if( !sDirty )
-      return false;
-
-    const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
-    const TimestampDifference saveFrequencySecs { 0.1f };
-    const bool savedRecently { elapsedSeconds < sLastSaveSeconds + saveFrequencySecs };
-    if( savedRecently )
-      return false;
-
-    return true;
-  }
-
-}
-
-void            Tac::SettingsInit( const Filesystem::Path& path , Errors& errors )
-{
-  sSavePath = path; 
-  if( Filesystem::Exists( sSavePath ))
-  {
-    const String loaded { LoadFilePath( sSavePath, errors ) };
+    const String loaded{ LoadFilePath( sSavePath, errors ) };
     sJson.Parse( loaded.data(), ( int )loaded.size(), errors );
   }
-  else
+
+  SettingsNode SettingsRoot::GetRootNode()
   {
-    SettingsFlush( errors );
+    return SettingsNode( this, &sJson );
   }
+
+  void          SettingsRoot::Tick( Errors& errors )
+  {
+    if( !sDirty )
+      return;
+
+    const Timestamp elapsedSeconds{ Timestep::GetElapsedTime() };
+    const TimestampDifference saveFrequencySecs{ 0.1f };
+    const bool savedRecently{ elapsedSeconds < sLastSaveSeconds + saveFrequencySecs };
+    if( savedRecently )
+      return;
+
+    Flush( errors );
+  }
+
+  void          SettingsRoot::Flush( Errors& errors )
+  {
+    const String str{ sJson.Stringify() };
+    const void* data{ ( void* )str.data() };
+    const int n{ ( int )str.size() };
+
+    TAC_CALL( FileSys::SaveToFile( sSavePath, data, n, errors ) );
+
+    sDirty = false;
+    sLastSaveSeconds = Timestep::GetElapsedTime();
+  }
+
+  void          SettingsRoot::SetDirty()
+  {
+    sDirty = true;
+  }
+}
+#if 0
+
+void            Tac::SettingsInit( const FileSys::Path& path, Errors& errors )
+{
 }
 
 void            Tac::SettingsTick( Errors& errors )
 {
-  if( !SettingsShouldUpdate() )
-    return;
-
-  const String str { sJson.Stringify() };
-  const void* data { ( void* )str.data() };
-  const int n { ( int )str.size() };
-  
-  TAC_CALL( Filesystem::SaveToFile( sSavePath, data, n, errors ));
-
-  sDirty = false;
-  sFlush = false;
-  sLastSaveSeconds = Timestep::GetElapsedTime();
 }
 
 void            Tac::SettingsSave()
@@ -100,7 +79,7 @@ void            Tac::SettingsFlush( Errors& errors )
   SettingsTick( errors );
 }
 
-Tac::Json*      Tac::SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root)
+Tac::Json* Tac::SettingsGetChildByKeyValuePair( StringView key, const Json& value, Json* root )
 {
   TAC_ASSERT( root );
   root->mType = root->mType == JsonType::Null ? JsonType::Array : root->mType;
@@ -112,7 +91,7 @@ Tac::Json*      Tac::SettingsGetChildByKeyValuePair( StringView key, const Json&
   {
     if( !child->HasChild( key ) )
       continue;
-    Json& childValue { child->GetChild( key ) };
+    Json& childValue{ child->GetChild( key ) };
     if( childValue.mType != value.mType ||
         childValue.mString != value.mString ||
         childValue.mNumber != value.mNumber ||
@@ -121,19 +100,19 @@ Tac::Json*      Tac::SettingsGetChildByKeyValuePair( StringView key, const Json&
     return child;
   }
 
-  Json* child { root->AddChild() };
-  SettingsSetValue( key, child, value);
+  Json* child{ root->AddChild() };
+  SettingsSetValue( key, child, value );
   return child;
 }
 
-Tac::Json*      Tac::SettingsGetJson( StringView path, Json* root )
+Tac::Json* Tac::SettingsGetJson( StringView path, Json* root )
 {
-  root = root ? root : &sJson  ;
+  root = root ? root : &sJson;
   while( !path.empty() )
   {
     // Non-leaf nodes are either JsonType::Objects/Arrays
-    StringView oldPath { path };
-    Json* oldRoot { root };
+    StringView oldPath{ path };
+    Json* oldRoot{ root };
     if( path.front() == '.' )
       path.remove_prefix( 1 );
 
@@ -158,7 +137,7 @@ Tac::Json*      Tac::SettingsGetJson( StringView path, Json* root )
       TAC_ASSERT( root->mType == JsonType::Array );
       const int iCloseSquareBracket = path.find_first_of( "]" );
       TAC_ASSERT( iCloseSquareBracket != StringView::npos );
-      const int iElement { Atoi( StringView( path.data() + 1, path.data() + iCloseSquareBracket ) ) };
+      const int iElement{ Atoi( StringView( path.data() + 1, path.data() + iCloseSquareBracket ) ) };
       TAC_ASSERT( ( unsigned )iElement < ( unsigned )root->mArrayElements.size() );
       root = root->mArrayElements[ iElement ];
       path.remove_prefix( iCloseSquareBracket );
@@ -171,13 +150,13 @@ Tac::Json*      Tac::SettingsGetJson( StringView path, Json* root )
   return root;
 }
 
-Tac::StringView Tac::SettingsGetString( StringView path, StringView fallback, Json* root)
+Tac::StringView Tac::SettingsGetString( StringView path, StringView fallback, Json* root )
 {
   Json fallbackJson( fallback );
-  return SettingsGetValue( path, &fallbackJson, root)->mString;
+  return SettingsGetValue( path, &fallbackJson, root )->mString;
 }
 
-void            Tac::SettingsSetString( StringView path, StringView setValue, Json* root)
+void            Tac::SettingsSetString( StringView path, StringView setValue, Json* root )
 {
   SettingsSetValue( path, root, setValue );
 }
@@ -204,3 +183,4 @@ void            Tac::SettingsSetBool( StringView path, bool setValue, Json* root
   SettingsSetValue( path, root, setValue );
 }
 
+#endif

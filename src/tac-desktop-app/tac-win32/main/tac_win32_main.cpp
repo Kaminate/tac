@@ -4,11 +4,7 @@
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-//#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/net/tac_net.h"
-#include "tac-engine-core/settings/tac_settings.h"
-
-//#include "tac-rhi/render/tac_render_backend.h"
 
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
@@ -22,15 +18,12 @@
 #include "tac-win32/input/tac_win32_mouse_edge.h"
 #include "tac-win32/input/tac_xinput.h"
 #include "tac-win32/net/tac_net_winsock.h"
-//#include "tac-win32/dx/dx11/tac_renderer_dx11.h"
-//#include "tac-win32/dx/dx12/tac_renderer_dx12_ver2.h"
-//#include "tac-win32/dx/dx12/tac_renderer_dx12_ver2.h"
 #include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h" // DX12Backend
 #include "tac-win32/dx/dxgi/tac_dxgi_debug.h" // DXGIReportLiveObjects
 #include "tac-win32/dx/pix/tac_pix.h" // AllowPIXDebuggerAttachment
 #include "tac-win32/tac_win32.h"
 
-import std; // #include <iostream> // okay maybe this should also be allowed
+import std; // #include <iostream>
 
 static Tac::Win32PlatformFns sWin32PlatformFns;
 static Tac::Render::DX12Device sDX12Device;
@@ -41,91 +34,61 @@ int CALLBACK WinMain( HINSTANCE hInstance,
                       int nCmdShow )
 {
   using namespace Tac;
-  Errors& errors { GetMainErrors() };
-
+  Errors& errors{ DesktopApp::GetMainErrors() };
   TAC_SCOPE_GUARD( LogScope );
-
   TAC_MEDIEVAL_DEBUG;
-
   Win32OSInit();
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
-
   RedirectStreamBuf();
-
-  TAC_CALL_RET( 0, Render::AllowPIXDebuggerAttachment( errors ));
-  //Render::RegisterRendererDirectX11();
-
+  TAC_CALL_RET( 0, Render::AllowPIXDebuggerAttachment( errors ) );
   Render::RenderApi::SetRenderDevice( &sDX12Device );
   TAC_CALL_RET( 0, sDX12Device.Init( errors ) );
-  
-  //Render::IRenderBackend3::Set( &dx12Backend );
-
-  TAC_CALL_RET( 0, Controller::XInputInit( errors ));
-
+  TAC_CALL_RET( 0, Controller::XInputInit( errors ) );
   Win32MouseEdgeInit();
-
-  DesktopApp* desktopApp = DesktopApp::GetInstance();
-
+  DesktopApp* desktopApp{ DesktopApp::GetInstance() };
   PlatformFns::SetInstance( &sWin32PlatformFns );
-
   TAC_CALL_RET( 0, desktopApp->Init( errors ) );
-
   TAC_CALL_RET( 0, Win32WindowManagerInit( errors ) );
-
   TAC_CALL_RET( 0, Network::NetWinsockInit( errors ) );
-
   TAC_CALL_RET( 0, desktopApp->Run( errors ) );
-
   Render::DXGIReportLiveObjects();
-
   return 0;
+}
+
+
+// Redirect stdout to output window
+void Tac::RedirectStreamBuf()
+{
+  struct RedirectBuf : public std::streambuf
+  {
+    // xsputn() outputs strings of size n
+    std::streamsize xsputn( const char* s, std::streamsize n ) override
+    {
+      OutputDebugStringA( s );
+      return n;
+    }
+
+    // overflow() outputs characters such as '\n'
+    int overflow( int c ) override
+    {
+      const char s[] = { ( char )c, '\0' };
+      OutputDebugStringA( s );
+      return c;
+    }
+  };
+
+  static RedirectBuf streamBuf;
+  std::cout.rdbuf( &streamBuf );
+  std::cerr.rdbuf( &streamBuf );
+  std::clog.rdbuf( &streamBuf );
 }
 
 namespace Tac
 {
 
-  static void Win32FrameBegin( Errors& errors )
-  {
-    Win32WindowManagerPoll( errors );
-  }
-
-  static void Win32FrameEnd( Errors& )
-  {
-    Win32MouseEdgeUpdate();
-
-    const DesktopEventApi::CursorUnobscuredEvent data{ Win32MouseEdgeGetCursorHovered() };
-    DesktopEventApi::Queue( data );
-  }
-
-  // Redirect stdout to output window
-  void RedirectStreamBuf()
-  {
-    struct RedirectBuf : public std::streambuf
-    {
-      // xsputn() outputs strings of size n
-      std::streamsize xsputn( const char* s, std::streamsize n ) override
-      {
-        OutputDebugStringA( s );
-        return n;
-      }
-
-      // overflow() outputs characters such as '\n'
-      int overflow( int c ) override
-      {
-        const char s[] = { (char)c, '\0' };
-        OutputDebugStringA( s );
-        return c;
-      }
-    };
-
-    static RedirectBuf streamBuf;
-    std::cout.rdbuf( &streamBuf );
-    std::cerr.rdbuf( &streamBuf );
-    std::clog.rdbuf( &streamBuf );
-  }
-
   // -----------------------------------------------------------------------------------------------
-  void Win32PlatformFns::PlatformImGui( Errors& errors ) 
+
+  void Win32PlatformFns::PlatformImGui( Errors& errors ) const
   {
     if( !ImGuiCollapsingHeader( "Win32PlatformFns::PlatformImGui" ) )
       return;
@@ -135,43 +98,29 @@ namespace Tac
     Win32WindowManagerDebugImGui();
   }
 
-  void Win32PlatformFns::PlatformFrameBegin( Errors& errors ) 
+  void Win32PlatformFns::PlatformFrameBegin( Errors& errors ) const
   {
-    Win32FrameBegin( errors );
+    Win32WindowManagerPoll( errors );
   }
 
-  void Win32PlatformFns::PlatformFrameEnd( Errors& errors ) 
+  void Win32PlatformFns::PlatformFrameEnd( Errors& errors ) const
   {
-    Win32FrameEnd( errors );
+    Win32MouseEdgeUpdate();
+
+    const DesktopEventApi::CursorUnobscuredEvent data{ Win32MouseEdgeGetCursorHovered() };
+    DesktopEventApi::Queue( data );
   }
 
   void Win32PlatformFns::PlatformSpawnWindow( const PlatformSpawnWindowParams& params,
-                                              Errors& errors ) 
+                                              Errors& errors ) const
   {
     Win32WindowManagerSpawnWindow( params, errors );
   }
 
-  void Win32PlatformFns::PlatformDespawnWindow( WindowHandle handle ) 
+  void Win32PlatformFns::PlatformDespawnWindow( WindowHandle handle ) const
   {
     Win32WindowManagerDespawnWindow( handle );
   }
-
-  //void Win32PlatformFns::PlatformWindowMoveControls( const WindowHandle& handle,
-  //                                                   const DesktopWindowRect& rect )
-  //{
-  //  Win32MouseEdgeSetMovable( handle, rect );
-  //}
-
-  //void Win32PlatformFns::PlatformWindowResizeControls( const WindowHandle& handle,
-  //                                                     int i )
-  //{
-  //  Win32MouseEdgeSetResizable( handle, i );
-  //}
-
-  //WindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() 
-  //{
-  //  return Win32WindowManagerGetCursorUnobscuredWindow();
-  //}
 
   // -----------------------------------------------------------------------------------------------
 

@@ -26,7 +26,7 @@
 //  Time 
 //}
 
-namespace Tac::Filesystem
+namespace Tac::FileSys
 {
   // -----------------------------------------------------------------------------------------------
 
@@ -124,7 +124,8 @@ namespace Tac::Filesystem
   bool   Path::has_filename() const              { return Get().has_filename(); }
   bool   Path::has_dirname() const               { return Get().has_filename(); }
   //Path&  Path::operator /= ( const char* p )     { Get() /= p; return *this; }
-  Path&  Path::operator /= (const StringView& s ) { Get() /= s.data(); return *this; }
+  Path&  Path::operator /= ( const StringView& s ) { Get() /= s.data(); return *this; }
+  Path&  Path::operator += ( const StringView& s ) { Get() += s.data(); return *this; }
 
   std::filesystem::path&       Path::Get()       { return mPath; }
   const std::filesystem::path& Path::Get() const { return mPath; }
@@ -155,48 +156,48 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  Filesystem::Path  Filesystem::operator / ( const Path& a, const Path& b )
+  FileSys::Path  FileSys::operator / ( const Path& a, const Path& b )
   {
     return a.Get() / b.Get();
   }
 
-  bool              Filesystem::operator == ( const Path& a, const Path& b )
+  bool              FileSys::operator == ( const Path& a, const Path& b )
   {
     return a.Get() == b.Get();
   }
 
-  Filesystem::Path  Filesystem::GetCurrentWorkingDirectory()
+  FileSys::Path  FileSys::GetCurrentWorkingDirectory()
   {
     return std::filesystem::current_path();
   }
 
-  bool              Filesystem::Exists( const Path& path )
+  bool              FileSys::Exists( const Path& path )
   {
     const std::filesystem::path& fsPath = path.Get();
     return std::filesystem::exists( fsPath );
   }
 
-  bool              Filesystem::IsDirectory( const Path& path )
+  bool              FileSys::IsDirectory( const Path& path )
   {
     return std::filesystem::is_directory( path.Get() );
   }
 
-  bool              Filesystem::Exists( const char* path )
+  bool              FileSys::Exists( const char* path )
   {
     return std::filesystem::exists( path );
   }
 
-  void              Filesystem::CreateDirectory( const Path& path )
+  void              FileSys::CreateDirectory( const Path& path )
   {
     std::filesystem::create_directory( path.Get() );
   }
 
-  void              Filesystem::CreateDirectory2( const Path& path )
+  void              FileSys::CreateDirectory2( const Path& path )
   {
     std::filesystem::create_directory( path.Get() );
   }
 
-  Filesystem::Time  Filesystem::GetFileLastModifiedTime( const Filesystem::Path& path,
+  FileSys::Time  FileSys::GetFileLastModifiedTime( const FileSys::Path& path,
                                                          Errors& errors )
   {
     const std::filesystem::path& fsPath = path.Get();
@@ -214,27 +215,27 @@ namespace Tac
      return entry.is_regular_file(); 
   }
 
-  Filesystem::Paths Filesystem::IterateFiles( const Path& dir, IterateType type, Errors& errors )
+  FileSys::Paths FileSys::IterateFiles( const Path& dir, IterateType type, Errors& errors )
   {
     return IterateFilesHelper( dir, type,  &IsEntryRegularFile , errors );
   }
 
 
-  Filesystem::Paths Filesystem::IterateDirectories( const Path& dir,
+  FileSys::Paths FileSys::IterateDirectories( const Path& dir,
                                                     IterateType type,
                                                     Errors& errors )
   {
     return IterateFilesHelper( dir, type, &IsEntryDirectory, errors );
   }
 
-  String            Filesystem::StripExt( const StringView& path )
+  String            FileSys::StripExt( const StringView& path )
   {
     auto found { path.find_last_of( "." ) };
     TAC_ASSERT( found != String::npos );
     return path.substr( 0, found );
   }
 
-  String            Filesystem::StripLeadingSlashes( const StringView& path )
+  String            FileSys::StripLeadingSlashes( const StringView& path )
   {
     int i{ 0 };
     for( i; i < path.size(); i++ )
@@ -244,19 +245,19 @@ namespace Tac
     return result;
   }
 
-  bool              Filesystem::IsOfExt( const StringView& str, const StringView& ext )
+  bool              FileSys::IsOfExt( const StringView& str, const StringView& ext )
   {
     String lower_str = ToLower( str );
     String lower_ext = ToLower( ext );
     return lower_str.ends_with( lower_ext );
   }
 
-  void              Filesystem::SaveToFile( const Path& path, StringView sv, Errors& errors )
+  void              FileSys::SaveToFile( const Path& path, StringView sv, Errors& errors )
   {
     SaveToFile( path, sv.data(), sv.size(), errors );
   }
 
-  void              Filesystem::SaveToFile( const Path& path,
+  void              FileSys::SaveToFile( const Path& path,
                                             const void* bytes,
                                             int byteCount,
                                             Errors& errors )
@@ -266,7 +267,7 @@ namespace Tac
     ofs.write( ( const char* )bytes, byteCount );
   }
 
-  String            Filesystem::LoadFilePath( const Path& path, Errors& errors )
+  String            FileSys::LoadFilePath( const Path& path, Errors& errors )
   {
     std::ifstream ifs(  path.Get(), std::ios_base::binary );
     TAC_RAISE_ERROR_IF_RETURN( !ifs.is_open() , FormatFileError( path, "reading" ),  {} );

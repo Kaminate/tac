@@ -24,17 +24,17 @@ namespace Tac
   struct Job
   {
     Job();
-    virtual               ~Job() = default;
-    virtual void          Execute() = 0;
-    void                  Abort();
-    void                  SetState( JobState );
-    bool                  AbortRequested() const;
-    JobState              GetStatus() const;
+    virtual                 ~Job() = default;
+    virtual void            Execute() = 0;
+    void                    Abort();
+    void                    SetState( JobState );
+    bool                    AbortRequested() const;
+    JobState                GetStatus() const;
 
-    //                    Errors which occurred while running the job in another thread.
-    Errors                mErrors;
-    std::atomic<JobState> mAsyncLoadStatus;
-    std::atomic<bool>     mAbortRequested;
+    //                      Errors which occurred while running the job in another thread.
+    Errors                  mErrors;
+    std::atomic< JobState > mAsyncLoadStatus;
+    std::atomic< bool >     mAbortRequested;
   };
 
   void JobQueueInit();

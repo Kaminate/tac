@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/containers/tac_set.h"
 #include "tac-ecs/component/tac_component.h"

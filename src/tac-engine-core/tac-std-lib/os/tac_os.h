@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/math/tac_vector2i.h"
 
-namespace Tac::Filesystem { struct Path; }
+namespace Tac::FileSys { struct Path; }
 
 namespace Tac { struct StringView; struct StackFrame; struct Errors; struct v2; }
 
@@ -28,15 +28,15 @@ namespace Tac::OS
   extern void        ( *OSDebugPopupBox )( const StringView& );
 
   //                 Gets the path where you can save files to, such as user configs
-  extern Filesystem::Path ( *OSGetApplicationDataPath )( Errors& );
+  extern FileSys::Path ( *OSGetApplicationDataPath )( Errors& );
 
   struct SaveParams
   {
-    Filesystem::Path* mSuggestedFilename;
+    FileSys::Path* mSuggestedFilename;
   };
 
-  extern Filesystem::Path( *OSSaveDialog )( const SaveParams&, Errors& );
-  extern Filesystem::Path( *OSOpenDialog )( Errors& );
+  extern FileSys::Path( *OSSaveDialog )( const SaveParams&, Errors& );
+  extern FileSys::Path( *OSOpenDialog )( Errors& );
 
 
   extern Monitor        ( *OSGetPrimaryMonitor )();

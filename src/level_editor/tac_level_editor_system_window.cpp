@@ -28,7 +28,8 @@ namespace Tac
 
   CreationSystemWindow::~CreationSystemWindow()
   {
-    DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
+    SimWindowApi* windowApi{};
+    windowApi->DestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
   }
 
@@ -97,8 +98,6 @@ namespace Tac
   void CreationSystemWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    DesktopApp::GetInstance()->ResizeControls( mDesktopWindowHandle );
-    DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
     const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;

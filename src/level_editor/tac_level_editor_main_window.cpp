@@ -33,6 +33,8 @@ namespace Tac
   CreationMainWindow::~CreationMainWindow()
   {
     DesktopApp::GetInstance()->DestroyWindow( mDesktopWindowHandle );
+    SimWindowApi* windowApi{};
+    windowApi->DestroyWindow( mDesktopWindowHandle );
     Instance = nullptr;
     //TAC_DELETE mUI2DDrawData;
   }
@@ -183,8 +185,6 @@ namespace Tac
   void CreationMainWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    DesktopApp::GetInstance()->ResizeControls( mDesktopWindowHandle );
-    DesktopApp::GetInstance()->MoveControls( mDesktopWindowHandle );
 
     const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
     const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );

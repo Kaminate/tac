@@ -56,13 +56,13 @@ namespace Tac
     TAC_ASSERT_CRITICAL( msg );
   }
 
-  static Filesystem::IterateType AssetToFSIterateType( AssetIterateType t )
+  static FileSys::IterateType AssetToFSIterateType( AssetIterateType t )
   {
     switch( t )
     {
-    case AssetIterateType::Default: return Filesystem::IterateType::Default;
-    case AssetIterateType::Recursive: return Filesystem::IterateType::Recursive;
-    default: TAC_ASSERT_INVALID_CASE( t ); return Filesystem::IterateType::Default;
+    case AssetIterateType::Default: return FileSys::IterateType::Default;
+    case AssetIterateType::Recursive: return FileSys::IterateType::Recursive;
+    default: TAC_ASSERT_INVALID_CASE( t ); return FileSys::IterateType::Default;
     }
   }
 
@@ -142,7 +142,7 @@ namespace Tac
 
   bool                  Tac::Exists( const AssetPathStringView& assetPath )
   {
-    const Filesystem::Path fsPath( assetPath );
+    const FileSys::Path fsPath( assetPath );
     return Exists( fsPath );
   }
 
@@ -151,28 +151,28 @@ namespace Tac
                                          int byteCount,
                                          Errors& errors)
   {
-    const Filesystem::Path fsPath( assetPath );
-    Filesystem::SaveToFile( fsPath, bytes, byteCount, errors );
+    const FileSys::Path fsPath( assetPath );
+    FileSys::SaveToFile( fsPath, bytes, byteCount, errors );
   }
 
   Tac::String           Tac::LoadAssetPath( const AssetPathStringView& assetPath,
                                             Errors& errors )
   {
-    const Filesystem::Path fsPath( assetPath );
-    return Filesystem::LoadFilePath( fsPath, errors );
+    const FileSys::Path fsPath( assetPath );
+    return FileSys::LoadFilePath( fsPath, errors );
   }
 
   Tac::AssetPathStrings Tac::IterateAssetsInDir( const AssetPathStringView& dir,
                                                AssetIterateType type,
                                                Errors& errors )
   {
-    const Filesystem::IterateType fsIterate = AssetToFSIterateType( type );
+    const FileSys::IterateType fsIterate = AssetToFSIterateType( type );
 
-    const Filesystem::Paths paths =
-      TAC_CALL_RET( {}, Filesystem::IterateFiles( dir, fsIterate, errors ) );
+    const FileSys::Paths paths =
+      TAC_CALL_RET( {}, FileSys::IterateFiles( dir, fsIterate, errors ) );
 
     AssetPathStrings result;
-    for( const Filesystem::Path& path : paths )
+    for( const FileSys::Path& path : paths )
     {
       String s = path.u8string();
       s.replace("\\", "/");

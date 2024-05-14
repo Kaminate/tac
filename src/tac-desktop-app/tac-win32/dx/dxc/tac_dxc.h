@@ -16,7 +16,7 @@ namespace Tac::Render
     StringView          mFileName; // ie: "foo.hlsl"
     StringView          mPreprocessedShader;
     D3D_SHADER_MODEL    mShaderModel = ( D3D_SHADER_MODEL )0;
-    Filesystem::Path    mOutputDir;
+    FileSys::Path    mOutputDir;
   };
 
   struct DXCReflInfo

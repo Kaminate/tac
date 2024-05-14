@@ -38,7 +38,7 @@ namespace Tac::TextureAssetManager
     int              mPitch { 0 };
     Render::Image    mImage;
     Vector< char >   mImageData;
-    Filesystem::Path mFilepath;
+    FileSys::Path    mFilepath;
   };
 
   struct AsyncTextureCubeData : AsyncTextureData
@@ -48,7 +48,7 @@ namespace Tac::TextureAssetManager
     int              mPitch { 0 };
     Render::Image    mImage;
     Vector< char >   mImageData[ 6 ];
-    Filesystem::Path mDir;
+    FileSys::Path    mDir;
   };
 
   struct AsyncTextureSingleJob : Job
@@ -121,9 +121,28 @@ namespace Tac::TextureAssetManager
 
   void AsyncTextureSingleJob::Execute()
   {
-    Errors& errors = mErrors;
+    Errors& errors { mErrors };
 
-    const String memory = TAC_CALL( LoadFilePath( mData->mFilepath, errors ));
+    TAC_CALL( const String memory{ FileSys::LoadFilePath( mData->mFilepath, errors ) } );
+
+
+    //Filesystem::LoadFilePath;
+    //DeleteThisFilesystemFn();
+    //Filesystem::DeleteThisFilesystemFn();
+
+    FileSys::Path metaPath { mData->mFilepath };
+    metaPath += ".meta";
+    if( !Exists( metaPath ) )
+    {
+      OS::OSDebugPrintLine( metaPath.u8string() + " doesn't exist, creating a default" );
+      
+
+    }
+
+    if( Exists( metaPath ) )
+    {
+    }
+    
 
     int x;
     int y;
@@ -182,8 +201,8 @@ namespace Tac::TextureAssetManager
   {
     Errors& errors { mErrors };
 
-    TAC_CALL( Vector< Filesystem::Path > files{ Filesystem::IterateFiles( mData->mDir,
-                                                                 Filesystem::IterateType::Recursive,
+    TAC_CALL( Vector< FileSys::Path > files{ FileSys::IterateFiles( mData->mDir,
+                                                                 FileSys::IterateType::Recursive,
                                                                  errors ) } );
 
     if( files.size() != 6 )
@@ -200,7 +219,7 @@ namespace Tac::TextureAssetManager
     {
       for( int i{}; i < 6; ++i )
       {
-        Filesystem::Path filepath { files[ i ] };
+        FileSys::Path filepath { files[ i ] };
         if( ToLower( filepath.u8string() ).find( ToLower( face ) ) == String::npos )
           continue;
 
@@ -228,7 +247,7 @@ namespace Tac::TextureAssetManager
     int prevHeight { 0 };
     for( int iFile { 0 }; iFile < 6; ++iFile )
     {
-      const Filesystem::Path& filepath { files[ iFile ] };
+      const FileSys::Path& filepath { files[ iFile ] };
       TAC_CALL( const String memory { LoadFilePath( filepath, errors ) });
 
       int x;
@@ -252,7 +271,7 @@ namespace Tac::TextureAssetManager
 
       if( iFile && !( x == prevWidth && y == prevHeight ) )
       {
-        const Filesystem::Path& filepathPrev { files[ iFile - 1 ] };
+        const FileSys::Path& filepathPrev { files[ iFile - 1 ] };
         String errorMsg;
         errorMsg += filepath.u8string();
         errorMsg += " has dimensions ";

@@ -86,7 +86,7 @@ namespace Tac::Render
 
   void DXCArgHelper::SetFilename( StringView s )
   {
-    const Filesystem::Path fsPath { s };
+    const FileSys::Path fsPath { s };
     auto ext { fsPath.extension() };
     TAC_ASSERT( fsPath.has_extension() && ext == ".hlsl" );
     TAC_ASSERT( !fsPath.has_parent_path() );
@@ -118,9 +118,9 @@ namespace Tac::Render
 
   // https://devblogs.microsoft.com/pix/using-automatic-shader-pdb-resolution-in-pix/
   // Best practice is to let dxc name the shader with the hash
-  void DXCArgHelper::SaveDebug( const Filesystem::Path& pdbDir )
+  void DXCArgHelper::SaveDebug( const FileSys::Path& pdbDir )
   {
-    TAC_ASSERT( Filesystem::IsDirectory( pdbDir ) );
+    TAC_ASSERT( FileSys::IsDirectory( pdbDir ) );
     String dir { pdbDir.u8string() };
     if( !dir.ends_with( "/" ) ||
         !dir.ends_with( "\\" ) )

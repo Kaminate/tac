@@ -10,7 +10,7 @@
 #include "tac-std-lib/tac_ints.h"
 
 namespace Tac{ struct Errors; }
-namespace Tac::Filesystem{ struct Path; }
+namespace Tac::FileSys{ struct Path; }
 namespace Tac::Render
 {
   struct IContext;
@@ -384,14 +384,14 @@ namespace Tac::Render
   {
     struct InitParams
     {
-      int                     mMaxGPUFrameCount { 2 };
-      const Filesystem::Path& mShaderOutputPath;
+      int                   mMaxGPUFrameCount { 2 };
+      const FileSys::Path&  mShaderOutputPath;
     };
 
     static void Init( InitParams, Errors& );
     static void Uninit();
     static int              GetMaxGPUFrameCount();
-    static Filesystem::Path GetShaderOutputPath();
+    static FileSys::Path    GetShaderOutputPath();
     static IDevice*         GetRenderDevice();
     static void             SetRenderDevice( IDevice* );
   };

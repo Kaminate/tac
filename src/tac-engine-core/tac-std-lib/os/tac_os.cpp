@@ -60,6 +60,8 @@ namespace Tac::OS
       std::cout << szstr << std::endl;
       //printing = false;
 
+      LogApi::LogMessage( s );
+
       const bool good { std::cout.good() };
       if( !good )
       {

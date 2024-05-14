@@ -54,12 +54,12 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
   static void SaveBlobToFile( TAC_NOT_CONST PCom< IDxcBlob> blob,
-                              const Filesystem::Path& path,
+                              const FileSys::Path& path,
                               Errors& errors )
   {
     const void* bytes { blob->GetBufferPointer() };
     const int byteCount { ( int )blob->GetBufferSize() };
-    TAC_CALL( Filesystem::SaveToFile( path, bytes, byteCount, errors ) );
+    TAC_CALL( FileSys::SaveToFile( path, bytes, byteCount, errors ) );
   }
 
   static String GetBlob16AsUTF8( IDxcBlobUtf16* blob16, IDxcUtils* pUtils )
@@ -243,7 +243,7 @@ namespace Tac::Render
                        IDxcPdbUtils* pdbUtils,
                        IDxcResult* pResults,
                        IDxcBlob* pShader,
-                       Filesystem::Path outputDir,
+                       FileSys::Path outputDir,
                        Errors& errors )
   {
     if( !pResults->HasOutput( DXC_OUT_PDB ) )
@@ -256,7 +256,7 @@ namespace Tac::Render
                        pPDBName.CreateAddress() ) );
     TAC_RAISE_ERROR_IF( !pShader, "No shader pdb" );
     const String pdbName { GetBlob16AsUTF8( pPDBName.Get(), pUtils ) };
-    const Filesystem::Path pdbPath { outputDir / pdbName };
+    const FileSys::Path pdbPath { outputDir / pdbName };
     TAC_CALL( SaveBlobToFile( pPDB, pdbPath, errors ) );
 
     PrintCompilerInfo( pdbUtils, pPDB.Get() );
@@ -347,9 +347,9 @@ namespace Tac::Render
     const StringView inputShaderName{
       iSlash == StringView::npos ? input.mFileName : input.mFileName.substr( iSlash + 1 ) };
 
-    const Filesystem::Path hlslShaderPath { input.mOutputDir / inputShaderName };
+    const FileSys::Path hlslShaderPath { input.mOutputDir / inputShaderName };
 
-    TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
+    TAC_CALL_RET( {}, FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
 
     TAC_NOT_CONST DXCArgHelper::Params argHelperSetup
@@ -396,7 +396,7 @@ namespace Tac::Render
                        pShaderName.CreateAddress() ) );
     TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
     const String outputShaderName { GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() ) };
-    const Filesystem::Path dxilShaderPath { input.mOutputDir / outputShaderName };
+    const FileSys::Path dxilShaderPath { input.mOutputDir / outputShaderName };
     TAC_CALL_RET( {}, SaveBlobToFile( pShader, dxilShaderPath, errors ) );
 
     SavePDB( pUtils.Get(),

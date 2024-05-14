@@ -22,7 +22,7 @@ namespace Tac::Render
 
     struct Params
     {
-      Filesystem::Path mOutputDir;
+      FileSys::Path mOutputDir;
       ID3D12Device*    mDevice;
     };
 

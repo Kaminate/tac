@@ -224,7 +224,7 @@ namespace Tac
 
   struct File
   {
-    void Open(const Filesystem::Path& path, std::ios_base::openmode mode )
+    void Open(const FileSys::Path& path, std::ios_base::openmode mode )
     {
       mOfs.open( path.u8string().data(), mode );
     }
@@ -245,10 +245,10 @@ namespace Tac
     void EnsurePath();
     void EnsureOpen();
     void LogMessage( StringView );
-    void SetPath( Filesystem::Path );
+    void SetPath( FileSys::Path );
 
     String           mBuffer;
-    Filesystem::Path mPath;
+    FileSys::Path mPath;
     File             mFile;
   };
 
@@ -266,7 +266,7 @@ namespace Tac
   }
 
 
-  void Log::SetPath( Filesystem::Path path )
+  void Log::SetPath( FileSys::Path path )
   {
     TAC_ASSERT( !mFile.is_open() );
     mPath = path;
@@ -280,7 +280,7 @@ namespace Tac
     if( OS::OSOpenDialog )
     {
       Errors dialogErrors;
-      Filesystem::Path dialogPath = OS::OSOpenDialog( dialogErrors );
+      FileSys::Path dialogPath = OS::OSOpenDialog( dialogErrors );
       if( dialogErrors.empty() )
       {
         mPath = dialogPath;
@@ -340,7 +340,7 @@ namespace Tac
     sLog.Flush();
   }
 
-  void LogApi::LogSetPath( const Filesystem::Path& path )
+  void LogApi::LogSetPath( const FileSys::Path& path )
   {
     sLog.SetPath( path );
   }

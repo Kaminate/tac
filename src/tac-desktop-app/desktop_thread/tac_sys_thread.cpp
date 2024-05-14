@@ -3,8 +3,6 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-#include "tac-desktop-app/desktop_app/tac_iapp.h" // App
-#include "tac-desktop-app/desktop_app/tac_render_state.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -19,7 +17,6 @@
 
 #include "tac-rhi/render3/tac_render_api.h"
 
-#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h" // Clamp
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/containers/tac_array.h"

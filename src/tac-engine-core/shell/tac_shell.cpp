@@ -11,7 +11,7 @@
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
@@ -26,10 +26,6 @@
 
 namespace Tac
 {
-  Soul::Soul()
-  {
-    mIsImGuiVisible = true;
-  }
 
   void            ShellUninit()
   {
@@ -67,12 +63,12 @@ namespace Tac
 
   String           sShellAppName;
   String           sShellStudioName;
-  Filesystem::Path sShellPrefPath; // Path where the app can save files to
-  Filesystem::Path sShellInitialWorkingDir;
+  FileSys::Path sShellPrefPath; // Path where the app can save files to
+  FileSys::Path sShellInitialWorkingDir;
 
-  AssetPathStringView     ModifyPathRelative( const Filesystem::Path& path, Errors& errors )
+  AssetPathStringView     ModifyPathRelative( const FileSys::Path& path, Errors& errors )
   {
-    const Filesystem::Path& workingDir { sShellInitialWorkingDir };
+    const FileSys::Path& workingDir { sShellInitialWorkingDir };
     const String workingUTF8 { workingDir.u8string() };
 
     String pathUTF8 { path.u8string() };
@@ -85,7 +81,7 @@ namespace Tac
       }
 
       pathUTF8.erase( 0, workingUTF8.size() );
-      pathUTF8 = Filesystem::StripLeadingSlashes( pathUTF8 );
+      pathUTF8 = FileSys::StripLeadingSlashes( pathUTF8 );
     }
 
     for( char& c : pathUTF8 )
@@ -97,7 +93,7 @@ namespace Tac
 
   AssetPathStringView     AssetOpenDialog( Errors& errors )
   {
-    const Filesystem::Path fsPath = TAC_CALL_RET( {}, OS::OSOpenDialog( errors ));
+    const FileSys::Path fsPath = TAC_CALL_RET( {}, OS::OSOpenDialog( errors ));
 
     return ModifyPathRelative( fsPath, errors );
   }
@@ -106,12 +102,12 @@ namespace Tac
     const AssetSaveDialogParams& assetSaveDialogParams,
     Errors& errors )
   {
-    Filesystem::Path suggestedFilename { assetSaveDialogParams.mSuggestedFilename };
+    FileSys::Path suggestedFilename { assetSaveDialogParams.mSuggestedFilename };
     const OS::SaveParams saveParams
     {
       .mSuggestedFilename = &suggestedFilename,
     };
-    const Filesystem::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
+    const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
     return ModifyPathRelative( fsPath, errors );
   }
 

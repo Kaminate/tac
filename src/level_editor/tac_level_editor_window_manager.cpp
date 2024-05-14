@@ -174,8 +174,6 @@ namespace Tac
       .mNativeWindowHandle = nullptr,
     };
 
-    DesktopApp::GetInstance()->MoveControls( desktopWindowHandle );
-    DesktopApp::GetInstance()->ResizeControls( desktopWindowHandle );
     return desktopWindowHandle;
   }
 

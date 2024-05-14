@@ -17,7 +17,7 @@ namespace Tac
     void             Clear();
 
     String           bytes;
-    Filesystem::Path mPath;
+    FileSys::Path mPath;
     cgltf_data*      mParsedData { nullptr };
   };
 
@@ -54,7 +54,7 @@ namespace Tac
   {
     void             Clear();
 
-    Filesystem::Path mPath;
+    FileSys::Path mPath;
     StringID         mAssetPathID;
     Timestamp        mLastRequestSeconds;
     cgltf_data*      mParsedData { nullptr };
@@ -77,7 +77,7 @@ namespace Tac
     void             Clear();
     
 
-    Filesystem::Path mPath;
+    FileSys::Path mPath;
     StringID         mAssetPathID;
     LoadJob          mJob;
   };

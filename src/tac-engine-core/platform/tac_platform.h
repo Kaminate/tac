@@ -22,17 +22,15 @@ namespace Tac
   struct PlatformFns
   {
     // debug imgui of the platform itself?
-    virtual void PlatformImGui( Errors& ) {}
+    virtual void PlatformImGui( Errors& ) const {}
 
-    virtual void PlatformFrameBegin( Errors& ) {}
-    virtual void PlatformFrameEnd( Errors& ) {}
-    virtual void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) {}
-    virtual void PlatformDespawnWindow( WindowHandle ) {}
-    virtual void PlatformSetWindowPos( WindowHandle, v2i ) {}
-    virtual void PlatformSetWindowSize( WindowHandle, v2i ) {}
-    //virtual void PlatformWindowMoveControls( const WindowHandle&,
-    //                                         const DesktopWindowRect& ) {}
-    //virtual void PlatformWindowResizeControls( const WindowHandle&, int ) {}
+    virtual void PlatformFrameBegin( Errors& ) const {}
+    virtual void PlatformFrameEnd( Errors& ) const {}
+    virtual void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) const {}
+    virtual void PlatformDespawnWindow( WindowHandle ) const {}
+    virtual void PlatformSetWindowPos( WindowHandle, v2i ) const {}
+    virtual void PlatformSetWindowSize( WindowHandle, v2i ) const {}
+
     //virtual WindowHandle PlatformGetMouseHoveredWindow() { return{}; }
 
     static PlatformFns* GetInstance();

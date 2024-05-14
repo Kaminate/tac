@@ -18,7 +18,7 @@
 //#include "tac-std-lib/memory/tac_frame_memory.h"
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/settings/tac_settings.h"
+//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-ecs/graphics/tac_graphics.h"

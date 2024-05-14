@@ -13,7 +13,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 
 namespace Tac{ struct StringView; struct Errors; }
-namespace Tac::Filesystem { struct Path; }
+namespace Tac::FileSys { struct Path; }
 
 namespace Tac
 {
@@ -60,6 +60,6 @@ namespace Tac
   StringView      CodepointsToUTF8( CodepointView );
 
   CodepointView   LocalizationGetString( Language, StringView );
-  void            LocalizationLoad( const Filesystem::Path&, Errors& );
+  void            LocalizationLoad( const FileSys::Path&, Errors& );
   void            LocalizationDebugImgui();
 } // namespace Tac

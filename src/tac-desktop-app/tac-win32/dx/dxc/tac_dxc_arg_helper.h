@@ -19,7 +19,7 @@ namespace Tac::Render
       StringView mEntryPoint;
       StringView mTargetProfile;
       StringView mFilename;
-      Filesystem::Path mPDBDir;
+      FileSys::Path mPDBDir;
       PCom< IDxcUtils > mUtils;
     };
 
@@ -39,7 +39,7 @@ namespace Tac::Render
     void StripBytecodeRootSignature();
     void SaveReflection();
     void SaveBytecode();
-    void SaveDebug( const Filesystem::Path& pdbDir );
+    void SaveDebug( const FileSys::Path& pdbDir );
     void AddArgs( StringView, StringView );
     void AddArg( StringView );
     LPCWSTR* GetArgs();

@@ -10,7 +10,7 @@
 // this hsould probably be pulled out of tac std lib, and isntead when an asser tis hit,
 // it calls an assert callback set by the os.1j
 namespace Tac { struct StringView; struct StackFrame; }
-namespace Tac::Filesystem { struct Path; }
+namespace Tac::FileSys { struct Path; }
 
 namespace Tac
 {
@@ -59,7 +59,7 @@ namespace Tac
     void LogMessage( const StringView& );
     void LogStackFrame( const StackFrame& );
     void LogFlush();
-    void LogSetPath( const Filesystem::Path& );
+    void LogSetPath( const FileSys::Path& );
   }
 
   // -----------------------------------------------------------------------------------------------

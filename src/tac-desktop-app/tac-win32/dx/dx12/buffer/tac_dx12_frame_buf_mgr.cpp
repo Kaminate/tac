@@ -90,7 +90,7 @@ namespace Tac::Render
       {
         .mImage        { image },
         .mBinding      { Binding::DepthStencil },
-        .mAccess       { Usage::Default },
+        .mUsage        { Usage::Default },
         .mCpuAccess    { CPUAccess::None },
         .mOptionalName { name },
       };
