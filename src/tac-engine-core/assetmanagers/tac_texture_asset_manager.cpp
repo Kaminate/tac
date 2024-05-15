@@ -1,157 +1,188 @@
 #include "tac_texture_asset_manager.h" // self-inc
 
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/tac_ints.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/thirdparty/stb_image.h"
+#include "tac-engine-core/settings/tac_settings_root.h"
 
 
 namespace Tac::TextureAssetManager
 {
+  // -----------------------------------------------------------------------------------------------
+
+  struct AsyncSubresourceData
+  {
+    int              mPitch {};
+    Vector< char >   mBytes;
+  };
+
+  struct TextureLoadJob : public Job
+  {
+  public:
+    struct Params
+    {
+      FileSys::Path mPath;
+      bool          mIsCubemap{};
+    };
+
+    TextureLoadJob( Params );
+    Render::TextureHandle CreateTexture( Errors& );
+
+  protected:
+    void Execute( Errors& ) override;
+
+  private:
+
+    Render::TextureHandle CreateTexSingle( Errors& );
+    Render::TextureHandle CreateTexCubemap( Errors& );
+    void                  ExecuteTexSingleJob( Errors& );
+    void                  ExecuteTexCubemapJob( Errors& );
+    void                  GenerateMips( bool issRGB );
+    void                  GenerateMip( bool issRGB, int mip );
+
+
+    Vector< AsyncSubresourceData > mSubresources;
+    bool                           mIsCubemap;
+    Render::Image                  mImage;
+
+    //                             for a single texture, this is a file on desk,
+    //                             for a cubemap texture, this is a folder containing 6 files
+    FileSys::Path                  mFilepath;
+  };
+
 
   // -----------------------------------------------------------------------------------------------
 
-  struct AsyncTextureData
-  {
-    virtual ~AsyncTextureData() = default;
-    virtual Render::TextureHandle CreateTexture( Errors& ) = 0;
-  };
-
-  struct AsyncTexture
-  {
-    ~AsyncTexture();
-    Job*              mJob { nullptr };
-    AsyncTextureData* mData { nullptr };
-  };
-
-  struct AsyncTextureSingleData : AsyncTextureData
-  {
-    Render::TextureHandle CreateTexture( Errors& ) override;
-    int              mPitch { 0 };
-    Render::Image    mImage;
-    Vector< char >   mImageData;
-    FileSys::Path    mFilepath;
-  };
-
-  struct AsyncTextureCubeData : AsyncTextureData
-  {
-    Render::TextureHandle CreateTexture( Errors& ) override;
-
-    int              mPitch { 0 };
-    Render::Image    mImage;
-    Vector< char >   mImageData[ 6 ];
-    FileSys::Path    mDir;
-  };
-
-  struct AsyncTextureSingleJob : Job
-  {
-    void Execute() override;
-    AsyncTextureSingleData* mData { nullptr };
-  };
-
-  struct AsyncTextureCubeJob : Job
-  {
-    void Execute() override;
-    AsyncTextureCubeData* mData { nullptr };
-  };
-
-  // -----------------------------------------------------------------------------------------------
-
-  static Map< StringID, AsyncTexture* >         mLoadingTextures;
+  static Map< StringID, TextureLoadJob* >       mLoadingTextures;
   static Map< StringID, Render::TextureHandle > mLoadedTextures;
 
-  // -----------------------------------------------------------------------------------------------
 
-  AsyncTexture::~AsyncTexture()
+  TextureLoadJob::TextureLoadJob( Params params )
   {
-      TAC_DELETE mJob;
-      TAC_DELETE mData;
-      mJob = nullptr;
-      mData = nullptr;
+    mFilepath = params.mPath;
+    mIsCubemap = params.mIsCubemap;
   }
 
-
   // -----------------------------------------------------------------------------------------------
 
-  Render::TextureHandle AsyncTextureSingleData::CreateTexture( Errors& errors )
+  Render::TextureHandle TextureLoadJob::CreateTexture( Errors& errors )
   {
-      const Render::CreateTextureParams createTextureParams
+    return mIsCubemap ? CreateTexCubemap( errors ) : CreateTexSingle( errors );
+  }
+
+  Render::TextureHandle TextureLoadJob::CreateTexSingle( Errors& errors )
+  {
+    const int n{ mSubresources.size() };
+    Vector< Render::CreateTextureParams::Subresource > subresources( n );
+    for( int i{}; i < n; ++i )
+    {
+      const AsyncSubresourceData& src{ mSubresources[ i ] };
+      const void* bytes{ src.mBytes.data() };
+      subresources[ i ] = Render::CreateTextureParams::Subresource
       {
-         .mImage       { mImage },
-         .mPitch       { mPitch },
-         .mImageBytes  { mImageData.data() },
-         .mBinding     { Render::Binding::ShaderResource },
-         .mStackFrame  { TAC_STACK_FRAME },
+        .mBytes{ bytes },
+        .mPitch{ src.mPitch },
       };
-      return Render::RenderApi::GetRenderDevice()->CreateTexture( createTextureParams, errors );
-  }
+    }
 
-  // -----------------------------------------------------------------------------------------------
-
-  Render::TextureHandle AsyncTextureCubeData::CreateTexture( Errors& errors )
-  {
-    const Render::CreateTextureParams commandData =
-    { 
-      .mImage { mImage },
-      .mPitch { mPitch },
-      .mImageBytesCubemap
-      {
-        mImageData[ 0 ].data(),
-        mImageData[ 1 ].data(),
-        mImageData[ 2 ].data(),
-        mImageData[ 3 ].data(),
-        mImageData[ 4 ].data(),
-        mImageData[ 5 ].data()
-      },
-      .mBinding    { Render::Binding::ShaderResource },
-      .mStackFrame { TAC_STACK_FRAME },
+    const Render::CreateTextureParams createTextureParams
+    {
+       .mImage        { mImage },
+       .mSubresources { subresources.data(), subresources.size() },
+       .mBinding      { Render::Binding::ShaderResource },
+       .mStackFrame   { TAC_STACK_FRAME },
     };
-    return Render::RenderApi::GetRenderDevice()->CreateTexture( commandData, errors );
+    return Render::RenderApi::GetRenderDevice()->CreateTexture( createTextureParams, errors );
+  }
+
+  Render::TextureHandle TextureLoadJob::CreateTexCubemap( Errors& errors )
+  {
+    Render::CreateTextureParams::Subresource subresources[ 6 ];
+    Render::CreateTextureParams::CubemapFaces cubemapFaces;
+
+    // TODO: cubemap mipmaps ( edge filtering )
+    mSubresources.resize( 6 );
+
+    for( int iFace{}; iFace < 6; ++iFace )
+    {
+      const AsyncSubresourceData& faceMip0{ mSubresources[ iFace ] };
+      const void* bytes{ faceMip0.mBytes.data() };
+
+      Render::CreateTextureParams::Subresource& subresource{ subresources[ iFace ] };
+
+      subresource = Render::CreateTextureParams::Subresource
+      {
+        .mBytes{ bytes },
+        .mPitch{ faceMip0.mPitch },
+      };
+
+      cubemapFaces[ iFace ] = Render::CreateTextureParams::CubemapFace
+      {
+        .mSubresource{  &subresource  },
+      };
+    }
+
+    const Render::CreateTextureParams commandData
+    { 
+      .mImage        { mImage },
+      .mCubemapFaces { cubemapFaces },
+      .mBinding      { Render::Binding::ShaderResource },
+      .mStackFrame   { TAC_STACK_FRAME },
+    };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    return renderDevice->CreateTexture( commandData, errors );
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  void AsyncTextureSingleJob::Execute()
+  void TextureLoadJob::Execute( Errors& errors )
   {
-    Errors& errors { mErrors };
+    if( mIsCubemap )
+      ExecuteTexCubemapJob( errors );
+    else
+      ExecuteTexSingleJob( errors );
+  }
 
-    TAC_CALL( const String memory{ FileSys::LoadFilePath( mData->mFilepath, errors ) } );
+  void TextureLoadJob::ExecuteTexSingleJob( Errors& errors )
+  {
+    TAC_CALL( const String memory{ FileSys::LoadFilePath( mFilepath, errors ) } );
 
+    const FileSys::Path metaPath{
+      [ & ]()
+      {
+        FileSys::Path path { mFilepath };
+        path += ".meta";
+        return path;
+      }( ) };
 
-    //Filesystem::LoadFilePath;
-    //DeleteThisFilesystemFn();
-    //Filesystem::DeleteThisFilesystemFn();
+    SettingsRoot settingsRoot;
+    settingsRoot.Init( metaPath, errors );
 
-    FileSys::Path metaPath { mData->mFilepath };
-    metaPath += ".meta";
-    if( !Exists( metaPath ) )
-    {
-      OS::OSDebugPrintLine( metaPath.u8string() + " doesn't exist, creating a default" );
-      
-
-    }
-
-    if( Exists( metaPath ) )
-    {
-    }
-    
+    SettingsNode settingsNode{ settingsRoot.GetRootNode() };
+    const bool issRGB{ settingsNode.GetChild( "is sRGB" ).GetValueWithFallback( true ) };
+    const bool genMips{ settingsNode.GetChild( "gen mips" ).GetValueWithFallback( true ) };
+    settingsRoot.Flush( errors );
 
     int x;
     int y;
     int previousChannelCount;
-    int desiredChannelCount { 4 };
+    int desiredChannelCount{ 4 };
 
     // rgba
-    const auto memoryByteCount { ( int )memory.size() };
-    const auto memoryData { ( const stbi_uc* )memory.data() };
+    const auto memoryByteCount{ ( int )memory.size() };
+    const auto memoryData{ ( const stbi_uc* )memory.data() };
     stbi_uc* loaded{ stbi_load_from_memory( memoryData,
                                              memoryByteCount,
                                              &x,
@@ -160,19 +191,19 @@ namespace Tac::TextureAssetManager
                                              desiredChannelCount ) };
     TAC_ON_DESTRUCT( stbi_image_free( loaded ) );
 
-    bool shouldConvertToPremultipliedAlpha { true };
+    bool shouldConvertToPremultipliedAlpha{ true };
     if( shouldConvertToPremultipliedAlpha )
     {
-      stbi_uc* l { loaded };
+      stbi_uc* l{ loaded };
       for( int i{}; i < y; ++i )
       {
-        for( int j { 0 }; j < x; ++j )
+        for( int j{ 0 }; j < x; ++j )
         {
           u8* r = l++;
           u8* g = l++;
           u8* b = l++;
           u8* a = l++;
-          const float percent { *a / 255.0f };
+          const float percent{ *a / 255.0f };
           *r = ( u8 )( *r * percent );
           *g = ( u8 )( *g * percent );
           *b = ( u8 )( *b * percent );
@@ -180,37 +211,162 @@ namespace Tac::TextureAssetManager
       }
     }
 
-    const Render::Format format{ .mElementCount = desiredChannelCount,
-                                 .mPerElementByteCount = 1,
-                                 .mPerElementDataType = Render::GraphicsType::unorm};
-    const int pitch { x * format.mElementCount * format.mPerElementByteCount };
-    const int imageDataByteCount { y * pitch };
-    mData->mImageData.resize( imageDataByteCount );
-    MemCpy( mData->mImageData.data(), loaded, imageDataByteCount );
+    const Render::Format format
+    {
+      .mElementCount = desiredChannelCount,
+      .mPerElementByteCount = 1,
+      .mPerElementDataType = Render::GraphicsType::unorm
+    };
+    const int pitch{ x * format.mElementCount * format.mPerElementByteCount };
+    const int imageDataByteCount{ y * pitch };
 
-    Render::Image& image = mData->mImage;
-    image.mFormat = format;
-    image.mWidth = x;
-    image.mHeight = y;
-    mData->mPitch = pitch;
+    mImage = Render::Image
+    {
+      .mWidth = x,
+      .mHeight = y,
+      .mFormat = format,
+    };
+
+    const int subresourceCount{
+      [ & ]()
+      {
+        if( !genMips )
+          return 1;
+
+        int w { x };
+        int n { 1 };
+        while( w /= 2 )
+          n++;
+
+        return n;
+      }( ) };
+
+    mSubresources.resize( subresourceCount );
+
+    AsyncSubresourceData& mip0{ mSubresources[ 0 ] };
+    mip0.mBytes.resize( imageDataByteCount );
+    MemCpy( mip0.mBytes.data(), loaded, imageDataByteCount );
+
+    if( genMips )
+      GenerateMips( issRGB );
+
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  void AsyncTextureCubeJob::Execute()
+  void TextureLoadJob::GenerateMip( bool issRGB, int currMip )
   {
-    Errors& errors { mErrors };
 
-    TAC_CALL( Vector< FileSys::Path > files{ FileSys::IterateFiles( mData->mDir,
-                                                                 FileSys::IterateType::Recursive,
-                                                                 errors ) } );
+    const Render::Format& format{ mImage.mFormat };
+    const int texelByteCount{ format.CalculateTotalByteCount() };
+
+    const int prevMip{ currMip - 1 };
+    const int prevW{ mImage.mWidth >> prevMip };
+    const int prevH{ mImage.mHeight >> prevMip };
+    const AsyncSubresourceData& prevData{ mSubresources[ prevMip ] };
+
+    const int currW{ mImage.mWidth >> currMip };
+    const int currH{ mImage.mHeight >> currMip };
+    const int currPitch{currW * texelByteCount};
+    AsyncSubresourceData& currData{ mSubresources[ currMip ] };
+
+    currData.mPitch = currPitch;
+    currData.mBytes.resize( currPitch * currH );
+
+    char* currRow{ currData.mBytes.data() };
+    int currX{};
+    char* currTexel{};
+    for( int currY{}; currY < currH; ++currY, currRow += currPitch )
+    {
+      for( currX = 0, currTexel = currRow; currX < currW; ++currX, currTexel += texelByteCount )
+      {
+        const char* prevTexelTL{ prevData.mBytes.data()
+          + ( currY * 2 ) * prevData.mPitch
+          + ( currX * 2 ) };
+        const char* prevTexelTR{ prevTexelTL + texelByteCount };
+        const char* prevTexelBL{ prevTexelTL + prevData.mPitch };
+        const char* prevTexelBR{ prevTexelTL + prevData.mPitch + texelByteCount };
+
+
+        for( int iChannel{}; iChannel < mImage.mFormat.mElementCount; ++iChannel )
+        {
+          const int channelByteOffset{ iChannel * format.mPerElementByteCount };
+          const char* currChannel{ currTexel + channelByteOffset };
+          const char* prevChannelTL{ prevTexelTL + channelByteOffset };
+          const char* prevChannelTR{ prevTexelTR + channelByteOffset };
+          const char* prevChannelBL{ prevTexelBL + channelByteOffset };
+          const char* prevChannelBR{ prevTexelBR + channelByteOffset };
+
+          union U
+          {
+            i8 mi8;
+            u8 mu8;
+            r32 mr32 ;
+          };
+
+
+          if( format.mPerElementDataType == Render::GraphicsType::sint )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else if( format.mPerElementDataType == Render::GraphicsType::uint )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else if( format.mPerElementDataType == Render::GraphicsType::uint )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else if( format.mPerElementDataType == Render::GraphicsType::real )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else if( format.mPerElementDataType == Render::GraphicsType::real )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else if( format.mPerElementDataType == Render::GraphicsType::snorm )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+          else if( format.mPerElementDataType == Render::GraphicsType::unorm )
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
+          }
+
+          if( issRGB )
+          {
+            //float unfiltered_sRGB = ;
+            //float unfiltered_Linear = Pow( unfiltered_sRGB, 2.2f );
+            //float filtered_Linear = ( a + b + c + d ) / 4.0f;
+            //float filtered_sRGB = Pow( filtered_Linear, 1.0f / 2.2f );
+          }
+          mImage.mFormat.mPerElementByteCount;
+        }
+
+
+      }
+    }
+
+  }
+
+  void TextureLoadJob::GenerateMips( bool issRGB )
+  {
+    const int subresourceCount{ mSubresources.size() };
+    for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
+      GenerateMip( issRGB, currMip );
+  }
+
+  void TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
+  {
+
+    TAC_CALL( Vector< FileSys::Path > files{
+      FileSys::IterateFiles( mFilepath, FileSys::IterateType::Recursive, errors ) } );
 
     if( files.size() != 6 )
     {
       const String errorMsg{ "found "
       + ToString( files.size() )
       + " textures in "
-      + mData->mDir.u8string() };
+      + mFilepath.u8string() };
 
       TAC_RAISE_ERROR( errorMsg);
     }
@@ -243,8 +399,8 @@ namespace Tac::TextureAssetManager
       .mPerElementByteCount { 1 },
       .mPerElementDataType { Render::GraphicsType::unorm },
     };
-    int prevWidth { 0 };
-    int prevHeight { 0 };
+    int prevW { 0 };
+    int prevH { 0 };
     for( int iFile { 0 }; iFile < 6; ++iFile )
     {
       const FileSys::Path& filepath { files[ iFile ] };
@@ -265,40 +421,35 @@ namespace Tac::TextureAssetManager
       TAC_ON_DESTRUCT
       (
         stbi_image_free( loaded );
-        prevWidth = x;
-        prevHeight = y;
+        prevW = x;
+        prevH = y;
       );
 
-      if( iFile && !( x == prevWidth && y == prevHeight ) )
+      if( iFile && !( x == prevW && y == prevH ) )
       {
         const FileSys::Path& filepathPrev { files[ iFile - 1 ] };
-        String errorMsg;
-        errorMsg += filepath.u8string();
-        errorMsg += " has dimensions ";
-        errorMsg += ToString( x );
-        errorMsg += "x";
-        errorMsg += ToString( y );
-        errorMsg += " which is different from ";
-        errorMsg += filepathPrev.u8string();
-        errorMsg += ", which has dimensions ";
-        errorMsg += ToString( prevWidth );
-        errorMsg += "x";
-        errorMsg += ToString( prevHeight );
-        TAC_RAISE_ERROR( errorMsg);
+        const String msg{ String()
+          + filepath.u8string() + " (" + ToString( x ) + "x" + ToString( y ) + ")"
+          + " has different dimensions from "
+          + filepathPrev.u8string() + "(" + ToString( prevW ) + "x" + ToString( prevH ) + ")" };
+        TAC_RAISE_ERROR( msg );
       }
 
       const int pitch { x * format.mElementCount * format.mPerElementByteCount };
       const int imageDataByteCount { y * pitch };
-      Vector< char >& imageData { mData->mImageData[ iFile ] };
-      imageData.resize( imageDataByteCount );
-      MemCpy( imageData.data(), loaded, imageDataByteCount );
-      mData->mPitch = pitch;
+
+      AsyncSubresourceData& subresource{ mSubresources[ iFile ] };
+      subresource.mPitch = pitch;
+      subresource.mBytes.resize( imageDataByteCount );
+      MemCpy( subresource.mBytes.data(), loaded, imageDataByteCount );
     }
 
-    Render::Image& image { mData->mImage };
-    image.mFormat = format;
-    image.mWidth = prevWidth;
-    image.mHeight = prevHeight;
+    mImage = Render::Image
+    {
+      .mWidth = prevW,
+      .mHeight = prevH,
+      .mFormat = format,
+    };
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -306,29 +457,23 @@ namespace Tac::TextureAssetManager
   static Render::TextureHandle FindLoadedTexture( const StringID& key )
   {
     return mLoadedTextures.FindVal( key ).GetValueOr( {} );
-    //auto it = mLoadedTextures.find( key );
-    //return it == mLoadedTextures.end() ? Render::TextureHandle() : ( *it ).second;
   }
 
-  static AsyncTexture*         FindLoadingTexture( const StringID& key )
+  static TextureLoadJob*       FindLoadingTexture( const StringID& key )
   {
     return mLoadingTextures.FindVal( key ).GetValueOr( {} );
-    //auto it = mLoadingTextures.find( key );
-    //return it == mLoadingTextures.end() ? nullptr : ( *it ).second;
   }
 
-  static void                  UpdateAsyncTexture( const AssetPathStringView& key,
-                                                   AsyncTexture* asyncTexture,
+  static void                  UpdateTextureLoadJob( const AssetPathStringView& key,
+                                                   TextureLoadJob* asyncTexture,
                                                    Errors& errors )
   {
-    const Job* job { asyncTexture->mJob };
-    const JobState status { job->GetStatus() };
+    const JobState status { asyncTexture->GetStatus() };
     const StringID id ( key );
     if( status == JobState::ThreadFinished )
     {
-      TAC_RAISE_ERROR_IF( job->mErrors, job->mErrors.ToString() );
-
-      TAC_CALL( Render::TextureHandle texture { asyncTexture->mData->CreateTexture( errors )  } );
+      TAC_RAISE_ERROR_IF( asyncTexture->mErrors, asyncTexture->mErrors.ToString() );
+      TAC_CALL( Render::TextureHandle texture { asyncTexture->CreateTexture( errors )  } );
       mLoadingTextures.erase( id );
       TAC_DELETE asyncTexture;
       mLoadedTextures[ id ] = texture;
@@ -344,58 +489,48 @@ namespace Tac::TextureAssetManager
 
     const StringID id( textureFilepath );
 
-    Render::TextureHandle texture { FindLoadedTexture( id ) };
-    if( texture.IsValid() )
+    if( Render::TextureHandle texture{ FindLoadedTexture( id ) }; texture.IsValid() )
       return texture;
 
-    AsyncTexture* asyncTexture { FindLoadingTexture( id ) };
-    if( asyncTexture )
+    if( TextureLoadJob* asyncTexture { FindLoadingTexture( id ) } )
     {
-      UpdateAsyncTexture( textureFilepath, asyncTexture, errors );
-      return texture;
+      UpdateTextureLoadJob( textureFilepath, asyncTexture, errors );
+      return {};
     }
 
-    auto data { TAC_NEW AsyncTextureSingleData };
-    data->mFilepath = textureFilepath;
-
-    auto job { TAC_NEW AsyncTextureSingleJob };
-    job->mData = data;
-
-    asyncTexture = TAC_NEW AsyncTexture;
-    asyncTexture->mData = data;
-    asyncTexture->mJob = job;
+    const TextureLoadJob::Params params
+    {
+      .mPath      { textureFilepath },
+      .mIsCubemap { false },
+    };
+    TextureLoadJob* asyncTexture{ TAC_NEW TextureLoadJob( params ) };
 
     mLoadingTextures[ textureFilepath ] = asyncTexture;
-    JobQueuePush( job );
-    return texture;
+    JobQueuePush( asyncTexture );
+    return {};
   }
 
   Render::TextureHandle GetTextureCube( const AssetPathStringView& textureDir, Errors& errors )
   {
     const StringID id ( textureDir);
-    const Render::TextureHandle texture { FindLoadedTexture( id ) };
-    if( texture.IsValid() )
+    if( const Render::TextureHandle texture { FindLoadedTexture( id ) }; texture.IsValid() )
       return texture;
 
-    AsyncTexture* asyncTexture { FindLoadingTexture( id ) };
-    if( asyncTexture )
+    if( TextureLoadJob* asyncTexture { FindLoadingTexture( id ) } )
     {
-      UpdateAsyncTexture( textureDir, asyncTexture, errors );
-      return texture;
+      UpdateTextureLoadJob( textureDir, asyncTexture, errors );
+      return {};
     }
 
-    auto data { TAC_NEW AsyncTextureCubeData };
-    data->mDir = textureDir;
-
-    auto job { TAC_NEW AsyncTextureCubeJob };
-    job->mData = data;
-
-    asyncTexture = TAC_NEW AsyncTexture;
-    asyncTexture->mJob = job;
-    asyncTexture->mData = data;
+    const TextureLoadJob::Params params
+    {
+      .mPath      { textureDir },
+      .mIsCubemap { true },
+    };
+    TextureLoadJob* asyncTexture = TAC_NEW TextureLoadJob(params);
     mLoadingTextures[ textureDir ] = asyncTexture;
-    JobQueuePush( job );
-    return texture;
+    JobQueuePush( asyncTexture );
+    return {};
   }
 
   // -----------------------------------------------------------------------------------------------

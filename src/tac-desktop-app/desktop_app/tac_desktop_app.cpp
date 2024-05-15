@@ -183,6 +183,7 @@ namespace Tac
       .sGameStateManager { &sGameStateManager },
       .sWindowApi        { &sSimWindowApi },
       .sKeyboardApi      { &sSimKeyboardApi },
+      .mSettingsRoot     { &sSettingsRoot },
     };
 
     SysThread sSysThread

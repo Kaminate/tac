@@ -39,6 +39,7 @@ namespace Tac
   float                    Cos( float );
   double                   Cos( double );
   float                    Tan( float );
+  double                   Tan( double );
   float                    Asin( float );
   float                    Acos( float );
   float                    Atan2( float y, float x );

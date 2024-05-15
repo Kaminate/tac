@@ -25,13 +25,13 @@ namespace Tac
   {
     Job();
     virtual                 ~Job() = default;
-    virtual void            Execute() = 0;
+    virtual void            Execute( Errors& ) = 0;
     void                    Abort();
     void                    SetState( JobState );
     bool                    AbortRequested() const;
     JobState                GetStatus() const;
 
-    //                      Errors which occurred while running the job in another thread.
+    //                      Errors which occurred while running the job, passed to Execute()
     Errors                  mErrors;
     std::atomic< JobState > mAsyncLoadStatus;
     std::atomic< bool >     mAbortRequested;

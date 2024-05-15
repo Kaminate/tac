@@ -860,9 +860,9 @@ namespace Tac
 
 	struct ConnectToServerJob : public Job
 	{
-    void Execute() override;
+    void Execute( Errors& ) override;
 		
-		ScriptMatchmaker* mMatchmaker = nullptr;
+    ScriptMatchmaker* mMatchmaker{};
 	};
 
 	ScriptMainMenu2::ScriptMainMenu2()
@@ -945,9 +945,10 @@ namespace Tac
 
 		TAC_TIMELINE_BEGIN;
 
-		auto matchMaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
+		ScriptMatchmaker* matchMaker {
+      ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName ) };
 
-		ConnectToServerJob* job = TAC_NEW ConnectToServerJob;
+		ConnectToServerJob* job { TAC_NEW ConnectToServerJob };
 		job->mMatchmaker = matchMaker;
     
 		mConnectToServerJob = job;
@@ -963,10 +964,10 @@ namespace Tac
 	}
 
 
-  void ConnectToServerJob::Execute() 
+  void ConnectToServerJob::Execute( Errors& errors )
   {
     mMatchmaker->TryConnect();
-    mErrors = mMatchmaker->mConnectionErrors;
+    errors = mMatchmaker->mConnectionErrors;
   }
 
 } // namespace Tac

@@ -43,6 +43,9 @@ namespace Tac
 
   void          SettingsRoot::Flush( Errors& errors )
   {
+    if( !sDirty )
+      return;
+
     const String str{ sJson.Stringify() };
     const void* data{ ( void* )str.data() };
     const int n{ ( int )str.size() };

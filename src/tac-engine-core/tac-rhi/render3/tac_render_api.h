@@ -5,6 +5,8 @@
 #include "tac-std-lib/error/tac_stack_frame.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"
@@ -247,17 +249,32 @@ namespace Tac::Render
 
   struct CreateTextureParams
   {
-    Image       mImage;
-    int         mPitch                  {}; // byte count between texel rows
-    const void* mImageBytes             {};
-    const void* mImageBytesCubemap[ 6 ] {};
-    Binding     mBinding                { Binding::None };
-    Usage       mUsage                  { Usage::Default };
+    struct Subresource
+    {
+      const void* mBytes{};
+      int         mPitch{}; // byte count between texel rows
+    };
 
-    //          Whether the cpu can read or write to the resource after it's been mapped
-    CPUAccess   mCpuAccess              { CPUAccess::None };
-    StringView  mOptionalName           {};
-    StackFrame  mStackFrame             {};
+    using Subresources = Span< Subresource >;
+
+    struct CubemapFace
+    {
+      Subresources mSubresource;
+    };
+
+    using CubemapFaces = Array< CubemapFace, 6 >;
+
+    Image        mImage;
+    Subresources mSubresources;
+    CubemapFaces mCubemapFaces;
+
+    Binding      mBinding                { Binding::None };
+    Usage        mUsage                  { Usage::Default };
+
+    //           Whether the cpu can read or write to the resource after it's been mapped
+    CPUAccess    mCpuAccess              { CPUAccess::None };
+    StringView   mOptionalName           {};
+    StackFrame   mStackFrame             {};
   };
 
   enum class GpuBufferMode

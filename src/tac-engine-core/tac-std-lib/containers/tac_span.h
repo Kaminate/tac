@@ -16,6 +16,7 @@ namespace Tac
     Span( T* t )               : mTs{ t },      mTCount{ 1 } {}
     Span( T* tBegin, T* tEnd ) : mTs{ tBegin }, mTCount{ int( tEnd - tBegin ) } {}
     Span( T& t )               : mTs{ &t },     mTCount{ 1 } {}
+    Span() = default;
     Span( T&& t ) = delete;
 
     int      size() const              { return mTCount; }
@@ -37,8 +38,8 @@ namespace Tac
     }
 
   private:
-    T*  mTs;
-    int mTCount;
+    T*  mTs     {};
+    int mTCount {};
   };
 
 } // namespace Tac

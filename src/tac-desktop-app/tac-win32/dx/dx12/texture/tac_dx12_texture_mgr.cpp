@@ -121,7 +121,7 @@ namespace Tac::Render
     DX12Texture* texture{ FindTexture( h ) };
     TAC_ASSERT( texture );
 
-    const bool hasImageBytes { params.mImageBytes || *params.mImageBytesCubemap };
+    const bool hasImageBytes{ !params.mSubresources.empty() };
     const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
 
     const D3D12_HEAP_TYPE heapType{ params.mUsage == Usage::Staging
@@ -216,7 +216,7 @@ namespace Tac::Render
                                                CreateTextureParams params,
                                                Errors& errors )
   {
-    if( !params.mImageBytes  && !*params.mImageBytesCubemap )
+    if( !params.mSubresources.empty() )
       return;
 
     const D3D12_RESOURCE_DESC dstRscDesc{ dstRsc->GetDesc() };

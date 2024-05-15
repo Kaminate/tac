@@ -25,5 +25,8 @@ namespace Tac
   static_assert( sizeof( i64 ) == 8 );
   static_assert( sizeof( UPtr ) == sizeof( void* ) );
   static_assert( sizeof( IPtr ) == sizeof( void* ) );
+
+  using r32 = float;
+  static_assert( sizeof( r32 ) == 4 );
 }
 
