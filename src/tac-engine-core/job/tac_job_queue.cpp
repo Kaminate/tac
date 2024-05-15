@@ -6,38 +6,44 @@
 
 namespace Tac
 {
-  const int                    kMinThreadCount { 4 };
-  static bool                  sJobQueueRunning { false };
+  const int                    kMinThreadCount{ 4 };
+  static bool                  sJobQueueRunning{ false };
   static Vector< std::thread > sJobQueueThreads;
   static std::mutex            sJobQueueMutex;
 
   // The jobs are unowned
   static RingVector< Job* >    sJobQueueUnstarted;
-  static float                 sJobQueueMinJobSeconds { 0 };
+  static float                 sJobQueueMinJobSeconds{ 0 };
 
-  int JobQueueGetThreadCount()
+  //int JobQueueGetThreadCount()
+  //{
+  //  return sJobQueueThreads.size();
+  //}
+
+  static Job* GetJob()
   {
-    return sJobQueueThreads.size();
+    TAC_SCOPE_GUARD( std::lock_guard, sJobQueueMutex );
+    return sJobQueueUnstarted.empty() ? nullptr : sJobQueueUnstarted.Pop();
   }
-
 
   static void WorkerThread()
   {
+    const std::chrono::milliseconds minJobRunMsec( ( int )( sJobQueueMinJobSeconds * 1000 ) );
+    const std::chrono::milliseconds minJobGetMsec( 1 );
+
     // const std::thread::id id = std::this_thread::get_id();
     while( sJobQueueRunning )
     {
-      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) );
-      Job* job { nullptr };
-      sJobQueueMutex.lock();
-      if( !sJobQueueUnstarted.empty() )
-        job = sJobQueueUnstarted.Pop();
-      sJobQueueMutex.unlock();
-      if( !job )
-        continue;
-      std::this_thread::sleep_for( std::chrono::milliseconds( ( int )( sJobQueueMinJobSeconds * 1000 ) ) );
-      job->SetState( JobState::ThreadRunning );
-      job->Execute();
-      job->SetState( JobState::ThreadFinished );
+      std::this_thread::sleep_for( minJobGetMsec );
+
+      if( Job * job{ GetJob() } )
+      {
+        std::this_thread::sleep_for( minJobRunMsec );
+
+        job->SetState( JobState::ThreadRunning );
+        job->Execute( job->mErrors );
+        job->SetState( JobState::ThreadFinished );
+      }
     }
   }
 
@@ -71,31 +77,31 @@ namespace Tac
   JobState Job::GetStatus() const
   {
     //mStatusMutex.lock();
-    const JobState JobState { mAsyncLoadStatus };
+    const JobState JobState{ mAsyncLoadStatus };
     //mStatusMutex.unlock();
     return JobState;
   }
+}
 
-  void JobQueuePush( Job* job )
-  {
-    job->SetState( JobState::ThreadQueued );
-    job->mErrors.clear();
-    sJobQueueMutex.lock();
-    sJobQueueUnstarted.Push( job );
-    sJobQueueMutex.unlock();
-  }
+void Tac::JobQueuePush( Job* job )
+{
+  job->SetState( JobState::ThreadQueued );
+  job->mErrors.clear();
+  sJobQueueMutex.lock();
+  sJobQueueUnstarted.Push( job );
+  sJobQueueMutex.unlock();
+}
 
-  void JobQueueInit()
+void Tac::JobQueueInit()
+{
+  const int threadCount{ Max( ( int )std::thread::hardware_concurrency(), kMinThreadCount ) };
+  sJobQueueThreads.resize( threadCount );
+  sJobQueueRunning = true;
+  for( int i{}; i < threadCount; ++i )
   {
-    const int threadCount { Max( ( int )std::thread::hardware_concurrency(), kMinThreadCount ) };
-    sJobQueueThreads.resize( threadCount );
-    sJobQueueRunning = true;
-    for( int i{}; i < threadCount; ++i )
-    {
-      std::thread& curThread { sJobQueueThreads[ i ] };
-      curThread = std::thread( WorkerThread );
-      curThread.detach();
-    }
+    std::thread& curThread{ sJobQueueThreads[ i ] };
+    curThread = std::thread( WorkerThread );
+    curThread.detach();
   }
 }
 

@@ -92,6 +92,7 @@ namespace Tac::Render
   void DX12UploadAllocator::Init( DX12UploadPageMgr* pageManager )
   {
     mPageManager = pageManager;
+    TAC_ASSERT( mPageManager );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -102,6 +103,8 @@ namespace Tac::Render
   {
     mDevice = device;
     mCommandQueue = commandQueue;
+    TAC_ASSERT( mDevice );
+    TAC_ASSERT( mCommandQueue );
   };
 
   void DX12UploadPageMgr::UnretirePages()

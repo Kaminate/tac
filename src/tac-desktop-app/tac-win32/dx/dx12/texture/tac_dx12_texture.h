@@ -16,6 +16,7 @@ namespace Tac::Render
     Optional< DX12Descriptor >  mRTV;
     Optional< DX12Descriptor >  mDSV;
     Optional< DX12Descriptor >  mSRV;
+    Optional< DX12Descriptor >  mUAV;
   };
 
 } // namespace Tac::Render

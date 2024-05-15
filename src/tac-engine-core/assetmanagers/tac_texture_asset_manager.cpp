@@ -99,11 +99,14 @@ namespace Tac::TextureAssetManager
     const Render::CreateTextureParams createTextureParams
     {
        .mImage        { mImage },
-       .mSubresources { subresources.data(), subresources.size() },
+       .mMipCount     { n },
+       .mSubresources { subresources.data(), n },
        .mBinding      { Render::Binding::ShaderResource },
        .mStackFrame   { TAC_STACK_FRAME },
     };
-    return Render::RenderApi::GetRenderDevice()->CreateTexture( createTextureParams, errors );
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    return renderDevice->CreateTexture( createTextureParams, errors );
   }
 
   Render::TextureHandle TextureLoadJob::CreateTexCubemap( Errors& errors )
@@ -286,7 +289,7 @@ namespace Tac::TextureAssetManager
         const char* prevTexelBR{ prevTexelTL + prevData.mPitch + texelByteCount };
 
 
-        for( int iChannel{}; iChannel < mImage.mFormat.mElementCount; ++iChannel )
+        for( int iChannel{}; iChannel < format.mElementCount; ++iChannel )
         {
           const int channelByteOffset{ iChannel * format.mPerElementByteCount };
           const char* currChannel{ currTexel + channelByteOffset };
@@ -295,51 +298,25 @@ namespace Tac::TextureAssetManager
           const char* prevChannelBL{ prevTexelBL + channelByteOffset };
           const char* prevChannelBR{ prevTexelBR + channelByteOffset };
 
-          union U
+          if( format.mPerElementDataType == Render::GraphicsType::unorm &&
+              format.mPerElementByteCount == 1 &&
+              issRGB )
           {
-            i8 mi8;
-            u8 mu8;
-            r32 mr32 ;
-          };
+            const float prevTLLinear{ Pow( *( u8* )prevChannelTL / 255.0f, 2.2f ) };
+            const float prevTRLinear{ Pow( *( u8* )prevChannelTR / 255.0f, 2.2f ) };
+            const float prevBLLinear{ Pow( *( u8* )prevChannelBL / 255.0f, 2.2f ) };
+            const float prevBRLinear{ Pow( *( u8* )prevChannelBR / 255.0f, 2.2f ) };
+            const float prevFilteredLinear{
+              ( prevTLLinear + prevTRLinear + prevBLLinear + prevBRLinear ) / 4 };
 
-
-          if( format.mPerElementDataType == Render::GraphicsType::sint )
-          {
-            TAC_ASSERT_UNIMPLEMENTED;
+            u8& curr_sRGB{ *( u8* )currChannel };
+            curr_sRGB = u8( Pow( prevFilteredLinear, 1 / 2.2f ) / 255 );
           }
-          else if( format.mPerElementDataType == Render::GraphicsType::uint )
-          {
-            TAC_ASSERT_UNIMPLEMENTED;
-          }
-          else if( format.mPerElementDataType == Render::GraphicsType::uint )
-          {
-            TAC_ASSERT_UNIMPLEMENTED;
-          }
-          else if( format.mPerElementDataType == Render::GraphicsType::real )
-          {
-            TAC_ASSERT_UNIMPLEMENTED;
-          }
-          else if( format.mPerElementDataType == Render::GraphicsType::real )
-          {
-            TAC_ASSERT_UNIMPLEMENTED;
-          }
-          else if( format.mPerElementDataType == Render::GraphicsType::snorm )
-          {
-            TAC_ASSERT_UNIMPLEMENTED;
-          }
-          else if( format.mPerElementDataType == Render::GraphicsType::unorm )
+          else
           {
             TAC_ASSERT_UNIMPLEMENTED;
           }
 
-          if( issRGB )
-          {
-            //float unfiltered_sRGB = ;
-            //float unfiltered_Linear = Pow( unfiltered_sRGB, 2.2f );
-            //float filtered_Linear = ( a + b + c + d ) / 4.0f;
-            //float filtered_sRGB = Pow( filtered_Linear, 1.0f / 2.2f );
-          }
-          mImage.mFormat.mPerElementByteCount;
         }
 
 

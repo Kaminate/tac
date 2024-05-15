@@ -76,7 +76,7 @@ namespace Tac::Render
     
     const DX12InputLayout inputLayout( params.mVtxDecls, program );
 
-    TAC_NOT_CONST D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
+    dynmc D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )rootSig },
       .VS                    { program->mVSBytecode },

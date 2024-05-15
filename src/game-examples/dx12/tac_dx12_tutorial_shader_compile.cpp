@@ -32,7 +32,7 @@ namespace Tac::Render
       //   After the function completes successfully, the HighestShaderModel field contains the
       //   highest shader model that is both supported by the device and no higher than the
       //   shader model passed in.
-      TAC_NOT_CONST D3D12_FEATURE_DATA_SHADER_MODEL featureData{ shaderModel };
+      dynmc D3D12_FEATURE_DATA_SHADER_MODEL featureData{ shaderModel };
       if( SUCCEEDED( device->CheckFeatureSupport(
         D3D12_FEATURE_SHADER_MODEL,
         &featureData,

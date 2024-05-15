@@ -43,7 +43,13 @@ namespace Tac::Render
     void     InitializeResourceData( ID3D12Resource*,
                                      D3D12_HEAP_TYPE,
                                      CreateTextureParams,
+                                     DX12Context*,
                                      Errors& );
+    void     TransitionTexture( ID3D12Resource*,
+                                D3D12_RESOURCE_STATES*,
+                                CreateTextureParams,
+                                DX12Context*,
+                                Errors& );
 
     //Optional< DX12DescriptorHeapAllocation > CreateBindingDSV();
     //Optional< DX12DescriptorHeapAllocation > CreateBindingRTV();

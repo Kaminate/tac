@@ -13,19 +13,18 @@ namespace Tac
 {
   struct LoadJob : public Job
   {
-    void             Execute() override;
+    void             Execute( Errors& ) override;
     void             Clear();
 
     String           bytes;
-    FileSys::Path mPath;
+    FileSys::Path    mPath;
     cgltf_data*      mParsedData { nullptr };
   };
 
   // -----------------------------------------------------------------------------------------------
 
-  void   LoadJob::Execute() 
+  void   LoadJob::Execute(Errors& errors)
   {
-    Errors& errors { mErrors };
 
     TAC_CALL( bytes = LoadFilePath( mPath, errors ) );
 

@@ -36,6 +36,34 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  void DX12Context::Init( Params params )
+  {
+      mCommandList = params.mCommandList;
+      mGPUUploadAllocator.Init( params.mUploadPageManager );
+      mCommandAllocatorPool = params.mCommandAllocatorPool;
+      mContextManager = params.mContextManager;
+      mCommandQueue = params.mCommandQueue;
+      mSawpChainMgr = params.mSwapChainMgr;
+      mTextureMgr = params.mTextureMgr;
+      mBufferMgr = params.mBufferMgr;
+      mPipelineMgr = params.mPipelineMgr;
+      mGpuDescriptorHeapCBV_SRV_UAV = params.mGpuDescriptorHeapCBV_SRV_UAV;
+      mSamplerMgr = params.mSamplerMgr;
+      mGpuDescriptorHeapSampler = params.mGpuDescriptorHeapSampler;
+      mDevice = params.mDevice;
+      TAC_ASSERT( mCommandList );
+      TAC_ASSERT( mCommandAllocatorPool );
+      TAC_ASSERT( mContextManager );
+      TAC_ASSERT( mCommandQueue );
+      TAC_ASSERT( mSawpChainMgr );
+      TAC_ASSERT( mTextureMgr );
+      TAC_ASSERT( mBufferMgr );
+      TAC_ASSERT( mPipelineMgr );
+      TAC_ASSERT( mGpuDescriptorHeapCBV_SRV_UAV );
+      TAC_ASSERT( mSamplerMgr );
+      TAC_ASSERT( mGpuDescriptorHeapSampler );
+      TAC_ASSERT( mDevice );
+  }
 
   void DX12Context::CommitShaderVariables()
   {
@@ -82,18 +110,20 @@ namespace Tac::Render
         if( var.mBinding->IsTexture() )
         {
           DX12Texture* texture{ mTextureMgr->FindTexture( TextureHandle{ iHandle } ) };
-          if( !texture )
-            continue;
+          TAC_ASSERT( texture );
 
           TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
 
           if( var.mBinding->mType == D3D12ProgramBinding::kTextureSRV )
           {
-            TAC_ASSERT_UNIMPLEMENTED;
+            TAC_ASSERT( texture->mSRV.HasValue() );
+            srcAllocation = texture->mSRV.GetValue();
           }
-          else if( var.mBinding->mType == D3D12ProgramBinding::kTextureSRV )
+          else if( var.mBinding->mType == D3D12ProgramBinding::kTextureUAV )
           {
-            TAC_ASSERT_UNIMPLEMENTED;
+            TAC_ASSERT( texture->mUAV.HasValue() );
+            TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
+            srcAllocation = texture->mUAV.GetValue();
           }
           else
           {
@@ -104,8 +134,7 @@ namespace Tac::Render
         else if( var.mBinding->IsBuffer() ) // this includes constant buffers
         {
           DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
-          if( !buffer )
-            continue;
+          TAC_ASSERT( buffer );
 
           TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
 
@@ -134,8 +163,7 @@ namespace Tac::Render
         else if( var.mBinding->IsSampler() )
         {
           DX12Sampler* sampler{ mSamplerMgr->FindSampler( SamplerHandle{ iHandle } ) };
-          if( !sampler )
-            continue;
+          TAC_ASSERT( sampler );
 
           srcAllocation = sampler->mDescriptor;
         }

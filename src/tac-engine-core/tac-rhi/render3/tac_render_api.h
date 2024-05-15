@@ -252,7 +252,7 @@ namespace Tac::Render
     struct Subresource
     {
       const void* mBytes{};
-      int         mPitch{}; // byte count between texel rows
+      int         mPitch{}; // byte count between texel rows (aka stride)
     };
 
     using Subresources = Span< Subresource >;
@@ -265,6 +265,7 @@ namespace Tac::Render
     using CubemapFaces = Array< CubemapFace, 6 >;
 
     Image        mImage;
+    int          mMipCount{};
     Subresources mSubresources;
     CubemapFaces mCubemapFaces;
 

@@ -79,7 +79,7 @@ namespace Tac::Render
 
   void DXCArgHelper::AddArg( StringView arg )
   {
-    TAC_NOT_CONST Array args  { arg.data() };
+    dynmc Array args  { arg.data() };
     const HRESULT hr { mArgs->AddArgumentsUTF8( args.data(), args.size() ) };
     TAC_ASSERT( SUCCEEDED( hr ) );
   }

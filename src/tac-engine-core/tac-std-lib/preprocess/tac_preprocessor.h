@@ -118,7 +118,12 @@ namespace Tac
 
 // -------------------------------------------------------------------------------------------------
 
-#define TAC_NOT_CONST // This variable has not been declared const
+// A dynmc variable is a variable that has not been declared const
+// ie:
+//     dynmc char* src{ ... };
+//     const char* dst{ ... };
+//     MemCpy( dst, src, n );
+#define dynmc 
 
 // -------------------------------------------------------------------------------------------------
 

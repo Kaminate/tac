@@ -208,6 +208,10 @@ namespace Tac::Render
     if( heapType == D3D12_HEAP_TYPE_UPLOAD )
         resource->Map( 0, nullptr, &mappedCPUAddr );
 
+    DX12Context* context{ mContextManager->GetContext( errors ) };
+    DX12Context::Scope contextScope{ context };
+    ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
+
     if( params.mBytes )
     {
       if( mappedCPUAddr )
@@ -216,13 +220,8 @@ namespace Tac::Render
       }
       else
       {
-        DX12Context::Scope contextScope{ mContextManager->GetContext( errors ) };
-        DX12Context* context{ ( DX12Context* )contextScope.GetContext() };
-        ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
-        DX12UploadAllocator* GPUUploadAllocator{ &context->mGPUUploadAllocator };
-
         DX12UploadAllocator::DynAlloc allocation{
-          GPUUploadAllocator->Allocate( byteCount, errors ) };
+          context->mGPUUploadAllocator.Allocate( byteCount, errors ) };
         MemCpy( allocation.mCPUAddr, params.mBytes, params.mByteCount );
 
         const UINT64 dstResourceOffset{};
@@ -231,9 +230,6 @@ namespace Tac::Render
                                        allocation.mResource,
                                        allocation.mResourceOffest,
                                        params.mByteCount );
-
-        // do we context->SetSynchronous() ?
-        TAC_CALL( context->Execute( errors ) );
       }
     }
 
@@ -274,9 +270,6 @@ namespace Tac::Render
         usageFromBinding |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
 
 
-      DX12Context::Scope contextScope{ mContextManager->GetContext( errors ) };
-      DX12Context* context{ ( DX12Context* )contextScope.GetContext() };
-      ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
 
       const DX12TransitionHelper::Params transitionParams
       {
@@ -287,12 +280,12 @@ namespace Tac::Render
       DX12TransitionHelper transitionHelper;
       transitionHelper.Append( transitionParams );
       transitionHelper.ResourceBarrier( commandList );
-      // do we context->SetSynchronous() ?
-      TAC_CALL( context->Execute( errors ) );
     }
 
 
 
+    // do we context->SetSynchronous() ?
+    TAC_CALL( context->Execute( errors ) );
 
 
     const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };

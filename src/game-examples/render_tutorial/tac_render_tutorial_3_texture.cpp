@@ -166,7 +166,8 @@ namespace Tac
     const v4 clearColor{ 0.5f, 0.8f, 1, 0 };
     const Render::DrawArgs drawArgs { .mVertexCount { mVtxCount }, };
 
-    TAC_CALL( Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) } );
+    TAC_CALL( Render::IContext::Scope renderContext{
+      renderDevice->CreateRenderContext( errors ) } );
     renderContext->SetRenderTargets( renderTargets );
     renderContext->SetPipeline( mPipeline );
     renderContext->SetViewport( windowSize );

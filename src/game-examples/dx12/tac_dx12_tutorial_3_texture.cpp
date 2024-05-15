@@ -311,7 +311,7 @@ namespace Tac
     // the command list that references it has finished executing on the GPU.
     // We will flush the GPU at the end of this method to ensure the resource is not
     // prematurely destroyed.
-    PCom<ID3D12Resource> textureUploadHeap;
+    PCom< ID3D12Resource > textureUploadHeap;
 
 
     // Create the texture.
@@ -384,7 +384,7 @@ namespace Tac
 
     // Copy data to the intermediate upload heap and then schedule a copy 
     // from the upload heap to the Texture2D.
-    const Vector<UINT8> texture = Checkerboard::GenerateCheckerboardTextureData();
+    const Vector< UINT8 > texture = Checkerboard::GenerateCheckerboardTextureData();
 
     const D3D12_SUBRESOURCE_DATA textureData =
     {

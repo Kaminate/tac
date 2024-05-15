@@ -56,19 +56,28 @@ namespace Tac::Render
 
     if( mAvailableContexts.empty() )
     {
+      TAC_CALL_RET( {}, PCom< ID3D12GraphicsCommandList > commandList{
+        CreateCommandList( errors ) } );
+
+      const DX12Context::Params params
+      {
+        .mCommandList                  { commandList },
+        .mUploadPageManager            { mUploadPageManager },
+        .mCommandAllocatorPool         { mCommandAllocatorPool },
+        .mContextManager               { this },
+        .mCommandQueue                 { mCommandQueue },
+        .mSwapChainMgr                 { mSwapChainMgr },
+        .mTextureMgr                   { mTextureMgr },
+        .mBufferMgr                    { mBufferMgr },
+        .mPipelineMgr                  { mPipelineMgr },
+        .mSamplerMgr                   { mSamplerMgr },
+        .mGpuDescriptorHeapCBV_SRV_UAV { mGpuDescriptorHeapCBV_SRV_UAV },
+        .mGpuDescriptorHeapSampler     { mGpuDescriptorHeapSampler },
+        .mDevice                       { mDevice.Get() },
+      };
+
       dx12Context = TAC_NEW DX12Context;
-      dx12Context->mCommandList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
-      dx12Context->mGPUUploadAllocator.Init( mUploadPageManager );
-      dx12Context->mCommandAllocatorPool = mCommandAllocatorPool;
-      dx12Context->mContextManager = this;
-      dx12Context->mCommandQueue = mCommandQueue;
-      dx12Context->mFrameBufferMgr = mSwapChainMgr;
-      dx12Context->mTextureMgr = mTextureMgr;
-      dx12Context->mBufferMgr = mBufferMgr;
-      dx12Context->mPipelineMgr = mPipelineMgr;
-      dx12Context->mGpuDescriptorHeapCBV_SRV_UAV = mGpuDescriptorHeapCBV_SRV_UAV;
-      dx12Context->mGpuDescriptorHeapSampler = mGpuDescriptorHeapSampler;
-      dx12Context->mDevice = mDevice.Get();
+      dx12Context->Init( params );
     }
     else
     {

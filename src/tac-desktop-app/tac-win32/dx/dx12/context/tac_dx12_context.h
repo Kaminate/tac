@@ -41,6 +41,25 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* GetCommandList();
     ID3D12CommandAllocator*    GetCommandAllocator();
 
+    struct Params
+    {
+      PCom< ID3D12GraphicsCommandList > mCommandList                  {};
+      DX12UploadPageMgr*                mUploadPageManager            {};
+      DX12CommandAllocatorPool*         mCommandAllocatorPool         {};
+      DX12ContextManager*               mContextManager               {};
+      DX12CommandQueue*                 mCommandQueue                 {};
+      DX12SwapChainMgr*                 mSwapChainMgr                 {};
+      DX12TextureMgr*                   mTextureMgr                   {};
+      DX12BufferMgr*                    mBufferMgr                    {};
+      DX12PipelineMgr*                  mPipelineMgr                  {};
+      DX12SamplerMgr*                   mSamplerMgr                   {};
+      DX12DescriptorHeap*               mGpuDescriptorHeapCBV_SRV_UAV {};
+      DX12DescriptorHeap*               mGpuDescriptorHeapSampler     {};
+      ID3D12Device*                     mDevice                       {};
+    };
+
+    void Init( Params );
+
     //void SetName( StringView );
     void Reset( Errors& );
     void Execute( Errors& ) override;
@@ -86,24 +105,24 @@ namespace Tac::Render
 
     // end state
 
-    PCom< ID3D12GraphicsCommandList > mCommandList          {};
-    PCom< ID3D12CommandAllocator >    mCommandAllocator     {};
+    PCom< ID3D12GraphicsCommandList > mCommandList                  {};
+    PCom< ID3D12CommandAllocator >    mCommandAllocator             {};
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
-    DX12UploadAllocator               mGPUUploadAllocator   {};
+    DX12UploadAllocator               mGPUUploadAllocator           {};
 
     // singletons
-    DX12CommandAllocatorPool*         mCommandAllocatorPool {};
-    DX12ContextManager*               mContextManager       {};
-    DX12CommandQueue*                 mCommandQueue         {};
-    DX12SwapChainMgr*                 mFrameBufferMgr       {};
-    DX12TextureMgr*                   mTextureMgr           {};
-    DX12BufferMgr*                    mBufferMgr            {};
-    DX12PipelineMgr*                  mPipelineMgr          {};
-    DX12SamplerMgr*                   mSamplerMgr           {};
-    DX12DescriptorHeap*               mGpuDescriptorHeapCBV_SRV_UAV{};
-    DX12DescriptorHeap*               mGpuDescriptorHeapSampler{};
-    ID3D12Device*                     mDevice{};
+    DX12CommandAllocatorPool*         mCommandAllocatorPool         {};
+    DX12ContextManager*               mContextManager               {};
+    DX12CommandQueue*                 mCommandQueue                 {};
+    DX12SwapChainMgr*                 mSawpChainMgr                 {};
+    DX12TextureMgr*                   mTextureMgr                   {};
+    DX12BufferMgr*                    mBufferMgr                    {};
+    DX12PipelineMgr*                  mPipelineMgr                  {};
+    DX12SamplerMgr*                   mSamplerMgr                   {};
+    DX12DescriptorHeap*               mGpuDescriptorHeapCBV_SRV_UAV {};
+    DX12DescriptorHeap*               mGpuDescriptorHeapSampler     {};
+    ID3D12Device*                     mDevice                       {};
   };
 
 }

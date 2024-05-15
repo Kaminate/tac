@@ -53,7 +53,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  static void SaveBlobToFile( TAC_NOT_CONST PCom< IDxcBlob> blob,
+  static void SaveBlobToFile( dynmc PCom< IDxcBlob> blob,
                               const FileSys::Path& path,
                               Errors& errors )
   {
@@ -320,7 +320,7 @@ namespace Tac::Render
     if( false )
     {
       //PCom<IDxcCompilerArgs> mArgs;
-      TAC_NOT_CONST Array args  { L"--version" };
+      dynmc Array args  { L"--version" };
       //const HRESULT hr = mArgs->AddArgumentsUTF8( args.data(), args.size() );
       PCom<IDxcResult> pResults;
 
@@ -352,7 +352,7 @@ namespace Tac::Render
     TAC_CALL_RET( {}, FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
 
-    TAC_NOT_CONST DXCArgHelper::Params argHelperSetup
+    dynmc DXCArgHelper::Params argHelperSetup
     {
       .mEntryPoint    { entryPoint.GetValueUnchecked() },
       .mTargetProfile { target },
@@ -360,7 +360,7 @@ namespace Tac::Render
       .mPDBDir        { input.mOutputDir },
       .mUtils         { pUtils },
     };
-    TAC_NOT_CONST DXCArgHelper argHelper( argHelperSetup );
+    dynmc DXCArgHelper argHelper( argHelperSetup );
 
     const auto pArguments { argHelper.GetArgs() };
     const auto argCount { argHelper.GetArgCount() };

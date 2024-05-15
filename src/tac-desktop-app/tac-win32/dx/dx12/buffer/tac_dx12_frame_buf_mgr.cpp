@@ -89,6 +89,7 @@ namespace Tac::Render
       const CreateTextureParams depthParams
       {
         .mImage        { image },
+        .mMipCount     { 1 },
         .mBinding      { Binding::DepthStencil },
         .mUsage        { Usage::Default },
         .mCpuAccess    { CPUAccess::None },
