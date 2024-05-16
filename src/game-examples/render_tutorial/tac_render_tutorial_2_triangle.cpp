@@ -14,7 +14,7 @@ namespace Tac
 
   struct Vertex
   {
-    ClipSpacePosition3 mPos;
+    NDCSpacePosition3 mPos;
     LinearColor3       mCol;
   };
 
@@ -86,7 +86,7 @@ namespace Tac
   void HelloTriangle::InitWindow( InitParams initParams, Errors& errors )
   {
       TAC_CALL( sWindowHandle = RenderTutorialCreateWindow(
-        initParams.mWindowApi, "Hello Triangle", errors ) );
+        initParams.mWindowApi, mConfig.mName, errors ) );
   }
 
   void HelloTriangle::InitShader( Errors& errors )
@@ -104,17 +104,17 @@ namespace Tac
     {
       Vertex
       {
-        .mPos { ClipSpacePosition3{0.0f, 0.25f , 0.0f} },
+        .mPos { NDCSpacePosition3{0.0f, 0.25f , 0.0f} },
         .mCol { LinearColor3{ 1.0f, 0.0f, 0.0f }}
       },
       Vertex
       {
-        .mPos { ClipSpacePosition3{ -0.25f, -0.25f , 0.0f} },
+        .mPos { NDCSpacePosition3{ -0.25f, -0.25f , 0.0f} },
         .mCol { LinearColor3{ 0.0f, 1.0f, 0.0f }}
       },
       Vertex
       {
-        .mPos { ClipSpacePosition3{ 0.25f, -0.25f , 0.0f} },
+        .mPos { NDCSpacePosition3{ 0.25f, -0.25f , 0.0f} },
         .mCol { LinearColor3{ 0.0f, 0.0f, 1.0f }}
       },
     };

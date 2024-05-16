@@ -6,6 +6,7 @@
 #include <d3d12shader.h>
 //struct D3D12_SHADER_INPUT_BIND_DESC;
 
+
 namespace Tac::Render
 {
   struct D3D12ProgramBinding
@@ -26,18 +27,17 @@ namespace Tac::Render
     bool IsBuffer() const;
     bool IsSampler() const;
     bool IsTexture() const;
+    bool IsSRV() const;
+    bool IsUAV() const;
+    bool IsConstantBuffer() const;
+    
+    bool BindsAsDescriptorTable() const;
 
-    // Size checks
-    bool IsArray() const;
-    bool IsFixedArray() const;
-    bool IsUnboundedArray() const;
-    bool IsSingleElement() const;
-
-    Type   mType = Type::kUnknown;
-    String mName;
-    int    mBindCount = -1; // A value of 0 represents an unbounded array
-    int    mBindRegister = -1;
-    int    mRegisterSpace = -1;
+    Type   mType          { Type::kUnknown };
+    String mName          {};
+    int    mBindCount     { -1 }; // A value of 0 represents an unbounded array
+    int    mBindRegister  { -1 };
+    int    mRegisterSpace { -1 };
   };
 
   struct D3D12ProgramBindings : public Vector< D3D12ProgramBinding >

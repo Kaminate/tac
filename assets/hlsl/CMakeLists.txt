@@ -23,6 +23,7 @@ set(TAC_SHADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/HelloTriangleBindless.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/HelloTriangleInputLayout.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/HelloTexture.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/HelloConstBuf.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloTriangle.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloTriangleBindless.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/DX12HelloTexture.hlsl

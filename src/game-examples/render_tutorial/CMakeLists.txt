@@ -1,6 +1,7 @@
 add_executable( render_tutorial_1_window   WIN32 "tac_render_tutorial_1_window.cpp")
 add_executable( render_tutorial_2_triangle WIN32 "tac_render_tutorial_2_triangle.cpp")
 add_executable( render_tutorial_3_texture  WIN32 "tac_render_tutorial_3_texture.cpp")
+add_executable( render_tutorial_4_const_buf  WIN32 "tac_render_tutorial_4_const_buf.cpp")
 
 get_property( targetnames DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS )
 foreach( targetname ${targetnames} )

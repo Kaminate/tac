@@ -8,26 +8,32 @@
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
+//#include "tac-engine-core/shell/tac_shell_timestep.h"
 
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
 
+  struct MyCBufType
+  {
+    m4  mWorld;
+    u32 mVertexBufferIndex;
+  };
+
   struct Vertex
   {
-    NDCSpacePosition3 mPos;
+    NDCSpacePosition3  mPos;
     TextureCoordinate2 mUV;
   };
 
   static Vector< Vertex > GetVerts()
   {
-
-    // Pos in NDC space, UV in DirectX (Y-) space, ccw winding
-    // 0 3    0      0 3
-    // 1 2    1 2      2
+    // Pos: NDC space, UV: DirectX (Y-) space, Winding: CCW
+    //  0
+    // 1 2
     const Vertex v0
     {
-      .mPos { NDCSpacePosition3{ -1, 1, 0 } },
+      .mPos { NDCSpacePosition3{ 0, 1, 0 } },
       .mUV  { TextureCoordinate2{ 0, 0 } },
     };
 
@@ -43,28 +49,19 @@ namespace Tac
       .mUV  { TextureCoordinate2{ 1, 1 } },
     };
 
-    const Vertex v3
-    {
-      .mPos { NDCSpacePosition3{ 1, 1, 0 } },
-      .mUV  { TextureCoordinate2{ 1, 0 } },
-    };
 
-    const Monitor monitor { OS::OSGetPrimaryMonitor() };
-    const float aspect{ ( float )monitor.mSize.x / ( float )monitor.mSize.y };
-    Vector verts { v0, v1, v2, v0, v2, v3 };
+    Vector verts { v0, v1, v2 };
     for( Vertex& vert : verts )
-    {
       vert.mPos.mValue /= 2;
-      vert.mPos.mValue.x /= aspect;
-    }
+
     return verts;
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  struct HelloTexture : public App
+  struct HelloConstBuf : public App
   {
-    HelloTexture( App::Config );
+    HelloConstBuf( App::Config );
 
   protected:
     void Init( InitParams, Errors& ) override;
@@ -74,26 +71,21 @@ namespace Tac
 
     WindowHandle           mWindowHandle;
     Render::BufferHandle   mVtxBuf;
+    Render::BufferHandle   mConstantBuf;
     Render::ProgramHandle  mShader;
     Render::PipelineHandle mPipeline;
     Render::TexFmt         mColorFormat;
     Render::TexFmt         mDepthFormat;
-    Render::SamplerHandle  mSampler;
-    Render::TextureHandle  mTexture;
-
     Render::IShaderVar*    mShaderVtxBufs{};
-    Render::IShaderVar*    mShaderSamplers{};
-    Render::IShaderVar*    mShaderTextures{};
+    Render::IShaderVar*    mShaderVtxBufsFixed{};
+    Render::IShaderVar*    mShaderVtxBufsSingle{};
+    Render::IShaderVar*    mShaderConstantBuffer{};
     int                    mVtxCount{};
-    const char*            mTexPath{ "assets/essential/are_ya_winnin_son.png" };
-    //const char*            mTexPath{ "assets/essential/image_loader_test.png" };
-    Render::Filter         mFilter{ Render::Filter::Linear };
-    //Render::Filter         mFilter{ Render::Filter::Point };
   };
 
-  HelloTexture::HelloTexture( App::Config cfg ) : App{ cfg } {}
+  HelloConstBuf::HelloConstBuf( App::Config cfg ) : App{ cfg } {}
 
-  void HelloTexture::Init( InitParams initParams, Errors& errors )
+  void HelloConstBuf::Init( InitParams initParams, Errors& errors )
   {
     const SysWindowApi* windowApi{ initParams.mWindowApi };
     mColorFormat = windowApi->GetSwapChainColorFormat();
@@ -117,10 +109,20 @@ namespace Tac
     };
     mVtxBuf = renderDevice->CreateBuffer( vtxBufParams, errors );
 
-    const Render::ProgramParams programParams{ .mFileStem { "HelloTexture" }, };
-    TAC_CALL( mShader = renderDevice->CreateProgram( programParams, errors ) );
+    const Render::CreateBufferParams cBufParams
+    {
+      .mByteCount     { ( int )sizeof( MyCBufType ) },
+      .mBytes         {},
+      .mStride        {},
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mGpuBufferMode {},
+      .mOptionalName  { "cbuf" },
+    };
+    mConstantBuf = renderDevice->CreateBuffer( cBufParams, errors );
 
-    mSampler = renderDevice->CreateSampler( mFilter );
+    const Render::ProgramParams programParams{ .mFileStem { "HelloConstBuf" }, };
+    TAC_CALL( mShader = renderDevice->CreateProgram( programParams, errors ) );
 
     const Render::PipelineParams pipelineParams
     {
@@ -131,32 +133,22 @@ namespace Tac
     mPipeline = renderDevice->CreatePipeline( pipelineParams, errors );
 
     mShaderVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
-    mShaderSamplers = renderDevice->GetShaderVariable( mPipeline, "Samplers" );
-    mShaderTextures = renderDevice->GetShaderVariable( mPipeline, "Textures" );
-
+    mShaderVtxBufsFixed = renderDevice->GetShaderVariable( mPipeline, "BufferTableFixed" );
+    mShaderVtxBufsSingle = renderDevice->GetShaderVariable( mPipeline, "BufferTableSingle" );
     mShaderVtxBufs->SetBufferAtIndex( 0, mVtxBuf );
-    mShaderSamplers->SetSamplerAtIndex( 0, mSampler );
+    mShaderVtxBufsFixed ->SetBufferAtIndex( 0, mVtxBuf );
+    mShaderVtxBufsSingle->SetBuffer( mVtxBuf );
 
-    // kickoff async loading
-    TAC_CALL( TextureAssetManager::GetTexture( mTexPath, errors ) );
+    mShaderConstantBuffer = renderDevice->GetShaderVariable( mPipeline, "MyCBufInst" );
+    mShaderConstantBuffer->SetBuffer( mConstantBuf );
   }
 
 
-  void HelloTexture::Render( RenderParams sysRenderParams, Errors& errors )
+  void HelloConstBuf::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
+    const SysWindowApi* windowApi{ renderParams.mWindowApi };
     if( !windowApi->IsShown( mWindowHandle ) )
       return;
-
-    if( !mTexture.IsValid() )
-    {
-      TAC_CALL( mTexture = TextureAssetManager::GetTexture( mTexPath, errors ) );
-      if( !mTexture.IsValid() )
-        return;
-
-      mShaderTextures->SetTextureAtIndex( 0, mTexture );
-    }
-
 
     const v2i windowSize{ windowApi->GetSize( mWindowHandle ) };
 
@@ -169,6 +161,21 @@ namespace Tac
     const v4 clearColor{ 0.5f, 0.8f, 1, 0 };
     const Render::DrawArgs drawArgs { .mVertexCount { mVtxCount }, };
 
+    const float translateX{ ( float )Sin( renderParams.mTimestamp.mSeconds ) };
+    const m4 world{ m4::Translate( v3( translateX, 0, 0 ) ) };
+    const MyCBufType cbuf
+    {
+      .mWorld             { world },
+      .mVertexBufferIndex { 0 },
+    };
+
+    const Render::UpdateBufferParams updateBufferParams
+    {
+      .mSrcBytes      { &cbuf },
+      .mSrcByteCount  { ( int )sizeof( MyCBufType ) },
+      .mDstByteOffset {},
+    };
+
     TAC_CALL( Render::IContext::Scope renderContext{
       renderDevice->CreateRenderContext( errors ) } );
     renderContext->SetRenderTargets( renderTargets );
@@ -178,6 +185,9 @@ namespace Tac
     renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
     renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
+
+    TAC_CALL( renderContext->UpdateBuffer( mConstantBuf, updateBufferParams, errors ) );
+
     renderContext->CommitShaderVariables();
     renderContext->Draw( drawArgs );
 
@@ -189,9 +199,9 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName { "Hello Texture" },
+      .mName { "Hello Const Buf" },
     };
-    return TAC_NEW HelloTexture( config );
+    return TAC_NEW HelloConstBuf( config );
   };
 
 } // namespace Tac

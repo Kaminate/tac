@@ -351,6 +351,7 @@ namespace Tac::Render
   {
     virtual void SetBuffer( BufferHandle ) {};
     virtual void SetTexture( TextureHandle ) {};
+    virtual void SetSampler( SamplerHandle ) {};
     virtual void SetBufferAtIndex( int, BufferHandle ) {};
     virtual void SetTextureAtIndex( int, TextureHandle ) {};
     virtual void SetSamplerAtIndex( int, SamplerHandle ) {};

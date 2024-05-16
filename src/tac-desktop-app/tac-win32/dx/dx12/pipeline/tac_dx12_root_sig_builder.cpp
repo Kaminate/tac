@@ -240,22 +240,22 @@ namespace Tac::Render
         .mSpace    { binding.mRegisterSpace },
       };
 
-      if( binding.IsArray() || binding.mType == D3D12ProgramBinding::Type::kSampler )
+      if( binding.BindsAsDescriptorTable() )
       {
         // Create a root descriptor table
         const D3D12_DESCRIPTOR_RANGE_TYPE descriptorRangeType =
           D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( binding.mType );
 
-        if( binding.IsUnboundedArray() )
-          AddUnboundedArray( descriptorRangeType, loc );
-        else
+        if( binding.mBindCount )
           AddBoundedArray( descriptorRangeType, binding.mBindCount, loc );
+        else
+          AddUnboundedArray( descriptorRangeType, loc );
       }
       else
       {
         // Create a root descriptor
-        const D3D12_ROOT_PARAMETER_TYPE type =
-          D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( binding.mType );
+        const D3D12_ROOT_PARAMETER_TYPE type{
+          D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( binding.mType ) };
         AddRootDescriptor( type, loc );
       }
 

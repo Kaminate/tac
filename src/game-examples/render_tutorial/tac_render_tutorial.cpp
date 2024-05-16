@@ -26,5 +26,14 @@ Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi* windowApi
   return windowHandle;
 }
 
+namespace Tac
+{
+  NDCSpacePosition3::NDCSpacePosition3( v3 v ) : mValue( v ) {}
+  NDCSpacePosition3::NDCSpacePosition3( float x, float y, float z ) : mValue{ x, y, z } {}
 
+  LinearColor3::LinearColor3( v3 v ) : mValue( v ) {}
+  LinearColor3::LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
 
+  TextureCoordinate2::TextureCoordinate2( v2 v ) : mValue( v ) {}
+  TextureCoordinate2::TextureCoordinate2( float x, float y ) : mValue{ x, y } {}
+}

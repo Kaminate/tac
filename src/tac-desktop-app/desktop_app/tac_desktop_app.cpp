@@ -118,22 +118,6 @@ namespace Tac
 #endif
   }
 
-
-  static String ToStem( StringView sv )
-  {
-    String result;
-    for( char c : sv )
-    {
-      const bool isValid { IsAlpha( c ) || IsDigit( c ) || c == ' ' || c == '_' };
-      result += isValid ? c : ' ';
-    }
-
-    if( result.empty() )
-      return "tac";
-
-    return result;
-  }
-
   // -----------------------------------------------------------------------------------------------
 
   DesktopApp*         DesktopApp::GetInstance() { return &sDesktopApp; }
@@ -143,14 +127,18 @@ namespace Tac
     TAC_ASSERT( PlatformFns::GetInstance() );
 
     sApp = App::Create();
-    TAC_ASSERT( !sApp->mConfig.mName.empty() );
 
-    // right place?
-    sShellAppName = sApp->mConfig.mName;
-    sShellStudioName = sApp->mConfig.mStudioName;
+    sShellAppName = sApp->GetAppName();
+    TAC_ASSERT( !sShellAppName.empty() );
+
+    sShellStudioName = sApp->GetStudioName();
+    TAC_ASSERT( !sShellStudioName.empty() );
+
     sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
+    TAC_ASSERT( !sShellPrefPath.empty() );
+
     sShellInitialWorkingDir = FileSys::GetCurrentWorkingDirectory();
-    TAC_ASSERT( !sShellAppName.empty() && !sShellPrefPath.empty() );
+    TAC_ASSERT( !sShellInitialWorkingDir.empty() );
 
     // for macos standalone_sdl_vk_1_tri, appDataPath =
     //
@@ -159,13 +147,13 @@ namespace Tac
     // for win32 project standalone_win_vk_1_tri, appDataPath =
     //
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    TAC_RAISE_ERROR_IF( !FileSys::Exists( sShellPrefPath ),
-                        String() + "app data path " + sShellPrefPath.u8string() + " doesnt exist" );
+    TAC_RAISE_ERROR_IF( !FileSys::Exists( sShellPrefPath ), String()
+                        + "app data path " + sShellPrefPath.u8string() + " doesnt exist" );
 
-    const FileSys::Path logPath{ sShellPrefPath / ( ToStem( sShellAppName ) + ".tac.log" ) };
+    const FileSys::Path logPath{ sShellPrefPath / ( sShellAppName + ".tac.log" ) };
     LogApi::LogSetPath( logPath );
 
-    const FileSys::Path settingsPath{ sShellPrefPath / ( sShellAppName + "Settings.txt" ) };
+    const FileSys::Path settingsPath{ sShellPrefPath / ( sShellAppName + ".tac.cfg" ) };
     TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
 
     if( sApp->IsRenderEnabled() )

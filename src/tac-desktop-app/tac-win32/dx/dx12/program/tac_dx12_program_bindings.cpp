@@ -1,5 +1,6 @@
 #include "tac_dx12_program_bindings.h" // self-inc
 
+
 //#include <d3d12.h>
 
 
@@ -59,10 +60,29 @@ namespace Tac::Render
     return mType == Type::kTextureUAV || mType == Type::kTextureSRV;
   }
 
-  bool D3D12ProgramBinding::IsFixedArray() const { return mBindCount > 1; }
-  bool D3D12ProgramBinding::IsUnboundedArray() const { return mBindCount == 0; }
-  bool D3D12ProgramBinding::IsArray() const { return mBindCount != 1; }
-  bool D3D12ProgramBinding::IsSingleElement() const { return mBindCount == 1; }
+  bool D3D12ProgramBinding::IsSRV() const
+  {
+    return mType == Type::kTextureSRV || mType == Type::kBufferSRV;
+  }
+
+  bool D3D12ProgramBinding::IsUAV() const
+  {
+    return mType == Type::kTextureUAV || mType == Type::kBufferUAV;
+  }
+
+  bool D3D12ProgramBinding::IsConstantBuffer() const
+  {
+    return mType == Type::kConstantBuffer;
+  }
+
+  bool D3D12ProgramBinding::BindsAsDescriptorTable() const
+  {
+    // Samplers and textures can only be set through descriptor tables ( not root descriptors )
+    return mBindCount != 1
+      || mType == D3D12ProgramBinding::Type::kSampler
+      || IsTexture();
+  }
+
 
   // -----------------------------------------------------------------------------------------------
 

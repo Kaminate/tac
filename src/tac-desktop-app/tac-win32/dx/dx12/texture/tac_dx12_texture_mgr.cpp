@@ -172,7 +172,6 @@ namespace Tac::Render
         DX12SetName( pResource, name );
     }
 
-
     DX12Context* context{ mContextManager->GetContext( errors ) };
     DX12Context::Scope contextScope{ context };
 
@@ -193,12 +192,12 @@ namespace Tac::Render
     const D3D12_RESOURCE_DESC resourceDesc{ resource->GetDesc() };
     *texture = DX12Texture
     {
-      .mResource { resource },
-      .mDesc     { resourceDesc },
-      .mState    { resourceStates },
-      .mRTV      { bindings.mRTV },
-      .mDSV      { bindings.mDSV },
-      .mSRV      { bindings.mSRV },
+      .mResource          { resource },
+      .mDesc              { resourceDesc },
+      .mState             { resourceStates },
+      .mRTV               { bindings.mRTV },
+      .mDSV               { bindings.mDSV },
+      .mSRV               { bindings.mSRV },
     };
   }
 

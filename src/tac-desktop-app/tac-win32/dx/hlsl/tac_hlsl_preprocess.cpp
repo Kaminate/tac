@@ -14,22 +14,22 @@ namespace Tac::Render
 {
   String HLSLPreprocess( AssetPathStringView assetPath, Errors& errors )
   {
-    HLSLLinePreprocessorRegister procReg;
-    HLSLLinePreprocessorIncludes procInc( assetPath );
-    HLSLLinePreprocessorPadding procPad;
-    HLSLLinePreprocessorComment procCmt;
-    HLSLLinePreprocessorBitfield procBF;
-    HLSLLinePreprocessorFx procFx;
-    HLSLLinePreprocessorSemantic procAS;
+    HLSLLinePreprocessorRegister processorRegister;
+    HLSLLinePreprocessorIncludes processorIncludes( assetPath );
+    HLSLLinePreprocessorPadding processorPadding;
+    HLSLLinePreprocessorComment processorComment;
+    HLSLLinePreprocessorBitfield processorBitfield;
+    HLSLLinePreprocessorFx processorFx;
+    HLSLLinePreprocessorSemantic processorSemantic;
 
     HLSLFilePreprocessor preprocessor;
-    preprocessor.Add( &procReg );
-    preprocessor.Add( &procInc );
-    preprocessor.Add( &procPad );
-    //preprocessor.Add( &procCmt ); // <-- no
-    preprocessor.Add( &procBF );
-    preprocessor.Add( &procFx );
-    preprocessor.Add( &procAS );
+    preprocessor.Add( &processorComment ); // first
+    preprocessor.Add( &processorRegister );
+    preprocessor.Add( &processorIncludes );
+    preprocessor.Add( &processorPadding );
+    preprocessor.Add( &processorBitfield );
+    preprocessor.Add( &processorFx );
+    preprocessor.Add( &processorSemantic );
 
     return preprocessor.PreprocessFile( assetPath, errors );
   }

@@ -8,27 +8,27 @@ namespace Tac
 {
   WindowHandle RenderTutorialCreateWindow( const SysWindowApi*, StringView, Errors& );
 
-  struct ClipSpacePosition3
+  struct NDCSpacePosition3
   {
-    ClipSpacePosition3() = default;
-    explicit ClipSpacePosition3( v3 v ) : mValue( v ) {}
-    explicit ClipSpacePosition3( float x, float y, float z ) : mValue{ x, y, z } {}
+    NDCSpacePosition3() = default;
+    explicit NDCSpacePosition3( v3 );
+    explicit NDCSpacePosition3( float, float, float );
     v3 mValue;
   };
 
   struct LinearColor3
   {
     LinearColor3() = default;
-    explicit LinearColor3( v3 v ) : mValue( v ) {}
-    explicit LinearColor3( float x, float y, float z ) : mValue{ x, y, z } {}
+    explicit LinearColor3( v3 );
+    explicit LinearColor3( float, float, float );
     v3 mValue;
   };
 
   struct TextureCoordinate2
   {
     TextureCoordinate2() = default;
-    explicit TextureCoordinate2( v2 v ) : mValue( v ) {}
-    explicit TextureCoordinate2( float x, float y ) : mValue{ x, y } {}
+    explicit TextureCoordinate2( v2 );
+    explicit TextureCoordinate2( float, float );
     v2 mValue;
   };
 

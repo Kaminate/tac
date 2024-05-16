@@ -16,7 +16,7 @@ namespace Tac
     void Init( InitParams initParams, Errors& errors ) override
     {
       TAC_CALL( sWindowHandle = RenderTutorialCreateWindow(
-        initParams.mWindowApi, "Hello Window", errors ) );
+        initParams.mWindowApi, mConfig.mName, errors ) );
     }
   };
 
