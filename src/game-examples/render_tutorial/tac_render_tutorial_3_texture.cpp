@@ -81,11 +81,15 @@ namespace Tac
     Render::SamplerHandle  mSampler;
     Render::TextureHandle  mTexture;
 
-    Render::IShaderVar*    mVtxBufs{};
-    Render::IShaderVar*    mSamplers{};
-    Render::IShaderVar*    mTextures{};
+    Render::IShaderVar*    mShaderVtxBufs{};
+    Render::IShaderVar*    mShaderSamplers{};
+    Render::IShaderVar*    mShaderTextures{};
+    Render::IShaderVar*    mShaderTexture{};
     int                    mVtxCount{};
-    const char*            mTexPath{ "assets/essential/winninson.png" };
+    const char*            mTexPath{ "assets/essential/are_ya_winnin_son.png" };
+    //const char*            mTexPath{ "assets/essential/image_loader_test.png" };
+    Render::Filter         mFilter{ Render::Filter::Linear };
+    //Render::Filter         mFilter{ Render::Filter::Point };
   };
 
   HelloTexture::HelloTexture( App::Config cfg ) : App{ cfg } {}
@@ -117,7 +121,7 @@ namespace Tac
     const Render::ProgramParams programParams{ .mFileStem { "HelloTexture" }, };
     TAC_CALL( mShader = renderDevice->CreateProgram( programParams, errors ) );
 
-    mSampler = renderDevice->CreateSampler( Render::Filter::Linear );
+    mSampler = renderDevice->CreateSampler( mFilter );
 
     const Render::PipelineParams pipelineParams
     {
@@ -127,12 +131,13 @@ namespace Tac
     };
     mPipeline = renderDevice->CreatePipeline( pipelineParams, errors );
 
-    mVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
-    mSamplers = renderDevice->GetShaderVariable( mPipeline, "Samplers" );
-    mTextures = renderDevice->GetShaderVariable( mPipeline, "Textures" );
+    mShaderVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
+    mShaderSamplers = renderDevice->GetShaderVariable( mPipeline, "Samplers" );
+    mShaderTextures = renderDevice->GetShaderVariable( mPipeline, "Textures" );
+    mShaderTexture = renderDevice->GetShaderVariable( mPipeline, "Texture" );
 
-    mVtxBufs->SetBufferAtIndex( 0, mVtxBuf );
-    mSamplers->SetSamplerAtIndex( 0, mSampler );
+    mShaderVtxBufs->SetBufferAtIndex( 0, mVtxBuf );
+    mShaderSamplers->SetSamplerAtIndex( 0, mSampler );
 
     // kickoff async loading
     TAC_CALL( TextureAssetManager::GetTexture( mTexPath, errors ) );
@@ -151,7 +156,9 @@ namespace Tac
       if( !mTexture.IsValid() )
         return;
 
-      mTextures->SetTextureAtIndex( 0, mTexture );
+      mShaderTextures->SetTextureAtIndex( 0, mTexture );
+      mShaderTexture->SetTextureAtIndex( 0,mTexture );
+      mShaderTexture->SetTextureAtIndex( 1,mTexture );
     }
 
 

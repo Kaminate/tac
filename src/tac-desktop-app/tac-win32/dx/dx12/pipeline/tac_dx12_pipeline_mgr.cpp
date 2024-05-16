@@ -53,6 +53,13 @@ namespace Tac::Render
 
     const D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc
     {
+      .BlendEnable           { TRUE },
+      .SrcBlend              { D3D12_BLEND_ONE },
+      .DestBlend             { D3D12_BLEND_INV_SRC_ALPHA },
+      .BlendOp               { D3D12_BLEND_OP_ADD },
+      .SrcBlendAlpha         { D3D12_BLEND_ONE },
+      .DestBlendAlpha        { D3D12_BLEND_ONE },
+      .BlendOpAlpha          { D3D12_BLEND_OP_ADD },
       .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
     };
 

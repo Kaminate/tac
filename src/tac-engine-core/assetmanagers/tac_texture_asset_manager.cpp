@@ -32,7 +32,7 @@ namespace Tac::TextureAssetManager
   public:
     struct Params
     {
-      FileSys::Path mPath;
+      FileSys::Path mFilepath;
       bool          mIsCubemap{};
     };
 
@@ -48,7 +48,6 @@ namespace Tac::TextureAssetManager
     Render::TextureHandle CreateTexCubemap( Errors& );
     void                  ExecuteTexSingleJob( Errors& );
     void                  ExecuteTexCubemapJob( Errors& );
-    void                  GenerateMips( bool issRGB );
     void                  GenerateMip( bool issRGB, int mip );
 
 
@@ -70,7 +69,7 @@ namespace Tac::TextureAssetManager
 
   TextureLoadJob::TextureLoadJob( Params params )
   {
-    mFilepath = params.mPath;
+    mFilepath = params.mFilepath;
     mIsCubemap = params.mIsCubemap;
   }
 
@@ -96,12 +95,15 @@ namespace Tac::TextureAssetManager
       };
     }
 
+    const String name{ mFilepath.filename().u8string() };
+
     const Render::CreateTextureParams createTextureParams
     {
        .mImage        { mImage },
        .mMipCount     { n },
        .mSubresources { subresources.data(), n },
        .mBinding      { Render::Binding::ShaderResource },
+       .mOptionalName { name },
        .mStackFrame   { TAC_STACK_FRAME },
     };
 
@@ -171,12 +173,12 @@ namespace Tac::TextureAssetManager
       }( ) };
 
     SettingsRoot settingsRoot;
-    settingsRoot.Init( metaPath, errors );
+    TAC_CALL( settingsRoot.Init( metaPath, errors ) );
 
     SettingsNode settingsNode{ settingsRoot.GetRootNode() };
     const bool issRGB{ settingsNode.GetChild( "is sRGB" ).GetValueWithFallback( true ) };
     const bool genMips{ settingsNode.GetChild( "gen mips" ).GetValueWithFallback( true ) };
-    settingsRoot.Flush( errors );
+    TAC_CALL( settingsRoot.Flush( errors ) );
 
     int x;
     int y;
@@ -220,7 +222,7 @@ namespace Tac::TextureAssetManager
       .mPerElementByteCount = 1,
       .mPerElementDataType = Render::GraphicsType::unorm
     };
-    const int pitch{ x * format.mElementCount * format.mPerElementByteCount };
+    const int pitch{ x * format.CalculateTotalByteCount() };
     const int imageDataByteCount{ y * pitch };
 
     mImage = Render::Image
@@ -248,10 +250,12 @@ namespace Tac::TextureAssetManager
 
     AsyncSubresourceData& mip0{ mSubresources[ 0 ] };
     mip0.mBytes.resize( imageDataByteCount );
+    mip0.mPitch = pitch;
     MemCpy( mip0.mBytes.data(), loaded, imageDataByteCount );
 
     if( genMips )
-      GenerateMips( issRGB );
+      for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
+        GenerateMip( issRGB, currMip );
 
   }
 
@@ -268,7 +272,7 @@ namespace Tac::TextureAssetManager
 
     const int currW{ mImage.mWidth >> currMip };
     const int currH{ mImage.mHeight >> currMip };
-    const int currPitch{currW * texelByteCount};
+    const int currPitch{ currW * texelByteCount };
     AsyncSubresourceData& currData{ mSubresources[ currMip ] };
 
     currData.mPitch = currPitch;
@@ -283,7 +287,7 @@ namespace Tac::TextureAssetManager
       {
         const char* prevTexelTL{ prevData.mBytes.data()
           + ( currY * 2 ) * prevData.mPitch
-          + ( currX * 2 ) };
+          + ( currX * 2 ) * texelByteCount };
         const char* prevTexelTR{ prevTexelTL + texelByteCount };
         const char* prevTexelBL{ prevTexelTL + prevData.mPitch };
         const char* prevTexelBR{ prevTexelTL + prevData.mPitch + texelByteCount };
@@ -310,7 +314,7 @@ namespace Tac::TextureAssetManager
               ( prevTLLinear + prevTRLinear + prevBLLinear + prevBRLinear ) / 4 };
 
             u8& curr_sRGB{ *( u8* )currChannel };
-            curr_sRGB = u8( Pow( prevFilteredLinear, 1 / 2.2f ) / 255 );
+            curr_sRGB = u8( Pow( prevFilteredLinear, 1 / 2.2f ) * 255 );
           }
           else
           {
@@ -323,13 +327,6 @@ namespace Tac::TextureAssetManager
       }
     }
 
-  }
-
-  void TextureLoadJob::GenerateMips( bool issRGB )
-  {
-    const int subresourceCount{ mSubresources.size() };
-    for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
-      GenerateMip( issRGB, currMip );
   }
 
   void TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
@@ -477,7 +474,7 @@ namespace Tac::TextureAssetManager
 
     const TextureLoadJob::Params params
     {
-      .mPath      { textureFilepath },
+      .mFilepath  { textureFilepath },
       .mIsCubemap { false },
     };
     TextureLoadJob* asyncTexture{ TAC_NEW TextureLoadJob( params ) };
@@ -501,7 +498,7 @@ namespace Tac::TextureAssetManager
 
     const TextureLoadJob::Params params
     {
-      .mPath      { textureDir },
+      .mFilepath  { textureDir },
       .mIsCubemap { true },
     };
     TextureLoadJob* asyncTexture = TAC_NEW TextureLoadJob(params);

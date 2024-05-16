@@ -332,7 +332,10 @@ namespace Tac
 
   void LogApi::LogStackFrame( const StackFrame& sf )
   {
-    sLog.LogMessage( String() + sf.mFile + ":" + ToString( sf.mLine ) + " " + sf.mFunction );
+    sLog.LogMessage( String()
+                     + sf.GetFile() + ":"
+                     + ToString( sf.GetLine() )
+                     + " " + sf.GetFunction() );
   }
 
   void LogApi::LogFlush()

@@ -317,7 +317,8 @@ namespace Tac::Render
       //};
 
       TAC_ASSERT( dstPlacedFootprint.Footprint.Depth == 1 );
-
+      TAC_ASSERT( dstRowPitch );
+      TAC_ASSERT( srcRowPitch );
 
       for( int y{}; y < rowCount; ++y )
       {

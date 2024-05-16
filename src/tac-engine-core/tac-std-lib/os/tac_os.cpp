@@ -32,7 +32,9 @@ namespace Tac::OS
     {
       const String str{ String()
         + "ASSERT FAILED( " + msg + " ) "
-        + "in " + frame.mFile + ":" + ToString( frame.mLine ) + " " + frame.mFunction };
+        + "in " + frame.GetFile()
+        + ":" + ToString( frame.GetLine() ) + " "
+        + frame.GetFunction() };
 
       OSDebugPrintLine( str );
       LogApi::LogMessage( str );

@@ -82,20 +82,22 @@ namespace Tac
 
   void Render::DX12SetName( ID3D12Object* obj, DX12Name name )
   {
-    if( name.mName )
+    if( !name.mName.empty() )
     {
       DX12SetName( obj, name.mName );
       return;
     }
 
-    if( name.mStackFrame.mFile )
+    if( name.mStackFrame.IsValid() )
     {
-      DX12SetName( obj, String() +
-                   name.mStackFrame.mFile + ":" + Tac::ToString( name.mStackFrame.mLine ) );
+      DX12SetName( obj, String()
+                   + name.mStackFrame.GetFile()
+                   + ":"
+                   + Tac::ToString( name.mStackFrame.GetLine() ) );
       return;
     }
 
-    TAC_ASSERT( name.mResourceType );
+    TAC_ASSERT( !name.mResourceType.empty() );
     TAC_ASSERT( name.mResourceIndex != -1 );
     DX12SetName( obj, String() +
                  name.mResourceType + " " + Tac::ToString( name.mResourceIndex ) );

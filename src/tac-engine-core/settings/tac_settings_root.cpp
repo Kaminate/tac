@@ -15,11 +15,11 @@ namespace Tac
   void          SettingsRoot::Init( const FileSys::Path& path , Errors& errors )
   {
     sSavePath = path;
-    if( !FileSys::Exists( sSavePath ) )
-      Flush( errors );
-
-    const String loaded{ LoadFilePath( sSavePath, errors ) };
-    sJson.Parse( loaded.data(), ( int )loaded.size(), errors );
+    if( FileSys::Exists( sSavePath ) )
+    {
+      const String loaded{ LoadFilePath( sSavePath, errors ) };
+      sJson.Parse( loaded.data(), ( int )loaded.size(), errors );
+    }
   }
 
   SettingsNode SettingsRoot::GetRootNode()

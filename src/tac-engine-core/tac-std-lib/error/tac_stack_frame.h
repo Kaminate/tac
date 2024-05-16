@@ -6,11 +6,15 @@ namespace Tac
   struct StackFrame
   {
     StackFrame() = default;
-
-    // Constructor shortens the __FILE__ macro
     StackFrame( int, const char*, const char* );
 
-    //const char* ToString() const;
+    bool        IsValid() const;
+
+    int         GetLine() const;
+    const char* GetFile() const;
+    const char* GetFunction() const;
+    
+  private:
     int         mLine     {};
     const char* mFile     {};
     const char* mFunction {};

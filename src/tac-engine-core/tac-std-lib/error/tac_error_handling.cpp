@@ -13,7 +13,9 @@ namespace Tac
     for( const StackFrame& frame : mFrames )
     {
       result += "\n"; 
-      result += String() + frame.mFile + ":" + Tac::ToString( frame.mLine ) + " " + frame.mFunction;
+      result += String() + frame.GetFile()
+        + ":" + Tac::ToString( frame.GetLine() )
+        + " " + frame.GetFunction();
     }
 
     return result;
