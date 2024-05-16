@@ -49,9 +49,9 @@ namespace Tac
 
   void DesktopEventHandler::Handle( const DesktopEventApi::KeyStateEvent& data ) 
   {
-    const KeyboardBackend::KeyState state{ data.mDown
-      ? KeyboardBackend::KeyState::Down
-      : KeyboardBackend::KeyState::Up };
+    const SysKeyboardApiBackend::KeyState state{ data.mDown
+      ? SysKeyboardApiBackend::KeyState::Down
+      : SysKeyboardApiBackend::KeyState::Up };
 
     mKeyboardBackend->SetKeyState( data.mKey, state );
   }

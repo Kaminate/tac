@@ -4,9 +4,9 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 
-namespace Tac::KeyboardBackend
+namespace Tac
 {
-  using KeyStates = Array< KeyState, ( int )Key::Count >;
+  using KeyStates = Array< SysKeyboardApiBackend::KeyState, ( int )Key::Count >;
   using KeyTimes = Array< Timepoint, ( int )Key::Count >;
   using KeyToggles = Array< int, ( int )Key::Count >;
 
@@ -40,19 +40,19 @@ namespace Tac::KeyboardBackend
 
   // -----------------------------------------------------------------------------------------------
 
-  void SysApi::ApplyBegin()
+  void SysKeyboardApiBackend::ApplyBegin()
   {
     sMutex.lock();
     sModificationAllowed = true;
   }
 
-  void SysApi::ApplyEnd()
+  void SysKeyboardApiBackend::ApplyEnd()
   {
     sModificationAllowed = false;
     sMutex.unlock();
   }
 
-  void SysApi::SetKeyState( Key key, KeyState state )
+  void SysKeyboardApiBackend::SetKeyState( Key key, KeyState state )
   {
     TAC_ASSERT( sModificationAllowed );
     if( const int i{ ( int )key }; sKeyStates[ i ] != state )
@@ -63,19 +63,19 @@ namespace Tac::KeyboardBackend
     }
   }
 
-  void SysApi::SetCodepoint( Codepoint codepoint )
+  void SysKeyboardApiBackend::SetCodepoint( Codepoint codepoint )
   {
     TAC_ASSERT( sModificationAllowed );
     sCodepointDelta.push_back( codepoint );
   }
 
-  void SysApi::SetMousePos( v2 screenspace )
+  void SysKeyboardApiBackend::SetMousePos( v2 screenspace )
   {
     TAC_ASSERT( sModificationAllowed );
     sMousePosScreenspace = screenspace;
   }
 
-  void SysApi::SetMouseWheel( float wheelPos )
+  void SysKeyboardApiBackend::SetMouseWheel( float wheelPos )
   {
     TAC_ASSERT( sModificationAllowed );
     sMouseWheel = wheelPos;
@@ -83,7 +83,7 @@ namespace Tac::KeyboardBackend
 
   // -----------------------------------------------------------------------------------------------
 
-  void SimApi::Sync()
+  void SimKeyboardApiBackend::Sync()
   {
     TAC_SCOPE_GUARD( std::lock_guard, sMutex );
 
@@ -106,15 +106,10 @@ namespace Tac::KeyboardBackend
     sKeyToggleCount = {};
     sCodepointDelta = {};
   }
-}
-
-namespace Tac
-{
-  using namespace KeyboardBackend;
 
   bool                SimKeyboardApi::IsPressed( Key key )
   {
-    return sGameLogicCurr.mKeyStates[ ( int )key ] == KeyState::Down;
+    return sGameLogicCurr.mKeyStates[ ( int )key ] == SysKeyboardApiBackend::KeyState::Down;
   }
 
   bool                SimKeyboardApi::IsDepressed( Key key )
@@ -122,7 +117,7 @@ namespace Tac
     if( key == Key::Myself )
       return true; // :(
 
-    return sGameLogicCurr.mKeyStates[ ( int )key ] == KeyState::Up;
+    return sGameLogicCurr.mKeyStates[ ( int )key ] == SysKeyboardApiBackend::KeyState::Up;
   }
 
   bool                SimKeyboardApi::JustPressed( Key key )

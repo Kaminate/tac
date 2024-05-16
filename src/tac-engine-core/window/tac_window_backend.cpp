@@ -14,12 +14,12 @@
 import std; // mutex
 
 
-namespace Tac::WindowBackend
+namespace Tac
 {
   static Render::TexFmt sSwapChainColorFormat = Render::TexFmt::kRGBA16F;
   static Render::TexFmt sSwapChainDepthFormat = Render::TexFmt::kD24S8;
 
-  bool SysApi::mCreatesSwapChain { true };
+  bool SysWindowApiBackend::mCreatesSwapChain { true };
   struct WindowState
   {
     String mName;
@@ -97,13 +97,13 @@ namespace Tac::WindowBackend
 
   // Platform thread functions:
 
-  void SysApi::ApplyBegin()
+  void SysWindowApiBackend::ApplyBegin()
   {
     sWindowStateMutex.lock();
     sModificationAllowed = true;
   }
 
-  void SysApi::SetWindowCreated( WindowHandle h,
+  void SysWindowApiBackend::SetWindowCreated( WindowHandle h,
                                  const void* nwh,
                                  StringView name,
                                  v2i pos,
@@ -135,7 +135,7 @@ namespace Tac::WindowBackend
     }
   }
 
-  void SysApi::SetWindowDestroyed( WindowHandle h )
+  void SysWindowApiBackend::SetWindowDestroyed( WindowHandle h )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i { h.GetIndex() };
@@ -149,13 +149,13 @@ namespace Tac::WindowBackend
     sFramebuffers[ i ] = {};
   }
 
-  void SysApi::SetWindowIsVisible( WindowHandle h, bool shown )
+  void SysWindowApiBackend::SetWindowIsVisible( WindowHandle h, bool shown )
   {
     TAC_ASSERT( sModificationAllowed );
     sPlatformCurr[ h.GetIndex() ].mShown = shown;
   }
 
-  void SysApi::SetWindowSize( WindowHandle h, v2i size )
+  void SysWindowApiBackend::SetWindowSize( WindowHandle h, v2i size )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i { h.GetIndex() };
@@ -167,25 +167,25 @@ namespace Tac::WindowBackend
     }
   }
 
-  void SysApi::SetWindowPos( WindowHandle h, v2i pos )
+  void SysWindowApiBackend::SetWindowPos( WindowHandle h, v2i pos )
   {
     TAC_ASSERT( sModificationAllowed );
     sPlatformCurr[ h.GetIndex() ].mPos = pos;
   }
 
-  v2i  SysApi::GetWindowPos( WindowHandle h )
+  v2i  SysWindowApiBackend::GetWindowPos( WindowHandle h )
   {
     TAC_ASSERT( sModificationAllowed );
     return sPlatformCurr[ h.GetIndex() ].mPos;
   }
 
-  void SysApi::ApplyEnd()
+  void SysWindowApiBackend::ApplyEnd()
   {
     sModificationAllowed = false;
     sWindowStateMutex.unlock();
   }
 
-  void SysApi::Sync( Errors& errors )
+  void SysWindowApiBackend::Sync( Errors& errors )
   {
     TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
 
@@ -224,7 +224,7 @@ namespace Tac::WindowBackend
 
   // Sim thread functions:
 
-  void SimApi::Sync()
+  void SimWindowApiBackend::Sync()
   {
     sWindowStateMutex.lock();
     sGameLogicCurr = sPlatformCurr;
@@ -232,11 +232,7 @@ namespace Tac::WindowBackend
   }
 
   // -----------------------------------------------------------------------------------------------
-}
 
-namespace Tac
-{
-  using namespace WindowBackend;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -338,7 +334,7 @@ namespace Tac
 
   void             SysWindowApi::SetSwapChainAutoCreate( bool autoCreate ) const
   {
-    SysApi::mCreatesSwapChain = autoCreate;
+    SysWindowApiBackend::mCreatesSwapChain = autoCreate;
   }
 
   void             SysWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt ) const

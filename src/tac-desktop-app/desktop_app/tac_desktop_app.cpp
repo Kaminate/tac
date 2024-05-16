@@ -47,8 +47,8 @@ namespace Tac
 {
   static DesktopEventHandler           sDesktopEventHandler;
 
-  static KeyboardBackend::SysApi       sKeyboardBackend;
-  static WindowBackend::SysApi         sWindowBackend;
+  static SysKeyboardApiBackend         sKeyboardBackend;
+  static SysWindowApiBackend           sWindowBackend;
 
   static Errors                        sSysErrors( Errors::kDebugBreaks );
   static Errors                        SSimErrors( Errors::kDebugBreaks );

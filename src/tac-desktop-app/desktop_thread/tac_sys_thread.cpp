@@ -24,7 +24,7 @@
 
 namespace Tac
 {
-  static WindowBackend::SysApi   sWindowBackendSysApi;
+  static SysWindowApiBackend   sWindowBackendSysApi;
   //static void                ImGuiSimSetWindowPos( WindowHandle handle, v2i pos )
   //{
   //  PlatformFns* platform = PlatformFns::GetInstance();

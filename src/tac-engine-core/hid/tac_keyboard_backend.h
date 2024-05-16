@@ -9,9 +9,8 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/math/tac_vector2.h"
 
-namespace Tac::KeyboardBackend
+namespace Tac
 {
-  enum KeyState { Up = 0, Down = 1 };
 
 #if 0
   using KeyStates = Array< KeyState, ( int )Key::Count >;
@@ -42,8 +41,10 @@ namespace Tac::KeyboardBackend
 #endif
   
 
-  struct SysApi
+  struct SysKeyboardApiBackend
   {
+    enum class KeyState { Up = 0, Down = 1 };
+
     void ApplyBegin();
     void SetKeyState( Key, KeyState );
     void SetCodepoint( Codepoint );
@@ -52,7 +53,7 @@ namespace Tac::KeyboardBackend
     void ApplyEnd();
   };
 
-  struct SimApi
+  struct SimKeyboardApiBackend
   {
     void Sync();
   };

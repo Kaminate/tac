@@ -16,15 +16,12 @@ namespace Tac { struct Errors; }
 namespace Tac
 {
   inline const int kDesktopWindowCapacity = 100;
-}
 
 // TODO:
 //        i think Tac::WindowBackend should be deleted,
 //                Tac::WindowBackend::SysApi should be Tac::SysWindowApiBackend, and
 //                Tac::WindowBackend::SimApi should be Tac::SimWindowApiBackend,
 
-namespace Tac::WindowBackend
-{
 
   // +------------------------------------------------------------+
   // |                          TODO                              |
@@ -33,7 +30,7 @@ namespace Tac::WindowBackend
   // | id in the same frame                                       |
   // +------------------------------------------------------------+
 
-  struct SysApi
+  struct SysWindowApiBackend
   {
     // Handle desktop event queue on the platform thread
     void ApplyBegin();
@@ -54,7 +51,7 @@ namespace Tac::WindowBackend
 
   // Sim thread functions:
 
-  struct SimApi
+  struct SimWindowApiBackend
   {
     // Synchronize window updates generated on the sys thread
     void Sync();

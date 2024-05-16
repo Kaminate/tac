@@ -26,8 +26,8 @@
 
 namespace Tac
 {
-  static KeyboardBackend::SimApi sKeyboardBackendSimApi;
-  static WindowBackend::SimApi   sWindowBackend;
+  static SimKeyboardApiBackend   sKeyboardBackendSimApi;
+  static SimWindowApiBackend     sWindowBackend;
   static ThreadAllocator         sSysThreadAllocator;
 
 

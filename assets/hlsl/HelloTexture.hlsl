@@ -22,7 +22,6 @@ typedef VSOutput PSInput;
 
 ByteAddressBuffer BufferTable[] : register( t0, space0 );
 Texture2D         Textures[]    : register( t0, space1 );
-Texture2D         Texture[2]       : register( t0, space2 );
 SamplerState      Samplers[]    : register( s0, space0 );
 
 VSOutput VSMain( uint iVtx : SV_VertexID )
@@ -39,16 +38,10 @@ VSOutput VSMain( uint iVtx : SV_VertexID )
 LinearColor4 PSMain( PSInput input ) : SV_TARGET
 {
   Texture2D texture = Textures[ 0 ];
-  Texture2D textureHELLO = Texture[0];
   SamplerState samplerState = Samplers[ 0 ];
   const float4 sample_sRGB = texture.Sample( samplerState , input.mTexCoords.mFloat2 );
-  const float4 sampleHELLO_sRGB = textureHELLO.Sample( samplerState , input.mTexCoords.mFloat2 );
-  //const float4 sample = texture.SampleLevel( samplerState , input.mTexCoords.mFloat2,0 );
-  //const float4 sampleHELLO = textureHELLO.SampleLevel( samplerState , input.mTexCoords.mFloat2, 0 );
-
-  const float4 sample_linear = float4(pow(sample_sRGB.rgb, 2.2), sample_sRGB.a);
-  const float4 sampleHELLO_linear = float4(pow(sampleHELLO_sRGB.rgb, 2.2), sampleHELLO_sRGB.a);
+  const float4 sample_linear = float4( pow( sample_sRGB.rgb, 2.2 ), sample_sRGB.a );
 
   // return LinearColor4(float4(input.mTexCoords.mValue, 0, 1) );
-  return LinearColor4((sample_linear + sampleHELLO_linear) / 2.0);
+  return LinearColor4( sample_linear );
 }

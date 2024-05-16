@@ -84,7 +84,6 @@ namespace Tac
     Render::IShaderVar*    mShaderVtxBufs{};
     Render::IShaderVar*    mShaderSamplers{};
     Render::IShaderVar*    mShaderTextures{};
-    Render::IShaderVar*    mShaderTexture{};
     int                    mVtxCount{};
     const char*            mTexPath{ "assets/essential/are_ya_winnin_son.png" };
     //const char*            mTexPath{ "assets/essential/image_loader_test.png" };
@@ -134,7 +133,6 @@ namespace Tac
     mShaderVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
     mShaderSamplers = renderDevice->GetShaderVariable( mPipeline, "Samplers" );
     mShaderTextures = renderDevice->GetShaderVariable( mPipeline, "Textures" );
-    mShaderTexture = renderDevice->GetShaderVariable( mPipeline, "Texture" );
 
     mShaderVtxBufs->SetBufferAtIndex( 0, mVtxBuf );
     mShaderSamplers->SetSamplerAtIndex( 0, mSampler );
@@ -157,8 +155,6 @@ namespace Tac
         return;
 
       mShaderTextures->SetTextureAtIndex( 0, mTexture );
-      mShaderTexture->SetTextureAtIndex( 0,mTexture );
-      mShaderTexture->SetTextureAtIndex( 1,mTexture );
     }
 
 
