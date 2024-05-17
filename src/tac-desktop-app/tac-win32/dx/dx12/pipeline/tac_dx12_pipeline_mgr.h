@@ -2,6 +2,7 @@
 
 #include "tac-win32/dx/dx12/pipeline/tac_dx12_pipeline.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/containers/tac_array.h"
 
 namespace Tac::Render { struct DX12ProgramMgr; }
 namespace Tac::Render
@@ -14,9 +15,11 @@ namespace Tac::Render
     DX12Pipeline* FindPipeline( PipelineHandle );
 
   private:
-    DX12Pipeline    mPipelines[ 100 ];
-    ID3D12Device*   mDevice{};
-    DX12ProgramMgr* mProgramMgr{};
+    using DX12Pipelines = Array< DX12Pipeline, 100 >;
+
+    DX12Pipelines   mPipelines  {};
+    ID3D12Device*   mDevice     {};
+    DX12ProgramMgr* mProgramMgr {};
   };
 } // namespace Tac::Render
 

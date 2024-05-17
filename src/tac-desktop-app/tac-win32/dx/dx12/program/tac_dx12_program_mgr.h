@@ -2,6 +2,7 @@
 
 #include "tac-win32/dx/dx12/program/tac_dx12_program.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/containers/tac_array.h"
 
 namespace Tac::Render
 {
@@ -13,8 +14,8 @@ namespace Tac::Render
     DX12Program* FindProgram( ProgramHandle );
 
   private:
-    DX12Program   mPrograms[ 100 ];
-    ID3D12Device* mDevice{};
+    Array< DX12Program, 100 > mPrograms;
+    ID3D12Device*             mDevice{};
   };
 } // namespace Tac::Render
 

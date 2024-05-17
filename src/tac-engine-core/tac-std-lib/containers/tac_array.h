@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "tac-std-lib/error/tac_assert.h"
+
 namespace Tac
 {
   template< typename T, int N >
@@ -18,8 +20,8 @@ namespace Tac
     const T* begin() const                 { return mTs; }
     T*       end()                         { return mTs + N; }
     const T* end()   const                 { return mTs + N; }
-    T&       operator[]( int index )       { return mTs[ index ]; }
-    const T& operator[]( int index ) const { return mTs[ index ]; }
+    T&       operator[]( int i )           { TAC_ASSERT_INDEX( i, N ); return mTs[ i ]; }
+    const T& operator[]( int i ) const     { TAC_ASSERT_INDEX( i, N ); return mTs[ i ]; }
     T        mTs[ N ]{};
   };
 

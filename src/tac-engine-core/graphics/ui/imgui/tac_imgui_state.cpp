@@ -563,14 +563,18 @@ namespace Tac
     //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
     void* context { nullptr };
 
+    static Render::ProgramHandle program;
+
     // TODO obviously move this to init
-    const Render::ProgramParams programParams
+    if( !program.IsValid() )
     {
-      .mFileStem { "DX12HelloFrameBuf" }, // test
-      //.mFileStem = "2D",
-    };
-    TAC_CALL( Render::ProgramHandle program{
-      renderDevice->CreateProgram( programParams, errors ) } );
+      const Render::ProgramParams programParams
+      {
+        .mFileStem { "DX12HelloFrameBuf" }, // test
+        //.mFileStem = "2D",
+      };
+      TAC_CALL( program = renderDevice->CreateProgram( programParams, errors ) );
+    }
 
 #if 1
     Render::SwapChainHandle fb { windowApi->GetSwapChainHandle( hDesktopWindow ) };
@@ -578,13 +582,16 @@ namespace Tac
     const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
     const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
 
-    const Render::PipelineParams pipelineParams
+    static Render::PipelineHandle pipeline;
+    if( !pipeline.IsValid() )
     {
-      .mProgram { program },
-      .mRTVColorFmts{ fbFmt },
-    };
-    TAC_CALL( Render::PipelineHandle pipeline{
-      renderDevice->CreatePipeline( pipelineParams, errors ) } );
+      const Render::PipelineParams pipelineParams
+      {
+        .mProgram { program },
+        .mRTVColorFmts{ fbFmt },
+      };
+      TAC_CALL( pipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
+    }
 
     const String renderGroupStr{ String()
       + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };

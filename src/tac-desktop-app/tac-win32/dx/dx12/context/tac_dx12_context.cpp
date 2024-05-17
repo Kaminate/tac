@@ -346,7 +346,7 @@ namespace Tac::Render
     D3D12_CPU_DESCRIPTOR_HANDLE* pDSV{};
     if( DX12Texture* depthTexture{ mTextureMgr->FindTexture( targets.mDepth ) } )
     {
-      DSV = depthTexture->mRTV->GetCPUHandle();
+      DSV = depthTexture->mDSV->GetCPUHandle();
       pDSV = &DSV;
       mState.mRenderTargetDepth = DSV;
 
