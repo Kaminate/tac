@@ -1,7 +1,7 @@
 #include "tac_level_editor_property_window.h" // self-inc
 
 #include "src/common/assetmanagers/tac_asset.h"
-#include "src/common/algorithm/tac_algorithm.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"

@@ -2,7 +2,7 @@
 
 // common
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
-#include "src/common/algorithm/tac_algorithm.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_settings.h"

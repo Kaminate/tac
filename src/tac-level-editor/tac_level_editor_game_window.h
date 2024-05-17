@@ -1,11 +1,10 @@
 #pragma once
 
-#include "src/common/graphics/tac_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_vector3.h"
-#include "src/common/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "src/common/tac_core.h"
 #include "tac-ecs/tac_space.h"
 
 namespace Tac::Render

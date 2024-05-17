@@ -4,12 +4,13 @@
 #include "tac-level-editor/tac_level_editor.h" // gCreation
 #include "tac-level-editor/tac_level_editor_game_window.h" // CreationGameWindow
 #include "tac-level-editor/tac_level_editor_prefab.h" // PrefabRemoveEntityRecursively
-#include "src/common/input/tac_keyboard_input.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 // TODO: remove dependency on these end
 
-#include "space/ecs/tac_entity.h"
-#include "space/world/tac_world.h"
-#include "src/common/algorithm/tac_algorithm.h"
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/world/tac_world.h"
+
+#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/math/tac_vector4.h"
 
 namespace Tac
