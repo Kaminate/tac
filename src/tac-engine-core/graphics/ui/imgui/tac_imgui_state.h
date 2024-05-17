@@ -184,7 +184,7 @@ namespace Tac
   {
     static ImGuiPersistantPlatformData Instance;
 
-    void UpdateAndRender( ImGuiSysDrawParams*, Errors& );
+    void UpdateAndRender( ImGuiSysDrawParams, Errors& );
 
     ImGuiPersistantViewport* GetPersistantWindowData( WindowHandle h)
     {

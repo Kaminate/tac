@@ -213,11 +213,11 @@ namespace Tac
 
   struct ImGuiSysDrawParams
   {
-    ImGuiSimFrameDraws* mSimFrameDraws;
-    SysWindowApi*       mWindowApi;
-    Timestamp           mTimestamp;
+    ImGuiSimFrameDraws* mSimFrameDraws {};
+    const SysWindowApi* mWindowApi     {};
+    Timestamp           mTimestamp     {};
   };
-  void               ImGuiPlatformRender( ImGuiSysDrawParams*, Errors& );
+  void               ImGuiPlatformRender( ImGuiSysDrawParams, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

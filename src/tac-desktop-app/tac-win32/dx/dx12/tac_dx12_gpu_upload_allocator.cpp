@@ -11,7 +11,8 @@ namespace Tac::Render
 
   // GPUUploadAllocator
 
-  DX12UploadAllocator::DynAlloc DX12UploadAllocator::Allocate( int const byteCount, Errors& errors )
+  DX12UploadAllocator::DynAlloc DX12UploadAllocator::Allocate( const int byteCount,
+                                                               Errors& errors )
   {
     // so the deal with large pages, is that they can't be reused as default pages.
     // so normally, when allocating a page, you first check if a retired page can be reused,
@@ -44,12 +45,13 @@ namespace Tac::Render
     {
       TAC_CALL_RET( {}, DX12UploadPage requested{
          mPageManager->RequestPage( DX12UploadPage::kDefaultByteCount, errors ) } );
-        mActivePages.push_back( requested );
 
-        TAC_ASSERT_MSG( mActivePages.size() < 100, "why do you have so many pages bro" );
+      mActivePages.push_back( requested );
 
-        mCurPageUsedByteCount = 0;
-        pageToAllocateFrom = &mActivePages.back();
+      TAC_ASSERT_MSG( mActivePages.size() < 100, "why do you have so many pages bro" );
+
+      mCurPageUsedByteCount = 0;
+      pageToAllocateFrom = &mActivePages.back();
     }
 
     TAC_ASSERT( pageToAllocateFrom );
@@ -60,10 +62,10 @@ namespace Tac::Render
     const D3D12_GPU_VIRTUAL_ADDRESS gpuAddr{ pageToAllocateFrom->mGPUAddr + offset };
     void* cpuAddr{ ( u8* )pageToAllocateFrom->mCPUAddr + offset };
 
-
     return DynAlloc
     {
       .mResource       { pageToAllocateFrom->mBuffer.Get() },
+      .mResourceState  { &pageToAllocateFrom->mResourceState },
       .mResourceOffest { offset },
       .mGPUAddr        { gpuAddr },
       .mCPUAddr        { cpuAddr },
@@ -166,7 +168,6 @@ namespace Tac::Render
     //TAC_ASSERT( !mCurPage.IsValid() );
     TAC_ASSERT( byteCount == DX12UploadPage::kDefaultByteCount );
 
-
     const D3D12_HEAP_PROPERTIES HeapProps
     {
       .Type                 { D3D12_HEAP_TYPE_UPLOAD },
@@ -196,14 +197,14 @@ namespace Tac::Render
       .Flags            { D3D12_RESOURCE_FLAG_NONE },
     };
 
-    const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
+    const D3D12_RESOURCE_STATES resourceState{ D3D12_RESOURCE_STATE_GENERIC_READ };
 
     PCom< ID3D12Resource > buffer;
     TAC_DX12_CALL_RET( {}, mDevice->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
       &ResourceDesc,
-      DefaultUsage,
+      resourceState,
       nullptr,
       buffer.iid(),
       buffer.ppv() ) );
@@ -219,10 +220,11 @@ namespace Tac::Render
 
     return DX12UploadPage
     {
-      .mBuffer    { buffer },
-      .mGPUAddr   { buffer->GetGPUVirtualAddress() },
-      .mCPUAddr   { cpuAddr },
-      .mByteCount { byteCount },
+      .mBuffer        { buffer },
+      .mResourceState { resourceState },
+      .mGPUAddr       { buffer->GetGPUVirtualAddress() },
+      .mCPUAddr       { cpuAddr },
+      .mByteCount     { byteCount },
     };
 
   }

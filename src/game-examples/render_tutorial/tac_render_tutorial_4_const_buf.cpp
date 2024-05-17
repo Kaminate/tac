@@ -23,7 +23,7 @@ namespace Tac
   struct Vertex
   {
     NDCSpacePosition3  mPos;
-    TextureCoordinate2 mUV;
+    LinearColor3       mCol;
   };
 
   static Vector< Vertex > GetVerts()
@@ -34,19 +34,19 @@ namespace Tac
     const Vertex v0
     {
       .mPos { NDCSpacePosition3{ 0, 1, 0 } },
-      .mUV  { TextureCoordinate2{ 0, 0 } },
+      .mCol { LinearColor3{ 1, 0, 0 } },
     };
 
     const Vertex v1
     {
       .mPos { NDCSpacePosition3{ -1, -1, 0 } },
-      .mUV  { TextureCoordinate2{ 0, 1 } },
+      .mCol { LinearColor3{ 0, 1, 0 } },
     };
 
     const Vertex v2
     {
       .mPos { NDCSpacePosition3{ 1, -1, 0 } },
-      .mUV  { TextureCoordinate2{ 1, 1 } },
+      .mCol { LinearColor3{ 0, 0, 1 } },
     };
 
 
@@ -77,8 +77,6 @@ namespace Tac
     Render::TexFmt         mColorFormat;
     Render::TexFmt         mDepthFormat;
     Render::IShaderVar*    mShaderVtxBufs{};
-    Render::IShaderVar*    mShaderVtxBufsFixed{};
-    Render::IShaderVar*    mShaderVtxBufsSingle{};
     Render::IShaderVar*    mShaderConstantBuffer{};
     int                    mVtxCount{};
   };
@@ -133,11 +131,7 @@ namespace Tac
     mPipeline = renderDevice->CreatePipeline( pipelineParams, errors );
 
     mShaderVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
-    mShaderVtxBufsFixed = renderDevice->GetShaderVariable( mPipeline, "BufferTableFixed" );
-    mShaderVtxBufsSingle = renderDevice->GetShaderVariable( mPipeline, "BufferTableSingle" );
     mShaderVtxBufs->SetBufferAtIndex( 0, mVtxBuf );
-    mShaderVtxBufsFixed ->SetBufferAtIndex( 0, mVtxBuf );
-    mShaderVtxBufsSingle->SetBuffer( mVtxBuf );
 
     mShaderConstantBuffer = renderDevice->GetShaderVariable( mPipeline, "MyCBufInst" );
     mShaderConstantBuffer->SetBuffer( mConstantBuf );
@@ -161,7 +155,7 @@ namespace Tac
     const v4 clearColor{ 0.5f, 0.8f, 1, 0 };
     const Render::DrawArgs drawArgs { .mVertexCount { mVtxCount }, };
 
-    const float translateX{ ( float )Sin( renderParams.mTimestamp.mSeconds ) };
+    const float translateX{ ( float )Sin( renderParams.mTimestamp.mSeconds / 2.0f ) / 2.0f };
     const m4 world{ m4::Translate( v3( translateX, 0, 0 ) ) };
     const MyCBufType cbuf
     {

@@ -1001,9 +1001,13 @@ namespace Tac
         // https://learn.microsoft.com/en-us/windows/win32/direct3d12/uploading-resources
         // maybe
 
-        const int byteCount { RoundUpToNearestMultiple( sizeof( MyCBufType ), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
+        const int byteCount{
+          RoundUpToNearestMultiple(
+            sizeof( MyCBufType ),
+            D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
 
-        TAC_CALL( DX12ExampleGPUUploadAllocator::DynAlloc allocation{ mUploadAllocator.Allocate( byteCount, errors ) } );
+        TAC_CALL( DX12ExampleGPUUploadAllocator::DynAlloc allocation{
+          mUploadAllocator.Allocate( byteCount, errors ) } );
 
         MemCpy( allocation.mCPUAddr, &cbuf, sizeof( MyCBufType ) );
 

@@ -14,9 +14,10 @@ namespace Tac::Render
     static const int          kDefaultByteCount { 2 * 1024 * 1024 };
 
     PCom< ID3D12Resource >    mBuffer;
-    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr   {};
-    void*                     mCPUAddr   {};
-    int                       mByteCount {};
+    D3D12_RESOURCE_STATES     mResourceState {};
+    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr       {};
+    void*                     mCPUAddr       {};
+    int                       mByteCount     {};
   };
 
   struct DX12UploadPageMgr
@@ -48,6 +49,7 @@ namespace Tac::Render
     struct DynAlloc
     {
       ID3D12Resource*           mResource       {};
+      D3D12_RESOURCE_STATES*    mResourceState  {};
       u64                       mResourceOffest {};
       D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr        {}; // already offset
       void*                     mCPUAddr        {}; // already offset
@@ -58,7 +60,7 @@ namespace Tac::Render
     DX12UploadAllocator( const DX12UploadAllocator& ) = delete;
 
     void     Init( DX12UploadPageMgr* );
-    DynAlloc Allocate( int const byteCount, Errors& );
+    DynAlloc Allocate( int, Errors& );
     void     FreeAll( FenceSignal );
 
     void operator = ( const DX12UploadAllocator& ) = delete;

@@ -122,12 +122,13 @@ namespace Tac::Render
 
     if( params.mUsage == Usage::Dynamic )
     {
-      DX12Buffer* buffer { &mBuffers[  h.GetIndex()  ] };
-      *buffer = DX12Buffer{ .mCreateParams { params }, };
-      if( params.mOptionalName )
+      DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
+      buffer = DX12Buffer{ .mCreateParams { params }, };
+
+      if( !params.mOptionalName.empty() )
       {
-        buffer->mCreateName = params.mOptionalName;
-        buffer->mCreateParams.mOptionalName = buffer->mCreateName;
+        buffer.mCreateName = params.mOptionalName;
+        buffer.mCreateParams.mOptionalName = buffer.mCreateName;
       }
 
       return;
@@ -222,6 +223,7 @@ namespace Tac::Render
       {
         DX12UploadAllocator::DynAlloc allocation{
           context->mGPUUploadAllocator.Allocate( byteCount, errors ) };
+
         MemCpy( allocation.mCPUAddr, params.mBytes, params.mByteCount );
 
         const UINT64 dstResourceOffset{};
@@ -233,56 +235,13 @@ namespace Tac::Render
       }
     }
 
-    DescriptorBindings descriptorBindings;
-    if( resource )
-      descriptorBindings = CreateBindings( resource, params );
+    const DescriptorBindings descriptorBindings{ CreateBindings( resource, params ) };
 
-
-    // Transition to the intended usage so that the state will be correct for a descriptor table
-    {
-      D3D12_RESOURCE_STATES usageFromBinding{ D3D12_RESOURCE_STATE_COMMON };
-
-      if( Binding{} != ( params.mBinding & Binding::ShaderResource ) )
-        usageFromBinding |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
-
-      if( Binding{} != ( params.mBinding & Binding::RenderTarget ) )
-      {
-        usageFromBinding |= D3D12_RESOURCE_STATE_RENDER_TARGET;
-        // D3D12_RESOURCE_STATE_PRESENT ?
-      }
-
-      if( Binding{} != ( params.mBinding & Binding::DepthStencil ) )
-      {
-        usageFromBinding |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
-        // D3D12_RESOURCE_STATE_DEPTH_READ ?
-      }
-
-      if( Binding{} != ( params.mBinding & Binding::UnorderedAccess ) )
-        usageFromBinding |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-
-      if( Binding{} != ( params.mBinding & Binding::ConstantBuffer ) )
-        usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-
-      if( Binding{} != ( params.mBinding & Binding::VertexBuffer ) )
-        usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-      
-      if( Binding{} != ( params.mBinding & Binding::IndexBuffer ) )
-        usageFromBinding |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
-
-
-
-      const DX12TransitionHelper::Params transitionParams
-      {
-        .mResource    { resource },
-        .mStateBefore { &resourceStates },
-        .mStateAfter  { usageFromBinding },
-      };
-      DX12TransitionHelper transitionHelper;
-      transitionHelper.Append( transitionParams );
-      transitionHelper.ResourceBarrier( commandList );
-    }
-
-
+    // Transition to the intended usage for context root signature binding
+    TransitionBuffer( params.mBinding,
+                      resource,
+                      &resourceStates,
+                      commandList );
 
     // do we context->SetSynchronous() ?
     TAC_CALL( context->Execute( errors ) );
@@ -309,6 +268,52 @@ namespace Tac::Render
     return h.IsValid() ? &mBuffers[ h.GetIndex() ] : nullptr;
   }
 
+  void DX12BufferMgr::TransitionBuffer( Binding binding,
+                                        ID3D12Resource* resource,
+                                        D3D12_RESOURCE_STATES* resourceState,
+                                        ID3D12GraphicsCommandList* commandList )
+  {
+      D3D12_RESOURCE_STATES usageFromBinding{ D3D12_RESOURCE_STATE_COMMON };
+
+      if( Binding{} != ( binding & Binding::ShaderResource ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+
+      if( Binding{} != ( binding & Binding::RenderTarget ) )
+      {
+        usageFromBinding |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+        // D3D12_RESOURCE_STATE_PRESENT ?
+      }
+
+      if( Binding{} != ( binding & Binding::DepthStencil ) )
+      {
+        usageFromBinding |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        // D3D12_RESOURCE_STATE_DEPTH_READ ?
+      }
+
+      if( Binding{} != ( binding & Binding::UnorderedAccess ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+      if( Binding{} != ( binding & Binding::ConstantBuffer ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+
+      if( Binding{} != ( binding & Binding::VertexBuffer ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+      
+      if( Binding{} != ( binding & Binding::IndexBuffer ) )
+        usageFromBinding |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+
+
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { resource },
+        .mStateBefore { resourceState },
+        .mStateAfter  { usageFromBinding },
+      };
+      DX12TransitionHelper transitionHelper;
+      transitionHelper.Append( transitionParams );
+      transitionHelper.ResourceBarrier( commandList );
+  }
+
   void DX12BufferMgr::UpdateBuffer( BufferHandle h,
                                     UpdateBufferParams params,
                                     DX12Context* context,
@@ -317,27 +322,47 @@ namespace Tac::Render
 
     DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
     ID3D12Resource* resource{ buffer.mResource.Get() };
-    if( !buffer.mMappedCPUAddr )
+
+    if( buffer.mCreateParams.mUsage == Usage::Default )
     {
-      const int byteCount{ buffer.mCreateParams.mByteCount };
-
-      ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
-      DX12UploadAllocator* GPUUploadAllocator{ &context->mGPUUploadAllocator };
-
-      DX12UploadAllocator::DynAlloc allocation{
-        GPUUploadAllocator->Allocate( byteCount, errors ) };
-
-      buffer.mMappedCPUAddr = allocation.mCPUAddr;
+      TAC_ASSERT( !buffer.mMappedCPUAddr );
+      TAC_DX12_CALL( buffer.mResource->Map( 0, nullptr, &buffer.mMappedCPUAddr ) );
     }
 
-    char* dst{ ( char* )buffer.mMappedCPUAddr + params.mDstByteOffset };
-    MemCpy( dst,
-            params.mSrcBytes,
-            params.mSrcByteCount );
+    if( buffer.mCreateParams.mUsage == Usage::Dynamic )
+    {
+      const int byteCount{ RoundUpToNearestMultiple(
+        buffer.mCreateParams.mByteCount,
+        D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
+
+      //ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
+      DX12UploadAllocator* uploadAllocator{ &context->mGPUUploadAllocator };
+
+      const DX12UploadAllocator::DynAlloc allocation{
+        uploadAllocator->Allocate( byteCount, errors ) };
+
+      buffer.mMappedCPUAddr = allocation.mCPUAddr;
+      buffer.mGPUVirtualAddr = allocation.mGPUAddr;
+      buffer.mState = *allocation.mResourceState; // gross
+
+      // uhh so like if the allocation could be used for other things, then
+      // i dont really want to use buffer.mCreateParams.mOptionalName/buffer.mCreateName;
+
+      // Do i even want descriptor bindings? isnt that only useful if the buffer is sent through
+      // a descriptor table? but i think dynamic buffers may be used through root parameters only
+    }
 
     TAC_ASSERT( buffer.mMappedCPUAddr );
+    TAC_ASSERT( params.mSrcBytes );
+    TAC_ASSERT( params.mSrcByteCount );
+
     char* dstBytes { ( char* )buffer.mMappedCPUAddr + params.mDstByteOffset };
     MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
+
+    if( buffer.mCreateParams.mUsage == Usage::Default  )
+    {
+      buffer.mResource->Unmap( 0, nullptr );
+    }
   }
 
   void DX12BufferMgr::DestroyBuffer( BufferHandle h )

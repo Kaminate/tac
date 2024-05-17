@@ -146,20 +146,23 @@ namespace Tac::Render
 
         DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
         TAC_ASSERT( buffer );
-        TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
         gpuVirtualAddress = buffer->mGPUVirtualAddr;
 
         if( binding->IsConstantBuffer() )
         {
+          TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
           commandList->SetGraphicsRootConstantBufferView( rootParameterIndex, gpuVirtualAddress );
         }
         else if( binding->IsSRV() )
         {
+          TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
           // Textures are not supported
           commandList->SetGraphicsRootShaderResourceView( rootParameterIndex, gpuVirtualAddress );
         }
         else if( binding->IsUAV() )
         {
+
+          TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
           commandList->SetGraphicsRootUnorderedAccessView( rootParameterIndex, gpuVirtualAddress );
         }
         else

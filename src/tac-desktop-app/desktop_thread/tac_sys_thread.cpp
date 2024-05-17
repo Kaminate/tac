@@ -97,7 +97,7 @@ namespace Tac
         TAC_ASSERT( dt.mSeconds != 0 );
 
         const Timepoint prevTime { pair.mNewState->mTimepoint };
-        const Timepoint currTime { Timestep::GetLastTick() };
+        const Timepoint currTime { Timepoint::Now() };
 
         float t { ( currTime - prevTime ) / dt };
 
@@ -111,9 +111,8 @@ namespace Tac
 
         t = Min( t, 1.0f );
 
-        const Timestamp interpolatedTimestamp = Lerp( pair.mOldState->mTimestamp.mSeconds,
-                                                      pair.mNewState->mTimestamp.mSeconds,
-                                                      t );
+        const Timestamp interpolatedTimestamp{
+          Lerp( pair.mOldState->mTimestamp.mSeconds, pair.mNewState->mTimestamp.mSeconds, t ) };
 
 
         const App::RenderParams params
@@ -123,16 +122,17 @@ namespace Tac
           .mOldState    { pair.mOldState }, // A
           .mNewState    { pair.mNewState }, // B
           .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
+          .mTimestamp   { interpolatedTimestamp },
         };
         TAC_CALL( mApp->Render( params, errors ) );
 
-        ImGuiSysDrawParams imguiDrawParams
+        const ImGuiSysDrawParams imguiDrawParams
         {
           .mSimFrameDraws { &pair.mNewState->mImGuiDraws },
           .mWindowApi     { mWindowApi },
           .mTimestamp     { interpolatedTimestamp },
         };
-        TAC_CALL( ImGuiPlatformRender( &imguiDrawParams, errors ) );
+        TAC_CALL( ImGuiPlatformRender( imguiDrawParams, errors ) );
         //Render::FrameEnd();
       }
 

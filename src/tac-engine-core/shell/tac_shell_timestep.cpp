@@ -3,8 +3,11 @@
 #include "tac-engine-core/shell/tac_shell_timer.h"
 #include "tac-std-lib/math/tac_math.h" // Max
 
-// change from 60 to 1 for debugging
-const int                      Tac::TAC_FRAMES_PER_SECOND = 1; // 60;
+// Test out different time steps:
+
+//const int                      Tac::TAC_FRAMES_PER_SECOND = 1;
+const int                      Tac::TAC_FRAMES_PER_SECOND = 20;
+//const int                      Tac::TAC_FRAMES_PER_SECOND = 60;
 const Tac::TimestampDifference Tac::TAC_DELTA_FRAME_SECONDS = 1.0f / Tac::TAC_FRAMES_PER_SECOND;
 
 namespace Tac

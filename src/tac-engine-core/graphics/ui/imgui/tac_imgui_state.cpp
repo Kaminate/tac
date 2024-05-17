@@ -534,13 +534,13 @@ namespace Tac
     };
   }
 
-  static void UpdateAndRenderWindow( ImGuiSysDrawParams* sysDrawParams,
+  static void UpdateAndRenderWindow( ImGuiSysDrawParams sysDrawParams,
                                      ImGuiSimWindowDraws* simDraws,
                                      ImGuiPersistantViewport* sysDraws,
                                      Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    SysWindowApi* windowApi = sysDrawParams->mWindowApi;
+    const SysWindowApi* windowApi { sysDrawParams.mWindowApi };
 
     const WindowHandle hDesktopWindow { sysDraws->mWindowHandle };
     if( !windowApi->IsShown( hDesktopWindow ) )
@@ -592,7 +592,7 @@ namespace Tac
     const v2i windowSize { windowApi->GetSize( hDesktopWindow ) };
 
 
-    const Timestamp elapsedSeconds { sysDrawParams->mTimestamp };
+    const Timestamp elapsedSeconds { sysDrawParams.mTimestamp };
 
     const m4 view { m4::Identity() };
     const m4 proj { OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
@@ -691,12 +691,12 @@ namespace Tac
 #endif
   }
 
-  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSysDrawParams* params,
+  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSysDrawParams params,
                                                      Errors& errors )
   {
-    for( ImGuiSimWindowDraws& simDraw : params->mSimFrameDraws->mWindowDraws )
+    for( ImGuiSimWindowDraws& simDraw : params.mSimFrameDraws->mWindowDraws )
     {
-      ImGuiPersistantViewport* viewportDraw = GetPersistantWindowData( simDraw.mHandle );
+      ImGuiPersistantViewport* viewportDraw { GetPersistantWindowData( simDraw.mHandle ) };
       UpdateAndRenderWindow( params,
                              &simDraw,
                              viewportDraw,
