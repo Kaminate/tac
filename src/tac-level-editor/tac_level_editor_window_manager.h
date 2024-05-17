@@ -4,7 +4,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/tac_space.h"
-#include "src/level_editor/tac_entity_selection.h"
+#include "tac-level-editor/tac_entity_selection.h"
 
 namespace Tac
 {
@@ -24,7 +24,7 @@ namespace Tac
     void                CreateProfileWindow( Errors& );
 
     void                CreateInitialWindows( Errors& );
-    DesktopWindowHandle CreateDesktopWindow( StringView );
+    WindowHandle        CreateDesktopWindow( StringView );
 
   private:
 

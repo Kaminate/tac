@@ -13,7 +13,7 @@
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/os/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "src/level_editor/tac_level_editor.h"
+#include "tac-level-editor/tac_level_editor.h"
 #include "space/ecs/tac_entity.h"
 #include "space/world/tac_world.h"
 

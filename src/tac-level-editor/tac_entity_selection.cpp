@@ -1,9 +1,9 @@
 #include "tac_entity_selection.h" // self-inc
 
 // TODO: remove dependency on these begin
-#include "src/level_editor/tac_level_editor.h" // gCreation
-#include "src/level_editor/tac_level_editor_game_window.h" // CreationGameWindow
-#include "src/level_editor/tac_level_editor_prefab.h" // PrefabRemoveEntityRecursively
+#include "tac-level-editor/tac_level_editor.h" // gCreation
+#include "tac-level-editor/tac_level_editor_game_window.h" // CreationGameWindow
+#include "tac-level-editor/tac_level_editor_prefab.h" // PrefabRemoveEntityRecursively
 #include "src/common/input/tac_keyboard_input.h"
 // TODO: remove dependency on these end
 
@@ -111,7 +111,7 @@ namespace Tac
     if( !IsWindowHovered( gameWindow->mDesktopWindowHandle ) )
       return;
 
-    if( !Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::Delete ) )
+    if( !KeyboardIsKeyJustDown( Key::Delete ) )
       return;
 
     DeleteEntities();

@@ -7,7 +7,7 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "src/level_editor/tac_level_editor.h"
+#include "tac-level-editor/tac_level_editor.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "space/ecs/tac_entity.h"

@@ -1,20 +1,23 @@
 #include "tac_level_editor_window_manager.h" // self-inc
 
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "src/common/profile/tac_profile.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "src/level_editor/tac_level_editor_asset_view.h"
-#include "src/level_editor/tac_level_editor_game_window.h"
-#include "src/level_editor/tac_level_editor_main_window.h"
-#include "src/level_editor/tac_level_editor_prefab.h"
-#include "src/level_editor/tac_level_editor_profile_window.h"
-#include "src/level_editor/tac_level_editor_property_window.h"
-#include "src/level_editor/tac_level_editor_system_window.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+
+#include "tac-level-editor/tac_level_editor_asset_view.h"
+#include "tac-level-editor/tac_level_editor_game_window.h"
+#include "tac-level-editor/tac_level_editor_main_window.h"
+#include "tac-level-editor/tac_level_editor_prefab.h"
+#include "tac-level-editor/tac_level_editor_profile_window.h"
+#include "tac-level-editor/tac_level_editor_property_window.h"
+#include "tac-level-editor/tac_level_editor_system_window.h"
+
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
 {

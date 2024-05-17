@@ -19,7 +19,7 @@
 #include "tac-std-lib/os/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "src/common/assetmanagers/gltf/tac_gltf.h"
-#include "src/level_editor/tac_level_editor.h"
+#include "tac-level-editor/tac_level_editor.h"
 #include "space/graphics/model/tac_model.h"
 #include "space/presentation/tac_game_presentation.h"
 #include "space/ecs/tac_entity.h"

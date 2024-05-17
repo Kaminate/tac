@@ -18,8 +18,8 @@
 #include "tac-std-lib/memory/tac_frame_memory.h"
 #include "src/common/input/tac_keyboard_input.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "src/level_editor/tac_level_editor.h"
-#include "src/level_editor/tac_level_editor_prefab.h"
+#include "tac-level-editor/tac_level_editor.h"
+#include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 #include "space/graphics/tac_graphics.h"
@@ -835,18 +835,18 @@ namespace Tac
      
     struct PanKeyDir
     {
-      Keyboard::Key key;
+      Key key;
       v3            dir;
     };
     
     const PanKeyDir keyDirs[]
     {
-      { Keyboard::Key::W, camera->mForwards},
-      { Keyboard::Key::A, -camera->mRight},
-      { Keyboard::Key::S, -camera->mForwards},
-      { Keyboard::Key::D, camera->mRight},
-      { Keyboard::Key::Q, -camera->mUp },
-      { Keyboard::Key::E, camera->mUp},
+      { Key::W, camera->mForwards},
+      { Key::A, -camera->mRight},
+      { Key::S, -camera->mForwards},
+      { Key::D, camera->mRight},
+      { Key::Q, -camera->mUp },
+      { Key::E, camera->mUp},
     };
     for( const PanKeyDir& keyDir : keyDirs )
       if( KeyboardIsKeyDown( keyDir.key ) )
@@ -862,16 +862,16 @@ namespace Tac
 
     struct OrbitKeyDir
     {
-      Keyboard::Key key;
+      Key key;
       v3            spherical;
     };
     
     OrbitKeyDir keyDirs[]
     {
-      { Keyboard::Key::W, v3( 0, -1, 0 ) },
-      { Keyboard::Key::A, v3( 0,  0, 1 ) },
-      { Keyboard::Key::S, v3( 0, 1, 0 ) },
-      { Keyboard::Key::D, v3( 0, 0, -1 ) }
+      { Key::W, v3( 0, -1, 0 ) },
+      { Key::A, v3( 0,  0, 1 ) },
+      { Key::S, v3( 0, 1, 0 ) },
+      { Key::D, v3( 0, 0, -1 ) }
     };
 
 

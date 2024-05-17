@@ -107,12 +107,12 @@ namespace Tac
     sCodepointDelta = {};
   }
 
-  bool                SimKeyboardApi::IsPressed( Key key )
+  bool                SimKeyboardApi::IsPressed( Key key ) const
   {
     return sGameLogicCurr.mKeyStates[ ( int )key ] == SysKeyboardApiBackend::KeyState::Down;
   }
 
-  bool                SimKeyboardApi::IsDepressed( Key key )
+  bool                SimKeyboardApi::IsDepressed( Key key ) const
   {
     if( key == Key::Myself )
       return true; // :(
@@ -120,13 +120,13 @@ namespace Tac
     return sGameLogicCurr.mKeyStates[ ( int )key ] == SysKeyboardApiBackend::KeyState::Up;
   }
 
-  bool                SimKeyboardApi::JustPressed( Key key )
+  bool                SimKeyboardApi::JustPressed( Key key ) const
   {
     const int toggleCount { sGameLogicDelta.mToggles[ ( int )key ] >= 1 };
     return IsPressed( key ) && toggleCount;
   }
 
-  bool                SimKeyboardApi::JustDepressed( Key key )
+  bool                SimKeyboardApi::JustDepressed( Key key ) const
   {
     if( key == Key::Myself )
       return true; // :(
@@ -140,7 +140,7 @@ namespace Tac
   // because it is a difference of Tac.Timepoint and not Tac.Timestamp.
   //
   // Returns 0 if the key is up
-  float               SimKeyboardApi::HeldSeconds( Key key )
+  float               SimKeyboardApi::HeldSeconds( Key key ) const
   {
     if( !IsPressed( key ) )
       return 0;
@@ -148,7 +148,7 @@ namespace Tac
     return sGameLogicCurr.mTime - sGameLogicCurr.mKeyTimes[ ( int )key ];
   }
 
-  Span< Codepoint >   SimKeyboardApi::GetCodepoints()
+  Span< Codepoint >   SimKeyboardApi::GetCodepoints() const
   {
     return
     {
@@ -157,17 +157,17 @@ namespace Tac
     };
   }
 
-  float               SimKeyboardApi::GetMouseWheelDelta() // units are magic
+  float               SimKeyboardApi::GetMouseWheelDelta() const // units are magic
   {
     return sGameLogicCurr.mMouseWheel - sGameLogicPrev.mMouseWheel;
   }
 
-  v2                  SimKeyboardApi::GetMousePosScreenspace()
+  v2                  SimKeyboardApi::GetMousePosScreenspace() const
   {
     return sGameLogicCurr.mMousePosScreenspace;
   }
 
-  v2                  SimKeyboardApi::GetMousePosDelta()
+  v2                  SimKeyboardApi::GetMousePosDelta() const
   {
     return sGameLogicCurr.mMousePosScreenspace - sGameLogicPrev.mMousePosScreenspace;
   }

@@ -9,20 +9,20 @@ namespace Tac
 {
   struct SimKeyboardApi
   {
-    bool                IsPressed( Key );
-    bool                IsDepressed( Key );
-    bool                JustPressed( Key );
-    bool                JustDepressed( Key );
+    bool                IsPressed( Key ) const;
+    bool                IsDepressed( Key ) const;
+    bool                JustPressed( Key ) const;
+    bool                JustDepressed( Key ) const;
 
     // This function returns a float instead of TimestampDifference
     // because it is a difference of Tac.Timepoint and not Tac.Timestamp.
     //
     // Returns 0 if the key is up
-    float               HeldSeconds( Key );
-    Span< Codepoint >   GetCodepoints();
-    float               GetMouseWheelDelta(); // units are magic
-    v2                  GetMousePosScreenspace();
-    v2                  GetMousePosDelta();
+    float               HeldSeconds( Key ) const;
+    Span< Codepoint >   GetCodepoints() const;
+    float               GetMouseWheelDelta() const; // units are magic
+    v2                  GetMousePosScreenspace() const;
+    v2                  GetMousePosDelta() const;
   };
 }
 

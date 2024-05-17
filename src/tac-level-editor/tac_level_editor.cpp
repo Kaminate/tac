@@ -24,13 +24,13 @@
 #include "tac-std-lib/os/tac_os.h"
 
 // level_editor
-#include "src/level_editor/tac_level_editor_asset_view.h"
-#include "src/level_editor/tac_level_editor_game_window.h"
-#include "src/level_editor/tac_level_editor_main_window.h"
-#include "src/level_editor/tac_level_editor_prefab.h"
-#include "src/level_editor/tac_level_editor_profile_window.h"
-#include "src/level_editor/tac_level_editor_property_window.h"
-#include "src/level_editor/tac_level_editor_system_window.h"
+#include "tac-level-editor/tac_level_editor_asset_view.h"
+#include "tac-level-editor/tac_level_editor_game_window.h"
+#include "tac-level-editor/tac_level_editor_main_window.h"
+#include "tac-level-editor/tac_level_editor_prefab.h"
+#include "tac-level-editor/tac_level_editor_profile_window.h"
+#include "tac-level-editor/tac_level_editor_property_window.h"
+#include "tac-level-editor/tac_level_editor_system_window.h"
 
 // shell
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
@@ -79,8 +79,8 @@ namespace Tac
     World* world = gCreation.mWorld;
 
     const bool triggered =
-      Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::S ) &&
-      Keyboard::KeyboardIsKeyDown( Keyboard::Key::Modifier );
+      KeyboardIsKeyJustDown( Key::S ) &&
+      KeyboardIsKeyDown( Key::Modifier );
 
     if( !triggered )
       return;

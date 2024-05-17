@@ -453,11 +453,11 @@ namespace Tac
     {
       const bool nextAvailable = iStep < stepCount - 1;
       const bool prevAvailable = iStep > 0;
-      if( prevAvailable && ( ImGuiButton( "Prev" ) || Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::LeftArrow ) ) )
+      if( prevAvailable && ( ImGuiButton( "Prev" ) || KeyboardIsKeyJustDown( Key::LeftArrow ) ) )
         iStepNext = iStep - 1;
       if( nextAvailable && prevAvailable )
         ImGuiSameLine();
-      if( nextAvailable && ( ImGuiButton( "Next" ) || Keyboard::KeyboardIsKeyJustDown( Keyboard::Key::RightArrow ) ) )
+      if( nextAvailable && ( ImGuiButton( "Next" ) || KeyboardIsKeyJustDown( Key::RightArrow ) ) )
         iStepNext = iStep + 1;
     }
 

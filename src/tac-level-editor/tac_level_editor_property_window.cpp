@@ -12,8 +12,8 @@
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "src/level_editor/tac_level_editor.h"
-#include "src/level_editor/tac_level_editor_prefab.h"
+#include "tac-level-editor/tac_level_editor.h"
+#include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "src/shell/tac_desktop_window_graphics.h"
 
