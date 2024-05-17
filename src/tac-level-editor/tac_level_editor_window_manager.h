@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-level-editor/tac_entity_selection.h"

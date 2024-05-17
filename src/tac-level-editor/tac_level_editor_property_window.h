@@ -15,7 +15,7 @@ namespace Tac
     void                           Init( Errors& );
     void                           Update( Errors& );
     void                           RecursiveEntityHierarchyElement( Entity* );
-    DesktopWindowHandle            mDesktopWindowHandle;
+    WindowHandle            mWindowHandle;
     bool                           mCloseRequested { false };
   };
 

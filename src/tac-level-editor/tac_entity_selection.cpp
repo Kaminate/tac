@@ -102,14 +102,14 @@ namespace Tac
   void                SelectedEntities::DeleteEntitiesCheck()
   {
     CreationGameWindow* gameWindow = CreationGameWindow::Instance;
-    if( !gameWindow || !gameWindow->mDesktopWindowHandle.IsValid() )
+    if( !gameWindow || !gameWindow->mWindowHandle.IsValid() )
       return;
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( gameWindow->mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( gameWindow->mWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    if( !IsWindowHovered( gameWindow->mDesktopWindowHandle ) )
+    if( !IsWindowHovered( gameWindow->mWindowHandle ) )
       return;
 
     if( !KeyboardIsKeyJustDown( Key::Delete ) )

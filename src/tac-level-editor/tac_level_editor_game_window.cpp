@@ -143,14 +143,28 @@ namespace Tac
   static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
   {
     const Camera* camera { gCreation.mEditorCamera };
-    const Render::InProj inProj  { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
-    const Render::OutProj outProj { Render::GetPerspectiveProjectionAB(inProj) };
+    const float aspectRatio{ ( float )w / ( float )h };
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
+    const m4::ProjectionMatrixParams projParams
+    {
+      .mNDCMinZ       { ndcAttribs.mMinZ },
+      .mNDCMaxZ       { ndcAttribs.mMaxZ },
+      .mViewSpaceNear { camera->mNearPlane },
+      .mViewSpaceFar  { camera->mFarPlane },
+      .mAspectRatio   { aspectRatio },
+      .mFOVYRadians   { camera->mFovyrad },
+    };
+
+    const m4 view { camera->View() };
+    const m4 proj { m4::ProjPerspective( projParams ) };
+
     return Render::DefaultCBufferPerFrame
     {
-      .mView { camera->View() },
-      .mProjection{ m4::ProjPerspective( outProj.mA, outProj.mB, camera->mFovyrad, w / h ) },
-      .mFar { camera->mFarPlane },
-      .mNear { camera->mNearPlane },
+      .mView         { view },
+      .mProjection   { proj },
+      .mFar          { camera->mFarPlane },
+      .mNear         { camera->mNearPlane },
       .mGbufferSize  { w, h }
     };
   }
@@ -211,35 +225,37 @@ namespace Tac
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
     SimWindowApi* windowApi{};
-    windowApi->DestroyWindow( mDesktopWindowHandle );
+    windowApi->DestroyWindow( mWindowHandle );
     TAC_DELETE mDebug3DDrawData;
   }
 
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
-    Render::IDevice* renderDevice = Render::RenderApi::GetRenderDevice();
-    Render::ProgramParams programParams
+    Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams
     {
-      .mFileStem { "3DTest" },
+      .mFileStem   { "3DTest" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     m3DShader =renderDevice->CreateProgram( programParams, errors );
 
     const Render::VertexDeclaration posDecl
     {
-        .mAttribute { Render::Attribute::Position },
-        .mTextureFormat{ Render::Format::sv3 }
+        .mAttribute         { Render::Attribute::Position },
+        .mFormat            { Render::Format::sv3 },
         .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, pos ) },
     };
 
     const Render::VertexDeclaration norDecl
     {
-        .mAttribute { Render::Attribute::Normal },
-        .mTextureFormat{ Render::Format::sv3 }
+        .mAttribute         { Render::Attribute::Normal },
+        .mFormat            { Render::Format::sv3 },
         .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, nor ) },
     };
 
-    m3DvertexFormatDecls = Render::VertexDeclarations { posDecl, norDecl };
+    m3DvertexFormatDecls.clear();
+    m3DvertexFormatDecls.push_back( posDecl );
+    m3DvertexFormatDecls.push_back( norDecl );
     m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
                                                   m3DShader,
                                                   TAC_STACK_FRAME );
@@ -284,7 +300,7 @@ namespace Tac
 
   void CreationGameWindow::Init( Errors& errors )
   {
-    mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
+    mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
 
     TAC_CALL( CreateGraphicsObjects( errors ) );
 
@@ -305,9 +321,9 @@ namespace Tac
     TAC_CALL( PlayGame( errors ) );
 
     Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams programParams
+    const Render::ProgramParams programParams
     {
-      .mFileStem { "3DSprite" },
+      .mFileStem   { "3DSprite" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     spriteShader =renderDevice->CreateProgram( programParams, errors );
@@ -349,6 +365,7 @@ namespace Tac
       dist *= mArrowLen;
       if( !hit || !pickData.IsNewClosest( dist ) )
         continue;
+
       pickData.arrowAxis = i;
       pickData.closestDist = dist;
       pickData.pickedObject = PickedObject::WidgetTranslationArrow;
@@ -406,11 +423,11 @@ namespace Tac
   {
     pickData = {};
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
-    if( !IsWindowHovered( mDesktopWindowHandle ) )
+    if( !IsWindowHovered( mWindowHandle ) )
       return;
 
     MousePickingEntities();
@@ -422,7 +439,7 @@ namespace Tac
 
   void CreationGameWindow::MousePickingInit()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
@@ -722,7 +739,7 @@ namespace Tac
 
   void CreationGameWindow::RenderEditorWidgets( Render::ViewHandle viewHandle )
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
@@ -757,10 +774,10 @@ namespace Tac
       return;
 
     const float w { 400 };
-    const float h { (float)GetDesktopWindowState( mDesktopWindowHandle )->mHeight };
+    const float h { (float)GetDesktopWindowState( mWindowHandle )->mHeight };
 
     ImGuiSetNextWindowSize( { w, h } );
-    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiSetNextWindowHandle( mWindowHandle );
     ImGuiBegin( "gameplay overlay" );
 
     mCloseRequested |= ImGuiButton( "Close Window" );
@@ -946,10 +963,10 @@ namespace Tac
 
   void CreationGameWindow::CameraUpdateControls()
   {
-    DesktopWindowState* desktopWindowState { GetDesktopWindowState( mDesktopWindowHandle ) };
+    DesktopWindowState* desktopWindowState { GetDesktopWindowState( mWindowHandle ) };
     if( !desktopWindowState->mNativeWindowHandle )
       return;
-    if( !IsWindowHovered( mDesktopWindowHandle ) )
+    if( !IsWindowHovered( mWindowHandle ) )
       return;
     const Camera oldCamera { *gCreation.mEditorCamera };
 
@@ -1024,10 +1041,10 @@ namespace Tac
   {
     TAC_PROFILE_BLOCK;
 
-    const Render::ViewHandle viewHandle { WindowGraphicsGetView( mDesktopWindowHandle ) };
-    const Render::FramebufferHandle framebufferHandle { WindowGraphicsGetFramebuffer( mDesktopWindowHandle ) };
+    const Render::ViewHandle viewHandle { WindowGraphicsGetView( mWindowHandle ) };
+    const Render::FramebufferHandle framebufferHandle { WindowGraphicsGetFramebuffer( mWindowHandle ) };
 
-    const DesktopWindowState* desktopWindowState { GetDesktopWindowState( mDesktopWindowHandle ) };
+    const DesktopWindowState* desktopWindowState { GetDesktopWindowState( mWindowHandle ) };
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 

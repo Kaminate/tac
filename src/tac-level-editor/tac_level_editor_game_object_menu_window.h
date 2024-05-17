@@ -2,7 +2,7 @@
 
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "src/common/tac_core.h"
-#include "src/common/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 
 namespace Tac
 {
@@ -13,7 +13,7 @@ namespace Tac
     void                                 Init( Errors& );
     void                                 Update( Errors& );
     static CreationGameObjectMenuWindow* Instance;
-    DesktopWindowHandle                  mDesktopWindowHandle;
+    WindowHandle                  mWindowHandle;
     Timestamp                            mCreationSeconds;
   };
 }

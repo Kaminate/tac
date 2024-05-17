@@ -32,7 +32,7 @@ namespace Tac
     void                       ImGuiSaveAs();
     void                       ImGuiSaveAs( Entity*, Errors& );
 
-    DesktopWindowHandle        mDesktopWindowHandle;
+    WindowHandle        mWindowHandle;
     UIRoot*                    mUIRoot               {};
     //UI2DDrawData*              mUI2DDrawData       {};
     Texture*                   mIconWindow           {};

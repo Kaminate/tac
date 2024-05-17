@@ -58,7 +58,7 @@ namespace Tac
     void                          PlayGame( Errors& );
 
     void                          SetStatusMessage( const StringView&, const TimestampDifference& );
-    DesktopWindowHandle           mDesktopWindowHandle;
+    WindowHandle           mWindowHandle;
     Soul*                         mSoul {};
     Render::ShaderHandle          m3DShader;
     Render::VertexFormatHandle    m3DVertexFormat;

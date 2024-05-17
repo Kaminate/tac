@@ -364,10 +364,10 @@ namespace Tac
     void MouseDrag()
     {
 
-      const DesktopWindowHandle desktopWindowHandle = ImGuiGetWindowHandle();
-      if( !IsWindowHovered( desktopWindowHandle ) )
+      const WindowHandle WindowHandle = ImGuiGetWindowHandle();
+      if( !IsWindowHovered( WindowHandle ) )
         return;
-      const DesktopWindowState* state = GetDesktopWindowState( desktopWindowHandle );
+      const DesktopWindowState* state = GetDesktopWindowState( WindowHandle );
       if( !state )
         return;
       const v2 desktopWindowPos( ( float )state->mX, ( float )state->mY );

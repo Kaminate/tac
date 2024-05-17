@@ -10,9 +10,9 @@
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/tac_renderer.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/shell/tac_shell.h"
-#include "src/common/shell/tac_shell_timestep.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/os/tac_filesystem.h"
@@ -22,8 +22,8 @@
 #include "tac-level-editor/tac_level_editor.h"
 #include "space/graphics/model/tac_model.h"
 #include "space/presentation/tac_game_presentation.h"
-#include "space/ecs/tac_entity.h"
-#include "space/world/tac_world.h"
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/world/tac_world.h"
 
 namespace Tac
 {

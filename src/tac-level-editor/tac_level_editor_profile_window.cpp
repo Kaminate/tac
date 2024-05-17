@@ -1,18 +1,21 @@
 #include "tac_level_editor_profile_window.h" // self-inc
 
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/system/tac_system.h"
+#include "tac-ecs/world/tac_world.h"
+
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "src/common/profile/tac_profile.h"
-#include "src/common/shell/tac_shell.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/error/tac_error_handling.h"
+
 #include "tac-level-editor/tac_level_editor.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_graphics.h"
-#include "space/ecs/tac_entity.h"
-#include "space/ecs/tac_system.h"
-#include "space/world/tac_world.h"
+
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {
@@ -27,25 +30,25 @@ namespace Tac
     Instance = nullptr;
     //TAC_DELETE mUI2DDrawData;
     SimWindowApi* windowApi{};
-    windowApi->DestroyWindow( mDesktopWindowHandle );
+    windowApi->DestroyWindow( mWindowHandle );
   }
 
   void CreationProfileWindow::Init( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     //mUI2DDrawData = TAC_NEW UI2DDrawData;
-    mDesktopWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gProfileWindowName );
+    mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gProfileWindowName );
   }
 
   void CreationProfileWindow::ImGui()
   {
     TAC_PROFILE_BLOCK;
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
     
     ImGuiSetNextWindowStretch();
-    ImGuiSetNextWindowHandle( mDesktopWindowHandle );
+    ImGuiSetNextWindowHandle( mWindowHandle );
     ImGuiBegin( "Profile Window" );
     mCloseRequested |= ImGuiButton( "Close Window" );
 
@@ -62,14 +65,14 @@ namespace Tac
   void CreationProfileWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mDesktopWindowHandle );
+    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
       return;
 
     const v2 size = desktopWindowState->GetSizeV2();
 
-    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mDesktopWindowHandle );
-    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mDesktopWindowHandle );
+    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mWindowHandle );
+    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mWindowHandle );
     Render::SetViewFramebuffer( viewHandle, framebufferHandle );
     Render::SetViewport( viewHandle, Render::Viewport(size) );
     Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );

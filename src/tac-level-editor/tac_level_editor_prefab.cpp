@@ -8,14 +8,14 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
 #include "tac-std-lib/memory/tac_frame_memory.h"
-#include "src/common/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/os/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-level-editor/tac_level_editor.h"
-#include "space/ecs/tac_entity.h"
-#include "space/world/tac_world.h"
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/world/tac_world.h"
 
 namespace Tac
 {
