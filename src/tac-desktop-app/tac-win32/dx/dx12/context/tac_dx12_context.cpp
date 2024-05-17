@@ -178,7 +178,7 @@ namespace Tac::Render
     mTextureMgr->UpdateTexture( h, params, this, errors );
   }
 
-  void DX12Context::UpdateBuffer( BufferHandle h, UpdateBufferParams params, Errors& errors )
+  void DX12Context::UpdateBuffer( BufferHandle h, Span< const UpdateBufferParams > params, Errors& errors )
   {
     mBufferMgr->UpdateBuffer( h, params, this, errors );
   }

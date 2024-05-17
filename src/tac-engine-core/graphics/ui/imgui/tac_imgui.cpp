@@ -897,7 +897,7 @@ bool Tac::ImGuiButton( const StringView& str )
   const v2 buttonSize{ textSize + v2( 2 * buttonPadding, 0 ) };
   const v2 pos{ window->mViewportSpaceCurrCursor };
 
-  window->ItemSize( textSize );
+  window->ItemSize( buttonSize );
 
   // TODO: compare the various window->clip... apis against what dearimgui does
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, buttonSize ) };

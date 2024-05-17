@@ -23,7 +23,7 @@ namespace Tac::Render
 
     void        Init( Params );
     void        CreateBuffer( BufferHandle, CreateBufferParams, Errors& );
-    void        UpdateBuffer( BufferHandle, UpdateBufferParams, DX12Context*, Errors& );
+    void        UpdateBuffer( BufferHandle, Span< const UpdateBufferParams >, DX12Context*, Errors& );
     DX12Buffer* FindBuffer( BufferHandle );
     void        DestroyBuffer( BufferHandle );
 

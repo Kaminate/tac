@@ -4,7 +4,7 @@ add_subdirectory(tac-desktop-app)
 add_subdirectory(level_editor)
 add_subdirectory(level_editor_2)
 add_subdirectory(game)
-add_subdirectory(game-examples)
+add_subdirectory(tac-examples)
 add_subdirectory(game-weekendtrace)
 add_subdirectory(game-pbrt)
 

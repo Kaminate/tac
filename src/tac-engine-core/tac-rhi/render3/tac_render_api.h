@@ -389,7 +389,13 @@ namespace Tac::Render
     virtual void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) {}
 
     virtual void SetVertexBuffer( BufferHandle ) {}
-    virtual void UpdateBuffer( BufferHandle, UpdateBufferParams, Errors& ) {}
+    //                                       | hack?/todo? this makes it so that i allocate the dyn buffer
+    //                                       | once per frame in this function, but then i have to group all
+    //                                       | the updates together in a span.
+    //                                       |
+    //                                       | it would be nicer to just if(first call this frame){allocate buf}
+    //                                       v then i can call updatebuffer from multiple places.
+    virtual void UpdateBuffer( BufferHandle, Span< const UpdateBufferParams >, Errors& ) {}
 
     virtual void Draw( DrawArgs ) {}
     virtual void Execute( Errors& ) {}

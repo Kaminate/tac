@@ -14,6 +14,8 @@ namespace Tac::Render
   DX12UploadAllocator::DynAlloc DX12UploadAllocator::Allocate( const int byteCount,
                                                                Errors& errors )
   {
+    TAC_ASSERT( byteCount > 0 );
+
     // so the deal with large pages, is that they can't be reused as default pages.
     // so normally, when allocating a page, you first check if a retired page can be reused,
     // but large pages are just deleted when they are no longer used.

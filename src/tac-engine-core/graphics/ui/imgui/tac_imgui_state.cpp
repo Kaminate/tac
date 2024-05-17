@@ -6,6 +6,7 @@
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 //#include "tac-engine-core/window/tac_window_backend.h"
 
 #include "tac-rhi/render3/tac_render_api.h" // CreateContext
@@ -401,13 +402,18 @@ namespace Tac
     using GetDrawElementBytes = void* ( * )( const UI2DDrawData* );
     using GetDrawElementCount = int ( * )( const UI2DDrawData* );
 
-    void Copy( Render::IContext* renderContext, Errors& errors )
+    void Copy( Render::IContext* renderContext, Errors& errors ) const
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
       const int srcTotByteCount{ mSrcTotElemCount * mSizeOfElem };
+      if( !srcTotByteCount )
+        return;
+
       if( !mDst->mBuffer.IsValid() || mDst->mByteCount < srcTotByteCount )
       {
+        renderDevice->DestroyBuffer( mDst->mBuffer );
+
         const Render::CreateBufferParams createBufferParams
         {
           .mByteCount    { srcTotByteCount },
@@ -415,31 +421,36 @@ namespace Tac
           .mOptionalName { mBufName },
         };
 
-        renderDevice->DestroyBuffer( mDst->mBuffer );
 
         TAC_CALL( mDst->mBuffer =
                   renderDevice->CreateBuffer( createBufferParams, errors ) );
         mDst->mByteCount = srcTotByteCount;
       }
 
+      const int drawCount{ mDraws->mDrawData.size() };
+      Render::UpdateBufferParams* updateBufferParams{
+        ( Render::UpdateBufferParams* )FrameMemoryAllocate(
+          drawCount * sizeof( Render::UpdateBufferParams ) ) };
+
+      Span< const Render::UpdateBufferParams > updates( updateBufferParams, drawCount );
+
       int byteOffset { 0 };
       for( SmartPtr< UI2DDrawData >& drawData : mDraws->mDrawData )
       {
         const UI2DDrawData* pDrawData { drawData.Get() };
-        void* srcBytes { mGetDrawElementBytes( pDrawData ) };
-        const int srcElementCount{ mGetDrawElementCount( pDrawData ) };
-        const int srcByteCount { srcElementCount * mSizeOfElem };
-        const Render::UpdateBufferParams updateParams
+        const int srcByteCount { mGetDrawElementCount( pDrawData ) * mSizeOfElem };
+
+        *updateBufferParams++ = Render::UpdateBufferParams
         {
-          .mSrcBytes      { srcBytes },
+          .mSrcBytes      { mGetDrawElementBytes( pDrawData ) },
           .mSrcByteCount  { srcByteCount },
           .mDstByteOffset { byteOffset },
         };
 
-        TAC_CALL( renderContext->UpdateBuffer( mDst->mBuffer, updateParams, errors ) );
         byteOffset += srcByteCount;
       }
 
+      TAC_CALL( renderContext->UpdateBuffer( mDst->mBuffer, updates, errors ) );
     }
 
     ImGuiRenderBuffer*    mDst;
@@ -479,7 +490,7 @@ namespace Tac
   {
     auto getVtxBytes = []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); };
     auto getVtxCount = []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); };
-    CopyHelper vtxCopyHelper
+    const CopyHelper vtxCopyHelper
     {
       .mDst                 { &renderBuffers->mVB },
       .mSizeOfElem          { sizeof( UI2DVertex ) },

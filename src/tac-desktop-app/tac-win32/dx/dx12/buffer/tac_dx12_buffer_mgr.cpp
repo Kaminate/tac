@@ -315,7 +315,7 @@ namespace Tac::Render
   }
 
   void DX12BufferMgr::UpdateBuffer( BufferHandle h,
-                                    UpdateBufferParams params,
+                                    Span< const UpdateBufferParams > paramSpan,
                                     DX12Context* context,
                                     Errors& errors )
   {
@@ -352,12 +352,15 @@ namespace Tac::Render
       // a descriptor table? but i think dynamic buffers may be used through root parameters only
     }
 
-    TAC_ASSERT( buffer.mMappedCPUAddr );
-    TAC_ASSERT( params.mSrcBytes );
-    TAC_ASSERT( params.mSrcByteCount );
+    for( const UpdateBufferParams& params : paramSpan )
+    {
+      TAC_ASSERT( buffer.mMappedCPUAddr );
+      TAC_ASSERT( params.mSrcBytes );
+      TAC_ASSERT( params.mSrcByteCount );
 
-    char* dstBytes { ( char* )buffer.mMappedCPUAddr + params.mDstByteOffset };
-    MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
+      char* dstBytes{ ( char* )buffer.mMappedCPUAddr + params.mDstByteOffset };
+      MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );
+    }
 
     if( buffer.mCreateParams.mUsage == Usage::Default  )
     {

@@ -80,8 +80,8 @@ namespace Tac
   {
     const Config config
     {
-        .mName { "Level Editor" },
-        .mDisableRenderer { true }, // todo
+      .mName            { "Level Editor" },
+      //.mDisableRenderer { true }, // todo
     };
 
     return TAC_NEW LevelEditorApp( config );

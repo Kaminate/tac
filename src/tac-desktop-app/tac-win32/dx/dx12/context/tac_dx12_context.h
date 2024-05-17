@@ -77,7 +77,7 @@ namespace Tac::Render
     void DebugEventEnd() override;
     void DebugMarker( StringView ) override;
     void MoveFrom( DX12Context&& ) noexcept;
-    void UpdateBuffer( BufferHandle, UpdateBufferParams, Errors& ) override;
+    void UpdateBuffer( BufferHandle, Span< const UpdateBufferParams >, Errors& ) override;
     void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) override;
     void CommitShaderVariables() override;
     void Retire() override;
