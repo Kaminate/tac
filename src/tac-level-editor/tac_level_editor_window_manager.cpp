@@ -1,12 +1,12 @@
 #include "tac_level_editor_window_manager.h" // self-inc
 
-#include "src/common/error/tac_error_handling.h"
-#include "src/common/preprocess/tac_preprocessor.h"
-#include "src/common/system/tac_desktop_window.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_settings.h"
 #include "src/common/profile/tac_profile.h"
-#include "src/common/system/tac_os.h"
+#include "tac-std-lib/os/tac_os.h"
 #include "src/level_editor/tac_level_editor_asset_view.h"
 #include "src/level_editor/tac_level_editor_game_window.h"
 #include "src/level_editor/tac_level_editor_main_window.h"
@@ -14,7 +14,7 @@
 #include "src/level_editor/tac_level_editor_profile_window.h"
 #include "src/level_editor/tac_level_editor_property_window.h"
 #include "src/level_editor/tac_level_editor_system_window.h"
-#include "src/shell/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 namespace Tac
 {

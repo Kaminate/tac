@@ -1,12 +1,12 @@
 #pragma once
 
 #include "src/common/graphics/tac_renderer.h"
-#include "src/common/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_vector3.h"
 #include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/string/tac_string.h"
-#include "src/common/system/tac_desktop_window.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "src/common/tac_core.h"
-#include "space/tac_space.h"
+#include "tac-ecs/tac_space.h"
 
 namespace Tac::Render
 {

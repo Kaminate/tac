@@ -1,12 +1,11 @@
 #pragma once
 
-#include "src/common/tac_core.h"
-#include "src/common/math/tac_vector3.h"
-#include "src/common/containers/tac_vector.h"
-#include "space/tac_space_types.h"
-#include "space/tac_space.h"
-#include "src/level_editor/tac_entity_selection.h"
-#include "src/level_editor/tac_level_editor_window_manager.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-ecs/tac_space_types.h"
+#include "tac-ecs/tac_space.h"
+#include "tac-level-editor/tac_entity_selection.h"
+#include "tac-level-editor/tac_level_editor_window_manager.h"
 
 namespace Tac
 {

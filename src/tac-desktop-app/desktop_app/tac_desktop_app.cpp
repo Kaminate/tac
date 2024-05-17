@@ -215,6 +215,9 @@ namespace Tac
     };
     TAC_CALL( sApp->Init( initParams, errors ) );
 
+    // todo: this is ugly, fix it
+    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
+
     std::thread logicThread( &SimThread::Update, sSimThread, std::ref( SSimErrors ) );
 
     sSysThread.mApp = sApp;

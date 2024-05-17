@@ -1,7 +1,7 @@
 #pragma once
 
-#include "space/tac_space_types.h"
-#include "space/tac_space.h"
+#include "tac-ecs/tac_space_types.h"
+#include "tac-ecs/tac_space.h"
 
 namespace Tac { struct AssetPathStringView; struct Errors; }
 namespace Tac

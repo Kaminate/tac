@@ -61,8 +61,8 @@ namespace Tac
     TAC_CALL( Debug3DCommonDataInit( errors ));
   }
 
-  String           sShellAppName;
-  String           sShellStudioName;
+  String        sShellAppName;
+  String        sShellStudioName;
   FileSys::Path sShellPrefPath; // Path where the app can save files to
   FileSys::Path sShellInitialWorkingDir;
 

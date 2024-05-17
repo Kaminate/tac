@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/string/tac_string.h"
+#include "tac-std-lib/string/tac_string.h"
 #include "src/common/tac_core.h"
 
 namespace Tac

@@ -6,6 +6,10 @@ endif()
 
 add_executable( LevelEditor2 WIN32 )
 
+set_target_properties( LevelEditor2 PROPERTIES FOLDER "Level Editor 2" )
+
+target_include_directories( LevelEditor2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
+
 target_link_libraries( LevelEditor2 ) 
 
 target_link_libraries( LevelEditor2 

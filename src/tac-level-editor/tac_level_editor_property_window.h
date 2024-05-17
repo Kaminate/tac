@@ -1,8 +1,8 @@
 #pragma once
 
 #include "src/common/tac_core.h"
-#include "src/common/system/tac_desktop_window.h"
-#include "space/tac_space.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-ecs/tac_space.h"
 
 namespace Tac
 {

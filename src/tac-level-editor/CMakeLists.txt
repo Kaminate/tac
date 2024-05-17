@@ -14,6 +14,10 @@ function( tac_target )
     add_executable( ${TAC_TARGET_NAME})
   endif()
 
+  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES FOLDER "Level Editor" )
+
+  target_include_directories( ${TAC_TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
+
   if( TARGET TacVkRenderer )
     target_link_libraries( ${TAC_TARGET_NAME} TacVkRenderer TacWinVk )
 

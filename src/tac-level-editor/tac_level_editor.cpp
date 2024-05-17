@@ -3,25 +3,25 @@
 // common
 #include "src/common/assetmanagers/tac_texture_asset_manager.h"
 #include "src/common/algorithm/tac_algorithm.h"
-#include "src/common/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_json.h"
 #include "src/common/dataprocess/tac_settings.h"
-#include "src/common/graphics/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/tac_color_util.h"
 #include "src/common/graphics/tac_renderer.h"
-#include "src/common/graphics/tac_ui_2d.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "src/common/input/tac_keyboard_input.h"
-#include "src/common/math/tac_math.h"
+#include "tac-std-lib/math/tac_math.h"
 #include "src/common/meta/tac_meta_composite.h"
 #include "src/common/meta/tac_meta_fn.h"
 #include "src/common/meta/tac_meta_fn_sig.h"
 #include "src/common/meta/tac_meta_var.h"
 #include "src/common/profile/tac_profile.h"
 #include "src/common/shell/tac_shell_timestep.h"
-#include "src/common/string/tac_string_util.h"
-#include "src/common/system/tac_filesystem.h"
-#include "src/common/system/tac_os.h"
+#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/os/tac_filesystem.h"
+#include "tac-std-lib/os/tac_os.h"
 
 // level_editor
 #include "src/level_editor/tac_level_editor_asset_view.h"
@@ -33,7 +33,7 @@
 #include "src/level_editor/tac_level_editor_system_window.h"
 
 // shell
-#include "src/shell/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 // space
 #include "space/graphics/model/tac_model.h"
@@ -43,8 +43,8 @@
 #include "space/presentation/tac_voxel_gi_presentation.h"
 #include "space/ecs/tac_entity.h"
 #include "space/ecs/tac_component_registry.h"
-#include "space/ghost/tac_ghost.h"
-#include "space/tac_space.h"
+#include "tac-ecs/ghost/tac_ghost.h"
+#include "tac-ecs/tac_space.h"
 #include "space/world/tac_world.h"
 #include "space/terrain/tac_terrain.h"
 

@@ -69,6 +69,8 @@ namespace Tac
 
     static App*     Create();
 
+    SettingsNode    mSettingsNode{};
+
   protected:
     Config          mConfig;
   };

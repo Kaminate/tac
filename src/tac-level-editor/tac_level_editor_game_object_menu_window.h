@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/common/system/tac_desktop_window.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "src/common/tac_core.h"
 #include "src/common/shell/tac_shell_timestep.h"
 

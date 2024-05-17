@@ -10,7 +10,7 @@
 #include "space/ecs/tac_entity.h"
 #include "space/world/tac_world.h"
 #include "src/common/algorithm/tac_algorithm.h"
-#include "src/common/math/tac_vector4.h"
+#include "tac-std-lib/math/tac_vector4.h"
 
 namespace Tac
 {
