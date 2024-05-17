@@ -3,6 +3,7 @@
 #include "tac_dx12_dyn_buf.h"
 //#include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/containers/tac_array.h"
 
 #include <d3d12.h>
 
@@ -28,6 +29,8 @@ namespace Tac::Render
 
   private:
 
+    using DX12Buffers = Array< DX12Buffer, 100 >;
+
     struct DescriptorBindings
     {
       Optional< DX12Descriptor > mSRV;
@@ -40,10 +43,9 @@ namespace Tac::Render
                                           D3D12_RESOURCE_STATES*,
                                           ID3D12GraphicsCommandList* );
 
-    ID3D12Device*       mDevice{};
-    DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV{};
-    DX12ContextManager* mContextManager{};
-
-    DX12Buffer          mBuffers[ 100 ];
+    ID3D12Device*       mDevice                       {};
+    DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV {};
+    DX12ContextManager* mContextManager               {};
+    DX12Buffers         mBuffers                      {};
   };
 } // namespace Tac::Render

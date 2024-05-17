@@ -3,6 +3,7 @@
 #include "tac_dx12_frame_buf.h"
 //#include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/containers/tac_array.h"
 
 #include <d3d12.h>
 
@@ -29,9 +30,10 @@ namespace Tac::Render
     TextureHandle   GetSwapChainCurrentColor( SwapChainHandle );
     TextureHandle   GetSwapChainDepth( SwapChainHandle );
 
-    DX12SwapChain       mSwapChains[ 100 ]    {};
-    //ID3D12Device*       mDevice               {};
-    //DX12DescriptorHeap* mCpuDescriptorHeapRTV {};
+  private:
+    using DX12SwapChains = Array< DX12SwapChain, 100 >;
+
+    DX12SwapChains      mSwapChains           {};
     DX12CommandQueue*   mCommandQueue         {};
     DX12TextureMgr*     mTextureMgr           {};
   };

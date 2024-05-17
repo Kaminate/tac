@@ -3,6 +3,7 @@
 #include "tac_dx12_texture.h"
 //#include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/containers/tac_array.h"
 
 #include <d3d12.h>
 
@@ -31,6 +32,7 @@ namespace Tac::Render
     DX12Texture*  FindTexture( TextureHandle );
 
   private:
+    using DX12Textures = Array< DX12Texture, 100 >;
 
     struct Bindings
     {
@@ -54,7 +56,7 @@ namespace Tac::Render
     //Optional< DX12DescriptorHeapAllocation > CreateBindingDSV();
     //Optional< DX12DescriptorHeapAllocation > CreateBindingRTV();
 
-    DX12Texture         mTextures[ 100 ];
+    DX12Textures        mTextures                     {};
     ID3D12Device*       mDevice                       {};
     DX12DescriptorHeap* mCpuDescriptorHeapRTV         {};
     DX12DescriptorHeap* mCpuDescriptorHeapDSV         {};
