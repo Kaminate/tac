@@ -334,21 +334,21 @@ namespace Tac::Render
 
     for( int iSubRes {  }; iSubRes < nSubRscs; ++iSubRes )
     {
-        const D3D12_TEXTURE_COPY_LOCATION Dst
-        {
-          .pResource        { dstRsc },
-          .Type             { D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX },
-          .SubresourceIndex { ( UINT )iSubRes },
-        };
+      const D3D12_TEXTURE_COPY_LOCATION Dst
+      {
+        .pResource        { dstRsc },
+        .Type             { D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX },
+        .SubresourceIndex { ( UINT )iSubRes },
+      };
 
-        const D3D12_TEXTURE_COPY_LOCATION Src
-        {
-          .pResource       { ( ID3D12Resource* )srcRsc },
-          .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
-          .PlacedFootprint { dstFootprints[ iSubRes ] },
-        };
+      const D3D12_TEXTURE_COPY_LOCATION Src
+      {
+        .pResource       { ( ID3D12Resource* )srcRsc },
+        .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
+        .PlacedFootprint { dstFootprints[ iSubRes ] },
+      };
 
-        commandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
+      commandList->CopyTextureRegion( &Dst, 0, 0, 0, &Src, nullptr );
     }
 
   }
@@ -419,7 +419,54 @@ namespace Tac::Render
                                       DX12Context* context,
                                       Errors& errors )
   {
-    DX12Texture& dynTex { mTextures[ h.GetIndex() ] };
+    DX12Texture& texture { mTextures[ h.GetIndex() ] };
+
+    ID3D12Resource* resource{ texture.mResource.Get() };
+    DX12UploadAllocator* gpuUploadAllocator{ &context->mGPUUploadAllocator };
+    ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
+
+    const D3D12_TEXTURE_COPY_LOCATION dstLocation
+    {
+      .pResource        { resource },
+      .Type             { D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX },
+      .SubresourceIndex { ( UINT )params.mDstSubresourceIndex },
+    };
+
+    const UINT DstX{ ( UINT )params.mDstPos.x };
+    const UINT DstY{ ( UINT )params.mDstPos.x };
+    const UINT DstZ{ 0 };
+
+    ID3D12Resource* srcResource{};
+
+    const D3D12_SUBRESOURCE_FOOTPRINT srcFootprint
+    {
+      //.Format     {DXGI_FORMAT },
+      //.Width     {UINT },
+      //.Height     {UINT },
+      //.Depth     {UINT },
+      //.RowPitch {UINT },
+    };
+
+    const D3D12_PLACED_SUBRESOURCE_FOOTPRINT srcPlacedFootprint
+    {
+      //.Offset{UINT64 ...},
+      //.Footprint{srcFootprint},
+    };
+
+    const D3D12_TEXTURE_COPY_LOCATION srcLocation
+    {
+      .pResource        { srcResource },
+      .Type             { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
+      .PlacedFootprint  { srcPlacedFootprint },
+    };
+
+    commandList->CopyTextureRegion(  
+            &dstLocation,
+            DstX,
+            DstY,
+            DstZ,
+            &srcLocation,
+            nullptr );// &srcBox );
     TAC_ASSERT_UNIMPLEMENTED;
   }
 

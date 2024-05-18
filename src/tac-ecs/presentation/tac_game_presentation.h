@@ -2,11 +2,9 @@
 
 #include "tac-rhi/render3/tac_render_api.h"
 
-#define TAC_GAME_PRESENTATION_ENABLED() 0
+#define TAC_GAME_PRESENTATION_ENABLED() 1
 
 #if TAC_GAME_PRESENTATION_ENABLED()
-
-
 
 namespace Tac
 {
@@ -16,6 +14,7 @@ namespace Tac
   struct Mesh;
   struct Model;
   struct Graphics;
+  struct WindowHandle;
 }
 
 namespace Tac
@@ -27,7 +26,7 @@ namespace Tac
                                                         const Camera*,
                                                         int viewWidth,
                                                         int viewHeight,
-                                                        Render::ViewHandle );
+                                                        WindowHandle );
   void                          GamePresentationDebugImGui( Graphics* );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );
   //Render::BufferHandle  GamePresentationGetPerFrame();

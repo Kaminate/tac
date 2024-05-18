@@ -30,7 +30,6 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 
-//#include <cmath> // std::fmod
 
 #if TAC_GAME_PRESENTATION_ENABLED()
 
@@ -97,16 +96,27 @@ namespace Tac
                                                 const int viewHeight )
   {
     const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
-    const Render::InProj inProj  { .mNear = camera->mNearPlane, .mFar = camera->mFarPlane };
-    const Render::OutProj outProj { Render::GetPerspectiveProjectionAB( inProj ) };
-    const float a { outProj.mA };
-    const float b { outProj.mB };
     const float w { ( float )viewWidth };
     const float h { ( float )viewHeight };
+    const float aspectRatio{ w / h };
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
+    const m4::ProjectionMatrixParams projParams
+    {
+      .mNDCMinZ       { ndcAttribs.mMinZ },
+      .mNDCMaxZ       { ndcAttribs.mMaxZ },
+      .mViewSpaceNear { camera->mNearPlane },
+      .mViewSpaceFar  { camera->mFarPlane },
+      .mAspectRatio   { aspectRatio },
+      .mFOVYRadians   { camera->mFovyrad },
+    };
+
+    const m4 view { camera->View() };
+    const m4 proj { m4::ProjPerspective( projParams ) };
     return Render::DefaultCBufferPerFrame
     {
-      .mView        { camera->View() },
-      .mProjection  { camera->Proj( a, b, w / h ) },
+      .mView        { view },
+      .mProjection  { proj },
       .mFar         { camera->mFarPlane },
       .mNear        { camera->mNearPlane },
       .mGbufferSize { w, h },
@@ -119,9 +129,12 @@ namespace Tac
                                          const int c,
                                          const v2 uv )
   {
-    return { .mPos = terrain->GetGridVal( r, c ),
-             .mNor = terrain->GetGridValNormal( r, c ),
-             .mUV = uv};
+    return TerrainVertex
+    {
+      .mPos { terrain->GetGridVal( r, c ) },
+      .mNor { terrain->GetGridValNormal( r, c ) },
+      .mUV  { uv },
+    };
   }
 
   static void Debug3DEachTri( Graphics* graphics )
@@ -343,20 +356,20 @@ namespace Tac
 
     const Render::VertexDeclaration posDecl
     {
-      .mAttribute { Render::Attribute::Position },
-      .mTextureFormat { Render::Format::sv3 },
-      .mAlignedByteOffset {( int )TAC_OFFSET_OF( TerrainVertex, mPos ) },
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::Format::sv3 },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mPos ) },
     };
     const Render::VertexDeclaration norDecl
     {
-      .mAttribute { Render::Attribute::Normal },
-      .mTextureFormat { Render::Format::sv3 },
+      .mAttribute         { Render::Attribute::Normal },
+      .mFormat            { Render::Format::sv3 },
       .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mNor ) },
     };
     const Render::VertexDeclaration uvDecl
     {
-      .mAttribute { Render::Attribute::Texcoord },
-      .mTextureFormat { Render::Format::sv2 },
+      .mAttribute         { Render::Attribute::Texcoord },
+      .mFormat            { Render::Format::sv2 },
       .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mUV ) },
     };
 
@@ -388,7 +401,7 @@ namespace Tac
       .mBlendRGB { Render::BlendMode::Add },
       .mSrcA     { Render::BlendConstants::Zero },
       .mDstA     { Render::BlendConstants::One },
-      .mBlendA   { Render::BlendMode::Ad }d
+      .mBlendA   { Render::BlendMode::Add },
     };
     mBlendState = Render::CreateBlendState( state, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mBlendState, "game-pres-blend" );
@@ -428,7 +441,7 @@ namespace Tac
                             const Camera* camera,
                             const int viewWidth,
                             const int viewHeight,
-                            const Render::ViewHandle viewId )
+                            const WindowHandle viewId )
   {
     if( !mRenderEnabledModel )
       return;
@@ -615,15 +628,15 @@ namespace Tac
                                       const Camera* camera,
                                       const int viewWidth,
                                       const int viewHeight,
-                                      const Render::ViewHandle viewId )
+                                      const WindowHandle windowHandle )
   {
     TAC_RENDER_GROUP_BLOCK( "GamePresentationRender" );
 
     ShadowPresentationRender( world );
 
-    RenderModels( world, camera, viewWidth, viewHeight, viewId );
+    RenderModels( world, camera, viewWidth, viewHeight, windowHandle );
 
-    RenderTerrain( world, camera, viewWidth, viewHeight, viewId );
+    RenderTerrain( world, camera, viewWidth, viewHeight, windowHandle );
 
     // Skybox should be last to reduce pixel shader invocations
     RenderSkybox( world,

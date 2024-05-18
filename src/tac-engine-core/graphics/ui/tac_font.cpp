@@ -8,6 +8,7 @@
 #include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/filesystem/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -16,9 +17,9 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string_util.h"
 
-#define TAC_DEBUGGING_ATLAS 0
+#define TAC_DEBUGGING_ATLAS() 0
 
-#if TAC_DEBUGGING_ATLAS
+#if TAC_DEBUGGING_ATLAS()
 #include "tac-engine-core/thirdparty/stb_image_write.h"
 #endif
 
@@ -67,7 +68,6 @@ namespace Tac
     FontDims         mFontDims;
   };
 
-
   // coords: (rows down, columns right)
   struct TexelRegion
   {
@@ -84,30 +84,29 @@ namespace Tac
     void                            Load( Errors& );
     void                            Uninit();
     void                            DebugImgui();
-    FontAtlasCell*                  GetCharacter( Language defaultLanguage, Codepoint );
+    FontAtlasCell*                  GetCharacter( Language , Codepoint );
     FontAtlasCell*                  GetCell();
-    //void                            InitAtlasSolidColor(void*, u8);
-    void                            InitAtlasCheckerboard(void*, u8, u8);
-    void                            FillAtlasRegion( void*, const TexelRegion& , u8 );// inclusive
+    void                            InitAtlasCheckerboard( void*, u8, u8 );
+    void                            FillAtlasRegion( void*, const TexelRegion&, u8 );// inclusive
     Render::TextureHandle           mTextureId;
-    int                             mPxStride { 0 };
-    int                             mPxWidth { 0 };
-    int                             mPxHeight { 0 };
-    int                             mCellRowCount { 0 };
-    int                             mCellColCount { 0 };
+    int                             mPxStride {};
+    int                             mPxWidth {};
+    int                             mPxHeight {};
+    int                             mCellRowCount {};
+    int                             mCellColCount {};
     Vector< FontAtlasCell* >        mCells;
     Vector< FontFile* >             mFontFiles;
     Map< Language, FontFile* >      mDefaultFonts;
-    bool                            FORCE_DRAW_EVERY_TIME { false };
+    bool                            FORCE_DRAW_EVERY_TIME {};
   };
 
   FontAtlas gFontStuff;
 
-  const Render::Format atlasFormat =
+  const Render::Format atlasFormat
   {
-      .mElementCount { 1 },
-      .mPerElementByteCount { sizeof( u8 ) },
-      .mPerElementDataType { Render::GraphicsType::unor }m
+    .mElementCount        { 1 },
+    .mPerElementByteCount { sizeof( u8 ) },
+    .mPerElementDataType  { Render::GraphicsType::unorm},
   };
 
   const Render::Format& sdfFormat { atlasFormat };
@@ -179,10 +178,10 @@ namespace Tac
 
     mFontDims = FontDims
     {
-      .mUnscaledAscent { ( float )ascent },
+      .mUnscaledAscent  { ( float )ascent },
       .mUnscaledDescent { ( float )descent },
       .mUnscaledLinegap { ( float )linegap },
-      .mScale { scale },
+      .mScale           { scale },
     };
 
 
@@ -274,10 +273,10 @@ namespace Tac
         const int beginColumn { c * ( FontCellPxWidth + BilinearFilteringPadding ) };
         const TexelRegion region
         {
-          .mBeginRow { beginRow },
+          .mBeginRow    { beginRow },
           .mBeginColumn { beginColumn },
-          .mWidth { FontCellPxWidth },
-          .mHeight { FontCellPxHeight },
+          .mWidth       { FontCellPxWidth },
+          .mHeight      { FontCellPxHeight },
         };
         FillAtlasRegion( initialAtlasMemory, region, val );
       }
@@ -289,7 +288,7 @@ namespace Tac
   {
     const String lowerAssetPath { ToLower( assetPath ) };
 
-    for( int iLanguage { 0 }; iLanguage < ( int )Language::Count; ++iLanguage )
+    for( int iLanguage {  }; iLanguage < ( int )Language::Count; ++iLanguage )
     {
       const Language curLanguage { Language( iLanguage ) };
       const String lowerLanguage { ToLower( LanguageToStr( curLanguage ) ) };
@@ -311,17 +310,18 @@ namespace Tac
     mPxHeight = mCellRowCount * FontCellPxHeight + ( mCellRowCount - 1 ) * BilinearFilteringPadding;
     mPxStride = mPxWidth;
 
-    const int atlasVramByteCount = mPxWidth * mPxHeight;
+    const int atlasVramByteCount { mPxWidth * mPxHeight };
 
-    const AssetPathStrings fontAssetPaths{
-      TAC_CALL( IterateAssetsInDir( "assets/fonts", AssetIterateType::Default, errors ) ) };
+    TAC_CALL( const AssetPathStrings fontAssetPaths{
+      IterateAssetsInDir( "assets/fonts", AssetIterateType::Default, errors ) } );
+
     for( const AssetPathString& assetPath : fontAssetPaths )
     {
       const Language language { GetAssetPathLanguage( assetPath ) };
       if( language == Language::Count )
         continue;
 
-      TAC_CALL( auto fontFile = TAC_NEW FontFile( assetPath, errors ));
+      TAC_CALL( FontFile* fontFile{ TAC_NEW FontFile( assetPath, errors ) } );
 
       mFontFiles.push_back( fontFile );
 
@@ -345,7 +345,7 @@ namespace Tac
     const String formattedBytes{ FormatBytes(
       FormatByteSpec
       {
-        .mByteCount { atlasVramByteCount },
+        .mByteCount       { atlasVramByteCount },
         .mMinDenomination { 1024 * 1024 },
       } ) };
 
@@ -368,28 +368,35 @@ namespace Tac
     const u8 light { ( u8 )( 0.75f * 255 ) };
     InitAtlasCheckerboard( initialAtlasMemory, dark, light );
 
+    const Render::Image image
+    {
+      .mWidth  { mPxWidth },
+      .mHeight { mPxHeight },
+      .mFormat { atlasFormat},
+    };
+
+    const Render::CreateTextureParams::Subresource subresource
+    {
+      .mBytes { initialAtlasMemory },
+      .mPitch { mPxStride },
+    };
+
     const Render::CreateTextureParams cmdData
     {
-      .mImage = Render::Image
-      {
-        .mWidth { mPxWidth },
-        .mHeight { mPxHeight },
-        .mFormat { atlasForma }t
-      },
-      .mPitch { mPxStride },
-      .mImageBytes { initialAtlasMemory },
-      .mBinding { Render::Binding::ShaderResource },
-      .mAccess { Render::Usage::Dynamic },
-      .mCpuAccess { Render::CPUAccess::Write },
+      .mImage        { image },
+      .mMipCount     { 1 },
+      .mSubresources { &subresource },
+      .mBinding      { Render::Binding::ShaderResource },
+      .mUsage        { Render::Usage::Default },
+      .mCpuAccess    { Render::CPUAccess::Write },
       .mOptionalName { "text-atlas" },
-      .mStackFrame { TAC_STACK_FRAME },
+      .mStackFrame   { TAC_STACK_FRAME },
     };
     mTextureId = TAC_CALL( renderDevice->CreateTexture( cmdData, errors ) );
   }
 
   FontAtlasCell* FontAtlas::GetCharacter( Language defaultLanguage, Codepoint codepoint )
   {
-#if TAC_TEMPORARILY_DISABLED()
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     //LanguageStuff* languageStuff = mLanguageStuffs[ defaultLanguage ];
     //FontStyle fontStyle = FontStyle::NormalText;
@@ -400,7 +407,7 @@ namespace Tac
     if( result && !FORCE_DRAW_EVERY_TIME )
       return result;
 
-    auto glyphIndex { stbtt_FindGlyphIndex( &fontFile->mFontInfo, codepoint ) };
+    const int glyphIndex { stbtt_FindGlyphIndex( &fontFile->mFontInfo, codepoint ) };
     if( !glyphIndex )
       return nullptr;
 
@@ -412,8 +419,8 @@ namespace Tac
     stbtt_GetGlyphHMetrics( &fontFile->mFontInfo, glyphIndex, &unscaledAdvanceWidth, &unscaledLeftSideBearing );
 
     // output height & width of the SDF bitmap (including padding)
-    int sdfwidth { 0 };
-    int sdfheight { 0 };
+    int sdfWidth {};
+    int sdfHeight {};
 
     // sdf pixel bmp space
     //
@@ -445,8 +452,8 @@ namespace Tac
     // TLx = cursorX + xOff * relativeScale
     // TLy = cursorY + yOff * relativeScale
 
-    int sdfxoff { 0 };
-    int sdfyoff { 0 };
+    int sdfxoff {  };
+    int sdfyoff {  };
 
     const float scale { fontFile->mFontDims.mScale };
 
@@ -459,17 +466,17 @@ namespace Tac
                                                  FontCellInnerSDFPadding,
                                                  onedge_value,
                                                  pixel_dist_scale,
-                                                 &sdfwidth,
-                                                 &sdfheight,
+                                                 &sdfWidth,
+                                                 &sdfHeight,
                                                  &sdfxoff,
                                                  &sdfyoff ) };
 
-#if TAC_DEBUGGING_ATLAS
+#if TAC_DEBUGGING_ATLAS()
     static bool written;
     if( !written && sdfBytes )
     {
       written = true;
-      int write_result { stbi_write_bmp("deleteme.bmp", sdfwidth, sdfheight, 1, sdfBytes) };
+      int write_result { stbi_write_bmp("deleteme.bmp", sdfWidth, sdfHeight, 1, sdfBytes) };
       if( !write_result )
       {
         ++asdf;
@@ -479,8 +486,8 @@ namespace Tac
 #endif
 
 
-    TAC_ASSERT( sdfwidth <= FontCellPxWidth );
-    TAC_ASSERT( sdfheight <= FontCellPxHeight );
+    TAC_ASSERT( sdfWidth <= FontCellPxWidth );
+    TAC_ASSERT( sdfHeight <= FontCellPxHeight );
 
     TAC_ON_DESTRUCT(
        stbtt_FreeSDF( sdfBytes, nullptr );
@@ -504,8 +511,8 @@ namespace Tac
 
     const v2 minDXTexCoord{ cell->mPxColumn / ( float )mPxWidth,
                             cell->mPxRow / ( float )mPxHeight };
-    const v2 maxDXTexCoord{ minDXTexCoord + v2( sdfwidth / ( float )mPxWidth,
-                                                sdfheight / ( float )mPxWidth ) };
+    const v2 maxDXTexCoord{ minDXTexCoord + v2( sdfWidth / ( float )mPxWidth,
+                                                sdfHeight / ( float )mPxWidth ) };
 
     // cant use cell = FontAtlasCell{ .foo = bar, ... } because FontAtlasCell has other bookkeeping
 
@@ -516,8 +523,8 @@ namespace Tac
     cell->mUnscaledLeftSideBearing = ( float )unscaledLeftSideBearing;
     cell->mSDFxOffset = sdfxoff;
     cell->mSDFyOffset = sdfyoff;
-    cell->mSDFWidth = sdfwidth;
-    cell->mSDFHeight = sdfheight;
+    cell->mSDFWidth = sdfWidth;
+    cell->mSDFHeight = sdfHeight;
     cell->mMinDXTexCoord = minDXTexCoord;
     cell->mMaxDXTexCoord = maxDXTexCoord;
 
@@ -528,56 +535,62 @@ namespace Tac
     //
     // This is also useful to see atlas cells taken up by characters with no sdf (ie ' ')
     // because their cell will be black instead of checkerboard
+#if TAC_DEBUGGING_ATLAS()
     {
       const u8 srcBytes[ FontCellPxWidth * FontCellPxHeight ]  {};
 
       const Render::Image src
       {
-        .mWidth { FontCellPxWidth },
+        .mWidth  { FontCellPxWidth },
         .mHeight { FontCellPxHeight },
         .mFormat { atlasFormat },
       };
 
-      Render::UpdateTextureParams data
+      const Render::UpdateTextureParams data
       {
-        .mSrc { src },
-        .mDstX { cell->mPxColumn },
-        .mDstY { cell->mPxRow },
+        .mSrc      { src },
+        .mDstX     { cell->mPxColumn },
+        .mDstY     { cell->mPxRow },
         .mSrcBytes { srcBytes },
-        .mPitch { FontCellPxWidth },
+        .mPitch    { FontCellPxWidth },
       };
 
       renderDevice->UpdateTexture( mTextureId, data );
     }
+#endif
 
-    if( sdfwidth && sdfheight )
+    if( sdfWidth && sdfHeight )
     {
       const Render::Image src
       {
-        .mWidth { sdfwidth },
-        .mHeight { sdfheight },
+        .mWidth  { sdfWidth },
+        .mHeight { sdfHeight },
         .mFormat { sdfFormat },
+      };
+
+      const Render::CreateTextureParams::Subresource srcSubresource
+      {
+        .mBytes{ sdfBytes },
+        .mPitch{ sdfWidth },
       };
 
       // TODO: this function de/allocates a temporary texture every time.
       // Instead, create a texture once, and write to it with D3D11_MAP_DISCARD
-      Render::UpdateTextureParams data
+      const Render::UpdateTextureParams updateTextureParams
       {
-        .mSrc { src },
-        .mDstX { cell->mPxColumn },
-        .mDstY { cell->mPxRow },
-        .mSrcBytes { sdfBytes },
-        .mPitch { sdfwidth },
+        .mSrcImage            { src },
+        .mSrcSubresource      { srcSubresource },
+        .mDstSubresourceIndex { 0 },
+        .mDstPos              { cell->mPxColumn, cell->mPxRow },
       };
 
-      renderDevice->UpdateTexture( mTextureId, data );
+      Render::IContext* context{};
+      Errors errors;
+      context->UpdateTexture( mTextureId, updateTextureParams, errors );
     }
 
     result = cell;
     return result;
-#else
-    return {};
-#endif
   }
 
   FontAtlasCell* FontAtlas::GetCell()
@@ -589,11 +602,11 @@ namespace Tac
       const int cellRow { cellIndex / mCellRowCount };
       const int cellColumn { cellIndex % mCellRowCount };
 
-      auto cell{ TAC_NEW FontAtlasCell
+      FontAtlasCell* cell{ TAC_NEW FontAtlasCell
       {
-        .mPxRow { cellRow * ( FontCellPxHeight + BilinearFilteringPadding ) },
-        .mPxColumn { cellColumn * ( FontCellPxWidth + BilinearFilteringPadding ) },
-        .mCellRow { cellRow },
+        .mPxRow      { cellRow * ( FontCellPxHeight + BilinearFilteringPadding ) },
+        .mPxColumn   { cellColumn * ( FontCellPxWidth + BilinearFilteringPadding ) },
+        .mCellRow    { cellRow },
         .mCellColumn { cellColumn },
       } };
 
@@ -611,7 +624,7 @@ namespace Tac
         oldest = cell;
     }
 
-    auto owner { oldest->mOwner };
+    FontFile* owner { oldest->mOwner };
     owner->mCells.erase( oldest->mCodepoint );
     oldest->mOwner = nullptr;
     return oldest;

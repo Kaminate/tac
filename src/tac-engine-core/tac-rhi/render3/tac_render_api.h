@@ -255,7 +255,7 @@ namespace Tac::Render
       int         mPitch{}; // byte count between texel rows (aka stride)
     };
 
-    using Subresources = Span< Subresource >;
+    using Subresources = Span< const Subresource >;
 
     struct CubemapFace
     {
@@ -302,6 +302,10 @@ namespace Tac::Render
 
   struct UpdateTextureParams
   {
+    Image                            mSrcImage;
+    CreateTextureParams::Subresource mSrcSubresource;
+    int                              mDstSubresourceIndex{};
+    v2i                              mDstPos{};
   };
 
   struct ProgramParams
@@ -386,9 +390,9 @@ namespace Tac::Render
 
     virtual void ClearColor( TextureHandle, v4 ) {}
     virtual void ClearDepth( TextureHandle, float ) {}
-    virtual void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) {}
 
     virtual void SetVertexBuffer( BufferHandle ) {}
+
     //                                       | hack?/todo? this makes it so that i allocate the dyn buffer
     //                                       | once per frame in this function, but then i have to group all
     //                                       | the updates together in a span.
@@ -396,6 +400,8 @@ namespace Tac::Render
     //                                       | it would be nicer to just if(first call this frame){allocate buf}
     //                                       v then i can call updatebuffer from multiple places.
     virtual void UpdateBuffer( BufferHandle, Span< const UpdateBufferParams >, Errors& ) {}
+
+    virtual void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) {}
 
     virtual void Draw( DrawArgs ) {}
     virtual void Execute( Errors& ) {}
@@ -440,7 +446,7 @@ namespace Tac::Render
     virtual Info            GetInfo() const { return {}; }
 
     virtual PipelineHandle  CreatePipeline( PipelineParams, Errors& ) {}
-    virtual IShaderVar*     GetShaderVariable( PipelineHandle, StringView ) { return {}; }
+    virtual IShaderVar*     GetShaderVarTexture( PipelineHandle, StringView ) { return {}; }
     virtual void            DestroyPipeline( PipelineHandle ) {}
 
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& ) {}
