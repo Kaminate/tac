@@ -4,7 +4,7 @@
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "src/common/dataprocess/tac_settings.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-level-editor/tac_level_editor.h"

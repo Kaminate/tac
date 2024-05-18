@@ -1,28 +1,27 @@
 #include "tac_level_editor_prefab.h" // self-inc
 
-#include "src/common/assetmanagers/tac_asset.h"
-#include "tac-std-lib/containers/tac_vector.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "src/common/dataprocess/tac_settings.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_camera.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/os/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-level-editor/tac_level_editor.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-level-editor/tac_level_editor.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
-  const char* refFrameVecNamePosition = "mPos";
-  const char* refFrameVecNameForward  = "mForwards";
-  const char* refFrameVecNameRight    = "mRight";
-  const char* refFrameVecNameUp       = "mUp";
+  const char* refFrameVecNamePosition { "mPos" };
+  const char* refFrameVecNameForward  { "mForwards" };
+  const char* refFrameVecNameRight    { "mRight" };
+  const char* refFrameVecNameUp       { "mUp" };
 
   // this would be saved as a .map file in cod engine
   struct Prefab
@@ -35,7 +34,7 @@ namespace Tac
   };
 
   static Vector< Prefab* >  mPrefabs;
-  static const char*        prefabSettingsPath = "prefabs";
+  static const char*        prefabSettingsPath { "prefabs" };
 
   static void         PrefabUpdateOpenedInEditor()
   {
@@ -46,7 +45,7 @@ namespace Tac
         if( !entity->mParent )
           documentPaths.push_back( prefab->mAssetPath );
 
-    Json* prefabJson = SettingsGetJson( prefabSettingsPath );
+    Json* prefabJson { SettingsGetJson( prefabSettingsPath ) };
     prefabJson->Clear();
     for( const AssetPathString& documentPath : documentPaths )
       *prefabJson->AddChild() = Json( documentPath.c_str() );
@@ -55,19 +54,23 @@ namespace Tac
   }
 
 
-  static void         PrefabLoadCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
+  static void         PrefabLoadCameraVec( Prefab* prefab,
+                                           StringView refFrameVecName,
+                                           v3& refFrameVec )
   {
     if( prefab->mAssetPath.empty() )
       return;
 
-    for( int iAxis = 0; iAxis < 3; ++iAxis )
+    for( int iAxis {  }; iAxis < 3; ++iAxis )
     {
-      const JsonNumber defaultValue = refFrameVec[ iAxis ];
+      const JsonNumber defaultValue { refFrameVec[ iAxis ] };
 
-      Json* refFramesJson = SettingsGetJson( { "prefabCameraRefFrames" } );
-      Json* refFrameJson = SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson );
+      Json* refFramesJson { SettingsGetJson( { "prefabCameraRefFrames" } ) };
+      Json* refFrameJson { SettingsGetChildByKeyValuePair( "path",
+                                                           Json( prefab->mAssetPath ),
+                                                           refFramesJson ) };
 
-      String axisValuePath = refFrameVecName;
+      String axisValuePath { refFrameVecName };
       axisValuePath += '.';
       axisValuePath += "xyz"[ iAxis ];
       const JsonNumber axisValue = SettingsGetNumber( axisValuePath, defaultValue, refFrameJson );
@@ -85,12 +88,14 @@ namespace Tac
     PrefabLoadCameraVec( prefab, refFrameVecNameUp, camera->mUp );
   }
 
-  static void         PrefabSaveCameraVec( Prefab* prefab, StringView refFrameVecName, v3 refFrameVec )
+  static void         PrefabSaveCameraVec( Prefab* prefab,
+                                           StringView refFrameVecName,
+                                           v3 refFrameVec )
   {
     if( prefab->mAssetPath.empty() )
       return;
 
-    for( int iAxis { 0 }; iAxis < 3; ++iAxis )
+    for( int iAxis {  }; iAxis < 3; ++iAxis )
     {
       Json* refFramesJson { SettingsGetJson( { "prefabCameraRefFrames" } ) };
       Json* refFrameJson { SettingsGetChildByKeyValuePair( "path", Json( prefab->mAssetPath ), refFramesJson ) };
@@ -140,13 +145,12 @@ namespace Tac
 
     AllocateEntityUUIDsRecursively( entityUUIDCounter, entity );
 
-
-    auto prefab = TAC_NEW Prefab
+    Prefab* prefab{ TAC_NEW Prefab
     {
       //prefab->mDocumentPath = prefabPath;
-      .mEntities = { entity },
-      .mAssetPath = prefabPath,
-    };
+      .mEntities  { entity },
+      .mAssetPath { prefabPath },
+    } };
 
     mPrefabs.push_back( prefab );
 
@@ -189,7 +193,7 @@ namespace Tac
     if( entity->mParent )
       return;
 
-    Prefab* prefab = PrefabFind( entity );
+    Prefab* prefab { PrefabFind( entity ) };
     if( !prefab )
     {
       prefab = TAC_NEW Prefab;
@@ -201,15 +205,15 @@ namespace Tac
     // Get document paths for prefabs missing them
     if( prefab->mAssetPath.empty() )
     {
-      Filesystem::Path suggestedFilename { entity->mName + ".prefab" };
+      FileSys::Path suggestedFilename { entity->mName + ".prefab" };
       const OS::SaveParams saveParams
       {
         .mSuggestedFilename { &suggestedFilename },
       };
       
-      TAC_CALL( Filesystem::Path savePath = OS::OSSaveDialog( saveParams, errors ) );
+      TAC_CALL( const FileSys::Path savePath{ OS::OSSaveDialog( saveParams, errors ) } );
 
-      TAC_CALL( AssetPathStringView assetPath = ModifyPathRelative( savePath, errors ) );
+      TAC_CALL( const AssetPathStringView assetPath{ ModifyPathRelative( savePath, errors ) } );
 
       prefab->mAssetPath = assetPath;
     }
@@ -218,8 +222,8 @@ namespace Tac
     const String prefabJsonString { entityJson.Stringify() };
     const void* bytes { prefabJsonString.data() };
     const int byteCount { prefabJsonString.size() };
-    const Filesystem::Path fsPath( prefab->mAssetPath );
-    TAC_CALL( Filesystem::SaveToFile( fsPath, bytes, byteCount, errors ) );
+    const FileSys::Path fsPath( prefab->mAssetPath );
+    TAC_CALL( FileSys::SaveToFile( fsPath, bytes, byteCount, errors ) );
   }
 
   void                PrefabSave( World* world, Errors& errors )
@@ -245,12 +249,12 @@ namespace Tac
   static void         PrefabRemoveEntityRecursivelyAux( Entity* entity )
   {
     int prefabCount { mPrefabs.size() };
-    for( int iPrefab { 0 }; iPrefab < prefabCount; ++iPrefab )
+    for( int iPrefab {  }; iPrefab < prefabCount; ++iPrefab )
     {
       Prefab* prefab { mPrefabs[ iPrefab ] };
       bool removedEntityFromPrefab { false };
       int prefabEntityCount { prefab->mEntities.size() };
-      for( int iPrefabEntity { 0 }; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
+      for( int iPrefabEntity {  }; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
       {
         if( prefab->mEntities[ iPrefabEntity ] == entity )
         {
@@ -298,9 +302,12 @@ namespace Tac
     TAC_IMGUI_INDENT_BLOCK;
     for( Entity* entity : prefab->mEntities )
     {
-      if( ImGuiButton( ShortFixedString::Concat( "select entity of uuid ",
-          ToString( ( UUID )entity->mEntityUUID ) ) ) )
+      if( ImGuiButton( String()
+          + "select entity of uuid "
+          + ToString( ( UUID )entity->mEntityUUID ) ) )
+      {
         gCreation.mSelectedEntities.Select( entity );
+      }
     }
   }
   void                PrefabImGui()

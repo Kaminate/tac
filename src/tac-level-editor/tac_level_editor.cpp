@@ -5,7 +5,7 @@
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "src/common/dataprocess/tac_json.h"
-#include "src/common/dataprocess/tac_settings.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "src/common/graphics/tac_camera.h"
 #include "src/common/graphics/tac_color_util.h"

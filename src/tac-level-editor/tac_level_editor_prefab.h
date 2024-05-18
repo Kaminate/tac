@@ -2,6 +2,7 @@
 
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/tac_space.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 
 namespace Tac { struct AssetPathStringView; struct Errors; }
 namespace Tac
