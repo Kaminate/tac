@@ -117,16 +117,16 @@ namespace Tac
       const auto desktopEventType = sEventQueue.QueuePop< DesktopEventType >();
       switch( desktopEventType )
       {
-      case DesktopEventType::CursorUnobscured:   sHandler->Handle( sEventQueue.QueuePop<CursorUnobscuredEvent>() );     break;
-      case DesktopEventType::KeyInput:           sHandler->Handle( sEventQueue.QueuePop<KeyInputEvent>() );             break;
-      case DesktopEventType::KeyState:           sHandler->Handle( sEventQueue.QueuePop<KeyStateEvent>() );             break;
-      case DesktopEventType::MouseMove:          sHandler->Handle( sEventQueue.QueuePop<MouseMoveEvent>() );            break;
-      case DesktopEventType::MouseWheel:         sHandler->Handle( sEventQueue.QueuePop<MouseWheelEvent>() );           break;
-      case DesktopEventType::WindowCreate:       sHandler->Handle( sEventQueue.QueuePop<WindowCreateEvent>(), errors ); break;
-      case DesktopEventType::WindowDestroy:      sHandler->Handle( sEventQueue.QueuePop<WindowDestroyEvent>() );        break;
-      case DesktopEventType::WindowMove:         sHandler->Handle( sEventQueue.QueuePop<WindowMoveEvent>() );           break;
-      case DesktopEventType::WindowResize:       sHandler->Handle( sEventQueue.QueuePop<WindowResizeEvent>() );         break;
-      case DesktopEventType::WindowVisible:      sHandler->Handle( sEventQueue.QueuePop<WindowVisibleEvent>() );        break;
+      case DesktopEventType::CursorUnobscured:   sHandler->Handle( sEventQueue.QueuePop< CursorUnobscuredEvent >() );     break;
+      case DesktopEventType::KeyInput:           sHandler->Handle( sEventQueue.QueuePop< KeyInputEvent >() );             break;
+      case DesktopEventType::KeyState:           sHandler->Handle( sEventQueue.QueuePop< KeyStateEvent >() );             break;
+      case DesktopEventType::MouseMove:          sHandler->Handle( sEventQueue.QueuePop< MouseMoveEvent >() );            break;
+      case DesktopEventType::MouseWheel:         sHandler->Handle( sEventQueue.QueuePop< MouseWheelEvent >() );           break;
+      case DesktopEventType::WindowCreate:       sHandler->Handle( sEventQueue.QueuePop< WindowCreateEvent >(), errors ); break;
+      case DesktopEventType::WindowDestroy:      sHandler->Handle( sEventQueue.QueuePop< WindowDestroyEvent >() );        break;
+      case DesktopEventType::WindowMove:         sHandler->Handle( sEventQueue.QueuePop< WindowMoveEvent >() );           break;
+      case DesktopEventType::WindowResize:       sHandler->Handle( sEventQueue.QueuePop< WindowResizeEvent >() );         break;
+      case DesktopEventType::WindowVisible:      sHandler->Handle( sEventQueue.QueuePop< WindowVisibleEvent >() );        break;
       default: TAC_ASSERT_INVALID_CASE( desktopEventType ); return;
       }
     }

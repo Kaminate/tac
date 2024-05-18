@@ -17,6 +17,7 @@ namespace Tac
   struct SimWindowApi
   {
     bool         IsShown( WindowHandle ) const;
+    bool         IsHovered( WindowHandle ) const;
     v2i          GetPos( WindowHandle ) const;
     v2i          GetSize( WindowHandle ) const;
     StringView   GetName( WindowHandle ) const;

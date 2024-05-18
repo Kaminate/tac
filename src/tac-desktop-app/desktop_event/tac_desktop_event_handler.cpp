@@ -39,7 +39,7 @@ namespace Tac
 
   void DesktopEventHandler::Handle( const DesktopEventApi::CursorUnobscuredEvent& data ) 
   {
-    //SetHoveredWindow( data.mWindowHandle );
+    mWindowBackend->SetWindowHovered( data.mWindowHandle );
   }
 
   void DesktopEventHandler::Handle( const DesktopEventApi::KeyInputEvent& data ) 

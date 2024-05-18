@@ -39,6 +39,7 @@ namespace Tac
     void SetWindowIsVisible( WindowHandle, bool );
     void SetWindowSize( WindowHandle, v2i );
     void SetWindowPos( WindowHandle, v2i );
+    void SetWindowHovered( WindowHandle );
     v2i  GetWindowPos( WindowHandle );
     void ApplyEnd();
 

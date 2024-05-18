@@ -40,10 +40,12 @@ namespace Tac
   //   Locked by the simulation thread in GameLogicUpdate()
   //   to copy sGameLogicCurr to sPlatformCurr
   static std::mutex   sWindowStateMutex;
-  static WindowStates sGameLogicCurr;
-  static WindowStates sPlatformCurr;
+  static WindowStates sSimCurr;
+  static WindowHandle sSimHovered;
+  static WindowHandle sSysHovered;
+  static WindowStates sSysCurr;
   static bool         sModificationAllowed;
-  static NWHArray     sPlatformNative;
+  static NWHArray     sSysNative;
   static FBArray      sFramebuffers;
 
   // Contains data for a window to be created as requested by game logic simulation
@@ -112,14 +114,14 @@ namespace Tac
   {
     TAC_ASSERT( sModificationAllowed );
     const int i { h.GetIndex() };
-    sPlatformCurr[ i ] = WindowState
+    sSysCurr[ i ] = WindowState
     {
       .mName  { name },
       .mPos   { pos },
       .mSize  { size },
       .mShown { false },
     };
-    sPlatformNative[ i ] = nwh;
+    sSysNative[ i ] = nwh;
 
     if( mCreatesSwapChain )
     {
@@ -139,8 +141,8 @@ namespace Tac
   {
     TAC_ASSERT( sModificationAllowed );
     const int i { h.GetIndex() };
-    sPlatformCurr[ i ] = {};
-    sPlatformNative[ i ] = {};
+    sSysCurr[ i ] = {};
+    sSysNative[ i ] = {};
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -152,14 +154,14 @@ namespace Tac
   void SysWindowApiBackend::SetWindowIsVisible( WindowHandle h, bool shown )
   {
     TAC_ASSERT( sModificationAllowed );
-    sPlatformCurr[ h.GetIndex() ].mShown = shown;
+    sSysCurr[ h.GetIndex() ].mShown = shown;
   }
 
   void SysWindowApiBackend::SetWindowSize( WindowHandle h, v2i size )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i { h.GetIndex() };
-    sPlatformCurr[ i ].mSize = size;
+    sSysCurr[ i ].mSize = size;
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -170,13 +172,19 @@ namespace Tac
   void SysWindowApiBackend::SetWindowPos( WindowHandle h, v2i pos )
   {
     TAC_ASSERT( sModificationAllowed );
-    sPlatformCurr[ h.GetIndex() ].mPos = pos;
+    sSysCurr[ h.GetIndex() ].mPos = pos;
+  }
+
+  void SysWindowApiBackend::SetWindowHovered( WindowHandle h )
+  {
+    TAC_ASSERT( sModificationAllowed );
+    sSysHovered = h;
   }
 
   v2i  SysWindowApiBackend::GetWindowPos( WindowHandle h )
   {
     TAC_ASSERT( sModificationAllowed );
-    return sPlatformCurr[ h.GetIndex() ].mPos;
+    return sSysCurr[ h.GetIndex() ].mPos;
   }
 
   void SysWindowApiBackend::ApplyEnd()
@@ -210,8 +218,8 @@ namespace Tac
     for( WindowHandle h : sDestroyRequests )
     {
       const int i { h.GetIndex() };
-      sPlatformCurr[ i ] = {};
-      sPlatformNative[ i ] = {};
+      sSysCurr[ i ] = {};
+      sSysNative[ i ] = {};
       platform->PlatformDespawnWindow( h );
       FreeWindowHandle( h );
     }
@@ -227,7 +235,8 @@ namespace Tac
   void SimWindowApiBackend::Sync()
   {
     sWindowStateMutex.lock();
-    sGameLogicCurr = sPlatformCurr;
+    sSimCurr = sSysCurr;
+    sSimHovered = sSysHovered;
     sWindowStateMutex.unlock();
   }
 
@@ -261,49 +270,54 @@ namespace Tac
 
   bool         SimWindowApi::IsShown( WindowHandle h ) const
   {
-    return sGameLogicCurr[ h.GetIndex() ].mShown;
+    return sSimCurr[ h.GetIndex() ].mShown;
+  }
+
+  bool         SimWindowApi::IsHovered( WindowHandle h ) const
+  {
+    return sSimHovered == h;
   }
 
   v2i          SimWindowApi::GetPos( WindowHandle h ) const
   {
-    return sGameLogicCurr[ h.GetIndex() ].mPos;
+    return sSimCurr[ h.GetIndex() ].mPos;
   }
 
   v2i          SimWindowApi::GetSize( WindowHandle h ) const
   {
-    return sGameLogicCurr[ h.GetIndex() ].mSize;
+    return sSimCurr[ h.GetIndex() ].mSize;
   }
 
   StringView   SimWindowApi::GetName( WindowHandle h ) const
   {
-    return sGameLogicCurr[ h.GetIndex() ].mName;
+    return sSimCurr[ h.GetIndex() ].mName;
   }
 
   // -----------------------------------------------------------------------------------------------
 
   bool             SysWindowApi::IsShown( WindowHandle h ) const
   {
-    return sPlatformCurr[ h.GetIndex() ].mShown;
+    return sSysCurr[ h.GetIndex() ].mShown;
   }
 
   v2i              SysWindowApi::GetPos( WindowHandle h ) const
   {
-    return sPlatformCurr[ h.GetIndex() ].mPos;
+    return sSysCurr[ h.GetIndex() ].mPos;
   }
 
   v2i              SysWindowApi::GetSize( WindowHandle h ) const
   {
-    return sPlatformCurr[ h.GetIndex() ].mSize;
+    return sSysCurr[ h.GetIndex() ].mSize;
   }
 
   StringView       SysWindowApi::GetName( WindowHandle h ) const
   {
-    return sPlatformCurr[ h.GetIndex() ].mName;
+    return sSysCurr[ h.GetIndex() ].mName;
   }
 
   const void*      SysWindowApi::GetNWH( WindowHandle h ) const // native window handle
   {
-    return sPlatformNative[ h.GetIndex() ];
+    return sSysNative[ h.GetIndex() ];
   }
 
   WindowHandle     SysWindowApi::CreateWindow( WindowCreateParams params, Errors& errors ) const

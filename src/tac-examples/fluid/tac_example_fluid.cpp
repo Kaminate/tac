@@ -361,13 +361,16 @@ namespace Tac
 
     }
 
-    void MouseDrag()
+    void MouseDrag( const SimKeyboardApi* keyboardApi,
+                    const SimWindowApi* windowApi )
     {
-
-      const WindowHandle WindowHandle = ImGuiGetWindowHandle();
-      if( !IsWindowHovered( WindowHandle ) )
+      const WindowHandle windowHandle = ImGuiGetWindowHandle();
+      if( windowApi->IsShown( windowHandle ) )
         return;
-      const DesktopWindowState* state = GetDesktopWindowState( WindowHandle );
+
+      if( !IsWindowHovered( windowHandle ) )
+        return;
+      const DesktopWindowState* state = GetDesktopWindowState( windowHandle );
       if( !state )
         return;
       const v2 desktopWindowPos( ( float )state->mX, ( float )state->mY );
