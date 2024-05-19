@@ -220,10 +220,10 @@ namespace Tac
     
     mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
 
-    if( const bool drawWindow = mEnableBG
-        && ( mParent || mStretchWindow || mWindowHandleOwned ) )
+    if( const bool drawWindow{ mEnableBG
+        && ( mParent || mStretchWindow || mWindowHandleOwned ) } )
     {
-      const ImGuiRect origRect = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
+      const ImGuiRect origRect { ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
       if( Overlaps( origRect ) )
       {
         const ImGuiRect clipRect { Clip( origRect ) };
@@ -372,14 +372,18 @@ namespace Tac
       if( resource.mImGuiId == imGuiId && resource.mIndex == index )
         return resource.mData.data();
 
-    RegisteredWindowResource* pRegistered { WindowResourceRegistry::GetInstance()->FindResource( index ) };
+    WindowResourceRegistry* registry{ WindowResourceRegistry::GetInstance() };
+    RegisteredWindowResource* pRegistered { registry->FindResource( index ) };
     TAC_ASSERT( pRegistered );
 
     mResources.resize( mResources.size() + 1 );
     ImGuiWindowResource& resource { mResources.back() };
-    resource.mData = pRegistered->mInitialData;
-    resource.mImGuiId = imGuiId;
-    resource.mIndex = index;
+    resource = ImGuiWindowResource
+    {
+      .mImGuiId { imGuiId },
+      .mIndex   { index },
+      .mData    { pRegistered->mInitialData },
+    };
     return resource.mData.data();
   }
 
