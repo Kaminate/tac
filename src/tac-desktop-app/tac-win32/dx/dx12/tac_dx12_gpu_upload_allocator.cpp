@@ -103,7 +103,7 @@ namespace Tac::Render
 
   // GPUUploadPageManager
 
-  void DX12UploadPageMgr::Init( ID3D12Device* device, DX12CommandQueue* commandQueue )
+  void           DX12UploadPageMgr::Init( ID3D12Device* device, DX12CommandQueue* commandQueue )
   {
     mDevice = device;
     mCommandQueue = commandQueue;
@@ -111,7 +111,7 @@ namespace Tac::Render
     TAC_ASSERT( mCommandQueue );
   };
 
-  void DX12UploadPageMgr::UnretirePages()
+  void           DX12UploadPageMgr::UnretirePages()
   {
     int n { mRetiredPages.size() };
     if( !n )
@@ -131,8 +131,8 @@ namespace Tac::Render
           mAvailablePages.push_back( currPage.mPage );
         }
 
+        currPage = {};
         Swap( currPage, backPage );
-        backPage = {};
         --n;
       }
       else
@@ -166,8 +166,6 @@ namespace Tac::Render
 
   DX12UploadPage DX12UploadPageMgr::AllocateNewPage( int byteCount, Errors& errors )
   {
-    TAC_ASSERT( byteCount == DX12UploadPage::kDefaultByteCount );
-
     const D3D12_HEAP_PROPERTIES HeapProps
     {
       .Type                 { D3D12_HEAP_TYPE_UPLOAD },
@@ -212,11 +210,9 @@ namespace Tac::Render
     DX12SetName( buffer.Get(), "upload page" );
 
     void* cpuAddr;
-
-    TAC_DX12_CALL_RET( {}, buffer->Map(
-      0, // subrsc idx
-      nullptr, // nullptr indicates the whole subrsc may be read by cpu
-      &cpuAddr ) );
+    const UINT subresourceIdx{};
+    const D3D12_RANGE* pReadRange{};
+    TAC_DX12_CALL_RET( {}, buffer->Map( subresourceIdx, pReadRange, &cpuAddr ) );
 
     return DX12UploadPage
     {
@@ -226,17 +222,16 @@ namespace Tac::Render
       .mCPUAddr       { cpuAddr },
       .mByteCount     { byteCount },
     };
-
   }
 
-  void          DX12UploadPageMgr::RetirePage( DX12UploadPage page, FenceSignal signal )
+  void           DX12UploadPageMgr::RetirePage( DX12UploadPage page, FenceSignal signal )
   {
-    const RetiredPage retired
+    const RetiredPage retiredPage
     {
       .mPage  { page },
       .mFence { signal },
     };
-    mRetiredPages.push_back( retired );
+    mRetiredPages.push_back( retiredPage );
   }
 
 

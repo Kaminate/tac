@@ -5,37 +5,36 @@
 #pragma once
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/containers/tac_map.h"
+#include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
-#include "tac-engine-core/settings/tac_settings_node.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/containers/tac_map.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-//#include "tac-rhi/render/tac_render_handles.h" // DynamicBufferHandle2
-#include "tac-rhi/render3/tac_render_api.h"
 
 #undef FindWindow
 
 namespace Tac
 {
   typedef int ImGuiId;
-  const int ImGuiIdNull = -1;
+  const int ImGuiIdNull { -1 };
 
   struct ImGuiIDAllocator
   {
-    ImGuiId mActiveID = ImGuiIdNull;
-    ImGuiId mIDCounter = 0;
+    ImGuiId mActiveID  { ImGuiIdNull };
+    ImGuiId mIDCounter {};
   };
 
   struct GroupData
   {
     //    Position of the cursor when starting the group
-    v2    mSavedCursorDrawPos;
-    float mSavedLineHeight = 0;
+    v2    mSavedCursorDrawPos {};
+    float mSavedLineHeight    {};
   };
 
 
@@ -47,9 +46,9 @@ namespace Tac
 
   struct ImGuiWindowResource
   {
-    ImGuiId                       mImGuiId = ImGuiIdNull;
-    ImGuiIndex                    mIndex = -1;
-    Vector< char >                mData;
+    ImGuiId                       mImGuiId { ImGuiIdNull };
+    ImGuiIndex                    mIndex   { -1 };
+    Vector< char >                mData    {};
   };
 
   struct ImGuiWindow
@@ -64,13 +63,13 @@ namespace Tac
     //                            this lets the window internally update the cursor and other
     //                            positioning-related housekeeping information for scrollbars,
     //                            sameline, groups, etc.
-    void                          ItemSize( v2 size );
+    void                          ItemSize( v2 );
 
     //                            Clipping/Culling functions
     bool                          Overlaps( const ImGuiRect& ) const;
     ImGuiRect                     Clip( const ImGuiRect& ) const;
 
-    void                          UpdateMaxCursorDrawPos( v2 pos );
+    void                          UpdateMaxCursorDrawPos( v2 );
     ImGuiId                       GetID();
     void                          SetActiveID( ImGuiId );
     ImGuiId                       GetActiveID();
@@ -85,32 +84,32 @@ namespace Tac
     //const DesktopWindowState*     GetDesktopWindowState() const;
 
 
-    String                        mName;
-    ImGuiWindow*                  mParent { nullptr };
+    String                        mName                        {};
+    ImGuiWindow*                  mParent                      {};
 
     //                            The most bottom right the cursor has ever been,
     //                            updated during ItemSize()
-    v2                            mViewportSpaceMaxiCursor{};
-    v2                            mViewportSpaceCurrCursor{};
-    v2                            mViewportSpacePrevCursor{};
+    v2                            mViewportSpaceMaxiCursor     {};
+    v2                            mViewportSpaceCurrCursor     {};
+    v2                            mViewportSpacePrevCursor     {};
 
     //                            Position of this ImGuiWindow relative to its viewport ( native desktop window )
     //                            A value of (0,0) is at the top left ( probably mParent == nullptr )
-    v2                            mViewportSpacePos  {};
-    v2                            mSize  {};
+    v2                            mViewportSpacePos            {};
+    v2                            mSize                        {};
 
     //                            The viewport-space region in which visible ui is displayed on the screen
     //                            "Visible" here meaning not offscreen due to scrolling
-    ImGuiRect                     mViewportSpaceVisibleRegion{};
+    ImGuiRect                     mViewportSpaceVisibleRegion  {};
 
-    float                         mCurrLineHeight { 0 };
-    float                         mPrevLineHeight { 0 };
+    float                         mCurrLineHeight              {};
+    float                         mPrevLineHeight              {};
 
     //                            The viewport-space pixel offset that the cursor should start at before
     //                            rendering any ui elements.
-    float                         mScroll { 0 };
-    v2                            mScrollMousePosScreenspaceInitial{};
-    bool                          mScrolling { false };
+    float                         mScroll                           {};
+    v2                            mScrollMousePosScreenspaceInitial {};
+    bool                          mScrolling                        {};
 
     Vector< GroupData >           mGroupSK;
 
@@ -119,25 +118,25 @@ namespace Tac
     Vector< float >               mXOffsets;
 
     //                            Shared between sub-windows
-    ImGuiIDAllocator*             mIDAllocator { nullptr };
-    struct TextInputData*         mTextInputData { nullptr };
-    Map< ImGuiId, bool >          mCollapsingHeaderStates;
-    bool                          mIsAppendingToMenu { false };
-    Vector< ImGuiWindowResource > mResources;
-    struct UI2DDrawData*          mDrawData { nullptr };
+    ImGuiIDAllocator*             mIDAllocator                 {};
+    struct TextInputData*         mTextInputData               {};
+    Map< ImGuiId, bool >          mCollapsingHeaderStates      {};
+    bool                          mIsAppendingToMenu           {};
+    Vector< ImGuiWindowResource > mResources                   {};
+    struct UI2DDrawData*          mDrawData                    {};
 
-    ImGuiDesktopWindow*           mDesktopWindow;
-    bool                          mWindowHandleOwned { false };
+    ImGuiDesktopWindow*           mDesktopWindow               {};
+    bool                          mWindowHandleOwned           {};
 
     //                            [ ] Q: What does this parameter do
-    bool                          mStretchWindow { false };
+    bool                          mStretchWindow               {};
     
     //                            [ ] Q: What does this parameter do
-    bool                          mMoveResizeWindow { false };
-    bool                          mEnableBG { true };
+    bool                          mMoveResizeWindow            {};
+    bool                          mEnableBG                    { true };
 
     //                            [ ] Q: What does this parameter do
-    Timestamp                     mRequestTime{};
+    Timestamp                     mRequestTime                 {};
   };
 
   struct ImGuiRenderBuffer
@@ -175,25 +174,17 @@ namespace Tac
 
   struct ImGuiPersistantViewport
   {
-    WindowHandle                 mWindowHandle;
-    int                          mFrameIndex{};
-    Vector< ImGuiRenderBuffers > mRenderBuffers;
+    WindowHandle                 mWindowHandle  {};
+    int                          mFrameIndex    {};
+    Vector< ImGuiRenderBuffers > mRenderBuffers {};
   };
 
   struct ImGuiPersistantPlatformData
   {
     static ImGuiPersistantPlatformData Instance;
 
-    void UpdateAndRender( ImGuiSysDrawParams, Errors& );
-
-    ImGuiPersistantViewport* GetPersistantWindowData( WindowHandle h)
-    {
-      for( ImGuiPersistantViewport& viewportData : mViewportDatas )
-        if( viewportData.mWindowHandle == h )
-          return &viewportData;
-      mViewportDatas.push_back( ImGuiPersistantViewport{ .mWindowHandle = h } );
-      return &mViewportDatas.back();
-    }
+    void                     UpdateAndRender( ImGuiSysDrawParams, Errors& );
+    ImGuiPersistantViewport* GetPersistantWindowData( WindowHandle );
 
     Vector< ImGuiPersistantViewport > mViewportDatas;
   };
@@ -208,20 +199,20 @@ namespace Tac
   {
     static ImGuiGlobals               Instance;
 
-    ImGuiMouseCursor                  mMouseCursor = ImGuiMouseCursor::kNone;
-    ImGuiWindow*                      FindWindow( const StringView& name );
+    ImGuiWindow*                      FindWindow( const StringView& );
     ImGuiDesktopWindowImpl*           FindDesktopWindow( WindowHandle );
 
-    Timestamp                         mElapsedSeconds;
-    Vector< ImGuiWindow* >            mAllWindows;
-    Vector< ImGuiWindow* >            mWindowStack;
-    Vector< ImGuiDesktopWindowImpl* > mDesktopWindows;
-    ImGuiWindow*                      mCurrentWindow { nullptr };
+    ImGuiMouseCursor                  mMouseCursor        { ImGuiMouseCursor::kNone };
+    Timestamp                         mElapsedSeconds     {};
+    Vector< ImGuiWindow* >            mAllWindows         {};
+    Vector< ImGuiWindow* >            mWindowStack        {};
+    Vector< ImGuiDesktopWindowImpl* > mDesktopWindows     {};
+    ImGuiWindow*                      mCurrentWindow      {};
     Vector< float >                   mFontSizeSK; // wtf does sk stand for?
     UIStyle                           mUIStyle;
-    WindowHandle                      mMouseHoveredWindow;
-    bool                              mScrollBarEnabled { true };
-    int                               mMaxGpuFrameCount{};
+    WindowHandle                      mMouseHoveredWindow {};
+    bool                              mScrollBarEnabled   { true };
+    int                               mMaxGpuFrameCount   {};
 
     // Ok so here's a problem:
     //
@@ -231,19 +222,19 @@ namespace Tac
     //   However ImGuiPlatformRender runs on the system thread and should not have access to these.
     // 
     // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
-    SimWindowApi*                     mSimWindowApi{};
-    SimKeyboardApi*                   mSimKeyboardApi{};
-    SettingsNode                      mSettingsNode;
+    SimWindowApi*                     mSimWindowApi       {};
+    SimKeyboardApi*                   mSimKeyboardApi     {};
+    SettingsNode                      mSettingsNode       {};
   };
 
   struct ImGuiNextWindow
   {
-    v2           mPosition  {};
-    v2           mSize  {};
-		WindowHandle mWindowHandle;
-    bool         mStretch { false };
-    bool         mMoveResize { false };
-    bool         mEnableBG { true }; // Set false to disable background render
+    v2           mPosition       {};
+    v2           mSize           {};
+    WindowHandle mWindowHandle   {};
+    bool         mStretch        {};
+    bool         mMoveResize     {};
+    bool         mEnableBG       { true }; // Set false to disable background render
   };
 
   extern ImGuiNextWindow gNextWindow;

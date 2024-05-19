@@ -585,10 +585,10 @@ namespace Tac
   void UI2DDrawData::AddText( const Text& text, const ImGuiRect* clipRect )
   {
 #if TAC_FONT_ENABLED()
-    const v2& textPos = text.mPos;
-    const float fontSize = text.mFontSize;
-    const StringView& utf8 = text.mUtf8;
-    const v4& color = text.mColor;
+    const v2& textPos { text.mPos };
+    const float fontSize { text.mFontSize };
+    const StringView& utf8 { text.mUtf8 };
+    const v4& color { text.mColor };
 
     if( utf8.empty() )
       return;
@@ -596,30 +596,32 @@ namespace Tac
     const CodepointString codepointString{ UTF8ToCodepointString( utf8 ) };
     const CodepointView codepoints{ codepointString.data(), codepointString.size() };
 
-    Language defaultLanguage = Language::English;
-    auto fontFile = FontApi::GetLanguageFontDims( defaultLanguage );
+    Language defaultLanguage { Language::English };
+    const FontDims* fontFile { FontApi::GetLanguageFontDims( defaultLanguage ) };
 
-    const float fontSizeRelativeScale = fontSize / TextPxHeight;
-    const float fontSizeScale = fontFile->mScale * fontSizeRelativeScale;
+    const float fontSizeRelativeScale { fontSize / TextPxHeight };
+    const float fontSizeScale { fontFile->mScale * fontSizeRelativeScale };
 
     // do i really need to floor everything? does alignment on pixel grid matter?
-    const float ascentPx = (float)(int)(fontFile->mUnscaledAscent * fontSizeScale);
-    const float descentPx = (float)(int)(fontFile->mUnscaledDescent * fontSizeScale);
-    const float linegapPx = (float)(int)(fontFile->mUnscaledLinegap * fontSizeScale);
+    const float ascentPx { (float)(int)(fontFile->mUnscaledAscent * fontSizeScale) };
+    const float descentPx { (float)(int)(fontFile->mUnscaledDescent * fontSizeScale) };
+    const float linegapPx { (float)(int)(fontFile->mUnscaledLinegap * fontSizeScale) };
     const float unscaledLineSpacing
-      = fontFile->mUnscaledAscent
-      - fontFile->mUnscaledDescent
-      + fontFile->mUnscaledLinegap;
-    const float lineSpacingPx = (float)(int)(unscaledLineSpacing * fontSizeScale);
+    {
+      fontFile->mUnscaledAscent -
+      fontFile->mUnscaledDescent +
+      fontFile->mUnscaledLinegap
+    };
+    const float lineSpacingPx { (float)(int)(unscaledLineSpacing * fontSizeScale) };
 
     static v2 glyphMin{};
     static v2 glyphMax{};
 
 
-    v2 baselineCursorPos = textPos + v2( 0, ascentPx );
+    v2 baselineCursorPos { textPos + v2( 0, ascentPx ) };
 
-    const int oldStrIdxCount = mIdxs.size();
-    const int oldStrVtxCount = mVtxs.size();
+    const int oldStrIdxCount { mIdxs.size() };
+    const int oldStrVtxCount { mVtxs.size() };
 
     for( Codepoint codepoint : codepoints )
     {
@@ -633,7 +635,8 @@ namespace Tac
         continue;
       }
 
-      const FontAtlasCell* fontAtlasCell = FontApi::GetFontAtlasCell( defaultLanguage, codepoint );
+      const FontAtlasCell* fontAtlasCell {
+        FontApi::GetFontAtlasCell( defaultLanguage, codepoint ) };
       if( !fontAtlasCell )
         continue;
 
@@ -651,15 +654,17 @@ namespace Tac
       //
       // idk how the sdf offsets take into account the stbtt_GetFontVMetrics ascent descent stuff
 
-      v2 sdfOffset( ( float )fontAtlasCell->mSDFxOffset, ( float )fontAtlasCell->mSDFyOffset );
-      v2 sdfSize( ( float )fontAtlasCell->mSDFWidth, ( float )fontAtlasCell->mSDFHeight );
+      const v2 sdfOffset( ( float )fontAtlasCell->mSDFxOffset,
+                          ( float )fontAtlasCell->mSDFyOffset );
+      const v2 sdfSize( ( float )fontAtlasCell->mSDFWidth,
+                        ( float )fontAtlasCell->mSDFHeight );
 
       //v2 baselinePos( xPxCursor, yPxBaseline );
 
       glyphMin = baselineCursorPos + fontSizeRelativeScale * (sdfOffset);
       glyphMax = baselineCursorPos + fontSizeRelativeScale * (sdfOffset + sdfSize);
 
-      const ImGuiRect glyphRect = ImGuiRect::FromMinMax( glyphMin, glyphMax );
+      const ImGuiRect glyphRect { ImGuiRect::FromMinMax( glyphMin, glyphMax ) };
       
 
       // Coordinate system reminder:
@@ -690,24 +695,40 @@ namespace Tac
       // v
       // y
 
-      const float GLMinU = fontAtlasCell->mMinDXTexCoord.x;
-      const float GLMaxU = fontAtlasCell->mMaxDXTexCoord.x;
-      const float GLMinV = 1.0f - fontAtlasCell->mMaxDXTexCoord.y;
-      const float GLMaxV = 1.0f - fontAtlasCell->mMinDXTexCoord.y;
+      const float GLMinU { fontAtlasCell->mMinDXTexCoord.x };
+      const float GLMaxU { fontAtlasCell->mMaxDXTexCoord.x };
+      const float GLMinV { 1.0f - fontAtlasCell->mMaxDXTexCoord.y };
+      const float GLMaxV { 1.0f - fontAtlasCell->mMinDXTexCoord.y };
 
-      const int idxCount = 6;
-      const int vtxCount = 4;
+      const int idxCount { 6 };
+      const int vtxCount { 4 };
 
-      const UI2DVertex TL{ .mPosition = { glyphMin.x, glyphMin.y }, .mGLTexCoord = { GLMinU, GLMaxV } };
-      const UI2DVertex BL{ .mPosition = { glyphMin.x, glyphMax.y }, .mGLTexCoord = { GLMinU, GLMinV } };
-      const UI2DVertex BR{ .mPosition = { glyphMax.x, glyphMax.y }, .mGLTexCoord = { GLMaxU, GLMinV } };
-      const UI2DVertex TR{ .mPosition = { glyphMax.x, glyphMin.y }, .mGLTexCoord = { GLMaxU, GLMaxV } };
-      const UI2DVertex vtxs[] = { TL, BL, BR, TR };
+      const UI2DVertex TL
+      {
+        .mPosition    { glyphMin.x, glyphMin.y },
+        .mGLTexCoord  { GLMinU, GLMaxV }
+      };
+      const UI2DVertex BL
+      {
+        .mPosition    { glyphMin.x, glyphMax.y },
+        .mGLTexCoord  { GLMinU, GLMinV }
+      };
+      const UI2DVertex BR
+      {
+        .mPosition    { glyphMax.x, glyphMax.y },
+        .mGLTexCoord  { GLMaxU, GLMinV }
+      };
+      const UI2DVertex TR
+      {
+        .mPosition    { glyphMax.x, glyphMin.y },
+        .mGLTexCoord  { GLMaxU, GLMaxV }
+      };
+      const UI2DVertex vtxs[]  { TL, BL, BR, TR };
       static_assert( vtxCount == TAC_ARRAY_SIZE( vtxs ) );
 
-      const int oldCharVtxCount = mVtxs.size();
-      const int oldCharIdxCount = mIdxs.size();
-      const UI2DIndex idxs[] = { 0, 1, 2, 0, 2, 3 };
+      const int oldCharVtxCount { mVtxs.size() };
+      const int oldCharIdxCount { mIdxs.size() };
+      const UI2DIndex idxs[]  { 0, 1, 2, 0, 2, 3 };
       static_assert( idxCount == TAC_ARRAY_SIZE( idxs ) );
 
       mIdxs.resize( oldCharIdxCount + idxCount );
@@ -723,33 +744,36 @@ namespace Tac
 
     }
 
-    const int newStrIdxCount = mIdxs.size();
-    const int newStrVtxCount = mVtxs.size();
+    const int newStrIdxCount { mIdxs.size() };
+    const int newStrVtxCount { mVtxs.size() };
 
-    const int strIdxCount = newStrIdxCount - oldStrIdxCount;
-    const int strVtxCount = newStrVtxCount - oldStrVtxCount;
+    const int strIdxCount { newStrIdxCount - oldStrIdxCount };
+    const int strVtxCount { newStrVtxCount - oldStrVtxCount };
 
     // Everything has been clipped
     if( !strIdxCount && !strVtxCount )
       return;
 
-    const Render::DefaultCBufferPerObject perObjectData =
+    const Render::PremultipliedAlpha colorPremultiplied {
+      Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ) };
+
+    const Render::DefaultCBufferPerObject perObjectData
     {
-      .World = m4::Identity(),
-      .Color = Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ),
+      .World { m4::Identity() },
+      .Color { colorPremultiplied },
     };
 
-    const Render::TextureHandle texture = FontApi::GetAtlasTextureHandle();
+    const Render::TextureHandle texture { FontApi::GetAtlasTextureHandle() };
 
     const UI2DDrawCall drawCall
     {
-      .mIVertexStart = oldStrVtxCount,
-      .mVertexCount = strVtxCount,
-      .mIIndexStart = oldStrIdxCount,
-      .mIndexCount = strIdxCount,
-      .mShader = gUI2DCommonData.m2DTextShader,
-      .mTexture = texture,
-      .mUniformSource = perObjectData,
+      .mIVertexStart  { oldStrVtxCount },
+      .mVertexCount   { strVtxCount },
+      .mIIndexStart   { oldStrIdxCount },
+      .mIndexCount    { strIdxCount },
+      .mShader        { gUI2DCommonData.m2DTextShader },
+      .mTexture       { texture },
+      .mUniformSource { perObjectData },
     };
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );
@@ -820,7 +844,8 @@ namespace Tac
         }
       }
 
-      const FontAtlasCell* fontAtlasCell = FontApi::GetFontAtlasCell( defaultLanguage, codepoint );
+      const FontAtlasCell* fontAtlasCell{
+        FontApi::GetFontAtlasCell( defaultLanguage, codepoint ) };
       if( !fontAtlasCell )
         continue;
 
@@ -840,7 +865,7 @@ namespace Tac
     const float yUnscaledMax { lineCount * unscaledLineHeight + gapCount * fontFile->mUnscaledLinegap };
 
     const v2 unscaledTextSize( xUnscaledMax, yUnscaledMax );
-    const v2 scaledTextSize = unscaledTextSize * fontSizeScale;
+    const v2 scaledTextSize { unscaledTextSize * fontSizeScale };
     return scaledTextSize;
 #else
     return {};

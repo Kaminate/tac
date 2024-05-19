@@ -31,7 +31,7 @@ namespace Tac
   {
     String         mName;
     Vector< char > mInitialData;
-    ImGuiIndex     mId = 0;
+    ImGuiIndex     mId {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -45,7 +45,7 @@ namespace Tac
     RegisteredWindowResource*          FindResource( ImGuiIndex index );
   private:
     Vector< RegisteredWindowResource > mRegisteredWindowResources;
-    int                                mResourceCounter = 0;
+    int                                mResourceCounter {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -71,18 +71,21 @@ namespace Tac
     Vector< char > initialData;
     if( initialDataBytes )
     {
-      const char* dataBegin = ( char* )initialDataBytes;
-      const char* dataEnd = ( char* )initialDataBytes + initialDataByteCount;
+      const char* dataBegin { ( char* )initialDataBytes };
+      const char* dataEnd { ( char* )initialDataBytes + initialDataByteCount };
       initialData.assign( dataBegin, dataEnd );
     }
     else
     {
       initialData.assign( initialDataByteCount, 0 );
     }
-    const ImGuiIndex id = mResourceCounter++;
-    const RegisteredWindowResource resource{ .mName = name,
-                                             .mInitialData = initialData,
-                                             .mId = id};
+    const ImGuiIndex id { mResourceCounter++ };
+    const RegisteredWindowResource resource
+    {
+      .mName        { name },
+      .mInitialData { initialData },
+      .mId          { id },
+    };
     mRegisteredWindowResources.push_back( resource );
     return id;
   }
@@ -103,42 +106,42 @@ namespace Tac
 
   void         ImGuiWindow::Scrollbar()
   {
-    ImGuiGlobals& globals = ImGuiGlobals::Instance;
-    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+    ImGuiGlobals& globals { ImGuiGlobals::Instance };
+    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
 
-    const bool stuffBelowScreen = mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y;
-    const bool stuffAboveScreen = mScroll;
+    const bool stuffBelowScreen { mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y };
+    const bool stuffAboveScreen{ ( bool )mScroll };
     if( !stuffBelowScreen && !stuffAboveScreen )
       return;
 
     mDrawData->PushDebugGroup( "scrollbar" );
     TAC_ON_DESTRUCT( mDrawData->PopDebugGroup() );
 
-    const float scrollbarWidth = 30;
+    const float scrollbarWidth { 30 };
 
 
-    const v2 scrollbarBackgroundMini = mViewportSpacePos + v2( mSize.x - scrollbarWidth, 0 );
-    const v2 scrollbarBackgroundMaxi = mViewportSpacePos + mSize;
+    const v2 scrollbarBackgroundMini { mViewportSpacePos + v2( mSize.x - scrollbarWidth, 0 ) };
+    const v2 scrollbarBackgroundMaxi { mViewportSpacePos + mSize };
 
-    const UI2DDrawData::Box bg =
+    const UI2DDrawData::Box bg
     {
-      .mMini = scrollbarBackgroundMini,
-      .mMaxi = scrollbarBackgroundMaxi,
-      .mColor = ImGuiGetColor( ImGuiCol::ScrollbarBG ),
+      .mMini  { scrollbarBackgroundMini },
+      .mMaxi  { scrollbarBackgroundMaxi },
+      .mColor { ImGuiGetColor( ImGuiCol::ScrollbarBG ) },
     };
 
     mDrawData->AddBox(bg);
 
-    float contentAllMinY = mViewportSpacePos.y - mScroll;
-    float contentAllMaxY = mViewportSpaceMaxiCursor.y;
-    float contentAllHeight = contentAllMaxY - contentAllMinY;
-    float contentVisibleMinY = mViewportSpacePos.y;
-    float contentVisibleMaxY = mViewportSpacePos.y + mSize.y;
-    float contentVisibleHeight = contentVisibleMaxY - contentVisibleMinY;
+    float contentAllMinY { mViewportSpacePos.y - mScroll };
+    float contentAllMaxY { mViewportSpaceMaxiCursor.y };
+    float contentAllHeight { contentAllMaxY - contentAllMinY };
+    float contentVisibleMinY { mViewportSpacePos.y };
+    float contentVisibleMaxY { mViewportSpacePos.y + mSize.y };
+    float contentVisibleHeight { contentVisibleMaxY - contentVisibleMinY };
 
     // scrollbar min/max position
-    const float scrollMin = 0;
-    const float scrollMax = contentAllHeight - contentVisibleHeight;
+    const float scrollMin { 0 };
+    const float scrollMax { contentAllHeight - contentVisibleHeight };
 
     // scroll with middle mouse
     if( GetActiveID() == ImGuiIdNull
@@ -146,29 +149,33 @@ namespace Tac
         && keyboardApi->GetMouseWheelDelta() )
       mScroll = Clamp( mScroll - keyboardApi->GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
 
-    const v2 scrollbarForegroundMini
-    {
-       3 + scrollbarBackgroundMini.x,
-       3 + mViewportSpacePos.y + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y,
+    const float scrollbarForegroundMiniX{ 3 + scrollbarBackgroundMini.x };
+    const float scrollbarForegroundMiniY{ 3
+      + mViewportSpacePos.y
+      + ( ( contentVisibleMinY - contentAllMinY ) / contentAllHeight ) * mSize.y, };
+
+    const v2 scrollbarForegroundMini( scrollbarForegroundMiniX,
+                                      scrollbarForegroundMiniY );
+
+    const float scrollbarForegroundMaxiX{ -3 + scrollbarBackgroundMaxi.x };
+    const float scrollbarForegroundMaxiY{ -3
+      + mViewportSpacePos.y
+      + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y,
     };
+    const v2 scrollbarForegroundMaxi( scrollbarForegroundMaxiX,
+                                      scrollbarForegroundMaxiY );
 
-    const v2 scrollbarForegroundMaxi
+    const ImGuiRect scrollbarForegroundRect{ ImGuiRect::FromMinMax( scrollbarForegroundMini,
+                                                                     scrollbarForegroundMaxi ) };
+    const bool hovered { IsHovered( scrollbarForegroundRect ) };
+    const float scrollbarHeight { scrollbarForegroundRect.GetHeight() };
+    const bool active { hovered || mScrolling };
+
+    const UI2DDrawData::Box scrollbarBox
     {
-       -3 + scrollbarBackgroundMaxi.x,
-       -3 + mViewportSpacePos.y + ( ( contentVisibleMaxY - contentAllMinY ) / contentAllHeight ) * mSize.y,
-    };
-
-    const ImGuiRect scrollbarForegroundRect = ImGuiRect::FromMinMax( scrollbarForegroundMini,
-                                                                     scrollbarForegroundMaxi );
-    const bool hovered = IsHovered( scrollbarForegroundRect );
-    const float scrollbarHeight = scrollbarForegroundRect.GetHeight();
-    const bool active = hovered || mScrolling;
-
-    const UI2DDrawData::Box scrollbarBox =
-    {
-      .mMini = scrollbarForegroundMini,
-      .mMaxi = scrollbarForegroundMaxi,
-      .mColor =ImGuiGetColor( active ? ImGuiCol::Scrollbar : ImGuiCol::ScrollbarActive ), 
+      .mMini  { scrollbarForegroundMini },
+      .mMaxi  { scrollbarForegroundMaxi },
+      .mColor { ImGuiGetColor( active ? ImGuiCol::Scrollbar : ImGuiCol::ScrollbarActive ) },
     };
 
     mDrawData->AddBox( scrollbarBox );
@@ -179,11 +186,11 @@ namespace Tac
 
     if( mScrolling )
     {
-      const float mouseDY
-        = keyboardApi->GetMousePosScreenspace().y
-        - mScrollMousePosScreenspaceInitial.y;
+      const float mouseDY{
+        keyboardApi->GetMousePosScreenspace().y
+       - mScrollMousePosScreenspaceInitial.y };
       mScrollMousePosScreenspaceInitial.y = keyboardApi->GetMousePosScreenspace().y;
-      const float scrollDY = mouseDY * ( contentVisibleHeight / scrollbarHeight );
+      const float scrollDY{ mouseDY * ( contentVisibleHeight / scrollbarHeight ) };
       mScroll = Clamp( mScroll + scrollDY , scrollMin, scrollMax );
 
 
@@ -201,12 +208,12 @@ namespace Tac
 
   void         ImGuiWindow::BeginFrame()
   {
-    const ImGuiGlobals& globals = ImGuiGlobals::Instance;
-    SimKeyboardApi* keyboardApi = globals.mSimKeyboardApi;
+    const ImGuiGlobals& globals { ImGuiGlobals::Instance };
+    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
 
-    const UIStyle& style = ImGuiGetStyle();
-    const float windowPadding = style.windowPadding;
-    const bool scrollBarEnabled = globals.mScrollBarEnabled;
+    const UIStyle& style { ImGuiGetStyle() };
+    const float windowPadding { style.windowPadding };
+    const bool scrollBarEnabled { globals.mScrollBarEnabled };
 
     mDrawData->PushDebugGroup( "ImguiWindow::BeginFrame", mName );
     TAC_ON_DESTRUCT( mDrawData->PopDebugGroup() );
@@ -219,13 +226,14 @@ namespace Tac
       const ImGuiRect origRect = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
       if( Overlaps( origRect ) )
       {
-        const ImGuiRect clipRect = Clip( origRect );
-        const ImGuiCol col = mParent ? ImGuiCol::ChildWindowBackground : ImGuiCol::WindowBackground;
-        const UI2DDrawData::Box box =
+        const ImGuiRect clipRect { Clip( origRect ) };
+        const ImGuiCol col{
+          mParent ? ImGuiCol::ChildWindowBackground : ImGuiCol::WindowBackground };
+        const UI2DDrawData::Box box
         {
-          .mMini = clipRect.mMini,
-          .mMaxi = clipRect.mMaxi,
-          .mColor = ImGuiGetColor(col),
+          .mMini  { clipRect.mMini },
+          .mMaxi  { clipRect.mMaxi },
+          .mColor { ImGuiGetColor( col ) },
         };
         mDrawData->AddBox( box, &clipRect );
       }
@@ -276,12 +284,12 @@ namespace Tac
 
   ImGuiRect    ImGuiWindow::Clip( const ImGuiRect& clipRect) const
   {
-    const v2 mini { Max( clipRect.mMini, mViewportSpaceVisibleRegion.mMini ) };
-    const v2 maxi { Min( clipRect.mMaxi, mViewportSpaceVisibleRegion.mMaxi ) };
+    const v2 mini{ Max( clipRect.mMini, mViewportSpaceVisibleRegion.mMini ) };
+    const v2 maxi{ Min( clipRect.mMaxi, mViewportSpaceVisibleRegion.mMaxi ) };
     return ImGuiRect
     {
-      .mMini {mini},
-      .mMaxi {maxi},
+      .mMini { mini },
+      .mMaxi { maxi },
     };
   }
 
@@ -325,7 +333,7 @@ namespace Tac
     if( !mouseHoveredWindow.IsValid() )
       return false;
 
-    const WindowHandle windowHandle = GetWindowHandle();
+    const WindowHandle windowHandle { GetWindowHandle() };
     if( mouseHoveredWindow.GetIndex() != windowHandle.GetIndex() )
       return false;
 
@@ -434,7 +442,7 @@ namespace Tac
 
       Span< const Render::UpdateBufferParams > updates( updateBufferParams, drawCount );
 
-      int byteOffset { 0 };
+      int byteOffset {};
       for( SmartPtr< UI2DDrawData >& drawData : mDraws->mDrawData )
       {
         const UI2DDrawData* pDrawData { drawData.Get() };
@@ -631,8 +639,8 @@ namespace Tac
     const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };
     const Render::Targets renderTargets
     {
-      .mColors  { swapChainColor },
-      .mDepth { swapChainDepth },
+      .mColors { swapChainColor },
+      .mDepth  { swapChainDepth },
     };
 
     renderContext->SetRenderTargets( renderTargets );
@@ -720,6 +728,20 @@ namespace Tac
                              viewportDraw,
                              errors );
     }
+  }
+
+  ImGuiPersistantViewport* ImGuiPersistantPlatformData::GetPersistantWindowData( WindowHandle h )
+  {
+    for( ImGuiPersistantViewport& viewportData : mViewportDatas )
+      if( viewportData.mWindowHandle == h )
+        return &viewportData;
+     
+    const ImGuiPersistantViewport persistantViewport
+    {
+      .mWindowHandle { h },
+    };
+    mViewportDatas.push_back( persistantViewport );
+    return &mViewportDatas.back();
   }
 
 

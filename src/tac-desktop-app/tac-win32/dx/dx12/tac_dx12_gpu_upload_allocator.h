@@ -24,11 +24,12 @@ namespace Tac::Render
   {
     void           Init( ID3D12Device* , DX12CommandQueue* );
     DX12UploadPage RequestPage( int byteCount, Errors& );
-    void           UnretirePages();
     void           RetirePage( DX12UploadPage, FenceSignal );
 
   private:
     DX12UploadPage AllocateNewPage( int byteCount, Errors& );
+    void           UnretirePages();
+    //void           FreeLargePages();
 
     struct RetiredPage
     {
@@ -36,12 +37,13 @@ namespace Tac::Render
       FenceSignal    mFence{};
     };
 
-    Vector< RetiredPage >    mRetiredPages;
+    Vector< RetiredPage >    mRetiredPages; // Retired pages get recycled
+    //Vector< RetiredPage >    mRetiredLargePages; // Retired large pages get deleted
     Vector< DX12UploadPage > mAvailablePages;
 
     // singletons
-    PCom< ID3D12Device >    mDevice;
-    DX12CommandQueue*       mCommandQueue { nullptr };
+    PCom< ID3D12Device >     mDevice;
+    DX12CommandQueue*        mCommandQueue {};
   };
 
   struct DX12UploadAllocator
