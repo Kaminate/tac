@@ -42,19 +42,12 @@ namespace Tac::Render
     };
 
     Bindings CreateBindings( ID3D12Resource*, Binding );
-    void     InitializeResourceData( ID3D12Resource*,
-                                     D3D12_HEAP_TYPE,
-                                     CreateTextureParams,
-                                     DX12Context*,
-                                     Errors& );
-    void     TransitionTexture( ID3D12Resource*,
+
+    void     UploadTextureData( ID3D12Resource*,
                                 D3D12_RESOURCE_STATES*,
-                                CreateTextureParams,
+                                UpdateTextureParams,
                                 DX12Context*,
                                 Errors& );
-
-    //Optional< DX12DescriptorHeapAllocation > CreateBindingDSV();
-    //Optional< DX12DescriptorHeapAllocation > CreateBindingRTV();
 
     DX12Textures        mTextures                     {};
     ID3D12Device*       mDevice                       {};

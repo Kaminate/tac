@@ -163,7 +163,6 @@ namespace Tac
 
   FontFile::FontFile( const AssetPathStringView& filepath, Errors& errors )
   {
-    //mFilepath = filepath;
     mAssetPath = filepath;
     mFontMemory = TAC_CALL( LoadAssetPath( filepath, errors ));
 
@@ -183,11 +182,6 @@ namespace Tac
       .mUnscaledLinegap { ( float )linegap },
       .mScale           { scale },
     };
-
-
-    //mUISpaceAscent = ( float )ascent * mScale;
-    //mUISpaceDescent = ( float )descent * mScale;
-    //mUISpaceLinegap = ( float )linegap * mScale;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -288,7 +282,7 @@ namespace Tac
   {
     const String lowerAssetPath { ToLower( assetPath ) };
 
-    for( int iLanguage {  }; iLanguage < ( int )Language::Count; ++iLanguage )
+    for( int iLanguage {}; iLanguage < ( int )Language::Count; ++iLanguage )
     {
       const Language curLanguage { Language( iLanguage ) };
       const String lowerLanguage { ToLower( LanguageToStr( curLanguage ) ) };
@@ -322,11 +316,7 @@ namespace Tac
         continue;
 
       TAC_CALL( FontFile* fontFile{ TAC_NEW FontFile( assetPath, errors ) } );
-
       mFontFiles.push_back( fontFile );
-
-      // Tac::Hash( language ); <-- unused result?
-
       mDefaultFonts[ language ] = fontFile;
     }
 
@@ -336,18 +326,17 @@ namespace Tac
 
     // fill the atlas with a color other than black
     // so we can see the borders of cells as they get come in
-    //void* initialAtlasMemory = Render::SubmitAlloc( atlasVramByteCount );
     Vector< char > initialAtlasMemoryContainer( atlasVramByteCount );
     void* initialAtlasMemory { initialAtlasMemoryContainer.data() };
 
     const int totalCellCount { mCellRowCount * mCellColCount };
 
-    const String formattedBytes{ FormatBytes(
-      FormatByteSpec
-      {
-        .mByteCount       { atlasVramByteCount },
-        .mMinDenomination { 1024 * 1024 },
-      } ) };
+    const FormatByteSpec formatByteSpec
+    {
+      .mByteCount       { atlasVramByteCount },
+      .mMinDenomination { 1024 * 1024 },
+    };
+    const String formattedBytes{ FormatBytes( formatByteSpec ) };
 
     String msg;
     msg += "Font atlas vram size: ";
@@ -452,8 +441,8 @@ namespace Tac
     // TLx = cursorX + xOff * relativeScale
     // TLy = cursorY + yOff * relativeScale
 
-    int sdfxoff {  };
-    int sdfyoff {  };
+    int sdfxoff {};
+    int sdfyoff {};
 
     const float scale { fontFile->mFontDims.mScale };
 
@@ -476,7 +465,8 @@ namespace Tac
     if( !written && sdfBytes )
     {
       written = true;
-      int write_result { stbi_write_bmp("deleteme.bmp", sdfWidth, sdfHeight, 1, sdfBytes) };
+      const int write_result {
+        stbi_write_bmp( "deleteme.bmp", sdfWidth, sdfHeight, 1, sdfBytes ) };
       if( !write_result )
       {
         ++asdf;
@@ -570,12 +560,10 @@ namespace Tac
 
       const Render::CreateTextureParams::Subresource srcSubresource
       {
-        .mBytes{ sdfBytes },
-        .mPitch{ sdfWidth },
+        .mBytes { sdfBytes },
+        .mPitch { sdfWidth },
       };
 
-      // TODO: this function de/allocates a temporary texture every time.
-      // Instead, create a texture once, and write to it with D3D11_MAP_DISCARD
       const Render::UpdateTextureParams updateTextureParams
       {
         .mSrcImage            { src },
@@ -585,6 +573,7 @@ namespace Tac
       };
 
       Render::IContext* context{};
+      TAC_ASSERT( context );
       Errors errors;
       context->UpdateTexture( mTextureId, updateTextureParams, errors );
     }
@@ -626,6 +615,7 @@ namespace Tac
 
     FontFile* owner { oldest->mOwner };
     owner->mCells.erase( oldest->mCodepoint );
+
     oldest->mOwner = nullptr;
     return oldest;
   }

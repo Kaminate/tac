@@ -162,12 +162,10 @@ namespace Tac::Render
     }
 
     return page;
-
   }
 
   DX12UploadPage DX12UploadPageMgr::AllocateNewPage( int byteCount, Errors& errors )
   {
-    //TAC_ASSERT( !mCurPage.IsValid() );
     TAC_ASSERT( byteCount == DX12UploadPage::kDefaultByteCount );
 
     const D3D12_HEAP_PROPERTIES HeapProps
@@ -181,7 +179,7 @@ namespace Tac::Render
 
     const DXGI_SAMPLE_DESC SampleDesc
     {
-      .Count { 1 },
+      .Count   { 1 },
       .Quality { 0 },
     };
 
@@ -233,9 +231,9 @@ namespace Tac::Render
 
   void          DX12UploadPageMgr::RetirePage( DX12UploadPage page, FenceSignal signal )
   {
-    RetiredPage retired
+    const RetiredPage retired
     {
-      .mPage { page },
+      .mPage  { page },
       .mFence { signal },
     };
     mRetiredPages.push_back( retired );

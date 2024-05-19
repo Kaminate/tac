@@ -302,10 +302,10 @@ namespace Tac::Render
 
   struct UpdateTextureParams
   {
-    Image                            mSrcImage;
-    CreateTextureParams::Subresource mSrcSubresource;
-    int                              mDstSubresourceIndex{};
-    v2i                              mDstPos{};
+    Image                             mSrcImage;
+    CreateTextureParams::Subresources mSrcSubresource;
+    int                               mDstSubresourceIndex{};
+    v2i                               mDstPos{};
   };
 
   struct ProgramParams
@@ -446,7 +446,7 @@ namespace Tac::Render
     virtual Info            GetInfo() const { return {}; }
 
     virtual PipelineHandle  CreatePipeline( PipelineParams, Errors& ) {}
-    virtual IShaderVar*     GetShaderVarTexture( PipelineHandle, StringView ) { return {}; }
+    virtual IShaderVar*     GetShaderVariable( PipelineHandle, StringView ) { return {}; }
     virtual void            DestroyPipeline( PipelineHandle ) {}
 
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& ) {}

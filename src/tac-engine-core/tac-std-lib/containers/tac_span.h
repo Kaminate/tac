@@ -30,12 +30,13 @@ namespace Tac
     T*       end()                     { return mTs + mTCount; }
     const T* end() const               { return mTs + mTCount; }
 
-    void operator = ( const Span<T> other )
-    {
-      TAC_ASSERT( mTCount == other.mTCount );
-      for( int i{}; i < mTCount; ++i )
-        mTs[ i ] = other.mTs[ i ];
-    }
+    // v why would this function exist?
+    //void operator = ( const Span< T > other )
+    //{
+    //  TAC_ASSERT( mTCount == other.mTCount );
+    //  for( int i{}; i < mTCount; ++i )
+    //    mTs[ i ] = other.mTs[ i ];
+    //}
 
   private:
     T*  mTs     {};
