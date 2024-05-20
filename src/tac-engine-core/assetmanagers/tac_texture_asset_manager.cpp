@@ -48,12 +48,14 @@ namespace Tac::TextureAssetManager
     Render::TextureHandle CreateTexCubemap( Errors& );
     void                  ExecuteTexSingleJob( Errors& );
     void                  ExecuteTexCubemapJob( Errors& );
-    void                  GenerateMip( bool issRGB, int mip );
+    void                  GenerateMip( int );
 
 
     Vector< AsyncSubresourceData > mSubresources;
-    bool                           mIsCubemap;
+    bool                           mIsCubemap{};
+    bool                           mIs_sRGB{};
     Render::Image                  mImage;
+    Render::TexFmt                 mTexFmt{ Render::TexFmt::kUnknown };
 
     //                             for a single texture, this is a file on desk,
     //                             for a cubemap texture, this is a folder containing 6 files
@@ -176,14 +178,15 @@ namespace Tac::TextureAssetManager
     TAC_CALL( settingsRoot.Init( metaPath, errors ) );
 
     SettingsNode settingsNode{ settingsRoot.GetRootNode() };
-    const bool issRGB{ settingsNode.GetChild( "is sRGB" ).GetValueWithFallback( true ) };
+    mIs_sRGB = settingsNode.GetChild( "is sRGB" ).GetValueWithFallback( true );
+    
     const bool genMips{ settingsNode.GetChild( "gen mips" ).GetValueWithFallback( true ) };
     TAC_CALL( settingsRoot.Flush( errors ) );
 
     int x;
     int y;
     int previousChannelCount;
-    int desiredChannelCount{ 4 };
+    const int requiredChannelCount{ 4 };
 
     // rgba
     const auto memoryByteCount{ ( int )memory.size() };
@@ -193,7 +196,7 @@ namespace Tac::TextureAssetManager
                                              &x,
                                              &y,
                                              &previousChannelCount,
-                                             desiredChannelCount ) };
+                                             requiredChannelCount ) };
     TAC_ON_DESTRUCT( stbi_image_free( loaded ) );
 
     bool shouldConvertToPremultipliedAlpha{ true };
@@ -216,20 +219,15 @@ namespace Tac::TextureAssetManager
       }
     }
 
-    const Render::Format format
-    {
-      .mElementCount = desiredChannelCount,
-      .mPerElementByteCount = 1,
-      .mPerElementDataType = Render::GraphicsType::unorm
-    };
-    const int pitch{ x * format.CalculateTotalByteCount() };
+    const int pitch{ x * 4 };
     const int imageDataByteCount{ y * pitch };
 
+    mTexFmt = mIs_sRGB ? Render::TexFmt::kRGBA8_unorm_srgb : Render::TexFmt::kRGBA8_unorm;
     mImage = Render::Image
     {
-      .mWidth = x,
-      .mHeight = y,
-      .mFormat = format,
+      .mWidth  { x },
+      .mHeight { y },
+      .mFormat { mTexFmt },
     };
 
     const int subresourceCount{
@@ -255,16 +253,13 @@ namespace Tac::TextureAssetManager
 
     if( genMips )
       for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
-        GenerateMip( issRGB, currMip );
+        GenerateMip( currMip );
 
   }
 
-  void TextureLoadJob::GenerateMip( bool issRGB, int currMip )
+
+  void TextureLoadJob::GenerateMip( int currMip )
   {
-
-    const Render::Format& format{ mImage.mFormat };
-    const int texelByteCount{ format.CalculateTotalByteCount() };
-
     const int prevMip{ currMip - 1 };
     const int prevW{ mImage.mWidth >> prevMip };
     const int prevH{ mImage.mHeight >> prevMip };
@@ -272,61 +267,51 @@ namespace Tac::TextureAssetManager
 
     const int currW{ mImage.mWidth >> currMip };
     const int currH{ mImage.mHeight >> currMip };
-    const int currPitch{ currW * texelByteCount };
+    const int currPitch{ currW * 4 };
     AsyncSubresourceData& currData{ mSubresources[ currMip ] };
 
     currData.mPitch = currPitch;
     currData.mBytes.resize( currPitch * currH );
 
-    char* currRow{ currData.mBytes.data() };
-    int currX{};
-    char* currTexel{};
-    for( int currY{}; currY < currH; ++currY, currRow += currPitch )
+    for( int currY{}; currY < currH; ++currY )
     {
-      for( currX = 0, currTexel = currRow; currX < currW; ++currX, currTexel += texelByteCount )
+      for( int currX{}; currX < currW; ++currX )
       {
-        const char* prevTexelTL{ prevData.mBytes.data()
-          + ( currY * 2 ) * prevData.mPitch
-          + ( currX * 2 ) * texelByteCount };
-        const char* prevTexelTR{ prevTexelTL + texelByteCount };
-        const char* prevTexelBL{ prevTexelTL + prevData.mPitch };
-        const char* prevTexelBR{ prevTexelTL + prevData.mPitch + texelByteCount };
-
-
-        for( int iChannel{}; iChannel < format.mElementCount; ++iChannel )
+        for( int iChannel{}; iChannel < 4; ++iChannel )
         {
-          const int channelByteOffset{ iChannel * format.mPerElementByteCount };
-          const char* currChannel{ currTexel + channelByteOffset };
-          const char* prevChannelTL{ prevTexelTL + channelByteOffset };
-          const char* prevChannelTR{ prevTexelTR + channelByteOffset };
-          const char* prevChannelBL{ prevTexelBL + channelByteOffset };
-          const char* prevChannelBR{ prevTexelBR + channelByteOffset };
-
-          if( format.mPerElementDataType == Render::GraphicsType::unorm &&
-              format.mPerElementByteCount == 1 &&
-              issRGB )
+          const int prevOffset
           {
-            const float prevTLLinear{ Pow( *( u8* )prevChannelTL / 255.0f, 2.2f ) };
-            const float prevTRLinear{ Pow( *( u8* )prevChannelTR / 255.0f, 2.2f ) };
-            const float prevBLLinear{ Pow( *( u8* )prevChannelBL / 255.0f, 2.2f ) };
-            const float prevBRLinear{ Pow( *( u8* )prevChannelBR / 255.0f, 2.2f ) };
-            const float prevFilteredLinear{
-              ( prevTLLinear + prevTRLinear + prevBLLinear + prevBRLinear ) / 4 };
+            ( currX * 2 ) * 4 +
+            ( currY * 2 ) * prevData.mPitch +
+            iChannel
+          };
 
-            u8& curr_sRGB{ *( u8* )currChannel };
-            curr_sRGB = u8( Pow( prevFilteredLinear, 1 / 2.2f ) * 255 );
+          const u8 prevChannelTL{ ( u8 )prevData.mBytes[ prevOffset ] };
+          const u8 prevChannelTR{ ( u8 )prevData.mBytes[ prevOffset + 1 ] };
+          const u8 prevChannelBL{ ( u8 )prevData.mBytes[ prevOffset + prevData.mPitch ] };
+          const u8 prevChannelBR{ ( u8 )prevData.mBytes[ prevOffset + prevData.mPitch + 1 ] };
+
+          u8& currChannel{ ( u8& )currData.mBytes[ currX + currY * currPitch + iChannel ] };
+
+          if( mIs_sRGB )
+          {
+            const float prevFilteredLinear
+            {
+              0.25f * Pow( prevChannelTL / 255.0f, 2.2f ) +
+              0.25f * Pow( prevChannelTR / 255.0f, 2.2f ) +
+              0.25f * Pow( prevChannelBL / 255.0f, 2.2f ) +
+              0.25f * Pow( prevChannelBR / 255.0f, 2.2f )
+            };
+
+            currChannel = u8( Pow( prevFilteredLinear, 1 / 2.2f ) * 255 );
           }
           else
           {
-            TAC_ASSERT_UNIMPLEMENTED;
+            currChannel = ( prevChannelTL + prevChannelTR + prevChannelBL + prevChannelBR ) / 4;
           }
-
         }
-
-
       }
     }
-
   }
 
   void TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
@@ -366,13 +351,9 @@ namespace Tac::TextureAssetManager
     TrySortPart( "Front", 4 );
     TrySortPart( "Back", 5 );
 
+    // todo: load hdr cubemaps in rgb16f?
+    mTexFmt = Render::TexFmt::kRGBA8_unorm;
 
-    const Render::Format format
-    {
-      .mElementCount { 4 },
-      .mPerElementByteCount { 1 },
-      .mPerElementDataType { Render::GraphicsType::unorm },
-    };
     int prevW { 0 };
     int prevH { 0 };
     for( int iFile { 0 }; iFile < 6; ++iFile )
@@ -383,6 +364,7 @@ namespace Tac::TextureAssetManager
       int x;
       int y;
       int previousChannelCount;
+      const int requiredChannelCount{ 4 };
       // rgba
       const auto memoryByteCount { ( int )memory.size() };
       const auto memoryData { ( const stbi_uc* )memory.data() };
@@ -391,7 +373,7 @@ namespace Tac::TextureAssetManager
                                                &x,
                                                &y,
                                                &previousChannelCount,
-                                               format.mElementCount ) };
+                                               requiredChannelCount ) };
       TAC_ON_DESTRUCT
       (
         stbi_image_free( loaded );
@@ -409,7 +391,7 @@ namespace Tac::TextureAssetManager
         TAC_RAISE_ERROR( msg );
       }
 
-      const int pitch { x * format.mElementCount * format.mPerElementByteCount };
+      const int pitch { x * 4 };
       const int imageDataByteCount { y * pitch };
 
       AsyncSubresourceData& subresource{ mSubresources[ iFile ] };
@@ -420,9 +402,9 @@ namespace Tac::TextureAssetManager
 
     mImage = Render::Image
     {
-      .mWidth = prevW,
-      .mHeight = prevH,
-      .mFormat = format,
+      .mWidth  { prevW },
+      .mHeight { prevH },
+      .mFormat { mTexFmt },
     };
   }
 

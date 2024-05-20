@@ -179,13 +179,36 @@ namespace Tac
     Vector< ImGuiRenderBuffers > mRenderBuffers {};
   };
 
+
+  struct ImGuiPipelineCache
+  {
+    Render::PipelineHandle GetPipeline( Render::TexFmt, Errors& );
+
+    struct Element
+    {
+      Render::PipelineHandle mPipeline;
+      Render::TexFmt         mTexFmt;
+    };
+
+    Vector< Element >     mElements;
+    Render::ProgramHandle mProgram;
+  };
+
   struct ImGuiPersistantPlatformData
   {
     static ImGuiPersistantPlatformData Instance;
 
+    void                     Init( Errors& );
     void                     UpdateAndRender( ImGuiSysDrawParams, Errors& );
+    void                     UpdateAndRenderWindow( ImGuiSysDrawParams,
+                                                    ImGuiSimWindowDraws*,
+                                                    ImGuiPersistantViewport*,
+                                                    Errors& );
     ImGuiPersistantViewport* GetPersistantWindowData( WindowHandle );
+    Render::PipelineHandle   GetPipeline( Render::TexFmt, Errors& errors );
 
+    Render::ProgramHandle             mProgram;
+    ImGuiPipelineCache                mPipelineCache;
     Vector< ImGuiPersistantViewport > mViewportDatas;
   };
 

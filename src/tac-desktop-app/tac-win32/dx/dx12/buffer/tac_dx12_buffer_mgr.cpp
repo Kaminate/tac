@@ -27,7 +27,7 @@ namespace Tac::Render
   static DXGI_FORMAT GetSRVFormat( CreateBufferParams params )
   {
     if( params.mGpuBufferMode == GpuBufferMode::kStructured )
-      return GetDXGIFormatTexture( params.mGpuBufferFmt );
+      return TexFmtToDxgiFormat( params.mGpuBufferFmt );
 
     if( params.mGpuBufferMode == GpuBufferMode::kByteAddress )
       return DXGI_FORMAT_R32_TYPELESS;
@@ -39,7 +39,6 @@ namespace Tac::Render
   DX12BufferMgr::DescriptorBindings DX12BufferMgr::CreateBindings( ID3D12Resource* resource,
                                                                    CreateBufferParams params )
   {
-
     const Binding binding{ params.mBinding };
 
     Optional< DX12Descriptor > srv;

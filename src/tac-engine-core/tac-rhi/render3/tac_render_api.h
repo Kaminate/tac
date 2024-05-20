@@ -50,7 +50,11 @@ namespace Tac::Render
     kUnknown = 0,
     kD24S8,
     kRGBA16F,
+    kR8_unorm,
+    kRGBA8_unorm,
+    kRGBA8_unorm_srgb,
   };
+
 
 
   //enum DepthStencilType
@@ -140,36 +144,37 @@ namespace Tac::Render
 
   struct FormatElement
   {
+    static FormatElement GetFloat();
+
     int          mPerElementByteCount {};
     GraphicsType mPerElementDataType { GraphicsType::unknown };
-
-    static const FormatElement sFloat;
   };
 
+
   // Used so the gpu can translate from cpu types to gpu types
-  struct Format
+  struct VertexAttributeFormat
   {
-    int           CalculateTotalByteCount() const;
-    static Format FromElements( FormatElement, int = 1 );
+    int                          CalculateTotalByteCount() const;
+    static VertexAttributeFormat FromElements( FormatElement, int = 1 );
+    static VertexAttributeFormat GetFloat();
+    static VertexAttributeFormat GetVector2();
+    static VertexAttributeFormat GetVector3();
+    static VertexAttributeFormat GetVector4();
 
     int           mElementCount        {};
     int           mPerElementByteCount {};
     GraphicsType  mPerElementDataType  { GraphicsType::unknown };
 
-    static const Format sfloat;
-    static const Format sv2;
-    static const Format sv3;
-    static const Format sv4;
   };
 
   struct VertexDeclaration
   {
-    Attribute mAttribute         { Attribute::Count };
-    Format    mFormat            {};
+    Attribute             mAttribute         { Attribute::Count };
+    VertexAttributeFormat mFormat            {};
 
-    //        Offset of the variable from the vertex buffer
-    //        ie: TAC_OFFSET_OF( MyVertexType, mPosition)
-    int       mAlignedByteOffset {};
+    //                    Offset of the variable from the vertex buffer
+    //                    ie: TAC_OFFSET_OF( MyVertexType, mPosition)
+    int                   mAlignedByteOffset {};
   };
 
   struct VertexDeclarations : public FixedVector< VertexDeclaration, 10 > {};
@@ -177,11 +182,10 @@ namespace Tac::Render
   // $$$ Should this still be called an "Image", since the data parameter was removed?
   struct Image
   {
-    int    mWidth  {};
-    int    mHeight {};
-    int    mDepth  {};
-    Format mFormat;
-    TexFmt mFormat2{ TexFmt::kUnknown };
+    int    mWidth   {};
+    int    mHeight  {};
+    int    mDepth   {};
+    TexFmt mFormat  { TexFmt::kUnknown };
 
     // Note that byte data should be passed as a separate argument,
     // and not as a member of this class
@@ -295,7 +299,7 @@ namespace Tac::Render
     Binding       mBinding       { Binding::None };
     CPUAccess     mCpuAccess     { CPUAccess::None };
     GpuBufferMode mGpuBufferMode { GpuBufferMode::kUndefined };
-    Format        mGpuBufferFmt  {}; // used if the GpuBufferMode is kFormatted
+    TexFmt        mGpuBufferFmt  {}; // used if the GpuBufferMode is kFormatted
     StringView    mOptionalName  {};
     StackFrame    mStackFrame    {};
   };

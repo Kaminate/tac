@@ -135,21 +135,21 @@ namespace Tac
          iVertexDeclaration++ )
     {
       const Render::VertexDeclaration& vertexDeclaration { decls[ iVertexDeclaration ] };
-      const Render::Format& dstFormat { vertexDeclaration.mFormat };
+      const Render::VertexAttributeFormat& dstFormat { vertexDeclaration.mFormat };
       const cgltf_attribute_type gltfVertAttributeType { GetGltfFromAttribute( vertexDeclaration.mAttribute ) };
       const cgltf_attribute* gltfVertAttribute { FindAttributeOfType( parsedPrim, gltfVertAttributeType ) };
       if( !gltfVertAttribute )
         continue;
 
       const cgltf_accessor* gltfVertAttributeData { gltfVertAttribute->data };
-      const Render::Format srcFormat { FillDataType( gltfVertAttributeData ) };
+      const Render::VertexAttributeFormat srcFormat { FillDataType( gltfVertAttributeData ) };
       TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
       char* dstVtx { dstVtxBytes.data() };
       char* srcVtx{ ( char* )gltfVertAttributeData->buffer_view->buffer->data +
         gltfVertAttributeData->offset +
         gltfVertAttributeData->buffer_view->offset };
-      int elementCount { Min( dstFormat.mElementCount, srcFormat.mElementCount ) };
-      for( int iVert = 0; iVert < vertexCount; ++iVert )
+      const int elementCount { Min( dstFormat.mElementCount, srcFormat.mElementCount ) };
+      for( int iVert{}; iVert < vertexCount; ++iVert )
       {
         char* srcElement { srcVtx };
         char* dstElement { dstVtx + vertexDeclaration.mAlignedByteOffset };
@@ -199,20 +199,19 @@ namespace Tac
 
     const cgltf_accessor* indices { parsedPrim->indices };
     const void* indiciesData { ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset };
-    const Render::Format indexFormat { FillDataType( indices ) };
-    TAC_UNUSED_PARAMETER(indexFormat);
+    const Render::VertexAttributeFormat indexFormat { FillDataType( indices ) };
     const int indexBufferByteCount { ( int )indices->count * indexFormat.CalculateTotalByteCount() };
     const Render::CreateBufferParams createBufferParams
     {
-      .mByteCount { indexBufferByteCount },
-      .mBytes { indiciesData },
+      .mByteCount    { indexBufferByteCount },
+      .mBytes        { indiciesData },
       .mOptionalName { bufferName },
-      .mStackFrame { TAC_STACK_FRAME },
+      .mStackFrame   { TAC_STACK_FRAME },
       //indexFormat,
     };
-    auto device { Render::RenderApi::GetRenderDevice() };
-    TAC_CALL_RET( {},const Render::BufferHandle indexBuffer{
-       device->CreateBuffer( createBufferParams, errors )  });
+    Render::IDevice* device { Render::RenderApi::GetRenderDevice() };
+    TAC_CALL_RET( {}, const Render::BufferHandle indexBuffer{
+       device->CreateBuffer( createBufferParams, errors ) } );
 
     return indexBuffer;
   }

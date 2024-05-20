@@ -196,7 +196,7 @@ namespace Tac
       .mSimKeyboardApi   { &sSimKeyboardApi },
       .mSettingsNode     { sSettingsRoot.GetRootNode() },
     };
-    ImGuiInit( imguiInitParams );
+    TAC_CALL( ImGuiInit( imguiInitParams, errors ) );
 
     sDesktopEventHandler.mKeyboardBackend = &sKeyboardBackend;
     sDesktopEventHandler.mWindowBackend = &sWindowBackend;
@@ -208,7 +208,7 @@ namespace Tac
     TAC_CALL( sSysThread.Init( errors ) );
     TAC_CALL( sSimThread.Init( errors ) );
 
-    App::InitParams initParams
+    const App::InitParams initParams
     {
       .mWindowApi   { &sSysWindowApi },
       .mKeyboardApi { &sSysKeyboardApi },

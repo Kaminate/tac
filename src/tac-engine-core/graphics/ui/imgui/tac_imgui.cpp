@@ -1323,26 +1323,22 @@ float     Tac::ImGuiGetButtonPadding()
   return style.buttonPadding;
 }
 
-void Tac::ImGuiInit( const ImGuiInitParams& params )
+void Tac::ImGuiInit( const ImGuiInitParams& params, Errors& errors )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   globals.mMaxGpuFrameCount = params.mMaxGpuFrameCount;
-  //globals.mSetWindowPos = params.mSetWindowPos;
-  //globals.mSetWindowSize = params.mSetWindowSize;
-  //globals.mCreateWindow = params.mCreateWindow;
-  //globals.mDestroyWindow = params.mDestroyWindow;
   globals.mSimWindowApi = params.mSimWindowApi;
   globals.mSimKeyboardApi = params.mSimKeyboardApi;
   globals.mSettingsNode = params.mSettingsNode;
 
-  TAC_ASSERT( params.mMaxGpuFrameCount &&
-              //params.mCreateWindow &&
-              //params.mDestroyWindow &&
-              params.mSimWindowApi &&
-              params.mSimKeyboardApi );
+
+  TAC_ASSERT( globals.mMaxGpuFrameCount );
+  TAC_ASSERT( globals.mSimWindowApi );
+  TAC_ASSERT( globals.mSimKeyboardApi );
+  TAC_ASSERT( globals.mSettingsNode.IsValid() );
+
+  ImGuiPersistantPlatformData::Instance.Init( errors );
 }
-
-
 
 void Tac::ImGuiSaveWindowSettings( WindowHandle windowHandle )
 {
@@ -1365,18 +1361,19 @@ void Tac::ImGuiSetIsScrollbarEnabled( bool b )
 }
 
 
-
-
 Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
 {
   Vector< ImGuiSimWindowDraws > allWindowDraws;
   for( ImGuiDesktopWindowImpl* window : ImGuiGlobals::Instance.mDesktopWindows )
   {
-    ImGuiSimWindowDraws curWindowDraws = window->GetSimWindowDraws();
+    ImGuiSimWindowDraws curWindowDraws { window->GetSimWindowDraws() };
     allWindowDraws.push_back( curWindowDraws );
   }
 
-  return ImGuiSimFrameDraws{ .mWindowDraws = allWindowDraws };
+  return ImGuiSimFrameDraws
+  {
+    .mWindowDraws { allWindowDraws },
+  };
 }
 
 void Tac::ImGuiPlatformRender( ImGuiSysDrawParams params, Errors& errors )

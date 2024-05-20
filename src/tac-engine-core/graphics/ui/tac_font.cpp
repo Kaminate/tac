@@ -102,14 +102,9 @@ namespace Tac
 
   FontAtlas gFontStuff;
 
-  const Render::Format atlasFormat
-  {
-    .mElementCount        { 1 },
-    .mPerElementByteCount { sizeof( u8 ) },
-    .mPerElementDataType  { Render::GraphicsType::unorm},
-  };
+  const Render::TexFmt atlasFormat { Render::TexFmt::kR8_unorm };
 
-  const Render::Format& sdfFormat { atlasFormat };
+  const Render::TexFmt sdfFormat   { atlasFormat };
 
   // -----------------------------------------------------------------------------------------------
 

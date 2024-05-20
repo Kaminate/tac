@@ -28,7 +28,7 @@ namespace Tac::Render
 
 
   DXGI_FORMAT      TexFmtToDxgiFormat( TexFmt );
-  DXGI_FORMAT      GetDXGIFormatTexture( Format );
+  DXGI_FORMAT      GetDXGIFormatTexture( VertexAttributeFormat ); // todo: rename
   DXGI_FORMAT      GetDXGIFormatTextureTypeless( int );
   DXGI_FORMAT      GetDXGIFormatDepth( int );
 

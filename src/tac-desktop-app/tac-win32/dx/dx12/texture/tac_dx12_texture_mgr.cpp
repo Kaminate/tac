@@ -13,21 +13,6 @@
 
 namespace Tac::Render
 {
-
-  static DXGI_FORMAT          GetImageDXGIFmt( const Image& image )
-  {
-    if( const TexFmt fmt{ image.mFormat2 }; fmt != TexFmt::kUnknown )
-      return TexFmtToDxgiFormat( fmt );
-
-    if( const Format& fmt{ image.mFormat };
-        !( fmt.mElementCount == 0
-        && fmt.mPerElementByteCount == 0
-        && fmt.mPerElementDataType == GraphicsType::unknown ) )
-      return GetDXGIFormatTexture( fmt );
-
-    return DXGI_FORMAT_UNKNOWN;
-  }
-
   static D3D12_RESOURCE_FLAGS GetResourceFlags( Binding binding )
   {
     D3D12_RESOURCE_FLAGS Flags{};
@@ -45,7 +30,7 @@ namespace Tac::Render
     TAC_ASSERT( params.mMipCount );
 
     const Image& image{ params.mImage };
-    const DXGI_FORMAT dxgiFmt{ GetImageDXGIFmt( image ) };
+    const DXGI_FORMAT dxgiFmt{ TexFmtToDxgiFormat(  image.mFormat ) };
 
     const DXGI_SAMPLE_DESC SampleDesc
     {
@@ -87,7 +72,7 @@ namespace Tac::Render
         SetClearValue(
           D3D12_CLEAR_VALUE
           {
-            .Format       { GetImageDXGIFmt( params.mImage ) },
+            .Format       { TexFmtToDxgiFormat( params.mImage.mFormat ) },
             .DepthStencil { .Depth { 1 } },
           } );
 
@@ -95,7 +80,7 @@ namespace Tac::Render
         SetClearValue(
           D3D12_CLEAR_VALUE
           {
-            .Format { GetImageDXGIFmt( params.mImage ) },
+            .Format { TexFmtToDxgiFormat( params.mImage.mFormat ) },
             .Color  {},
           } );
     }

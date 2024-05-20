@@ -25,14 +25,14 @@ namespace Tac
     const Render::VertexDeclaration vtxDeclPos
     {
       .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::Format::sv3 },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mPos ) },
     };
 
     const Render::VertexDeclaration vtxDeclCol
     {
       .mAttribute         { Render::Attribute::Color },
-      .mFormat            { Render::Format::sv3 },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
       .mAlignedByteOffset { TAC_OFFSET_OF( Vertex, mCol ) },
     };
 

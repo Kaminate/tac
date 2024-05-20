@@ -14,7 +14,7 @@ namespace Tac
 namespace Tac::Render
 {
   static int              sMaxGPUFrameCount; 
-  static FileSys::Path sShaderOutputPath; 
+  static FileSys::Path    sShaderOutputPath; 
   static IDevice*         sDevice;
 
 
@@ -51,7 +51,7 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
 
-  Format Format::FromElements( FormatElement element, int n )
+  VertexAttributeFormat VertexAttributeFormat::FromElements( FormatElement element, int n )
   {
     return
     {
@@ -61,20 +61,23 @@ namespace Tac::Render
     };
   }
 
-  int    Format::CalculateTotalByteCount() const
+  int    VertexAttributeFormat::CalculateTotalByteCount() const
   {
     return mElementCount * mPerElementByteCount;
   }
 
-  const FormatElement FormatElement::sFloat
+  FormatElement FormatElement::GetFloat()
   {
+    return FormatElement
+    {
       .mPerElementByteCount { sizeof( float ) },
       .mPerElementDataType { GraphicsType::real },
+    };
   };
-  const Format Format::sfloat { Format::FromElements( FormatElement::sFloat, 1 ) };
-  const Format Format::sv2 { Format::FromElements( FormatElement::sFloat, 2 ) };
-  const Format Format::sv3 { Format::FromElements( FormatElement::sFloat, 3 ) };
-  const Format Format::sv4 { Format::FromElements( FormatElement::sFloat, 4 ) };
+  VertexAttributeFormat VertexAttributeFormat::GetFloat()   { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 1 ); }
+  VertexAttributeFormat VertexAttributeFormat::GetVector2() { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 2 ); }
+  VertexAttributeFormat VertexAttributeFormat::GetVector3() { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 3 ); }
+  VertexAttributeFormat VertexAttributeFormat::GetVector4() { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 4 ); }
 
 
   // -----------------------------------------------------------------------------------------------

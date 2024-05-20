@@ -140,18 +140,17 @@ namespace Tac::Render
 
   struct DXGIImpl
   {
-    PCom<IDXGIFactory4> mFactory;
+    void Init( Errors& );
 
+    PCom<IDXGIFactory4> mFactory;
     DXGI_ADAPTER_DESC3  mAdapterDesc{};
     PCom<IDXGIAdapter4> mAdapter;
-
-    void Init( Errors& );
   };
 
   struct FormatPair
   {
-    Format         mFormat;
-    DXGI_FORMAT    mFormatDXGI;
+    VertexAttributeFormat mFormat;
+    DXGI_FORMAT           mFormatDXGI;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -377,7 +376,7 @@ namespace Tac
     }
   }
 
-  DXGI_FORMAT Render::GetDXGIFormatTexture( const Format textureFormat )
+  DXGI_FORMAT Render::GetDXGIFormatTexture( const VertexAttributeFormat textureFormat )
   {
     TAC_ASSERT_MSG( textureFormat.mPerElementByteCount != 16,
                     "You're making a depth buffer, right?"

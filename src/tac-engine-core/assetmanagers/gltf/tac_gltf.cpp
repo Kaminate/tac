@@ -39,6 +39,8 @@ namespace Tac
     }
   }
 
+
+
   // -----------------------------------------------------------------------------------------------
 
 
@@ -100,17 +102,16 @@ namespace Tac
     return FrameMemoryCopy( msg );
   }
 
-
-  Render::Format              FillDataType( const cgltf_accessor* accessor )
+  Render::VertexAttributeFormat FillDataType( const cgltf_accessor* accessor )
   {
-    const Render::Format result
+    return Render::VertexAttributeFormat
     {
       .mElementCount         { FillDataTypeElementCount( accessor ) },
       .mPerElementByteCount  { FillDataTypePerElementByteCount( accessor ) },
       .mPerElementDataType   { FillDataTypePerElementDataType( accessor ) },
     };
-    return result;
   }
+
 
   const cgltf_attribute*      FindAttributeOfType( const cgltf_primitive* parsedPrim,
                                                   const cgltf_attribute_type type )

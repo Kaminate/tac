@@ -133,7 +133,7 @@ namespace Tac
   };
 
   //   ImGui System Functions
-  void ImGuiInit( const ImGuiInitParams& );
+  void ImGuiInit( const ImGuiInitParams&, Errors& );
   void ImGuiUninit();
   void ImGuiSaveWindowSettings( WindowHandle );
   void ImGuiDebugDraw();

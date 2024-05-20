@@ -20,17 +20,16 @@
 
 namespace Tac
 {
-  cgltf_attribute_type   GetGltfFromAttribute( Render::Attribute );
-  cgltf_primitive_type   GetGltfFromTopology( Render::PrimitiveTopology );
+  cgltf_attribute_type          GetGltfFromAttribute( Render::Attribute );
+  cgltf_primitive_type          GetGltfFromTopology( Render::PrimitiveTopology );
 
-  const char*            GetcgltfErrorAsString( cgltf_result );
-  const char*            GltfFmtErrMsg( cgltf_result, const char*, const char* );
+  const char*                   GetcgltfErrorAsString( cgltf_result );
+  const char*                   GltfFmtErrMsg( cgltf_result, const char*, const char* );
 
-  Render::Format         FillDataType( const cgltf_accessor* );
-  const cgltf_attribute* FindAttributeOfType( const cgltf_primitive*, cgltf_attribute_type );
+  Render::VertexAttributeFormat FillDataType( const cgltf_accessor* );
+  const cgltf_attribute*        FindAttributeOfType( const cgltf_primitive*,
+                                                     cgltf_attribute_type );
   
-
-
 
 } // namespace Tac
 

@@ -557,10 +557,10 @@ namespace Tac
     };
   }
 
-  static void UpdateAndRenderWindow( ImGuiSysDrawParams sysDrawParams,
-                                     ImGuiSimWindowDraws* simDraws,
-                                     ImGuiPersistantViewport* sysDraws,
-                                     Errors& errors )
+  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiSysDrawParams sysDrawParams,
+                                                           ImGuiSimWindowDraws* simDraws,
+                                                           ImGuiPersistantViewport* sysDraws,
+                                                           Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const SysWindowApi* windowApi { sysDrawParams.mWindowApi };
@@ -583,38 +583,13 @@ namespace Tac
     // combine draw data
     simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
 
-    //Render::ContextHandle context = TAC_CALL( Render::CreateContext( errors ) );
-    void* context { nullptr };
+    const Render::ProgramHandle program{ mProgram };
 
-    static Render::ProgramHandle program;
-
-    // TODO obviously move this to init
-    if( !program.IsValid() )
-    {
-      const Render::ProgramParams programParams
-      {
-        .mFileStem { "DX12HelloFrameBuf" }, // test
-        //.mFileStem = "2D",
-      };
-      TAC_CALL( program = renderDevice->CreateProgram( programParams, errors ) );
-    }
-
-#if 1
-    Render::SwapChainHandle fb { windowApi->GetSwapChainHandle( hDesktopWindow ) };
-#endif
+    const Render::SwapChainHandle fb { windowApi->GetSwapChainHandle( hDesktopWindow ) };
     const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
     const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
 
-    static Render::PipelineHandle pipeline;
-    if( !pipeline.IsValid() )
-    {
-      const Render::PipelineParams pipelineParams
-      {
-        .mProgram { program },
-        .mRTVColorFmts{ fbFmt },
-      };
-      TAC_CALL( pipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
-    }
+    const Render::PipelineHandle& pipeline{ GetPipeline( fbFmt, errors ) };
 
     const String renderGroupStr{ String()
       + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
@@ -721,6 +696,46 @@ namespace Tac
 #endif
   }
 
+  void ImGuiPersistantPlatformData::Init( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    const Render::ProgramParams programParams
+    {
+      .mFileStem { "DX12HelloFrameBuf" }, // test
+      //.mFileStem = "2D",
+    };
+    TAC_CALL( mProgram = renderDevice->CreateProgram( programParams, errors ) );
+
+    mPipelineCache.mProgram = mProgram;
+  }
+
+  Render::PipelineHandle ImGuiPipelineCache::GetPipeline( Render::TexFmt texFmt, Errors& errors )
+  {
+    for( const Element& element : mElements )
+      if( element.mTexFmt == texFmt )
+        return element.mPipeline;
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    const Render::PipelineParams pipelineParams
+    {
+      .mProgram      { mProgram },
+      .mRTVColorFmts { texFmt },
+    };
+    
+    TAC_CALL_RET( {}, const Render::PipelineHandle pipeline{
+      renderDevice->CreatePipeline( pipelineParams, errors ) } );
+
+    const Element element 
+    {
+      .mPipeline { pipeline },
+      .mTexFmt   { texFmt },
+    };
+    mElements.push_back( element );
+    return pipeline;
+  }
+
   void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSysDrawParams params,
                                                      Errors& errors )
   {
@@ -746,6 +761,12 @@ namespace Tac
     };
     mViewportDatas.push_back( persistantViewport );
     return &mViewportDatas.back();
+  }
+
+  Render::PipelineHandle   ImGuiPersistantPlatformData::GetPipeline( Render::TexFmt texFmt,
+                                                                     Errors& errors )
+  {
+    return mPipelineCache.GetPipeline( texFmt , errors );
   }
 
 

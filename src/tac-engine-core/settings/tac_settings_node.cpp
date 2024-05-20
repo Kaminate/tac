@@ -27,6 +27,11 @@ namespace Tac
     return *mJson;
   }
 
+  bool          SettingsNode::IsValid() const
+  {
+    return mRoot;
+  }
+
   Json&        SettingsNode::GetValueWithFallback( Json fallback )
   {
     if( mJson->mType == JsonType::Null )

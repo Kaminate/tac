@@ -80,9 +80,9 @@ namespace Tac::Render
 
       const Image image
       {
-        .mWidth   { params.mSize.x },
-        .mHeight  { params.mSize.y },
-        .mFormat2 { params.mDepthFmt },
+        .mWidth  { params.mSize.x },
+        .mHeight { params.mSize.y },
+        .mFormat { params.mDepthFmt },
       };
 
       const String name{ "zbuf " + Tac::ToString( iHandle ) };
