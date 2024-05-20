@@ -335,24 +335,16 @@ namespace Tac
   {
     switch( fmt )
     {
-    case Tac::Render::TexFmt::kUnknown:      return DXGI_FORMAT_UNKNOWN;
-    case Tac::Render::TexFmt::kD24S8:        return DXGI_FORMAT_D24_UNORM_S8_UINT;
-    case Tac::Render::TexFmt::kRGBA16F:      return DXGI_FORMAT_R16G16B16A16_FLOAT;
-    default: TAC_ASSERT_INVALID_CASE( fmt ); return DXGI_FORMAT_UNKNOWN;
+    case Tac::Render::TexFmt::kUnknown:           return DXGI_FORMAT_UNKNOWN;
+    case Tac::Render::TexFmt::kD24S8:             return DXGI_FORMAT_D24_UNORM_S8_UINT;
+    case Tac::Render::TexFmt::kRGBA16F:           return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    case Tac::Render::TexFmt::kR8_unorm:          return DXGI_FORMAT_R8_UNORM;
+    case Tac::Render::TexFmt::kRGBA8_unorm:       return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case Tac::Render::TexFmt::kRGBA8_unorm_srgb:  return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+    default: TAC_ASSERT_INVALID_CASE( fmt );      return DXGI_FORMAT_UNKNOWN;
     }
   }
 
-
-  DXGI_FORMAT      Render::GetDXGIFormatDepth( const int i )
-  {
-    switch( i )
-    {
-      // unorm here, float there...  hmm is that ok?
-      case 2: return DXGI_FORMAT_D16_UNORM;
-      case 4: return DXGI_FORMAT_D32_FLOAT;
-      default: TAC_ASSERT_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
-    }
-  }
 
 #if 0
   Render::Format Render::GetFormat( const DXGI_FORMAT format )
@@ -366,15 +358,6 @@ namespace Tac
 #endif
 
 
-  DXGI_FORMAT      Render::GetDXGIFormatTextureTypeless( int i )
-  {
-    switch( i )
-    {
-      case 2: return DXGI_FORMAT_R16_TYPELESS;
-      case 4: return DXGI_FORMAT_R32_TYPELESS;
-      default: TAC_ASSERT_INVALID_CODE_PATH; return DXGI_FORMAT_UNKNOWN;
-    }
-  }
 
   DXGI_FORMAT Render::GetDXGIFormatTexture( const VertexAttributeFormat textureFormat )
   {

@@ -29,8 +29,6 @@ namespace Tac::Render
 
   DXGI_FORMAT      TexFmtToDxgiFormat( TexFmt );
   DXGI_FORMAT      GetDXGIFormatTexture( VertexAttributeFormat ); // todo: rename
-  DXGI_FORMAT      GetDXGIFormatTextureTypeless( int );
-  DXGI_FORMAT      GetDXGIFormatDepth( int );
 
   void             DXGISetObjectName( IDXGIObject*, const StringView& );
   String           DXGIGetObjectName( IDXGIObject* );
@@ -38,7 +36,7 @@ namespace Tac::Render
   String           DXGICallAux( const char*, HRESULT );
 
   //               represents a display subsystem (GPU, VRAM, etc)
-  PCom<IDXGIAdapter4>    DXGIGetBestAdapter();
+  PCom< IDXGIAdapter4 >    DXGIGetBestAdapter();
 
   void CheckSwapEffect( DXGI_SWAP_EFFECT, Errors& );
 

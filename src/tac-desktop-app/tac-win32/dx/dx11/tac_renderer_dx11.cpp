@@ -1260,7 +1260,7 @@ namespace Tac::Render
     const DXGI_FORMAT FormatTexture2D = [ & ]()
     {
       if( ( int )( data->mTexSpec.mBinding & Binding::DepthStencil ) )
-        return GetDXGIFormatTextureTypeless( data->mTexSpec.mImage.mFormat.mPerElementByteCount );
+        return DXGI_FORMAT_R16_TYPELESS; // return DXGI_FORMAT_R32_TYPELESS; ???
       return Format;
     } ( );
 
@@ -1386,7 +1386,7 @@ namespace Tac::Render
     if( ( int )data->mTexSpec.mBinding & ( int )Binding::DepthStencil )
     {
       D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc  {};
-      depthStencilViewDesc.Format = GetDXGIFormatDepth( data->mTexSpec.mImage.mFormat.mPerElementByteCount );
+      depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT; // ??? 
       depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
       TAC_DX11_CALL( mDevice->CreateDepthStencilView(
                      resource,

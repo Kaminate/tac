@@ -790,8 +790,8 @@ namespace Tac
 
     m_viewport = D3D12_VIEWPORT
     {
-     .Width  { ( float )m_swapChainDesc.Width },
-     .Height { ( float )m_swapChainDesc.Height },
+      .Width  { ( float )m_swapChainDesc.Width },
+      .Height { ( float )m_swapChainDesc.Height },
     };
 
     m_scissorRect = D3D12_RECT
