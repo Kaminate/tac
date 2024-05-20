@@ -701,10 +701,10 @@ void Tac::ImGuiText( const StringView& utf8 )
 
   const UI2DDrawData::Text text
   {
-    .mPos { textPos },
+    .mPos      { textPos },
     .mFontSize { fontSize },
-    .mUtf8 { utf8 },
-    .mColor { ImGuiGetColor( ImGuiCol::Text ) },
+    .mUtf8     { utf8 },
+    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
   };
 
   drawData->PushDebugGroup( "ImGuiText", utf8 );

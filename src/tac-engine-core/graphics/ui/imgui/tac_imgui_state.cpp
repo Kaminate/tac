@@ -702,12 +702,18 @@ namespace Tac
 
     const Render::ProgramParams programParams
     {
-      .mFileStem { "DX12HelloFrameBuf" }, // test
-      //.mFileStem = "2D",
+      .mFileStem { "2D" },
     };
     TAC_CALL( mProgram = renderDevice->CreateProgram( programParams, errors ) );
 
     mPipelineCache.mProgram = mProgram;
+
+    // hold up. shouldnt we be rendering with
+    // UI2DCommonData::m2DTextShader and
+    // UI2DCommonData::mShader?
+    TAC_ASSERT_UNIMPLEMENTED;
+    Render::ProgramHandle         mShader;
+    Render::ProgramHandle         m2DTextShader;
   }
 
   Render::PipelineHandle ImGuiPipelineCache::GetPipeline( Render::TexFmt texFmt, Errors& errors )
