@@ -11,7 +11,6 @@
 namespace Tac
 {
   static const char* quickbrownfox = "The quick brown fox jumps over the lazy dog";
-  static const bool sShowRedrawDialog;
 
   static void Test( float fontSize, const char* str = quickbrownfox )
   {
@@ -23,14 +22,6 @@ namespace Tac
 
   void ExampleText::Update( Errors& errors )
   {
-    if( sShowRedrawDialog )
-    {
-      static bool setForceRedraw;
-      if( ImGuiCheckbox( "Force redraw", &setForceRedraw ) )
-        FontApi::SetForceRedraw( setForceRedraw );
-    }
-
-
     float fontSize { 10.0f };
     for( int i{}; i < 6; ++i, fontSize *= 2 )
       Test( fontSize);

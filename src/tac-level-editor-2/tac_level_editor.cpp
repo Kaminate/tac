@@ -120,23 +120,26 @@ namespace Tac
       if( ImGuiBegin( "Unowned Window" ) )
       {
         UI2DDrawData* drawData{ ImGuiGetDrawData() };
+
         const UI2DDrawData::Box box
         {
           .mMini  { 50, 50 },
           .mMaxi  { 100, 150 },
           .mColor { 0, 1, 0, 1 },
         };
-        drawData->PushDebugGroup( "my debug group" );
+
         const UI2DDrawData::Box box2
         {
           .mMini  { 200, 200 },
           .mMaxi  { 380, 300 },
           .mColor { 0, 0, 1, 1 },
         };
+
+        //drawData->PushDebugGroup( "my debug group" );
         //drawData->AddBox( box );
         //drawData->AddBox( box2 );
         ImGuiButton( "a" );
-        drawData->PopDebugGroup();
+        //drawData->PopDebugGroup();
         ImGuiEnd();
       }
     }

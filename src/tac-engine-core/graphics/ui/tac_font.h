@@ -8,9 +8,7 @@
 
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/math/tac_vector2.h" // v2
-//#include "tac-rhi/render3/tac_render_api.h" // Render::TextureHandle
 #include "tac-rhi/render3/tac_render_api.h"
-//#include "tac-std-lib/tac_core.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 
 #define TAC_FONT_ENABLED() 1
@@ -76,6 +74,37 @@ namespace Tac
     float         mScale           {};
   };
 
+  struct FontCellPos
+  {
+    int            mPxRow                   {};
+    int            mPxColumn                {};
+    int            mCellRow                 {};
+    int            mCellColumn              {};
+  };
+
+  struct FontCellUVs
+  {
+    //             DX uvs are better then GL uvs when rendering UI
+    v2             mMinDXTexCoord           {};
+    v2             mMaxDXTexCoord           {};
+  };
+
+  struct GlyphMetrics
+  {
+    //             offset from the current horizontal position to the next horizontal position
+    float          mUnscaledAdvanceWidth    {};
+
+    //             offset from the current horizontal position to the left edge of the character
+    float          mUnscaledLeftSideBearing {};
+
+    int            mSDFxOffset              {};
+    int            mSDFyOffset              {};
+
+    //             the width of the sdf image in px, having been generated for a specific scale
+    int            mSDFWidth                {};
+    int            mSDFHeight               {};
+  };
+
   struct FontAtlasCell
   {
     Codepoint      mCodepoint               {};
@@ -87,32 +116,18 @@ namespace Tac
     char           mCodepointAscii          {}; 
 
     FontFile*      mOwner                   {};
-    int            mPxRow                   {};
-    int            mPxColumn                {};
-    int            mCellRow                 {};
-    int            mCellColumn              {};
     Timestamp      mWriteTime               {};
     Timestamp      mReadTime                {};
-    
-    //             DX uvs are better then GL uvs when rendering UI
-    v2             mMinDXTexCoord           {};
-    v2             mMaxDXTexCoord           {};
 
-    float          mUnscaledAdvanceWidth    {};
-    float          mUnscaledLeftSideBearing {};
-    int            mSDFxOffset              {};
-    int            mSDFyOffset              {};
-
-    //             the width of the sdf image in px, having been generated for a specific scale
-    int            mSDFWidth                {};
-    int            mSDFHeight               {};
+    FontCellPos    mFontCellPos             {};
+    FontCellUVs    mFontCellUVs             {};
+    GlyphMetrics   mGlyphMetrics            {};
   };
 
   struct FontApi
   {
     static void                  Init( Errors& );
     static void                  Uninit();
-    static void                  SetForceRedraw(bool);
     static const FontDims*       GetLanguageFontDims( Language );
     static const FontAtlasCell*  GetFontAtlasCell( Language, Codepoint );
     static Render::TextureHandle GetAtlasTextureHandle();

@@ -443,12 +443,13 @@ namespace Tac
                                                        const StringView& suffix )
   {
     const int n { 30 };
-    String& debugGroup { mDebugGroupStack.Push() };
+    String debugGroup {};
     debugGroup += prefix.substr( 0, Min( prefix.size(), n ) );
     debugGroup += prefix.size() > n ? "..." : "";
     debugGroup += ' ';
     debugGroup += suffix.substr( 0, Min( suffix.size(), n ) );
     debugGroup += suffix.size() > n ? "..." : "";
+    mDebugGroupStack.Push( debugGroup );
   }
 
   void                   UI2DDrawData::PushDebugGroup( const StringView& name )
@@ -592,9 +593,9 @@ namespace Tac
     const float fontSizeScale { fontFile->mScale * fontSizeRelativeScale };
 
     // do i really need to floor everything? does alignment on pixel grid matter?
-    const float ascentPx { (float)(int)(fontFile->mUnscaledAscent * fontSizeScale) };
-    const float descentPx { (float)(int)(fontFile->mUnscaledDescent * fontSizeScale) };
-    const float linegapPx { (float)(int)(fontFile->mUnscaledLinegap * fontSizeScale) };
+    const float ascentPx{ ( float )( int )( fontFile->mUnscaledAscent * fontSizeScale ) };
+    const float descentPx{ ( float )( int )( fontFile->mUnscaledDescent * fontSizeScale ) };
+    const float linegapPx{ ( float )( int )( fontFile->mUnscaledLinegap * fontSizeScale ) };
     const float unscaledLineSpacing
     {
       fontFile->mUnscaledAscent -
@@ -632,10 +633,10 @@ namespace Tac
       TAC_ON_DESTRUCT(
         // Even if we don't draw a glyph, we still need to advance the cursor,
         // For example if our current codepoint represents whitespace
-        baselineCursorPos.x += fontAtlasCell->mUnscaledAdvanceWidth * fontSizeScale;
+        baselineCursorPos.x += fontAtlasCell->mGlyphMetrics.mUnscaledAdvanceWidth * fontSizeScale;
       );
 
-      if( !fontAtlasCell->mSDFWidth || !fontAtlasCell->mSDFHeight )
+      if( !fontAtlasCell->mGlyphMetrics. mSDFWidth || !fontAtlasCell->mGlyphMetrics.mSDFHeight )
         continue;
 
       // the mSDFxOffset stuff seem to come from stbtt_GetGlyphBitmapBoxSubpixel and account for the
@@ -643,15 +644,15 @@ namespace Tac
       //
       // idk how the sdf offsets take into account the stbtt_GetFontVMetrics ascent descent stuff
 
-      const v2 sdfOffset( ( float )fontAtlasCell->mSDFxOffset,
-                          ( float )fontAtlasCell->mSDFyOffset );
-      const v2 sdfSize( ( float )fontAtlasCell->mSDFWidth,
-                        ( float )fontAtlasCell->mSDFHeight );
+      const v2 sdfOffset( ( float )fontAtlasCell->mGlyphMetrics.mSDFxOffset,
+                          ( float )fontAtlasCell->mGlyphMetrics.mSDFyOffset );
+      const v2 sdfSize( ( float )fontAtlasCell->mGlyphMetrics.mSDFWidth,
+                        ( float )fontAtlasCell->mGlyphMetrics.mSDFHeight );
 
       //v2 baselinePos( xPxCursor, yPxBaseline );
 
-      glyphMin = baselineCursorPos + fontSizeRelativeScale * (sdfOffset);
-      glyphMax = baselineCursorPos + fontSizeRelativeScale * (sdfOffset + sdfSize);
+      glyphMin = baselineCursorPos + fontSizeRelativeScale * ( sdfOffset );
+      glyphMax = baselineCursorPos + fontSizeRelativeScale * ( sdfOffset + sdfSize );
 
       const ImGuiRect glyphRect { ImGuiRect::FromMinMax( glyphMin, glyphMax ) };
       
@@ -684,10 +685,10 @@ namespace Tac
       // v
       // y
 
-      const float GLMinU { fontAtlasCell->mMinDXTexCoord.x };
-      const float GLMaxU { fontAtlasCell->mMaxDXTexCoord.x };
-      const float GLMinV { 1.0f - fontAtlasCell->mMaxDXTexCoord.y };
-      const float GLMaxV { 1.0f - fontAtlasCell->mMinDXTexCoord.y };
+      const float GLMinU{ fontAtlasCell->mFontCellUVs.mMinDXTexCoord.x };
+      const float GLMaxU{ fontAtlasCell->mFontCellUVs.mMaxDXTexCoord.x };
+      const float GLMinV{ 1.0f - fontAtlasCell->mFontCellUVs.mMaxDXTexCoord.y };
+      const float GLMaxV{ 1.0f - fontAtlasCell->mFontCellUVs.mMinDXTexCoord.y };
 
       const int idxCount { 6 };
       const int vtxCount { 4 };
@@ -832,7 +833,7 @@ namespace Tac
       if( !fontAtlasCell )
         continue;
 
-      xUnscaled += fontAtlasCell->mUnscaledAdvanceWidth;
+      xUnscaled += fontAtlasCell->mGlyphMetrics.mUnscaledAdvanceWidth;
       xUnscaledMax = Max( xUnscaledMax, xUnscaled );
       //unscaledLineWidthCur = Max( unscaledLineWidthCur, xUnscaled );
       //unscaledLineWidthMax = Max( unscaledLineWidthMax, unscaledLineWidthCur );

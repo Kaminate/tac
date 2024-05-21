@@ -54,16 +54,16 @@ namespace Tac::Render::DebugGroup
   // This is more of a tree...
   struct Stack
   {
-    NodeIndex      GetInfo() const;
     void           Push( const StringView& );
-    String&        Push();
     void           Pop();
+    NodeIndex      GetInfo() const;
 
     Iterator       IterateBegin( Render::IContext* ) const;
     void           IterateElement( Iterator&, NodeIndex ) const;
     void           IterateEnd( Iterator& );
 
   private:
+    String&        Push();
     Node*          FindNode( NodeIndex );
     const Node*    FindNode( NodeIndex ) const;
 

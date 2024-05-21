@@ -38,7 +38,6 @@ namespace Tac::Render::DebugGroup
 
   NodeIndex   Stack::GetInfo() const
   {
-    TAC_ASSERT( mCurNodeIdx != NullNodeIndex );
     return mCurNodeIdx;
   }
 
@@ -51,10 +50,13 @@ namespace Tac::Render::DebugGroup
   void        Stack::IterateElement( Iterator& it,
                                      const NodeIndex info ) const
   {
-    const Node* node = FindNode( info );
-    TAC_ASSERT( node && node->mHeight < 100 );
+    const Node* node { FindNode( info ) };
+    if( !node )
+      return;
 
-    const Node* commonParent = node;
+    TAC_ASSERT( node->mHeight < 100 );
+
+    const Node* commonParent { node };
     while( commonParent && !it.Contains( commonParent ) )
       commonParent = FindNode( commonParent->mParent );
 
@@ -67,15 +69,15 @@ namespace Tac::Render::DebugGroup
       it.mNodeStack.pop_back();
     }
 
-    const int oldNodeCount = it.mNodeStack.size();
-    for( const Node* curNode = node;
+    const int oldNodeCount { it.mNodeStack.size() };
+    for( const Node* curNode{ node };
          curNode != commonParent;
          curNode = FindNode( curNode->mParent ) )
       it.mNodeStack.push_back( curNode );
     Tac::Reverse( it.mNodeStack.begin() + oldNodeCount, it.mNodeStack.end() );
-    for( int i = oldNodeCount; i < it.mNodeStack.size(); ++i )
+    for( int i{ oldNodeCount }; i < it.mNodeStack.size(); ++i )
     {
-      StringView name = it.mNodeStack[ i ]->mName;
+      StringView name { it.mNodeStack[ i ]->mName };
       it.mRenderContext->DebugEventBegin( name );
     }
   }
@@ -102,7 +104,7 @@ namespace Tac::Render::DebugGroup
 
   const Node* Stack::FindNode( NodeIndex i ) const
   {
-    return  i == NullNodeIndex ? nullptr : &mNodes[ i ];
+    return i == NullNodeIndex ? nullptr : &mNodes[ i ];
   }
 
   String&     Stack::Push()

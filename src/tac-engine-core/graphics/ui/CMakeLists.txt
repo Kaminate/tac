@@ -1,6 +1,8 @@
 target_sources( TacEngineCore PRIVATE
   tac_font.cpp
   tac_font.h
+  tac_font_backend.cpp
+  tac_font_backend.h
   tac_text_edit.cpp
   tac_text_edit.h
   tac_ui_2d.cpp
