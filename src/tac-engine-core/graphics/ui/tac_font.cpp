@@ -291,7 +291,7 @@ namespace Tac
   void FontAtlas::Load( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const int maxCells { 1000 };
+    const int maxCells { 1 };
     mCellRowCount = ( int )Sqrt( maxCells );
     mCellColCount = mCellRowCount;
 

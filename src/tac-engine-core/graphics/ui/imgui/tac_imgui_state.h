@@ -180,36 +180,51 @@ namespace Tac
   };
 
 
-  struct ImGuiPipelineCache
-  {
-    Render::PipelineHandle GetPipeline( Render::TexFmt, Errors& );
-
-    struct Element
-    {
-      Render::PipelineHandle mPipeline;
-      Render::TexFmt         mTexFmt;
-    };
-
-    Vector< Element >     mElements;
-    Render::ProgramHandle mProgram;
-  };
 
   struct ImGuiPersistantPlatformData
   {
     static ImGuiPersistantPlatformData Instance;
 
-    void                     Init( Errors& );
-    void                     UpdateAndRender( ImGuiSysDrawParams, Errors& );
-    void                     UpdateAndRenderWindow( ImGuiSysDrawParams,
-                                                    ImGuiSimWindowDraws*,
-                                                    ImGuiPersistantViewport*,
-                                                    Errors& );
-    ImGuiPersistantViewport* GetPersistantWindowData( WindowHandle );
-    Render::PipelineHandle   GetPipeline( Render::TexFmt, Errors& errors );
+    void                       Init( Errors& );
+    void                       UpdateAndRender( ImGuiSysDrawParams, Errors& );
+    void                       UpdateAndRenderWindow( ImGuiSysDrawParams,
+                                                      ImGuiSimWindowDraws*,
+                                                      ImGuiPersistantViewport*,
+                                                      Errors& );
+    ImGuiPersistantViewport*   GetPersistantWindowData( WindowHandle );
+    void                       UpdatePerFrame( Render::IContext*, v2i, Errors& );
+    void                       UpdatePerObject( Render::IContext*,
+                                               const UI2DDrawCall&,
+                                               Errors& );
 
-    Render::ProgramHandle             mProgram;
-    ImGuiPipelineCache                mPipelineCache;
+    struct Element
+    {
+      Render::PipelineHandle mPipeline;
+      Render::TexFmt         mTexFmt;
+      Render::IShaderVar*    mShaderImage{};
+      Render::IShaderVar*    mShaderSampler{};
+      Render::IShaderVar*    mShaderPerObject{};
+      Render::IShaderVar*    mShaderPerFrame{};
+    };
+
+    Element&                   GetElement( Render::TexFmt, Errors& );
+    Render::BlendState         GetBlendState() const;
+    Render::DepthState         GetDepthState() const;
+    Render::RasterizerState    GetRasterizerState() const;
+    void                       Init1x1White( Errors& );
+    void                       InitProgram( Errors& );
+    void                       InitPerFrame( Errors& );
+    void                       InitPerObject( Errors& );
+    void                       InitSampler();
+    Render::VertexDeclarations GetVertexDeclarations() const;
+
+    Render::SamplerHandle             mSampler;
+    Render::TextureHandle             m1x1White;
     Vector< ImGuiPersistantViewport > mViewportDatas;
+    Vector< Element >                 mElements;
+    Render::ProgramHandle             mProgram;
+    Render::BufferHandle              mPerObject;
+    Render::BufferHandle              mPerFrame;
   };
 
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow

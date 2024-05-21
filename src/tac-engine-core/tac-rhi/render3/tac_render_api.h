@@ -34,32 +34,17 @@ namespace Tac::Render
   struct TextureHandle   : public IHandle { TextureHandle   ( int i = -1 ) : IHandle{ i } {} };
   struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = -1 ) : IHandle{ i } {} };
 
-  //enum RasterizerType
-  //{
-  //};
-
-  //enum BlendType
-  //{
-  //};
-
-  // this is like... inferior to Render::Format in almost every way, except for specifying
-  // typeless formats and depth stencil formats, and compressed formats, afaik
-  // maybe i can split them into a single class that contains both?
+  // Used for Textures and Index Buffers and Structured Vertex Buffers
   enum class TexFmt
   {
     kUnknown = 0,
     kD24S8,
     kRGBA16F,
     kR8_unorm,
+    kR16_uint,
     kRGBA8_unorm,
     kRGBA8_unorm_srgb,
   };
-
-
-
-  //enum DepthStencilType
-  //{
-  //};
 
 
   // -----------------------------------------------------------------------------------------------
@@ -191,6 +176,32 @@ namespace Tac::Render
     // and not as a member of this class
   };
 
+  struct BlendState
+  {
+    BlendConstants mSrcRGB   { BlendConstants::One };
+    BlendConstants mDstRGB   { BlendConstants::OneMinusSrcA };
+    BlendMode      mBlendRGB { BlendMode::Add };
+    BlendConstants mSrcA     { BlendConstants::One };
+    BlendConstants mDstA     { BlendConstants::One };
+    BlendMode      mBlendA   { BlendMode::Add };
+  };
+
+  struct DepthState
+  {
+    bool      mDepthTest  { false };
+    bool      mDepthWrite { false };
+    DepthFunc mDepthFunc  { DepthFunc::Less };
+  };
+
+  struct RasterizerState
+  {
+    FillMode mFillMode              { FillMode::Solid };
+    CullMode mCullMode              { CullMode::None };
+    bool     mFrontCounterClockwise { true };
+    bool     mMultisample           { false };
+  };
+
+
   // ^^^
 
   // -----------------------------------------------------------------------------------------------
@@ -294,12 +305,14 @@ namespace Tac::Render
   {
     int           mByteCount     {};
     const void*   mBytes         {};
-    int           mStride        {}; // used in creating the SRV
+    int           mStride        {}; // used in creating the SRV and used for the input layout
     Usage         mUsage         { Usage::Default }; // TODO: rename to `mUsage`
     Binding       mBinding       { Binding::None };
     CPUAccess     mCpuAccess     { CPUAccess::None };
     GpuBufferMode mGpuBufferMode { GpuBufferMode::kUndefined };
-    TexFmt        mGpuBufferFmt  {}; // used if the GpuBufferMode is kFormatted
+
+    //            Used if the GpuBufferMode is kFormatted, and for index buffers
+    TexFmt        mGpuBufferFmt  { TexFmt::kUnknown };
     StringView    mOptionalName  {};
     StackFrame    mStackFrame    {};
   };
@@ -321,15 +334,13 @@ namespace Tac::Render
   struct PipelineParams
   {
     ProgramHandle            mProgram;
-    //RasterizerType         mRasterizer;
-    //BlendType              mBlend;
-    //DepthStencilType       mDepthStencilType;
-    //SwapChainHandle               mRenderTarget;
+    BlendState               mBlendState;
+    DepthState               mDepthState;
+    RasterizerState          mRasterizerState;
     FixedVector< TexFmt, 8 > mRTVColorFmts;
-    TexFmt                   mDSVDepthFmt { TexFmt::kUnknown };
+    TexFmt                   mDSVDepthFmt       { TexFmt::kUnknown };
     VertexDeclarations       mVtxDecls;
-    // root sig? <-- parse using dx reflection
-    //PrimTopology     mPrimTopo;
+    PrimitiveTopology        mPrimitiveTopology { PrimitiveTopology::TriangleList };
     StringView               mName;
     StackFrame               mStackFrame;
   };
@@ -352,7 +363,17 @@ namespace Tac::Render
 
   struct DrawArgs
   {
+    // ------------------------------------------------ //
+    // No index buffer bound ( vertex buffer optional ) //
+    // ------------------------------------------------ //
     int mVertexCount   {};
+    int mStartVertex   {};
+
+    // ---------------------------------------------- //
+    // Index buffer bound ( vertex buffer optional )  //
+    // ---------------------------------------------- //
+    int mIndexCount    {};
+    int mStartIndex    {};
   };
 
   struct IShaderVar
@@ -396,6 +417,7 @@ namespace Tac::Render
     virtual void ClearDepth( TextureHandle, float ) {}
 
     virtual void SetVertexBuffer( BufferHandle ) {}
+    virtual void SetIndexBuffer( BufferHandle ) {}
 
     //                                       | hack?/todo? this makes it so that i allocate the dyn buffer
     //                                       | once per frame in this function, but then i have to group all

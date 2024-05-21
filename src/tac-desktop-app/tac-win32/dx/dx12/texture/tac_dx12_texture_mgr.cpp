@@ -1,5 +1,4 @@
 #include "tac_dx12_texture_mgr.h" // self-inc
-#include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-win32/dx/dx12/context/tac_dx12_context_manager.h"

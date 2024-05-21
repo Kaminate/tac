@@ -35,9 +35,10 @@ namespace Tac::Render
       { "Texture3D", 't'},
       { "cbuffer", 'b'},
       { "sampler", 's'},
+      { "SamplerState", 's'},
     };
 
-    for( auto [name, letter] : resourceMap )
+    for( auto [ name, letter ] : resourceMap )
       if( parseData.PeekStringExpected( name ) )
         return letter;
 

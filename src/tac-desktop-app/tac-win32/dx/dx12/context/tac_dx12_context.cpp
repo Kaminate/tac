@@ -6,7 +6,6 @@
 #include "tac-win32/dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-win32/dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
-#include "tac-win32/dx/dx12/tac_dx12_enum_helper.h"
 #include "tac-win32/dx/dx12/tac_dx12_transition_helper.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -21,6 +20,18 @@
 
 namespace Tac::Render
 {
+
+  static D3D12_PRIMITIVE_TOPOLOGY   GetDX12PrimitiveTopology( PrimitiveTopology topology )
+  {
+    switch( topology )
+    {
+    case PrimitiveTopology::Unknown:              return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+    case PrimitiveTopology::TriangleList:         return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    case PrimitiveTopology::PointList:            return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+    case PrimitiveTopology::LineList:             return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+    default: TAC_ASSERT_INVALID_CASE( topology ); return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+    }
+  }
 
   static D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( const DX12Pipeline::Variable& var )
   {
@@ -147,6 +158,7 @@ namespace Tac::Render
         DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
         TAC_ASSERT( buffer );
         gpuVirtualAddress = buffer->mGPUVirtualAddr;
+        TAC_ASSERT( gpuVirtualAddress );
 
         if( binding->IsConstantBuffer() )
         {
@@ -390,28 +402,51 @@ namespace Tac::Render
     commandList->ClearRenderTargetView( RTV, values.data(), 0, nullptr );
   }
 
+  void DX12Context::SetIndexBuffer( BufferHandle h )
+  {
+    mState.mIndexBuffer = h;
+
+    DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) };
+    if( !buffer )
+      return;
+
+    const DXGI_FORMAT Format{ TexFmtToDxgiFormat( buffer->mCreateParams.mGpuBufferFmt ) };
+    const D3D12_INDEX_BUFFER_VIEW indexBufferView
+    {
+      .BufferLocation { buffer->mGPUVirtualAddr },
+      .SizeInBytes    { ( UINT )buffer->mCreateParams.mByteCount },
+      .Format         { Format },
+    };
+
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    commandList->IASetIndexBuffer( &indexBufferView );
+  }
+
   void DX12Context::SetVertexBuffer( BufferHandle h )
   {
-    if( DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) } )
+    mState.mVertexBuffer = h;
+
+    DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) };
+    if( !buffer )
+      return;
+
+    const UINT StartSlot{};
+    const UINT NumViews{ 1 };
+    const D3D12_VERTEX_BUFFER_VIEW view
     {
-      const UINT StartSlot{};
-      const UINT NumViews{ 1 };
-      const D3D12_VERTEX_BUFFER_VIEW view
-      {
-        .BufferLocation { buffer->mGPUVirtualAddr },
-        .SizeInBytes    { ( UINT )buffer->mCreateParams.mByteCount },
-        .StrideInBytes  { ( UINT )buffer->mCreateParams.mStride },
-      };
+      .BufferLocation { buffer->mGPUVirtualAddr },
+      .SizeInBytes    { ( UINT )buffer->mCreateParams.mByteCount },
+      .StrideInBytes  { ( UINT )buffer->mCreateParams.mStride },
+    };
 
-      // When BufferLocation is valid, but SizeInBytes is 0, d3d can throw a
-      // COMMAND_LIST_DRAW_VERTEX_BUFFER_NOT_SET warning when drawing
-      TAC_ASSERT( view.BufferLocation );
-      TAC_ASSERT( view.SizeInBytes );
-      TAC_ASSERT( view.StrideInBytes );
+    // When BufferLocation is valid, but SizeInBytes is 0, d3d can throw a
+    // COMMAND_LIST_DRAW_VERTEX_BUFFER_NOT_SET warning when drawing
+    TAC_ASSERT( view.BufferLocation );
+    TAC_ASSERT( view.SizeInBytes );
+    TAC_ASSERT( view.StrideInBytes );
 
-      ID3D12GraphicsCommandList* commandList { GetCommandList() };
-      commandList->IASetVertexBuffers( StartSlot, NumViews, &view );
-    }
+    ID3D12GraphicsCommandList* commandList{ GetCommandList() };
+    commandList->IASetVertexBuffers( StartSlot, NumViews, &view );
   }
 
   void DX12Context::ClearDepth( TextureHandle h, float value )
@@ -446,14 +481,15 @@ namespace Tac::Render
       const D3D12_DRAW_INDEXED_ARGUMENTS dx12DrawArgs
       {
         // Is it weird to pass the "vertexcount" parameter to an "indexcount" value?
-        .IndexCountPerInstance { (UINT)args.mVertexCount },
+        .IndexCountPerInstance { ( UINT )args.mIndexCount },
 
         .InstanceCount         { 1 },
-        .StartIndexLocation    {},
+        .StartIndexLocation    { ( UINT )args.mStartIndex },
+
+        // A value added to each index before reading a vertex from the vertex buffer.
         .BaseVertexLocation    {},
         .StartInstanceLocation {},
       };
-
       commandList->DrawIndexedInstanced( dx12DrawArgs.IndexCountPerInstance,
                                          dx12DrawArgs.InstanceCount,
                                          dx12DrawArgs.StartIndexLocation,
@@ -466,7 +502,7 @@ namespace Tac::Render
       {
         .VertexCountPerInstance { ( UINT )args.mVertexCount },
         .InstanceCount          { 1 },
-        .StartVertexLocation    {},
+        .StartVertexLocation    { ( UINT )args.mStartVertex},
         .StartInstanceLocation  {},
       };
       commandList->DrawInstanced( dx12DrawArgs.VertexCountPerInstance,

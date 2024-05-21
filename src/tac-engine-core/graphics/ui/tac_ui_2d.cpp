@@ -474,8 +474,6 @@ namespace Tac
   {
     const v2& mini { box.mMini };
     const v2& maxi { box.mMaxi };
-    const v4& color { box.mColor };
-    const Render::TextureHandle texture { box.mTextureHandle };
 
     v2 clippedMini { mini };
     v2 clippedMaxi { maxi };
@@ -500,16 +498,12 @@ namespace Tac
     const int vtxCount { 4 };
     mVtxs.resize( oldVtxCount + 4 );
     UI2DVertex* pVtx = mVtxs.data() + oldVtxCount;
-    *pVtx++ = { .mPosition = { clippedMini.x, clippedMini.y }, .mGLTexCoord = { 0, 1 } };
-    *pVtx++ = { .mPosition = { clippedMini.x, clippedMaxi.y }, .mGLTexCoord = { 0, 0 } };
-    *pVtx++ = { .mPosition = { clippedMaxi.x, clippedMaxi.y }, .mGLTexCoord = { 1, 0 } };
-    *pVtx++ = { .mPosition = { clippedMaxi.x, clippedMini.y }, .mGLTexCoord = { 1, 1 } };
+    *pVtx++ = { .mPosition  { clippedMini.x, clippedMini.y }, .mGLTexCoord  { 0, 1 } };
+    *pVtx++ = { .mPosition  { clippedMini.x, clippedMaxi.y }, .mGLTexCoord  { 0, 0 } };
+    *pVtx++ = { .mPosition  { clippedMaxi.x, clippedMaxi.y }, .mGLTexCoord  { 1, 0 } };
+    *pVtx++ = { .mPosition  { clippedMaxi.x, clippedMini.y }, .mGLTexCoord  { 1, 1 } };
 
-    const Render::DefaultCBufferPerObject perObjectData
-    {
-      .World { m4::Identity() },
-      .Color { Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ) },
-    };
+    const v4 color { Render::PremultipliedAlpha::From_sRGB_linearAlpha( box.mColor ).mColor };
 
     TAC_ASSERT( oldVtxCount + vtxCount == mVtxs.size() );
     TAC_ASSERT( oldIdxCount + idxCount == mIdxs.size() );
@@ -520,9 +514,9 @@ namespace Tac
       .mVertexCount   { vtxCount },
       .mIIndexStart   { oldIdxCount },
       .mIndexCount    { idxCount },
-      .mShader        { gUI2DCommonData.mShader },
-      .mTexture       { texture },
-      .mUniformSource { perObjectData },
+      .mType          { UI2DDrawCall::Type::kImage },
+      .mTexture       { box.mTextureHandle },
+      .mColor         { color },
     };
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );
@@ -534,7 +528,6 @@ namespace Tac
     const v2& p0 { line.mP0 };
     const v2& p1 { line.mP1 };
     const float radius { line.mLineRadius };
-    const v4& color { line.mColor };
 
     // This function creates a long thin rectangle to act as a line
     const v2 dp { p1 - p0 };
@@ -562,20 +555,16 @@ namespace Tac
     mIdxs[ iIndex + 4 ] = ( UI2DIndex )iVert + 3;
     mIdxs[ iIndex + 5 ] = ( UI2DIndex )iVert + 2;
 
-    const Render::DefaultCBufferPerObject perObjectData
-    {
-      .World { m4::Identity() },
-      .Color { Render::PremultipliedAlpha::From_sRGB_linearAlpha(color) },
-    };
+    const v4 color{ Render::PremultipliedAlpha::From_sRGB_linearAlpha( line.mColor ).mColor };
 
     const UI2DDrawCall drawCall
     {
-      .mIVertexStart { iVert },
-      .mVertexCount { 4 },
-      .mIIndexStart { iIndex },
-      .mIndexCount { 6 },
-      .mShader { gUI2DCommonData.mShader },
-      .mUniformSource { perObjectData },
+      .mIVertexStart  { iVert },
+      .mVertexCount   { 4 },
+      .mIIndexStart   { iIndex },
+      .mIndexCount    { 6 },
+      .mType          { UI2DDrawCall::Type::kImage },
+      .mColor         { color },
     };
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );
@@ -757,12 +746,6 @@ namespace Tac
     const Render::PremultipliedAlpha colorPremultiplied {
       Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ) };
 
-    const Render::DefaultCBufferPerObject perObjectData
-    {
-      .World { m4::Identity() },
-      .Color { colorPremultiplied },
-    };
-
     const Render::TextureHandle texture { FontApi::GetAtlasTextureHandle() };
 
     const UI2DDrawCall drawCall
@@ -771,9 +754,9 @@ namespace Tac
       .mVertexCount   { strVtxCount },
       .mIIndexStart   { oldStrIdxCount },
       .mIndexCount    { strIdxCount },
-      .mShader        { gUI2DCommonData.m2DTextShader },
+      .mType          { UI2DDrawCall::Type::kText },
       .mTexture       { texture },
-      .mUniformSource { perObjectData },
+      .mColor         { colorPremultiplied.mColor },
     };
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );

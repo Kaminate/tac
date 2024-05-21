@@ -1,5 +1,7 @@
 #include "tac_level_editor.h" // self-inc
 
+#include "tac-std-lib/error/tac_error_handling.h"
+
 #include "tac-desktop-app/desktop_app/tac_iapp.h" // App
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
@@ -64,9 +66,17 @@ namespace Tac
     sCreation.Uninit( errors );
   }
 
-  void LevelEditorApp::Render( RenderParams, Errors& )
+  void LevelEditorApp::Render( RenderParams renderParams, Errors& errors )
   {
+    const SysWindowApi* windowApi{ renderParams.mWindowApi };
+    if( !windowApi->IsShown( sWindowHandle ) )
+      return;
 
+    const Render::SwapChainHandle swapChainHandle{
+      windowApi->GetSwapChainHandle( sWindowHandle ) };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    TAC_CALL( renderDevice->Present( swapChainHandle, errors ) );
   }
 
   App::IState* LevelEditorApp::GetGameState() 
@@ -101,27 +111,46 @@ namespace Tac
 
   void                Creation::Update( Errors& errors )
   {
-    mShowUnownedWindow = true;
-    mShowOwnedWindow = false;
+    mShowUnownedWindow = false;
+    mShowOwnedWindow = true;
 
-    if( mShowUnownedWindow )
+    if( mShowOwnedWindow )
     {
       ImGuiSetNextWindowHandle( sWindowHandle );
       if( ImGuiBegin( "Unowned Window" ) )
       {
-        ImGuiButton( "" );
+        UI2DDrawData* drawData{ ImGuiGetDrawData() };
+        const UI2DDrawData::Box box
+        {
+          .mMini  { 50, 50 },
+          .mMaxi  { 100, 150 },
+          .mColor { 0, 1, 0, 1 },
+        };
+        drawData->PushDebugGroup( "my debug group" );
+        const UI2DDrawData::Box box2
+        {
+          .mMini  { 200, 200 },
+          .mMaxi  { 380, 300 },
+          .mColor { 0, 0, 1, 1 },
+        };
+        //drawData->AddBox( box );
+        //drawData->AddBox( box2 );
+        ImGuiButton( "a" );
+        drawData->PopDebugGroup();
         ImGuiEnd();
       }
     }
 
-    if( mShowOwnedWindow )
+    if( mShowUnownedWindow )
     {
       ImGuiSetNextWindowPosition( v2( 500, 100 ) );
       ImGuiSetNextWindowSize( v2( 300, 300 ) );
       ImGuiSetNextWindowMoveResize();
       if( ImGuiBegin( "Owned Window" ) )
       {
-        ImGuiButton("");
+
+
+        //ImGuiButton( "" );
         ImGuiEnd();
       }
     }

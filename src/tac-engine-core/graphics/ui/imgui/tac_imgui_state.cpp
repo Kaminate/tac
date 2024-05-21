@@ -22,6 +22,20 @@ Tac::ImGuiNextWindow          Tac::gNextWindow;
 
 namespace Tac
 {
+
+    struct PerFrameType
+    {
+      m4    mOrthoProj         {};
+      float mSDFOnEdge         {};
+      float mSDFPixelDistScale {};
+    };
+
+    struct PerObjectType
+    {
+      v4  mColor{};
+      u32 mType{};
+    };
+
   ImGuiPersistantPlatformData ImGuiPersistantPlatformData::Instance;
   ImGuiGlobals                ImGuiGlobals::Instance;
 
@@ -429,7 +443,10 @@ namespace Tac
         const Render::CreateBufferParams createBufferParams
         {
           .mByteCount    { srcTotByteCount },
+          .mStride       { mSizeOfElem },
           .mUsage        { Render::Usage::Dynamic },
+          .mBinding      { mBinding },
+          .mGpuBufferFmt { mTexFmt },
           .mOptionalName { mBufName },
         };
 
@@ -472,7 +489,11 @@ namespace Tac
     GetDrawElementCount   mGetDrawElementCount;
     StringView            mBufName;
     ImGuiSimWindowDraws*  mDraws;
+    Render::TexFmt        mTexFmt { Render::TexFmt::kUnknown };
+    Render::Binding       mBinding { Render::Binding::None };
   };
+
+  // -----------------------------------------------------------------------------------------------
 
   void ImGuiSimWindowDraws::CopyIdxBuffer( Render::IContext* renderContext,
                                            ImGuiRenderBuffers* renderBuffers,
@@ -490,6 +511,8 @@ namespace Tac
       .mGetDrawElementCount { getIdxCount },
       .mBufName             { "imgui_idx_buf" },
       .mDraws               {  this  },
+      .mTexFmt              { Render::TexFmt::kR16_uint },
+      .mBinding             { Render::Binding::IndexBuffer },
     };
 
     TAC_CALL( idxCopyHelper.Copy( renderContext, errors ) );
@@ -511,6 +534,7 @@ namespace Tac
       .mGetDrawElementCount { getVtxCount },
       .mBufName             { "imgui_vtx_buf" },
       .mDraws               {  this  },
+      .mBinding             { Render::Binding::VertexBuffer },
     };
 
     TAC_CALL( vtxCopyHelper.Copy( renderContext, errors ) );
@@ -525,6 +549,8 @@ namespace Tac
     CopyIdxBuffer( renderContext, renderBuffers, errors );
   }
    
+
+  // -----------------------------------------------------------------------------------------------
 
   ImGuiSimWindowDraws ImGuiDesktopWindowImpl::GetSimWindowDraws()
   {
@@ -557,6 +583,8 @@ namespace Tac
     };
   }
 
+  // -----------------------------------------------------------------------------------------------
+
   void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiSysDrawParams sysDrawParams,
                                                            ImGuiSimWindowDraws* simDraws,
                                                            ImGuiPersistantViewport* sysDraws,
@@ -583,36 +611,16 @@ namespace Tac
     // combine draw data
     simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
 
-    const Render::ProgramHandle program{ mProgram };
-
     const Render::SwapChainHandle fb { windowApi->GetSwapChainHandle( hDesktopWindow ) };
     const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
     const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
 
-    const Render::PipelineHandle& pipeline{ GetPipeline( fbFmt, errors ) };
+    const Element& element{ GetElement( fbFmt, errors ) };
 
     const String renderGroupStr{ String()
       + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
 
     const v2i windowSize { windowApi->GetSize( hDesktopWindow ) };
-
-
-    const Timestamp elapsedSeconds { sysDrawParams.mTimestamp };
-
-    const m4 view { m4::Identity() };
-    const m4 proj { OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
-    const float secModTau{ ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ) };
-    const Render::DefaultCBufferPerFrame perFrameData
-    {
-      .mView       { view },
-      .mProjection { proj },
-      .mSecModTau  { secModTau },
-#if TAC_FONT_ENABLED()
-      .mSDFOnEdge = FontApi::GetSDFOnEdgeValue(),
-      .mSDFPixelDistScale = FontApi::GetSDFPixelDistScale(),
-#endif
-    };
-
 
     const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
     const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };
@@ -622,32 +630,22 @@ namespace Tac
       .mDepth  { swapChainDepth },
     };
 
+    UpdatePerFrame( renderContext, windowSize, errors );
+
+    renderContext->SetVertexBuffer( renderBuffers.mVB.mBuffer );
+    renderContext->SetIndexBuffer( renderBuffers.mIB.mBuffer );
+    renderContext->SetPipeline( element.mPipeline );
+    renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
     renderContext->SetRenderTargets( renderTargets );
     renderContext->SetViewport( windowSize );
     renderContext->SetScissor( windowSize );
     renderContext->DebugEventBegin( renderGroupStr );
-    renderContext->DebugEventEnd();
     renderContext->DebugMarker( "hello hello" );
 
-    TAC_CALL( renderContext->Execute( errors ) );
 
-#if 0
-    auto shaderBinding = Render::RenderApi::CreateShaderBinding( pipeline );
-    shaderBinding->GetVariableByName( "g_Texture" )->SetArray( pTexSRVs, 0, NumTextures );
-    shaderBinding->GetVariableByName( "CBufferPerFrame" )->Set(...);
-    shaderBinding->GetVariableByName( "CBufferPerObject" )->Set(...);
-
-    renderContext.CommitShaderResources( shaderBinding );
-#endif
-
-#if 0
     //Render::DebugGroup::Iterator debugGroupIterator = mDebugGroupStack.IterateBegin();
 
-    const Render::BufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
-    const int perFrameSize { sizeof( Render::DefaultCBufferPerFrame ) };
-    Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
-
-    for( UI2DDrawData* drawData : frameData.mDrawData )
+    for( SmartPtr< UI2DDrawData >& drawData : simDraws->mDrawData )
     {
       for( const UI2DDrawCall& uidrawCall : drawData->mDrawCall2Ds )
       {
@@ -655,92 +653,225 @@ namespace Tac
         //                                 uidrawCall.mDebugGroupIndex,
         //                                 uidrawCall.mStackFrame );
 
-        //const Render::TextureHandle texture = uidrawCall.mTexture.IsValid() ?
-        //  uidrawCall.mTexture :
-        //  gUI2DCommonData.m1x1White;
+        const Render::TextureHandle texture{ uidrawCall.mTexture.IsValid()
+          ? uidrawCall.mTexture
+          : m1x1White };
+
+        element.mShaderImage->SetTexture( texture );
 
 
-        const Render::BufferHandle hPerObj { Render::DefaultCBufferPerObject::Handle };
-        const int perObjSize { sizeof( Render::DefaultCBufferPerObject ) };
-        //Render::UpdateConstantBuffer( hPerObj,
-        //                              &uidrawCall.mUniformSource,
-        //                              perObjSize,
-        //                              uidrawCall.mStackFrame );
-        //Render::SetBlendState( gUI2DCommonData.mBlendState );
-        //Render::SetRasterizerState( gUI2DCommonData.mRasterizerState );
-        //Render::SetSamplerState( { gUI2DCommonData.mSamplerState } );
-        //Render::SetDepthState( gUI2DCommonData.mDepthState );
-        //Render::SetVertexFormat( gUI2DCommonData.mFormat );
-        //Render::SetVertexBuffer( mBufferHandle, uidrawCall.mIVertexStart, uidrawCall.mVertexCount );
-        //Render::SetIndexBuffer( mBufferHandle, uidrawCall.mIIndexStart, uidrawCall.mIndexCount );
-        //Render::SetTexture( { texture } );
-        //Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
-        //Render::SetShader( uidrawCall.mShader );
-        //Render::Submit( viewHandle, uidrawCall.mStackFrame );
+        UpdatePerObject( renderContext, uidrawCall, errors );
+        renderContext->CommitShaderVariables();
+
+        const Render::DrawArgs drawArgs
+        {
+          .mIndexCount { uidrawCall.mIndexCount },
+          .mStartIndex { uidrawCall.mIIndexStart },
+        };
+        renderContext->Draw( drawArgs );
       }
     }
 
-    //TAC_CALL( Render::ExecuteCommands( { context }, errors ) );
+    renderContext->DebugEventEnd();
+    TAC_CALL( renderContext->Execute( errors ) );
 
     //mDebugGroupStack.IterateEnd( debugGroupIterator, TAC_STACK_FRAME );
     //mDebugGroupStack = {};
+  }
 
+  void ImGuiPersistantPlatformData::Init1x1White( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    for( UI2DDrawData* drawData :  frameData.mDrawData )
+    const u8 data[] { 255, 255, 255, 255 };
+    const Render::Image image
     {
-      *drawData = {};
-    }
+      .mWidth  { 1 },
+      .mHeight { 1 },
+      .mFormat { Render::TexFmt::kRGBA8_unorm },
+    };
+    const Render::CreateTextureParams::Subresource subresource
+    {
+      .mBytes { data },
+      .mPitch { 4 },
+    };
+    const Render::CreateTextureParams createTextureParams
+    {
+      .mImage        { image },
+      .mMipCount     { 1 },
+      .mSubresources { &subresource },
+      .mBinding      { Render::Binding::ShaderResource },
+      .mOptionalName { "1x1white" },
+    };
+    TAC_CALL( m1x1White = renderDevice->CreateTexture( createTextureParams, errors ) );
+  }
 
-    OS::OSDebugBreak();
+  Render::VertexDeclarations ImGuiPersistantPlatformData::GetVertexDeclarations() const
+  {
+    const Render::VertexDeclaration posData
+    {
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::VertexAttributeFormat::GetVector2() },
+      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
+    };
 
-#endif
+    const Render::VertexDeclaration uvData
+    {
+      .mAttribute         { Render::Attribute::Texcoord },
+      .mFormat            { Render::VertexAttributeFormat::GetVector2() },
+      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
+    };
+
+    Render::VertexDeclarations decls;
+    decls.push_back( posData );
+    decls.push_back( uvData );
+    return decls;
+  }
+
+  void ImGuiPersistantPlatformData::InitProgram( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams2DImage
+    {
+      .mFileStem { "ImGui" },
+    };
+    TAC_CALL( mProgram = renderDevice->CreateProgram( programParams2DImage, errors ) );
+  }
+
+  void ImGuiPersistantPlatformData::InitPerFrame( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::CreateBufferParams perFrameParams
+    {
+      .mByteCount     { sizeof( PerFrameType ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "ImGui_per_frame" },
+    };
+
+    TAC_CALL( mPerFrame = renderDevice->CreateBuffer( perFrameParams, errors ) );
+  }
+
+  void ImGuiPersistantPlatformData::InitPerObject( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::CreateBufferParams perObjectParams
+    {
+      .mByteCount     { sizeof( PerObjectType ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "ImGui_per_object" },
+    };
+    TAC_CALL( mPerObject = renderDevice->CreateBuffer( perObjectParams, errors ) );
+  }
+
+  void ImGuiPersistantPlatformData::InitSampler()
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    mSampler = renderDevice->CreateSampler( Render::Filter::Linear );
   }
 
   void ImGuiPersistantPlatformData::Init( Errors& errors )
   {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-    const Render::ProgramParams programParams
-    {
-      .mFileStem { "2D" },
-    };
-    TAC_CALL( mProgram = renderDevice->CreateProgram( programParams, errors ) );
-
-    mPipelineCache.mProgram = mProgram;
-
-    // hold up. shouldnt we be rendering with
-    // UI2DCommonData::m2DTextShader and
-    // UI2DCommonData::mShader?
-    TAC_ASSERT_UNIMPLEMENTED;
-    Render::ProgramHandle         mShader;
-    Render::ProgramHandle         m2DTextShader;
+    InitSampler();
+    TAC_CALL( Init1x1White( errors ) );
+    TAC_CALL( InitProgram( errors ) );
+    TAC_CALL( InitPerFrame( errors ) );
+    TAC_CALL( InitPerObject( errors ) );
   }
 
-  Render::PipelineHandle ImGuiPipelineCache::GetPipeline( Render::TexFmt texFmt, Errors& errors )
+  Render::BlendState         ImGuiPersistantPlatformData::GetBlendState() const
   {
-    for( const Element& element : mElements )
-      if( element.mTexFmt == texFmt )
-        return element.mPipeline;
+    const Render::BlendState blendState
+    {
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::One },
+      .mDstA     { Render::BlendConstants::OneMinusSrcA },
+      .mBlendA   { Render::BlendMode::Add },
+    };
+    return blendState;
+  }
 
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  Render::DepthState         ImGuiPersistantPlatformData::GetDepthState() const
+  {
+    const Render::DepthState depthState
+    {
+      .mDepthTest  { false },
+      .mDepthWrite { false },
+      .mDepthFunc  { Render::DepthFunc::Less },
+    };
+    return depthState;
+  }
+
+  Render::RasterizerState    ImGuiPersistantPlatformData::GetRasterizerState() const
+  {
+    const Render::RasterizerState rasterizerState
+    {
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mMultisample           { false },
+    };
+    return rasterizerState;
+  }
+
+  ImGuiPersistantPlatformData::Element& ImGuiPersistantPlatformData::GetElement(
+    Render::TexFmt texFmt,
+    Errors& errors )
+  {
+    for( Element& element : mElements )
+      if( element.mTexFmt == texFmt )
+        return element;
 
     const Render::PipelineParams pipelineParams
     {
-      .mProgram      { mProgram },
-      .mRTVColorFmts { texFmt },
+      .mProgram         { mProgram },
+      .mBlendState      { GetBlendState() },
+      .mDepthState      { GetDepthState() },
+      .mRasterizerState { GetRasterizerState() },
+      .mRTVColorFmts    { texFmt },
+      .mVtxDecls        { GetVertexDeclarations() },
     };
-    
-    TAC_CALL_RET( {}, const Render::PipelineHandle pipeline{
+
+    mElements.resize( mElements.size() + 1 );
+    Element& element { mElements.back() };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL_RET( element, const Render::PipelineHandle pipeline{
       renderDevice->CreatePipeline( pipelineParams, errors ) } );
 
-    const Element element 
+    Render::IShaderVar* shaderImage{
+      renderDevice->GetShaderVariable( pipeline, "image" )};
+
+    Render::IShaderVar* shaderSampler{
+      renderDevice->GetShaderVariable( pipeline, "linearSampler" )};
+
+    Render::IShaderVar* shaderPerObject{
+      renderDevice->GetShaderVariable( pipeline, "perObject" )};
+
+    Render::IShaderVar* shaderPerFrame{
+      renderDevice->GetShaderVariable( pipeline, "perFrame" )};
+
+    shaderPerFrame->SetBuffer( mPerFrame );
+    shaderPerObject->SetBuffer( mPerObject );
+    shaderSampler->SetSampler( mSampler );
+
+    element = Element
     {
-      .mPipeline { pipeline },
-      .mTexFmt   { texFmt },
+      .mPipeline        { pipeline },
+      .mTexFmt          { texFmt },
+      .mShaderImage     { shaderImage },
+      .mShaderSampler   { shaderSampler },
+      .mShaderPerObject { shaderPerObject },
+      .mShaderPerFrame  { shaderPerFrame },
     };
-    mElements.push_back( element );
-    return pipeline;
+    return element;
   }
+
+
+    
 
   void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSysDrawParams params,
                                                      Errors& errors )
@@ -769,11 +900,62 @@ namespace Tac
     return &mViewportDatas.back();
   }
 
-  Render::PipelineHandle   ImGuiPersistantPlatformData::GetPipeline( Render::TexFmt texFmt,
-                                                                     Errors& errors )
+  void ImGuiPersistantPlatformData::UpdatePerFrame( Render::IContext* context,
+                                                    v2i windowSize,
+                                                    Errors& errors )
   {
-    return mPipelineCache.GetPipeline( texFmt , errors );
+
+    const m4 proj { OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
+    const PerFrameType perFrame
+    {
+      .mOrthoProj         { proj },
+      .mSDFOnEdge         { FontApi::GetSDFOnEdgeValue() },
+      .mSDFPixelDistScale { FontApi::GetSDFPixelDistScale() },
+    };
+
+
+    const Render::UpdateBufferParams updatePerFrame
+    {
+      .mSrcBytes     { &perFrame },
+      .mSrcByteCount { sizeof( PerFrameType ) },
+    };
+
+    TAC_CALL( context->UpdateBuffer( mPerFrame, &updatePerFrame, errors ) );
+
   }
+
+  void ImGuiPersistantPlatformData::UpdatePerObject( Render::IContext* context,
+                                                    const UI2DDrawCall& uidrawCall,
+                                                    Errors& errors )
+  {
+
+    const u32 drawType{
+      [ & ]()
+      {
+        if( uidrawCall.mType == UI2DDrawCall::Type::kImage )
+          return ( u32 )0;
+        if( uidrawCall.mType == UI2DDrawCall::Type::kText )
+          return ( u32 )1;
+        TAC_ASSERT_INVALID_CODE_PATH;
+        return ( u32 )0;
+      }( )
+    };
+
+    const PerObjectType perObject
+    {
+      .mColor { uidrawCall.mColor },
+      .mType  { drawType },
+    };
+
+    const Render::UpdateBufferParams updatePerObj
+    {
+      .mSrcBytes     { &perObject },
+      .mSrcByteCount { sizeof( PerObjectType ) },
+    };
+
+    TAC_CALL( context->UpdateBuffer( mPerObject, &updatePerObj, errors ) );
+  }
+
 
 
   // -----------------------------------------------------------------------------------------------

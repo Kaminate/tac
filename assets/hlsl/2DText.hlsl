@@ -55,7 +55,6 @@ PS_OUTPUT PS( VS_OUTPUT input )
 
   float4 color = Color;
 
-  sdfPixelDistScale; // [0, 1]
   float idk = 30 / 255.0f;
 
   //float a = 
@@ -91,7 +90,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
 
   // The quick brown fox jumps over the lazy dog
 
-  float pxDist = -(sampled - sdfOnEdge) / sdfPixelDistScale;
+  float pxDist = -( sampled - sdfOnEdge ) / sdfPixelDistScale;
   color = float4( 1, 1, 1, 1 ) * saturate( 0.5 - pxDist );
 
   PS_OUTPUT result;

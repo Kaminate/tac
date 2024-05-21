@@ -19,9 +19,65 @@
 
 namespace Tac::Render
 {
+  static D3D12_COMPARISON_FUNC  GetDX12DepthFunc( DepthFunc depthFunc )
+  {
+    switch( depthFunc )
+    {
+    case DepthFunc::Less: return D3D12_COMPARISON_FUNC_LESS;
+    case DepthFunc::LessOrEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    default: TAC_ASSERT_INVALID_CASE( depthFunc ); return D3D12_COMPARISON_FUNC_LESS;
+    }
+  }
 
+  static D3D12_FILL_MODE        GetDX12FillMode( FillMode fillMode )
+  {
+    switch( fillMode )
+    {
+    case FillMode::Solid: return D3D12_FILL_MODE_SOLID;
+    case FillMode::Wireframe:return D3D12_FILL_MODE_WIREFRAME;
+    default: TAC_ASSERT_INVALID_CASE( fillMode ); return D3D12_FILL_MODE_SOLID;
+    }
+  }
 
+  static D3D12_CULL_MODE        GetDX12CullMode( CullMode cullMode )
+  {
+    switch( cullMode )
+    {
+    case CullMode::None: return D3D12_CULL_MODE_NONE;
+    case CullMode::Back: return D3D12_CULL_MODE_BACK;
+    case CullMode::Front: return D3D12_CULL_MODE_FRONT;
+    default: TAC_ASSERT_INVALID_CASE( cullMode ); return D3D12_CULL_MODE_NONE;
+    }
+  }
 
+  static D3D12_BLEND            GetDX12Blend( BlendConstants blendConstants )
+  {
+    switch( blendConstants )
+    {
+    case BlendConstants::One: return D3D12_BLEND_ONE;
+    case BlendConstants::Zero: return D3D12_BLEND_ZERO;
+    case BlendConstants::SrcRGB: return D3D12_BLEND_SRC_COLOR;
+    case BlendConstants::SrcA: return D3D12_BLEND_SRC_ALPHA;
+    case BlendConstants::OneMinusSrcA: return D3D12_BLEND_INV_SRC_ALPHA;
+    default: TAC_ASSERT_INVALID_CASE( blendConstants ); return D3D12_BLEND_ONE;
+    }
+  }
+
+  static D3D12_BLEND_OP         GetDX12BlendOp( BlendMode blendMode )
+  {
+    switch( blendMode )
+    {
+    case BlendMode::Add: return D3D12_BLEND_OP_ADD;
+    default: TAC_ASSERT_INVALID_CASE( blendMode ); return D3D12_BLEND_OP_ADD;
+    }
+  }
+
+  static D3D12_DEPTH_WRITE_MASK GetDX12DepthWriteMask( bool depthWrite )
+  {
+    return depthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
   void DX12PipelineMgr::Init( ID3D12Device* device, DX12ProgramMgr* programMgr )
   {
@@ -42,24 +98,25 @@ namespace Tac::Render
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
-      .FillMode              { D3D12_FILL_MODE_SOLID },
-      .CullMode              { D3D12_CULL_MODE_BACK },
-      .FrontCounterClockwise { true },
+      .FillMode              { GetDX12FillMode( params.mRasterizerState.mFillMode ) },
+      .CullMode              { GetDX12CullMode( params.mRasterizerState.mCullMode ) },
+      .FrontCounterClockwise { params.mRasterizerState.mFrontCounterClockwise },
       .DepthBias             { D3D12_DEFAULT_DEPTH_BIAS },
       .DepthBiasClamp        { D3D12_DEFAULT_DEPTH_BIAS_CLAMP },
       .SlopeScaledDepthBias  { D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS },
       .DepthClipEnable       { true },
+      .MultisampleEnable     { params.mRasterizerState.mMultisample },
     };
 
     const D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc
     {
       .BlendEnable           { TRUE },
-      .SrcBlend              { D3D12_BLEND_ONE },
-      .DestBlend             { D3D12_BLEND_INV_SRC_ALPHA },
-      .BlendOp               { D3D12_BLEND_OP_ADD },
-      .SrcBlendAlpha         { D3D12_BLEND_ONE },
-      .DestBlendAlpha        { D3D12_BLEND_ONE },
-      .BlendOpAlpha          { D3D12_BLEND_OP_ADD },
+      .SrcBlend              { GetDX12Blend( params.mBlendState.mSrcRGB ) },
+      .DestBlend             { GetDX12Blend( params.mBlendState.mDstRGB ) },
+      .BlendOp               { GetDX12BlendOp( params.mBlendState.mBlendRGB ) },
+      .SrcBlendAlpha         { GetDX12Blend( params.mBlendState.mSrcA ) },
+      .DestBlendAlpha        { GetDX12Blend( params.mBlendState.mDstA ) },
+      .BlendOpAlpha          { GetDX12BlendOp( params.mBlendState.mBlendA ) },
       .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
     };
 
@@ -83,6 +140,13 @@ namespace Tac::Render
     
     const DX12InputLayout inputLayout( params.mVtxDecls, program );
 
+    const D3D12_DEPTH_STENCIL_DESC depthStencilDesc
+    {
+      .DepthEnable    { ( BOOL )params.mDepthState.mDepthTest },
+      .DepthWriteMask { GetDX12DepthWriteMask( params.mDepthState.mDepthWrite ) },
+      .DepthFunc      {  GetDX12DepthFunc( params.mDepthState.mDepthFunc ) },
+    };
+
     dynmc D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )rootSig },
@@ -91,7 +155,7 @@ namespace Tac::Render
       .BlendState            { BlendState },
       .SampleMask            { UINT_MAX },
       .RasterizerState       { RasterizerState },
-      .DepthStencilState     { D3D12_DEPTH_STENCIL_DESC{} },
+      .DepthStencilState     { depthStencilDesc },
       .InputLayout           { inputLayout },
       .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
       .NumRenderTargets      { NumRenderTargets },

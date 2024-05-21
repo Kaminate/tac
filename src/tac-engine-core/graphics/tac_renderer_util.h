@@ -58,7 +58,8 @@ namespace Tac::Render
 
     explicit PremultipliedAlpha( const v4& );
     PremultipliedAlpha() = default;
-    v4 Color {  1, 1, 1, 1 } ;
+
+    v4 mColor {  1, 1, 1, 1 } ;
   };
 
 

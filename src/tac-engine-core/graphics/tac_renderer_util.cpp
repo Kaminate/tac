@@ -91,7 +91,7 @@ namespace Tac::Render
   //  return Color;
   //}
 
-   PremultipliedAlpha::PremultipliedAlpha( const v4& c ) : Color( c ) {}
+   PremultipliedAlpha::PremultipliedAlpha( const v4& c ) : mColor( c ) {}
 
   PremultipliedAlpha PremultipliedAlpha::From_sRGB( const v3& sRGB )
   {
@@ -128,7 +128,7 @@ namespace Tac::Render
 
   const m4& DefaultCBufferPerObject::GetWorld() const { return World; }
 
-  const v4& DefaultCBufferPerObject::GetColor() const { return Color.Color; }
+  const v4& DefaultCBufferPerObject::GetColor() const { return Color.mColor; }
 
   void      CBufferLights::Init(Errors& errors)
   {

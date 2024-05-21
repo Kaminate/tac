@@ -339,6 +339,7 @@ namespace Tac
     case Tac::Render::TexFmt::kD24S8:             return DXGI_FORMAT_D24_UNORM_S8_UINT;
     case Tac::Render::TexFmt::kRGBA16F:           return DXGI_FORMAT_R16G16B16A16_FLOAT;
     case Tac::Render::TexFmt::kR8_unorm:          return DXGI_FORMAT_R8_UNORM;
+    case Tac::Render::TexFmt::kR16_uint:          return DXGI_FORMAT_R16_UINT;
     case Tac::Render::TexFmt::kRGBA8_unorm:       return DXGI_FORMAT_R8G8B8A8_UNORM;
     case Tac::Render::TexFmt::kRGBA8_unorm_srgb:  return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
     default: TAC_ASSERT_INVALID_CASE( fmt );      return DXGI_FORMAT_UNKNOWN;

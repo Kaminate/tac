@@ -72,6 +72,7 @@ namespace Tac::Render
     void ClearColor( TextureHandle, v4 ) override;
     void ClearDepth( TextureHandle, float ) override;
     void SetVertexBuffer( BufferHandle ) override;
+    void SetIndexBuffer( BufferHandle ) override;
     void Draw( DrawArgs ) override;
     void DebugEventBegin( StringView ) override;
     void DebugEventEnd() override;
@@ -89,10 +90,10 @@ namespace Tac::Render
 
     struct State
     {
-      RenderTargetColors mRenderTargetColors;
-      RenderTargetDepth  mRenderTargetDepth; 
-      BufferHandle       mVertexBuffer;
-      BufferHandle       mIndexBuffer;
+      RenderTargetColors mRenderTargetColors   {};
+      RenderTargetDepth  mRenderTargetDepth    {}; 
+      BufferHandle       mVertexBuffer         {};
+      BufferHandle       mIndexBuffer          {};
       PipelineHandle     mPipeline             {};
       bool               mSynchronous          {};
       bool               mExecuted             {};
