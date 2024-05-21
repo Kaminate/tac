@@ -423,44 +423,47 @@ namespace Tac
     return cell;
   }
 
+  FontCellPos           FontAtlas::CellIndexToPos( int cellIndex )
+  {
+    const int cellRow{ cellIndex / mCellRowCount };
+    const int cellColumn{ cellIndex % mCellRowCount };
+
+    return FontCellPos
+    {
+      .mPxRow      { cellRow * ( FontCellPxHeight + BilinearFilteringPadding ) },
+      .mPxColumn   { cellColumn * ( FontCellPxWidth + BilinearFilteringPadding ) },
+      .mCellRow    { cellRow },
+      .mCellColumn { cellColumn },
+    };
+  }
+
   FontAtlasCell*        FontAtlas::GetCell()
   {
-    const int cellCount { mCells.size() };
-    if( cellCount < mCellRowCount * mCellColCount )
+    if( const int cellCount { mCells.size() }; cellCount < mCellRowCount * mCellColCount )
     {
-      const int cellIndex { cellCount };
-      const int cellRow { cellIndex / mCellRowCount };
-      const int cellColumn { cellIndex % mCellRowCount };
-
-      const FontCellPos fontCellPos
-      {
-        .mPxRow      { cellRow * ( FontCellPxHeight + BilinearFilteringPadding ) },
-        .mPxColumn   { cellColumn * ( FontCellPxWidth + BilinearFilteringPadding ) },
-        .mCellRow    { cellRow },
-        .mCellColumn { cellColumn },
-      };
-
       FontAtlasCell* cell{ TAC_NEW FontAtlasCell };
-      cell->mFontCellPos = fontCellPos;
+      cell->mFontCellPos = CellIndexToPos( cellCount );
       mCells.push_back( cell );
       return cell;
     }
-
-    FontAtlasCell* oldest { nullptr };
-    for( FontAtlasCell* cell : mCells )
+    else
     {
-      if( !cell->mOwner )
-        return cell;
+      FontAtlasCell* oldest{};
+      for( FontAtlasCell* cell : mCells )
+      {
+        if( !cell->mOwner )
+          return cell;
 
-      if( !oldest || cell->mReadTime < oldest->mReadTime )
-        oldest = cell;
+        if( !oldest || cell->mReadTime < oldest->mReadTime )
+          oldest = cell;
+      }
+
+      FontFile* owner{ oldest->mOwner };
+      owner->mCells.erase( oldest->mCodepoint );
+
+      oldest->mOwner = nullptr;
+      return oldest;
     }
-
-    FontFile* owner { oldest->mOwner };
-    owner->mCells.erase( oldest->mCodepoint );
-
-    oldest->mOwner = nullptr;
-    return oldest;
   }
 
 

@@ -65,6 +65,7 @@ namespace Tac
     void                            InitAtlasCheckerboard( void*, u8, u8 );
     void                            FillAtlasRegion( void*, const TexelRegion&, u8 ); // inclusive
     FontCellUVs                     ComputeTexCoords( const FontCellPos&, const GlyphMetrics& );
+    FontCellPos                     CellIndexToPos( int );
 
     Render::TextureHandle           mTextureId            {};
     int                             mPxStride             {};
