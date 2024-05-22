@@ -222,8 +222,8 @@ namespace Tac::Render
                                           Errors& errors )
   {
 
-    const CreateTextureParams::Subresources subresources{ updateTextureParams.mSrcSubresource };
-    const int nSubRscs{ subresources.size() };
+    const CreateTextureParams::Subresources srcSubresources{ updateTextureParams.mSrcSubresource };
+    const int nSubRscs{ srcSubresources.size() };
     if( !nSubRscs )
       return;
 
@@ -243,14 +243,14 @@ namespace Tac::Render
     // total number of bytes for the upload buffer to hold every subresource
     UINT64 totalBytes;
     Vector< D3D12_PLACED_SUBRESOURCE_FOOTPRINT > dstPlacedSubRscFootprints( nSubRscs );
+    Vector< UINT > dstRowCounts( nSubRscs );
     Vector< UINT64 > dstRowByteCounts( nSubRscs );
-    Vector< UINT > rowCounts( nSubRscs );
     mDevice->GetCopyableFootprints( &dstRscDesc,
                                     0, // first subresource
                                     nSubRscs,
                                     0, // base offset
                                     dstPlacedSubRscFootprints.data(),
-                                    rowCounts.data(),
+                                    dstRowCounts.data(),
                                     dstRowByteCounts.data(),
                                     &totalBytes );
 
@@ -262,27 +262,31 @@ namespace Tac::Render
     // for each subresource
     for( int iSubRsc { 0 }; iSubRsc < nSubRscs; ++iSubRsc )
     {
+      const CreateTextureParams::Subresource srcSubresource{ srcSubresources[ iSubRsc ] };
       const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& dstPlacedFootprint {
         dstPlacedSubRscFootprints[ iSubRsc ] };
-      const int rowCount{ ( int )rowCounts[ iSubRsc ] };
+      //const int rowCount{ ( int )dstRowCounts[ iSubRsc ] };
+      const int srcRowCount{ updateTextureParams.mSrcImage.mHeight >> iSubRsc };
+      const int srcColCount{ updateTextureParams.mSrcImage.mWidth >> iSubRsc };
 
-      const char* srcSubRscBytes{ ( char* )subresources[ iSubRsc ].mBytes };
+      const char* srcSubRscBytes{ ( char* )srcSubresource.mBytes };
       dynmc char* dstSubRscBytes{ ( char* )allocation.mCPUAddr + dstPlacedFootprint.Offset };
 
-      const int srcRowPitch{ subresources[ iSubRsc ].mPitch };
+      const int srcRowPitch{ srcSubresource.mPitch };
       const int dstRowPitch{ ( int )dstPlacedFootprint.Footprint.RowPitch };
-      const int dstRowByteCount { ( int )dstRowByteCounts[ iSubRsc ] };
+      //const int dstRowByteCount { ( int )dstRowByteCounts[ iSubRsc ] };
 
       TAC_ASSERT( dstPlacedFootprint.Footprint.Depth == 1 );
       TAC_ASSERT( dstRowPitch );
       TAC_ASSERT( srcRowPitch );
 
-      for( int y{}; y < rowCount; ++y )
+      for( int y{}; y < srcRowCount; ++y )
       {
         dynmc char* dst{ dstSubRscBytes + dstRowPitch * y };
         const void* src{ srcSubRscBytes + srcRowPitch * y };
 
-        MemCpy( dst, src, dstRowByteCount );
+        //MemCpy( dst, src, dstRowByteCount );
+        MemCpy( dst, src, srcColCount );
       }
     }
 

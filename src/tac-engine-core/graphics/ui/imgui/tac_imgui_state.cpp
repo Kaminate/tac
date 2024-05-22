@@ -782,13 +782,16 @@ namespace Tac
 
   Render::BlendState         ImGuiPersistantPlatformData::GetBlendState() const
   {
+    // https://shawnhargreaves.com/blog/premultiplied-alpha.html
     const Render::BlendState blendState
     {
       .mSrcRGB   { Render::BlendConstants::One },
       .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
       .mBlendRGB { Render::BlendMode::Add },
+
+      // do these 3 even matter?
       .mSrcA     { Render::BlendConstants::One },
-      .mDstA     { Render::BlendConstants::OneMinusSrcA },
+      .mDstA     { Render::BlendConstants::Zero },
       .mBlendA   { Render::BlendMode::Add },
     };
     return blendState;

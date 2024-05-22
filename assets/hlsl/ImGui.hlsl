@@ -56,20 +56,25 @@ PS_OUTPUT PS( VS_OUTPUT input )
 
   if( perObject.mType == 0 )
   {
-    float4 sampled = image.Sample( linearSampler, input.mDXTexCoord );
+    const float4 sampled = image.Sample( linearSampler, input.mDXTexCoord );
     // see: premultiplied alpha https://en.wikipedia.org/wiki/Alpha_compositing
 
     // convert from sRGB, because our backbuffer is linear
-    float4 linearColor = float4( pow( perObject.mColor.rgb, 2.2 ), perObject.mColor.a );
-    float4 linearSampled = float4( pow( sampled.rgb, 2.2), sampled.a );
+    const float4 linearColor = float4( pow( perObject.mColor.rgb, 2.2 ), perObject.mColor.a );
+    const float4 linearSampled = float4( pow( sampled.rgb, 2.2), sampled.a );
 
     output.mColor = linearColor * linearSampled;
   }
   else if( perObject.mType == 1 )
   {
-    float sampled = image.Sample( linearSampler, input.mDXTexCoord ).r;
-    float pxDist = ( perFrame.mSDFOnEdge - sampled ) / perFrame.mSDFPixelDistScale;
-    output.mColor = float4( 1, 1, 1, 1 ) * saturate( 0.5 - pxDist );
+    const float sampled = image.Sample( linearSampler, input.mDXTexCoord ).r;
+
+    // screenspace pixel distance from the current pixel to the edge of the isosurface
+    const float pxDist = ( perFrame.mSDFOnEdge - sampled ) / perFrame.mSDFPixelDistScale;
+    const float a = saturate( 0.5 - pxDist );
+
+    // premultiplied alpha
+    output.mColor = float4(perObject.mColor.rgb * a, perObject.mColor.a);
   }
   else
   {

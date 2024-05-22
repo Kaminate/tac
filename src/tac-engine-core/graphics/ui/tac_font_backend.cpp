@@ -103,6 +103,8 @@ namespace Tac
   GlyphBytes       FontFile::GetGlyphBytes( int glyphIndex ) const
   {
     // return value      --  a 2D array of bytes 0..255, width*height in size
+    int w;
+    int h;
     unsigned char* sdfBytes{
       stbtt_GetGlyphSDF( &mFontInfo,
                          mFontDims.mScale ,
@@ -110,8 +112,8 @@ namespace Tac
                          FontCellInnerSDFPadding,
                          onedge_value,
                          pixel_dist_scale,
-                         nullptr,
-                         nullptr,
+                         &w,
+                         &h,
                          nullptr,
                          nullptr ) };
 
@@ -179,11 +181,16 @@ namespace Tac
     // the bitmap top left is (leftSideBearing*scale,iy0).
     // (Note that the bitmap uses y-increases-down, but the shape uses
     // y-increases-up, so CodepointBitmapBox and CodepointBox are inverted.)
-    stbtt_GetGlyphBitmapBox( &mFontInfo, glyphIndex, scale, scale, &ix0, &iy0, &ix1, &iy1 );
+    //stbtt_GetGlyphBitmapBox( &mFontInfo, glyphIndex, scale, scale, &ix0, &iy0, &ix1, &iy1 );
+    stbtt_GetGlyphBitmapBoxSubpixel( &mFontInfo,
+                                     glyphIndex,
+                                     scale, scale,
+                                     0, 0,
+                                     &ix0, &iy0, &ix1, &iy1 ); 
 
     // output height & width of the SDF bitmap (including padding)
-    const int sdfWidth  { ix1 - ix0 };
-    const int sdfHeight { iy1 - iy0 };
+    const int sdfWidth  { ix1 - ix0 + 2 * FontCellInnerSDFPadding};
+    const int sdfHeight { iy1 - iy0 + 2 * FontCellInnerSDFPadding};
 
     return GlyphMetrics
     {

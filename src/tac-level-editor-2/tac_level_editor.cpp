@@ -142,10 +142,10 @@ namespace Tac
         {
           .mPos      { 11, 8 },
           .mFontSize { 23 },
-          .mUtf8     {"a"},
+          .mUtf8     { "a" },
         };
-        drawData->AddText( text );
         drawData->AddBox( box );
+        drawData->AddText( text );
 
         ImGuiEnd();
       }
