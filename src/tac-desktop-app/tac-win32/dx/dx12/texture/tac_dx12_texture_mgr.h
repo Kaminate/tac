@@ -9,7 +9,12 @@
 
 namespace Tac { struct Errors; }
 
-namespace Tac::Render { struct DX12Context; struct DX12ContextManager; }
+namespace Tac::Render
+{
+  struct DX12Context;
+  struct DX12ContextManager;
+  struct DX12TransitionHelper;
+}
 
 namespace Tac::Render
 {
@@ -30,6 +35,11 @@ namespace Tac::Render
     void          UpdateTexture( TextureHandle, UpdateTextureParams, DX12Context*, Errors& );
     void          DestroyTexture( TextureHandle );
     DX12Texture*  FindTexture( TextureHandle );
+    void          TransitionTexture( TextureHandle, DX12TransitionHelper* );
+    void          TransitionResource( ID3D12Resource*,
+                                      D3D12_RESOURCE_STATES*,
+                                      Binding,
+                                      DX12TransitionHelper* );
 
   private:
     using DX12Textures = Array< DX12Texture, 100 >;

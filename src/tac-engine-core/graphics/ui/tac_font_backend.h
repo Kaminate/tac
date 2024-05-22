@@ -24,8 +24,8 @@ namespace Tac
 
     FontFile( const AssetPathStringView&, Errors& );
 
-    GlyphBytes   GetGlyphBytes( int glyphIndex );
-    GlyphMetrics GetGlyphMetrics( int glyphIndex );
+    GlyphBytes   GetGlyphBytes( int glyphIndex ) const;
+    GlyphMetrics GetGlyphMetrics( int glyphIndex ) const;
     void         DebugGlyph( int glyphIndex );
     
     AssetPathString  mAssetPath  {};
@@ -51,21 +51,22 @@ namespace Tac
 
     void                            Load( Errors& );
     void                            Uninit();
+    void                            UpdateGPU( Errors& );
+    void                            DebugImgui();
 
-    FontAtlasCell*                  GetCharacter( Language , Codepoint );
+    FontAtlasCell*                  GetCharacter( Language, Codepoint, Errors& );
     FontAtlasCell*                  GetCell();
     float                           GetSDFOnEdgeValue() const;
     float                           GetSDFPixelDistScale() const;
     const FontDims*                 GetLanguageFontDims( Language );
     Render::TextureHandle           GetTextureHandle();
 
-    void                            DebugImgui();
-
   private:
     void                            InitAtlasCheckerboard( void*, u8, u8 );
     void                            FillAtlasRegion( void*, const TexelRegion&, u8 ); // inclusive
     FontCellUVs                     ComputeTexCoords( const FontCellPos&, const GlyphMetrics& );
     FontCellPos                     CellIndexToPos( int );
+    void                            UploadCellGPU( FontAtlasCell*, Errors& );
 
     Render::TextureHandle           mTextureId            {};
     int                             mPxStride             {};
@@ -73,7 +74,9 @@ namespace Tac
     int                             mPxHeight             {};
     int                             mCellRowCount         {};
     int                             mCellColCount         {};
-    Vector< FontAtlasCell* >        mCells                {};
+    FontAtlasCell*                  mCells                {};
+    int                             mCellCount            {};
+    int                             mCellCapacity         {};
     Vector< FontFile* >             mFontFiles            {};
     Map< Language, FontFile* >      mDefaultFonts         {};
     bool                            FORCE_DRAW_EVERY_TIME {};

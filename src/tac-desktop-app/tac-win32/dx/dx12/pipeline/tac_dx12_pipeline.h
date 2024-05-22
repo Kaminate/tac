@@ -21,6 +21,7 @@ namespace Tac::Render
   struct DX12TextureMgr;
   struct DX12SamplerMgr;
   struct DX12BufferMgr;
+  struct DX12TransitionHelper;
 }
 
 namespace Tac::Render
@@ -41,7 +42,8 @@ namespace Tac::Render
       StringView GetName() const;
 
 
-      Span< DX12Descriptor > GetDescriptors( DX12TextureMgr*,
+      Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper*,
+                                             DX12TextureMgr*,
                                              DX12SamplerMgr*,
                                              DX12BufferMgr* ) const;
 
@@ -49,6 +51,7 @@ namespace Tac::Render
       void SetArrayElement( int, int );
       void SetElement( int );
       DX12Descriptor GetDescriptor( int,
+                                    DX12TransitionHelper*,
                                     DX12TextureMgr*,
                                     DX12SamplerMgr*,
                                     DX12BufferMgr* ) const;

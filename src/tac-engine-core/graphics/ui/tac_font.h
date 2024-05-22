@@ -122,6 +122,7 @@ namespace Tac
     FontCellPos    mFontCellPos             {};
     FontCellUVs    mFontCellUVs             {};
     GlyphMetrics   mGlyphMetrics            {};
+    bool           mNeedsGPUCopy            {};
   };
 
   struct FontApi
@@ -129,10 +130,11 @@ namespace Tac
     static void                  Init( Errors& );
     static void                  Uninit();
     static const FontDims*       GetLanguageFontDims( Language );
-    static const FontAtlasCell*  GetFontAtlasCell( Language, Codepoint );
+    static const FontAtlasCell*  GetFontAtlasCell( Language, Codepoint, Errors& );
     static Render::TextureHandle GetAtlasTextureHandle();
     static float                 GetSDFOnEdgeValue(); // [0,1]
     static float                 GetSDFPixelDistScale(); // [0,1]
+    static void                  UpdateGPU( Errors& );
   };
 
 

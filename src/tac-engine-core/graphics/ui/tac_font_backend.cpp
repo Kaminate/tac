@@ -25,6 +25,8 @@ namespace Tac
 
   static_assert( FontCellInnerSDFPadding, "cant get anything to render w/o padding" );
 
+  const int maxCells { 1 };
+
   // onedge_value     
   // value 0-255 to test the SDF against to reconstruct the character (i.e. the isocontour of the character)
   const unsigned char onedge_value{ 128 }; // [0,255]
@@ -98,7 +100,7 @@ namespace Tac
     };
   }
 
-  GlyphBytes       FontFile::GetGlyphBytes( int glyphIndex )
+  GlyphBytes       FontFile::GetGlyphBytes( int glyphIndex ) const
   {
     // return value      --  a 2D array of bytes 0..255, width*height in size
     unsigned char* sdfBytes{
@@ -119,7 +121,7 @@ namespace Tac
     };
   }
 
-  GlyphMetrics     FontFile::GetGlyphMetrics( int glyphIndex )
+  GlyphMetrics     FontFile::GetGlyphMetrics( int glyphIndex ) const
   {
 
     // offset from the current horizontal position to the next horizontal position
@@ -222,9 +224,14 @@ namespace Tac
   void                  FontAtlas::Load( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const int maxCells { 1 };
+
     mCellRowCount = ( int )Sqrt( maxCells );
     mCellColCount = mCellRowCount;
+    mCellCapacity = mCellRowCount * mCellColCount;
+
+    mCells = TAC_NEW FontAtlasCell[ mCellCapacity ];
+    for( int i{}; i < mCellCapacity; ++i )
+      mCells[ i ].mFontCellPos = CellIndexToPos( i );
 
     mPxWidth = mCellColCount * FontCellPxWidth + ( mCellColCount - 1 ) * BilinearFilteringPadding;
     mPxHeight = mCellRowCount * FontCellPxHeight + ( mCellRowCount - 1 ) * BilinearFilteringPadding;
@@ -312,21 +319,16 @@ namespace Tac
 
   void                  FontAtlas::Uninit()
   {
-    for( FontAtlasCell* fontAtlasCell : mCells )
-    {
-      TAC_DELETE fontAtlasCell;
-    }
-
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
     renderDevice->DestroyTexture( mTextureId );
   }
 
-  FontAtlasCell*        FontAtlas::GetCharacter( Language defaultLanguage, Codepoint codepoint )
+  FontAtlasCell*        FontAtlas::GetCharacter( Language defaultLanguage,
+                                                 Codepoint codepoint,
+                                                 Errors& errors )
   {
     // For an example, see https://github.com/nothings/stb/blob/master/tests/sdf/sdf_test.c
 
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     //LanguageStuff* languageStuff = mLanguageStuffs[ defaultLanguage ];
     //FontStyle fontStyle = FontStyle::NormalText;
     //FontFile* fontFile = languageStuff->mFontStylePaths[ fontStyle ];
@@ -344,7 +346,6 @@ namespace Tac
     TAC_ASSERT( glyphMetrics.mSDFWidth <= FontCellPxWidth );
     TAC_ASSERT( glyphMetrics.mSDFHeight <= FontCellPxHeight );
 
-    const GlyphBytes glyphBytes{ fontFile->GetGlyphBytes( glyphIndex ) };
 
     fontFile->DebugGlyph( glyphIndex );
 
@@ -359,66 +360,10 @@ namespace Tac
     cell->mOwner = fontFile;
     cell->mGlyphMetrics = glyphMetrics;
     cell->mFontCellUVs = ComputeTexCoords( cell->mFontCellPos, glyphMetrics );
+    cell->mNeedsGPUCopy = true;
 
     fontFile->mCells[ codepoint ] = cell;
 
-    // uhh, first clear out the whole cell because the bilinear padding aint gonna do shit
-    // if the part of the cell unused by the sdf is colored.
-    //
-    // This is also useful to see atlas cells taken up by characters with no sdf (ie ' ')
-    // because their cell will be black instead of checkerboard
-#if TAC_DEBUGGING_ATLAS()
-    {
-      const u8 srcBytes[ FontCellPxWidth * FontCellPxHeight ]  {};
-
-      const Render::Image src
-      {
-        .mWidth  { FontCellPxWidth },
-        .mHeight { FontCellPxHeight },
-        .mFormat { atlasFormat },
-      };
-
-      const Render::UpdateTextureParams data
-      {
-        .mSrc      { src },
-        .mDstX     { cell->mPxColumn },
-        .mDstY     { cell->mPxRow },
-        .mSrcBytes { srcBytes },
-        .mPitch    { FontCellPxWidth },
-      };
-
-      renderDevice->UpdateTexture( mTextureId, data );
-    }
-#endif
-
-    if( glyphMetrics.mSDFWidth && glyphMetrics.mSDFHeight )
-    {
-      const Render::Image src
-      {
-        .mWidth  { glyphMetrics.mSDFWidth },
-        .mHeight { glyphMetrics.mSDFHeight },
-        .mFormat { Render::TexFmt::kR8_unorm },
-      };
-
-      const Render::CreateTextureParams::Subresource srcSubresource
-      {
-        .mBytes { glyphBytes.mBytes },
-        .mPitch { glyphMetrics.mSDFWidth },
-      };
-
-      const Render::UpdateTextureParams updateTextureParams
-      {
-        .mSrcImage            { src },
-        .mSrcSubresource      { srcSubresource },
-        .mDstSubresourceIndex { 0 },
-        .mDstPos              { cell->mFontCellPos.mPxColumn, cell->mFontCellPos.mPxRow },
-      };
-
-      Render::IContext* context{};
-      TAC_ASSERT( context );
-      Errors errors;
-      context->UpdateTexture( mTextureId, updateTextureParams, errors );
-    }
 
     return cell;
   }
@@ -439,27 +384,22 @@ namespace Tac
 
   FontAtlasCell*        FontAtlas::GetCell()
   {
-    if( const int cellCount { mCells.size() }; cellCount < mCellRowCount * mCellColCount )
+    if( mCellCount < mCellCapacity )
     {
-      FontAtlasCell* cell{ TAC_NEW FontAtlasCell };
-      cell->mFontCellPos = CellIndexToPos( cellCount );
-      mCells.push_back( cell );
-      return cell;
+      return &mCells[ mCellCount++ ];
     }
     else
     {
       FontAtlasCell* oldest{};
-      for( FontAtlasCell* cell : mCells )
+      for( int i{}; i < mCellCapacity; ++i )
       {
-        if( !cell->mOwner )
-          return cell;
-
-        if( !oldest || cell->mReadTime < oldest->mReadTime )
+        FontAtlasCell* cell{ &mCells[ i ] };
+        if( !oldest || !cell->mOwner || cell->mReadTime < oldest->mReadTime )
           oldest = cell;
       }
 
-      FontFile* owner{ oldest->mOwner };
-      owner->mCells.erase( oldest->mCodepoint );
+      if( FontFile * owner{ oldest->mOwner } )
+        owner->mCells.erase( oldest->mCodepoint );
 
       oldest->mOwner = nullptr;
       return oldest;
@@ -537,6 +477,65 @@ namespace Tac
       }
       pxRow += TextPxHeight;
     }
+  }
+
+  void                  FontAtlas::UploadCellGPU( FontAtlasCell* cell, Errors& errors )
+  {
+    if( !cell->mNeedsGPUCopy )
+      return;
+
+    cell->mNeedsGPUCopy = false;
+
+    const GlyphMetrics& glyphMetrics{ cell->mGlyphMetrics };
+    const FontFile* fontFile{ cell->mOwner };
+    const Codepoint codepoint{ cell->mCodepoint };
+
+    const int glyphIndex { stbtt_FindGlyphIndex( &fontFile->mFontInfo, codepoint ) };
+    if( !glyphIndex )
+      return;
+
+    const GlyphBytes glyphBytes{ fontFile->GetGlyphBytes( glyphIndex ) };
+
+    // For cells with no sdf ( ie: the ' ' caracter ), clear the cell to black.
+    const u8 black[ FontCellPxWidth * FontCellPxHeight ]  {};
+    const void* subresourceBytes{ glyphMetrics.mSDFWidth && glyphMetrics.mSDFHeight
+      ? glyphBytes.mBytes
+      : black };
+
+    const Render::Image src
+    {
+      .mWidth  { glyphMetrics.mSDFWidth },
+      .mHeight { glyphMetrics.mSDFHeight },
+      .mFormat { Render::TexFmt::kR8_unorm },
+    };
+
+    const Render::CreateTextureParams::Subresource srcSubresource
+    {
+      .mBytes { subresourceBytes },
+      .mPitch { glyphMetrics.mSDFWidth },
+    };
+
+    const Render::UpdateTextureParams updateTextureParams
+    {
+      .mSrcImage            { src },
+      .mSrcSubresource      { srcSubresource },
+      .mDstSubresourceIndex { 0 },
+      .mDstPos              { cell->mFontCellPos.mPxColumn, cell->mFontCellPos.mPxRow },
+    };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( Render::IContext::Scope renderContext{
+      renderDevice->CreateRenderContext( errors ) } );
+
+    TAC_CALL( renderContext->UpdateTexture( mTextureId, updateTextureParams, errors ) );
+    TAC_CALL( renderContext->Execute( errors ) );
+  }
+
+  void                  FontAtlas::UpdateGPU(Errors& errors)
+  {
+    for( int i{}; i < mCellCount; ++i )
+      if( FontAtlasCell* cell{ &mCells[ i ] }; cell->mNeedsGPUCopy )
+        UploadCellGPU( cell , errors );
   }
 
   void                  FontAtlas::DebugImgui()

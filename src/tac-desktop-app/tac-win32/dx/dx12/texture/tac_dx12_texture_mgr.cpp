@@ -192,18 +192,10 @@ namespace Tac::Render
 
     const Bindings bindings{ CreateBindings( pResource, params.mBinding ) };
 
-    const D3D12_RESOURCE_STATES usageFromBinding{ GetBindingResourceState( params.mBinding ) };
-
     ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
 
-    const DX12TransitionHelper::Params transitionParams
-    {
-      .mResource    { pResource },
-      .mStateBefore { &resourceStates },
-      .mStateAfter  { usageFromBinding },
-    };
     DX12TransitionHelper transitionHelper;
-    transitionHelper.Append( transitionParams );
+    TransitionResource( pResource, &resourceStates, params.mBinding, &transitionHelper );
     transitionHelper.ResourceBarrier( commandList );
 
     // do we context->SetSynchronous() ?
@@ -215,6 +207,8 @@ namespace Tac::Render
       .mResource          { resource },
       .mDesc              { resourceDesc },
       .mState             { resourceStates },
+      .mBinding           { params.mBinding },
+      .mName              { params.mOptionalName },
       .mRTV               { bindings.mRTV },
       .mDSV               { bindings.mDSV },
       .mSRV               { bindings.mSRV },
@@ -400,5 +394,29 @@ namespace Tac::Render
   DX12Texture* DX12TextureMgr::FindTexture( TextureHandle h )
   {
     return h.IsValid() ? &mTextures[ h.GetIndex() ] : nullptr;
+  }
+
+  void DX12TextureMgr::TransitionResource( ID3D12Resource* resource,
+                                           D3D12_RESOURCE_STATES* resourceState,
+                                           Binding binding,
+                                           DX12TransitionHelper* transitionHelper )
+  {
+    const D3D12_RESOURCE_STATES usageFromBinding{ GetBindingResourceState( binding ) };
+
+    const DX12TransitionHelper::Params transitionParams
+    {
+      .mResource    { resource },
+      .mStateBefore { resourceState },
+      .mStateAfter  { usageFromBinding },
+    };
+    transitionHelper->Append( transitionParams );
+  }
+
+  void DX12TextureMgr::TransitionTexture( TextureHandle h,
+                                          DX12TransitionHelper* transitionHelper )
+  {
+    DX12Texture* texture{ FindTexture( h ) };
+    ID3D12Resource* resource{ texture->mResource.Get() };
+    TransitionResource( resource, &texture->mState, texture->mBinding, transitionHelper );
   }
 } // namespace Tac::Render

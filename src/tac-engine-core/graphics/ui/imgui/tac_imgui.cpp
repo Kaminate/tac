@@ -932,7 +932,7 @@ bool Tac::ImGuiButton( const StringView& str )
 
   UI2DDrawData* drawData{ window->mDrawData };
   drawData->PushDebugGroup( "Button", str );
-  drawData->AddBox( box, &clipRect );
+  //drawData->AddBox( box, &clipRect );
   drawData->AddText( text, &clipRect );
   drawData->PopDebugGroup();
 

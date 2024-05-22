@@ -128,18 +128,25 @@ namespace Tac
           .mColor { 0, 1, 0, 1 },
         };
 
-        const UI2DDrawData::Box box2
-        {
-          .mMini  { 200, 200 },
-          .mMaxi  { 380, 300 },
-          .mColor { 0, 0, 1, 1 },
-        };
-
-        //drawData->PushDebugGroup( "my debug group" );
-        //drawData->AddBox( box );
+        //const UI2DDrawData::Box box2
+        //{
+        //  .mMini  { 200, 200 },
+        //  .mMaxi  { 380, 300 },
+        //  .mColor { 0, 0, 1, 1 },
+        //};
         //drawData->AddBox( box2 );
-        ImGuiButton( "a" );
-        //drawData->PopDebugGroup();
+
+        //ImGuiButton( "a" );
+
+        const UI2DDrawData::Text text
+        {
+          .mPos      { 11, 8 },
+          .mFontSize { 23 },
+          .mUtf8     {"a"},
+        };
+        drawData->AddText( text );
+        drawData->AddBox( box );
+
         ImGuiEnd();
       }
     }

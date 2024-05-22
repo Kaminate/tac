@@ -14,6 +14,7 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
 
 #include "tac-rhi/render3/tac_render_api.h"
 
@@ -114,6 +115,7 @@ namespace Tac
         const Timestamp interpolatedTimestamp{
           Lerp( pair.mOldState->mTimestamp.mSeconds, pair.mNewState->mTimestamp.mSeconds, t ) };
 
+        TAC_CALL( FontApi::UpdateGPU( errors ) );
 
         const App::RenderParams params
         {

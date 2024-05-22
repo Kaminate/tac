@@ -79,9 +79,11 @@ namespace Tac::Render
   }
 
 
-  Span< DX12Descriptor > DX12Pipeline::Variable::GetDescriptors( DX12TextureMgr* mTextureMgr,
-                                                                 DX12SamplerMgr* mSamplerMgr,
-                                                                 DX12BufferMgr* mBufferMgr ) const
+  Span< DX12Descriptor > DX12Pipeline::Variable::GetDescriptors(
+    DX12TransitionHelper* transitionHelper,
+    DX12TextureMgr* mTextureMgr,
+    DX12SamplerMgr* mSamplerMgr,
+    DX12BufferMgr* mBufferMgr ) const
   {
     const int n{ mHandleIndexes.size() };
     DX12Descriptor* dst{
@@ -91,7 +93,8 @@ namespace Tac::Render
 
     for( int iHandle : mHandleIndexes )
     {
-      DX12Descriptor descriptor{ GetDescriptor( iHandle, mTextureMgr, mSamplerMgr, mBufferMgr ) };
+      DX12Descriptor descriptor{
+        GetDescriptor( iHandle, transitionHelper, mTextureMgr, mSamplerMgr, mBufferMgr ) };
       TAC_ASSERT( descriptor.Valid() );
       *dst++ = descriptor;
     }
@@ -100,16 +103,20 @@ namespace Tac::Render
   }
 
   DX12Descriptor DX12Pipeline::Variable::GetDescriptor( int iHandle,
-                                                        DX12TextureMgr* mTextureMgr,
-                                                        DX12SamplerMgr* mSamplerMgr,
-                                                        DX12BufferMgr* mBufferMgr ) const
+                                                        DX12TransitionHelper* transitionHelper,
+                                                        DX12TextureMgr* textureMgr,
+                                                        DX12SamplerMgr* samplerMgr,
+                                                        DX12BufferMgr* bufferMgr ) const
   {
     const D3D12ProgramBinding* binding{ mBinding };
 
     if( binding->IsTexture() )
     {
-      DX12Texture* texture{ mTextureMgr->FindTexture( TextureHandle{ iHandle } ) };
+      const TextureHandle textureHandle{ iHandle };
+      DX12Texture* texture{ textureMgr->FindTexture( textureHandle ) };
       TAC_ASSERT( texture );
+
+      textureMgr->TransitionTexture( textureHandle, transitionHelper );
 
       TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
 
@@ -128,7 +135,7 @@ namespace Tac::Render
 
     if( binding->IsBuffer() ) // this includes constant buffers
     {
-      DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
+      DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
       TAC_ASSERT( buffer );
 
       TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
@@ -153,7 +160,7 @@ namespace Tac::Render
 
     if( binding->IsSampler() )
     {
-      DX12Sampler* sampler{ mSamplerMgr->FindSampler( SamplerHandle{ iHandle } ) };
+      DX12Sampler* sampler{ samplerMgr->FindSampler( SamplerHandle{ iHandle } ) };
       TAC_ASSERT( sampler );
 
       return sampler->mDescriptor;

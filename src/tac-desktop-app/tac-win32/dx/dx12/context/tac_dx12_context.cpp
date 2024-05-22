@@ -118,8 +118,10 @@ namespace Tac::Render
         const D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor{
             dstHeap->IndexGPUDescriptorHandle( iBaseDescriptor ) };
 
+        DX12TransitionHelper transitionHelper;
         const Span< DX12Descriptor > descriptors{
-          var.GetDescriptors( mTextureMgr, mSamplerMgr, mBufferMgr ) };
+          var.GetDescriptors( &transitionHelper, mTextureMgr, mSamplerMgr, mBufferMgr ) };
+        transitionHelper.ResourceBarrier( commandList );
 
         UINT arrayOffest{};
         for( DX12Descriptor srcAllocation : descriptors )
@@ -153,7 +155,7 @@ namespace Tac::Render
                         "textures must be bound thorugh descriptor tables" );
 
         // this includes constant buffers
-        TAC_ASSERT(  binding->IsBuffer()  );
+        TAC_ASSERT( binding->IsBuffer() );
 
         DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
         TAC_ASSERT( buffer );

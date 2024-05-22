@@ -41,10 +41,12 @@ namespace Tac
     return fontAtlas.GetLanguageFontDims( language );
   }
 
-  const FontAtlasCell*  FontApi::GetFontAtlasCell( Language language, Codepoint codepoint )
+  const FontAtlasCell*  FontApi::GetFontAtlasCell( Language language,
+                                                   Codepoint codepoint,
+                                                   Errors& errors  )
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
-      return fontAtlas.GetCharacter( language, codepoint );
+    return fontAtlas.GetCharacter( language, codepoint, errors );
   }
 
   Render::TextureHandle FontApi::GetAtlasTextureHandle()
@@ -63,6 +65,12 @@ namespace Tac
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     return fontAtlas.GetSDFPixelDistScale();
+  }
+
+  void                  FontApi::UpdateGPU(Errors&errors)
+  {
+    FontAtlas& fontAtlas{ FontAtlas::Instance };
+    return fontAtlas.UpdateGPU(errors);
   }
 
 }
