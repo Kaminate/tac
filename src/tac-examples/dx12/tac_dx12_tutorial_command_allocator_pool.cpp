@@ -1,7 +1,7 @@
 #include "tac_dx12_tutorial_command_allocator_pool.h" // self-inc
 
 #include "tac_dx12_tutorial_command_queue.h"
-#include "tac-win32/dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
+#include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
 
 namespace Tac::Render
 {
@@ -16,10 +16,10 @@ namespace Tac::Render
   void DX12ExampleCommandAllocatorPool::Retire( PCom< ID3D12CommandAllocator > allocator,
                                  FenceSignal signalVal )
   {
-    Element element
+    const Element element
     {
       .mCmdAllocator { allocator },
-      .mSignalValue { signalVal },
+      .mSignalValue  { signalVal },
     };
 
     mElements.Push( element );

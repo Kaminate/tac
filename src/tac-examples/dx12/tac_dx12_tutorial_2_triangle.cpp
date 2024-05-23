@@ -20,8 +20,8 @@
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-win32/dx/dx12/tac_dx12_helper.h"
-#include "tac-win32/dx/dxgi/tac_dxgi.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-win32/tac_win32.h"
 
 // set to true to use IASetVertexBuffers with an input layout

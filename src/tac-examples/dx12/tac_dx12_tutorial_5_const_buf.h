@@ -2,7 +2,7 @@
 
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-win32/dx/dxgi/tac_dxgi.h"
+#include "tac-dx/dxgi/tac_dxgi.h"
 
 #include "tac_dx12_tutorial_command_queue.h"
 #include "tac_dx12_tutorial_gpu_upload_allocator.h"

@@ -2,7 +2,7 @@
 #include "tac_dx12_tutorial_command_allocator_pool.h"
 #include "tac_dx12_tutorial_gpu_upload_allocator.h"
 
-#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
 

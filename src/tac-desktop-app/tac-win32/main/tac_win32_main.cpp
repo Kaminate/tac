@@ -18,9 +18,9 @@
 #include "tac-win32/input/tac_win32_mouse_edge.h"
 #include "tac-win32/input/tac_xinput.h"
 #include "tac-win32/net/tac_net_winsock.h"
-#include "tac-win32/dx/dx12/tac_renderer_dx12_ver3.h" // DX12Backend
-#include "tac-win32/dx/dxgi/tac_dxgi_debug.h" // DXGIReportLiveObjects
-#include "tac-win32/dx/pix/tac_pix.h" // AllowPIXDebuggerAttachment
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h" // DX12Backend
+#include "tac-dx/dxgi/tac_dxgi_debug.h" // DXGIReportLiveObjects
+#include "tac-dx/pix/tac_pix.h" // AllowPIXDebuggerAttachment
 #include "tac-win32/tac_win32.h"
 
 import std; // #include <iostream>

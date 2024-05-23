@@ -7,7 +7,7 @@ add_library( TacWin32 )
 add_subdirectory( desktopwindow )
 add_subdirectory( input )
 add_subdirectory( net )
-add_subdirectory( dx )
+add_subdirectory( tac-dx )
 add_subdirectory( event )
 add_subdirectory( filedialog )
 add_subdirectory( os )
@@ -25,9 +25,11 @@ add_subdirectory( main )
 #   "${CMAKE_SOURCE_DIR}/tac-std-lib/tac_precompiled_header.h"
 # )
 
-
 target_link_libraries( TacWin32 TacEngineCore )
 
+target_link_libraries( TacDX TacWin32 )
+target_link_libraries( TacDX TacStdLib )
+target_link_libraries( TacWin32Main TacDX )
 
 # pix nuget test
 if( TRUE )

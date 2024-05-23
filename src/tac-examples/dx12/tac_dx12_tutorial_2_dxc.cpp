@@ -5,7 +5,7 @@
 #include "tac-std-lib/string/tac_string_util.h" // IsAscii
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_assert.h"
-#include "tac-win32/dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
+#include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
 
 // d3d12 must be included before dxcapi
 //#include <d3d12.h> // D3D12_SHADER_BYTECODE

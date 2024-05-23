@@ -10,7 +10,7 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 //#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/tac_win32.h"
 
 

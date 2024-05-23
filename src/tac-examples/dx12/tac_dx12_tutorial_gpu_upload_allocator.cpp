@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-win32/dx/dx12/tac_dx12_helper.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
 
 
 namespace Tac::Render
