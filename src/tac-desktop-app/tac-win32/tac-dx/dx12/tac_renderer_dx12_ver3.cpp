@@ -121,7 +121,15 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL( mCpuDescriptorHeapRTV.Init( desc, device, "cpu rtv heap", errors ) );
+
+      const DX12DescriptorHeap::Params params
+      {
+        .mHeapDesc     { desc },
+        .mDevice       { device },
+        .mName         { "cpu rtv heap"},
+      };
+
+      TAC_CALL( mCpuDescriptorHeapRTV.Init( params, errors ) );
     }
 
     // CPU DSV
@@ -133,7 +141,13 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL( mCpuDescriptorHeapDSV.Init( desc, device, "cpu dsv heap", errors ) );
+      const DX12DescriptorHeap::Params params
+      {
+        .mHeapDesc     { desc },
+        .mDevice       { device },
+        .mName         { "cpu dsv heap" },
+      };
+      TAC_CALL( mCpuDescriptorHeapDSV.Init( params, errors ) );
     }
 
     // CPU CBV SRV UAV
@@ -145,8 +159,13 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL( mCpuDescriptorHeapCBV_SRV_UAV.Init(
-        desc, device, "cpu cbv srv uav heap", errors ) );
+      const DX12DescriptorHeap::Params params
+      {
+        .mHeapDesc     { desc },
+        .mDevice       { device },
+        .mName         { "cpu cbv srv uav heap" },
+      };
+      TAC_CALL( mCpuDescriptorHeapCBV_SRV_UAV.Init( params, errors ) );
     }
 
     // CPU Sampler
@@ -158,7 +177,13 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
-      TAC_CALL( mCpuDescriptorHeapSampler.Init( desc, device, "cpu sampler heap", errors ) );
+      const DX12DescriptorHeap::Params params
+      {
+        .mHeapDesc     { desc },
+        .mDevice       { device },
+        .mName         { "cpu sampler heap" },
+      };
+      TAC_CALL( mCpuDescriptorHeapSampler.Init( params, errors ) );
     }
 
 
@@ -171,7 +196,14 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
         .NodeMask       { 0 },
       };
-      TAC_CALL( mGpuDescriptorHeapSampler.Init( desc, device, "gpu sampler heap", errors ) );
+      const DX12DescriptorHeap::Params params
+      {
+        .mHeapDesc     { desc },
+        .mDevice       { device },
+        .mName         { "gpu sampler heap" },
+        .mCommandQueue { &mCommandQueue },
+      };
+      TAC_CALL( mGpuDescriptorHeapSampler.Init( params, errors ) );
     }
 
     // GPU CBV SRV UAV
@@ -183,8 +215,14 @@ namespace Tac::Render
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
         .NodeMask       { 0 },
       };
-      TAC_CALL( mGpuDescriptorHeapCBV_SRV_UAV.Init(
-        desc, device, "gpu cbv srv uav heap", errors ) );
+      const DX12DescriptorHeap::Params params
+      {
+        .mHeapDesc     { desc },
+        .mDevice       { device },
+        .mName         { "gpu cbv srv uav heap" },
+        .mCommandQueue { &mCommandQueue },
+      };
+      TAC_CALL( mGpuDescriptorHeapCBV_SRV_UAV.Init( params, errors ) );
     }
   }
 

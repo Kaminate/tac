@@ -1,17 +1,26 @@
 #include "tac_dx12_descriptor_heap.h" // self-inc
 #include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-dx/dx12/tac_dx12_fence.h"
+#include "tac-dx\dx12\descriptor\tac_dx12_descriptor_heap_gpu_mgr.h"
+
+#include "tac-dx/dx12/tac_dx12_command_queue.h"
 
 namespace Tac::Render
 {
-
-
-
   // -----------------------------------------------------------------------------------------------
-  void DX12DescriptorHeap::Init( const D3D12_DESCRIPTOR_HEAP_DESC& desc,
-                                 ID3D12Device* device,
-                                 StringView name,
-                                 Errors& errors )
+
+  DX12DescriptorHeap::~DX12DescriptorHeap()
   {
+    TAC_DELETE mRegionMgr;
+  }
+
+  void DX12DescriptorHeap::Init( Params params, Errors& errors )
+  {
+    const D3D12_DESCRIPTOR_HEAP_DESC& desc{ params.mHeapDesc };
+    ID3D12Device* device{ params.mDevice };
+    const StringView name{ params.mName };
+    DX12CommandQueue* commandQueue{ params.mCommandQueue };
+
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptors
     // Descriptors are the primary unit of binding for a single resource in D3D12.
 
@@ -33,9 +42,27 @@ namespace Tac::Render
 
     mDescriptorSize = device->GetDescriptorHandleIncrementSize( desc.Type );
     mDesc = desc;
+    mName = params.mName;
+
+    if( commandQueue )
+    {
+      mCommandQueue = commandQueue;
+
+      const DX12DescriptorRegionManager::Params regionMgrParams
+      {
+        .mDescriptorHeap { this },
+        .mCommandQueue   { commandQueue },
+      };
+
+      mRegionMgr = TAC_NEW DX12DescriptorRegionManager;
+      mRegionMgr->Init( regionMgrParams );
+    }
   }
 
-  UINT DX12DescriptorHeap::GetDescriptorCount() const { return mDesc.NumDescriptors; }
+  UINT                        DX12DescriptorHeap::GetDescriptorCount() const
+  {
+    return mDesc.NumDescriptors;
+  }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12DescriptorHeap::IndexCPUDescriptorHandle( int i ) const
   {
@@ -43,7 +70,10 @@ namespace Tac::Render
     return { mHeapStartCPU.ptr + i * mDescriptorSize };
   }
 
-  UINT DX12DescriptorHeap::GetDescriptorSize() const { return mDescriptorSize; }
+  UINT                        DX12DescriptorHeap::GetDescriptorSize() const
+  {
+    return mDescriptorSize;
+  }
 
   // This function call is used for the following ID3D12GraphicsCommandList:: functions
   // ::ClearUnorderedAccessViewFloat
@@ -58,12 +88,17 @@ namespace Tac::Render
     return { mHeapStartGPU.ptr + i * mDescriptorSize };
   }
 
-  ID3D12DescriptorHeap* DX12DescriptorHeap::GetID3D12DescriptorHeap() { return mHeap.Get(); }
+  ID3D12DescriptorHeap*       DX12DescriptorHeap::GetID3D12DescriptorHeap()
+  {
+    return mHeap.Get();
+  }
 
-  D3D12_DESCRIPTOR_HEAP_TYPE DX12DescriptorHeap::GetType() const { return mDesc.Type; }
+  D3D12_DESCRIPTOR_HEAP_TYPE  DX12DescriptorHeap::GetType() const
+  {
+    return mDesc.Type;
+  }
 
-
-  int                          DX12DescriptorHeap::AllocateIndex()
+  int                         DX12DescriptorHeap::AllocateIndex()
   {
     if( mFreeIndexes.empty() )
     {
@@ -76,60 +111,33 @@ namespace Tac::Render
     return i;
   }
 
-  DX12Descriptor DX12DescriptorHeap::Allocate()
+  DX12Descriptor              DX12DescriptorHeap::Allocate( int n )
   {
     const int index{ AllocateIndex() };
     return DX12Descriptor
     {
       .mOwner { this },
       .mIndex { index },
+      .mCount { 1 },
     };
   }
 
-  void DX12DescriptorHeap::Free( DX12Descriptor allocation )
+  void                        DX12DescriptorHeap::Free( DX12Descriptor allocation )
   {
     TAC_ASSERT( allocation.mOwner == this );
     mFreeIndexes.push_back( allocation.mIndex );
   }
 
-#if 0
-  void DX12DescriptorHeap::InitRTV( int n, ID3D12Device* device, Errors& errors )
+  StringView                   DX12DescriptorHeap::GetName()
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
-    {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = (UINT)n,
-
-      // D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE not allowed with D3D12_DESCRIPTOR_HEAP_TYPE_RTV
-    };
-    Init( desc, device, errors );
+    return mName;
   }
 
-  void DX12DescriptorHeap::InitSRV( int n, ID3D12Device* device, Errors& errors )
+  DX12DescriptorRegionManager* DX12DescriptorHeap::GetRegionMgr()
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
-    {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-      .NumDescriptors = ( UINT )n,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-    };
-
-    Init( desc, device, errors );
+    return mRegionMgr;
   }
 
-  void DX12DescriptorHeap::InitSampler( int n, ID3D12Device* device, Errors& errors )
-  {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
-    {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-      .NumDescriptors = ( UINT )n,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-    };
-
-    Init( desc, device, errors );
-
-  }
-#endif
 
 } // namespace Tac::Render
 

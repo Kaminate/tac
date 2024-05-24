@@ -5,6 +5,7 @@
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-dx/dx12/tac_dx12_gpu_upload_allocator.h"
+#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_allocation.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 
@@ -40,6 +41,7 @@ namespace Tac::Render
     // there is no protection (afaict) to prevent someone from forgetting to call Finish.
     ID3D12GraphicsCommandList* GetCommandList();
     ID3D12CommandAllocator*    GetCommandAllocator();
+    DX12Descriptor             AllocGPUDescriptors( D3D12_DESCRIPTOR_HEAP_TYPE );
 
     struct Params
     {
@@ -87,6 +89,8 @@ namespace Tac::Render
 
     using RenderTargetColors = FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 >;
     using RenderTargetDepth = Optional< D3D12_CPU_DESCRIPTOR_HANDLE >;
+    using GPUDescriptors = Vector< DX12Descriptor >[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
+    using DX12DescriptorHeaps = Array< DX12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;
 
     struct State
     {
@@ -99,6 +103,7 @@ namespace Tac::Render
       bool               mExecuted             {};
       int                mEventCount           {};
       bool               mRetired              {};
+      GPUDescriptors     mGPUDescs             {};
     };
 
     State mState{};
@@ -121,8 +126,7 @@ namespace Tac::Render
     DX12BufferMgr*                    mBufferMgr                    {};
     DX12PipelineMgr*                  mPipelineMgr                  {};
     DX12SamplerMgr*                   mSamplerMgr                   {};
-    DX12DescriptorHeap*               mGpuDescriptorHeapCBV_SRV_UAV {};
-    DX12DescriptorHeap*               mGpuDescriptorHeapSampler     {};
+    DX12DescriptorHeaps               mGpuDescriptorHeaps           {};
     ID3D12Device*                     mDevice                       {};
   };
 

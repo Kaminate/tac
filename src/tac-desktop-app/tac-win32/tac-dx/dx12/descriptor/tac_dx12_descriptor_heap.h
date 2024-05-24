@@ -4,6 +4,7 @@
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/string/tac_string.h"
 #include "tac_dx12_descriptor_heap_allocation.h"
 
 #include <d3d12.h> // D3D12_DESCRIPTOR_HEAP_TYPE..., ID3D12Device*
@@ -12,15 +13,20 @@ namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
+  struct DX12DescriptorRegionManager;
+  struct DX12CommandQueue;
   struct DX12DescriptorHeap
   {
-    void Init( const D3D12_DESCRIPTOR_HEAP_DESC&, ID3D12Device*, StringView, Errors& );
-#if 0
-    void InitRTV( int, ID3D12Device*, Errors& );
-    void InitSRV( int, ID3D12Device*, Errors& );
-    void InitSampler( int, ID3D12Device*, Errors& );
-#endif
+    struct Params
+    {
+      D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc     {};
+      ID3D12Device*              mDevice       {};
+      StringView                 mName         {};
+      DX12CommandQueue*          mCommandQueue {};
+    };
+    void Init( Params, Errors& );
 
+    ~DX12DescriptorHeap();
     ID3D12DescriptorHeap*        GetID3D12DescriptorHeap();
     D3D12_DESCRIPTOR_HEAP_TYPE   GetType() const;
     UINT                         GetDescriptorCount() const;
@@ -29,12 +35,18 @@ namespace Tac::Render
     D3D12_GPU_DESCRIPTOR_HANDLE  IndexGPUDescriptorHandle( int ) const;
     UINT                         GetDescriptorSize() const;
 
-    DX12Descriptor               Allocate();
+    DX12Descriptor               Allocate( int = 1 );
     void                         Free( DX12Descriptor );
 
+    DX12DescriptorRegionManager* GetRegionMgr();
+    StringView                   GetName();
+
   private:
+
     int                          AllocateIndex();
 
+    String                       mName{};
+    DX12DescriptorRegionManager* mRegionMgr{};
     int                          mUsedIndexCount{};
     Vector< int >                mFreeIndexes{};
     PCom< ID3D12DescriptorHeap > mHeap{};
@@ -42,6 +54,7 @@ namespace Tac::Render
     D3D12_GPU_DESCRIPTOR_HANDLE  mHeapStartGPU{};
     D3D12_DESCRIPTOR_HEAP_DESC   mDesc{};
     UINT                         mDescriptorSize{};
+    DX12CommandQueue*            mCommandQueue{};
   };
 } // namespace Tac::Render
 

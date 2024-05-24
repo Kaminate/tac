@@ -9,11 +9,11 @@ namespace Tac::Render
     struct FenceSignal
     {
       bool operator <( const FenceSignal& rhs ) const { return mValue < rhs.mValue; }
-      FenceSignal( u64 value = 0 ) : mValue( value ) {};
-      u64 GetValue() const { return mValue; }
+      FenceSignal( u64 value = 0 ) : mValue( value )  {};
+      u64 GetValue() const                            { return mValue; }
 
     private:
-      u64 mValue = 0;
+      u64 mValue {};
     };
 } // namespace Tac::Render
 
