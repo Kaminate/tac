@@ -8,30 +8,28 @@
 
 namespace Tac::Render
 {
-
-  // adds to front of list
+  // prepends to front of list
   void           DX12DescriptorRegionManager::FreeListAdd( RegionDesc* region )
   {
-    TAC_ASSERT(!region->mNextFree);
-    TAC_ASSERT(!region->mPrevFree);
+    TAC_ASSERT( !region->mNextFree );
+    TAC_ASSERT( !region->mPrevFree );
 
-    RegionDesc* prev { &mDummy };
-    RegionDesc* next { mDummy.mNextFree };
+    RegionDesc* prev{ &mDummy };
+    RegionDesc* next{ mDummy.mNextFree };
 
     prev->mNextFree = region;
     next->mPrevFree = region;
     region->mPrevFree = prev;
     region->mNextFree = next;
-
   }
 
   void           DX12DescriptorRegionManager::FreeListRemove( RegionDesc* region )
   {
-    TAC_ASSERT(region->mNextFree);
-    TAC_ASSERT(region->mPrevFree);
+    TAC_ASSERT( region->mNextFree );
+    TAC_ASSERT( region->mPrevFree );
 
-    RegionDesc* prev { region->mPrevFree };
-    RegionDesc* next { region->mNextFree };
+    RegionDesc* prev{ region->mPrevFree };
+    RegionDesc* next{ region->mNextFree };
 
     prev->mNextFree = next;
     next->mPrevFree = prev;
@@ -46,7 +44,7 @@ namespace Tac::Render
     TAC_ASSERT( mOwner );
     TAC_ASSERT( mCommandQueue );
 
-    const int size{ (int)mOwner->GetDescriptorCount()};
+    const int size{ ( int )mOwner->GetDescriptorCount() };
     TAC_ASSERT( size );
     mAllRegions.resize( size );
     RegionDesc* region{ &mAllRegions[ 0 ] };
@@ -84,13 +82,11 @@ namespace Tac::Render
 #endif
 
     RegionDesc* currRegion{ mDummy.mNextFree };
-    //RegionDesc* prevRegion{ &mDummy };
     for( ;; )
     {
       if( currRegion == &mDummy || currRegion->mSize >= n )
         break;
 
-      //prevRegion = currRegion;
       currRegion = currRegion->mRight;
     }
 
@@ -106,33 +102,18 @@ namespace Tac::Render
       {
         .mLeft     { currRegion },
         .mRight    { currRegion->mRight },
-        //.mNextFree { currRegion->mNextFree },
-        //.mPrevFree { currRegion->mPrevFree },
         .mSize     { currRegion->mSize - n },
       };
 
+      currRegion->mSize = n;
       currRegion->mRight->mLeft = extraRegion;
       currRegion->mRight = extraRegion;
 
       FreeListAdd( extraRegion );
 
-      //currRegion->mPrevFree->mNextFree = extraRegion;
-      //currRegion->mNextFree->mPrevFree = extraRegion;
-      //prevRegion->mNextFree = extraRegion;
-    }
-    else
-    {
-      //currRegion->mPrevFree->mNextFree = currRegion->mNextFree;
-      //currRegion->mNextFree->mPrevFree = currRegion->mPrevFree;
-      //prevRegion->mNextFree = currRegion->mNextFree;
     }
 
     FreeListRemove( currRegion );
-    // Allocated regions are not part of the free list (do not assign to dummy)
-    //currRegion->mNextFree = nullptr;
-    currRegion->mSize = n;
-
-
     
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
@@ -259,11 +240,11 @@ namespace Tac::Render
 
   void DX12DescriptorRegionManager::Free( RegionDesc* region )
   {
-    int index{ GetIndex( region ) };
 
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
     {
+      int index{ GetIndex( region ) };
       OS::OSDebugPrintLine( "free idx " + ToString( index ) );
       ++asdf;
       if( index == 0 )

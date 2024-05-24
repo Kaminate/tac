@@ -15,6 +15,7 @@ namespace Tac::Render
       DX12DescriptorHeap* mDescriptorHeap {};
       DX12CommandQueue*   mCommandQueue   {};
     };
+
     void           Init( Params );
     DX12Descriptor Alloc( int );
     void           PumpFreeQueue();
