@@ -8,11 +8,7 @@ namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
-  struct DX12DescriptorRegion
-  {
-  };
-
-
+  struct DX12DescriptorRegion;
   struct DX12DescriptorRegionManager
   {
     struct Params
@@ -21,49 +17,80 @@ namespace Tac::Render
       DX12CommandQueue*   mCommandQueue   {};
     };
 
-    void           Init( Params );
-    DX12Descriptor Alloc( int );
-    void           PumpFreeQueue();
-    void           Free( DX12Descriptor, FenceSignal );
-    void           FreeNoSignal( DX12Descriptor );
+    void                 Init( Params );
+    DX12DescriptorRegion Alloc( int );
+    void                 PumpFreeQueue();
+    //void           Free( DX12Descriptor, FenceSignal );
+    //void           FreeNoSignal( DX12Descriptor );
 
   private:
-    
-    struct RegionDesc : public InListNode< RegionDesc >
+
+    friend struct DX12DescriptorRegion;
+    enum class RegionIndex : int { kNull = -1 };
+
+    struct RegionDesc
     {
       enum State
       {
-        kUnknown = 0, kAllocated, kFree
+        kUnknown = 0, kAllocated, kFree, kPendingFree
       };
-      // In-use region descs point to dummy instead of nullptr
-      RegionDesc* mLeft     {};
-      RegionDesc* mRight    {};
-      RegionDesc* mNextFree {}; 
-      RegionDesc* mPrevFree {}; 
-      int         mSize     {};
-      int         mIndex    {};
-      State       mState    {};
+
+      // Either the RegionDesc keeps left/right offsets, or the list must be sorted
+      RegionIndex mLeftIndex        { -1 };
+      RegionIndex mRightIndex       { -1 };
+
+      int         mDescriptorIndex  {};
+      int         mDescriptorCount  {};
+
+      State       mState            {};
+      FenceSignal mFence            {};
+
+      void PosInsertAfter( RegionDesc*, DX12DescriptorRegionManager* );
+      void PosRemove( DX12DescriptorRegionManager* );
+      //RegionDesc* GetLeft( DX12DescriptorRegionManager* );
+      //RegionDesc* GetRight( DX12DescriptorRegionManager* );
+
+      static StringView StateToString( State );
     };
 
     void           Free( RegionDesc* );
-    int            GetIndex( RegionDesc* ) const;
-    RegionDesc*    GetRegion( DX12Descriptor );
+    RegionIndex            GetIndex( RegionDesc* ) const;
+    //RegionDesc*    GetRegion( DX12Descriptor );
+    RegionDesc*    GetRegionAtIndex( RegionIndex );
     void           DebugPrint();
-    void           FreeListAdd(RegionDesc*);
-    void           FreeListRemove(RegionDesc*);
+    String         DebugFreeListString();
+    void RemoveFromFreeList( RegionDesc* );
 
-    struct RegionToFree
-    {
-      RegionDesc* mRegion {};
-      FenceSignal mFence  {};
-    };
 
-    Vector< RegionDesc >   mAllRegions    {};
-    Vector< RegionToFree > mRegionsToFree {};
-    RegionDesc             mDummy         {};
-    DX12CommandQueue*      mCommandQueue  {};
-    DX12DescriptorHeap*    mOwner         {};
-    int                    mPump          {};
+    Vector< RegionDesc >   mRegions          {};
+
+    Vector< RegionIndex >          mFreeNodes        {};
+    Vector< RegionIndex >          mPendingFreeNodes {};
+    Vector< RegionIndex >          mUnusedNodes      {};
+
+    DX12CommandQueue*      mCommandQueue     {};
+    DX12DescriptorHeap*    mOwner            {};
+    int                    mPump             {};
   };
+
+  struct DX12DescriptorRegion : public DX12Descriptor
+  {
+    DX12DescriptorRegion() = default;
+    DX12DescriptorRegion( DX12Descriptor,
+                          DX12DescriptorRegionManager*,
+                          DX12DescriptorRegionManager::RegionIndex mRegionIndex );
+    DX12DescriptorRegion( DX12DescriptorRegion&& );
+    ~DX12DescriptorRegion();
+
+    void operator = ( DX12DescriptorRegion&& );
+    void SetFence( FenceSignal );
+
+  private:
+    void SwapWith( DX12DescriptorRegion&& );
+    DX12DescriptorRegionManager*             mRegionManager {};
+    DX12DescriptorRegionManager::RegionIndex mRegionIndex{
+      DX12DescriptorRegionManager::RegionIndex::kNull };
+  };
+
 } // namespace Tac::Render
 

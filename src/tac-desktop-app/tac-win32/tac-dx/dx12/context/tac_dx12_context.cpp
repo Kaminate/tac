@@ -141,9 +141,9 @@ namespace Tac::Render
 
         const int nDescriptors{cpuDescriptors.size()};
         DX12DescriptorRegionManager* gpuRegionMgr{ gpuRegionMgrs[ heapType ] };
-        DX12Descriptor gpuDescriptors{ gpuRegionMgr->Alloc( nDescriptors ) };
+        DX12DescriptorRegion gpuDescriptors{ gpuRegionMgr->Alloc( nDescriptors ) };
         TAC_ASSERT( gpuDescriptors.Valid() );
-        mState.mGPUDescs[ heapType ].push_back( gpuDescriptors );
+        mState.mGPUDescs[ heapType ].push_back( move( gpuDescriptors ) );
 
         UINT arrayOffest{};
         for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
@@ -246,10 +246,11 @@ namespace Tac::Render
     {
       if( DX12DescriptorHeap * heap{ mGpuDescriptorHeaps[ i ] } )
       {
-        DX12DescriptorRegionManager* regionMgr{ heap->GetRegionMgr() };
-        Vector< DX12Descriptor >& descriptors{ mState.mGPUDescs[ i ] };
-        for( DX12Descriptor descriptor : descriptors )
-          regionMgr->Free( descriptor, fenceSignal );
+        //DX12DescriptorRegionManager* regionMgr{ heap->GetRegionMgr() };
+        Vector< DX12DescriptorRegion >& descriptors{ mState.mGPUDescs[ i ] };
+        for( DX12DescriptorRegion& descriptor : descriptors )
+          descriptor.SetFence( fenceSignal );
+          //regionMgr->Free( descriptor, fenceSignal );
 
         descriptors.clear();
       }
@@ -564,15 +565,15 @@ namespace Tac::Render
 
     for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
     {
-      if( DX12DescriptorHeap * heap{ mGpuDescriptorHeaps[ i ] } )
-      {
-        DX12DescriptorRegionManager* regionMgr{ heap->GetRegionMgr() };
-        Vector< DX12Descriptor >& descriptors{ mState.mGPUDescs[ i ] };
-        for( DX12Descriptor descriptor : descriptors )
-          regionMgr->FreeNoSignal( descriptor );
+      //if( DX12DescriptorHeap * heap{ mGpuDescriptorHeaps[ i ] } )
+      //{
+        //DX12DescriptorRegionManager* regionMgr{ heap->GetRegionMgr() };
+        Vector< DX12DescriptorRegion >& descriptors{ mState.mGPUDescs[ i ] };
+        //for( DX12Descriptor descriptor : descriptors )
+          //regionMgr->FreeNoSignal( descriptor );
 
         descriptors.clear();
-      }
+      //}
     }
 
     mContextManager->RetireContext( this );

@@ -78,10 +78,27 @@ namespace Tac
     {
       // Does not delete elements.
       // Use Vector<T>().swap(x) instead.
+
+      for( int i{}; i < mTCount; ++i )
+      {
+        T& t{ mTs[ i ] };
+        t.~T();
+      }
+      //for( T& t : mTs )
+      //  t.~T();
+
       mTCount = 0;
     }
 
-    void     push_back( T t )
+    void     push_back( T&& t )
+    {
+      const int newSize { mTCount + 1 };
+      if( newSize > mTCapacity )
+        reserve( int( newSize * 1.5f ) );
+      mTs[ mTCount++ ] = move(t);
+    }
+
+    void     push_back( const T& t )
     {
       const int newSize { mTCount + 1 };
       if( newSize > mTCapacity )
