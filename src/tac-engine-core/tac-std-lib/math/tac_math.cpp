@@ -150,19 +150,24 @@ int Tac::RoundUpToNearestMultiple( int numToRound, int multiple )
   return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
 }
 
-float                    Tac::Floor( float f )
+float    Tac::Floor( float f )
 {
   return std::floor( f );
 }
 
-Tac::v2                       Tac::Floor( const v2& v )
+double   Tac::Floor( double d )
+{
+  return std::floor( d );
+}
+
+Tac::v2  Tac::Floor( const v2& v )
 {
   return {
     Floor( v.x ),
     Floor( v.y ) };
 }
 
-Tac::v3                       Tac::Floor( const v3& v )
+Tac::v3  Tac::Floor( const v3& v )
 {
   return {
     Floor( v.x ),
@@ -170,19 +175,19 @@ Tac::v3                       Tac::Floor( const v3& v )
     Floor( v.z ) };
 }
 
-float                    Tac::Ceil( float f )
+float    Tac::Ceil( float f )
 {
   return std::ceil( f );
 }
 
-Tac::v2                       Tac::Ceil( const v2& v )
+Tac::v2  Tac::Ceil( const v2& v )
 {
   return {
     Ceil( v.x ),
     Ceil( v.y ) };
 }
 
-Tac::v3                       Tac::Ceil( const v3& v )
+Tac::v3  Tac::Ceil( const v3& v )
 {
   return {
     Ceil( v.x ),
@@ -190,12 +195,12 @@ Tac::v3                       Tac::Ceil( const v3& v )
     Ceil( v.z ) };
 }
 
-float Tac::Fmod( float x, float y )
+float    Tac::Fmod( float x, float y )
 {
   return std::fmodf( x, y );
 }
 
-double Tac::Fmod( double x, double y )
+double   Tac::Fmod( double x, double y )
 {
   return std::fmod( x, y );
 }

@@ -117,7 +117,7 @@ namespace Tac
 
         TAC_CALL( FontApi::UpdateGPU( errors ) );
 
-        const App::RenderParams params
+        const App::RenderParams renderParams
         {
           .mWindowApi   { mWindowApi },
           .mKeyboardApi { mKeyboardApi },
@@ -126,7 +126,7 @@ namespace Tac
           .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
           .mTimestamp   { interpolatedTimestamp },
         };
-        TAC_CALL( mApp->Render( params, errors ) );
+        TAC_CALL( mApp->Render( renderParams, errors ) );
 
         const ImGuiSysDrawParams imguiDrawParams
         {
@@ -135,6 +135,12 @@ namespace Tac
           .mTimestamp     { interpolatedTimestamp },
         };
         TAC_CALL( ImGuiPlatformRender( imguiDrawParams, errors ) );
+
+        const App::PresentParams presentParams
+        {
+          .mWindowApi   { mWindowApi },
+        };
+        TAC_CALL( mApp->Present( presentParams, errors ) );
         //Render::FrameEnd();
       }
 

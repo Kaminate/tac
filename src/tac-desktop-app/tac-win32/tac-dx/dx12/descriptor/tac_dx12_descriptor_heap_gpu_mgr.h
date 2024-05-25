@@ -4,10 +4,15 @@ namespace Tac { struct Errors; }
 
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-dx/dx12/tac_dx12_command_queue.h"
-
+#include "tac-std-lib/containers/tac_inlist.h"
 
 namespace Tac::Render
 {
+  struct DX12DescriptorRegion
+  {
+  };
+
+
   struct DX12DescriptorRegionManager
   {
     struct Params
@@ -24,14 +29,20 @@ namespace Tac::Render
 
   private:
     
-    struct RegionDesc
+    struct RegionDesc : public InListNode< RegionDesc >
     {
+      enum State
+      {
+        kUnknown = 0, kAllocated, kFree
+      };
       // In-use region descs point to dummy instead of nullptr
       RegionDesc* mLeft     {};
       RegionDesc* mRight    {};
       RegionDesc* mNextFree {}; 
       RegionDesc* mPrevFree {}; 
       int         mSize     {};
+      int         mIndex    {};
+      State       mState    {};
     };
 
     void           Free( RegionDesc* );

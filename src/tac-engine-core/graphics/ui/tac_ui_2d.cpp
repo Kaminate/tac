@@ -476,6 +476,9 @@ namespace Tac
     const v2& mini { box.mMini };
     const v2& maxi { box.mMaxi };
 
+    TAC_ASSERT( mini.x <= maxi.x );
+    TAC_ASSERT( mini.y <= maxi.y );
+
     v2 clippedMini { mini };
     v2 clippedMaxi { maxi };
     if( clipRect )

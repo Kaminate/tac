@@ -4,6 +4,7 @@ PUBLIC
   tac_fixed_vector.h
   tac_frame_vector.h
   tac_list.h
+  tac_inlist.h
   tac_forward_list.h
   tac_map.h
   tac_optional.h

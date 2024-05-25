@@ -6,8 +6,11 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 
 //#include "tac-rhi/render/tac_render.h"
 //#include "tac-rhi/render/tac_render_handles.h"
@@ -16,6 +19,7 @@ namespace Tac
 {
   Creation     sCreation;
   WindowHandle sWindowHandle;
+  const v2i    sWindowSize( 800, 600 );
 
   // -----------------------------------------------------------------------------------------------
 
@@ -30,6 +34,7 @@ namespace Tac
     void Update( UpdateParams, Errors& ) override;
     void Uninit( Errors& ) override;
     void Render( RenderParams, Errors& ) override;
+    void Present( PresentParams, Errors& ) override;
     IState* GetGameState() override;
   };
 
@@ -43,7 +48,7 @@ namespace Tac
     {
       .mName { "level editor" },
       .mPos  { 50, 50 },
-      .mSize { 800, 600 }, 
+      .mSize { sWindowSize }, 
     };
 
     sWindowHandle = windowApi->CreateWindow( windowCreateParams, errors );
@@ -66,17 +71,34 @@ namespace Tac
     sCreation.Uninit( errors );
   }
 
+  void LevelEditorApp::Present( PresentParams presentParams, Errors& errors )
+  {
+     const SysWindowApi* windowApi{ presentParams.mWindowApi };
+    if( !windowApi->IsShown( sWindowHandle ) )
+      return;
+
+    const Render::SwapChainHandle swapChainHandle{
+      windowApi->GetSwapChainHandle( sWindowHandle ) };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    TAC_CALL( renderDevice->Present( swapChainHandle, errors ) );
+  }
+
   void LevelEditorApp::Render( RenderParams renderParams, Errors& errors )
   {
     const SysWindowApi* windowApi{ renderParams.mWindowApi };
     if( !windowApi->IsShown( sWindowHandle ) )
       return;
 
-    const Render::SwapChainHandle swapChainHandle{
-      windowApi->GetSwapChainHandle( sWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) };
+    const Render::SwapChainHandle swapChainHandle{ windowApi->GetSwapChainHandle( sWindowHandle ) };
+    Render::TextureHandle colorTexture{ renderDevice->GetSwapChainCurrentColor( swapChainHandle ) };
+    const v4 clearColor{ 0, 0, 0, 1 };
+    renderContext->ClearColor( colorTexture, clearColor );
+    renderContext->Execute( errors );
 
-    TAC_CALL( renderDevice->Present( swapChainHandle, errors ) );
   }
 
   App::IState* LevelEditorApp::GetGameState() 
@@ -120,35 +142,67 @@ namespace Tac
       {
         UI2DDrawData* drawData{ ImGuiGetDrawData() };
 
-        const UI2DDrawData::Box box
+        const UI2DDrawData::Box redBox
         {
           .mMini  { 50, 50 },
           .mMaxi  { 100, 150 },
-          .mColor { 0, 1, 0, 1 },
+          .mColor { 1, 0, 0, 1 },
         };
 
-        //const UI2DDrawData::Box box2
-        //{
-        //  .mMini  { 200, 200 },
-        //  .mMaxi  { 380, 300 },
-        //  .mColor { 0, 0, 1, 1 },
-        //};
-        //drawData->AddBox( box2 );
+        const UI2DDrawData::Box blueBox
+        {
+          .mMini  { 200, 200 },
+          .mMaxi  { 380, 300 },
+          .mColor { 0, 0, 1, 1 },
+        };
 
-        //ImGuiButton( "a" );
+        const UI2DDrawData::Box greenBox
+        {
+          .mMini  { 280, 130 },
+          .mMaxi  { 340 , 500},
+          .mColor { 0, 1, 0, 0.5f },
+        };
+
 
         const UI2DDrawData::Text text
         {
-          .mPos      { 11, 8 },
+          .mPos      { 61, 68 },
           .mFontSize { 23 },
           .mUtf8     { "a" },
         };
-        drawData->AddBox( box );
-        drawData->AddText( text );
 
+        //drawData->AddBox( redBox );
+        //drawData->AddBox( blueBox );
+        //drawData->AddBox( greenBox );
+        //drawData->AddText( text );
+        //ImGuiButton( "a" );
+
+        //ImGuiText(  FormatFrameTime( Timestep::GetElapsedTime().mSeconds )  );
+
+        FontApi::GetFontAtlasCell( Language::English, 'a', errors );
+        FontApi::GetFontAtlasCell( Language::English, 'b', errors );
+
+
+
+        Timestamp elapsedTime{ Timestep::GetElapsedTime() };
+        float updateSpeed { 20 };
+        float velocity { 20 };
+        float radius { 100 };
+        double t{ 1 / velocity * Floor( updateSpeed * elapsedTime.mSeconds ) };
+        float x{ ( float )Cos(t) * radius + sWindowSize.x / 2 };
+        float y{ ( float )Sin(t) * radius + sWindowSize.y / 2};
+
+        //ImGuiIndent();
+        for( int i = 0; i < 50; ++i )
+        {
+          ImGuiSetCursorPos( { x, y + 20 * i} );
+          String str{ "text " + ToString( i ) };
+          ImGuiText( str );
+        }
         ImGuiEnd();
       }
     }
+
 
     if( mShowUnownedWindow )
     {

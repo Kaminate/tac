@@ -46,6 +46,7 @@ namespace Tac::Render
     kRGBA8_unorm_srgb,
   };
 
+  int GetTexFmtSize( TexFmt );
 
   // -----------------------------------------------------------------------------------------------
 

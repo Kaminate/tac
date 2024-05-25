@@ -25,7 +25,7 @@ namespace Tac
 
   static_assert( FontCellInnerSDFPadding, "cant get anything to render w/o padding" );
 
-  const int maxCells { 1 };
+  const int maxCells { 100 };
 
   // onedge_value     
   // value 0-255 to test the SDF against to reconstruct the character (i.e. the isocontour of the character)
@@ -232,7 +232,7 @@ namespace Tac
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    mCellRowCount = ( int )Sqrt( maxCells );
+    mCellRowCount = ( int )Ceil( Sqrt( maxCells ) );
     mCellColCount = mCellRowCount;
     mCellCapacity = mCellRowCount * mCellColCount;
 
@@ -505,9 +505,6 @@ namespace Tac
 
     // For cells with no sdf ( ie: the ' ' caracter ), clear the cell to black.
     const u8 black[ FontCellPxWidth * FontCellPxHeight ]  {};
-    const void* subresourceBytes{ glyphMetrics.mSDFWidth && glyphMetrics.mSDFHeight
-      ? glyphBytes.mBytes
-      : black };
 
     const Render::Image src
     {
@@ -518,7 +515,7 @@ namespace Tac
 
     const Render::CreateTextureParams::Subresource srcSubresource
     {
-      .mBytes { subresourceBytes },
+      .mBytes { glyphBytes.mBytes ? glyphBytes.mBytes : black },
       .mPitch { glyphMetrics.mSDFWidth },
     };
 
@@ -632,13 +629,15 @@ namespace Tac
 
     FontAtlas& fontAtlas{ FontAtlas::Instance };
 
+    const v2 fontAtlasSize( ( float )fontAtlas.mPxWidth,
+                            ( float )fontAtlas.mPxHeight );
     const v2 sdfSize( ( float )mGlyphMetrics.mSDFWidth,
                       ( float )mGlyphMetrics.mSDFHeight );
 
-    const v2 minDXTexCoord{ mFontCellPos.mPxColumn / sdfSize.x,
-                            mFontCellPos.mPxRow / sdfSize.y };
-    const v2 maxDXTexCoord{ minDXTexCoord + v2( sdfSize.x / ( float )fontAtlas.mPxWidth,
-                                                sdfSize.y / ( float )fontAtlas.mPxHeight ) };
+    const v2 minDXTexCoord{ mFontCellPos.mPxColumn / fontAtlasSize.x,
+                            mFontCellPos.mPxRow / fontAtlasSize.y };
+    const v2 maxDXTexCoord{ minDXTexCoord + v2( sdfSize.x / fontAtlasSize.x,
+                                                sdfSize.y / fontAtlasSize.y ) };
     return FontCellUVs
     {
       .mMinDXTexCoord { minDXTexCoord },

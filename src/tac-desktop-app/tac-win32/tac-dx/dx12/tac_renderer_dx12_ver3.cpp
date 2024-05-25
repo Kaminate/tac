@@ -173,7 +173,7 @@ namespace Tac::Render
       const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
-        .NumDescriptors { 10 },
+        .NumDescriptors { 20 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
         .NodeMask       { 0 },
       };
@@ -192,7 +192,7 @@ namespace Tac::Render
       const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
-        .NumDescriptors { 10 },
+        .NumDescriptors { 1000 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
         .NodeMask       { 0 },
       };
@@ -211,7 +211,7 @@ namespace Tac::Render
       const D3D12_DESCRIPTOR_HEAP_DESC desc
       {
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
-        .NumDescriptors { 100 },
+        .NumDescriptors { 1000 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
         .NodeMask       { 0 },
       };

@@ -9,6 +9,19 @@ namespace Tac
   // still needed, even if Binding is not an enum class
   Render::Binding Render::operator | ( Binding lhs, Binding rhs ) { return Binding{ ( int )lhs | ( int )rhs }; }
   Render::Binding Render::operator & ( Binding lhs, Binding rhs ) { return Binding{ ( int )lhs & ( int )rhs }; }
+
+  int Render::GetTexFmtSize( const TexFmt fmt )
+  {
+    switch( fmt )
+    {
+    case TexFmt::kRGBA16F: return 8;
+    case TexFmt::kR8_unorm: return 1;
+    case TexFmt::kR16_uint: return 2;
+    case TexFmt::kRGBA8_unorm: return 4;
+    case TexFmt::kRGBA8_unorm_srgb: return 4;
+    default: TAC_ASSERT_INVALID_CASE( fmt ); return 0;
+    }
+  }
 }
 
 namespace Tac::Render

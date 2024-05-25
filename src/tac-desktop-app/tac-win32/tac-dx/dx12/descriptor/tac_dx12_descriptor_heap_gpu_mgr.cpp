@@ -1,8 +1,8 @@
 #include "tac_dx12_descriptor_heap_gpu_mgr.h" // self-inc
+#include "tac-std-lib/os/tac_os.h"
 
 #define TAC_GPU_REGION_DEBUG() 0
 #if TAC_GPU_REGION_DEBUG()
-#include "tac-std-lib/os/tac_os.h"
 #define TAC_GPU_REGION_DEBUG_TYPE D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER
 #endif
 
@@ -130,50 +130,68 @@ namespace Tac::Render
 
   void DX12DescriptorRegionManager::DebugPrint()
   {
-#if TAC_GPU_REGION_DEBUG()
 
     String str;
     str += mOwner->GetName() + ": ";
 
-    auto InFreeList = [& ]( RegionDesc* query )
-    {
-      for( RegionDesc* desc{ mDummy.mNextFree }; desc != &mDummy; desc = desc->mNextFree )
-        if( query == desc )
-          return true;
-      return false;
-    };
+    auto InFreeList = [ & ]( RegionDesc* query )
+      {
+        for( RegionDesc* desc{ mDummy.mNextFree }; desc != &mDummy; desc = desc->mNextFree )
+          if( query == desc )
+            return true;
+        return false;
+      };
 
     str += "( free list: ";
-    String sep{""};
+    String sep{ "" };
+    int loopCount{};
     for( RegionDesc* desc{ mDummy.mNextFree }; desc != &mDummy; desc = desc->mNextFree )
     {
+      ++loopCount;
+      TAC_ASSERT( loopCount < 1000 );
+
       const int i{ GetIndex( desc ) };
-      TAC_ASSERT( str.size() < 1000 );
       str += sep;
       str += ToString( i );
-      sep = " --> ";
+      sep = "->";
     }
     str += " ) ";
 
+    loopCount = 0;
     RegionDesc* left{ &mDummy };
+    String regionSeparator{""};
     for( RegionDesc* desc{ mDummy.mRight }; desc != &mDummy; desc = desc->mRight )
     {
+      ++loopCount;
+      TAC_ASSERT( loopCount < 1000 );
+
       const int i{ GetIndex( desc ) };
       const bool inFreeList{ InFreeList( desc ) };
-      str += "idx " + Tac::ToString( i ) + "[" +
-        Tac::ToString( desc->mSize ) + " byte " +
-        ( desc->mNextFree ? "free" : "allocated" ) + 
-        ( inFreeList ? String(", next free: ") + ToString( GetIndex(desc->mNextFree) ) : String("") ) +
-        "] ";
+
+      String regionIdxInfo{ String() + "idx " + Tac::ToString( i ) };
+      String generalInfo{
+        Tac::ToString( desc->mSize ) + " byte " + ( desc->mNextFree ? "free" : "allocated" )
+      };
+
+      String freeListInfo{};
+      if( inFreeList )
+      {
+        String nextFreeStr{ desc->mNextFree == &mDummy
+          ? "dummy"
+          : ToString( GetIndex(desc->mNextFree) ) };
+        freeListInfo += String( "next free: " ) + nextFreeStr;
+      }
+
+      str += regionSeparator;
+      str += regionIdxInfo + "[" + generalInfo + ( inFreeList ? ", " : "" ) + freeListInfo;
+      regionSeparator = ", ";
 
       TAC_ASSERT( (bool)desc->mNextFree == inFreeList );
-
       TAC_ASSERT( desc->mLeft == left );
       left = desc;
     }
 
     OS::OSDebugPrintLine(str);
-#endif
   }
 
   void DX12DescriptorRegionManager::PumpFreeQueue()

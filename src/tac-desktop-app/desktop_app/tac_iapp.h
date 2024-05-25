@@ -54,13 +54,19 @@ namespace Tac
       Timestamp             mTimestamp   {}; // = Lerp( old timestamp, new timestamp, t )
     };
 
+    struct PresentParams
+    {
+      const SysWindowApi*   mWindowApi   {};
+    };
+
     App( const Config& config ) : mConfig( config ) {}
     virtual ~App() {};
 
-    virtual void    Init( InitParams, Errors& )     {};
-    virtual void    Update( UpdateParams, Errors& ) {};
-    virtual void    Render( RenderParams, Errors& ) {};
-    virtual void    Uninit( Errors& )               {};
+    virtual void    Init( InitParams, Errors& )       {};
+    virtual void    Update( UpdateParams, Errors& )   {};
+    virtual void    Render( RenderParams, Errors& )   {};
+    virtual void    Present( PresentParams, Errors& ) {};
+    virtual void    Uninit( Errors& )                 {};
 
     virtual IState* GetGameState();
     bool            IsRenderEnabled() const;

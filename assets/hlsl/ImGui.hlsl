@@ -54,16 +54,20 @@ PS_OUTPUT PS( VS_OUTPUT input )
 {
   PS_OUTPUT output = ( PS_OUTPUT )0;
 
+  const float4 linearPremultipliedAlpha = perObject.mColor;
+
   if( perObject.mType == 0 )
   {
     const float4 sampled = image.Sample( linearSampler, input.mDXTexCoord );
     // see: premultiplied alpha https://en.wikipedia.org/wiki/Alpha_compositing
 
     // convert from sRGB, because our backbuffer is linear
-    const float4 linearColor = float4( pow( perObject.mColor.rgb, 2.2 ), perObject.mColor.a );
-    const float4 linearSampled = float4( pow( sampled.rgb, 2.2), sampled.a );
 
-    output.mColor = linearColor * linearSampled;
+    //const float4 linearColor = float4( pow( perObject.mColor.rgb, 2.2 ), perObject.mColor.a );
+
+    const float4 linearSampled = sampled; // float4(pow(sampled.rgb, 2.2), sampled.a);
+
+    output.mColor = linearPremultipliedAlpha * linearSampled;
   }
   else if( perObject.mType == 1 )
   {
@@ -74,7 +78,8 @@ PS_OUTPUT PS( VS_OUTPUT input )
     const float a = saturate( 0.5 - pxDist );
 
     // premultiplied alpha
-    output.mColor = float4(perObject.mColor.rgb * a, perObject.mColor.a);
+    //output.mColor = float4(perObject.mColor.rgb * a, perObject.mColor.a);
+    output.mColor = linearPremultipliedAlpha * a;
   }
   else
   {

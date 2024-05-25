@@ -425,13 +425,25 @@ namespace Tac::Render
 
   void DX12Context::ClearColor( TextureHandle h, v4 values )
   {
-    const DX12Texture* texture{ mTextureMgr->FindTexture( h ) };
+    dynmc DX12Texture* texture{ mTextureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
 
+    dynmc ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    dynmc ID3D12Resource* resource { texture->mResource.Get() };
+    const FLOAT* colorRGBA{ values.data() };
     const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV->GetCPUHandle() };
+    const DX12TransitionHelper::Params transitionParams
+    {
+      .mResource    { resource },
+      .mStateBefore { &texture->mState },
+      .mStateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
+    };
 
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    commandList->ClearRenderTargetView( RTV, values.data(), 0, nullptr );
+    DX12TransitionHelper transitionHelper;
+    transitionHelper.Append( transitionParams );
+    transitionHelper.ResourceBarrier( commandList );
+
+    commandList->ClearRenderTargetView( RTV, colorRGBA, 0, nullptr );
   }
 
   void DX12Context::SetIndexBuffer( BufferHandle h )
@@ -549,7 +561,6 @@ namespace Tac::Render
     TAC_ASSERT( !mState.mRetired );
     TAC_ASSERT( mState.mExecuted ); // this should be a warning instead
     mState.mRetired = true;
-    mContextManager->RetireContext( this );
 
     for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
     {
@@ -564,6 +575,7 @@ namespace Tac::Render
       }
     }
 
+    mContextManager->RetireContext( this );
   }
 
 } // namespace Tac::Render

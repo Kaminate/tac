@@ -49,13 +49,14 @@ namespace Tac
   // --------
   float                    Round( float );
   int                      RoundUpToNearestMultiple( int numToRound, int multiple );
-  float                    Floor(float);
-  v2                       Floor(const v2&);
-  v3                       Floor(const v3&);
+  float                    Floor( float );
+  double                   Floor( double );
+  v2                       Floor( const v2& );
+  v3                       Floor( const v3& );
   //double                   Floor(int);
-  float                    Ceil(float);
-  v2                       Ceil(const v2&);
-  v3                       Ceil(const v3&);
+  float                    Ceil( float );
+  v2                       Ceil( const v2& );
+  v3                       Ceil( const v3& );
   //double                   Ceil(int);
 
   float                    Fmod( float, float );

@@ -41,7 +41,6 @@ namespace Tac::Render
     // there is no protection (afaict) to prevent someone from forgetting to call Finish.
     ID3D12GraphicsCommandList* GetCommandList();
     ID3D12CommandAllocator*    GetCommandAllocator();
-    DX12Descriptor             AllocGPUDescriptors( D3D12_DESCRIPTOR_HEAP_TYPE );
 
     struct Params
     {
