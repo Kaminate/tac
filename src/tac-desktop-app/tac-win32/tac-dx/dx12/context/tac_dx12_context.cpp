@@ -94,7 +94,6 @@ namespace Tac::Render
     if( !pipeline )
       return;
 
-    //DX12DescriptorHeap* gpuHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ] {};
     DX12DescriptorRegionManager* gpuRegionMgrs[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ] {};
     FixedVector< ID3D12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES > descHeaps;
 
@@ -103,7 +102,6 @@ namespace Tac::Render
       const D3D12_DESCRIPTOR_HEAP_TYPE type{ ( D3D12_DESCRIPTOR_HEAP_TYPE )i };
       DX12DescriptorHeap* gpuHeap{ mGpuDescriptorHeaps[ type ] };
 
-      //gpuHeaps[i] = gpuHeap;
       if( gpuHeap )
       {
         gpuRegionMgrs[ i ] = gpuHeap->GetRegionMgr();
@@ -115,7 +113,6 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
-    //UINT gpuHeapIndexes[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ]{};
 
     const int n{ pipeline->mShaderVariables.size() };
     for( int i{}; i < n; ++i )
@@ -127,23 +124,41 @@ namespace Tac::Render
       if( binding->BindsAsDescriptorTable() )
       {
         const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( var ) };
-        //DX12DescriptorHeap* dstHeap{ gpuHeaps[ heapType ] };
-        //TAC_ASSERT( dstHeap );
-
-        //const UINT iBaseDescriptor{ gpuHeapIndexes[ heapType ]++ };
-
-        //const D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor{
-        //    dstHeap->IndexGPUDescriptorHandle( iBaseDescriptor ) };
 
         DX12TransitionHelper transitionHelper;
         const Span< DX12Descriptor > cpuDescriptors{
           var.GetDescriptors( &transitionHelper, mTextureMgr, mSamplerMgr, mBufferMgr ) };
         transitionHelper.ResourceBarrier( commandList );
 
-        const int nDescriptors{cpuDescriptors.size()};
-        DX12DescriptorRegionManager* gpuRegionMgr{ gpuRegionMgrs[ heapType ] };
-        DX12DescriptorRegion gpuDescriptors{ gpuRegionMgr->Alloc( nDescriptors ) };
-        TAC_ASSERT( gpuDescriptors.Valid() );
+        const int nDescriptors{ cpuDescriptors.size() };
+
+        DX12DescriptorRegion* gpuDescriptor{};
+        if( nDescriptors == 1 )
+        {
+          DX12Descriptor cpuDescriptor{ cpuDescriptors[ 0 ] };
+          DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
+          gpuDescriptor = descriptorCache.FindGPUDescriptorFromCPUDescriptor( cpuDescriptor );
+        }
+
+
+        if( !gpuDescriptor )
+        {
+          DX12DescriptorRegionManager* gpuRegionMgr{ gpuRegionMgrs[ heapType ] };
+          DX12DescriptorRegion gpuDescriptors{ gpuRegionMgr->Alloc( nDescriptors ) };
+          TAC_ASSERT( gpuDescriptors.Valid() );
+
+          DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
+
+          if( nDescriptors == 1 )
+          {
+            const int iDesc{ descriptorCache.mGPUDescs.size() };
+            descriptorCache.mCPUDescs.push_back( cpuDescriptors[ 0 ] );
+            descriptorCache.mGPUIndexes.push_back( iDesc );
+          }
+
+          descriptorCache.mGPUDescs.push_back( move( gpuDescriptors ) );
+          gpuDescriptor = &descriptorCache.mGPUDescs.back();
+        }
 
         UINT arrayOffest{};
         for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
@@ -154,7 +169,7 @@ namespace Tac::Render
           TAC_ASSERT( srcHeap->GetType() == heapType );
 
           const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
-          const D3D12_CPU_DESCRIPTOR_HANDLE dst{ gpuDescriptors.GetCPUHandle( iDescriptor ) };
+          const D3D12_CPU_DESCRIPTOR_HANDLE dst{ gpuDescriptor->GetCPUHandle( iDescriptor ) };
 
           TAC_ASSERT( src.ptr );
           TAC_ASSERT( dst.ptr );
@@ -163,10 +178,9 @@ namespace Tac::Render
 
         }
 
-        const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptors.GetGPUHandle() };
+        const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
         commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
 
-        mState.mGPUDescs[ heapType ].push_back( move( gpuDescriptors ) );
       }
 
       else
@@ -245,19 +259,8 @@ namespace Tac::Render
     }
 
 
-    for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
-    {
-      if( DX12DescriptorHeap * heap{ mGpuDescriptorHeaps[ i ] } )
-      {
-        //DX12DescriptorRegionManager* regionMgr{ heap->GetRegionMgr() };
-        Vector< DX12DescriptorRegion >& descriptors{ mState.mGPUDescs[ i ] };
-        for( DX12DescriptorRegion& descriptor : descriptors )
-          descriptor.SetFence( fenceSignal );
-          //regionMgr->Free( descriptor, fenceSignal );
-
-        descriptors.clear();
-      }
-    }
+    for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
+      mState.mDescriptorCaches[ i ].SetFence( fenceSignal );
 
 
     mCommandAllocatorPool->Retire( mCommandAllocator, fenceSignal );
@@ -272,8 +275,6 @@ namespace Tac::Render
 
   void DX12Context::Reset( Errors& errors )
   {
-    //mGPUUploadAllocator; // <-- should be clear
-
     TAC_ASSERT( !mCommandAllocator );
 
     mCommandAllocator =
@@ -567,18 +568,8 @@ namespace Tac::Render
     TAC_ASSERT( mState.mExecuted ); // this should be a warning instead
     mState.mRetired = true;
 
-    for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
-    {
-      //if( DX12DescriptorHeap * heap{ mGpuDescriptorHeaps[ i ] } )
-      //{
-        //DX12DescriptorRegionManager* regionMgr{ heap->GetRegionMgr() };
-        Vector< DX12DescriptorRegion >& descriptors{ mState.mGPUDescs[ i ] };
-        //for( DX12Descriptor descriptor : descriptors )
-          //regionMgr->FreeNoSignal( descriptor );
-
-        descriptors.clear();
-      //}
-    }
+    for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
+      mState.mDescriptorCaches[ i ].Clear();
 
     mContextManager->RetireContext( this );
   }

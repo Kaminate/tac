@@ -89,8 +89,47 @@ namespace Tac::Render
 
     using RenderTargetColors = FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 >;
     using RenderTargetDepth = Optional< D3D12_CPU_DESCRIPTOR_HANDLE >;
-    using GPUDescriptors = Vector< DX12DescriptorRegion >[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
     using DX12DescriptorHeaps = Array< DX12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;
+
+    struct DescriptorCache
+    {
+      void SetFence( FenceSignal fenceSignal )
+      {
+        for( DX12DescriptorRegion& gpuDesc : mGPUDescs )
+          gpuDesc.SetFence( fenceSignal );
+
+        Clear();
+      }
+
+      void Clear()
+      {
+        mCPUDescs.clear();
+        mGPUDescs.clear();
+        mGPUIndexes.clear();
+      }
+
+
+
+      DX12DescriptorRegion* FindGPUDescriptorFromCPUDescriptor( DX12Descriptor cpuDescriptor )
+      {
+        const int n{ mCPUDescs.size() };
+        for( int i{}; i < n; ++i )
+        {
+          if( mCPUDescs[ i ].mIndex == cpuDescriptor.mIndex )
+          {
+            TAC_ASSERT( mCPUDescs[i].mOwner == cpuDescriptor.mOwner );
+            TAC_ASSERT( mCPUDescs[i].mCount >= cpuDescriptor.mCount );
+            return &mGPUDescs[ mGPUIndexes[ i ] ];
+          }
+        }
+        return nullptr;
+      }
+      Vector< DX12Descriptor >        mCPUDescs;
+      Vector< int >                   mGPUIndexes;
+      Vector< DX12DescriptorRegion >  mGPUDescs;
+    };
+
+    using DescriptorCaches = DescriptorCache[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
 
     struct State
     {
@@ -103,7 +142,7 @@ namespace Tac::Render
       bool               mExecuted             {};
       int                mEventCount           {};
       bool               mRetired              {};
-      GPUDescriptors     mGPUDescs             {};
+      DescriptorCaches   mDescriptorCaches     {};
     };
 
     State mState{};

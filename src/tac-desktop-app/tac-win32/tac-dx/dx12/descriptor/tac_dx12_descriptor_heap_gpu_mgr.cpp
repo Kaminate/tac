@@ -13,9 +13,9 @@ namespace Tac::Render
   {
     switch( state )
     {
-    case State::kUnknown: return "unknown";
-    case State::kAllocated: return "allocated";
-    case State::kFree: return "free";
+    case State::kUnknown:     return "unknown";
+    case State::kAllocated:   return "allocated";
+    case State::kFree:        return "free";
     case State::kPendingFree: return "pending free";
     default: TAC_ASSERT_INVALID_CASE( state ); return "?";
     }
@@ -76,6 +76,18 @@ namespace Tac::Render
       TAC_ASSERT( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated );
       regionDesc->mState = DX12DescriptorRegionManager::RegionDesc::kPendingFree;
       regionDesc->mFence = fenceSignal;
+
+      //------------------
+      if( true )
+      {
+        auto iToAdd{ mRegionManager->GetIndex( regionDesc ) };
+        for( auto iExisting : mRegionManager->mPendingFreeNodes )
+        {
+          TAC_ASSERT( iToAdd != iExisting );
+        }
+      }
+      //------------------
+
       mRegionManager->mPendingFreeNodes.push_back( mRegionManager->GetIndex( regionDesc ) );
       mRegionManager = nullptr;
       mRegionIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
@@ -158,7 +170,9 @@ namespace Tac::Render
 
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
-      OS::OSDebugPrintLine( "alloc " + ToString( n ) + ( n == 1 ? " byte" : " bytes") );
+      OS::OSDebugPrintLine( "alloc "
+                            + ToString( descriptorCount )
+                            + ( descriptorCount == 1 ? " byte" : " bytes") );
 #endif
 
     RegionIndex iAlloc{ -1 };
@@ -219,6 +233,31 @@ namespace Tac::Render
     return DX12DescriptorRegion( descriptor, this, iAlloc );
   }
 
+  String DX12DescriptorRegionManager::DebugPendingFreeListString()
+  {
+    const FenceSignal lastCompleted{ mCommandQueue->GetLastCompletedFenceValue() };
+
+    String str;
+    str += "( Completed Fence: " + ToString( lastCompleted.GetValue() ) + ", ";
+    str += "pending free list: ";
+
+    String sep{ "" };
+    int loopCount{};
+    for( RegionIndex i : mPendingFreeNodes )
+    {
+      ++loopCount;
+      TAC_ASSERT( loopCount <= ( int )mOwner->GetDescriptorCount() );
+      TAC_ASSERT( loopCount <= mPendingFreeNodes.size() );
+      str += sep;
+      str += "[";
+      str += "idx: " + ToString( ( int )i ) + ", ";
+      str += "fence: " + ToString( GetRegionAtIndex( i )->mFence.GetValue() );
+      str += "]";
+      sep = "->";
+    }
+    str += " ) ";
+    return str;
+  }
 
   String DX12DescriptorRegionManager::DebugFreeListString()
   {
@@ -245,13 +284,14 @@ namespace Tac::Render
     String str;
     str += mOwner->GetName() + ": ";
     str += DebugFreeListString();
+    str += DebugPendingFreeListString();
 
     int loopCount {};
     String regionSeparator{""};
     for( RegionDesc* desc{ &mRegions[ 0 ] }; desc; desc = GetRegionAtIndex( desc->mRightIndex ) )
     {
       ++loopCount;
-      TAC_ASSERT( loopCount < ( int )mOwner->GetDescriptorCount() );
+      TAC_ASSERT( loopCount <= ( int )mOwner->GetDescriptorCount() );
       TAC_ASSERT( desc->mState != RegionDesc::kUnknown );
 
       struct
@@ -301,6 +341,7 @@ namespace Tac::Render
         ++iiRegion;
       }
     }
+    mPendingFreeNodes.resize( n );
   }
 
 //  void DX12DescriptorRegionManager::Free( DX12Descriptor descriptor, FenceSignal fenceSignal )
@@ -357,10 +398,10 @@ namespace Tac::Render
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
     {
-      int index{ GetIndex( region ) };
-      OS::OSDebugPrintLine( "free idx " + ToString( index ) );
+      RegionIndex index{ GetIndex( region ) };
+      OS::OSDebugPrintLine( "free idx " + ToString( ( int )index ) );
       ++asdf;
-      if( index == 0 )
+      if( ( int )index == 0 )
         ++asdf;
     }
 #endif

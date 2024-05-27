@@ -171,13 +171,13 @@ namespace Tac
           .mUtf8     { "a" },
         };
 
-        //drawData->AddBox( redBox );
-        //drawData->AddBox( blueBox );
-        //drawData->AddBox( greenBox );
-        //drawData->AddText( text );
-        //ImGuiButton( "a" );
+        drawData->AddBox( redBox );
+        drawData->AddBox( blueBox );
+        drawData->AddBox( greenBox );
+        drawData->AddText( text );
+        ImGuiButton( "a" );
 
-        //ImGuiText(  FormatFrameTime( Timestep::GetElapsedTime().mSeconds )  );
+        ImGuiText(  FormatFrameTime( Timestep::GetElapsedTime().mSeconds )  );
 
         FontApi::GetFontAtlasCell( Language::English, 'a', errors );
         FontApi::GetFontAtlasCell( Language::English, 'b', errors );
@@ -193,7 +193,7 @@ namespace Tac
         float y{ ( float )Sin(t) * radius + sWindowSize.y / 2};
 
         //ImGuiIndent();
-        for( int i {  }; i < 50; ++i )
+        for( int i {}; i < 50; ++i )
         {
           ImGuiSetCursorPos( { x, y + 20 * i} );
           String str{ "text " + ToString( i ) };

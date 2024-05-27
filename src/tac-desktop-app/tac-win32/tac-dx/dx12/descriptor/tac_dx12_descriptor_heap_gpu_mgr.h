@@ -59,14 +59,15 @@ namespace Tac::Render
     RegionDesc*    GetRegionAtIndex( RegionIndex );
     void           DebugPrint();
     String         DebugFreeListString();
+    String         DebugPendingFreeListString();
     void RemoveFromFreeList( RegionDesc* );
 
 
     Vector< RegionDesc >   mRegions          {};
 
-    Vector< RegionIndex >          mFreeNodes        {};
-    Vector< RegionIndex >          mPendingFreeNodes {};
-    Vector< RegionIndex >          mUnusedNodes      {};
+    Vector< RegionIndex >  mFreeNodes        {};
+    Vector< RegionIndex >  mPendingFreeNodes {};
+    Vector< RegionIndex >  mUnusedNodes      {};
 
     DX12CommandQueue*      mCommandQueue     {};
     DX12DescriptorHeap*    mOwner            {};
@@ -85,6 +86,8 @@ namespace Tac::Render
     void operator = ( DX12DescriptorRegion&& );
     void operator = ( const DX12DescriptorRegion& ) = delete;
     void SetFence( FenceSignal );
+
+    DX12DescriptorRegionManager::RegionIndex GetRegionIndex() const { return mRegionIndex; }
 
   private:
     void SwapWith( DX12DescriptorRegion&& );
