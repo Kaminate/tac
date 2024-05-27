@@ -28,6 +28,8 @@
     <StringView>mStr,na</StringView>
   </Type>
 
+  <!--
+
   <Type Name="Tac::Vector&lt;*&gt;">
     <DisplayString>{{size={mTCount}}}</DisplayString>
 	  <Expand>
@@ -39,6 +41,8 @@
 		  </ArrayItems>
 	  </Expand>
   </Type>
+
+  -->
 
 </AutoVisualizer>
 

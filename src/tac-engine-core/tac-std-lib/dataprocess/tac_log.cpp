@@ -236,7 +236,7 @@ namespace Tac
     
     bool is_open() const { return mOfs.is_open(); }
 
-    std::ofstream    mOfs;
+    std::ofstream mOfs;
   };
 
   struct Log
@@ -247,9 +247,9 @@ namespace Tac
     void LogMessage( StringView );
     void SetPath( FileSys::Path );
 
-    String           mBuffer;
+    String        mBuffer;
     FileSys::Path mPath;
-    File             mFile;
+    File          mFile;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -261,7 +261,7 @@ namespace Tac
 
     EnsurePath();
 
-    const std::ios_base::openmode flags = std::ios::out | std::ios::trunc;
+    const std::ios_base::openmode flags{ std::ios::out | std::ios::trunc };
     mFile.Open( mPath, flags );
   }
 
@@ -280,7 +280,7 @@ namespace Tac
     if( OS::OSOpenDialog )
     {
       Errors dialogErrors;
-      FileSys::Path dialogPath = OS::OSOpenDialog( dialogErrors );
+      FileSys::Path dialogPath{ OS::OSOpenDialog( dialogErrors ) };
       if( dialogErrors.empty() )
       {
         mPath = dialogPath;

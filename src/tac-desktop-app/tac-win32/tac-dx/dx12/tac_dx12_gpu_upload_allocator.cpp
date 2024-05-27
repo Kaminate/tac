@@ -148,6 +148,8 @@ namespace Tac::Render
 
   DX12UploadPage DX12UploadPageMgr::RequestPage( int byteCount, Errors& errors )
   {
+    TAC_SCOPE_GUARD( std::lock_guard, mPagesMutex );
+
     UnretirePages();
 
     DX12UploadPage page{};
@@ -226,6 +228,7 @@ namespace Tac::Render
 
   void           DX12UploadPageMgr::RetirePage( DX12UploadPage page, FenceSignal signal )
   {
+    TAC_SCOPE_GUARD( std::lock_guard, mPagesMutex );
     const RetiredPage retiredPage
     {
       .mPage  { page },

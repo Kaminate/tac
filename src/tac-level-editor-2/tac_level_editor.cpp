@@ -193,7 +193,7 @@ namespace Tac
         float y{ ( float )Sin(t) * radius + sWindowSize.y / 2};
 
         //ImGuiIndent();
-        for( int i = 0; i < 50; ++i )
+        for( int i {  }; i < 50; ++i )
         {
           ImGuiSetCursorPos( { x, y + 20 * i} );
           String str{ "text " + ToString( i ) };

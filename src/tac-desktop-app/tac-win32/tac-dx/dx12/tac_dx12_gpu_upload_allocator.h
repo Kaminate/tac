@@ -7,6 +7,8 @@
 
 #include "tac_dx12_command_queue.h"
 
+import std; // mutex
+
 namespace Tac::Render
 {
   struct DX12UploadPage
@@ -44,6 +46,7 @@ namespace Tac::Render
     // singletons
     PCom< ID3D12Device >     mDevice;
     DX12CommandQueue*        mCommandQueue {};
+    std::mutex               mPagesMutex;
   };
 
   struct DX12UploadAllocator

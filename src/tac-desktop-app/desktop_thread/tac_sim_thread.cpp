@@ -5,7 +5,7 @@
 #include "tac-desktop-app/desktop_app/tac_render_state.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
-#include "tac-ecs/tac_space.h"
+//#include "tac-ecs/tac_space.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -47,7 +47,7 @@ namespace Tac
     SettingsNode settingsNode{ mSettingsRoot->GetRootNode() };
     TrackWindowInit( sWindowApi, settingsNode );
 
-    SpaceInit();
+    //SpaceInit();
   }
 
   void SimThread::Uninit()

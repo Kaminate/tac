@@ -83,6 +83,7 @@ namespace Tac::Render
     ~DX12DescriptorRegion();
 
     void operator = ( DX12DescriptorRegion&& );
+    void operator = ( const DX12DescriptorRegion& ) = delete;
     void SetFence( FenceSignal );
 
   private:

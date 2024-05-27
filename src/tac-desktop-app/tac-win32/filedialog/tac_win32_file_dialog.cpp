@@ -35,10 +35,10 @@ namespace Tac
 
     void FileDialogHelper::SetDefaultFolder( Errors& errors )
     {
-      const FileSys::Path dir = sShellInitialWorkingDir / AssetPathRootFolderName;
-      const std::wstring wDir = dir.Get().wstring();
+      const FileSys::Path dir { sShellInitialWorkingDir / AssetPathRootFolderName };
+      const std::wstring wDir { dir.Get().wstring() };
 
-      PCom<IShellItem> shDir;
+      PCom< IShellItem > shDir;
       TAC_HR_CALL( SHCreateItemFromParsingName(
                    wDir.c_str(),
                    NULL,
@@ -49,23 +49,23 @@ namespace Tac
 
     void FileDialogHelper::CreateDialogInstance( Errors& errors )
     {
-      REFCLSID sid = mType == Type::kOpen ? CLSID_FileOpenDialog : CLSID_FileSaveDialog;
-      REFIID iid = mType == Type::kOpen ? mOpenDialog.iid() : mSaveDialog.iid();
-      void** ppv = mType == Type::kOpen ? mOpenDialog.ppv() : mSaveDialog.ppv();
+      REFCLSID sid{ mType == Type::kOpen ? CLSID_FileOpenDialog : CLSID_FileSaveDialog };
+      REFIID iid{ mType == Type::kOpen ? mOpenDialog.iid() : mSaveDialog.iid() };
+      void** ppv{ mType == Type::kOpen ? mOpenDialog.ppv() : mSaveDialog.ppv() };
       TAC_HR_CALL( CoCreateInstance( sid, NULL, CLSCTX_INPROC_SERVER, iid, ppv ) );
-      mDialog = mType == Type::kOpen ? (IFileDialog*)mOpenDialog : (IFileDialog*)mSaveDialog;
+      mDialog = mType == Type::kOpen ? ( IFileDialog* )mOpenDialog : ( IFileDialog* )mSaveDialog;
     };
 
     void FileDialogHelper::Show( Errors& errors )
     {
-      const HRESULT hr { mDialog->Show( nullptr ) };
+      const HRESULT hr{ mDialog->Show( nullptr ) };
       mCancelled = hr == HRESULT_FROM_WIN32( ERROR_CANCELLED );
-      TAC_RAISE_ERROR_IF( FAILED( hr ) && !mCancelled, "Failed to show dialog");
+      TAC_RAISE_ERROR_IF( FAILED( hr ) && !mCancelled, "Failed to show dialog" );
     }
 
     FileSys::Path FileDialogHelper::GetResult( Errors& errors )
     {
-      PCom<IShellItem> pItem;
+      PCom< IShellItem > pItem;
       TAC_HR_CALL_RET( {}, mDialog->GetResult( pItem.CreateAddress() ) );
 
       PWSTR pszFilePath;

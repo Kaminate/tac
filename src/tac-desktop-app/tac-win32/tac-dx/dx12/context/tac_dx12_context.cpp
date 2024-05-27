@@ -12,6 +12,7 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h" // Swap
 
 #include <WinPixEventRuntime/pix3.h>
 
@@ -143,7 +144,6 @@ namespace Tac::Render
         DX12DescriptorRegionManager* gpuRegionMgr{ gpuRegionMgrs[ heapType ] };
         DX12DescriptorRegion gpuDescriptors{ gpuRegionMgr->Alloc( nDescriptors ) };
         TAC_ASSERT( gpuDescriptors.Valid() );
-        mState.mGPUDescs[ heapType ].push_back( move( gpuDescriptors ) );
 
         UINT arrayOffest{};
         for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
@@ -165,7 +165,10 @@ namespace Tac::Render
 
         const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptors.GetGPUHandle() };
         commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
+
+        mState.mGPUDescs[ heapType ].push_back( move( gpuDescriptors ) );
       }
+
       else
       {
         D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress{};
@@ -304,7 +307,8 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* dxCommandList { GetCommandList() };
     TAC_DX12_CALL( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
-    mState = {};
+    State empty;
+    Swap( mState, empty );
   }
 
   void DX12Context::SetSynchronous()

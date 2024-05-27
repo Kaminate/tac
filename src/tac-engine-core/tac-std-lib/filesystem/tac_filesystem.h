@@ -88,7 +88,7 @@ namespace Tac::FileSys
   void CreateDirectory2( const Path& );
 
   enum class IterateType { Default, Recursive };
-  using Paths = Vector<Path>;
+  using Paths = Vector< Path >;
 
   Paths            IterateFiles( const Path& dir, IterateType, Errors& );
   Paths            IterateDirectories( const Path& dir, IterateType, Errors& );

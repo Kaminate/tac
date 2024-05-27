@@ -5,6 +5,10 @@
 #include <unknwn.h> // IUnknown
 #include <guiddef.h>
 
+// delete be begin
+#include <d3d12.h>
+// delete be end
+
 namespace Tac
 {
   // Wrapper for Com Object, similar to Microsoft::WRL::ComPtr
@@ -19,19 +23,18 @@ namespace Tac
 
     PCom( const PCom& other )
     {
-      if( auto unknown = static_cast< IUnknown* >( mT = other.mT ) )
-        unknown->AddRef();
+      mT = other.mT;
+      TryAddRef();
     }
 
     PCom( PCom&& other ) noexcept
     {
-      swap( Tac::move(other) );
+      swap( Tac::move( other ) );
     }
 
     ~PCom()
     {
-      if( auto unknown = static_cast< IUnknown* >( mT ) )
-        unknown->Release();
+      TryRelease();
     }
 
     // IID_PPV_ARGS == iid(), ppv()
@@ -45,7 +48,7 @@ namespace Tac
 
     void swap( PCom&& other )
     {
-      T* t = mT;
+      T* t{ mT };
       mT = other.mT;
       other.mT = t;
     }
@@ -65,7 +68,7 @@ namespace Tac
     {
       // If the call to QueryInterface is successful, IUnknown::AddRef is automatically
       // called on the COM object. Otherwise, the pointed address is set to nullptr
-      if( auto unknown = static_cast< IUnknown* >( mT ) )
+      if( IUnknown * unknown { static_cast< IUnknown* >( mT ) } )
         unknown->QueryInterface( u.iid(), u.ppv() );
     }
 
@@ -86,17 +89,16 @@ namespace Tac
     // im undeleting this idk why it was deleted
     void operator = ( T* t )
     {
-      if( auto unknown = static_cast< IUnknown* >( mT = t ) )
-        unknown->AddRef();
+      TryRelease();
+      mT = t;
+      TryAddRef();
     }
 
     void operator = ( const PCom& other )
     {
-      if( auto unknown = static_cast< IUnknown* >( mT ) )
-        unknown->Release();
-
-      if( auto unknown = static_cast< IUnknown* >( mT = other.mT ) )
-        unknown->AddRef();
+      TryRelease();
+      mT = other.mT;
+      TryAddRef();
     }
 
     void operator = ( PCom&& other ) noexcept
@@ -106,6 +108,18 @@ namespace Tac
 
 
   private:
+
+    void TryAddRef()
+    {
+      if( IUnknown * unknown{ static_cast< IUnknown* >( mT ) } )
+        unknown->AddRef();
+    }
+
+    void TryRelease()
+    {
+      if( IUnknown * unknown{ static_cast< IUnknown* >( mT ) } )
+        unknown->Release();
+    }
     
     T* mT {};
   };

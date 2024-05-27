@@ -65,7 +65,10 @@ add_subdirectory( desktop_event )
 add_subdirectory( desktop_thread )
 
 target_include_directories( TacDesktopApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
-target_link_libraries( TacDesktopApp TacECS )
+target_link_libraries( TacDesktopApp
+  TacStdLib
+  # TacECS
+  )
 
 # if( False ) here because it should not be the responsibilty of the shell to determine which
 # renderers to use

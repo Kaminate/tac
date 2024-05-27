@@ -17,7 +17,8 @@ target_link_libraries( LevelEditor2
   TacWin32Main
   TacEngineCore
   TacDesktopApp
-  TacECS )
+#  TacECS
+)
 
 target_sources( LevelEditor2 PRIVATE 
 #  "tac_entity_selection.cpp"

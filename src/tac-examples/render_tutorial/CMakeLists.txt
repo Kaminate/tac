@@ -15,7 +15,7 @@ foreach( targetname ${targetnames} )
   target_link_libraries( ${targetname}
     TacStdLib
     TacEngineCore
-    TacECS
+    # TacECS
     TacDesktopApp
     TacWin32
     TacWin32Main

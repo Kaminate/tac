@@ -75,6 +75,7 @@ namespace Tac::Render
 
       TAC_ASSERT( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated );
       regionDesc->mState = DX12DescriptorRegionManager::RegionDesc::kPendingFree;
+      regionDesc->mFence = fenceSignal;
       mRegionManager->mPendingFreeNodes.push_back( mRegionManager->GetIndex( regionDesc ) );
       mRegionManager = nullptr;
       mRegionIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
@@ -184,7 +185,10 @@ namespace Tac::Render
     if( allocRegion->mDescriptorCount > descriptorCount )
     {
       const RegionIndex iExtra{ mRegions.size() };
+
       mRegions.resize( ( int )iExtra + 1 );
+      allocRegion = GetRegionAtIndex( iAlloc ); // resize may invalidate pointers
+
       RegionDesc* extraRegion{ GetRegionAtIndex( iExtra ) };
       *extraRegion = RegionDesc
       {
@@ -203,6 +207,8 @@ namespace Tac::Render
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
       DebugPrint();
 #endif
+
+    allocRegion->mState = RegionDesc::kAllocated;
 
     const DX12Descriptor descriptor
     {
@@ -361,8 +367,6 @@ namespace Tac::Render
 
     // was considered used till now (fence signalled)
     TAC_ASSERT( region->mDescriptorCount > 0 );
-    TAC_ASSERT( region->mLeftIndex != RegionIndex::kNull );
-    TAC_ASSERT( region->mRightIndex != RegionIndex::kNull );
 
     bool regionInFreeList{ false };
     if( RegionDesc* left{ GetRegionAtIndex( region->mLeftIndex ) };
@@ -388,7 +392,6 @@ namespace Tac::Render
       mUnusedNodes.push_back( region->mRightIndex );
 
       RemoveFromFreeList( right );
-
     }
 
     if( !regionInFreeList )
