@@ -60,10 +60,16 @@ namespace Tac
   //template< typename T, size_t U > T      Random( const std::array< T, U >& ts ) { return RandomAccess( ts );   }
   //template< typename T > T                Random( std::initializer_list<T> ts )  { return RandomNoAccess( ts ); }
 
-  template< typename T > void             Swap( T& a, T& b )                     { T temp = a; a = b; b = temp; }
+  template< typename T > void             Swap( T& a, T& b )                    
+  {
+    T temp{ ( T&& )a };
+    a = ( T&& )b;
+    b = ( T&& )temp;
+  }
+
   template< typename T > int              Count( const T& ts, decltype ( *ts.begin() ) value )
   {
-    int n { 0 };
+    int n {};
     for( auto t : ts )
       if( t == value )
         ++n;

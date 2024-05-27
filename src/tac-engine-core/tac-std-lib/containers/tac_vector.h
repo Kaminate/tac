@@ -20,6 +20,16 @@ namespace Tac
   {
     Vector() = default;
 
+    Vector( Vector&& v )
+    {
+      mTs = v.mTs;
+      mTCount = v.mTCount;
+      mTCapacity = v.mTCapacity;
+      v.mTs = {};
+      v.mTCount = {};
+      v.mTCapacity = {};
+    }
+
     Vector( const Vector& v )
     {
       const int size { v.size() };
@@ -32,9 +42,7 @@ namespace Tac
 
     Vector( int size, T initialValue )
     {
-      resize( size );
-      for( int i{}; i < size; ++i )
-        mTs[ i ] = initialValue;
+      assign( size, initialValue );
     }
 
     Vector( const T* tbegin, const T* tend )
@@ -50,7 +58,23 @@ namespace Tac
       assign( ts.begin(), ts.end() );
     }
 
-    ~Vector() { TAC_DELETE[] mTs; }
+    ~Vector()
+    {
+      clear();
+      Deallocate( mTs );
+      mTs = {};
+    }
+
+    void     operator =( Vector< T >&& v )
+    {
+      const int n{ v.size() };
+      resize( n );
+      for( int i{}; i < n; ++i )
+      {
+        Swap( ( *this )[ i ], v[ i ] );
+      }
+      // 
+    }
 
     void     operator =( const Vector< T >& v )
     {
@@ -59,66 +83,80 @@ namespace Tac
 
     void     assign( const T* begin, const T* end )
     {
-      const int newSize { ( int )( end - begin ) };
-      reserve( newSize );
-      for( int i{}; i < newSize; ++i )
+      const int n { ( int )( end - begin ) };
+      resize( n );
+      for( int i{}; i < n; ++i )
         mTs[ i ] = begin[ i ];
-      mTCount = newSize;
     }
 
     void     assign( int n, const T& t )
     {
-      reserve( n );
+      resize( n );
       for( int i{}; i < n; ++i )
         mTs[ i ] = t;
-      mTCount = n;
     }
 
     void     clear()
     {
-      // Does not delete elements.
-      // Use Vector<T>().swap(x) instead.
-
       for( int i{}; i < mTCount; ++i )
       {
-        T& t{ mTs[ i ] };
-        t.~T();
+        mTs[ i ].~T();
       }
-      //for( T& t : mTs )
-      //  t.~T();
 
       mTCount = 0;
     }
 
     void     push_back( T&& t )
     {
-      const int newSize { mTCount + 1 };
-      if( newSize > mTCapacity )
-        reserve( int( newSize * 1.5f ) );
-      mTs[ mTCount++ ] = move(t);
+      if( mTCount == mTCapacity )
+        reserve( int( mTCount * 1.5f ) + 1 );
+
+      mTs[ mTCount++ ] = move( t );
     }
 
     void     push_back( const T& t )
     {
-      const int newSize { mTCount + 1 };
-      if( newSize > mTCapacity )
-        reserve( int( newSize * 1.5f ) );
-      mTs[ mTCount++ ] = t;
+      if( mTCount == mTCapacity )
+        reserve( int( mTCount * 1.5f ) + 1 );
+
+      new( &mTs[ mTCount++ ] )T( t );
     }
 
     void     pop_back()                 { TAC_ASSERT( mTCount ); mTCount--; }
     bool     empty() const              { return !mTCount; }
     int      size() const               { return mTCount; }
 
-    void     resize( int newSize, T newValues = T() )
+    void     resize( const int newSize )
     {
+      const int oldSize{ mTCount };
       reserve( newSize );
 
-      for( int i { mTCount }; i < newSize; ++i )
-        mTs[ i ] = Tac::move( newValues );
+      if( newSize > oldSize )
+      {
+        for( int i{ oldSize }; i < newSize; ++i )
+        {
+          new( &mTs[ i ] )T();
+        }
+      }
 
-      // Does this handle the case where newSize < mTCount?
-      // ( destructing the old elements? )
+      if( newSize < oldSize )
+      {
+        for( int i{ newSize }; i < oldSize; ++i )
+        {
+          mTs[i].~T();
+        }
+      }
+
+      mTCount = newSize;
+    }
+
+    void     resize( int newSize, const T value )
+    {
+      const int oldSize{ mTCount };
+      resize( newSize );
+
+      for( int i{ oldSize }; i < newSize; ++i )
+        mTs[ i ] = value;
 
       mTCount = newSize;
     }
@@ -128,11 +166,11 @@ namespace Tac
       if( capacity <= mTCapacity )
         return;
 
-      T* newTs { TAC_NEW T[ capacity ] };
+      T* newTs{ ( T* )Allocate( sizeof( T ) * capacity ) };
       for( int i{}; i < mTCount; ++i )
         newTs[ i ] = Tac::move( mTs[ i ] );
 
-      TAC_DELETE[] mTs;
+      Deallocate( mTs );
       mTs = newTs;
       mTCapacity = capacity;
     }
@@ -173,9 +211,9 @@ namespace Tac
     T&       operator[]( int i )        { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
     const T& operator[]( int i ) const  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
 
-    T*       mTs        { nullptr };
-    int      mTCount    { 0 };
-    int      mTCapacity { 0 };
+    T*       mTs        {};
+    int      mTCount    {};
+    int      mTCapacity {};
   };
 
   template< typename T >

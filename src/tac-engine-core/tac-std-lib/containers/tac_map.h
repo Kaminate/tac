@@ -154,11 +154,12 @@ void Tac::Map< TKey, TVal >::erase( TKey key )
 template< typename TKey, typename TVal >
 Tac::Map<TKey, TVal>::Node* Tac::Map<TKey, TVal>::OccupyNode( TKey key )
 {
+  // We want to ensure that the array is at most half full, to better prevent collisiosn
+  if( mSize + 1 > mCapacity / 2 )
+    Reserve( mCapacity * 2 + 1 );
+
   if( Node* node{ FindNode( key ) }; node->mOccupied )
     return node;
-
-  if( mSize + 1 > mCapacity / 2 )
-    Reserve( mCapacity * 2 );
 
   Node* node { FindNode( key ) };
   node->mOccupied = true;

@@ -27,6 +27,10 @@ namespace Tac
 
   static const Happy kHappyBoi( 1 );
   static const Happy kHappyGrl( 2 );
+
+  void* Allocate( std::size_t, StackFrame );
+  void* Allocate( std::size_t );
+  void Deallocate( void* );
 }
 
 
@@ -40,6 +44,8 @@ void* operator new ( std::size_t, Tac::Happy );
 void operator delete( void* ) noexcept;
 void operator delete( void*, std::size_t ) noexcept; // and a sized delete?
 void operator delete( void*, Tac::Happy ) noexcept;
+
+
 
 #define TAC_NEW ( Tac::SetNewStackFrame( TAC_STACK_FRAME ), false ) ? nullptr : new
 #define TAC_DELETE delete

@@ -12,11 +12,12 @@ namespace Tac
   static int memAllocCounter;
   static int memFreeCounter;
   static int memCount;
+}
 
-  static void* Allocate( const StackFrame& stackFrame, const std::size_t sz )
+  void* Tac::Allocate( const std::size_t sz )
   {
-    TAC_UNUSED_PARAMETER( stackFrame );
-    void* result = std::malloc( sz );
+    void* result { std::malloc( sz ) };
+    std::memset( result, 0, sz );
 
     // track dynamic memory allocations
     //if( Timestep::GetElapsedTime() > 2)
@@ -27,15 +28,30 @@ namespace Tac
     return result;
   }
 
-  static void  Deallocate( void* ptr )
+  void* Tac::Allocate( const std::size_t sz, const StackFrame stackFrame )
   {
+    TAC_UNUSED_PARAMETER( stackFrame );
+    void* result { std::malloc( sz ) };
+    std::memset( result, 0, sz );
+
+    // track dynamic memory allocations
+    //if( Timestep::GetElapsedTime() > 2)
+    {
+      ++memAllocCounter;
+      ++memCount;
+    }
+    return result;
+  }
+
+  void  Tac::Deallocate( void* ptr )
+  {
+    if( ptr )
     {
       ++memFreeCounter;
       --memCount;
+      std::free( ptr );
     }
-    std::free( ptr );
   }
-}
 
 void Tac::SetNewStackFrame( const StackFrame& stackFrame )
 {
@@ -59,10 +75,10 @@ void  operator delete( void* ptr, const Tac::Happy ) noexcept
 
 void* operator new( const std::size_t sz )
 {
-  return Tac::Allocate( Tac::sNewStackFrame, sz );
+  return Tac::Allocate( sz, Tac::sNewStackFrame );
 }
 
 void* operator new( std::size_t sz, Tac::Happy )
 {
-  return Tac::Allocate( Tac::sNewStackFrame, sz );
+  return Tac::Allocate( sz, Tac::sNewStackFrame );
 }
