@@ -7,6 +7,7 @@
 #include "tac-dx/dx12/tac_dx12_gpu_upload_allocator.h"
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_allocation.h"
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_gpu_mgr.h"
+#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_cache.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 
@@ -91,58 +92,20 @@ namespace Tac::Render
     using RenderTargetDepth = Optional< D3D12_CPU_DESCRIPTOR_HANDLE >;
     using DX12DescriptorHeaps = Array< DX12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;
 
-    struct DescriptorCache
-    {
-      void SetFence( FenceSignal fenceSignal )
-      {
-        for( DX12DescriptorRegion& gpuDesc : mGPUDescs )
-          gpuDesc.SetFence( fenceSignal );
 
-        Clear();
-      }
-
-      void Clear()
-      {
-        mCPUDescs.clear();
-        mGPUDescs.clear();
-        mGPUIndexes.clear();
-      }
-
-
-
-      DX12DescriptorRegion* FindGPUDescriptorFromCPUDescriptor( DX12Descriptor cpuDescriptor )
-      {
-        const int n{ mCPUDescs.size() };
-        for( int i{}; i < n; ++i )
-        {
-          if( mCPUDescs[ i ].mIndex == cpuDescriptor.mIndex )
-          {
-            TAC_ASSERT( mCPUDescs[i].mOwner == cpuDescriptor.mOwner );
-            TAC_ASSERT( mCPUDescs[i].mCount >= cpuDescriptor.mCount );
-            return &mGPUDescs[ mGPUIndexes[ i ] ];
-          }
-        }
-        return nullptr;
-      }
-      Vector< DX12Descriptor >        mCPUDescs;
-      Vector< int >                   mGPUIndexes;
-      Vector< DX12DescriptorRegion >  mGPUDescs;
-    };
-
-    using DescriptorCaches = DescriptorCache[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
 
     struct State
     {
-      RenderTargetColors mRenderTargetColors   {};
-      RenderTargetDepth  mRenderTargetDepth    {}; 
-      BufferHandle       mVertexBuffer         {};
-      BufferHandle       mIndexBuffer          {};
-      PipelineHandle     mPipeline             {};
-      bool               mSynchronous          {};
-      bool               mExecuted             {};
-      int                mEventCount           {};
-      bool               mRetired              {};
-      DescriptorCaches   mDescriptorCaches     {};
+      RenderTargetColors    mRenderTargetColors   {};
+      RenderTargetDepth     mRenderTargetDepth    {}; 
+      BufferHandle          mVertexBuffer         {};
+      BufferHandle          mIndexBuffer          {};
+      PipelineHandle        mPipeline             {};
+      bool                  mSynchronous          {};
+      bool                  mExecuted             {};
+      int                   mEventCount           {};
+      bool                  mRetired              {};
+      DX12DescriptorCaches  mDescriptorCaches     {};
     };
 
     State mState{};

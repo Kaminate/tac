@@ -106,9 +106,9 @@ namespace Tac::Render
       {
         gpuRegionMgrs[ i ] = gpuHeap->GetRegionMgr();
         descHeaps.push_back( gpuHeap->GetID3D12DescriptorHeap() );
+        mState.mDescriptorCaches[ i ].SetRegionManager( gpuHeap->GetRegionMgr() ); // ugly
       }
     }
-
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
@@ -130,37 +130,12 @@ namespace Tac::Render
           var.GetDescriptors( &transitionHelper, mTextureMgr, mSamplerMgr, mBufferMgr ) };
         transitionHelper.ResourceBarrier( commandList );
 
+        DX12DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
+        DX12DescriptorRegion* gpuDescriptor{
+          descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors )
+        };
+
         const int nDescriptors{ cpuDescriptors.size() };
-
-        DX12DescriptorRegion* gpuDescriptor{};
-        if( nDescriptors == 1 )
-        {
-          DX12Descriptor cpuDescriptor{ cpuDescriptors[ 0 ] };
-          DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
-          gpuDescriptor = descriptorCache.FindGPUDescriptorFromCPUDescriptor( cpuDescriptor );
-        }
-
-
-        if( !gpuDescriptor )
-        {
-          DX12DescriptorRegionManager* gpuRegionMgr{ gpuRegionMgrs[ heapType ] };
-          DX12DescriptorRegion gpuDescriptors{ gpuRegionMgr->Alloc( nDescriptors ) };
-          TAC_ASSERT( gpuDescriptors.Valid() );
-
-          DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
-
-          if( nDescriptors == 1 )
-          {
-            const int iDesc{ descriptorCache.mGPUDescs.size() };
-            descriptorCache.mCPUDescs.push_back( cpuDescriptors[ 0 ] );
-            descriptorCache.mGPUIndexes.push_back( iDesc );
-          }
-
-          descriptorCache.mGPUDescs.push_back( move( gpuDescriptors ) );
-          gpuDescriptor = &descriptorCache.mGPUDescs.back();
-        }
-
-        UINT arrayOffest{};
         for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
         {
           DX12Descriptor cpuDescriptor { cpuDescriptors[ iDescriptor ] };
