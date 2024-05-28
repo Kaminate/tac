@@ -45,8 +45,8 @@ namespace Tac
     const float fontSize{ ImGuiGetFontSize() };
     const int codepointCount{ codepoints.size() };
 
-    float runningTextWidth{ 0 };
-    int numGlyphsBeforeCaret{ 0 };
+    float runningTextWidth{};
+    int numGlyphsBeforeCaret{};
     for( int i{ 1 }; i <= codepointCount; ++i )
     {
       const v2 substringSize{ CalculateTextSize( codepoints.begin(), i, fontSize ) };
@@ -67,7 +67,7 @@ namespace Tac
   {
     SettingsNode windowsJson{ ImGuiGlobals::Instance.mSettingsNode.GetChild( "imgui.windows" ) };
     const int n{ windowsJson.GetValue().mArrayElements.size() };
-    for( int i{ 0 }; i < n; ++i )
+    for( int i{}; i < n; ++i )
     {
       SettingsNode child{ windowsJson.GetChild( "[" + ToString( i ) + "]" ) };
       if( ( StringView )child.GetChild( "name" ).GetValue().mString == name )
@@ -467,8 +467,8 @@ bool Tac::ImGuiBegin( const StringView& name )
   if( !window )
   {
     WindowHandle hDesktopWindow{ gNextWindow.mWindowHandle };
-    int desktopWindowWidth{ 0 };
-    int desktopWindowHeight{ 0 };
+    int desktopWindowWidth{};
+    int desktopWindowHeight{};
 
     if( hDesktopWindow.IsValid() )
     {

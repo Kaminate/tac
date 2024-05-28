@@ -52,7 +52,7 @@ namespace Tac
       posAttribute->data->buffer_view->offset +
       posAttribute->data->offset };
     SubMeshTriangle tri  {};
-    int iVert { 0 };
+    int iVert {};
     for( int i : indexes )
     {
       auto vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };

@@ -115,7 +115,7 @@ namespace Tac::Render
     PCom<IDXGIAdapter1> bestAdapter;
     DXGI_ADAPTER_DESC1 bestdesc{};
 
-    UINT iAdapter { 0 };
+    UINT iAdapter {};
     for( ;; )
     {
       PCom<IDXGIAdapter1> currAdapter;

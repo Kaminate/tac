@@ -105,18 +105,18 @@ namespace Tac::Network
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz"
       "0123456789+/" };
-    int iInput { 0 };
+    int iInput {};
     while( iInput < int( input.size() / 3 ) * 3 )
     {
-      u32 accumulator { 0 };
+      u32 accumulator {};
       // Push inputs onto the right
-      for( int n { 0 }; n < 3; n++ )
+      for( int n {}; n < 3; n++ )
       {
         accumulator |= input[ iInput++ ];
         accumulator <<= 8;
       }
       // Pop lookup keys off of the left
-      for( int k { 0 }; k < 4; k++ )
+      for( int k {}; k < 4; k++ )
       {
         result += lookupTable[ accumulator >> 26 ];
         accumulator <<= 6;

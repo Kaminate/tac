@@ -66,12 +66,14 @@ namespace Tac::Render
 
     return DynAlloc
     {
-      .mResource       { pageToAllocateFrom->mBuffer.Get() },
-      .mResourceState  { &pageToAllocateFrom->mResourceState },
-      .mResourceOffest { offset },
-      .mGPUAddr        { gpuAddr },
-      .mCPUAddr        { cpuAddr },
-      .mByteCount      { byteCount },
+      .mResource          { pageToAllocateFrom->mBuffer.Get() },
+      .mResourceState     { &pageToAllocateFrom->mResourceState },
+      .mResourceOffest    { offset },
+      .mGPUAddr           { gpuAddr },
+      .mCPUAddr           { cpuAddr },
+      .mUnoffsetCPUAddr   { pageToAllocateFrom->mCPUAddr },
+      .mByteCount         { byteCount },
+      .mResourceByteCount { pageToAllocateFrom->mByteCount },
     };
   }
 
@@ -152,18 +154,14 @@ namespace Tac::Render
 
     UnretirePages();
 
-    DX12UploadPage page{};
-    if( mAvailablePages.empty() )
+    if( byteCount <= DX12UploadPage::kDefaultByteCount && !mAvailablePages.empty() )
     {
-      page = AllocateNewPage( byteCount, errors );
-    }
-    else
-    {
-      page = mAvailablePages.back();
+      DX12UploadPage page{ mAvailablePages.back() };
       mAvailablePages.pop_back();
+      return page;
     }
 
-    return page;
+    return AllocateNewPage( byteCount, errors );
   }
 
   DX12UploadPage DX12UploadPageMgr::AllocateNewPage( int byteCount, Errors& errors )
@@ -180,13 +178,13 @@ namespace Tac::Render
     const DXGI_SAMPLE_DESC SampleDesc
     {
       .Count   { 1 },
-      .Quality { 0 },
+      .Quality {  },
     };
 
     const D3D12_RESOURCE_DESC ResourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
-      .Alignment        { 0 },
+      .Alignment        {  },
       .Width            { ( UINT64 )byteCount },
       .Height           { 1 },
       .DepthOrArraySize { 1 },

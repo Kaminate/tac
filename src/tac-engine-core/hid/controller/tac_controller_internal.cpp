@@ -166,7 +166,7 @@ namespace Tac::Controller
   }
   ControllerIndex ControllerInput::GetConnectedControllerCount()
   {
-    ControllerIndex n{ 0 };
+    ControllerIndex n{};
     for( Controller* controller : mControllers )
       n += controller ? 1 : 0;
     return n;

@@ -31,7 +31,7 @@ namespace Tac::Render
 
     InputElementDescs.resize( vertexDeclCount );
 
-    for( int i { 0 }; i < vertexDeclCount; ++i )
+    for( int i {}; i < vertexDeclCount; ++i )
     {
       const DX12Program::Input& programInput{ program->mInputs[ i ] };
       const VertexDeclaration& vtxDecl { vtxDecls[ i ] };
@@ -45,7 +45,7 @@ namespace Tac::Render
       const D3D12_INPUT_ELEMENT_DESC inputElementDesc
       {
         .SemanticName         { semanticName },
-        .SemanticIndex        { 0 },
+        .SemanticIndex        {},
         .Format               { dxgiFmt },
         .InputSlot            {}, // which vertex buffer index this data comes from
         .AlignedByteOffset    { (UINT)vtxDecl.mAlignedByteOffset },

@@ -666,8 +666,8 @@ namespace Tac
 
     Render::ShaderLight* shaderLight { &mDebugCBufferLights.lights[ iLight ] };
     String rowsStrs[ 4 ];
-    for( int r { 0 }; r < 4; ++r )
-      for( int c { 0 }; c < 4; ++c )
+    for( int r {  }; r < 4; ++r )
+      for( int c {  }; c < 4; ++c )
         rowsStrs[ r ] += ToString( shaderLight->mWorldToClip( r, c ) );
 
     const Render::ShaderFlags::Info* lightTypeInfo { Render::GetShaderLightFlagType() };
@@ -711,7 +711,7 @@ namespace Tac
     ImGuiText( String() + "text number " + ToString( mDebugCBufferLights.testNumber ) );
 
     const int n { ( int )mDebugCBufferLights.lightCount };
-    for( int iLight { 0 }; iLight < n; iLight++ )
+    for( int iLight {}; iLight < n; iLight++ )
       DebugImguiCBufferLight( iLight );
   }
 

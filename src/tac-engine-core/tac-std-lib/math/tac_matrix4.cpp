@@ -388,8 +388,8 @@ namespace Tac
     const float f { params.mViewSpaceFar };
     const float n { params.mViewSpaceNear };
 
-    float A { 0 };
-    float B { 0 };
+    float A {};
+    float B {};
 
     if( params.mNDCMinZ == -1 && params.mNDCMaxZ == 1 ) // OpenGL style
     {
@@ -476,7 +476,7 @@ namespace Tac
     v4 result;
     for( int i{}; i < 4; ++i )
     {
-      float sum { 0 };
+      float sum {};
       for( int j = 0; j < 4; ++j )
       {
         sum += m( i, j ) * v[ j ];
@@ -489,11 +489,11 @@ namespace Tac
   m4 operator*( const m4& lhs, const m4& rhs )
   {
     m4 result;
-    for( int r { 0 }; r < 4; ++r )
+    for( int r {}; r < 4; ++r )
     {
-      for( int c { 0 }; c < 4; ++c )
+      for( int c {}; c < 4; ++c )
       {
-        float sum { 0 };
+        float sum {};
         for( int i{}; i < 4; ++i )
         {
           sum += lhs( r, i ) * rhs( i, c );

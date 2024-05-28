@@ -5,8 +5,8 @@ namespace Tac
   struct v2i;
   struct v2
   {
-    float x { 0 };
-    float y { 0 };
+    float x {};
+    float y {};
     float*       begin();
     float*       end();
     float*       data();

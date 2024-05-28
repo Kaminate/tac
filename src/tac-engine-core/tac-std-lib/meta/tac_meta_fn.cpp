@@ -20,7 +20,7 @@ namespace Tac
 
   void MetaFnUnitTest0()
   {
-    int doubleRet { 0 };
+    int doubleRet {};
     int doubleArg { 5 };
     Variable doubleRetVar( doubleRet );
     Variable doubleArgVar( doubleArg );
@@ -34,7 +34,7 @@ namespace Tac
 
   void MetaFnUnitTest1()
   {
-    int doubleRet { 0 };
+    int doubleRet {};
     int doubleArg { 6 };
     Variable doubleRetVar( doubleRet );
     Variable doubleArgVar( doubleArg );
@@ -48,7 +48,7 @@ namespace Tac
 
   void MetaFnUnitTest2()
   {
-    int ret { 0 };
+    int ret {};
     int arg0 { 10 };
     float arg1 { 3.14f };
     Variable variableRet( ret );
@@ -76,7 +76,7 @@ namespace Tac
     {
       String joinedArgs;
       const char* sep = "";
-      for( int i { 0 }; i < fn->ArgCount(); ++i )
+      for( int i {}; i < fn->ArgCount(); ++i )
       {
         joinedArgs += sep;
         joinedArgs += fn->ArgType( i )->GetName();

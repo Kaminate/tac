@@ -160,7 +160,7 @@ namespace Tac
     const MyCBufType cbuf
     {
       .mWorld             { world },
-      .mVertexBufferIndex { 0 },
+      .mVertexBufferIndex {},
     };
 
     const Render::UpdateBufferParams updateBufferParams

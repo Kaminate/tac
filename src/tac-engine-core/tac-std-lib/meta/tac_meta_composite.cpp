@@ -56,7 +56,7 @@ namespace Tac
 
   void              MetaCompositeType::JsonSerialize( Json* json, const void* v ) const
   {
-    for( int iMember { 0 }; iMember < GetMemberCount(); ++iMember )
+    for( int iMember {}; iMember < GetMemberCount(); ++iMember )
     {
       const MetaMember& member { GetMember( iMember ) };
       void* settingBytes { member.mOffset + ( char* )v };
@@ -67,7 +67,7 @@ namespace Tac
 
   void              MetaCompositeType::JsonDeserialize( const Json* json, void* v ) const
   {
-    for( int iMember { 0 }; iMember < GetMemberCount(); ++iMember )
+    for( int iMember {}; iMember < GetMemberCount(); ++iMember )
     {
       const MetaMember& member { GetMember( iMember ) };
       if( Json * child{ json->FindChild( member.mName ) } )

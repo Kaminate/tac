@@ -94,17 +94,12 @@ namespace Tac::Render
     if( !pipeline )
       return;
 
-    DX12DescriptorRegionManager* gpuRegionMgrs[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ] {};
     FixedVector< ID3D12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES > descHeaps;
 
     for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
     {
-      const D3D12_DESCRIPTOR_HEAP_TYPE type{ ( D3D12_DESCRIPTOR_HEAP_TYPE )i };
-      DX12DescriptorHeap* gpuHeap{ mGpuDescriptorHeaps[ type ] };
-
-      if( gpuHeap )
+      if( DX12DescriptorHeap* gpuHeap{ mGpuDescriptorHeaps[ i ] } )
       {
-        gpuRegionMgrs[ i ] = gpuHeap->GetRegionMgr();
         descHeaps.push_back( gpuHeap->GetID3D12DescriptorHeap() );
         mState.mDescriptorCaches[ i ].SetRegionManager( gpuHeap->GetRegionMgr() ); // ugly
       }
@@ -200,12 +195,16 @@ namespace Tac::Render
     }
   }
 
-  void DX12Context::UpdateTexture( TextureHandle h, UpdateTextureParams params, Errors& errors )
+  void DX12Context::UpdateTexture( TextureHandle h,
+                                   UpdateTextureParams params,
+                                   Errors& errors )
   {
     mTextureMgr->UpdateTexture( h, params, this, errors );
   }
 
-  void DX12Context::UpdateBuffer( BufferHandle h, Span< const UpdateBufferParams > params, Errors& errors )
+  void DX12Context::UpdateBuffer( BufferHandle h,
+                                  Span< const UpdateBufferParams > params,
+                                  Errors& errors )
   {
     mBufferMgr->UpdateBuffer( h, params, this, errors );
   }
@@ -297,11 +296,11 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* cmd { GetCommandList() };
     const D3D12_VIEWPORT vp
     {
-      .TopLeftX { 0 },
-      .TopLeftY { 0 },
+      .TopLeftX {  },
+      .TopLeftY {  },
       .Width    { ( FLOAT )size.x },
       .Height   { ( FLOAT )size.y },
-      .MinDepth { 0 },
+      .MinDepth {  },
       .MaxDepth { 1 },
     };
     cmd->RSSetViewports( 1, &vp );

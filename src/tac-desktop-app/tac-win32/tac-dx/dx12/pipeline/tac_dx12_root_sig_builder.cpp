@@ -122,7 +122,7 @@ namespace Tac::Render
       .BaseShaderRegister                { ( UINT )loc.mRegister },
       .RegisterSpace                     { ( UINT )loc.mSpace },
       .Flags                             { Flags },
-      .OffsetInDescriptorsFromTableStart { 0 },
+      .OffsetInDescriptorsFromTableStart {},
     };
 
     const D3D12_ROOT_DESCRIPTOR_TABLE1 DescriptorTable

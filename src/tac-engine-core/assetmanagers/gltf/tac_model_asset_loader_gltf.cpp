@@ -61,7 +61,7 @@ namespace Tac
       posAttribute->data->buffer_view->offset +
       posAttribute->data->offset };
     SubMeshTriangle tri  {};
-    int iVert { 0 };
+    int iVert {};
     for( int i : indexes )
     {
       auto vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };
@@ -77,7 +77,7 @@ namespace Tac
 
   static int ComputeStride( const Render::VertexDeclarations& vertexDeclarations )
   {
-    int dstVtxStride { 0 };
+    int dstVtxStride {};
 
     for( const Render::VertexDeclaration& decl : vertexDeclarations )
     {
@@ -130,7 +130,7 @@ namespace Tac
     const int vertexCount { ( int )parsedPrim->attributes[ 0 ].data->count };
     Vector< char > dstVtxBytes( vertexCount * dstVtxStride, ( char )0 );
 
-    for( int iVertexDeclaration { 0 };
+    for( int iVertexDeclaration {};
          iVertexDeclaration < decls.size();
          iVertexDeclaration++ )
     {
@@ -153,7 +153,7 @@ namespace Tac
       {
         char* srcElement { srcVtx };
         char* dstElement { dstVtx + vertexDeclaration.mAlignedByteOffset };
-        for( int iElement { 0 }; iElement < elementCount; ++iElement )
+        for( int iElement {}; iElement < elementCount; ++iElement )
         {
           if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
               srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
@@ -230,14 +230,14 @@ namespace Tac
     const int meshCount { ( int )parsedData->meshes_count };
     TAC_ASSERT_INDEX( specifiedMeshIndex, meshCount ); // like what r u trying to load bro
 
-    for( int iMesh { 0 }; iMesh < meshCount; ++iMesh )
+    for( int iMesh {}; iMesh < meshCount; ++iMesh )
     {
       cgltf_mesh* parsedMesh { &parsedData->meshes[ iMesh ] };
       if( iMesh != specifiedMeshIndex )
         continue;
 
       const int primitiveCount { ( int )parsedMesh->primitives_count };
-      for( int iPrim{ 0 }; iPrim < primitiveCount; ++iPrim )
+      for( int iPrim{}; iPrim < primitiveCount; ++iPrim )
       {
         cgltf_primitive* parsedPrim{ &parsedMesh->primitives[ iPrim ] };
         if( !parsedPrim->attributes_count )

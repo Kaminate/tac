@@ -22,14 +22,14 @@ namespace Tac
   void         v3::operator += ( const v3& v ) { for( int i{}; i < 3; ++i ) data()[ i ] += v[ i ]; }
   bool         v3::operator == ( const v3& v )const
   {
-    for( int i { 0 }; i < 3; ++i )
+    for( int i {}; i < 3; ++i )
       if( data()[ i ] != v[ i ] )
         return false;
     return true;
   }
   bool         v3::operator != ( const v3& v )const
   {
-    for( int i { 0 }; i < 3; ++i )
+    for( int i {}; i < 3; ++i )
       if( data()[ i ] != v[ i ] )
         return true;
     return false;

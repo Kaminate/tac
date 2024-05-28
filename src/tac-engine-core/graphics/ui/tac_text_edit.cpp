@@ -63,7 +63,7 @@ namespace Tac
     }
 
     Vector< Codepoint > newCodepoints;
-    for( int iCodepoint { 0 }; iCodepoint < mCodepoints.size(); ++iCodepoint )
+    for( int iCodepoint {}; iCodepoint < mCodepoints.size(); ++iCodepoint )
     {
       if( iCodepoint >= deletedCodepointsStartIndex &&
           iCodepoint < deletedCodepointsStartIndex + deletedCodepointCount )
@@ -105,7 +105,7 @@ namespace Tac
     if( mCaretCount == 2 )
       OnDestructivePressed( -1 ); // -1 will be overridden
     Vector< Codepoint > newCodepoints;
-    int iCodepoint { 0 };
+    int iCodepoint {};
     while( iCodepoint < mNumGlyphsBeforeCaret[ 0 ] )
       newCodepoints.push_back( mCodepoints[ iCodepoint++ ] );
     newCodepoints.push_back( codepoint );

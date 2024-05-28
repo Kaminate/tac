@@ -117,7 +117,7 @@ namespace Tac
     static const int npos                      { -1 };          // mimicking the standard library
     char             mSSOBuffer[ ssocapacity ] { "" };
     char*            mStr                      { mSSOBuffer };
-    int              mLen                      { 0 };           // number of bytes before the null-terminator
+    int              mLen                      {};           // number of bytes before the null-terminator
     int              mCapacity                 { ssocapacity }; // includes the null-terminator
   };
 

@@ -21,7 +21,11 @@ struct VSOutput
 typedef VSOutput PSInput;
 
 ByteAddressBuffer BufferTable[] : register( t0, space0 );
+#if 0 // bindless!
 Texture2D         Textures[]    : register( t0, space1 );
+#else // can see texture in PIX debugger
+Texture2D         Textures[1]    : register( t0, space1 );
+#endif
 SamplerState      Samplers[]    : register( s0, space0 );
 
 VSOutput VSMain( uint iVtx : SV_VertexID )
@@ -39,9 +43,9 @@ LinearColor4 PSMain( PSInput input ) : SV_TARGET
 {
   Texture2D texture = Textures[ 0 ];
   SamplerState samplerState = Samplers[ 0 ];
-  const float4 sample_sRGB = texture.Sample( samplerState , input.mTexCoords.mFloat2 );
-  const float4 sample_linear = float4( pow( sample_sRGB.rgb, 2.2 ), sample_sRGB.a );
 
-  // return LinearColor4(float4(input.mTexCoords.mValue, 0, 1) );
-  return LinearColor4( sample_linear );
+  // Because the texture format is SRGB (DXGI_FORMAT_R8G8B8A8_UNORM_SRGB),
+  // the sample operation converts it to linear.
+  const float4 textureSample = texture.Sample( samplerState , input.mTexCoords.mFloat2 );
+  return LinearColor4( textureSample );
 }

@@ -14,9 +14,9 @@ namespace Tac::Render
   {
     PCom< ID3D12Resource >    mBuffer;
 
-    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr { 0 };
+    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr {};
     void*                     mCPUAddr { nullptr };
-    int                       mByteCount { 0 };
+    int                       mByteCount {};
 
 
     static const int          kDefaultByteCount { 2 * 1024 * 1024 };
@@ -74,7 +74,7 @@ namespace Tac::Render
 
   private:
 
-    int            mCurPageUsedByteCount { 0 };
+    int            mCurPageUsedByteCount {};
 
     // Currently in use by command queues the current frame, memory cannot be freed.
     // The last page is the current page

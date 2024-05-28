@@ -47,7 +47,7 @@ namespace Tac::Render
 
     DX12SwapChainImages swapChainImages;
 
-    for( UINT iSwapChainBuf { 0 }; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
+    for( UINT iSwapChainBuf {}; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
     {
       //const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
       //const DX12DescriptorHeapAllocation rtv { mCpuDescriptorHeapRTV->Allocate() };

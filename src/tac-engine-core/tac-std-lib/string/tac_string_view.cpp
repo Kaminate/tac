@@ -81,7 +81,7 @@ namespace Tac
 
   int         StringView::find( const char c ) const
   {
-    for( int i { 0 }; i < mLen; ++i )
+    for( int i {}; i < mLen; ++i )
       if( c == mStr[ i ] )
         return i;
     return npos;

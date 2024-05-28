@@ -31,7 +31,7 @@ static const bool sUseInputLayout { false };
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
-const UINT myParamIndex { 0 };
+const UINT myParamIndex {};
 
 namespace Tac
 {
@@ -99,7 +99,7 @@ namespace Tac
       const D3D12MessageFunc CallbackFunc { MyD3D12MessageFunc };
       const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
       void* pContext { this };
-      DWORD pCallbackCookie { 0 };
+      DWORD pCallbackCookie {};
 
       TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
                      CallbackFunc,
@@ -132,7 +132,7 @@ namespace Tac
 
   void DX12AppHelloTriangle::InitDescriptorSizes()
   {
-    for( int i { 0 }; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
       m_descriptorSizes[ i ]
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
@@ -208,7 +208,7 @@ namespace Tac
 
     const D3D12_BUFFER_SRV Buffer
     {
-      .FirstElement { 0 },
+      .FirstElement {},
       .NumElements  { m_vertexBufferView.SizeInBytes / 4 },
       .Flags        { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
     };
@@ -295,13 +295,13 @@ namespace Tac
     const DXGI_SAMPLE_DESC SampleDesc
     {
       .Count   { 1 },
-      .Quality { 0 },
+      .Quality {},
     };
 
     const D3D12_RESOURCE_DESC resourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
-      .Alignment        { 0 },
+      .Alignment        {},
       .Width            { m_vertexBufferSize },
       .Height           { 1 },
       .DepthOrArraySize { 1 },
@@ -369,7 +369,7 @@ namespace Tac
   {
     // Create synchronization objects.
 
-    const UINT64 initialVal{ 0 };
+    const UINT64 initialVal{};
 
     PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence(
@@ -394,10 +394,10 @@ namespace Tac
     {
       .RangeType                         { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
       .NumDescriptors                    { 1 },
-      .BaseShaderRegister                { 0 }, // t0
-      .RegisterSpace                     { 0 }, // space0
+      .BaseShaderRegister                {}, // t0
+      .RegisterSpace                     {}, // space0
       .Flags                             { D3D12_DESCRIPTOR_RANGE_FLAG_NONE },
-      .OffsetInDescriptorsFromTableStart { 0 },
+      .OffsetInDescriptorsFromTableStart {},
     };
 
     const Array descRanges { descRange };
@@ -643,7 +643,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i { 0 }; i < bufferCount; i++ )
+    for( UINT i {}; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( i ) };
       PCom< ID3D12Resource >& renderTarget { m_renderTargets[ i ] };
@@ -807,7 +807,7 @@ namespace Tac
       m_commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
       // ...
-      const UINT RootParameterIndex { 0 };
+      const UINT RootParameterIndex {};
       static_assert( RootParameterIndex == myParamIndex );
       m_commandList->SetGraphicsRootDescriptorTable( RootParameterIndex, m_srvGpuHeapStart );
     }
@@ -818,8 +818,8 @@ namespace Tac
     {
       .VertexCountPerInstance { 3 },
       .InstanceCount          { 1 },
-      .StartVertexLocation    { 0 },
-      .StartInstanceLocation  { 0 },
+      .StartVertexLocation    {},
+      .StartInstanceLocation  {},
     };
     m_commandList->DrawInstanced( drawArgs.VertexCountPerInstance,
                                   drawArgs.InstanceCount,
@@ -883,7 +883,7 @@ namespace Tac
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
     const UINT SyncInterval { 1 };
-    const UINT PresentFlags { 0 };
+    const UINT PresentFlags {};
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );

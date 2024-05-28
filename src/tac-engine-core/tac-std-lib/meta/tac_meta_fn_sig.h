@@ -42,7 +42,7 @@ namespace Tac
   private:
     const MetaType*  mRet { nullptr };
     const MetaType** mArgs { nullptr };
-    int              mArgCount { 0 };
+    int              mArgCount {};
   };
 
   void MetaFnSigUnitTest();

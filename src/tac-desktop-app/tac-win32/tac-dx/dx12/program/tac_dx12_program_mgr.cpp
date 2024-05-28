@@ -151,7 +151,7 @@ namespace Tac::Render
 
     const int programInputCount{ output.mReflInfo.mInputs.size() };
     Vector< DX12Program::Input > programInputs( programInputCount );
-    for( int i{ 0 }; i < programInputCount; ++i )
+    for( int i{}; i < programInputCount; ++i )
     {
       const DXCReflInfo::Input& reflInput{ output.mReflInfo.mInputs[ i ] };
       programInputs[ i ] = DX12Program::Input

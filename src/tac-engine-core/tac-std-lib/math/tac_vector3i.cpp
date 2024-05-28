@@ -13,18 +13,18 @@ namespace Tac
   const int* v3i::data() const{ return &x; }
   int&       v3i::operator[]( int i ) { return data()[ i ]; }
   int        v3i::operator[]( int i ) const { return data()[ i ]; }
-  void       v3i::operator -= ( const v3i& v ) { for( int i{ 0 }; i < 3; ++i ) data()[ i ] -= v[ i ]; }
-  void       v3i::operator += ( const v3i & v ) { for( int i{ 0 }; i < 3; ++i ) data()[ i ] += v[ i ]; }
+  void       v3i::operator -= ( const v3i& v ) { for( int i{}; i < 3; ++i ) data()[ i ] -= v[ i ]; }
+  void       v3i::operator += ( const v3i & v ) { for( int i{}; i < 3; ++i ) data()[ i ] += v[ i ]; }
   bool       v3i::operator == ( const v3i& v )const
   {
-    for( int i { 0 }; i < 3; ++i )
+    for( int i {}; i < 3; ++i )
       if( data()[ i ] != v[ i ] )
         return false;
     return true;
   }
   bool       v3i::operator != ( const v3i& v )const
   {
-    for( int i { 0 }; i < 3; ++i )
+    for( int i {}; i < 3; ++i )
       if( data()[ i ] != v[ i ] )
         return true;
     return false;

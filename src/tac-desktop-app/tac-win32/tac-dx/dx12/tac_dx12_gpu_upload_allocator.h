@@ -53,12 +53,14 @@ namespace Tac::Render
   {
     struct DynAlloc
     {
-      ID3D12Resource*           mResource       {};
-      D3D12_RESOURCE_STATES*    mResourceState  {};
-      u64                       mResourceOffest {};
-      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr        {}; // already offset
-      void*                     mCPUAddr        {}; // already offset
-      int                       mByteCount      {};
+      ID3D12Resource*           mResource          {};
+      D3D12_RESOURCE_STATES*    mResourceState     {};
+      u64                       mResourceOffest    {};
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr           {}; // already offset
+      void*                     mCPUAddr           {}; // already offset
+      void*                     mUnoffsetCPUAddr   {};
+      int                       mByteCount         {}; // Bytes for just this allocation
+      int                       mResourceByteCount {}; // Bytes for this whole resource
     };
 
     DX12UploadAllocator() = default;

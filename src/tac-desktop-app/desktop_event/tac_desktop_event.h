@@ -45,24 +45,24 @@ namespace Tac::DesktopEventApi
   struct WindowResizeEvent
   {
     WindowHandle mWindowHandle;
-    int          mWidth { 0 };
-    int          mHeight { 0 };
+    int          mWidth {  };
+    int          mHeight {  };
   };
 
   struct KeyStateEvent
   {
     Key  mKey { Key::Count };
-    bool mDown { false };
+    bool mDown { };
   };
 
   struct KeyInputEvent
   {
-    Codepoint mCodepoint { 0 };
+    Codepoint mCodepoint {  };
   };
 
   struct MouseWheelEvent
   {
-    float mDelta { 0 };
+    float mDelta {  };
   };
 
   struct MouseMoveEvent
@@ -71,15 +71,15 @@ namespace Tac::DesktopEventApi
     WindowHandle mWindowHandle;
 
     // Position of the mouse relative to the top left corner of the window
-    int                 mX { 0 };
-    int                 mY { 0 };
+    int                 mX {  };
+    int                 mY {  };
   };
 
   struct WindowMoveEvent
   {
     WindowHandle mWindowHandle;
-    int                 mX { 0 };
-    int                 mY { 0 };
+    int                 mX {  };
+    int                 mY {  };
   };
 
   // -----------------------------------------------------------------------------------------------

@@ -3,6 +3,16 @@
 namespace Tac::Render
 {
 
+  //void DX12TransitionHelper::Params::Execute( ID3D12GraphicsCommandList* commandList )
+  //{
+  //  DX12TransitionHelper helper;
+  //  helper.Append( *this );
+  //  helper.ResourceBarrier( commandList );
+  //  mResource = {};
+  //  mStateBefore = {};
+  //  mStateAfter = {};
+  //}
+
   bool DX12TransitionHelper::empty() const
   {
     return mFixedBarriers.empty() && mOverflowBarriers.empty();

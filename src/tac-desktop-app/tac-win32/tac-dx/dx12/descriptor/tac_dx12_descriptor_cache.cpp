@@ -1,6 +1,5 @@
 #include "tac_dx12_descriptor_cache.h" // self-inc
 
-
 namespace Tac::Render
 {
 
@@ -46,8 +45,6 @@ namespace Tac::Render
     TAC_ASSERT( result->Valid() );
     return result;
   }
-
-
 
   DX12DescriptorRegion* DX12DescriptorCache::Lookup( DX12Descriptor cpuDescriptor )
   {

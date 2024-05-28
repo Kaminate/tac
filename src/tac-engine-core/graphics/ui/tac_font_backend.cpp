@@ -429,7 +429,7 @@ namespace Tac
                                                           u8 val1 )
   {
     static_assert( BilinearFilteringPadding > 0 );
-    const u8 bilinearFilterPaddingValue{ 0 };
+    const u8 bilinearFilterPaddingValue{};
 
     auto mem{ ( u8* )initialAtlasMemory };
     MemSet( mem, bilinearFilterPaddingValue, mPxWidth * mPxHeight );
@@ -458,12 +458,12 @@ namespace Tac
 
     u8 vals[]{ val0, val1 };
 
-    int pxRow{ 0 };
-    for( int r{ 0 }; r < mCellRowCount; ++r )
+    int pxRow{};
+    for( int r{}; r < mCellRowCount; ++r )
     {
       int checkerboard{ r % 2 };
-      int pxCol{ 0 };
-      for( int c{ 0 }; c < mCellColCount; ++c )
+      int pxCol{};
+      for( int c{}; c < mCellColCount; ++c )
       {
         checkerboard = 1 - checkerboard;
 
@@ -523,7 +523,7 @@ namespace Tac
     {
       .mSrcImage            { src },
       .mSrcSubresource      { srcSubresource },
-      .mDstSubresourceIndex { 0 },
+      .mDstSubresourceIndex {},
       .mDstPos              { cell->mFontCellPos.mPxColumn, cell->mFontCellPos.mPxRow },
     };
 

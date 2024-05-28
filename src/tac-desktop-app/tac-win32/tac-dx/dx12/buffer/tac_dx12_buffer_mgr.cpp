@@ -68,7 +68,7 @@ namespace Tac::Render
 
       const D3D12_BUFFER_SRV Buffer
       {
-        .FirstElement        { 0 },
+        .FirstElement        {  },
         .NumElements         { NumElements },
         .StructureByteStride { StructureByteStride },
         .Flags               { Flags },
@@ -149,7 +149,7 @@ namespace Tac::Render
     const DXGI_SAMPLE_DESC SampleDesc
     {
       .Count   { 1 },
-      .Quality { 0 },
+      .Quality {},
     };
 
     const D3D12_RESOURCE_FLAGS ResourceFlags{ GetResourceFlags( params.mBinding ) };
@@ -157,7 +157,7 @@ namespace Tac::Render
     const D3D12_RESOURCE_DESC ResourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
-      .Alignment        { 0 },
+      .Alignment        {},
       .Width            { ( UINT64 )byteCount },
       .Height           { 1 },
       .DepthOrArraySize { 1 },

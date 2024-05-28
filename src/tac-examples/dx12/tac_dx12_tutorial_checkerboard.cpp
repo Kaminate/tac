@@ -13,7 +13,7 @@ namespace Tac
     Vector<u8> data( textureSize );
     u8* pData { &data[ 0 ] };
 
-    for( int n { 0 }; n < textureSize; n += TexturePixelSize )
+    for( int n {}; n < textureSize; n += TexturePixelSize )
     {
       int x { n % rowPitch };
       int y { n / rowPitch };

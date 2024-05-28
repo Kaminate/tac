@@ -237,7 +237,7 @@ namespace Tac
 
   String            FileSys::StripLeadingSlashes( const StringView& path )
   {
-    int i{ 0 };
+    int i{};
     for( i; i < path.size(); i++ )
       if( path[ i ] != '/' && path[ i ] != '\\' )
         break;

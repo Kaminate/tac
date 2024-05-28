@@ -12,6 +12,8 @@ namespace Tac::Render
   {
     struct Params
     {
+      //void Execute( ID3D12GraphicsCommandList* );
+
       ID3D12Resource*        mResource    {};
       D3D12_RESOURCE_STATES* mStateBefore {};
       D3D12_RESOURCE_STATES  mStateAfter  {};

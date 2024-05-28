@@ -76,7 +76,7 @@ namespace Tac
     Element element
     {
       .mState { state },
-      .mUsedCounter { 0 },
+      .mUsedCounter {},
     };
     mElements.push_back( element );
     TAC_ASSERT_MSG( mElements.size() < 10, "sanity check" );

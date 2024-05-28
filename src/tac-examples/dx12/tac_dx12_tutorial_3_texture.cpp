@@ -171,7 +171,7 @@ namespace Tac
 
   void DX12AppHelloTexture::InitDescriptorSizes()
   {
-    for( int i { 0 }; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
       m_descriptorSizes[ i ]
       = mDevice->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }
@@ -261,7 +261,7 @@ namespace Tac
 
     const D3D12_BUFFER_SRV Buffer
     {
-      .FirstElement { 0 },
+      .FirstElement {},
       .NumElements  { m_vertexBufferByteCount / 4 },
       .Flags        { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
     };
@@ -292,7 +292,7 @@ namespace Tac
       .AddressV       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
       .AddressW       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
       .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
-      .MinLOD         { 0 },
+      .MinLOD         {},
       .MaxLOD         { D3D12_FLOAT32_MAX },
     };
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor { GetSamplerCpuDescHandle( 0 ) };
@@ -319,7 +319,7 @@ namespace Tac
     const DXGI_SAMPLE_DESC SampleDesc
     {
       .Count   { 1 },
-      .Quality { 0 },
+      .Quality {},
     };
 
     // Describe and create a Texture2D.
@@ -410,7 +410,7 @@ namespace Tac
                                      &requiredByteCount );
 
     // for each subresource
-    for( int subresourceIndex { 0 }; subresourceIndex < nSubRes; ++subresourceIndex )
+    for( int subresourceIndex {}; subresourceIndex < nSubRes; ++subresourceIndex )
     {
 
       TAC_ASSERT( totalBytes >= requiredByteCount );
@@ -434,11 +434,11 @@ namespace Tac
       const UINT NumSlices { layout.Footprint.Depth };
 
       // For each slice
-      for (UINT z { 0 }; z < NumSlices; ++z)
+      for (UINT z {}; z < NumSlices; ++z)
       {
           auto pDestSlice { (BYTE*)DestData.pData + DestData.SlicePitch * z };
           auto pSrcSlice { (const BYTE*)textureData.pData + textureData.SlicePitch * LONG_PTR(z) };
-          for (UINT y { 0 }; y < rowCount; ++y)
+          for (UINT y {}; y < rowCount; ++y)
           {
             void* dst { pDestSlice + DestData.RowPitch * y };
             const void* src { pSrcSlice + textureData.RowPitch * LONG_PTR(y) };
@@ -457,7 +457,7 @@ namespace Tac
       nullptr ) );
 
 
-    for( int iSubRes { 0 }; iSubRes < nSubRes; ++iSubRes )
+    for( int iSubRes {}; iSubRes < nSubRes; ++iSubRes )
     {
         const D3D12_TEXTURE_COPY_LOCATION Dst
         {
@@ -608,13 +608,13 @@ namespace Tac
     const DXGI_SAMPLE_DESC SampleDesc
     {
       .Count   { 1 },
-      .Quality { 0 },
+      .Quality {},
     };
 
     const D3D12_RESOURCE_DESC resourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
-      .Alignment        { 0 },
+      .Alignment        {},
       .Width            { m_vertexBufferByteCount },
       .Height           { 1 },
       .DepthOrArraySize { 1 },
@@ -717,7 +717,7 @@ namespace Tac
   {
     // Create synchronization objects.
 
-    const UINT64 initialVal { 0 };
+    const UINT64 initialVal {};
 
     PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( mDevice->CreateFence(
@@ -750,8 +750,8 @@ namespace Tac
                                     D3D12_DESCRIPTOR_RANGE1{
                                       .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
                                       .NumDescriptors     { 1 },
-                                      .BaseShaderRegister { 0 },
-                                      .RegisterSpace      { 0 },
+                                      .BaseShaderRegister {},
+                                      .RegisterSpace      {},
                                     } );
 
     // register(t0+, space1) textures
@@ -759,7 +759,7 @@ namespace Tac
                                     D3D12_DESCRIPTOR_RANGE1{
                                       .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
                                       .NumDescriptors     { 1 },
-                                      .BaseShaderRegister { 0 },
+                                      .BaseShaderRegister {},
                                       .RegisterSpace      { 1 }, 
                                     } );
 
@@ -1081,8 +1081,8 @@ namespace Tac
     {
       .VertexCountPerInstance { 3 },
       .InstanceCount          { 1 },
-      .StartVertexLocation    { 0 },
-      .StartInstanceLocation  { 0 },
+      .StartVertexLocation    {},
+      .StartInstanceLocation  {},
     };
     m_commandList->DrawInstanced( drawArgs.VertexCountPerInstance,
                                   drawArgs.InstanceCount,
@@ -1146,7 +1146,7 @@ namespace Tac
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
     const UINT SyncInterval { 1 };
-    const UINT PresentFlags { 0 };
+    const UINT PresentFlags {};
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );

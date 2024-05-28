@@ -17,9 +17,9 @@ namespace Tac
 {
   struct WavefrontObjVertex
   {
-    int miPosition { 0 };
-    int miNormal { 0 };
-    int miTexCoord { 0 };
+    int miPosition {};
+    int miNormal {};
+    int miTexCoord {};
   };
 
   struct WavefrontObjFace
@@ -130,7 +130,7 @@ namespace Tac
 
   static int                WavefrontObjCalculateStride( const Render::VertexDeclarations& vertexDeclarations )
   {
-    int maxStride { 0 };
+    int maxStride {};
     for( const Render::VertexDeclaration& decl : vertexDeclarations )
     {
       const int curStride { decl.mAlignedByteOffset + decl.mFormat.CalculateTotalByteCount() };
@@ -156,7 +156,7 @@ namespace Tac
     for( const WavefrontObjFace& face : wavefrontObj.faces )
     {
       SubMeshTriangle subMeshTriangle  {};
-      for( int iTriVert { 0 }; iTriVert < 3; ++iTriVert )
+      for( int iTriVert {}; iTriVert < 3; ++iTriVert )
       {
         const WavefrontObjVertex& tri { face.mVertexes[ iTriVert ] };
         subMeshTriangle[ iTriVert ] = wavefrontObj.positions[ tri.miPosition ];

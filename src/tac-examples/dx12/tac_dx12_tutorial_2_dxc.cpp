@@ -311,7 +311,7 @@ namespace Tac::Render::DXC
                           pResults.ppv() );
 
       const UINT32 n { pResults->GetNumOutputs() };
-      for( UINT32 i { 0 }; i < n; ++i )
+      for( UINT32 i {}; i < n; ++i )
       {
         DXC_OUT_KIND kind { pResults->GetOutputByIndex( i ) };
         ++asdf;

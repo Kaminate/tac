@@ -306,7 +306,7 @@ Tac::CodepointString Tac::UTF8ToCodepointString( StringView stringView )
 Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
 {
   auto str { ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) ) };
-  int len { 0 };
+  int len {};
 
   for( Codepoint codepoint : codepointView )
   {

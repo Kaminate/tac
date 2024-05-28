@@ -76,9 +76,9 @@ namespace Tac
     //
     // this function has the same output as OrthographicUIMatrix2(w,h)
 
-    const float L { 0 };
+    const float L {};
     const float R { w };
-    const float T { 0 };
+    const float T {};
     const float B { h };
     const float sX { 2 / ( R - L ) };
     const float sY { 2 / ( T - B ) };
@@ -798,8 +798,8 @@ namespace Tac
 
     //float unscaledLineWidthMax = 0; // max width of all lines
     //float unscaledLineWidthCur = 0;
-    float xUnscaled { 0 };
-    float xUnscaledMax { 0 };
+    float xUnscaled {};
+    float xUnscaledMax {};
 
     Language defaultLanguage { Language::English };
     auto fontFile { FontApi::GetLanguageFontDims( defaultLanguage ) };
@@ -814,7 +814,7 @@ namespace Tac
     //  unscaledLineWidthMax = Max( unscaledLineWidthMax, xUnscaled );
     //};
 
-    for( int iCodepoint{ 0 }; iCodepoint < codepointCount; ++iCodepoint )
+    for( int iCodepoint{}; iCodepoint < codepointCount; ++iCodepoint )
     {
       Codepoint codepoint { codepoints[ iCodepoint ] };
       if( !codepoint )

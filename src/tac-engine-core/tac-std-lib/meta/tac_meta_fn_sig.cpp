@@ -19,7 +19,7 @@ namespace Tac
   {
     String sep;
     String args;
-    for( int i { 0 }; i < fnSig.ArgCount(); ++i )
+    for( int i {}; i < fnSig.ArgCount(); ++i )
     {
       args += sep + "Arg " + ToString( i ) + ": " + fnSig.ArgType( i )->GetName();
       sep = ", ";

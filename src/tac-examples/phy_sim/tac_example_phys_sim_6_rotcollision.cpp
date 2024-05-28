@@ -265,7 +265,7 @@ namespace Tac
     float n { 10 };
     t /= n;
     v3 p { p0 };
-    for( int i { 0 }; i < n; ++i )
+    for( int i {  }; i < n; ++i )
     {
       v3 q { p + t };
       float f { i % 2 ? 1 : 0.1f };

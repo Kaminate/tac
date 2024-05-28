@@ -119,7 +119,7 @@ namespace Tac::Render
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
         .NumDescriptors { 25 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-        .NodeMask       { 0 },
+        .NodeMask       {},
       };
 
       const DX12DescriptorHeap::Params params
@@ -139,7 +139,7 @@ namespace Tac::Render
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_DSV },
         .NumDescriptors { 25 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-        .NodeMask       { 0 },
+        .NodeMask       {},
       };
       const DX12DescriptorHeap::Params params
       {
@@ -157,7 +157,7 @@ namespace Tac::Render
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
         .NumDescriptors { 100 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-        .NodeMask       { 0 },
+        .NodeMask       {},
       };
       const DX12DescriptorHeap::Params params
       {
@@ -175,7 +175,7 @@ namespace Tac::Render
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
         .NumDescriptors { 20 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_NONE },
-        .NodeMask       { 0 },
+        .NodeMask       {},
       };
       const DX12DescriptorHeap::Params params
       {
@@ -194,7 +194,7 @@ namespace Tac::Render
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
         .NumDescriptors { 1000 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
-        .NodeMask       { 0 },
+        .NodeMask       {},
       };
       const DX12DescriptorHeap::Params params
       {
@@ -213,7 +213,7 @@ namespace Tac::Render
         .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
         .NumDescriptors { 1000 },
         .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
-        .NodeMask       { 0 },
+        .NodeMask       {},
       };
       const DX12DescriptorHeap::Params params
       {
@@ -348,7 +348,7 @@ namespace Tac::Render
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
     const UINT SyncInterval { 1 };
-    const UINT PresentFlags { 0 };
+    const UINT PresentFlags {};
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( swapChain4->Present1( SyncInterval, PresentFlags, &params ) );

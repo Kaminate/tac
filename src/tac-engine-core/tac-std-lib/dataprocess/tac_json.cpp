@@ -193,7 +193,7 @@ namespace Tac
   }
   String Json::Stringify( const Indentation* indentation, int tabCount ) const
   {
-    int iChild { 0 };
+    int iChild {};
     String result;
     auto GetSeparator = [&]( int childCount ) { return iChild++ != childCount - 1 ? "," : ""; };
     switch( mType )

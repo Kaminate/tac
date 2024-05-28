@@ -40,7 +40,7 @@ namespace Tac
     if( !profileFunction )
       return 0;
 
-    int childDepthMax { 0 };
+    int childDepthMax {};
     for( ProfileFunction* child { profileFunction->mChildren }; child; child = child->mNext )
     {
       const int childDepth { CalculateProfileHeight( child ) };
@@ -138,7 +138,7 @@ namespace Tac
       List< ProfileFunction* >& profiledFunctionList { threadFrame.mFunctions };
       const int iThread { sProfileThreadManager.GetProfileThreadNumber( threadFrame.mThreadId ) };
 
-      int treeHeight { 0 };
+      int treeHeight {};
       for( ProfileFunction* profileFunction : profiledFunctionList )
       {
         const int depth { CalculateProfileHeight( profileFunction ) };
@@ -156,7 +156,7 @@ namespace Tac
 
     static Vector< ProfileFunctionDepth > visitors;
 
-    for( int iThread { 0 }; iThread < sProfileThreadManager.GetProfileThreadCount(); ++iThread )
+    for( int iThread {}; iThread < sProfileThreadManager.GetProfileThreadCount(); ++iThread )
     {
       IndexedThreadProfileData* indexedThreadProfileData = &indexedThreadProfileDatas[ iThread ];
 
@@ -281,7 +281,7 @@ namespace Tac
 
     const float pxPerMs { timelineSize.x / sMilisecondsToDisplay };
 
-    for( int iMs { 0 }; iMs < ( int )sMilisecondsToDisplay; ++iMs )
+    for( int iMs {}; iMs < ( int )sMilisecondsToDisplay; ++iMs )
     {
       const float msOffset { pxPerMs * iMs };
 

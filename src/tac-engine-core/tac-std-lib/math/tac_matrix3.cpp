@@ -155,10 +155,10 @@ namespace Tac
   v3 operator * ( const m3& m, const v3& v )
   {
     v3 result;
-    for( int r { 0 }; r < 3; ++r )
+    for( int r {}; r < 3; ++r )
     {
-      float sum { 0 };
-      for( int c { 0 }; c < 3; ++c )
+      float sum {};
+      for( int c {}; c < 3; ++c )
       {
         sum += m( r, c ) * v[ c ];
       }
@@ -170,11 +170,11 @@ namespace Tac
   m3 operator * ( const m3& lhs, const m3& rhs )
   {
     m3 result;
-    for( int r { 0 }; r < 3; ++r )
+    for( int r {}; r < 3; ++r )
     {
-      for( int c { 0 }; c < 3; ++c )
+      for( int c {}; c < 3; ++c )
       {
-        float sum { 0 };
+        float sum {};
         for( int i{}; i < 3; ++i )
         {
           sum += lhs( r, i ) * rhs( i, c );

@@ -58,7 +58,7 @@ namespace Tac::Render
   {
     if constexpr( IsDebugMode )
     {
-      int digitCount { 0 };
+      int digitCount {};
       for( char c : line )
         if( IsDigit( c ) )
           digitCount++;

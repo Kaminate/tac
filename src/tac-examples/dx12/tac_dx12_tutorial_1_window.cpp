@@ -162,7 +162,7 @@ namespace Tac
   {
     // Create synchronization objects.
 
-    const UINT64 initialVal { 0 };
+    const UINT64 initialVal {};
 
     PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence(
@@ -222,7 +222,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i{ 0 }; i < bufferCount; i++ )
+    for( UINT i{}; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( i );
       PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
@@ -364,7 +364,7 @@ namespace Tac
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
     const UINT SyncInterval { 1 };
-    const UINT PresentFlags { 0 };
+    const UINT PresentFlags {};
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );

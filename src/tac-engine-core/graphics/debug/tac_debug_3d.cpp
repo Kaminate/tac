@@ -286,23 +286,23 @@ namespace Tac
   {
     Vector< v3 > mPrevPts( cylinderSegmentCount );
     Vector< v3 > mCurrPts( cylinderSegmentCount );
-    float hemisphereRads { 0 };
+    float hemisphereRads {  };
     float dHemisphereRads { ( 3.14f * 0.5f ) / hemisphereSegmentCount };
     v3 tan1;
     v3 tan2;
     GetFrameRH( mDirection, tan1, tan2 );
-    for( int iCylinder { 0 }; iCylinder < cylinderSegmentCount; ++iCylinder )
+    for( int iCylinder {  }; iCylinder < cylinderSegmentCount; ++iCylinder )
       mPrevPts[ iCylinder ] = mOrigin + mDirection * radius;
-    for( int iHemisphere { 0 }; iHemisphere < hemisphereSegmentCount; ++iHemisphere )
+    for( int iHemisphere {  }; iHemisphere < hemisphereSegmentCount; ++iHemisphere )
     {
       hemisphereRads += dHemisphereRads;
       float circleRadius { radius * Sin( hemisphereRads ) };
       float circleOffset { radius * Cos( hemisphereRads ) };
       v3 circleOrigin { mOrigin + mDirection * circleOffset };
 
-      float circleRads { 0 };
+      float circleRads {  };
       float dCircleRads { ( 3.14f * 2.0f ) / cylinderSegmentCount };
-      for( int iCylinder { 0 }; iCylinder < cylinderSegmentCount; ++iCylinder )
+      for( int iCylinder {  }; iCylinder < cylinderSegmentCount; ++iCylinder )
       {
         mCurrPts[ iCylinder ]
           = circleOrigin
@@ -310,7 +310,7 @@ namespace Tac
           + tan2 * circleRadius * Sin( circleRads );
         circleRads += dCircleRads;
       }
-      for( int iCylinder { 0 }; iCylinder < cylinderSegmentCount; ++iCylinder )
+      for( int iCylinder {}; iCylinder < cylinderSegmentCount; ++iCylinder )
       {
         const int iCylinderNext { ( iCylinder + 1 ) % cylinderSegmentCount };
         DebugDraw3DLine( mPrevPts[ iCylinder ], mCurrPts[ iCylinder ], color );
@@ -337,7 +337,7 @@ namespace Tac
     GetFrameRH( dir, tan1, tan2 );
     tan1 *= radius;
     tan2 *= radius;
-    for( int iSegment { 0 }; iSegment < cylinderSegmentCount; ++iSegment )
+    for( int iSegment {}; iSegment < cylinderSegmentCount; ++iSegment )
     {
       auto angle { ( 3.14f * 2.0f ) * iSegment / ( float )cylinderSegmentCount };
       auto s { Sin( angle ) };
@@ -346,7 +346,7 @@ namespace Tac
       p0Points[ iSegment ] = p0 + offset;
       p1Points[ iSegment ] = p1 + offset;
     }
-    for( int iSegment { 0 }; iSegment < cylinderSegmentCount; ++iSegment )
+    for( int iSegment {}; iSegment < cylinderSegmentCount; ++iSegment )
     {
       int iSegmentNext { ( iSegment + 1 ) % cylinderSegmentCount };
       DebugDraw3DLine( p0Points[ iSegment ], p0Points[ iSegmentNext ], color );
@@ -437,8 +437,8 @@ namespace Tac
         const v3& original_point_j = original_points[ j ];
         const v3& transfor_point_j = transfor_points[ j ];
 
-        int numSame { 0 };
-        for( int axis { 0 }; axis < 3; ++axis )
+        int numSame {};
+        for( int axis {}; axis < 3; ++axis )
           if( original_point_i[ axis ] == original_point_j[ axis ] )
             numSame++;
         if( numSame != 2 )
@@ -506,7 +506,7 @@ namespace Tac
                                          const v3& maxi,
                                          const v3& color )
   {
-    for( int a0 { 0 }; a0 < 3; ++a0 )
+    for( int a0 {}; a0 < 3; ++a0 )
     {
       v3 v0;
       v0[ a0 ] = mini[ a0 ];

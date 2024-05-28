@@ -150,7 +150,7 @@ namespace Tac::Render
     {
       .mLeftIndex       { RegionIndex::kNull   },
       .mRightIndex      { RegionIndex::kNull },
-      .mDescriptorIndex { 0 },
+      .mDescriptorIndex {},
       .mDescriptorCount { descriptorCount },
       .mState           { RegionDesc::kFree },
       .mFence           {}

@@ -40,7 +40,7 @@ namespace Tac::Controller
     DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* );
 
     IDirectInput8*            mDirectInput { nullptr };
-    float                     mSecondsTillDiscover { 0 };
+    float                     mSecondsTillDiscover {};
     float                     mSecondsTillDiscoverMax { 1 };
   };
 
@@ -189,7 +189,7 @@ namespace Tac::Controller
     }
 
     HRESULT hr { S_OK };
-    for( int iController { 0 }; iController < TAC_CONTROLLER_COUNT_MAX; ++iController)
+    for( int iController {}; iController < TAC_CONTROLLER_COUNT_MAX; ++iController)
     {
       Controller* controller { mControllers[ iController ] };
       if( !controller )

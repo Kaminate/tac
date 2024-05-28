@@ -445,7 +445,7 @@ void                Tac::Win32WindowManagerDebugImGui()
 
   TAC_IMGUI_INDENT_BLOCK;
 
-  int hwndCount { 0 };
+  int hwndCount {};
   for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
     const HWND hwnd { sHWNDs[ i ] };

@@ -81,7 +81,7 @@ namespace Tac
 
 		Map< String, Json* >      mObjectChildrenMap;
 		String                    mString;
-		JsonNumber                mNumber { 0 };
+		JsonNumber                mNumber {};
 		Vector< Json* >           mArrayElements;
 		bool                      mBoolean { false };
 

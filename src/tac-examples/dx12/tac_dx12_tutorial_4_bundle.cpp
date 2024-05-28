@@ -295,7 +295,7 @@ namespace Tac
 
     // Create the texture.
 
-    const DXGI_SAMPLE_DESC SampleDesc{ .Count { 1 }, .Quality { 0 } };
+    const DXGI_SAMPLE_DESC SampleDesc{ .Count { 1 }, .Quality {} };
 
     // Describe and create a Texture2D.
     const D3D12_RESOURCE_DESC resourceDesc
@@ -337,7 +337,7 @@ namespace Tac
       .Height           { 1 },
       .DepthOrArraySize { 1 },
       .MipLevels        { 1 },
-      .SampleDesc       { DXGI_SAMPLE_DESC {.Count { 1 }, .Quality { 0 }, } },
+      .SampleDesc       { DXGI_SAMPLE_DESC {.Count { 1 }, .Quality {}, } },
       .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
@@ -379,7 +379,7 @@ namespace Tac
                                      &requiredByteCount );
 
     // for each subresource
-    for( int subresourceIndex { 0 }; subresourceIndex < nSubRes; ++subresourceIndex )
+    for( int subresourceIndex {}; subresourceIndex < nSubRes; ++subresourceIndex )
     {
 
       TAC_ASSERT( totalBytes >= requiredByteCount );
@@ -403,11 +403,11 @@ namespace Tac
       const UINT NumSlices { layout.Footprint.Depth };
 
       // For each slice
-      for (UINT z { 0 }; z < NumSlices; ++z)
+      for (UINT z {}; z < NumSlices; ++z)
       {
           auto pDestSlice { (BYTE*)DestData.pData + DestData.SlicePitch * z };
           auto pSrcSlice { (const BYTE*)textureData.pData + textureData.SlicePitch * LONG_PTR(z) };
-          for (UINT y { 0 }; y < rowCount; ++y)
+          for (UINT y {}; y < rowCount; ++y)
           {
             void* dst { pDestSlice + DestData.RowPitch * y };
             const void* src { pSrcSlice + textureData.RowPitch * LONG_PTR(y) };
@@ -426,7 +426,7 @@ namespace Tac
       nullptr ) );
 
 
-    for( int iSubRes { 0 }; iSubRes < nSubRes; ++iSubRes )
+    for( int iSubRes {}; iSubRes < nSubRes; ++iSubRes )
     {
         const D3D12_TEXTURE_COPY_LOCATION Dst
         {
@@ -609,13 +609,13 @@ namespace Tac
     const D3D12_RESOURCE_DESC resourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
-      .Alignment        { 0 },
+      .Alignment        {},
       .Width            { m_vertexBufferByteCount },
       .Height           { 1 },
       .DepthOrArraySize { 1 },
       .MipLevels        { 1 },
       .Format           { DXGI_FORMAT_UNKNOWN },
-      .SampleDesc       { .Count { 1 }, .Quality { 0 }, },
+      .SampleDesc       { .Count { 1 }, .Quality {}, },
       .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
@@ -712,7 +712,7 @@ namespace Tac
   {
     // Create synchronization objects.
 
-    const UINT64 initialVal { 0 };
+    const UINT64 initialVal {};
 
     PCom< ID3D12Fence > fence;
     TAC_DX12_CALL( m_device->CreateFence(
@@ -747,8 +747,8 @@ namespace Tac
                                     D3D12_DESCRIPTOR_RANGE1{
                                       .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
                                       .NumDescriptors     { 1 },
-                                      .BaseShaderRegister { 0 },
-                                      .RegisterSpace      { 0 },
+                                      .BaseShaderRegister {},
+                                      .RegisterSpace      {},
                                     } );
 
     // register(t0+, space1) textures
@@ -756,7 +756,7 @@ namespace Tac
                                     D3D12_DESCRIPTOR_RANGE1{
                                       .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
                                       .NumDescriptors     { 1 },
-                                      .BaseShaderRegister { 0 },
+                                      .BaseShaderRegister {},
                                       .RegisterSpace      { 1 },
                                     } );
 
@@ -927,7 +927,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i{ 0 }; i < bufferCount; i++ )
+    for( UINT i{}; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{ GetRTVCpuDescHandle( i ) };
       PCom< ID3D12Resource >& renderTarget{ m_renderTargets[ i ] };
@@ -1060,8 +1060,8 @@ namespace Tac
       {
         .VertexCountPerInstance { 3 },
         .InstanceCount { 1 },
-        .StartVertexLocation { 0 },
-        .StartInstanceLocation { 0 },
+        .StartVertexLocation {},
+        .StartInstanceLocation {},
       };
 
 #if 0
@@ -1187,7 +1187,7 @@ namespace Tac
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
     const UINT SyncInterval { 1 };
-    const UINT PresentFlags { 0 };
+    const UINT PresentFlags {};
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );

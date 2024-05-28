@@ -22,7 +22,7 @@ namespace Tac::Render
     if constexpr( !IsDebugMode )
       return;
 
-    const UINT flags { 0 };
+    const UINT flags {};
     DXGIGetDebugInterface1( flags, mDbg.iid(), mDbg.ppv() );
   }
 

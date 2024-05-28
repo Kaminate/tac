@@ -33,7 +33,7 @@ namespace Tac
     int                 mNumGlyphsBeforeCaret[ 2 ]  {};
 
     //                  https://en.wikipedia.org/wiki/Cursor_(user_interface)
-    int                 mCaretCount { 0 };
+    int                 mCaretCount {};
     Vector< Codepoint > mCodepoints;
 
   private:

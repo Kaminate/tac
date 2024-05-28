@@ -85,10 +85,14 @@ namespace Tac
     Render::IShaderVar*    mShaderSamplers{};
     Render::IShaderVar*    mShaderTextures{};
     int                    mVtxCount{};
+#if 1
     const char*            mTexPath{ "assets/essential/are_ya_winnin_son.png" };
-    //const char*            mTexPath{ "assets/essential/image_loader_test.png" };
     Render::Filter         mFilter{ Render::Filter::Linear };
-    //Render::Filter         mFilter{ Render::Filter::Point };
+#else
+    const char*            mTexPath{ "assets/essential/image_loader_test.png" };
+    //const char*            mTexPath{ "assets/essential/1024white.png" };
+    Render::Filter         mFilter{ Render::Filter::Point };
+#endif
   };
 
   HelloTexture::HelloTexture( App::Config cfg ) : App{ cfg } {}

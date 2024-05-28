@@ -48,7 +48,7 @@ namespace Tac::Render
       .AddressV       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
       .AddressW       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
       .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
-      .MinLOD         { 0 },
+      .MinLOD         {},
       .MaxLOD         { D3D12_FLOAT32_MAX },
     };
 

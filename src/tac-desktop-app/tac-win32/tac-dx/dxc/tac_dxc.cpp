@@ -161,7 +161,7 @@ namespace Tac::Render
     {
         .Ptr { reflBlob->GetBufferPointer() },
         .Size { reflBlob->GetBufferSize() },
-        .Encoding { 0 },
+        .Encoding {},
     };
 
     PCom< ID3D12ShaderReflection > shaderReflection{};
@@ -173,7 +173,7 @@ namespace Tac::Render
     D3D12_SHADER_DESC shaderDesc{};
     shaderReflection->GetDesc( &shaderDesc );
 
-    for( UINT iCBuf { 0 }; iCBuf < shaderDesc.ConstantBuffers; ++iCBuf )
+    for( UINT iCBuf {}; iCBuf < shaderDesc.ConstantBuffers; ++iCBuf )
     {
       ID3D12ShaderReflectionConstantBuffer* cBuf { shaderReflection->GetConstantBufferByIndex( iCBuf ) };
 
@@ -183,7 +183,7 @@ namespace Tac::Render
       ++asdf;
     }
 
-    for( UINT iRsc { 0 }; iRsc < shaderDesc.BoundResources; ++iRsc )
+    for( UINT iRsc {}; iRsc < shaderDesc.BoundResources; ++iRsc )
     {
       // ie: CBufferPerFrame, CBufferPerObject, "linearSampler", "image"
       D3D12_SHADER_INPUT_BIND_DESC desc; 
@@ -203,7 +203,7 @@ namespace Tac::Render
       reflInfo->AddBinding( desc );
     }
 
-    for( UINT iInput { 0 }; iInput < shaderDesc.InputParameters; ++iInput )
+    for( UINT iInput {}; iInput < shaderDesc.InputParameters; ++iInput )
     {
       // ie: POSITION, TEXCOORD, etc
       D3D12_SIGNATURE_PARAMETER_DESC inputParamDesc;
@@ -225,7 +225,7 @@ namespace Tac::Render
       ++asdf;
     }
 
-    for( UINT iOutput { 0 }; iOutput < shaderDesc.OutputParameters; ++iOutput )
+    for( UINT iOutput {}; iOutput < shaderDesc.OutputParameters; ++iOutput )
     {
       // ie: SV_POSITION, SV_TARGET, etc
       D3D12_SIGNATURE_PARAMETER_DESC desc;
@@ -333,7 +333,7 @@ namespace Tac::Render
                           pResults.ppv() ) };
 
       const UINT32 n { pResults->GetNumOutputs() };
-      for( UINT32 i { 0 }; i < n; ++i )
+      for( UINT32 i {}; i < n; ++i )
       {
         DXC_OUT_KIND kind { pResults->GetOutputByIndex( i ) };
         ++asdf;

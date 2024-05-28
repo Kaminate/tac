@@ -33,8 +33,8 @@ namespace Tac::Network
                                u16 port,
                                Errors& ) override;
     SOCKET      mSocket { INVALID_SOCKET };
-    int         mWinsockAddressFamily { 0 };
-    int         mWinsockSocketType { 0 };
+    int         mWinsockAddressFamily {};
+    int         mWinsockSocketType {};
     String      mHostname;
   };
 
@@ -120,7 +120,7 @@ namespace Tac::Network
     Vector< u8 > framed;
     if( mRequiresWebsocketFrame )
     {
-      u8 payloadByteCount7Bit { 0 };
+      u8 payloadByteCount7Bit {};
 
       Writer writer
       {
@@ -144,7 +144,7 @@ namespace Tac::Network
       const int frameByteCount { 2 + ( int )writer.mBytes.size() + 4 + byteCount };
       framed.resize( frameByteCount );
 
-      int iByte { 0 };
+      int iByte {};
       framed[ iByte++ ] =
         0b10000000 | // fin
         0x2; // opcode binary frame
@@ -222,7 +222,7 @@ namespace Tac::Network
     const String portString { Tac::ToString( port ) };
 
     addrinfo* addrinfos;
-    int wsaErrorCode { 0 };
+    int wsaErrorCode {};
       
     wsaErrorCode = getaddrinfo( hostname.c_str(), portString.c_str(), nullptr, &addrinfos );
     if( wsaErrorCode )
@@ -285,7 +285,7 @@ namespace Tac::Network
   {
     const int winsockSocketType { GetWinsockSocketType( socketType ) };
     const int winsockAddressFamily { GetWinsockAddressFamily( addressFamily ) };
-    const int winsockProtocol { 0 }; // don't really know what this is
+    const int winsockProtocol {}; // don't really know what this is
     const SOCKET winsockSocket { socket( winsockAddressFamily, winsockSocketType, winsockProtocol ) };
     TAC_RAISE_ERROR_IF_RETURN( winsockSocket == INVALID_SOCKET,
                                String() + "socket failed with: " + GetLastWSAErrorString(),

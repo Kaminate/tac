@@ -26,7 +26,7 @@ namespace Tac::Render
     };
 
     Info       Add( int bitCount );
-    int        mRunningBitCount { 0 };
+    int        mRunningBitCount {};
   };
 
   // this should really be called like per camera data
@@ -107,7 +107,7 @@ namespace Tac::Render
     static const int sShaderRegister { 2 };
 
     ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ]  {};
-    u32              lightCount { 0 };
+    u32              lightCount {};
     u32              useLights { true };
     u32              testNumber { 1234567890 };
     bool             TryAddLight( const ShaderLight& );

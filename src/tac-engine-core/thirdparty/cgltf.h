@@ -3913,7 +3913,7 @@ static int cgltf_parse_json_root(cgltf_options* options, jsmntok_t const* tokens
 
 cgltf_result cgltf_parse_json(cgltf_options* options, const uint8_t* json_chunk, cgltf_size size, cgltf_data** out_data)
 {
-	jsmn_parser parser = { 0 };
+	jsmn_parser parser = {};
 
 	if (options->json_token_count == 0)
 	{

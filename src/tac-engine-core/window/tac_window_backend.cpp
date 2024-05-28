@@ -378,8 +378,8 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    int stateCount { 0 };
-    for( int iWindow { 0 }; iWindow < kDesktopWindowCapacity; ++iWindow )
+    int stateCount {};
+    for( int iWindow {}; iWindow < kDesktopWindowCapacity; ++iWindow )
     {
       const DesktopWindowState* state = &sDesktopWindowStates[ iWindow ];
       if( !state->mNativeWindowHandle )

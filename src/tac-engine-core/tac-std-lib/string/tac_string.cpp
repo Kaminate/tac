@@ -62,7 +62,7 @@ bool        Tac::IsAlpha( const char c )
 
 int         Tac::MemCmp( const void* lhs, const void* rhs, int len )
 {
-  for( int i { 0 }; i < len; ++i )
+  for( int i {}; i < len; ++i )
   {
     int diff = ( ( const char* )lhs )[ i ] - ( ( const char* )rhs )[ i ];
     if( diff )
@@ -81,7 +81,7 @@ void        Tac::MemCpy( void* dst, const void* src, int len )
 
 void        Tac::MemSet( void* dst, unsigned char c, int n )
 {
-  for( int i { 0 }; i < n; ++i )
+  for( int i {}; i < n; ++i )
     ( ( char* )dst )[ i ] = c;
 }
 
@@ -98,7 +98,7 @@ int         Tac::StrCmp( const char* lhs, const char* rhs )
 int         Tac::StrLen( const char* str )
 {
   // do not handle null string
-  int result { 0 };
+  int result {};
   while( *str++ )
     ++result;
   return result;
@@ -130,7 +130,7 @@ int         Tac::Atoi( const StringView& s )
 {
   int res = 0;
   int pow = 1;
-  for( int i { 0 }; i < s.size(); ++i, pow *= 10 )
+  for( int i {}; i < s.size(); ++i, pow *= 10 )
     res += ( s[ s.size() - i - 1 ] - '0' ) * pow;
   return res;
 }
@@ -182,7 +182,7 @@ namespace Tac
   String::String( int len, char c )
   {
     reserve( len );
-    for( int i { 0 }; i < len; ++i )
+    for( int i {}; i < len; ++i )
       mStr[ i ] = c;
     mStr[ mLen = len ] = '\0';
     //mLen = len;
@@ -251,10 +251,10 @@ namespace Tac
   {
     int cLen { StrLen( c ) };
     int iFound { npos };
-    for( int i { 0 }; i < mLen; ++i )
+    for( int i {}; i < mLen; ++i )
     {
       char myStrChar { mStr[ i ] };
-      for( int j { 0 }; j < cLen; ++j )
+      for( int j {}; j < cLen; ++j )
       {
         char queryChar { c[ j ] };
         if( myStrChar == queryChar )
@@ -296,7 +296,7 @@ namespace Tac
   {
     const int end_pos { len == npos ? mLen : pos + len };
     String copy;
-    for( int i { 0 }; i < mLen; ++i )
+    for( int i {}; i < mLen; ++i )
       if( i < pos || i >= end_pos )
         copy.push_back( mStr[ i ] );
     *this = copy;

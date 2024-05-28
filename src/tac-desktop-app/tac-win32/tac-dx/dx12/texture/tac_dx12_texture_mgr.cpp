@@ -12,6 +12,15 @@
 
 namespace Tac::Render
 {
+  //static void* AlignPtr( void* ptr, UPtr align )
+  //{
+  //  UPtr u{ ( UPtr )ptr };
+  //  u += align - 1;
+  //  u /= align;
+  //  u *= align;
+  //  return ( void* )u;
+  //}
+
   static D3D12_RESOURCE_FLAGS GetResourceFlags( Binding binding )
   {
     D3D12_RESOURCE_FLAGS Flags{};
@@ -34,7 +43,7 @@ namespace Tac::Render
     const DXGI_SAMPLE_DESC SampleDesc
     {
       .Count   { 1 },
-      .Quality { 0 },
+      .Quality {},
     };
 
     const D3D12_RESOURCE_FLAGS Flags{ GetResourceFlags( params.mBinding ) };
@@ -100,35 +109,41 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  struct UploadPitchCalculator
+  struct UploadCalculator
   {
-    UploadPitchCalculator( UpdateTextureParams updateTextureParams )
+    UploadCalculator( UpdateTextureParams updateTextureParams )
     {
-      const CreateTextureParams::Subresources srcSubresources{ updateTextureParams.mSrcSubresource };
-      const int nSubRscs{ srcSubresources.size() };
+      const int nSubRsc{ updateTextureParams.mSrcSubresource.size() };
+      const int imgW{ updateTextureParams.mSrcImage.mWidth };
+      const int imgH{ updateTextureParams.mSrcImage.mHeight };
       const int texFmtSize{ GetTexFmtSize( updateTextureParams.mSrcImage.mFormat ) };
-      for( int iSubRsc{}; iSubRsc < nSubRscs; ++iSubRsc )
+
+      int cumulativeSubRscOffset{};
+      for( int iSubRsc{}; iSubRsc < nSubRsc; ++iSubRsc )
       {
-        const int srcW{ updateTextureParams.mSrcImage.mWidth >> iSubRsc };
-        const int srcH{ updateTextureParams.mSrcImage.mHeight >> iSubRsc };
-        const int uploadSubRscPitch{
-          RoundUpToNearestMultiple( srcW * texFmtSize, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT ) };
+        const int subRscW{ imgW >> iSubRsc };
+        const int subRscH{ imgH >> iSubRsc };
+        const int rowPitch{
+          RoundUpToNearestMultiple( subRscW * texFmtSize, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT ) };
+        const int subRscByteCount{ rowPitch * subRscH };
 
-        mUploadPitches[ iSubRsc ] = uploadSubRscPitch;
+        mRowPitches[ iSubRsc ] = rowPitch;
+        mCumSubRscOffsets[ iSubRsc ] = cumulativeSubRscOffset;
+        cumulativeSubRscOffset +=
+          RoundUpToNearestMultiple( subRscByteCount, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT );
       }
+
+      mTotalSize = cumulativeSubRscOffset;
     }
 
-    int GetPitch( int i ) const { return mUploadPitches[i]; }
-    int GetTotalSize() const 
-    {
-      int total{};
-      for( int pitch : mUploadPitches )
-        total += pitch;
-      return total;
-    }
+    int GetCumulativeSubresourceOffset( int i ) const { return mCumSubRscOffsets[ i ]; }
+    int GetPitch( int i ) const                       { return mRowPitches[i]; }
+    int GetTotalSize() const                          { return mTotalSize; }
 
   private:
-    int mUploadPitches[ 20 ]{};
+    int mRowPitches[ 20 ]{};
+    int mCumSubRscOffsets[ 20 ]{};
+    int mTotalSize{};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -264,88 +279,63 @@ namespace Tac::Render
     const int texFmtSize{ GetTexFmtSize( updateTextureParams.mSrcImage.mFormat ) };
 
     ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
-    const DX12TransitionHelper::Params transitionParams
-    {
-      .mResource    { dstRsc },
-      .mStateBefore { dstRscStates },
-      .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
-    };
-    DX12TransitionHelper transitionHelper;
-    transitionHelper.Append( transitionParams );
-    transitionHelper.ResourceBarrier( commandList );
 
-    const D3D12_RESOURCE_DESC dstRscDesc{ dstRsc->GetDesc() };
+    // Resource barrier
+    {
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { dstRsc },
+        .mStateBefore { dstRscStates },
+        .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
+      };
+      DX12TransitionHelper transitionHelper;
+      transitionHelper.Append( transitionParams );
+      transitionHelper.ResourceBarrier( commandList );
+    }
 
     const DXGI_FORMAT srcFmt{ TexFmtToDxgiFormat( updateTextureParams.mSrcImage.mFormat ) };
 
-    const UploadPitchCalculator uploadPitches( updateTextureParams );
+    const UploadCalculator uploadCalculator( updateTextureParams );
 
-    //int uploadPitches[ 20 ]{};
-    //for( int iSubRsc{}; iSubRsc < nSubRscs; ++iSubRsc )
-    //{
-    //  //CreateTextureParams::Subresource subRsc{ updateTextureParams.mSrcSubresource[ iSubRsc ] };
-    //  const int srcW{ updateTextureParams.mSrcImage.mWidth >> iSubRsc };
-    //  const int srcH{ updateTextureParams.mSrcImage.mHeight >> iSubRsc };
-    //  const int uploadSubRscPitch{
-    //    RoundUpToNearestMultiple( srcW * texFmtSize, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT ) };
+    const int uploadBytes{
+      uploadCalculator.GetTotalSize() + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT };
 
-    //  uploadPitches[ iSubRsc ] = uploadSubRscPitch;
-    //}
-
-    const int uploadBytes{ uploadPitches.GetTotalSize() };
-
-    //CreateTextureParams::Subresources mSrcSubresource;
-    //D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
-
-    // total number of bytes for the upload buffer to hold every subresource
-    //UINT64 totalBytes;
-    //Vector< D3D12_PLACED_SUBRESOURCE_FOOTPRINT > dstPlacedSubRscFootprints( nSubRscs );
-    //Vector< UINT > dstRowCounts( nSubRscs );
-    //Vector< UINT64 > dstRowByteCounts( nSubRscs );
-    //mDevice->GetCopyableFootprints( &dstRscDesc,
-    //                                0, // first subresource
-    //                                nSubRscs,
-    //                                0, // base offset
-    //                                nullptr, //dstPlacedSubRscFootprints.data(),
-    //                                nullptr, //dstRowCounts.data(),
-    //                                nullptr, //dstRowByteCounts.data(),
-    //                                &totalBytes );
-
-    DX12UploadAllocator::DynAlloc upload{
+    const DX12UploadAllocator::DynAlloc upload{
       context->mGPUUploadAllocator.Allocate( ( int )uploadBytes, errors ) };
 
-    ID3D12Resource* uploadRsc{ upload.mResource };
+    MemSet( upload.mCPUAddr, 0, upload.mByteCount );
 
-    //upload.m
+    const int mip0Offset{ RoundUpToNearestMultiple( ( int )upload.mResourceOffest,
+                                                    D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT ) };
+    //void* mip0Ptr{ ( char* )upload.mUnoffsetCPUAddr 
+    //  + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT  };
 
-    char* runningUploadData{ ( char* )upload.mCPUAddr };
-    int runningUploadOffset{ ( int )upload.mResourceOffest };
-
-    // for each subresource
     for( int iSubRsc{}; iSubRsc < nSubRscs; ++iSubRsc )
     {
       const CreateTextureParams::Subresource subRsc{
         updateTextureParams.mSrcSubresource[ iSubRsc ] };
 
-      const int uploadSubRscPitch{ uploadPitches.GetPitch( iSubRsc ) };
-      const int uploadSubRscOffset{ runningUploadOffset };
-      void* uploadSubRscData{ runningUploadData };
+      const int uploadSubRscRowPitch{ uploadCalculator.GetPitch( iSubRsc ) };
+      const int uploadSubRscOffset{
+        mip0Offset +
+        uploadCalculator.GetCumulativeSubresourceOffset( iSubRsc ) };
 
       const int srcW{ updateTextureParams.mSrcImage.mWidth >> iSubRsc };
       const int srcH{ updateTextureParams.mSrcImage.mHeight >> iSubRsc };
-      //const int uploadSubRscPitch{
-      //  RoundUpToNearestMultiple( srcW * texFmtSize, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT ) };
 
       for( int iRow{}; iRow < srcH; ++iRow )
       {
-        MemCpy( ( char* )uploadSubRscData + uploadSubRscPitch * iRow, // runningUploadData,
-                ( char* )subRsc.mBytes + subRsc.mPitch * iRow,
-                srcW * texFmtSize );
+        char* src{ ( char* )subRsc.mBytes + subRsc.mPitch * iRow };
+        char* dst{ ( char* )upload.mUnoffsetCPUAddr
+          + uploadSubRscOffset
+          + uploadSubRscRowPitch * iRow };
 
-        //runningUploadData += uploadSubRscPitch;
-        runningUploadOffset += uploadSubRscPitch;
+        if( iRow == 512 )
+          ++asdf;
+
+
+        MemCpy( dst, src, srcW * texFmtSize );
       }
-
 
       const D3D12_TEXTURE_COPY_LOCATION texCopyDst
       {
@@ -360,7 +350,7 @@ namespace Tac::Render
         .Width    { ( UINT )srcW },
         .Height   { ( UINT )srcH },
         .Depth    { 1 },
-        .RowPitch { ( UINT )uploadSubRscPitch },
+        .RowPitch { ( UINT )uploadSubRscRowPitch },
       };
 
       const D3D12_PLACED_SUBRESOURCE_FOOTPRINT srcPlacedSubRscFootprint
@@ -371,7 +361,7 @@ namespace Tac::Render
 
       const D3D12_TEXTURE_COPY_LOCATION texCopySrc
       {
-        .pResource       { ( ID3D12Resource* )uploadRsc },
+        .pResource       { upload.mResource },
         .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
         .PlacedFootprint { srcPlacedSubRscFootprint },
       };
@@ -379,7 +369,7 @@ namespace Tac::Render
 
       const UINT DstX{ ( UINT )updateTextureParams.mDstPos.x };
       const UINT DstY{ ( UINT )updateTextureParams.mDstPos.y };
-      const UINT DstZ{ 0 };
+      const UINT DstZ{};
       commandList->CopyTextureRegion( &texCopyDst, DstX, DstY, DstZ, &texCopySrc, nullptr );
     }
   }

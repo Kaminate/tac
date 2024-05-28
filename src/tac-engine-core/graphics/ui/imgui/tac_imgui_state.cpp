@@ -154,7 +154,7 @@ namespace Tac
     float contentVisibleHeight { contentVisibleMaxY - contentVisibleMinY };
 
     // scrollbar min/max position
-    const float scrollMin { 0 };
+    const float scrollMin {};
     const float scrollMax { contentAllHeight - contentVisibleHeight };
 
     // scroll with middle mouse

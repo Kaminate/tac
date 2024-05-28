@@ -121,7 +121,7 @@ namespace Tac
 
     const D3D12_BUFFER_SRV Buffer
     {
-      .FirstElement { 0 },
+      .FirstElement {},
       .NumElements  { m_vertexBufferByteCount / 4 },
       .Flags        { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
     };
@@ -151,7 +151,7 @@ namespace Tac
       .AddressV       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
       .AddressW       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
       .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
-      .MinLOD         { 0 },
+      .MinLOD         {},
       .MaxLOD         { D3D12_FLOAT32_MAX },
     };
     const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor { GetSamplerCpuDescHandle( 0 ) };
@@ -179,7 +179,7 @@ namespace Tac
     const DXGI_SAMPLE_DESC SampleDesc
     {
      .Count   { 1 },
-     .Quality { 0 },
+     .Quality {},
     };
 
     // Describe and create a Texture2D.
@@ -222,7 +222,7 @@ namespace Tac
       .Height           { 1 },
       .DepthOrArraySize { 1 },
       .MipLevels        { 1 },
-      .SampleDesc       { DXGI_SAMPLE_DESC {.Count { 1 }, .Quality { 0 }, } },
+      .SampleDesc       { DXGI_SAMPLE_DESC {.Count { 1 }, .Quality {}, } },
       .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
@@ -264,7 +264,7 @@ namespace Tac
                                      &requiredByteCount );
 
     // for each subresource
-    for( int subresourceIndex{ 0 }; subresourceIndex < nSubRes; ++subresourceIndex )
+    for( int subresourceIndex{}; subresourceIndex < nSubRes; ++subresourceIndex )
     {
 
       TAC_ASSERT( totalBytes >= requiredByteCount );
@@ -288,11 +288,11 @@ namespace Tac
       const UINT NumSlices{ layout.Footprint.Depth };
 
       // For each slice
-      for( UINT z{ 0 }; z < NumSlices; ++z )
+      for( UINT z{}; z < NumSlices; ++z )
       {
         auto pDestSlice{ ( BYTE* )DestData.pData + DestData.SlicePitch * z };
         auto pSrcSlice{ ( const BYTE* )textureData.pData + textureData.SlicePitch * LONG_PTR( z ) };
-        for( UINT y{ 0 }; y < rowCount; ++y )
+        for( UINT y{}; y < rowCount; ++y )
         {
           void* dst{ pDestSlice + DestData.RowPitch * y };
           const void* src{ pSrcSlice + textureData.RowPitch * LONG_PTR( y ) };
@@ -311,7 +311,7 @@ namespace Tac
       nullptr ) );
 
 
-    for( int iSubRes{ 0 }; iSubRes < nSubRes; ++iSubRes )
+    for( int iSubRes{}; iSubRes < nSubRes; ++iSubRes )
     {
       const D3D12_TEXTURE_COPY_LOCATION Dst
       {
@@ -493,13 +493,13 @@ namespace Tac
     const D3D12_RESOURCE_DESC resourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
-      .Alignment        { 0 },
+      .Alignment        {},
       .Width            { m_vertexBufferByteCount },
       .Height           { 1 },
       .DepthOrArraySize { 1 },
       .MipLevels        { 1 },
       .Format           { DXGI_FORMAT_UNKNOWN },
-      .SampleDesc       { .Count{ 1 }, .Quality{ 0 }, },
+      .SampleDesc       { .Count{ 1 }, .Quality{}, },
       .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
     };
 
@@ -640,8 +640,8 @@ namespace Tac
                                     D3D12_DESCRIPTOR_RANGE1{
                                       .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
                                       .NumDescriptors     { 1 },
-                                      .BaseShaderRegister { 0 },
-                                      .RegisterSpace      { 0 },
+                                      .BaseShaderRegister {},
+                                      .RegisterSpace      {},
                                     } );
 
     // register(t0+, space1) textures
@@ -649,15 +649,15 @@ namespace Tac
                                     D3D12_DESCRIPTOR_RANGE1{
                                       .RangeType          { D3D12_DESCRIPTOR_RANGE_TYPE_SRV },
                                       .NumDescriptors     { 1 },
-                                      .BaseShaderRegister { 0 },
+                                      .BaseShaderRegister {},
                                       .RegisterSpace      { 1 },
                                     } );
 
     builder.AddConstantBuffer( D3D12_SHADER_VISIBILITY_ALL,
                              D3D12_ROOT_DESCRIPTOR1
                              {
-                                .ShaderRegister { 0 },
-                                .RegisterSpace  { 0 },
+                                .ShaderRegister {},
+                                .RegisterSpace  {},
                              } );
 
     m_rootSignature = TAC_CALL( builder.Build( errors ) );
@@ -853,7 +853,7 @@ namespace Tac
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
-    for( UINT i { 0 }; i < bufferCount; i++ )
+    for( UINT i {}; i < bufferCount; i++ )
     {
       const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( i ) };
       PCom< ID3D12Resource >& renderTarget { m_renderTargets[ i ] };
@@ -993,8 +993,8 @@ namespace Tac
         const MyCBufType cbuf
         {
           .mWorld        { transform },
-          .mVertexBuffer { 0 },
-          .mTexture      { 0 },
+          .mVertexBuffer {},
+          .mTexture      {},
         };
 
         // So I was supposed to learn about D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT from
@@ -1027,8 +1027,8 @@ namespace Tac
       {
         .VertexCountPerInstance { 3 },
         .InstanceCount          { 1 },
-        .StartVertexLocation    { 0 },
-        .StartInstanceLocation  { 0 },
+        .StartVertexLocation    {},
+        .StartInstanceLocation  {},
       };
 
 #if 0
@@ -1074,9 +1074,9 @@ namespace Tac
         cbvSrvDescriptorSize );
 
       BOOL usePso1 { TRUE };
-      for( UINT i { 0 }; i < m_cityRowCount; i++ )
+      for( UINT i {}; i < m_cityRowCount; i++ )
       {
-        for( UINT j { 0 }; j < m_cityColumnCount; j++ )
+        for( UINT j {}; j < m_cityColumnCount; j++ )
         {
           // Alternate which PSO to use; the pixel shader is different on 
           // each just as a PSO setting demonstration.
@@ -1169,7 +1169,7 @@ namespace Tac
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
     const UINT SyncInterval { 1 };
-    const UINT PresentFlags { 0 };
+    const UINT PresentFlags {};
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );

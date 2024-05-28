@@ -13,7 +13,7 @@ namespace Tac
 
   // The jobs are unowned
   static RingVector< Job* >    sJobQueueUnstarted;
-  static float                 sJobQueueMinJobSeconds{ 0 };
+  static float                 sJobQueueMinJobSeconds{};
 
   //int JobQueueGetThreadCount()
   //{

@@ -94,7 +94,7 @@ namespace Tac
     TAC_ASSERT( bitfield );
 
     Write( bitfield );
-    for( int networkBitIndex { 0 }; networkBitIndex < networkBits.size(); ++networkBitIndex )
+    for( int networkBitIndex {}; networkBitIndex < networkBits.size(); ++networkBitIndex )
     {
       if( !netBitDiff.IsSet( networkBitIndex ) )
         continue;

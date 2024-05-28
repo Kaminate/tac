@@ -16,7 +16,7 @@ namespace Tac
   static Timer               sTimer;
   static Timestamp           sElapsedTime;
   static TimestampDifference sAccumulator;
-  static FrameIndex          sElapsedFrames { 0 };
+  static FrameIndex          sElapsedFrames {};
 
   bool                Timestep::Update()
   {
