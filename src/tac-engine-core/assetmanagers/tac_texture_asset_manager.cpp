@@ -14,18 +14,52 @@
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/thirdparty/stb_image.h"
+#include "tac-engine-core/thirdparty/stb_image_write.h"
 #include "tac-engine-core/settings/tac_settings_root.h"
-
 
 namespace Tac::TextureAssetManager
 {
   // -----------------------------------------------------------------------------------------------
 
+  static const int sBPP{ 4 };
+
+  struct Texel
+  {
+    Texel() = default;
+    Texel( u8 r, u8 g, u8 b )
+    {
+        mRgba[ 0 ] = r;
+        mRgba[ 1 ] = g;
+        mRgba[ 2 ] = b;
+        mRgba[ 3 ] = 255;
+    }
+    u8 mRgba[ sBPP ];
+  };
+
   struct AsyncSubresourceData
   {
+    const Texel* GetTexel( int x, int y ) const;
+    Texel*       GetTexel( int x, int y );
+    int          GetTexelIndex( int x, int y ) const;
+
     int              mPitch {};
-    Vector< char >   mBytes;
+    Vector< char >   mBytes {};
   };
+
+  const Texel* AsyncSubresourceData::GetTexel( int x, int y ) const
+  {
+    return ( const Texel* )&mBytes[ GetTexelIndex( x, y ) ];
+  };
+
+  Texel* AsyncSubresourceData::GetTexel( int x, int y )
+  {
+    return ( Texel* )&mBytes[ GetTexelIndex( x, y ) ];
+  };
+
+  int AsyncSubresourceData::GetTexelIndex( int x, int y ) const
+  {
+    return x * sBPP + y * mPitch ;
+  }
 
   struct TextureLoadJob : public Job
   {
@@ -49,7 +83,8 @@ namespace Tac::TextureAssetManager
     void                  ExecuteTexSingleJob( Errors& );
     void                  ExecuteTexCubemapJob( Errors& );
     void                  GenerateMip( int );
-    void                  TestMips();
+    void TestMipsByAssigningAColorPerMip();
+    void TestMipsBySavingToDisk();
 
 
     Vector< AsyncSubresourceData > mSubresources;
@@ -187,7 +222,7 @@ namespace Tac::TextureAssetManager
     int x;
     int y;
     int previousChannelCount;
-    const int requiredChannelCount{ 4 };
+    const int requiredChannelCount{ sBPP };
 
     // rgba
     const auto memoryByteCount{ ( int )memory.size() };
@@ -220,7 +255,7 @@ namespace Tac::TextureAssetManager
       }
     }
 
-    const int pitch{ x * 4 };
+    const int pitch{ x * sBPP };
     const int imageDataByteCount{ y * pitch };
 
     mTexFmt = mIs_sRGB ? Render::TexFmt::kRGBA8_unorm_srgb : Render::TexFmt::kRGBA8_unorm;
@@ -256,47 +291,61 @@ namespace Tac::TextureAssetManager
       for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
         GenerateMip( currMip );
 
+    if( 1 )
+      TestMipsBySavingToDisk();
+
     if( 0 )
-      TestMips();
+      TestMipsByAssigningAColorPerMip();
   }
 
-  void TextureLoadJob::TestMips()
+  // verify correctness of GenerateMip()
+  void TextureLoadJob::TestMipsBySavingToDisk()
   {
-    struct Color
+    const int nSubRsc{ mSubresources.size() };
+    for( int iSubRsc{}; iSubRsc < nSubRsc; ++iSubRsc )
     {
-      Color( u8 r, u8 g, u8 b )
-      {
-        mBytes[ 0 ] = r;
-        mBytes[ 1 ] = g;
-        mBytes[ 2 ] = b;
-        mBytes[ 3 ] = 255;
-      }
+      const AsyncSubresourceData& data{ mSubresources[ iSubRsc ] };
+      const int w{ mImage.mWidth >> iSubRsc };
+      const int h{ mImage.mHeight >> iSubRsc };
 
-      u8 mBytes[ 4 ];
-    };
+      dynmc String path{ mFilepath.u8string() };
+      const int lastDot{ path.find_last_of( "." ) };
+      TAC_ASSERT( lastDot != String::npos );
+      path = path.substr( 0, lastDot );
+      path += ".mip" + ToString( iSubRsc ) + ".deleteme.png";
 
-    const Color colors[ 20 ]
+      const int writeResult{ stbi_write_png( path.data(),
+                                              w, h, sBPP, data.mBytes.data(), data.mPitch ) };
+      const bool writeSucceeded{ writeResult != 0 };
+      TAC_ASSERT( writeSucceeded );
+    }
+  }
+
+  void TextureLoadJob::TestMipsByAssigningAColorPerMip()
+  {
+
+    const Texel colors[ 20 ]
     {
-      Color( 230, 25, 75 ),   // 0 Red
-      Color( 60, 180, 75 ),   // 1 Green
-      Color( 255, 225, 25 ),  // 2 Yellow
-      Color( 0, 130, 200 ),   // 3 Blue
-      Color( 245, 130, 48 ),  // 4 Orange
-      Color( 145, 30, 180 ),  // 5 Purple
-      Color( 70, 240, 240 ),  // 6 Cyan
-      Color( 240, 50, 230 ),  // 7 Magenta
-      Color( 210, 245, 60 ),  // 8 Lime
-      Color( 250, 190, 212 ), // 9 Pink
-      Color( 0, 128, 128 ),   // 10 Teal
-      Color( 220, 190, 255 ), // 11 Lavender
-      Color( 170, 110, 40 ),  // 12 Brown
-      Color( 255, 250, 200 ), // 13 Beige
-      Color( 128, 0, 0 ),     // 14 Maroon
-      Color( 170, 255, 195 ), // 15 Mint
-      Color( 128, 128, 0 ),   // 16 Olive
-      Color( 255, 215, 180 ), // 17 Apricot
-      Color( 0, 0, 128 ),     // 18 Navy
-      Color( 128, 128, 128 ), // 19 Grey
+      Texel( 230, 25, 75 ),   // 0 Red
+      Texel( 60, 180, 75 ),   // 1 Green
+      Texel( 255, 225, 25 ),  // 2 Yellow
+      Texel( 0, 130, 200 ),   // 3 Blue
+      Texel( 245, 130, 48 ),  // 4 Orange
+      Texel( 145, 30, 180 ),  // 5 Purple
+      Texel( 70, 240, 240 ),  // 6 Cyan
+      Texel( 240, 50, 230 ),  // 7 Magenta
+      Texel( 210, 245, 60 ),  // 8 Lime
+      Texel( 250, 190, 212 ), // 9 Pink
+      Texel( 0, 128, 128 ),   // 10 Teal
+      Texel( 220, 190, 255 ), // 11 Lavender
+      Texel( 170, 110, 40 ),  // 12 Brown
+      Texel( 255, 250, 200 ), // 13 Beige
+      Texel( 128, 0, 0 ),     // 14 Maroon
+      Texel( 170, 255, 195 ), // 15 Mint
+      Texel( 128, 128, 0 ),   // 16 Olive
+      Texel( 255, 215, 180 ), // 17 Apricot
+      Texel( 0, 0, 128 ),     // 18 Navy
+      Texel( 128, 128, 128 ), // 19 Grey
     };
 
     const int n{ mSubresources.size() };
@@ -306,12 +355,13 @@ namespace Tac::TextureAssetManager
       int h{ mImage.mHeight >> i };
       AsyncSubresourceData& mip{ mSubresources[ i ] };
       void* data{ mip.mBytes.data() };
-      const Color& color{ colors[ i ] };
+      const Texel& color{ colors[ i ] };
       for( int r{}; r < h; ++r )
       {
         for( int c{}; c < w; ++c )
         {
-          MemCpy( ( char* )data + r * mip.mPitch + c * 4, color.mBytes, 4 );
+          *mip.GetTexel( c, r ) = color;
+          //MemCpy( ( char* )data + r * mip.mPitch + c * sBPP, color.mBytes, sBPP );
         }
       }
     }
@@ -336,30 +386,18 @@ namespace Tac::TextureAssetManager
     {
       for( int currX{}; currX < currW; ++currX )
       {
-        struct Texel
-        {
-          u8 mRgba[ 4 ];
-        };
+        const int prevXL{ currX * 2 };
+        const int prevXR{ currX * 2 + 1 };
+        const int prevYT{ currY * 2 };
+        const int prevYB{ currY * 2 + 1 };
+        Texel prevTL{ *prevData.GetTexel( prevXL, prevYT ) };
+        Texel prevTR{ *prevData.GetTexel( prevXR, prevYT ) };
+        Texel prevBL{ *prevData.GetTexel( prevXL, prevYB ) };
+        Texel prevBR{ *prevData.GetTexel( prevXR, prevYB ) };
 
-        auto GetPrevTexel = [&]( int x, int y )
-          {
-            int offset{ x * 4 + y * prevData.mPitch };
-            const void* pTexel{ &prevData.mBytes[ offset ] };
-            return *(Texel*)pTexel;
-          };
+        Texel* currTexel{ currData.GetTexel( currX, currY ) };
 
-        const int XL{ currX * 2 };
-        const int XR{ currX * 2 + 1 };
-        const int YT{ currY * 2 };
-        const int YB{ currY * 2 + 1 };
-        Texel prevTL{ GetPrevTexel( XL, YT ) };
-        Texel prevTR{ GetPrevTexel( XR, YT ) };
-        Texel prevBL{ GetPrevTexel( XL, YB ) };
-        Texel prevBR{ GetPrevTexel( XR, YB ) };
-
-        Texel& currTexel{ ( Texel& )currData.mBytes[ currX + currY * currPitch ] };
-
-        for( int iChannel{}; iChannel < 4; ++iChannel )
+        for( int iChannel{}; iChannel < sBPP; ++iChannel )
         {
           if( mIs_sRGB )
           {
@@ -371,15 +409,15 @@ namespace Tac::TextureAssetManager
               0.25f * Pow( prevBR.mRgba[ iChannel ] / 255.0f, 2.2f )
             };
 
-            currTexel.mRgba[ iChannel ] = u8( Pow( prevFilteredLinear, 1 / 2.2f ) * 255 );
+            currTexel->mRgba[ iChannel ] = u8( Pow( prevFilteredLinear, 1 / 2.2f ) * 255 );
           }
           else
           {
-            currTexel.mRgba[ iChannel ] = (
+            currTexel->mRgba[ iChannel ] = (
                prevTL.mRgba[ iChannel ] +
                prevTR.mRgba[ iChannel ] +
                prevBL.mRgba[ iChannel ] +
-               prevBR.mRgba[ iChannel ] ) / 4;
+               prevBR.mRgba[ iChannel ] ) / sBPP;
 
           }
         }
@@ -437,7 +475,7 @@ namespace Tac::TextureAssetManager
       int x;
       int y;
       int previousChannelCount;
-      const int requiredChannelCount{ 4 };
+      const int requiredChannelCount{ sBPP };
       // rgba
       const auto memoryByteCount { ( int )memory.size() };
       const auto memoryData { ( const stbi_uc* )memory.data() };
@@ -464,7 +502,7 @@ namespace Tac::TextureAssetManager
         TAC_RAISE_ERROR( msg );
       }
 
-      const int pitch { x * 4 };
+      const int pitch { x * sBPP };
       const int imageDataByteCount { y * pitch };
 
       AsyncSubresourceData& subresource{ mSubresources[ iFile ] };
