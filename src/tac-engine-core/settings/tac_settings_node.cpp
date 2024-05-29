@@ -73,9 +73,15 @@ namespace Tac
         const int iCloseSquareBracket{ path.find_first_of( "]" ) };
         TAC_ASSERT( iCloseSquareBracket != StringView::npos );
         const int iElement{ Atoi( StringView( path.data() + 1, path.data() + iCloseSquareBracket ) ) };
-        TAC_ASSERT( ( unsigned )iElement < ( unsigned )root->mArrayElements.size() );
+        if( iElement >= root->mArrayElements.size() )
+        {
+          int elementsNeeded{ iElement + 1 - root->mArrayElements.size() };
+          while( elementsNeeded-- )
+            root->AddChild();
+        }
+
         root = root->mArrayElements[ iElement ];
-        path.remove_prefix( iCloseSquareBracket );
+        path.remove_prefix( iCloseSquareBracket + 1 );
       }
 
       TAC_ASSERT( oldRoot != root );

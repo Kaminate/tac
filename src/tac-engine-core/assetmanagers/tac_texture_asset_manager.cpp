@@ -19,6 +19,10 @@
 
 namespace Tac::TextureAssetManager
 {
+
+#define TAC_TEST_MIPS_BY_SAVING_TO_DISC()            TAC_IS_DEBUG_MODE() && 0
+#define TAC_TEST_MIPS_BY_ASSIGNING_A_COLOR_PER_MIP() TAC_IS_DEBUG_MODE() && 0
+
   // -----------------------------------------------------------------------------------------------
 
   static const int sBPP{ 4 };
@@ -83,8 +87,14 @@ namespace Tac::TextureAssetManager
     void                  ExecuteTexSingleJob( Errors& );
     void                  ExecuteTexCubemapJob( Errors& );
     void                  GenerateMip( int );
-    void TestMipsByAssigningAColorPerMip();
-    void TestMipsBySavingToDisk();
+
+#if TAC_TEST_MIPS_BY_ASSIGNING_A_COLOR_PER_MIP()
+    void                  TestMipsByAssigningAColorPerMip();
+#endif
+
+#if TAC_TEST_MIPS_BY_SAVING_TO_DISC()
+    void                  TestMipsBySavingToDisk();
+#endif
 
 
     Vector< AsyncSubresourceData > mSubresources;
@@ -291,13 +301,16 @@ namespace Tac::TextureAssetManager
       for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
         GenerateMip( currMip );
 
-    if( 1 )
-      TestMipsBySavingToDisk();
+#if TAC_TEST_MIPS_BY_SAVING_TO_DISC()
+    TestMipsBySavingToDisk();
+#endif
 
-    if( 0 )
-      TestMipsByAssigningAColorPerMip();
+#if TAC_TEST_MIPS_BY_ASSIGNING_A_COLOR_PER_MIP()
+    TestMipsByAssigningAColorPerMip();
+#endif
   }
 
+#if TAC_TEST_MIPS_BY_SAVING_TO_DISC()
   // verify correctness of GenerateMip()
   void TextureLoadJob::TestMipsBySavingToDisk()
   {
@@ -320,7 +333,9 @@ namespace Tac::TextureAssetManager
       TAC_ASSERT( writeSucceeded );
     }
   }
+#endif
 
+#if TAC_TEST_MIPS_BY_ASSIGNING_A_COLOR_PER_MIP()
   void TextureLoadJob::TestMipsByAssigningAColorPerMip()
   {
 
@@ -366,6 +381,7 @@ namespace Tac::TextureAssetManager
       }
     }
   }
+#endif
 
   void TextureLoadJob::GenerateMip( int currMip )
   {

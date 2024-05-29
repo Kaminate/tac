@@ -391,7 +391,7 @@ namespace Tac::Render
   {
     struct Scope
     {
-      Scope( IContext* );
+      Scope( IContext* = nullptr );
       ~Scope();
       IContext* operator ->();
       IContext* GetContext() { return mContext; }
@@ -468,36 +468,35 @@ namespace Tac::Render
       NDCAttribs mNDCAttribs;
     };
 
-    virtual void Init( Errors& ) {};
+    virtual void            Init( Errors& )                                 {};
 
-    virtual Info            GetInfo() const { return {}; }
+    virtual Info            GetInfo() const                                 { return {}; }
 
-    virtual PipelineHandle  CreatePipeline( PipelineParams, Errors& ) {}
+    virtual PipelineHandle  CreatePipeline( PipelineParams, Errors& )       {}
     virtual IShaderVar*     GetShaderVariable( PipelineHandle, StringView ) { return {}; }
-    virtual void            DestroyPipeline( PipelineHandle ) {}
+    virtual void            DestroyPipeline( PipelineHandle )               {}
 
-    virtual ProgramHandle   CreateProgram( ProgramParams, Errors& ) {}
-    virtual void            DestroyProgram( ProgramHandle ) {}
+    virtual ProgramHandle   CreateProgram( ProgramParams, Errors& )         {}
+    virtual void            DestroyProgram( ProgramHandle )                 {}
 
-    virtual SamplerHandle   CreateSampler( Filter ) {}
-    virtual void            DestroySampler( SamplerHandle ) {}
+    virtual SamplerHandle   CreateSampler( Filter )                         {}
+    virtual void            DestroySampler( SamplerHandle )                 {}
 
-    virtual SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) {}
-    virtual void            ResizeSwapChain( SwapChainHandle, v2i ) {}
-    virtual SwapChainParams GetSwapChainParams( SwapChainHandle ) { return {}; }
-    virtual void            DestroySwapChain( SwapChainHandle ) {}
-    virtual TextureHandle   GetSwapChainCurrentColor( SwapChainHandle ) { return {}; }
-    virtual TextureHandle   GetSwapChainDepth( SwapChainHandle ) { return {}; }
-    virtual void            Present( SwapChainHandle, Errors& ) {};
+    virtual SwapChainHandle CreateSwapChain( SwapChainParams, Errors& )     {}
+    virtual void            ResizeSwapChain( SwapChainHandle, v2i )         {}
+    virtual SwapChainParams GetSwapChainParams( SwapChainHandle )           { return {}; }
+    virtual void            DestroySwapChain( SwapChainHandle )             {}
+    virtual TextureHandle   GetSwapChainCurrentColor( SwapChainHandle )     { return {}; }
+    virtual TextureHandle   GetSwapChainDepth( SwapChainHandle )            { return {}; }
+    virtual void            Present( SwapChainHandle, Errors& )             {};
 
-    virtual BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) {}
-    virtual void            DestroyBuffer( BufferHandle ) {}
+    virtual BufferHandle    CreateBuffer( CreateBufferParams, Errors& )     {}
+    virtual void            DestroyBuffer( BufferHandle )                   {}
 
-    virtual TextureHandle   CreateTexture( CreateTextureParams, Errors& ) {}
-    virtual void            DestroyTexture( TextureHandle ) {}
+    virtual TextureHandle   CreateTexture( CreateTextureParams, Errors& )   {}
+    virtual void            DestroyTexture( TextureHandle )                 {}
 
-
-    virtual IContext::Scope CreateRenderContext( Errors& );
+    virtual IContext::Scope CreateRenderContext( Errors& )                  { return {}; }
   };
 }
 

@@ -9,6 +9,7 @@
 #include "tac-engine-core/profile/tac_profile.h"
 //#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 
 //#include "tac-rhi/render3/tac_render_api.h"
@@ -1262,7 +1263,7 @@ void Tac::ImGuiEndFrame( Errors& errors )
       if( WindowHandle WindowHandle{ window->GetWindowHandle() };
           WindowHandle.IsValid() )
       {
-        OS::OSDebugBreak();
+        //OS::OSDebugBreak();
         // TODO: copy MoveControls and ResizeControls logic here
         //DesktopApp::GetInstance()->MoveControls( WindowHandle );
         //DesktopApp::GetInstance()->ResizeControls( WindowHandle );
@@ -1379,5 +1380,20 @@ Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
 void Tac::ImGuiPlatformRender( ImGuiSysDrawParams params, Errors& errors )
 {
   ImGuiPersistantPlatformData::Instance.UpdateAndRender( params, errors );
+}
+
+void Tac::ImGuiPlatformPresent( const SysWindowApi* windowApi, Errors& errors )
+{
+  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  for( ImGuiWindow* window : globals.mAllWindows )
+  {
+    if( !window->mWindowHandleOwned )
+      continue;
+
+    const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
+    const Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( windowHandle ) };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( renderDevice->Present( swapChain, errors ) );
+  }
 }
 

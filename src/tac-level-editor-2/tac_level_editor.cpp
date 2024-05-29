@@ -98,7 +98,6 @@ namespace Tac
     const v4 clearColor{ 0, 0, 0, 1 };
     renderContext->ClearColor( colorTexture, clearColor );
     renderContext->Execute( errors );
-
   }
 
   App::IState* LevelEditorApp::GetGameState() 
@@ -132,13 +131,13 @@ namespace Tac
 
   void                Creation::Update( Errors& errors )
   {
-    mShowUnownedWindow = false;
+    mShowUnownedWindow = true;
     mShowOwnedWindow = true;
 
     if( mShowOwnedWindow )
     {
       ImGuiSetNextWindowHandle( sWindowHandle );
-      if( ImGuiBegin( "Unowned Window" ) )
+      if( ImGuiBegin( "Owned Window" ) )
       {
         UI2DDrawData* drawData{ ImGuiGetDrawData() };
 
@@ -209,11 +208,9 @@ namespace Tac
       ImGuiSetNextWindowPosition( v2( 500, 100 ) );
       ImGuiSetNextWindowSize( v2( 300, 300 ) );
       ImGuiSetNextWindowMoveResize();
-      if( ImGuiBegin( "Owned Window" ) )
+      if( ImGuiBegin( "Unowned Window" ) )
       {
-
-
-        //ImGuiButton( "" );
+        ImGuiText( "Unowned Window" ); 
         ImGuiEnd();
       }
     }

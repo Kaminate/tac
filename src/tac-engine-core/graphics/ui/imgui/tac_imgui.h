@@ -217,7 +217,10 @@ namespace Tac
     const SysWindowApi* mWindowApi     {};
     Timestamp           mTimestamp     {};
   };
+
+
   void               ImGuiPlatformRender( ImGuiSysDrawParams, Errors& );
+  void               ImGuiPlatformPresent( const SysWindowApi*, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

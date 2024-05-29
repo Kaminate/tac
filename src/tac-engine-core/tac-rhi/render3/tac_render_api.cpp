@@ -30,18 +30,24 @@ namespace Tac::Render
   static FileSys::Path    sShaderOutputPath; 
   static IDevice*         sDevice;
 
+  // -----------------------------------------------------------------------------------------------
+
+  static VertexAttributeFormat FromFloats( int n )
+  {
+    return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), n );
+  }
 
   // -----------------------------------------------------------------------------------------------
 
   IContext::Scope::Scope( IContext* context ) { mContext = context; }
-  IContext::Scope::~Scope()                   { mContext->Retire(); }
+  IContext::Scope::~Scope()                   { if( mContext ) mContext->Retire(); }
   IContext* IContext::Scope::operator ->()    { return mContext; }
 
   // -----------------------------------------------------------------------------------------------
 
-  IHandle::IHandle( int i ) : mIndex( i ) {}
-  int IHandle::GetIndex() const { TAC_ASSERT( IsValid() ); return mIndex; }
-  bool IHandle::IsValid() const { return mIndex != -1; }
+  ctor IHandle::IHandle( int i ) : mIndex( i ) {}
+  int  IHandle::GetIndex() const               { TAC_ASSERT( IsValid() ); return mIndex; }
+  bool IHandle::IsValid() const                { return mIndex != -1; }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -50,12 +56,10 @@ namespace Tac::Render
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
     sShaderOutputPath = params.mShaderOutputPath;
   }
-
   void             RenderApi::Uninit()
   {
     // ...
   }
-
   int              RenderApi::GetMaxGPUFrameCount()              { return sMaxGPUFrameCount; }
   FileSys::Path    RenderApi::GetShaderOutputPath()              { return sShaderOutputPath; }
   IDevice*         RenderApi::GetRenderDevice()                  { return sDevice; }
@@ -63,6 +67,16 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  FormatElement FormatElement::GetFloat()
+  {
+    return FormatElement
+    {
+      .mPerElementByteCount { sizeof( float ) },
+      .mPerElementDataType { GraphicsType::real },
+    };
+  };
+
+  // -----------------------------------------------------------------------------------------------
 
   VertexAttributeFormat VertexAttributeFormat::FromElements( FormatElement element, int n )
   {
@@ -73,25 +87,14 @@ namespace Tac::Render
       .mPerElementDataType  { element.mPerElementDataType },
     };
   }
-
-  int    VertexAttributeFormat::CalculateTotalByteCount() const
+  int                   VertexAttributeFormat::CalculateTotalByteCount() const
   {
     return mElementCount * mPerElementByteCount;
   }
-
-  FormatElement FormatElement::GetFloat()
-  {
-    return FormatElement
-    {
-      .mPerElementByteCount { sizeof( float ) },
-      .mPerElementDataType { GraphicsType::real },
-    };
-  };
-  VertexAttributeFormat VertexAttributeFormat::GetFloat()   { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 1 ); }
-  VertexAttributeFormat VertexAttributeFormat::GetVector2() { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 2 ); }
-  VertexAttributeFormat VertexAttributeFormat::GetVector3() { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 3 ); }
-  VertexAttributeFormat VertexAttributeFormat::GetVector4() { return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), 4 ); }
-
+  VertexAttributeFormat VertexAttributeFormat::GetFloat()   { return FromFloats( 1 ); }
+  VertexAttributeFormat VertexAttributeFormat::GetVector2() { return FromFloats( 2 ); }
+  VertexAttributeFormat VertexAttributeFormat::GetVector3() { return FromFloats( 3 ); }
+  VertexAttributeFormat VertexAttributeFormat::GetVector4() { return FromFloats( 4 ); }
 
   // -----------------------------------------------------------------------------------------------
 

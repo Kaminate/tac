@@ -253,7 +253,11 @@ namespace Tac::Render
 
   void              DX12Device::DestroyPipeline( PipelineHandle h )
   {
-    sRenderer.mPipelineMgr.DestroyPipeline( h );
+    if( h.IsValid() )
+    {
+      FreeHandle( h );
+      sRenderer.mPipelineMgr.DestroyPipeline( h );
+    }
   }
 
   ProgramHandle     DX12Device::CreateProgram( ProgramParams params, Errors& errors )
@@ -265,7 +269,11 @@ namespace Tac::Render
 
   void              DX12Device::DestroyProgram( ProgramHandle h )
   {
-    sRenderer.mProgramMgr.DestroyProgram( h );
+    if( h.IsValid() )
+    {
+      FreeHandle( h );
+      sRenderer.mProgramMgr.DestroyProgram( h );
+    }
   }
 
   SamplerHandle     DX12Device::CreateSampler( Filter filter )
@@ -277,7 +285,11 @@ namespace Tac::Render
 
   void              DX12Device::DestroySampler( SamplerHandle h )
   {
-    sRenderer.mSamplerMgr.DestroySampler( h );
+    if( h.IsValid() )
+    {
+      FreeHandle( h );
+      sRenderer.mSamplerMgr.DestroySampler( h );
+    }
   }
 
   SwapChainHandle   DX12Device::CreateSwapChain( SwapChainParams params, Errors& errors )
@@ -299,7 +311,11 @@ namespace Tac::Render
 
   void              DX12Device::DestroySwapChain( SwapChainHandle h )
   {
-    return sRenderer.mSwapChainMgr.DestroySwapChain( h );
+    if( h.IsValid() )
+    {
+      FreeHandle( h );
+      return sRenderer.mSwapChainMgr.DestroySwapChain( h );
+    }
   }
 
   TextureHandle     DX12Device::GetSwapChainCurrentColor( SwapChainHandle h)
@@ -365,7 +381,11 @@ namespace Tac::Render
 
   void              DX12Device::DestroyBuffer( BufferHandle h )
   {
-    sRenderer.mBufMgr.DestroyBuffer( h );
+    if( h.IsValid() )
+    {
+      FreeHandle( h );
+      sRenderer.mBufMgr.DestroyBuffer( h );
+    }
   }
 
   IContext::Scope   DX12Device::CreateRenderContext( Errors& errors )
@@ -383,7 +403,11 @@ namespace Tac::Render
 
   void              DX12Device::DestroyTexture( TextureHandle h )
   {
-    sRenderer.mTexMgr.DestroyTexture( h );
+    if( h.IsValid() )
+    {
+      FreeHandle( h );
+      sRenderer.mTexMgr.DestroyTexture( h );
+    }
   }
 
 
