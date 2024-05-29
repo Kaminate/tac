@@ -450,10 +450,18 @@ Tac::WindowHandle Tac::ImGuiGetWindowHandle()
   return ImGuiGlobals::Instance.mCurrentWindow->GetWindowHandle();
 }
 
-void Tac::ImGuiSetNextWindowMoveResize() { gNextWindow.mMoveResize = true; }
-void Tac::ImGuiSetNextWindowPosition( v2 position ) { gNextWindow.mPosition = position; }
-void Tac::ImGuiSetNextWindowSize( v2 size ) { gNextWindow.mSize = size; }
-void Tac::ImGuiSetNextWindowDisableBG() { gNextWindow.mEnableBG = false; }
+void Tac::ImGuiSetNextWindowMoveResize()            { gNextWindow.mMoveResize = true; }
+void Tac::ImGuiSetNextWindowPosition( v2 position, ImGuiCondition cond )
+{
+  gNextWindow.mPosition = position;
+  gNextWindow.mPositionValid = true;
+}
+void Tac::ImGuiSetNextWindowSize( v2 size, ImGuiCondition cond ) 
+{
+  gNextWindow.mSize = size;
+  gNextWindow.mSizeValid = true;
+}
+void Tac::ImGuiSetNextWindowDisableBG()             { gNextWindow.mEnableBG = false; }
 
 
 // [ ] Q: imgui.begin should always be followed by a imgui.end,
@@ -482,16 +490,37 @@ bool Tac::ImGuiBegin( const StringView& name )
     }
     else
     {
-      int x{ gNextWindow.mPosition.x ? ( int )gNextWindow.mPosition.x : 50 };
-      int y{ gNextWindow.mPosition.y ? ( int )gNextWindow.mPosition.y : 50 };
-      int w{ gNextWindow.mSize.x ? ( int )gNextWindow.mSize.x : 800 };
-      int h{ gNextWindow.mSize.y ? ( int )gNextWindow.mSize.y : 600 };
+      int x{ 50 };
+      int y{ 50 };
+      int w{ 800 };
+      int h{ 600 };
+
+      if( gNextWindow.mPositionValid )
+      {
+        x = ( int )gNextWindow.mPosition.x;
+        y = ( int )gNextWindow.mPosition.y;
+      }
+
+      if( gNextWindow.mSizeValid )
+      {
+        w = ( int )gNextWindow.mSize.x;
+        h = ( int )gNextWindow.mSize.y;
+      }
 
       SettingsNode windowJson{ ImGuiGetWindowSettingsJson( name ) };
-      x = windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x );
-      y = windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y );
-      w = windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w );
-      h = windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h );
+      if( gNextWindow.mPositionValid &&
+          gNextWindow.mPositionCondition == ImGuiCondition::kFirstUse )
+      {
+        x = ( int )windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x ).mNumber;
+        y = ( int )windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y ).mNumber;
+      }
+
+      if( gNextWindow.mSizeValid &&
+          gNextWindow.mSizeCondition == ImGuiCondition::kFirstUse )
+      {
+        w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
+        h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
+      }
 
       //PlatformFns* platform = PlatformFns::GetInstance();
       //

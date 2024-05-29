@@ -45,8 +45,6 @@ namespace Tac
     v2               mMaxi = {};
   };
 
-
-
   enum class ImGuiCol
   {
     Text,
@@ -84,6 +82,13 @@ namespace Tac
     ImGuiNodeFlags_DefaultOpen = 1 << 0
   };
 
+  enum class ImGuiCondition
+  {
+    kNone = 0,
+    kAlways,
+    kFirstUse
+  };
+
   //TAC_ENUM_CLASS_BIT_OPS( ImGuiNodeFlags );
 
   struct UIStyle
@@ -105,8 +110,8 @@ namespace Tac
 
   struct BeginFrameData
   {
-    Timestamp                  mElapsedSeconds;
-    const WindowHandle& mMouseHoveredWindow;
+    Timestamp    mElapsedSeconds;
+    WindowHandle mMouseHoveredWindow;
   };
 
   //struct ImGuiCreateWindowParams
@@ -163,10 +168,10 @@ namespace Tac
 
   //   ImGuiSetNextWindow...
 	void ImGuiSetNextWindowMoveResize();
-	void ImGuiSetNextWindowPosition( v2 );
+	void ImGuiSetNextWindowPosition( v2, ImGuiCondition = ImGuiCondition::kNone );
 	void ImGuiSetNextWindowStretch();
 	void ImGuiSetNextWindowHandle( const WindowHandle& );
-  void ImGuiSetNextWindowSize( v2 );
+  void ImGuiSetNextWindowSize( v2, ImGuiCondition = ImGuiCondition::kNone );
   void ImGuiSetNextWindowDisableBG();
 
 

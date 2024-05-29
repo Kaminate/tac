@@ -205,12 +205,18 @@ namespace Tac
 
     if( mShowUnownedWindow )
     {
-      ImGuiSetNextWindowPosition( v2( 500, 100 ) );
+      ImGuiSetNextWindowPosition( v2( 1000, 100 ) );
       ImGuiSetNextWindowSize( v2( 300, 300 ) );
       ImGuiSetNextWindowMoveResize();
       if( ImGuiBegin( "Unowned Window" ) )
       {
-        ImGuiText( "Unowned Window" ); 
+        int i = (int) Timestep::GetElapsedTime().mSeconds;
+        i %= 2;
+        if( i > 0 )
+          ImGuiText( "AAAA\nAAAA\nAAAA" );
+        else
+          ImGuiText( "BBBB BBBB BBBB" ); 
+
         ImGuiEnd();
       }
     }

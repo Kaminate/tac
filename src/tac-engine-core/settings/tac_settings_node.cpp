@@ -34,7 +34,7 @@ namespace Tac
 
   Json&        SettingsNode::GetValueWithFallback( Json fallback )
   {
-    if( mJson->mType == JsonType::Null )
+    if( mJson->mType != fallback.mType )
       SetValue( fallback );
 
     return *mJson;
