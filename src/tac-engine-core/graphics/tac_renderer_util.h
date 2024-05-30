@@ -37,7 +37,7 @@ namespace Tac::Render
     static const char*                  name_far()         { return "far";         };
     static const char*                  name_near()        { return "near";        };
     static const char*                  name_gbuffersize() { return "gbufferSize"; };
-    static void                         Init(Errors&);
+    static void                         Init( Errors& );
 
     m4                                  mView;
     m4                                  mProjection;

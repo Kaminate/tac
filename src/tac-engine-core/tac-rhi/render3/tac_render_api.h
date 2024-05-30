@@ -42,6 +42,7 @@ namespace Tac::Render
     kRGBA16F,
     kR8_unorm,
     kR16_uint,
+    kR32_uint,
     kRGBA8_unorm,
     kRGBA8_unorm_srgb,
   };
@@ -399,7 +400,6 @@ namespace Tac::Render
       IContext* mContext{};
     };
 
-
     virtual void SetViewport( v2i ) {}
     virtual void SetScissor( v2i ) {}
     virtual void SetRenderTargets( Targets ) {}
@@ -500,3 +500,4 @@ namespace Tac::Render
   };
 }
 
+#define TAC_RENDER_GROUP_BLOCK( ctx, str ) ctx->DebugEventBegin( str ); TAC_ON_DESTRUCT( ctx->DebugEventEnd() )

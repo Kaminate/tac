@@ -1,7 +1,14 @@
-#include "Common.hlsl"
+struct SkyboxConstantBufferType
+{
+  row_major matrix mView;
+  row_major matrix mProjection;
+};
 
-TextureCube  cubemap       : TAC_AUTO_REGISTER;
-SamplerState linearSampler : TAC_AUTO_REGISTER;
+#define SkyboxConstBuf ConstantBuffer< SkyboxConstantBufferType >
+
+SkyboxConstBuf cBuf          : TAC_AUTO_REGISTER;
+TextureCube    cubemap       : TAC_AUTO_REGISTER;
+SamplerState   linearSampler : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {
@@ -16,8 +23,8 @@ struct VS_OUTPUT
 
 VS_OUTPUT VS( VS_INPUT input )
 {
-  float4 viewSpacePosition = mul( View, float4( input.Position, 1 ) );
-  float4 clipSpacePosition = mul( Projection, float4( input.Position, 1 ) );
+  float4 viewSpacePosition = mul( cBuf.mView, float4( input.Position, 1 ) );
+  float4 clipSpacePosition = mul( cBuf.mProjection, float4( input.Position, 1 ) );
 
   // Shader optimization trick which causes the ndc position to be
   // on the far plane, thus allowing the skybox to be rendered after
@@ -25,7 +32,7 @@ VS_OUTPUT VS( VS_INPUT input )
   // fails the depth test.
   clipSpacePosition.z = clipSpacePosition.w;
 
-  VS_OUTPUT output = ( VS_OUTPUT )0;
+  VS_OUTPUT output;
   output.mClipSpacePosition = clipSpacePosition;
   output.mViewSpacePosition = viewSpacePosition.xyz;
   return output;
@@ -41,7 +48,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
   float3 sampled_sRGB = cubemap.Sample( linearSampler, input.mViewSpacePosition ).xyz;
   float3 sampled_linear = pow( sampled_sRGB, 2.2 );
 
-  PS_OUTPUT output = ( PS_OUTPUT )0;
+  PS_OUTPUT output;
   output.mColor = float4( sampled_linear, 1 );
 
   return output;

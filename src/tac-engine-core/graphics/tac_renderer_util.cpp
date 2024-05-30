@@ -27,7 +27,7 @@ namespace Tac::Render
   {
     const Info shaderFlag
     {
-      .mOffset { mRunningBitCount },
+      .mOffset   { mRunningBitCount },
       .mBitCount { bitCount },
     };
     mRunningBitCount += bitCount;
@@ -60,7 +60,8 @@ namespace Tac::Render
     {
       .mByteCount    { sizeof( DefaultCBufferPerFrame ) },
       .mUsage        { Render::Usage::Dynamic },
-      .mOptionalName {  "CBufferPerFrame" },
+      .mBinding      { Render::Binding::ConstantBuffer },
+      .mOptionalName { "CBufferPerFrame" },
     };
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }
@@ -72,6 +73,7 @@ namespace Tac::Render
     {
       .mByteCount    { sizeof( DefaultCBufferPerObject ) },
       .mUsage        { Render::Usage::Dynamic },
+      .mBinding      { Render::Binding::ConstantBuffer },
       .mOptionalName {  "CBufferPerObject" },
     };
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
@@ -91,7 +93,7 @@ namespace Tac::Render
   //  return Color;
   //}
 
-   PremultipliedAlpha::PremultipliedAlpha( const v4& c ) : mColor( c ) {}
+  PremultipliedAlpha::PremultipliedAlpha( const v4& c ) : mColor( c ) {}
 
   PremultipliedAlpha PremultipliedAlpha::From_sRGB( const v3& sRGB )
   {
@@ -137,6 +139,7 @@ namespace Tac::Render
     {
       .mByteCount    { sizeof( CBufferLights ) },
       .mUsage        { Render::Usage::Dynamic },
+      .mBinding      { Render::Binding::ConstantBuffer },
       .mOptionalName {  "CBufferLights" },
     };
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );

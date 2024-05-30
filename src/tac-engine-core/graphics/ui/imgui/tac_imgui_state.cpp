@@ -489,7 +489,7 @@ namespace Tac
     GetDrawElementCount   mGetDrawElementCount;
     StringView            mBufName;
     ImGuiSimWindowDraws*  mDraws;
-    Render::TexFmt        mTexFmt { Render::TexFmt::kUnknown };
+    Render::TexFmt        mTexFmt  { Render::TexFmt::kUnknown };
     Render::Binding       mBinding { Render::Binding::None };
   };
 
@@ -510,7 +510,7 @@ namespace Tac
       .mGetDrawElementBytes { getIdxBytes },
       .mGetDrawElementCount { getIdxCount },
       .mBufName             { "imgui_idx_buf" },
-      .mDraws               {  this  },
+      .mDraws               { this },
       .mTexFmt              { Render::TexFmt::kR16_uint },
       .mBinding             { Render::Binding::IndexBuffer },
     };

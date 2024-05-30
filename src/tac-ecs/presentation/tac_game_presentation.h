@@ -26,17 +26,18 @@ namespace Tac
                                                         const Camera*,
                                                         int viewWidth,
                                                         int viewHeight,
-                                                        WindowHandle );
+                                                        WindowHandle,
+                                                        Errors& );
   void                          GamePresentationDebugImGui( Graphics* );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );
   //Render::BufferHandle  GamePresentationGetPerFrame();
   //Render::BufferHandle  GamePresentationGetPerObj();
-  Render::DepthStateHandle      GamePresentationGetDepthState();
-  Render::BlendStateHandle      GamePresentationGetBlendState();
-  Render::RasterizerStateHandle GamePresentationGetRasterizerState();
-  Render::SamplerStateHandle    GamePresentationGetSamplerState();
+  //Render::DepthStateHandle      GamePresentationGetDepthState();
+  //Render::BlendStateHandle      GamePresentationGetBlendState();
+  //Render::RasterizerStateHandle GamePresentationGetRasterizerState();
+  //Render::SamplerStateHandle    GamePresentationGetSamplerState();
   Render::VertexDeclarations    GamePresentationGetVertexDeclarations();
-  Render::VertexFormatHandle    GamePresentationGetVertexFormat();
+  //Render::VertexFormatHandle    GamePresentationGetVertexFormat();
 }
 
 #endif

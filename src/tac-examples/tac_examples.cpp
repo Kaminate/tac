@@ -50,14 +50,14 @@ namespace Tac
   static void   ExamplesInitCallback( Errors& errors )
   {
     // nav
-    int x { 50 };
-    int y { 50 };
-    int w { 400 };
-    int h { 200 };
-    int spacing { 50 };
+    const int x { 50 };
+    const int y { 50 };
+    const int w { 400 };
+    const int h { 200 };
+    const int spacing { 50 };
 
     // demo
-    int size { 600 };
+    const int size { 600 };
 
     sNavWindow = CreateTrackedWindow( "Example.Nav", x, y, w, h );
     sDemoWindow = CreateTrackedWindow( "Example.Demo", x + w + spacing, y, size, size  );
@@ -88,7 +88,7 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd());
 
-    int offset { 0 };
+    int offset {  };
     int iSelected { -1 };
     const int iCurrent { GetCurrExampleIndex() };
     const int n { GetExampleCount() };
@@ -109,7 +109,7 @@ namespace Tac
     if( ImGuiCollapsingHeader( "Select Example", ImGuiNodeFlags_DefaultOpen ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( int i { 0 }; i < n; ++i )
+      for( int i {  }; i < n; ++i )
         if( ImGuiSelectable( GetExampleName(i), i == iCurrent ) )
           iSelected = i;
     }
@@ -132,8 +132,8 @@ namespace Tac
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
     DesktopWindowState* demoWindowState { GetDesktopWindowState( sDemoWindow ) };
-    int w { demoWindowState->mWidth };
-    int h { demoWindowState->mHeight };
+    const int w { demoWindowState->mWidth };
+    const int h { demoWindowState->mHeight };
 
     if( Example* ex = GetCurrExample() )
     {
@@ -191,6 +191,7 @@ namespace Tac
     const float q { force.Quadrance() };
     if( q )
       force /= Sqrt( q );
+
     return force;
   }
 

@@ -1,21 +1,29 @@
 #pragma once
 
-namespace Tac::Render { struct ViewHandle; }
-namespace Tac { struct Errors; struct Camera; struct AssetPathStringView; }
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_vector2i.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 
-#define TAC_SKYBOX_PRESENTATION_ENABLED() 0
+#define TAC_SKYBOX_PRESENTATION_ENABLED() 1
 
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
 
 namespace Tac
 {
+  struct SkyboxRenderParams
+  {
+    const Camera*       mCamera;
+    v2i                 mViewSize;
+    WindowHandle        mViewId;
+    AssetPathStringView mSkyboxDir;
+  };
+
   void SkyboxPresentationInit( Errors& );
   void SkyboxPresentationUninit();
-  void SkyboxPresentationRender( const Camera*,
-                                 int viewWidth,
-                                 int viewHeight,
-                                 Render::ViewHandle viewId,
-                                 const AssetPathStringView& skyboxDir );
+  void SkyboxPresentationRender( SkyboxRenderParams, Errors& );
 
 }
 
