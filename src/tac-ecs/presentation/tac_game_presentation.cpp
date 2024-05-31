@@ -168,9 +168,9 @@ namespace Tac
       {
         Errors errors;
         Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                             model->mModelIndex,
-                                                             GamePresentationGetVertexDeclarations(),
-                                                             errors ) };
+                                                            model->mModelIndex,
+                                                            m3DVertexFormatDecls,
+                                                            errors ) };
         if( !mesh )
           return;
 
@@ -819,7 +819,7 @@ void        Tac::GamePresentationRender( World* world,
 
   TAC_RENDER_GROUP_BLOCK( renderContext, "GamePresentationRender" );
 
-  ShadowPresentationRender( world );
+  TAC_CALL( ShadowPresentationRender( world, errors ) );
 
   TAC_CALL( RenderModels( renderContext,
                           world,
@@ -854,14 +854,6 @@ void        Tac::GamePresentationRender( World* world,
 
   TAC_CALL( renderContext->Execute( errors ) );
 }
-
-//Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }
-//Render::BlendStateHandle      GamePresentationGetBlendState()           { return mBlendState; }
-//Render::RasterizerStateHandle GamePresentationGetRasterizerState()      { return mRasterizerState; }
-//Render::SamplerStateHandle    GamePresentationGetSamplerState()         { return mSamplerStateAniso; }
-//Render::VertexDeclarations    GamePresentationGetVertexDeclarations()   { return m3DVertexFormatDecls; }
-//Render::VertexFormatHandle    GamePresentationGetVertexFormat()         { return m3DVertexFormat; }
-
 
 void Tac::GamePresentationDebugImGui( Graphics* graphics )
 {

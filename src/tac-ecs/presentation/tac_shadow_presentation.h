@@ -5,7 +5,7 @@ namespace Tac
 {
   void                          ShadowPresentationInit( Errors& );
   void                          ShadowPresentationUninit();
-  void                          ShadowPresentationRender( World* );
+  void                          ShadowPresentationRender( World*, Errors& );
   void                          ShadowPresentationDebugImGui( Graphics* );
 }
 

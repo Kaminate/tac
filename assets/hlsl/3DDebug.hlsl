@@ -1,5 +1,3 @@
-#include "Common.hlsl"
-
 struct Debug3DCBufType
 {
   row_major matrix mView;
@@ -20,7 +18,7 @@ struct VS_OUTPUT
 
 typedef ConstantBuffer< Debug3DCBufType > Debug3DConstBuf;
 
-Debug3DConstBuf constBuf : TAC_AUTO_REGISTER;
+Debug3DConstBuf constBuf : register(b0);
 
 VS_OUTPUT VS( VS_INPUT input )
 {
@@ -28,7 +26,7 @@ VS_OUTPUT VS( VS_INPUT input )
   matrix Proj = constBuf.mProj;
 
   float4 viewSpacePosition = mul( View, float4( input.Position, 1 ) );
-  float4 clipSpacePosition = mul( Projection, viewSpacePosition );
+  float4 clipSpacePosition = mul( Proj, viewSpacePosition );
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;

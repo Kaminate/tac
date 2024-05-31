@@ -29,14 +29,6 @@ namespace Tac
                                                         Errors& );
   void                          GamePresentationDebugImGui( Graphics* );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );
-  //Render::BufferHandle  GamePresentationGetPerFrame();
-  //Render::BufferHandle  GamePresentationGetPerObj();
-  //Render::DepthStateHandle      GamePresentationGetDepthState();
-  //Render::BlendStateHandle      GamePresentationGetBlendState();
-  //Render::RasterizerStateHandle GamePresentationGetRasterizerState();
-  //Render::SamplerStateHandle    GamePresentationGetSamplerState();
-  Render::VertexDeclarations    GamePresentationGetVertexDeclarations();
-  //Render::VertexFormatHandle    GamePresentationGetVertexFormat();
 }
 
 #endif

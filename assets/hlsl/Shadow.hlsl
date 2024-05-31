@@ -1,4 +1,19 @@
-#include "Common.hlsl"
+struct ShadowFrameConstantsType
+{
+  row_major matrix mView;
+  row_major matrix mProjection;
+};
+
+struct ShadowObjectConstantsType
+{
+  row_major matrix mWorld;
+}
+
+typedef ShadowConstantBuffer< ShadowFrameConstantsType > ShadowPerFrame;
+typedef ShadowConstantBuffer< ShadowObjectConstantsType > ShadowPerObj;
+
+ShadowPerFrame sPerFrame : register( b0 );
+ShadowPerObj   sPerObj   : register( b1 );
 
 struct VS_INPUT
 {
@@ -14,9 +29,9 @@ struct VS_OUTPUT
 
 VS_OUTPUT VS( VS_INPUT input )
 {
-  float4 worldSpacePosition = mul( World, float4( input.Position, 1 ) );
-  float4 viewSpacePosition = mul( View, worldSpacePosition );
-  float4 clipSpacePosition = mul( Projection, viewSpacePosition );
+  float4 worldSpacePosition = mul( sPerObj.mWorld, float4( input.Position, 1 ) );
+  float4 viewSpacePosition = mul( sPerFrame.mView, worldSpacePosition );
+  float4 clipSpacePosition = mul( sPerFrame.mProjection, viewSpacePosition );
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;
@@ -27,5 +42,6 @@ VS_OUTPUT VS( VS_INPUT input )
 
 void PS( VS_OUTPUT input )
 {
+  // do nothing, we only care about the value written to the depth buffer
 }
 

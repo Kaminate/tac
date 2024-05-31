@@ -20,12 +20,12 @@ namespace Tac
                                                          bool* outHit,
                                                          float* outDist ) const;
 
-    Render::PrimitiveTopology  mPrimitiveTopology = Render::PrimitiveTopology::Unknown;
-    Render::BufferHandle mVertexBuffer;
-    Render::BufferHandle mIndexBuffer;
+    Render::PrimitiveTopology  mPrimitiveTopology { Render::PrimitiveTopology::Unknown };
+    Render::BufferHandle       mVertexBuffer;
+    Render::BufferHandle       mIndexBuffer;
     SubMeshTriangles           mTris;
-    int                        mIndexCount {};
-    int                        mVertexCount {};
+    int                        mIndexCount        {};
+    int                        mVertexCount       {};
     String                     mName;
   };
 
