@@ -768,7 +768,11 @@ namespace Tac
   void ImGuiPersistantPlatformData::InitSampler()
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    mSampler = renderDevice->CreateSampler( Render::Filter::Linear );
+    const Render::CreateSamplerParams samplerParams
+    {
+      .mFilter{ Render::Filter::Linear }
+    };
+    mSampler = renderDevice->CreateSampler( samplerParams );
   }
 
   void ImGuiPersistantPlatformData::Init( Errors& errors )

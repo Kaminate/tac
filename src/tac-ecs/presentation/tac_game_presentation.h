@@ -24,8 +24,7 @@ namespace Tac
   void                          GamePresentationUninit();
   void                          GamePresentationRender( World*, // why is this non const?
                                                         const Camera*,
-                                                        int viewWidth,
-                                                        int viewHeight,
+                                                        v2i viewSize,
                                                         WindowHandle,
                                                         Errors& );
   void                          GamePresentationDebugImGui( Graphics* );

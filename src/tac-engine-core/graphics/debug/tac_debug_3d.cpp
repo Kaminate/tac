@@ -550,11 +550,12 @@ namespace Tac
   void Debug3DDrawData::DebugDraw3DToTexture( Render::IContext* renderContext,
                                               const Render::TextureHandle,
                                               const Camera* camera,
-                                              const int viewWidth,
-                                              const int viewHeight,
+                                              const v2i viewSize,
                                               Errors& errors )
   {
 #if TAC_TEMPORARILY_DISABLED()
+    const int viewWidth{ viewSize.x };
+    const int viewHeight{ viewSize.y };
     TAC_PROFILE_BLOCK;
     const int vertexCount { mDebugDrawVerts.size() };
     if( mDebugDrawVerts.size() )

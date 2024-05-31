@@ -100,13 +100,12 @@ namespace Tac
     void DebugDraw3DToTexture( Render::IContext*,
                                const Render::TextureHandle,
                                const Camera*,
-                               const int viewWidth,
-                               const int viewHeight,
+                               const v2i viewSize,
                                Errors& );
     
-    Vector< DefaultVertexColor > mDebugDrawVerts;
-    Render::BufferHandle         mVerts;
-    int                          mCapacity = 0;
+    Vector< DefaultVertexColor > mDebugDrawVerts {};
+    Render::BufferHandle         mVerts          {};
+    int                          mCapacity       {};
   };
 
 } // namespace Tac

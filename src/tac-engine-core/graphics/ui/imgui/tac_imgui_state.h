@@ -197,6 +197,7 @@ namespace Tac
                                                const UI2DDrawCall&,
                                                Errors& );
 
+    // todo: hard code this to always expect rgba16f with d24s8
     struct Element
     {
       Render::PipelineHandle mPipeline;

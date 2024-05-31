@@ -12,6 +12,7 @@ namespace Tac::Render
   struct DX12Sampler
   {
     DX12Descriptor mDescriptor;
+    String         mName;
   };
 } // namespace Tac::Render
 

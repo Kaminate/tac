@@ -95,21 +95,18 @@ namespace Tac::Render
     v4       mWorldSpaceUnitDirection;
     v4       mColorRadiance;
     u32      mFlags;
-    //float    mProjA;
-    //float    mProjB;
-    //TAC_PAD_BYTES( 4 );
     TAC_PAD_BYTES( 12 );
   };
 
   struct CBufferLights
   {
-    static const int TAC_MAX_SHADER_LIGHTS { 4 };
-    static const int sShaderRegister { 2 };
+    static const int TAC_MAX_SHADER_LIGHTS            { 4 };
+    static const int sShaderRegister                  { 2 };
 
     ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ]  {};
-    u32              lightCount {};
-    u32              useLights { true };
-    u32              testNumber { 1234567890 };
+    u32              lightCount                       {};
+    u32              useLights                        { true };
+    u32              testNumber                       { 1234567890 };
     bool             TryAddLight( const ShaderLight& );
 
     static void      Init( Errors& );

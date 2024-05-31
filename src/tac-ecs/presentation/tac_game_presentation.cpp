@@ -35,16 +35,28 @@
 
 namespace Tac
 {
-  static Render::ProgramHandle          m3DShader;
-  static Render::ProgramHandle          mTerrainShader;
+  static Render::ProgramHandle         m3DShader;
+  static Render::ProgramHandle         mTerrainShader;
+  static Render::PipelineHandle        mTerrainPipeline;
+  static Render::PipelineHandle        mGamePipeline;
   //static Render::VertexFormatHandle    m3DVertexFormat;
   //static Render::VertexFormatHandle    mTerrainVertexFormat;
   //static Render::DepthStateHandle      mDepthState;
   //static Render::BlendStateHandle      mBlendState;
   //static Render::RasterizerStateHandle mRasterizerState;
-  //static Render::SamplerStateHandle    mSamplerStateAniso;
-  //static Render::SamplerStateHandle    mSamplerStatePointShadow;
+  static Render::SamplerHandle         mSamplerPoint;
+  static Render::SamplerHandle         mSamplerLinear;
+  static Render::SamplerHandle         mSamplerAniso;
   static Render::VertexDeclarations    m3DVertexFormatDecls;
+  static Render::VertexDeclarations    mTerrainVtxDecls;
+  static Render::IShaderVar*           mShaderTerrainHeightmap;
+  static Render::IShaderVar*           mShaderTerrainNoise;
+  static Render::IShaderVar*           mShaderTerrainSampler;
+  static Render::IShaderVar*           mShaderGameShadowMaps;
+  static Render::IShaderVar*           mShaderGameLinearSampler;
+  static Render::IShaderVar*           mShaderGameShadowSampler;
+  static Render::IShaderVar*           mShaderGamePerFrame;
+  static Render::IShaderVar*           mShaderGamePerObject;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
   static bool                          mRenderEnabledModel{ true };
@@ -92,12 +104,11 @@ namespace Tac
   }
 
   static Render::DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
-                                                        const int viewWidth,
-                                                        const int viewHeight )
+                                                        const v2i viewSize )
   {
     const Timestamp elapsedSeconds{ Timestep::GetElapsedTime() };
-    const float w{ ( float )viewWidth };
-    const float h{ ( float )viewHeight };
+    const float w{ ( float )viewSize.x };
+    const float h{ ( float )viewSize.y };
     const float aspectRatio{ w / h };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
@@ -110,7 +121,6 @@ namespace Tac
       .mAspectRatio   { aspectRatio },
       .mFOVYRadians   { camera->mFovyrad },
     };
-
     const m4 view{ camera->View() };
     const m4 proj{ m4::ProjPerspective( projParams ) };
     return Render::DefaultCBufferPerFrame
@@ -178,10 +188,12 @@ namespace Tac
                                                    getmeshErrors );
   }
 
-  static void RenderGameWorldAddDrawCall( const Light** lights,
+  static void RenderGameWorldAddDrawCall( Render::IContext* renderContext,
+                                          const Light** lights,
                                           int lightCount,
                                           const Model* model,
-                                          const WindowHandle viewId )
+                                          const WindowHandle viewId,
+                                          Errors& errors )
   {
     const Mesh* mesh{ LoadModel( model ) };
     if( !mesh )
@@ -193,44 +205,56 @@ namespace Tac
       .Color { Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ) },
     };
 
-    Render::DrawCallTextures drawCallTextures;
+    FixedVector< Render::TextureHandle, Render::CBufferLights::TAC_MAX_SHADER_LIGHTS > shadowMaps;
+
     Render::CBufferLights cBufferLights;
     if( mUseLights )
     {
       for( int i{}; i < lightCount; ++i )
       {
         const Light* light{ lights[ i ] };
+        const int shaderLightIndex{ cBufferLights.lightCount };
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
-          drawCallTextures.push_back( light->mShadowMapDepth );
+        {
+          shadowMaps.push_back( light->mShadowMapDepth );
+        }
       }
     }
+
+    for( int i{}; i < shadowMaps.size(); ++i )
+      mShaderGameShadowMaps->SetTextureAtIndex( i, shadowMaps[ i ] );
+
     mDebugCBufferLights = cBufferLights;
 
-    Render::SetTexture( drawCallTextures );
+    mShaderGameLinearSampler->SetSampler( mSamplerLinear );
+    mShaderGameShadowSampler->SetSampler( mSamplerPoint );
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
-      Render::DrawCallSamplers samplers;
-      samplers.push_back( mSamplerStateAniso );
-      samplers.push_back( mSamplerStatePointShadow );
+      const ShortFixedString groupName{
+        ShortFixedString::Concat( model->mEntity->mName, " ", subMesh.mName ) };
 
-      Render::BeginGroup( ShortFixedString::Concat( model->mEntity->mName, " ", subMesh.mName ),
-                          TAC_STACK_FRAME );
-      Render::SetShader( m3DShader );
-      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
-      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
-      Render::SetBlendState( mBlendState );
-      Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( samplers );
-      Render::SetDepthState( mDepthState );
-      Render::SetVertexFormat( m3DVertexFormat );
-      Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-      Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
-                                    &perObjectData,
-                                    sizeof( Render::DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
-      Render::Submit( viewId, TAC_STACK_FRAME );
-      Render::EndGroup( TAC_STACK_FRAME );
+      const Render::DrawArgs drawArgs
+      {
+        .mIndexCount { subMesh.mIndexCount },
+        .mStartIndex { 0 },
+      };
+
+      TAC_RENDER_GROUP_BLOCK( renderContext, groupName );
+
+      const Render::UpdateBufferParams updatePerObject
+      {
+        .mSrcBytes     { &perObjectData },
+        .mSrcByteCount { sizeof( Render::DefaultCBufferPerObject ) },
+      };
+      TAC_CALL( renderContext->UpdateBuffer( Render::DefaultCBufferPerObject::sHandle,updatePerObject, errors  ) );
+
+      renderContext->SetPipeline( mGamePipeline );
+      renderContext->CommitShaderVariables();
+      renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
+      renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
+      renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
+      renderContext->Draw( drawArgs );
     }
   }
 
@@ -312,7 +336,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem { "Terrain" },
+      .mFileStem   { "Terrain" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     mTerrainShader = renderDevice->CreateProgram( programParams, errors );
@@ -324,82 +348,72 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem { "GamePresentation" },
+      .mFileStem   { "GamePresentation" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     m3DShader = renderDevice->CreateProgram( programParams, errors );
   }
 
-  static void Create3DVertexFormat( Errors& errors )
+  static void Create3DVertexFormat()
   {
-    TAC_UNUSED_PARAMETER( errors );
-
     const Render::VertexDeclaration posDecl
     {
-      .mAttribute { Render::Attribute::Position },
-      .mTextureFormat { Render::Format::sv3 },
-      .mAlignedByteOffset{ ( int )TAC_OFFSET_OF( GameModelVtx, mPos ) },
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mPos ) },
     };
 
     const Render::VertexDeclaration norDecl
     {
-      .mAttribute { Render::Attribute::Normal },
-      .mTextureFormat { Render::Format::sv3 },
+      .mAttribute         { Render::Attribute::Normal },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
       .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mNor ) },
     };
 
     m3DVertexFormatDecls.clear();
     m3DVertexFormatDecls.push_back( posDecl );
     m3DVertexFormatDecls.push_back( norDecl );
-
-    m3DVertexFormat = Render::CreateVertexFormat( m3DVertexFormatDecls, m3DShader, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( m3DVertexFormat, "game-3d-vtx-fmt" );
   }
 
-  static void CreateTerrainVertexFormat( Errors& errors )
+  static void CreateTerrainVertexDecls()
   {
-    TAC_UNUSED_PARAMETER( errors );
-
     const Render::VertexDeclaration posDecl
     {
       .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::Format::sv3 },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
       .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mPos ) },
     };
     const Render::VertexDeclaration norDecl
     {
       .mAttribute         { Render::Attribute::Normal },
-      .mFormat            { Render::Format::sv3 },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
       .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mNor ) },
     };
     const Render::VertexDeclaration uvDecl
     {
       .mAttribute         { Render::Attribute::Texcoord },
-      .mFormat            { Render::Format::sv2 },
+      .mFormat            { Render::VertexAttributeFormat::GetVector2() },
       .mAlignedByteOffset { ( int )TAC_OFFSET_OF( TerrainVertex, mUV ) },
     };
 
-    Render::VertexDeclarations decls;
-    decls.push_back( posDecl );
-    decls.push_back( norDecl );
-    decls.push_back( uvDecl );
-
-    mTerrainVertexFormat = Render::CreateVertexFormat( decls, mTerrainShader, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mTerrainVertexFormat, "terrain-vtx-fmt" );
+    mTerrainVtxDecls.clear();
+    mTerrainVtxDecls.push_back( posDecl );
+    mTerrainVtxDecls.push_back( norDecl );
+    mTerrainVtxDecls.push_back( uvDecl );
   }
 
-  static void CreateDepthState( Errors& errors )
+  static Render::DepthState GetDepthState()
   {
-    TAC_UNUSED_PARAMETER( errors );
-    mDepthState = Render::CreateDepthState( { .mDepthTest = true,
-                                              .mDepthWrite = true,
-                                              .mDepthFunc = Render::DepthFunc::Less },
-                                            TAC_STACK_FRAME );
+    return Render::DepthState
+    {
+      .mDepthTest  { true },
+      .mDepthWrite { true },
+      .mDepthFunc  { Render::DepthFunc::Less },
+    };
   }
 
-  static void CreateBlendState( Errors& errors )
+  static Render::BlendState GetBlendState()
   {
-    TAC_UNUSED_PARAMETER( errors );
     const Render::BlendState state
     {
       .mSrcRGB   { Render::BlendConstants::One },
@@ -409,58 +423,74 @@ namespace Tac
       .mDstA     { Render::BlendConstants::One },
       .mBlendA   { Render::BlendMode::Add },
     };
-    mBlendState = Render::CreateBlendState( state, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mBlendState, "game-pres-blend" );
+    return state;
   }
 
-  static void CreateRasterizerState( Errors& errors )
+  static Render::RasterizerState GetRasterizerState()
   {
-    TAC_UNUSED_PARAMETER( errors );
-    const Render::RasterizerState state
+    return Render::RasterizerState
     {
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::Back },
       .mFrontCounterClockwise { true },
-      .mScissor               { true },
       .mMultisample           { false },
     };
-    mRasterizerState = Render::CreateRasterizerState( state, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mRasterizerState, "game-pres-rast" );
-
   }
 
-  static void CreateSamplerStateShadow( Errors& errors )
+  static void CreateLinearSampler()
   {
-    TAC_UNUSED_PARAMETER( errors );
-    mSamplerStatePointShadow = Render::CreateSamplerState( { .mFilter = Render::Filter::Point }, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mSamplerStateAniso, "game-shadow-samp" );
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::CreateSamplerParams params
+    {
+      .mFilter { Render::Filter::Linear },
+      .mName   { "game-linear-sampler" },
+    };
+    mSamplerLinear = renderDevice->CreateSampler( params );
   }
 
-  static void CreateSamplerState( Errors& errors )
+  static void CreatePointSampler()
   {
-    TAC_UNUSED_PARAMETER( errors );
-    mSamplerStateAniso = Render::CreateSamplerState( { .mFilter = Render::Filter::Aniso }, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mSamplerStateAniso, "game-samp" );
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::CreateSamplerParams params
+    {
+      .mFilter { Render::Filter::Point},
+      .mName   { "game-point-sampler" },
+    };
+    mSamplerPoint = renderDevice->CreateSampler( params );
+  }
+
+  static void CreateAnisoSampler()
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::CreateSamplerParams params
+    {
+      .mFilter { Render::Filter::Aniso},
+      .mName   { "game-aniso-sampler" },
+    };
+    mSamplerAniso = renderDevice->CreateSampler( params );
   }
 
   static void RenderModels( Render::IContext* renderContext,
                             World* world,
                             const Camera* camera,
-                            const int viewWidth,
-                            const int viewHeight,
+                            const v2i viewSize,
                             const WindowHandle viewId,
                             Errors& errors )
   {
     if( !mRenderEnabledModel )
       return;
-    const Render::DefaultCBufferPerFrame perFrameData{
-      GetPerFrameBuf( camera, viewWidth, viewHeight ) };
 
-    //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::DefaultCBufferPerFrame perFrameData{
+      GetPerFrameBuf( camera, viewSize ) };
+
+    const Render::UpdateBufferParams updateBufferParams
+    {
+      .mSrcBytes     { &perFrameData },
+      .mSrcByteCount { sizeof( Render::DefaultCBufferPerFrame ) },
+    };
     renderContext->UpdateBuffer( Render::DefaultCBufferPerFrame::sHandle,
-                                  &perFrameData,
-                                  sizeof( Render::DefaultCBufferPerFrame ),
-                                  TAC_STACK_FRAME );
+                                 updateBufferParams,
+                                 errors );
 
     Graphics* graphics{ GetGraphics( world ) };
     struct : public ModelVisitor
@@ -482,21 +512,19 @@ namespace Tac
           Min( sLightVisitor.mLights.size(), Render::CBufferLights::TAC_MAX_SHADER_LIGHTS ) );
 
 
-        RenderGameWorldAddDrawCall( sLightVisitor.mLights.data(),
+        TAC_CALL( RenderGameWorldAddDrawCall( renderContext,
+                                    sLightVisitor.mLights.data(),
                                     sLightVisitor.mLights.size(),
                                     model,
-                                    mViewId );
+                                    mViewId,
+                                    errors ) );
       }
 
-      WindowHandle mViewId;
-      //World*             mWorld;
-      Graphics* mGraphics{ nullptr };
+      WindowHandle mViewId   {};
+      Graphics*    mGraphics {};
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
     myModelVisitor.mGraphics = graphics;
-    //myModelVisitor.mWorld = world;
-
-
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Visit Models" );
     graphics->VisitModels( &myModelVisitor );
@@ -505,8 +533,7 @@ namespace Tac
   static void RenderTerrain( Render::IContext* renderContext,
                              World* world,
                              const Camera* camera,
-                             const int viewWidth,
-                             const int viewHeight,
+                             const v2i viewSize,
                              const WindowHandle viewId, 
                              Errors& errors )
   {
@@ -514,15 +541,19 @@ namespace Tac
       return;
 
     const Render::DefaultCBufferPerFrame perFrameData{
-      GetPerFrameBuf( camera, viewWidth, viewHeight ) };
+      GetPerFrameBuf( camera, viewSize ) };
+
+    const Render::UpdateBufferParams updateBufferParams
+    {
+      .mSrcBytes     { &perFrameData },
+      .mSrcByteCount { sizeof( Render::DefaultCBufferPerFrame ) },
+    };
     renderContext->UpdateBuffer( Render::DefaultCBufferPerFrame::sHandle,
-                                  &perFrameData,
-                                  sizeof( Render::DefaultCBufferPerFrame ),
-                                  TAC_STACK_FRAME );
+                                 updateBufferParams,
+                                 errors );
     Physics* physics{ Physics::GetSystem( world ) };
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Visit Terrains" );
-    //Render::BeginGroup( "Visit Terrains", TAC_STACK_FRAME );
     for( Terrain* terrain : physics->mTerrains )
     {
       TAC_CALL( LoadTerrain( terrain, errors ) );
@@ -563,34 +594,38 @@ namespace Tac
   static void RenderSkybox( Render::IContext* renderContext,
                             World* world,
                             const Camera* camera,
-                            const int viewWidth,
-                            const int viewHeight,
+                            const v2i viewSize,
                             const WindowHandle viewId,
                             Errors& errors )
   {
 
     if( !mRenderEnabledSkybox )
       return;
+
     Graphics* graphics{ GetGraphics( world ) };
     struct : public SkyboxVisitor
     {
       void operator()( Skybox* skybox ) override
       {
-        SkyboxPresentationRender( mCamera,
-                                  mViewWidth,
-                                  mViewHeight,
-                                  mViewId,
-                                  skybox->mSkyboxDir );
+        const SkyboxRenderParams skyboxRenderParams
+        {
+          .mCamera    { mCamera },
+          .mViewSize  { mViewSize },
+          .mViewId    { mViewId },
+          .mSkyboxDir { skybox->mSkyboxDir }
+        };
+        SkyboxPresentationRender( skyboxRenderParams, *mErrors );
       }
-      int                mViewWidth{};
-      int                mViewHeight{};
-      WindowHandle       mViewId{};
-      const Camera*      mCamera{};
+      v2i                mViewSize {};
+      WindowHandle       mViewId   {};
+      const Camera*      mCamera   {};
+      Errors*            mErrors   {};
     } mySkyboxVisitor;
-    mySkyboxVisitor.mViewWidth = viewWidth;
-    mySkyboxVisitor.mViewHeight = viewHeight;
+    mySkyboxVisitor.mViewSize = viewSize;
     mySkyboxVisitor.mViewId = viewId;
     mySkyboxVisitor.mCamera = camera;
+    mySkyboxVisitor.mErrors = &errors;
+
     TAC_RENDER_GROUP_BLOCK( renderContext, "Visit Skyboxes" );
     graphics->VisitSkyboxes( &mySkyboxVisitor );
   }
@@ -623,10 +658,6 @@ namespace Tac
     ImGuiDragFloat3( "worldspace unit dir", shaderLight->mWorldSpaceUnitDirection.data() );
     ImGuiDragFloat3( "light color", shaderLight->mColorRadiance.data() );
     ImGuiDragFloat( "light radiance", &shaderLight->mColorRadiance.w );
-    //ImGuiDragFloat( "light near plane", &shaderLight->mNear );
-    //ImGuiDragFloat( "light far plane", &shaderLight->mFar );
-    ImGuiDragFloat( "light proj a", &shaderLight->mProjA );
-    ImGuiDragFloat( "light proj b", &shaderLight->mProjB );
     ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
     ImGuiText( ShortFixedString::Concat( "Light type: ",
                LightTypeToString( lightType ),
@@ -672,49 +703,89 @@ const Tac::Mesh* Tac::GamePresentationGetModelMesh( const Model* model )
 
 void        Tac::GamePresentationInit( Errors& errors )
 {
-
   CheckShaderPadding();
 
   TAC_CALL( Create3DShader( errors ) );
 
   TAC_CALL( CreateTerrainShader( errors ) );
 
-  TAC_CALL( Create3DVertexFormat( errors ) );
+  Create3DVertexFormat();
+  CreateTerrainVertexDecls();
 
-  TAC_CALL( CreateTerrainVertexFormat( errors ) );
+  const Render::BlendState blendState{ GetBlendState() };
+  const Render::DepthState depthState{ GetDepthState() };
+  const Render::RasterizerState rasterizerState{ GetRasterizerState() };
 
-  TAC_CALL( CreateBlendState( errors ) );
+  CreatePointSampler();
+  CreateLinearSampler();
+  CreateAnisoSampler();
 
-  TAC_CALL( CreateDepthState( errors ) );
+  const Render::PipelineParams terrainPipelineParams
+  {
+    .mProgram           { mTerrainShader},
+    .mBlendState        { blendState},
+    .mDepthState        { depthState},
+    .mRasterizerState   { rasterizerState },
+    .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+    .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+    .mVtxDecls          { mTerrainVtxDecls },
+    .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+    .mName              { "terrain-pso" },
+  };
 
-  TAC_CALL( CreateRasterizerState( errors ) );
+  const Render::PipelineParams gamePipelineParams
+  {
+    .mProgram           { m3DShader},
+    .mBlendState        { blendState},
+    .mDepthState        { depthState},
+    .mRasterizerState   { rasterizerState },
+    .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+    .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+    .mVtxDecls          { m3DVertexFormatDecls },
+    .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+    .mName              { "game-pso" },
+  };
 
-  TAC_CALL( CreateSamplerState( errors ) );
+  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  TAC_CALL( mTerrainPipeline = renderDevice->CreatePipeline( terrainPipelineParams, errors ) );
+  TAC_CALL( mGamePipeline = renderDevice->CreatePipeline( gamePipelineParams, errors ) );
+  
+  mShaderTerrainHeightmap = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainTexture" );
+  mShaderTerrainNoise = renderDevice->GetShaderVariable( mTerrainPipeline, "noiseTexture" );
+  mShaderTerrainSampler = renderDevice->GetShaderVariable( mTerrainPipeline, "linearSampler" );
+  mShaderTerrainSampler->SetSampler( mSamplerLinear );
 
-  TAC_CALL( CreateSamplerStateShadow( errors ) );
+  mShaderGameShadowMaps = renderDevice->GetShaderVariable( mGamePipeline, "shadowMaps" );
+  mShaderGameLinearSampler = renderDevice->GetShaderVariable( mGamePipeline, "linearSampler" );
+  mShaderGameLinearSampler->SetSampler( mSamplerLinear );
+  mShaderGameShadowSampler = renderDevice->GetShaderVariable( mGamePipeline, "shadowMapSampler" );
+  mShaderGameShadowSampler->SetSampler( mSamplerPoint );
+
+  mShaderGamePerObject = renderDevice->GetShaderVariable( mGamePipeline, "CBufferPerObject" );
+  mShaderGamePerObject->SetBuffer( Render::DefaultCBufferPerObject::sHandle );
 }
 
 void        Tac::GamePresentationUninit()
 {
-  Render::DestroyProgram( m3DShader, TAC_STACK_FRAME );
-  Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
-  Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
-  Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
-  Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-  Render::DestroySamplerState( mSamplerStateAniso, TAC_STACK_FRAME );
-  Render::DestroySamplerState( mSamplerStatePointShadow, TAC_STACK_FRAME );
+  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  renderDevice->DestroyProgram( m3DShader );
+  renderDevice->DestroyPipeline( mTerrainPipeline );
+  renderDevice->DestroyPipeline( mGamePipeline );
+  renderDevice->DestroySampler( mSamplerAniso );
+  renderDevice->DestroySampler( mSamplerPoint );
+  renderDevice->DestroySampler( mSamplerLinear );
 }
 
 
 void        Tac::GamePresentationRender( World* world,
                                          const Camera* camera,
-                                         const int viewWidth,
-                                         const int viewHeight,
+                                         const v2i viewSize,
                                          const WindowHandle windowHandle,
                                          Errors& errors )
 {
   Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) };
+  Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) };
+  Render::IContext* renderContext{ renderContextScope.GetContext() };
 
   TAC_RENDER_GROUP_BLOCK( renderContext, "GamePresentationRender" );
 
@@ -723,16 +794,14 @@ void        Tac::GamePresentationRender( World* world,
   TAC_CALL( RenderModels( renderContext,
                           world,
                           camera,
-                          viewWidth,
-                          viewHeight,
+                          viewSize,
                           windowHandle,
                           errors ) );
 
   TAC_CALL( RenderTerrain( renderContext,
                            world,
                            camera,
-                           viewWidth,
-                           viewHeight,
+                           viewSize,
                            windowHandle,
                            errors ) );
 
@@ -740,8 +809,7 @@ void        Tac::GamePresentationRender( World* world,
   TAC_CALL( RenderSkybox( renderContext,
                           world,
                           camera,
-                          viewWidth,
-                          viewHeight,
+                          viewSize,
                           windowHandle,
                           errors ) );
 
@@ -750,8 +818,7 @@ void        Tac::GamePresentationRender( World* world,
     TAC_CALL( world->mDebug3DDrawData->DebugDraw3DToTexture( renderContext,
                                                              windowHandle,
                                                              camera,
-                                                             viewWidth,
-                                                             viewHeight,
+                                                             viewSize,
                                                              errors ) );
   }
 }

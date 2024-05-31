@@ -16,7 +16,7 @@ namespace Tac::Render
     };
 
     void         Init( Params );
-    void         CreateSampler( SamplerHandle, Filter );
+    void         CreateSampler( SamplerHandle, CreateSamplerParams );
     void         DestroySampler( SamplerHandle );
     DX12Sampler* FindSampler( SamplerHandle );
 

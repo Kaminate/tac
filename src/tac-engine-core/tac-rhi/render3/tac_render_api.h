@@ -388,6 +388,12 @@ namespace Tac::Render
     virtual void SetSamplerAtIndex( int, SamplerHandle ) {};
   };
 
+  struct CreateSamplerParams
+  {
+    Filter     mFilter;
+    StringView mName;
+  };
+
   struct IContext
   {
     struct Scope
@@ -479,7 +485,7 @@ namespace Tac::Render
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& )         {}
     virtual void            DestroyProgram( ProgramHandle )                 {}
 
-    virtual SamplerHandle   CreateSampler( Filter )                         {}
+    virtual SamplerHandle   CreateSampler( CreateSamplerParams )            {}
     virtual void            DestroySampler( SamplerHandle )                 {}
 
     virtual SwapChainHandle CreateSwapChain( SwapChainParams, Errors& )     {}

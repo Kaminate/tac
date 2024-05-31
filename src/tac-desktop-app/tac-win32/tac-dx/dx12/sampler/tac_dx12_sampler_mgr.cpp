@@ -37,9 +37,9 @@ namespace Tac::Render
   }
 
   void DX12SamplerMgr::CreateSampler( SamplerHandle h,
-                                      Filter filter )
+                                      CreateSamplerParams params )
   {
-    const D3D12_FILTER dx12filter{ GetFilter( filter ) };
+    const D3D12_FILTER dx12filter{ GetFilter( params.mFilter ) };
 
     const D3D12_SAMPLER_DESC Desc
     {
@@ -59,7 +59,8 @@ namespace Tac::Render
   
     mSamplers[ h.GetIndex() ] = DX12Sampler
     {
-      .mDescriptor{ descriptor }
+      .mDescriptor{ descriptor },
+      .mName{params.mName},
     };
 
   }
