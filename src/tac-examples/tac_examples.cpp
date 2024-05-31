@@ -4,15 +4,17 @@
 #include "tac-ecs/presentation/tac_game_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 
-#include "tac-engine-core/settings/tac_settings_node.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/graphics/camera/tac_camera.h"
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/math/tac_math.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/os/tac_os.h"
 
 #include "tac-examples/tac_examples_registry.h"
@@ -30,10 +32,10 @@ namespace Tac
     mWorld = TAC_NEW World;
     mCamera = TAC_NEW Camera
     {
-      .mPos = { 0, 0, 5 },
-      .mForwards = { 0, 0, -1 },
-      .mRight = { 1, 0, 0 },
-      .mUp = { 0, 1, 0 }
+      .mPos      { 0, 0, 5 },
+      .mForwards { 0, 0, -1 },
+      .mRight    { 1, 0, 0 },
+      .mUp       { 0, 1, 0 }
     };
   }
 
@@ -46,8 +48,11 @@ namespace Tac
 
   static WindowHandle sNavWindow;
   static WindowHandle sDemoWindow;
+  static SettingsNode sSettingsNode;
+  static const SimKeyboardApi* sKeyboardApi;
+  static const SimWindowApi* sWindowApi;
 
-  static void   ExamplesInitCallback( Errors& errors )
+  static void   ExamplesInitCallback( App::InitParams initParams, Errors& errors )
   {
     // nav
     const int x { 50 };
@@ -65,10 +70,11 @@ namespace Tac
 
     ExampleRegistryPopulate();
 
-    const StringView settingExampleName { SettingsGetString( "Example.Name", "" ) };
-    const int        settingExampleIndex { GetExampleIndex( settingExampleName ) };
+    const String settingExampleName {
+      sSettingsNode.GetChild( "Example.Name" ).GetValueWithFallback( "" ) };
+    const int    settingExampleIndex { GetExampleIndex( settingExampleName ) };
 
-    SetNextExample(settingExampleIndex);
+    SetNextExample( settingExampleIndex );
 
     TAC_CALL( GamePresentationInit( errors ));
   }
@@ -121,7 +127,7 @@ namespace Tac
       SetNextExample( iSelected );
   }
 
-  static void ExampleDemoWindow(Errors& errors)
+  static void ExampleDemoWindow( Errors& errors )
   {
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowDisableBG();
@@ -131,63 +137,92 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
-    DesktopWindowState* demoWindowState { GetDesktopWindowState( sDemoWindow ) };
-    const int w { demoWindowState->mWidth };
-    const int h { demoWindowState->mHeight };
-
-    if( Example* ex = GetCurrExample() )
-    {
-
-      const Render::ViewHandle view { WindowGraphicsGetView( sDemoWindow ) };
-      const Render::FramebufferHandle fb { WindowGraphicsGetFramebuffer( sDemoWindow ) };
-      Render::SetViewFramebuffer( view, fb );
-      Render::SetViewport( view, Render::Viewport( w, h ) );
-      Render::SetViewScissorRect( view, Render::ScissorRect( w, h ) );
-      GamePresentationRender( ex->mWorld,
-                              ex->mCamera,
-                              w,
-                              h,
-                              view );
-    }
-
     const int iOld { GetCurrExampleIndex() };
     TAC_CALL( ExampleStateMachineUpdate( errors ));
     const int iNew { GetCurrExampleIndex() };
     if( iOld != iNew )
-      SettingsSetString( "Example.Name", GetExampleName( iNew ) );
+    {
+      sSettingsNode.GetChild( "Example.Name" ).SetValue( GetExampleName( iNew ) );
+    }
   }
 
-  static void   ExamplesUpdateCallback( Errors& errors )
+  static void ExamplesRenderCallback( App::RenderParams renderParams, Errors& errors )
   {
-    if( KeyboardIsKeyDown( Key::Escape ) )
+    const SysWindowApi* windowApi{ renderParams.mWindowApi };
+    const v2i windowSize{ windowApi->GetSize( sDemoWindow ) };
+    if( Example* ex = GetCurrExample() )
+    {
+      const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( sDemoWindow ) };
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      const Render::TextureHandle backbuffer{
+        renderDevice->GetSwapChainCurrentColor( swapChain ) };
+
+      TAC_CALL( GamePresentationRender( ex->mWorld,
+                              ex->mCamera,
+                              windowSize,
+                              backbuffer,
+                              errors ) );
+    }
+
+  }
+
+  static void   ExamplesUpdateCallback( App::UpdateParams updateParams, Errors& errors )
+  {
+    sKeyboardApi = updateParams.mKeyboardApi;
+    sWindowApi = updateParams.mWindowApi;
+
+    if( sKeyboardApi->IsPressed( Key::Escape ) )
       OS::OSAppStopRunning();
 
-    if( !GetDesktopWindowState( sDemoWindow )->mNativeWindowHandle ||
-        !GetDesktopWindowState( sNavWindow )->mNativeWindowHandle )
+    if( !sWindowApi->IsShown(sDemoWindow ) )
       return;
 
-    TAC_CALL( ExampleSelectorWindow( errors ));
+    if( !sWindowApi->IsShown(sNavWindow ) )
+      return;
 
-    TAC_CALL( ExampleDemoWindow(errors));
+    TAC_CALL( ExampleSelectorWindow( errors ) );
+
+    TAC_CALL( ExampleDemoWindow(  errors ) );
   }
 
   struct ExamplesApp : public App
   {
     ExamplesApp( const Config& config ) : App( config ) {}
-    void Init( Errors& errors ) override { ExamplesInitCallback( errors ); }
-    void Update( Errors& errors ) override { ExamplesUpdateCallback( errors ); }
+    void Init( InitParams initParams, Errors& errors ) override
+    {
+      sSettingsNode = mSettingsNode;
+      ExamplesInitCallback( initParams, errors );
+    }
+
+    void Update( UpdateParams updateParams, Errors& errors ) override
+    {
+      ExamplesUpdateCallback( updateParams, errors );
+    }
+
+    void Render( RenderParams renderParams, Errors& errors ) override
+    {
+      ExamplesRenderCallback( renderParams, errors );
+    }
+
     void Uninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }
   };
 
-  App* App::Create() { return TAC_NEW ExamplesApp(Config { .mName = "Examples" }); }
+  App* App::Create()
+  {
+    const App::Config cfg
+    {
+      .mName { "Examples"  },
+    };
+    return TAC_NEW ExamplesApp(cfg);
+  }
 
   v3 Example::GetWorldspaceKeyboardDir()
   {
     v3 force{};
-    force += KeyboardIsKeyDown( Key::W ) ? mCamera->mUp : v3{};
-    force += KeyboardIsKeyDown( Key::A ) ? -mCamera->mRight : v3{};
-    force += KeyboardIsKeyDown( Key::S ) ? -mCamera->mUp : v3{};
-    force += KeyboardIsKeyDown( Key::D ) ? mCamera->mRight : v3{};
+    force += sKeyboardApi->IsPressed( Key::W ) ? mCamera->mUp : v3{};
+    force += sKeyboardApi->IsPressed( Key::A ) ? -mCamera->mRight : v3{};
+    force += sKeyboardApi->IsPressed( Key::S ) ? -mCamera->mUp : v3{};
+    force += sKeyboardApi->IsPressed( Key::D ) ? mCamera->mRight : v3{};
     const float q { force.Quadrance() };
     if( q )
       force /= Sqrt( q );

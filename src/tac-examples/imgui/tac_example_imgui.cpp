@@ -29,7 +29,7 @@ namespace Tac
       const v4& col4 { ImGuiGetColor( col ) };
       const UIStyle& style { ImGuiGetStyle() };
       const v2 size( style.fontSize, style.fontSize );
-      const int iTex { ( int )Render::TextureHandle() };
+      const int iTex { Render::TextureHandle().GetIndex() };
 
       ImGuiText( FormatColor( col4 ) );
       ImGuiSameLine();

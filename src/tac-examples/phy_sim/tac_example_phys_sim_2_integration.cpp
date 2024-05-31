@@ -1,6 +1,7 @@
 #include "tac_example_phys_sim_2_integration.h" // self-inc
 
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/color/tac_color_util.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
@@ -91,15 +92,15 @@ namespace Tac
 
   void ExamplePhysSim2Integration::UI()
   {
-    bool shouldReset = ImGuiButton( "Reset" );
+    const bool shouldReset { ImGuiButton( "Reset" ) };
 
     ImGuiText( ShortFixedString::Concat( "Current Mode: ", ToString( mIntegrationMode ) ) );
 
     ImGuiText( "Change Mode:" );
-    for( int i = 0; i < (int)IntegrationMode::Count; ++i )
+    for( int i{}; i < ( int )IntegrationMode::Count; ++i )
     {
       ImGuiSameLine();
-      const bool modePressed = ImGuiButton( ToString( ( IntegrationMode )i ) );
+      const bool modePressed { ImGuiButton( ToString( ( IntegrationMode )i ) ) };
       if( modePressed )
         mIntegrationMode = ( IntegrationMode )i;
 
@@ -122,7 +123,7 @@ namespace Tac
     //   denominator: rotation duration in seconds
     mAngularVelocity = 2.0f * 3.14f / mDuration;
 
-    float linearVelocity =  mOrbitRadius * mAngularVelocity;
+    const float linearVelocity {  mOrbitRadius * mAngularVelocity };
 
     mPosition = mCamera->mUp * mOrbitRadius;
     mVelocity = -mCamera->mRight * linearVelocity;
@@ -139,6 +140,7 @@ namespace Tac
     timer = 0.05f;
     if( mPositions.size() == mPositions.capacity() )
       mPositions.pop_front();
+
     mPositions.push_back( mPosition );
   }
 
@@ -146,12 +148,13 @@ namespace Tac
   {
     if( mPositions.size() < 2 )
       return;
+
     v3 prev = mPositions[ 0 ];
 
-    for( int i = 1; i < mPositions.size(); ++i )
+    for( int i{ 1 }; i < mPositions.size(); ++i )
     {
-      v3 curr = mPositions[ i ];
-      v4 color = v4( HSVToRGB( v3( i / (float) mPositions.size(), 1.0f, 0.5f) ), 1.0f );
+      v3 curr { mPositions[ i ] };
+      v4 color { v4( HSVToRGB( v3( i / (float) mPositions.size(), 1.0f, 0.5f) ), 1.0f ) };
       mWorld->mDebug3DDrawData->DebugDraw3DLine( prev, curr, color );
       prev = curr;
     }
@@ -159,19 +162,19 @@ namespace Tac
 
   v3   ExamplePhysSim2Integration::GetCentripetalAcceleration(v3 pos)
   {
-    float radius = pos.Length();
-    float speed = radius * mAngularVelocity;
+    float radius { pos.Length() };
+    float speed { radius * mAngularVelocity };
 
     // centripetal acceleration
-    float accelLen = speed * speed * ( 1.0f / radius );
-    v3 accelDir = -Normalize( pos );
-    v3 accel = accelDir * accelLen;
+    float accelLen { speed * speed * ( 1.0f / radius ) };
+    v3 accelDir { -Normalize( pos ) };
+    v3 accel { accelDir * accelLen };
     return accel;
   }
 
   v3   ExamplePhysSim2Integration::GetCentripetalForce(v3 pos)
   {
-    v3 force = mMass * GetCentripetalAcceleration(pos);
+    v3 force { mMass * GetCentripetalAcceleration(pos) };
     return force;
   }
 
@@ -195,13 +198,13 @@ namespace Tac
     {
       case IntegrationMode::Euler:
       {
-        v3 accel = GetAcceleration(mPosition);
+        v3 accel { GetAcceleration(mPosition) };
         mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
         mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
       } break;
       case IntegrationMode::SemiImplicitEuler:
       {
-        v3 accel = GetAcceleration(mPosition);
+        v3 accel { GetAcceleration(mPosition) };
 
         // Explicit velocity update step
         mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
@@ -213,26 +216,26 @@ namespace Tac
       {
         const RK4State s1
         {
-          .mPosition = mPosition,
-          .mVelocity = mVelocity
+          .mPosition { mPosition },
+          .mVelocity { mVelocity },
         };
-        const Rk4StateDerivative k1 = s1.Derive();
+        const Rk4StateDerivative k1 { s1.Derive() };
 
-        const RK4State s2 = s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k1;
-        const Rk4StateDerivative k2 = s2.Derive();
+        const RK4State s2 { s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k1 };
+        const Rk4StateDerivative k2 { s2.Derive() };
 
-        const RK4State s3 = s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k2;
-        const Rk4StateDerivative k3 = s3.Derive();
+        const RK4State s3 { s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k2 };
+        const Rk4StateDerivative k3 { s3.Derive() };
 
-        const RK4State s4 = s1 + TAC_DELTA_FRAME_SECONDS * k3;
-        const Rk4StateDerivative k4 = s4.Derive();
+        const RK4State s4 { s1 + TAC_DELTA_FRAME_SECONDS * k3 };
+        const Rk4StateDerivative k4 { s4.Derive() };
 
-        const Rk4StateDerivative k =
+        const Rk4StateDerivative k{
           ( 1 / 6.0f ) * k1 +
           ( 2 / 6.0f ) * k2 +
           ( 2 / 6.0f ) * k3 +
-          ( 1 / 6.0f ) * k4;
-        const RK4State s = s1 + TAC_DELTA_FRAME_SECONDS * k;
+          ( 1 / 6.0f ) * k4 };
+        const RK4State s { s1 + TAC_DELTA_FRAME_SECONDS * k };
         mPosition = s.mPosition;
         mVelocity = s.mVelocity;
       } break;

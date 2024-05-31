@@ -32,9 +32,9 @@ namespace Tac
   int GetExampleCount() { return sExamples.size(); }
   const char* GetExampleName(int i) { return sExamples[i].GetName(); }
 
-  Example* CreateExample(int i)
+  Example* CreateExample( int i )
   {
-    return sExamples[i].mExampleFactory();
+    return sExamples[ i ].mExampleFactory();
   }
 
 

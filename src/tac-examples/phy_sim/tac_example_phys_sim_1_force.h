@@ -16,19 +16,19 @@ namespace Tac
   {
     struct Ball
     {
-      float mRadius{};
-      float mMass{};
-      v3    mPos;
-      v3    mVelocity;
+      float mRadius   {};
+      float mMass     {};
+      v3    mPos      {};
+      v3    mVelocity {};
     };
 
     ExamplePhysSim1Force();
     ~ExamplePhysSim1Force() override;
-    void Update( Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
 
-    Entity* mEntity {};
-    Model* mModel {};
-    Ball mBall;
-    float mSpringConstant;
+    Entity* mEntity         {};
+    Model*  mModel          {};
+    Ball    mBall           {};
+    float   mSpringConstant {};
   };
 }

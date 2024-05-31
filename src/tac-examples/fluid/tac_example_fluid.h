@@ -7,6 +7,6 @@ namespace Tac
 {
   struct ExampleFluid : public Example
   {
-    void Update( Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
   };
 }

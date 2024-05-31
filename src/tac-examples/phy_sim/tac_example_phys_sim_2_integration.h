@@ -18,7 +18,7 @@ namespace Tac
   {
     ExamplePhysSim2Integration();
     ~ExamplePhysSim2Integration() override;
-    void Update( Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
     void UI();
     void TrackPositions();
     void DrawPositions();
@@ -29,12 +29,12 @@ namespace Tac
     static v3   GetCentripetalAcceleration(v3 pos);
     static v3   GetCentripetalForce(v3 pos);
 
-    static const int            kRingCount = 25;
+    static const int            kRingCount { 25 };
     IntegrationMode             mIntegrationMode{};
     v3                          mPosition;
     v3                          mVelocity;
     RingArray< v3, kRingCount > mPositions;
-    float                       timer = 0;
+    float                       timer {};
     static float                mBallRadius;
     static float                mOrbitRadius;
     static float                mDuration;

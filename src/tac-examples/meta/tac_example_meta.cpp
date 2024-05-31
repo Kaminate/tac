@@ -9,7 +9,7 @@ import std; // #include <sstream>
 
 namespace Tac
 {
-  void ExampleMeta::Update( Errors& errors )
+  void ExampleMeta::Update( UpdateParams, Errors& errors )
   {
     mShouldRunTests |=  ImGuiButton( "Run Unit Tests" );
     if( mShouldRunTests )
@@ -28,8 +28,8 @@ namespace Tac
         << fn->Name()
         << "( ";
 
-      const char* sep = "";
-      for( int i = 0; i < fn->ArgCount(); ++i )
+      const char* sep { "" };
+      for( int i{}; i < fn->ArgCount(); ++i )
       {
         ss
           << sep
@@ -40,8 +40,8 @@ namespace Tac
       ss
         << " )";
 
-      std::string s = ss.str();
-      const char* cstr = s.c_str();
+      std::string s { ss.str() };
+      const char* cstr { s.c_str() };
       ImGuiText( cstr );
     }
   }

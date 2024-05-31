@@ -10,7 +10,7 @@
 
 namespace Tac
 {
-  static const char* quickbrownfox = "The quick brown fox jumps over the lazy dog";
+  static const char* quickbrownfox { "The quick brown fox jumps over the lazy dog" };
 
   static void Test( float fontSize, const char* str = quickbrownfox )
   {
@@ -20,7 +20,7 @@ namespace Tac
   }
 
 
-  void ExampleText::Update( Errors& errors )
+  void ExampleText::Update( UpdateParams, Errors& errors )
   {
     float fontSize { 10.0f };
     for( int i{}; i < 6; ++i, fontSize *= 2 )

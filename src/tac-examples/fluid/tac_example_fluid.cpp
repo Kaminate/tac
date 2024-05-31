@@ -188,31 +188,31 @@ namespace Tac
 
   typedef float( *Fn2D )( float );
   float Ex1FxEqualsXMinusCosX( float x ) { return x - Cos( x ); }
-  float Ex1GxEqualsCosX( float x ) { return Cos( x ); }
-  float Ex1YEqualsX( float x ) { return x; }
+  float Ex1GxEqualsCosX( float x )       { return Cos( x ); }
+  float Ex1YEqualsX( float x )           { return x; }
 
 
   struct EquationGrapher
   {
-    v2 canvas_pos = {};
-    v2 canvas_size = {};
-    v2 viewCenter = {};
-    v2 viewHalfDims = {};
+    v2 canvas_pos              {};
+    v2 canvas_size             {};
+    v2 viewCenter              {};
+    v2 viewHalfDims            {};
 
     // Cached at the start of the frame
-    v2 viewMini = { 0, 0 };
-    v2 viewMaxi = { 0, 0 };
-    v2 viewDims = { 0, 0 };
+    v2 viewMini                { 0, 0 };
+    v2 viewMaxi                { 0, 0 };
+    v2 viewDims                { 0, 0 };
 
-    float px_per_unit_y = 0;
-    float px_per_unit_x = 0;
+    float px_per_unit_y        {  };
+    float px_per_unit_x        {  };
 
-    const v4 axisColor = v4( 0, 0, 0, 1 );
-    const float axisLineRadiusMinor = 0.5f;
-    const float axisLineRadiusMajor = 2.0f;
+    const v4 axisColor         { 0, 0, 0, 1 };
+    const float axisLineRadiusMinor { 0.5f };
+    const float axisLineRadiusMajor { 2.0f };
 
     // Position of the graph's origin, in px, relative to the viewport of the desktop window
-    v2 originViewport = { 0, 0 };
+    v2 originViewport          { 0, 0 };
 
     void FrameBegin( v2 in_canvas_pos, v2 in_canvas_size )
     {
@@ -239,18 +239,18 @@ namespace Tac
 
     void DrawVerticalGridLines( UI2DDrawData* drawData )
     {
-      const float line_begin_x = 1.0f - ( viewMini.x - ( int )viewMini.x );
-      const int line_count_x = ( int )viewDims.x - 1;
+      const float line_begin_x { 1.0f - ( viewMini.x - ( int )viewMini.x ) };
+      const int line_count_x { ( int )viewDims.x - 1 };
 
-      for( int i = 0; i < line_count_x; ++i )
+      for( int i{}; i < line_count_x; ++i )
       {
-        const float line_canvas_x = canvas_pos.x + ( line_begin_x + i ) * px_per_unit_x;
-        const UI2DDrawData::Line line =
+        const float line_canvas_x { canvas_pos.x + ( line_begin_x + i ) * px_per_unit_x };
+        const UI2DDrawData::Line line
         {
-          .mP0 = v2( line_canvas_x, canvas_pos.y ),
-          .mP1 = v2( line_canvas_x, canvas_pos.y ) + v2( 0, canvas_size.y ),
-          .mLineRadius = axisLineRadiusMinor,
-          .mColor = axisColor ,
+          .mP0         { v2( line_canvas_x, canvas_pos.y ) },
+          .mP1         { v2( line_canvas_x, canvas_pos.y ) + v2( 0, canvas_size.y ) },
+          .mLineRadius { axisLineRadiusMinor },
+          .mColor      { axisColor  },
         };
         drawData->AddLine( line );
       }
@@ -260,20 +260,20 @@ namespace Tac
     {
 
       // draw horizontal axis lines
-      const float line_begin_y = 1.0f - ( viewMini.y - ( int )viewMini.y );
-      const int line_count_y = ( int )viewDims.y - 1;
-      for( int i = 0; i < line_count_y; ++i )
+      const float line_begin_y { 1.0f - ( viewMini.y - ( int )viewMini.y ) };
+      const int line_count_y { ( int )viewDims.y - 1 };
+      for( int i{}; i < line_count_y; ++i )
       {
         const float line_canvas_y
-          = canvas_pos.y
-          + canvas_size.y
-          - ( line_begin_y + i ) * px_per_unit_y;
-        const UI2DDrawData::Line line =
+        { canvas_pos.y
+        + canvas_size.y
+        - ( line_begin_y + i ) * px_per_unit_y };
+        const UI2DDrawData::Line line 
         {
-          .mP0 = v2( canvas_pos.x, line_canvas_y ),
-          .mP1 = v2( canvas_pos.x, line_canvas_y ) + v2( canvas_size.x, 0 ),
-          .mLineRadius = axisLineRadiusMinor,
-          .mColor = axisColor,
+          .mP0         { v2( canvas_pos.x, line_canvas_y ) },
+          .mP1         { v2( canvas_pos.x, line_canvas_y ) + v2( canvas_size.x, 0 ) },
+          .mLineRadius { axisLineRadiusMinor },
+          .mColor      { axisColor },
         };
         drawData->AddLine( line );
       }
@@ -281,15 +281,15 @@ namespace Tac
 
     void DrawYAxis( UI2DDrawData* drawData )
     {
-      const bool isYAxisVisible = viewMini.x < 0 && viewMaxi.x > 0;
+      const bool isYAxisVisible { viewMini.x < 0 && viewMaxi.x > 0 };
       if( isYAxisVisible )
       {
-        const UI2DDrawData::Line line =
+        const UI2DDrawData::Line line
         {
-          .mP0 = v2( originViewport.x, canvas_pos.y ),
-          .mP1 = v2( originViewport.x, canvas_pos.y ) + v2( 0, canvas_size.y ),
-          .mLineRadius = axisLineRadiusMajor,
-          .mColor = axisColor,
+          .mP0         { v2( originViewport.x, canvas_pos.y ) },
+          .mP1         { v2( originViewport.x, canvas_pos.y ) + v2( 0, canvas_size.y ) },
+          .mLineRadius { axisLineRadiusMajor },
+          .mColor      { axisColor },
         };
         drawData->AddLine( line );
       }
@@ -298,16 +298,15 @@ namespace Tac
 
     void DrawXAxis( UI2DDrawData* drawData )
     {
-      const bool isXAxisVisible = viewMini.y < 0 && viewMaxi.y > 0;
+      const bool isXAxisVisible { viewMini.y < 0 && viewMaxi.y > 0 };
       if( isXAxisVisible )
       {
-
-        const UI2DDrawData::Line line =
+        const UI2DDrawData::Line line
         {
-          .mP0 = v2( canvas_pos.x, originViewport.y ),
-          .mP1 = v2( canvas_pos.x, originViewport.y ) + v2( canvas_size.x, 0 ),
-          .mLineRadius = axisLineRadiusMajor,
-          .mColor = axisColor,
+          .mP0         { v2( canvas_pos.x, originViewport.y ) },
+          .mP1         { v2( canvas_pos.x, originViewport.y ) + v2( canvas_size.x, 0 ) },
+          .mLineRadius { axisLineRadiusMajor },
+          .mColor      { axisColor },
         };
         drawData->AddLine( line );
       }
@@ -327,30 +326,30 @@ namespace Tac
 
       static Vector< v2 > points;
       points.clear();
-      for( float x = viewMini.x; x < viewMaxi.x; x += viewDims.x / 100.0f )
+      for( float x{ viewMini.x }; x < viewMaxi.x; x += viewDims.x / 100.0f )
       {
-        float y = fn( x );
+        const float y { fn( x ) };
         points.push_back( v2( x, y ) );
       }
 
       if( points.empty() )
         return;
 
-      v2 pPrev = points[ 0 ];
+      v2 pPrev { points[ 0 ] };
       auto isPointVisible = [ & ]( v2 p )->bool { return p.y > viewMini.y && p.y < viewMaxi.y; };
-      bool prevVisible = isPointVisible( pPrev );
-      for( int i = 1; i < points.size(); ++i )
+      bool prevVisible { isPointVisible( pPrev ) };
+      for( int i{ 1 }; i < points.size(); ++i )
       {
-        const v2 pCurr = points[ i ];
-        const bool currVisible = isPointVisible( pCurr );
+        const v2 pCurr { points[ i ] };
+        const bool currVisible { isPointVisible( pCurr ) };
         if( prevVisible && currVisible )
         {
-          const UI2DDrawData::Line line =
+          const UI2DDrawData::Line line
           {
-            .mP0 = GraphToWindow( pPrev ),
-            .mP1 = GraphToWindow( pCurr ),
-            .mLineRadius = radius,
-            .mColor = color,
+            .mP0         { GraphToWindow( pPrev ) },
+            .mP1         { GraphToWindow( pCurr ) },
+            .mLineRadius { radius },
+            .mColor      { color },
           };
           drawData->AddLine(line);
         }
@@ -364,35 +363,47 @@ namespace Tac
     void MouseDrag( const SimKeyboardApi* keyboardApi,
                     const SimWindowApi* windowApi )
     {
-      const WindowHandle windowHandle = ImGuiGetWindowHandle();
-      if( windowApi->IsShown( windowHandle ) )
+      const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
+      if( !windowApi->IsShown( windowHandle ) )
         return;
 
-      if( !IsWindowHovered( windowHandle ) )
+      if( !windowApi->IsHovered( windowHandle ) )
         return;
-      const DesktopWindowState* state = GetDesktopWindowState( windowHandle );
-      if( !state )
+
+      const v2i windowSize{ windowApi->GetSize( windowHandle ) };
+      const v2i windowPos{ windowApi->GetPos( windowHandle ) };
+
+      const v2 desktopWindowPos( ( float )windowPos.x, ( float )windowPos.y );
+
+      const v2 screenspaceMousePos{ keyboardApi->GetMousePosScreenspace() };
+      const v2 mouseDeltaPos{ keyboardApi->GetMousePosDelta() };
+      const float mouseWheelDelta{ keyboardApi->GetMouseWheelDelta() };
+
+      const ImGuiRect canvasRectScreenspace {
+        ImGuiRect::FromPosSize( desktopWindowPos + canvas_pos, canvas_size ) };
+      if( !canvasRectScreenspace.ContainsPoint( screenspaceMousePos ) )
         return;
-      const v2 desktopWindowPos( ( float )state->mX, ( float )state->mY );
-      const ImGuiRect canvasRectScreenspace = ImGuiRect::FromPosSize( desktopWindowPos + canvas_pos, canvas_size );
-      if( !canvasRectScreenspace.ContainsPoint( Mouse::GetScreenspaceCursorPos() ) )
-        return;
-      if( Mouse::GetMouseDeltaScroll() )
+
+      if( mouseWheelDelta )
       {
-        this->viewHalfDims.x -= Mouse::GetMouseDeltaScroll() * 0.3f;
+        viewHalfDims.x -= mouseWheelDelta * 0.3f;
       }
-      if( !Mouse::ButtonIsDown( Mouse::Button::MouseMiddle ) )
-        return;
-      const v2 mouseDeltaPos = Mouse::GetMouseDeltaPos();
-      viewCenter -= v2( mouseDeltaPos.x / px_per_unit_x,
-                        -mouseDeltaPos.y / px_per_unit_y );
+
+      if( keyboardApi->IsPressed( Key::MouseMiddle ) )
+      {
+        viewCenter -= v2( mouseDeltaPos.x / px_per_unit_x,
+                          -mouseDeltaPos.y / px_per_unit_y );
+      }
     }
   };
 
   static EquationGrapher sEquationGrapher;
 
-  void ExampleFluid::Update( Errors& errors )
+  void ExampleFluid::Update( UpdateParams updateParams, Errors& errors )
   {
+    const SimKeyboardApi* keyboardApi{ updateParams.mKeyboardApi };
+    const SimWindowApi* windowApi{ updateParams.mWindowApi };
+
     struct FnDraw
     {
       FnDraw() = default;
@@ -410,7 +421,7 @@ namespace Tac
 
     static Vector< String > texts;
     static Vector< FnDraw > fns;
-    const int NULL_STEP = -1;
+    const int NULL_STEP { -1 };
     static int iStep = NULL_STEP;
     static int iStepNext;
     static int stepCount;
@@ -418,9 +429,9 @@ namespace Tac
 
     ImGuiText( "--------------------------------" );
 
-    ImGuiText(String() + "(debug text) "
+    ImGuiText( String() + "(debug text) "
                + "iStep: " + ToString( iStep ) + " , "
-               + "stepCount: " + ToString( stepCount ));
+               + "stepCount: " + ToString( stepCount ) );
 
 
     //if( sIterationExample != IterationExample::None )
@@ -428,9 +439,9 @@ namespace Tac
       //ImGuiText( sIterationExampleFn );
 
     // Relative to window viewport
-    const v2 canvas_pos = ImGuiGetCursorPos();
-    const v2 canvas_size = v2( 400, 300 );
-    ImGuiImage( ( int )Render::TextureHandle(), canvas_size );
+    const v2 canvas_pos { ImGuiGetCursorPos() };
+    const v2 canvas_size { v2( 400, 300 ) };
+    ImGuiImage( Render::TextureHandle().GetIndex(), canvas_size );
     UI2DDrawData* drawData = ImGuiGetDrawData();
 
     sEquationGrapher.FrameBegin( canvas_pos, canvas_size );
@@ -443,7 +454,7 @@ namespace Tac
     //sEquationGrapher.DrawFn( sGraphEqFx, 1.0f, v4( 1, 0, 0, 1 ), drawData );
     //sEquationGrapher.DrawFn( sGraphEqGx, 1.0f, v4( 0, 1, 0, 1 ), drawData );
     //sEquationGrapher.DrawFn( []( float x ){ return x; }, 0.5f, v4( 0, 0, 0, 1 ), drawData );
-    sEquationGrapher.MouseDrag();
+    sEquationGrapher.MouseDrag( keyboardApi, windowApi );
 
     for( const String& text : texts )
     {
@@ -456,11 +467,13 @@ namespace Tac
     {
       const bool nextAvailable = iStep < stepCount - 1;
       const bool prevAvailable = iStep > 0;
-      if( prevAvailable && ( ImGuiButton( "Prev" ) || KeyboardIsKeyJustDown( Key::LeftArrow ) ) )
+      if( prevAvailable && ( ImGuiButton( "Prev" ) || keyboardApi->JustPressed( Key::LeftArrow ) ) )
         iStepNext = iStep - 1;
+
       if( nextAvailable && prevAvailable )
         ImGuiSameLine();
-      if( nextAvailable && ( ImGuiButton( "Next" ) || KeyboardIsKeyJustDown( Key::RightArrow ) ) )
+
+      if( nextAvailable && ( ImGuiButton( "Next" ) || keyboardApi->JustPressed( Key::RightArrow ) ) )
         iStepNext = iStep + 1;
     }
 
@@ -479,7 +492,7 @@ namespace Tac
               "x - cos(x) = 0"
         };
 
-        const Vector< FnDraw > fnsStep0 = { FnDraw( Ex1FxEqualsXMinusCosX, v4( 1,0,0,1 ), 1.0f ) };
+        const Vector< FnDraw > fnsStep0 { FnDraw( Ex1FxEqualsXMinusCosX, v4( 1,0,0,1 ), 1.0f ) };
 
         const Vector< String > textsStep1 = [ & ]()
         {
@@ -498,7 +511,7 @@ namespace Tac
 
         const Vector< String > textsStep2 = [ & ]()
         {
-          Vector< String > u = textsStep1;
+          Vector< String > u { textsStep1 };
           u.insert( u.end(),
                     {
                         "x = g(x)",
@@ -517,7 +530,7 @@ namespace Tac
 
         const Vector< FnDraw > fnsStep2 = [ & ]()
         {
-          Vector< FnDraw > v = fnsStep1;
+          Vector< FnDraw > v { fnsStep1 };
           v.push_back( FnDraw( Ex1YEqualsX, v4( 0, 0, 0, 1 ), 1.0f ) );
           return v;
         }( );
@@ -546,18 +559,18 @@ namespace Tac
           {
             texts = textsStep2;
 
-            float val = 3;
-            Vector< float > vals = { val };
-            for( int iter = 0; iter < 20; ++iter )
+            float val { 3 };
+            Vector< float > vals { val };
+            for( int iter{}; iter < 20; ++iter )
             {
               val = Ex1GxEqualsCosX( val );
               vals.push_back( val );
             }
 
-            for( int i = 0; i < vals.size(); ++i )
+            for( int i {}; i < vals.size(); ++i )
             {
-              const String text = String()
-                + "iteration " + ToString(i) + ", x = " + ToString( vals[i] );
+              const String text{ String()
+                + "iteration " + ToString( i ) + ", x = " + ToString( vals[ i ] ) };
               texts.push_back(  text );
             }
 
@@ -572,7 +585,7 @@ namespace Tac
     {
       TAC_IMGUI_INDENT_BLOCK;
 
-      IterationExample prev = sIterationExample;
+      IterationExample prev { sIterationExample };
 
       if( ImGuiButton( "Fixed-Point Iteration" ) )
         sIterationExample = IterationExample_FixedPoint;

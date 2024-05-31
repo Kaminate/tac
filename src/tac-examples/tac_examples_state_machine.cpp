@@ -32,7 +32,7 @@ namespace Tac
     return sExampleIndexCurr;
   }
 
-  void ExampleStateMachineUpdate(Errors& errors)
+  void ExampleStateMachineUpdate( Example::UpdateParams updateParams, Errors& errors )
   {
     if( ExampleIndexValid( sExampleIndexNext ) && sExampleIndexNext != sExampleIndexCurr )
     {
@@ -41,13 +41,13 @@ namespace Tac
 
       sExampleIndexCurr = sExampleIndexNext;
 
-      sCurrExample = CreateExample(sExampleIndexCurr);
-      sCurrExample->mName = GetExampleName(sExampleIndexCurr);
+      sCurrExample = CreateExample( sExampleIndexCurr );
+      sCurrExample->mName = GetExampleName( sExampleIndexCurr );
     }
 
     if( sCurrExample )
     {
-      TAC_CALL( sCurrExample->Update( errors ));
+      TAC_CALL( sCurrExample->Update( updateParams, errors ) );
     }
   }
 

@@ -7,16 +7,25 @@
 
 namespace Tac
 {
+  struct SimKeyboardApi;
+  struct SimWindowApi;
+
   struct Example
   {
+    struct UpdateParams
+    {
+      const SimKeyboardApi* mKeyboardApi;
+      const SimWindowApi* mWindowApi;
+    };
+
     Example();
     virtual ~Example();
-    virtual void Update( Errors& ){};
+    virtual void Update( UpdateParams, Errors& ) {};
     v3           GetWorldspaceKeyboardDir();
 
-    World*       mWorld{};
-    Camera*      mCamera{};
-    const char*  mName{};
+    World*                mWorld       {};
+    Camera*               mCamera      {};
+    const char*           mName        {};
   };
 
 }

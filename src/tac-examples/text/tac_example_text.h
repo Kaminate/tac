@@ -7,7 +7,7 @@ namespace Tac
 {
   struct ExampleText : public Example
   {
-    void Update( Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
   };
 
 
