@@ -25,7 +25,7 @@ namespace Tac
   void                          GamePresentationRender( World*, // why is this non const?
                                                         const Camera*,
                                                         v2i viewSize,
-                                                        WindowHandle,
+                                                        Render::TextureHandle,
                                                         Errors& );
   void                          GamePresentationDebugImGui( Graphics* );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );

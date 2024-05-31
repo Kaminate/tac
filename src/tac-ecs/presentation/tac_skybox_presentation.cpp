@@ -66,10 +66,6 @@ void Tac::SkyboxPresentationInit( Errors& errors )
   mVertexDecls.clear();
   mVertexDecls.push_back( vtxDecl );
 
-  //mVertexFormat = Render::CreateVertexFormat( mVertexDecls,
-  //                                            mShader,
-  //                                            TAC_STACK_FRAME );
-  //Render::SetRenderObjectDebugName( mVertexFormat, "skybox-fmt" );
 
   const Render::BlendState blendState
   {
@@ -96,7 +92,12 @@ void Tac::SkyboxPresentationInit( Errors& errors )
     .mMultisample           { false },
   };
 
-  mSamplerState = renderDevice->CreateSampler( Render::Filter::Linear );
+  const Render::CreateSamplerParams createSkyboxSampler
+  {
+    .mFilter { Render::Filter::Linear },
+    .mName { "skybox-sampler" },
+  };
+  mSamplerState = renderDevice->CreateSampler( createSkyboxSampler );
 
   const Render::PipelineParams pipelineParams
   {
@@ -122,7 +123,7 @@ void Tac::SkyboxPresentationRender( SkyboxRenderParams params, Errors& errors )
   const Camera* camera{ params.mCamera };
   const int viewWidth{ params.mViewSize.x };
   const int viewHeight{ params.mViewSize.y };
-  const WindowHandle viewId{ params.mViewId };
+  const Render::TextureHandle viewId{ params.mViewId };
   const AssetPathStringView skyboxDir{ params.mSkyboxDir };
 
   /*TAC_PROFILE_BLOCK*/;

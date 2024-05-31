@@ -276,10 +276,10 @@ namespace Tac::Render
     }
   }
 
-  SamplerHandle     DX12Device::CreateSampler( Filter filter )
+  SamplerHandle     DX12Device::CreateSampler( CreateSamplerParams params )
   {
     const SamplerHandle h{ AllocSamplerHandle() };
-    sRenderer.mSamplerMgr.CreateSampler( h, filter );
+    sRenderer.mSamplerMgr.CreateSampler( h, params );
     return h;
   }
 

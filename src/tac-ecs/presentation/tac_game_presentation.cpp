@@ -205,7 +205,7 @@ namespace Tac
                                           const Light** lights,
                                           int lightCount,
                                           const Model* model,
-                                          const WindowHandle viewId,
+                                          const Render::TextureHandle viewId,
                                           Errors& errors )
   {
     const Mesh* mesh{ LoadModel( model ) };
@@ -487,7 +487,7 @@ namespace Tac
                             World* world,
                             const Camera* camera,
                             const v2i viewSize,
-                            const WindowHandle viewId,
+                            const Render::TextureHandle viewId,
                             Errors& errors )
   {
     if( !mRenderEnabledModel )
@@ -534,10 +534,10 @@ namespace Tac
                                               errors ) );
       }
 
-      Render::IContext* mRenderContext {};
-      WindowHandle      mViewId        {};
-      Graphics*         mGraphics      {};
-      Errors*           mErrors        {};
+      Render::IContext*     mRenderContext {};
+      Render::TextureHandle mViewId        {};
+      Graphics*             mGraphics      {};
+      Errors*               mErrors        {};
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
     myModelVisitor.mGraphics = graphics;
@@ -552,7 +552,7 @@ namespace Tac
                              World* world,
                              const Camera* camera,
                              const v2i viewSize,
-                             const WindowHandle viewId, 
+                             const Render::TextureHandle viewId, 
                              Errors& errors )
   {
     if( !mRenderEnabledTerrain )
@@ -613,7 +613,7 @@ namespace Tac
                             World* world,
                             const Camera* camera,
                             const v2i viewSize,
-                            const WindowHandle viewId,
+                            const Render::TextureHandle viewId,
                             Errors& errors )
   {
 
@@ -634,10 +634,10 @@ namespace Tac
         };
         SkyboxPresentationRender( skyboxRenderParams, *mErrors );
       }
-      v2i                mViewSize {};
-      WindowHandle       mViewId   {};
-      const Camera*      mCamera   {};
-      Errors*            mErrors   {};
+      v2i                    mViewSize {};
+      Render::TextureHandle  mViewId   {};
+      const Camera*          mCamera   {};
+      Errors*                mErrors   {};
     } mySkyboxVisitor;
     mySkyboxVisitor.mViewSize = viewSize;
     mySkyboxVisitor.mViewId = viewId;
@@ -810,7 +810,7 @@ void        Tac::GamePresentationUninit()
 void        Tac::GamePresentationRender( World* world,
                                          const Camera* camera,
                                          const v2i viewSize,
-                                         const WindowHandle windowHandle,
+                                         const Render::TextureHandle dstColorTex,
                                          Errors& errors )
 {
   Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -825,14 +825,14 @@ void        Tac::GamePresentationRender( World* world,
                           world,
                           camera,
                           viewSize,
-                          windowHandle,
+                          dstColorTex,
                           errors ) );
 
   TAC_CALL( RenderTerrain( renderContext,
                            world,
                            camera,
                            viewSize,
-                           windowHandle,
+                           dstColorTex,
                            errors ) );
 
   // Skybox should be last to reduce pixel shader invocations
@@ -840,17 +840,19 @@ void        Tac::GamePresentationRender( World* world,
                           world,
                           camera,
                           viewSize,
-                          windowHandle,
+                          dstColorTex,
                           errors ) );
 
   if( mRenderEnabledDebug3D )
   {
     TAC_CALL( world->mDebug3DDrawData->DebugDraw3DToTexture( renderContext,
-                                                             windowHandle,
+                                                             dstColorTex,
                                                              camera,
                                                              viewSize,
                                                              errors ) );
   }
+
+  TAC_CALL( renderContext->Execute( errors ) );
 }
 
 //Render::DepthStateHandle      GamePresentationGetDepthState()           { return mDepthState; }

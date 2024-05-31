@@ -124,7 +124,11 @@ namespace Tac
     const Render::ProgramParams programParams{ .mFileStem { "HelloTexture" }, };
     TAC_CALL( mShader = renderDevice->CreateProgram( programParams, errors ) );
 
-    mSampler = renderDevice->CreateSampler( mFilter );
+    const Render::CreateSamplerParams samplerParams
+    {
+      .mFilter{mFilter},
+    };
+    mSampler = renderDevice->CreateSampler( samplerParams );
 
     const Render::PipelineParams pipelineParams
     {

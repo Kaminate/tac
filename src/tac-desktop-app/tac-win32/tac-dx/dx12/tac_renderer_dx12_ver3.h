@@ -75,7 +75,7 @@ namespace Tac::Render
     ProgramHandle   CreateProgram( ProgramParams, Errors& ) override;
     void            DestroyProgram( ProgramHandle ) override;
 
-    SamplerHandle   CreateSampler( Filter ) override;
+    SamplerHandle   CreateSampler( CreateSamplerParams ) override;
     void            DestroySampler( SamplerHandle ) override;
 
     SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) override;
