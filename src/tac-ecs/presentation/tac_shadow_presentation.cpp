@@ -91,18 +91,11 @@ namespace Tac
 
   static Render::TextureHandle CreateShadowMapDepth( const Light* light, Errors& errors )
   {
-    const Render::Format format
-    {
-      .mElementCount        { 1 },
-      .mPerElementByteCount { 4 },
-      .mPerElementDataType  { Render::GraphicsType::real },
-    };
-
     const Render::Image image
     {
       .mWidth  { light->mShadowResolution },
       .mHeight { light->mShadowResolution },
-      .mFormat { format },
+      .mFormat { Render::TexFmt::kR32_float },
     };
 
     const Render::Binding binding

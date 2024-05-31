@@ -43,6 +43,7 @@ namespace Tac::Render
     kR8_unorm,
     kR16_uint,
     kR32_uint,
+    kR32_float,
     kRGBA8_unorm,
     kRGBA8_unorm_srgb,
   };
@@ -308,7 +309,7 @@ namespace Tac::Render
     int           mByteCount     {};
     const void*   mBytes         {};
     int           mStride        {}; // used in creating the SRV and used for the input layout
-    Usage         mUsage         { Usage::Default }; // TODO: rename to `mUsage`
+    Usage         mUsage         { Usage::Default };
     Binding       mBinding       { Binding::None };
     CPUAccess     mCpuAccess     { CPUAccess::None };
     GpuBufferMode mGpuBufferMode { GpuBufferMode::kUndefined };

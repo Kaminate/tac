@@ -1,5 +1,11 @@
 #include "Common.hlsl"
 
+struct Debug3DCBufType
+{
+  row_major matrix mView;
+  row_major matrix mProj;
+};
+
 struct VS_INPUT
 {
   float3 Position : POSITION;
@@ -12,8 +18,15 @@ struct VS_OUTPUT
   float4 mColor             : TAC_AUTO_SEMANTIC;
 };
 
+typedef ConstantBuffer< Debug3DCBufType > Debug3DConstBuf;
+
+Debug3DConstBuf constBuf : TAC_AUTO_REGISTER;
+
 VS_OUTPUT VS( VS_INPUT input )
 {
+  matrix View = constBuf.mView;
+  matrix Proj = constBuf.mProj;
+
   float4 viewSpacePosition = mul( View, float4( input.Position, 1 ) );
   float4 clipSpacePosition = mul( Projection, viewSpacePosition );
 

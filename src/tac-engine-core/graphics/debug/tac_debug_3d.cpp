@@ -16,151 +16,187 @@
 namespace Tac
 {
 
-  static const int cylinderSegmentCount { 10 };
+  static const int cylinderSegmentCount   { 10 };
   static const int hemisphereSegmentCount { 4 };
-  static const int numdivisions { 20 };
+  static const int numdivisions           { 20 };
+
+  struct Debug3DConstBuf
+  {
+    m4 mView;
+    m4 mProj;
+  };
 
   static struct Debug3DCommonData
   {
     void                          Init( Errors& );
     void                          Uninit();
-#if TAC_TEMPORARILY_DISABLED()
-    Render::BlendStateHandle      mAlphaBlendState;
-    Render::DepthStateHandle      mDepthLess;
-    Render::RasterizerStateHandle mRasterizerStateNoCull;
+
+    Render::BlendState            GetAlphaBlendState() const;
+    Render::DepthState            GetDepthLess() const;
+    Render::RasterizerState       GetRasterizerStateNoCull() const;
+    Render::VertexDeclarations    GetVertexColorFormat() const;
+    Render::ProgramParams         GetProgramParams() const;
+    Render::CreateBufferParams    GetConstBufParams() const;
+    Render::PipelineParams        GetPipelineParams() const;
+
     Render::ProgramHandle         m3DVertexColorShader;
-    Render::VertexFormatHandle    mVertexColorFormat;
-#endif
+    Render::BufferHandle          mConstBuf;
+    Render::PipelineHandle        mPipeline;
+    Render::IShaderVar*           mShaderConstBuf;
   } gDebug3DCommonData;
 
-  static Render::DefaultCBufferPerFrame Debug3DGetPerFrameData( const Render::TextureHandle viewId,
-                                                                const Camera* camera,
-                                                                const int viewWidth,
-                                                                const int viewHeight )
-
+  static m4 Debug3DGetProj( const Camera* camera, const v2i viewSize )
   {
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const auto ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
     const m4::ProjectionMatrixParams projMtxParams
     {
-      .mNDCMinZ { ndcAttribs.mMinZ },
-      .mNDCMaxZ { ndcAttribs.mMaxZ },
+      .mNDCMinZ       { ndcAttribs.mMinZ },
+      .mNDCMaxZ       { ndcAttribs.mMaxZ },
       .mViewSpaceNear { camera->mNearPlane },
-      .mViewSpaceFar { camera->mFarPlane },
-      .mAspectRatio { ( float )viewWidth / ( float )viewHeight },
-      .mFOVYRadians { camera->mFovyrad },
+      .mViewSpaceFar  { camera->mFarPlane },
+      .mAspectRatio   { ( float )viewSize.x / ( float )viewSize.y },
+      .mFOVYRadians   { camera->mFovyrad },
     };
 
-    const m4 view { camera->View() };
-    const m4 proj { m4::ProjPerspective( projMtxParams ) };
-    const Timestamp elapsedSeconds { Timestep::GetElapsedTime() };
-    return Render::DefaultCBufferPerFrame
-    {
-      .mView { view },
-      .mProjection { proj },
-      .mFar { camera->mFarPlane },
-      .mNear { camera->mNearPlane },
-      .mGbufferSize  { ( float )viewWidth, ( float )viewHeight } ,
-      .mSecModTau { ( float )Fmod( elapsedSeconds.mSeconds, 6.2831853 ) },
-    };
+    return m4::ProjPerspective( projMtxParams );
+  }
+  
+
+  void Debug3DCommonDataInit( Errors& errors )
+  {
+    gDebug3DCommonData.Init( errors );
   }
 
-  void Debug3DCommonDataInit( Errors& errors ) { gDebug3DCommonData.Init( errors ); }
-
-  void Debug3DCommonDataUninit() { gDebug3DCommonData.Uninit(); }
+  void Debug3DCommonDataUninit()
+  {
+    gDebug3DCommonData.Uninit();
+  }
 
   void Debug3DCommonData::Uninit()
   {
-#if TAC_TEMPORARILY_DISABLED()
-    Render::DestroyBlendState( mAlphaBlendState, TAC_STACK_FRAME );
-    Render::DestroyDepthState( mDepthLess, TAC_STACK_FRAME );
-    Render::DestroyRasterizerState( mRasterizerStateNoCull, TAC_STACK_FRAME );
-    Render::DestroyProgram( m3DVertexColorShader, TAC_STACK_FRAME );
-    Render::DestroyVertexFormat( mVertexColorFormat, TAC_STACK_FRAME );
-#endif
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyProgram( m3DVertexColorShader );
+    renderDevice->DestroyPipeline( mPipeline );
   }
 
-  void Debug3DCommonData::Init( Errors& errors )
+  Render::BlendState            Debug3DCommonData::GetAlphaBlendState() const
   {
-#if TAC_TEMPORARILY_DISABLED()
-    const Render::RasterizerState rasterizerState
+    return Render::BlendState
     {
-      .mFillMode { Render::FillMode::Solid },
-      .mCullMode { Render::CullMode::None },
-      .mFrontCounterClockwise { true },
-      .mScissor { true },
-      .mMultisample { false }, 
+      .mSrcRGB   { Render::BlendConstants::SrcA },
+      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::Zero },
+      .mDstA     { Render::BlendConstants::One },
+      .mBlendA   { Render::BlendMode::Add},
     };
-    mRasterizerStateNoCull{ Render::CreateRasterizerState( rasterizerState,
-                                                            TAC_STACK_FRAME ) };
-    Render::SetRenderObjectDebugName( mRasterizerStateNoCull, "debug-3d-rast" );
+  }
 
-
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams programParams
+  Render::DepthState            Debug3DCommonData::GetDepthLess() const
+  {
+    return Render::DepthState
     {
-      .mFileStem { "3DDebug" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-    m3DVertexColorShader { renderDevice->CreateProgram( programParams, errors ) };
-
-    const Render::DepthState depthStateData
-    {
-      .mDepthTest { true },
+      .mDepthTest  { true },
       .mDepthWrite { true },
-      .mDepthFunc { Render::DepthFunc::Less },
+      .mDepthFunc  { Render::DepthFunc::Less },
     };
-    mDepthLess = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mDepthLess, "debug-3d-depth-state" );
+  }
 
+  Render::RasterizerState       Debug3DCommonData::GetRasterizerStateNoCull() const
+  {
+    return Render::RasterizerState
+    {
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mMultisample           { false }, 
+    };
+  }
+
+  Render::VertexDeclarations    Debug3DCommonData::GetVertexColorFormat() const
+  {
     const Render::VertexDeclaration posDecl
     {
-      .mAttribute { Render::Attribute::Position },
-      .mTextureFormat
-      {
-        .mElementCount { 3 },
-        .mPerElementByteCount { sizeof( float ) },
-        .mPerElementDataType { Render::GraphicsType::real },
-      },
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
       .mAlignedByteOffset { ( int )TAC_OFFSET_OF( DefaultVertexColor, mPosition ) },
-    } ;
+    };
 
     const Render::VertexDeclaration colDecl
     {
-      .mAttribute { Render::Attribute::Color },
-      .mTextureFormat
-      {
-        .mElementCount { 4 },
-        .mPerElementByteCount { sizeof( float ) },
-        .mPerElementDataType { Render::GraphicsType::real },
-      },
-      .mAlignedByteOffset { (int)TAC_OFFSET_OF( DefaultVertexColor, mColor  )},
-    } ;
+      .mAttribute         { Render::Attribute::Color },
+      .mFormat            { Render::VertexAttributeFormat::GetVector4() },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( DefaultVertexColor, mColor )},
+    };
 
     Render::VertexDeclarations decls;
     decls.push_back( posDecl );
     decls.push_back( colDecl );
+    return decls;
+  }
 
-    mVertexColorFormat = Render::CreateVertexFormat( decls, m3DVertexColorShader, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mVertexColorFormat, "debug-3d-vtx-fmt" );
+  Render::ProgramParams         Debug3DCommonData::GetProgramParams() const
+  {
+    return Render::ProgramParams
+    {
+      .mFileStem   { "3DDebug" },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+  }
 
-    const Render::BlendState alphaBlendStateData{ .mSrcRGB { Render::BlendConstants::SrcA },
-                                                  .mDstRGB { Render::BlendConstants::OneMinusSrcA },
-                                                  .mBlendRGB { Render::BlendMode::Add },
-                                                  .mSrcA { Render::BlendConstants::Zero },
-                                                  .mDstA { Render::BlendConstants::One },
-                                                  .mBlendA { Render::BlendMode::Add}, };
-    mAlphaBlendState = Render::CreateBlendState( alphaBlendStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mAlphaBlendState, "debug-3d-alpha-blend" );
-#endif
+  Render::CreateBufferParams    Debug3DCommonData::GetConstBufParams() const
+  {
+    return Render::CreateBufferParams 
+    {
+      .mByteCount     { sizeof( Debug3DConstBuf ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  {},
+    };
+  }
+
+  Render::PipelineParams        Debug3DCommonData::GetPipelineParams() const
+  {
+    const Render::RasterizerState rasterizerState{ GetRasterizerStateNoCull() };
+    const Render::DepthState depthStateData{ GetDepthLess() };
+    const Render::VertexDeclarations decls{ GetVertexColorFormat() };
+    const Render::BlendState alphaBlendStateData{ GetAlphaBlendState() };
+    return Render::PipelineParams
+    {
+      .mProgram           { m3DVertexColorShader },
+      .mBlendState        { alphaBlendStateData },
+      .mDepthState        { depthStateData},
+      .mRasterizerState   { rasterizerState },
+      .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+      .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+      .mVtxDecls          { decls},
+      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+      .mName              { "debug-3d-pso"},
+    };
+  }
+
+  void Debug3DCommonData::Init( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    const Render::ProgramParams programParams{ GetProgramParams() };
+    TAC_CALL( m3DVertexColorShader = renderDevice->CreateProgram( programParams, errors ) );
+
+    const Render::PipelineParams pipelineParams{ GetPipelineParams() };
+    TAC_CALL( mPipeline = renderDevice->CreatePipeline(pipelineParams, errors ) );
+
+    const Render::CreateBufferParams createConstBuf{ GetConstBufParams() };
+    TAC_CALL( mConstBuf = renderDevice->CreateBuffer( createConstBuf, errors ) );
+
+    mShaderConstBuf = renderDevice->GetShaderVariable( mPipeline, "constBuf" );
+    mShaderConstBuf->SetBuffer( mConstBuf );
   }
 
   Debug3DDrawData::~Debug3DDrawData()
   {
-#if TAC_TEMPORARILY_DISABLED()
-    if( mVerts.IsValid() )
-      Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
-#endif
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyBuffer( mRenderVtxBuf );
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -180,16 +216,16 @@ namespace Tac
     const DefaultVertexColor v0
     {
        .mPosition { p0 },
-       .mColor { v4( color0, 1.0f ) } ,
+       .mColor    { v4( color0, 1.0f ) } ,
     };
     const DefaultVertexColor v1
     {
        .mPosition { p1 },
-       .mColor { v4( color1, 1.0f ) },
+       .mColor    { v4( color1, 1.0f ) },
     };
 
-    mDebugDrawVerts.push_back(v0);
-    mDebugDrawVerts.push_back(v1);
+    mDebugDrawVerts.push_back( v0 );
+    mDebugDrawVerts.push_back( v1 );
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -206,15 +242,16 @@ namespace Tac
   {
     if constexpr( !IsDebugMode )
       return;
+
     const DefaultVertexColor v0
     {
        .mPosition { p0 },
-       .mColor {color0} ,
+       .mColor    {color0} ,
     };
     const DefaultVertexColor v1
     {
        .mPosition { p1 },
-       .mColor {color1},
+       .mColor    { color1},
     };
 
     mDebugDrawVerts.push_back(v0);
@@ -233,9 +270,10 @@ namespace Tac
                                            float rad,
                                            const v3& color )
   {
-    float length { Length( dir ) };
+    const float length { Length( dir ) };
     if( length < 0.001f || Abs( rad ) < 0.001f )
       return;
+
     const v3 unitDir { dir / length };
     v3 tan1;
     v3 tan2;
@@ -266,13 +304,14 @@ namespace Tac
                                             float radius,
                                             const v3& color )
   {
-    auto dir { p1 - p0 };
-    auto dirlen { Length( dir ) };
+    v3 dir { p1 - p0 };
+    const float dirlen { Length( dir ) };
     if( dirlen < 0.001f )
     {
       DebugDraw3DSphere( p0, radius, color );
       return;
     }
+
     dir /= dirlen;
     DebugDraw3DHemisphere( p0, -dir, radius, color );
     DebugDraw3DHemisphere( p1, dir, radius, color );
@@ -293,6 +332,7 @@ namespace Tac
     GetFrameRH( mDirection, tan1, tan2 );
     for( int iCylinder {  }; iCylinder < cylinderSegmentCount; ++iCylinder )
       mPrevPts[ iCylinder ] = mOrigin + mDirection * radius;
+
     for( int iHemisphere {  }; iHemisphere < hemisphereSegmentCount; ++iHemisphere )
     {
       hemisphereRads += dHemisphereRads;
@@ -310,12 +350,14 @@ namespace Tac
           + tan2 * circleRadius * Sin( circleRads );
         circleRads += dCircleRads;
       }
+
       for( int iCylinder {}; iCylinder < cylinderSegmentCount; ++iCylinder )
       {
         const int iCylinderNext { ( iCylinder + 1 ) % cylinderSegmentCount };
         DebugDraw3DLine( mPrevPts[ iCylinder ], mCurrPts[ iCylinder ], color );
         DebugDraw3DLine( mCurrPts[ iCylinder ], mCurrPts[ iCylinderNext ], color );
       }
+
       mPrevPts = mCurrPts;
     }
   }
@@ -325,10 +367,11 @@ namespace Tac
                                              float radius,
                                              const v3& color )
   {
-    auto dir { p1 - p0 };
-    auto dirlen { Length( dir ) };
+    v3 dir { p1 - p0 };
+    const float dirlen { Length( dir ) };
     if( dirlen < 0.001f )
       return;
+
     dir /= dirlen;
     Vector< v3 > p0Points( cylinderSegmentCount );
     Vector< v3 > p1Points( cylinderSegmentCount );
@@ -339,16 +382,17 @@ namespace Tac
     tan2 *= radius;
     for( int iSegment {}; iSegment < cylinderSegmentCount; ++iSegment )
     {
-      auto angle { ( 3.14f * 2.0f ) * iSegment / ( float )cylinderSegmentCount };
-      auto s { Sin( angle ) };
-      auto c { Cos( angle ) };
-      auto offset { c * tan1 + s * tan2 };
+      const float angle { ( 3.14f * 2.0f ) * iSegment / ( float )cylinderSegmentCount };
+      const float s { Sin( angle ) };
+      const float c { Cos( angle ) };
+      const v3 offset { c * tan1 + s * tan2 };
       p0Points[ iSegment ] = p0 + offset;
       p1Points[ iSegment ] = p1 + offset;
     }
+
     for( int iSegment {}; iSegment < cylinderSegmentCount; ++iSegment )
     {
-      int iSegmentNext { ( iSegment + 1 ) % cylinderSegmentCount };
+      const int iSegmentNext { ( iSegment + 1 ) % cylinderSegmentCount };
       DebugDraw3DLine( p0Points[ iSegment ], p0Points[ iSegmentNext ], color );
       DebugDraw3DLine( p1Points[ iSegment ], p1Points[ iSegmentNext ], color );
       DebugDraw3DLine( p0Points[ iSegment ], p1Points[ iSegment ], color );
@@ -357,11 +401,11 @@ namespace Tac
 
   void Debug3DDrawData::DebugDraw3DGrid( const v3& lineColor )
   {
-    float d { 10.0f }; // Fade distance
+    const float d { 10.0f }; // Fade distance
     const v4 f( lineColor, 0.0f ); // Far Color
     for( float i { -d }; i <= d; i += 1.0f )
     {
-      float a { 1 - ( Abs( i ) / d ) };
+      const float a { 1 - ( Abs( i ) / d ) };
       v4 n( lineColor, a ); // Near Color
 #if 1 // rainbow
       n.x += a * 1.0f * ( ( Sin( ( float )Timestep::GetElapsedTime() * 3.0f + i ) ) * 0.5f + 0.5f );
@@ -387,21 +431,22 @@ namespace Tac
                                           const v3& to,
                                           const v3& color )
   {
-    auto arrowDiff { to - from };
-    auto arrowDiffLenSq { Quadrance( arrowDiff ) };
+    const v3 arrowDiff { to - from };
+    const float arrowDiffLenSq { Quadrance( arrowDiff ) };
     if( arrowDiffLenSq < 0.001f )
       return;
-    auto arrowDiffLen { Sqrt( arrowDiffLenSq ) };
-    auto arrowDir { arrowDiff / arrowDiffLen };
 
-    auto arrowHeadLen { arrowDiffLen * 0.2f };
-    auto arrowHeadRadius { arrowHeadLen * 0.4f };
+    const float arrowDiffLen { Sqrt( arrowDiffLenSq ) };
+    const v3 arrowDir { arrowDiff / arrowDiffLen };
+
+    const float arrowHeadLen { arrowDiffLen * 0.2f };
+    const float arrowHeadRadius { arrowHeadLen * 0.4f };
 
     v3 tan1, tan2;
     GetFrameRH( arrowDir, tan1, tan2 );
     tan1 *= arrowHeadRadius;
     tan2 *= arrowHeadRadius;
-    auto circlePos = to - arrowDir * arrowHeadLen;
+    const v3 circlePos = to - arrowDir * arrowHeadLen;
     DebugDraw3DLine( from, to, color );
     DebugDraw3DLine( to, circlePos + tan1, color );
     DebugDraw3DLine( to, circlePos - tan1, color );
@@ -425,9 +470,10 @@ namespace Tac
       v3( 1, 1, -1 ),
       v3( 1, 1, 1 ) };
     v3 transfor_points[ pointCount ];
-    auto transform { m4::Transform( halfextents, orientation, pos ) };
+    const m4 transform { m4::Transform( halfextents, orientation, pos ) };
     for( int i{}; i < pointCount; ++i )
       transfor_points[ i ] = ( transform * v4( original_points[ i ], 1.0f ) ).xyz();
+
     for( int i{}; i < pointCount; ++i )
     {
       const v3& original_point_i = original_points[ i ];
@@ -441,8 +487,10 @@ namespace Tac
         for( int axis {}; axis < 3; ++axis )
           if( original_point_i[ axis ] == original_point_j[ axis ] )
             numSame++;
+
         if( numSame != 2 )
           continue;
+
         DebugDraw3DLine( transfor_point_i, transfor_point_j, color );
       }
     }
@@ -547,67 +595,97 @@ namespace Tac
     DebugDraw3DTriangle( p0, p1, p2, color, color, color );
   }
 
+
+  void Debug3DDrawData::UpdateRenderBuffer ( Render::IContext* renderContext, Errors& errors )
+  {
+    const int vertexCount { mDebugDrawVerts.size() };
+    const int byteCount{ vertexCount * (int)sizeof( DefaultVertexColor ) };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    if( !mRenderVtxBuf.IsValid() || mRenderVtxBufByteCapacity < vertexCount )
+    {
+      renderDevice->DestroyBuffer( mRenderVtxBuf );
+      const Render::CreateBufferParams vtxBufCreate
+      {
+        .mByteCount     { byteCount },
+        .mBytes         {},
+        .mUsage         { Render::Usage::Dynamic },
+        .mBinding       { Render::Binding::ShaderResource },
+        .mOptionalName  { "debug-3d-vtx" },
+      };
+
+      TAC_CALL( mRenderVtxBuf = renderDevice->CreateBuffer( vtxBufCreate, errors ) );
+      mRenderVtxBufByteCapacity = byteCount;
+    }
+
+    mRenderVtxBufVtxCount = vertexCount;
+
+    const Render::UpdateBufferParams vtxBufUpdate
+    {
+      .mSrcBytes     { mDebugDrawVerts.data() },
+      .mSrcByteCount { byteCount },
+    };
+
+    TAC_CALL( renderContext->UpdateBuffer( mRenderVtxBuf, vtxBufUpdate, errors ) );
+
+  }
+
+
   void Debug3DDrawData::DebugDraw3DToTexture( Render::IContext* renderContext,
-                                              const Render::TextureHandle,
+                                              const Render::TextureHandle renderTargetColor,
                                               const Camera* camera,
                                               const v2i viewSize,
                                               Errors& errors )
   {
-#if TAC_TEMPORARILY_DISABLED()
-    const int viewWidth{ viewSize.x };
-    const int viewHeight{ viewSize.y };
+
+    TAC_CALL( UpdateRenderBuffer( renderContext, errors ) );
+    mDebugDrawVerts.clear();
+    if( !mRenderVtxBufVtxCount )
+      return;
+
     TAC_PROFILE_BLOCK;
     const int vertexCount { mDebugDrawVerts.size() };
-    if( mDebugDrawVerts.size() )
-    {
-      if( !mVerts.IsValid() || mCapacity < mDebugDrawVerts.size() )
-      {
-        if( mVerts.IsValid() )
-          Render::DestroyVertexBuffer( mVerts, TAC_STACK_FRAME );
-        mVerts = Render::CreateBuffer( mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
-                                             mDebugDrawVerts.data(),
-                                             sizeof( DefaultVertexColor ),
-                                             Render::Access::Dynamic,
-                                             TAC_STACK_FRAME );
-        Render::SetRenderObjectDebugName( mVerts, "debug-3d-vtxes" );
+    const int byteCount{ vertexCount * (int)sizeof( DefaultVertexColor ) };
+    if( !vertexCount )
+      return;
 
-        mCapacity = mDebugDrawVerts.size();
-      }
-      else
-      {
-        Render::UpdateVertexBuffer( mVerts,
-                                    mDebugDrawVerts.data(),
-                                    mDebugDrawVerts.size() * sizeof( DefaultVertexColor ),
-                                    TAC_STACK_FRAME );
-      }
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-      mDebugDrawVerts.clear();
-    }
-
-    const Render::DefaultCBufferPerFrame perFrameData = Debug3DGetPerFrameData( viewId,
-                                                                          camera,
-                                                                          viewWidth,
-                                                                          viewHeight );
-
-    const Render::BufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
-    const int size { sizeof( Render::DefaultCBufferPerFrame ) };
-    Render::UpdateConstantBuffer( hPerFrame, &perFrameData, size, TAC_STACK_FRAME );
-
-    Render::BeginGroup( "debug 3d", TAC_STACK_FRAME );
-    Render::SetBlendState( gDebug3DCommonData.mAlphaBlendState );
-    Render::SetDepthState( gDebug3DCommonData.mDepthLess );
-    Render::SetPrimitiveTopology( Render::PrimitiveTopology::LineList );
-    Render::SetShader( gDebug3DCommonData.m3DVertexColorShader );
-    Render::SetRasterizerState( gDebug3DCommonData.mRasterizerStateNoCull );
-    Render::SetVertexFormat( gDebug3DCommonData.mVertexColorFormat );
-    Render::SetVertexBuffer( mVerts, 0, vertexCount );
-    Render::SetIndexBuffer( Render::BufferHandle(), 0, 0 );
-    Render::Submit( viewId, TAC_STACK_FRAME );
-    Render::EndGroup( TAC_STACK_FRAME );
-#else
     mDebugDrawVerts.clear();
-#endif
+
+    const Debug3DConstBuf constBufData
+    {
+      .mView { camera->View() },
+      .mProj { Debug3DGetProj( camera, viewSize ) },
+    };
+
+    const Render::UpdateBufferParams updateConstBuf
+    {
+      .mSrcBytes     { &constBufData },
+      .mSrcByteCount { sizeof( Debug3DConstBuf ) },
+    };
+    renderContext->UpdateBuffer(  gDebug3DCommonData.mConstBuf, updateConstBuf, errors );
+
+    const Render::DrawArgs drawArgs
+    {
+      .mVertexCount { mRenderVtxBufVtxCount },
+      .mStartVertex { 0 },
+    };
+
+    const Render::Targets renderTargets
+    {
+      .mColors { renderTargetColor },
+    };
+
+    TAC_RENDER_GROUP_BLOCK( renderContext, "debug 3d" );
+    renderContext->SetPipeline(gDebug3DCommonData.mPipeline );
+    renderContext->CommitShaderVariables();
+    renderContext->SetRenderTargets( renderTargets );
+    renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::LineList );
+    renderContext->SetVertexBuffer( mRenderVtxBuf );
+    renderContext->SetIndexBuffer( {} );
+    renderContext->Draw( drawArgs );
   }
 
-}
+} // namespace Tac
 

@@ -98,14 +98,17 @@ namespace Tac
                               const v3& color = { 1, 1, 1 } );
 
     void DebugDraw3DToTexture( Render::IContext*,
-                               const Render::TextureHandle,
+                               Render::TextureHandle,
                                const Camera*,
-                               const v2i viewSize,
+                               v2i viewSize,
                                Errors& );
+
+    void UpdateRenderBuffer( Render::IContext*, Errors& );
     
-    Vector< DefaultVertexColor > mDebugDrawVerts {};
-    Render::BufferHandle         mVerts          {};
-    int                          mCapacity       {};
+    Vector< DefaultVertexColor > mDebugDrawVerts           {};
+    Render::BufferHandle         mRenderVtxBuf             {};
+    int                          mRenderVtxBufByteCapacity {};
+    int                          mRenderVtxBufVtxCount     {};
   };
 
 } // namespace Tac

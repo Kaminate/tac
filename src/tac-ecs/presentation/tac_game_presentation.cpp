@@ -35,6 +35,14 @@
 
 namespace Tac
 {
+  struct TerrainConstBuf
+  {
+    m4 mWorld;
+    m4 mView;
+    m4 mProj;
+  };
+
+  static Render::BufferHandle          mTerrainConstBuf;
   static Render::ProgramHandle         m3DShader;
   static Render::ProgramHandle         mTerrainShader;
   static Render::PipelineHandle        mTerrainPipeline;
@@ -52,6 +60,7 @@ namespace Tac
   static Render::IShaderVar*           mShaderTerrainHeightmap;
   static Render::IShaderVar*           mShaderTerrainNoise;
   static Render::IShaderVar*           mShaderTerrainSampler;
+  static Render::IShaderVar*           mShaderTerrainConstBuf;
   static Render::IShaderVar*           mShaderGameShadowMaps;
   static Render::IShaderVar*           mShaderGameLinearSampler;
   static Render::IShaderVar*           mShaderGameShadowSampler;
@@ -103,13 +112,9 @@ namespace Tac
     TAC_ASSERT( check6 );
   }
 
-  static Render::DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
-                                                        const v2i viewSize )
+  static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
   {
-    const Timestamp elapsedSeconds{ Timestep::GetElapsedTime() };
-    const float w{ ( float )viewSize.x };
-    const float h{ ( float )viewSize.y };
-    const float aspectRatio{ w / h };
+    const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
     const m4::ProjectionMatrixParams projParams
@@ -121,15 +126,23 @@ namespace Tac
       .mAspectRatio   { aspectRatio },
       .mFOVYRadians   { camera->mFovyrad },
     };
-    const m4 view{ camera->View() };
     const m4 proj{ m4::ProjPerspective( projParams ) };
+    return proj;
+  }
+
+  static Render::DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
+                                                        const v2i viewSize )
+  {
+    const Timestamp elapsedSeconds{ Timestep::GetElapsedTime() };
+    const m4 view{ camera->View() };
+    const m4 proj{ GetProjMtx( camera, viewSize ) };
     return Render::DefaultCBufferPerFrame
     {
       .mView        { view },
       .mProjection  { proj },
       .mFar         { camera->mFarPlane },
       .mNear        { camera->mNearPlane },
-      .mGbufferSize { w, h },
+      .mGbufferSize { ( float )viewSize.x,  ( float )viewSize.y  },
       .mSecModTau   { ( float )Fmod( elapsedSeconds, 6.2831853 ) },
     };
   }
@@ -213,7 +226,7 @@ namespace Tac
       for( int i{}; i < lightCount; ++i )
       {
         const Light* light{ lights[ i ] };
-        const int shaderLightIndex{ cBufferLights.lightCount };
+        const int shaderLightIndex{ (int)cBufferLights.lightCount };
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
         {
           shadowMaps.push_back( light->mShadowMapDepth );
@@ -303,7 +316,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::CreateBufferParams vtxBufParams
     {
-      .mByteCount     { vertexes.size() * sizeof( TerrainVertex ) },
+      .mByteCount     { vertexes.size() * ( int )sizeof( TerrainVertex ) },
       .mBytes         { vertexes.data() },
       .mStride        { sizeof( TerrainVertex ) },
       .mUsage         { Render::Usage::Default },
@@ -315,7 +328,7 @@ namespace Tac
 
     const Render::CreateBufferParams idxBufParams
     {
-      .mByteCount     { indexes.size() * sizeof( TerrainIndex ) },
+      .mByteCount     { indexes.size() * (int)sizeof( TerrainIndex ) },
       .mBytes         { indexes.data() },
       .mStride        { sizeof( TerrainIndex ) },
       .mUsage         { Render::Usage::Default },
@@ -503,6 +516,7 @@ namespace Tac
           Vector< const Light* > mLights;
         } sLightVisitor;
 
+        Errors& errors{ *mErrors };
         sLightVisitor.mLights.resize( 0 );
 
         if( mUseLights )
@@ -512,19 +526,23 @@ namespace Tac
           Min( sLightVisitor.mLights.size(), Render::CBufferLights::TAC_MAX_SHADER_LIGHTS ) );
 
 
-        TAC_CALL( RenderGameWorldAddDrawCall( renderContext,
-                                    sLightVisitor.mLights.data(),
-                                    sLightVisitor.mLights.size(),
-                                    model,
-                                    mViewId,
-                                    errors ) );
+        TAC_CALL( RenderGameWorldAddDrawCall( mRenderContext,
+                                              sLightVisitor.mLights.data(),
+                                              sLightVisitor.mLights.size(),
+                                              model,
+                                              mViewId,
+                                              errors ) );
       }
 
-      WindowHandle mViewId   {};
-      Graphics*    mGraphics {};
+      Render::IContext* mRenderContext {};
+      WindowHandle      mViewId        {};
+      Graphics*         mGraphics      {};
+      Errors*           mErrors        {};
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
     myModelVisitor.mGraphics = graphics;
+    myModelVisitor.mRenderContext = renderContext;
+    myModelVisitor.mErrors = &errors;
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Visit Models" );
     graphics->VisitModels( &myModelVisitor );
@@ -540,17 +558,24 @@ namespace Tac
     if( !mRenderEnabledTerrain )
       return;
 
-    const Render::DefaultCBufferPerFrame perFrameData{
-      GetPerFrameBuf( camera, viewSize ) };
+    const m4 worldmtx{  m4::Identity()  };
+    const m4 view{ camera->View() };
+    const m4 proj{ GetProjMtx( camera, viewSize ) };
+    const TerrainConstBuf terrainConstBuf
+    {
+      .mWorld{ worldmtx },
+      .mView{ view },
+      .mProj{ proj },
+    };
 
     const Render::UpdateBufferParams updateBufferParams
     {
-      .mSrcBytes     { &perFrameData },
-      .mSrcByteCount { sizeof( Render::DefaultCBufferPerFrame ) },
+      .mSrcBytes     { &terrainConstBuf },
+      .mSrcByteCount { sizeof( TerrainConstBuf ) },
     };
-    renderContext->UpdateBuffer( Render::DefaultCBufferPerFrame::sHandle,
-                                 updateBufferParams,
-                                 errors );
+    TAC_CALL( renderContext->UpdateBuffer( mTerrainConstBuf, updateBufferParams, errors ) );
+
+    renderContext->SetPipeline( mTerrainPipeline );
     Physics* physics{ Physics::GetSystem( world ) };
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Visit Terrains" );
@@ -563,31 +588,24 @@ namespace Tac
 
       const Render::TextureHandle terrainTexture =
         TextureAssetManager::GetTexture( terrain->mGroundTexturePath, mGetTextureErrorsGround );
+      mShaderTerrainHeightmap->SetTexture( terrainTexture );
+
       const Render::TextureHandle noiseTexture =
         TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
+      mShaderTerrainNoise->SetTexture( noiseTexture );
 
-      const Render::DefaultCBufferPerObject cbuf;
-
-      Render::DrawCallTextures textures;
-      textures.push_back( terrainTexture );
-      textures.push_back( noiseTexture );
-
-      Render::SetTexture( textures );
-      renderContext->UpdateBuffer( Render::DefaultCBufferPerObject::sHandle,
-                                    &cbuf,
-                                    sizeof( Render::DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
-      Render::SetDepthState( mDepthState );
-      Render::SetBlendState( mBlendState );
-      Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( { mSamplerStateAniso } );
-      Render::SetShader( mTerrainShader );
-      Render::SetIndexBuffer( terrain->mIndexBuffer, 0, terrain->mIndexCount );
-      Render::SetVertexBuffer( terrain->mVertexBuffer, 0, 0 );
-      Render::SetVertexFormat( mTerrainVertexFormat );
-      Render::Submit( viewId, TAC_STACK_FRAME );
+      const Render::DefaultCBufferPerObject cbuf{};
+      const Render::DrawArgs drawArgs
+      {
+        .mIndexCount { terrain->mIndexCount },
+        .mStartIndex { 0 },
+      };
+ 
+      renderContext->CommitShaderVariables();
+      renderContext->SetIndexBuffer( terrain->mIndexBuffer );
+      renderContext->SetVertexBuffer( terrain->mVertexBuffer );
+      renderContext->Draw( drawArgs );
     }
-    //Render::EndGroup( TAC_STACK_FRAME );
   }
 
 
@@ -753,7 +771,18 @@ void        Tac::GamePresentationInit( Errors& errors )
   mShaderTerrainHeightmap = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainTexture" );
   mShaderTerrainNoise = renderDevice->GetShaderVariable( mTerrainPipeline, "noiseTexture" );
   mShaderTerrainSampler = renderDevice->GetShaderVariable( mTerrainPipeline, "linearSampler" );
-  mShaderTerrainSampler->SetSampler( mSamplerLinear );
+  mShaderTerrainSampler->SetSampler( mSamplerAniso );
+
+  const Render::CreateBufferParams terrainConstBufParams
+  {
+    .mByteCount     { sizeof( TerrainConstBuf ) },
+    .mUsage         { Render::Usage::Dynamic },
+    .mBinding       { Render::Binding::ConstantBuffer },
+    .mOptionalName  { "terrain-const-buf" },
+  };
+  TAC_CALL( mTerrainConstBuf = renderDevice->CreateBuffer( terrainConstBufParams, errors ) );
+  mShaderTerrainConstBuf = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainConstBuf" );
+  mShaderTerrainConstBuf->SetBuffer( mTerrainConstBuf );
 
   mShaderGameShadowMaps = renderDevice->GetShaderVariable( mGamePipeline, "shadowMaps" );
   mShaderGameLinearSampler = renderDevice->GetShaderVariable( mGamePipeline, "linearSampler" );
@@ -774,6 +803,7 @@ void        Tac::GamePresentationUninit()
   renderDevice->DestroySampler( mSamplerAniso );
   renderDevice->DestroySampler( mSamplerPoint );
   renderDevice->DestroySampler( mSamplerLinear );
+  renderDevice->DestroyBuffer( mTerrainConstBuf );
 }
 
 
