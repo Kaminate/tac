@@ -9,25 +9,6 @@ namespace Tac
   struct ExamplePhys6SimObj
   {
     ExamplePhys6SimObj();
-    float mMass { 5 };
-    float mElasticity { 0.5f };
-
-    // distance between hemisphere centers
-    float mCapsuleHeight { 3 };
-    float mCapsuleRadius { 0.5f };
-    float mBoundingSphereRadius;
-
-    v3 mColor{1,1,1};
-
-    v3 mLinPos{};
-    v3 mLinVel{};
-    v3 mLinForceAccum{}; // worldspace
-
-    m3 mAngRot { m3::Identity() };
-    m3 mAngInvInertiaTensor{};
-    v3 mAngVel{};
-    v3 mAngMomentum{};
-    v3 mAngTorqueAccum{}; // worldspace
 
     // should be called when the radius or mass changes
     void ComputeThings();
@@ -35,6 +16,27 @@ namespace Tac
     void AddForce(v3);
     void BeginFrame();
     void Integrate();
+
+    float mMass                 { 5 };
+    float mElasticity           { 0.5f };
+
+    // distance between hemisphere centers
+    float mCapsuleHeight        { 3 };
+    float mCapsuleRadius        { 0.5f };
+    float mBoundingSphereRadius {};
+
+    v3 mColor                   {1,1,1};
+
+    v3 mLinPos                  {};
+    v3 mLinVel                  {};
+    v3 mLinForceAccum           {}; // worldspace
+
+    m3 mAngRot                  { m3::Identity() };
+    m3 mAngInvInertiaTensor     {};
+    v3 mAngVel                  {};
+    v3 mAngMomentum             {};
+    v3 mAngTorqueAccum          {}; // worldspace
+
   };
 
   struct ExamplePhysSim6RotCollision : public Example
@@ -42,7 +44,7 @@ namespace Tac
     ExamplePhysSim6RotCollision();
     ~ExamplePhysSim6RotCollision() override;
 
-    void Update( Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
     void Draw( const ExamplePhys6SimObj& );
     void Render();
     void RenderBoundingSpheres();

@@ -92,7 +92,7 @@ namespace Tac
 
   void ExamplePhysSim2Integration::UI()
   {
-    const bool shouldReset { ImGuiButton( "Reset" ) };
+    bool shouldReset { ImGuiButton( "Reset" ) };
 
     ImGuiText( ShortFixedString::Concat( "Current Mode: ", ToString( mIntegrationMode ) ) );
 
@@ -107,7 +107,7 @@ namespace Tac
       shouldReset |= modePressed;
     }
 
-    if(shouldReset)
+    if( shouldReset )
       Reset();
   }
 
@@ -190,7 +190,7 @@ namespace Tac
   }
 
 
-  void ExamplePhysSim2Integration::Update( Errors& )
+  void ExamplePhysSim2Integration::Update( UpdateParams, Errors& )
   {
     UI();
 
@@ -198,13 +198,13 @@ namespace Tac
     {
       case IntegrationMode::Euler:
       {
-        v3 accel { GetAcceleration(mPosition) };
+        const v3 accel { GetAcceleration(mPosition) };
         mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
         mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
       } break;
       case IntegrationMode::SemiImplicitEuler:
       {
-        v3 accel { GetAcceleration(mPosition) };
+        const v3 accel { GetAcceleration(mPosition) };
 
         // Explicit velocity update step
         mVelocity += accel * TAC_DELTA_FRAME_SECONDS;

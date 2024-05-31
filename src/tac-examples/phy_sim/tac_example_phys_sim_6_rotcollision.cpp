@@ -24,19 +24,19 @@ namespace Tac
 
   struct Sim6CollisionResult
   {
-    bool mCollided { false };
-    v3 mNormal; // collision normal from obj A to obj B
-    v3 mPoint; // collision point
-    float mDist; // penetration distance
+    bool  mCollided {};
+    v3    mNormal   {}; // collision normal from obj A to obj B
+    v3    mPoint    {}; // collision point
+    float mDist     {}; // penetration distance
   };
 
   static bool IsBroadphaseOverlapping( const ExamplePhys6SimObj& objA,
                                        const ExamplePhys6SimObj& objB )
   {
-    float rSum { objA.mBoundingSphereRadius + objB.mBoundingSphereRadius };
-    float rSumSq { rSum * rSum };
-    float q { Quadrance( objA.mLinPos, objB.mLinPos ) };
-    bool result { q < rSumSq };
+    const float rSum { objA.mBoundingSphereRadius + objB.mBoundingSphereRadius };
+    const float rSumSq { rSum * rSum };
+    const float q { Quadrance( objA.mLinPos, objB.mLinPos ) };
+    const bool result { q < rSumSq };
     return result;
   }
 
@@ -48,8 +48,8 @@ namespace Tac
 
   struct Sim6Capsule
   {
-    Sim6LineSegment mLineSegment;
-    float mRadius { 0 };
+    Sim6LineSegment mLineSegment {};
+    float           mRadius      {};
   };
 
   Sim6LineSegment SimObjToLineSegment( const ExamplePhys6SimObj& obj )
@@ -86,11 +86,12 @@ namespace Tac
                                    ( closestB - n * objB.mCapsuleRadius ) ) / 2 };
     const float penetrationDistance { radiusSum - d };
 
-    return {
+    return Sim6CollisionResult
+    {
       .mCollided { true },
-      .mNormal { n },
-      .mPoint { intersectionPoint },
-      .mDist { penetrationDistance },
+      .mNormal   { n },
+      .mPoint    { intersectionPoint },
+      .mDist     { penetrationDistance },
     };
   }
 
@@ -290,8 +291,8 @@ namespace Tac
                                                       &closest0,
                                                       &closest1 );
 
-    bool intersecting { Quadrance( closest0, closest1 ) < Square( capsule0.mRadius + capsule1.mRadius ) };
-    v3 colors[]  { color0, color1 };
+    const bool intersecting { Quadrance( closest0, closest1 ) < Square( capsule0.mRadius + capsule1.mRadius ) };
+    const v3 colors[]  { color0, color1 };
     Sim6Capsule* caps[]  { &capsule0, &capsule1 };
     v3 closests[]  { closest0, closest1 };
     for( int i { 0 }; i < 2; ++i )
@@ -310,11 +311,12 @@ namespace Tac
     if( intersecting )
     {
       v3 n { closest1 - closest0 };
-      float d { n.Length() };
+      const float d { n.Length() };
       if( d > 0 )
         n /= d;
-      v3 collisionPt { ( ( closest0 + n * capsule0.mRadius ) + ( closest1 - n * capsule1.mRadius ) ) / 2 };
-      float penetration { d - capsule0.mRadius - capsule1.mRadius };
+
+      const v3 collisionPt { ( ( closest0 + n * capsule0.mRadius ) + ( closest1 - n * capsule1.mRadius ) ) / 2 };
+      const float penetration { d - capsule0.mRadius - capsule1.mRadius };
       drawData->DebugDraw3DCircle( collisionPt, mCamera->mForwards, penetration / 2, avgcolor );
     }
 
@@ -344,7 +346,7 @@ namespace Tac
   {
     if( !drawCapsuleCollision )
       return;
-    Debug3DDrawData* drawData = mWorld->mDebug3DDrawData;
+    Debug3DDrawData* drawData { mWorld->mDebug3DDrawData };
 
     Sim6Capsule cap0 { SimObjToCapsule( mPlayer ) };
     Sim6Capsule cap1 { SimObjToCapsule( mObstacle ) };
@@ -413,7 +415,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim6RotCollision::Update( Errors& )
+  void ExamplePhysSim6RotCollision::Update( UpdateParams, Errors& )
   {
     m2UnitTest();
 

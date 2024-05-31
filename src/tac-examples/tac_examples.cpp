@@ -127,7 +127,7 @@ namespace Tac
       SetNextExample( iSelected );
   }
 
-  static void ExampleDemoWindow( Errors& errors )
+  static void ExampleDemoWindow( App::UpdateParams appUpdateParams, Errors& errors )
   {
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowDisableBG();
@@ -137,8 +137,15 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
-    const int iOld { GetCurrExampleIndex() };
-    TAC_CALL( ExampleStateMachineUpdate( errors ));
+    const int iOld{ GetCurrExampleIndex() };
+
+    const Example::UpdateParams exampleUpdateParams
+    {
+      .mKeyboardApi{ appUpdateParams.mKeyboardApi },
+      .mWindowApi{ appUpdateParams.mWindowApi },
+    };
+
+    TAC_CALL( ExampleStateMachineUpdate( exampleUpdateParams, errors ) );
     const int iNew { GetCurrExampleIndex() };
     if( iOld != iNew )
     {
@@ -182,7 +189,7 @@ namespace Tac
 
     TAC_CALL( ExampleSelectorWindow( errors ) );
 
-    TAC_CALL( ExampleDemoWindow(  errors ) );
+    TAC_CALL( ExampleDemoWindow( updateParams, errors ) );
   }
 
   struct ExamplesApp : public App

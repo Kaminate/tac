@@ -6,6 +6,6 @@ namespace Tac
 {
   struct ExampleImgui : public Example
   {
-    void Update( Errors& ) override;
+    void Update( UpdateParams, Errors& ) override;
   };
 }
