@@ -68,6 +68,8 @@ namespace Tac::Render
   {
     void Init( Errors& ) override;
 
+    Info            GetInfo() const override;
+
     PipelineHandle  CreatePipeline( PipelineParams, Errors& ) override;
     IShaderVar*     GetShaderVariable( PipelineHandle, StringView ) override;
     void            DestroyPipeline( PipelineHandle ) override;

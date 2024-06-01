@@ -353,8 +353,8 @@ namespace Tac::Render
     for( const UpdateBufferParams& params : paramSpan )
     {
       TAC_ASSERT( buffer.mMappedCPUAddr );
-      TAC_ASSERT( params.mSrcBytes );
-      TAC_ASSERT( params.mSrcByteCount );
+      if( !params.mSrcBytes || params.mSrcByteCount <= 0 )
+        continue;
 
       char* dstBytes{ ( char* )buffer.mMappedCPUAddr + params.mDstByteOffset };
       MemCpy( dstBytes, params.mSrcBytes, params.mSrcByteCount );

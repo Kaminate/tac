@@ -62,7 +62,8 @@ namespace Tac
   static Render::IShaderVar*           mShaderTerrainSampler;
   static Render::IShaderVar*           mShaderTerrainConstBuf;
   static Render::IShaderVar*           mShaderGameShadowMaps;
-  static Render::IShaderVar*           mShaderGameLinearSampler;
+  static Render::IShaderVar*           mShaderGameLights;
+  //static Render::IShaderVar*           mShaderGameLinearSampler;
   static Render::IShaderVar*           mShaderGameShadowSampler;
   static Render::IShaderVar*           mShaderGamePerFrame;
   static Render::IShaderVar*           mShaderGamePerObject;
@@ -234,12 +235,22 @@ namespace Tac
       }
     }
 
+    mShaderGameLights->SetBuffer( Render::CBufferLights::sHandle );
+    const Render::UpdateBufferParams updateLights
+    {
+      .mSrcBytes     { &cBufferLights },
+      .mSrcByteCount { sizeof( Render::CBufferLights ) },
+    };
+    TAC_CALL( renderContext->UpdateBuffer( Render::CBufferLights::sHandle,
+                                           updateLights,
+                                           errors ) );
+
     for( int i{}; i < shadowMaps.size(); ++i )
       mShaderGameShadowMaps->SetTextureAtIndex( i, shadowMaps[ i ] );
 
     mDebugCBufferLights = cBufferLights;
 
-    mShaderGameLinearSampler->SetSampler( mSamplerLinear );
+    //mShaderGameLinearSampler->SetSampler( mSamplerLinear );
     mShaderGameShadowSampler->SetSampler( mSamplerPoint );
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
@@ -561,11 +572,12 @@ namespace Tac
     const m4 worldmtx{  m4::Identity()  };
     const m4 view{ camera->View() };
     const m4 proj{ GetProjMtx( camera, viewSize ) };
+
     const TerrainConstBuf terrainConstBuf
     {
-      .mWorld{ worldmtx },
-      .mView{ view },
-      .mProj{ proj },
+      .mWorld { worldmtx },
+      .mView  { view },
+      .mProj  { proj },
     };
 
     const Render::UpdateBufferParams updateBufferParams
@@ -784,9 +796,11 @@ void        Tac::GamePresentationInit( Errors& errors )
   mShaderTerrainConstBuf = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainConstBuf" );
   mShaderTerrainConstBuf->SetBuffer( mTerrainConstBuf );
 
+  mShaderGameLights = renderDevice->GetShaderVariable( mGamePipeline, "CBufferLights" );
+
   mShaderGameShadowMaps = renderDevice->GetShaderVariable( mGamePipeline, "shadowMaps" );
-  mShaderGameLinearSampler = renderDevice->GetShaderVariable( mGamePipeline, "linearSampler" );
-  mShaderGameLinearSampler->SetSampler( mSamplerLinear );
+  //mShaderGameLinearSampler = renderDevice->GetShaderVariable( mGamePipeline, "linearSampler" );
+  //mShaderGameLinearSampler->SetSampler( mSamplerLinear );
   mShaderGameShadowSampler = renderDevice->GetShaderVariable( mGamePipeline, "shadowMapSampler" );
   mShaderGameShadowSampler->SetSampler( mSamplerPoint );
 
@@ -817,7 +831,7 @@ void        Tac::GamePresentationRender( World* world,
   Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) };
   Render::IContext* renderContext{ renderContextScope.GetContext() };
 
-  TAC_RENDER_GROUP_BLOCK( renderContext, "GamePresentationRender" );
+  renderContext->DebugEventBegin( "GamePresentationRender" );
 
   TAC_CALL( ShadowPresentationRender( world, errors ) );
 
@@ -852,6 +866,7 @@ void        Tac::GamePresentationRender( World* world,
                                                              errors ) );
   }
 
+  renderContext->DebugEventEnd();
   TAC_CALL( renderContext->Execute( errors ) );
 }
 

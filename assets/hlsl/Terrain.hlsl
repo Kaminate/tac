@@ -1,4 +1,4 @@
-#include "Common.hlsl"
+// #include "Common.hlsl"
 
 struct TerrainCBufType
 {
@@ -9,7 +9,7 @@ struct TerrainCBufType
 
 typedef ConstantBuffer< TerrainCBufType > TerrainCBuf;
 
-TerrainCBuf  terrainConstBuf : TAC_AUTO_REGISTER;
+TerrainCBuf  terrainConstBuf : register(b0);
 Texture2D    terrainTexture  : TAC_AUTO_REGISTER;
 Texture2D    noiseTexture    : TAC_AUTO_REGISTER;
 SamplerState linearSampler   : TAC_AUTO_REGISTER;
@@ -36,9 +36,9 @@ VS_OUTPUT VS( VS_INPUT input )
   matrix view = terrainConstBuf.mView;
   matrix proj = terrainConstBuf.mProj;
 
-  float4 worldSpacePosition = mul( World, float4( input.Position, 1 ) );
-  float4 viewSpacePosition = mul( View, worldSpacePosition );
-  float4 clipSpacePosition = mul( Projection, viewSpacePosition );
+  float4 worldSpacePosition = mul( world, float4( input.Position, 1 ) );
+  float4 viewSpacePosition = mul( view, worldSpacePosition );
+  float4 clipSpacePosition = mul( proj, viewSpacePosition );
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;

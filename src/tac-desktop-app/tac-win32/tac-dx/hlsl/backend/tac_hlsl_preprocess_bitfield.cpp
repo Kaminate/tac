@@ -94,8 +94,9 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  Optional< String > HLSLLinePreprocessorBitfield::Preprocess( const StringView line, Errors& )
+  Optional< String > HLSLLinePreprocessorBitfield::Preprocess( Input input, Errors& )
   {
+    const StringView line{ input.mLine };
     if( line.contains( "TAC_DEFINE_BITFIELD_BEGIN" ) )
     {
       TAC_ASSERT( !mProcessing );

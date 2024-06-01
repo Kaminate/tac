@@ -5,17 +5,20 @@ struct Light
 {
   //               Transforms a point from worldspace to the shadowmap's clipspace
   row_major matrix mWorldToClip;
+
   float3           mWorldSpacePosition;
+  TAC_PAD_BYTES( 4 );
+
   float3           mWorldSpaceUnitDirection;
+  TAC_PAD_BYTES( 4 );
 
   // this could be a float3 with the radiance multiplied with the color?
   float4           mColorRadiance; // rgb: color, a: radiance
 
   uint             mFlags;
-  //float            mProjA;
-  //float            mProjB;
-  //TAC_PAD_BYTES( 4 );
-  TAC_PAD_BYTES( 12 );
+  float            mProjA;
+  float            mProjB;
+  TAC_PAD_BYTES( 4 );
 };
 
 TAC_DEFINE_BITFIELD_BEGIN;

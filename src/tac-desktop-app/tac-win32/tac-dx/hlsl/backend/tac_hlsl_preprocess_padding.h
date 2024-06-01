@@ -7,8 +7,8 @@ namespace Tac::Render
 
   struct HLSLLinePreprocessorPadding : public HLSLLinePreprocessor
   {
-    Optional< String > Preprocess( StringView, Errors& ) override;
-    int mCounter = 0;
+    Optional< String > Preprocess( Input, Errors& ) override;
+    int mCounter {};
   };
 } // namespace Tac::Render
 

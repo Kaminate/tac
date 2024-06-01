@@ -27,8 +27,9 @@ namespace Tac::Render
     mAssetPath = assetPath;
   }
 
-  Optional< String > HLSLLinePreprocessorIncludes::Preprocess( const StringView line, Errors& errors )
+  Optional< String > HLSLLinePreprocessorIncludes::Preprocess( Input input, Errors& errors )
   {
+    const StringView line{ input.mLine};
     ParseData lineParseData( line.data(), line.size() );
     lineParseData.EatWhitespace();
 

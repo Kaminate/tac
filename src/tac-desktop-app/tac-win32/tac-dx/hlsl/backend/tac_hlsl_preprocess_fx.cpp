@@ -6,8 +6,10 @@
 
 namespace Tac::Render
 {
-  Optional< String > HLSLLinePreprocessorFx::Preprocess( const StringView line, Errors& errors )
+  Optional< String > HLSLLinePreprocessorFx::Preprocess( Input input, Errors& errors )
   {
+    const StringView line{ input.mLine };
+
     // https://learn.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-texture
     TAC_RAISE_ERROR_IF_RETURN(
       line.contains( "texture" ) && line.contains( "register" ),

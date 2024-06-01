@@ -23,6 +23,7 @@ namespace Tac::Render
     IHandle( int );
     int GetIndex() const;
     bool IsValid() const;
+    static const int sNull{ -1 };
   private:
     int mIndex;
   };

@@ -11,7 +11,13 @@ namespace Tac::Render
   //struct HLSLFilePreprocessor;
   struct HLSLLinePreprocessor
   {
-    virtual Optional<String> Preprocess( StringView, Errors& ) = 0;
+    struct Input
+    {
+      StringView mLine;
+      StringView mFile;
+      int        mLineNumber;
+    };
+    virtual Optional< String > Preprocess( Input, Errors& ) = 0;
     //HLSLFilePreprocessor* mParent{};
   };
 
@@ -22,7 +28,7 @@ namespace Tac::Render
     String PreprocessSource( StringView, Errors& );
 
   private:
-    Optional< String > PreprocessLine( StringView, Errors& );
+    Optional< String > PreprocessLine( HLSLLinePreprocessor::Input, Errors& );
 
     Vector< HLSLLinePreprocessor* > mProcessors;
     AssetPathString                 mAssetPath;

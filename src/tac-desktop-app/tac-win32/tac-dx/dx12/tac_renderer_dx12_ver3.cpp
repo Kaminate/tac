@@ -233,6 +233,20 @@ namespace Tac::Render
     sRenderer.Init( errors );
   }
 
+  IDevice::Info     DX12Device::GetInfo() const
+  {
+    const NDCAttribs ndcAttribs
+    {
+      .mMinZ{ 0 },
+      .mMaxZ{ 1 },
+    };
+
+    return Info
+    {
+      .mNDCAttribs{ndcAttribs},
+    };
+  }
+
   PipelineHandle    DX12Device::CreatePipeline( PipelineParams params,
                                                 Errors& errors )
   {
@@ -247,6 +261,8 @@ namespace Tac::Render
     for( DX12Pipeline::Variable& var : pipeline->mShaderVariables )
       if( var.GetName() == sv )
         return &var;
+
+    TAC_ASSERT_INVALID_CODE_PATH;
 
     return nullptr;
   }

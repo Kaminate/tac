@@ -14,7 +14,8 @@ namespace Tac::Render
   DX12UploadAllocator::DynAlloc DX12UploadAllocator::Allocate( const int byteCount,
                                                                Errors& errors )
   {
-    TAC_ASSERT( byteCount > 0 );
+    // byteCount allowed to be 0
+    TAC_ASSERT( byteCount >= 0 );
 
     // so the deal with large pages, is that they can't be reused as default pages.
     // so normally, when allocating a page, you first check if a retired page can be reused,
@@ -34,8 +35,11 @@ namespace Tac::Render
     {
       DX12UploadPage* curPage { &mActivePages.back() };
 
-      // if the allocation doesn't fit this page will be retired
-      mCurPageUsedByteCount = RoundUpToNearestMultiple( mCurPageUsedByteCount, byteCount );
+      if( byteCount ) // avoid divide by 0
+      {
+        // if the allocation doesn't fit this page will be retired
+        mCurPageUsedByteCount = RoundUpToNearestMultiple( mCurPageUsedByteCount, byteCount );
+      }
 
       if( byteCount <= curPage->mByteCount - mCurPageUsedByteCount )
       {

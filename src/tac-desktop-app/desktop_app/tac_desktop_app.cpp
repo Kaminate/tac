@@ -208,6 +208,9 @@ namespace Tac
     TAC_CALL( sSysThread.Init( errors ) );
     TAC_CALL( sSimThread.Init( errors ) );
 
+    // todo: this is ugly, fix it
+    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
+
     const App::InitParams initParams
     {
       .mWindowApi   { &sSysWindowApi },
@@ -215,8 +218,6 @@ namespace Tac
     };
     TAC_CALL( sApp->Init( initParams, errors ) );
 
-    // todo: this is ugly, fix it
-    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
 
     std::thread logicThread( &SimThread::Update, sSimThread, std::ref( SSimErrors ) );
 

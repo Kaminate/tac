@@ -8,7 +8,7 @@ namespace Tac::Render
   {
     HLSLLinePreprocessorIncludes( AssetPathStringView );
 
-    Optional< String > Preprocess( StringView, Errors& ) override;
+    Optional< String > Preprocess( Input, Errors& ) override;
 
   private:
     String IncludeFile( AssetPathStringView , Errors& );

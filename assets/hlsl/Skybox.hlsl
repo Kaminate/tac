@@ -4,9 +4,9 @@ struct SkyboxConstantBufferType
   row_major matrix mProjection;
 };
 
-#define SkyboxConstBuf ConstantBuffer< SkyboxConstantBufferType >
+typedef ConstantBuffer< SkyboxConstantBufferType > SkyboxConstBuf;
 
-SkyboxConstBuf cBuf          : TAC_AUTO_REGISTER;
+SkyboxConstBuf cBuf          : register(b0);
 TextureCube    cubemap       : TAC_AUTO_REGISTER;
 SamplerState   linearSampler : TAC_AUTO_REGISTER;
 

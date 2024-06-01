@@ -2,7 +2,11 @@
 
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/presentation/tac_game_presentation.h"
+#include "tac-ecs/presentation/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
 #include "tac-ecs/world/tac_world.h"
+
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
@@ -70,8 +74,8 @@ namespace Tac
 
     ExampleRegistryPopulate();
 
-    const String settingExampleName {
-      sSettingsNode.GetChild( "Example.Name" ).GetValueWithFallback( "" ) };
+    SettingsNode childNode{ sSettingsNode.GetChild( "Example.Name" ) };
+    const String settingExampleName { childNode.GetValueWithFallback( "" ) };
     const int    settingExampleIndex { GetExampleIndex( settingExampleName ) };
 
     SetNextExample( settingExampleIndex );
@@ -198,6 +202,11 @@ namespace Tac
     void Init( InitParams initParams, Errors& errors ) override
     {
       sSettingsNode = mSettingsNode;
+      SpaceInit();
+      TAC_CALL( SkyboxPresentationInit( errors ) );
+      TAC_CALL( GamePresentationInit( errors ) );
+      TAC_CALL( ShadowPresentationInit( errors ) );
+      //TAC_CALL( VoxelGIPresentationInit( errors ) );
       ExamplesInitCallback( initParams, errors );
     }
 

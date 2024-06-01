@@ -212,15 +212,19 @@ namespace Tac
       | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
       | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows ) };
 
-    Render::ShaderLight shaderLight  {};
-    shaderLight.mColorRadiance.xyz() = light->mColor;
-    shaderLight.mColorRadiance.w = light->mRadiance;
-    shaderLight.mFlags = flags;
-    shaderLight.mWorldSpaceUnitDirection.xyz() = light->GetUnitDirection();
-    shaderLight.mWorldSpacePosition.xyz() = light->mEntity->mWorldPosition;
-    shaderLight.mWorldToClip = proj * view;
-    //shaderLight.mProjA = a;
-    //shaderLight.mProjB = b;
+    const float a{ proj.m22 };
+    const float b{ proj.m23 };
+
+    const Render::ShaderLight shaderLight
+    {
+      .mWorldToClip             { proj * view },
+      .mWorldSpacePosition      { light->mEntity->mWorldPosition, 1 },
+      .mWorldSpaceUnitDirection { light->GetUnitDirection(), 0 },
+      .mColorRadiance           { light->mColor, light->mRadiance },
+      .mFlags                   { flags },
+      .mProjA                   { a },
+      .mProjB                   { b },
+    };
     return shaderLight;
 
   }

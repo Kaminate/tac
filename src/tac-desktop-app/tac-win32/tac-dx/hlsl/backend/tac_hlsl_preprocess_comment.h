@@ -6,7 +6,7 @@ namespace Tac::Render
 {
   struct HLSLLinePreprocessorComment : HLSLLinePreprocessor
   {
-    Optional< String > Preprocess( StringView, Errors& ) override;
+    Optional< String > Preprocess( Input, Errors& ) override;
   };
 
 } // namespace Tac::Render

@@ -24,7 +24,7 @@ namespace Tac::Render
 
     struct Input
     {
-      String mName;
+      String mName; // this is a semantic name
       int    mIndex;
       int    mRegister;
     };

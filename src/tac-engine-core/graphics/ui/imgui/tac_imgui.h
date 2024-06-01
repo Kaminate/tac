@@ -94,14 +94,14 @@ namespace Tac
   struct UIStyle
   {
     UIStyle();
-    float windowPadding = 8;
+    float windowPadding                     { 8 };
 
     //    what is itemspaceing?
-    v2    itemSpacing = { 8, 4 };
+    v2    itemSpacing                       { 8, 4 };
 
-    float fontSize = 23;
-    float buttonPadding = 3.0f;
-    v4    colors[ ( int )ImGuiCol::Count ] = {};
+    float fontSize                          { 23 };
+    float buttonPadding                     { 3.0f };
+    v4    colors[ ( int )ImGuiCol::Count ]  {};
   };
 
   float     ImGuiGetFontSize();
@@ -127,10 +127,10 @@ namespace Tac
 
   struct ImGuiInitParams
   {
-    int                mMaxGpuFrameCount{};
-    SimWindowApi*      mSimWindowApi{};
-    SimKeyboardApi*    mSimKeyboardApi{};
-    SettingsNode       mSettingsNode;
+    int                mMaxGpuFrameCount {};
+    SimWindowApi*      mSimWindowApi     {};
+    SimKeyboardApi*    mSimKeyboardApi   {};
+    SettingsNode       mSettingsNode     {};
     //ImGuiSetWindowPos  mSetWindowPos{};
     //ImGuiSetWindowSize mSetWindowSize{};
     //ImGuiCreateWindow  mCreateWindow{};

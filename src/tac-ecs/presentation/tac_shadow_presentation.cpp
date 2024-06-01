@@ -374,9 +374,10 @@ void Tac::ShadowPresentationRender( World* world, Errors& errors )
   lightVisitor.mErrors = &errors;
   lightVisitor.mRenderContext = renderContext;
 
-  TAC_RENDER_GROUP_BLOCK( renderContext, "Render Shadow Maps" );
+  renderContext->DebugEventBegin( "Render Shadow Maps" );
   renderContext->SetPipeline( sPipeline );
   graphics->VisitLights( &lightVisitor );
+  renderContext->DebugEventEnd();
   TAC_CALL( renderContext->Execute( errors ) );
 }
 

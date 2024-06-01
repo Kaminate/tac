@@ -95,7 +95,9 @@ namespace Tac::Render
     v4       mWorldSpaceUnitDirection;
     v4       mColorRadiance;
     u32      mFlags;
-    TAC_PAD_BYTES( 12 );
+    float    mProjA;
+    float    mProjB;
+    TAC_PAD_BYTES( 4 );
   };
 
   struct CBufferLights

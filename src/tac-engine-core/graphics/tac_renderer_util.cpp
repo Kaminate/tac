@@ -140,7 +140,7 @@ namespace Tac::Render
       .mByteCount    { sizeof( CBufferLights ) },
       .mUsage        { Render::Usage::Dynamic },
       .mBinding      { Render::Binding::ConstantBuffer },
-      .mOptionalName {  "CBufferLights" },
+      .mOptionalName { "CBufferLights" },
     };
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }

@@ -8,7 +8,7 @@ struct VS_INPUT
 };
 
 Texture2D    shadowMaps[ 4 ]   : TAC_AUTO_REGISTER;
-SamplerState linearSampler     : TAC_AUTO_REGISTER;
+// SamplerState linearSampler     : TAC_AUTO_REGISTER;
 SamplerState shadowMapSampler  : TAC_AUTO_REGISTER;
 
 struct VS_OUTPUT

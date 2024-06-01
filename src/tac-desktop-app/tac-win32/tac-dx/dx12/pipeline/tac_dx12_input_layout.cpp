@@ -23,46 +23,48 @@ namespace Tac::Render
     }
   }
 
-  DX12InputLayout::DX12InputLayout( const VertexDeclarations& vtxDecls,
-                                    const DX12Program* program )
+  const VertexDeclaration* FindVtxDecl( const VertexDeclarations& vtxDecls,
+                                        StringView semanticName )
   {
-    const int vertexDeclCount { vtxDecls.size() };
-    TAC_ASSERT( vertexDeclCount == program->mInputs.size() );
+    for( const VertexDeclaration& vtxDecl : vtxDecls )
+      if( ( StringView )GetSemanticName( vtxDecl.mAttribute ) == semanticName )
+        return &vtxDecl;
 
-    InputElementDescs.resize( vertexDeclCount );
+    return nullptr;
+  }
 
-    for( int i {}; i < vertexDeclCount; ++i )
+  // -----------------------------------------------------------------------------------------------
+
+  // the vtxDecls must be >= program inputs
+  DX12InputLayout::DX12InputLayout( const VertexDeclarations& vtxDecls,
+                                    const DX12Program* program ) : D3D12_INPUT_LAYOUT_DESC{}
+  {
+    if( program->mInputs.empty() )
+      return;
+
+    for( const DX12Program::Input& programInput : program->mInputs )
     {
-      const DX12Program::Input& programInput{ program->mInputs[ i ] };
-      const VertexDeclaration& vtxDecl { vtxDecls[ i ] };
-
-      const char* semanticName{ GetSemanticName( vtxDecl.mAttribute ) };
-      DXGI_FORMAT dxgiFmt{ GetDXGIFormatTexture( vtxDecl.mFormat ) };
-
-      TAC_ASSERT( programInput.mName == semanticName );
+      const VertexDeclaration* vtxDecl{ FindVtxDecl( vtxDecls, programInput.mName ) };
+      TAC_ASSERT( vtxDecl );
       TAC_ASSERT( programInput.mIndex == 0 );
 
       const D3D12_INPUT_ELEMENT_DESC inputElementDesc
       {
-        .SemanticName         { semanticName },
+        .SemanticName         { GetSemanticName( vtxDecl->mAttribute ) },
         .SemanticIndex        {},
-        .Format               { dxgiFmt },
+        .Format               { GetDXGIFormatTexture( vtxDecl->mFormat ) },
         .InputSlot            {}, // which vertex buffer index this data comes from
-        .AlignedByteOffset    { (UINT)vtxDecl.mAlignedByteOffset },
+        .AlignedByteOffset    { ( UINT )vtxDecl->mAlignedByteOffset },
         .InputSlotClass       { D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA },
         .InstanceDataStepRate {},
       };
 
-      InputElementDescs[ i ] = inputElementDesc;
+      InputElementDescs.push_back( inputElementDesc );
     }
 
-    *( ( D3D12_INPUT_LAYOUT_DESC* )this ) = D3D12_INPUT_LAYOUT_DESC
-    {
-      // the ternary suppress a d3d12 validation warning
-      .pInputElementDescs { InputElementDescs.empty() ? nullptr : InputElementDescs.data() },
 
-      .NumElements        { ( UINT )InputElementDescs.size() },
-    };
+    pInputElementDescs = InputElementDescs.data();
+    NumElements = ( UINT )InputElementDescs.size();
   }
 
 

@@ -7,10 +7,10 @@ struct ShadowFrameConstantsType
 struct ShadowObjectConstantsType
 {
   row_major matrix mWorld;
-}
+};
 
-typedef ShadowConstantBuffer< ShadowFrameConstantsType > ShadowPerFrame;
-typedef ShadowConstantBuffer< ShadowObjectConstantsType > ShadowPerObj;
+typedef ConstantBuffer< ShadowFrameConstantsType > ShadowPerFrame;
+typedef ConstantBuffer< ShadowObjectConstantsType > ShadowPerObj;
 
 ShadowPerFrame sPerFrame : register( b0 );
 ShadowPerObj   sPerObj   : register( b1 );

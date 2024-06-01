@@ -11,8 +11,9 @@ namespace Tac::Render
     return shaderParseData.EatStringExpected( "//" );
   }
 
-  Optional< String > HLSLLinePreprocessorComment::Preprocess( StringView line, Errors& )
+  Optional< String > HLSLLinePreprocessorComment::Preprocess( Input input, Errors& )
   {
+    StringView line{ input.mLine };
     const bool isComment { IsSingleLineCommented( line ) };
     return isComment ? Optional< String >( line ) : Optional< String >{};
   }

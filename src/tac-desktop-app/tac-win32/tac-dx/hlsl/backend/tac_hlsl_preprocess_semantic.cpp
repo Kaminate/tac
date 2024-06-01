@@ -4,8 +4,9 @@
 
 namespace Tac::Render
 {
-  Optional< String > HLSLLinePreprocessorSemantic::Preprocess( const StringView line, Errors& )
+  Optional< String > HLSLLinePreprocessorSemantic::Preprocess( Input input, Errors& )
   {
+    const StringView line{input.mLine};
     if( !line.contains( "TAC_AUTO_SEMANTIC" ) )
       return {};
 

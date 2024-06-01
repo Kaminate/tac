@@ -29,13 +29,13 @@ namespace Tac
       const v4& col4 { ImGuiGetColor( col ) };
       const UIStyle& style { ImGuiGetStyle() };
       const v2 size( style.fontSize, style.fontSize );
-      const int iTex { Render::TextureHandle().GetIndex() };
+      const int iTex{ Render::TextureHandle::sNull };
 
       ImGuiText( FormatColor( col4 ) );
       ImGuiSameLine();
       ImGuiImage( iTex, size, col4 );
       ImGuiSameLine();
-      ImGuiText(ImGuiGetColName( col ));
+      ImGuiText( ImGuiGetColName( col ) );
     }
 
     if( ImGuiCollapsingHeader( "DragInts" ) )

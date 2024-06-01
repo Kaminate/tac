@@ -7,7 +7,7 @@ namespace Tac::Render
 
   struct HLSLLinePreprocessorRegister : HLSLLinePreprocessor
   {
-    Optional< String > Preprocess( StringView, Errors& ) override;
+    Optional< String > Preprocess( Input, Errors& ) override;
     int                Add( char, int );
 
     int                mLetterCounts[ 128 ]{};
