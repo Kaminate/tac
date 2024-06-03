@@ -32,17 +32,17 @@ namespace Tac
   // y
   struct ImGuiRect
   {
-    static ImGuiRect FromPosSize( v2 pos, v2 size );
-    static ImGuiRect FromMinMax( v2 mini, v2 maxi );
+    static ImGuiRect FromPosSize( v2  pos, v2  size );
+    static ImGuiRect FromMinMax( v2  mini, v2  maxi );
     float            GetWidth() const;
     float            GetHeight() const;
     v2               GetSize() const;
-    bool             ContainsPoint( v2 ) const;
+    bool             ContainsPoint( v2  ) const;
     bool             Contains( const ImGuiRect& ) const;
     bool             Overlaps( const ImGuiRect& ) const;
 
-    v2               mMini = {};
-    v2               mMaxi = {};
+    v2               mMini  {};
+    v2               mMaxi  {};
   };
 
   enum class ImGuiCol

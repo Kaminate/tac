@@ -3,7 +3,8 @@
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-engine-core/hid/tac_key.h" // Tac::Key
 #include "tac-std-lib/containers/tac_span.h"
-#include "tac-std-lib/math/tac_vector2.h" // v2
+//#include "tac-std-lib/math/tac_vector2.h" // v2
+#include "tac-std-lib/math/tac_vector2i.h" // v2i
 
 namespace Tac
 {
@@ -21,8 +22,8 @@ namespace Tac
     float               HeldSeconds( Key ) const;
     Span< Codepoint >   GetCodepoints() const;
     float               GetMouseWheelDelta() const; // units are magic
-    v2                  GetMousePosScreenspace() const;
-    v2                  GetMousePosDelta() const;
+    v2i                 GetMousePosScreenspace() const;
+    v2i                 GetMousePosDelta() const;
   };
 }
 

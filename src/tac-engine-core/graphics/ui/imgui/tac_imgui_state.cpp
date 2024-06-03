@@ -203,7 +203,7 @@ namespace Tac
       const float mouseDY{
         keyboardApi->GetMousePosScreenspace().y
        - mScrollMousePosScreenspaceInitial.y };
-      mScrollMousePosScreenspaceInitial.y = keyboardApi->GetMousePosScreenspace().y;
+      mScrollMousePosScreenspaceInitial.y = (float)keyboardApi->GetMousePosScreenspace().y;
       const float scrollDY{ mouseDY * ( contentVisibleHeight / scrollbarHeight ) };
       mScroll = Clamp( mScroll + scrollDY , scrollMin, scrollMax );
 

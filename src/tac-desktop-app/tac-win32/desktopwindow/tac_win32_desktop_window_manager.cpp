@@ -127,7 +127,7 @@ namespace Tac
       };
       DesktopEventApi::Queue( data );
     } break;
-      // Sent as a signal that a window or an application should terminate.
+    // Sent as a signal that a window or an application should terminate.
     case WM_CLOSE:
     {
       // should it be like...
@@ -140,7 +140,7 @@ namespace Tac
     case WM_DESTROY:
     {
       ImGuiSaveWindowSettings( windowHandle );
-      const int i { windowHandle.GetIndex() };
+      const int i{ windowHandle.GetIndex() };
       sHWNDs[ i ] = nullptr;
       const DesktopEventApi::WindowDestroyEvent data
       {
@@ -151,7 +151,7 @@ namespace Tac
 
     case WM_CREATE:
     {
-      const int i { windowHandle.GetIndex() };
+      const int i{ windowHandle.GetIndex() };
       sHWNDs[ i ] = hwnd;
       sWindowUnderConstruction = {};
       auto windowInfo = ( const CREATESTRUCT* )lParam;
@@ -212,12 +212,12 @@ namespace Tac
     case WM_KEYDOWN: // fallthrough
     case WM_KEYUP: // fallthrough
     {
-      const bool wasDown { ( lParam & ( ( LPARAM )1 << 30 ) ) != 0 };
-      const bool isDown { ( lParam & ( ( LPARAM )1 << 31 ) ) == 0 };
+      const bool wasDown{ ( lParam & ( ( LPARAM )1 << 30 ) ) != 0 };
+      const bool isDown{ ( lParam & ( ( LPARAM )1 << 31 ) ) == 0 };
       if( isDown == wasDown )
         break;
 
-      const Key key { GetKey( ( u8 )wParam ) };
+      const Key key{ GetKey( ( u8 )wParam ) };
       if( key == Key::Count )
         break;
 
@@ -276,122 +276,74 @@ namespace Tac
       SetActiveWindow( hwnd );
     } break;
 
-
-    // https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-nclbuttonup
-    // Posted when the user releases the left mouse button while the cursor is
-    // within the nonclient area of a window.
-    // This message is posted to the window that contains the cursor.
-    // If a window has captured the mouse, this message is not posted.
-    // case WM_NCLBUTTONUP:
-
+    case WM_MBUTTONDOWN:
     case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
     {
+      Key key{ Key::Count };
+      if( uMsg == WM_LBUTTONDOWN ) { key = Key::MouseLeft; }
+      if( uMsg == WM_RBUTTONDOWN ) { key = Key::MouseRight; }
+      if( uMsg == WM_MBUTTONDOWN ) { key = Key::MouseMiddle; }
+
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey { Key::MouseLeft },
+        .mKey  { key },
         .mDown { true },
       };
       DesktopEventApi::Queue( data );
 
       // make it so clicking the window brings the window to the top of the z order
-      SetActiveWindow( hwnd );
+      ::SetActiveWindow( hwnd );
 
-      //SetForegroundWindow( mHWND );
+      // Capture mouse input even when the mouse goes out of the client window rect
+      if( !::GetCapture() )
+        ::SetCapture( hwnd );
 
     } break;
 
     case WM_LBUTTONUP:
-    {
-      const DesktopEventApi::KeyStateEvent data
-      {
-        .mKey { Key::MouseLeft },
-        .mDown { false },
-      };
-      DesktopEventApi::Queue( data );
-    } break;
-
-    case WM_RBUTTONDOWN:
-    {
-      const DesktopEventApi::KeyStateEvent data
-      {
-        .mKey { Key::MouseRight },
-        .mDown { true },
-      };
-      DesktopEventApi::Queue( data );
-      //BringWindowToTop( mHWND );
-      SetActiveWindow( hwnd ); // make it so clicking the window brings the window to the top of the z order
-    } break;
-
+    case WM_MBUTTONUP:
     case WM_RBUTTONUP:
     {
+      Key key{ Key::Count };
+      if( uMsg == WM_LBUTTONUP ) { key = Key::MouseLeft; }
+      if( uMsg == WM_RBUTTONUP ) { key = Key::MouseRight; }
+      if( uMsg == WM_MBUTTONUP ) { key = Key::MouseMiddle; }
+
       const DesktopEventApi::KeyStateEvent data
       {
-        .mKey { Key::MouseRight },
+        .mKey  { key },
         .mDown { false },
       };
       DesktopEventApi::Queue( data );
-    } break;
 
-    case WM_MBUTTONDOWN:
-    {
-      const DesktopEventApi::KeyStateEvent data
-      {
-        .mKey { Key::MouseMiddle },
-        .mDown { true },
-      };
-      DesktopEventApi::Queue( data );
-      //BringWindowToTop( mHWND );
+      // Release mouse input capturing
+      if( hwnd == ::GetCapture() )
+        ::SetCapture( nullptr );
 
-      // make it so clicking the window brings the window to the top of the z order
-      SetActiveWindow( hwnd );
-    } break;
-
-    case WM_MBUTTONUP:
-    {
-      const DesktopEventApi::KeyStateEvent data
-      {
-        .mKey { Key::MouseMiddle },
-        .mDown { false },
-      };
-      DesktopEventApi::Queue( data );
     } break;
 
     case WM_MOUSEMOVE:
     {
-      // Allow the window to receive WM_MOUSEMOVE even if the cursor is outside the client area
-      // Used for Tac.ImGuiDragFloat
-      static HWND mouseTracking;
-      if( mouseTracking != hwnd )
-      {
-        SetCapture( hwnd );
-        mouseTracking = hwnd;
-      }
 
-      const int xPos { GET_X_LPARAM( lParam ) };
-      const int yPos { GET_Y_LPARAM( lParam ) };
+      const int xPos{ GET_X_LPARAM( lParam ) };
+      const int yPos{ GET_Y_LPARAM( lParam ) };
 
       const DesktopEventApi::MouseMoveEvent data
       {
         .mWindowHandle { windowHandle },
-        .mX { xPos },
-        .mY { yPos },
+        .mX            { xPos },
+        .mY            { yPos },
       };
       DesktopEventApi::Queue( data );
     } break;
 
     case WM_MOUSEWHEEL:
     {
-      const short delta { GET_WHEEL_DELTA_WPARAM( wParam ) };
-      const float deltaScaled { ( float )delta / WHEEL_DELTA };
+      const short delta{ GET_WHEEL_DELTA_WPARAM( wParam ) };
+      const float deltaScaled{ ( float )delta / WHEEL_DELTA };
       const DesktopEventApi::MouseWheelEvent data{ deltaScaled };
       DesktopEventApi::Queue( data );
-    } break;
-
-    case WM_MOUSELEAVE:
-    {
-      //mIsMouseInWindow = false;
-      //ReleaseCapture();
-      //mCurrDown.clear();
     } break;
     }
 
@@ -413,13 +365,20 @@ namespace Tac
     TAC_RAISE_ERROR_IF( !icon,
                         ShortFixedString::Concat( "Failed to load icon from: \"", iconPath, "\"" ) );
 
-    const WNDCLASSEX wc{
+
+
+    // if the hcursor is null, then the window will display a spinning circle when you mouse over
+    // your window until you call ::SetCursor
+    const HCURSOR hCursor{ ::LoadCursor( NULL, IDC_ARROW ) };
+
+    const WNDCLASSEX wc
+    {
       .cbSize        { sizeof( WNDCLASSEX ) },
       .style         { CS_HREDRAW | CS_VREDRAW }, // redraw window on movement or size adjustment
       .lpfnWndProc   { WindowProc },
       .hInstance     { Win32GetStartupInstance() },
       .hIcon         { icon },
-      .hCursor       { nullptr }, // LoadCursor( NULL, IDC_ARROW );
+      .hCursor       { hCursor },
       .hbrBackground { ( HBRUSH )GetStockObject( BLACK_BRUSH ) },
       .lpszClassName { classname },
       .hIconSm       { nullptr }, // If null, the system searches for a small icon from the hIcon member

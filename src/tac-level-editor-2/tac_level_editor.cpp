@@ -15,11 +15,13 @@
 //#include "tac-rhi/render/tac_render.h"
 //#include "tac-rhi/render/tac_render_handles.h"
 
+
+Tac::Creation     Tac::sCreation;
+
 namespace Tac
 {
-  Creation     sCreation;
-  WindowHandle sWindowHandle;
-  const v2i    sWindowSize( 800, 600 );
+  static WindowHandle sWindowHandle;
+  static const v2i    sWindowSize( 800, 600 );
 
   // -----------------------------------------------------------------------------------------------
 
@@ -61,9 +63,9 @@ namespace Tac
 
   }
 
-  void LevelEditorApp::Update( UpdateParams, Errors& errors )
+  void LevelEditorApp::Update( UpdateParams updateParams, Errors& errors )
   {
-    sCreation.Update( errors );
+    sCreation.Update( updateParams.mKeyboardApi, updateParams.mWindowApi, errors );
   }
 
   void LevelEditorApp::Uninit( Errors& errors )
@@ -129,9 +131,11 @@ namespace Tac
   }
   
 
-  void                Creation::Update( Errors& errors )
+  void                Creation::Update( const SimKeyboardApi* keyboardApi,
+                                        const SimWindowApi* windowApi,
+                                        Errors& errors )
   {
-    mShowUnownedWindow = true;
+    mShowUnownedWindow = false;
     mShowOwnedWindow = true;
 
     if( mShowOwnedWindow )
@@ -178,6 +182,21 @@ namespace Tac
 
         ImGuiText(  FormatFrameTime( Timestep::GetElapsedTime().mSeconds )  );
 
+        
+        const v2 mousePosScreenspace{ keyboardApi->GetMousePosScreenspace() };
+        const v2i windowPos{ windowApi->GetPos( sWindowHandle ) };
+        const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
+
+        ImGuiText( String() + "mouse pos: "
+                   + ToString( mousePosScreenspace.x ) + ", "
+                   + ToString( mousePosScreenspace.y ) );
+        ImGuiText( String() + "window pos: "
+                   + ToString( windowPos.x ) + ", "
+                   + ToString( windowPos.y ) );
+        ImGuiText( String() + "window size: "
+                   + ToString( windowSize.x ) + ", "
+                   + ToString( windowSize.y ) );
+
         FontApi::GetFontAtlasCell( Language::English, 'a', errors );
         FontApi::GetFontAtlasCell( Language::English, 'b', errors );
 
@@ -192,12 +211,16 @@ namespace Tac
         float y{ ( float )Sin(t) * radius + sWindowSize.y / 2};
 
         //ImGuiIndent();
-        for( int i {}; i < 50; ++i )
+        for( int i {}; i < 5; ++i )
         {
           ImGuiSetCursorPos( { x, y + 20 * i} );
           String str{ "text " + ToString( i ) };
           ImGuiText( str );
         }
+
+
+
+
         ImGuiEnd();
       }
     }

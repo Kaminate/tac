@@ -251,7 +251,7 @@ namespace Tac
         {
           if( sKeyboardApi->IsPressed( Key::MouseLeft ) )
           {
-            const float movePixels { sKeyboardApi->GetMousePosDelta().x };
+            const float movePixels { (float)sKeyboardApi->GetMousePosDelta().x };
             const float movePercent { movePixels / cameraViewportSize.x };
             const float moveSeconds { movePercent * ( sMilisecondsToDisplay / 1000 ) };
             sPauseSec -= moveSeconds;

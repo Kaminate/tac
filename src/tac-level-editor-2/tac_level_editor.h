@@ -1,6 +1,8 @@
 #pragma once
 
-namespace Tac { struct Errors; }
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
 
 namespace Tac
 {
@@ -8,7 +10,9 @@ namespace Tac
   {
     void                Init( Errors& );
     void                Uninit( Errors& );
-    void                Update( Errors& );
+    void                Update( const SimKeyboardApi*,
+                                const SimWindowApi*,
+                                Errors& );
 
     bool mShowUnownedWindow{};
     bool mShowOwnedWindow{};

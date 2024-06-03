@@ -1,23 +1,58 @@
-#include "tac_win32_mouse_edge.h" // self-inc
+#pragma once
 
-
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-
-//#include "tac-engine-core/hid/tac_keyboard_api.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-//#include "tac-engine-core/window/tac_window_api.h"
-#include "tac-engine-core/window/tac_window_backend.h"
-
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string.h"
-
-#include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h"
-#include "tac-win32/tac_win32.h"
+#include "tac-std-lib/math/tac_vector2i.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 
 namespace Tac
 {
+  struct MouseEdgeApi
+  {
+    struct State
+    {
+    };
+
+    enum class Side
+    {
+      kNone = 0,
+      kRight = 1 >> 0,
+      kLeft = 1 >> 1,
+      kBot = 1 >> 2,
+      kTop = 1 >> 3,
+    };
+
+    struct Input
+    {
+      WindowHandle mWindowHandle;
+      const SimWindowApi* mWindowApi;
+      const SimKeyboardApi* mKeyboardApi;
+    };
+
+    struct Output
+    {
+      Side mSide{ Side::kNone };
+    };
+
+
+    void UpdateSim( Input input,  Input )
+    {
+      const WindowHandle windowHandle{ input.mWindowHandle };
+      const SimWindowApi* windowApi{ input.mWindowApi };
+      const SimKeyboardApi* keyboardApi{ input.mKeyboardApi };
+
+      const v2i windowSize{ windowApi->GetSize( windowHandle ) };
+      const v2i windowPos{ windowApi->GetPos( windowHandle ) };
+      const v2 mousePos{ keyboardApi->GetMousePosScreenspace() };
+    }
+
+    void UpdateSys( SysWindowApi*, SysKeyboardApi*, Input );
+  };
+
+  /*
+
   enum class MouseEdgeFlags
   {
     kNone      = 0b0001,
@@ -27,9 +62,9 @@ namespace Tac
 
   struct MouseEdge
   {
-    MouseEdgeFlags    mFlags        { MouseEdgeFlags::kNone };
+    MouseEdgeFlags    mFlags { MouseEdgeFlags::kNone };
     //DesktopWindowRect mWindowSpaceMoveRect;
-    int               mResizeBorder {};
+    int               mResizeBorder { false };
   };
 
   enum HandlerType
@@ -318,4 +353,6 @@ void Tac::Win32MouseEdgeSetResizable( const WindowHandle& WindowHandle,
 Tac::WindowHandle Tac::Win32MouseEdgeGetCursorHovered()
 {
   return sMouseHoveredDesktopWindow;
+}
+*/
 }

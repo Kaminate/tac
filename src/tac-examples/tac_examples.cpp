@@ -219,6 +219,20 @@ namespace Tac
     {
       ExamplesRenderCallback( renderParams, errors );
     }
+    void Present( PresentParams presentParams, Errors& errors ) override
+    {
+      const SysWindowApi* windowApi{ presentParams.mWindowApi };
+      const WindowHandle handles[]{ sNavWindow, sDemoWindow };
+      for( WindowHandle handle : handles )
+      {
+        if( windowApi->IsShown( handle ) )
+        {
+          const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( handle ) };
+          Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+          TAC_CALL( renderDevice->Present( swapChain, errors ) );
+        }
+      }
+    }
 
     void Uninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }
   };

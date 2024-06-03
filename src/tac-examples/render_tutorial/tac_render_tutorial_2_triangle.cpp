@@ -58,7 +58,7 @@ namespace Tac
     void InitShader( Errors& );
     void InitRootSig( Errors& );
 
-    WindowHandle           sWindowHandle;
+    WindowHandle           mWindowHandle;
     Render::BufferHandle   mVtxBuf;
     Render::ProgramHandle  mShaderBindless;
     Render::ProgramHandle  mShaderInputLayout;
@@ -85,7 +85,7 @@ namespace Tac
 
   void HelloTriangle::InitWindow( InitParams initParams, Errors& errors )
   {
-      TAC_CALL( sWindowHandle = RenderTutorialCreateWindow(
+      TAC_CALL( mWindowHandle = RenderTutorialCreateWindow(
         initParams.mWindowApi, mConfig.mName, errors ) );
   }
 
@@ -164,8 +164,8 @@ namespace Tac
     mBindless = !mBindless;
 
     const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
-    const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
-    Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( sWindowHandle ) };
+    const v2i windowSize{ windowApi->GetSize( mWindowHandle ) };
+    Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( mWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };

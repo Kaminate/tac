@@ -13,7 +13,7 @@ namespace Tac
   struct KeyboardMouseState
   {
     float     mMouseWheel;
-    v2        mMousePosScreenspace;
+    v2i       mMousePosScreenspace;
     KeyStates mKeyStates;
     KeyTimes  mKeyTimes;
     Timepoint mTime;
@@ -162,12 +162,12 @@ namespace Tac
     return sSimCurr.mMouseWheel - sGameLogicPrev.mMouseWheel;
   }
 
-  v2                  SimKeyboardApi::GetMousePosScreenspace() const
+  v2i                 SimKeyboardApi::GetMousePosScreenspace() const
   {
     return sSimCurr.mMousePosScreenspace;
   }
 
-  v2                  SimKeyboardApi::GetMousePosDelta() const
+  v2i                 SimKeyboardApi::GetMousePosDelta() const
   {
     return sSimCurr.mMousePosScreenspace - sGameLogicPrev.mMousePosScreenspace;
   }
