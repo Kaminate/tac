@@ -18,7 +18,9 @@ namespace Tac
 
     bool                    IsShown( WindowHandle ) const;
     v2i                     GetPos( WindowHandle ) const;
+    void                    SetPos( WindowHandle, v2i ) const;
     v2i                     GetSize( WindowHandle ) const;
+    void                    SetSize( WindowHandle, v2i ) const;
     StringView              GetName( WindowHandle ) const;
     const void*             GetNWH( WindowHandle ) const; // native window handle
     WindowHandle            CreateWindow( WindowCreateParams, Errors& ) const;

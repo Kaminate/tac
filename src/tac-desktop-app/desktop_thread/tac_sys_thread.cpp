@@ -136,6 +136,21 @@ namespace Tac
         };
         TAC_CALL( ImGuiPlatformRender( imguiDrawParams, errors ) );
 
+        for( const auto& sizeData : pair.mNewState->mImGuiDraws.mWindowSizeDatas )
+        {
+          const v2i windowPos{ mWindowApi->GetPos( sizeData.mWindowHandle ) };
+          const v2i windowSize{ mWindowApi->GetSize( sizeData.mWindowHandle ) };
+          if( ( v2 )windowPos != sizeData.mPosScreenspace )
+          {
+            mWindowApi->SetPos( sizeData.mWindowHandle, sizeData.mPosScreenspace );
+          }
+
+          if( ( v2 )windowSize != sizeData.mSize )
+          {
+            mWindowApi->SetSize( sizeData.mWindowHandle, sizeData.mSize );
+          }
+        }
+
         const App::PresentParams presentParams
         {
           .mWindowApi   { mWindowApi },

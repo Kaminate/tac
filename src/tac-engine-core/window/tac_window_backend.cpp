@@ -310,6 +310,29 @@ namespace Tac
     return sSysCurr[ h.GetIndex() ].mSize;
   }
 
+  // not sure this SetPos and SetSize functions should be here, or what the difference between it
+  // and PlatformSetWindowPos/Size are....
+  // because like
+  //
+  // windowproc will send WindowResizeEvent, which sets sSysCurr[].mSize
+  // windowproc will send WindowMoveEvent, will set sSysCurr[].mPos
+  // 
+  void             SysWindowApi::SetPos( WindowHandle h, v2i pos ) const
+  {
+    sSysCurr[ h.GetIndex() ].mPos = pos;
+
+    PlatformFns* platform{ PlatformFns::GetInstance() };
+    platform->PlatformSetWindowPos( h, pos );
+  }
+
+  void             SysWindowApi::SetSize( WindowHandle h, v2i size ) const
+  {
+    sSysCurr[ h.GetIndex() ].mSize = size;
+    
+    PlatformFns* platform{ PlatformFns::GetInstance() };
+    platform->PlatformSetWindowSize( h, size );
+  }
+
   StringView       SysWindowApi::GetName( WindowHandle h ) const
   {
     return sSysCurr[ h.GetIndex() ].mName;

@@ -1275,6 +1275,7 @@ void Tac::ImGuiBeginFrame( const BeginFrameData& data )
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   globals.mElapsedSeconds = data.mElapsedSeconds;
   globals.mMouseHoveredWindow = data.mMouseHoveredWindow;
+  globals.mMouseCursor = ImGuiMouseCursor::kArrow;
 
   if( globals.mMovingWindow )
   {
@@ -1313,20 +1314,10 @@ void Tac::ImGuiEndFrame( Errors& errors )
 
   FrameMemoryVector< ImGuiWindow* > windowsToDeleteImGui;
 
-  // Begin window move/resize
-  if( keyboardApi->JustPressed( Key::MouseLeft ) && globals.mActiveID == ImGuiIdNull )
-  {
-    for( ImGuiWindow* window : globals.mAllWindows )
-    {
-      if( window->mWindowHandleOwned &&
-          window->mDesktopWindow->mWindowHandle == globals.mMouseHoveredWindow )
-      {
-        SetActiveID( window->mMoveID, window );
-        globals.mActiveIDClickPos = keyboardApi->GetMousePosScreenspace();
-        globals.mMovingWindow = window;
-      }
-    }
-  }
+
+  for( ImGuiWindow* window : globals.mAllWindows )
+    window->BeginMoveControls();
+
   
 
   for( ImGuiWindow* window : globals.mAllWindows )
@@ -1445,15 +1436,37 @@ void Tac::ImGuiSetIsScrollbarEnabled( bool b )
 Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
 {
   Vector< ImGuiSimWindowDraws > allWindowDraws;
-  for( ImGuiDesktopWindowImpl* window : ImGuiGlobals::Instance.mDesktopWindows )
+  Vector< ImGuiSimFrameDraws::WindowSizeData > windowSizeDatas;
+
+  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  for( ImGuiDesktopWindowImpl* window : globals.mDesktopWindows )
   {
     ImGuiSimWindowDraws curWindowDraws { window->GetSimWindowDraws() };
     allWindowDraws.push_back( curWindowDraws );
   }
 
+  for( ImGuiWindow* window : globals.mAllWindows )
+  {
+    //if( window->mWindowHandleOwned )
+    {
+      const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
+
+      const v2i windowPosScreenspace{ globals.mSimWindowApi->GetPos( windowHandle ) };
+      const ImGuiSimFrameDraws::WindowSizeData windowSizeData
+      {
+        .mWindowHandle{ windowHandle },
+        .mSize{ window->mSize },
+        .mPosScreenspace{ windowPosScreenspace + window->mViewportSpacePos },
+      };
+
+      windowSizeDatas.push_back(windowSizeData);
+    }
+  }
+
   return ImGuiSimFrameDraws
   {
     .mWindowDraws { allWindowDraws },
+    .mWindowSizeDatas{ windowSizeDatas },
   };
 }
 

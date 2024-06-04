@@ -67,6 +67,7 @@ namespace Tac
     v2                            GetMousePosViewport();
     void                          Scrollbar();
     void                          PushXOffset();
+    void                          BeginMoveControls();
 
     ImGuiId                       GetID(StringView);
 
@@ -168,6 +169,14 @@ namespace Tac
   struct ImGuiSimFrameDraws
   {
     Vector< ImGuiSimWindowDraws > mWindowDraws;
+
+    struct WindowSizeData
+    {
+      WindowHandle mWindowHandle;
+      v2 mSize;
+      v2 mPosScreenspace;
+    };
+    Vector< WindowSizeData > mWindowSizeDatas;
   };
 
   struct ImGuiPersistantViewport
@@ -243,17 +252,17 @@ namespace Tac
     ImGuiWindow*                      FindWindow( const StringView& );
     ImGuiDesktopWindowImpl*           FindDesktopWindow( WindowHandle );
 
-    ImGuiMouseCursor                  mMouseCursor        { ImGuiMouseCursor::kNone };
-    Timestamp                         mElapsedSeconds     {};
-    Vector< ImGuiWindow* >            mAllWindows         {};
-    Vector< ImGuiWindow* >            mWindowStack        {};
-    Vector< ImGuiDesktopWindowImpl* > mDesktopWindows     {};
-    ImGuiWindow*                      mCurrentWindow      {};
-    Vector< float >                   mFontSizeSK; // wtf does sk stand for?
-    UIStyle                           mUIStyle;
-    WindowHandle                      mMouseHoveredWindow {};
-    bool                              mScrollBarEnabled   { true };
-    int                               mMaxGpuFrameCount   {};
+    ImGuiMouseCursor                  mMouseCursor         { ImGuiMouseCursor::kNone };
+    Timestamp                         mElapsedSeconds      {};
+    Vector< ImGuiWindow* >            mAllWindows          {};
+    Vector< ImGuiWindow* >            mWindowStack         {};
+    Vector< ImGuiDesktopWindowImpl* > mDesktopWindows      {};
+    ImGuiWindow*                      mCurrentWindow       {};
+    Vector< float >                   mFontSizeSK          {}; // wtf does sk stand for?
+    UIStyle                           mUIStyle             {};
+    WindowHandle                      mMouseHoveredWindow  {};
+    bool                              mScrollBarEnabled    { true };
+    int                               mMaxGpuFrameCount    {};
 
     // Ok so here's a problem:
     //
@@ -263,15 +272,15 @@ namespace Tac
     //   However ImGuiPlatformRender runs on the system thread and should not have access to these.
     // 
     // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
-    SimWindowApi*                     mSimWindowApi       {};
-    SimKeyboardApi*                   mSimKeyboardApi     {};
-    SettingsNode                      mSettingsNode       {};
+    SimWindowApi*                     mSimWindowApi        {};
+    SimKeyboardApi*                   mSimKeyboardApi      {};
+    SettingsNode                      mSettingsNode        {};
 
-    ImGuiId                           mHoveredID          {ImGuiIdNull};
-    ImGuiId                           mActiveID           {ImGuiIdNull};
-    ImGuiWindow*                      mActiveIDWindow     {};
-    ImGuiWindow*                      mMovingWindow       {};
-    v2                                mActiveIDClickPos   {}; // screenspace
+    ImGuiId                           mHoveredID           {ImGuiIdNull};
+    ImGuiId                           mActiveID            {ImGuiIdNull};
+    ImGuiWindow*                      mActiveIDWindow      {};
+    ImGuiWindow*                      mMovingWindow        {};
+    v2                                mActiveIDClickOffset {}; // button space (top left)
   };
 
   struct ImGuiNextWindow

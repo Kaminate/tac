@@ -71,8 +71,8 @@ namespace Tac
     kArrow,
     kResizeNS,
     kResizeEW,
-    kResizeNESW,
-    kResizeNWSE,
+    kResizeNE_SW,
+    kResizeNW_SE,
     kCount,
   };
 
