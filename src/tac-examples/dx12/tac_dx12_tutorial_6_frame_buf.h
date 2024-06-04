@@ -185,8 +185,9 @@ namespace Tac
 
     // DXGI objects
 
-    PCom< IDXGISwapChain4 >            m_swapChain;
+    DXGISwapChainWrapper               m_swapChain;
     DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc{};
+    bool                               m_swapChainValid{};
  
     // ---------------------------------------------------------------------------------------------
 

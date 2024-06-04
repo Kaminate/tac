@@ -157,7 +157,7 @@ namespace Tac
     sSysCurr[ h.GetIndex() ].mShown = shown;
   }
 
-  void SysWindowApiBackend::SetWindowSize( WindowHandle h, v2i size )
+  void SysWindowApiBackend::SetWindowSize( WindowHandle h, v2i size, Errors& errors )
   {
     TAC_ASSERT( sModificationAllowed );
     const int i { h.GetIndex() };
@@ -165,7 +165,8 @@ namespace Tac
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      renderDevice->ResizeSwapChain( sFramebuffers[ i ], size );
+      const Render::SwapChainHandle swapChain{ sFramebuffers[ i ] };
+      TAC_CALL( renderDevice->ResizeSwapChain( swapChain, size, errors ) );
     }
   }
 

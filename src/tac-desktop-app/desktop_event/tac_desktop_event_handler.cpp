@@ -73,9 +73,9 @@ namespace Tac
     mWindowBackend->SetWindowPos( data.mWindowHandle, v2i( data.mX, data.mY ) );
   }
 
-  void DesktopEventHandler::Handle( const DesktopEventApi::WindowResizeEvent& data ) 
+  void DesktopEventHandler::Handle( const DesktopEventApi::WindowResizeEvent& data, Errors& errors ) 
   {
-    mWindowBackend->SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ) );
+    mWindowBackend->SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ), errors );
   }
 
 }

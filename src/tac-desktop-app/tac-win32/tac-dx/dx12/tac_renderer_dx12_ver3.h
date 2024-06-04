@@ -81,7 +81,7 @@ namespace Tac::Render
     void            DestroySampler( SamplerHandle ) override;
 
     SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) override;
-    void            ResizeSwapChain( SwapChainHandle, v2i ) override;
+    void            ResizeSwapChain( SwapChainHandle, v2i, Errors& ) override;
     SwapChainParams GetSwapChainParams( SwapChainHandle ) override;
     void            DestroySwapChain( SwapChainHandle ) override;
     TextureHandle   GetSwapChainCurrentColor( SwapChainHandle ) override;

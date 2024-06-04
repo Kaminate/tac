@@ -37,7 +37,7 @@ namespace Tac
     void SetWindowCreated( WindowHandle, const void*, StringView, v2i pos, v2i size, Errors& );
     void SetWindowDestroyed( WindowHandle );
     void SetWindowIsVisible( WindowHandle, bool );
-    void SetWindowSize( WindowHandle, v2i );
+    void SetWindowSize( WindowHandle, v2i, Errors& );
     void SetWindowPos( WindowHandle, v2i );
     void SetWindowHovered( WindowHandle );
     v2i  GetWindowPos( WindowHandle );

@@ -85,12 +85,12 @@ namespace Tac
     TAC_ASSERT( m_debugLayerEnabled );
 
     m_device.QueryInterface( m_infoQueue );
-    TAC_ASSERT(m_infoQueue);
+    TAC_ASSERT( m_infoQueue );
 
     // Make the application debug break when bad things happen
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
@@ -580,7 +580,7 @@ namespace Tac
     TAC_ASSERT( m_commandQueue );
     TAC_ASSERT( hwnd );
 
-    const SwapChainCreateInfo scInfo
+    const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
       .mDevice      { ( IUnknown* )m_commandQueue }, // swap chain can force flush the queue
@@ -589,7 +589,7 @@ namespace Tac
       .mHeight      { size.y },
       .mFmt         { TexFmtToDxgiFormat( mRTVFmt ) },
     };
-    m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ));
+    TAC_CALL( m_swapChain.Init( scInfo, errors ));
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
   }
 

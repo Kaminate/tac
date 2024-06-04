@@ -124,6 +124,7 @@ namespace Tac::Render
 
   void                        DX12DescriptorHeap::Free( DX12Descriptor allocation )
   {
+    TAC_ASSERT( allocation.mCount == 1 );
     TAC_ASSERT( allocation.mOwner == this );
     mFreeIndexes.push_back( allocation.mIndex );
   }

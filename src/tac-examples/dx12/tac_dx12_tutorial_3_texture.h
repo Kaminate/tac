@@ -192,7 +192,7 @@ namespace Tac
 
     // DXGI objects
 
-    PCom< IDXGISwapChain4 >            m_swapChain;
+    DXGISwapChainWrapper               m_swapChain;
     DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc{};
     DXGI_FORMAT                        RTVFormat { DXGI_FORMAT_R16G16B16A16_FLOAT };
  

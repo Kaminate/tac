@@ -10,16 +10,16 @@ namespace Tac
   {
     void HandleBegin() override;
     void HandleEnd() override;
-    void Handle( const DesktopEventApi::WindowVisibleEvent& ) override;
-    void Handle( const DesktopEventApi::WindowDestroyEvent& ) override;
-    void Handle( const DesktopEventApi::WindowCreateEvent&, Errors& ) override;
     void Handle( const DesktopEventApi::CursorUnobscuredEvent& ) override;
     void Handle( const DesktopEventApi::KeyInputEvent& ) override;
     void Handle( const DesktopEventApi::KeyStateEvent& ) override;
     void Handle( const DesktopEventApi::MouseMoveEvent& ) override;
     void Handle( const DesktopEventApi::MouseWheelEvent& ) override;
+    void Handle( const DesktopEventApi::WindowCreateEvent&, Errors& ) override;
+    void Handle( const DesktopEventApi::WindowDestroyEvent& ) override;
     void Handle( const DesktopEventApi::WindowMoveEvent& ) override;
-    void Handle( const DesktopEventApi::WindowResizeEvent& ) override;
+    void Handle( const DesktopEventApi::WindowResizeEvent&, Errors& ) override;
+    void Handle( const DesktopEventApi::WindowVisibleEvent& ) override;
     
     SysKeyboardApiBackend* mKeyboardBackend;
     SysWindowApiBackend*   mWindowBackend;

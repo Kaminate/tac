@@ -13,19 +13,28 @@ namespace Tac::Render
   void             DXGIInit( Errors& );
   void             DXGIUninit();
 
-  struct SwapChainCreateInfo
+  struct DXGISwapChainWrapper
   {
-    HWND        mHwnd        {};
-    IUnknown*   mDevice      {}; // in dx12 this is a ID3D12CommandQueue
-    int         mBufferCount {};
-    int         mWidth       {};
-    int         mHeight      {};
-    DXGI_FORMAT mFmt         { DXGI_FORMAT_R16G16B16A16_FLOAT };
+    struct Params
+    {
+      HWND        mHwnd        {};
+      IUnknown*   mDevice      {}; // in dx12 this is a ID3D12CommandQueue
+      int         mBufferCount {};
+      int         mWidth       {};
+      int         mHeight      {};
+      DXGI_FORMAT mFmt         { DXGI_FORMAT_R16G16B16A16_FLOAT };
+    };
+
+    void             Init( Params, Errors& );
+    void             Resize( v2i, Errors& );
+    operator bool();
+    IDXGISwapChain4* GetIDXGISwapChain();
+    IDXGISwapChain4* operator ->();
+
+  private:
+    PCom< IDXGISwapChain4 > mDXGISwapChain;
+    Params                  mParams;
   };
-
-  PCom<IDXGISwapChain4> DXGICreateSwapChain( const SwapChainCreateInfo&, Errors& );
-
-
 
   DXGI_FORMAT      TexFmtToDxgiFormat( TexFmt );
   DXGI_FORMAT      GetDXGIFormatTexture( VertexAttributeFormat ); // todo: rename

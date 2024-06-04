@@ -761,7 +761,7 @@ namespace Tac
 
   void DX12AppHelloConstBuf::DX12CreateSwapChain(const SysWindowApi* windowApi, Errors& errors )
   {
-    if( m_swapChain )
+    if( m_swapChainValid )
       return;
 
     auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
@@ -773,7 +773,7 @@ namespace Tac
     ID3D12CommandQueue* commandQueue { mCommandQueue.GetCommandQueue() };
     TAC_ASSERT( commandQueue );
 
-    const SwapChainCreateInfo scInfo
+    const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
       .mDevice      { ( IUnknown* )commandQueue }, // swap chain can force flush the queue
@@ -782,8 +782,9 @@ namespace Tac
       .mHeight      { size.y },
       .mFmt         { RTVFormat },
     };
-    m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    TAC_CALL( m_swapChain.Init(  scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
+    m_swapChainValid = true;
   }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloConstBuf::OffsetCpuDescHandle(
@@ -849,7 +850,8 @@ namespace Tac
 
     m_renderTargetInitialized = true;
 
-    TAC_ASSERT( m_swapChain );
+    auto pSwapChain{ m_swapChain.GetIDXGISwapChain() };
+    TAC_ASSERT( pSwapChain );
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.
@@ -862,16 +864,16 @@ namespace Tac
 
       DX12SetName( renderTarget, "Render Target " + ToString( i ) );
 
-      m_renderTargetDescs[i] = renderTarget->GetDesc();
+      m_renderTargetDescs[ i ] = renderTarget->GetDesc();
 
       // the render target resource is created in a state that is ready to be displayed on screen
-      m_renderTargetStates[i] = D3D12_RESOURCE_STATE_PRESENT;
+      m_renderTargetStates[ i ] = D3D12_RESOURCE_STATE_PRESENT;
     }
 
     m_viewport = D3D12_VIEWPORT
     {
-     .Width   { ( float )m_swapChainDesc.Width },
-     .Height  { ( float )m_swapChainDesc.Height },
+      .Width  { ( float )m_swapChainDesc.Width },
+      .Height { ( float )m_swapChainDesc.Height },
     };
 
     m_scissorRect = D3D12_RECT

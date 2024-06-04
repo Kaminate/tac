@@ -315,9 +315,9 @@ namespace Tac::Render
     return h;
   }
 
-  void              DX12Device::ResizeSwapChain( SwapChainHandle h, v2i size )
+  void              DX12Device::ResizeSwapChain( SwapChainHandle h, v2i size, Errors& errors )
   {
-    sRenderer.mSwapChainMgr.ResizeSwapChain( h, size );
+    sRenderer.mSwapChainMgr.ResizeSwapChain( h, size, errors );
   }
 
   SwapChainParams   DX12Device::GetSwapChainParams( SwapChainHandle h )
@@ -349,7 +349,7 @@ namespace Tac::Render
     DX12SwapChain* swapChain{ sRenderer.mSwapChainMgr.FindSwapChain( h ) };
     TAC_ASSERT( swapChain );
 
-    IDXGISwapChain4* swapChain4 { swapChain->mSwapChain.Get() };
+    IDXGISwapChain4* swapChain4 { swapChain->mSwapChain.GetIDXGISwapChain() };
 
     TextureHandle textureHandle{ sRenderer.mSwapChainMgr.GetSwapChainCurrentColor( h ) };
 

@@ -15,7 +15,6 @@ namespace Tac
     KeyState,
     MouseMove,
     MouseWheel,
-    //WindowAssignHandle,
     WindowCreate,
     WindowDestroy,
     WindowMove,
@@ -114,7 +113,7 @@ namespace Tac
     sHandler->HandleBegin();
     while( !sEventQueue.Empty() )
     {
-      const auto desktopEventType = sEventQueue.QueuePop< DesktopEventType >();
+      const auto desktopEventType { sEventQueue.QueuePop< DesktopEventType >() };
       switch( desktopEventType )
       {
       case DesktopEventType::CursorUnobscured:   sHandler->Handle( sEventQueue.QueuePop< CursorUnobscuredEvent >() );     break;
@@ -125,7 +124,7 @@ namespace Tac
       case DesktopEventType::WindowCreate:       sHandler->Handle( sEventQueue.QueuePop< WindowCreateEvent >(), errors ); break;
       case DesktopEventType::WindowDestroy:      sHandler->Handle( sEventQueue.QueuePop< WindowDestroyEvent >() );        break;
       case DesktopEventType::WindowMove:         sHandler->Handle( sEventQueue.QueuePop< WindowMoveEvent >() );           break;
-      case DesktopEventType::WindowResize:       sHandler->Handle( sEventQueue.QueuePop< WindowResizeEvent >() );         break;
+      case DesktopEventType::WindowResize:       sHandler->Handle( sEventQueue.QueuePop< WindowResizeEvent >(), errors ); break;
       case DesktopEventType::WindowVisible:      sHandler->Handle( sEventQueue.QueuePop< WindowVisibleEvent >() );        break;
       default: TAC_ASSERT_INVALID_CASE( desktopEventType ); return;
       }

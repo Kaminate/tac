@@ -13,6 +13,27 @@
 
 namespace Tac::Render
 {
+
+  // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
+  //   bad: DXGI_SWAP_EFFECT_DISCARD
+  //   bad: DXGI_SWAP_EFFECT_SEQUENTIAL
+  //   good: DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+  //   good: DXGI_SWAP_EFFECT_FLIP_DISCARD
+  static const DXGI_SWAP_EFFECT SwapEffect { DXGI_SWAP_EFFECT_FLIP_DISCARD };
+
+  struct DXGIImpl
+  {
+    void Init( Errors& );
+
+    PCom< IDXGIFactory4 > mFactory;
+    DXGI_ADAPTER_DESC3    mAdapterDesc{};
+    PCom< IDXGIAdapter4 > mAdapter;
+  };
+
+  static const DXGI_SWAP_CHAIN_FLAG sSwapChainFlags{ DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH };
+
+  static DXGIImpl sImpl;
+
   // -----------------------------------------------------------------------------------------------
 
   // static functions
@@ -110,7 +131,7 @@ namespace Tac::Render
     return String() + DXGI_ERROR_ToString( res ) + "(" + DXGI_ERROR_DescToString( res ) + ")";
   }
 
-  static PCom<IDXGIAdapter1> GetBestAdapter( IDXGIFactory1* factory, Errors& errors )
+  static PCom< IDXGIAdapter1 > GetBestAdapter( IDXGIFactory1* factory, Errors& errors )
   {
     PCom<IDXGIAdapter1> bestAdapter;
     DXGI_ADAPTER_DESC1 bestdesc{};
@@ -134,18 +155,67 @@ namespace Tac::Render
     return bestAdapter;
   }
 
+  static PCom< IDXGISwapChain4 > DXGICreateSwapChain( const DXGISwapChainWrapper::Params& info,
+                                                     Errors& errors )
+  {
+    const DXGI_SAMPLE_DESC SampleDesc
+    {
+      .Count { 1 },
+    };
+
+    const DXGI_SWAP_CHAIN_DESC1 scd1
+    {
+      .Width       { ( UINT )info.mWidth },
+      .Height      { ( UINT )info.mHeight },
+      .Format      { info.mFmt },
+      .SampleDesc  { SampleDesc },
+      .BufferUsage { DXGI_USAGE_RENDER_TARGET_OUTPUT },
+      .BufferCount { ( UINT )info.mBufferCount },
+      .SwapEffect  { SwapEffect },
+      .Flags       { sSwapChainFlags },
+    };
+
+    const DXGI_RATIONAL RefreshRate
+    {
+      .Numerator   { 1 },
+      .Denominator { 60 },
+    };
+
+    const DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd 
+    {
+      .RefreshRate      { RefreshRate },
+      .ScanlineOrdering { DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED },
+      .Scaling          { DXGI_MODE_SCALING_UNSPECIFIED },
+      .Windowed         { TRUE },
+    };
+
+    PCom< IDXGISwapChain1 > swapChain1;
+
+    const HRESULT createSwapChainHR{
+      sImpl.mFactory->CreateSwapChainForHwnd( info.mDevice,
+                                              info.mHwnd,
+                                              &scd1,
+                                              &scfsd,
+                                              nullptr,
+                                              swapChain1.CreateAddress() ) };
+    if( FAILED( createSwapChainHR ) )
+    {
+      const DWORD dwError{ ( DWORD )HRESULT_CODE( createSwapChainHR ) }; // ???
+      const String dxgiErrStr { TryInferDXGIErrorStr( createSwapChainHR ) };
+      const String win32ErrStr { Win32ErrorStringFromDWORD( dwError ) };
+      TAC_RAISE_ERROR_RETURN( String()
+                              + "CreateSwapChainForHwnd failed, "
+                              + dxgiErrStr
+                              + win32ErrStr, {} );
+    }
+
+    return swapChain1.QueryInterface< IDXGISwapChain4 >();
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   // structs
 
-  struct DXGIImpl
-  {
-    void Init( Errors& );
-
-    PCom<IDXGIFactory4> mFactory;
-    DXGI_ADAPTER_DESC3  mAdapterDesc{};
-    PCom<IDXGIAdapter4> mAdapter;
-  };
 
   struct FormatPair
   {
@@ -157,16 +227,9 @@ namespace Tac::Render
 
   // static variables
 
-  static DXGIImpl sImpl;
 
-  // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
-  //   bad: DXGI_SWAP_EFFECT_DISCARD
-  //   bad: DXGI_SWAP_EFFECT_SEQUENTIAL
-  //   good: DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
-  //   good: DXGI_SWAP_EFFECT_FLIP_DISCARD
-  static const DXGI_SWAP_EFFECT SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
-  static const FormatPair gFormatPairs[] =
+  static const FormatPair gFormatPairs[]
   {
     FormatPair{ { 1, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32_FLOAT          },
     FormatPair{ { 2, sizeof( u32 ), GraphicsType::real  }, DXGI_FORMAT_R32G32_FLOAT       },
@@ -181,6 +244,38 @@ namespace Tac::Render
     FormatPair{ { 1, sizeof( u16 ), GraphicsType::unorm }, DXGI_FORMAT_R16_UNORM          },
   };
 
+  // -----------------------------------------------------------------------------------------------
+
+  void             DXGISwapChainWrapper::Init( Params params, Errors& errors )
+  {
+     mDXGISwapChain = DXGICreateSwapChain( params, errors );
+     mParams = params;
+  }
+
+  void             DXGISwapChainWrapper::Resize( v2i size , Errors& errors )
+  {
+    IDXGISwapChain4* swapChain{ GetIDXGISwapChain() };
+    TAC_DXGI_CALL( swapChain->ResizeBuffers( mParams.mBufferCount,
+                                             ( UINT )size.x,
+                                             ( UINT )size.y,
+                                             DXGI_FORMAT_UNKNOWN,
+                                             sSwapChainFlags ) );
+  }
+
+  IDXGISwapChain4* DXGISwapChainWrapper::GetIDXGISwapChain()
+  {
+    return mDXGISwapChain.Get();
+  }
+
+  IDXGISwapChain4* DXGISwapChainWrapper::operator ->()
+  {
+    return mDXGISwapChain.Get();
+  }
+
+  DXGISwapChainWrapper::operator bool()
+  {
+    return mDXGISwapChain.Get();
+  }
 }
 
 namespace Tac
@@ -273,63 +368,7 @@ namespace Tac
 #endif
 
 
-  PCom<IDXGISwapChain4> Render::DXGICreateSwapChain( const SwapChainCreateInfo& info,
-                                                     Errors& errors )
-  {
 
-    const DXGI_SAMPLE_DESC SampleDesc = 
-    {
-      .Count { 1 },
-    };
-
-    const DXGI_SWAP_CHAIN_DESC1 scd1 =
-    {
-      .Width       { ( UINT )info.mWidth },
-      .Height      { ( UINT )info.mHeight },
-      .Format      { info.mFmt },
-      .SampleDesc  { SampleDesc },
-      .BufferUsage { DXGI_USAGE_RENDER_TARGET_OUTPUT },
-      .BufferCount { ( UINT )info.mBufferCount },
-      .SwapEffect  { SwapEffect },
-      .Flags       { DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH },
-    };
-
-    const DXGI_RATIONAL RefreshRate
-    {
-      .Numerator { 1 },
-      .Denominator { 60 },
-    };
-
-    const DXGI_SWAP_CHAIN_FULLSCREEN_DESC scfsd 
-    {
-      .RefreshRate { RefreshRate },
-      .ScanlineOrdering { DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED },
-      .Scaling { DXGI_MODE_SCALING_UNSPECIFIED },
-      .Windowed { TRUE },
-    };
-
-    PCom<IDXGISwapChain1> swapChain1;
-
-    const HRESULT createSwapChainHR{
-      sImpl.mFactory->CreateSwapChainForHwnd( info.mDevice,
-                                              info.mHwnd,
-                                              &scd1,
-                                              &scfsd,
-                                              nullptr,
-                                              swapChain1.CreateAddress() ) };
-    if( FAILED( createSwapChainHR ) )
-    {
-      const DWORD dwError{ ( DWORD )HRESULT_CODE( createSwapChainHR ) }; // ???
-      const String dxgiErrStr { TryInferDXGIErrorStr( createSwapChainHR ) };
-      const String win32ErrStr { Win32ErrorStringFromDWORD( dwError ) };
-      TAC_RAISE_ERROR_RETURN( String()
-                              + "CreateSwapChainForHwnd failed, "
-                              + dxgiErrStr
-                              + win32ErrStr, {} );
-    }
-
-    return swapChain1.QueryInterface<IDXGISwapChain4>();
-  }
 
   DXGI_FORMAT Render::TexFmtToDxgiFormat( TexFmt fmt )
   {

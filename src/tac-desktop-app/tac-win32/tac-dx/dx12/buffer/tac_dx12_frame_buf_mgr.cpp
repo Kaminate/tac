@@ -30,7 +30,7 @@ namespace Tac::Render
 
     const DXGI_FORMAT fmt{ TexFmtToDxgiFormat( params.mColorFmt ) };
     
-    const SwapChainCreateInfo scInfo
+    const DXGISwapChainWrapper::Params dxgiSwapChainParams
     {
       .mHwnd        { ( HWND )nwh },
       .mDevice      { ( IUnknown* )mCommandQueue->GetCommandQueue() },
@@ -39,63 +39,18 @@ namespace Tac::Render
       .mHeight      { size.y },
       .mFmt         { fmt },
     };
-    TAC_ASSERT( scInfo.mDevice );
+    TAC_ASSERT( dxgiSwapChainParams.mDevice );
 
-    TAC_CALL( PCom< IDXGISwapChain4 > swapChain{ DXGICreateSwapChain( scInfo, errors ) } );
+    DXGISwapChainWrapper swapChain;
+    TAC_CALL( swapChain.Init( dxgiSwapChainParams, errors ) );
+
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
-    TAC_CALL( swapChain->GetDesc1( &swapChainDesc ) );
+    TAC_DX12_CALL( swapChain->GetDesc1( &swapChainDesc ) );
 
-    DX12SwapChainImages swapChainImages;
+    TAC_CALL( DX12SwapChainImages swapChainImages{ CreateColorTextures( h, swapChain, errors ) } );
 
-    for( UINT iSwapChainBuf {}; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
-    {
-      //const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
-      //const DX12DescriptorHeapAllocation rtv { mCpuDescriptorHeapRTV->Allocate() };
-      //const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { rtv.GetCPUHandle() };
-
-      PCom< ID3D12Resource > renderTarget;
-      TAC_DX12_CALL( swapChain->GetBuffer(
-        iSwapChainBuf,
-        renderTarget.iid(),
-        renderTarget.ppv() ) );
-      ID3D12Resource* resource{ renderTarget.Get() };
-      DX12SetName( resource,
-                   "RT "
-                   + Tac::ToString( iHandle )
-                   + " buf "
-                   + Tac::ToString( iSwapChainBuf ) );
-
-      const TextureHandle textureHandle { AllocTextureHandle() };
-      TAC_CALL( mTextureMgr->CreateRenderTargetColor( textureHandle, renderTarget, errors ) );
-
-      swapChainImages.push_back( textureHandle );
-    }
-    
-
-    TextureHandle swapChainDepth;
-    if( params.mDepthFmt != TexFmt::kUnknown )
-    {
-      swapChainDepth = AllocTextureHandle();
-
-      const Image image
-      {
-        .mWidth  { params.mSize.x },
-        .mHeight { params.mSize.y },
-        .mFormat { params.mDepthFmt },
-      };
-
-      const String name{ "zbuf " + Tac::ToString( iHandle ) };
-      const CreateTextureParams depthParams
-      {
-        .mImage        { image },
-        .mMipCount     { 1 },
-        .mBinding      { Binding::DepthStencil },
-        .mUsage        { Usage::Default },
-        .mCpuAccess    { CPUAccess::None },
-        .mOptionalName { name },
-      };
-      TAC_CALL( mTextureMgr->CreateTexture( swapChainDepth, depthParams, errors ) );
-    }
+    TAC_CALL( const TextureHandle swapChainDepth{
+      CreateDepthTexture( h, size, params.mDepthFmt, errors ) } );
 
     mSwapChains[ iHandle ] = DX12SwapChain
     {
@@ -109,13 +64,112 @@ namespace Tac::Render
     };
   }
 
-  void   DX12SwapChainMgr::ResizeSwapChain( SwapChainHandle h, v2i size )
+  DX12SwapChainImages DX12SwapChainMgr::CreateColorTextures( SwapChainHandle h,
+                                                             DXGISwapChainWrapper swapChain,
+                                                             Errors& errors )
+  {
+    DX12SwapChainImages swapChainImages;
+
+    for( UINT iSwapChainBuf {}; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
+    {
+      //const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
+      //const DX12DescriptorHeapAllocation rtv { mCpuDescriptorHeapRTV->Allocate() };
+      //const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { rtv.GetCPUHandle() };
+
+      PCom< ID3D12Resource > renderTarget;
+      TAC_DX12_CALL_RET( {}, swapChain->GetBuffer(
+        iSwapChainBuf,
+        renderTarget.iid(),
+        renderTarget.ppv() ) );
+      ID3D12Resource* resource{ renderTarget.Get() };
+      DX12SetName( resource,
+                   "rtcolor"
+                   + Tac::ToString( h.GetIndex() )
+                   + "["
+                   + Tac::ToString( iSwapChainBuf )
+                   + "]" );
+
+      const TextureHandle textureHandle { AllocTextureHandle() };
+      TAC_CALL_RET( {}, mTextureMgr->CreateRenderTargetColor(
+        textureHandle, renderTarget, errors ) );
+
+      swapChainImages.push_back( textureHandle );
+    }
+
+    return swapChainImages;
+  }
+
+  TextureHandle   DX12SwapChainMgr::CreateDepthTexture( SwapChainHandle h,
+                                                        v2i size,
+                                                        TexFmt fmt,
+                                                        Errors& errors )
+  {
+    if( fmt == TexFmt::kUnknown )
+      return {};
+
+    const TextureHandle swapChainDepth { AllocTextureHandle() };
+    const Image image
+    {
+      .mWidth  { size.x },
+      .mHeight { size.y },
+      .mFormat { fmt },
+    };
+
+    const String name{ "rtdepth" + ToString( h.GetIndex() ) };
+    const CreateTextureParams depthParams
+    {
+      .mImage        { image },
+      .mMipCount     { 1 },
+      .mBinding      { Binding::DepthStencil },
+      .mUsage        { Usage::Default },
+      .mCpuAccess    { CPUAccess::None },
+      .mOptionalName { name },
+    };
+    TAC_CALL_RET( {}, mTextureMgr->CreateTexture( swapChainDepth, depthParams, errors ) );
+    return swapChainDepth;
+  }
+
+  void   DX12SwapChainMgr::ResizeSwapChain( const SwapChainHandle h,
+                                            const v2i size,
+                                            Errors& errors )
   {
     DX12SwapChain& frameBuf { mSwapChains[ h.GetIndex() ] };
     if( frameBuf.mSize == size )
       return;
 
-    OS::OSDebugBreak();
+    DX12SwapChainImages     mSwapChainImages; // Color backbuffer
+    TextureHandle           mSwapChainDepth; // Depth backbuffer
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    // Before resizing a swap chain, all resources must be cleared
+    for( const TextureHandle swapChainColor : frameBuf.mSwapChainImages )
+    {
+      //mTextureMgr->DestroyTexture( swapChainColor );
+      // ... texturemgr  doesnt destroy the index
+      renderDevice->DestroyTexture( swapChainColor );
+    }
+
+    //mTextureMgr->DestroyTexture( frameBuf.mSwapChainDepth );
+    // ... texturemgr  doesnt destroy the index
+    renderDevice->DestroyTexture( frameBuf.mSwapChainDepth );
+
+    TAC_CALL( mCommandQueue->WaitForIdle( errors ) );
+
+
+    TAC_CALL( frameBuf.mSwapChain.Resize( size, errors ) );
+    frameBuf.mSize = size;
+
+    TAC_DX12_CALL( frameBuf.mSwapChain->GetDesc1( &frameBuf.mSwapChainDesc ) );
+
+    TAC_CALL( const TextureHandle swapChainDepth{
+      CreateDepthTexture( h, size, frameBuf.mSwapChainParams.mDepthFmt, errors ) } );
+
+    TAC_CALL( DX12SwapChainImages swapChainImages{
+      CreateColorTextures( h, frameBuf.mSwapChain, errors ) } );
+
+    frameBuf.mSwapChainDepth = swapChainDepth;
+    frameBuf.mSwapChainImages = swapChainImages;
   }
 
   SwapChainParams DX12SwapChainMgr::GetSwapChainParams( SwapChainHandle h )

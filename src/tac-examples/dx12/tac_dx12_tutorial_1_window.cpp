@@ -185,7 +185,7 @@ namespace Tac
   void DX12AppHelloWindow::DX12CreateSwapChain( const SysWindowApi* windowApi,
                                                 Errors& errors )
   {
-    if( m_swapChain )
+    if( m_swapChainValid )
       return;
 
     auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
@@ -196,7 +196,7 @@ namespace Tac
 
     TAC_ASSERT( m_commandQueue );
 
-    const SwapChainCreateInfo scInfo
+    const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
       .mDevice      { (IUnknown*)m_commandQueue }, // swap chain can force flush the queue
@@ -205,8 +205,9 @@ namespace Tac
       .mHeight      { size.y },
       .mFmt         { RTVFormat },
     };
-    m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    TAC_CALL( m_swapChain.Init( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
+    m_swapChainValid  = true;
   }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloWindow::GetRenderTargetDescriptorHandle( int i ) const
@@ -237,22 +238,24 @@ namespace Tac
   void DX12AppHelloWindow::TransitionRenderTarget( const int iRT,
                                                    const D3D12_RESOURCE_STATES targetState )
   {
-    ID3D12Resource* rtResource = (ID3D12Resource*)m_renderTargets[ iRT ];
+    ID3D12Resource* rtResource { (ID3D12Resource*)m_renderTargets[ iRT ] };
     TAC_ASSERT(rtResource );
 
-    const D3D12_RESOURCE_STATES before = m_renderTargetStates[ iRT ];
+    const D3D12_RESOURCE_STATES before { m_renderTargetStates[ iRT ] };
     TAC_ASSERT( before != targetState );
+
+    const D3D12_RESOURCE_TRANSITION_BARRIER Transition
+    {
+      .pResource   { rtResource },
+      .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
+      .StateBefore { before },
+      .StateAfter  { targetState },
+    };
 
     const D3D12_RESOURCE_BARRIER barrier
     {
-      .Type { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-      .Transition = D3D12_RESOURCE_TRANSITION_BARRIER
-      {
-        .pResource { rtResource },
-        .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
-        .StateBefore { before },
-        .StateAfter { targetState },
-      },
+      .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
+      .Transition { Transition },
     };
 
     m_renderTargetStates[ iRT ] = targetState;
@@ -267,7 +270,7 @@ namespace Tac
     // ID3D12CommandList::ResourceBarrier
     // - Notifies the driver that it needs to synchronize multiple accesses to resources.
     //
-    const Array barriers  { barrier };
+    const Array barriers { barrier };
     const UINT rtN { ( UINT )barriers.size() };
     const D3D12_RESOURCE_BARRIER* rts { barriers.data() };
     m_commandList->ResourceBarrier( rtN, rts );
@@ -489,7 +492,7 @@ namespace Tac
   {
     const App::Config config
     {
-      .mName { "DX12 Hello Window" },
+      .mName            { "DX12 Hello Window" },
       .mDisableRenderer { true },
     };
     return TAC_NEW DX12AppHelloWindow( config );

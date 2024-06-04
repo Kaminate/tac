@@ -685,7 +685,7 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::DX12CreateSwapChain(  const SysWindowApi* windowApi, Errors& errors )
   {
-    TAC_ASSERT( !m_swapChain );
+    TAC_ASSERT( !m_swapChainValid );
 
     const auto hwnd { ( HWND ) windowApi->GetNWH( hDesktopWindow ) };
     if( !hwnd )
@@ -695,7 +695,7 @@ namespace Tac
     TAC_ASSERT( commandQueue );
 
     const v2i size { windowApi->GetSize( hDesktopWindow ) };
-    const SwapChainCreateInfo scInfo
+    const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
       .mDevice      { ( IUnknown* )commandQueue }, // swap chain can force flush the queue
@@ -704,8 +704,9 @@ namespace Tac
       .mHeight      { size.y },
     };
 
-    m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    TAC_CALL( m_swapChain.Init( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
+    m_swapChainValid = true;
   }
 
   D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::OffsetCpuDescHandle(
@@ -769,7 +770,8 @@ namespace Tac
     TAC_ASSERT( !m_renderTargetInitialized );
     m_renderTargetInitialized = true; // dont delete this var, its used elsewhere
 
-    TAC_ASSERT( m_swapChain );
+    auto pSwapChain{ m_swapChain.GetIDXGISwapChain() };
+    TAC_ASSERT( pSwapChain );
     TAC_ASSERT( m_device );
 
     // Create a RTV for each frame.

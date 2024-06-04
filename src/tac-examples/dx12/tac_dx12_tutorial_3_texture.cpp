@@ -842,7 +842,7 @@ namespace Tac
     if( m_swapChain )
       return;
 
-    auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
+    const HWND hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
 
@@ -850,7 +850,7 @@ namespace Tac
 
     TAC_ASSERT( m_commandQueue );
 
-    const SwapChainCreateInfo scInfo
+    const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
       .mDevice      { ( IUnknown* )m_commandQueue }, // swap chain can force flush the queue
@@ -859,7 +859,7 @@ namespace Tac
       .mHeight      { size.y },
       .mFmt         { RTVFormat },
     };
-    m_swapChain = TAC_CALL( DXGICreateSwapChain( scInfo, errors ) );
+    TAC_CALL( m_swapChain.Init( scInfo, errors ) );
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
   }
 
@@ -926,7 +926,8 @@ namespace Tac
 
     m_renderTargetInitialized = true;
 
-    TAC_ASSERT( m_swapChain );
+    auto pSwapChain{ m_swapChain.GetIDXGISwapChain() };
+    TAC_ASSERT( pSwapChain );
     TAC_ASSERT( mDevice );
 
     // Create a RTV for each frame.

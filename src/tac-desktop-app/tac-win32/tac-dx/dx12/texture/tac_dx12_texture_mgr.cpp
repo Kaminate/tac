@@ -452,7 +452,23 @@ namespace Tac::Render
   void DX12TextureMgr::DestroyTexture( TextureHandle h )
   {
     if( h.IsValid() )
-      mTextures[ h.GetIndex() ] = {};
+    {
+      DX12Texture& texture{ mTextures[ h.GetIndex() ] };
+
+      Optional< DX12Descriptor > optDescs[]
+      {
+        texture.mRTV,
+        texture.mDSV,
+        texture.mUAV,
+        texture.mSRV,
+      };
+
+      for( Optional< DX12Descriptor > optDesc : optDescs )
+        if( DX12Descriptor desc{ optDesc.GetValueUnchecked() }; optDesc )
+          desc.mOwner->Free( desc );
+
+      texture = {};
+    }
   }
 
   DX12Texture* DX12TextureMgr::FindTexture( TextureHandle h )
