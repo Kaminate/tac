@@ -174,11 +174,11 @@ namespace Tac
           .mUtf8     { "a" },
         };
 
-        drawData->AddBox( redBox );
-        drawData->AddBox( blueBox );
-        drawData->AddBox( greenBox );
-        drawData->AddText( text );
-        ImGuiButton( "a" );
+        //drawData->AddBox( redBox );
+        //drawData->AddBox( blueBox );
+        //drawData->AddBox( greenBox );
+        //drawData->AddText( text );
+        //ImGuiButton( "a" );
 
         ImGuiText(  FormatFrameTime( Timestep::GetElapsedTime().mSeconds )  );
 
@@ -187,12 +187,17 @@ namespace Tac
         const v2i windowPos{ windowApi->GetPos( sWindowHandle ) };
         const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
 
+        
+        ImGuiSetCursorPos( windowSize / 2 );
         ImGuiText( String() + "mouse pos: "
                    + ToString( mousePosScreenspace.x ) + ", "
                    + ToString( mousePosScreenspace.y ) );
+        ImGuiSetCursorPos( windowSize / 2 + v2( 0, ImGuiGetFontSize() ) );
         ImGuiText( String() + "window pos: "
                    + ToString( windowPos.x ) + ", "
                    + ToString( windowPos.y ) );
+        
+        ImGuiSetCursorPos( windowSize / 2 + v2( 0, ImGuiGetFontSize() * 2 ) );
         ImGuiText( String() + "window size: "
                    + ToString( windowSize.x ) + ", "
                    + ToString( windowSize.y ) );
@@ -211,7 +216,7 @@ namespace Tac
         float y{ ( float )Sin(t) * radius + sWindowSize.y / 2};
 
         //ImGuiIndent();
-        for( int i {}; i < 5; ++i )
+        for( int i {}; i < 0; ++i )
         {
           ImGuiSetCursorPos( { x, y + 20 * i} );
           String str{ "text " + ToString( i ) };

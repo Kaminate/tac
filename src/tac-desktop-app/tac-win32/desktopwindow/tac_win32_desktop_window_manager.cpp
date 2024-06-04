@@ -397,6 +397,11 @@ Tac::WindowHandle   Tac::Win32WindowManagerFindWindow( HWND hwnd )
   return {};
 }
 
+HWND                Tac::Win32WindowManagerGetHWND( WindowHandle h )
+{
+  return sHWNDs[ h.GetIndex() ];
+}
+
 void                Tac::Win32WindowManagerDebugImGui()
 {
   if( !ImGuiCollapsingHeader( "Win32WindowManagerDebugImGui" ) )

@@ -16,19 +16,12 @@
 #include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/dataprocess/tac_hash.h"
 
 #undef FindWindow
 
 namespace Tac
 {
-  typedef int ImGuiId;
-  const int ImGuiIdNull { -1 };
-
-  struct ImGuiIDAllocator
-  {
-    ImGuiId mActiveID  { ImGuiIdNull };
-    ImGuiId mIDCounter {};
-  };
 
   struct GroupData
   {
@@ -38,16 +31,15 @@ namespace Tac
   };
 
 
-  typedef int ImGuiIndex;
-
-  ImGuiIndex ImGuiRegisterWindowResource( StringView name,
+  using ImGuiRscIdx = int;
+  ImGuiRscIdx ImGuiRegisterWindowResource( StringView name,
                                           const void* initialDataBytes,
                                           int initialDataByteCount );
 
   struct ImGuiWindowResource
   {
     ImGuiId                       mImGuiId { ImGuiIdNull };
-    ImGuiIndex                    mIndex   { -1 };
+    ImGuiRscIdx                   mIndex   { -1 };
     Vector< char >                mData    {};
   };
 
@@ -70,18 +62,20 @@ namespace Tac
     ImGuiRect                     Clip( const ImGuiRect& ) const;
 
     void                          UpdateMaxCursorDrawPos( v2 );
-    ImGuiId                       GetID();
-    void                          SetActiveID( ImGuiId );
-    ImGuiId                       GetActiveID();
-    void*                         GetWindowResource( ImGuiIndex );
+    void*                         GetWindowResource( ImGuiRscIdx, ImGuiId );
     bool                          IsHovered( const ImGuiRect& );
     v2                            GetMousePosViewport();
     void                          Scrollbar();
     void                          PushXOffset();
 
+    ImGuiId                       GetID(StringView);
+
     float                         GetRemainingWidth() const;
     WindowHandle                  GetWindowHandle() const;
     //const DesktopWindowState*     GetDesktopWindowState() const;
+
+    void                          ResizeControls();
+    void                          DrawWindowBackground();
 
 
     String                        mName                        {};
@@ -117,8 +111,12 @@ namespace Tac
     //                            from the window mPos and the stuff that's about to be drawn
     Vector< float >               mXOffsets;
 
+    Vector< ImGuiId >             mIDStack;
+
+    ImGuiId                       mMoveID;
+    ImGuiId                       mWindowID;
+
     //                            Shared between sub-windows
-    ImGuiIDAllocator*             mIDAllocator                 {};
     struct TextInputData*         mTextInputData               {};
     Map< ImGuiId, bool >          mCollapsingHeaderStates      {};
     bool                          mIsAppendingToMenu           {};
@@ -234,6 +232,10 @@ namespace Tac
     ImGuiSimWindowDraws GetSimWindowDraws();
   };
 
+  void    SetActiveID( ImGuiId, ImGuiWindow* );
+  void    ClearActiveID();
+  ImGuiId GetActiveID();
+
   struct ImGuiGlobals
   {
     static ImGuiGlobals               Instance;
@@ -264,6 +266,12 @@ namespace Tac
     SimWindowApi*                     mSimWindowApi       {};
     SimKeyboardApi*                   mSimKeyboardApi     {};
     SettingsNode                      mSettingsNode       {};
+
+    ImGuiId                           mHoveredID          {ImGuiIdNull};
+    ImGuiId                           mActiveID           {ImGuiIdNull};
+    ImGuiWindow*                      mActiveIDWindow     {};
+    ImGuiWindow*                      mMovingWindow       {};
+    v2                                mActiveIDClickPos   {}; // screenspace
   };
 
   struct ImGuiNextWindow

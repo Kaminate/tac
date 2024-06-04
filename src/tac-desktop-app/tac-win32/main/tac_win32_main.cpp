@@ -143,6 +143,56 @@ namespace Tac
     Win32WindowManagerDespawnWindow( handle );
   }
 
+  void Win32PlatformFns::PlatformSetWindowPos( WindowHandle windowHandle, v2i pos) const
+  {
+    const HWND hwnd{ Win32WindowManagerGetHWND( windowHandle ) };
+
+
+    RECT rect;
+    if( !::GetWindowRect( hwnd, &rect ) )
+    {
+      //String errStr{ Win32GetLastErrorString() };
+      return;
+    }
+
+    const int x{ pos.x };
+    const int y{ pos.y };
+    const int w{ rect.right - rect.left };
+    const int h{ rect.bottom - rect.top };
+
+    ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
+  }
+
+  void Win32PlatformFns::PlatformSetWindowSize( WindowHandle windowHandle, v2i size) const
+  {
+    const HWND hwnd{ Win32WindowManagerGetHWND( windowHandle ) };
+
+
+    RECT rect;
+    if( !::GetWindowRect( hwnd, &rect ) )
+    {
+      //String errStr{ Win32GetLastErrorString() };
+      return;
+    }
+
+    const int x{ rect.left };
+    const int y{ rect.top };
+    const int w{ size.x };
+    const int h{ size.y };
+
+    ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
+  }
+
+  WindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() const
+  {
+    POINT cursorPos;
+    if( !::GetCursorPos( &cursorPos ) )
+      return {};
+
+    const HWND hwnd{ ::WindowFromPoint( cursorPos ) };
+    return Win32WindowManagerFindWindow( hwnd );
+  }
+
   // -----------------------------------------------------------------------------------------------
 
 

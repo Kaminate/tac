@@ -31,7 +31,7 @@ namespace Tac
 
   static ImguiProfileWidgetData sDefaultWidgetData;
 
-  static const ImGuiIndex sWidgetID{ ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
+  static const ImGuiRscIdx sWidgetID{ ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
                                                                    &sDefaultWidgetData,
                                                                    sizeof( ImguiProfileWidgetData ) ) };
 

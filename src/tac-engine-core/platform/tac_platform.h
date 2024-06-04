@@ -31,7 +31,7 @@ namespace Tac
     virtual void PlatformSetWindowPos( WindowHandle, v2i ) const {}
     virtual void PlatformSetWindowSize( WindowHandle, v2i ) const {}
 
-    //virtual WindowHandle PlatformGetMouseHoveredWindow() { return{}; }
+    virtual WindowHandle PlatformGetMouseHoveredWindow() const { return{}; }
 
     static PlatformFns* GetInstance();
     static void         SetInstance( PlatformFns* );

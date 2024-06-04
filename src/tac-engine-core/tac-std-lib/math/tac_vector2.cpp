@@ -6,10 +6,10 @@
 namespace Tac
 {
   v2::v2( float xx, float yy ) : x( xx ), y( yy ) {}
-  v2::operator v2i() const
-  {
-    return { (int)x, (int)y };
-  }
+
+  // why does this exist? feel like you would want to know if you accidentally truncate something
+  v2::operator v2i() const { return { ( int )x, ( int )y }; }
+
   float*       v2::begin()      { return data(); }
   float*       v2::end()        { return data() + 2; }
   float*       v2::data()       { return &x; }

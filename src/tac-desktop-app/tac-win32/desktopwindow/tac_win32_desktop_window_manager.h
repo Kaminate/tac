@@ -12,6 +12,7 @@ namespace Tac
   void                Win32WindowManagerDespawnWindow( WindowHandle );
   //WindowHandle        Win32WindowManagerGetCursorUnobscuredWindow();
   WindowHandle        Win32WindowManagerFindWindow( HWND );
+  HWND                Win32WindowManagerGetHWND( WindowHandle );
   void                Win32WindowManagerDebugImGui();
 }
 

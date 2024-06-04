@@ -463,6 +463,24 @@ void Tac::ImGuiSetNextWindowSize( v2 size, ImGuiCondition cond )
 }
 void Tac::ImGuiSetNextWindowDisableBG()             { gNextWindow.mEnableBG = false; }
 
+  Tac::ImGuiId      Tac::GetID( StringView label )
+  {
+    return ImGuiGlobals::Instance.mCurrentWindow->GetID( label );
+  }
+
+  void    Tac::PushID( StringView str )
+  {
+    ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+    ImGuiId id{ window->GetID( str ) };
+    window->mIDStack.push_back( id );
+  }
+
+  void    Tac::PopID()
+  {
+    ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+    window->mIDStack.pop_back();
+  }
+
 
 // [ ] Q: imgui.begin should always be followed by a imgui.end,
 //        regardless of the imgui.begin return value.
@@ -756,7 +774,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 
   ImGuiWindow* window{ globals.mCurrentWindow };
 
-  const ImGuiId id{ window->GetID() };
+  const ImGuiId id{ window->GetID( label ) };
   const String oldText{ text };
   const v2 pos{ window->mViewportSpaceCurrCursor };
   const int lineCount{ ComputeLineCount( text ) };
@@ -776,7 +794,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   TAC_ON_DESTRUCT( drawData->PopDebugGroup() );
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const ImGuiId oldWindowActiveId{ window->GetActiveID() };
+  const ImGuiId oldWindowActiveId{ GetActiveID() };
   const bool hovered{ window->IsHovered( clipRect ) };
   if( hovered )
   {
@@ -784,7 +802,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
     //Mouse::TryConsumeMouseMovement( &mouseMovementConsummation, TAC_STACK_FRAME );
 
     if( keyboardApi->JustPressed( Key::MouseLeft ) )
-      window->SetActiveID( id );
+      SetActiveID( id, window );
   }
 
 
@@ -875,7 +893,7 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   const v2 buttonSize( remainingWidth, fontSize );
 
   window->ItemSize( buttonSize );
-  const ImGuiId id{ window->GetID() };
+  const ImGuiId id{ window->GetID( str ) };
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( buttonPosViewport, buttonSize ) };
   if( !window->Overlaps( origRect ) )
     return false;
@@ -888,7 +906,7 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   const bool hovered{ window->IsHovered( clipRectViewport ) };
   const bool clicked{ hovered && keyboardApi->JustPressed( Key::MouseLeft ) };
   if( clicked )
-    window->SetActiveID( id );
+    SetActiveID( id, window );
 
   if( selected || hovered )
   {
@@ -1155,7 +1173,7 @@ bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags fl
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRect ) };
-  const ImGuiId id{ window->GetID() };
+  const ImGuiId id{ window->GetID( name ) };
 
   if( flags & ImGuiNodeFlags_DefaultOpen && !window->mCollapsingHeaderStates.contains( id ) )
     window->mCollapsingHeaderStates[ id ] = true;
@@ -1242,14 +1260,30 @@ void Tac::ImGuiEndMenuBar()
 
 void Tac::ImGuiDebugDraw()
 {
-  const ImGuiId id{ ImGuiGlobals::Instance.mCurrentWindow->GetActiveID() };
-  ImGuiText( String() + "Cur window active id: " + ToString( id ) );
+  const ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  const ImGuiId activeId{ globals.mActiveID };
+  const ImGuiId hoveredId{ globals.mHoveredID };
+  const ImGuiWindow* activeIDWindow{ globals.mActiveIDWindow };
+  const String activeIdWindowStr{ activeIDWindow ? activeIDWindow->mName : "null" };
+  ImGuiText( String() + "hovered id: " + ToString( hoveredId ) );
+  ImGuiText( String() + "active id: " + ToString( activeId ) );
+  ImGuiText( String() + "active id window: " +  activeIdWindowStr );
 }
 
 void Tac::ImGuiBeginFrame( const BeginFrameData& data )
 {
-  ImGuiGlobals::Instance.mElapsedSeconds = data.mElapsedSeconds;
-  ImGuiGlobals::Instance.mMouseHoveredWindow = data.mMouseHoveredWindow;
+  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  globals.mElapsedSeconds = data.mElapsedSeconds;
+  globals.mMouseHoveredWindow = data.mMouseHoveredWindow;
+
+  if( globals.mMovingWindow )
+  {
+    if( !globals.mSimKeyboardApi->IsPressed( Key::MouseLeft ) )
+    {
+      globals.mMovingWindow = nullptr;
+      ClearActiveID();
+    }
+  }
 }
 
 //static bool ImGuiDesktopWindowOwned( WindowHandle WindowHandle )
@@ -1265,7 +1299,8 @@ void Tac::ImGuiEndFrame( Errors& errors )
   TAC_PROFILE_BLOCK;
 
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  SimWindowApi* windowApi{ globals.mSimWindowApi };
+  const SimWindowApi* windowApi{ globals.mSimWindowApi };
+  const SimKeyboardApi* keyboardApi{ globals.mSimKeyboardApi };
 
   const Timestamp curSeconds{ globals.mElapsedSeconds };
 
@@ -1277,6 +1312,22 @@ void Tac::ImGuiEndFrame( Errors& errors )
   //ImGuiRender( errors );
 
   FrameMemoryVector< ImGuiWindow* > windowsToDeleteImGui;
+
+  // Begin window move/resize
+  if( keyboardApi->JustPressed( Key::MouseLeft ) && globals.mActiveID == ImGuiIdNull )
+  {
+    for( ImGuiWindow* window : globals.mAllWindows )
+    {
+      if( window->mWindowHandleOwned &&
+          window->mDesktopWindow->mWindowHandle == globals.mMouseHoveredWindow )
+      {
+        SetActiveID( window->mMoveID, window );
+        globals.mActiveIDClickPos = keyboardApi->GetMousePosScreenspace();
+        globals.mMovingWindow = window;
+      }
+    }
+  }
+  
 
   for( ImGuiWindow* window : globals.mAllWindows )
   {

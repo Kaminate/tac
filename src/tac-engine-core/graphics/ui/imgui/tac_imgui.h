@@ -17,6 +17,9 @@
 
 namespace Tac
 {
+  using ImGuiId = HashValue;
+  const ImGuiId ImGuiIdNull {};
+
   struct SysWindowApi;
 
   struct ImGuiDesktopWindow
@@ -94,6 +97,8 @@ namespace Tac
   struct UIStyle
   {
     UIStyle();
+
+    // outside of the padding is used for window resize
     float windowPadding                     { 8 };
 
     //    what is itemspaceing?
@@ -174,6 +179,9 @@ namespace Tac
   void ImGuiSetNextWindowSize( v2, ImGuiCondition = ImGuiCondition::kNone );
   void ImGuiSetNextWindowDisableBG();
 
+  ImGuiId GetID( StringView );
+  void    PushID( StringView );
+  void    PopID();
 
   //   ImGuiText
   void ImGuiText( const StringView& );

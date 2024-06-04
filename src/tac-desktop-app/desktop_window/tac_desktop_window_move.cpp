@@ -19,21 +19,21 @@ namespace Tac
 void Tac::DesktopAppUpdateMove()
 {
 #if 0
-  PlatformFns* sPlatformFns = PlatformFns::GetInstance();
+  PlatformFns* sPlatformFns { PlatformFns::GetInstance() };
 
   for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
-    const WindowHandle WindowHandle = { i };
+    const WindowHandle WindowHandle  { i };
     if( !WindowHandle.GetDesktopWindowNativeHandle() )
       continue;
 
-    const RequestMove* requestMove = &sRequestMove[ i ];
+    const RequestMove* requestMove { &sRequestMove[ i ] };
     if( !requestMove->mRequested )
       continue;
 
-    const DesktopWindowRect desktopWindowRect = requestMove->mRect.IsEmpty()
-      ?  WindowHandle.GetDesktopWindowRectWindowspace() 
-      : requestMove->mRect;
+    const DesktopWindowRect desktopWindowRect{ requestMove->mRect.IsEmpty()
+      ? WindowHandle.GetDesktopWindowRectWindowspace()
+      : requestMove->mRect };
 
     sPlatformFns->PlatformWindowMoveControls( WindowHandle, desktopWindowRect );
     sRequestMove[ i ] = RequestMove();
@@ -48,8 +48,8 @@ void                Tac::DesktopAppImplMoveControls( const WindowHandle& WindowH
 {
   sRequestMove[ WindowHandle.GetIndex() ] = RequestMove
   {
-    .mRequested = true,
-    .mRect = rect,
+    .mRequested { true },
+    .mRect      { rect },
   };
 }
 

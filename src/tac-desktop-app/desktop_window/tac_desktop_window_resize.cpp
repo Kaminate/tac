@@ -21,11 +21,11 @@ void Tac::DesktopAppUpdateResize()
 
   for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
-    const WindowHandle windowHandle = { i };
+    const WindowHandle windowHandle  { i };
     if( !windowHandle.GetDesktopWindowNativeHandle() )
       continue;
 
-    const RequestResize* requestResize = &sRequestResize[ i ];
+    const RequestResize* requestResize { &sRequestResize[ i ] };
     if( !requestResize->mRequested )
       continue;
 

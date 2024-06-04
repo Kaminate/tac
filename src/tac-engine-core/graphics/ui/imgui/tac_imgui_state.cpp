@@ -23,14 +23,14 @@ Tac::ImGuiNextWindow          Tac::gNextWindow;
 namespace Tac
 {
 
-    struct PerFrameType
-    {
-      m4    mOrthoProj         {};
-      float mSDFOnEdge         {};
-      float mSDFPixelDistScale {};
-    };
+  struct PerFrameType
+  {
+    m4    mOrthoProj         {};
+    float mSDFOnEdge         {};
+    float mSDFPixelDistScale {};
+  };
 
-    struct PerObjectType
+  struct PerObjectType
     {
       v4  mColor{};
       u32 mType{};
@@ -45,7 +45,7 @@ namespace Tac
   {
     String         mName;
     Vector< char > mInitialData;
-    ImGuiIndex     mId {};
+    ImGuiRscIdx     mId {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -53,10 +53,10 @@ namespace Tac
   struct WindowResourceRegistry
   {
     static WindowResourceRegistry*     GetInstance();
-    ImGuiIndex                         RegisterResource( StringView name,
+    ImGuiRscIdx                         RegisterResource( StringView name,
                                                          const void* initialDataBytes,
                                                          int initialDataByteCount );
-    RegisteredWindowResource*          FindResource( ImGuiIndex index );
+    RegisteredWindowResource*          FindResource( ImGuiRscIdx index );
   private:
     Vector< RegisteredWindowResource > mRegisteredWindowResources;
     int                                mResourceCounter {};
@@ -64,7 +64,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiIndex  index )
+  RegisteredWindowResource* WindowResourceRegistry::FindResource( ImGuiRscIdx index )
   {
     for( RegisteredWindowResource& resource : mRegisteredWindowResources )
       if( resource.mId == index )
@@ -78,7 +78,7 @@ namespace Tac
     return &instance;
   }
 
-  ImGuiIndex                WindowResourceRegistry::RegisterResource( StringView name,
+  ImGuiRscIdx               WindowResourceRegistry::RegisterResource( StringView name,
                                                                       const void* initialDataBytes,
                                                                       int initialDataByteCount )
   {
@@ -93,7 +93,7 @@ namespace Tac
     {
       initialData.assign( initialDataByteCount, 0 );
     }
-    const ImGuiIndex id { mResourceCounter++ };
+    const ImGuiRscIdx id { mResourceCounter++ };
     const RegisteredWindowResource resource
     {
       .mName        { name },
@@ -121,6 +121,10 @@ namespace Tac
   void         ImGuiWindow::Scrollbar()
   {
     ImGuiGlobals& globals { ImGuiGlobals::Instance };
+
+    const bool scrollBarEnabled { globals.mScrollBarEnabled };
+    if( !scrollBarEnabled )
+      return;
     SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
 
     const bool stuffBelowScreen { mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y };
@@ -220,20 +224,9 @@ namespace Tac
     mViewportSpaceVisibleRegion.mMaxi.x -= scrollbarWidth;
   }
 
-  void         ImGuiWindow::BeginFrame()
+
+  void         ImGuiWindow::DrawWindowBackground()
   {
-    const ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
-
-    const UIStyle& style { ImGuiGetStyle() };
-    const float windowPadding { style.windowPadding };
-    const bool scrollBarEnabled { globals.mScrollBarEnabled };
-
-    mDrawData->PushDebugGroup( "ImguiWindow::BeginFrame", mName );
-    TAC_ON_DESTRUCT( mDrawData->PopDebugGroup() );
-    
-    mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
-
     if( const bool drawWindow{ mEnableBG
         && ( mParent || mStretchWindow || mWindowHandleOwned ) } )
     {
@@ -252,11 +245,30 @@ namespace Tac
         mDrawData->AddBox( box, &clipRect );
       }
     }
+  }
+
+  void         ImGuiWindow::BeginFrame()
+  {
+    const ImGuiGlobals& globals { ImGuiGlobals::Instance };
+    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
+
+    const UIStyle& style { ImGuiGetStyle() };
+    const float windowPadding { style.windowPadding };
+
+    mDrawData->PushDebugGroup( "ImguiWindow::BeginFrame", mName );
+    TAC_ON_DESTRUCT( mDrawData->PopDebugGroup() );
+    
+    mWindowID = Hash( mName );
+    mIDStack = { mWindowID };
+    mMoveID = GetID( "#MOVE" );
+
+    mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
+
+    DrawWindowBackground();
 
     mViewportSpaceVisibleRegion = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
 
-    if( scrollBarEnabled )
-      Scrollbar();
+    Scrollbar();
 
     mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPadding;
     mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPadding;
@@ -274,21 +286,75 @@ namespace Tac
 
     if( mParent )
     {
-      mIDAllocator = mParent->mIDAllocator;
       mDesktopWindow = mParent->mDesktopWindow;
       mWindowHandleOwned = false;
     }
-    else
-    {
-      if( !mIDAllocator )
-        mIDAllocator = TAC_NEW ImGuiIDAllocator;
 
-      mIDAllocator->mIDCounter = 0;
-      if( keyboardApi->JustPressed( Key::MouseLeft ) )
+    ResizeControls();
+  }
+
+  void                          ImGuiWindow::ResizeControls()
+  {
+    //if( !mWindowHandleOwned )
+    //  return;
+
+    dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+    const UIStyle style{ globals.mUIStyle };
+    const float windowPadding { style.windowPadding };
+
+    const SimWindowApi* windowApi{ globals.mSimWindowApi };
+    const SimKeyboardApi* keyboardApi{ globals.mSimKeyboardApi };
+    const v2i windowPos{ windowApi->GetPos( mDesktopWindow->mWindowHandle ) };
+    const v2i mousePos{ keyboardApi->GetMousePosScreenspace() };
+
+    const v2 mousePosViewport{ GetMousePosViewport() };
+
+    const ImGuiRect origRect_VS{ ImGuiRect::FromPosSize( {}, mSize ) };
+    //const ImGuiRect origRect{ ImGuiRect::FromPosSize( windowPos + mViewportSpacePos, mSize ) };
+    //ImGuiRect targetRect{ ImGuiRect::FromPosSize( windowPos + mViewportSpacePos, mSize ) };
+    //ImGuiGlobals::Instance.mUIStyle;
+
+    PushID( "##RESIZE" );
+
+    // move resize
+    for( int iSide{}; iSide < 4; ++iSide )
+    {
+      const ImGuiId id{ GetID( String() + "side " + ToString( iSide ) ) };
+      
+      if( iSide == 0 ) // right
       {
-        mIDAllocator->mActiveID = ImGuiIdNull;
+        ImGuiRect edgeRect{ origRect_VS };
+        edgeRect.mMini.x = edgeRect.mMaxi.x - windowPadding;
+        //ImGuiRect borderRect{ targetRect };
+        //borderRect.mMini.x = borderRect.mMaxi.x - windowPadding;
+        
+        //const bool containsPoint{ borderRect.ContainsPoint( mousePos ) };
+
+        const bool hovered{ IsHovered( edgeRect ) };
+
+        const v4 color{ hovered ? v4( 0, 1, 0, 1 ) : v4( 1, 0, 0, 1 ) };
+
+        const UI2DDrawData::Box box
+        {
+          .mMini  { edgeRect.mMini },
+          .mMaxi  { edgeRect.mMaxi},
+          .mColor { color },
+        };
+        mDrawData->AddBox( box );
+
+        if( hovered && keyboardApi->JustPressed( Key::MouseLeft ) )
+        {
+          globals.mActiveIDClickPos = keyboardApi->GetMousePosScreenspace();
+          globals.mActiveIDWindow = this;
+          globals.mActiveID = id;
+        }
+
+        //globals.mMouseCursor;
       }
+      PopID();
     }
+    PopID();
+
   }
 
   bool         ImGuiWindow::Overlaps( const ImGuiRect& clipRect) const
@@ -326,20 +392,6 @@ namespace Tac
     mViewportSpaceMaxiCursor.y = Max( mViewportSpaceMaxiCursor.y, pos.y );
   }
 
-  ImGuiId      ImGuiWindow::GetActiveID()
-  {
-    return mIDAllocator->mActiveID;
-  }
-
-  void         ImGuiWindow::SetActiveID( ImGuiId id )
-  {
-    mIDAllocator->mActiveID = id;
-  }
-
-  ImGuiId      ImGuiWindow::GetID()
-  {
-    return mIDAllocator->mIDCounter++;
-  }
 
   bool         ImGuiWindow::IsHovered( const ImGuiRect& rectViewport )
   {
@@ -379,9 +431,14 @@ namespace Tac
     return mouseScreenspace - windowScreenspace;
   }
 
-  void*        ImGuiWindow::GetWindowResource( ImGuiIndex index )
+  ImGuiId      ImGuiWindow::GetID( StringView s )
   {
-    ImGuiId imGuiId { GetID() };
+    const ImGuiId id{ Hash( mIDStack.back(), Hash( s ) ) };
+    return id;
+  }
+
+  void*        ImGuiWindow::GetWindowResource( ImGuiRscIdx index, ImGuiId imGuiId )
+  {
     for( ImGuiWindowResource& resource : mResources )
       if( resource.mImGuiId == imGuiId && resource.mIndex == index )
         return resource.mData.data();
@@ -969,7 +1026,25 @@ namespace Tac
 
 } // namespace Tac
 
-Tac::ImGuiIndex Tac::ImGuiRegisterWindowResource( StringView name,
+  Tac::ImGuiId Tac::GetActiveID()
+  {
+    return ImGuiGlobals::Instance.mActiveID;
+  }
+
+  void         Tac::SetActiveID( ImGuiId id, ImGuiWindow* window )
+  {
+    ImGuiGlobals::Instance.mActiveID = id;
+    ImGuiGlobals::Instance.mActiveIDWindow = window;
+  }
+
+  void         Tac::ClearActiveID()
+  {
+    ImGuiGlobals::Instance.mActiveID = ImGuiIdNull;
+    ImGuiGlobals::Instance.mActiveIDWindow = nullptr;
+  }
+
+
+Tac::ImGuiRscIdx Tac::ImGuiRegisterWindowResource( StringView name,
                                                   const void* initialDataBytes,
                                                   int initialDataByteCount )
 {

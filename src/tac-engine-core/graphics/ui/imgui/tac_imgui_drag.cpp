@@ -18,18 +18,18 @@ namespace Tac
 
   struct DragData
   {
-    DragMode       mMode = ( DragMode )0;
-    float          mDragDistPx = 0;
+    DragMode       mMode             { ( DragMode )0 };
+    float          mDragDistPx       { 0 };
 
     // This is the value of the variable we are gizmoing for at the start of the mouse drag.
     // That way, we can accumulate all the mouse drag pixels and apply them to ints in
     // addition to floats
-    char           mValueCopy[ 10 ] = {};
+    char           mValueCopy[ 10 ]  {};
   };
 
-  static const ImGuiIndex sDragDataID = ImGuiRegisterWindowResource( TAC_STRINGIFY( DragData ),
+  static const ImGuiRscIdx sDragDataID{ ImGuiRegisterWindowResource( TAC_STRINGIFY( DragData ),
                                                                      nullptr,
-                                                                     sizeof( DragData ) );
+                                                                     sizeof( DragData ) ) };
 
 
   using Drag_Getter = String( * )( const void* );
@@ -58,12 +58,13 @@ namespace Tac
     ImGuiWindow* window { globals.mCurrentWindow };
     UI2DDrawData* drawData { window->mDrawData };
     TextInputData* inputData { window->mTextInputData };
-    DragData* dragFloatData { ( DragData* )window->GetWindowResource( sDragDataID ) };
 
+    const ImGuiId id { window->mIDStack.back() }; // assumption
     const v2 pos { window->mViewportSpaceCurrCursor };
     const v2 totalSize( width, fontSize );
-    const ImGuiId id { window->GetID() };
     const ImGuiRect origRect { ImGuiRect::FromPosSize( pos, totalSize ) };
+
+    DragData* dragFloatData { ( DragData* )window->GetWindowResource( sDragDataID, id ) };
 
     window->ItemSize( totalSize );
     if( !window->Overlaps( origRect ) )
@@ -78,10 +79,10 @@ namespace Tac
     //  Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
 
     if( hovered && keyboardApi->JustPressed( Key::MouseLeft ) )
-      window->SetActiveID( id );
+      SetActiveID( id, window );
 
 
-    const bool active = window->GetActiveID() == id;
+    const bool active { GetActiveID() == id };
 
     if(active)
     {
@@ -147,10 +148,10 @@ namespace Tac
 
       if( dragFloatData->mMode == DragMode::TextInput )
       {
-        const auto oldCodepoints = inputData->mCodepoints;
+        const auto oldCodepoints { inputData->mCodepoints };
         TextInputDataUpdateKeys( inputData, window->GetMousePosViewport(), valuePos );
 
-        const bool codepointsChanged = oldCodepoints != inputData->mCodepoints;
+        const bool codepointsChanged { oldCodepoints != inputData->mCodepoints };
         //const bool codepointsChanged = oldCodepoints.size() != inputData->mCodepoints.size()
         //  || 0 != MemCmp( oldCodepoints.data(),
         //                  inputData->mCodepoints.data(),
@@ -159,18 +160,18 @@ namespace Tac
         {
           changed = true;
 
-          const StringView newText = CodepointsToUTF8(inputData->GetCodepointView());
+          const StringView newText { CodepointsToUTF8(inputData->GetCodepointView()) };
           setter( newText, valueBytes );
           valueStr = newText;
 
           // tab between x,y,z for imguidragfloat3
-          if( keyboardApi->JustPressed( Key::Tab ) )
-            window->mIDAllocator->mActiveID++;
+          //if( keyboardApi->JustPressed( Key::Tab ) )
+          //  window->mIDAllocator->mActiveID++;
         }
       }
     }
 
-    if( id != window->GetActiveID() )
+    if( id != GetActiveID() )
     {
       if( dragFloatData->mMode == DragMode::TextInput )
       {
@@ -192,31 +193,31 @@ namespace Tac
       }
     }
 
-    ImGuiCol colEnum = ImGuiCol::FrameBG;
+    ImGuiCol colEnum { ImGuiCol::FrameBG };
     if( hovered )
       colEnum = ImGuiCol::FrameBGHovered;
     if( active )
       colEnum = ImGuiCol::FrameBGActive;
       
-    const v4& color = ImGuiGetColor( colEnum );
+    const v4& color { ImGuiGetColor( colEnum ) };
 
-    const UI2DDrawData::Box box =
+    const UI2DDrawData::Box box
     {
-      .mMini = pos,
-      .mMaxi = pos + clipRect.GetSize(),
-      .mColor = color,
+      .mMini  { pos },
+      .mMaxi  { pos + clipRect.GetSize() },
+      .mColor { color },
     };
     drawData->AddBox( box, &clipRect );
 
     if( dragFloatData->mMode == DragMode::TextInput )
       TextInputDataDrawSelection( inputData, drawData, valuePos, &clipRect );
 
-    const UI2DDrawData::Text text =
+    const UI2DDrawData::Text text
     {
-      .mPos { valuePos },
+      .mPos      { valuePos },
       .mFontSize { fontSize },
-      .mUtf8 { valueStr },
-      .mColor { ImGuiGetColor( ImGuiCol::Text ) },
+      .mUtf8     { valueStr },
+      .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
     };
     drawData->AddText( text, &clipRect );
 
@@ -231,7 +232,7 @@ namespace Tac
                               Drag_Setter setter,
                               Drag_MouseHandler mouseHandler )
   {
-    const ImGuiWindow* window { ImGuiGlobals::Instance.mCurrentWindow };
+    ImGuiWindow* window { ImGuiGlobals::Instance.mCurrentWindow };
     const float xMax { window->mViewportSpaceVisibleRegion.mMaxi.x };
     const float xCur { window->mViewportSpaceCurrCursor.x };
 
@@ -246,13 +247,23 @@ namespace Tac
     UI2DDrawData* drawData { window->mDrawData };
     drawData->PushDebugGroup( "ImGuiDragTypeN", str );
 
+    PushID( str );
+
     bool changed { false };
     for( int i{}; i < n; ++i )
     {
+      TAC_ASSERT( n < 3 );
+      const char* ids[]{ "x", "y", "z" };
+      PushID( ids[ i ] );
+
       void* value { ( char* )values + ( std::ptrdiff_t )( i * sizeOfT ) };
       changed |= ImguiDragValNoLabel( dragW, value, sizeOfT, getter, setter, mouseHandler );
       ImGuiSameLine();
+
+      PopID();
     }
+
+    PopID();
 
     ImGuiText( str );
     drawData->PopDebugGroup();

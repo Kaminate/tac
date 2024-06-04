@@ -44,13 +44,13 @@ namespace Tac
 void Tac::DesktopAppUpdateWindowRequests( Errors& errors )
 {
   sWindowHandleLock.lock();
-  WindowRequestsCreate requestsCreate = sWindowRequestsCreate;
-  WindowRequestsDestroy requestsDestroy = sWindowRequestsDestroy;
+  WindowRequestsCreate requestsCreate { sWindowRequestsCreate };
+  WindowRequestsDestroy requestsDestroy { sWindowRequestsDestroy };
   sWindowRequestsCreate.clear();
   sWindowRequestsDestroy.clear();
   sWindowHandleLock.unlock();
 
-  PlatformFns* platform = PlatformFns::GetInstance();
+  PlatformFns* platform { PlatformFns::GetInstance() };
 
   for( const PlatformSpawnWindowParams& info : requestsCreate )
     platform->PlatformSpawnWindow( info, errors );
@@ -65,15 +65,15 @@ Tac::DesktopWindowHandle Tac::DesktopAppImplCreateWindow( const DesktopAppCreate
     sWindowHandleLock.lock();
 
     //const DesktopWindowHandle handle = { sDesktopWindowHandleIDs.Alloc() };
-    const DesktopWindowHandle handle = AllocDesktopWindowHandle();
+    const DesktopWindowHandle handle { AllocDesktopWindowHandle() };
 
-    const PlatformSpawnWindowParams info =
+    const PlatformSpawnWindowParams info
     {
       .mHandle { handle },
-      .mName { desktopParams }.mName,
-      .mX { desktopParams.mX },
-      .mY { desktopParams.mY },
-      .mWidth { desktopParams.mWidth },
+      .mName   { desktopParams }.mName,
+      .mX      { desktopParams.mX },
+      .mY      { desktopParams.mY },
+      .mWidth  { desktopParams.mWidth },
       .mHeight { desktopParams.mHeight },
     };
     sWindowRequestsCreate.push_back( info );

@@ -333,7 +333,7 @@ namespace Tac
       .mSize   { params.mSize },
     };
 
-    PlatformFns* platform = PlatformFns::GetInstance();
+    PlatformFns* platform { PlatformFns::GetInstance() };
     TAC_CALL_RET( {}, platform->PlatformSpawnWindow( platformParams, errors ) );
     return h;
   }
@@ -341,7 +341,7 @@ namespace Tac
   void             SysWindowApi::DestroyWindow( WindowHandle h ) const
   {
     TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
-    PlatformFns* platform = PlatformFns::GetInstance();
+    PlatformFns* platform { PlatformFns::GetInstance() };
     platform->PlatformDespawnWindow( h );
     FreeWindowHandle( h );
   }

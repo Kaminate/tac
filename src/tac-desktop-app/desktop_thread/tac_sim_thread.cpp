@@ -102,16 +102,18 @@ namespace Tac
         sWindowBackend.Sync();
         sKeyboardBackendSimApi.Sync();
 
+        PlatformFns* platform { PlatformFns::GetInstance() };
+
         const BeginFrameData data
         {
-          .mElapsedSeconds { Timestep::GetElapsedTime() },
-          .mMouseHoveredWindow  {}, // platform->PlatformGetMouseHoveredWindow(),
+          .mElapsedSeconds      { Timestep::GetElapsedTime() },
+          .mMouseHoveredWindow  { platform->PlatformGetMouseHoveredWindow() },
         };
         ImGuiBeginFrame( data );
 
         Controller::UpdateJoysticks();
 
-        App::UpdateParams updateParams
+        const App::UpdateParams updateParams
         {
           .mWindowApi { sWindowApi },
           .mKeyboardApi { sKeyboardApi },
