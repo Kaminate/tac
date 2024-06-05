@@ -10,14 +10,17 @@ namespace Tac
   {
     void AddUnit( StringView name, double units, double unitsPerNext )
     {
-      auto unitDisplay { ( int )units };
+      int unitDisplay { ( int )units };
       if( !unitDisplay )
         return;
+
       if( unitsPerNext )
         unitDisplay %= ( int )unitsPerNext;
+
       String text { ToString( unitDisplay ) + String( " " ) + String( name ) };
       if( unitDisplay > 1 )
         text += "s";
+
       lines.push_back( text );
     }
     Vector< String > lines;

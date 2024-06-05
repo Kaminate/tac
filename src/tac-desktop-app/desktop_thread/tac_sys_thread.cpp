@@ -184,7 +184,7 @@ namespace Tac
 
         const App::PresentParams presentParams
         {
-          .mWindowApi   { mWindowApi },
+          .mWindowApi { mWindowApi },
         };
         TAC_CALL( mApp->Present( presentParams, errors ) );
         TAC_CALL( ImGuiPlatformPresent( mWindowApi, errors ) );

@@ -304,6 +304,7 @@ namespace Tac
         - globals.mActiveIDClickPos_VS
         + mViewportSpacePos
         + GetWindowPosScreenspace();
+      globals.mSettingsDirty = true;
     }
     else
     {
@@ -446,6 +447,7 @@ namespace Tac
       mDesktopWindow->mRequestedSize = targetSize;
       mDesktopWindow->mRequestedPosition = targetViewportPos_SS;
 
+      globals.mSettingsDirty = true;
       mSize = targetSize;
     }
   }

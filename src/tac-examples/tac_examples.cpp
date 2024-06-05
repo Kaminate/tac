@@ -68,9 +68,9 @@ namespace Tac
     // demo
     const int size { 600 };
 
-    sNavWindow = CreateTrackedWindow( "Example.Nav", x, y, w, h );
-    sDemoWindow = CreateTrackedWindow( "Example.Demo", x + w + spacing, y, size, size  );
-    QuitProgramOnWindowClose( sNavWindow );
+    //sNavWindow = CreateTrackedWindow( "Example.Nav", x, y, w, h );
+    //sDemoWindow = CreateTrackedWindow( "Example.Demo", x + w + spacing, y, size, size  );
+    //QuitProgramOnWindowClose( sNavWindow );
 
     ExampleRegistryPopulate();
 
@@ -92,9 +92,11 @@ namespace Tac
   static void ExampleSelectorWindow( Errors& errors )
   {
     ImGuiSetNextWindowStretch();
-    ImGuiSetNextWindowHandle( sNavWindow );
-    if( !ImGuiBegin( "Examples" ) )
+    //ImGuiSetNextWindowHandle( sNavWindow );
+    if( !ImGuiBegin( "Examples Selector" ) )
       return;
+
+    sNavWindow = ImGuiGetWindowHandle();
 
     TAC_ON_DESTRUCT( ImGuiEnd());
 
@@ -124,10 +126,10 @@ namespace Tac
           iSelected = i;
     }
 
-    if(offset)
+    if( offset )
       SetNextExample( iCurrent + offset );
 
-    if(iSelected != -1)
+    if( iSelected != -1 )
       SetNextExample( iSelected );
   }
 
@@ -135,10 +137,11 @@ namespace Tac
   {
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowDisableBG();
-    ImGuiSetNextWindowHandle( sDemoWindow );
+    //ImGuiSetNextWindowHandle( sDemoWindow );
     if( !ImGuiBegin( "Examples Demo" ) )
       return;
 
+    sDemoWindow = ImGuiGetWindowHandle();
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
     const int iOld{ GetCurrExampleIndex() };
@@ -160,19 +163,29 @@ namespace Tac
   static void ExamplesRenderCallback( App::RenderParams renderParams, Errors& errors )
   {
     const SysWindowApi* windowApi{ renderParams.mWindowApi };
+    if( !sDemoWindow.IsValid() || !windowApi->IsShown( sDemoWindow ) )
+      return;
     const v2i windowSize{ windowApi->GetSize( sDemoWindow ) };
-    if( Example* ex = GetCurrExample() )
+    if( Example * ex{ GetCurrExample() } )
     {
       const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( sDemoWindow ) };
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       const Render::TextureHandle backbuffer{
         renderDevice->GetSwapChainCurrentColor( swapChain ) };
 
+      {
+        TAC_CALL( Render::IContext::Scope renderContext{
+          renderDevice->CreateRenderContext( errors ) } );
+
+        renderContext->ClearColor( backbuffer, v4( 0, 0, 0, 1 ) );
+        TAC_CALL( renderContext->Execute( errors ) );
+      }
+
       TAC_CALL( GamePresentationRender( ex->mWorld,
-                              ex->mCamera,
-                              windowSize,
-                              backbuffer,
-                              errors ) );
+                                        ex->mCamera,
+                                        windowSize,
+                                        backbuffer,
+                                        errors ) );
     }
 
   }
@@ -185,11 +198,11 @@ namespace Tac
     if( sKeyboardApi->IsPressed( Key::Escape ) )
       OS::OSAppStopRunning();
 
-    if( !sWindowApi->IsShown(sDemoWindow ) )
-      return;
+    //if( !sWindowApi->IsShown(sDemoWindow ) )
+    //  return;
 
-    if( !sWindowApi->IsShown(sNavWindow ) )
-      return;
+    //if( !sWindowApi->IsShown(sNavWindow ) )
+    //  return;
 
     TAC_CALL( ExampleSelectorWindow( errors ) );
 
@@ -219,19 +232,20 @@ namespace Tac
     {
       ExamplesRenderCallback( renderParams, errors );
     }
+
     void Present( PresentParams presentParams, Errors& errors ) override
     {
-      const SysWindowApi* windowApi{ presentParams.mWindowApi };
-      const WindowHandle handles[]{ sNavWindow, sDemoWindow };
-      for( WindowHandle handle : handles )
-      {
-        if( windowApi->IsShown( handle ) )
-        {
-          const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( handle ) };
-          Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-          TAC_CALL( renderDevice->Present( swapChain, errors ) );
-        }
-      }
+      //const SysWindowApi* windowApi{ presentParams.mWindowApi };
+      //const WindowHandle handles[]{ sNavWindow, sDemoWindow };
+      //for( WindowHandle handle : handles )
+      //{
+      //  if( windowApi->IsShown( handle ) )
+      //  {
+      //    const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( handle ) };
+      //    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      //    TAC_CALL( renderDevice->Present( swapChain, errors ) );
+      //  }
+      //}
     }
 
     void Uninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }

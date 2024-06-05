@@ -71,11 +71,12 @@ namespace Tac
     for( int i{}; i < n; ++i )
     {
       SettingsNode child{ windowsJson.GetChild( "[" + ToString( i ) + "]" ) };
-      if( ( StringView )child.GetChild( "name" ).GetValue().mString == name )
+      const StringView childName{ ( StringView )child.GetChild( "name" ).GetValue().mString };
+      if( childName == name )
         return child;
     }
 
-    SettingsNode child{ windowsJson.GetChild( "[0]" ) };
+    SettingsNode child{ windowsJson.GetChild( "[" + ToString( n ) + "]" ) };
     child.GetChild( "name" ).SetValue( name );
     return child;
   }
@@ -93,9 +94,10 @@ namespace Tac
   static void ImGuiSaveWindowSettings( ImGuiWindow* window )
   {
     ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+    globals.mSettingsDirty = false;
     SimWindowApi* windowApi{ globals.mSimWindowApi };
-    if( !window->mWindowHandleOwned )
-      return;
+    //if( !window->mWindowHandleOwned )
+    //  return;
 
     WindowHandle h{ window->GetWindowHandle() };
     if( !windowApi->IsShown( h ) )
@@ -526,19 +528,10 @@ bool Tac::ImGuiBegin( const StringView& name )
       }
 
       SettingsNode windowJson{ ImGuiGetWindowSettingsJson( name ) };
-      if( gNextWindow.mPositionValid &&
-          gNextWindow.mPositionCondition == ImGuiCondition::kFirstUse )
-      {
-        x = ( int )windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x ).mNumber;
-        y = ( int )windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y ).mNumber;
-      }
-
-      if( gNextWindow.mSizeValid &&
-          gNextWindow.mSizeCondition == ImGuiCondition::kFirstUse )
-      {
-        w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
-        h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
-      }
+      x = ( int )windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x ).mNumber;
+      y = ( int )windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y ).mNumber;
+      w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
+      h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
 
       //PlatformFns* platform = PlatformFns::GetInstance();
       //
@@ -593,6 +586,7 @@ bool Tac::ImGuiBegin( const StringView& name )
     window->mEnableBG = gNextWindow.mEnableBG;
     ImGuiGlobals::Instance.mAllWindows.push_back( window );
   }
+
 
   gNextWindow = {};
 
@@ -904,9 +898,13 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
 
   const ImGuiRect clipRectViewport{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRectViewport ) };
+  const bool active{ globals.mActiveID == id };
   const bool clicked{ hovered && keyboardApi->JustPressed( Key::MouseLeft ) };
   if( clicked )
     SetActiveID( id, window );
+
+  if( active && !keyboardApi->IsPressed( Key::MouseLeft ) )
+    ClearActiveID();
 
   if( selected || hovered )
   {
@@ -980,7 +978,7 @@ bool Tac::ImGuiButton( const StringView& str )
 
   UI2DDrawData* drawData{ window->mDrawData };
   drawData->PushDebugGroup( "Button", str );
-  //drawData->AddBox( box, &clipRect );
+  drawData->AddBox( box, &clipRect );
   drawData->AddText( text, &clipRect );
   drawData->PopDebugGroup();
 
@@ -1279,6 +1277,10 @@ void Tac::ImGuiBeginFrame( const BeginFrameData& data )
 
   if( ImGuiWindow * window{ globals.mMovingWindow } )
     window->UpdateMoveControls();
+
+  if( globals.mSettingsDirty )
+    for( ImGuiWindow* window : globals.mAllWindows )
+        ImGuiSaveWindowSettings( window );
 }
 
 //static bool ImGuiDesktopWindowOwned( WindowHandle WindowHandle )
@@ -1485,6 +1487,9 @@ void Tac::ImGuiPlatformPresent( const SysWindowApi* windowApi, Errors& errors )
       continue;
 
     const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
+    if( !windowApi->IsShown( windowHandle ) )
+      continue;
+
     const Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( windowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     TAC_CALL( renderDevice->Present( swapChain, errors ) );

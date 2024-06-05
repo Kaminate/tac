@@ -287,6 +287,7 @@ namespace Tac
     v2                                mActiveIDWindowSize   {};
     v2                                mActiveIDWindowPos_SS {};
     int                               mResizeMask           {};
+    bool                              mSettingsDirty        {};
   };
 
   struct ImGuiNextWindow

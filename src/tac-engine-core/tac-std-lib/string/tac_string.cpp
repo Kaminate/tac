@@ -36,7 +36,7 @@ namespace Tac
   }
   static String ItoaI64( i64 val, int base = 10 )
   {
-    const String s{ ItoaU64( ( u64 )val, base ) };
+    const String s{ ItoaU64( ( u64 )( val > 0 ? val : -val ), base ) };
     return val < 0 ? '-' + s : s;
   }
 

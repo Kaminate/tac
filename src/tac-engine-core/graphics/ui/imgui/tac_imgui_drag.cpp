@@ -81,7 +81,6 @@ namespace Tac
     if( hovered && keyboardApi->JustPressed( Key::MouseLeft ) )
       SetActiveID( id, window );
 
-
     const bool active { GetActiveID() == id };
 
     if(active)
@@ -119,6 +118,10 @@ namespace Tac
             mouseHandler( dragFloatData->mDragDistPx, dragFloatData->mValueCopy, valueBytes );
             changed = true;
           }
+        }
+        else
+        {
+          ClearActiveID();
         }
 
         lastMouseXDesktopWindowspace = screenspaceMousePos.x;
@@ -249,11 +252,12 @@ namespace Tac
 
     PushID( str );
 
+    TAC_ASSERT( n <= 4 );
+    const char* ids[]{ "x", "y", "z", "w" };
+
     bool changed { false };
     for( int i{}; i < n; ++i )
     {
-      TAC_ASSERT( n < 3 );
-      const char* ids[]{ "x", "y", "z" };
       PushID( ids[ i ] );
 
       void* value { ( char* )values + ( std::ptrdiff_t )( i * sizeOfT ) };
