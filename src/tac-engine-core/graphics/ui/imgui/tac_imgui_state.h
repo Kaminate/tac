@@ -69,6 +69,7 @@ namespace Tac
     void                          Scrollbar();
     void                          PushXOffset();
     void                          BeginMoveControls();
+    void                          UpdateMoveControls();
 
     ImGuiID                       GetID( StringView );
 

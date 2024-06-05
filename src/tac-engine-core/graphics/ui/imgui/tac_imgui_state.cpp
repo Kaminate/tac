@@ -293,6 +293,25 @@ namespace Tac
     ResizeControls();
   }
 
+  void                          ImGuiWindow::UpdateMoveControls()
+  {
+    dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+    const SimKeyboardApi* keyboardApi{ globals.mSimKeyboardApi };
+    if( keyboardApi->IsPressed( Key::MouseLeft ) )
+    {
+      mDesktopWindow->mRequestedPosition
+        = GetMousePosViewport()
+        - globals.mActiveIDClickPos_VS
+        + mViewportSpacePos
+        + GetWindowPosScreenspace();
+    }
+    else
+    {
+      globals.mMovingWindow = nullptr;
+      ClearActiveID();
+    }
+  }
+
   void                          ImGuiWindow::BeginMoveControls()
   {
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
@@ -304,8 +323,8 @@ namespace Tac
     if( globals.mActiveID.IsValid()  )
       return;
 
-    if( !mWindowHandleOwned )
-      return;
+    //if( !mWindowHandleOwned )
+    //  return;
     
     if( mDesktopWindow->mWindowHandle != globals.mMouseHoveredWindow )
       return;

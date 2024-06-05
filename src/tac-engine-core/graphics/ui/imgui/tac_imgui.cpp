@@ -1277,14 +1277,8 @@ void Tac::ImGuiBeginFrame( const BeginFrameData& data )
   globals.mMouseHoveredWindow = data.mMouseHoveredWindow;
   globals.mMouseCursor = ImGuiMouseCursor::kArrow;
 
-  if( globals.mMovingWindow )
-  {
-    if( !globals.mSimKeyboardApi->IsPressed( Key::MouseLeft ) )
-    {
-      globals.mMovingWindow = nullptr;
-      ClearActiveID();
-    }
-  }
+  if( ImGuiWindow * window{ globals.mMovingWindow } )
+    window->UpdateMoveControls();
 }
 
 //static bool ImGuiDesktopWindowOwned( WindowHandle WindowHandle )
