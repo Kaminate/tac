@@ -19,6 +19,19 @@ namespace Tac
     mWindowBackend->SetWindowIsVisible( data.mWindowHandle, data.mVisible );
   }
 
+  void DesktopEventHandler::Handle( const DesktopEventApi::WindowActivationEvent& data )
+  {
+    // Release all keys on deactivation
+    if( data.mState == 0 )
+    {
+      for( int i{}; i < ( int )Key::Count; ++i )
+      {
+        const Key key{ ( Key )i };
+        mKeyboardBackend->SetKeyState( key, SysKeyboardApiBackend::KeyState::Up );
+      }
+    }
+  }
+
   void DesktopEventHandler::Handle( const DesktopEventApi::WindowDestroyEvent& data ) 
   {
     mWindowBackend->SetWindowDestroyed( data.mWindowHandle );

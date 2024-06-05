@@ -1454,9 +1454,9 @@ Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
       const v2i windowPosScreenspace{ globals.mSimWindowApi->GetPos( windowHandle ) };
       const ImGuiSimFrameDraws::WindowSizeData windowSizeData
       {
-        .mWindowHandle{ windowHandle },
-        .mSize{ window->mSize },
-        .mPosScreenspace{ windowPosScreenspace + window->mViewportSpacePos },
+        .mWindowHandle    { windowHandle },
+        .mSize            { window->mSize },
+        .mPosScreenspace  { windowPosScreenspace + window->mViewportSpacePos },
       };
 
       windowSizeDatas.push_back(windowSizeData);

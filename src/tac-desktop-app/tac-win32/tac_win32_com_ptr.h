@@ -38,8 +38,8 @@ namespace Tac
     }
 
     // IID_PPV_ARGS == iid(), ppv()
-    REFIID iid()          { return __uuidof(*mT); }
-    void** ppv()          { return (void**)&mT; }
+    REFIID iid()          { return __uuidof( *mT ); }
+    void** ppv()          { return ( void** )&mT; }
 
     // Member functions
     T**    CreateAddress() { return &mT; } // used during creation by a typed api

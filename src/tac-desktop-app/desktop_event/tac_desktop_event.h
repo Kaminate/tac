@@ -60,6 +60,12 @@ namespace Tac::DesktopEventApi
     Codepoint mCodepoint {  };
   };
 
+  struct WindowActivationEvent
+  {
+    WindowHandle mWindowHandle;
+    int          mState; // 0: deactivated, 1: activated
+  };
+
   struct MouseWheelEvent
   {
     float mDelta {  };
@@ -97,10 +103,12 @@ namespace Tac::DesktopEventApi
     virtual void Handle( const WindowMoveEvent& ) {};
     virtual void Handle( const WindowResizeEvent&, Errors& ) {};
     virtual void Handle( const WindowVisibleEvent& ) {};
+    virtual void Handle( const WindowActivationEvent& ) {};
     virtual void HandleEnd() {};
   };
 
   void Init( Handler* );
+  void Queue( const WindowActivationEvent& );
   void Queue( const WindowCreateEvent& );
   void Queue( const WindowDestroyEvent& );
   void Queue( const CursorUnobscuredEvent& );

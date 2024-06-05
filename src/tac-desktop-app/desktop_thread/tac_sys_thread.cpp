@@ -75,6 +75,9 @@ namespace Tac
       // Win32FrameBegin polls wndproc
       TAC_CALL( platform->PlatformFrameBegin( errors ) );
 
+      // Apply queued wndproc to saved keyboard/window state
+      TAC_CALL( DesktopEventApi::Apply( errors ) );
+
       TAC_CALL( desktopApp->Update( errors ) );
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 

@@ -326,11 +326,9 @@ namespace Tac
 
     const SimWindowApi* windowApi{ globals.mSimWindowApi };
     const SimKeyboardApi* keyboardApi{ globals.mSimKeyboardApi };
-    const v2i windowPos{ windowApi->GetPos( mDesktopWindow->mWindowHandle ) };
-    const v2i mousePos{ keyboardApi->GetMousePosScreenspace() };
-
-    const v2 mousePosViewport{ GetMousePosViewport() };
-    const v2 mousePosScreenspace{ keyboardApi->GetMousePosScreenspace() };
+    const v2i windowPos_SS{ windowApi->GetPos( mDesktopWindow->mWindowHandle ) };
+    //const v2i mousePos_SS{ keyboardApi->GetMousePosScreenspace() };
+    const v2 mousePos_VS{ GetMousePosViewport() };
 
     const ImGuiRect origRect_VS{ ImGuiRect::FromPosSize( {}, mSize ) };
     //const ImGuiRect origRect{ ImGuiRect::FromPosSize( windowPos + mViewportSpacePos, mSize ) };
@@ -382,15 +380,19 @@ namespace Tac
         if( active )
         {
           targetRect_VS.mMaxi.x
-            = mousePosViewport.x
+            = mousePos_VS.x
             - globals.mActiveIDClickOffset.x
             + edgeRect.GetWidth();
+          
+          if( !keyboardApi->IsPressed( Key::MouseLeft ) )
+          {
+            ClearActiveID();
+          }
         }
         else if( hovered && keyboardApi->JustPressed( Key::MouseLeft ) )
         {
-          globals.mActiveIDClickOffset = mousePosViewport - edgeRect.mMini;
-          globals.mActiveIDWindow = this;
-          globals.mActiveID = id;
+          globals.mActiveIDClickOffset = mousePos_VS - edgeRect.mMini;
+          SetActiveID( id, this );
         }
 
       }
@@ -412,10 +414,10 @@ namespace Tac
     }
 
     const v2 targetSize{ targetRect_VS.GetSize() };
-    const v2 targetPos{ targetRect_VS.mMini };
+    const v2 targetPos_SS{ windowPos_SS + targetRect_VS.mMini };
     if( targetRect_VS.mMini != origRect_VS.mMini || targetRect_VS.mMaxi != origRect_VS.mMaxi )
     {
-      mViewportSpacePos = targetPos - windowPos;
+      mViewportSpacePos = targetPos_SS - windowPos_SS;
       mSize = targetSize;
     }
   }

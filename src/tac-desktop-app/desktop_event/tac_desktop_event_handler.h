@@ -20,6 +20,7 @@ namespace Tac
     void Handle( const DesktopEventApi::WindowMoveEvent& ) override;
     void Handle( const DesktopEventApi::WindowResizeEvent&, Errors& ) override;
     void Handle( const DesktopEventApi::WindowVisibleEvent& ) override;
+    void Handle( const DesktopEventApi::WindowActivationEvent& ) override;
     
     SysKeyboardApiBackend* mKeyboardBackend;
     SysWindowApiBackend*   mWindowBackend;

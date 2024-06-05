@@ -35,31 +35,12 @@ int CALLBACK WinMain( HINSTANCE hInstance,
 {
   using namespace Tac;
 
-
-
-
   Errors& errors{ DesktopApp::GetMainErrors() };
   TAC_SCOPE_GUARD( LogScope );
   TAC_MEDIEVAL_DEBUG;
   Win32OSInit();
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
   RedirectStreamBuf();
-
-
-  struct Noisy
-  {
-    Noisy() { OS::OSDebugPrintLine( "Noisy()" ); }
-    ~Noisy() { OS::OSDebugPrintLine( "~Noisy()" ); }
-  };
-
-  OS::OSDebugPrintLine( "before {" );
-  {
-    Vector< Noisy > v( 3 );
-    OS::OSDebugPrintLine( "before resize" );
-    v.resize( 1 );
-    OS::OSDebugPrintLine( "after resize" );
-  }
-  OS::OSDebugPrintLine( "after }" );
 
   TAC_CALL_RET( 0, Render::AllowPIXDebuggerAttachment( errors ) );
   Render::RenderApi::SetRenderDevice( &sDX12Device );

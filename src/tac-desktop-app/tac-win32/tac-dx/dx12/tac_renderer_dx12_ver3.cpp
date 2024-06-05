@@ -349,7 +349,7 @@ namespace Tac::Render
     DX12SwapChain* swapChain{ sRenderer.mSwapChainMgr.FindSwapChain( h ) };
     TAC_ASSERT( swapChain );
 
-    IDXGISwapChain4* swapChain4 { swapChain->mSwapChain.GetIDXGISwapChain() };
+    IDXGISwapChain4* swapChain4 { swapChain->mDXGISwapChain.GetIDXGISwapChain() };
 
     TextureHandle textureHandle{ sRenderer.mSwapChainMgr.GetSwapChainCurrentColor( h ) };
 

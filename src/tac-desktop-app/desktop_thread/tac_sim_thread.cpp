@@ -79,7 +79,6 @@ namespace Tac
 
     while( OS::OSAppIsRunning() )
     {
-      TAC_CALL( DesktopEventApi::Apply( errors ) );
       TAC_CALL( Network::NetApi::Update( errors ) );
       TAC_CALL( mSettingsRoot->Tick( errors ) );
 

@@ -32,10 +32,10 @@ namespace Tac::Render
   {
     const void*             mNWH{};
     v2i                     mSize{};
-    DXGISwapChainWrapper    mSwapChain;
-    DXGI_SWAP_CHAIN_DESC1   mSwapChainDesc;
-    DX12SwapChainImages     mSwapChainImages; // Color backbuffer
-    TextureHandle           mSwapChainDepth; // Depth backbuffer
+    DXGISwapChainWrapper    mDXGISwapChain;
+    DXGI_SWAP_CHAIN_DESC1   mDXGISwapChainDesc;
+    DX12SwapChainImages     mRTColors;
+    TextureHandle           mRTDepth;
     SwapChainParams         mSwapChainParams{};
   };
 } // namespace Tac::Render
