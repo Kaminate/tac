@@ -27,6 +27,7 @@ namespace Tac
   static HWND         mParentHWND { nullptr };
 
   static WindowHandle sWindowUnderConstruction;
+  static bool         sMouseInWindow{};
 
   static Key GetKey( u8 keyCode )
   {
@@ -331,8 +332,18 @@ namespace Tac
 
     } break;
 
+    case WM_MOUSELEAVE:
+    {
+      sMouseInWindow = false;
+    } break;
+
     case WM_MOUSEMOVE:
     {
+      if( !sMouseInWindow )
+      {
+        sMouseInWindow = true;
+        ::SetCursor( ::LoadCursor( nullptr, IDC_ARROW ) );
+      }
 
       const int xPos{ GET_X_LPARAM( lParam ) };
       const int yPos{ GET_Y_LPARAM( lParam ) };
@@ -377,7 +388,16 @@ namespace Tac
 
     // if the hcursor is null, then the window will display a spinning circle when you mouse over
     // your window until you call ::SetCursor
-    const HCURSOR hCursor{ ::LoadCursor( NULL, IDC_ARROW ) };
+    //
+    // However, if hCursor is set so something, such as ::LoadCursor( NULL, IDC_ARROW ), then
+    // windows will override calls to ::SetCursor 1 second after you call them
+    //
+    // microsoft documentation:
+    //   A handle to the class cursor.
+    //   This member must be a handle to a cursor resource.
+    //   If this member is NULL, an application must explicitly set the cursor shape whenever
+    //   the mouse moves into the application's window.
+    const HCURSOR hCursor{ nullptr };
 
     const WNDCLASSEX wc
     {

@@ -186,21 +186,25 @@ namespace Tac
         const v2 mousePosScreenspace{ keyboardApi->GetMousePosScreenspace() };
         const v2i windowPos{ windowApi->GetPos( sWindowHandle ) };
         const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
-
+        static v2 textBoxOffset{ 123, 40 };
+        const v2i textBoxPos{ windowSize / 2 - textBoxOffset };
         
-        ImGuiSetCursorPos( windowSize / 2 );
+        ImGuiSetCursorPos( textBoxPos );
         ImGuiText( String() + "mouse pos: "
                    + ToString( mousePosScreenspace.x ) + ", "
                    + ToString( mousePosScreenspace.y ) );
-        ImGuiSetCursorPos( windowSize / 2 + v2( 0, ImGuiGetFontSize() ) );
+        ImGuiSetCursorPos( textBoxPos + v2( 0, ImGuiGetFontSize() ) );
         ImGuiText( String() + "window pos: "
                    + ToString( windowPos.x ) + ", "
                    + ToString( windowPos.y ) );
         
-        ImGuiSetCursorPos( windowSize / 2 + v2( 0, ImGuiGetFontSize() * 2 ) );
+        ImGuiSetCursorPos( textBoxPos + v2( 0, ImGuiGetFontSize() * 2 ) );
         ImGuiText( String() + "window size: "
                    + ToString( windowSize.x ) + ", "
                    + ToString( windowSize.y ) );
+
+        //ImGuiSetCursorPos( textBoxPos + v2( 0, ImGuiGetFontSize() * 3 ) );
+        //ImGuiDragFloat2( "offset", textBoxOffset.data() );
 
         FontApi::GetFontAtlasCell( Language::English, 'a', errors );
         FontApi::GetFontAtlasCell( Language::English, 'b', errors );

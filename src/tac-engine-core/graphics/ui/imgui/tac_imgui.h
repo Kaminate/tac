@@ -17,8 +17,15 @@
 
 namespace Tac
 {
-  using ImGuiId = HashValue;
-  const ImGuiId ImGuiIdNull {};
+  struct ImGuiID
+  {
+    ImGuiID( HashValue value = 0 ) : mValue( value ) {}
+    bool IsValid() const { return mValue; }
+    operator HashValue() { return mValue; }
+    friend auto operator <=> ( const ImGuiID&, const ImGuiID& ) = default;
+
+    HashValue mValue{};
+  };
 
   struct SysWindowApi;
 
@@ -26,7 +33,9 @@ namespace Tac
   {
     virtual ~ImGuiDesktopWindow() = default;
 
-    WindowHandle mWindowHandle;
+    WindowHandle    mWindowHandle;
+    Optional< v2i > mRequestedPosition;
+    Optional< v2i > mRequestedSize;
   };
 
   // +--> x
@@ -179,7 +188,7 @@ namespace Tac
   void ImGuiSetNextWindowSize( v2, ImGuiCondition = ImGuiCondition::kNone );
   void ImGuiSetNextWindowDisableBG();
 
-  ImGuiId GetID( StringView );
+  ImGuiID GetID( StringView );
   void    PushID( StringView );
   void    PopID();
 

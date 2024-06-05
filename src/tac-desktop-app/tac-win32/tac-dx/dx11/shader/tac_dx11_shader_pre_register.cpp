@@ -36,7 +36,7 @@ namespace Tac::Render
       if( iOpen == line.npos || iClose == line.npos )
         return 1;
       return ( int )ParseData( line.data() + iOpen + 1,
-                               line.data() + iClose ).EatFloat().GetValueUnchecked();
+                               line.data() + iClose ).EatFloat().GetValue();
   }
 
   static char GetResourceLetter( const StringView& line )

@@ -40,6 +40,20 @@ namespace Tac
 
   static bool sVerbose;
 
+  static PlatformMouseCursor ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor )
+  {
+    switch( imguiCursor )
+    {
+    case ImGuiMouseCursor::kNone: return PlatformMouseCursor::kNone;
+    case ImGuiMouseCursor::kArrow: return PlatformMouseCursor::kArrow;
+    case ImGuiMouseCursor::kResizeNS: return PlatformMouseCursor::kResizeNS;
+    case ImGuiMouseCursor::kResizeEW: return PlatformMouseCursor::kResizeEW;
+    case ImGuiMouseCursor::kResizeNE_SW: return PlatformMouseCursor::kResizeNE_SW;
+    case ImGuiMouseCursor::kResizeNW_SE: return PlatformMouseCursor::kResizeNW_SE;
+    default: TAC_ASSERT_INVALID_CASE( imguiCursor ) ; return {};
+    }
+  }
+
   void SysThread::Uninit()
   {
     Errors& errors { *mErrors };
@@ -139,18 +153,32 @@ namespace Tac
         };
         TAC_CALL( ImGuiPlatformRender( imguiDrawParams, errors ) );
 
+        static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
+        const PlatformMouseCursor newCursor{
+          ImGuiToPlatformMouseCursor( pair.mNewState->mImGuiDraws.mCursor ) };
+        if( oldCursor != newCursor )
+        {
+          oldCursor = newCursor;
+          platform->PlatformSetMouseCursor( newCursor );
+          OS::OSDebugPrintLine( "set mouse cursor : " + ToString( (int)newCursor ) );
+        }
+
         for( const auto& sizeData : pair.mNewState->mImGuiDraws.mWindowSizeDatas )
         {
-          const v2i windowPos{ mWindowApi->GetPos( sizeData.mWindowHandle ) };
-          const v2i windowSize{ mWindowApi->GetSize( sizeData.mWindowHandle ) };
-          if( ( v2 )windowPos != sizeData.mPosScreenspace )
+          if( sizeData.mRequestedPosition.HasValue() )
           {
-            mWindowApi->SetPos( sizeData.mWindowHandle, sizeData.mPosScreenspace );
+            const v2i windowPos{ mWindowApi->GetPos( sizeData.mWindowHandle ) };
+            const v2i windowPosRequest{ sizeData.mRequestedPosition.GetValue() };
+            if( windowPos != windowPosRequest )
+              mWindowApi->SetPos( sizeData.mWindowHandle, windowPosRequest );
           }
 
-          if( ( v2 )windowSize != sizeData.mSize )
+          if( sizeData.mRequestedSize.HasValue() )
           {
-            mWindowApi->SetSize( sizeData.mWindowHandle, sizeData.mSize );
+            const v2i windowSize{ mWindowApi->GetSize( sizeData.mWindowHandle ) };
+            const v2i windowSizeRequest{ sizeData.mRequestedSize.GetValue() };
+            if( windowSize != windowSizeRequest )
+              mWindowApi->SetSize( sizeData.mWindowHandle, windowSizeRequest );
           }
         }
 

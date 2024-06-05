@@ -59,7 +59,7 @@ namespace Tac
     UI2DDrawData* drawData { window->mDrawData };
     TextInputData* inputData { window->mTextInputData };
 
-    const ImGuiId id { window->mIDStack.back() }; // assumption
+    const ImGuiID id { window->mIDStack.back() }; // assumption
     const v2 pos { window->mViewportSpaceCurrCursor };
     const v2 totalSize( width, fontSize );
     const ImGuiRect origRect { ImGuiRect::FromPosSize( pos, totalSize ) };

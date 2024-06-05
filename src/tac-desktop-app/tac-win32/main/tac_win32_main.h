@@ -15,7 +15,8 @@ namespace Tac
     void PlatformDespawnWindow( WindowHandle ) const override;
     void PlatformSetWindowPos( WindowHandle, v2i ) const override;
     void PlatformSetWindowSize( WindowHandle, v2i ) const override;
-    WindowHandle PlatformGetMouseHoveredWindow() const override ;
+    void PlatformSetMouseCursor( PlatformMouseCursor ) const override;
+    WindowHandle PlatformGetMouseHoveredWindow() const override;
   };
 } // namespace
 

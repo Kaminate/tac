@@ -38,7 +38,7 @@ namespace Tac
 
   struct ImGuiWindowResource
   {
-    ImGuiId                       mImGuiId { ImGuiIdNull };
+    ImGuiID                       mImGuiID {};
     ImGuiRscIdx                   mIndex   { -1 };
     Vector< char >                mData    {};
   };
@@ -62,14 +62,15 @@ namespace Tac
     ImGuiRect                     Clip( const ImGuiRect& ) const;
 
     void                          UpdateMaxCursorDrawPos( v2 );
-    void*                         GetWindowResource( ImGuiRscIdx, ImGuiId );
+    void*                         GetWindowResource( ImGuiRscIdx, ImGuiID );
     bool                          IsHovered( const ImGuiRect& );
     v2                            GetMousePosViewport();
+    v2                            GetWindowPosScreenspace();
     void                          Scrollbar();
     void                          PushXOffset();
     void                          BeginMoveControls();
 
-    ImGuiId                       GetID(StringView);
+    ImGuiID                       GetID( StringView );
 
     float                         GetRemainingWidth() const;
     WindowHandle                  GetWindowHandle() const;
@@ -112,14 +113,14 @@ namespace Tac
     //                            from the window mPos and the stuff that's about to be drawn
     Vector< float >               mXOffsets;
 
-    Vector< ImGuiId >             mIDStack;
+    Vector< ImGuiID >             mIDStack;
 
-    ImGuiId                       mMoveID;
-    ImGuiId                       mWindowID;
+    ImGuiID                       mMoveID;
+    ImGuiID                       mWindowID;
 
     //                            Shared between sub-windows
     struct TextInputData*         mTextInputData               {};
-    Map< ImGuiId, bool >          mCollapsingHeaderStates      {};
+    Map< ImGuiID, bool >          mCollapsingHeaderStates      {};
     bool                          mIsAppendingToMenu           {};
     Vector< ImGuiWindowResource > mResources                   {};
     struct UI2DDrawData*          mDrawData                    {};
@@ -168,15 +169,16 @@ namespace Tac
   // passed to the imgui platform frame
   struct ImGuiSimFrameDraws
   {
-    Vector< ImGuiSimWindowDraws > mWindowDraws;
-
     struct WindowSizeData
     {
-      WindowHandle mWindowHandle;
-      v2 mSize;
-      v2 mPosScreenspace;
+      WindowHandle    mWindowHandle;
+      Optional< v2i > mRequestedPosition;
+      Optional< v2i > mRequestedSize;
     };
-    Vector< WindowSizeData > mWindowSizeDatas;
+
+    Vector< ImGuiSimWindowDraws > mWindowDraws;
+    Vector< WindowSizeData >      mWindowSizeDatas;
+    ImGuiMouseCursor              mCursor{ ImGuiMouseCursor::kNone };
   };
 
   struct ImGuiPersistantViewport
@@ -241,9 +243,9 @@ namespace Tac
     ImGuiSimWindowDraws GetSimWindowDraws();
   };
 
-  void    SetActiveID( ImGuiId, ImGuiWindow* );
+  void    SetActiveID( ImGuiID, ImGuiWindow* );
   void    ClearActiveID();
-  ImGuiId GetActiveID();
+  ImGuiID GetActiveID();
 
   struct ImGuiGlobals
   {
@@ -252,17 +254,17 @@ namespace Tac
     ImGuiWindow*                      FindWindow( const StringView& );
     ImGuiDesktopWindowImpl*           FindDesktopWindow( WindowHandle );
 
-    ImGuiMouseCursor                  mMouseCursor         { ImGuiMouseCursor::kNone };
-    Timestamp                         mElapsedSeconds      {};
-    Vector< ImGuiWindow* >            mAllWindows          {};
-    Vector< ImGuiWindow* >            mWindowStack         {};
-    Vector< ImGuiDesktopWindowImpl* > mDesktopWindows      {};
-    ImGuiWindow*                      mCurrentWindow       {};
-    Vector< float >                   mFontSizeSK          {}; // wtf does sk stand for?
-    UIStyle                           mUIStyle             {};
-    WindowHandle                      mMouseHoveredWindow  {};
-    bool                              mScrollBarEnabled    { true };
-    int                               mMaxGpuFrameCount    {};
+    ImGuiMouseCursor                  mMouseCursor          { ImGuiMouseCursor::kNone };
+    Timestamp                         mElapsedSeconds       {};
+    Vector< ImGuiWindow* >            mAllWindows           {};
+    Vector< ImGuiWindow* >            mWindowStack          {};
+    Vector< ImGuiDesktopWindowImpl* > mDesktopWindows       {};
+    ImGuiWindow*                      mCurrentWindow        {};
+    Vector< float >                   mFontSizeSK           {}; // wtf does sk stand for?
+    UIStyle                           mUIStyle              {};
+    WindowHandle                      mMouseHoveredWindow   {};
+    bool                              mScrollBarEnabled     { true };
+    int                               mMaxGpuFrameCount     {};
 
     // Ok so here's a problem:
     //
@@ -272,15 +274,18 @@ namespace Tac
     //   However ImGuiPlatformRender runs on the system thread and should not have access to these.
     // 
     // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
-    SimWindowApi*                     mSimWindowApi        {};
-    SimKeyboardApi*                   mSimKeyboardApi      {};
-    SettingsNode                      mSettingsNode        {};
+    SimWindowApi*                     mSimWindowApi         {};
+    SimKeyboardApi*                   mSimKeyboardApi       {};
+    SettingsNode                      mSettingsNode         {};
 
-    ImGuiId                           mHoveredID           {ImGuiIdNull};
-    ImGuiId                           mActiveID            {ImGuiIdNull};
-    ImGuiWindow*                      mActiveIDWindow      {};
-    ImGuiWindow*                      mMovingWindow        {};
-    v2                                mActiveIDClickOffset {}; // button space (top left)
+    ImGuiID                           mHoveredID            {};
+    ImGuiID                           mActiveID             {};
+    ImGuiWindow*                      mActiveIDWindow       {};
+    ImGuiWindow*                      mMovingWindow         {};
+    v2                                mActiveIDClickPos_VS  {};
+    v2                                mActiveIDWindowSize   {};
+    v2                                mActiveIDWindowPos_SS {};
+    int                               mResizeMask           {};
   };
 
   struct ImGuiNextWindow

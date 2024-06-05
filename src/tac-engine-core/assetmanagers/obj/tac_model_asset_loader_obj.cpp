@@ -42,22 +42,22 @@ namespace Tac
     const int slashCount = Count( line, '/' );
     if( slashCount == 0 )
     {
-      vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      vertex.miPosition = ( int )parseData.EatFloat().GetValue() - 1;
     }
     else if( slashCount == 1 )
     {
-      vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      vertex.miPosition = ( int )parseData.EatFloat().GetValue() - 1;
       parseData.EatStringExpected( "/" );
-      vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      vertex.miTexCoord = ( int )parseData.EatFloat().GetValue() - 1;
     }
     else if( slashCount == 2 )
     {
-      vertex.miPosition = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      vertex.miPosition = ( int )parseData.EatFloat().GetValue() - 1;
       parseData.EatStringExpected( "/" );
       if( line.find( "//" ) == line.npos )
-        vertex.miTexCoord = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+        vertex.miTexCoord = ( int )parseData.EatFloat().GetValue() - 1;
       parseData.EatStringExpected( "/" );
-      vertex.miNormal = ( int )parseData.EatFloat().GetValueUnchecked() - 1;
+      vertex.miNormal = ( int )parseData.EatFloat().GetValue() - 1;
     }
     return vertex;
   }
@@ -76,18 +76,18 @@ namespace Tac
     return face;
   }
 
-  v2 EatV2Unchecked( ParseData* parseData )
+  v2 EatV2( ParseData* parseData )
   {
-    float x { parseData->EatFloat().GetValueUnchecked() };
-    float y { parseData->EatFloat().GetValueUnchecked() };
+    float x { parseData->EatFloat().GetValue() };
+    float y { parseData->EatFloat().GetValue() };
     return { x, y };
   }
 
-  v3 EatV3Unchecked( ParseData* parseData )
+  v3 EatV3( ParseData* parseData )
   {
-    float x { parseData->EatFloat().GetValueUnchecked() };
-    float y { parseData->EatFloat().GetValueUnchecked() };
-    float z { parseData->EatFloat().GetValueUnchecked() };
+    float x { parseData->EatFloat().GetValue() };
+    float y { parseData->EatFloat().GetValue() };
+    float z { parseData->EatFloat().GetValue() };
     return { x, y, z };
   }
 
@@ -109,13 +109,13 @@ namespace Tac
         faces.push_back( WavefrontObjParseFace( &parseData ) );
 
       if( word == StringView("vn") )
-        normals.push_back( EatV3Unchecked( &parseData ) );
+        normals.push_back( EatV3( &parseData ) );
 
       if( word == StringView("vt") )
-        texcoords.push_back( EatV2Unchecked( &parseData ) );
+        texcoords.push_back( EatV2( &parseData ) );
 
       if( word == StringView("v") )
-        positions.push_back( EatV3Unchecked( &parseData ) );
+        positions.push_back( EatV3( &parseData ) );
 
       parseData.EatRestOfLine();
     }

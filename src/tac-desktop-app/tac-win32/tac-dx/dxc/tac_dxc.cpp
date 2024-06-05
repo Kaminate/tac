@@ -354,7 +354,7 @@ namespace Tac::Render
 
     dynmc DXCArgHelper::Params argHelperSetup
     {
-      .mEntryPoint    { entryPoint.GetValueUnchecked() },
+      .mEntryPoint    { entryPoint.GetValue() },
       .mTargetProfile { target },
       .mFilename      { inputShaderName },
       .mPDBDir        { input.mOutputDir },

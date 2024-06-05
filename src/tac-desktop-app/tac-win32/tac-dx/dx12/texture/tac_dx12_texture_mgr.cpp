@@ -464,8 +464,13 @@ namespace Tac::Render
       };
 
       for( Optional< DX12Descriptor > optDesc : optDescs )
-        if( DX12Descriptor desc{ optDesc.GetValueUnchecked() }; optDesc )
+      {
+        if( optDesc.HasValue() )
+        {
+          DX12Descriptor desc{ optDesc.GetValue() };
           desc.mOwner->Free( desc );
+        }
+      }
 
       texture = {};
     }

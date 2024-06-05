@@ -144,6 +144,26 @@ namespace Tac
     ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 
+  void Win32PlatformFns::PlatformSetMouseCursor( PlatformMouseCursor cursor ) const
+  {
+    static HCURSOR cursorArrow { LoadCursor( NULL, IDC_ARROW ) };
+    static HCURSOR cursorArrowNS { LoadCursor( NULL, IDC_SIZENS ) };
+    static HCURSOR cursorArrowEW { LoadCursor( NULL, IDC_SIZEWE ) };
+    static HCURSOR cursorArrowNE_SW { LoadCursor( NULL, IDC_SIZENESW ) };
+    static HCURSOR cursorArrowNW_SE { LoadCursor( NULL, IDC_SIZENWSE ) };
+
+    switch( cursor )
+    {
+    case PlatformMouseCursor::kNone:        ::SetCursor( nullptr );          break;
+    case PlatformMouseCursor::kArrow:       ::SetCursor( cursorArrow );      break;
+    case PlatformMouseCursor::kResizeNS:    ::SetCursor( cursorArrowNS );    break;
+    case PlatformMouseCursor::kResizeEW:    ::SetCursor( cursorArrowEW );    break;
+    case PlatformMouseCursor::kResizeNE_SW: ::SetCursor( cursorArrowNE_SW ); break;
+    case PlatformMouseCursor::kResizeNW_SE: ::SetCursor( cursorArrowNW_SE ); break;
+    default: TAC_ASSERT_INVALID_CASE( cursor );                              break;
+    }
+  }
+
   void Win32PlatformFns::PlatformSetWindowSize( WindowHandle windowHandle, v2i size) const
   {
     const HWND hwnd{ Win32WindowManagerGetHWND( windowHandle ) };

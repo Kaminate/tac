@@ -15,6 +15,17 @@ namespace Tac
     v2i          mSize;
   };
 
+  enum class PlatformMouseCursor
+  {
+    kNone,
+    kArrow,
+    kResizeNS,
+    kResizeEW,
+    kResizeNE_SW,
+    kResizeNW_SE,
+    kCount,
+  };
+
   // hmm... these fns should only be able to be called from the platform thread.
   // (                                                                 )
   // ( should PlatformFns::GetInstance() assert( isplatformthread() )? )
@@ -30,6 +41,7 @@ namespace Tac
     virtual void PlatformDespawnWindow( WindowHandle ) const {}
     virtual void PlatformSetWindowPos( WindowHandle, v2i ) const {}
     virtual void PlatformSetWindowSize( WindowHandle, v2i ) const {}
+    virtual void PlatformSetMouseCursor( PlatformMouseCursor ) const {}
 
     virtual WindowHandle PlatformGetMouseHoveredWindow() const { return{}; }
 

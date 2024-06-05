@@ -123,11 +123,11 @@ namespace Tac
     return ::WindowFromPoint( cursorPos );
   }
 
-  static void SetCursor( const CursorDir cursorDir )
-  {
-    const HCURSOR cursor { GetCursor( cursorDir ) };
-    SetCursor( cursor );
-  }
+  //static void SetCursor( const CursorDir cursorDir )
+  //{
+  //  const HCURSOR cursor { GetCursor( cursorDir ) };
+  //  SetCursor( cursor );
+  //}
 
   static void UpdateIdle()
   {

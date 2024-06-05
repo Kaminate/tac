@@ -463,7 +463,7 @@ void Tac::ImGuiSetNextWindowSize( v2 size, ImGuiCondition cond )
 }
 void Tac::ImGuiSetNextWindowDisableBG()             { gNextWindow.mEnableBG = false; }
 
-  Tac::ImGuiId      Tac::GetID( StringView label )
+  Tac::ImGuiID      Tac::GetID( StringView label )
   {
     return ImGuiGlobals::Instance.mCurrentWindow->GetID( label );
   }
@@ -471,7 +471,7 @@ void Tac::ImGuiSetNextWindowDisableBG()             { gNextWindow.mEnableBG = fa
   void    Tac::PushID( StringView str )
   {
     ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-    ImGuiId id{ window->GetID( str ) };
+    ImGuiID id{ window->GetID( str ) };
     window->mIDStack.push_back( id );
   }
 
@@ -774,7 +774,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 
   ImGuiWindow* window{ globals.mCurrentWindow };
 
-  const ImGuiId id{ window->GetID( label ) };
+  const ImGuiID id{ window->GetID( label ) };
   const String oldText{ text };
   const v2 pos{ window->mViewportSpaceCurrCursor };
   const int lineCount{ ComputeLineCount( text ) };
@@ -794,7 +794,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   TAC_ON_DESTRUCT( drawData->PopDebugGroup() );
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const ImGuiId oldWindowActiveId{ GetActiveID() };
+  const ImGuiID oldWindowActiveId{ GetActiveID() };
   const bool hovered{ window->IsHovered( clipRect ) };
   if( hovered )
   {
@@ -893,7 +893,7 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   const v2 buttonSize( remainingWidth, fontSize );
 
   window->ItemSize( buttonSize );
-  const ImGuiId id{ window->GetID( str ) };
+  const ImGuiID id{ window->GetID( str ) };
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( buttonPosViewport, buttonSize ) };
   if( !window->Overlaps( origRect ) )
     return false;
@@ -1173,7 +1173,7 @@ bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags fl
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRect ) };
-  const ImGuiId id{ window->GetID( name ) };
+  const ImGuiID id{ window->GetID( name ) };
 
   if( flags & ImGuiNodeFlags_DefaultOpen && !window->mCollapsingHeaderStates.contains( id ) )
     window->mCollapsingHeaderStates[ id ] = true;
@@ -1261,12 +1261,12 @@ void Tac::ImGuiEndMenuBar()
 void Tac::ImGuiDebugDraw()
 {
   const ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  const ImGuiId activeId{ globals.mActiveID };
-  const ImGuiId hoveredId{ globals.mHoveredID };
+  const ImGuiID activeId{ globals.mActiveID };
+  const ImGuiID hoveredId{ globals.mHoveredID };
   const ImGuiWindow* activeIDWindow{ globals.mActiveIDWindow };
   const String activeIdWindowStr{ activeIDWindow ? activeIDWindow->mName : "null" };
-  ImGuiText( String() + "hovered id: " + ToString( hoveredId ) );
-  ImGuiText( String() + "active id: " + ToString( activeId ) );
+  ImGuiText( String() + "hovered id: " + ToString( hoveredId.mValue ) );
+  ImGuiText( String() + "active id: " + ToString( activeId.mValue ) );
   ImGuiText( String() + "active id window: " +  activeIdWindowStr );
 }
 
@@ -1445,28 +1445,35 @@ Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
     allWindowDraws.push_back( curWindowDraws );
   }
 
-  for( ImGuiWindow* window : globals.mAllWindows )
+  //for( ImGuiWindow* window : globals.mAllWindows )
+  for( ImGuiDesktopWindowImpl* window : globals.mDesktopWindows )
   {
     //if( window->mWindowHandleOwned )
+    if( window->mRequestedPosition.HasValue() || window->mRequestedSize.HasValue() )
     {
-      const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
+      //const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
+      const WindowHandle windowHandle{ window->mWindowHandle };
 
       const v2i windowPosScreenspace{ globals.mSimWindowApi->GetPos( windowHandle ) };
       const ImGuiSimFrameDraws::WindowSizeData windowSizeData
       {
-        .mWindowHandle    { windowHandle },
-        .mSize            { window->mSize },
-        .mPosScreenspace  { windowPosScreenspace + window->mViewportSpacePos },
+        .mWindowHandle      { windowHandle },
+        .mRequestedPosition { window->mRequestedPosition },
+        .mRequestedSize     { window->mRequestedSize },
+        //.mSize            { window->mSize },
+        //.mPosScreenspace  { windowPosScreenspace + window->mViewportSpacePos },
+        //.mPosScreenspace  { windowPosScreenspace + window->mViewportSpacePos },
       };
 
-      windowSizeDatas.push_back(windowSizeData);
+      windowSizeDatas.push_back( windowSizeData );
     }
   }
 
   return ImGuiSimFrameDraws
   {
-    .mWindowDraws { allWindowDraws },
-    .mWindowSizeDatas{ windowSizeDatas },
+    .mWindowDraws     { allWindowDraws },
+    .mWindowSizeDatas { windowSizeDatas },
+    .mCursor          { globals.mMouseCursor },
   };
 }
 

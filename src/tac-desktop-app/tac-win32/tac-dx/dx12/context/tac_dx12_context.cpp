@@ -479,7 +479,7 @@ namespace Tac::Render
     TAC_ASSERT( texture );
     TAC_ASSERT( texture->mDSV.HasValue() );
     
-    const D3D12_CPU_DESCRIPTOR_HANDLE DSV { texture->mDSV.GetValueUnchecked().GetCPUHandle() };
+    const D3D12_CPU_DESCRIPTOR_HANDLE DSV { texture->mDSV.GetValue().GetCPUHandle() };
     const D3D12_CLEAR_FLAGS ClearFlags { D3D12_CLEAR_FLAG_DEPTH };
     const FLOAT Depth { 1.0f };
 
