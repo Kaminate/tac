@@ -60,8 +60,8 @@ namespace Tac
   static WindowHandle sNavWindow;
   static WindowHandle sDemoWindow;
   static SettingsNode sSettingsNode;
-  static const SimKeyboardApi* sKeyboardApi;
-  static const SimWindowApi* sWindowApi;
+  static const SimKeyboardApi sKeyboardApi;
+  static const SimWindowApi sWindowApi;
   static Debug3DDrawBuffers sDebug3DDrawBuffers;
 
   static void   ExamplesInitCallback( App::InitParams initParams, Errors& errors )
@@ -177,18 +177,18 @@ namespace Tac
 
   static void ExamplesRenderCallback( App::RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ renderParams.mWindowApi };
-    if( !sDemoWindow.IsValid() || !windowApi->IsShown( sDemoWindow ) )
+    const SysWindowApi windowApi{ renderParams.mWindowApi };
+    if( !sDemoWindow.IsValid() || !windowApi.IsShown( sDemoWindow ) )
       return;
 
-    const v2i windowSize{ windowApi->GetSize( sDemoWindow ) };
+    const v2i windowSize{ windowApi.GetSize( sDemoWindow ) };
 
 
     ExampleState* state{ ( ExampleState* )renderParams.mNewState };
     if( !state )
       return;
 
-    const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( sDemoWindow ) };
+    const Render::SwapChainHandle swapChain{ windowApi.GetSwapChainHandle( sDemoWindow ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::TextureHandle backbufferColor{
       renderDevice->GetSwapChainCurrentColor( swapChain ) };
@@ -262,13 +262,13 @@ namespace Tac
 
     void Present( PresentParams presentParams, Errors& errors ) override
     {
-      //const SysWindowApi* windowApi{ presentParams.mWindowApi };
+      //const SysWindowApi windowApi{ presentParams.mWindowApi };
       //const WindowHandle handles[]{ sNavWindow, sDemoWindow };
       //for( WindowHandle handle : handles )
       //{
-      //  if( windowApi->IsShown( handle ) )
+      //  if( windowApi.IsShown( handle ) )
       //  {
-      //    const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( handle ) };
+      //    const Render::SwapChainHandle swapChain{ windowApi.GetSwapChainHandle( handle ) };
       //    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       //    TAC_CALL( renderDevice->Present( swapChain, errors ) );
       //  }

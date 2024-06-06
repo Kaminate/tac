@@ -82,6 +82,9 @@ namespace Tac
     PlatformFns* platform { PlatformFns::GetInstance() };
     DesktopApp* desktopApp { DesktopApp::GetInstance() };
 
+    const SysWindowApi      windowApi{ mWindowApi };
+    const SysKeyboardApi    keyboardApi{ mKeyboardApi };
+
     while( OS::OSAppIsRunning() )
     {
       TAC_PROFILE_BLOCK;
@@ -136,8 +139,8 @@ namespace Tac
 
         const App::RenderParams renderParams
         {
-          .mWindowApi   { mWindowApi },
-          .mKeyboardApi { mKeyboardApi },
+          .mWindowApi   { windowApi },
+          .mKeyboardApi { keyboardApi },
           .mOldState    { pair.mOldState }, // A
           .mNewState    { pair.mNewState }, // B
           .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
@@ -148,7 +151,7 @@ namespace Tac
         const ImGuiSysDrawParams imguiDrawParams
         {
           .mSimFrameDraws { &pair.mNewState->mImGuiDraws },
-          .mWindowApi     { mWindowApi },
+          .mWindowApi     { windowApi },
           .mTimestamp     { interpolatedTimestamp },
         };
         TAC_CALL( ImGuiPlatformRender( imguiDrawParams, errors ) );
@@ -167,27 +170,27 @@ namespace Tac
         {
           if( sizeData.mRequestedPosition.HasValue() )
           {
-            const v2i windowPos{ mWindowApi->GetPos( sizeData.mWindowHandle ) };
+            const v2i windowPos{ windowApi.GetPos( sizeData.mWindowHandle ) };
             const v2i windowPosRequest{ sizeData.mRequestedPosition.GetValue() };
             if( windowPos != windowPosRequest )
-              mWindowApi->SetPos( sizeData.mWindowHandle, windowPosRequest );
+              windowApi.SetPos( sizeData.mWindowHandle, windowPosRequest );
           }
 
           if( sizeData.mRequestedSize.HasValue() )
           {
-            const v2i windowSize{ mWindowApi->GetSize( sizeData.mWindowHandle ) };
+            const v2i windowSize{ windowApi.GetSize( sizeData.mWindowHandle ) };
             const v2i windowSizeRequest{ sizeData.mRequestedSize.GetValue() };
             if( windowSize != windowSizeRequest )
-              mWindowApi->SetSize( sizeData.mWindowHandle, windowSizeRequest );
+              windowApi.SetSize( sizeData.mWindowHandle, windowSizeRequest );
           }
         }
 
         const App::PresentParams presentParams
         {
-          .mWindowApi { mWindowApi },
+          .mWindowApi { windowApi },
         };
         TAC_CALL( mApp->Present( presentParams, errors ) );
-        TAC_CALL( ImGuiPlatformPresent( mWindowApi, errors ) );
+        TAC_CALL( ImGuiPlatformPresent( windowApi, errors ) );
         //Render::FrameEnd();
       }
 

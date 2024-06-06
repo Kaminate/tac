@@ -1,29 +1,21 @@
 #include "tac_sim_thread.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
-#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-desktop-app/desktop_app/tac_render_state.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
-
-//#include "tac-ecs/tac_space.h"
-
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-//#include "tac-engine-core/graphics/ui/tac_ui_2d.h" // ~UI2DDrawData
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
-#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/tac_keyboard_backend.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/profile/tac_profile.h"
-//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
-
-#include "tac-std-lib/os/tac_os.h"
-
 #include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {
@@ -45,15 +37,10 @@ namespace Tac
     TAC_CALL( FontApi::Init( errors ) );
 #endif
 
-    SettingsNode settingsNode{ mSettingsRoot->GetRootNode() };
-    TrackWindowInit( sWindowApi, settingsNode );
-
-    //SpaceInit();
   }
 
   void SimThread::Uninit()
   {
-    //const bool isRenderEnabled = mApp->IsRenderEnabled();
     Errors& errors { *mErrors };
 
     {
@@ -66,8 +53,6 @@ namespace Tac
     if( !errors.empty() )
       OS::OSAppStopRunning();
 
-    //if( isRenderEnabled )
-    //  Render::SubmitFinish();
   }
 
   void SimThread::Update( Errors& errors )
@@ -76,7 +61,9 @@ namespace Tac
     FrameMemorySetThreadAllocator( &sSysThreadAllocator );
 
     TAC_ASSERT( mErrors && mApp );
-    //PlatformFns* platform = PlatformFns::GetInstance();
+
+    const SimWindowApi   windowApi{ sWindowApi };
+    const SimKeyboardApi keyboardApi{ sKeyboardApi };
 
     while( OS::OSAppIsRunning() )
     {
@@ -85,7 +72,6 @@ namespace Tac
 
       if( Timestep::Update() )
       {
-
         // update at the end so that frameindex 0 has timestep 0
 
         TAC_PROFILE_BLOCK;
@@ -117,15 +103,12 @@ namespace Tac
 
         const App::UpdateParams updateParams
         {
-          .mWindowApi { sWindowApi },
-          .mKeyboardApi { sKeyboardApi },
+          .mWindowApi   { windowApi },
+          .mKeyboardApi { keyboardApi },
         };
         TAC_CALL( mApp->Update( updateParams, errors ) );
 
         TAC_CALL( ImGuiEndFrame( errors ) );
-
-        //KeyboardEndFrame();
-        //Mouse::MouseEndFrame();
 
         App::IState* gameState { mApp->GetGameState() };
         if( !gameState )
@@ -138,8 +121,6 @@ namespace Tac
 
         sGameStateManager->Enqueue( gameState );
 
-        //if( mApp->IsRenderEnabled() )
-        //  Render::SubmitFrame();
       }
 
       std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage

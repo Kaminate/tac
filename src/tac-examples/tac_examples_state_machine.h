@@ -5,9 +5,6 @@
 
 namespace Tac
 {
-  struct SimKeyboardApi;
-  struct SimWindowApi;
-
   Example* GetCurrExample();
   void     SetNextExample( int );
   void     ExampleStateMachineUnint();

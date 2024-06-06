@@ -202,8 +202,8 @@ namespace Tac
   {
     Instance = nullptr;
 
-    SimWindowApi* windowApi{};
-    windowApi->DestroyWindow( mWindowHandle );
+    SimWindowApi windowApi{};
+    windowApi.DestroyWindow( mWindowHandle );
   }
 
   void CreationPropertyWindow::Init( Errors& errors )

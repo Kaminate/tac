@@ -7,15 +7,12 @@
 
 namespace Tac
 {
-  struct SimKeyboardApi;
-  struct SimWindowApi;
-
   struct Example
   {
     struct UpdateParams
     {
-      const SimKeyboardApi* mKeyboardApi;
-      const SimWindowApi* mWindowApi;
+      const SimKeyboardApi mKeyboardApi;
+      const SimWindowApi mWindowApi;
     };
 
     Example();

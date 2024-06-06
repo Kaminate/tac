@@ -78,7 +78,7 @@ namespace Tac
     void RenderEnd( Errors& );
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( const SysWindowApi*, Errors& );
+    void DX12CreateSwapChain( const SysWindowApi, Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView( ID3D12GraphicsCommandList* );
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;

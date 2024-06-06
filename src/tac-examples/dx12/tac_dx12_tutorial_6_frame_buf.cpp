@@ -683,18 +683,18 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloFrameBuf::DX12CreateSwapChain(  const SysWindowApi* windowApi, Errors& errors )
+  void DX12AppHelloFrameBuf::DX12CreateSwapChain(  const SysWindowApi windowApi, Errors& errors )
   {
     TAC_ASSERT( !m_swapChainValid );
 
-    const auto hwnd { ( HWND ) windowApi->GetNWH( hDesktopWindow ) };
+    const auto hwnd { ( HWND ) windowApi.GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
 
     ID3D12CommandQueue* commandQueue { mCommandQueue.GetCommandQueue() };
     TAC_ASSERT( commandQueue );
 
-    const v2i size { windowApi->GetSize( hDesktopWindow ) };
+    const v2i size { windowApi.GetSize( hDesktopWindow ) };
     const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
@@ -1025,8 +1025,8 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::Init( InitParams initParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
-    windowApi->SetSwapChainAutoCreate( false );
+    const SysWindowApi windowApi{ initParams.mWindowApi };
+    windowApi.SetSwapChainAutoCreate( false );
 
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Frame Buf", errors ) );
   }
@@ -1118,7 +1118,7 @@ namespace Tac
    
   void         DX12AppHelloFrameBuf::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi* windowApi { renderParams.mWindowApi };
+    const SysWindowApi windowApi { renderParams.mWindowApi };
 
     const State* oldState { ( State* )renderParams.mOldState };
     const State* newState { ( State* )renderParams.mNewState };
@@ -1138,7 +1138,7 @@ namespace Tac
       RecordBundle();
     }
 
-    if( !windowApi->IsShown( hDesktopWindow ) )
+    if( !windowApi.IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( RenderBegin( errors ) );

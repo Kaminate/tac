@@ -759,16 +759,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloConstBuf::DX12CreateSwapChain(const SysWindowApi* windowApi, Errors& errors )
+  void DX12AppHelloConstBuf::DX12CreateSwapChain(const SysWindowApi windowApi, Errors& errors )
   {
     if( m_swapChainValid )
       return;
 
-    auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
+    auto hwnd { ( HWND )windowApi.GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
 
-    const v2i size { windowApi->GetSize( hDesktopWindow ) };
+    const v2i size { windowApi.GetSize( hDesktopWindow ) };
 
     ID3D12CommandQueue* commandQueue { mCommandQueue.GetCommandQueue() };
     TAC_ASSERT( commandQueue );
@@ -1189,8 +1189,8 @@ namespace Tac
 
   void DX12AppHelloConstBuf::Init( InitParams initParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
-    windowApi->SetSwapChainAutoCreate( false );
+    const SysWindowApi windowApi{ initParams.mWindowApi };
+    windowApi.SetSwapChainAutoCreate( false );
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Const Buf", errors ) );
   }
 
@@ -1240,8 +1240,8 @@ namespace Tac
 
   void DX12AppHelloConstBuf::Render( RenderParams renderParams, Errors&  errors )
   {
-    const SysWindowApi* windowApi{ renderParams.mWindowApi };
-    if( !windowApi->IsShown( hDesktopWindow ) )
+    const SysWindowApi windowApi{ renderParams.mWindowApi };
+    if( !windowApi.IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );

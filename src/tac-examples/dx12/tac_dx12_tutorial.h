@@ -13,7 +13,7 @@ namespace Tac { struct Errors; }
 
 namespace Tac
 {
-  WindowHandle DX12ExampleCreateWindow( const SysWindowApi*, StringView, Errors& );
+  WindowHandle DX12ExampleCreateWindow( const SysWindowApi, StringView, Errors& );
 }
 
 namespace Tac::Render

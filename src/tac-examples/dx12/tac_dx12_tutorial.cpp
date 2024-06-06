@@ -137,7 +137,7 @@ namespace Tac
 
 }
 
-Tac::WindowHandle Tac::DX12ExampleCreateWindow( const SysWindowApi* windowApi,
+Tac::WindowHandle Tac::DX12ExampleCreateWindow( const SysWindowApi windowApi,
                                                 StringView name,
                                                 Errors& errors )
 {
@@ -151,7 +151,7 @@ Tac::WindowHandle Tac::DX12ExampleCreateWindow( const SysWindowApi* windowApi,
     .mSize { windowSize },
   };
 
-  const WindowHandle h{ windowApi->CreateWindow( windowCreateParams, errors ) };
+  const WindowHandle h{ windowApi.CreateWindow( windowCreateParams, errors ) };
 
   QuitProgramOnWindowClose( h );
 

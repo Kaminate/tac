@@ -125,7 +125,7 @@ namespace Tac
     const bool scrollBarEnabled { globals.mScrollBarEnabled };
     if( !scrollBarEnabled )
       return;
-    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
+    SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
 
     const bool stuffBelowScreen { mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y };
     const bool stuffAboveScreen{ ( bool )mScroll };
@@ -164,8 +164,8 @@ namespace Tac
     // scroll with middle mouse
     if( !GetActiveID().IsValid()
         && IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) )
-        && keyboardApi->GetMouseWheelDelta() )
-      mScroll = Clamp( mScroll - keyboardApi->GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
+        && keyboardApi.GetMouseWheelDelta() )
+      mScroll = Clamp( mScroll - keyboardApi.GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
 
     const float scrollbarForegroundMiniX{ 3 + scrollbarBackgroundMini.x };
     const float scrollbarForegroundMiniY{ 3
@@ -205,20 +205,20 @@ namespace Tac
     if( mScrolling )
     {
       const float mouseDY{
-        keyboardApi->GetMousePosScreenspace().y
+        keyboardApi.GetMousePosScreenspace().y
        - mScrollMousePosScreenspaceInitial.y };
-      mScrollMousePosScreenspaceInitial.y = (float)keyboardApi->GetMousePosScreenspace().y;
+      mScrollMousePosScreenspaceInitial.y = (float)keyboardApi.GetMousePosScreenspace().y;
       const float scrollDY{ mouseDY * ( contentVisibleHeight / scrollbarHeight ) };
       mScroll = Clamp( mScroll + scrollDY , scrollMin, scrollMax );
 
 
-      if( !keyboardApi->IsPressed( Key::MouseLeft ) )
+      if( !keyboardApi.IsPressed( Key::MouseLeft ) )
         mScrolling = false;
     }
-    else if( keyboardApi->JustPressed( Key::MouseLeft ) && hovered )//&& consumeT )
+    else if( keyboardApi.JustPressed( Key::MouseLeft ) && hovered )//&& consumeT )
     {
       mScrolling = true;
-      mScrollMousePosScreenspaceInitial = keyboardApi->GetMousePosScreenspace();
+      mScrollMousePosScreenspaceInitial = keyboardApi.GetMousePosScreenspace();
     }
 
     mViewportSpaceVisibleRegion.mMaxi.x -= scrollbarWidth;
@@ -250,7 +250,7 @@ namespace Tac
   void         ImGuiWindow::BeginFrame()
   {
     const ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
+    SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
 
     const UIStyle& style { ImGuiGetStyle() };
     const float windowPadding { style.windowPadding };
@@ -296,8 +296,8 @@ namespace Tac
   void                          ImGuiWindow::UpdateMoveControls()
   {
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    const SimKeyboardApi* keyboardApi{ globals.mSimKeyboardApi };
-    if( keyboardApi->IsPressed( Key::MouseLeft ) )
+    const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
+    if( keyboardApi.IsPressed( Key::MouseLeft ) )
     {
       mDesktopWindow->mRequestedPosition
         = GetMousePosViewport()
@@ -316,9 +316,9 @@ namespace Tac
   void                          ImGuiWindow::BeginMoveControls()
   {
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    const SimKeyboardApi* keyboardApi{ globals.mSimKeyboardApi };
+    const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
 
-    if( !keyboardApi->JustPressed( Key::MouseLeft ) )
+    if( !keyboardApi.JustPressed( Key::MouseLeft ) )
       return;
       
     if( globals.mActiveID.IsValid()  )
@@ -345,9 +345,9 @@ namespace Tac
     const UIStyle style{ globals.mUIStyle };
     const float windowPadding { style.windowPadding };
 
-    const SimWindowApi* windowApi{ globals.mSimWindowApi };
-    const SimKeyboardApi* keyboardApi{ globals.mSimKeyboardApi };
-    const v2i viewportPos_SS{ windowApi->GetPos( mDesktopWindow->mWindowHandle ) };
+    const SimWindowApi windowApi{ globals.mSimWindowApi };
+    const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
+    const v2i viewportPos_SS{ windowApi.GetPos( mDesktopWindow->mWindowHandle ) };
     const v2 mousePos_VS{ GetMousePosViewport() };
 
     const ImGuiRect origWindowRect_VS{ ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
@@ -409,14 +409,14 @@ namespace Tac
         }
     }
 
-    if( anyEdgeActive && !keyboardApi->IsPressed( Key::MouseLeft ) )
+    if( anyEdgeActive && !keyboardApi.IsPressed( Key::MouseLeft ) )
     {
       ClearActiveID();
     }
 
     if( !globals.mActiveID.IsValid() &&
         hoverMask &&
-        keyboardApi->JustPressed( Key::MouseLeft ) )
+        keyboardApi.JustPressed( Key::MouseLeft ) )
     {
       globals.mActiveIDClickPos_VS = mousePos_VS;
       globals.mActiveIDWindowSize = mSize;
@@ -519,17 +519,17 @@ namespace Tac
   v2           ImGuiWindow::GetWindowPosScreenspace()
   {
     ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    SimWindowApi* windowApi { ImGuiGlobals::Instance.mSimWindowApi };
-    const v2 viewportPosScreenspace { windowApi->GetPos( mDesktopWindow->mWindowHandle ) };
+    SimWindowApi windowApi { ImGuiGlobals::Instance.mSimWindowApi };
+    const v2 viewportPosScreenspace { windowApi.GetPos( mDesktopWindow->mWindowHandle ) };
     return viewportPosScreenspace + mViewportSpacePos;
   }
 
   v2           ImGuiWindow::GetMousePosViewport()
   {
     ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    SimWindowApi* windowApi { globals.mSimWindowApi };
-    SimKeyboardApi* keyboardApi { globals.mSimKeyboardApi };
-    const v2 mousePos_SS { keyboardApi->GetMousePosScreenspace() };
+    SimWindowApi windowApi { globals.mSimWindowApi };
+    SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
+    const v2 mousePos_SS { keyboardApi.GetMousePosScreenspace() };
     const v2 windowPos_SS{ GetWindowPosScreenspace() };
     return mousePos_SS - windowPos_SS;
   }
@@ -751,10 +751,10 @@ namespace Tac
                                                            Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const SysWindowApi* windowApi { sysDrawParams.mWindowApi };
+    const SysWindowApi windowApi { sysDrawParams.mWindowApi };
 
     const WindowHandle hDesktopWindow { sysDraws->mWindowHandle };
-    if( !windowApi->IsShown( hDesktopWindow ) )
+    if( !windowApi.IsShown( hDesktopWindow ) )
       return;
 
     const int n { ImGuiGlobals::Instance.mMaxGpuFrameCount };
@@ -771,7 +771,7 @@ namespace Tac
     // combine draw data
     simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
 
-    const Render::SwapChainHandle fb { windowApi->GetSwapChainHandle( hDesktopWindow ) };
+    const Render::SwapChainHandle fb { windowApi.GetSwapChainHandle( hDesktopWindow ) };
     const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
     const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
 
@@ -780,7 +780,7 @@ namespace Tac
     const String renderGroupStr{ String()
       + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
 
-    const v2i windowSize { windowApi->GetSize( hDesktopWindow ) };
+    const v2i windowSize { windowApi.GetSize( hDesktopWindow ) };
 
     const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
     const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };

@@ -19,68 +19,18 @@
 
 namespace Tac
 {
-  CreationProfileWindow* CreationProfileWindow::Instance { nullptr };
-  CreationProfileWindow::CreationProfileWindow()
-  {
-    Instance = this;
-  }
 
-  CreationProfileWindow::~CreationProfileWindow()
-  {
-    Instance = nullptr;
-    //TAC_DELETE mUI2DDrawData;
-    SimWindowApi* windowApi{};
-    windowApi->DestroyWindow( mWindowHandle );
-  }
-
-  void CreationProfileWindow::Init( Errors& errors )
-  {
-    TAC_UNUSED_PARAMETER( errors );
-    //mUI2DDrawData = TAC_NEW UI2DDrawData;
-    mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gProfileWindowName );
-  }
-
-  void CreationProfileWindow::ImGui()
+  const char* CreationProfileWindow::gProfileWindowName { "ProfileWindow" };
+  void CreationProfileWindow::Update( const SimKeyboardApi keyboardApi, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
+    TAC_PROFILE_BLOCK;
     
     ImGuiSetNextWindowStretch();
-    ImGuiSetNextWindowHandle( mWindowHandle );
     ImGuiBegin( "Profile Window" );
     mCloseRequested |= ImGuiButton( "Close Window" );
-
-    //// to force directx graphics specific window debugging
-    //if( ImGuiButton( "close window" ) )
-    //{
-    //  mDesktopWindow->mRequestDeletion = true;
-    //}
-
-    ImGuiProfileWidget();
+    ImGuiProfileWidget( keyboardApi );
     ImGuiEnd();
-  }
-
-  void CreationProfileWindow::Update( Errors& errors )
-  {
-    TAC_PROFILE_BLOCK;
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
-    const v2 size = desktopWindowState->GetSizeV2();
-
-    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mWindowHandle );
-    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mWindowHandle );
-    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewport( viewHandle, Render::Viewport(size) );
-    Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
-    ImGui();
-    //TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
-    //                              desktopWindowState->mWidth,
-    //                              desktopWindowState->mHeight,
-    //                              errors ) );
   }
 
 

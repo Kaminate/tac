@@ -275,8 +275,8 @@ namespace Tac
     //   However ImGuiPlatformRender runs on the system thread and should not have access to these.
     // 
     // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
-    SimWindowApi*                     mSimWindowApi         {};
-    SimKeyboardApi*                   mSimKeyboardApi       {};
+    SimWindowApi                     mSimWindowApi         {};
+    SimKeyboardApi                   mSimKeyboardApi       {};
     SettingsNode                      mSettingsNode         {};
 
     ImGuiID                           mHoveredID            {};

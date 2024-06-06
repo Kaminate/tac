@@ -7,20 +7,11 @@
 namespace Tac { struct Errors; }
 namespace Tac
 {
-
   struct CreationProfileWindow
   {
-    CreationProfileWindow();
-    ~CreationProfileWindow();
-    static CreationProfileWindow* Instance;
-    void                          Init( Errors& );
-    void                          Update( Errors& );
-    void                          ImGui();
-    WindowHandle                  mWindowHandle;
-    bool                          mCloseRequested { false };
+    static void                   Update( const SimKeyboardApi , Errors& );
+    static bool                   mCloseRequested;
+    static const char*            gProfileWindowName;
   };
-
-  const char* const gProfileWindowName { "ProfileWindow" };
-
 }
 

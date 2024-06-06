@@ -6,7 +6,9 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
 #include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h" // UI2DDrawData
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-std-lib/containers/tac_vector.h"
@@ -142,8 +144,8 @@ namespace Tac
   struct ImGuiInitParams
   {
     int                mMaxGpuFrameCount {};
-    SimWindowApi*      mSimWindowApi     {};
-    SimKeyboardApi*    mSimKeyboardApi   {};
+    SimWindowApi      mSimWindowApi     {};
+    SimKeyboardApi    mSimKeyboardApi   {};
     SettingsNode       mSettingsNode     {};
     //ImGuiSetWindowPos  mSetWindowPos{};
     //ImGuiSetWindowSize mSetWindowSize{};
@@ -236,13 +238,13 @@ namespace Tac
   struct ImGuiSysDrawParams
   {
     ImGuiSimFrameDraws* mSimFrameDraws {};
-    const SysWindowApi* mWindowApi     {};
+    SysWindowApi        mWindowApi     {};
     Timestamp           mTimestamp     {};
   };
 
 
   void               ImGuiPlatformRender( ImGuiSysDrawParams, Errors& );
-  void               ImGuiPlatformPresent( const SysWindowApi*, Errors& );
+  void               ImGuiPlatformPresent( const SysWindowApi, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

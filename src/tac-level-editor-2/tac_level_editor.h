@@ -10,8 +10,8 @@ namespace Tac
   {
     void                Init( Errors& );
     void                Uninit( Errors& );
-    void                Update( const SimKeyboardApi*,
-                                const SimWindowApi*,
+    void                Update( const SimKeyboardApi,
+                                const SimWindowApi,
                                 Errors& );
 
     bool mShowUnownedWindow{};

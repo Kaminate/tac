@@ -27,8 +27,8 @@ namespace Tac
     struct Input
     {
       WindowHandle mWindowHandle;
-      const SimWindowApi* mWindowApi;
-      const SimKeyboardApi* mKeyboardApi;
+      const SimWindowApi mWindowApi;
+      const SimKeyboardApi mKeyboardApi;
     };
 
     struct Output
@@ -40,15 +40,15 @@ namespace Tac
     void UpdateSim( Input input,  Input )
     {
       const WindowHandle windowHandle{ input.mWindowHandle };
-      const SimWindowApi* windowApi{ input.mWindowApi };
-      const SimKeyboardApi* keyboardApi{ input.mKeyboardApi };
+      const SimWindowApi windowApi{ input.mWindowApi };
+      const SimKeyboardApi keyboardApi{ input.mKeyboardApi };
 
-      const v2i windowSize{ windowApi->GetSize( windowHandle ) };
-      const v2i windowPos{ windowApi->GetPos( windowHandle ) };
-      const v2 mousePos{ keyboardApi->GetMousePosScreenspace() };
+      const v2i windowSize{ windowApi.GetSize( windowHandle ) };
+      const v2i windowPos{ windowApi.GetPos( windowHandle ) };
+      const v2 mousePos{ keyboardApi.GetMousePosScreenspace() };
     }
 
-    void UpdateSys( SysWindowApi*, SysKeyboardApi*, Input );
+    void UpdateSys( SysWindowApi, SysKeyboardApi, Input );
   };
 
   /*

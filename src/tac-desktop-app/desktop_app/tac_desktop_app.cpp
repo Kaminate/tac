@@ -11,7 +11,6 @@
 #include "tac-desktop-app/desktop_thread/tac_sys_thread.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_move.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_resize.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -58,10 +57,10 @@ namespace Tac
 
   static GameStateManager              sGameStateManager;
   static DesktopApp                    sDesktopApp;
-  static SimKeyboardApi                sSimKeyboardApi;
-  static SysKeyboardApi                sSysKeyboardApi;
-  static SimWindowApi                  sSimWindowApi;
-  static SysWindowApi                  sSysWindowApi;
+  static SimKeyboardApi                sSimKeyboardApi{};
+  static SysKeyboardApi                sSysKeyboardApi{};
+  static SimWindowApi                  sSimWindowApi{};
+  static SysWindowApi                  sSysWindowApi{};
 
   static SettingsRoot                  sSettingsRoot;
 
@@ -171,8 +170,8 @@ namespace Tac
       .mApp              { sApp },
       .mErrors           { &SSimErrors },
       .sGameStateManager { &sGameStateManager },
-      .sWindowApi        { &sSimWindowApi },
-      .sKeyboardApi      { &sSimKeyboardApi },
+      .sWindowApi        { sSimWindowApi },
+      .sKeyboardApi      { sSimKeyboardApi },
       .mSettingsRoot     { &sSettingsRoot },
     };
 
@@ -181,8 +180,8 @@ namespace Tac
       .mApp              { sApp },
       .mErrors           { &sSysErrors },
       .mGameStateManager { &sGameStateManager },
-      .mWindowApi        { &sSysWindowApi },
-      .mKeyboardApi      { &sSysKeyboardApi },
+      .mWindowApi        { sSysWindowApi },
+      .mKeyboardApi      { sSysKeyboardApi },
     };
 
     const Render::RenderApi::InitParams renderApiInitParams
@@ -194,8 +193,8 @@ namespace Tac
     const ImGuiInitParams imguiInitParams
     {
       .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
-      .mSimWindowApi     { &sSimWindowApi },
-      .mSimKeyboardApi   { &sSimKeyboardApi },
+      .mSimWindowApi     { sSimWindowApi },
+      .mSimKeyboardApi   { sSimKeyboardApi },
       .mSettingsNode     { sSettingsRoot.GetRootNode() },
     };
     TAC_CALL( ImGuiInit( imguiInitParams, errors ) );
@@ -213,12 +212,13 @@ namespace Tac
     // todo: this is ugly, fix it
     sApp->mSettingsNode = sSettingsRoot.GetRootNode();
 
-    const App::InitParams initParams
+    const App::InitParams initParams2
     {
-      .mWindowApi   { &sSysWindowApi },
-      .mKeyboardApi { &sSysKeyboardApi },
+      .mWindowApi   { sSysWindowApi },
+      .mKeyboardApi { sSysKeyboardApi },
     };
-    TAC_CALL( sApp->Init( initParams, errors ) );
+    sApp->Init( initParams2, errors );
+    TAC_CALL( sApp->Init( initParams2, errors ) );
 
 
     std::thread logicThread( &SimThread::Update, sSimThread, std::ref( SSimErrors ) );
@@ -243,7 +243,6 @@ namespace Tac
   {
     DesktopAppUpdateMove();
     DesktopAppUpdateResize();
-    UpdateTrackedWindows();
   }
 
   void                DesktopApp::DebugImGui(Errors& errors)

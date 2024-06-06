@@ -44,7 +44,7 @@ namespace Tac
 
   void LevelEditorApp::Init( InitParams initParams, Errors& errors )
   {
-    const SysWindowApi* windowApi { initParams.mWindowApi };
+    const SysWindowApi windowApi { initParams.mWindowApi };
 
     const WindowCreateParams windowCreateParams
     {
@@ -53,7 +53,7 @@ namespace Tac
       .mSize { sWindowSize }, 
     };
 
-    sWindowHandle = windowApi->CreateWindow( windowCreateParams, errors );
+    sWindowHandle = windowApi.CreateWindow( windowCreateParams, errors );
     sCreation.Init( errors );
 
     {
@@ -75,12 +75,12 @@ namespace Tac
 
   void LevelEditorApp::Present( PresentParams presentParams, Errors& errors )
   {
-     const SysWindowApi* windowApi{ presentParams.mWindowApi };
-    if( !windowApi->IsShown( sWindowHandle ) )
+     const SysWindowApi windowApi{ presentParams.mWindowApi };
+    if( !windowApi.IsShown( sWindowHandle ) )
       return;
 
     const Render::SwapChainHandle swapChainHandle{
-      windowApi->GetSwapChainHandle( sWindowHandle ) };
+      windowApi.GetSwapChainHandle( sWindowHandle ) };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
@@ -89,13 +89,13 @@ namespace Tac
 
   void LevelEditorApp::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ renderParams.mWindowApi };
-    if( !windowApi->IsShown( sWindowHandle ) )
+    const SysWindowApi windowApi{ renderParams.mWindowApi };
+    if( !windowApi.IsShown( sWindowHandle ) )
       return;
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) };
-    const Render::SwapChainHandle swapChainHandle{ windowApi->GetSwapChainHandle( sWindowHandle ) };
+    const Render::SwapChainHandle swapChainHandle{ windowApi.GetSwapChainHandle( sWindowHandle ) };
     Render::TextureHandle colorTexture{ renderDevice->GetSwapChainCurrentColor( swapChainHandle ) };
     const v4 clearColor{ 0, 0, 0, 1 };
     renderContext->ClearColor( colorTexture, clearColor );
@@ -131,8 +131,8 @@ namespace Tac
   }
   
 
-  void                Creation::Update( const SimKeyboardApi* keyboardApi,
-                                        const SimWindowApi* windowApi,
+  void                Creation::Update( const SimKeyboardApi keyboardApi,
+                                        const SimWindowApi windowApi,
                                         Errors& errors )
   {
     mShowUnownedWindow = false;
@@ -183,9 +183,9 @@ namespace Tac
         ImGuiText(  FormatFrameTime( Timestep::GetElapsedTime().mSeconds )  );
 
         
-        const v2 mousePosScreenspace{ keyboardApi->GetMousePosScreenspace() };
-        const v2i windowPos{ windowApi->GetPos( sWindowHandle ) };
-        const v2i windowSize{ windowApi->GetSize( sWindowHandle ) };
+        const v2 mousePosScreenspace{ keyboardApi.GetMousePosScreenspace() };
+        const v2i windowPos{ windowApi.GetPos( sWindowHandle ) };
+        const v2i windowSize{ windowApi.GetSize( sWindowHandle ) };
         static v2 textBoxOffset{ 123, 40 };
         const v2i textBoxPos{ windowSize / 2 - textBoxOffset };
         

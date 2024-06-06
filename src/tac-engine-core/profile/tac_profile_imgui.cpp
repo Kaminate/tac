@@ -16,7 +16,6 @@ namespace Tac
   static float             sMilisecondsToDisplay { 20.0f };
   static Timepoint         sPauseSec;
   static ProfileFrame      sProfiledFunctions;
-  static SimKeyboardApi*   sKeyboardApi;
 
   // Totally unused, but keeping it because its the only place where ImGuiRegisterWindowResource is used
   // It would be gotten like this:
@@ -116,7 +115,8 @@ namespace Tac
     int              mDepth;
   };
 
-  static void ImGuiProfileWidgetCamera( const v2 cameraViewportPos,
+  static void ImGuiProfileWidgetCamera( SimKeyboardApi sKeyboardApi,
+                                        const v2 cameraViewportPos,
                                         const v2 cameraViewportSize )
   {
     const float fontSize { ImGuiGetFontSize() };
@@ -125,8 +125,8 @@ namespace Tac
 
     const UI2DDrawData::Box vpBox 
     {
-      .mMini { cameraViewportPos },
-      .mMaxi { cameraViewportPos + cameraViewportSize },
+      .mMini  { cameraViewportPos },
+      .mMaxi  { cameraViewportPos + cameraViewportSize },
       .mColor { v4( 0.2f, 0, 0, 1 ) },
     };
     drawData->AddBox( vpBox );
@@ -212,7 +212,7 @@ namespace Tac
           const float boxDeltaMsec { ( float )( boxDeltaSeconds * 1000 ) };
 
 
-          ImGuiSetNextWindowPosition( sKeyboardApi->GetMousePosScreenspace() );
+          ImGuiSetNextWindowPosition( sKeyboardApi.GetMousePosScreenspace() );
           ImGuiSetNextWindowSize( textSize + v2( 1, 1 ) * 50.0f );
           ImGuiBegin( "hovered" );
           ImGuiText( profileFunction->mName );
@@ -222,18 +222,18 @@ namespace Tac
 
         const UI2DDrawData::Box drawBox 
         {
-          .mMini { boxMin },
-          .mMaxi { boxMax },
+          .mMini  { boxMin },
+          .mMaxi  { boxMax },
           .mColor { boxColor },
         };
         drawData->AddBox( drawBox );
 
         const UI2DDrawData::Text drawText 
         {
-          .mPos { boxMin },
+          .mPos      { boxMin },
           .mFontSize { fontSize },
-          .mUtf8 { text },
-          .mColor { textColor },
+          .mUtf8     { text },
+          .mColor    { textColor },
         };
         drawData->AddText( drawText );
       }
@@ -249,14 +249,14 @@ namespace Tac
 
         //if( mouseMovement )
         {
-          if( sKeyboardApi->IsPressed( Key::MouseLeft ) )
+          if( sKeyboardApi.IsPressed( Key::MouseLeft ) )
           {
-            const float movePixels { (float)sKeyboardApi->GetMousePosDelta().x };
+            const float movePixels { (float)sKeyboardApi.GetMousePosDelta().x };
             const float movePercent { movePixels / cameraViewportSize.x };
             const float moveSeconds { movePercent * ( sMilisecondsToDisplay / 1000 ) };
             sPauseSec -= moveSeconds;
           }
-          sMilisecondsToDisplay -= sKeyboardApi->GetMouseWheelDelta() * 0.4f;
+          sMilisecondsToDisplay -= sKeyboardApi.GetMouseWheelDelta() * 0.4f;
         }
       }
     }
@@ -273,9 +273,9 @@ namespace Tac
 
     const UI2DDrawData::Box box 
     {
-      .mMini { timelinePos },
-      .mMaxi { timelinePos + timelineSize },
-      .mColor { v4( 1, 0, 0, 1  )}
+      .mMini  { timelinePos },
+      .mMaxi  { timelinePos + timelineSize },
+      .mColor { 1, 0, 0, 1  }
     };
     drawData->AddBox( box );
 
@@ -285,40 +285,38 @@ namespace Tac
     {
       const float msOffset { pxPerMs * iMs };
 
-      const v2    tickBot { timelinePos + v2( msOffset, timelineSize.y ) };
-      const v2    tickTop { tickBot - v2( 0, 10 ) };
+      const v2    tickBot{ timelinePos + v2( msOffset, timelineSize.y ) };
+      const v2    tickTop{ tickBot - v2( 0, 10 ) };
 
-      auto text { ToString( iMs ) };
-      const v2    textSize { CalculateTextSize( text, fontSize ) };
+      const String text{ ToString( iMs ) };
+      const v2    textSize{ CalculateTextSize( text, fontSize ) };
       const v2    textPos{ tickTop.x - textSize.x / 2,
                            tickTop.y - textSize.y };
 
 
       const UI2DDrawData::Line line 
       {
-        .mP0 { tickBot },
-        .mP1 { tickTop },
+        .mP0         { tickBot },
+        .mP1         { tickTop },
         .mLineRadius { 2 },
-        .mColor { v4( 1, 1, 1, 1 ) },
+        .mColor      { 1, 1, 1, 1  },
       };
       drawData->AddLine( line );
 
       const UI2DDrawData::Text drawText 
       {
-        .mPos { textPos },
+        .mPos      { textPos },
         .mFontSize { fontSize },
-        .mUtf8 { text },
-        .mColor { textColor },
+        .mUtf8     { text },
+        .mColor    { textColor },
       };
       drawData->AddText( drawText );
     }
   }
 }
 
-void Tac::ImGuiProfileWidget( SimKeyboardApi* keyboardApi )
+void Tac::ImGuiProfileWidget( SimKeyboardApi keyboardApi )
 {
-  sKeyboardApi = keyboardApi;
-
   const float fontSize { ImGuiGetFontSize() };
   ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
   UI2DDrawData* drawData { imguiWindow->mDrawData };
@@ -374,7 +372,7 @@ void Tac::ImGuiProfileWidget( SimKeyboardApi* keyboardApi )
   if( profileDrawGrid )
   {
     ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
-    ImGuiProfileWidgetCamera( cameraViewportPos, cameraViewportSize );
+    ImGuiProfileWidgetCamera( keyboardApi, cameraViewportPos, cameraViewportSize );
   }
 }
 

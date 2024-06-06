@@ -5,7 +5,7 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
-Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi* windowApi,
+Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi windowApi,
                                                    StringView name,
                                                    Errors& errors )
 {
@@ -19,7 +19,7 @@ Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi* windowApi
     .mSize { windowSize },
   };
   TAC_CALL_RET( {}, const WindowHandle windowHandle{
-    windowApi->CreateWindow( windowCreateParams, errors ) } );
+    windowApi.CreateWindow( windowCreateParams, errors ) } );
 
   QuitProgramOnWindowClose( windowHandle );
 

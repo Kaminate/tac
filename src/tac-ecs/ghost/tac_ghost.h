@@ -10,6 +10,7 @@
 #include "tac-std-lib/math/tac_vector2.h"
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-ecs/tac_space.h"
 
 namespace Tac
@@ -26,7 +27,6 @@ namespace Tac
   struct UIRoot;
   struct IndexBuffer;
   struct VertexBuffer;
-  struct SimKeyboardApi;
   //struct Controller;
   struct NewI;
 
@@ -38,13 +38,13 @@ namespace Tac
   {
     User( StringView name,
           Ghost*,
-          SimKeyboardApi*,
+          SimKeyboardApi,
           Errors& );
     void                   Update( Errors& );
     void                   DebugImgui();
     Player*                mPlayer               {};
     Ghost*                 mGhost                {};
-    SimKeyboardApi*        mKeyboardApi          {};
+    SimKeyboardApi        mKeyboardApi          {};
     String                 mName                 {};
     bool                   mHasControllerIndex   {};
     Controller::ControllerIndex mControllerIndex { Controller::TAC_CONTROLLER_COUNT_MAX };
@@ -75,7 +75,7 @@ namespace Tac
     bool            CanDrawImgui();
     bool            IsPartyFull();
     Vector< User* > mUsers                      {};
-    SimKeyboardApi* mKeyboardApi                {};
+    SimKeyboardApi  mKeyboardApi                {};
     ServerData*     mServerData                 {};
     ClientData*     mClientData                 {};
     ScriptRoot*     mScriptRoot                 {};

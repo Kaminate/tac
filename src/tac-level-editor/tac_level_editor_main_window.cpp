@@ -33,8 +33,8 @@ namespace Tac
   CreationMainWindow::~CreationMainWindow()
   {
     DesktopApp::GetInstance()->DestroyWindow( mWindowHandle );
-    SimWindowApi* windowApi{};
-    windowApi->DestroyWindow( mWindowHandle );
+    SimWindowApi windowApi{};
+    windowApi.DestroyWindow( mWindowHandle );
     Instance = nullptr;
     //TAC_DELETE mUI2DDrawData;
   }

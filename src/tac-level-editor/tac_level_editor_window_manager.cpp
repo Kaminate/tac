@@ -25,10 +25,8 @@ namespace Tac
   struct CreatedWindowData
   {
     String              mName;
-    int                 mX;
-    int                 mY;
-    int                 mW;
-    int                 mH;
+    v2i                 mPos;
+    v2i                 mSize;
     const void*         mNativeWindowHandle { nullptr };
   };
   
@@ -164,18 +162,16 @@ namespace Tac
 
   WindowHandle LevelEditorWindowManager::CreateDesktopWindow( StringView name )
   {
-    SimWindowApi* windowApi{};
+    SimWindowApi windowApi{};
 
     const WindowCreateParams createParams { GetWindowsJsonData( name ) };
 
-    const WindowHandle windowHandle { windowApi-> CreateWindow( createParams ) };
+    const WindowHandle windowHandle { windowApi. CreateWindow( createParams ) };
     sCreatedWindowData[ windowHandle.GetIndex() ] = CreatedWindowData
     {
       .mName                { name },
-      .mX                   { createParams.mX },
-      .mY                   { createParams.mY },
-      .mW                   { createParams.mWidth },
-      .mH                   { createParams.mHeight },
+      .mPos                 { createParams.mPos },
+      .mSize                { createParams.mSize },
       .mNativeWindowHandle  { nullptr },
     };
     return windowHandle;

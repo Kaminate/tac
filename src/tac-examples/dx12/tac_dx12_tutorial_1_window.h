@@ -33,7 +33,7 @@ namespace Tac
     void CreateFence( Errors& );
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( const SysWindowApi*, Errors& );
+    void DX12CreateSwapChain( const SysWindowApi, Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
     D3D12_CPU_DESCRIPTOR_HANDLE GetRenderTargetDescriptorHandle(int) const;

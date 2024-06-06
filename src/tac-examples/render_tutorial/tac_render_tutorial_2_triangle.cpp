@@ -73,9 +73,9 @@ namespace Tac
 
   void HelloTriangle::Init( InitParams initParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
-    mColorFormat = windowApi->GetSwapChainColorFormat();
-    mDepthFormat = windowApi->GetSwapChainDepthFormat();
+    const SysWindowApi windowApi{ initParams.mWindowApi };
+    mColorFormat = windowApi.GetSwapChainColorFormat();
+    mDepthFormat = windowApi.GetSwapChainDepthFormat();
 
     InitWindow( initParams, errors );
     InitVertexBuffer( errors );
@@ -163,9 +163,9 @@ namespace Tac
     // Test bindless vs not bindless by flipping it every frame
     mBindless = !mBindless;
 
-    const SysWindowApi* windowApi{ sysRenderParams.mWindowApi };
-    const v2i windowSize{ windowApi->GetSize( mWindowHandle ) };
-    Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( mWindowHandle ) };
+    const SysWindowApi windowApi{ sysRenderParams.mWindowApi };
+    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+    Render::SwapChainHandle swapChain { windowApi.GetSwapChainHandle( mWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };

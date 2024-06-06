@@ -8,13 +8,13 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h" // App
 #include "tac-desktop-app/desktop_app/tac_render_state.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 
 #pragma once
 
 namespace Tac
 {
-  struct SysWindowApi;
-  struct SysKeyboardApi;
 
   struct SysThread
   {
@@ -22,10 +22,10 @@ namespace Tac
     void Update( Errors& );
     void Uninit();
 
-    App*              mApp{};
-    Errors*           mErrors{};
-    GameStateManager* mGameStateManager{};
-    SysWindowApi*     mWindowApi{};
-    SysKeyboardApi*   mKeyboardApi{};
+    App*              mApp              {};
+    Errors*           mErrors           {};
+    GameStateManager* mGameStateManager {};
+    SysWindowApi      mWindowApi        {};
+    SysKeyboardApi    mKeyboardApi      {};
   };
 }

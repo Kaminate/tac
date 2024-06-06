@@ -832,17 +832,17 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloBundle::DX12CreateSwapChain( const SysWindowApi* windowApi,
+  void DX12AppHelloBundle::DX12CreateSwapChain( const SysWindowApi windowApi,
                                                 Errors& errors )
   {
     if( m_swapChainValid )
       return;
 
-    auto hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
+    auto hwnd { ( HWND )windowApi.GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
 
-    const v2i size { windowApi->GetSize( hDesktopWindow ) };
+    const v2i size { windowApi.GetSize( hDesktopWindow ) };
 
 
     TAC_ASSERT( m_commandQueue );
@@ -1265,8 +1265,8 @@ namespace Tac
 
   void DX12AppHelloBundle::Init( InitParams initParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
-    windowApi->SetSwapChainAutoCreate( false );
+    const SysWindowApi windowApi{ initParams.mWindowApi };
+    windowApi.SetSwapChainAutoCreate( false );
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Bundle", errors ) );
   }
 
@@ -1302,8 +1302,8 @@ namespace Tac
 
   void DX12AppHelloBundle::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi* windowApi { renderParams.mWindowApi };
-    if( !windowApi->IsShown( hDesktopWindow ) )
+    const SysWindowApi windowApi { renderParams.mWindowApi };
+    if( !windowApi.IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );

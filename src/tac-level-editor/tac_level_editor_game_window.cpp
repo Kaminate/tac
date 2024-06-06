@@ -433,8 +433,8 @@ namespace Tac
     Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
     Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
     Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
-    SimWindowApi* windowApi{};
-    windowApi->DestroyWindow( mWindowHandle );
+    SimWindowApi windowApi{};
+    windowApi.DestroyWindow( mWindowHandle );
     TAC_DELETE mDebug3DDrawData;
   }
 

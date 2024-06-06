@@ -28,8 +28,8 @@ namespace Tac
 
   CreationSystemWindow::~CreationSystemWindow()
   {
-    SimWindowApi* windowApi{};
-    windowApi->DestroyWindow( mWindowHandle );
+    SimWindowApi windowApi{};
+    windowApi.DestroyWindow( mWindowHandle );
     Instance = nullptr;
   }
 

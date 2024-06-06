@@ -955,8 +955,8 @@ namespace Tac
 
   void DX12AppHelloTriangle::Init( InitParams initParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
-    windowApi->SetSwapChainAutoCreate( false );
+    const SysWindowApi windowApi{ initParams.mWindowApi };
+    windowApi.SetSwapChainAutoCreate( false );
 
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Window", errors ) );
 
@@ -998,20 +998,20 @@ namespace Tac
 
   void DX12AppHelloTriangle::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ renderParams.mWindowApi };
+    const SysWindowApi windowApi{ renderParams.mWindowApi };
 
-    if( !windowApi->GetNWH( hDesktopWindow ) )
+    if( !windowApi.GetNWH( hDesktopWindow ) )
       return;
 
     if( !m_swapChain )
     {
-      const auto hwnd{ ( HWND )windowApi->GetNWH( hDesktopWindow ) };
-      const v2i size{ windowApi->GetSize( hDesktopWindow ) };
+      const auto hwnd{ ( HWND )windowApi.GetNWH( hDesktopWindow ) };
+      const v2i size{ windowApi.GetSize( hDesktopWindow ) };
       TAC_CALL( DX12CreateSwapChain( hwnd, size, errors ) );
       TAC_CALL( PostSwapChainInit( errors ) );
     }
     
-    if( !windowApi->IsShown( hDesktopWindow ) )
+    if( !windowApi.IsShown( hDesktopWindow ) )
       return;
     double t = Lerp(
     renderParams.mOldState->mTimestamp.mSeconds, 

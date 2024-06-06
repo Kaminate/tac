@@ -37,7 +37,7 @@ namespace Tac
 
   User::User( StringView name,
               Ghost* ghost,
-              SimKeyboardApi* keyboardApi,
+              SimKeyboardApi keyboardApi,
               Errors& errors )
   {
     mKeyboardApi = keyboardApi;

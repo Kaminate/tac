@@ -5,10 +5,12 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h" // FrameIndex
 #include "tac-engine-core/shell/tac_shell_timestamp.h" // Timestamp
 #include "tac-engine-core/shell/tac_shell_timer.h" // Timepoint
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h" // ImGuiSimFrameDraws
 
-namespace Tac { struct SimWindowApi; struct SimKeyboardApi; }
-namespace Tac { struct SysWindowApi; struct SysKeyboardApi; }
 namespace Tac
 {
   struct App
@@ -34,29 +36,29 @@ namespace Tac
 
     struct InitParams
     {
-      const SysWindowApi*   mWindowApi   {};
-      const SysKeyboardApi* mKeyboardApi {};
+      SysWindowApi   mWindowApi   {};
+      SysKeyboardApi mKeyboardApi {};
     };
 
     struct UpdateParams
     {
-      const SimWindowApi*   mWindowApi   {};
-      const SimKeyboardApi* mKeyboardApi {};
+      SimWindowApi   mWindowApi   {};
+      SimKeyboardApi mKeyboardApi {};
     };
 
     struct RenderParams
     {
-      const SysWindowApi*   mWindowApi   {};
-      const SysKeyboardApi* mKeyboardApi {};
-      IState*               mOldState    {};
-      IState*               mNewState    {};
-      float                 mT           {}; // [ 0, 1 ]
-      Timestamp             mTimestamp   {}; // = Lerp( old timestamp, new timestamp, t )
+      SysWindowApi   mWindowApi   {};
+      SysKeyboardApi mKeyboardApi {};
+      IState*        mOldState    {};
+      IState*        mNewState    {};
+      float          mT           {}; // [ 0, 1 ]
+      Timestamp      mTimestamp   {}; // = Lerp( old timestamp, new timestamp, t )
     };
 
     struct PresentParams
     {
-      const SysWindowApi*   mWindowApi   {};
+      SysWindowApi   mWindowApi   {};
     };
 
     App( const Config& config ) : mConfig( config ) {}

@@ -85,9 +85,9 @@ namespace Tac
 
   void HelloConstBuf::Init( InitParams initParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
-    mColorFormat = windowApi->GetSwapChainColorFormat();
-    mDepthFormat = windowApi->GetSwapChainDepthFormat();
+    const SysWindowApi windowApi{ initParams.mWindowApi };
+    mColorFormat = windowApi.GetSwapChainColorFormat();
+    mDepthFormat = windowApi.GetSwapChainDepthFormat();
     TAC_CALL( mWindowHandle = RenderTutorialCreateWindow(
       initParams.mWindowApi, mConfig.mName, errors ) );
 
@@ -140,13 +140,13 @@ namespace Tac
 
   void HelloConstBuf::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi* windowApi{ renderParams.mWindowApi };
-    if( !windowApi->IsShown( mWindowHandle ) )
+    const SysWindowApi windowApi{ renderParams.mWindowApi };
+    if( !windowApi.IsShown( mWindowHandle ) )
       return;
 
-    const v2i windowSize{ windowApi->GetSize( mWindowHandle ) };
+    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
 
-    Render::SwapChainHandle swapChain { windowApi->GetSwapChainHandle( mWindowHandle ) };
+    Render::SwapChainHandle swapChain { windowApi.GetSwapChainHandle( mWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };

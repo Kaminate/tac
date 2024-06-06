@@ -837,16 +837,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloTexture::DX12CreateSwapChain( const SysWindowApi* windowApi, Errors& errors )
+  void DX12AppHelloTexture::DX12CreateSwapChain( const SysWindowApi windowApi, Errors& errors )
   {
     if( m_swapChain )
       return;
 
-    const HWND hwnd { ( HWND )windowApi->GetNWH( hDesktopWindow ) };
+    const HWND hwnd { ( HWND )windowApi.GetNWH( hDesktopWindow ) };
     if( !hwnd )
       return;
 
-    const v2i size { windowApi->GetSize( hDesktopWindow ) };
+    const v2i size { windowApi.GetSize( hDesktopWindow ) };
 
     TAC_ASSERT( m_commandQueue );
 
@@ -1222,8 +1222,8 @@ namespace Tac
 
   void DX12AppHelloTexture::Init( InitParams params, Errors& errors )
   {
-    const SysWindowApi* windowApi{ params.mWindowApi };
-    windowApi->SetSwapChainAutoCreate( false );
+    const SysWindowApi windowApi{ params.mWindowApi };
+    windowApi.SetSwapChainAutoCreate( false );
 
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
       params.mWindowApi, "DX12 Texture", errors ) );
@@ -1255,8 +1255,8 @@ namespace Tac
 
   void DX12AppHelloTexture::Render( RenderParams renderParams , Errors& errors )
   {
-    const SysWindowApi* windowApi { renderParams.mWindowApi };
-    if( !windowApi->IsShown( hDesktopWindow ) )
+    const SysWindowApi windowApi { renderParams.mWindowApi };
+    if( !windowApi.IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );

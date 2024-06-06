@@ -360,24 +360,24 @@ namespace Tac
 
     }
 
-    void MouseDrag( const SimKeyboardApi* keyboardApi,
-                    const SimWindowApi* windowApi )
+    void MouseDrag( const SimKeyboardApi keyboardApi,
+                    const SimWindowApi windowApi )
     {
       const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
-      if( !windowApi->IsShown( windowHandle ) )
+      if( !windowApi.IsShown( windowHandle ) )
         return;
 
-      if( !windowApi->IsHovered( windowHandle ) )
+      if( !windowApi.IsHovered( windowHandle ) )
         return;
 
-      const v2i windowSize{ windowApi->GetSize( windowHandle ) };
-      const v2i windowPos{ windowApi->GetPos( windowHandle ) };
+      const v2i windowSize{ windowApi.GetSize( windowHandle ) };
+      const v2i windowPos{ windowApi.GetPos( windowHandle ) };
 
       const v2 desktopWindowPos( ( float )windowPos.x, ( float )windowPos.y );
 
-      const v2 screenspaceMousePos{ keyboardApi->GetMousePosScreenspace() };
-      const v2 mouseDeltaPos{ keyboardApi->GetMousePosDelta() };
-      const float mouseWheelDelta{ keyboardApi->GetMouseWheelDelta() };
+      const v2 screenspaceMousePos{ keyboardApi.GetMousePosScreenspace() };
+      const v2 mouseDeltaPos{ keyboardApi.GetMousePosDelta() };
+      const float mouseWheelDelta{ keyboardApi.GetMouseWheelDelta() };
 
       const ImGuiRect canvasRectScreenspace {
         ImGuiRect::FromPosSize( desktopWindowPos + canvas_pos, canvas_size ) };
@@ -389,7 +389,7 @@ namespace Tac
         viewHalfDims.x -= mouseWheelDelta * 0.3f;
       }
 
-      if( keyboardApi->IsPressed( Key::MouseMiddle ) )
+      if( keyboardApi.IsPressed( Key::MouseMiddle ) )
       {
         viewCenter -= v2( mouseDeltaPos.x / px_per_unit_x,
                           -mouseDeltaPos.y / px_per_unit_y );
@@ -401,8 +401,8 @@ namespace Tac
 
   void ExampleFluid::Update( UpdateParams updateParams, Errors& errors )
   {
-    const SimKeyboardApi* keyboardApi{ updateParams.mKeyboardApi };
-    const SimWindowApi* windowApi{ updateParams.mWindowApi };
+    const SimKeyboardApi keyboardApi{ updateParams.mKeyboardApi };
+    const SimWindowApi windowApi{ updateParams.mWindowApi };
 
     struct FnDraw
     {
@@ -467,13 +467,13 @@ namespace Tac
     {
       const bool nextAvailable = iStep < stepCount - 1;
       const bool prevAvailable = iStep > 0;
-      if( prevAvailable && ( ImGuiButton( "Prev" ) || keyboardApi->JustPressed( Key::LeftArrow ) ) )
+      if( prevAvailable && ( ImGuiButton( "Prev" ) || keyboardApi.JustPressed( Key::LeftArrow ) ) )
         iStepNext = iStep - 1;
 
       if( nextAvailable && prevAvailable )
         ImGuiSameLine();
 
-      if( nextAvailable && ( ImGuiButton( "Next" ) || keyboardApi->JustPressed( Key::RightArrow ) ) )
+      if( nextAvailable && ( ImGuiButton( "Next" ) || keyboardApi.JustPressed( Key::RightArrow ) ) )
         iStepNext = iStep + 1;
     }
 
