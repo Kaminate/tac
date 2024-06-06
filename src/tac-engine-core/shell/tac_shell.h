@@ -39,7 +39,7 @@ namespace Tac
   //                      Converts a filesystem path to an asset path
   //
   //                      Try not to use this function, instead prefer using a function that
-  //                      returns AssetPaths instead of Filesystem::Path's
+  //                      returns AssetPaths instead of FileSys::Path's
   AssetPathStringView     ModifyPathRelative( const FileSys::Path&, Errors& );
 
   AssetPathStringView     AssetOpenDialog( Errors& );

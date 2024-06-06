@@ -24,7 +24,7 @@ namespace Tac::Render::DXC
       StringView       mEntryPoint;
       StringView       mTargetProfile;
       StringView       mFilename;
-      Filesystem::Path mPDBDir;
+      FileSys::Path mPDBDir;
       PCom<IDxcUtils>  mUtils;
     };
 
@@ -45,7 +45,7 @@ namespace Tac::Render::DXC
     //void StripBytecodePrivateData()        { AddArg( "-Qstrip_priv" ); }
     void SaveReflection();
     void SaveBytecode();
-    void SaveDebug( const Filesystem::Path& pdbDir );
+    void SaveDebug( const FileSys::Path& pdbDir );
     void AddArgs( StringView , StringView );
     void AddArg( StringView );
 
@@ -124,7 +124,7 @@ namespace Tac::Render::DXC
 
   void ExampleDXCArgHelper::SetFilename( String s )
   {
-    const Filesystem::Path fsPath = s;
+    const FileSys::Path fsPath = s;
     auto ext = fsPath.extension();
     TAC_ASSERT( fsPath.has_extension() && ext == ".hlsl" );
     TAC_ASSERT( !fsPath.has_parent_path() );
@@ -156,7 +156,7 @@ namespace Tac::Render::DXC
 
   // https://devblogs.microsoft.com/pix/using-automatic-shader-pdb-resolution-in-pix/
   // Best practice is to let dxc name the shader with the hash
-  void ExampleDXCArgHelper::SaveDebug( const Filesystem::Path& pdbDir )
+  void ExampleDXCArgHelper::SaveDebug( const FileSys::Path& pdbDir )
   {
     TAC_ASSERT( Filesystem::IsDirectory( pdbDir ) );
     String dir = pdbDir.u8string();
@@ -193,7 +193,7 @@ namespace Tac::Render::DXC
   // -----------------------------------------------------------------------------------------------
 
   static void SaveBlobToFile( TAC_NOT_CONST PCom< IDxcBlob> blob,
-                              const Filesystem::Path& path,
+                              const FileSys::Path& path,
                               Errors& errors )
   {
     const void* bytes = blob->GetBufferPointer();
@@ -321,7 +321,7 @@ namespace Tac::Render::DXC
 
     const String target = GetTarget( input.mType, input.mShaderModel );
     const String inputShaderName =  input.mShaderAssetPath.GetFilename();
-    const Filesystem::Path hlslShaderPath = input.mOutputDir / inputShaderName;
+    const FileSys::Path hlslShaderPath = input.mOutputDir / inputShaderName;
 
     TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
@@ -398,7 +398,7 @@ namespace Tac::Render::DXC
                          pShaderName.CreateAddress() ) );
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
       const String outputShaderName = GetBlob16AsUTF8( pShaderName, pUtils );
-      const Filesystem::Path dxilShaderPath = input.mOutputDir / outputShaderName;
+      const FileSys::Path dxilShaderPath = input.mOutputDir / outputShaderName;
       TAC_CALL_RET( {}, SaveBlobToFile(pShader, dxilShaderPath, errors ));
     }
     else
@@ -421,7 +421,7 @@ namespace Tac::Render::DXC
                          pPDBName.CreateAddress() ) );
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader pdb", {} );
       const String pdbName = GetBlob16AsUTF8( pPDBName, pUtils );
-      const Filesystem::Path pdbPath = input.mOutputDir / pdbName;
+      const FileSys::Path pdbPath = input.mOutputDir / pdbName;
       TAC_CALL_RET( {}, SaveBlobToFile(pPDB, pdbPath, errors ));
 
       PrintCompilerInfo( pdbUtils.Get(), pPDB.Get() );

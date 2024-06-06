@@ -456,7 +456,7 @@ namespace Tac
     //World* world = mServerData->mWorld;
     //Physics* physics = Physics::GetSystem( world );
 
-    //Filesystem::Path levelpath = "mylevel.txt";
+    //FileSys::Path levelpath = "mylevel.txt";
     //Errors errors;
     //String mem = FileToString( levelpath, errors );
     //if( mem.empty() )

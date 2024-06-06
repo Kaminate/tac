@@ -10,7 +10,7 @@ namespace Tac
 {
 
 #if 0
-  Mesh LoadMeshIndexSynchronous( const Filesystem::Path& path,
+  Mesh LoadMeshIndexSynchronous( const FileSys::Path& path,
                                  int specifiedMeshIndex,
                                  const Render::VertexDeclarations&,
                                  Errors& );

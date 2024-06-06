@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
-#include "tac-std-lib/filesystem/tac_filesystem.h" // Filesystem::Path
+#include "tac-std-lib/filesystem/tac_filesystem.h" // FileSys::Path
 
 #include <shobjidl_core.h> // IFileDialog, IFileSaveDialog, IFileOpenDialog
 

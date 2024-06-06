@@ -3,7 +3,7 @@
 
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/filesystem/tac_asset.h" // AssetPathStringView
-#include "tac-std-lib/filesystem/tac_filesystem.h" // Filesystem::Path
+#include "tac-std-lib/filesystem/tac_filesystem.h" // FileSys::Path
 
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
 #include <dxcapi.h> // (include after d3d12.h) IDxcBlob IDxcUtils, IDxcCompiler3, DxcCreateInstance
