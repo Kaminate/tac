@@ -29,7 +29,7 @@ namespace Tac
     int                 mY;
     int                 mW;
     int                 mH;
-    const void*         mNativeWindowHandle = nullptr;
+    const void*         mNativeWindowHandle { nullptr };
   };
   
   static CreatedWindowData sCreatedWindowData[ kDesktopWindowCapacity ]{};
@@ -38,14 +38,14 @@ namespace Tac
 
   void   LevelEditorWindowManager::UpdateCreatedWindowData()
   {
-    for( int i = 0; i < kDesktopWindowCapacity; ++i )
+    for( int i { 0 }; i < kDesktopWindowCapacity; ++i )
     {
-      const DesktopWindowState* desktopWindowState = GetDesktopWindowState( { i } );
-      CreatedWindowData* createdWindowData = &sCreatedWindowData[ i ];
+      const DesktopWindowState* desktopWindowState { GetDesktopWindowState( { i } ) };
+      CreatedWindowData* createdWindowData { &sCreatedWindowData[ i ] };
       if( createdWindowData->mNativeWindowHandle != desktopWindowState->mNativeWindowHandle )
       {
         createdWindowData->mNativeWindowHandle = desktopWindowState->mNativeWindowHandle;
-        Json* json = FindWindowJson( createdWindowData->mName );
+        Json* json { FindWindowJson( createdWindowData->mName ) };
         SettingsSetBool( "is_open",
                          (bool)desktopWindowState->mNativeWindowHandle,
                          json );
@@ -54,15 +54,15 @@ namespace Tac
       if( !desktopWindowState->mNativeWindowHandle )
         continue;
 
-      const bool same =
+      const bool same{
         desktopWindowState->mX == createdWindowData->mX &&
         desktopWindowState->mY == createdWindowData->mY &&
         desktopWindowState->mWidth == createdWindowData->mW &&
-        desktopWindowState->mHeight == createdWindowData->mH;
+        desktopWindowState->mHeight == createdWindowData->mH };
       if( same )
         continue;
 
-      Json* json = FindWindowJson( createdWindowData->mName );
+      Json* json { FindWindowJson( createdWindowData->mName ) };
       SettingsSetNumber( "x", createdWindowData->mX = desktopWindowState->mX, json );
       SettingsSetNumber( "y", createdWindowData->mY = desktopWindowState->mY, json );
       SettingsSetNumber( "w", createdWindowData->mW = desktopWindowState->mWidth, json );
@@ -72,7 +72,7 @@ namespace Tac
 
   static bool   DoesAnyWindowExist()
   {
-    for( int i = 0; i < kDesktopWindowCapacity; ++i )
+    for( int i { 0 }; i < kDesktopWindowCapacity; ++i )
       if( GetDesktopWindowState( { i } )->mNativeWindowHandle )
         return true;
     return false;
@@ -164,39 +164,43 @@ namespace Tac
 
   WindowHandle LevelEditorWindowManager::CreateDesktopWindow( StringView name )
   {
-    const DesktopAppCreateWindowParams createParams = GetWindowsJsonData( name );
-    const WindowHandle WindowHandle = DesktopApp::GetInstance()->CreateWindow( createParams );
-    sCreatedWindowData[ WindowHandle.GetIndex() ] =
-      CreatedWindowData
-    {
-      .mName = name,
-      .mX = createParams.mX,
-      .mY = createParams.mY,
-      .mW = createParams.mWidth,
-      .mH = createParams.mHeight,
-      .mNativeWindowHandle = nullptr,
-    };
+    SimWindowApi* windowApi{};
 
-    return WindowHandle;
+    const WindowCreateParams createParams { GetWindowsJsonData( name ) };
+
+    const WindowHandle windowHandle { windowApi-> CreateWindow( createParams ) };
+    sCreatedWindowData[ windowHandle.GetIndex() ] = CreatedWindowData
+    {
+      .mName                { name },
+      .mX                   { createParams.mX },
+      .mY                   { createParams.mY },
+      .mW                   { createParams.mWidth },
+      .mH                   { createParams.mHeight },
+      .mNativeWindowHandle  { nullptr },
+    };
+    return windowHandle;
   }
 
-  DesktopAppCreateWindowParams LevelEditorWindowManager::GetWindowsJsonData( StringView name )
+  WindowCreateParams LevelEditorWindowManager::GetWindowsJsonData( StringView name )
   {
-    Json* windowJson = FindWindowJson( name );
+    Json* windowJson { FindWindowJson( name ) };
     if( !windowJson )
     {
-      Json* windows = GetWindowsJson();
+      Json* windows { GetWindowsJson() };
       windowJson = windows->AddChild();
       SettingsSetString( "Name", name, windowJson );
     }
 
-    const DesktopAppCreateWindowParams createParams
+    const int x { ( int )SettingsGetNumber( "x", 200, windowJson ) };
+    const int y { ( int )SettingsGetNumber( "y", 200, windowJson ) };
+    const int w { ( int )SettingsGetNumber( "w", 400, windowJson ) };
+    const int h { ( int )SettingsGetNumber( "h", 300, windowJson ) };
+
+    const WindowCreateParams createParams
     {
-      .mName = name,
-      .mX = ( int )SettingsGetNumber( "x", 200, windowJson ),
-      .mY = ( int )SettingsGetNumber( "y", 200, windowJson ),
-      .mWidth = ( int )SettingsGetNumber( "w", 400, windowJson ),
-      .mHeight = ( int )SettingsGetNumber( "h", 300, windowJson ),
+      .mName   { name },
+      .mPos    { x, y },
+      .mSize   { w, h },
     };
     return createParams;
   }

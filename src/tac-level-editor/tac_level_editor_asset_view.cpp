@@ -28,6 +28,38 @@
 
 namespace Tac
 {
+
+  struct AssetViewImportedModel
+  {
+    bool                      mAttemptedToLoadEntity { false };
+    EntityUUIDCounter         mEntityUUIDCounter;
+    World                     mWorld;
+    Render::TextureHandle     mTextureHandleColor;
+    Render::TextureHandle     mTextureHandleDepth;
+    Camera                    mCamera;
+    AssetPathString           mAssetPath;
+  };
+
+
+  using LoadedModelMap = Map< AssetPathString, AssetViewImportedModel* >;
+
+  static AssetPathString   sAssetViewFolderCur;
+  static Vector< String >  sAssetViewFolderStack;
+  static Errors            sAssetViewErrors;
+  static FileSys::Paths    sAssetViewFiles;
+  static FileSys::Paths    sAssetViewFolders;
+  static LoadedModelMap    sLoadedModels;
+  static const int         w { 256 };
+  static const int         h { 256 };
+
+  static String LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
+
+  static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
+  {
+    auto loadedModelIt = sLoadedModels.Find( path );
+    return loadedModelIt ? loadedModelIt.GetValue() : nullptr;
+  }
+
   static RelativeSpace DecomposeGLTFTransform( const cgltf_node* node )
   {
     cgltf_float local[ 16 ];
@@ -102,51 +134,6 @@ namespace Tac
     };
     return relativeSpace;
   }
-
-  struct AssetViewImportedModel
-  {
-    bool                      mAttemptedToLoadEntity { false };
-    EntityUUIDCounter         mEntityUUIDCounter;
-    World                     mWorld;
-    // EditorLoadInfo            mLoadInfo;
-    Render::TextureHandle     mTextureHandleColor;
-    Render::TextureHandle     mTextureHandleDepth;
-    Render::FramebufferHandle mFramebufferHandle;
-    Render::ViewHandle        mViewHandle;
-    Camera                    mCamera;
-    AssetPathString           mAssetPath;
-
-
-    // somethings are embedded in the model file
-    // - mesh / material
-    // - possible textures
-    //
-    // other things are stored in external files
-    // - textures
-  };
-
-  static AssetPathString                                 sAssetViewFolderCur;
-  static Vector< String >                                sAssetViewFolderStack;
-  static Errors                                          sAssetViewErrors;
-  static FileSys::Paths                               sAssetViewFiles;
-  static FileSys::Paths                               sAssetViewFolders;
-
-
-  static Map< AssetPathString, AssetViewImportedModel* > sLoadedModels;
-
-  static String LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
-
-  static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
-  {
-    auto loadedModelIt = sLoadedModels.Find( path );
-    return loadedModelIt ? loadedModelIt.GetValue() : nullptr;
-  }
-
-  //static AssetViewImportingModel* GetLoadingModel( const String& path )
-  //{
-  //  auto loadingModelIt = sLoadingModels.find( path );
-  //  return loadingModelIt == sLoadingModels.end() ? nullptr : ( *loadingModelIt ).second;
-  //}
 
   static void PopulateFolderContents()
   {
@@ -234,7 +221,8 @@ namespace Tac
       ImGuiText( path.u8string() );
   }
 
-  static void AttemptLoadEntity( AssetViewImportedModel* loadedModel, const AssetPathStringView& path )
+  static void AttemptLoadEntity( AssetViewImportedModel* loadedModel,
+                                 const AssetPathStringView& path )
   {
     if( loadedModel->mAttemptedToLoadEntity )
       return;
@@ -308,9 +296,6 @@ namespace Tac
         entityRoot->AddChild( entityNode );
     }
   }
-
-  const int w { 256 };
-  const int h { 256 };
 
   static void UIFilesModelImGui( const FileSys::Path& path )
   {
@@ -420,13 +405,17 @@ namespace Tac
     return result;
   }
 
-  static void RenderImportedModel( AssetViewImportedModel* loadedModel )
+  static void RenderImportedModel( Render::IContext* renderContext,
+                                   AssetViewImportedModel* loadedModel )
   {
     if( loadedModel->mWorld.mEntities.empty() )
       return;
 
-    TAC_RENDER_GROUP_BLOCK( ShortFixedString::Concat( "asset preview ",
-                            loadedModel->mAssetPath.c_str() ) );
+    ShortFixedString groupName{ ShortFixedString::Concat( "asset preview ",
+                            loadedModel->mAssetPath.c_str() ) };
+
+    TAC_RENDER_GROUP_BLOCK( renderContext, groupName );
+
     Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
     Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
     Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
@@ -512,7 +501,10 @@ namespace Tac
     UIFilesOther( otherPaths );
   }
 
-  void CreationUpdateAssetView()
+
+} // namespace Tac
+
+  void Tac::CreationUpdateAssetView()
   {
     TAC_PROFILE_BLOCK;
     ImGuiSetNextWindowStretch();
@@ -545,6 +537,4 @@ namespace Tac
     }
     ImGuiEnd();
   }
-
-} // namespace Tac
 
