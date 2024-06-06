@@ -22,7 +22,7 @@ namespace Tac
     Entity*             InstantiateAsCopy( Entity*, const RelativeSpace& );
 
     // ...
-    SelectedEntities    mSelectedEntities;
+    SelectedEntities    mSelectedEntities        {};
     World*              mWorld                   {};
 
     // Gizmos
@@ -36,8 +36,8 @@ namespace Tac
     Camera*             mEditorCamera            {};
 
     bool                mUpdateAssetView         {};
-    EntityUUIDCounter   mEntityUUIDCounter;
-    LevelEditorWindowManager mWindowManager;
+    EntityUUIDCounter   mEntityUUIDCounter       {};
+    LevelEditorWindowManager mWindowManager      {};
   };
 
   //===-------------- Misc -----------------===//

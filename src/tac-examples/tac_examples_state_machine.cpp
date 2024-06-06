@@ -2,6 +2,7 @@
 #include "tac-examples/tac_examples_state_machine.h"
 #include "tac-examples/tac_examples_registry.h"
 #include "tac-std-lib/memory/tac_memory.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 
 namespace Tac
 {
@@ -47,6 +48,7 @@ namespace Tac
 
     if( sCurrExample )
     {
+      sCurrExample->mWorld->mDebug3DDrawData->Clear();
       TAC_CALL( sCurrExample->Update( updateParams, errors ) );
     }
   }

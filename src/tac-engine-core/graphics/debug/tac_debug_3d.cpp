@@ -652,6 +652,15 @@ namespace Tac
     mDebugDrawVerts = other.mDebugDrawVerts;
   }
 
+    void Debug3DDrawData::Clear()
+    {
+      mDebugDrawVerts.clear();
+    }
+
+    Span< DefaultVertexColor > Debug3DDrawData::GetVerts()
+    {
+      return { mDebugDrawVerts.data(), mDebugDrawVerts.size() };
+    }
   
 
   void Debug3DDrawBuffers::Buffer::DebugDraw3DToTexture( Render::IContext* renderContext,

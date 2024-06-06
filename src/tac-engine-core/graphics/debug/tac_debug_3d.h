@@ -125,13 +125,9 @@ namespace Tac
 
 
     void CopyFrom( const Debug3DDrawData& );
-
-    void Clear() { mDebugDrawVerts.clear(); }
-
-    Span< DefaultVertexColor > GetVerts()
-    {
-      return { mDebugDrawVerts.data(), mDebugDrawVerts.size() };
-    }
+    void Clear();
+    Span< DefaultVertexColor > GetVerts();
+    
 
   private:
     

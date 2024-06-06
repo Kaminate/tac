@@ -50,7 +50,6 @@ namespace Tac
 
     ImGuiText( "WASD to apply force" );
 
-    mWorld->mDebug3DDrawData->CopyFrom( {} );
     mWorld->mDebug3DDrawData->DebugDraw3DCircle( mBall.mPos, mCamera->mForwards, mBall.mRadius );
     mWorld->mDebug3DDrawData->DebugDraw3DLine( v3( 0, 0, 0 ), mBall.mPos );
   }

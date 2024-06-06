@@ -100,9 +100,16 @@ namespace Tac
   static void ExampleSelectorWindow( Errors& errors )
   {
     ImGuiSetNextWindowStretch();
+    static bool showWindow { true };
+    if( !showWindow )
+      return;
+
     //ImGuiSetNextWindowHandle( sNavWindow );
     if( !ImGuiBegin( "Examples Selector" ) )
       return;
+
+    if( ImGuiButton( "Close Window" ) )
+      showWindow = false;
 
     sNavWindow = ImGuiGetWindowHandle();
 
@@ -223,9 +230,9 @@ namespace Tac
     //if( !sWindowApi->IsShown(sNavWindow ) )
     //  return;
 
-    TAC_CALL( ExampleSelectorWindow( errors ) );
-
     TAC_CALL( ExampleDemoWindow( updateParams, errors ) );
+
+    TAC_CALL( ExampleSelectorWindow( errors ) );
   }
 
 

@@ -64,8 +64,8 @@ namespace Tac
 
   void ExamplePhysSim3Torque::Update( UpdateParams, Errors& )
   {
-    ImGuiCheckbox("Draw drag force", &drawDragForce);
-
+    ImGuiText( "WASD to apply force" );
+    ImGuiCheckbox( "Draw drag force", &drawDragForce );
     ImGuiCheckbox( "Debug rot mtx", &debugPrintRotMtx );
 
     mForceAccumWs = {};
