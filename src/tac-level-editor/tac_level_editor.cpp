@@ -1,27 +1,28 @@
 #include "tac_level_editor.h" // self-inc
 
-// common
-#include "src/common/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/graphics/color/tac_color_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "src/common/graphics/tac_camera.h"
-#include "src/common/graphics/tac_color_util.h"
-#include "src/common/graphics/tac_renderer.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "src/common/input/tac_keyboard_input.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "src/common/meta/tac_meta_composite.h"
-#include "src/common/meta/tac_meta_fn.h"
-#include "src/common/meta/tac_meta_fn_sig.h"
-#include "src/common/meta/tac_meta_var.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/os/tac_filesystem.h"
+
+#include "tac-rhi/render3/tac_render_api.h"
+
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/meta/tac_meta_composite.h"
+#include "tac-std-lib/meta/tac_meta_fn.h"
+#include "tac-std-lib/meta/tac_meta_fn_sig.h"
+#include "tac-std-lib/meta/tac_meta_var.h"
 #include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string_util.h"
 
 // level_editor
 #include "tac-level-editor/tac_level_editor_asset_view.h"
@@ -36,17 +37,17 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 // space
-#include "space/graphics/model/tac_model.h"
-#include "space/presentation/tac_game_presentation.h"
-#include "space/presentation/tac_shadow_presentation.h"
-#include "space/presentation/tac_skybox_presentation.h"
-#include "space/presentation/tac_voxel_gi_presentation.h"
+#include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/presentation/tac_game_presentation.h"
+#include "tac-ecs/presentation/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
 #include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/tac_component_registry.h"
+#include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/ghost/tac_ghost.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-ecs/world/tac_world.h"
-#include "space/terrain/tac_terrain.h"
+#include "tac-ecs/terrain/tac_terrain.h"
 
 
 namespace Tac

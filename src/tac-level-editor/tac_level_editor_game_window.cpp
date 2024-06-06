@@ -40,14 +40,12 @@
 
 namespace Tac
 {
-  static bool drawGrid               { false };
-  static bool sGizmosEnabled         { true };
+  static bool  drawGrid              { false };
+  static bool  sGizmosEnabled        { true };
   static float sWASDCameraPanSpeed   { 10 };
   static float sWASDCameraOrbitSpeed { 0.1f };
-  static bool sWASDCameraOrbitSnap   {};
-  float lightWidgetSize              { 6.0f };
-
-  static Render::ShaderHandle spriteShader;
+  static bool  sWASDCameraOrbitSnap  {};
+  float        lightWidgetSize       { 6.0f };
 
   enum class PickedObject
   {
@@ -58,12 +56,15 @@ namespace Tac
 
   struct PickData
   {
+    bool IsNewClosest( float dist ) const
+    {
+      return pickedObject == PickedObject::None || dist < closestDist;
+    }
+
     PickedObject pickedObject;
     float        closestDist;
     Entity*      closest;
     int          arrowAxis;
-
-    bool IsNewClosest( float dist ) { return pickedObject == PickedObject::None || dist < closestDist; }
   };
 
   static PickData pickData;
@@ -207,6 +208,214 @@ namespace Tac
     }
   }
 
+  static void CameraWASDControlsPan( Camera* camera )
+  {
+    v3 combinedDir  {};
+     
+    struct PanKeyDir
+    {
+      Key key;
+      v3            dir;
+    };
+    
+    const PanKeyDir keyDirs[]
+    {
+      { Key::W, camera->mForwards},
+      { Key::A, -camera->mRight},
+      { Key::S, -camera->mForwards},
+      { Key::D, camera->mRight},
+      { Key::Q, -camera->mUp },
+      { Key::E, camera->mUp},
+    };
+    for( const PanKeyDir& keyDir : keyDirs )
+      if( KeyboardIsKeyDown( keyDir.key ) )
+        combinedDir += keyDir.dir;
+    if( combinedDir == v3( 0, 0, 0 ) )
+      return;
+    camera->mPos += combinedDir * sWASDCameraPanSpeed;
+  }
+
+  static void CameraWASDControlsOrbit( Camera* camera, const v3 orbitCenter )
+  {
+    const float vertLimit { 0.1f };
+
+    struct OrbitKeyDir
+    {
+      Key key;
+      v3            spherical;
+    };
+    
+    OrbitKeyDir keyDirs[]
+    {
+      { Key::W, v3( 0, -1, 0 ) },
+      { Key::A, v3( 0,  0, 1 ) },
+      { Key::S, v3( 0, 1, 0 ) },
+      { Key::D, v3( 0, 0, -1 ) }
+    };
+
+
+    v3 camOrbitSphericalOffset  {};
+    for( const OrbitKeyDir& keyDir : keyDirs )
+      if( KeyboardIsKeyDown( keyDir.key ) )
+        camOrbitSphericalOffset += keyDir.spherical;
+    if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
+      return;
+
+    v3 camOrbitSpherical { CartesianToSpherical( camera->mPos - orbitCenter ) };
+    camOrbitSpherical += camOrbitSphericalOffset * sWASDCameraOrbitSpeed;
+    camOrbitSpherical.y = Clamp( camOrbitSpherical.y, vertLimit, 3.14f - vertLimit );
+
+    camera->mPos = orbitCenter + SphericalToCartesian( camOrbitSpherical );
+
+    if( sWASDCameraOrbitSnap )
+    {
+      camera->SetForwards( orbitCenter - camera->mPos );
+    }
+    else
+    {
+      v3 dirCart { camera->mForwards };
+      v3 dirSphe { CartesianToSpherical( dirCart ) };
+      dirSphe.y += -camOrbitSphericalOffset.y * sWASDCameraOrbitSpeed;
+      dirSphe.z += camOrbitSphericalOffset.z * sWASDCameraOrbitSpeed;
+      dirSphe.y = Clamp( dirSphe.y, vertLimit, 3.14f - vertLimit );
+      v3 newForwards { SphericalToCartesian( dirSphe ) };
+      camera->SetForwards( newForwards );
+    }
+  }
+
+  static void CameraWASDControls( Camera* camera )
+  {
+    if( gCreation.mSelectedEntities.empty() )
+    {
+      CameraWASDControlsPan( camera );
+    }
+    else
+    {
+      CameraWASDControlsOrbit( camera, gCreation.mSelectedEntities.GetGizmoOrigin() );
+    }
+  }
+
+  static void CameraUpdateSaved()
+  {
+    static AssetPathString savedPrefabPath;
+    static Camera savedCamera;
+
+    const AssetPathString loadedPrefab = PrefabGetLoaded();
+    if( loadedPrefab != savedPrefabPath )
+    {
+      savedPrefabPath = loadedPrefab;
+      savedCamera = *gCreation.mEditorCamera;
+    }
+
+    const bool cameraSame{
+      savedCamera.mPos == gCreation.mEditorCamera->mPos &&
+      savedCamera.mForwards == gCreation.mEditorCamera->mForwards &&
+      savedCamera.mRight == gCreation.mEditorCamera->mRight &&
+      savedCamera.mUp == gCreation.mEditorCamera->mUp };
+    if( cameraSame )
+      return;
+
+    savedCamera = *gCreation.mEditorCamera;
+    PrefabSaveCamera( gCreation.mEditorCamera );
+  }
+
+  static Render::ProgramParams GetProgramParams3DTest()
+  {
+    return Render::ProgramParams
+    {
+      .mFileStem   { "3DTest" },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+  }
+
+  static Render::ProgramParams GetProgramParams3DSprite()
+  {
+    return Render::ProgramParams
+    {
+      .mFileStem   { "3DSprite" },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+  }
+
+  static Render::VertexDeclarations GetVtxDecls3D()
+  {
+    const Render::VertexDeclaration posDecl
+    {
+        .mAttribute         { Render::Attribute::Position },
+        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, pos ) },
+    };
+
+    const Render::VertexDeclaration norDecl
+    {
+        .mAttribute         { Render::Attribute::Normal },
+        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, nor ) },
+    };
+
+    Render::VertexDeclarations m3DvertexFormatDecls;
+    m3DvertexFormatDecls.push_back( posDecl );
+    m3DvertexFormatDecls.push_back( norDecl );
+    return m3DvertexFormatDecls;
+  }
+
+  static Render::BlendState GetBlendStateGame()
+  {
+    return Render::BlendState
+    {
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::Zero },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::Zero },
+      .mDstA     { Render::BlendConstants::One },
+      .mBlendA   { Render::BlendMode::Add},
+    };
+  }
+
+  static Render::BlendState GetBlendStateGameAlpha()
+  {
+    return Render::BlendState
+    {
+      .mSrcRGB   { Render::BlendConstants::SrcA },
+      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::Zero },
+      .mDstA     { Render::BlendConstants::One },
+      .mBlendA   { Render::BlendMode::Add},
+    };
+  }
+
+  static Render::DepthState GetDepthState()
+  {
+    return Render::DepthState
+    {
+      .mDepthTest  { true },
+      .mDepthWrite { true },
+      .mDepthFunc  { Render::DepthFunc::Less },
+    };
+  }
+    
+  static Render::RasterizerState GetRasterizerState()
+  {
+    return Render::RasterizerState
+    {
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mMultisample           { false },
+    };
+  }
+
+  static Render::CreateSamplerParams GetSamplerParams()
+  {
+    return Render::CreateSamplerParams
+    {
+      .mFilter { Render::Filter::Linear },
+      .mName   { "game-window-samp" },
+    };
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
   CreationGameWindow* CreationGameWindow::Instance { nullptr };
 
@@ -232,69 +441,29 @@ namespace Tac
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
     Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
-    const Render::ProgramParams programParams
-    {
-      .mFileStem   { "3DTest" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-    m3DShader =renderDevice->CreateProgram( programParams, errors );
 
-    const Render::VertexDeclaration posDecl
-    {
-        .mAttribute         { Render::Attribute::Position },
-        .mFormat            { Render::Format::sv3 },
-        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, pos ) },
-    };
+    const Render::ProgramParams programParams3DTest{ GetProgramParams3DTest() };
+    TAC_CALL( m3DShader = renderDevice->CreateProgram( programParams3DTest, errors ) );
 
-    const Render::VertexDeclaration norDecl
-    {
-        .mAttribute         { Render::Attribute::Normal },
-        .mFormat            { Render::Format::sv3 },
-        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, nor ) },
-    };
+    const Render::ProgramParams programParams3DSprite{ GetProgramParams3DSprite() };
+    TAC_CALL( mSpriteShader = renderDevice->CreateProgram( programParams3DSprite, errors ) );
 
-    m3DvertexFormatDecls.clear();
-    m3DvertexFormatDecls.push_back( posDecl );
-    m3DvertexFormatDecls.push_back( norDecl );
-    m3DVertexFormat = Render::CreateVertexFormat( m3DvertexFormatDecls,
-                                                  m3DShader,
-                                                  TAC_STACK_FRAME );
+    const Render::VertexDeclarations m3DvertexFormatDecls{ GetVtxDecls3D() };
     Render::SetRenderObjectDebugName( m3DVertexFormat, "game-window-vtx-fmt" );
 
-    mBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::One,
-                                             .mDstRGB = Render::BlendConstants::Zero,
-                                             .mBlendRGB = Render::BlendMode::Add,
-                                             .mSrcA = Render::BlendConstants::Zero,
-                                             .mDstA = Render::BlendConstants::One,
-                                             .mBlendA = Render::BlendMode::Add}, TAC_STACK_FRAME );
+    const Render::BlendState mBlendState{ GetBlendStateGame() };
     Render::SetRenderObjectDebugName( mBlendState, "game-window-blend" );
 
-    mAlphaBlendState = Render::CreateBlendState( { .mSrcRGB = Render::BlendConstants::SrcA,
-                                                  .mDstRGB = Render::BlendConstants::OneMinusSrcA,
-                                                  .mBlendRGB = Render::BlendMode::Add,
-                                                  .mSrcA = Render::BlendConstants::Zero,
-                                                  .mDstA = Render::BlendConstants::One,
-                                                  .mBlendA = Render::BlendMode::Add},
-                                                  TAC_STACK_FRAME );
+    const Render::BlendState mAlphaBlendState{ GetBlendStateGameAlpha() };
     Render::SetRenderObjectDebugName( mAlphaBlendState, "game-window-alpha-blend" );
 
-    mDepthState = Render::CreateDepthState( { .mDepthTest = true,
-                                              .mDepthWrite = true,
-                                              .mDepthFunc = Render::DepthFunc::Less},
-                                            TAC_STACK_FRAME );
+    const Render::DepthState mDepthState{ GetDepthState() };
     Render::SetRenderObjectDebugName( mDepthState, "game-window-depth" );
-
     
-    mRasterizerState = Render::CreateRasterizerState( { .mFillMode = Render::FillMode::Solid,
-                                                        .mCullMode = Render::CullMode::None, // todo
-                                                        .mFrontCounterClockwise = true,
-                                                        .mScissor = true,
-                                                        .mMultisample = false,
-                                                      },
-                                                      TAC_STACK_FRAME );
+    const Render::RasterizerState mRasterizerState{ GetRasterizerState() };
     Render::SetRenderObjectDebugName( mRasterizerState, "game-window-rast" );
 
-    mSamplerState = Render::CreateSamplerState( { .mFilter = Render::Filter::Linear }, TAC_STACK_FRAME );
+    const Render::CreateSamplerParams mSamplerState{ GetSamplerParams() };
     Render::SetRenderObjectDebugName( mSamplerState, "game-window-samp" );
   }
 
@@ -306,27 +475,21 @@ namespace Tac
 
 
 
-    mCenteredUnitCube = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
-                                                                0,
-                                                                m3DvertexFormatDecls,
-                                                                errors ) );
+    const Render::VertexDeclarations m3DvertexFormatDecls{ GetVtxDecls3D() };
+    TAC_CALL( mCenteredUnitCube = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
+                                                                          0,
+                                                                          m3DvertexFormatDecls,
+                                                                          errors ) );
 
-    mArrow = TAC_CALL( ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
-                                                     0,
-                                                     m3DvertexFormatDecls,
-                                                     errors ) );
+    TAC_CALL( mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
+                                                               0,
+                                                               m3DvertexFormatDecls,
+                                                               errors ) );
 
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
 
     TAC_CALL( PlayGame( errors ) );
 
-    Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
-    const Render::ProgramParams programParams
-    {
-      .mFileStem   { "3DSprite" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-    spriteShader =renderDevice->CreateProgram( programParams, errors );
   }
 
   void CreationGameWindow::MousePickingGizmos()
@@ -477,8 +640,6 @@ namespace Tac
     mViewSpaceUnitMouseDir = viewSpaceMouseDir;
   }
 
-
-
   void CreationGameWindow::MousePickingEntityLight( const Light* light, bool* hit, float* dist )
   {
     //const Entity* entity = light->mEntity;
@@ -570,7 +731,7 @@ namespace Tac
   }
 
 
-  void CreationGameWindow::RenderEditorWidgetsPicking( Render::ViewHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgetsPicking( WindowHandle viewHandle )
   {
     v3 worldSpaceHitPoint  {};
     if( pickData.pickedObject != PickedObject::None )
@@ -584,14 +745,8 @@ namespace Tac
 
   }
 
-  static v3 GetAxis( int i )
-  {
-    v3 v  { 0, 0, 0 };
-    v[ i ] = 1;
-    return v;
-  }
 
-  void CreationGameWindow::RenderEditorWidgetsSelection( const Render::ViewHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgetsSelection( const WindowHandle viewHandle )
   {
     if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
       return;
@@ -608,11 +763,19 @@ namespace Tac
                                          gCreation.mEditorCamera->mForwards,
                                          mArrowLen );
 
+    const v3 axises[3]
+    {
+      v3( 1, 0, 0 ),
+      v3( 0, 1, 0 ),
+      v3( 0, 0, 1 ),
+    };
+
     for( int i { 0 }; i < 3; ++i )
     {
 
-      const v3 axis { GetAxis( i ) };
-      const Render::PremultipliedAlpha axisPremultipliedColor = Render::PremultipliedAlpha::From_sRGB( axis );
+      const v3 axis { axises[ i ] };
+      const Render::PremultipliedAlpha axisPremultipliedColor {
+        Render::PremultipliedAlpha::From_sRGB( axis ) };
 
 
       // Widget Translation Arrow
@@ -682,7 +845,7 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  void CreationGameWindow::RenderEditorWidgetsLights( Render::ViewHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgetsLights( WindowHandle viewHandle )
   {
     Render::BeginGroup( "lights", TAC_STACK_FRAME );
     struct : public LightVisitor
@@ -737,7 +900,7 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  void CreationGameWindow::RenderEditorWidgets( Render::ViewHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgets( WindowHandle viewHandle )
   {
     DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
     if( !desktopWindowState->mNativeWindowHandle )
@@ -847,118 +1010,6 @@ namespace Tac
     }
 
     ImGuiEnd();
-  }
-
-
-  static void CameraWASDControlsPan( Camera* camera )
-  {
-    v3 combinedDir  {};
-     
-    struct PanKeyDir
-    {
-      Key key;
-      v3            dir;
-    };
-    
-    const PanKeyDir keyDirs[]
-    {
-      { Key::W, camera->mForwards},
-      { Key::A, -camera->mRight},
-      { Key::S, -camera->mForwards},
-      { Key::D, camera->mRight},
-      { Key::Q, -camera->mUp },
-      { Key::E, camera->mUp},
-    };
-    for( const PanKeyDir& keyDir : keyDirs )
-      if( KeyboardIsKeyDown( keyDir.key ) )
-        combinedDir += keyDir.dir;
-    if( combinedDir == v3( 0, 0, 0 ) )
-      return;
-    camera->mPos += combinedDir * sWASDCameraPanSpeed;
-  }
-
-  static void CameraWASDControlsOrbit( Camera* camera, const v3 orbitCenter )
-  {
-    const float vertLimit { 0.1f };
-
-    struct OrbitKeyDir
-    {
-      Key key;
-      v3            spherical;
-    };
-    
-    OrbitKeyDir keyDirs[]
-    {
-      { Key::W, v3( 0, -1, 0 ) },
-      { Key::A, v3( 0,  0, 1 ) },
-      { Key::S, v3( 0, 1, 0 ) },
-      { Key::D, v3( 0, 0, -1 ) }
-    };
-
-
-    v3 camOrbitSphericalOffset  {};
-    for( const OrbitKeyDir& keyDir : keyDirs )
-      if( KeyboardIsKeyDown( keyDir.key ) )
-        camOrbitSphericalOffset += keyDir.spherical;
-    if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
-      return;
-
-    v3 camOrbitSpherical { CartesianToSpherical( camera->mPos - orbitCenter ) };
-    camOrbitSpherical += camOrbitSphericalOffset * sWASDCameraOrbitSpeed;
-    camOrbitSpherical.y = Clamp( camOrbitSpherical.y, vertLimit, 3.14f - vertLimit );
-
-    camera->mPos = orbitCenter + SphericalToCartesian( camOrbitSpherical );
-
-    if( sWASDCameraOrbitSnap )
-    {
-      camera->SetForwards( orbitCenter - camera->mPos );
-    }
-    else
-    {
-      v3 dirCart { camera->mForwards };
-      v3 dirSphe { CartesianToSpherical( dirCart ) };
-      dirSphe.y += -camOrbitSphericalOffset.y * sWASDCameraOrbitSpeed;
-      dirSphe.z += camOrbitSphericalOffset.z * sWASDCameraOrbitSpeed;
-      dirSphe.y = Clamp( dirSphe.y, vertLimit, 3.14f - vertLimit );
-      v3 newForwards { SphericalToCartesian( dirSphe ) };
-      camera->SetForwards( newForwards );
-    }
-  }
-
-  static void CameraWASDControls( Camera* camera )
-  {
-    if( gCreation.mSelectedEntities.empty() )
-    {
-      CameraWASDControlsPan( camera );
-    }
-    else
-    {
-      CameraWASDControlsOrbit( camera, gCreation.mSelectedEntities.GetGizmoOrigin() );
-    }
-  }
-
-  static void CameraUpdateSaved()
-  {
-    static AssetPathString savedPrefabPath;
-    static Camera savedCamera;
-
-    const AssetPathString loadedPrefab = PrefabGetLoaded();
-    if( loadedPrefab != savedPrefabPath )
-    {
-      savedPrefabPath = loadedPrefab;
-      savedCamera = *gCreation.mEditorCamera;
-    }
-
-    const bool cameraSame{
-      savedCamera.mPos == gCreation.mEditorCamera->mPos &&
-      savedCamera.mForwards == gCreation.mEditorCamera->mForwards &&
-      savedCamera.mRight == gCreation.mEditorCamera->mRight &&
-      savedCamera.mUp == gCreation.mEditorCamera->mUp };
-    if( cameraSame )
-      return;
-
-    savedCamera = *gCreation.mEditorCamera;
-    PrefabSaveCamera( gCreation.mEditorCamera );
   }
 
   void CreationGameWindow::CameraUpdateControls()

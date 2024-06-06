@@ -1,21 +1,12 @@
 #pragma once
 
+#include "tac-ecs/tac_space.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_vector3.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-ecs/tac_space.h"
-
-namespace Tac::Render
-{
-  struct BlendState;
-  struct DefaultCBufferPerObject;
-  struct DepthState;
-  struct RasterizerState;
-  struct SamplerState;
-  //struct VertexFormat;
-}
 
 namespace Tac
 {
@@ -36,10 +27,10 @@ namespace Tac
     void                          UpdateGizmo();
 
     //                            Render
-    void                          RenderEditorWidgets( Render::ViewHandle );
-    void                          RenderEditorWidgetsSelection( Render::ViewHandle );
-    void                          RenderEditorWidgetsLights( Render::ViewHandle );
-    void                          RenderEditorWidgetsPicking( Render::ViewHandle );
+    void                          RenderEditorWidgets( WindowHandle );
+    void                          RenderEditorWidgetsSelection( WindowHandle );
+    void                          RenderEditorWidgetsLights( WindowHandle );
+    void                          RenderEditorWidgetsPicking( WindowHandle );
 
     //                            MousePicking
     void                          MousePickingInit();
@@ -58,27 +49,22 @@ namespace Tac
     void                          PlayGame( Errors& );
 
     void                          SetStatusMessage( const StringView&, const TimestampDifference& );
-    WindowHandle           mWindowHandle;
-    Soul*                         mSoul {};
-    Render::ShaderHandle          m3DShader;
-    Render::VertexFormatHandle    m3DVertexFormat;
-    Render::DepthStateHandle      mDepthState;
-    Render::BlendStateHandle      mBlendState;
-    Render::BlendStateHandle      mAlphaBlendState;
-    Render::RasterizerStateHandle mRasterizerState;
-    Render::SamplerStateHandle    mSamplerState;
-    Render::VertexDeclarations    m3DvertexFormatDecls;
-    Debug3DDrawData*              mDebug3DDrawData {};
-    Mesh*                         mArrow {};
-    Mesh*                         mCenteredUnitCube {};
-    v3                            mViewSpaceUnitMouseDir {};
-    v3                            mWorldSpaceMouseDir {};
-    float                         mArrowLen {};
-    String                        mStatusMessage;
-    Timestamp                     mStatusMessageEndTime;
-    bool                          mCloseRequested {};
+
+    WindowHandle                  mWindowHandle             {};
+    Soul*                         mSoul                     {};
+    Render::ProgramHandle         mSpriteShader             {};
+    Render::ProgramHandle         m3DShader                 {};
+    Render::PipelineHandle        m3DPipeline               {};
+    Debug3DDrawData*              mDebug3DDrawData          {};
+    Mesh*                         mArrow                    {};
+    Mesh*                         mCenteredUnitCube         {};
+    v3                            mViewSpaceUnitMouseDir    {};
+    v3                            mWorldSpaceMouseDir       {};
+    float                         mArrowLen                 {};
+    String                        mStatusMessage            {};
+    Timestamp                     mStatusMessageEndTime     {};
+    bool                          mCloseRequested           {};
   };
 
-
-  const char* const gGameWindowName = "VirtualGamePlayer";
+  const char* const gGameWindowName { "VirtualGamePlayer" };
 }
