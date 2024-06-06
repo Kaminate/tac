@@ -160,6 +160,8 @@ namespace Tac
     {
       TAC_CALL( DesktopInitRendering( errors ) );
     }
+
+    LogApi::LogMessage( "DesktopApp::Init" );
   }
 
   void                DesktopApp::Run( Errors& errors )

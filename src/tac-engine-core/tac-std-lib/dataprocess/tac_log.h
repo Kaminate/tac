@@ -52,19 +52,27 @@ namespace Tac
     ~LogScope();
   };
 
+
   // The purpose of this log here is so that if this program is run outside of a debugger,
   // (for example from PIX), and something goes wrong, there is diagnostics information.
   namespace LogApi
   {
-    void LogMessage( const StringView& );
-    void LogStackFrame( const StackFrame& );
+    enum Severity
+    {
+      kInfo,
+      kWarning,
+      kError,
+    };
+    void LogMessage( const StringView&, Severity = kInfo );
     void LogFlush();
     void LogSetPath( const FileSys::Path& );
   }
 
   // -----------------------------------------------------------------------------------------------
 
+  void MedievalDebugAux( StackFrame );
+
 } // namespace Tac
 
-#define TAC_MEDIEVAL_DEBUG Tac::LogApi::LogStackFrame( TAC_STACK_FRAME )
+#define TAC_MEDIEVAL_DEBUG Tac::MedievalDebugAux( TAC_STACK_FRAME )
 

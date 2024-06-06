@@ -11,6 +11,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 //#include "tac-engine-core/graphics/ui/tac_ui_2d.h" // ~UI2DDrawData
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/tac_keyboard_backend.h"
@@ -89,6 +90,8 @@ namespace Tac
 
         TAC_PROFILE_BLOCK;
         ProfileSetGameFrame();
+
+        LogApi::LogFlush();
 
 
         // imo, the best time to pump the message queue would be right before simulation update

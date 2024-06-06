@@ -37,7 +37,6 @@ int CALLBACK WinMain( HINSTANCE hInstance,
 
   Errors& errors{ DesktopApp::GetMainErrors() };
   TAC_SCOPE_GUARD( LogScope );
-  TAC_MEDIEVAL_DEBUG;
   Win32OSInit();
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
   RedirectStreamBuf();

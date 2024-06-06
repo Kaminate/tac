@@ -37,8 +37,7 @@ namespace Tac::OS
         + frame.GetFunction() };
 
       OSDebugPrintLine( str );
-      LogApi::LogMessage( str );
-      LogApi::LogFlush();
+      LogApi::LogMessage( str, LogApi::kError );
       OSDebugPopupBox( str );
       OSDebugBreak();
       std::exit( -1 );

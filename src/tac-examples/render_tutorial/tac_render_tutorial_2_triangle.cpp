@@ -201,7 +201,7 @@ namespace Tac
 
     const Render::DrawArgs drawArgs
     {
-      .mVertexCount { 3 },
+      .mVertexCount { 6 },
     };
     renderContext->Draw( drawArgs );
 

@@ -222,23 +222,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  struct File
-  {
-    void Open(const FileSys::Path& path, std::ios_base::openmode mode )
-    {
-      mOfs.open( path.u8string().data(), mode );
-    }
-
-    void Write( const char* str, int n )
-    {
-      mOfs.write( str, n );
-    }
-    
-    bool is_open() const { return mOfs.is_open(); }
-
-    std::ofstream mOfs;
-  };
-
   struct Log
   {
     void Flush();
@@ -247,28 +230,31 @@ namespace Tac
     void LogMessage( StringView );
     void SetPath( FileSys::Path );
 
+  private:
+
     String        mBuffer;
     FileSys::Path mPath;
-    File          mFile;
+    std::ofstream mOfs;
   };
 
   // -----------------------------------------------------------------------------------------------
 
   void Log::EnsureOpen()
   {
-    if( mFile.is_open() )
+    if( mOfs.is_open() )
       return;
 
     EnsurePath();
 
-    const std::ios_base::openmode flags{ std::ios::out | std::ios::trunc };
-    mFile.Open( mPath, flags );
+    const std::ios_base::openmode mode{ std::ios::out | std::ios::trunc };
+
+    mOfs.open( mPath.u8string().data(), mode );
   }
 
 
   void Log::SetPath( FileSys::Path path )
   {
-    TAC_ASSERT( !mFile.is_open() );
+    TAC_ASSERT( !mOfs.is_open() );
     mPath = path;
   }
 
@@ -289,14 +275,22 @@ namespace Tac
     }
 
       
-    mPath = "tac.log";
+    mPath = "default.tac.log";
   }
 
   void Log::Flush()
   {
     EnsureOpen();
-    mFile.Write( mBuffer.data(), mBuffer.size() );
-    mBuffer.clear();
+    if( !mBuffer.empty() )
+    {
+      const char* data{ mBuffer.data() };
+      const int n{ mBuffer.size() };
+      mOfs.write( data, n );
+      mOfs.flush();
+      if( !mOfs )
+        ++asdf;
+      mBuffer.clear();
+    }
 
     // Question: Should this close the file and reopen in append mode?
   }
@@ -325,17 +319,11 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void LogApi::LogMessage( const StringView& sv )
+  void LogApi::LogMessage( const StringView& sv, Severity severity )
   {
     sLog.LogMessage( sv );
-  }
-
-  void LogApi::LogStackFrame( const StackFrame& sf )
-  {
-    sLog.LogMessage( String()
-                     + sf.GetFile() + ":"
-                     + ToString( sf.GetLine() )
-                     + " " + sf.GetFunction() );
+    if( severity == kError )
+      sLog.Flush();
   }
 
   void LogApi::LogFlush()
@@ -348,6 +336,14 @@ namespace Tac
     sLog.SetPath( path );
   }
 } // namespace Tac
+
+void Tac::MedievalDebugAux( const StackFrame sf )
+{
+  const String msg{ String() + sf.GetFile() + ":"
+                       + ToString( sf.GetLine() )
+                       + " " + sf.GetFunction() };
+  LogApi::LogMessage( msg, Tac::LogApi::Severity::kError );
+}
 
 
 
