@@ -49,9 +49,9 @@ namespace Tac::Filesystem
   struct Path;
 }
 
-namespace Tac::Render
-{
-  struct TextureHandle;
-}
+//namespace Tac::Render
+//{
+//  struct TextureHandle;
+//}
 
 

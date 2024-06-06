@@ -430,20 +430,27 @@ namespace Tac::Render
   {
     mState.mIndexBuffer = h;
 
-    DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) };
-    if( !buffer )
-      return;
-
-    const DXGI_FORMAT Format{ TexFmtToDxgiFormat( buffer->mCreateParams.mGpuBufferFmt ) };
-    const D3D12_INDEX_BUFFER_VIEW indexBufferView
-    {
-      .BufferLocation { buffer->mGPUVirtualAddr },
-      .SizeInBytes    { ( UINT )buffer->mCreateParams.mByteCount },
-      .Format         { Format },
-    };
-
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    commandList->IASetIndexBuffer( &indexBufferView );
+
+    DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) };
+    if( buffer )
+    {
+      const DXGI_FORMAT Format{ TexFmtToDxgiFormat( buffer->mCreateParams.mGpuBufferFmt ) };
+      const D3D12_INDEX_BUFFER_VIEW indexBufferView
+      {
+        .BufferLocation { buffer->mGPUVirtualAddr },
+        .SizeInBytes    { ( UINT )buffer->mCreateParams.mByteCount },
+        .Format         { Format },
+      };
+
+      commandList->IASetIndexBuffer( &indexBufferView );
+
+    }
+    else
+    {
+      commandList->IASetIndexBuffer( nullptr );
+    }
+
   }
 
   void DX12Context::SetVertexBuffer( BufferHandle h )

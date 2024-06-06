@@ -23,6 +23,7 @@ namespace Tac
       system->mWorld = this;
       mSystems.push_back( system );
     }
+
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
   }
 
@@ -36,6 +37,8 @@ namespace Tac
 
     for( Entity* entity : mEntities )
       TAC_DELETE entity;
+
+    TAC_DELETE mDebug3DDrawData ;
   }
 
   Entity* World::SpawnEntity( EntityUUID entityUUID )
@@ -291,6 +294,8 @@ namespace Tac
       Entity* toEntity = SpawnEntity( fromEntity->mEntityUUID );
       toEntity->DeepCopy( *fromEntity );
     }
+
+    mDebug3DDrawData->CopyFrom( *world.mDebug3DDrawData );
   }
 
   System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry )

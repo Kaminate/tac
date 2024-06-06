@@ -11,6 +11,7 @@
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h"
@@ -30,6 +31,12 @@
 
 namespace Tac
 {
+
+  struct ExampleState : public App::IState
+  {
+    World mWorld;
+    Camera mCamera;
+  };
 
   Example::Example()
   {
@@ -55,6 +62,7 @@ namespace Tac
   static SettingsNode sSettingsNode;
   static const SimKeyboardApi* sKeyboardApi;
   static const SimWindowApi* sWindowApi;
+  static Debug3DDrawBuffers sDebug3DDrawBuffers;
 
   static void   ExamplesInitCallback( App::InitParams initParams, Errors& errors )
   {
@@ -165,32 +173,43 @@ namespace Tac
     const SysWindowApi* windowApi{ renderParams.mWindowApi };
     if( !sDemoWindow.IsValid() || !windowApi->IsShown( sDemoWindow ) )
       return;
+
     const v2i windowSize{ windowApi->GetSize( sDemoWindow ) };
-    if( Example * ex{ GetCurrExample() } )
+
+
+    ExampleState* state{ ( ExampleState* )renderParams.mNewState };
+    if( !state )
+      return;
+
+    const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( sDemoWindow ) };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::TextureHandle backbufferColor{
+      renderDevice->GetSwapChainCurrentColor( swapChain ) };
+
+    const Render::TextureHandle backbufferDepth{
+      renderDevice->GetSwapChainDepth( swapChain ) };
+
     {
-      const Render::SwapChainHandle swapChain{ windowApi->GetSwapChainHandle( sDemoWindow ) };
-      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      const Render::TextureHandle backbuffer{
-        renderDevice->GetSwapChainCurrentColor( swapChain ) };
+      TAC_CALL( Render::IContext::Scope renderContext{
+        renderDevice->CreateRenderContext( errors ) } );
 
-      {
-        TAC_CALL( Render::IContext::Scope renderContext{
-          renderDevice->CreateRenderContext( errors ) } );
-
-        renderContext->ClearColor( backbuffer, v4( 0, 0, 0, 1 ) );
-        TAC_CALL( renderContext->Execute( errors ) );
-      }
-
-      TAC_CALL( GamePresentationRender( ex->mWorld,
-                                        ex->mCamera,
-                                        windowSize,
-                                        backbuffer,
-                                        errors ) );
+      renderContext->ClearColor( backbufferColor, v4( 0, 0, 0, 1 ) );
+      renderContext->ClearDepth( backbufferDepth, 1.0f );
+      TAC_CALL( renderContext->Execute( errors ) );
     }
+
+
+    TAC_CALL( GamePresentationRender( &state->mWorld,
+                                      &state->mCamera,
+                                      windowSize,
+                                      backbufferColor,
+                                      backbufferDepth,
+                                      &sDebug3DDrawBuffers,
+                                      errors ) );
 
   }
 
-  static void   ExamplesUpdateCallback( App::UpdateParams updateParams, Errors& errors )
+  static void ExamplesUpdateCallback( App::UpdateParams updateParams, Errors& errors )
   {
     sKeyboardApi = updateParams.mKeyboardApi;
     sWindowApi = updateParams.mWindowApi;
@@ -208,6 +227,7 @@ namespace Tac
 
     TAC_CALL( ExampleDemoWindow( updateParams, errors ) );
   }
+
 
   struct ExamplesApp : public App
   {
@@ -246,6 +266,18 @@ namespace Tac
       //    TAC_CALL( renderDevice->Present( swapChain, errors ) );
       //  }
       //}
+    }
+
+    App::IState* GetGameState() override
+    {
+      Example * ex{ GetCurrExample() };
+      if( !ex )
+        return {};
+
+      ExampleState* state{ TAC_NEW ExampleState };
+      state->mWorld.DeepCopy( *ex->mWorld );
+      state->mCamera = *ex->mCamera;
+      return state;
     }
 
     void Uninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }

@@ -5,6 +5,7 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/presentation/tac_game_presentation.h"
 #include "tac-ecs/entity/tac_entity.h"
@@ -47,8 +48,15 @@ namespace Tac
     mBall.mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
     mBall.mPos += mBall.mVelocity * TAC_DELTA_FRAME_SECONDS;
 
+    ImGuiText( "WASD to apply force" );
+
+    mWorld->mDebug3DDrawData->CopyFrom( {} );
     mWorld->mDebug3DDrawData->DebugDraw3DCircle( mBall.mPos, mCamera->mForwards, mBall.mRadius );
-    mWorld->mDebug3DDrawData->DebugDraw3DLine(v3(0,0,0), mBall.mPos);
+    mWorld->mDebug3DDrawData->DebugDraw3DLine( v3( 0, 0, 0 ), mBall.mPos );
+  }
+
+  void ExamplePhysSim1Force::Render()
+  {
   }
 
   ExamplePhysSim1Force::~ExamplePhysSim1Force()

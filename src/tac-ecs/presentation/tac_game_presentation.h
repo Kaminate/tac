@@ -15,6 +15,7 @@ namespace Tac
   struct Model;
   struct Graphics;
   struct WindowHandle;
+  struct Debug3DDrawBuffers;
 }
 
 namespace Tac
@@ -25,7 +26,9 @@ namespace Tac
   void                          GamePresentationRender( World*, // why is this non const?
                                                         const Camera*,
                                                         v2i viewSize,
-                                                        Render::TextureHandle,
+                                                        Render::TextureHandle color,
+                                                        Render::TextureHandle depth,
+                                                        Debug3DDrawBuffers*,
                                                         Errors& );
   void                          GamePresentationDebugImGui( Graphics* );
   const Mesh*                   GamePresentationGetModelMesh( const Model* );

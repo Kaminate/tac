@@ -825,6 +825,8 @@ void        Tac::GamePresentationRender( World* world,
                                          const Camera* camera,
                                          const v2i viewSize,
                                          const Render::TextureHandle dstColorTex,
+                                         const Render::TextureHandle dstDepthTex,
+                                         Debug3DDrawBuffers* debug3DDrawBuffers,
                                          Errors& errors )
 {
   Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -859,11 +861,16 @@ void        Tac::GamePresentationRender( World* world,
 
   if( mRenderEnabledDebug3D )
   {
-    TAC_CALL( world->mDebug3DDrawData->DebugDraw3DToTexture( renderContext,
-                                                             dstColorTex,
-                                                             camera,
-                                                             viewSize,
-                                                             errors ) );
+    TAC_CALL( const Debug3DDrawBuffers::Buffer * debug3DDrawBuffer{
+      debug3DDrawBuffers->Update( renderContext,
+                                  world->mDebug3DDrawData->GetVerts(),
+                                  errors ) } );
+    TAC_CALL( debug3DDrawBuffer->DebugDraw3DToTexture( renderContext,
+                                                       dstColorTex,
+                                                       dstDepthTex,
+                                                       camera,
+                                                       viewSize,
+                                                       errors ) );
   }
 
   renderContext->DebugEventEnd();

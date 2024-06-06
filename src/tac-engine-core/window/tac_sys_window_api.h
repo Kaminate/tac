@@ -10,7 +10,7 @@
 #undef CreateWindow
 
 namespace Tac { struct v2i; struct StringView; struct Errors; }
-namespace Tac::Render { struct SwapChainHandle; }
+//namespace Tac::Render { struct SwapChainHandle; }
 namespace Tac
 {
   struct SysWindowApi

@@ -11,6 +11,10 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"
 
+// i dont like how the compiler shows it as IHandle<3> instead of like IHandle<kTexture>
+// also you cant fwd decalre
+#define TAC_IS_IHANDLE_TEMPLATE() 0
+
 namespace Tac{ struct Errors; }
 namespace Tac::FileSys{ struct Path; }
 namespace Tac::Render
@@ -18,22 +22,45 @@ namespace Tac::Render
   struct IContext;
   struct IDevice;
 
+#if TAC_IS_IHANDLE_TEMPLATE()
+  enum class HandleType
+  {
+    kSwapChain,
+    kPipeline,
+    kProgram,
+    kBuffer,
+    kTexture,
+    kSampler,
+  };
+#endif
+
+#if TAC_IS_IHANDLE_TEMPLATE()
+  template< HandleType T > 
+#endif
   struct IHandle
   {
-    IHandle( int );
-    int GetIndex() const;
-    bool IsValid() const;
-    static const int sNull{ -1 };
+    IHandle( int i = -1 ) : mIndex( i ) {}
+    int GetIndex() const { return mIndex; }
+    bool IsValid() const { return mIndex != -1; }
   private:
     int mIndex;
   };
 
+#if TAC_IS_IHANDLE_TEMPLATE()
+  using SwapChainHandle = IHandle< HandleType::kSwapChain >;
+  using PipelineHandle  = IHandle< HandleType::kPipeline >;
+  using ProgramHandle   = IHandle< HandleType::kProgram >;
+  using BufferHandle    = IHandle< HandleType::kBuffer >;
+  using TextureHandle   = IHandle< HandleType::kTexture >;
+  using SamplerHandle   = IHandle< HandleType::kSampler >;
+#else
   struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = -1 ) : IHandle{ i } {} };
   struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = -1 ) : IHandle( i ) {} };
   struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = -1 ) : IHandle{ i } {} };
   struct BufferHandle    : public IHandle { BufferHandle    ( int i = -1 ) : IHandle{ i } {} };
   struct TextureHandle   : public IHandle { TextureHandle   ( int i = -1 ) : IHandle{ i } {} };
   struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = -1 ) : IHandle{ i } {} };
+#endif
 
   // Used for Textures and Index Buffers and Structured Vertex Buffers
   enum class TexFmt

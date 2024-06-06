@@ -54,7 +54,7 @@ namespace Tac
 }
 
 Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender(
-  const Render::TextureHandle& depthTexture,
+  Render::TextureHandle depthTexture,
   int w,
   int h,
   Errors& errors )

@@ -1,10 +1,12 @@
 #pragma once
 
-namespace Tac::Render
-{
-  struct TextureHandle;
-  struct IContext;
-}
+#include "tac-rhi/render3/tac_render_api.h"
+
+//namespace Tac::Render
+//{
+  //struct TextureHandle;
+  //struct IContext;
+//}
 
 namespace Tac { struct Errors; }
 namespace Tac
@@ -16,7 +18,7 @@ namespace Tac
   // h - desired height of output texture 
   // f - far plane camera dist
   // n - near plane camera dist
-  Render::TextureHandle DepthBufferLinearVisualizationRender( const Render::TextureHandle&,
+  Render::TextureHandle DepthBufferLinearVisualizationRender( Render::TextureHandle,
                                                               int w,
                                                               int h,
                                                               Errors& );

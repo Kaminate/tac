@@ -171,7 +171,7 @@ namespace Tac
       .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
       .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
       .mVtxDecls          { decls},
-      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+      .mPrimitiveTopology { Render::PrimitiveTopology::LineList },
       .mName              { "debug-3d-pso"},
     };
   }
@@ -184,7 +184,7 @@ namespace Tac
     TAC_CALL( m3DVertexColorShader = renderDevice->CreateProgram( programParams, errors ) );
 
     const Render::PipelineParams pipelineParams{ GetPipelineParams() };
-    TAC_CALL( mPipeline = renderDevice->CreatePipeline(pipelineParams, errors ) );
+    TAC_CALL( mPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
 
     const Render::CreateBufferParams createConstBuf{ GetConstBufParams() };
     TAC_CALL( mConstBuf = renderDevice->CreateBuffer( createConstBuf, errors ) );
@@ -193,11 +193,63 @@ namespace Tac
     mShaderConstBuf->SetBuffer( mConstBuf );
   }
 
-  Debug3DDrawData::~Debug3DDrawData()
+  // -----------------------------------------------------------------------------------------------
+
+  Debug3DDrawBuffers::Buffer::~Buffer()
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyBuffer( mRenderVtxBuf );
+    renderDevice->DestroyBuffer( mVtxBuf );
   }
+
+  const Debug3DDrawBuffers::Buffer* Debug3DDrawBuffers::Update(
+    Render::IContext* renderContext,
+    Span< DefaultVertexColor > vtxs,
+    Errors& errors )
+  {
+    const int frameCount{ Render::RenderApi::GetMaxGPUFrameCount() };
+    mBuffers.resize( frameCount );
+    Debug3DDrawBuffers::Buffer* buffer{ &mBuffers[ mRenderBufferIdx ] };
+    ++mRenderBufferIdx %= frameCount;
+
+    const int stride{ ( int )sizeof( DefaultVertexColor ) };
+    const int requiredVtxCount { vtxs.size() };
+    const int requiredByteCount{ requiredVtxCount * stride };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    Render::BufferHandle& mRenderVtxBuf{ buffer->mVtxBuf };
+
+    if( !mRenderVtxBuf.IsValid() || requiredByteCount > buffer->mVtxBufByteCapacity )
+    {
+      renderDevice->DestroyBuffer( mRenderVtxBuf );
+      const Render::CreateBufferParams vtxBufCreate
+      {
+        .mByteCount     { requiredByteCount },
+        .mBytes         {},
+        .mStride        { stride },
+        .mUsage         { Render::Usage::Dynamic },
+        .mBinding       { Render::Binding::VertexBuffer },
+        .mOptionalName  { "debug-3d-vtx" },
+      };
+
+      TAC_CALL_RET( {},mRenderVtxBuf = renderDevice->CreateBuffer( vtxBufCreate, errors ) );
+      buffer->mVtxBufByteCapacity = requiredByteCount;
+    }
+
+    buffer->mVtxCount = requiredVtxCount;
+
+    const Render::UpdateBufferParams vtxBufUpdate
+    {
+      .mSrcBytes     { vtxs.data() },
+      .mSrcByteCount { requiredByteCount },
+    };
+
+    TAC_CALL_RET( {}, renderContext->UpdateBuffer( mRenderVtxBuf, vtxBufUpdate, errors ) );
+    
+    return buffer;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
                                          const v3& p1 )
@@ -595,63 +647,26 @@ namespace Tac
     DebugDraw3DTriangle( p0, p1, p2, color, color, color );
   }
 
-
-  void Debug3DDrawData::UpdateRenderBuffer ( Render::IContext* renderContext, Errors& errors )
+  void Debug3DDrawData::CopyFrom( const Debug3DDrawData& other )
   {
-    const int vertexCount { mDebugDrawVerts.size() };
-    const int byteCount{ vertexCount * (int)sizeof( DefaultVertexColor ) };
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-    if( !mRenderVtxBuf.IsValid() || mRenderVtxBufByteCapacity < vertexCount )
-    {
-      renderDevice->DestroyBuffer( mRenderVtxBuf );
-      const Render::CreateBufferParams vtxBufCreate
-      {
-        .mByteCount     { byteCount },
-        .mBytes         {},
-        .mUsage         { Render::Usage::Dynamic },
-        .mBinding       { Render::Binding::ShaderResource },
-        .mOptionalName  { "debug-3d-vtx" },
-      };
-
-      TAC_CALL( mRenderVtxBuf = renderDevice->CreateBuffer( vtxBufCreate, errors ) );
-      mRenderVtxBufByteCapacity = byteCount;
-    }
-
-    mRenderVtxBufVtxCount = vertexCount;
-
-    const Render::UpdateBufferParams vtxBufUpdate
-    {
-      .mSrcBytes     { mDebugDrawVerts.data() },
-      .mSrcByteCount { byteCount },
-    };
-
-    TAC_CALL( renderContext->UpdateBuffer( mRenderVtxBuf, vtxBufUpdate, errors ) );
-
+    mDebugDrawVerts = other.mDebugDrawVerts;
   }
 
+  
 
-  void Debug3DDrawData::DebugDraw3DToTexture( Render::IContext* renderContext,
-                                              const Render::TextureHandle renderTargetColor,
-                                              const Camera* camera,
-                                              const v2i viewSize,
-                                              Errors& errors )
+  void Debug3DDrawBuffers::Buffer::DebugDraw3DToTexture( Render::IContext* renderContext,
+                                                         const Render::TextureHandle renderTargetColor,
+                                                         const Render::TextureHandle renderTargetDepth,
+                                                         const Camera* camera,
+                                                         const v2i viewSize,
+                                                         Errors& errors ) const
   {
-
-    TAC_CALL( UpdateRenderBuffer( renderContext, errors ) );
-    mDebugDrawVerts.clear();
-    if( !mRenderVtxBufVtxCount )
-      return;
-
     TAC_PROFILE_BLOCK;
-    const int vertexCount { mDebugDrawVerts.size() };
-    const int byteCount{ vertexCount * (int)sizeof( DefaultVertexColor ) };
-    if( !vertexCount )
+
+    if( !mVtxCount )
       return;
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-    mDebugDrawVerts.clear();
 
     const Debug3DConstBuf constBufData
     {
@@ -668,22 +683,25 @@ namespace Tac
 
     const Render::DrawArgs drawArgs
     {
-      .mVertexCount { mRenderVtxBufVtxCount },
+      .mVertexCount { mVtxCount },
       .mStartVertex { 0 },
     };
 
     const Render::Targets renderTargets
     {
       .mColors { renderTargetColor },
+      .mDepth  { renderTargetDepth },
     };
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "debug 3d" );
-    renderContext->SetPipeline(gDebug3DCommonData.mPipeline );
-    renderContext->CommitShaderVariables();
+    renderContext->SetPipeline( gDebug3DCommonData.mPipeline );
     renderContext->SetRenderTargets( renderTargets );
+    renderContext->SetViewport( viewSize );
+    renderContext->SetScissor( viewSize );
     renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::LineList );
-    renderContext->SetVertexBuffer( mRenderVtxBuf );
+    renderContext->SetVertexBuffer( mVtxBuf );
     renderContext->SetIndexBuffer( {} );
+    renderContext->CommitShaderVariables();
     renderContext->Draw( drawArgs );
   }
 

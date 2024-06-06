@@ -77,6 +77,17 @@ namespace Tac::Render
     return depthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
   }
 
+  static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetDX12PrimTopo( PrimitiveTopology top )
+  {
+    switch( top )
+    {
+    case PrimitiveTopology::LineList:     return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+    case PrimitiveTopology::TriangleList: return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    case PrimitiveTopology::PointList:    return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+    default: TAC_ASSERT_INVALID_CASE( top ); return {};
+    }
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   void DX12PipelineMgr::Init( ID3D12Device* device, DX12ProgramMgr* programMgr )
@@ -147,6 +158,8 @@ namespace Tac::Render
       .DepthFunc      {  GetDX12DepthFunc( params.mDepthState.mDepthFunc ) },
     };
 
+    const D3D12_PRIMITIVE_TOPOLOGY_TYPE topology{ GetDX12PrimTopo( params.mPrimitiveTopology ) };
+
     dynmc D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )rootSig },
@@ -157,7 +170,7 @@ namespace Tac::Render
       .RasterizerState       { RasterizerState },
       .DepthStencilState     { depthStencilDesc },
       .InputLayout           { inputLayout },
-      .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
+      .PrimitiveTopologyType { topology },
       .NumRenderTargets      { NumRenderTargets },
       .DSVFormat             { DSVFormat },
       .SampleDesc            { SampleDesc },

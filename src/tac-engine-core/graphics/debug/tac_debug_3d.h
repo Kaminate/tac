@@ -20,10 +20,36 @@ namespace Tac
   void Debug3DCommonDataInit( Errors& );
   void Debug3DCommonDataUninit();
 
+  struct Debug3DDrawBuffers
+  {
+    struct Buffer
+    {
+      ~Buffer();
+
+      void DebugDraw3DToTexture( Render::IContext*,
+                                 Render::TextureHandle color,
+                                 Render::TextureHandle depth,
+                                 const Camera*,
+                                 v2i viewSize,
+                                 Errors& ) const;
+
+      Render::BufferHandle         mVtxBuf             {};
+      int                          mVtxCount           {};
+      int                          mVtxBufByteCapacity {};
+    };
+
+    const Buffer* Update( Render::IContext*,
+                          Span< DefaultVertexColor >,
+                          Errors& );
+
+  private:
+
+    Vector< Buffer > mBuffers;
+    int              mRenderBufferIdx {};
+  };
+
   struct Debug3DDrawData
   {
-    ~Debug3DDrawData();
-
     void DebugDraw3DLine( const v3& p0, const v3& p1 );
     void DebugDraw3DLine( const v3& p0, const v3& p1, const v3& color  );
     void DebugDraw3DLine( const v3& p0, const v3& p1, const v3& color0, const v3& color1 );
@@ -97,18 +123,19 @@ namespace Tac
                               const v3& p2,
                               const v3& color = { 1, 1, 1 } );
 
-    void DebugDraw3DToTexture( Render::IContext*,
-                               Render::TextureHandle,
-                               const Camera*,
-                               v2i viewSize,
-                               Errors& );
 
-    void UpdateRenderBuffer( Render::IContext*, Errors& );
+    void CopyFrom( const Debug3DDrawData& );
+
+    void Clear() { mDebugDrawVerts.clear(); }
+
+    Span< DefaultVertexColor > GetVerts()
+    {
+      return { mDebugDrawVerts.data(), mDebugDrawVerts.size() };
+    }
+
+  private:
     
     Vector< DefaultVertexColor > mDebugDrawVerts           {};
-    Render::BufferHandle         mRenderVtxBuf             {};
-    int                          mRenderVtxBufByteCapacity {};
-    int                          mRenderVtxBufVtxCount     {};
   };
 
 } // namespace Tac

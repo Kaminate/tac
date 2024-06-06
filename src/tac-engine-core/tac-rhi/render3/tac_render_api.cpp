@@ -46,9 +46,9 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  ctor IHandle::IHandle( int i ) : mIndex( i ) {}
-  int  IHandle::GetIndex() const               { TAC_ASSERT( IsValid() ); return mIndex; }
-  bool IHandle::IsValid() const                { return mIndex != -1; }
+  //ctor IHandle::IHandle( int i ) : mIndex( i ) {}
+  //int  IHandle::GetIndex() const               { TAC_ASSERT( IsValid() ); return mIndex; }
+  //bool IHandle::IsValid() const                { return mIndex != -1; }
 
   // -----------------------------------------------------------------------------------------------
 
