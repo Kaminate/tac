@@ -28,8 +28,7 @@ namespace Tac
     void                          UpdateGizmo();
 
     //                            Render
-    void                          RenderEditorWidgetsSelection( WindowHandle );
-    void                          RenderEditorWidgetsPicking( WindowHandle );
+    void                          RenderEditorWidgetsPicking();
 
     //                            MousePicking
     void                          MousePickingInit();
@@ -50,6 +49,8 @@ namespace Tac
     void                          SetStatusMessage( const StringView&, const TimestampDifference& );
 
   private:
+    void                          RenderEditorWidgetsSelection( Render::IContext*,
+                                                                WindowHandle );
     void                          RenderEditorWidgets( Render::IContext*,
                                                        WindowHandle,
                                                        Errors& );

@@ -25,7 +25,7 @@ namespace Tac
 
     TAC_ASSERT( !sShellAppName.empty() );
 
-    const SysWindowApi* windowApi{ initParams.mWindowApi };
+    const SysWindowApi windowApi{ initParams.mWindowApi };
 
     const v2i size( ( int )( monitor.mSize.x * 0.8f ),
                     ( int )( monitor.mSize.y * 0.8f ) );
@@ -37,7 +37,7 @@ namespace Tac
       .mSize { size },
     };
 
-    TAC_CALL( mWindowHandle = windowApi->CreateWindow( windowCreateParams, errors ) );
+    TAC_CALL( mWindowHandle = windowApi.CreateWindow( windowCreateParams, errors ) );
 
 
     auto ghost { TAC_NEW Ghost };

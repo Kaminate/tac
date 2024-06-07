@@ -624,10 +624,10 @@ namespace Tac
 
     SimKeyboardApi keyboardApi{};
 
-    const float w { windowSize.x };
-    const float h { windowSize.y };
-    const float x { windowPos.x };
-    const float y { windowPos.y };
+    const float w{ ( float )windowSize.x };
+    const float h{ ( float )windowSize.y };
+    const float x{ ( float )windowPos.x };
+    const float y{ ( float )windowPos.y };
     const v2 screenspaceCursorPos { keyboardApi.GetMousePosScreenspace() };
     float xNDC { ( ( screenspaceCursorPos.x - x ) / w ) };
     float yNDC { ( ( screenspaceCursorPos.y - y ) / h ) };
@@ -737,39 +737,41 @@ namespace Tac
   {
     if( gCreation.mSelectedEntities.empty() )
       return;
-    m4 view{ m4::View( gCreation.mEditorCamera->mPos,
+
+    const m4 view{ m4::View( gCreation.mEditorCamera->mPos,
                         gCreation.mEditorCamera->mForwards,
                         gCreation.mEditorCamera->mRight,
                         gCreation.mEditorCamera->mUp ) };
-    v3 pos { gCreation.mSelectedEntities.GetGizmoOrigin() };
-    v4 posVS4 { view * v4( pos, 1 ) };
-    float clip_height { Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f ) };
-    float arrowLen { clip_height * 0.2f };
+    const v3 pos { gCreation.mSelectedEntities.GetGizmoOrigin() };
+    const v4 posVS4 { view * v4( pos, 1 ) };
+    const float clip_height { Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f ) };
+    const float arrowLen { clip_height * 0.2f };
     mArrowLen = arrowLen;
   }
 
 
-  void CreationGameWindow::RenderEditorWidgetsPicking( WindowHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgetsPicking()
   {
-    v3 worldSpaceHitPoint  {};
-    if( pickData.pickedObject != PickedObject::None )
-    {
-      worldSpaceHitPoint = gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir;
-      mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+    if( pickData.pickedObject == PickedObject::None )
+      return;
 
-      static Timestamp mouseMovement;
-      Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
-    }
+    const v3 worldSpaceHitPoint{
+      gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
 
+    mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+
+      //static Timestamp mouseMovement;
+      //Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
   }
 
 
-  void CreationGameWindow::RenderEditorWidgetsSelection( const WindowHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgetsSelection( Render::IContext* renderContext,
+    const WindowHandle viewHandle )
   {
     if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
       return;
 
-    Render::BeginGroup( "Selection", TAC_STACK_FRAME );
+    TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
 
     const v3 selectionGizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
     const m4 rots[]  {
@@ -833,7 +835,7 @@ namespace Tac
                                       &perObjectData,
                                       sizeof( Render::DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
-        AddDrawCall( mArrow, viewHandle );
+        AddDrawCall( renderContext, mArrow, viewHandle );
       }
 
 
@@ -857,10 +859,9 @@ namespace Tac
                                       &perObjectData,
                                       sizeof( Render::DefaultCBufferPerObject ),
                                       TAC_STACK_FRAME );
-        AddDrawCall( mCenteredUnitCube, viewHandle );
+        AddDrawCall( renderContext, mCenteredUnitCube, viewHandle );
       }
     }
-    Render::EndGroup( TAC_STACK_FRAME );
   }
 
   void CreationGameWindow::RenderEditorWidgetsLights( Render::IContext* renderContext,
@@ -928,16 +929,17 @@ namespace Tac
     if( !windowApi.IsShown( viewHandle ) )
       return;
 
+    const v2i windowSize{ windowApi.GetSize( viewHandle ) };
+
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Widgets" );
-    const float w { ( float )desktopWindowState->mWidth };
-    const float h { ( float )desktopWindowState->mHeight };
-    const Render::DefaultCBufferPerFrame perFrameData = GetPerFrame( w, h );
-    const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
+    const float w { ( float )windowSize.x };
+    const float h { ( float )windowSize.y };
+    const Render::DefaultCBufferPerFrame perFrameData { GetPerFrame( w, h ) };
+    const Render::ConstantBufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
     const int perFrameSize { sizeof( Render::DefaultCBufferPerFrame ) };
     Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
 
-    RenderEditorWidgetsPicking( viewHandle );
-    RenderEditorWidgetsSelection( viewHandle );
+    RenderEditorWidgetsSelection( renderContext, viewHandle );
     TAC_CALL( RenderEditorWidgetsLights( renderContext, viewHandle, errors ) );
   }
 
@@ -1036,15 +1038,16 @@ namespace Tac
 
   void CreationGameWindow::CameraUpdateControls()
   {
-    DesktopWindowState* desktopWindowState { GetDesktopWindowState( mWindowHandle ) };
-    if( !desktopWindowState->mNativeWindowHandle )
+    SimWindowApi windowApi{};
+    if( !windowApi.IsHovered( mWindowHandle ) )
       return;
-    if( !IsWindowHovered( mWindowHandle ) )
-      return;
+
+    SimKeyboardApi keyboardApi{};
+
     const Camera oldCamera { *gCreation.mEditorCamera };
 
-    const v2 mouseDeltaPos { Mouse::GetMouseDeltaPos() };
-    if( Mouse::ButtonIsDown( Mouse::Button::MouseRight ) &&
+    const v2 mouseDeltaPos { keyboardApi.GetMousePosDelta() };
+    if( keyboardApi.IsPressed( Key::MouseRight ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float pixelsPerDeg { 400.0f / 90.0f };
@@ -1076,7 +1079,7 @@ namespace Tac
       gCreation.mEditorCamera->mUp.Normalize();
     }
 
-    if( Mouse::ButtonIsDown( Mouse::Button::MouseMiddle ) &&
+    if( keyboardApi.IsPressed( Key::MouseMiddle ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel { 5.0f / 100.0f };
@@ -1090,7 +1093,7 @@ namespace Tac
         unitsPerPixel;
     }
 
-    const int mouseDeltaScroll { Mouse::GetMouseDeltaScroll() };
+    const int mouseDeltaScroll { keyboardApi.GetMouseWheelDelta() };
     if( mouseDeltaScroll )
     {
       float unitsPerTick { 1.0f };
@@ -1152,13 +1155,15 @@ namespace Tac
                             &mWorldBuffers,
                             errors );
 
-    RenderEditorWidgets( viewHandle );
+    TAC_CALL( RenderEditorWidgets( renderContext, mWindowHandle, errors ) );
 
+#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     VoxelGIPresentationRender( gCreation.mWorld,
                                gCreation.mEditorCamera,
                                desktopWindowState->mWidth,
                                desktopWindowState->mHeight,
                                viewHandle );
+#endif
 
     mDebug3DDrawData->DebugDraw3DToTexture( viewHandle,
                                             gCreation.mEditorCamera,
@@ -1201,6 +1206,8 @@ namespace Tac
 
     if( drawGrid )
       mDebug3DDrawData->DebugDraw3DGrid();
+
+    RenderEditorWidgetsPicking( viewHandle );
 
     TAC_CALL( ImGuiOverlay( errors ) );
   }

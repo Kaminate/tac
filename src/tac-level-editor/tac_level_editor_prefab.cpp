@@ -14,6 +14,7 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
@@ -82,6 +83,7 @@ namespace Tac
   {
     if( !camera )
       return;
+
     PrefabLoadCameraVec( prefab, refFrameVecNamePosition, camera->mPos );
     PrefabLoadCameraVec( prefab, refFrameVecNameForward, camera->mForwards );
     PrefabLoadCameraVec( prefab, refFrameVecNameRight, camera->mRight );
