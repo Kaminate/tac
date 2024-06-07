@@ -203,14 +203,13 @@ namespace Tac
         .mIndexCount    { subMesh.mIndexCount },
       };
 
-      Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-      Render::SetShader( CreationGameWindow::Instance->m3DShader );
-      Render::SetBlendState( CreationGameWindow::Instance->mBlendState );
-      Render::SetDepthState( CreationGameWindow::Instance->mDepthState );
-      Render::SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
-      Render::SetVertexFormat( CreationGameWindow::Instance->m3DVertexFormat );
-      Render::SetSamplerState( { CreationGameWindow::Instance->mSamplerState }  );
-      Render::Submit( viewHandle, TAC_STACK_FRAME );
+      renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
+      renderContext->SetShader( CreationGameWindow::Instance->m3DShader );
+      renderContext->SetBlendState( CreationGameWindow::Instance->mBlendState );
+      renderContext->SetDepthState( CreationGameWindow::Instance->mDepthState );
+      renderContext->SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
+      renderContext->SetVertexFormat( CreationGameWindow::Instance->m3DVertexFormat );
+      renderContext->SetSamplerState( { CreationGameWindow::Instance->mSamplerState }  );
 
       renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
       renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
@@ -1120,7 +1119,7 @@ namespace Tac
     if( !windowApi.IsShown( mWindowHandle ) )
       return;
 
-    const v2i size{ windowApi.GetSize( mWindowHandle ) };
+    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     TAC_CALL( Render::IContext::Scope renderScope{
@@ -1143,13 +1142,13 @@ namespace Tac
       .mDepth{ rtDepth },
     };
 
-    renderContext->SetViewport( size );
-    renderContext->SetScissor( size );
+    renderContext->SetViewport( windowSize );
+    renderContext->SetScissor( windowSize );
     renderContext->SetRenderTargets( renderTargets );
 
     GamePresentationRender( gCreation.mWorld,
                             gCreation.mEditorCamera,
-                            size,
+                            windowSize,
                             rtColor,
                             rtDepth,
                             &mWorldBuffers,
@@ -1165,11 +1164,15 @@ namespace Tac
                                viewHandle );
 #endif
 
-    mDebug3DDrawData->DebugDraw3DToTexture( viewHandle,
-                                            gCreation.mEditorCamera,
-                                            desktopWindowState->mWidth,
-                                            desktopWindowState->mHeight,
-                                            errors );
+    TAC_CALL( const Debug3DDrawBuffers::Buffer* debugBuffer{
+      mDebugBuffers.Update( renderContext, mDebug3DDrawData->GetVerts(), errors ) } );
+
+    TAC_CALL( debugBuffer->DebugDraw3DToTexture( renderContext,
+                                       rtColor,
+                                       rtDepth,
+                                       gCreation.mEditorCamera,
+                                       windowSize,
+                                       errors ) );
   }
 
   void CreationGameWindow::Update( Errors& errors )
@@ -1217,6 +1220,8 @@ namespace Tac
     if( !gCreation.mSelectedGizmo )
       return;
 
+    SimKeyboardApi keyboardApi{};
+
     const v3 origin { gCreation.mSelectedEntities.GetGizmoOrigin() };
     float gizmoMouseDist;
     float secondDist;
@@ -1235,7 +1240,7 @@ namespace Tac
     //{
     //  prefab->mPosition += translate;
     //}
-    if( !Mouse::ButtonIsDown( Mouse::Button::MouseLeft ) )
+    if( !keyboardApi.IsPressed( Key::MouseLeft ) )
     {
       gCreation.mSelectedGizmo = false;
     }

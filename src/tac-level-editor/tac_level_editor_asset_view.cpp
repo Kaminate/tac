@@ -10,6 +10,7 @@
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
@@ -38,6 +39,7 @@ namespace Tac
     Render::TextureHandle     mTextureHandleDepth;
     Camera                    mCamera;
     AssetPathString           mAssetPath;
+    Debug3DDrawBuffers        mDebug3DDrawBuffers;
   };
 
 
@@ -400,23 +402,32 @@ namespace Tac
   }
 
   static void RenderImportedModel( Render::IContext* renderContext,
-                                   AssetViewImportedModel* loadedModel )
+                                   AssetViewImportedModel* loadedModel, Errors& errors )
   {
     if( loadedModel->mWorld.mEntities.empty() )
       return;
 
-    ShortFixedString groupName{ ShortFixedString::Concat( "asset preview ",
+    const v2i viewSize{ w, h };
+    const ShortFixedString groupName{ ShortFixedString::Concat( "asset preview ",
                             loadedModel->mAssetPath.c_str() ) };
 
     TAC_RENDER_GROUP_BLOCK( renderContext, groupName );
 
-    Render::SetViewFramebuffer( loadedModel->mViewHandle, loadedModel->mFramebufferHandle );
-    Render::SetViewport( loadedModel->mViewHandle, Render::Viewport( w, h ) );
-    Render::SetViewScissorRect( loadedModel->mViewHandle, Render::ScissorRect( w, h ) );
+    const Render::Targets renderTargets
+    {
+      .mColors{ loadedModel->mTextureHandleColor },
+      .mDepth{ loadedModel->mTextureHandleDepth },
+    };
+    renderContext->SetRenderTargets( renderTargets );
+    renderContext->SetViewport( viewSize );
+    renderContext->SetScissor( viewSize );
     GamePresentationRender( &loadedModel->mWorld,
                             &loadedModel->mCamera,
-                            w, h,
-                            loadedModel->mViewHandle );
+                            viewSize,
+                            loadedModel->mTextureHandleColor,
+                            loadedModel->mTextureHandleDepth,
+                            &loadedModel->mDebug3DDrawBuffers,
+                            errors );
   }
 
   static void UIFilesModel( const FileSys::Path& path )
@@ -431,7 +442,7 @@ namespace Tac
 
     AttemptLoadEntity( loadedModel, assetPath );
 
-    RenderImportedModel( loadedModel );
+    RenderImportedModel( loadedModel, errors );
   }
 
   static void UIFilesModels( const FileSys::Paths& paths )

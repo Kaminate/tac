@@ -3,6 +3,7 @@
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/string/tac_string.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_window_api.h"
 #include "tac-ecs/tac_space_types.h"
