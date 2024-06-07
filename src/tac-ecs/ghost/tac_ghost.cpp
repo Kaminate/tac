@@ -73,15 +73,15 @@ namespace Tac
 
     //auto serverData = mGhost->mServerData;
     v2 inputDirection  { 0, 0 };
-    if( mKeyboardApi->IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
-    if( mKeyboardApi->IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
-    if( mKeyboardApi->IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
-    if( mKeyboardApi->IsPressed( Key::LeftArrow ) ) inputDirection += { -1, 0 };
+    if( mKeyboardApi.IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
+    if( mKeyboardApi.IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
+    if( mKeyboardApi.IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
+    if( mKeyboardApi.IsPressed( Key::LeftArrow ) ) inputDirection += { -1, 0 };
     if( inputDirection.Length() )
       inputDirection.Normalize();
 
     mPlayer->mInputDirection = inputDirection;
-    mPlayer->mIsSpaceJustDown = mKeyboardApi->JustPressed( Key::Spacebar );
+    mPlayer->mIsSpaceJustDown = mKeyboardApi.JustPressed( Key::Spacebar );
   }
 
   // -----------------------------------------------------------------------------------------------

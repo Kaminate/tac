@@ -34,6 +34,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/os/tac_os.h"
 
 //#include <cmath>
@@ -191,20 +192,29 @@ namespace Tac
     return biggestUnitDir;
   }
 
-  static void AddDrawCall( const Mesh* mesh, Render::ViewHandle viewHandle )
+  static void AddDrawCall( Render::IContext* renderContext,
+                           const Mesh* mesh,
+                           Render::ViewHandle viewHandle )
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
+      const Render::DrawArgs drawArgs
+      {
+        .mIndexCount    { subMesh.mIndexCount },
+      };
+
       Render::SetPrimitiveTopology( subMesh.mPrimitiveTopology );
       Render::SetShader( CreationGameWindow::Instance->m3DShader );
-      Render::SetVertexBuffer( subMesh.mVertexBuffer, 0, subMesh.mVertexCount );
-      Render::SetIndexBuffer( subMesh.mIndexBuffer, 0, subMesh.mIndexCount );
       Render::SetBlendState( CreationGameWindow::Instance->mBlendState );
       Render::SetDepthState( CreationGameWindow::Instance->mDepthState );
       Render::SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
       Render::SetVertexFormat( CreationGameWindow::Instance->m3DVertexFormat );
       Render::SetSamplerState( { CreationGameWindow::Instance->mSamplerState }  );
       Render::Submit( viewHandle, TAC_STACK_FRAME );
+
+      renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
+      renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
+      renderContext->Draw( drawArgs );
     }
   }
 
@@ -427,12 +437,12 @@ namespace Tac
   CreationGameWindow::~CreationGameWindow()
   {
     Instance = nullptr;
-    Render::DestroyShader( m3DShader, TAC_STACK_FRAME );
-    Render::DestroyVertexFormat( m3DVertexFormat, TAC_STACK_FRAME );
-    Render::DestroyDepthState( mDepthState, TAC_STACK_FRAME );
-    Render::DestroyBlendState( mBlendState, TAC_STACK_FRAME );
-    Render::DestroyRasterizerState( mRasterizerState, TAC_STACK_FRAME );
-    Render::DestroySamplerState( mSamplerState, TAC_STACK_FRAME );
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyProgram( m3DShader);
+    renderDevice->DestroyProgram( mSpriteShader);
+    renderDevice->DestroyPipeline( mSpritePipeline);
+    renderDevice->DestroyPipeline( m3DPipeline);
+
     SimWindowApi windowApi{};
     windowApi.DestroyWindow( mWindowHandle );
     TAC_DELETE mDebug3DDrawData;
@@ -552,7 +562,8 @@ namespace Tac
 
   void CreationGameWindow::MousePickingSelection()
   {
-    if( !Mouse::ButtonJustDown( Mouse::Button::MouseLeft ) )
+    SimKeyboardApi keyboardApi{};
+    if( !keyboardApi.JustPressed( Key::MouseLeft ) )
       return;
 
     const v3 worldSpaceHitPoint { gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
@@ -562,15 +573,18 @@ namespace Tac
       case PickedObject::WidgetTranslationArrow:
       {
         const v3 gizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
-        v3 arrowDir  {};
+
+        v3 arrowDir{};
         arrowDir[ pickData.arrowAxis ] = 1;
+
         gCreation.mSelectedGizmo = true;
         gCreation.mTranslationGizmoDir = arrowDir;
         gCreation.mTranslationGizmoOffset = Dot( arrowDir, worldSpaceHitPoint - gizmoOrigin );
       } break;
       case PickedObject::Entity:
       {
-        const v3 entityWorldOrigin { ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz() };
+        const v3 entityWorldOrigin {
+          ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz() };
         gCreation.mSelectedEntities.Select( pickData.closest );
         gCreation.mSelectedHitOffsetExists = true;
         gCreation.mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
@@ -586,11 +600,9 @@ namespace Tac
   {
     pickData = {};
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
+    SimWindowApi windowApi{};
 
-    if( !IsWindowHovered( mWindowHandle ) )
+    if( !windowApi.IsHovered( mWindowHandle ) )
       return;
 
     MousePickingEntities();
@@ -602,15 +614,21 @@ namespace Tac
 
   void CreationGameWindow::MousePickingInit()
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
+
+    SimWindowApi windowApi{};
+    if( !windowApi.IsHovered( mWindowHandle ) )
       return;
 
-    const float w { ( float )desktopWindowState->mWidth };
-    const float h { ( float )desktopWindowState->mHeight };
-    const float x { ( float )desktopWindowState->mX };
-    const float y { ( float )desktopWindowState->mY };
-    const v2 screenspaceCursorPos { Mouse::GetScreenspaceCursorPos() };
+    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+    const v2i windowPos{ windowApi.GetPos( mWindowHandle ) };
+
+    SimKeyboardApi keyboardApi{};
+
+    const float w { windowSize.x };
+    const float h { windowSize.y };
+    const float x { windowPos.x };
+    const float y { windowPos.y };
+    const v2 screenspaceCursorPos { keyboardApi.GetMousePosScreenspace() };
     float xNDC { ( ( screenspaceCursorPos.x - x ) / w ) };
     float yNDC { ( ( screenspaceCursorPos.y - y ) / h ) };
     yNDC = 1 - yNDC;
@@ -795,7 +813,7 @@ namespace Tac
         {
           float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
           t *= t;
-          arrowColor.Color = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.Color, t );
+          arrowColor.mColor = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.mColor, t );
 
         }
 
@@ -845,22 +863,28 @@ namespace Tac
     Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  void CreationGameWindow::RenderEditorWidgetsLights( WindowHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgetsLights( Render::IContext* renderContext,
+                                                      WindowHandle viewHandle,
+                                                      Errors& errors )
   {
-    Render::BeginGroup( "lights", TAC_STACK_FRAME );
+    TAC_RENDER_GROUP_BLOCK( renderContext, "light widgets" );
+
     struct : public LightVisitor
     {
       void operator()( Light* light ) override { mLights.push_back( light ); }
       Vector< const Light* > mLights;
     } lightVisitor;
 
-    Graphics* graphics = GetGraphics( gCreation.mWorld );
+
+    Graphics* graphics { GetGraphics( gCreation.mWorld ) };
     graphics->VisitLights( &lightVisitor );
+
+    const Render::TextureHandle textureHandle{
+      TextureAssetManager::GetTexture( "assets/editor/light.png", errors ) };
 
     for( int iLight { 0 }; iLight < lightVisitor.mLights.size(); ++iLight )
     {
       const Light* light { lightVisitor.mLights[ iLight ] };
-
 
       // Q: why am ii only scaling the m00, and not the m11 and m22?
       m4 world { light->mEntity->mWorldTransform };
@@ -871,61 +895,58 @@ namespace Tac
         .World { world },
       };
 
-      const Render::ConstantBufferHandle hPerObj { Render::DefaultCBufferPerObject::Handle };
-      const int perObjSize { sizeof(Render::DefaultCBufferPerObject) };
+      const Render::ConstantBufferHandle hPerObj{ Render::DefaultCBufferPerObject::Handle };
+      const int perObjSize{ sizeof( Render::DefaultCBufferPerObject ) };
 
-      Errors errors;
-      const Render::TextureHandle textureHandle = TextureAssetManager::GetTexture( "assets/editor/light.png", errors );
+      const ShortFixedString groupname{
+        ShortFixedString::Concat( "Editor light ", ToString( iLight ) ) };
+      TAC_RENDER_GROUP_BLOCK( renderContext, groupname );
 
-      Render::BeginGroup( ShortFixedString::Concat( "Editor light ",
-                          ToString( iLight ) ),
-                          TAC_STACK_FRAME );
-      Render::SetShader( spriteShader );
-      Render::SetVertexBuffer( Render::VertexBufferHandle(), 0, 6 );
-      Render::SetIndexBuffer( Render::IndexBufferHandle(), 0, 0 );
-      //Render::SetBlendState( mBlendState );
-      Render::SetBlendState( mAlphaBlendState );
-      Render::SetRasterizerState( mRasterizerState );
-      Render::SetSamplerState( { mSamplerState } );
-      Render::SetDepthState( mDepthState );
-      Render::SetVertexFormat( Render::VertexFormatHandle() );
-      Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
-      Render::SetTexture( { textureHandle } );
-      Render::UpdateConstantBuffer( hPerObj, &perObjectData, perObjSize, TAC_STACK_FRAME );
-      Render::Submit( viewHandle, TAC_STACK_FRAME );
-      Render::EndGroup( TAC_STACK_FRAME );
+      const Render::DrawArgs drawArgs
+      {
+        .mVertexCount { 6 },
+      };
+
+      renderContext->SetPipeline( mSpritePipeline );
+      renderContext->SetVertexBuffer( {} );
+      renderContext->SetIndexBuffer( {}  );
+      renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
+      renderContext->SetTexture( { textureHandle } );
+      renderContext->Render::UpdateConstantBuffer( hPerObj,
+                                                   &perObjectData,
+                                                   perObjSize,
+                                                   TAC_STACK_FRAME );
+      renderContext->Draw( drawArgs );
     }
-
-    Render::Submit( viewHandle, TAC_STACK_FRAME );
-    Render::EndGroup( TAC_STACK_FRAME );
   }
 
-  void CreationGameWindow::RenderEditorWidgets( WindowHandle viewHandle )
+  void CreationGameWindow::RenderEditorWidgets( Render::IContext* renderContext,
+                                                WindowHandle viewHandle,
+                                                Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
+    SimWindowApi windowApi{};
+    if( !windowApi.IsShown( viewHandle ) )
       return;
 
-    Render::BeginGroup( "Editor Widgets", TAC_STACK_FRAME );
+    TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Widgets" );
     const float w { ( float )desktopWindowState->mWidth };
     const float h { ( float )desktopWindowState->mHeight };
     const Render::DefaultCBufferPerFrame perFrameData = GetPerFrame( w, h );
     const Render::ConstantBufferHandle hPerFrame = Render::DefaultCBufferPerFrame::Handle;
-    const int perFrameSize = sizeof( Render::DefaultCBufferPerFrame );
+    const int perFrameSize { sizeof( Render::DefaultCBufferPerFrame ) };
     Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
 
     RenderEditorWidgetsPicking( viewHandle );
     RenderEditorWidgetsSelection( viewHandle );
-    RenderEditorWidgetsLights( viewHandle );
-    Render::EndGroup( TAC_STACK_FRAME );
+    TAC_CALL( RenderEditorWidgetsLights( renderContext, viewHandle, errors ) );
   }
 
   void CreationGameWindow::PlayGame( Errors& errors )
   {
     if( mSoul )
       return;
+
     auto ghost { TAC_NEW Ghost };
-    //ghost->mRenderView = mDesktopWindow->mRenderView;
     TAC_CALL( ghost->Init( errors ) );
     mSoul = ghost;
   }
@@ -936,8 +957,11 @@ namespace Tac
     if( mHideUI )
       return;
 
+    SimWindowApi windowApi{};
+    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+
     const float w { 400 };
-    const float h { (float)GetDesktopWindowState( mWindowHandle )->mHeight };
+    const float h{ ( float )windowSize.y };
 
     ImGuiSetNextWindowSize( { w, h } );
     ImGuiSetNextWindowHandle( mWindowHandle );
@@ -948,8 +972,6 @@ namespace Tac
     ImGuiCheckbox( "Draw grid", &drawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
     ImGuiCheckbox( "draw gizmos", &sGizmosEnabled );
-
-
 
     if( mSoul )
     {
@@ -1088,26 +1110,70 @@ namespace Tac
     CameraWASDControls( gCreation.mEditorCamera );
   }
 
+
+  void                          CreationGameWindow::Render( Errors& errors )
+  {
+    SysWindowApi windowApi{};
+    if( !windowApi.IsShown( mWindowHandle ) )
+      return;
+
+    const v2i size{ windowApi.GetSize( mWindowHandle ) };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( Render::IContext::Scope renderScope{
+      renderDevice->CreateRenderContext( errors ) } );
+
+    Render::IContext* renderContext{ renderScope.GetContext() };
+
+    const Render::SwapChainHandle swapChainHandle{
+      windowApi.GetSwapChainHandle( mWindowHandle ) };
+
+    const Render::TextureHandle rtColor{
+      renderDevice->GetSwapChainCurrentColor( swapChainHandle ) };
+
+    const Render::TextureHandle rtDepth{
+      renderDevice->GetSwapChainDepth( swapChainHandle ) };
+
+    const Render::Targets renderTargets
+    {
+      .mColors{ rtColor },
+      .mDepth{ rtDepth },
+    };
+
+    renderContext->SetViewport( size );
+    renderContext->SetScissor( size );
+    renderContext->SetRenderTargets( renderTargets );
+
+    GamePresentationRender( gCreation.mWorld,
+                            gCreation.mEditorCamera,
+                            size,
+                            rtColor,
+                            rtDepth,
+                            &mWorldBuffers,
+                            errors );
+
+    RenderEditorWidgets( viewHandle );
+
+    VoxelGIPresentationRender( gCreation.mWorld,
+                               gCreation.mEditorCamera,
+                               desktopWindowState->mWidth,
+                               desktopWindowState->mHeight,
+                               viewHandle );
+
+    mDebug3DDrawData->DebugDraw3DToTexture( viewHandle,
+                                            gCreation.mEditorCamera,
+                                            desktopWindowState->mWidth,
+                                            desktopWindowState->mHeight,
+                                            errors );
+  }
+
   void CreationGameWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
-    const Render::ViewHandle viewHandle { WindowGraphicsGetView( mWindowHandle ) };
-    const Render::FramebufferHandle framebufferHandle { WindowGraphicsGetFramebuffer( mWindowHandle ) };
-
-    const DesktopWindowState* desktopWindowState { GetDesktopWindowState( mWindowHandle ) };
-    if( !desktopWindowState->mNativeWindowHandle )
+    SimWindowApi windowApi{};
+    if( !windowApi.IsShown( mWindowHandle ) )
       return;
-
-
-    const v2 size { desktopWindowState->GetSizeV2() };
-    const Render::Viewport viewport(size);
-    const Render::ScissorRect scissorRect(size);
-
-    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewport( viewHandle, viewport );
-    Render::SetViewScissorRect( viewHandle, scissorRect );
-
 
     if( mSoul )
     {
@@ -1124,8 +1190,6 @@ namespace Tac
       TAC_CALL( mSoul->Update( errors ) );
     }
 
-    if( drawGrid )
-      mDebug3DDrawData->DebugDraw3DGrid();
 
     MousePickingInit();
     CameraUpdateSaved();
@@ -1133,27 +1197,11 @@ namespace Tac
     ComputeArrowLen();
     MousePickingAll();
 
-    GamePresentationRender( gCreation.mWorld,
-                            gCreation.mEditorCamera,
-                            desktopWindowState->mWidth,
-                            desktopWindowState->mHeight,
-                            viewHandle );
-
-    RenderEditorWidgets( viewHandle );
-
-    VoxelGIPresentationRender( gCreation.mWorld,
-                               gCreation.mEditorCamera,
-                               desktopWindowState->mWidth,
-                               desktopWindowState->mHeight,
-                               viewHandle );
-
-    mDebug3DDrawData->DebugDraw3DToTexture( viewHandle,
-                                            gCreation.mEditorCamera,
-                                            desktopWindowState->mWidth,
-                                            desktopWindowState->mHeight,
-                                            errors );
-
     UpdateGizmo();
+
+    if( drawGrid )
+      mDebug3DDrawData->DebugDraw3DGrid();
+
     TAC_CALL( ImGuiOverlay( errors ) );
   }
 

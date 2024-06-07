@@ -87,8 +87,6 @@ PS_OUTPUT PS( VS_OUTPUT input )
 
   PS_OUTPUT output = ( PS_OUTPUT )0;
   output.mColor = sampled;
-  //output.mColor.xyz = pow( Color.xyz, 1.0 / 2.2 );
-  //output.mColor.w = Color.w;
 
   return output;
 }

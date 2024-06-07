@@ -5,7 +5,6 @@
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-std-lib/error/tac_assert.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
 namespace Tac::Render
 {

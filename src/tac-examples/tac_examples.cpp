@@ -60,8 +60,8 @@ namespace Tac
   static WindowHandle sNavWindow;
   static WindowHandle sDemoWindow;
   static SettingsNode sSettingsNode;
-  static const SimKeyboardApi sKeyboardApi;
-  static const SimWindowApi sWindowApi;
+  static SimKeyboardApi sKeyboardApi;
+  static SimWindowApi sWindowApi;
   static Debug3DDrawBuffers sDebug3DDrawBuffers;
 
   static void   ExamplesInitCallback( App::InitParams initParams, Errors& errors )
@@ -221,7 +221,7 @@ namespace Tac
     sKeyboardApi = updateParams.mKeyboardApi;
     sWindowApi = updateParams.mWindowApi;
 
-    if( sKeyboardApi->IsPressed( Key::Escape ) )
+    if( sKeyboardApi.IsPressed( Key::Escape ) )
       OS::OSAppStopRunning();
 
     //if( !sWindowApi->IsShown(sDemoWindow ) )
@@ -302,10 +302,10 @@ namespace Tac
   v3 Example::GetWorldspaceKeyboardDir()
   {
     v3 force{};
-    force += sKeyboardApi->IsPressed( Key::W ) ? mCamera->mUp : v3{};
-    force += sKeyboardApi->IsPressed( Key::A ) ? -mCamera->mRight : v3{};
-    force += sKeyboardApi->IsPressed( Key::S ) ? -mCamera->mUp : v3{};
-    force += sKeyboardApi->IsPressed( Key::D ) ? mCamera->mRight : v3{};
+    force += sKeyboardApi.IsPressed( Key::W ) ? mCamera->mUp : v3{};
+    force += sKeyboardApi.IsPressed( Key::A ) ? -mCamera->mRight : v3{};
+    force += sKeyboardApi.IsPressed( Key::S ) ? -mCamera->mUp : v3{};
+    force += sKeyboardApi.IsPressed( Key::D ) ? mCamera->mRight : v3{};
     const float q { force.Quadrance() };
     if( q )
       force /= Sqrt( q );

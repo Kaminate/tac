@@ -24,12 +24,11 @@ namespace Tac
     static CreationGameWindow*    Instance;
     void                          Init( Errors& );
     void                          Update( Errors& );
+    void                          Render( Errors& );
     void                          UpdateGizmo();
 
     //                            Render
-    void                          RenderEditorWidgets( WindowHandle );
     void                          RenderEditorWidgetsSelection( WindowHandle );
-    void                          RenderEditorWidgetsLights( WindowHandle );
     void                          RenderEditorWidgetsPicking( WindowHandle );
 
     //                            MousePicking
@@ -50,12 +49,23 @@ namespace Tac
 
     void                          SetStatusMessage( const StringView&, const TimestampDifference& );
 
+  private:
+    void                          RenderEditorWidgets( Render::IContext*,
+                                                       WindowHandle,
+                                                       Errors& );
+    void                          RenderEditorWidgetsLights( Render::IContext*,
+                                                             WindowHandle,
+                                                             Errors& );
+
     WindowHandle                  mWindowHandle             {};
     Soul*                         mSoul                     {};
     Render::ProgramHandle         mSpriteShader             {};
     Render::ProgramHandle         m3DShader                 {};
+    Render::PipelineHandle        mSpritePipeline           {};
     Render::PipelineHandle        m3DPipeline               {};
     Debug3DDrawData*              mDebug3DDrawData          {};
+    Debug3DDrawBuffers            mWorldBuffers             {};
+    Debug3DDrawBuffers            mDebugBuffers             {};
     Mesh*                         mArrow                    {};
     Mesh*                         mCenteredUnitCube         {};
     v3                            mViewSpaceUnitMouseDir    {};

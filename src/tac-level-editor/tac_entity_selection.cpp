@@ -5,6 +5,7 @@
 #include "tac-level-editor/tac_level_editor_game_window.h" // CreationGameWindow
 #include "tac-level-editor/tac_level_editor_prefab.h" // PrefabRemoveEntityRecursively
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/window/tac_sim_window_api.h"
 // TODO: remove dependency on these end
 
 #include "tac-ecs/entity/tac_entity.h"
@@ -101,20 +102,17 @@ namespace Tac
 
   void                SelectedEntities::DeleteEntitiesCheck()
   {
-    CreationGameWindow* gameWindow = CreationGameWindow::Instance;
+    CreationGameWindow* gameWindow { CreationGameWindow::Instance };
     if( !gameWindow || !gameWindow->mWindowHandle.IsValid() )
       return;
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( gameWindow->mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
+    SimWindowApi windowApi{};
+    SimKeyboardApi keyboardApi{};
+
+    if( !windowApi.IsHovered( gameWindow->mWindowHandle ) )
       return;
 
-    if( !IsWindowHovered( gameWindow->mWindowHandle ) )
-      return;
-
-    if( !KeyboardIsKeyJustDown( Key::Delete ) )
-      return;
-
-    DeleteEntities();
+    if( keyboardApi.JustPressed( Key::Delete ) )
+      DeleteEntities();
   }
 } // namespace Tac

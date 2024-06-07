@@ -212,13 +212,13 @@ namespace Tac
     // todo: this is ugly, fix it
     sApp->mSettingsNode = sSettingsRoot.GetRootNode();
 
-    const App::InitParams initParams2
-    {
-      .mWindowApi   { sSysWindowApi },
-      .mKeyboardApi { sSysKeyboardApi },
-    };
-    sApp->Init( initParams2, errors );
-    TAC_CALL( sApp->Init( initParams2, errors ) );
+    // designated initializer here throws c4700
+    App::InitParams initParams;
+    initParams.mWindowApi = sSysWindowApi;
+    initParams.mKeyboardApi = sSysKeyboardApi;
+
+    sApp->Init( initParams, errors );
+    TAC_CALL( sApp->Init( initParams, errors ) );
 
 
     std::thread logicThread( &SimThread::Update, sSimThread, std::ref( SSimErrors ) );

@@ -13,7 +13,6 @@
 
 namespace Tac
 {
-  // TODO: make not global and dependency inject
   struct SimWindowApi
   {
     bool         IsShown( WindowHandle ) const;

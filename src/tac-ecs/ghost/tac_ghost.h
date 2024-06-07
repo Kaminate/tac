@@ -44,7 +44,7 @@ namespace Tac
     void                   DebugImgui();
     Player*                mPlayer               {};
     Ghost*                 mGhost                {};
-    SimKeyboardApi        mKeyboardApi          {};
+    SimKeyboardApi         mKeyboardApi          {};
     String                 mName                 {};
     bool                   mHasControllerIndex   {};
     Controller::ControllerIndex mControllerIndex { Controller::TAC_CONTROLLER_COUNT_MAX };

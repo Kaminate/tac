@@ -101,11 +101,11 @@ namespace Tac
 
         Controller::UpdateJoysticks();
 
-        const App::UpdateParams updateParams
-        {
-          .mWindowApi   { windowApi },
-          .mKeyboardApi { keyboardApi },
-        };
+        // designated initializers throw c4700 for some reason
+        App::UpdateParams updateParams;
+        updateParams.mWindowApi = windowApi;
+        updateParams.mKeyboardApi = keyboardApi;
+
         TAC_CALL( mApp->Update( updateParams, errors ) );
 
         TAC_CALL( ImGuiEndFrame( errors ) );

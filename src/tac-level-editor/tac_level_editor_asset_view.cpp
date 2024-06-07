@@ -139,8 +139,8 @@ namespace Tac
   {
     //sAssetViewFiles.clear();
     //sAssetViewFolders.clear();
-    sAssetViewFiles = Filesystem::IterateFiles( sAssetViewFolderCur,
-                                                Filesystem::IterateType::Default,
+    sAssetViewFiles = FileSys::IterateFiles( sAssetViewFolderCur,
+                                                FileSys::IterateType::Default,
                                                 sAssetViewErrors );
     if( sAssetViewErrors )
       return;
@@ -149,8 +149,8 @@ namespace Tac
     //                                sAssetViewFolderCur,
     //                                OS::OSGetFilesInDirectoryFlags::Default,
     //                                sAssetViewErrors );
-    sAssetViewFolders = Filesystem::IterateDirectories( sAssetViewFolderCur,
-                                                        Filesystem::IterateType::Default,
+    sAssetViewFolders = FileSys::IterateDirectories( sAssetViewFolderCur,
+                                                        FileSys::IterateType::Default,
                                                         sAssetViewErrors );
     if( sAssetViewErrors )
       return;
@@ -380,24 +380,18 @@ namespace Tac
 
   static AssetViewImportedModel* CreateLoadedModel(const AssetPathStringView& assetPath)
   {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
     const Render::CreateTextureParams colorParams{ GetTexColorParams() };
-    const Render::TextureHandle textureHandleColor { Render::CreateTexture( colorParams, TAC_STACK_FRAME ) };
-    Render::SetRenderObjectDebugName( textureHandleColor, assetPath.GetFilename() );
+    const Render::TextureHandle textureHandleColor { renderDevice->CreateTexture( colorParams ) };
 
     const Render::CreateTextureParams depthParams{ GetTexDepthParams() };
-    const Render::TextureHandle textureHandleDepth { Render::CreateTexture( depthParams, TAC_STACK_FRAME ) };
-    Render::SetRenderObjectDebugName( textureHandleDepth, assetPath.GetFilename() );
-
-    const Render::FramebufferHandle framebufferHandle{ Render::CreateFramebufferForRenderToTexture(
-      { textureHandleColor, textureHandleDepth }, TAC_STACK_FRAME ) };
-    Render::ViewHandle viewHandle { Render::CreateView() };
+    const Render::TextureHandle textureHandleDepth { renderDevice->CreateTexture( depthParams) };
 
     AssetViewImportedModel* result{ TAC_NEW AssetViewImportedModel
     {
        .mTextureHandleColor { textureHandleColor },
        .mTextureHandleDepth { textureHandleDepth },
-       .mFramebufferHandle  { framebufferHandle },
-       .mViewHandle         { viewHandle },
        .mAssetPath          { assetPath },
     } };
 
