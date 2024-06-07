@@ -49,10 +49,8 @@ namespace Tac
       mApp = nullptr;
     }
 
-
-    if( !errors.empty() )
+    if( errors )
       OS::OSAppStopRunning();
-
   }
 
   void SimThread::Update( Errors& errors )

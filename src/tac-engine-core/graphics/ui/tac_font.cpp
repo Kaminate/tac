@@ -42,11 +42,10 @@ namespace Tac
   }
 
   const FontAtlasCell*  FontApi::GetFontAtlasCell( Language language,
-                                                   Codepoint codepoint,
-                                                   Errors& errors  )
+                                                   Codepoint codepoint )
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
-    return fontAtlas.GetCharacter( language, codepoint, errors );
+    return fontAtlas.GetCharacter( language, codepoint );
   }
 
   Render::TextureHandle FontApi::GetAtlasTextureHandle()

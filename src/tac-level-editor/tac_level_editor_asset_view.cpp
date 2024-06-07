@@ -43,23 +43,83 @@ namespace Tac
   };
 
 
-  using LoadedModelMap = Map< AssetPathString, AssetViewImportedModel* >;
+  using LoadedModels = Vector< AssetViewImportedModel* >;
 
   static AssetPathString   sAssetViewFolderCur;
   static Vector< String >  sAssetViewFolderStack;
   static Errors            sAssetViewErrors;
   static FileSys::Paths    sAssetViewFiles;
   static FileSys::Paths    sAssetViewFolders;
-  static LoadedModelMap    sLoadedModels;
+  static LoadedModels      sLoadedModels;
   static const int         w { 256 };
   static const int         h { 256 };
 
   static String LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
 
+  static bool HasExt( const FileSys::Path& path, Vector< const char* > extensions )
+  {
+    for( const char* ext : extensions )
+      if( path.u8string().ends_with( ext ) )
+        return true;
+
+    return false;
+  }
+
+  static bool IsImage( const FileSys::Path& path )
+  {
+    Vector< const char* > exts;
+    exts.push_back( ".png" );
+    exts.push_back( ".jpg" );
+    exts.push_back( ".bmp" );
+    return HasExt( path, exts );
+  }
+
+  static bool IsModel( const FileSys::Path& path )
+  {
+    Vector< const char* > exts;
+    exts.push_back( ".gltf" );
+    exts.push_back( ".glb" );
+    return HasExt( path, exts );
+  }
+
+
+  static FileSys::Paths GetImagePaths()
+  {
+    FileSys::Paths imagePaths;
+    for( const FileSys::Path& path : sAssetViewFiles )
+      if( IsImage( path ) )
+        imagePaths.push_back( path );
+
+    return imagePaths;
+  }
+
+  static FileSys::Paths GetModelPaths()
+  {
+    FileSys::Paths modelPaths;
+    for( const FileSys::Path& path : sAssetViewFiles )
+      if( IsModel( path ) )
+        modelPaths.push_back( path );
+
+    return modelPaths;
+  }
+
+  static FileSys::Paths GetOtherPaths()
+  {
+    FileSys::Paths otherPaths;
+    for( const FileSys::Path& path : sAssetViewFiles )
+      if( !IsImage( path ) && !IsModel( path ) )
+        otherPaths.push_back( path );
+
+    return otherPaths;
+  }
+
   static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
   {
-    auto loadedModelIt = sLoadedModels.Find( path );
-    return loadedModelIt ? loadedModelIt.GetValue() : nullptr;
+    for( AssetViewImportedModel* model : sLoadedModels )
+      if( ( StringView )model->mAssetPath == path )
+        return model;
+
+    return nullptr;
   }
 
   static RelativeSpace DecomposeGLTFTransform( const cgltf_node* node )
@@ -192,33 +252,10 @@ namespace Tac
     }
   }
 
-  static bool HasExt( const FileSys::Path& path, Vector< const char* > extensions )
-  {
-    for( const char* ext : extensions )
-      if( path.u8string().ends_with( ext ) )
-        return true;
-    return false;
-  }
 
-  static bool IsImage( const FileSys::Path& path )
+  static void UIFilesOther()
   {
-    Vector< const char* > exts;
-    exts.push_back( ".png" );
-    exts.push_back( ".jpg" );
-    exts.push_back( ".bmp" );
-    return HasExt( path, exts );
-  }
-
-  static bool IsModel( const FileSys::Path& path )
-  {
-    Vector< const char* > exts;
-    exts.push_back( ".gltf" );
-    exts.push_back( ".glb" );
-    return HasExt( path, exts );
-  }
-
-  static void UIFilesOther( const FileSys::Paths& paths )
-  {
+    FileSys::Paths paths{ GetOtherPaths() };
     for( const FileSys::Path& path : paths )
       ImGuiText( path.u8string() );
   }
@@ -380,15 +417,18 @@ namespace Tac
     return texSpecDepth;
   }
 
-  static AssetViewImportedModel* CreateLoadedModel(const AssetPathStringView& assetPath)
+  static AssetViewImportedModel* CreateLoadedModel( const AssetPathStringView& assetPath,
+                                                    Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     const Render::CreateTextureParams colorParams{ GetTexColorParams() };
-    const Render::TextureHandle textureHandleColor { renderDevice->CreateTexture( colorParams ) };
+    TAC_CALL_RET( {}, const Render::TextureHandle textureHandleColor{
+      renderDevice->CreateTexture( colorParams, errors ) } );
 
     const Render::CreateTextureParams depthParams{ GetTexDepthParams() };
-    const Render::TextureHandle textureHandleDepth { renderDevice->CreateTexture( depthParams) };
+    TAC_CALL_RET( {}, const Render::TextureHandle textureHandleDepth{
+      renderDevice->CreateTexture( depthParams, errors ) } );
 
     AssetViewImportedModel* result{ TAC_NEW AssetViewImportedModel
     {
@@ -397,7 +437,7 @@ namespace Tac
        .mAssetPath          { assetPath },
     } };
 
-    sLoadedModels[ assetPath ] = result;
+    sLoadedModels.push_back( result );
     return result;
   }
 
@@ -430,32 +470,21 @@ namespace Tac
                             errors );
   }
 
-  static void UIFilesModel( const FileSys::Path& path )
+
+
+  static void UIFilesModels()
   {
-    Errors errors;
-    AssetPathString assetPath { ModifyPathRelative( path, errors ) };
-    TAC_ASSERT( !errors );
-
-    AssetViewImportedModel* loadedModel { GetLoadedModel( assetPath ) };
-    if( !loadedModel )
-      loadedModel = CreateLoadedModel( assetPath );
-
-    AttemptLoadEntity( loadedModel, assetPath );
-
-    RenderImportedModel( loadedModel, errors );
-  }
-
-  static void UIFilesModels( const FileSys::Paths& paths )
-  {
+    FileSys::Paths paths{ GetModelPaths() };
     for( const FileSys::Path& path : paths )
     {
-      UIFilesModel( path );
       UIFilesModelImGui( path );
     }
   }
 
-  static void UIFilesImages( const FileSys::Paths& paths )
+  static void UIFilesImages()
   {
+    FileSys::Paths paths{ GetImagePaths() };
+
     int shownImageCount {};
     bool goSameLine {};
     for( const FileSys::Path& path : paths )
@@ -487,59 +516,70 @@ namespace Tac
     if( sAssetViewFiles.empty() )
       ImGuiText( "no files :(" );
 
-    FileSys::Paths imagePaths;
-    FileSys::Paths modelPaths;
-    FileSys::Paths otherPaths;
-
-    for( const FileSys::Path& path : sAssetViewFiles )
-    {
-      if( IsImage( path ) )
-        imagePaths.push_back( path );
-      else if( IsModel( path ) )
-        modelPaths.push_back( path );
-      else
-        otherPaths.push_back( path );
-    }
-
-    UIFilesImages( imagePaths );
-    UIFilesModels( modelPaths );
-    UIFilesOther( otherPaths );
+    UIFilesImages();
+    UIFilesModels();
+    UIFilesOther();
   }
 
 
 } // namespace Tac
 
-  void Tac::CreationUpdateAssetView()
+void Tac::CreationUpdateAssetView()
+{
+  TAC_PROFILE_BLOCK;
+  ImGuiSetNextWindowStretch();
+  ImGuiSetNextWindowMoveResize();
+  const bool open { ImGuiBegin( "Asset View" ) };
+  if( open )
   {
-    TAC_PROFILE_BLOCK;
-    ImGuiSetNextWindowStretch();
-    ImGuiSetNextWindowMoveResize();
-    const bool open { ImGuiBegin( "Asset View" ) };
-    if( open )
+    ImGuiText( "--- Asset View ---" );
+    if( sAssetViewErrors )
+      ImGuiText( sAssetViewErrors.ToString() );
+
+    const int oldStackSize = sAssetViewFolderStack.size();
+
+    if( sAssetViewFolderStack.empty() )
     {
-      ImGuiText( "--- Asset View ---" );
-      if( sAssetViewErrors )
-        ImGuiText( sAssetViewErrors.ToString() );
-
-      const int oldStackSize = sAssetViewFolderStack.size();
-
-      if( sAssetViewFolderStack.empty() )
-      {
-        //const String root = "assets";
-        //const FileSys::Path root = ShellGetInitialWorkingDir() / "assets";
-        sAssetViewFolderStack.push_back( "assets" );
-      }
-
-      UIFoldersUpToCurr();
-      UIFoldersNext();
-      UIFiles();
-
-      if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
-      {
-        sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
-        PopulateFolderContents();
-      }
+      //const String root = "assets";
+      //const FileSys::Path root = ShellGetInitialWorkingDir() / "assets";
+      sAssetViewFolderStack.push_back( "assets" );
     }
-    ImGuiEnd();
+
+    UIFoldersUpToCurr();
+    UIFoldersNext();
+    UIFiles();
+
+    if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
+    {
+      sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
+      PopulateFolderContents();
+    }
   }
+  ImGuiEnd();
+}
+
+void Tac::CreationRenderAssetView( Errors& errors )
+{
+  const FileSys::Paths paths{ GetModelPaths() };
+  for( const FileSys::Path& path : paths )
+  {
+    TAC_CALL( AssetPathString assetPath{ ModifyPathRelative( path, errors ) } );
+
+    AssetViewImportedModel* loadedModel{ GetLoadedModel( assetPath ) };
+    if( !loadedModel )
+    {
+      TAC_CALL( loadedModel = CreateLoadedModel( assetPath, errors ) );
+    }
+
+    AttemptLoadEntity( loadedModel, assetPath );
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( Render::IContext::Scope renderContext{
+      renderDevice->CreateRenderContext( errors ) } );
+
+    RenderImportedModel( renderContext, loadedModel, errors );
+
+    TAC_CALL( renderContext->Execute( errors ) );
+  }
+}
 

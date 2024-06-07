@@ -212,7 +212,7 @@ namespace Tac
   bool CreationPropertyWindow::sShowWindow{};
 
 
-  void CreationPropertyWindow::Update( Errors& errors )
+  void CreationPropertyWindow::Update( SettingsNode settingsNode, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
@@ -241,7 +241,8 @@ namespace Tac
       if( prefabAssetPath.size() )
       {
         Camera* cam { world->mEntities.size() ? nullptr : gCreation.mEditorCamera };
-        TAC_CALL( PrefabLoadAtPath( &gCreation.mEntityUUIDCounter,
+        TAC_CALL( PrefabLoadAtPath( settingsNode,
+                                    &gCreation.mEntityUUIDCounter,
                                     world,
                                     cam,
                                     prefabAssetPath,

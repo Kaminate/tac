@@ -57,9 +57,6 @@ namespace Tac
   static const TimestampDifference errorDurationSecs { 60.0f };
   static const TimestampDifference successDurationSecs { 5.0f };
 
-  static void   CreationInitCallback( Errors& errors )   { gCreation.Init( errors ); }
-  static void   CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
-  static void   CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
 
   static String CreationGetNewEntityName()
   {
@@ -113,25 +110,49 @@ namespace Tac
   struct LevelEditorApp : public App
   {
     LevelEditorApp( const Config& cfg ) : App( cfg ) {}
-    void Init( App::InitParams, Errors& errors ) override { CreationInitCallback( errors ); }
-    void Update( App::UpdateParams, Errors& errors ) override { CreationUpdateCallback( errors ); }
-    void Render( App::RenderParams, Errors& ) override {}
-    void Uninit( Errors& errors ) override { CreationUninitCallback( errors ); }
+
+    void Init( App::InitParams initParams, Errors& errors ) override
+    {
+       gCreation.Init( mSettingsNode, errors );
+    }
+
+    void Update( App::UpdateParams, Errors& errors ) override
+    {
+      gCreation.Update( errors );
+    }
+
+    void Render( App::RenderParams, Errors& errors ) override
+    {
+      gCreation.Render( errors );
+    }
+
+    void Uninit( Errors& errors ) override
+    {
+      gCreation.Uninit( errors );
+    }
   };
 
-  App* App::Create() { return TAC_NEW LevelEditorApp( { .mName = "Level Editor" } ); }
+  App* App::Create()
+  {
+    const App::Config config
+    {
+      .mName { "Level Editor"  },
+    };
+    return TAC_NEW LevelEditorApp( config );
+  }
 
   //===-------------- Creation -------------===//
 
-  void                Creation::Init( Errors& errors )
+  void                Creation::Init( SettingsNode settingsNode, Errors& errors )
   {
+    mSettingsNode = settingsNode;
     mWorld = TAC_NEW World;
     mEditorCamera = TAC_NEW Camera
     {
-      .mPos = { 0, 1, 5 },
-      .mForwards = { 0, 0, -1 },
-      .mRight = { 1, 0, 0 },
-      .mUp = { 0, 1, 0 }
+      .mPos       { 0, 1, 5 },
+      .mForwards  { 0, 0, -1 },
+      .mRight     { 1, 0, 0 },
+      .mUp        { 0, 1, 0 }
     };
 
     TAC_CALL( SkyboxPresentationInit( errors ) );
@@ -144,9 +165,9 @@ namespace Tac
     TAC_CALL( VoxelGIPresentationInit( errors ) );
 #endif
 
-    TAC_CALL( mWindowManager.CreateInitialWindows( errors ) );
+    TAC_CALL( PrefabLoad( mSettingsNode, &mEntityUUIDCounter, mWorld, mEditorCamera, errors ) );
 
-    TAC_CALL( PrefabLoad( &mEntityUUIDCounter, mWorld, mEditorCamera, errors ) );
+    mSelectedEntities.mSettingsNode = mSettingsNode;
   }
 
   void                Creation::Uninit( Errors& errors )
@@ -160,15 +181,15 @@ namespace Tac
 
   }
 
+  void                Creation::Render( Errors& )
+  {
+  }
   void                Creation::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
     CheckSavePrefab();
 
-
-    if( mWindowManager.AllWindowsClosed() )
-      OS::OSAppStopRunning();
 
     if( mUpdateAssetView )
       CreationUpdateAssetView();

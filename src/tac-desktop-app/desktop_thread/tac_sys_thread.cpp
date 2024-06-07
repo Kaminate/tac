@@ -57,7 +57,7 @@ namespace Tac
   void SysThread::Uninit()
   {
     Errors& errors { *mErrors };
-    if( !errors.empty() )
+    if( errors )
       OS::OSAppStopRunning();
 
     //if( mApp->IsRenderEnabled() )

@@ -15,19 +15,19 @@ namespace Tac::Render
     if( mMoved )
       return;
 
-    Errors& errors = *mParentScopeErrors;
+    Errors& errors { *mParentScopeErrors };
 
-    ID3D12GraphicsCommandList* commandList = mContext.GetCommandList();
+    ID3D12GraphicsCommandList* commandList { mContext.GetCommandList() };
     
     // Indicates that recording to the command list has finished.
     TAC_DX12_CALL( commandList->Close() );
 
-    FenceSignal fenceSignal = TAC_CALL( mCommandQueue->ExecuteCommandList( commandList, errors ) );
+    TAC_CALL( FenceSignal fenceSignal{
+      mCommandQueue->ExecuteCommandList( commandList, errors ) } );
 
     if( mSynchronous )
     {
-      mCommandQueue->WaitForFence( fenceSignal, errors );
-      TAC_ASSERT( !errors );
+      TAC_CALL( mCommandQueue->WaitForFence( fenceSignal, errors ) );
     }
 
     mCommandAllocatorPool->Retire( mContext.mCommandAllocator, fenceSignal );
@@ -98,7 +98,7 @@ namespace Tac::Render
 
     if( mAvailableContexts.empty() )
     {
-      PCom<ID3D12GraphicsCommandList > cmdList = TAC_CALL_RET( {}, CreateCommandList( errors ) );
+      TAC_CALL_RET( {}, PCom<ID3D12GraphicsCommandList > cmdList{ CreateCommandList( errors ) } );
       context.mCommandList = cmdList;
       context.mGPUUploadAllocator.Init(mUploadPageManager);
     }
@@ -108,8 +108,8 @@ namespace Tac::Render
       mAvailableContexts.pop_back();
     }
 
-    context.mCommandAllocator = 
-        TAC_CALL_RET( {}, mCommandAllocatorPool->GetAllocator( errors ) );
+    TAC_CALL_RET( {}, context.mCommandAllocator =
+                  mCommandAllocatorPool->GetAllocator( errors ) );
 
     ID3D12GraphicsCommandList* dxCommandList { context.GetCommandList() };
     ID3D12CommandAllocator* dxCommandAllocator { context.mCommandAllocator.Get() };

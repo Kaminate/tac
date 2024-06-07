@@ -130,7 +130,7 @@ namespace Tac
     static void                  Init( Errors& );
     static void                  Uninit();
     static const FontDims*       GetLanguageFontDims( Language );
-    static const FontAtlasCell*  GetFontAtlasCell( Language, Codepoint, Errors& );
+    static const FontAtlasCell*  GetFontAtlasCell( Language, Codepoint );
     static Render::TextureHandle GetAtlasTextureHandle();
     static float                 GetSDFOnEdgeValue(); // [0,1]
     static float                 GetSDFPixelDistScale(); // [0,1]

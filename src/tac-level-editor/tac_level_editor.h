@@ -4,6 +4,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-level-editor/tac_entity_selection.h"
@@ -14,9 +15,10 @@ namespace Tac
 
   struct Creation
   {
-    void                Init( Errors& );
+    void                Init( SettingsNode, Errors& );
     void                Uninit( Errors& );
     void                Update( Errors& );
+    void                Render( Errors& );
 
     // Entities
     RelativeSpace       GetEditorCameraVisibleRelativeSpace();
@@ -39,6 +41,7 @@ namespace Tac
 
     bool                mUpdateAssetView         {};
     EntityUUIDCounter   mEntityUUIDCounter       {};
+    SettingsNode        mSettingsNode            {};
   };
 
   //===-------------- Misc -----------------===//

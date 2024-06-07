@@ -121,19 +121,19 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void                Creation::Init( Errors& errors )
+  void                Creation::Init( Errors& )
   {
   }
   
 
-  void                Creation::Uninit( Errors& errors )
+  void                Creation::Uninit( Errors& )
   {
   }
   
 
   void                Creation::Update( const SimKeyboardApi keyboardApi,
                                         const SimWindowApi windowApi,
-                                        Errors& errors )
+                                        Errors& )
   {
     mShowUnownedWindow = false;
     mShowOwnedWindow = true;
@@ -206,8 +206,8 @@ namespace Tac
         //ImGuiSetCursorPos( textBoxPos + v2( 0, ImGuiGetFontSize() * 3 ) );
         //ImGuiDragFloat2( "offset", textBoxOffset.data() );
 
-        FontApi::GetFontAtlasCell( Language::English, 'a', errors );
-        FontApi::GetFontAtlasCell( Language::English, 'b', errors );
+        FontApi::GetFontAtlasCell( Language::English, 'a' );
+        FontApi::GetFontAtlasCell( Language::English, 'b' );
 
 
 

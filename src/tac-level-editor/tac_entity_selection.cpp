@@ -24,12 +24,13 @@ namespace Tac
 
   void                SelectedEntities::DeleteEntities()
   {
+    SettingsNode settingsNode{ mSettingsNode };
     Vector< Entity* > topLevelEntitiesToDelete;
 
     for( Entity* entity : mSelectedEntities )
     {
-      bool isTopLevel = true;
-      for( Entity* parent = entity->mParent; parent; parent = parent->mParent )
+      bool isTopLevel { true };
+      for( Entity* parent { entity->mParent }; parent; parent = parent->mParent )
       {
         if( Contains( mSelectedEntities, parent ) )
         {
@@ -46,7 +47,7 @@ namespace Tac
 
     for( Entity* entity : topLevelEntitiesToDelete )
     {
-      PrefabRemoveEntityRecursively( entity );
+      PrefabRemoveEntityRecursively( settingsNode, entity );
       gCreation.mWorld->KillEntity( entity );
     }
 
@@ -79,8 +80,8 @@ namespace Tac
     TAC_ASSERT( !empty() );
 
     // do i really want average? or like center of bounding circle?
-    v3 runningPosSum = {};
-    int selectionCount = 0;
+    v3 runningPosSum  {};
+    int selectionCount {  };
     for( Entity* entity : mSelectedEntities )
     {
       runningPosSum += ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
@@ -88,8 +89,8 @@ namespace Tac
       selectionCount++;
     }
 
-    const v3 averagePos = runningPosSum / ( float )selectionCount;
-    const v3 result = averagePos;
+    const v3 averagePos { runningPosSum / ( float )selectionCount };
+    const v3 result { averagePos };
     //if( mSelectedHitOffsetExists )
     //  result += mSelectedHitOffset;
     return result;

@@ -228,8 +228,7 @@ namespace Tac::Render
 
     if( mState.mSynchronous )
     {
-      mCommandQueue->WaitForFence( fenceSignal, errors );
-      TAC_ASSERT( !errors );
+      TAC_CALL( mCommandQueue->WaitForFence( fenceSignal, errors ) );
     }
 
 

@@ -628,11 +628,8 @@ namespace Tac
         continue;
       }
 
-      Errors errors;
       const FontAtlasCell* fontAtlasCell {
-        FontApi::GetFontAtlasCell( defaultLanguage, codepoint, errors ) };
-
-      TAC_ASSERT_MSG( !errors, errors.ToString() ); // todo: better error handling here
+        FontApi::GetFontAtlasCell( defaultLanguage, codepoint ) };
 
       if( !fontAtlasCell )
         continue;
@@ -835,11 +832,8 @@ namespace Tac
         }
       }
 
-      Errors errors;
       const FontAtlasCell* fontAtlasCell{
-        FontApi::GetFontAtlasCell( defaultLanguage, codepoint, errors ) };
-
-      TAC_ASSERT_MSG( !errors, errors.ToString() ); // todo: better error handling here
+        FontApi::GetFontAtlasCell( defaultLanguage, codepoint ) };
 
       if( !fontAtlasCell )
         continue;

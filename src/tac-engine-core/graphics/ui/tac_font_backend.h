@@ -54,7 +54,7 @@ namespace Tac
     void                            UpdateGPU( Errors& );
     void                            DebugImgui();
 
-    FontAtlasCell*                  GetCharacter( Language, Codepoint, Errors& );
+    FontAtlasCell*                  GetCharacter( Language, Codepoint );
     FontAtlasCell*                  GetCell();
     float                           GetSDFOnEdgeValue() const;
     float                           GetSDFPixelDistScale() const;

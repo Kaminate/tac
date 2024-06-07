@@ -331,8 +331,7 @@ namespace Tac
   }
 
   FontAtlasCell*        FontAtlas::GetCharacter( Language defaultLanguage,
-                                                 Codepoint codepoint,
-                                                 Errors& errors )
+                                                 Codepoint codepoint )
   {
     // For an example, see https://github.com/nothings/stb/blob/master/tests/sdf/sdf_test.c
 

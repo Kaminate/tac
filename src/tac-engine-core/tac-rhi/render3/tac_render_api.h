@@ -431,6 +431,7 @@ namespace Tac::Render
       ~Scope();
       IContext* operator ->();
       IContext* GetContext() { return mContext; }
+      operator IContext* ( ) { return mContext; }
     private:
       IContext* mContext{};
     };
