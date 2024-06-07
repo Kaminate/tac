@@ -1,20 +1,20 @@
 #pragma once
 
 #include "tac-ecs/tac_space.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/string/tac_string.h"
 
 namespace Tac
 {
-  struct Debug3DDrawData;
   struct Creation;
   struct Shader;
   struct Soul;
-  struct UI2DDrawData;
 
   struct CreationGameWindow
   {
@@ -75,6 +75,7 @@ namespace Tac
     String                        mStatusMessage            {};
     Timestamp                     mStatusMessageEndTime     {};
     bool                          mCloseRequested           {};
+    SettingsNode                  mSettingsNode             {};
   };
 
   const char* const gGameWindowName { "VirtualGamePlayer" };

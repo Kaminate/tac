@@ -1,28 +1,56 @@
 #include "tac_level_editor_main_window.h" // self-inc
 
-#include "src/common/assetmanagers/tac_texture_asset_manager.h"
-#include "src/common/assetmanagers/tac_asset.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/world/tac_world.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/os/tac_filesystem.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "src/common/dataprocess/tac_json.h"
-#include "src/common/input/tac_keyboard_input.h"
-#include "tac-std-lib/os/tac_os.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/tac_level_editor_game_object_menu_window.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_graphics.h"
-#include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/world/tac_world.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {
+  static void ButtonsToOpenEditorWindows()
+  {
+#if 0
+    const struct
+    {
+      using Fn = void ( LevelEditorWindowManager::* )( Errors& );
+      const char* mName;
+      Fn          mFn;
+    } buttons[] =
+    {
+      { "System",  &LevelEditorWindowManager::CreateSystemWindow },
+      { "Game",  &LevelEditorWindowManager::CreateGameWindow },
+      { "Properties",  &LevelEditorWindowManager::CreatePropertyWindow },
+      { "Profile",  &LevelEditorWindowManager::CreateProfileWindow },
+    };
+
+    // c++17 structured binding
+    for( auto [name, fn] : buttons )
+    {
+      if( ImGuiButton(name) )
+      {
+        TAC_CALL( ( gCreation.mWindowManager.*fn ) ( errors ) );
+      }
+    }
+#endif
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
   CreationMainWindow* CreationMainWindow::Instance { nullptr };
 
   CreationMainWindow::CreationMainWindow()
@@ -32,16 +60,18 @@ namespace Tac
 
   CreationMainWindow::~CreationMainWindow()
   {
-    DesktopApp::GetInstance()->DestroyWindow( mWindowHandle );
-    SimWindowApi windowApi{};
-    windowApi.DestroyWindow( mWindowHandle );
+    Uninit();
     Instance = nullptr;
-    //TAC_DELETE mUI2DDrawData;
+  }
+
+  void CreationMainWindow::Uninit()
+  {
+    SimWindowApi windowApi;
+    windowApi.DestroyWindow( mWindowHandle );
   }
 
   void CreationMainWindow::Init( Errors& )
   {
-    //mUI2DDrawData = TAC_NEW UI2DDrawData;
     mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gMainWindowName );
   }
 
@@ -79,27 +109,7 @@ namespace Tac
     ImGuiText( "Windows" );
     ImGuiIndent();
 
-    const struct
-    {
-      using Fn = void ( LevelEditorWindowManager::* )( Errors& );
-      const char* mName;
-      Fn          mFn;
-    } buttons[] =
-    {
-      { "System",  &LevelEditorWindowManager::CreateSystemWindow },
-      { "Game",  &LevelEditorWindowManager::CreateGameWindow },
-      { "Properties",  &LevelEditorWindowManager::CreatePropertyWindow },
-      { "Profile",  &LevelEditorWindowManager::CreateProfileWindow },
-    };
-
-    // c++17 structured binding
-    for( auto [name, fn] : buttons )
-    {
-      if( ImGuiButton(name) )
-      {
-        TAC_CALL( ( gCreation.mWindowManager.*fn ) ( errors ) );
-      }
-    }
+    ButtonsToOpenEditorWindows();
 
     if( ImGuiButton( "Asset View" ) )
     {
@@ -137,7 +147,7 @@ namespace Tac
 
     const AssetSaveDialogParams saveParams
     {
-      .mSuggestedFilename = entity->mName + ".prefab",
+      .mSuggestedFilename { entity->mName + ".prefab" },
     };
 
     const AssetPathStringView assetPath = TAC_CALL( AssetSaveDialog( saveParams, errors ) );
@@ -152,10 +162,10 @@ namespace Tac
     TAC_CALL( SaveToFile( assetPath, bytes, byteCount, errors ) );
   }
 
-  void CreationMainWindow::ImGui(Errors& errors)
+  void CreationMainWindow::ImGui( Errors& errors )
   {
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
+    SimWindowApi windowApi;
+    if( !windowApi.IsShown( mWindowHandle ) )
       return;
 
     ImGuiSetNextWindowHandle( mWindowHandle );
@@ -186,38 +196,20 @@ namespace Tac
   {
     TAC_PROFILE_BLOCK;
 
-    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mWindowHandle );
-    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mWindowHandle );
+    SimWindowApi windowApi;
+    SimKeyboardApi keyboardApi;
+
 
     TAC_CALL( LoadTextures( errors ) );
-
-
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
     TAC_CALL( ImGui( errors ) );
-
-    const v2 size = desktopWindowState->GetSizeV2();
-    const Render::Viewport viewport = size;
-    const Render::ScissorRect scissorRect = size;
-
-    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewport( viewHandle, viewport );
-    Render::SetViewScissorRect( viewHandle, scissorRect );
-
-    //TAC_CALL(mUI2DDrawData->DrawToTexture( viewHandle,
-    //                              desktopWindowState->mWidth,
-    //                              desktopWindowState->mHeight,
-    //                              errors ) );
 
     if( CreationGameObjectMenuWindow::Instance )
     {
-      WindowHandle WindowHandle = CreationGameObjectMenuWindow::Instance->mWindowHandle;
+      WindowHandle windowHandle { CreationGameObjectMenuWindow::Instance->mWindowHandle };
       TAC_CALL( CreationGameObjectMenuWindow::Instance->Update( errors ) );
 
-      if( Mouse::ButtonJustDown( Mouse::Button::MouseLeft )
-          && !IsWindowHovered( WindowHandle )
+      if( keyboardApi.JustPressed( Key::MouseLeft )
+          && !windowApi.IsHovered( windowHandle )
           && Timestep::GetElapsedTime() != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
       {
         TAC_DELETE CreationGameObjectMenuWindow::Instance;

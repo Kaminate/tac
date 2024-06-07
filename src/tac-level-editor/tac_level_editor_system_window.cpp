@@ -1,61 +1,42 @@
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
-#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/settings/tac_settings_node.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-level-editor/tac_level_editor.h"
-#include "tac-level-editor/tac_level_editor_system_window.h"
+#include "tac_level_editor_system_window.h" // self-inc
+
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_graphics.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/system/tac_system.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-level-editor/tac_level_editor.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac
 {
-  static const SystemRegistryEntry* sSystemRegistryEntry;
+  static const SystemRegistryEntry* sSystemRegistryEntry{};
+  static const char*                nSysPath{ "SystemWindow.nSys" };
+  static bool                       sInitialized;
 
-  static const char* GetNSysPath() { return "SystemWindow.nSys"; }
-
-  CreationSystemWindow* CreationSystemWindow::Instance { nullptr };
-
-  CreationSystemWindow::CreationSystemWindow() { Instance = this; }
-
-  CreationSystemWindow::~CreationSystemWindow()
+  static void Initialize( SettingsNode mSettingsNode  )
   {
-    SimWindowApi windowApi{};
-    windowApi.DestroyWindow( mWindowHandle );
-    Instance = nullptr;
-  }
-
-  void CreationSystemWindow::Init( Errors& errors )
-  {
-    TAC_UNUSED_PARAMETER( errors );
-    const String systemName = SettingsGetString( GetNSysPath(), "" );
+    const String systemName{ mSettingsNode.GetChild( nSysPath ).GetValueWithFallback( "" ) };
     for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
-      if( !StrCmp( entry.mName, systemName.c_str() ) )
+      if( entry.mName == systemName.c_str() )
         sSystemRegistryEntry = &entry;
-
-    mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gSystemWindowName );
   }
 
-  void CreationSystemWindow::ImGui()
+  void CreationSystemWindow::Update( SettingsNode mSettingsNode )
   {
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
-    ImGuiSetNextWindowHandle( mWindowHandle );
+    Initialize( mSettingsNode );
     ImGuiSetNextWindowStretch();
 
-
-
-    ImGuiBegin( "System Window" );
+    if( !ImGuiBegin( "System Window" ) )
+      return;
 
 
     if( ImGuiCollapsingHeader( "Select System" ) )
@@ -66,8 +47,9 @@ namespace Tac
         if( ImGuiButton( systemRegistryEntry.mName ) )
         {
           sSystemRegistryEntry = &systemRegistryEntry;
-          SettingsSetString( GetNSysPath(), systemRegistryEntry.mName );
+          mSettingsNode.GetChild( nSysPath ).SetValue( systemRegistryEntry.mName );
         }
+
         if( sSystemRegistryEntry == &systemRegistryEntry )
         {
           ImGuiSameLine();
@@ -76,41 +58,22 @@ namespace Tac
       }
     }
 
+    const ShortFixedString headerStr{
+      ShortFixedString::Concat( sSystemRegistryEntry->mName, " Debug" ) };
+
     if( sSystemRegistryEntry &&
         sSystemRegistryEntry->mDebugImGui &&
-        ImGuiCollapsingHeader( ShortFixedString::Concat( sSystemRegistryEntry->mName, " Debug" ) ) )
+        ImGuiCollapsingHeader( headerStr ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      System* system = gCreation.mWorld->GetSystem( sSystemRegistryEntry );
+      System* system { gCreation.mWorld->GetSystem( sSystemRegistryEntry ) };
       sSystemRegistryEntry->mDebugImGui( system );
     }
 
-    mCloseRequested |= ImGuiButton( "Close window" );
+    if( ImGuiButton( "Close Window" ) )
+      sShowWindow = false;
 
-    // to force directx graphics specific window debugging
-    //if( ImGuiButton( "close window" ) )
-    //{
-    //  mDesktopWindow->mRequestDeletion = true;
-    //}
     ImGuiEnd();
   }
-
-  void CreationSystemWindow::Update( Errors& errors )
-  {
-    TAC_PROFILE_BLOCK;
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
-    ImGui();
-    const v2 size = desktopWindowState->GetSizeV2();
-    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mWindowHandle );
-    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mWindowHandle );
-    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewport( viewHandle, Render::Viewport(size) );
-    Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
-  }
-
-
 }
 

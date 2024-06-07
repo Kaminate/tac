@@ -102,16 +102,7 @@ namespace Tac
 
   void                SelectedEntities::DeleteEntitiesCheck()
   {
-    CreationGameWindow* gameWindow { CreationGameWindow::Instance };
-    if( !gameWindow || !gameWindow->mWindowHandle.IsValid() )
-      return;
-
-    SimWindowApi windowApi{};
     SimKeyboardApi keyboardApi{};
-
-    if( !windowApi.IsHovered( gameWindow->mWindowHandle ) )
-      return;
-
     if( keyboardApi.JustPressed( Key::Delete ) )
       DeleteEntities();
   }

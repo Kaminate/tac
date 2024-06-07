@@ -4,7 +4,6 @@
 #include "tac_dx12_tutorial_2_dxc.h"
 #include "tac_dx12_tutorial.h"
 
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"

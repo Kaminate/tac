@@ -25,6 +25,7 @@ namespace Tac
     static CreationMainWindow* Instance;
 
     void                       Init( Errors& );
+    void                       Uninit();
     void                       Update( Errors& );
     void                       LoadTextures( Errors& );
     void                       ImGui( Errors& );
@@ -32,7 +33,7 @@ namespace Tac
     void                       ImGuiSaveAs();
     void                       ImGuiSaveAs( Entity*, Errors& );
 
-    WindowHandle        mWindowHandle;
+    WindowHandle               mWindowHandle;
     UIRoot*                    mUIRoot               {};
     //UI2DDrawData*              mUI2DDrawData       {};
     Texture*                   mIconWindow           {};

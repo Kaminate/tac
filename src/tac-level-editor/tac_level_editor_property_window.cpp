@@ -1,36 +1,34 @@
 #include "tac_level_editor_property_window.h" // self-inc
 
-#include "src/common/assetmanagers/tac_asset.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/containers/tac_map.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-ecs/component/tac_component.h"
+#include "tac-ecs/component/tac_component_registry.h"
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/system/tac_system.h"
+#include "tac-ecs/tac_space_types.h"
+#include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-std-lib/memory/tac_frame_memory.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-std-lib/string/tac_string_util.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/os/tac_os.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "src/shell/tac_desktop_window_graphics.h"
-
-#include "space/graphics/model/tac_model.h"
-#include "tac-ecs/tac_component.h"
-#include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/tac_component_registry.h"
-#include "tac-ecs/tac_space_types.h"
-#include "tac-ecs/system/tac_system.h"
-#include "tac-ecs/world/tac_world.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/containers/tac_map.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac
 {
   static void EntityImGuiRotation( Entity* entity )
   {
-    v3& eulerRads = entity->mRelativeSpace.mEulerRads;
-    v3 eulerDegs = RadiansToDegrees( eulerRads );
+    v3& eulerRads { entity->mRelativeSpace.mEulerRads };
+    v3 eulerDegs { RadiansToDegrees( eulerRads ) };
 
     if( !ImGuiDragFloat3( "eul deg", eulerDegs.data() ) )
       return;
@@ -50,12 +48,12 @@ namespace Tac
     // true if requested to be uniform, false if requested to be separate
     static Map< Entity*, bool > sRequests;
 
-    v3& scale = entity->mRelativeSpace.mScale;
+    v3& scale { entity->mRelativeSpace.mScale };
 
-    bool isUniform
-      =  sRequests.contains( entity ) 
-      ?  sRequests[ entity ]
-      : scale.x == scale.y && scale.x == scale.z;
+    bool isUniform{
+      sRequests.contains( entity )
+    ? sRequests[ entity ]
+    : scale.x == scale.y && scale.x == scale.z };
 
     if( isUniform )
     {
@@ -131,10 +129,13 @@ namespace Tac
     {
       if( potentialParent == entity )
         continue;
+
       if( entity->mParent == potentialParent )
         continue;
+      
       potentialParents.push_back( potentialParent );
     }
+
     if( !potentialParents.empty() && ImGuiCollapsingHeader( "Set Parent" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
@@ -156,7 +157,8 @@ namespace Tac
         addableComponentTypes.push_back( &componentRegistryEntry );
         continue;
       }
-      Component* component = entity->GetComponent( &componentRegistryEntry );
+
+      Component* component { entity->GetComponent( &componentRegistryEntry ) };
       if( ImGuiCollapsingHeader( componentRegistryEntry.mName ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
@@ -178,10 +180,10 @@ namespace Tac
       TAC_IMGUI_INDENT_BLOCK;
       for( const ComponentRegistryEntry* componentType : addableComponentTypes )
       {
-        const ShortFixedString str = ShortFixedString::Concat(
+        const ShortFixedString str{ ShortFixedString::Concat(
           "Add ",
           componentType->mName,
-          " component" );
+          " component" ) };
 
         if( ImGuiButton( str ) )
         {
@@ -191,68 +193,41 @@ namespace Tac
     }
   }
 
-  CreationPropertyWindow* CreationPropertyWindow::Instance { nullptr };
-
-  CreationPropertyWindow::CreationPropertyWindow()
+  static void RecursiveEntityHierarchyElement( Entity* entity )
   {
-    Instance = this;
-  }
-
-  CreationPropertyWindow::~CreationPropertyWindow()
-  {
-    Instance = nullptr;
-
-    SimWindowApi windowApi{};
-    windowApi.DestroyWindow( mWindowHandle );
-  }
-
-  void CreationPropertyWindow::Init( Errors& errors )
-  {
-    TAC_UNUSED_PARAMETER( errors );
-    mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gPropertyWindowName );
-  }
-
-  void CreationPropertyWindow::RecursiveEntityHierarchyElement( Entity* entity )
-  {
-    const bool previouslySelected = gCreation.mSelectedEntities.IsSelected( entity );
+    const bool previouslySelected { gCreation.mSelectedEntities.IsSelected( entity ) };
     if( ImGuiSelectable( entity->mName, previouslySelected ) )
-    {
       gCreation.mSelectedEntities.Select( entity );
-    }
+
     if( entity->mChildren.empty() )
       return;
+
     TAC_IMGUI_INDENT_BLOCK;
     for( Entity* child : entity->mChildren )
-    {
       RecursiveEntityHierarchyElement( child );
-    }
   }
+
+  // -----------------------------------------------------------------------------------------------
+
+  bool CreationPropertyWindow::sShowWindow{};
+
 
   void CreationPropertyWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
 
-    DesktopWindowState* desktopWindowState = GetDesktopWindowState( mWindowHandle );
-    if( !desktopWindowState->mNativeWindowHandle )
-      return;
-
-
-    ImGuiSetNextWindowHandle( mWindowHandle );
     ImGuiSetNextWindowStretch();
-    ImGuiBegin( "Properties" );
-
-
+    if( !ImGuiBegin( "Properties" ) )
+      return;
 
     ImGuiBeginGroup();
     ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
 
     World* world = gCreation.mWorld;
     for( Entity* entity : world->mEntities )
-    {
       if( !entity->mParent )
         RecursiveEntityHierarchyElement( entity );
-    }
 
     ImGuiEndChild();
 
@@ -266,12 +241,11 @@ namespace Tac
       if( prefabAssetPath.size() )
       {
         Camera* cam { world->mEntities.size() ? nullptr : gCreation.mEditorCamera };
-        TAC_CALL( PrefabLoadAtPath(
-          &gCreation.mEntityUUIDCounter,
-          world,
-          cam,
-          prefabAssetPath,
-          errors ) );
+        TAC_CALL( PrefabLoadAtPath( &gCreation.mEntityUUIDCounter,
+                                    world,
+                                    cam,
+                                    prefabAssetPath,
+                                    errors ) );
       }
     }
     ImGuiEndGroup();
@@ -279,23 +253,14 @@ namespace Tac
     ImGuiBeginGroup();
 
     for( Entity* entity : gCreation.mSelectedEntities )
-    {
       EntityImGui( entity );
-    }
+
     ImGuiEndGroup();
 
-
-    mCloseRequested |= ImGuiButton( "Close window" );
+    if( ImGuiButton( "Close window" ) )
+      sShowWindow = false;
 
     ImGuiDebugDraw();
-
     ImGuiEnd();
-
-    const Render::FramebufferHandle framebufferHandle = WindowGraphicsGetFramebuffer( mWindowHandle );
-    const Render::ViewHandle viewHandle = WindowGraphicsGetView( mWindowHandle );;
-    const v2 size = desktopWindowState->GetSizeV2();
-    Render::SetViewFramebuffer( viewHandle, framebufferHandle );
-    Render::SetViewport( viewHandle, Render::Viewport(size) );
-    Render::SetViewScissorRect( viewHandle, Render::ScissorRect(size) );
   }
 }

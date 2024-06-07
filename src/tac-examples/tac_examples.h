@@ -13,8 +13,8 @@ namespace Tac
   {
     struct UpdateParams
     {
-      const SimKeyboardApi mKeyboardApi;
-      const SimWindowApi   mWindowApi;
+      SimKeyboardApi mKeyboardApi;
+      SimWindowApi   mWindowApi;
     };
 
     Example();

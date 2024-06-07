@@ -1,7 +1,6 @@
 #include "tac_render_tutorial.h" // self-inc
 
 #include "tac-engine-core/window/tac_sys_window_api.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
@@ -21,7 +20,6 @@ Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi windowApi,
   TAC_CALL_RET( {}, const WindowHandle windowHandle{
     windowApi.CreateWindow( windowCreateParams, errors ) } );
 
-  QuitProgramOnWindowClose( windowHandle );
 
   return windowHandle;
 }

@@ -25,7 +25,6 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/tac_win32.h"
 

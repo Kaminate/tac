@@ -3,6 +3,7 @@
 #pragma once
 
 #include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/containers/tac_span.h"
 
 namespace Tac::FileSys { struct Path; }
 namespace Tac
@@ -13,11 +14,12 @@ namespace Tac
   {
     SettingsNode() = default;
     SettingsNode( SettingsRoot*, Json* );
-    SettingsNode  GetChild( StringView );
-    void          SetValue( Json );
-    Json&         GetValueWithFallback( Json = {} );
-    Json&         GetValue();
-    bool          IsValid() const;
+    SettingsNode         GetChild( StringView );
+    Span< SettingsNode > GetChildrenArray();
+    void                 SetValue( Json );
+    Json&                GetValueWithFallback( Json = {} );
+    Json&                GetValue();
+    bool                 IsValid() const;
 
   private:
     SettingsRoot* mRoot{};

@@ -29,11 +29,9 @@
 #include "tac-engine-core/window/tac_window_backend.h"
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
-//#include "tac-dx/dx11/shader/tac_dx11_shader_preprocess.h"
 #include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -1071,7 +1069,7 @@ namespace Tac
 
   void         DX12AppHelloFrameBuf::Update( UpdateParams updateParams, Errors& errors )
   {
-    if( !updateParams.mWindowApi->IsShown( hDesktopWindow ) )
+    if( !updateParams.mWindowApi.IsShown( hDesktopWindow ) )
       return;
 
     const double t { Timestep::GetElapsedTime().mSeconds };

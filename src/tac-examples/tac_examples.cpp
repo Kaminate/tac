@@ -7,7 +7,6 @@
 #include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 
-
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -26,8 +25,6 @@
 #include "tac-examples/tac_examples_state_machine.h"
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-//#include "tac-desktop-app/desktop_window/tac_desktop_window_graphics.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 
 namespace Tac
 {
@@ -161,11 +158,9 @@ namespace Tac
 
     const int iOld{ GetCurrExampleIndex() };
 
-    const Example::UpdateParams exampleUpdateParams
-    {
-      .mKeyboardApi{ appUpdateParams.mKeyboardApi },
-      .mWindowApi{ appUpdateParams.mWindowApi },
-    };
+    Example::UpdateParams exampleUpdateParams{};
+    exampleUpdateParams.mKeyboardApi = appUpdateParams.mKeyboardApi;
+    exampleUpdateParams.mWindowApi = appUpdateParams.mWindowApi;
 
     TAC_CALL( ExampleStateMachineUpdate( exampleUpdateParams, errors ) );
     const int iNew { GetCurrExampleIndex() };

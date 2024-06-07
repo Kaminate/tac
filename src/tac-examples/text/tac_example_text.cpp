@@ -1,12 +1,8 @@
 #include "tac_example_text.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-desktop-app/desktop_window/tac_desktop_window_settings_tracker.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {

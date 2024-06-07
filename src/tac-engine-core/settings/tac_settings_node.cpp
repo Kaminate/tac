@@ -1,14 +1,7 @@
 #include "tac_settings_node.h" // self-inc
-#include "tac_settings_root.h"
 
-//#include "tac-engine-core/shell/tac_shell_timestep.h"
-//#include "tac-std-lib/algorithm/tac_algorithm.h"
-//#include "tac-std-lib/error/tac_error_handling.h"
-//#include "tac-std-lib/filesystem/tac_filesystem.h"
-//#include "tac-std-lib/math/tac_math.h"
-//#include "tac-std-lib/memory/tac_memory.h"
-//#include "tac-std-lib/os/tac_os.h"
-//#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-engine-core/settings/tac_settings_root.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 
 
 namespace Tac
@@ -92,6 +85,17 @@ namespace Tac
     return SettingsNode( mRoot, root );
   }
 
+  Span< SettingsNode > SettingsNode::GetChildrenArray()
+  {
+    mJson->mType = JsonType::Array;
+    const int n{ mJson->mArrayElements.size() };
+
+    SettingsNode* data{ ( SettingsNode* )FrameMemoryAllocate( n * sizeof( SettingsNode ) ) };
+    for( int i{}; i < n; ++i )
+      data[ i ] = SettingsNode( mRoot, mJson->mArrayElements[ i ] );
+
+    return Span< SettingsNode >{ data, n };
+  }
 
 }
 

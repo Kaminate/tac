@@ -54,15 +54,18 @@ namespace Tac
 {
   Creation gCreation;
 
+  static const TimestampDifference errorDurationSecs { 60.0f };
+  static const TimestampDifference successDurationSecs { 5.0f };
+
   static void   CreationInitCallback( Errors& errors )   { gCreation.Init( errors ); }
   static void   CreationUninitCallback( Errors& errors ) { gCreation.Uninit( errors ); }
   static void   CreationUpdateCallback( Errors& errors ) { gCreation.Update( errors ); }
 
   static String CreationGetNewEntityName()
   {
-    World* world = gCreation.mWorld;
-    String desiredEntityName = "Entity";
-    int parenNumber = 1;
+    World* world { gCreation.mWorld };
+    String desiredEntityName { "Entity" };
+    int parenNumber { 1 };
     for( ;; )
     {
       if( !world->FindEntity( desiredEntityName ) )
@@ -77,11 +80,13 @@ namespace Tac
 
   static void   CheckSavePrefab()
   {
-    World* world = gCreation.mWorld;
+    World* world { gCreation.mWorld };
 
-    const bool triggered =
-      KeyboardIsKeyJustDown( Key::S ) &&
-      KeyboardIsKeyDown( Key::Modifier );
+    SimKeyboardApi keyboardApi;
+
+    const bool triggered{
+      keyboardApi.JustPressed( Key::S ) &&
+      keyboardApi.IsPressed( Key::Modifier ) };
 
     if( !triggered )
       return;
@@ -89,17 +94,15 @@ namespace Tac
     Errors saveErrors;
     PrefabSave( world, saveErrors );
 
-    CreationGameWindow* window = CreationGameWindow::Instance;
+    CreationGameWindow* window { CreationGameWindow::Instance };
     if( window )
     {
       if( saveErrors )
       {
-        const TimestampDifference errorDurationSecs = 60.0f;
         window->SetStatusMessage( saveErrors.ToString(), errorDurationSecs );
       }
       else
       {
-        const TimestampDifference successDurationSecs = 5.0f;
         window->SetStatusMessage( "Saved prefabs!", successDurationSecs );
       }
     }
@@ -110,8 +113,9 @@ namespace Tac
   struct LevelEditorApp : public App
   {
     LevelEditorApp( const Config& cfg ) : App( cfg ) {}
-    void Init( Errors& errors ) override { CreationInitCallback( errors ); }
-    void Update( Errors& errors ) override { CreationUpdateCallback( errors ); }
+    void Init( App::InitParams, Errors& errors ) override { CreationInitCallback( errors ); }
+    void Update( App::UpdateParams, Errors& errors ) override { CreationUpdateCallback( errors ); }
+    void Render( App::RenderParams, Errors& ) override {}
     void Uninit( Errors& errors ) override { CreationUninitCallback( errors ); }
   };
 
@@ -136,7 +140,9 @@ namespace Tac
 
     TAC_CALL( ShadowPresentationInit( errors ) );
 
+#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     TAC_CALL( VoxelGIPresentationInit( errors ) );
+#endif
 
     TAC_CALL( mWindowManager.CreateInitialWindows( errors ) );
 
@@ -147,10 +153,11 @@ namespace Tac
   {
     SkyboxPresentationUninit();
     GamePresentationUninit();
+#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     VoxelGIPresentationUninit();
+#endif
     ShadowPresentationUninit();
 
-    mWindowManager.Uninit( errors );
   }
 
   void                Creation::Update( Errors& errors )
@@ -159,7 +166,6 @@ namespace Tac
 
     CheckSavePrefab();
 
-    TAC_CALL( mWindowManager.Update( errors ) );
 
     if( mWindowManager.AllWindowsClosed() )
       OS::OSAppStopRunning();
@@ -176,23 +182,23 @@ namespace Tac
 
   RelativeSpace       Creation::GetEditorCameraVisibleRelativeSpace()
   {
-    const v3 pos = mEditorCamera->mPos + mEditorCamera->mForwards * 5.0f;
-    RelativeSpace relativeSpace;
-    relativeSpace.mPosition = pos;
-    return relativeSpace;
+    return RelativeSpace
+    {
+      .mPosition { mEditorCamera->mPos + mEditorCamera->mForwards * 5.0f },
+    };
   }
 
   Entity*             Creation::InstantiateAsCopy( Entity* prefabEntity, const RelativeSpace& relativeSpace )
   {
-    Entity* copyEntity = CreateEntity();
+    Entity* copyEntity { CreateEntity() };
     copyEntity->mRelativeSpace = relativeSpace;
     copyEntity->mInheritParentScale = prefabEntity->mInheritParentScale;
     copyEntity->mName = prefabEntity->mName;
 
     for( Component* prefabComponent : prefabEntity->mComponents )
     {
-      const ComponentRegistryEntry* entry = prefabComponent->GetEntry();
-      Component* copyComponent = copyEntity->AddNewComponent( prefabComponent->GetEntry() );
+      const ComponentRegistryEntry* entry { prefabComponent->GetEntry() };
+      Component* copyComponent { copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
       Json dOnT_mInD_iF_i_dO;
       entry->mSaveFn( dOnT_mInD_iF_i_dO, prefabComponent );
       entry->mLoadFn( dOnT_mInD_iF_i_dO, copyComponent );
@@ -200,7 +206,8 @@ namespace Tac
 
     for( Entity* prefabChildEntity : prefabEntity->mChildren )
     {
-      Entity* copyChildEntity = InstantiateAsCopy( prefabChildEntity, prefabChildEntity->mRelativeSpace );
+      Entity* copyChildEntity {
+        InstantiateAsCopy( prefabChildEntity, prefabChildEntity->mRelativeSpace ) };
       //Entity* copyChildEntity = CreateEntity();
       copyEntity->AddChild( copyChildEntity );
     }
@@ -209,11 +216,12 @@ namespace Tac
 
   Entity*             Creation::CreateEntity()
   {
-    World* world = mWorld;
-    Entity* entity = world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() );
+    Entity* entity { mWorld->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
     entity->mName = CreationGetNewEntityName();
     entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace();
+
     mSelectedEntities.Select( entity );
+
     return entity;
   }
 

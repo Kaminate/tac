@@ -152,8 +152,6 @@ Tac::WindowHandle Tac::DX12ExampleCreateWindow( const SysWindowApi windowApi,
 
   const WindowHandle h{ windowApi.CreateWindow( windowCreateParams, errors ) };
 
-  QuitProgramOnWindowClose( h );
-
   return h;
 }
 

@@ -193,8 +193,7 @@ namespace Tac
   }
 
   static void AddDrawCall( Render::IContext* renderContext,
-                           const Mesh* mesh,
-                           Render::ViewHandle viewHandle )
+                           const Mesh* mesh )
   {
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
@@ -237,7 +236,7 @@ namespace Tac
       { Key::E, camera->mUp},
     };
     for( const PanKeyDir& keyDir : keyDirs )
-      if( KeyboardIsKeyDown( keyDir.key ) )
+      if( SimKeyboardApi().IsPressed( keyDir.key ) )
         combinedDir += keyDir.dir;
     if( combinedDir == v3( 0, 0, 0 ) )
       return;
@@ -265,7 +264,7 @@ namespace Tac
 
     v3 camOrbitSphericalOffset  {};
     for( const OrbitKeyDir& keyDir : keyDirs )
-      if( KeyboardIsKeyDown( keyDir.key ) )
+      if( SimKeyboardApi().IsPressed( keyDir.key ) )
         camOrbitSphericalOffset += keyDir.spherical;
     if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
       return;
@@ -309,7 +308,7 @@ namespace Tac
     static AssetPathString savedPrefabPath;
     static Camera savedCamera;
 
-    const AssetPathString loadedPrefab = PrefabGetLoaded();
+    const AssetPathString loadedPrefab { PrefabGetLoaded() };
     if( loadedPrefab != savedPrefabPath )
     {
       savedPrefabPath = loadedPrefab;
@@ -948,7 +947,7 @@ namespace Tac
       return;
 
     auto ghost { TAC_NEW Ghost };
-    TAC_CALL( ghost->Init( errors ) );
+    TAC_CALL( ghost->Init( mSettingsNode, errors ) );
     mSoul = ghost;
   }
 
@@ -1092,7 +1091,7 @@ namespace Tac
         unitsPerPixel;
     }
 
-    const int mouseDeltaScroll { keyboardApi.GetMouseWheelDelta() };
+    const float mouseDeltaScroll { keyboardApi.GetMouseWheelDelta() };
     if( mouseDeltaScroll )
     {
       float unitsPerTick { 1.0f };
@@ -1105,7 +1104,7 @@ namespace Tac
 
       gCreation.mEditorCamera->mPos +=
         gCreation.mEditorCamera->mForwards *
-        ( float )mouseDeltaScroll *
+        mouseDeltaScroll *
         unitsPerTick;
     }
 
