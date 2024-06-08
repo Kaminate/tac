@@ -9,6 +9,7 @@
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-level-editor/tac_level_editor_icon_renderer.h"
 
 namespace Tac
 {
@@ -76,6 +77,7 @@ namespace Tac
     Timestamp                     mStatusMessageEndTime     {};
     bool                          mCloseRequested           {};
     SettingsNode                  mSettingsNode             {};
+    IconRenderer                  mIconRenderer             {};
   };
 
   const char* const gGameWindowName { "VirtualGamePlayer" };

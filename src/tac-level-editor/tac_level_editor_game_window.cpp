@@ -46,7 +46,6 @@ namespace Tac
   static float sWASDCameraPanSpeed   { 10 };
   static float sWASDCameraOrbitSpeed { 0.1f };
   static bool  sWASDCameraOrbitSnap  {};
-  float        lightWidgetSize       { 6.0f };
 
   enum class PickedObject
   {
@@ -479,6 +478,8 @@ namespace Tac
   {
     mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
 
+    mIconRenderer.Init( errors );
+
     TAC_CALL( CreateGraphicsObjects( errors ) );
 
 
@@ -497,7 +498,6 @@ namespace Tac
     mDebug3DDrawData = TAC_NEW Debug3DDrawData;
 
     TAC_CALL( PlayGame( errors ) );
-
   }
 
   void CreationGameWindow::MousePickingGizmos()
@@ -866,6 +866,7 @@ namespace Tac
                                                       WindowHandle viewHandle,
                                                       Errors& errors )
   {
+
     TAC_RENDER_GROUP_BLOCK( renderContext, "light widgets" );
 
     struct : public LightVisitor

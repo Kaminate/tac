@@ -40,6 +40,8 @@ function( tac_target )
     "tac_level_editor_asset_view.h"
     "tac_level_editor_prefab.cpp"
     "tac_level_editor_prefab.h"
+    "tac_level_editor_icon_renderer.cpp"
+    "tac_level_editor_icon_renderer.h"
     "tac_level_editor_game_object_menu_window.cpp"
     "tac_level_editor_game_object_menu_window.h"
     "tac_level_editor_game_window.cpp"
