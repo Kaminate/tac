@@ -17,7 +17,7 @@
 #include "tac-engine-core/thirdparty/stb_image_write.h"
 #include "tac-engine-core/settings/tac_settings_root.h"
 
-namespace Tac::TextureAssetManager
+namespace Tac
 {
 
 #define TAC_TEST_MIPS_BY_SAVING_TO_DISC()            TAC_IS_DEBUG_MODE() && 0
@@ -565,7 +565,8 @@ namespace Tac::TextureAssetManager
 
   // -----------------------------------------------------------------------------------------------
 
-  Render::TextureHandle GetTexture( const AssetPathStringView& textureFilepath, Errors& errors )
+  Render::TextureHandle TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
+                                                         Errors& errors )
   {
     if( textureFilepath.empty() )
       return {};
@@ -593,13 +594,14 @@ namespace Tac::TextureAssetManager
     return {};
   }
 
-  Render::TextureHandle GetTextureCube( const AssetPathStringView& textureDir, Errors& errors )
+  Render::TextureHandle TextureAssetManager::GetTextureCube( const AssetPathStringView textureDir,
+                                                             Errors& errors )
   {
-    const StringID id ( textureDir);
-    if( const Render::TextureHandle texture { FindLoadedTexture( id ) }; texture.IsValid() )
+    const StringID id( textureDir );
+    if( const Render::TextureHandle texture{ FindLoadedTexture( id ) }; texture.IsValid() )
       return texture;
 
-    if( TextureLoadJob* asyncTexture { FindLoadingTexture( id ) } )
+    if( TextureLoadJob * asyncTexture{ FindLoadingTexture( id ) } )
     {
       UpdateTextureLoadJob( textureDir, asyncTexture, errors );
       return {};
@@ -610,12 +612,9 @@ namespace Tac::TextureAssetManager
       .mFilepath  { textureDir },
       .mIsCubemap { true },
     };
-    TextureLoadJob* asyncTexture = TAC_NEW TextureLoadJob(params);
+    TextureLoadJob* asyncTexture = TAC_NEW TextureLoadJob( params );
     mLoadingTextures[ textureDir ] = asyncTexture;
     JobQueuePush( asyncTexture );
     return {};
   }
-
-  // -----------------------------------------------------------------------------------------------
-
-} // namespace Tac::TextureAssetManager
+}

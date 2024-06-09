@@ -1,13 +1,12 @@
 #pragma once
 
 #include "tac-rhi/render3/tac_render_api.h"
-
-//namespace Tac::Render { struct TextureHandle; }
-namespace Tac { struct AssetPathStringView; struct Errors; }
+#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac::TextureAssetManager
 {
-  Render::TextureHandle GetTexture( const AssetPathStringView&, Errors& );
-  Render::TextureHandle GetTextureCube( const AssetPathStringView&, Errors& );
+  Render::TextureHandle GetTexture( AssetPathStringView, Errors& );
+  Render::TextureHandle GetTextureCube( AssetPathStringView, Errors& );
 }
 

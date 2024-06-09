@@ -144,8 +144,8 @@ namespace Tac
   struct ImGuiInitParams
   {
     int                mMaxGpuFrameCount {};
-    SimWindowApi      mSimWindowApi     {};
-    SimKeyboardApi    mSimKeyboardApi   {};
+    SimWindowApi       mSimWindowApi     {};
+    SimKeyboardApi     mSimKeyboardApi   {};
     SettingsNode       mSettingsNode     {};
     //ImGuiSetWindowPos  mSetWindowPos{};
     //ImGuiSetWindowSize mSetWindowSize{};

@@ -46,6 +46,7 @@ namespace Tac
   static float sWASDCameraPanSpeed   { 10 };
   static float sWASDCameraOrbitSpeed { 0.1f };
   static bool  sWASDCameraOrbitSnap  {};
+  static float lightWidgetSize       { 6.0f };
 
   enum class PickedObject
   {
@@ -191,29 +192,6 @@ namespace Tac
     return biggestUnitDir;
   }
 
-  static void AddDrawCall( Render::IContext* renderContext,
-                           const Mesh* mesh )
-  {
-    for( const SubMesh& subMesh : mesh->mSubMeshes )
-    {
-      const Render::DrawArgs drawArgs
-      {
-        .mIndexCount    { subMesh.mIndexCount },
-      };
-
-      renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-      renderContext->SetShader( CreationGameWindow::Instance->m3DShader );
-      renderContext->SetBlendState( CreationGameWindow::Instance->mBlendState );
-      renderContext->SetDepthState( CreationGameWindow::Instance->mDepthState );
-      renderContext->SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
-      renderContext->SetVertexFormat( CreationGameWindow::Instance->m3DVertexFormat );
-      renderContext->SetSamplerState( { CreationGameWindow::Instance->mSamplerState }  );
-
-      renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
-      renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
-      renderContext->Draw( drawArgs );
-    }
-  }
 
   static void CameraWASDControlsPan( Camera* camera )
   {
@@ -326,23 +304,7 @@ namespace Tac
     PrefabSaveCamera( gCreation.mEditorCamera );
   }
 
-  static Render::ProgramParams GetProgramParams3DTest()
-  {
-    return Render::ProgramParams
-    {
-      .mFileStem   { "3DTest" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-  }
 
-  static Render::ProgramParams GetProgramParams3DSprite()
-  {
-    return Render::ProgramParams
-    {
-      .mFileStem   { "3DSprite" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-  }
 
   static Render::VertexDeclarations GetVtxDecls3D()
   {
@@ -434,26 +396,19 @@ namespace Tac
   CreationGameWindow::~CreationGameWindow()
   {
     Instance = nullptr;
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyProgram( m3DShader);
-    renderDevice->DestroyProgram( mSpriteShader);
-    renderDevice->DestroyPipeline( mSpritePipeline);
-    renderDevice->DestroyPipeline( m3DPipeline);
+
+    mIconRenderer.Uninit();
+    mWidgetRenderer.Uninit();
 
     SimWindowApi windowApi{};
     windowApi.DestroyWindow( mWindowHandle );
-    TAC_DELETE mDebug3DDrawData;
   }
 
   void CreationGameWindow::CreateGraphicsObjects( Errors& errors )
   {
     Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
 
-    const Render::ProgramParams programParams3DTest{ GetProgramParams3DTest() };
-    TAC_CALL( m3DShader = renderDevice->CreateProgram( programParams3DTest, errors ) );
 
-    const Render::ProgramParams programParams3DSprite{ GetProgramParams3DSprite() };
-    TAC_CALL( mSpriteShader = renderDevice->CreateProgram( programParams3DSprite, errors ) );
 
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetVtxDecls3D() };
     Render::SetRenderObjectDebugName( m3DVertexFormat, "game-window-vtx-fmt" );
@@ -478,7 +433,8 @@ namespace Tac
   {
     mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
 
-    mIconRenderer.Init( errors );
+    TAC_CALL( mIconRenderer.Init( lightWidgetSize, errors ) );
+    TAC_CALL( mWidgetRenderer.Init( errors ) );
 
     TAC_CALL( CreateGraphicsObjects( errors ) );
 
@@ -495,7 +451,6 @@ namespace Tac
                                                                m3DvertexFormatDecls,
                                                                errors ) );
 
-    mDebug3DDrawData = TAC_NEW Debug3DDrawData;
 
     TAC_CALL( PlayGame( errors ) );
   }
@@ -530,8 +485,8 @@ namespace Tac
       // 3/3: inverse scale
       modelSpaceRayPos3 /= mArrowLen;
 
-      bool hit { false };
-      float dist { 0 };
+      bool hit {};
+      float dist {};
       mArrow->MeshModelSpaceRaycast( modelSpaceRayPos3, modelSpaceRayDir3, &hit, &dist );
       dist *= mArrowLen;
       if( !hit || !pickData.IsNewClosest( dist ) )
@@ -552,6 +507,7 @@ namespace Tac
       MousePickingEntity( entity, &hit, &dist );
       if( !hit || !pickData.IsNewClosest( dist ) )
         continue;
+
       pickData.closestDist = dist;
       pickData.closest = entity;
       pickData.pickedObject = PickedObject::Entity;
@@ -737,13 +693,15 @@ namespace Tac
       return;
 
     const m4 view{ m4::View( gCreation.mEditorCamera->mPos,
-                        gCreation.mEditorCamera->mForwards,
-                        gCreation.mEditorCamera->mRight,
-                        gCreation.mEditorCamera->mUp ) };
-    const v3 pos { gCreation.mSelectedEntities.GetGizmoOrigin() };
-    const v4 posVS4 { view * v4( pos, 1 ) };
-    const float clip_height { Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f ) * posVS4.z * 2.0f ) };
-    const float arrowLen { clip_height * 0.2f };
+                             gCreation.mEditorCamera->mForwards,
+                             gCreation.mEditorCamera->mRight,
+                             gCreation.mEditorCamera->mUp ) };
+    const v3 pos{ gCreation.mSelectedEntities.GetGizmoOrigin() };
+    const v4 posVS4{ view * v4( pos, 1 ) };
+    const float clip_height{ Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f )
+                                   * posVS4.z
+                                   * 2.0f ) };
+    const float arrowLen{ clip_height * 0.2f };
     mArrowLen = arrowLen;
   }
 
@@ -756,169 +714,26 @@ namespace Tac
     const v3 worldSpaceHitPoint{
       gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
 
-    mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
-
-      //static Timestamp mouseMovement;
-      //Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
+    Debug3DDrawData* debug3DDrawData{ gCreation.mWorld->mDebug3DDrawData };
+    debug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
   }
 
 
-  void CreationGameWindow::RenderEditorWidgetsSelection( Render::IContext* renderContext,
-    const WindowHandle viewHandle )
+  void CreationGameWindow::RenderSelectionCircle()
   {
     if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
       return;
 
-    TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
 
+    Debug3DDrawData* debug3DDrawData{ gCreation.mWorld->mDebug3DDrawData };
     const v3 selectionGizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
-    const m4 rots[]  {
-      m4::RotRadZ( -3.14f / 2.0f ),
-      m4::Identity(),
-      m4::RotRadX( 3.14f / 2.0f ), };
 
-    mDebug3DDrawData->DebugDraw3DCircle( selectionGizmoOrigin,
+    debug3DDrawData->DebugDraw3DCircle( selectionGizmoOrigin,
                                          gCreation.mEditorCamera->mForwards,
                                          mArrowLen );
-
-    const v3 axises[3]
-    {
-      v3( 1, 0, 0 ),
-      v3( 0, 1, 0 ),
-      v3( 0, 0, 1 ),
-    };
-
-    for( int i { 0 }; i < 3; ++i )
-    {
-
-      const v3 axis { axises[ i ] };
-      const Render::PremultipliedAlpha axisPremultipliedColor {
-        Render::PremultipliedAlpha::From_sRGB( axis ) };
-
-
-      // Widget Translation Arrow
-      {
-        const bool picked{
-          pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
-          pickData.arrowAxis == i };
-
-        const bool usingTranslationArrow{
-          gCreation.mSelectedGizmo &&
-          gCreation.mTranslationGizmoDir == axis };
-
-        const bool shine { picked || usingTranslationArrow };
-
-        Render::PremultipliedAlpha arrowColor { axisPremultipliedColor };
-        if( shine )
-        {
-          float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
-          t *= t;
-          arrowColor.mColor = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.mColor, t );
-
-        }
-
-
-        const m4 World
-        { m4::Translate( selectionGizmoOrigin )
-        * rots[ i ]
-        * m4::Scale( v3( 1, 1, 1 ) * mArrowLen ) };
-
-        const Render::DefaultCBufferPerObject perObjectData
-        {
-          .World { World },
-          .Color { arrowColor },
-        };
-
-        Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
-                                      &perObjectData,
-                                      sizeof( Render::DefaultCBufferPerObject ),
-                                      TAC_STACK_FRAME );
-        AddDrawCall( renderContext, mArrow, viewHandle );
-      }
-
-
-      // Widget Scale Cube
-      // ( it is not current interactable )
-      if( false )
-      {
-        const m4 World{
-          m4::Translate( selectionGizmoOrigin ) *
-          m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
-          rots[ i ] *
-          m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f ) };
-
-        const Render::DefaultCBufferPerObject perObjectData
-        {
-          .World { World },
-          .Color { axisPremultipliedColor },
-        };
-
-        Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
-                                      &perObjectData,
-                                      sizeof( Render::DefaultCBufferPerObject ),
-                                      TAC_STACK_FRAME );
-        AddDrawCall( renderContext, mCenteredUnitCube, viewHandle );
-      }
-    }
   }
 
-  void CreationGameWindow::RenderEditorWidgetsLights( Render::IContext* renderContext,
-                                                      WindowHandle viewHandle,
-                                                      Errors& errors )
-  {
 
-    TAC_RENDER_GROUP_BLOCK( renderContext, "light widgets" );
-
-    struct : public LightVisitor
-    {
-      void operator()( Light* light ) override { mLights.push_back( light ); }
-      Vector< const Light* > mLights;
-    } lightVisitor;
-
-
-    Graphics* graphics { GetGraphics( gCreation.mWorld ) };
-    graphics->VisitLights( &lightVisitor );
-
-    const Render::TextureHandle textureHandle{
-      TextureAssetManager::GetTexture( "assets/editor/light.png", errors ) };
-
-    for( int iLight { 0 }; iLight < lightVisitor.mLights.size(); ++iLight )
-    {
-      const Light* light { lightVisitor.mLights[ iLight ] };
-
-      // Q: why am ii only scaling the m00, and not the m11 and m22?
-      m4 world { light->mEntity->mWorldTransform };
-      world.m00 = lightWidgetSize;
-
-      const Render::DefaultCBufferPerObject perObjectData
-      {
-        .World { world },
-      };
-
-      const Render::ConstantBufferHandle hPerObj{ Render::DefaultCBufferPerObject::Handle };
-      const int perObjSize{ sizeof( Render::DefaultCBufferPerObject ) };
-
-      const ShortFixedString groupname{
-        ShortFixedString::Concat( "Editor light ", ToString( iLight ) ) };
-      TAC_RENDER_GROUP_BLOCK( renderContext, groupname );
-
-      const Render::DrawArgs drawArgs
-      {
-        .mVertexCount { 6 },
-      };
-
-      renderContext->SetPipeline( mSpritePipeline );
-      renderContext->SetVertexBuffer( {} );
-      renderContext->SetIndexBuffer( {}  );
-      renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
-      renderContext->SetTexture( { textureHandle } );
-      renderContext->Render::UpdateConstantBuffer( hPerObj,
-                                                   &perObjectData,
-                                                   perObjSize,
-                                                   TAC_STACK_FRAME );
-      renderContext->Draw( drawArgs );
-    }
-  }
 
   void CreationGameWindow::RenderEditorWidgets( Render::IContext* renderContext,
                                                 WindowHandle viewHandle,
@@ -928,18 +743,9 @@ namespace Tac
     if( !windowApi.IsShown( viewHandle ) )
       return;
 
-    const v2i windowSize{ windowApi.GetSize( viewHandle ) };
-
-    TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Widgets" );
-    const float w { ( float )windowSize.x };
-    const float h { ( float )windowSize.y };
-    const Render::DefaultCBufferPerFrame perFrameData { GetPerFrame( w, h ) };
-    const Render::ConstantBufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
-    const int perFrameSize { sizeof( Render::DefaultCBufferPerFrame ) };
-    Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
-
-    RenderEditorWidgetsSelection( renderContext, viewHandle );
-    TAC_CALL( RenderEditorWidgetsLights( renderContext, viewHandle, errors ) );
+    RenderSelectionCircle();
+    TAC_CALL( mWidgetRenderer.RenderEditorWidgetsSelection( renderContext, viewHandle, errors ) );
+    TAC_CALL( mIconRenderer.RenderLights( gCreation.mWorld, renderContext, viewHandle, errors ) );
   }
 
   void CreationGameWindow::PlayGame( Errors& errors )
@@ -1138,8 +944,8 @@ namespace Tac
 
     const Render::Targets renderTargets
     {
-      .mColors{ rtColor },
-      .mDepth{ rtDepth },
+      .mColors { rtColor },
+      .mDepth  { rtDepth },
     };
 
     renderContext->SetViewport( windowSize );
@@ -1164,15 +970,6 @@ namespace Tac
                                viewHandle );
 #endif
 
-    TAC_CALL( const Debug3DDrawBuffers::Buffer* debugBuffer{
-      mDebugBuffers.Update( renderContext, mDebug3DDrawData->GetVerts(), errors ) } );
-
-    TAC_CALL( debugBuffer->DebugDraw3DToTexture( renderContext,
-                                       rtColor,
-                                       rtDepth,
-                                       gCreation.mEditorCamera,
-                                       windowSize,
-                                       errors ) );
   }
 
   void CreationGameWindow::Update( Errors& errors )
@@ -1208,9 +1005,12 @@ namespace Tac
     UpdateGizmo();
 
     if( drawGrid )
-      mDebug3DDrawData->DebugDraw3DGrid();
+    {
+      Debug3DDrawData* debug3DDrawData{ gCreation.mWorld->mDebug3DDrawData };
+      debug3DDrawData->DebugDraw3DGrid();
+    }
 
-    RenderEditorWidgetsPicking( viewHandle );
+    RenderEditorWidgetsPicking();
 
     TAC_CALL( ImGuiOverlay( errors ) );
   }

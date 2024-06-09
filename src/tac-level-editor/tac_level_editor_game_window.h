@@ -10,6 +10,7 @@
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-level-editor/tac_level_editor_icon_renderer.h"
+#include "tac-level-editor/tac_level_editor_widget_renderer.h"
 
 namespace Tac
 {
@@ -50,24 +51,14 @@ namespace Tac
     void                          SetStatusMessage( const StringView&, const TimestampDifference& );
 
   private:
-    void                          RenderEditorWidgetsSelection( Render::IContext*,
-                                                                WindowHandle );
+    void                          RenderSelectionCircle();
     void                          RenderEditorWidgets( Render::IContext*,
                                                        WindowHandle,
                                                        Errors& );
-    void                          RenderEditorWidgetsLights( Render::IContext*,
-                                                             WindowHandle,
-                                                             Errors& );
 
     WindowHandle                  mWindowHandle             {};
     Soul*                         mSoul                     {};
-    Render::ProgramHandle         mSpriteShader             {};
-    Render::ProgramHandle         m3DShader                 {};
-    Render::PipelineHandle        mSpritePipeline           {};
-    Render::PipelineHandle        m3DPipeline               {};
-    Debug3DDrawData*              mDebug3DDrawData          {};
     Debug3DDrawBuffers            mWorldBuffers             {};
-    Debug3DDrawBuffers            mDebugBuffers             {};
     Mesh*                         mArrow                    {};
     Mesh*                         mCenteredUnitCube         {};
     v3                            mViewSpaceUnitMouseDir    {};
@@ -78,6 +69,7 @@ namespace Tac
     bool                          mCloseRequested           {};
     SettingsNode                  mSettingsNode             {};
     IconRenderer                  mIconRenderer             {};
+    WidgetRenderer                mWidgetRenderer           {};
   };
 
   const char* const gGameWindowName { "VirtualGamePlayer" };
