@@ -18,7 +18,19 @@ namespace Tac
 
   private:
 
+    void UpdatePerFrame();
+    void UpdatePerObject();
+
+    Render::PipelineParams        GetPipelineParams();
+
     Render::ProgramHandle         m3DShader                 {};
     Render::PipelineHandle        m3DPipeline               {};
+    Render::BufferHandle          mBufferPerFrame           {};
+    Render::BufferHandle          mBufferPerObj             {};
+    Render::IShaderVar*           mShaderPerFrame           {};
+    Render::IShaderVar*           mShaderPerObj             {};
+
+    Mesh*                         mArrow                    {};
+
   };
 }

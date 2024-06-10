@@ -49,11 +49,6 @@ namespace Tac
 
 
 
-  struct GameWindowVertex
-  {
-    v3 pos;
-    v3 nor;
-  };
 
 
 
@@ -221,27 +216,6 @@ namespace Tac
 
 
 
-  static Render::VertexDeclarations GetVtxDecls3D()
-  {
-    const Render::VertexDeclaration posDecl
-    {
-        .mAttribute         { Render::Attribute::Position },
-        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, pos ) },
-    };
-
-    const Render::VertexDeclaration norDecl
-    {
-        .mAttribute         { Render::Attribute::Normal },
-        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-        .mAlignedByteOffset { TAC_OFFSET_OF( GameWindowVertex, nor ) },
-    };
-
-    Render::VertexDeclarations m3DvertexFormatDecls;
-    m3DvertexFormatDecls.push_back( posDecl );
-    m3DvertexFormatDecls.push_back( norDecl );
-    return m3DvertexFormatDecls;
-  }
 
 
 
@@ -270,16 +244,7 @@ namespace Tac
   {
     mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
 
-    const Render::VertexDeclarations m3DvertexFormatDecls{ GetVtxDecls3D() };
-    TAC_CALL( mCenteredUnitCube = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/box.gltf",
-                                                                          0,
-                                                                          m3DvertexFormatDecls,
-                                                                          errors ) );
 
-    TAC_CALL( mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
-                                                               0,
-                                                               m3DvertexFormatDecls,
-                                                               errors ) );
 
 
     TAC_CALL( PlayGame( errors ) );

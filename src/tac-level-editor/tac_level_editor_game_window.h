@@ -45,8 +45,6 @@ namespace Tac
     WindowHandle                  mWindowHandle             {};
     Soul*                         mSoul                     {};
     Debug3DDrawBuffers            mWorldBuffers             {};
-    Mesh*                         mArrow                    {};
-    Mesh*                         mCenteredUnitCube         {};
     float                         mArrowLen                 {};
     String                        mStatusMessage            {};
     Timestamp                     mStatusMessageEndTime     {};

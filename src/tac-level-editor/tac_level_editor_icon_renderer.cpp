@@ -75,6 +75,7 @@ namespace Tac
       .mBlendA   { Render::BlendMode::Add},
     };
   }
+
   static Render::DepthState GetDepthState()
   {
     return Render::DepthState
