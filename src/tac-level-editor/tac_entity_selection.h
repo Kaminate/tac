@@ -10,17 +10,19 @@ namespace Tac
 {
   struct SelectedEntities
   {
-    bool                empty() const;
-    int                 size() const;
-    Entity**            begin();
-    Entity**            end();
+    void Init( SettingsNode );
     v3                  GetGizmoOrigin() const;
-    void                clear();
     void                DeleteEntitiesCheck();
     void                DeleteEntities();
     void                AddToSelection( Entity* );
     void                Select( Entity* );
     bool                IsSelected( Entity* );
+
+    bool                empty() const;
+    int                 size() const;
+    Entity**            begin();
+    Entity**            end();
+    void                clear();
 
     Vector< Entity* >   mSelectedEntities;
     SettingsNode        mSettingsNode;

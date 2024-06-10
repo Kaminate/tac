@@ -9,8 +9,8 @@
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-level-editor/tac_level_editor_icon_renderer.h"
-#include "tac-level-editor/tac_level_editor_widget_renderer.h"
+
+#include "tac-level-editor/tac_level_editor_mouse_picking.h"
 
 namespace Tac
 {
@@ -27,28 +27,14 @@ namespace Tac
     void                          Init( Errors& );
     void                          Update( Errors& );
     void                          Render( Errors& );
-    void                          UpdateGizmo();
-
-    //                            Render
-    void                          RenderEditorWidgetsPicking();
-
-    //                            MousePicking
-    void                          MousePickingInit();
-    void                          MousePickingAll();
-    void                          MousePickingEntityLight( const Light*, bool* hit, float* dist );
-    void                          MousePickingEntityModel( const Model*, bool* hit, float* dist );
-    void                          MousePickingEntity( const Entity*, bool* hit, float* dist );
-    void                          MousePickingEntities();
-    void                          MousePickingGizmos();
-    void                          MousePickingSelection();
 
     void                          ComputeArrowLen();
     void                          CameraUpdateControls();
-    void                          CreateGraphicsObjects( Errors& );
     void                          ImGuiOverlay( Errors& );
     void                          PlayGame( Errors& );
 
-    void                          SetStatusMessage( const StringView&, const TimestampDifference& );
+    void                          SetStatusMessage( const StringView&,
+                                                    const TimestampDifference& );
 
   private:
     void                          RenderSelectionCircle();
@@ -61,15 +47,13 @@ namespace Tac
     Debug3DDrawBuffers            mWorldBuffers             {};
     Mesh*                         mArrow                    {};
     Mesh*                         mCenteredUnitCube         {};
-    v3                            mViewSpaceUnitMouseDir    {};
-    v3                            mWorldSpaceMouseDir       {};
     float                         mArrowLen                 {};
     String                        mStatusMessage            {};
     Timestamp                     mStatusMessageEndTime     {};
     bool                          mCloseRequested           {};
     SettingsNode                  mSettingsNode             {};
-    IconRenderer                  mIconRenderer             {};
-    WidgetRenderer                mWidgetRenderer           {};
+
+    CreationMousePicking          mMousePicking             {};
   };
 
   const char* const gGameWindowName { "VirtualGamePlayer" };

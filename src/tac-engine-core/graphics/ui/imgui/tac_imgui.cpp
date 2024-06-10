@@ -452,6 +452,16 @@ Tac::WindowHandle Tac::ImGuiGetWindowHandle()
   return ImGuiGlobals::Instance.mCurrentWindow->GetWindowHandle();
 }
 
+Tac::WindowHandle Tac::ImGuiGetWindowHandle( StringView name )
+{
+  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  ImGuiWindow* window{ globals.FindWindow( name ) };
+  if( !window )
+    return {};
+
+  return window->mDesktopWindow->mWindowHandle;
+}
+
 void Tac::ImGuiSetNextWindowMoveResize()            { gNextWindow.mMoveResize = true; }
 void Tac::ImGuiSetNextWindowPosition( v2 position, ImGuiCondition cond )
 {

@@ -1,11 +1,12 @@
 #pragma once
 
+#include "tac-std-lib/math/tac_vector2.h"
+#include "tac-std-lib/math/tac_vector2i.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_vector3i.h"
+
 namespace Tac
 {
-  struct v2;
-  struct v2i;
-  struct v3;
-  struct v3i;
 
   // -------------
   // Interpolation
@@ -123,7 +124,14 @@ namespace Tac
   // Misc?? / Unsorted / IEEE 754 Floating Point
   // -----------------
 
-  bool                     IsNan(float);
-  bool                     IsInf(float);
+  bool                     IsNan( float );
+  bool                     IsInf( float );
+
+  void ClosestPointTwoRays( v3 ray0Pos,
+                            v3 ray0Dir,
+                            v3 ray1Pos,
+                            v3 ray1Dir,
+                            float* ray0T,
+                            float* ray1T );
 }
 

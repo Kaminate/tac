@@ -181,6 +181,7 @@ namespace Tac
   void ImGuiUnindent();
 
 	WindowHandle ImGuiGetWindowHandle();
+	WindowHandle ImGuiGetWindowHandle( StringView );
 
   //   ImGuiSetNextWindow...
 	void ImGuiSetNextWindowMoveResize();

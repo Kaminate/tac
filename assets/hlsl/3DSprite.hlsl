@@ -1,7 +1,19 @@
-#include "Common.hlsl"
+struct PerFrameType
+{
+  row_major matrix mView;
+  row_major matrix mProj;
+};
 
-Texture2D    sprite        : TAC_AUTO_REGISTER;
-SamplerState linearSampler : TAC_AUTO_REGISTER;
+struct PerObjType
+{
+  row_major matrix mWorld;
+};
+
+
+ConstantBuffer< PerFrameType > perFrame      : register( b0 );
+ConstantBuffer< PerObjType >   perObj        : register( b1 );
+Texture2D                      sprite        : TAC_AUTO_REGISTER;
+SamplerState                   linearSampler : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {
@@ -52,23 +64,28 @@ const float2 GetQuadDXTexCoord( uint iVertex )
 
 VS_OUTPUT VS( VS_INPUT input )
 {
-  float w = 1;
-  float h = 1;
+  matrix world = perObj.mWorld;
+  matrix view = perFrame.mView;
+  matrix proj = perFrame.mProj;
+
+  float w;
+  float h;
   sprite.GetDimensions( w, h );
+
   const float aspect = w / h;
-  const float scale = World[ 0 ][ 0 ];
+  const float scale = world[ 0 ][ 0 ];
 
   const float2 quadPos = GetQuadPos( input.iVertex );
   const float2 quadDXTexCoord = GetQuadDXTexCoord( input.iVertex );
 
-  const float4 worldSpacePosition = mul( World, float4( 0, 0, 0, 1 ) );
+  const float4 worldSpacePosition = mul( world, float4( 0, 0, 0, 1 ) );
   const float4 viewSpacePosition
-    = mul( View, worldSpacePosition )
+    = mul( view, worldSpacePosition )
     + float4( quadPos.x * scale * aspect,
               quadPos.y * scale,
               0,
               0 );
-  const float4 clipSpacePosition = mul( Projection, viewSpacePosition);
+  const float4 clipSpacePosition = mul( proj, viewSpacePosition);
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;

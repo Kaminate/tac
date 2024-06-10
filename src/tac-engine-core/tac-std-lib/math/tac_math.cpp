@@ -400,3 +400,69 @@ bool                     Tac::IsInf( float f )
 {
   return std::isinf( f );
 }
+
+void Tac::ClosestPointTwoRays( const v3 A,
+                                 const v3 a,
+                                 const v3 B,
+                                 const v3 b,
+                                 float* d,
+                                 float* e )
+{
+  // http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
+  //
+  //              \ /
+  //               \
+  //              / \
+  //             /   \
+  //            /     \    
+  //           /   z__\.D 
+  //         E.__---  / \
+  //         /           \
+  //        /             \
+  //       /               \
+  //     _/                 \_
+  //     /| b               |\ a
+  //    /                     \
+  //  B. <-------- c ----------. A
+  //
+  //     A - first ray origin
+  //     a - first ray direction ( not necessarily normalized )
+  //     B - second ray origin
+  //     b - second ray direction ( not necessarily normalized )
+  //     c - vector from A to B ( c = B - A )
+  //     E - closest point on the first ray to the second ray
+  //     D - closest point on the second ray to the first ray
+  //
+  // +-------------+
+  // | 3 Equations |
+  // +-------------+
+  // |
+  // +--> Dot( a, z ) = 0
+  // +--> Dot( b, z ) = 0
+  // +--> c + (b*e) + z - (a*d) = 0
+  //
+  // +------------+
+  // | 3 unknowns |
+  // +------------+
+  // |
+  // +--> e - scalar such that b*e=E
+  // +--> d - scalar such that a*d=D
+  // +--> z - vector perpendicular to both a and b ( z = D - E )
+
+  const v3 c { B - A };
+  const float ab { Dot( a, b ) };
+  const float bc { Dot( b, c ) };
+  const float ac { Dot( a, c ) };
+  const float aa { Dot( a, a ) };
+  const float bb { Dot( b, b ) };
+  const float denom { aa * bb - ab * ab };
+  if( d )
+  {
+    *d = ( -ab * bc + ac * bb ) / denom;
+  }
+  if( e )
+  {
+    *e = ( ab * ac - bc * aa ) / denom;
+  }
+}
+

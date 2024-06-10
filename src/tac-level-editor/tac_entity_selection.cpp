@@ -18,7 +18,13 @@ namespace Tac
 {
 
 
+
   //===-------------- SelectedEntities -------------===//
+
+  void SelectedEntities::Init( SettingsNode settingsNode)
+  {
+    mSettingsNode = settingsNode;
+  }
 
   void                SelectedEntities::AddToSelection( Entity* e ) { mSelectedEntities.push_back( e ); }
 

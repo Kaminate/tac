@@ -12,9 +12,11 @@ namespace Tac
     void Init( Errors& );
     void Uninit();
 
-    void RenderEditorWidgetsSelection( Render::IContext*,
+    void RenderTranslationWidget( Render::IContext*,
                                        WindowHandle,
                                        Errors& );
+
+  private:
 
     Render::ProgramHandle         m3DShader                 {};
     Render::PipelineHandle        m3DPipeline               {};

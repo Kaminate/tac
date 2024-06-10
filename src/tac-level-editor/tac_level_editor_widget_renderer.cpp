@@ -63,7 +63,8 @@ namespace Tac
     renderDevice->DestroyPipeline( m3DPipeline);
   }
 
-  void WidgetRenderer::RenderEditorWidgetsSelection( Render::IContext* renderContext,
+
+  void WidgetRenderer::RenderTranslationWidget( Render::IContext* renderContext,
                                                      const WindowHandle viewHandle,
                                                      Errors& errors )
   {
@@ -141,29 +142,6 @@ namespace Tac
       }
 
 
-      // Widget Scale Cube
-      // ( it is not current interactable )
-      if( false )
-      {
-        const m4 World{
-          m4::Translate( selectionGizmoOrigin ) *
-          m4::Translate( axis * ( mArrowLen * 1.1f ) ) *
-          rots[ i ] *
-          m4::Scale( v3( 1, 1, 1 ) * mArrowLen * 0.1f ) };
-
-        const Render::DefaultCBufferPerObject perObjectData
-        {
-          .World { World },
-          .Color { axisPremultipliedColor },
-        };
-
-        Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
-                                      &perObjectData,
-                                      sizeof( Render::DefaultCBufferPerObject ),
-                                      TAC_STACK_FRAME );
-
-        AddDrawCall( renderContext, mCenteredUnitCube, viewHandle );
-      }
     }
   }
 } // namespace Tac

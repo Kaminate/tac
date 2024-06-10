@@ -49,14 +49,18 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 
+#include "tac-level-editor/tac_level_editor_icon_renderer.h"
+#include "tac-level-editor/tac_level_editor_widget_renderer.h"
+
+Tac::Creation Tac::gCreation;
 
 namespace Tac
 {
-  Creation gCreation;
-
   static const TimestampDifference errorDurationSecs { 60.0f };
   static const TimestampDifference successDurationSecs { 5.0f };
 
+  static IconRenderer     sIconRenderer{};
+  static WidgetRenderer   sWidgetRenderer{};
 
   static String CreationGetNewEntityName()
   {
@@ -113,7 +117,11 @@ namespace Tac
 
     void Init( App::InitParams initParams, Errors& errors ) override
     {
-       gCreation.Init( mSettingsNode, errors );
+      sIconRenderer.Init( errors );
+      sWidgetRenderer.Init( errors );
+      gCreation.mSimState.Init(errors);
+      gCreation.mSysState.Init( &sIconRenderer, &sWidgetRenderer, errors );
+      gCreation.Init( mSettingsNode, errors );
     }
 
     void Update( App::UpdateParams, Errors& errors ) override
@@ -146,14 +154,8 @@ namespace Tac
   void                Creation::Init( SettingsNode settingsNode, Errors& errors )
   {
     mSettingsNode = settingsNode;
-    mWorld = TAC_NEW World;
-    mEditorCamera = TAC_NEW Camera
-    {
-      .mPos       { 0, 1, 5 },
-      .mForwards  { 0, 0, -1 },
-      .mRight     { 1, 0, 0 },
-      .mUp        { 0, 1, 0 }
-    };
+
+    TAC_CALL( mSimState.Init( errors ) );
 
     TAC_CALL( SkyboxPresentationInit( errors ) );
 
@@ -165,9 +167,13 @@ namespace Tac
     TAC_CALL( VoxelGIPresentationInit( errors ) );
 #endif
 
-    TAC_CALL( PrefabLoad( mSettingsNode, &mEntityUUIDCounter, mWorld, mEditorCamera, errors ) );
+    TAC_CALL( PrefabLoad( mSettingsNode,
+                          &mEntityUUIDCounter,
+                          mSimState.mWorld,
+                          mSimState.mEditorCamera,
+                          errors ) );
 
-    mSelectedEntities.mSettingsNode = mSettingsNode;
+    mSelectedEntities.Init( mSettingsNode );
   }
 
   void                Creation::Uninit( Errors& errors )
@@ -184,6 +190,7 @@ namespace Tac
   void                Creation::Render( Errors& )
   {
   }
+
   void                Creation::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
@@ -220,9 +227,9 @@ namespace Tac
     {
       const ComponentRegistryEntry* entry { prefabComponent->GetEntry() };
       Component* copyComponent { copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
-      Json dOnT_mInD_iF_i_dO;
-      entry->mSaveFn( dOnT_mInD_iF_i_dO, prefabComponent );
-      entry->mLoadFn( dOnT_mInD_iF_i_dO, copyComponent );
+      Json entityJson;
+      entry->mSaveFn( entityJson, prefabComponent );
+      entry->mLoadFn( entityJson, copyComponent );
     }
 
     for( Entity* prefabChildEntity : prefabEntity->mChildren )
@@ -232,6 +239,7 @@ namespace Tac
       //Entity* copyChildEntity = CreateEntity();
       copyEntity->AddChild( copyChildEntity );
     }
+
     return copyEntity;
   }
 

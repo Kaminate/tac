@@ -4,8 +4,9 @@
 #include "tac-ecs/tac_space.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_asset.h" // AssetPathStringView
 
-namespace Tac { struct AssetPathStringView; struct Errors; }
 namespace Tac
 {
 

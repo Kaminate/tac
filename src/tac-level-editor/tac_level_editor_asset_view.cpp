@@ -371,7 +371,8 @@ namespace Tac
       if( ImGuiButton( "Import object into scene" ) )
       {
         Entity* prefab { *loadedModel->mWorld.mEntities.begin() };
-        gCreation.InstantiateAsCopy( prefab, gCreation.GetEditorCameraVisibleRelativeSpace() );
+        const RelativeSpace relativeSpace{ gCreation.GetEditorCameraVisibleRelativeSpace() };
+        gCreation.InstantiateAsCopy( prefab, relativeSpace );
       }
       ImGuiEndGroup();
     }
