@@ -8,6 +8,7 @@
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h" // PremultipliedAlpha
+#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 
 
@@ -30,6 +31,26 @@ namespace Tac
     m4 mWorld;
     v4 mColor;
   };
+
+  static m4 GetProj( WindowHandle viewHandle, const Camera* camera )
+  {
+    SysWindowApi windowApi;
+    const v2i windowSize{ windowApi.GetSize( viewHandle ) };
+    const float aspectRatio{ ( float )windowSize.x / ( float )windowSize.y };
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
+    const m4::ProjectionMatrixParams projParams
+    {
+      .mNDCMinZ       { ndcAttribs.mMinZ },
+      .mNDCMaxZ       { ndcAttribs.mMaxZ },
+      .mViewSpaceNear { camera->mNearPlane },
+      .mViewSpaceFar  { camera->mFarPlane },
+      .mAspectRatio   { aspectRatio },
+      .mFOVYRadians   { camera->mFovyrad },
+    };
+    return m4::ProjPerspective( projParams );
+  }
+
   static Render::CreateBufferParams GetPerObjParams()
   {
     return Render::CreateBufferParams
@@ -50,30 +71,6 @@ namespace Tac
       .mBinding       { Render::Binding::ConstantBuffer },
       .mOptionalName  { "widget per frame" },
     };
-  }
-
-  static void AddDrawCall( Render::IContext* renderContext,
-                           const Mesh* mesh )
-  {
-    for( const SubMesh& subMesh : mesh->mSubMeshes )
-    {
-      const Render::DrawArgs drawArgs
-      {
-        .mIndexCount    { subMesh.mIndexCount },
-      };
-
-      renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
-      renderContext->SetShader( CreationGameWindow::Instance->m3DShader );
-      renderContext->SetBlendState( CreationGameWindow::Instance->mBlendState );
-      renderContext->SetDepthState( CreationGameWindow::Instance->mDepthState );
-      renderContext->SetRasterizerState( CreationGameWindow::Instance->mRasterizerState );
-      renderContext->SetVertexFormat( CreationGameWindow::Instance->m3DVertexFormat );
-      renderContext->SetSamplerState( { CreationGameWindow::Instance->mSamplerState }  );
-
-      renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
-      renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
-      renderContext->Draw( drawArgs );
-    }
   }
 
   static Render::ProgramParams GetProgramParams3DTest()
@@ -189,36 +186,51 @@ namespace Tac
     renderDevice->DestroyPipeline( m3DPipeline);
   }
 
-  void WidgetRenderer::UpdatePerFrame()
+
+  void WidgetRenderer::UpdatePerFrame( Render::IContext* renderContext,
+                                       WindowHandle viewHandle,
+                                       const Camera* camera,
+                                       Errors& errors )
   {
+    const m4 view { camera->View() };
+    const m4 proj { GetProj( viewHandle, camera ) };
+    const PerFrame perFrame
+    {
+      .mView{ view },
+      .mProj{ proj },
+    };
+
+    const Render::UpdateBufferParams update
+    {
+      .mSrcBytes{ &perFrame },
+      .mSrcByteCount{ sizeof( PerFrame ) },
+    };
+
+    renderContext->UpdateBuffer( mBufferPerFrame, update, errors );
   }
 
-  void WidgetRenderer::UpdatePerObject()
+  void WidgetRenderer::UpdatePerObject( Render::IContext* renderContext, int i, Errors& errors )
   {
+    const v4 arrowColor{ GetAxisColor( i ) };
+    const m4 world{ GetAxisWorld( i ) };
+
+    const PerObj perObj
+    {
+      .mWorld { world },
+      .mColor { arrowColor },
+    };
+
+    const Render::UpdateBufferParams update
+    {
+      .mSrcBytes{ &perObj },
+      .mSrcByteCount{ sizeof( PerObj ) },
+    };
+
+    renderContext->UpdateBuffer( mBufferPerObj, update, errors );
   }
 
-  void WidgetRenderer::RenderTranslationWidget( Render::IContext* renderContext,
-                                                     const WindowHandle viewHandle,
-                                                     Errors& errors )
+  v4 WidgetRenderer::GetAxisColor( int i )
   {
-    if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
-      return;
-
-    TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
-
-    const float w { ( float )windowSize.x };
-    const float h { ( float )windowSize.y };
-    const Render::DefaultCBufferPerFrame perFrameData { GetPerFrame( w, h ) };
-    const Render::ConstantBufferHandle hPerFrame { Render::DefaultCBufferPerFrame::Handle };
-    const int perFrameSize{ sizeof( Render::DefaultCBufferPerFrame ) };
-    Render::UpdateConstantBuffer( hPerFrame, &perFrameData, perFrameSize, TAC_STACK_FRAME );
-
-    const v3 selectionGizmoOrigin{ gCreation.mSelectedEntities.GetGizmoOrigin() };
-    const m4 rots[]{
-      m4::RotRadZ( -3.14f / 2.0f ),
-      m4::Identity(),
-      m4::RotRadX( 3.14f / 2.0f ), };
-
     const v3 axises[ 3 ]
     {
       v3( 1, 0, 0 ),
@@ -226,51 +238,83 @@ namespace Tac
       v3( 0, 0, 1 ),
     };
 
-    for( int i{}; i < 3; ++i )
-    {
+    const v3 axis{ axises[ i ] };
 
-      const v3 axis{ axises[ i ] };
-      const Render::PremultipliedAlpha axisPremultipliedColor{
+    const Render::PremultipliedAlpha axisPremultipliedColor{
         Render::PremultipliedAlpha::From_sRGB( axis ) };
 
+    // is the widget hovered
+    const bool picked{
+      pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
+      pickData.arrowAxis == i };
 
-      const bool picked{
-        pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
-        pickData.arrowAxis == i };
+    // is the widget active
+    const bool usingTranslationArrow{
+      gCreation.mSelectedGizmo &&
+      gCreation.mTranslationGizmoDir == axis };
 
-      const bool usingTranslationArrow{
-        gCreation.mSelectedGizmo &&
-        gCreation.mTranslationGizmoDir == axis };
+    const bool shine { picked || usingTranslationArrow };
 
-      const bool shine { picked || usingTranslationArrow };
+    Render::PremultipliedAlpha arrowColor { axisPremultipliedColor };
+    if( shine )
+    {
+      float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
+      t *= t;
+      arrowColor.mColor = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.mColor, t );
+    }
 
-      Render::PremultipliedAlpha arrowColor { axisPremultipliedColor };
-      if( shine )
+    return arrowColor.mColor;
+  }
+
+  m4 WidgetRenderer::GetAxisWorld( int i )
+  {
+    const m4 rots[]{
+      m4::RotRadZ( -3.14f / 2.0f ),
+      m4::Identity(),
+      m4::RotRadX( 3.14f / 2.0f ), };
+
+    const v3 selectionGizmoOrigin{ gCreation.mSelectedEntities.GetGizmoOrigin() };
+
+    const m4 world
+    {
+      m4::Translate( selectionGizmoOrigin ) *
+      rots[ i ] *
+      m4::Scale( v3( 1, 1, 1 ) * mArrowLen )
+    };
+
+    return world;
+  }
+
+  void WidgetRenderer::RenderTranslationWidget( Render::IContext* renderContext,
+                                                const WindowHandle viewHandle,
+                                                const Camera* camera,
+                                                Errors& errors )
+  {
+    if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
+      return;
+
+    TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
+
+    renderContext->SetPipeline( m3DPipeline );
+    TAC_CALL( UpdatePerFrame( renderContext, viewHandle, camera, errors ) );
+
+    for( int i{}; i < 3; ++i )
+    {
+      TAC_CALL( UpdatePerObject( renderContext, i, errors ) );
+
+      const Mesh* mesh{ mArrow };
+      for( const SubMesh& subMesh : mesh->mSubMeshes )
       {
-        float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
-        t *= t;
-        arrowColor.mColor = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.mColor, t );
+        const Render::DrawArgs drawArgs
+        {
+          .mIndexCount { subMesh.mIndexCount },
+        };
 
+        renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
+        renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
+        renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
+        renderContext->Draw( drawArgs );
       }
-
-      const m4 World
-      { m4::Translate( selectionGizmoOrigin )
-      * rots[ i ]
-      * m4::Scale( v3( 1, 1, 1 ) * mArrowLen ) };
-
-      const Render::DefaultCBufferPerObject perObjectData
-      {
-        .World { World },
-        .Color { arrowColor },
-      };
-
-      Render::UpdateConstantBuffer( Render::DefaultCBufferPerObject::Handle,
-                                    &perObjectData,
-                                    sizeof( Render::DefaultCBufferPerObject ),
-                                    TAC_STACK_FRAME );
-      AddDrawCall( renderContext, mArrow, viewHandle );
-
-
     }
   }
 } // namespace Tac

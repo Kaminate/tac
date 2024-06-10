@@ -4,6 +4,7 @@
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 
 namespace Tac
 {
@@ -14,12 +15,20 @@ namespace Tac
 
     void RenderTranslationWidget( Render::IContext*,
                                        WindowHandle,
+                                  const Camera*,
                                        Errors& );
 
   private:
 
-    void UpdatePerFrame();
-    void UpdatePerObject();
+    void UpdatePerFrame( Render::IContext*,
+                         WindowHandle,
+                         const Camera*,
+                         Errors& );
+
+    void UpdatePerObject( Render::IContext*, int, Errors& );
+
+    v4 GetAxisColor( int );
+    m4 GetAxisWorld( int );
 
     Render::PipelineParams        GetPipelineParams();
 
