@@ -182,6 +182,7 @@ namespace Tac
 
 	WindowHandle ImGuiGetWindowHandle();
 	WindowHandle ImGuiGetWindowHandle( StringView );
+  ImGuiRect    ImGuiGetContentRect();
 
   //   ImGuiSetNextWindow...
 	void ImGuiSetNextWindowMoveResize();

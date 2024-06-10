@@ -462,6 +462,12 @@ Tac::WindowHandle Tac::ImGuiGetWindowHandle( StringView name )
   return window->mDesktopWindow->mWindowHandle;
 }
 
+Tac::ImGuiRect           Tac::ImGuiGetContentRect()
+{
+  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  return window->mViewportSpaceVisibleRegion;
+}
+
 void Tac::ImGuiSetNextWindowMoveResize()            { gNextWindow.mMoveResize = true; }
 void Tac::ImGuiSetNextWindowPosition( v2 position, ImGuiCondition cond )
 {

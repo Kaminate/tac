@@ -284,26 +284,67 @@ namespace Tac
     mSoul = ghost;
   }
 
+  void CreationGameWindow::ImGuiCamera( Camera* camera )
+  {
+    if( !ImGuiCollapsingHeader( "Camera" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    ImGuiDragFloat( "pan speed", &sWASDCameraPanSpeed );
+    ImGuiDragFloat( "orbit speed", &sWASDCameraOrbitSpeed );
+
+    if( ImGuiCollapsingHeader( "transform" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      ImGuiDragFloat3( "cam pos", camera->mPos.data() );
+      ImGuiDragFloat3( "cam forward", camera->mForwards.data() );
+      ImGuiDragFloat3( "cam right", camera->mRight.data() );
+      ImGuiDragFloat3( "cam up", camera->mUp.data() );
+    }
+    if( ImGuiCollapsingHeader( "clipping planes" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      ImGuiDragFloat( "cam far", &camera->mFarPlane );
+      ImGuiDragFloat( "cam near", &camera->mNearPlane );
+    }
+
+    float deg = RadiansToDegrees( camera->mFovyrad );
+    if( ImGuiDragFloat( "entire y fov(deg)", &deg ) )
+      camera->mFovyrad = DegreesToRadians( deg );
+
+    if( ImGuiButton( "cam snap pos" ) )
+    {
+      camera->mPos.x = ( float )( int )camera->mPos.x;
+      camera->mPos.y = ( float )( int )camera->mPos.y;
+      camera->mPos.z = ( float )( int )camera->mPos.z;
+    }
+
+    if( ImGuiButton( "cam snap dir" ) )
+      camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
+  }
+
   void CreationGameWindow::ImGuiOverlay( Camera* camera, Errors& errors )
   {
     static bool mHideUI { false };
     if( mHideUI )
       return;
 
-    SimWindowApi windowApi{};
-    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+    ImGuiBegin( "Level Editor Game Window" );
 
+    const ImGuiRect contentRect{ Tac::ImGuiGetContentRect() };
+    const v2 cursorPos{ ImGuiGetCursorPos() };
+    
     const float w { 400 };
-    const float h{ ( float )windowSize.y };
+    const float h{ contentRect.mMaxi.y - cursorPos.y };
 
-    ImGuiSetNextWindowSize( { w, h } );
-    ImGuiBegin( "gameplay overlay" );
+    ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
 
     mCloseRequested |= ImGuiButton( "Close Window" );
 
     ImGuiCheckbox( "Draw grid", &drawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
-    ImGuiCheckbox( "draw gizmos", &sGizmosEnabled );
+    ImGuiCheckbox( "draw gizmos", &mGizmoMgr->mGizmosEnabled );
 
     if( mSoul )
     {
@@ -321,47 +362,14 @@ namespace Tac
       }
     }
 
-    if( ImGuiCollapsingHeader( "Camera" ) )
-    {
-      TAC_IMGUI_INDENT_BLOCK;
-
-      ImGuiDragFloat( "pan speed", &sWASDCameraPanSpeed );
-      ImGuiDragFloat( "orbit speed", &sWASDCameraOrbitSpeed );
-
-      if( ImGuiCollapsingHeader( "transform" ) )
-      {
-        TAC_IMGUI_INDENT_BLOCK;
-        ImGuiDragFloat3( "cam pos", camera->mPos.data() );
-        ImGuiDragFloat3( "cam forward", camera->mForwards.data() );
-        ImGuiDragFloat3( "cam right", camera->mRight.data() );
-        ImGuiDragFloat3( "cam up", camera->mUp.data() );
-      }
-      if( ImGuiCollapsingHeader( "clipping planes" ) )
-      {
-        TAC_IMGUI_INDENT_BLOCK;
-        ImGuiDragFloat( "cam far", &camera->mFarPlane );
-        ImGuiDragFloat( "cam near", &camera->mNearPlane );
-      }
-
-      float deg = RadiansToDegrees(camera->mFovyrad);
-      if( ImGuiDragFloat( "entire y fov(deg)", &deg ) )
-        camera->mFovyrad = DegreesToRadians( deg );
-
-      if( ImGuiButton( "cam snap pos" ) )
-      {
-        camera->mPos.x = ( float )( int )camera->mPos.x;
-        camera->mPos.y = ( float )( int )camera->mPos.y;
-        camera->mPos.z = ( float )( int )camera->mPos.z;
-      }
-      if( ImGuiButton( "cam snap dir" ) )
-        camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
-    }
+    ImGuiCamera( camera );
 
     if( Timestep::GetElapsedTime() < mStatusMessageEndTime )
     {
       ImGuiText( mStatusMessage );
     }
 
+    ImGuiEndChild();
     ImGuiEnd();
   }
 

@@ -36,6 +36,7 @@ namespace Tac
                                                     const TimestampDifference& );
 
   private:
+    void                          ImGuiCamera( Camera* );
     void                          RenderSelectionCircle(World*, Camera*);
     void                          RenderEditorWidgets( Render::IContext*,
                                                        WindowHandle,
