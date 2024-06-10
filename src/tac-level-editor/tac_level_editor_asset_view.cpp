@@ -3,12 +3,10 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/presentation/tac_game_presentation.h"
-#include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_model_load_synchronous.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/job/tac_job_queue.h"
@@ -336,7 +334,7 @@ namespace Tac
     }
   }
 
-  static void UIFilesModelImGui( const FileSys::Path& path )
+  static void UIFilesModelImGui( World* world, Camera* camera, const FileSys::Path& path )
   {
     Errors errors;
     AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
@@ -371,8 +369,9 @@ namespace Tac
       if( ImGuiButton( "Import object into scene" ) )
       {
         Entity* prefab { *loadedModel->mWorld.mEntities.begin() };
-        const RelativeSpace relativeSpace{ gCreation.GetEditorCameraVisibleRelativeSpace() };
-        gCreation.InstantiateAsCopy( prefab, relativeSpace );
+        const RelativeSpace relativeSpace{
+          gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
+        gCreation.InstantiateAsCopy(world,camera, prefab, relativeSpace );
       }
       ImGuiEndGroup();
     }
@@ -473,12 +472,12 @@ namespace Tac
 
 
 
-  static void UIFilesModels()
+  static void UIFilesModels( World* world, Camera* camera)
   {
     FileSys::Paths paths{ GetModelPaths() };
     for( const FileSys::Path& path : paths )
     {
-      UIFilesModelImGui( path );
+      UIFilesModelImGui(  world, camera ,path );
     }
   }
 
@@ -512,20 +511,20 @@ namespace Tac
     }
   }
 
-  static void UIFiles()
+  static void UIFiles(World*world, Camera*camera)
   {
     if( sAssetViewFiles.empty() )
       ImGuiText( "no files :(" );
 
     UIFilesImages();
-    UIFilesModels();
+    UIFilesModels( world, camera );
     UIFilesOther();
   }
 
 
 } // namespace Tac
 
-void Tac::CreationUpdateAssetView()
+void Tac::CreationUpdateAssetView( World* world, Camera* camera)
 {
   TAC_PROFILE_BLOCK;
   ImGuiSetNextWindowStretch();
@@ -548,7 +547,7 @@ void Tac::CreationUpdateAssetView()
 
     UIFoldersUpToCurr();
     UIFoldersNext();
-    UIFiles();
+    UIFiles( world, camera );
 
     if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
     {

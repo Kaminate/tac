@@ -54,10 +54,21 @@ namespace Tac
     for( Entity* entity : topLevelEntitiesToDelete )
     {
       PrefabRemoveEntityRecursively( settingsNode, entity );
-      gCreation.mWorld->KillEntity( entity );
+      entity->mWorld->KillEntity( entity );
     }
 
     mSelectedEntities.clear();
+  }
+
+  v3 SelectedEntities::ComputeAveragePosition()
+  {
+    const int n{ mSelectedEntities.size() };
+    TAC_ASSERT( n );
+    float scale{ 1.0f / n };
+    v3 result{};
+    for( int i{}; i < n; ++i )
+      result += scale * mSelectedEntities[i]->mWorldPosition;
+    return result;
   }
 
   bool                SelectedEntities::IsSelected( Entity* e )

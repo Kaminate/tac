@@ -64,7 +64,6 @@ namespace Tac
 
   static String CreationGetNewEntityName( World* world )
   {
-    World* world { world };
     String desiredEntityName { "Entity" };
     int parenNumber { 1 };
     for( ;; )
@@ -125,7 +124,9 @@ namespace Tac
 
     void Update( App::UpdateParams, Errors& errors ) override
     {
-      gCreation.Update( errors );
+      World* world{ gCreation.mSimState.mWorld };
+      Camera* camera{ gCreation.mSimState.mEditorCamera };
+      gCreation.Update( world, camera,errors );
     }
 
     void Render( App::RenderParams, Errors& errors ) override
@@ -190,7 +191,7 @@ namespace Tac
   {
   }
 
-  void                Creation::Update( World* world, Errors& errors )
+  void                Creation::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
@@ -198,7 +199,7 @@ namespace Tac
 
 
     if( mUpdateAssetView )
-      CreationUpdateAssetView();
+      CreationUpdateAssetView( world, camera );
 
     world->Step( TAC_DELTA_FRAME_SECONDS );
 

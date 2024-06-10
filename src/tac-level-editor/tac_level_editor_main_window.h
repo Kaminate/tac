@@ -26,7 +26,7 @@ namespace Tac
 
     void                       Init( Errors& );
     void                       Uninit();
-    void                       Update( Errors& );
+    void                       Update( World* , Errors& );
     void                       LoadTextures( Errors& );
     void                       ImGui( World*, Errors& );
     void                       ImGuiWindows( Errors& );
@@ -35,13 +35,11 @@ namespace Tac
 
     WindowHandle               mWindowHandle;
     UIRoot*                    mUIRoot               {};
-    //UI2DDrawData*              mUI2DDrawData       {};
     Texture*                   mIconWindow           {};
     Texture*                   mIconClose            {};
     Texture*                   mIconMaximize         {};
     Texture*                   mIconMinimize         {};
     UIHierarchyNode*           mGameObjectButton     {};
-    bool                       mAreTexturesLoaded    {};
     bool                       mAreLayoutsCreated    {};
     bool                       mCloseRequested       {};
   };

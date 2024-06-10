@@ -66,41 +66,14 @@ namespace Tac
 
   void CreationMainWindow::Uninit()
   {
-    SimWindowApi windowApi;
-    windowApi.DestroyWindow( mWindowHandle );
   }
 
   void CreationMainWindow::Init( Errors& )
   {
-    mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gMainWindowName );
   }
 
-  void CreationMainWindow::LoadTextures( Errors& errors )
+  void CreationMainWindow::LoadTextures( Errors& )
   {
-    TAC_UNUSED_PARAMETER( errors );
-    //if( mAreTexturesLoaded )
-    //  return;
-    //struct TextureAndPath
-    //{
-    //  Render::TextureHandle textureHandle;
-    //  const char* path;
-    //};
-    //Vector< TextureAndPath > textureAndPaths = {
-    //  { &mIconWindow, "assets/grave.png" },
-    //{ &mIconClose, "assets/icons/close.png" },
-    //{ &mIconMinimize, "assets/icons/minimize.png" },
-    //{ &mIconMaximize, "assets/icons/maximize.png" },
-    //};
-    //int loadedTextureCount = 0;
-    //for( TextureAndPath textureAndPath : textureAndPaths )
-    //{
-    //  TAC_CALL( TextureAssetManager::GetTexture( textureAndPath.path, errors ) );
-    //  if( *textureAndPath.texture )
-    //    loadedTextureCount++;
-    //}
-    //if( loadedTextureCount == textureAndPaths.size() )
-    mAreTexturesLoaded = true;
-
   }
 
   void CreationMainWindow::ImGuiWindows( Errors& errors )
@@ -191,29 +164,12 @@ namespace Tac
     ImGuiEnd();
   }
 
-  void CreationMainWindow::Update( Errors& errors )
+  void CreationMainWindow::Update( World* world, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
-    SimWindowApi windowApi;
-    SimKeyboardApi keyboardApi;
-
-
     TAC_CALL( LoadTextures( errors ) );
-    TAC_CALL( ImGui( errors ) );
-
-    if( CreationGameObjectMenuWindow::Instance )
-    {
-      WindowHandle windowHandle { CreationGameObjectMenuWindow::Instance->mWindowHandle };
-      TAC_CALL( CreationGameObjectMenuWindow::Instance->Update( errors ) );
-
-      if( keyboardApi.JustPressed( Key::MouseLeft )
-          && !windowApi.IsHovered( windowHandle )
-          && Timestep::GetElapsedTime() != CreationGameObjectMenuWindow::Instance->mCreationSeconds )
-      {
-        TAC_DELETE CreationGameObjectMenuWindow::Instance;
-      }
-    }
+    TAC_CALL( ImGui( world, errors ) );
   }
 } // namespace Tac
 

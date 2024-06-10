@@ -124,7 +124,7 @@ namespace Tac
       }
     }
     Vector< Entity* > potentialParents;
-    for( Entity* potentialParent : gCreation.mWorld->mEntities )
+    for( Entity* potentialParent : entity->mWorld->mEntities )
     {
       if( potentialParent == entity )
         continue;
@@ -211,7 +211,10 @@ namespace Tac
   bool CreationPropertyWindow::sShowWindow{};
 
 
-  void CreationPropertyWindow::Update( World* world, Camera* camera, SettingsNode settingsNode, Errors& errors )
+  void CreationPropertyWindow::Update( World* world,
+                                       Camera* camera,
+                                       SettingsNode settingsNode,
+                                       Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 

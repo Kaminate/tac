@@ -13,7 +13,7 @@ namespace Tac
   {
     void                Init( Errors& );
     void                Uninit();
-    void                Update( const Camera* , Errors& );
+    void                Update( v3, const Camera* , Errors& );
     void                Render( Errors& );
     bool                IsTranslationWidgetActive( int );
     void                ComputeArrowLen( const Camera* );

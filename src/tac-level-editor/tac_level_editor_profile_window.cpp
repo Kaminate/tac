@@ -21,11 +21,10 @@ namespace Tac
 {
 
   const char* CreationProfileWindow::gProfileWindowName { "ProfileWindow" };
-  void CreationProfileWindow::Update( const SimKeyboardApi keyboardApi, Errors& errors )
+  bool        CreationProfileWindow::mCloseRequested{};
+  void        CreationProfileWindow::Update( const SimKeyboardApi keyboardApi, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    TAC_PROFILE_BLOCK;
-    
     ImGuiSetNextWindowStretch();
     ImGuiBegin( "Profile Window" );
     mCloseRequested |= ImGuiButton( "Close Window" );

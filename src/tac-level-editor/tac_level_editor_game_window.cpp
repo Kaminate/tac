@@ -45,40 +45,39 @@ namespace Tac
   static float sWASDCameraPanSpeed   { 10 };
   static float sWASDCameraOrbitSpeed { 0.1f };
   static bool  sWASDCameraOrbitSnap  {};
+  static StringView sImguiWindowName{"Level Editor Game Window" };
 
 
 
 
 
 
-  static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
-  {
-    const Camera* camera { gCreation.mEditorCamera };
-    const float aspectRatio{ ( float )w / ( float )h };
-    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
-    const m4::ProjectionMatrixParams projParams
-    {
-      .mNDCMinZ       { ndcAttribs.mMinZ },
-      .mNDCMaxZ       { ndcAttribs.mMaxZ },
-      .mViewSpaceNear { camera->mNearPlane },
-      .mViewSpaceFar  { camera->mFarPlane },
-      .mAspectRatio   { aspectRatio },
-      .mFOVYRadians   { camera->mFovyrad },
-    };
-
-    const m4 view { camera->View() };
-    const m4 proj { m4::ProjPerspective( projParams ) };
-
-    return Render::DefaultCBufferPerFrame
-    {
-      .mView         { view },
-      .mProjection   { proj },
-      .mFar          { camera->mFarPlane },
-      .mNear         { camera->mNearPlane },
-      .mGbufferSize  { w, h }
-    };
-  }
+  //static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
+  //{
+  //  const Camera* camera { gCreation.mEditorCamera };
+  //  const float aspectRatio{ ( float )w / ( float )h };
+  //  const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  //  const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
+  //  const m4::ProjectionMatrixParams projParams
+  //  {
+  //    .mNDCMinZ       { ndcAttribs.mMinZ },
+  //    .mNDCMaxZ       { ndcAttribs.mMaxZ },
+  //    .mViewSpaceNear { camera->mNearPlane },
+  //    .mViewSpaceFar  { camera->mFarPlane },
+  //    .mAspectRatio   { aspectRatio },
+  //    .mFOVYRadians   { camera->mFovyrad },
+  //  };
+  //  const m4 view { camera->View() };
+  //  const m4 proj { m4::ProjPerspective( projParams ) };
+  //  return Render::DefaultCBufferPerFrame
+  //  {
+  //    .mView         { view },
+  //    .mProjection   { proj },
+  //    .mFar          { camera->mFarPlane },
+  //    .mNear         { camera->mNearPlane },
+  //    .mGbufferSize  { w, h }
+  //  };
+  //}
 
   static v3 SnapToUnitDir( const v3 v ) // Returns the unit vector that best aligns with v
   {
@@ -330,7 +329,7 @@ namespace Tac
     if( mHideUI )
       return;
 
-    ImGuiBegin( "Level Editor Game Window" );
+    ImGuiBegin( sImguiWindowName );
 
     const ImGuiRect contentRect{ Tac::ImGuiGetContentRect() };
     const v2 cursorPos{ ImGuiGetCursorPos() };
@@ -376,6 +375,8 @@ namespace Tac
   void CreationGameWindow::CameraUpdateControls( Camera* camera )
   {
     SimWindowApi windowApi{};
+
+    WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
     if( !windowApi.IsHovered( mWindowHandle ) )
       return;
 
@@ -428,7 +429,7 @@ namespace Tac
 
       if( gCreation.mSelectedEntities.size() )
       {
-        const v3 origin { gCreation.mSelectedEntities.GetGizmoOrigin() };
+        const v3 origin { gCreation.mSelectedEntities.ComputeAveragePosition() };
         unitsPerTick = Distance( origin, camera->mPos ) * 0.1f;
       }
 
@@ -442,6 +443,7 @@ namespace Tac
   void CreationGameWindow::Render( World* world, Camera* camera, Errors& errors )
   {
     SysWindowApi windowApi{};
+    WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
     if( !windowApi.IsShown( mWindowHandle ) )
       return;
 
@@ -480,7 +482,7 @@ namespace Tac
                             &mWorldBuffers,
                             errors );
 
-    TAC_CALL( RenderEditorWidgets( renderContext, mWindowHandle, errors ) );
+    TAC_CALL( RenderEditorWidgets( renderContext, mWindowHandle, camera, errors ) );
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     VoxelGIPresentationRender( gCreation.mWorld,
@@ -495,6 +497,8 @@ namespace Tac
   void CreationGameWindow::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
+
+    WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
 
     SimWindowApi windowApi{};
     if( !windowApi.IsShown( mWindowHandle ) )
@@ -516,13 +520,15 @@ namespace Tac
     }
 
 
-    mMousePicking.BeginFrame( camera );
+    mMousePicking.BeginFrame( mWindowHandle, camera );
     CameraUpdateSaved( mSettingsNode, gCreation.mSimState.mEditorCamera );
     CameraUpdateControls( camera );
     mGizmoMgr->ComputeArrowLen( camera );
     mMousePicking.Update( world, camera );
 
-    TAC_CALL( gCreation.mGizmoMgr.Update( camera, errors ) );
+    const v3 wsMouseDir{ mMousePicking.GetWorldspaceMouseDir() };
+
+    TAC_CALL( gCreation.mGizmoMgr.Update( wsMouseDir, camera, errors ) );
 
     if( drawGrid )
       world->mDebug3DDrawData->DebugDraw3DGrid();

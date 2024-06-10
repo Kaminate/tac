@@ -20,7 +20,7 @@ namespace Tac
   {
     void                Init( SettingsNode, Errors& );
     void                Uninit( Errors& );
-    void                Update( World*, Errors& );
+    void                Update( World*, Camera*, Errors& );
     void                Render( Errors& );
 
     // Entities

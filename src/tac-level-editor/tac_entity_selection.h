@@ -16,6 +16,7 @@ namespace Tac
     void                AddToSelection( Entity* );
     void                Select( Entity* );
     bool                IsSelected( Entity* );
+    v3                  ComputeAveragePosition();
 
     bool                empty() const;
     int                 size() const;

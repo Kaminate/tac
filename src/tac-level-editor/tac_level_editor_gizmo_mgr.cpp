@@ -16,8 +16,9 @@ namespace Tac
   {
   }
 
-  bool                GizmoMgr::IsTranslationWidgetActive( int )
+  bool                GizmoMgr::IsTranslationWidgetActive( int i )
   {
+    return mGizmosEnabled && mSelectedGizmo && mTranslationGizmoAxis == i;
   }
 
   void GizmoMgr::ComputeArrowLen( const Camera* camera )
@@ -32,7 +33,7 @@ namespace Tac
                              camera->mForwards,
                              camera->mRight,
                              camera->mUp ) };
-    const v3 pos{ mSelectedEntities->GetGizmoOrigin() };
+    const v3 pos{ mSelectedEntities->ComputeAveragePosition() };
     const v4 posVS4{ view * v4( pos, 1 ) };
     const float clip_height{ Abs( Tan( camera->mFovyrad / 2.0f )
                                    * posVS4.z
@@ -41,7 +42,7 @@ namespace Tac
     mArrowLen = arrowLen;
   }
 
-  void                GizmoMgr::Update( const Camera* camera, Errors& errors )
+  void                GizmoMgr::Update( v3 worldSpaceMouseDir, const Camera* camera, Errors& errors )
   {
     if( !mSelectedGizmo )
       return;
@@ -54,13 +55,11 @@ namespace Tac
     }
 
 
-    SimKeyboardApi keyboardApi{};
-
     const v3 origin{ mGizmoOrigin };
     float gizmoMouseDist;
     float secondDist;
     ClosestPointTwoRays( camera->mPos,
-                         mWorldSpaceMouseDir,
+                         worldSpaceMouseDir,
                          origin,
                          mTranslationGizmoDir,
                          &gizmoMouseDist,

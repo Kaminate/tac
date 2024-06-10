@@ -260,7 +260,7 @@ namespace Tac
       m4::Identity(),
       m4::RotRadX( 3.14f / 2.0f ), };
 
-    const v3 selectionGizmoOrigin{ mGizmoMgr->mSelectedEntities->GetGizmoOrigin() };
+    const v3 selectionGizmoOrigin{ mGizmoMgr->mGizmoOrigin };
 
     const m4 world
     {
@@ -280,7 +280,7 @@ namespace Tac
     if( !mGizmoMgr->mGizmosEnabled )
       return;
 
-    if( gCreation.mSelectedEntities.empty() )
+    if( !mGizmoMgr->mSelectedGizmo )
       return;
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );

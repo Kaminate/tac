@@ -121,16 +121,6 @@ namespace Tac
       AllocateEntityUUIDsRecursively( entityUUIDCounter, entityChild );
   }
 
-#if 0
-  AssetPathStringView          PrefabGetLoaded()
-  {
-    for( Prefab* prefab : mPrefabs )
-      for( Entity* entity : prefab->mEntities )
-        if( !entity->mParent )
-          return prefab->mAssetPath;
-    return "";
-  }
-#endif
 
   static Prefab* PrefabFind( Entity* entity )
   {
@@ -322,6 +312,15 @@ Tac::AssetPathStringView         Tac::PrefabGetOrNull( Entity* entity )
     if( Contains( prefab->mEntities, entity ) )
       return prefab->mAssetPath;
   return {};
+}
+
+Tac::AssetPathStringView          Tac::PrefabGetLoaded()
+{
+  for( Prefab* prefab : mPrefabs )
+    for( Entity* entity : prefab->mEntities )
+      if( !entity->mParent )
+        return prefab->mAssetPath;
+  return "";
 }
 
 

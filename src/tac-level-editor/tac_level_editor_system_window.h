@@ -4,6 +4,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-ecs/world/tac_world.h"
 
 namespace Tac
 {
@@ -11,7 +12,7 @@ namespace Tac
   // and then u can see each system ( graphics, physics, etc ) of level_editor->world->systems
   struct CreationSystemWindow
   {
-    static void Update( SettingsNode );
+    static void Update( World*, SettingsNode );
     static bool sShowWindow;
   };
 }

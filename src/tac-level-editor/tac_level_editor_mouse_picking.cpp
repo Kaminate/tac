@@ -3,7 +3,6 @@
 
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
-#include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 
@@ -123,14 +122,7 @@ namespace Tac
     {
       case PickedObject::WidgetTranslationArrow:
       {
-        v3 gizmoOrigin {};
-        {
-          const int nSelected{ mSelectedEntities->size() };
-          TAC_ASSERT( nSelected );
-          const float scale{ 1.0f / nSelected };
-          for( Entity* entity : *mSelectedEntities )
-            gizmoOrigin += entity->mWorldPosition * scale;
-        }
+        const v3 gizmoOrigin{ mSelectedEntities->ComputeAveragePosition() };
 
         v3 arrowDir{};
         arrowDir[ pickData.arrowAxis ] = 1;

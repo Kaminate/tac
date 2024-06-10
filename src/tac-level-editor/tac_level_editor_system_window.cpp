@@ -3,7 +3,6 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/system/tac_system.h"
-#include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/profile/tac_profile.h"
@@ -30,7 +29,10 @@ namespace Tac
         sSystemRegistryEntry = &entry;
   }
 
-  void CreationSystemWindow::Update( SettingsNode mSettingsNode )
+  // -----------------------------------------------------------------------------------------------
+
+  bool CreationSystemWindow::sShowWindow{};
+  void CreationSystemWindow::Update( World* world, SettingsNode mSettingsNode )
   {
     Initialize( mSettingsNode );
     ImGuiSetNextWindowStretch();
@@ -66,7 +68,7 @@ namespace Tac
         ImGuiCollapsingHeader( headerStr ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      System* system { gCreation.mWorld->GetSystem( sSystemRegistryEntry ) };
+      System* system { world->GetSystem( sSystemRegistryEntry ) };
       sSystemRegistryEntry->mDebugImGui( system );
     }
 
