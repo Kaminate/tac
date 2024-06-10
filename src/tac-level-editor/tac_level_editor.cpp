@@ -62,9 +62,9 @@ namespace Tac
   static IconRenderer     sIconRenderer{};
   static WidgetRenderer   sWidgetRenderer{};
 
-  static String CreationGetNewEntityName()
+  static String CreationGetNewEntityName( World* world )
   {
-    World* world { gCreation.mWorld };
+    World* world { world };
     String desiredEntityName { "Entity" };
     int parenNumber { 1 };
     for( ;; )
@@ -79,9 +79,8 @@ namespace Tac
     return desiredEntityName;
   }
 
-  static void   CheckSavePrefab()
+  static void   CheckSavePrefab(World* world)
   {
-    World* world { gCreation.mWorld };
 
     SimKeyboardApi keyboardApi;
 
@@ -191,34 +190,37 @@ namespace Tac
   {
   }
 
-  void                Creation::Update( Errors& errors )
+  void                Creation::Update( World* world, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
-    CheckSavePrefab();
+    CheckSavePrefab( world );
 
 
     if( mUpdateAssetView )
       CreationUpdateAssetView();
 
-    mWorld->Step( TAC_DELTA_FRAME_SECONDS );
+    world->Step( TAC_DELTA_FRAME_SECONDS );
 
 
     mSelectedEntities.DeleteEntitiesCheck();
   }
 
 
-  RelativeSpace       Creation::GetEditorCameraVisibleRelativeSpace()
+  RelativeSpace       Creation::GetEditorCameraVisibleRelativeSpace( const Camera* camera )
   {
     return RelativeSpace
     {
-      .mPosition { mEditorCamera->mPos + mEditorCamera->mForwards * 5.0f },
+      .mPosition { camera->mPos + camera->mForwards * 5.0f },
     };
   }
 
-  Entity*             Creation::InstantiateAsCopy( Entity* prefabEntity, const RelativeSpace& relativeSpace )
+  Entity*             Creation::InstantiateAsCopy( World* world,
+                                                   Camera* camera,
+                                                   Entity* prefabEntity,
+                                                   const RelativeSpace& relativeSpace )
   {
-    Entity* copyEntity { CreateEntity() };
+    Entity* copyEntity{ CreateEntity( world, camera ) };
     copyEntity->mRelativeSpace = relativeSpace;
     copyEntity->mInheritParentScale = prefabEntity->mInheritParentScale;
     copyEntity->mName = prefabEntity->mName;
@@ -234,8 +236,12 @@ namespace Tac
 
     for( Entity* prefabChildEntity : prefabEntity->mChildren )
     {
-      Entity* copyChildEntity {
-        InstantiateAsCopy( prefabChildEntity, prefabChildEntity->mRelativeSpace ) };
+      Entity* copyChildEntity{
+        InstantiateAsCopy(
+          world,
+          camera,
+          prefabChildEntity,
+          prefabChildEntity->mRelativeSpace ) };
       //Entity* copyChildEntity = CreateEntity();
       copyEntity->AddChild( copyChildEntity );
     }
@@ -243,11 +249,11 @@ namespace Tac
     return copyEntity;
   }
 
-  Entity*             Creation::CreateEntity()
+  Entity* Creation::CreateEntity( World* world, Camera* camera )
   {
-    Entity* entity { mWorld->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
-    entity->mName = CreationGetNewEntityName();
-    entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace();
+    Entity* entity { world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
+    entity->mName = CreationGetNewEntityName(world);
+    entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace( camera );
 
     mSelectedEntities.Select( entity );
 

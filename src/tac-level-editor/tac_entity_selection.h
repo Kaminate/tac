@@ -11,7 +11,6 @@ namespace Tac
   struct SelectedEntities
   {
     void Init( SettingsNode );
-    v3                  GetGizmoOrigin() const;
     void                DeleteEntitiesCheck();
     void                DeleteEntities();
     void                AddToSelection( Entity* );

@@ -7,7 +7,6 @@
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/system/tac_system.h"
 #include "tac-ecs/tac_space_types.h"
-#include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/profile/tac_profile.h"
@@ -212,7 +211,7 @@ namespace Tac
   bool CreationPropertyWindow::sShowWindow{};
 
 
-  void CreationPropertyWindow::Update( SettingsNode settingsNode, Errors& errors )
+  void CreationPropertyWindow::Update( World* world, Camera* camera, SettingsNode settingsNode, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
@@ -224,7 +223,6 @@ namespace Tac
     ImGuiBeginGroup();
     ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
 
-    World* world = gCreation.mWorld;
     for( Entity* entity : world->mEntities )
       if( !entity->mParent )
         RecursiveEntityHierarchyElement( entity );
@@ -232,7 +230,7 @@ namespace Tac
     ImGuiEndChild();
 
     if( ImGuiButton( "Create Entity" ) )
-      gCreation.CreateEntity();
+      gCreation.CreateEntity( world, camera );
 
     if( ImGuiButton( "Open Prefab" ) )
     {
@@ -240,11 +238,11 @@ namespace Tac
 
       if( prefabAssetPath.size() )
       {
-        Camera* cam { world->mEntities.size() ? nullptr : gCreation.mEditorCamera };
+        Camera* prefabLoadCamera { world->mEntities.size() ? nullptr : camera };
         TAC_CALL( PrefabLoadAtPath( settingsNode,
                                     &gCreation.mEntityUUIDCounter,
                                     world,
-                                    cam,
+                                    prefabLoadCamera,
                                     prefabAssetPath,
                                     errors ) );
       }

@@ -6,7 +6,6 @@
 //#include "tac-ecs/presentation/tac_game_presentation.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h" // PremultipliedAlpha
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
@@ -240,30 +239,18 @@ namespace Tac
 
     const v3 axis{ axises[ i ] };
 
-    const Render::PremultipliedAlpha axisPremultipliedColor{
-        Render::PremultipliedAlpha::From_sRGB( axis ) };
+    v4 color{ axis, 1 };
 
-    // is the widget hovered
-    const bool picked{
-      pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
-      pickData.arrowAxis == i };
-
-    // is the widget active
-    const bool usingTranslationArrow{
-      gCreation.mSelectedGizmo &&
-      gCreation.mTranslationGizmoDir == axis };
-
-    const bool shine { picked || usingTranslationArrow };
-
-    Render::PremultipliedAlpha arrowColor { axisPremultipliedColor };
-    if( shine )
+    const bool isWidgetHovered{ mMousePicking->IsTranslationWidgetPicked( i ) };
+    const bool isWidgetActive{ mGizmoMgr->IsTranslationWidgetActive( i ) };
+    if(  isWidgetHovered || isWidgetActive  )
     {
       float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
       t *= t;
-      arrowColor.mColor = Lerp( v4( 1, 1, 1, 1 ), axisPremultipliedColor.mColor, t );
+      color = Lerp( v4( 1, 1, 1, 1 ), color, t );
     }
 
-    return arrowColor.mColor;
+    return color;
   }
 
   m4 WidgetRenderer::GetAxisWorld( int i )
@@ -273,13 +260,13 @@ namespace Tac
       m4::Identity(),
       m4::RotRadX( 3.14f / 2.0f ), };
 
-    const v3 selectionGizmoOrigin{ gCreation.mSelectedEntities.GetGizmoOrigin() };
+    const v3 selectionGizmoOrigin{ mGizmoMgr->mSelectedEntities->GetGizmoOrigin() };
 
     const m4 world
     {
       m4::Translate( selectionGizmoOrigin ) *
       rots[ i ] *
-      m4::Scale( v3( 1, 1, 1 ) * mArrowLen )
+      m4::Scale( v3( 1, 1, 1 ) * mGizmoMgr-> mArrowLen )
     };
 
     return world;
@@ -290,7 +277,10 @@ namespace Tac
                                                 const Camera* camera,
                                                 Errors& errors )
   {
-    if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
+    if( !mGizmoMgr->mGizmosEnabled )
+      return;
+
+    if( gCreation.mSelectedEntities.empty() )
       return;
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );

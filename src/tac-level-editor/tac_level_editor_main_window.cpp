@@ -120,7 +120,7 @@ namespace Tac
     ImGuiUnindent();
   }
 
-  void CreationMainWindow::ImGuiSaveAs()
+  void CreationMainWindow::ImGuiSaveAs( World* world )
   {
     static Errors saveErrors;
     Errors& errors = saveErrors;
@@ -131,7 +131,6 @@ namespace Tac
     if( !ImGuiButton( "save as" ) )
       return;
 
-    World* world = gCreation.mWorld;
     for( Entity* entity : world->mEntities )
     {
       TAC_CALL( ImGuiSaveAs( entity, errors ) );
@@ -162,7 +161,7 @@ namespace Tac
     TAC_CALL( SaveToFile( assetPath, bytes, byteCount, errors ) );
   }
 
-  void CreationMainWindow::ImGui( Errors& errors )
+  void CreationMainWindow::ImGui( World* world, Errors& errors )
   {
     SimWindowApi windowApi;
     if( !windowApi.IsShown( mWindowHandle ) )
@@ -176,7 +175,7 @@ namespace Tac
     //ImGuiText( "file | edit | window" );
     //ImGuiEndMenuBar();
 
-    ImGuiSaveAs();
+    ImGuiSaveAs( world );
 
     TAC_CALL( ImGuiWindows(errors) );
 

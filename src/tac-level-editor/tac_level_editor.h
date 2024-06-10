@@ -20,13 +20,13 @@ namespace Tac
   {
     void                Init( SettingsNode, Errors& );
     void                Uninit( Errors& );
-    void                Update( Errors& );
+    void                Update( World*, Errors& );
     void                Render( Errors& );
 
     // Entities
-    RelativeSpace       GetEditorCameraVisibleRelativeSpace();
-    Entity*             CreateEntity();
-    Entity*             InstantiateAsCopy( Entity*, const RelativeSpace& );
+    RelativeSpace       GetEditorCameraVisibleRelativeSpace( const Camera* );
+    Entity*             CreateEntity(World*,Camera*);
+    Entity*             InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& );
 
     // ...
     SelectedEntities    mSelectedEntities        {};

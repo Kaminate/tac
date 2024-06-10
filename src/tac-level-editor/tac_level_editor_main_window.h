@@ -1,10 +1,10 @@
 #pragma once
 
 #include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 
 #include "tac-ecs/tac_space.h"
 
-namespace Tac { struct Errors; }
 namespace Tac
 {
 
@@ -28,9 +28,9 @@ namespace Tac
     void                       Uninit();
     void                       Update( Errors& );
     void                       LoadTextures( Errors& );
-    void                       ImGui( Errors& );
+    void                       ImGui( World*, Errors& );
     void                       ImGuiWindows( Errors& );
-    void                       ImGuiSaveAs();
+    void                       ImGuiSaveAs(World*);
     void                       ImGuiSaveAs( Entity*, Errors& );
 
     WindowHandle               mWindowHandle;

@@ -42,7 +42,6 @@
 namespace Tac
 {
   static bool  drawGrid              { false };
-  static bool  sGizmosEnabled        { true };
   static float sWASDCameraPanSpeed   { 10 };
   static float sWASDCameraOrbitSpeed { 0.1f };
   static bool  sWASDCameraOrbitSnap  {};
@@ -178,7 +177,7 @@ namespace Tac
     }
   }
 
-  static void CameraWASDControls( Camera* camera )
+  void CreationGameWindow::CameraWASDControls( Camera* camera )
   {
     if( gCreation.mSelectedEntities.empty() )
     {
@@ -186,7 +185,7 @@ namespace Tac
     }
     else
     {
-      CameraWASDControlsOrbit( camera, gCreation.mSelectedEntities.GetGizmoOrigin() );
+      CameraWASDControlsOrbit( camera, mGizmoMgr->mGizmoOrigin );
     }
   }
 
@@ -199,7 +198,7 @@ namespace Tac
     if( loadedPrefab != savedPrefabPath )
     {
       savedPrefabPath = loadedPrefab;
-      savedCamera = *gCreation.mEditorCamera;
+      savedCamera = *camera;
     }
 
     const bool cameraSame{
@@ -231,76 +230,48 @@ namespace Tac
   CreationGameWindow::~CreationGameWindow()
   {
     Instance = nullptr;
-
-    mIconRenderer.Uninit();
-    mWidgetRenderer.Uninit();
-
-    SimWindowApi windowApi{};
-    windowApi.DestroyWindow( mWindowHandle );
   }
 
 
   void CreationGameWindow::Init( Errors& errors )
   {
-    mWindowHandle = gCreation.mWindowManager.CreateDesktopWindow( gGameWindowName );
-
-
-
-
     TAC_CALL( PlayGame( errors ) );
   }
 
 
-  void CreationGameWindow::ComputeArrowLen()
+
+  void CreationGameWindow::RenderSelectionCircle( World* world, Camera* camera )
   {
-    if( gCreation.mSelectedEntities.empty() )
-      return;
-
-    const m4 view{ m4::View( gCreation.mEditorCamera->mPos,
-                             gCreation.mEditorCamera->mForwards,
-                             gCreation.mEditorCamera->mRight,
-                             gCreation.mEditorCamera->mUp ) };
-    const v3 pos{ gCreation.mSelectedEntities.GetGizmoOrigin() };
-    const v4 posVS4{ view * v4( pos, 1 ) };
-    const float clip_height{ Abs( Tan( gCreation.mEditorCamera->mFovyrad / 2.0f )
-                                   * posVS4.z
-                                   * 2.0f ) };
-    const float arrowLen{ clip_height * 0.2f };
-    mArrowLen = arrowLen;
-  }
-
-
-
-
-  void CreationGameWindow::RenderSelectionCircle()
-  {
-    if( !sGizmosEnabled || gCreation.mSelectedEntities.empty() )
-      return;
-
-
-    Debug3DDrawData* debug3DDrawData{ gCreation.mWorld->mDebug3DDrawData };
-    const v3 selectionGizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
-
-    debug3DDrawData->DebugDraw3DCircle( selectionGizmoOrigin,
-                                         gCreation.mEditorCamera->mForwards,
-                                         mArrowLen );
+    if( mGizmoMgr->mGizmosEnabled && mGizmoMgr->mSelectedGizmo )
+      world->mDebug3DDrawData->DebugDraw3DCircle( mGizmoMgr->mGizmoOrigin,
+                                                  camera->mForwards,
+                                                  mGizmoMgr->mArrowLen );
   }
 
 
 
   void CreationGameWindow::RenderEditorWidgets( Render::IContext* renderContext,
                                                 WindowHandle viewHandle,
+                                                Camera* camera,
                                                 Errors& errors )
   {
     SimWindowApi windowApi{};
     if( !windowApi.IsShown( viewHandle ) )
       return;
 
-    RenderSelectionCircle();
-    TAC_CALL( mWidgetRenderer.RenderTranslationWidget( renderContext, viewHandle, errors ) );
-    //TAC_CALL( 
-      gCreation.mSysState.mIconRenderer.RenderLights( gCreation.mSimState.mWorld, gCreation.mSimState.mEditorCamera, renderContext, viewHandle, errors );
-    //);
+
+    WidgetRenderer* widgetRenderer{ gCreation.mSysState.mWidgetRenderer };
+    TAC_CALL( widgetRenderer->RenderTranslationWidget( renderContext,
+                                                       viewHandle,
+                                                       camera,
+                                                       errors ) );
+
+    IconRenderer* IconRenderer{ gCreation.mSysState.mIconRenderer };
+    TAC_CALL( IconRenderer->RenderLights( gCreation.mSimState.mWorld,
+                                          gCreation.mSimState.mEditorCamera,
+                                          renderContext,
+                                          viewHandle,
+                                          errors ) );
   }
 
   void CreationGameWindow::PlayGame( Errors& errors )
@@ -313,7 +284,7 @@ namespace Tac
     mSoul = ghost;
   }
 
-  void CreationGameWindow::ImGuiOverlay( Errors& errors )
+  void CreationGameWindow::ImGuiOverlay( Camera* camera, Errors& errors )
   {
     static bool mHideUI { false };
     if( mHideUI )
@@ -326,7 +297,6 @@ namespace Tac
     const float h{ ( float )windowSize.y };
 
     ImGuiSetNextWindowSize( { w, h } );
-    ImGuiSetNextWindowHandle( mWindowHandle );
     ImGuiBegin( "gameplay overlay" );
 
     mCloseRequested |= ImGuiButton( "Close Window" );
@@ -354,7 +324,6 @@ namespace Tac
     if( ImGuiCollapsingHeader( "Camera" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      Camera* cam = gCreation.mEditorCamera;
 
       ImGuiDragFloat( "pan speed", &sWASDCameraPanSpeed );
       ImGuiDragFloat( "orbit speed", &sWASDCameraOrbitSpeed );
@@ -362,30 +331,30 @@ namespace Tac
       if( ImGuiCollapsingHeader( "transform" ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        ImGuiDragFloat3( "cam pos", cam->mPos.data() );
-        ImGuiDragFloat3( "cam forward", cam->mForwards.data() );
-        ImGuiDragFloat3( "cam right", cam->mRight.data() );
-        ImGuiDragFloat3( "cam up", cam->mUp.data() );
+        ImGuiDragFloat3( "cam pos", camera->mPos.data() );
+        ImGuiDragFloat3( "cam forward", camera->mForwards.data() );
+        ImGuiDragFloat3( "cam right", camera->mRight.data() );
+        ImGuiDragFloat3( "cam up", camera->mUp.data() );
       }
       if( ImGuiCollapsingHeader( "clipping planes" ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        ImGuiDragFloat( "cam far", &cam->mFarPlane );
-        ImGuiDragFloat( "cam near", &cam->mNearPlane );
+        ImGuiDragFloat( "cam far", &camera->mFarPlane );
+        ImGuiDragFloat( "cam near", &camera->mNearPlane );
       }
 
-      float deg = RadiansToDegrees(cam->mFovyrad);
+      float deg = RadiansToDegrees(camera->mFovyrad);
       if( ImGuiDragFloat( "entire y fov(deg)", &deg ) )
-        cam->mFovyrad = DegreesToRadians( deg );
+        camera->mFovyrad = DegreesToRadians( deg );
 
       if( ImGuiButton( "cam snap pos" ) )
       {
-        cam->mPos.x = ( float )( int )cam->mPos.x;
-        cam->mPos.y = ( float )( int )cam->mPos.y;
-        cam->mPos.z = ( float )( int )cam->mPos.z;
+        camera->mPos.x = ( float )( int )camera->mPos.x;
+        camera->mPos.y = ( float )( int )camera->mPos.y;
+        camera->mPos.z = ( float )( int )camera->mPos.z;
       }
       if( ImGuiButton( "cam snap dir" ) )
-        cam->SetForwards( SnapToUnitDir( cam->mForwards ) );
+        camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
     }
 
     if( Timestep::GetElapsedTime() < mStatusMessageEndTime )
@@ -396,7 +365,7 @@ namespace Tac
     ImGuiEnd();
   }
 
-  void CreationGameWindow::CameraUpdateControls()
+  void CreationGameWindow::CameraUpdateControls( Camera* camera )
   {
     SimWindowApi windowApi{};
     if( !windowApi.IsHovered( mWindowHandle ) )
@@ -404,7 +373,7 @@ namespace Tac
 
     SimKeyboardApi keyboardApi{};
 
-    const Camera oldCamera { *gCreation.mEditorCamera };
+    const Camera oldCamera { *camera };
 
     const v2 mouseDeltaPos { keyboardApi.GetMousePosDelta() };
     if( keyboardApi.IsPressed( Key::MouseRight ) &&
@@ -416,41 +385,32 @@ namespace Tac
 
       if( angleRadians.x != 0 )
       {
-        m3 matrix { m3::RotRadAngleAxis( -angleRadians.x, gCreation.mEditorCamera->mUp ) };
-        gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
-        gCreation.mEditorCamera->mRight = Cross( gCreation.mEditorCamera->mForwards,
-                                                 gCreation.mEditorCamera->mUp );
+        m3 matrix { m3::RotRadAngleAxis( -angleRadians.x, camera->mUp ) };
+        camera->mForwards = matrix * camera->mForwards;
+        camera->mRight = Cross( camera->mForwards, camera->mUp );
       }
 
       if( angleRadians.y != 0 )
       {
-        m3 matrix { m3::RotRadAngleAxis( -angleRadians.y, gCreation.mEditorCamera->mRight ) };
-        gCreation.mEditorCamera->mForwards = matrix * gCreation.mEditorCamera->mForwards;
-        gCreation.mEditorCamera->mUp = Cross( gCreation.mEditorCamera->mRight,
-                                              gCreation.mEditorCamera->mForwards );
+        m3 matrix { m3::RotRadAngleAxis( -angleRadians.y, camera->mRight ) };
+        camera->mForwards = matrix * camera->mForwards;
+        camera->mUp = Cross( camera->mRight, camera->mForwards );
       }
 
       // Snapping right.y to the x-z plane prevents the camera from tilting side-to-side.
-      gCreation.mEditorCamera->mForwards.Normalize();
-      gCreation.mEditorCamera->mRight.y = 0;
-      gCreation.mEditorCamera->mRight.Normalize();
-      gCreation.mEditorCamera->mUp = Cross( gCreation.mEditorCamera->mRight,
-                                            gCreation.mEditorCamera->mForwards );
-      gCreation.mEditorCamera->mUp.Normalize();
+      camera->mForwards.Normalize();
+      camera->mRight.y = 0;
+      camera->mRight.Normalize();
+      camera->mUp = Cross( camera->mRight, camera->mForwards );
+      camera->mUp.Normalize();
     }
 
     if( keyboardApi.IsPressed( Key::MouseMiddle ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel { 5.0f / 100.0f };
-      gCreation.mEditorCamera->mPos +=
-        gCreation.mEditorCamera->mRight *
-        -mouseDeltaPos.x *
-        unitsPerPixel;
-      gCreation.mEditorCamera->mPos +=
-        gCreation.mEditorCamera->mUp *
-        mouseDeltaPos.y *
-        unitsPerPixel;
+      camera->mPos += camera->mRight * -mouseDeltaPos.x * unitsPerPixel;
+      camera->mPos += camera->mUp * mouseDeltaPos.y * unitsPerPixel;
     }
 
     const float mouseDeltaScroll { keyboardApi.GetMouseWheelDelta() };
@@ -461,20 +421,17 @@ namespace Tac
       if( gCreation.mSelectedEntities.size() )
       {
         const v3 origin { gCreation.mSelectedEntities.GetGizmoOrigin() };
-        unitsPerTick = Distance( origin, gCreation.mEditorCamera->mPos ) * 0.1f;
+        unitsPerTick = Distance( origin, camera->mPos ) * 0.1f;
       }
 
-      gCreation.mEditorCamera->mPos +=
-        gCreation.mEditorCamera->mForwards *
-        mouseDeltaScroll *
-        unitsPerTick;
+      camera->mPos += camera->mForwards * mouseDeltaScroll * unitsPerTick;
     }
 
-    CameraWASDControls( gCreation.mEditorCamera );
+    CameraWASDControls( camera );
   }
 
 
-  void CreationGameWindow::Render( Errors& errors )
+  void CreationGameWindow::Render( World* world, Camera* camera, Errors& errors )
   {
     SysWindowApi windowApi{};
     if( !windowApi.IsShown( mWindowHandle ) )
@@ -507,8 +464,8 @@ namespace Tac
     renderContext->SetScissor( windowSize );
     renderContext->SetRenderTargets( renderTargets );
 
-    GamePresentationRender( gCreation.mWorld,
-                            gCreation.mEditorCamera,
+    GamePresentationRender( world,
+                            camera,
                             windowSize,
                             rtColor,
                             rtDepth,
@@ -527,7 +484,7 @@ namespace Tac
 
   }
 
-  void CreationGameWindow::Update( Errors& errors )
+  void CreationGameWindow::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
@@ -551,21 +508,20 @@ namespace Tac
     }
 
 
-    mMousePicking.BeginFrame();
+    mMousePicking.BeginFrame( camera );
     CameraUpdateSaved( mSettingsNode, gCreation.mSimState.mEditorCamera );
-    CameraUpdateControls();
-    ComputeArrowLen();
-    mMousePicking.Update();
+    CameraUpdateControls( camera );
+    mGizmoMgr->ComputeArrowLen( camera );
+    mMousePicking.Update( world, camera );
 
-    TAC_CALL( gCreation.mGizmoMgr.Update( errors ) );
+    TAC_CALL( gCreation.mGizmoMgr.Update( camera, errors ) );
 
     if( drawGrid )
-    {
-      Debug3DDrawData* debug3DDrawData{ gCreation.mWorld->mDebug3DDrawData };
-      debug3DDrawData->DebugDraw3DGrid();
-    }
+      world->mDebug3DDrawData->DebugDraw3DGrid();
 
-    TAC_CALL( ImGuiOverlay( errors ) );
+    RenderSelectionCircle( world, camera );
+
+    TAC_CALL( ImGuiOverlay( camera, errors ) );
   }
 
 

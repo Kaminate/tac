@@ -5,6 +5,8 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-level-editor/tac_level_editor_mouse_picking.h"
 
 namespace Tac
 {
@@ -40,6 +42,9 @@ namespace Tac
     Render::IShaderVar*           mShaderPerObj             {};
 
     Mesh*                         mArrow                    {};
+
+    CreationMousePicking*         mMousePicking             {};
+    GizmoMgr*                     mGizmoMgr                 {};
 
   };
 }

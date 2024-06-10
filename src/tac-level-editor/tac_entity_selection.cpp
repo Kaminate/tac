@@ -81,26 +81,6 @@ namespace Tac
     return mSelectedEntities.empty();
   }
 
-  v3                  SelectedEntities::GetGizmoOrigin() const
-  {
-    TAC_ASSERT( !empty() );
-
-    // do i really want average? or like center of bounding circle?
-    v3 runningPosSum  {};
-    int selectionCount {  };
-    for( Entity* entity : mSelectedEntities )
-    {
-      runningPosSum += ( entity->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz();
-      entity->mRelativeSpace.mPosition;
-      selectionCount++;
-    }
-
-    const v3 averagePos { runningPosSum / ( float )selectionCount };
-    const v3 result { averagePos };
-    //if( mSelectedHitOffsetExists )
-    //  result += mSelectedHitOffset;
-    return result;
-  }
 
   void                SelectedEntities::clear()
   {

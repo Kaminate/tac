@@ -4,8 +4,12 @@
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 
 #include "tac-ecs/presentation/tac_game_presentation.h"
+
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 
 
 namespace Tac
@@ -32,12 +36,28 @@ namespace Tac
 
   static PickData pickData;
 
-  void CreationMousePicking::MousePickingGizmos()
+  // Only need the position for picking
+  static Render::VertexDeclarations GetPosOnlyVtxDecls()
   {
-    if( gCreation.mSelectedEntities.empty() || !sGizmosEnabled )
+    const Render::VertexDeclaration posDecl
+    {
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+    };
+
+    Render::VertexDeclarations m3DvertexFormatDecls;
+    m3DvertexFormatDecls.push_back( posDecl );
+    return m3DvertexFormatDecls;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  void CreationMousePicking::MousePickingGizmos( const Camera* camera )
+  {
+    if( mSelectedEntities->empty() || !mGizmoMgr->mGizmosEnabled )
       return;
 
-    const v3 selectionGizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
+    const v3 selectionGizmoOrigin { mGizmoMgr->mGizmoOrigin };
 
     const m4 invArrowRots[]  {
       m4::RotRadZ( 3.14f / 2.0f ),
@@ -47,7 +67,7 @@ namespace Tac
     for( int i { 0 }; i < 3; ++i )
     {
       // 1/3: inverse transform
-      v3 modelSpaceRayPos3 { gCreation.mEditorCamera->mPos - selectionGizmoOrigin };
+      v3 modelSpaceRayPos3 { camera->mPos - selectionGizmoOrigin };
       v4 modelSpaceRayPos4 { v4( modelSpaceRayPos3, 1 ) };
       v3 modelSpaceRayDir3 { mWorldSpaceMouseDir };
       v4 modelSpaceRayDir4 { v4( mWorldSpaceMouseDir, 0 ) };
@@ -60,12 +80,12 @@ namespace Tac
       modelSpaceRayDir3 = modelSpaceRayDir4.xyz();
 
       // 3/3: inverse scale
-      modelSpaceRayPos3 /= mArrowLen;
+      modelSpaceRayPos3 /= mGizmoMgr-> mArrowLen;
 
       bool hit {};
       float dist {};
       mArrow->MeshModelSpaceRaycast( modelSpaceRayPos3, modelSpaceRayDir3, &hit, &dist );
-      dist *= mArrowLen;
+      dist *= mGizmoMgr->mArrowLen;
       if( !hit || !pickData.IsNewClosest( dist ) )
         continue;
 
@@ -75,13 +95,13 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::MousePickingEntities()
+  void CreationMousePicking::MousePickingEntities( const World* world, const Camera* camera )
   {
-    for( Entity* entity : gCreation.mWorld->mEntities )
+    for( Entity* entity : world->mEntities )
     {
       bool hit { false };
       float dist { 0 };
-      MousePickingEntity( entity, &hit, &dist );
+      MousePickingEntity( camera, entity, &hit, &dist );
       if( !hit || !pickData.IsNewClosest( dist ) )
         continue;
 
@@ -91,71 +111,99 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::MousePickingSelection()
+  void CreationMousePicking::MousePickingSelection( const Camera* camera )
   {
     SimKeyboardApi keyboardApi{};
     if( !keyboardApi.JustPressed( Key::MouseLeft ) )
       return;
 
-    const v3 worldSpaceHitPoint { gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
+    const v3 worldSpaceHitPoint { camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
 
     switch( pickData.pickedObject )
     {
       case PickedObject::WidgetTranslationArrow:
       {
-        const v3 gizmoOrigin { gCreation.mSelectedEntities.GetGizmoOrigin() };
+        v3 gizmoOrigin {};
+        {
+          const int nSelected{ mSelectedEntities->size() };
+          TAC_ASSERT( nSelected );
+          const float scale{ 1.0f / nSelected };
+          for( Entity* entity : *mSelectedEntities )
+            gizmoOrigin += entity->mWorldPosition * scale;
+        }
 
         v3 arrowDir{};
         arrowDir[ pickData.arrowAxis ] = 1;
 
-        gCreation.mSelectedGizmo = true;
-        gCreation.mTranslationGizmoDir = arrowDir;
-        gCreation.mTranslationGizmoOffset = Dot( arrowDir, worldSpaceHitPoint - gizmoOrigin );
+        mGizmoMgr->mSelectedGizmo = true;
+        mGizmoMgr->mTranslationGizmoDir = arrowDir;
+        mGizmoMgr->mTranslationGizmoOffset = Dot( arrowDir, worldSpaceHitPoint - gizmoOrigin );
+        mGizmoMgr->mTranslationGizmoAxis = pickData.arrowAxis;
+        mGizmoMgr->mGizmoOrigin = gizmoOrigin;
       } break;
+
       case PickedObject::Entity:
       {
         const v3 entityWorldOrigin {
           ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz() };
-        gCreation.mSelectedEntities.Select( pickData.closest );
-        gCreation.mSelectedHitOffsetExists = true;
-        gCreation.mSelectedHitOffset = worldSpaceHitPoint - entityWorldOrigin;
+        mSelectedEntities->Select( pickData.closest );
       } break;
+
       case PickedObject::None:
       {
-        gCreation.mSelectedEntities.clear();
+        mSelectedEntities->clear();
       } break;
     }
   }
 
-  void CreationMousePicking::Update()
+  void CreationMousePicking::Init( Errors& errors )
+  {
+    const Render::VertexDeclarations m3DvertexFormatDecls{ GetPosOnlyVtxDecls() };
+    TAC_CALL( mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
+                                                               0,
+                                                               m3DvertexFormatDecls,
+                                                               errors ) );
+  }
+
+  bool CreationMousePicking::IsTranslationWidgetPicked( int i )
+  {
+    const bool picked{
+      pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
+      pickData.arrowAxis == i };
+    return picked;
+  }
+
+  void CreationMousePicking::Update( const World* world, const Camera* camera )
   {
     pickData = {};
 
     SimWindowApi windowApi{};
 
-    if( !windowApi.IsHovered( mWindowHandle ) )
+    if( !mWindowHovered )
       return;
 
-    MousePickingEntities();
+    MousePickingEntities( world, camera );
 
-    MousePickingGizmos();
+    MousePickingGizmos( camera );
 
-    MousePickingSelection();
+    MousePickingSelection( camera );
 
     if( pickData.pickedObject != PickedObject::None )
     {
       const v3 worldSpaceHitPoint{
-        gCreation.mEditorCamera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
+        camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
 
-      Debug3DDrawData* debug3DDrawData{ gCreation.mWorld->mDebug3DDrawData };
+      Debug3DDrawData* debug3DDrawData{ world->mDebug3DDrawData };
       debug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
   }
 
-  void CreationMousePicking::BeginFrame()
+  void CreationMousePicking::BeginFrame( WindowHandle mWindowHandle, Camera* camera )
   {
     SimWindowApi windowApi{};
-    if( !windowApi.IsHovered( mWindowHandle ) )
+
+    mWindowHovered = windowApi.IsHovered( mWindowHandle );
+    if( !mWindowHovered )
       return;
 
     const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
@@ -174,15 +222,15 @@ namespace Tac
     xNDC = xNDC * 2 - 1;
     yNDC = yNDC * 2 - 1;
     const float aspect { w / h };
-    const float theta { gCreation.mEditorCamera->mFovyrad / 2.0f };
+    const float theta { camera->mFovyrad / 2.0f };
     const float cotTheta { 1.0f / Tan( theta ) };
     const float sX { cotTheta / aspect };
     const float sY { cotTheta };
 
-    const m4 viewInv{ m4::ViewInv( gCreation.mEditorCamera->mPos,
-                                    gCreation.mEditorCamera->mForwards,
-                                    gCreation.mEditorCamera->mRight,
-                                    gCreation.mEditorCamera->mUp ) };
+    const m4 viewInv{ m4::ViewInv( camera->mPos,
+                                    camera->mForwards,
+                                    camera->mRight,
+                                    camera->mUp ) };
     const v3 viewSpaceMousePosNearPlane 
     {
       xNDC / sX,
@@ -197,10 +245,13 @@ namespace Tac
     mViewSpaceUnitMouseDir = viewSpaceMouseDir;
   }
 
-  void CreationMousePicking::MousePickingEntityLight( const Light* light, bool* hit, float* dist )
+  void CreationMousePicking::MousePickingEntityLight( const Camera* camera,
+                                                      const Light* light,
+                                                      bool* hit,
+                                                      float* dist )
   {
     const float lightWidgetSize{ LightWidget::sSize };
-    const float t{ RaySphere( gCreation.mEditorCamera->mPos,
+    const float t{ RaySphere( camera->mPos,
                          mWorldSpaceMouseDir,
                          light->mEntity->mWorldPosition,
                          lightWidgetSize ) };
@@ -211,7 +262,10 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::MousePickingEntityModel( const Model* model, bool* hit, float* dist )
+  void CreationMousePicking::MousePickingEntityModel( const Camera* camera,
+                                                      const Model* model,
+                                                      bool* hit,
+                                                      float* dist )
   {
     const Entity* entity { model->mEntity };
     const Mesh* mesh { GamePresentationGetModelMesh( model ) };
@@ -229,8 +283,6 @@ namespace Tac
       return;
     }
 
-    const Camera* camera { gCreation.mEditorCamera };
-
     const v3 modelSpaceMouseRayPos3 { ( transformInv * v4( camera->mPos, 1 ) ).xyz() };
     const v3 modelSpaceMouseRayDir3 { Normalize( ( transformInv * v4( mWorldSpaceMouseDir, 0 ) ).xyz() ) };
     float modelSpaceDist;
@@ -246,20 +298,21 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::MousePickingEntity( const Entity* entity,
-                                               bool* hit,
-                                               float* dist )
+  void CreationMousePicking::MousePickingEntity( const Camera* camera,
+                                                 const Entity* entity,
+                                                 bool* hit,
+                                                 float* dist )
   {
     if( const Model * model{ Model::GetModel( entity ) } )
     {
-      MousePickingEntityModel( model, hit, dist );
+      MousePickingEntityModel( camera, model, hit, dist );
       if( hit )
         return;
     }
 
     if( const Light * light{ Light::GetLight( entity ) } )
     {
-      MousePickingEntityLight( light, hit, dist );
+      MousePickingEntityLight( camera, light, hit, dist );
       if( hit )
         return;
     }

@@ -25,32 +25,33 @@ namespace Tac
     ~CreationGameWindow();
     static CreationGameWindow*    Instance;
     void                          Init( Errors& );
-    void                          Update( Errors& );
-    void                          Render( Errors& );
+    void                          Update( World*, Camera*,Errors& );
+    void                          Render( World*, Camera*, Errors& );
 
-    void                          ComputeArrowLen();
-    void                          CameraUpdateControls();
-    void                          ImGuiOverlay( Errors& );
+    void                          CameraUpdateControls( Camera* );
+    void                          ImGuiOverlay( Camera*, Errors& );
     void                          PlayGame( Errors& );
 
     void                          SetStatusMessage( const StringView&,
                                                     const TimestampDifference& );
 
   private:
-    void                          RenderSelectionCircle();
+    void                          RenderSelectionCircle(World*, Camera*);
     void                          RenderEditorWidgets( Render::IContext*,
                                                        WindowHandle,
+                                                       Camera* ,
                                                        Errors& );
 
-    WindowHandle                  mWindowHandle             {};
+    void CameraWASDControls( Camera* );
+
     Soul*                         mSoul                     {};
     Debug3DDrawBuffers            mWorldBuffers             {};
-    float                         mArrowLen                 {};
     String                        mStatusMessage            {};
     Timestamp                     mStatusMessageEndTime     {};
     bool                          mCloseRequested           {};
     SettingsNode                  mSettingsNode             {};
 
+    GizmoMgr*                     mGizmoMgr                 {};
     CreationMousePicking          mMousePicking             {};
   };
 

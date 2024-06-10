@@ -182,9 +182,9 @@ namespace Tac
   }
 
   void IconRenderer::UpdatePerObj( Render::IContext* renderContext,
-                                   const Light* light ,
-                                     Errors& errors )
-  {  
+                                   const Light* light,
+                                   Errors& errors )
+  {
 
     // note: Only scaling the m00, quad x and y scale are handled by m00, see 3DSprite.hlsl
     m4 world { light->mEntity->mWorldTransform };

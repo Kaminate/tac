@@ -10,7 +10,7 @@ namespace Tac
 {
   struct IconRenderer
   {
-    void Init( float, Errors& );
+    void Init( Errors& );
     void Uninit();
 
     void RenderLights( const World*,
