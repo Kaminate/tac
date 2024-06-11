@@ -610,6 +610,7 @@ bool Tac::ImGuiBegin( const StringView& name )
 
   ImGuiDesktopWindow* desktopWindow{ window->mDesktopWindow };
   WindowHandle hWindow = desktopWindow->mWindowHandle;
+  window->mRequestTime = ImGuiGlobals::Instance.mElapsedSeconds;
   if( !windowApi.IsShown( hWindow ) )
     return false;
 
@@ -619,7 +620,6 @@ bool Tac::ImGuiBegin( const StringView& name )
   if( window->mStretchWindow )
     window->mSize = windowApi.GetSize( hWindow );
 
-  window->mRequestTime = ImGuiGlobals::Instance.mElapsedSeconds;
   window->BeginFrame();
 
   return true;

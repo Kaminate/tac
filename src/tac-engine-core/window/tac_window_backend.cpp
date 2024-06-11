@@ -271,26 +271,29 @@ namespace Tac
 
   bool         SimWindowApi::IsShown( WindowHandle h ) const
   {
-    return sSimCurr[ h.GetIndex() ].mShown;
+    return h.IsValid() ? sSimCurr[ h.GetIndex() ].mShown : false;
   }
 
   bool         SimWindowApi::IsHovered( WindowHandle h ) const
   {
-    return sSimHovered == h;
+    return h.IsValid() ? sSimHovered == h : false;
   }
 
   v2i          SimWindowApi::GetPos( WindowHandle h ) const
   {
+    TAC_ASSERT( h.IsValid() );
     return sSimCurr[ h.GetIndex() ].mPos;
   }
 
   v2i          SimWindowApi::GetSize( WindowHandle h ) const
   {
+    TAC_ASSERT( h.IsValid() );
     return sSimCurr[ h.GetIndex() ].mSize;
   }
 
   StringView   SimWindowApi::GetName( WindowHandle h ) const
   {
+    TAC_ASSERT( h.IsValid() );
     return sSimCurr[ h.GetIndex() ].mName;
   }
 
@@ -298,16 +301,18 @@ namespace Tac
 
   bool             SysWindowApi::IsShown( WindowHandle h ) const
   {
-    return sSysCurr[ h.GetIndex() ].mShown;
+    return h.IsValid() ? sSysCurr[ h.GetIndex() ].mShown : false;
   }
 
   v2i              SysWindowApi::GetPos( WindowHandle h ) const
   {
+    TAC_ASSERT( h.IsValid() );
     return sSysCurr[ h.GetIndex() ].mPos;
   }
 
   v2i              SysWindowApi::GetSize( WindowHandle h ) const
   {
+    TAC_ASSERT( h.IsValid() );
     return sSysCurr[ h.GetIndex() ].mSize;
   }
 
@@ -320,6 +325,7 @@ namespace Tac
   // 
   void             SysWindowApi::SetPos( WindowHandle h, v2i pos ) const
   {
+    TAC_ASSERT( h.IsValid() );
     sSysCurr[ h.GetIndex() ].mPos = pos;
 
     PlatformFns* platform{ PlatformFns::GetInstance() };
@@ -328,6 +334,7 @@ namespace Tac
 
   void             SysWindowApi::SetSize( WindowHandle h, v2i size ) const
   {
+    TAC_ASSERT( h.IsValid() );
     sSysCurr[ h.GetIndex() ].mSize = size;
     
     PlatformFns* platform{ PlatformFns::GetInstance() };
@@ -336,11 +343,13 @@ namespace Tac
 
   StringView       SysWindowApi::GetName( WindowHandle h ) const
   {
+    TAC_ASSERT( h.IsValid() );
     return sSysCurr[ h.GetIndex() ].mName;
   }
 
   const void*      SysWindowApi::GetNWH( WindowHandle h ) const // native window handle
   {
+    TAC_ASSERT( h.IsValid() );
     return sSysNative[ h.GetIndex() ];
   }
 

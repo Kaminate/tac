@@ -34,6 +34,9 @@ namespace Tac
   bool CreationSystemWindow::sShowWindow{};
   void CreationSystemWindow::Update( World* world, SettingsNode mSettingsNode )
   {
+    if( !sShowWindow )
+      return;
+
     Initialize( mSettingsNode );
     ImGuiSetNextWindowStretch();
 
@@ -60,16 +63,17 @@ namespace Tac
       }
     }
 
-    const ShortFixedString headerStr{
-      ShortFixedString::Concat( sSystemRegistryEntry->mName, " Debug" ) };
-
-    if( sSystemRegistryEntry &&
-        sSystemRegistryEntry->mDebugImGui &&
-        ImGuiCollapsingHeader( headerStr ) )
+    if( sSystemRegistryEntry && sSystemRegistryEntry->mDebugImGui )
     {
-      TAC_IMGUI_INDENT_BLOCK;
-      System* system { world->GetSystem( sSystemRegistryEntry ) };
-      sSystemRegistryEntry->mDebugImGui( system );
+      const ShortFixedString headerStr{
+        ShortFixedString::Concat( sSystemRegistryEntry->mName, " Debug" ) };
+
+      if( ImGuiCollapsingHeader( headerStr ) )
+      {
+        TAC_IMGUI_INDENT_BLOCK;
+        System* system{ world->GetSystem( sSystemRegistryEntry ) };
+        sSystemRegistryEntry->mDebugImGui( system );
+      }
     }
 
     if( ImGuiButton( "Close Window" ) )

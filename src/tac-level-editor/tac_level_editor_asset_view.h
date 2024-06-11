@@ -6,7 +6,11 @@
 
 namespace Tac
 {
-  void CreationUpdateAssetView( World*, Camera*);
-  void CreationRenderAssetView( Errors& );
+  struct CreationAssetView
+  {
+    static void Update( World*, Camera* );
+    static void Render( Errors& );
+    static bool sShowWindow;
+  };
 }
 

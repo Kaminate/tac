@@ -14,10 +14,17 @@
 
 namespace Tac
 {
-  struct Creation;
-  struct Shader;
-  struct Soul;
 
+  struct CreationGameWindow
+  {
+    static void Init( Errors& );
+    static void Update( World*, Camera*,Errors& );
+    static void Render( World*, Camera*, Errors& );
+    static void SetStatusMessage( StringView, TimestampDifference );
+    static bool sShowWindow;
+  };
+
+#if 0
   struct CreationGameWindow
   {
     // TODO: multiple game windows?
@@ -45,16 +52,8 @@ namespace Tac
 
     void CameraWASDControls( Camera* );
 
-    Soul*                         mSoul                     {};
-    Debug3DDrawBuffers            mWorldBuffers             {};
-    String                        mStatusMessage            {};
-    Timestamp                     mStatusMessageEndTime     {};
-    bool                          mCloseRequested           {};
-    SettingsNode                  mSettingsNode             {};
-
-    GizmoMgr*                     mGizmoMgr                 {};
-    CreationMousePicking          mMousePicking             {};
   };
-
   const char* const gGameWindowName { "VirtualGamePlayer" };
+#endif
+
 }

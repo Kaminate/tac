@@ -7,8 +7,13 @@
 
 namespace Tac
 {
+  static bool sInitialized;
+
   void SpaceInit()
   {
+    if( sInitialized )
+      return;
+
     Graphics::SpaceInitGraphics();
     Physics::SpaceInitPhysics();
 
@@ -21,6 +26,8 @@ namespace Tac
     {
       TAC_ASSERT( entry.mName );
     }
+
+    sInitialized = true;
   }
 }
 

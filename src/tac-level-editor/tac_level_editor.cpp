@@ -94,18 +94,23 @@ namespace Tac
     Errors saveErrors;
     PrefabSave( world, saveErrors );
 
-    CreationGameWindow* window { CreationGameWindow::Instance };
-    if( window )
-    {
-      if( saveErrors )
-      {
-        window->SetStatusMessage( saveErrors.ToString(), errorDurationSecs );
-      }
-      else
-      {
-        window->SetStatusMessage( "Saved prefabs!", successDurationSecs );
-      }
-    }
+    const StringView msg{ saveErrors ? saveErrors.ToString() : "Saved prefabs!" };
+    const TimestampDifference duration{ saveErrors ? errorDurationSecs : successDurationSecs };
+    CreationGameWindow::SetStatusMessage( msg, duration );
+  }
+
+  static void CloseAppWhenAllWindowsClosed()
+  {
+    const bool isAnyWindowShown{
+      CreationSystemWindow::sShowWindow ||
+      CreationMainWindow::sShowWindow ||
+      CreationAssetView::sShowWindow ||
+      CreationGameWindow::sShowWindow ||
+      CreationPropertyWindow::sShowWindow };
+    static bool hasAnyWindowShown;
+    hasAnyWindowShown |= isAnyWindowShown;
+    if( hasAnyWindowShown && !isAnyWindowShown )
+      OS::OSAppStopRunning();
   }
 
   //===-------------- App -------------===//
@@ -175,6 +180,7 @@ namespace Tac
                           errors ) );
 
     mSelectedEntities.Init( mSettingsNode );
+    CreationMainWindow::sShowWindow = true;
   }
 
   void                Creation::Uninit( Errors& errors )
@@ -182,10 +188,14 @@ namespace Tac
 
   }
 
-  void                Creation::Render( const CreationAppState* renderParams, Errors& errors )
+  void                Creation::Render( const CreationAppState* renderParams,
+                                        Errors& errors )
   {
-    ++asdf;
-    OS::OSDebugBreak();
+    World* world{ renderParams->mSimState.mWorld };
+    Camera* camera{ renderParams->mSimState.mEditorCamera };
+
+    //CreationAssetView::Render(errors);
+    //CreationGameWindow::Render(world, camera, errors );
   }
 
   void                Creation::Update( World* world, Camera* camera, Errors& errors )
@@ -194,14 +204,18 @@ namespace Tac
 
     CheckSavePrefab( world );
 
-
-    if( mUpdateAssetView )
-      CreationUpdateAssetView( world, camera );
+    CreationSystemWindow::Update( world, mSettingsNode );
+    //CreationAssetView::Update( world, camera );
+    TAC_CALL( CreationMainWindow::Update( world, errors ) );
+    //TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
+    //TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
 
     world->Step( TAC_DELTA_FRAME_SECONDS );
 
 
     mSelectedEntities.DeleteEntitiesCheck();
+
+    CloseAppWhenAllWindowsClosed();
   }
 
 

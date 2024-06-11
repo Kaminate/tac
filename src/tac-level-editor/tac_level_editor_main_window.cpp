@@ -1,4 +1,9 @@
 #include "tac_level_editor_main_window.h" // self-inc
+#include "tac_level_editor_asset_view.h"
+#include "tac_level_editor_system_window.h"
+#include "tac_level_editor_game_window.h"
+#include "tac_level_editor_property_window.h"
+#include "tac_level_editor_profile_window.h"
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-ecs/entity/tac_entity.h"
@@ -22,100 +27,12 @@
 
 namespace Tac
 {
-  static void ButtonsToOpenEditorWindows()
-  {
-#if 0
-    const struct
-    {
-      using Fn = void ( LevelEditorWindowManager::* )( Errors& );
-      const char* mName;
-      Fn          mFn;
-    } buttons[] =
-    {
-      { "System",  &LevelEditorWindowManager::CreateSystemWindow },
-      { "Game",  &LevelEditorWindowManager::CreateGameWindow },
-      { "Properties",  &LevelEditorWindowManager::CreatePropertyWindow },
-      { "Profile",  &LevelEditorWindowManager::CreateProfileWindow },
-    };
-
-    // c++17 structured binding
-    for( auto [name, fn] : buttons )
-    {
-      if( ImGuiButton(name) )
-      {
-        TAC_CALL( ( gCreation.mWindowManager.*fn ) ( errors ) );
-      }
-    }
-#endif
-  }
-
   // -----------------------------------------------------------------------------------------------
 
-  CreationMainWindow* CreationMainWindow::Instance { nullptr };
-
-  CreationMainWindow::CreationMainWindow()
-  {
-    Instance = this;
-  }
-
-  CreationMainWindow::~CreationMainWindow()
-  {
-    Uninit();
-    Instance = nullptr;
-  }
-
-  void CreationMainWindow::Uninit()
-  {
-  }
-
-  void CreationMainWindow::Init( Errors& )
-  {
-  }
-
-  void CreationMainWindow::LoadTextures( Errors& )
-  {
-  }
-
-  void CreationMainWindow::ImGuiWindows( Errors& errors )
-  {
-
-    ImGuiText( "Windows" );
-    ImGuiIndent();
-
-    ButtonsToOpenEditorWindows();
-
-    if( ImGuiButton( "Asset View" ) )
-    {
-      gCreation.mUpdateAssetView = !gCreation.mUpdateAssetView;
-    }
-
-
-    ImGuiUnindent();
-  }
-
-  void CreationMainWindow::ImGuiSaveAs( World* world )
-  {
-    static Errors saveErrors;
-    Errors& errors = saveErrors;
-
-    if( saveErrors )
-      ImGuiText( saveErrors.ToString() );
-
-    if( !ImGuiButton( "save as" ) )
-      return;
-
-    for( Entity* entity : world->mEntities )
-    {
-      TAC_CALL( ImGuiSaveAs( entity, errors ) );
-    }
-  }
-
-  void CreationMainWindow::ImGuiSaveAs(Entity* entity, Errors& errors)
+  static void ImGuiSaveEntityAs(Entity* entity, Errors& errors)
   {
     if( entity->mParent )
       return; // why?
-
-    // TODO: use GetAssetSaveDialog instead of OSSaveDialog
 
     const AssetSaveDialogParams saveParams
     {
@@ -134,42 +51,61 @@ namespace Tac
     TAC_CALL( SaveToFile( assetPath, bytes, byteCount, errors ) );
   }
 
-  void CreationMainWindow::ImGui( World* world, Errors& errors )
+  static void ImGuiSaveAs( World* world )
   {
-    SimWindowApi windowApi;
-    if( !windowApi.IsShown( mWindowHandle ) )
+    static Errors saveErrors;
+    Errors& errors = saveErrors;
+
+    if( saveErrors )
+      ImGuiText( saveErrors.ToString() );
+
+    if( !ImGuiButton( "save as" ) )
       return;
 
-    ImGuiSetNextWindowHandle( mWindowHandle );
-    ImGuiSetNextWindowStretch();
-    ImGuiBegin( "Main Window" );
-
-    //ImGuiBeginMenuBar();
-    //ImGuiText( "file | edit | window" );
-    //ImGuiEndMenuBar();
-
-    ImGuiSaveAs( world );
-
-    TAC_CALL( ImGuiWindows(errors) );
-
-    PrefabImGui();
-
-    mCloseRequested |= ImGuiButton( "Close window" );
-    if( ImGuiButton( "Close Application" ) )
-      OS::OSAppStopRunning();
-
-    DesktopApp* desktopApp = DesktopApp::GetInstance();
-    TAC_CALL( desktopApp->DebugImGui( errors ) );
-
-    ImGuiEnd();
+    for( Entity* entity : world->mEntities )
+    {
+      TAC_CALL( ImGuiSaveEntityAs( entity, errors ) );
+    }
   }
+
+  // -----------------------------------------------------------------------------------------------
+
+  bool CreationMainWindow::sShowWindow{};
 
   void CreationMainWindow::Update( World* world, Errors& errors )
   {
+    if( !sShowWindow )
+      return;
+
     TAC_PROFILE_BLOCK;
 
-    TAC_CALL( LoadTextures( errors ) );
-    TAC_CALL( ImGui( world, errors ) );
+    ImGuiSetNextWindowStretch();
+    if( !ImGuiBegin( "Main Window" ) )
+      return;
+
+    ImGuiSaveAs( world );
+
+    ImGuiText( "Windows" );
+    ImGuiIndent();
+    ImGuiCheckbox( "Show System Window", &CreationSystemWindow::sShowWindow );
+    ImGuiCheckbox( "Show Game Window", &CreationGameWindow::sShowWindow );
+    ImGuiCheckbox( "Show Properties Window", &CreationPropertyWindow::sShowWindow );
+    ImGuiCheckbox( "Show Profile Window", &CreationProfileWindow::sShowWindow );
+    ImGuiCheckbox( "Show Asset View", &CreationAssetView::sShowWindow  );
+    ImGuiUnindent();
+
+    PrefabImGui();
+
+    if( ImGuiButton( "Close window" ))
+      sShowWindow = false;
+
+    if( ImGuiButton( "Close Application" ) )
+      OS::OSAppStopRunning();
+
+    DesktopApp* desktopApp { DesktopApp::GetInstance() };
+    TAC_CALL( desktopApp->DebugImGui( errors ) );
+
+    ImGuiEnd();
   }
 } // namespace Tac
 

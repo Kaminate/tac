@@ -11,7 +11,7 @@ namespace Tac
   struct CreationProfileWindow
   {
     static void                   Update( SimKeyboardApi, Errors& );
-    static bool                   mCloseRequested;
+    static bool                   sShowWindow;
     static const char*            gProfileWindowName;
   };
 }

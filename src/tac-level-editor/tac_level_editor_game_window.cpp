@@ -41,16 +41,21 @@
 
 namespace Tac
 {
-  static bool  drawGrid              { false };
-  static float sWASDCameraPanSpeed   { 10 };
-  static float sWASDCameraOrbitSpeed { 0.1f };
-  static bool  sWASDCameraOrbitSnap  {};
-  static StringView sImguiWindowName{"Level Editor Game Window" };
+  static bool                          drawGrid                  { false };
+  static float                         sWASDCameraPanSpeed       { 10 };
+  static float                         sWASDCameraOrbitSpeed     { 0.1f };
+  static bool                          sWASDCameraOrbitSnap      {};
+  static StringView                    sImguiWindowName          { "Level Editor Game Window" };
+  static Soul*                         mSoul                     {};
+  static Debug3DDrawBuffers            mWorldBuffers             {};
+  static String                        mStatusMessage            {};
+  static Timestamp                     mStatusMessageEndTime     {};
+  static bool                          mCloseRequested           {};
+  static SettingsNode                  mSettingsNode             {};
+  static GizmoMgr*                     mGizmoMgr                 {};
+  static CreationMousePicking          mMousePicking             {};
 
-
-
-
-
+  bool CreationGameWindow::sShowWindow{};
 
   //static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
   //{
@@ -176,7 +181,7 @@ namespace Tac
     }
   }
 
-  void CreationGameWindow::CameraWASDControls( Camera* camera )
+  static void CameraWASDControls( Camera* camera )
   {
     if( gCreation.mSelectedEntities.empty() )
     {
@@ -212,68 +217,7 @@ namespace Tac
     PrefabSaveCamera( settingsNode, camera );
   }
 
-
-
-
-
-
-  // -----------------------------------------------------------------------------------------------
-
-  CreationGameWindow* CreationGameWindow::Instance { nullptr };
-
-  CreationGameWindow::CreationGameWindow()
-  {
-    Instance = this;
-  }
-
-  CreationGameWindow::~CreationGameWindow()
-  {
-    Instance = nullptr;
-  }
-
-
-  void CreationGameWindow::Init( Errors& errors )
-  {
-    TAC_CALL( PlayGame( errors ) );
-  }
-
-
-
-  void CreationGameWindow::RenderSelectionCircle( World* world, Camera* camera )
-  {
-    if( mGizmoMgr->mGizmosEnabled && mGizmoMgr->mSelectedGizmo )
-      world->mDebug3DDrawData->DebugDraw3DCircle( mGizmoMgr->mGizmoOrigin,
-                                                  camera->mForwards,
-                                                  mGizmoMgr->mArrowLen );
-  }
-
-
-
-  void CreationGameWindow::RenderEditorWidgets( Render::IContext* renderContext,
-                                                WindowHandle viewHandle,
-                                                Camera* camera,
-                                                Errors& errors )
-  {
-    SimWindowApi windowApi{};
-    if( !windowApi.IsShown( viewHandle ) )
-      return;
-
-
-    WidgetRenderer* widgetRenderer{ gCreation.mSysState.mWidgetRenderer };
-    TAC_CALL( widgetRenderer->RenderTranslationWidget( renderContext,
-                                                       viewHandle,
-                                                       camera,
-                                                       errors ) );
-
-    IconRenderer* IconRenderer{ gCreation.mSysState.mIconRenderer };
-    TAC_CALL( IconRenderer->RenderLights( gCreation.mSimState.mWorld,
-                                          gCreation.mSimState.mEditorCamera,
-                                          renderContext,
-                                          viewHandle,
-                                          errors ) );
-  }
-
-  void CreationGameWindow::PlayGame( Errors& errors )
+  static void PlayGame( Errors& errors )
   {
     if( mSoul )
       return;
@@ -283,7 +227,7 @@ namespace Tac
     mSoul = ghost;
   }
 
-  void CreationGameWindow::ImGuiCamera( Camera* camera )
+  static void ImGuiCamera( Camera* camera )
   {
     if( !ImGuiCollapsingHeader( "Camera" ) )
       return;
@@ -323,7 +267,7 @@ namespace Tac
       camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
   }
 
-  void CreationGameWindow::ImGuiOverlay( Camera* camera, Errors& errors )
+  static void ImGuiOverlay( Camera* camera, Errors& errors )
   {
     static bool mHideUI { false };
     if( mHideUI )
@@ -372,7 +316,7 @@ namespace Tac
     ImGuiEnd();
   }
 
-  void CreationGameWindow::CameraUpdateControls( Camera* camera )
+  static void CameraUpdateControls( Camera* camera )
   {
     SimWindowApi windowApi{};
 
@@ -439,15 +383,23 @@ namespace Tac
     CameraWASDControls( camera );
   }
 
+  // -----------------------------------------------------------------------------------------------
+
+  void CreationGameWindow::Init( Errors& errors )
+  {
+    TAC_CALL( PlayGame( errors ) );
+  }
+
+
 
   void CreationGameWindow::Render( World* world, Camera* camera, Errors& errors )
   {
     SysWindowApi windowApi{};
-    WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
-    if( !windowApi.IsShown( mWindowHandle ) )
+    WindowHandle windowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
+    if( !windowApi.IsShown( windowHandle ) )
       return;
 
-    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+    const v2i windowSize{ windowApi.GetSize( windowHandle ) };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     TAC_CALL( Render::IContext::Scope renderScope{
@@ -456,7 +408,7 @@ namespace Tac
     Render::IContext* renderContext{ renderScope.GetContext() };
 
     const Render::SwapChainHandle swapChainHandle{
-      windowApi.GetSwapChainHandle( mWindowHandle ) };
+      windowApi.GetSwapChainHandle( windowHandle ) };
 
     const Render::TextureHandle rtColor{
       renderDevice->GetSwapChainCurrentColor( swapChainHandle ) };
@@ -482,7 +434,18 @@ namespace Tac
                             &mWorldBuffers,
                             errors );
 
-    TAC_CALL( RenderEditorWidgets( renderContext, mWindowHandle, camera, errors ) );
+    WidgetRenderer* widgetRenderer{ gCreation.mSysState.mWidgetRenderer };
+    TAC_CALL( widgetRenderer->RenderTranslationWidget( renderContext,
+                                                       windowHandle,
+                                                       camera,
+                                                       errors ) );
+
+    IconRenderer* IconRenderer{ gCreation.mSysState.mIconRenderer };
+    TAC_CALL( IconRenderer->RenderLights( gCreation.mSimState.mWorld,
+                                          gCreation.mSimState.mEditorCamera,
+                                          renderContext,
+                                          windowHandle,
+                                          errors ) );
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     VoxelGIPresentationRender( gCreation.mWorld,
@@ -533,18 +496,21 @@ namespace Tac
     if( drawGrid )
       world->mDebug3DDrawData->DebugDraw3DGrid();
 
-    RenderSelectionCircle( world, camera );
+    if( mGizmoMgr->mGizmosEnabled && mGizmoMgr->mSelectedGizmo )
+      world->mDebug3DDrawData->DebugDraw3DCircle( mGizmoMgr->mGizmoOrigin,
+                                                  camera->mForwards,
+                                                  mGizmoMgr->mArrowLen );
 
     TAC_CALL( ImGuiOverlay( camera, errors ) );
   }
 
-
-  void CreationGameWindow::SetStatusMessage( const StringView& msg,
-                                             const TimestampDifference& duration )
+  void CreationGameWindow::SetStatusMessage( const StringView msg,
+                                             const TimestampDifference duration )
   {
     const Timestamp curTime { Timestep::GetElapsedTime() };
     mStatusMessage = msg;
     mStatusMessageEndTime = curTime + duration;
   }
+
 } // namespace Tac
 

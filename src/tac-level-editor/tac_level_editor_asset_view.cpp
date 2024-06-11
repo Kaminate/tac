@@ -522,64 +522,74 @@ namespace Tac
   }
 
 
+  bool CreationAssetView::sShowWindow{};
+
+  void CreationAssetView::Update( World* world, Camera* camera)
+  {
+    if( !sShowWindow )
+      return;
+
+    TAC_PROFILE_BLOCK;
+    ImGuiSetNextWindowStretch();
+    ImGuiSetNextWindowMoveResize();
+    const bool open { ImGuiBegin( "Asset View" ) };
+    if( open )
+    {
+      ImGuiText( "--- Asset View ---" );
+      if( sAssetViewErrors )
+        ImGuiText( sAssetViewErrors.ToString() );
+
+      const int oldStackSize = sAssetViewFolderStack.size();
+
+      if( sAssetViewFolderStack.empty() )
+      {
+        //const String root = "assets";
+        //const FileSys::Path root = ShellGetInitialWorkingDir() / "assets";
+        sAssetViewFolderStack.push_back( "assets" );
+      }
+
+      UIFoldersUpToCurr();
+      UIFoldersNext();
+      UIFiles( world, camera );
+
+      if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
+      {
+        sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
+        PopulateFolderContents();
+      }
+    }
+    ImGuiEnd();
+  }
+
+  void CreationAssetView::Render( Errors& errors )
+  {
+    if( !sShowWindow )
+      return;
+
+    const FileSys::Paths paths{ GetModelPaths() };
+    for( const FileSys::Path& path : paths )
+    {
+      TAC_CALL( AssetPathString assetPath{ ModifyPathRelative( path, errors ) } );
+
+      AssetViewImportedModel* loadedModel{ GetLoadedModel( assetPath ) };
+      if( !loadedModel )
+      {
+        TAC_CALL( loadedModel = CreateLoadedModel( assetPath, errors ) );
+      }
+
+      AttemptLoadEntity( loadedModel, assetPath );
+
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      TAC_CALL( Render::IContext::Scope renderContext{
+        renderDevice->CreateRenderContext( errors ) } );
+
+      RenderImportedModel( renderContext, loadedModel, errors );
+
+      TAC_CALL( renderContext->Execute( errors ) );
+    }
+  }
+
 } // namespace Tac
 
-void Tac::CreationUpdateAssetView( World* world, Camera* camera)
-{
-  TAC_PROFILE_BLOCK;
-  ImGuiSetNextWindowStretch();
-  ImGuiSetNextWindowMoveResize();
-  const bool open { ImGuiBegin( "Asset View" ) };
-  if( open )
-  {
-    ImGuiText( "--- Asset View ---" );
-    if( sAssetViewErrors )
-      ImGuiText( sAssetViewErrors.ToString() );
 
-    const int oldStackSize = sAssetViewFolderStack.size();
-
-    if( sAssetViewFolderStack.empty() )
-    {
-      //const String root = "assets";
-      //const FileSys::Path root = ShellGetInitialWorkingDir() / "assets";
-      sAssetViewFolderStack.push_back( "assets" );
-    }
-
-    UIFoldersUpToCurr();
-    UIFoldersNext();
-    UIFiles( world, camera );
-
-    if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
-    {
-      sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
-      PopulateFolderContents();
-    }
-  }
-  ImGuiEnd();
-}
-
-void Tac::CreationRenderAssetView( Errors& errors )
-{
-  const FileSys::Paths paths{ GetModelPaths() };
-  for( const FileSys::Path& path : paths )
-  {
-    TAC_CALL( AssetPathString assetPath{ ModifyPathRelative( path, errors ) } );
-
-    AssetViewImportedModel* loadedModel{ GetLoadedModel( assetPath ) };
-    if( !loadedModel )
-    {
-      TAC_CALL( loadedModel = CreateLoadedModel( assetPath, errors ) );
-    }
-
-    AttemptLoadEntity( loadedModel, assetPath );
-
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL( Render::IContext::Scope renderContext{
-      renderDevice->CreateRenderContext( errors ) } );
-
-    RenderImportedModel( renderContext, loadedModel, errors );
-
-    TAC_CALL( renderContext->Execute( errors ) );
-  }
-}
 

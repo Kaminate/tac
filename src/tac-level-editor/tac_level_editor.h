@@ -36,7 +36,6 @@ namespace Tac
     GizmoMgr            mGizmoMgr                {};
 
 
-    bool                mUpdateAssetView         {};
     EntityUUIDCounter   mEntityUUIDCounter       {};
     SettingsNode        mSettingsNode            {};
 
