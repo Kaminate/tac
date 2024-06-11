@@ -16,10 +16,32 @@ namespace Tac
     };
   }
 
-  void CreationSimState::Uninit()
+  CreationSimState::~CreationSimState()
+  {
+    Clear();
+  }
+
+  void CreationSimState::CopyFrom( CreationSimState& other )
+  {
+    Clear();
+    mWorld = TAC_NEW World;
+    mEditorCamera = TAC_NEW Camera;
+    mWorld->DeepCopy( *other.mWorld );
+    *mEditorCamera = *other.mEditorCamera;
+  }
+
+  void CreationSimState::Clear()
   {
     TAC_DELETE mWorld;
+    mWorld = nullptr;
+
     TAC_DELETE mEditorCamera;
+    mEditorCamera = nullptr;
+  }
+
+  void CreationSimState::Uninit()
+  {
+    Clear();
   }
 } // namespace Tac
 

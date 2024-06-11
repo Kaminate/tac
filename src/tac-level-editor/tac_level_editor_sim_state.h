@@ -9,8 +9,15 @@ namespace Tac
 
   struct CreationSimState
   {
+    ~CreationSimState();
+
     void Init( Errors& );
     void Uninit();
+    void Clear();
+    void CopyFrom( CreationSimState& );
+
+    void operator = ( const CreationSimState& ) = delete;
+
 
     World*  mWorld        {};
     Camera* mEditorCamera {};

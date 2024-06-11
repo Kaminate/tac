@@ -38,10 +38,6 @@
 
 // space
 #include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
-#include "tac-ecs/presentation/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/ghost/tac_ghost.h"
@@ -56,6 +52,11 @@ Tac::Creation Tac::gCreation;
 
 namespace Tac
 {
+  struct CreationAppState : public App::IState
+  {
+    CreationSimState mSimState;
+  };
+
   static const TimestampDifference errorDurationSecs { 60.0f };
   static const TimestampDifference successDurationSecs { 5.0f };
 
@@ -115,11 +116,19 @@ namespace Tac
 
     void Init( App::InitParams initParams, Errors& errors ) override
     {
+      SpaceInit();
       sIconRenderer.Init( errors );
       sWidgetRenderer.Init( errors );
       gCreation.mSimState.Init(errors);
       gCreation.mSysState.Init( &sIconRenderer, &sWidgetRenderer, errors );
       gCreation.Init( mSettingsNode, errors );
+    }
+
+    IState* GetGameState() override
+    {
+      CreationAppState* state{ TAC_NEW CreationAppState };
+      state->mSimState.CopyFrom( gCreation.mSimState );
+      return state;
     }
 
     void Update( App::UpdateParams, Errors& errors ) override
@@ -129,13 +138,16 @@ namespace Tac
       gCreation.Update( world, camera,errors );
     }
 
-    void Render( App::RenderParams, Errors& errors ) override
+    void Render( App::RenderParams renderParams, Errors& errors ) override
     {
-      gCreation.Render( errors );
+      CreationAppState* state{ ( CreationAppState* )renderParams.mNewState };
+      gCreation.Render( state, errors );
     }
 
     void Uninit( Errors& errors ) override
     {
+      gCreation.mSimState.Uninit();
+      gCreation.mSysState.Uninit();
       gCreation.Uninit( errors );
     }
   };
@@ -155,17 +167,6 @@ namespace Tac
   {
     mSettingsNode = settingsNode;
 
-    TAC_CALL( mSimState.Init( errors ) );
-
-    TAC_CALL( SkyboxPresentationInit( errors ) );
-
-    TAC_CALL( GamePresentationInit( errors ) );
-
-    TAC_CALL( ShadowPresentationInit( errors ) );
-
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    TAC_CALL( VoxelGIPresentationInit( errors ) );
-#endif
 
     TAC_CALL( PrefabLoad( mSettingsNode,
                           &mEntityUUIDCounter,
@@ -178,17 +179,13 @@ namespace Tac
 
   void                Creation::Uninit( Errors& errors )
   {
-    SkyboxPresentationUninit();
-    GamePresentationUninit();
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    VoxelGIPresentationUninit();
-#endif
-    ShadowPresentationUninit();
 
   }
 
-  void                Creation::Render( Errors& )
+  void                Creation::Render( const CreationAppState* renderParams, Errors& errors )
   {
+    ++asdf;
+    OS::OSDebugBreak();
   }
 
   void                Creation::Update( World* world, Camera* camera, Errors& errors )

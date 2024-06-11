@@ -15,13 +15,14 @@
 
 namespace Tac
 {
+  struct CreationAppState;
 
   struct Creation
   {
     void                Init( SettingsNode, Errors& );
     void                Uninit( Errors& );
     void                Update( World*, Camera*, Errors& );
-    void                Render( Errors& );
+    void                Render( const CreationAppState*, Errors& );
 
     // Entities
     RelativeSpace       GetEditorCameraVisibleRelativeSpace( const Camera* );

@@ -149,6 +149,7 @@ namespace Tac
       .mRasterizerState   { GetRasterizerState() },
       .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
       .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+      .mVtxDecls          { GetVtxDecls3D() },
       .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
       .mName              { "WidgetPipeline"},
     };

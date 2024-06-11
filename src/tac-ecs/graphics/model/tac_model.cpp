@@ -78,13 +78,13 @@ namespace Tac
     sRegistryIndex = entry->GetIndex(); 
     *entry = ComponentRegistryEntry
     {
-      .mName { "Model" },
-      //.mNetworkBits = ComponentModelBits,
-      .mCreateFn { CreateModelComponent },
-      .mDestroyFn { DestroyModelComponent },
+      .mName         { "Model" },
+      //.mNetworkBits { ComponentModelBits },
+      .mCreateFn     { CreateModelComponent },
+      .mDestroyFn    { DestroyModelComponent },
       .mDebugImguiFn { DebugImguiFn },
-      .mSaveFn { SaveModelComponent },
-      .mLoadFn { LoadModelComponent },
+      .mSaveFn       { SaveModelComponent },
+      .mLoadFn       { LoadModelComponent },
     };
 	}
 
