@@ -206,31 +206,27 @@ namespace Tac
       RecursiveEntityHierarchyElement( child );
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  bool CreationPropertyWindow::sShowWindow{};
-
-
-  void CreationPropertyWindow::Update( World* world,
-                                       Camera* camera,
-                                       SettingsNode settingsNode,
-                                       Errors& errors )
+  static void ImGuiSelectedEntities()
   {
-    TAC_PROFILE_BLOCK;
+    for( Entity* entity : gCreation.mSelectedEntities )
+      EntityImGui( entity );
+  }
 
+  static void ImGuiHierarchy(World* world,
+                              Camera* camera ,
+                              SettingsNode settingsNode,
+                              Errors& errors )
+  {
 
-    ImGuiSetNextWindowStretch();
-    if( !ImGuiBegin( "Properties" ) )
-      return;
+    {
+      ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
 
-    ImGuiBeginGroup();
-    ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
+      for( Entity* entity : world->mEntities )
+        if( !entity->mParent )
+          RecursiveEntityHierarchyElement( entity );
 
-    for( Entity* entity : world->mEntities )
-      if( !entity->mParent )
-        RecursiveEntityHierarchyElement( entity );
-
-    ImGuiEndChild();
+      ImGuiEndChild();
+    }
 
     if( ImGuiButton( "Create Entity" ) )
       gCreation.CreateEntity( world, camera );
@@ -241,7 +237,7 @@ namespace Tac
 
       if( prefabAssetPath.size() )
       {
-        Camera* prefabLoadCamera { world->mEntities.size() ? nullptr : camera };
+        Camera* prefabLoadCamera{ world->mEntities.size() ? nullptr : camera };
         TAC_CALL( PrefabLoadAtPath( settingsNode,
                                     &gCreation.mEntityUUIDCounter,
                                     world,
@@ -250,19 +246,41 @@ namespace Tac
                                     errors ) );
       }
     }
-    ImGuiEndGroup();
-    ImGuiSameLine();
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  bool CreationPropertyWindow::sShowWindow{};
+
+
+  void CreationPropertyWindow::Update( World* world,
+                                       Camera* camera,
+                                       SettingsNode settingsNode,
+                                       Errors& errors )
+  {
+    if( !sShowWindow)
+      return;
+    TAC_PROFILE_BLOCK;
+
+
+    ImGuiSetNextWindowStretch();
+    if( !ImGuiBegin( "Properties" ) )
+      return;
+
     ImGuiBeginGroup();
-
-    for( Entity* entity : gCreation.mSelectedEntities )
-      EntityImGui( entity );
-
+    TAC_CALL( ImGuiHierarchy( world, camera, settingsNode, errors ) );
     ImGuiEndGroup();
 
-    if( ImGuiButton( "Close window" ) )
-      sShowWindow = false;
+    ImGuiSameLine();
 
-    ImGuiDebugDraw();
+    ImGuiBeginGroup();
+    ImGuiSelectedEntities();
+    ImGuiEndGroup();
+
+    //if( ImGuiButton( "Close window" ) )
+    //  sShowWindow = false;
+
+    //ImGuiDebugDraw();
     ImGuiEnd();
   }
 }

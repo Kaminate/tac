@@ -155,8 +155,12 @@ namespace Tac
     };
   };
 
-  void WidgetRenderer::Init( Errors& errors )
+  void WidgetRenderer::Init( CreationMousePicking* mousePicking,
+                             GizmoMgr* gizmoMgr,
+                             Errors& errors )
   {
+    mMousePicking = mousePicking;
+    mGizmoMgr = gizmoMgr;
     Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
 
     TAC_CALL( m3DShader = renderDevice->CreateProgram( GetProgramParams3DTest(), errors ) );

@@ -148,14 +148,22 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::Init( Errors& errors )
+  void CreationMousePicking::Init( SelectedEntities* selectedEntities,
+                                   GizmoMgr* gizmoMgr,
+                                   Errors& errors )
   {
+
+    mSelectedEntities = selectedEntities;
+    mGizmoMgr = gizmoMgr;
+
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetPosOnlyVtxDecls() };
     TAC_CALL( mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
                                                                0,
                                                                m3DvertexFormatDecls,
                                                                errors ) );
   }
+
+  v3 CreationMousePicking::GetWorldspaceMouseDir() const { return mWorldSpaceMouseDir; }
 
   bool CreationMousePicking::IsTranslationWidgetPicked( int i )
   {

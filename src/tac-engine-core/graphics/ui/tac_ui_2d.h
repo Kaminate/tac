@@ -96,7 +96,7 @@ namespace Tac
 
     void                   AddDrawCall( const UI2DDrawCall&, const StackFrame& );
     void                   PushDebugGroup( const StringView& );
-    void                   PushDebugGroup( const StringView& prefix, const StringView& suffix );
+    //void                   PushDebugGroup( const StringView& prefix, const StringView& suffix );
     void                   PopDebugGroup();
     bool                   empty() const { return mDrawCall2Ds.empty(); }
 

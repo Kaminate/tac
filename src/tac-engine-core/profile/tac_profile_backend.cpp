@@ -158,7 +158,7 @@ namespace Tac
 
     // there should be one mutex per thread?
       ProfiledFunctions::Scope scope;
-      PerThreadProfileFrame* perThread = scope.mProfileFrame.Find( std::this_thread::get_id() );
+      PerThreadProfileFrame* perThread { scope.mProfileFrame.Find( std::this_thread::get_id() ) };
 
       // Since we just added a top-level function, use this opportunity to clean old data.
       perThread->RemoveOldFunctions();
@@ -204,7 +204,7 @@ namespace Tac
 
   void PerThreadProfileFrame::RemoveOldFunctions()
   {
-    auto now { Timepoint::Now() };
+    const Timepoint now { Timepoint::Now() };
     for( auto it { mFunctions.begin() };
          it != mFunctions.end();
          it = mFunctions.erase( it ) )

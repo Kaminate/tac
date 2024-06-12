@@ -12,13 +12,15 @@ namespace Tac
 {
   struct WidgetRenderer
   {
-    void Init( Errors& );
+    void Init( CreationMousePicking*,
+               GizmoMgr*,
+               Errors& );
     void Uninit();
 
     void RenderTranslationWidget( Render::IContext*,
-                                       WindowHandle,
+                                  WindowHandle,
                                   const Camera*,
-                                       Errors& );
+                                  Errors& );
 
   private:
 

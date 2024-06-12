@@ -8,8 +8,9 @@
 namespace Tac
 {
 
-  void                GizmoMgr::Init( Errors& errors )
+  void                GizmoMgr::Init( SelectedEntities* selectedEntities, Errors& errors )
   {
+    mSelectedEntities = selectedEntities;
   }
 
   void                GizmoMgr::Uninit()

@@ -17,6 +17,8 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/dataprocess/tac_hash.h"
+#include "tac-engine-core/graphics/ui/tac_text_edit.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 
 #undef FindWindow
 
@@ -48,6 +50,7 @@ namespace Tac
     ImGuiWindow();
     ~ImGuiWindow();
     void                          BeginFrame();
+    void                          EndFrame();
 
     //                            tell the window that we are adding a new element of this size
     //                            at the current cursor position.
@@ -120,11 +123,11 @@ namespace Tac
     ImGuiID                       mWindowID;
 
     //                            Shared between sub-windows
-    struct TextInputData*         mTextInputData               {};
+    SmartPtr< TextInputData >     mTextInputData               {};
     Map< ImGuiID, bool >          mCollapsingHeaderStates      {};
     bool                          mIsAppendingToMenu           {};
     Vector< ImGuiWindowResource > mResources                   {};
-    struct UI2DDrawData*          mDrawData                    {};
+    SmartPtr< UI2DDrawData >      mDrawData                    {};
 
     ImGuiDesktopWindow*           mDesktopWindow               {};
     bool                          mWindowHandleOwned           {};
@@ -278,8 +281,8 @@ namespace Tac
     //   However ImGuiPlatformRender runs on the system thread and should not have access to these.
     // 
     // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
-    SimWindowApi                     mSimWindowApi         {};
-    SimKeyboardApi                   mSimKeyboardApi       {};
+    SimWindowApi                      mSimWindowApi         {};
+    SimKeyboardApi                    mSimKeyboardApi       {};
     SettingsNode                      mSettingsNode         {};
 
     ImGuiID                           mHoveredID            {};

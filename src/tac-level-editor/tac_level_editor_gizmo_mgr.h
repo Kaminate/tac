@@ -11,7 +11,7 @@ namespace Tac
 
   struct GizmoMgr
   {
-    void                Init( Errors& );
+    void                Init( SelectedEntities*, Errors& );
     void                Uninit();
     void                Update( v3, const Camera* , Errors& );
     void                Render( Errors& );

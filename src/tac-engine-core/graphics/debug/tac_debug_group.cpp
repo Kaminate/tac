@@ -77,7 +77,7 @@ namespace Tac::Render::DebugGroup
     Tac::Reverse( it.mNodeStack.begin() + oldNodeCount, it.mNodeStack.end() );
     for( int i{ oldNodeCount }; i < it.mNodeStack.size(); ++i )
     {
-      StringView name { it.mNodeStack[ i ]->mName };
+      const StringView name { it.mNodeStack[ i ]->mName };
       it.mRenderContext->DebugEventBegin( name );
     }
   }
@@ -92,11 +92,6 @@ namespace Tac::Render::DebugGroup
     it.mFinished = true;
   }
 
-  void        Stack::Push( const StringView& name )
-  {
-    Push() = name;
-  }
-
   Node*       Stack::FindNode( NodeIndex i )
   {
     return  i == NullNodeIndex ? nullptr : &mNodes[ i ];
@@ -107,22 +102,21 @@ namespace Tac::Render::DebugGroup
     return i == NullNodeIndex ? nullptr : &mNodes[ i ];
   }
 
-  String&     Stack::Push()
+  void     Stack::Push( StringView str )
   {
-    const Node* parentNode = FindNode( mCurNodeIdx );
-    const int nodeCount = mNodes.size();
-    const NodeIndex nodeIndex = nodeCount;
+    const Node* parentNode { FindNode( mCurNodeIdx ) };
+    const NodeIndex nodeIndex{ mNodes.size() };
 
-    mNodes.resize( nodeCount + 1 );
-
-    Node& node = mNodes.back();
-    node.mHeight = parentNode ? parentNode->mHeight + 1 : 0;
-    node.mParent = mCurNodeIdx;
-    node.mSelf = nodeIndex;
+    mNodes.resize( nodeIndex + 1 );
+    mNodes.back() = Node
+    {
+      .mName = str,
+      .mHeight = parentNode ? parentNode->mHeight + 1 : 0,
+      .mSelf = nodeIndex,
+      .mParent = mCurNodeIdx,
+    };
 
     mCurNodeIdx = nodeIndex;
-
-    return node.mName;
   }
 
   void        Stack::Pop()

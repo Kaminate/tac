@@ -13,7 +13,7 @@ namespace Tac::Render::DebugGroup
 {
   using NodeIndex = int;
 
-  static const NodeIndex NullNodeIndex = -1;
+  static const NodeIndex NullNodeIndex { -1 };
 
   struct Node;
   struct Stack;
@@ -21,13 +21,13 @@ namespace Tac::Render::DebugGroup
 
   struct Node
   {
-    String    mName;
+    String    mName   {};
 
     // number of nodes below this node ( tree grows upwards)
     // roots have a height of 0
-    int       mHeight = 0;
-    NodeIndex mSelf = NullNodeIndex;
-    NodeIndex mParent = NullNodeIndex;
+    int       mHeight {};
+    NodeIndex mSelf   { NullNodeIndex };
+    NodeIndex mParent { NullNodeIndex };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -44,9 +44,9 @@ namespace Tac::Render::DebugGroup
     const Node*           back() const;
     bool                  empty() const;
 
-    bool                  mFinished = false;
-    Vector< const Node* > mNodeStack; // actual stack of nodes that were pushed/popped
-    Render::IContext*     mRenderContext{};
+    bool                  mFinished      {};
+    Vector< const Node* > mNodeStack     {}; // actual stack of nodes that were pushed/popped
+    Render::IContext*     mRenderContext {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ namespace Tac::Render::DebugGroup
   // This is more of a tree...
   struct Stack
   {
-    void           Push( const StringView& );
+    void           Push( StringView );
     void           Pop();
     NodeIndex      GetInfo() const;
 
@@ -63,12 +63,11 @@ namespace Tac::Render::DebugGroup
     void           IterateEnd( Iterator& );
 
   private:
-    String&        Push();
     Node*          FindNode( NodeIndex );
     const Node*    FindNode( NodeIndex ) const;
 
     Vector< Node > mNodes; // all nodes of a tree, layed out linearly (flattened?)
-    NodeIndex      mCurNodeIdx = NullNodeIndex;
+    NodeIndex      mCurNodeIdx { NullNodeIndex };
   };
 
 

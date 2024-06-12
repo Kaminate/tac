@@ -17,8 +17,8 @@ namespace Tac
 
   struct CreationGameWindow
   {
-    static void Init( Errors& );
-    static void Update( World*, Camera*,Errors& );
+    static void Init( GizmoMgr*, CreationMousePicking*, SettingsNode, Errors& );
+    static void Update( World*, Camera*, Errors& );
     static void Render( World*, Camera*, Errors& );
     static void SetStatusMessage( StringView, TimestampDifference );
     static bool sShowWindow;

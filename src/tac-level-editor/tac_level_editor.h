@@ -19,28 +19,30 @@ namespace Tac
 
   struct Creation
   {
-    void                Init( SettingsNode, Errors& );
-    void                Uninit( Errors& );
-    void                Update( World*, Camera*, Errors& );
-    void                Render( const CreationAppState*, Errors& );
+    void                 Init( SettingsNode, Errors& );
+    void                 Uninit( Errors& );
+    void                 Update( World*, Camera*, Errors& );
+    void                 Render( const CreationAppState*, Errors& );
 
     // Entities
-    RelativeSpace       GetEditorCameraVisibleRelativeSpace( const Camera* );
-    Entity*             CreateEntity(World*,Camera*);
-    Entity*             InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& );
+    RelativeSpace        GetEditorCameraVisibleRelativeSpace( const Camera* );
+    Entity*              CreateEntity(World*,Camera*);
+    Entity*              InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& );
 
     // ...
-    SelectedEntities    mSelectedEntities        {};
+    SelectedEntities     mSelectedEntities        {};
 
     // Gizmos
-    GizmoMgr            mGizmoMgr                {};
+    GizmoMgr             mGizmoMgr                {};
 
 
-    EntityUUIDCounter   mEntityUUIDCounter       {};
-    SettingsNode        mSettingsNode            {};
-
-    CreationSimState    mSimState                {};
-    CreationSysState    mSysState                {};
+    EntityUUIDCounter    mEntityUUIDCounter       {};
+    SettingsNode         mSettingsNode            {};
+    CreationMousePicking mMousePicking            {};
+    IconRenderer         sIconRenderer            {};
+    WidgetRenderer       sWidgetRenderer          {};
+    CreationSimState     mSimState                {};
+    CreationSysState     mSysState                {};
   };
 
   //===-------------- Misc -----------------===//

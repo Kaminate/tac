@@ -248,7 +248,7 @@ namespace Tac
 
 
     UI2DDrawData* drawData { window->mDrawData };
-    drawData->PushDebugGroup( "ImGuiDragTypeN", str );
+    drawData->PushDebugGroup( "ImGuiDragTypeN("+ str +")");
 
     PushID( str );
 

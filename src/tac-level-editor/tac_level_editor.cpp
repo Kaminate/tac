@@ -57,11 +57,6 @@ namespace Tac
     CreationSimState mSimState;
   };
 
-  static const TimestampDifference errorDurationSecs { 60.0f };
-  static const TimestampDifference successDurationSecs { 5.0f };
-
-  static IconRenderer     sIconRenderer{};
-  static WidgetRenderer   sWidgetRenderer{};
 
   static String CreationGetNewEntityName( World* world )
   {
@@ -81,7 +76,6 @@ namespace Tac
 
   static void   CheckSavePrefab(World* world)
   {
-
     SimKeyboardApi keyboardApi;
 
     const bool triggered{
@@ -94,6 +88,8 @@ namespace Tac
     Errors saveErrors;
     PrefabSave( world, saveErrors );
 
+    const TimestampDifference errorDurationSecs{ 60.0f };
+    const TimestampDifference successDurationSecs{ 5.0f };
     const StringView msg{ saveErrors ? saveErrors.ToString() : "Saved prefabs!" };
     const TimestampDifference duration{ saveErrors ? errorDurationSecs : successDurationSecs };
     CreationGameWindow::SetStatusMessage( msg, duration );
@@ -122,10 +118,6 @@ namespace Tac
     void Init( App::InitParams initParams, Errors& errors ) override
     {
       SpaceInit();
-      sIconRenderer.Init( errors );
-      sWidgetRenderer.Init( errors );
-      gCreation.mSimState.Init(errors);
-      gCreation.mSysState.Init( &sIconRenderer, &sWidgetRenderer, errors );
       gCreation.Init( mSettingsNode, errors );
     }
 
@@ -179,13 +171,32 @@ namespace Tac
                           mSimState.mEditorCamera,
                           errors ) );
 
-    mSelectedEntities.Init( mSettingsNode );
     CreationMainWindow::sShowWindow = true;
+    //CreationPropertyWindow::sShowWindow = true;
+
+    sIconRenderer.Init( errors );
+    mMousePicking.Init( &mSelectedEntities, &mGizmoMgr, errors );
+    sWidgetRenderer.Init( &mMousePicking, &mGizmoMgr,  errors );
+    mSelectedEntities.Init( mSettingsNode );
+    TAC_CALL( mSimState.Init( errors ) );
+    TAC_CALL( mSysState.Init( &sIconRenderer, &sWidgetRenderer, errors ) );
+    TAC_CALL( mGizmoMgr.Init( &mSelectedEntities, errors ) );
+
+    //CreationSystemWindow::Init();
+    //CreationAssetView::Init();
+    //CreationMainWindow::Init();
+    CreationGameWindow::Init( &mGizmoMgr, &mMousePicking, mSettingsNode, errors );
+    //CreationPropertyWindow::Init();
+    //CreationProfileWindow::Init();
   }
 
   void                Creation::Uninit( Errors& errors )
   {
-
+    sIconRenderer.Uninit();
+    sWidgetRenderer.Uninit();
+    mSimState.Uninit();
+    mSysState.Uninit();
+    mGizmoMgr.Uninit();
   }
 
   void                Creation::Render( const CreationAppState* renderParams,
@@ -205,10 +216,11 @@ namespace Tac
     CheckSavePrefab( world );
 
     CreationSystemWindow::Update( world, mSettingsNode );
-    //CreationAssetView::Update( world, camera );
+    CreationAssetView::Update( world, camera );
     TAC_CALL( CreationMainWindow::Update( world, errors ) );
-    //TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
-    //TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
+    TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
+    TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
+    TAC_CALL( CreationProfileWindow::Update( SimKeyboardApi(), errors ) );
 
     world->Step( TAC_DELTA_FRAME_SECONDS );
 
@@ -254,7 +266,6 @@ namespace Tac
           camera,
           prefabChildEntity,
           prefabChildEntity->mRelativeSpace ) };
-      //Entity* copyChildEntity = CreateEntity();
       copyEntity->AddChild( copyChildEntity );
     }
 
@@ -263,8 +274,8 @@ namespace Tac
 
   Entity* Creation::CreateEntity( World* world, Camera* camera )
   {
-    Entity* entity { world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
-    entity->mName = CreationGetNewEntityName(world);
+    Entity* entity{ world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
+    entity->mName = CreationGetNewEntityName( world );
     entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace( camera );
 
     mSelectedEntities.Select( entity );

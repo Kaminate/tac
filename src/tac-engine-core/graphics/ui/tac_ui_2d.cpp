@@ -439,18 +439,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void                   UI2DDrawData::PushDebugGroup( const StringView& prefix,
-                                                       const StringView& suffix )
-  {
-    const int n { 30 };
-    String debugGroup {};
-    debugGroup += prefix.substr( 0, Min( prefix.size(), n ) );
-    debugGroup += prefix.size() > n ? "..." : "";
-    debugGroup += ' ';
-    debugGroup += suffix.substr( 0, Min( suffix.size(), n ) );
-    debugGroup += suffix.size() > n ? "..." : "";
-    mDebugGroupStack.Push( debugGroup );
-  }
+  //void                   UI2DDrawData::PushDebugGroup( const StringView& prefix,
+  //                                                     const StringView& suffix )
+  //{
+  //  const String debugGroup{ prefix + "(" + suffix + ")" };
+  //  mDebugGroupStack.Push( debugGroup );
+  //}
 
   void                   UI2DDrawData::PushDebugGroup( const StringView& name )
   {

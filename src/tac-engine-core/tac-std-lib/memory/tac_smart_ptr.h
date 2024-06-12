@@ -38,6 +38,7 @@ namespace Tac
     }
 
     T* Get()                 { return mT; }
+    operator T* ()           { return mT; }
 
     void operator = ( T* t ) { mT = t; }
 

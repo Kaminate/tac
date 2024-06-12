@@ -108,14 +108,10 @@ namespace Tac
 
   ImGuiWindow::ImGuiWindow()
   {
-    mTextInputData = TAC_NEW TextInputData;
-    mDrawData = TAC_NEW UI2DDrawData;
   }
 
   ImGuiWindow::~ImGuiWindow()
   {
-    TAC_DELETE mTextInputData;
-    TAC_DELETE mDrawData;
   }
 
   void         ImGuiWindow::Scrollbar()
@@ -148,7 +144,7 @@ namespace Tac
       .mColor { ImGuiGetColor( ImGuiCol::ScrollbarBG ) },
     };
 
-    mDrawData->AddBox(bg);
+    mDrawData->AddBox( bg );
 
     float contentAllMinY { mViewportSpacePos.y - mScroll };
     float contentAllMaxY { mViewportSpaceMaxiCursor.y };
@@ -247,17 +243,21 @@ namespace Tac
     }
   }
 
+  void         ImGuiWindow::EndFrame()
+  {
+    mDrawData->PopDebugGroup(); // pushed in ImGuiWindow::BeginFrame
+  }
+
   void         ImGuiWindow::BeginFrame()
   {
     const ImGuiGlobals& globals { ImGuiGlobals::Instance };
     SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
 
-    const UIStyle& style { ImGuiGetStyle() };
-    const float windowPadding { style.windowPadding };
+    const UIStyle& style{ ImGuiGetStyle() };
+    const float windowPadding{ style.windowPadding };
 
-    mDrawData->PushDebugGroup( "ImguiWindow::BeginFrame", mName );
-    TAC_ON_DESTRUCT( mDrawData->PopDebugGroup() );
-    
+    mDrawData->PushDebugGroup( "BeginFrame(" + mName + ")" ); // popped in ImGuiWindow::EndFrame
+
     mWindowID = Hash( mName );
     mIDStack = { mWindowID };
     mMoveID = GetID( "#MOVE" );
@@ -717,26 +717,34 @@ namespace Tac
     Vector< SmartPtr< UI2DDrawData > > drawData;
     int vertexCount{};
     int indexCount{};
-    WindowHandle handle = mWindowHandle;
 
+    const WindowHandle handle { mWindowHandle };
+
+    // Grab all imgui windows that use this viewport window
     for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
     {
-      if( window->mDesktopWindow != this )
-        continue;
+      // All windows of the same viewport share the same draw data
+      if( window->mDesktopWindow->mWindowHandle == mWindowHandle
+          && !window->mDrawData->empty()
+          && !window->mParent )
+      {
+        // Yoink
+        drawData.push_back( window->mDrawData );
+        vertexCount += window->mDrawData->mVtxs.size();
+        indexCount += window->mDrawData->mIdxs.size();
+        window->mDrawData = TAC_NEW UI2DDrawData;
 
-      if( window->mDrawData->empty() )
-        continue;
-
-      // Yoink!
-      drawData.push_back( window->mDrawData );
-      vertexCount += window->mDrawData->mVtxs.size();
-      indexCount += window->mDrawData->mIdxs.size();
-      window->mDrawData = TAC_NEW UI2DDrawData;
+        // The yoinking of the parent draw data invalidates the children draw datas
+        for( ImGuiWindow* child : ImGuiGlobals::Instance.mAllWindows )
+          if( child->mParent )
+            child->mDrawData = child->mParent->mDrawData;
+      }
     }
+
 
     return ImGuiSimWindowDraws
     {
-      .mHandle      { handle },
+      .mHandle      { mWindowHandle },
       .mDrawData    { drawData },
       .mVertexCount { vertexCount },
       .mIndexCount  { indexCount },
@@ -801,16 +809,15 @@ namespace Tac
     renderContext->DebugEventBegin( renderGroupStr );
     renderContext->DebugMarker( "hello hello" );
 
-
-    //Render::DebugGroup::Iterator debugGroupIterator = mDebugGroupStack.IterateBegin();
-
     for( SmartPtr< UI2DDrawData >& drawData : simDraws->mDrawData )
     {
+      Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
+      Render::DebugGroup::Iterator debugGroupIterator{
+        debugGroupStack.IterateBegin( renderContext ) };
+
       for( const UI2DDrawCall& uidrawCall : drawData->mDrawCall2Ds )
       {
-        //mDebugGroupStack.IterateElement( debugGroupIterator,
-        //                                 uidrawCall.mDebugGroupIndex,
-        //                                 uidrawCall.mStackFrame );
+        debugGroupStack.IterateElement( debugGroupIterator, uidrawCall.mDebugGroupIndex );
 
         const Render::TextureHandle texture{ uidrawCall.mTexture.IsValid()
           ? uidrawCall.mTexture
@@ -829,13 +836,12 @@ namespace Tac
         };
         renderContext->Draw( drawArgs );
       }
+
+      debugGroupStack.IterateEnd( debugGroupIterator );
     }
 
     renderContext->DebugEventEnd();
     TAC_CALL( renderContext->Execute( errors ) );
-
-    //mDebugGroupStack.IterateEnd( debugGroupIterator, TAC_STACK_FRAME );
-    //mDebugGroupStack = {};
   }
 
   void ImGuiPersistantPlatformData::Init1x1White( Errors& errors )

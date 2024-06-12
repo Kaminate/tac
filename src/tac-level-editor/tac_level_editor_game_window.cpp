@@ -50,10 +50,9 @@ namespace Tac
   static Debug3DDrawBuffers            mWorldBuffers             {};
   static String                        mStatusMessage            {};
   static Timestamp                     mStatusMessageEndTime     {};
-  static bool                          mCloseRequested           {};
   static SettingsNode                  mSettingsNode             {};
   static GizmoMgr*                     mGizmoMgr                 {};
-  static CreationMousePicking          mMousePicking             {};
+  static CreationMousePicking*         mMousePicking             {};
 
   bool CreationGameWindow::sShowWindow{};
 
@@ -273,8 +272,6 @@ namespace Tac
     if( mHideUI )
       return;
 
-    ImGuiBegin( sImguiWindowName );
-
     const ImGuiRect contentRect{ Tac::ImGuiGetContentRect() };
     const v2 cursorPos{ ImGuiGetCursorPos() };
     
@@ -283,7 +280,9 @@ namespace Tac
 
     ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
 
-    mCloseRequested |= ImGuiButton( "Close Window" );
+    if( ImGuiButton( "Close Window" ) )
+      CreationGameWindow::sShowWindow = false;
+    
 
     ImGuiCheckbox( "Draw grid", &drawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
@@ -313,7 +312,6 @@ namespace Tac
     }
 
     ImGuiEndChild();
-    ImGuiEnd();
   }
 
   static void CameraUpdateControls( Camera* camera )
@@ -385,8 +383,15 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void CreationGameWindow::Init( Errors& errors )
+  void CreationGameWindow::Init( GizmoMgr* gizmoMgr,
+                                 CreationMousePicking* mousePicking,
+                                 SettingsNode settingsNode,
+                                 Errors& errors )
   {
+    mMousePicking = mousePicking;
+    mGizmoMgr = gizmoMgr;
+    mSettingsNode = settingsNode;
+
     TAC_CALL( PlayGame( errors ) );
   }
 
@@ -461,11 +466,17 @@ namespace Tac
   {
     TAC_PROFILE_BLOCK;
 
-    WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
-
-    SimWindowApi windowApi{};
-    if( !windowApi.IsShown( mWindowHandle ) )
+    if( !sShowWindow )
       return;
+
+    ImGuiSetNextWindowDisableBG();
+    if( !ImGuiBegin( sImguiWindowName ) )
+      return;
+
+    TAC_ON_DESTRUCT( ImGuiEnd() );
+
+    WindowHandle mWindowHandle{ ImGuiGetWindowHandle() };
+    //WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
 
     if( mSoul )
     {
@@ -483,13 +494,13 @@ namespace Tac
     }
 
 
-    mMousePicking.BeginFrame( mWindowHandle, camera );
+    mMousePicking->BeginFrame( mWindowHandle, camera );
     CameraUpdateSaved( mSettingsNode, gCreation.mSimState.mEditorCamera );
     CameraUpdateControls( camera );
     mGizmoMgr->ComputeArrowLen( camera );
-    mMousePicking.Update( world, camera );
+    mMousePicking->Update( world, camera );
 
-    const v3 wsMouseDir{ mMousePicking.GetWorldspaceMouseDir() };
+    const v3 wsMouseDir{ mMousePicking->GetWorldspaceMouseDir() };
 
     TAC_CALL( gCreation.mGizmoMgr.Update( wsMouseDir, camera, errors ) );
 
