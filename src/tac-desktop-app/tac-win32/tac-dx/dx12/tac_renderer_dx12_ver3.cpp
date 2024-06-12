@@ -278,41 +278,27 @@ namespace Tac::Render
 
   ProgramHandle     DX12Device::CreateProgram( ProgramParams params, Errors& errors )
   {
-    const ProgramHandle h{ AllocProgramHandle() };
-    sRenderer.mProgramMgr.CreateProgram( h, params, errors );
-    return h;
+    return sRenderer.mProgramMgr.CreateProgram( params, errors );
   }
 
   void              DX12Device::DestroyProgram( ProgramHandle h )
   {
-    if( h.IsValid() )
-    {
-      FreeHandle( h );
-      sRenderer.mProgramMgr.DestroyProgram( h );
-    }
+    sRenderer.mProgramMgr.DestroyProgram( h );
   }
 
   SamplerHandle     DX12Device::CreateSampler( CreateSamplerParams params )
   {
-    const SamplerHandle h{ AllocSamplerHandle() };
-    sRenderer.mSamplerMgr.CreateSampler( h, params );
-    return h;
+    return sRenderer.mSamplerMgr.CreateSampler( params );
   }
 
   void              DX12Device::DestroySampler( SamplerHandle h )
   {
-    if( h.IsValid() )
-    {
-      FreeHandle( h );
-      sRenderer.mSamplerMgr.DestroySampler( h );
-    }
+    sRenderer.mSamplerMgr.DestroySampler( h );
   }
 
   SwapChainHandle   DX12Device::CreateSwapChain( SwapChainParams params, Errors& errors )
   {
-    const SwapChainHandle h{ AllocSwapChainHandle() };
-    sRenderer.mSwapChainMgr.CreateSwapChain( h, params, errors );
-    return h;
+    return sRenderer.mSwapChainMgr.CreateSwapChain( params, errors );
   }
 
   void              DX12Device::ResizeSwapChain( SwapChainHandle h, v2i size, Errors& errors )
@@ -327,11 +313,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroySwapChain( SwapChainHandle h )
   {
-    if( h.IsValid() )
-    {
-      FreeHandle( h );
-      return sRenderer.mSwapChainMgr.DestroySwapChain( h );
-    }
+    return sRenderer.mSwapChainMgr.DestroySwapChain( h );
   }
 
   TextureHandle     DX12Device::GetSwapChainCurrentColor( SwapChainHandle h)
@@ -389,19 +371,12 @@ namespace Tac::Render
   BufferHandle      DX12Device::CreateBuffer( CreateBufferParams params,
                                               Errors& errors )
   {
-    const BufferHandle h{ AllocBufferHandle() };
-    sRenderer.mBufMgr.CreateBuffer( h, params, errors );
-    return h;
+    return sRenderer.mBufMgr.CreateBuffer( params, errors );
   }
-
 
   void              DX12Device::DestroyBuffer( BufferHandle h )
   {
-    if( h.IsValid() )
-    {
-      FreeHandle( h );
-      sRenderer.mBufMgr.DestroyBuffer( h );
-    }
+    sRenderer.mBufMgr.DestroyBuffer( h );
   }
 
   IContext::Scope   DX12Device::CreateRenderContext( Errors& errors )
@@ -412,21 +387,13 @@ namespace Tac::Render
 
   TextureHandle     DX12Device::CreateTexture( CreateTextureParams params, Errors& errors )
   {
-    const TextureHandle h{ AllocTextureHandle() };
-    sRenderer.mTexMgr.CreateTexture( h, params, errors );
-    return h;
+    return  sRenderer.mTexMgr.CreateTexture( params, errors );
   }
 
   void              DX12Device::DestroyTexture( TextureHandle h )
   {
-    if( h.IsValid() )
-    {
-      FreeHandle( h );
-      sRenderer.mTexMgr.DestroyTexture( h );
-    }
+    sRenderer.mTexMgr.DestroyTexture( h );
   }
-
-
 
 } // namespace Tac::Render
 

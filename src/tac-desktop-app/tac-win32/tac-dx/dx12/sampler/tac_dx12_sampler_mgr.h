@@ -15,10 +15,10 @@ namespace Tac::Render
       DX12DescriptorHeap* mCpuDescriptorHeapSampler{};
     };
 
-    void         Init( Params );
-    void         CreateSampler( SamplerHandle, CreateSamplerParams );
-    void         DestroySampler( SamplerHandle );
-    DX12Sampler* FindSampler( SamplerHandle );
+    void          Init( Params );
+    SamplerHandle CreateSampler( CreateSamplerParams );
+    void          DestroySampler( SamplerHandle );
+    DX12Sampler*  FindSampler( SamplerHandle );
 
   private:
     using DX12Samplers = Array< DX12Sampler, 100 >;

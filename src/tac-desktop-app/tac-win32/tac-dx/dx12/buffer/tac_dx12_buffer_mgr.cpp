@@ -111,8 +111,7 @@ namespace Tac::Render
     TAC_ASSERT( mDevice && mCpuDescriptorHeapCBV_SRV_UAV && mContextManager );
   }
 
-  void DX12BufferMgr::CreateBuffer( BufferHandle h,
-                                    CreateBufferParams params,
+  BufferHandle DX12BufferMgr::CreateBuffer( CreateBufferParams params,
                                     Errors& errors)
   {
     const int byteCount { params.mByteCount };
@@ -120,6 +119,7 @@ namespace Tac::Render
 
     if( params.mUsage == Usage::Dynamic )
     {
+      const BufferHandle h{ AllocBufferHandle() };
       DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
       buffer = DX12Buffer{ .mCreateParams { params }, };
 
@@ -129,9 +129,8 @@ namespace Tac::Render
         buffer.mCreateParams.mOptionalName = buffer.mCreateName;
       }
 
-      return;
+      return h;
     }
-
 
     D3D12_HEAP_TYPE heapType{ D3D12_HEAP_TYPE_DEFAULT };
     if( params.mUsage == Usage::Staging )
@@ -183,7 +182,7 @@ namespace Tac::Render
     ID3D12Device* device{ mDevice };
 
     PCom< ID3D12Resource > buffer;
-    TAC_DX12_CALL( device->CreateCommittedResource(
+    TAC_DX12_CALL_RET( {}, device->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
       &ResourceDesc,
@@ -194,14 +193,6 @@ namespace Tac::Render
 
     ID3D12Resource* resource{ buffer.Get() };
 
-    const DX12Name name
-    {
-      .mName          { params.mOptionalName },
-      .mStackFrame    { params.mStackFrame },
-      .mResourceType  { "Buffer" },
-      .mResourceIndex { h.GetIndex() },
-    };
-    DX12SetName( resource, name );
 
     void* mappedCPUAddr{};
     if( heapType == D3D12_HEAP_TYPE_UPLOAD )
@@ -242,12 +233,23 @@ namespace Tac::Render
                       commandList );
 
     // do we context->SetSynchronous() ?
-    TAC_CALL( context->Execute( errors ) );
+    TAC_CALL_RET( {}, context->Execute( errors ) );
 
 
     const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
 
+    const BufferHandle h{ AllocBufferHandle() };
     const int i { h.GetIndex() };
+
+    const DX12Name name
+    {
+      .mName          { params.mOptionalName },
+      .mStackFrame    { params.mStackFrame },
+      .mResourceType  { "Buffer" },
+      .mResourceIndex { i },
+    };
+    DX12SetName( resource, name );
+
     mBuffers[ i ] = DX12Buffer
     {
       .mResource       { buffer },
@@ -259,6 +261,7 @@ namespace Tac::Render
       .mMappedCPUAddr  { mappedCPUAddr },
       .mCreateParams   { params },
     };
+    return h;
   }
 
   DX12Buffer* DX12BufferMgr::FindBuffer( BufferHandle h )
@@ -369,6 +372,9 @@ namespace Tac::Render
   void DX12BufferMgr::DestroyBuffer( BufferHandle h )
   {
     if( h.IsValid() )
+    {
+      FreeHandle( h );
       mBuffers[ h.GetIndex() ] = {};
+    }
   }
 } // namespace Tac::Render

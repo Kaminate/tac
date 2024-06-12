@@ -234,19 +234,11 @@ namespace Tac
   void ImGuiSetIsScrollbarEnabled( bool );
   
 
-  struct ImGuiSimFrameDraws;
-  ImGuiSimFrameDraws ImGuiGetSimFrameDraws();
+  struct ImGuiSimFrame;
+  ImGuiSimFrame ImGuiGetSimFrame();
 
-  struct ImGuiSysDrawParams
-  {
-    ImGuiSimFrameDraws* mSimFrameDraws {};
-    SysWindowApi        mWindowApi     {};
-    Timestamp           mTimestamp     {};
-  };
-
-
-  void               ImGuiPlatformRender( ImGuiSysDrawParams, Errors& );
-  void               ImGuiPlatformPresent( const SysWindowApi, Errors& );
+  void               ImGuiPlatformRender( ImGuiSimFrame*, SysWindowApi, Errors& );
+  void               ImGuiPlatformPresent( ImGuiSimFrame*, SysWindowApi, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

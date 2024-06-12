@@ -8,10 +8,10 @@ namespace Tac::Render
 {
   struct DX12ProgramMgr
   {
-    void         Init( ID3D12Device*, Errors& );
-    void         CreateProgram( ProgramHandle, ProgramParams, Errors& );
-    void         DestroyProgram(ProgramHandle);
-    DX12Program* FindProgram( ProgramHandle );
+    void          Init( ID3D12Device*, Errors& );
+    ProgramHandle CreateProgram( ProgramParams, Errors& );
+    void          DestroyProgram( ProgramHandle );
+    DX12Program*  FindProgram( ProgramHandle );
 
   private:
     Array< DX12Program, 100 > mPrograms;

@@ -1442,10 +1442,10 @@ void Tac::ImGuiSetIsScrollbarEnabled( bool b )
 }
 
 
-Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
+Tac::ImGuiSimFrame Tac::ImGuiGetSimFrame()
 {
   Vector< ImGuiSimWindowDraws > allWindowDraws;
-  Vector< ImGuiSimFrameDraws::WindowSizeData > windowSizeDatas;
+  Vector< ImGuiSimFrame::WindowSizeData > windowSizeDatas;
 
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   const SimWindowApi windowApi{ globals.mSimWindowApi };
@@ -1466,7 +1466,7 @@ Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
       const WindowHandle windowHandle{ window->mWindowHandle };
 
       const v2i windowPosScreenspace{ windowApi.GetPos( windowHandle ) };
-      const ImGuiSimFrameDraws::WindowSizeData windowSizeData
+      const ImGuiSimFrame::WindowSizeData windowSizeData
       {
         .mWindowHandle      { windowHandle },
         .mRequestedPosition { window->mRequestedPosition },
@@ -1477,7 +1477,7 @@ Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
     }
   }
 
-  return ImGuiSimFrameDraws
+  return ImGuiSimFrame
   {
     .mWindowDraws     { allWindowDraws },
     .mWindowSizeDatas { windowSizeDatas },
@@ -1485,20 +1485,24 @@ Tac::ImGuiSimFrameDraws Tac::ImGuiGetSimFrameDraws()
   };
 }
 
-void Tac::ImGuiPlatformRender( ImGuiSysDrawParams params, Errors& errors )
+void Tac::ImGuiPlatformRender( ImGuiSimFrame* simFrame, SysWindowApi windowApi, Errors& errors )
 {
-  ImGuiPersistantPlatformData::Instance.UpdateAndRender( params, errors );
+  ImGuiPersistantPlatformData::Instance.UpdateAndRender( simFrame, windowApi, errors );
 }
 
-void Tac::ImGuiPlatformPresent( const SysWindowApi windowApi, Errors& errors )
+void Tac::ImGuiPlatformPresent( ImGuiSimFrame* simFrame, const SysWindowApi windowApi, Errors& errors )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  for( ImGuiWindow* window : globals.mAllWindows )
-  {
-    if( !window->mWindowHandleOwned )
-      continue;
+  for( const ImGuiSimWindowDraws& windowDraw : simFrame->mWindowDraws )
 
-    const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
+  //ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  //for( ImGuiWindow* window : globals.mAllWindows )
+  {
+    const WindowHandle windowHandle{ windowDraw.mHandle };
+
+    //if( !window->mWindowHandleOwned )
+    //  continue;
+
+    //const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
     if( !windowApi.IsShown( windowHandle ) )
       continue;
 

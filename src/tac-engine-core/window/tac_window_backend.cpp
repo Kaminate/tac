@@ -143,12 +143,13 @@ namespace Tac
     const int i { h.GetIndex() };
     sSysCurr[ i ] = {};
     sSysNative[ i ] = {};
+
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       renderDevice->DestroySwapChain( sFramebuffers[ i ] );
+      sFramebuffers[ i ] = {};
     }
-    sFramebuffers[ i ] = {};
   }
 
   void SysWindowApiBackend::SetWindowIsVisible( WindowHandle h, bool shown )
@@ -218,6 +219,16 @@ namespace Tac
 
     for( WindowHandle h : sDestroyRequests )
     {
+#if 0 // this is handled by SysWindowApiBackend::SetWindowDestroyed
+      if( mCreatesSwapChain )
+      {
+        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+        const Render::SwapChainHandle swapChain{ sFramebuffers[ h.GetIndex() ] };
+        renderDevice->DestroySwapChain( swapChain );
+        sFramebuffers[ h.GetIndex() ] = {};
+      }
+#endif
+
       const int i { h.GetIndex() };
       sSysCurr[ i ] = {};
       sSysNative[ i ] = {};

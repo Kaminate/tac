@@ -7,6 +7,8 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 //#include "tac-dx/dx12/tac_dx12_root_sig_builder.h"
 
+#include "tac-rhi/render3/tac_render_backend.h"
+
 #if !TAC_DELETE_ME()
 #include "tac-std-lib/os/tac_os.h"
 #endif
@@ -113,15 +115,17 @@ namespace Tac::Render
   void DX12ProgramMgr::DestroyProgram( ProgramHandle h )
   {
     if( h.IsValid() )
+    {
+      FreeHandle( h );
       mPrograms[ h.GetIndex() ] = {};
+    }
   }
 
-  void DX12ProgramMgr::CreateProgram( ProgramHandle h,
-                                      ProgramParams params,
+  ProgramHandle DX12ProgramMgr::CreateProgram( ProgramParams params,
                                       Errors& errors )
   {
     const String fileName{ params.mFileStem + ".hlsl" };
-    TAC_CALL( const String preprocessedShader{
+    TAC_CALL_RET( {}, const String preprocessedShader{
       HLSLPreprocess( "assets/hlsl/" + fileName, errors ) } );
 
     const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
@@ -133,7 +137,7 @@ namespace Tac::Render
       .mOutputDir          { outputDir },
     };
 
-    TAC_CALL( DXCCompileOutput output{ DXCCompile( input, errors ) } );
+    TAC_CALL_RET( {}, DXCCompileOutput output{ DXCCompile( input, errors ) } );
 
     const D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
                                          output.mReflInfo.mReflBindings.size() );
@@ -162,6 +166,7 @@ namespace Tac::Render
       };
     }
 
+    const ProgramHandle h{ AllocProgramHandle() };
     mPrograms[ h.GetIndex() ] = DX12Program
     {
       .mFileStem        { params.mFileStem },
@@ -173,6 +178,7 @@ namespace Tac::Render
       .mInputs          { programInputs },
     };
 
+    return h;
   }
 } // namespace Tac::Render
 

@@ -19,10 +19,10 @@ namespace Tac
     {
       virtual ~IState() = default;
 
-      FrameIndex         mFrameIndex    {};
-      Timestamp          mTimestamp     {};
-      Timepoint          mTimepoint     {};
-      ImGuiSimFrameDraws mImGuiDraws    {};
+      FrameIndex         mFrameIndex          {};
+      Timestamp          mTimestamp           {};
+      Timepoint          mTimepoint           {};
+      ImGuiSimFrame      mImGuiSimFrame       {};
     };
 
     struct Config

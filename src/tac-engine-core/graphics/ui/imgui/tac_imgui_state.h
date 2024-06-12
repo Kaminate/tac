@@ -168,7 +168,7 @@ namespace Tac
 
   // generated once per game logic update frame,
   // passed to the imgui platform frame
-  struct ImGuiSimFrameDraws
+  struct ImGuiSimFrame
   {
     struct WindowSizeData
     {
@@ -179,6 +179,7 @@ namespace Tac
 
     Vector< ImGuiSimWindowDraws > mWindowDraws;
     Vector< WindowSizeData >      mWindowSizeDatas;
+    //Vector< WindowHandle >        mOwnedWindows;
     ImGuiMouseCursor              mCursor{ ImGuiMouseCursor::kNone };
   };
 
@@ -196,8 +197,10 @@ namespace Tac
     static ImGuiPersistantPlatformData Instance;
 
     void                       Init( Errors& );
-    void                       UpdateAndRender( ImGuiSysDrawParams, Errors& );
-    void                       UpdateAndRenderWindow( ImGuiSysDrawParams,
+    void                       UpdateAndRender( ImGuiSimFrame*,
+                                                SysWindowApi,
+                                                Errors& );
+    void                       UpdateAndRenderWindow( SysWindowApi,
                                                       ImGuiSimWindowDraws*,
                                                       ImGuiPersistantViewport*,
                                                       Errors& );

@@ -30,12 +30,13 @@ namespace Tac::Render
       DX12ContextManager* mContextManager               {};
     };
     void          Init( Params );
-    void          CreateTexture( TextureHandle, CreateTextureParams, Errors& );
+    TextureHandle CreateTexture( CreateTextureParams, Errors& );
     void          CreateRenderTargetColor( TextureHandle, PCom< ID3D12Resource >, Errors& );
     void          UpdateTexture( TextureHandle, UpdateTextureParams, DX12Context*, Errors& );
     void          DestroyTexture( TextureHandle );
     DX12Texture*  FindTexture( TextureHandle );
     void          TransitionTexture( TextureHandle, DX12TransitionHelper* );
+    void          SetName( TextureHandle, StringView );
     void          TransitionResource( ID3D12Resource*,
                                       D3D12_RESOURCE_STATES*,
                                       Binding,

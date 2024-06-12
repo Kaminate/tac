@@ -148,17 +148,19 @@ namespace Tac
         };
         TAC_CALL( mApp->Render( renderParams, errors ) );
 
-        const ImGuiSysDrawParams imguiDrawParams
-        {
-          .mSimFrameDraws { &pair.mNewState->mImGuiDraws },
-          .mWindowApi     { windowApi },
-          .mTimestamp     { interpolatedTimestamp },
-        };
-        TAC_CALL( ImGuiPlatformRender( imguiDrawParams, errors ) );
+        //const ImGuiSysDrawParams imguiDrawParams
+        //{
+        //  .mSimFrameDraws { &pair.mNewState->mImGuiDraws },
+        //  .mWindowApi     { windowApi },
+        //  .mTimestamp     { interpolatedTimestamp },
+        //};
+
+        ImGuiSimFrame* imguiSimFrame{ &pair.mNewState->mImGuiSimFrame };
+        TAC_CALL( ImGuiPlatformRender( imguiSimFrame, windowApi, errors ) );
 
         static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
         const PlatformMouseCursor newCursor{
-          ImGuiToPlatformMouseCursor( pair.mNewState->mImGuiDraws.mCursor ) };
+          ImGuiToPlatformMouseCursor( imguiSimFrame->mCursor ) };
         if( oldCursor != newCursor )
         {
           oldCursor = newCursor;
@@ -166,7 +168,7 @@ namespace Tac
           OS::OSDebugPrintLine( "set mouse cursor : " + ToString( (int)newCursor ) );
         }
 
-        for( const auto& sizeData : pair.mNewState->mImGuiDraws.mWindowSizeDatas )
+        for( const auto& sizeData : imguiSimFrame->mWindowSizeDatas )
         {
           if( sizeData.mRequestedPosition.HasValue() )
           {
@@ -190,7 +192,8 @@ namespace Tac
           .mWindowApi { windowApi },
         };
         TAC_CALL( mApp->Present( presentParams, errors ) );
-        TAC_CALL( ImGuiPlatformPresent( windowApi, errors ) );
+
+        TAC_CALL( ImGuiPlatformPresent( imguiSimFrame, windowApi, errors ) );
         //Render::FrameEnd();
       }
 

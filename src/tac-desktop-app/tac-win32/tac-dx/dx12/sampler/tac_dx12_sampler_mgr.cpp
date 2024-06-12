@@ -1,4 +1,5 @@
 #include "tac_dx12_sampler_mgr.h" // self-inc
+#include "tac-rhi/render3/tac_render_backend.h"
 
 
 namespace Tac::Render
@@ -33,11 +34,13 @@ namespace Tac::Render
   void DX12SamplerMgr::DestroySampler( SamplerHandle h )
   {
     if( h.IsValid() )
+    {
+      FreeHandle( h );
       mSamplers[ h.GetIndex() ] = {};
+    }
   }
 
-  void DX12SamplerMgr::CreateSampler( SamplerHandle h,
-                                      CreateSamplerParams params )
+  SamplerHandle DX12SamplerMgr::CreateSampler(  CreateSamplerParams params )
   {
     const D3D12_FILTER dx12filter{ GetFilter( params.mFilter ) };
 
@@ -57,11 +60,13 @@ namespace Tac::Render
 
     mDevice->CreateSampler( &Desc, descriptorHandle );
   
+    const SamplerHandle h{ AllocSamplerHandle() };
     mSamplers[ h.GetIndex() ] = DX12Sampler
     {
       .mDescriptor{ descriptor },
       .mName{params.mName},
     };
+    return h;
 
   }
 } // namespace Tac::Render

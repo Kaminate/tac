@@ -162,12 +162,9 @@ namespace Tac::Render
     TAC_ASSERT( mContextManager );
   }
 
-  void DX12TextureMgr::CreateTexture( TextureHandle h,
-                                      CreateTextureParams params,
+  TextureHandle DX12TextureMgr::CreateTexture(  CreateTextureParams params,
                                       Errors& errors )
   {
-    DX12Texture* texture{ FindTexture( h ) };
-    TAC_ASSERT( texture );
 
     const bool hasImageBytes{ !params.mSubresources.empty() };
     const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
@@ -206,15 +203,6 @@ namespace Tac::Render
           resource.iid(),
           resource.ppv() );
 
-        ID3D12Resource* pResource{ resource.Get() };
-        const DX12Name name
-        {
-          .mName          { params.mOptionalName },
-          .mStackFrame    { params.mStackFrame },
-          .mResourceType  { "Texture" },
-          .mResourceIndex { h.GetIndex() },
-        };
-        DX12SetName( pResource, name );
     }
 
     DX12Context* context{ mContextManager->GetContext( errors ) };
@@ -231,7 +219,7 @@ namespace Tac::Render
         .mDstSubresourceIndex {},
         .mDstPos              {},
       };
-      TAC_CALL( UploadTextureData(
+      TAC_CALL_RET( {}, UploadTextureData(
         pResource,
         &resourceStates,
         updateTextureParams,
@@ -248,10 +236,23 @@ namespace Tac::Render
     transitionHelper.ResourceBarrier( commandList );
 
     // do we context->SetSynchronous() ?
-    TAC_CALL( context->Execute( errors ) );
+    TAC_CALL_RET( {}, context->Execute( errors ) );
 
     const D3D12_RESOURCE_DESC resourceDesc{ resource->GetDesc() };
-    *texture = DX12Texture
+
+    const TextureHandle h{ AllocTextureHandle() };
+    const int iTexture{ h.GetIndex() };
+
+    const DX12Name name
+    {
+      .mName          { params.mOptionalName },
+      .mStackFrame    { params.mStackFrame },
+      .mResourceType  { "Texture" },
+      .mResourceIndex { iTexture },
+    };
+    DX12SetName( pResource, name );
+
+    mTextures[ iTexture ] = DX12Texture
     {
       .mResource          { resource },
       .mDesc              { resourceDesc },
@@ -262,6 +263,7 @@ namespace Tac::Render
       .mDSV               { bindings.mDSV },
       .mSRV               { bindings.mSRV },
     };
+    return h;
   }
 
   void DX12TextureMgr::UploadTextureData( ID3D12Resource* dstRsc,
@@ -453,6 +455,7 @@ namespace Tac::Render
   {
     if( h.IsValid() )
     {
+      FreeHandle( h );
       DX12Texture& texture{ mTextures[ h.GetIndex() ] };
 
       Optional< DX12Descriptor > optDescs[]
@@ -503,5 +506,11 @@ namespace Tac::Render
     DX12Texture* texture{ FindTexture( h ) };
     ID3D12Resource* resource{ texture->mResource.Get() };
     TransitionResource( resource, &texture->mState, texture->mBinding, transitionHelper );
+  }
+
+  void          DX12TextureMgr::SetName( TextureHandle h, StringView s )
+  {
+    if( DX12Texture * texture{ FindTexture( h ) } )
+      DX12SetName( texture->mResource, s );
   }
 } // namespace Tac::Render

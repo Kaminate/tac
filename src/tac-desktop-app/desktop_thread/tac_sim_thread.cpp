@@ -115,7 +115,7 @@ namespace Tac
         gameState->mFrameIndex = Timestep::GetElapsedFrames();
         gameState->mTimestamp = Timestep::GetElapsedTime();
         gameState->mTimepoint = Timestep::GetLastTick();
-        gameState->mImGuiDraws = ImGuiGetSimFrameDraws();
+        gameState->mImGuiSimFrame = ImGuiGetSimFrame();
 
         sGameStateManager->Enqueue( gameState );
 

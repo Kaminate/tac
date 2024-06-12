@@ -745,13 +745,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiSysDrawParams sysDrawParams,
+  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( SysWindowApi windowApi,
                                                            ImGuiSimWindowDraws* simDraws,
                                                            ImGuiPersistantViewport* sysDraws,
                                                            Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const SysWindowApi windowApi { sysDrawParams.mWindowApi };
 
     const WindowHandle hDesktopWindow { sysDraws->mWindowHandle };
     if( !windowApi.IsShown( hDesktopWindow ) )
@@ -1040,13 +1039,14 @@ namespace Tac
 
     
 
-  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSysDrawParams params,
+  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSimFrame* simFrame,
+                                                     SysWindowApi windowApi,
                                                      Errors& errors )
   {
-    for( ImGuiSimWindowDraws& simDraw : params.mSimFrameDraws->mWindowDraws )
+    for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )
     {
       ImGuiPersistantViewport* viewportDraw { GetPersistantWindowData( simDraw.mHandle ) };
-      UpdateAndRenderWindow( params,
+      UpdateAndRenderWindow( windowApi,
                              &simDraw,
                              viewportDraw,
                              errors );
