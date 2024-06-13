@@ -43,14 +43,14 @@ namespace Tac
 
   using LoadedModels = Vector< AssetViewImportedModel* >;
 
-  static AssetPathString   sAssetViewFolderCur;
-  static Vector< String >  sAssetViewFolderStack;
-  static Errors            sAssetViewErrors;
-  static FileSys::Paths    sAssetViewFiles;
-  static FileSys::Paths    sAssetViewFolders;
-  static LoadedModels      sLoadedModels;
-  static const int         w { 256 };
-  static const int         h { 256 };
+  static AssetPathString           sAssetViewFolderCur;
+  static Vector< String >          sAssetViewFolderStack; // ie { "assets", "editor" }
+  static Errors                    sAssetViewErrors;
+  static FileSys::Paths            sAssetViewFiles;
+  static FileSys::Paths            sAssetViewFolders;
+  static LoadedModels              sLoadedModels;
+  static const int                 w { 256 };
+  static const int                 h { 256 };
 
   static String LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
 
@@ -79,7 +79,6 @@ namespace Tac
     exts.push_back( ".glb" );
     return HasExt( path, exts );
   }
-
 
   static FileSys::Paths GetImagePaths()
   {
@@ -197,70 +196,19 @@ namespace Tac
 
   static void PopulateFolderContents()
   {
-    //sAssetViewFiles.clear();
-    //sAssetViewFolders.clear();
     sAssetViewFiles = FileSys::IterateFiles( sAssetViewFolderCur,
                                                 FileSys::IterateType::Default,
                                                 sAssetViewErrors );
     if( sAssetViewErrors )
       return;
 
-    //OS::OSGetFilesInDirectory( sAssetViewFiles,
-    //                                sAssetViewFolderCur,
-    //                                OS::OSGetFilesInDirectoryFlags::Default,
-    //                                sAssetViewErrors );
     sAssetViewFolders = FileSys::IterateDirectories( sAssetViewFolderCur,
-                                                        FileSys::IterateType::Default,
-                                                        sAssetViewErrors );
+                                                     FileSys::IterateType::Default,
+                                                     sAssetViewErrors );
     if( sAssetViewErrors )
       return;
-    //OS::OSGetDirectoriesInDirectory( sAssetViewFolders, sAssetViewFolderCur, sAssetViewErrors );
   }
 
-  static void UIFoldersUpToCurr()
-  {
-    for( int iStack { 0 }; iStack < sAssetViewFolderStack.size(); ++iStack )
-    {
-      const FileSys::Path& folder { sAssetViewFolderStack[ iStack ] };
-      if( ImGuiButton( folder.u8string() ) )
-      {
-        sAssetViewFolderStack.resize( iStack + 1 );
-      }
-
-      if( iStack != sAssetViewFolderStack.size() - 1 )
-      {
-        ImGuiSameLine();
-        ImGuiText( "/" );
-        ImGuiSameLine();
-      }
-    }
-  }
-
-  static void UIFoldersNext()
-  {
-    const int n { sAssetViewFolders.size() };
-    for( int i { 0 }; i < n; ++i )
-    {
-      const FileSys::Path& path { sAssetViewFolders[ i ] };
-      const int iPath { i };
-      if( ImGuiButton( path.u8string() ) )
-        sAssetViewFolderStack.push_back( path.u8string() );
-      if( iPath != sAssetViewFolders.size() - 1 )
-        ImGuiSameLine();
-    }
-  }
-
-  static void UIFilesOther( Errors& errors )
-  {
-    FileSys::Paths paths{ GetOtherPaths() };
-    for( const FileSys::Path& path : paths )
-    {
-      AssetPathStringView assetPath{ ModifyPathRelative( path, errors ) };
-      if( assetPath.ends_with( ".meta" ) )
-        continue;
-      ImGuiText( assetPath );
-    }
-  }
 
   static void AttemptLoadEntity( AssetViewImportedModel* loadedModel,
                                  const AssetPathStringView& path )
@@ -338,58 +286,6 @@ namespace Tac
     }
   }
 
-  static void UIFilesModelImGui( World* world,
-                                 Camera* camera,
-                                 const FileSys::Path& path,
-                                 Errors& errors )
-  {
-    const AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
-    TAC_ASSERT( !errors );
-
-    //const String filename = Filesystem::FilepathToFilename( path );
-    AssetViewImportedModel* loadedModel { GetLoadedModel( assetPath ) };
-    if( !loadedModel )
-    {
-      const ShortFixedString text{ ShortFixedString::Concat( "Loading ",
-                                                              assetPath,
-                                                              LoadEllipses() ) };
-
-      ImGuiText( text );
-      return;
-    }
-
-    if( loadedModel->mWorld.mEntities.size() )
-    {
-      ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( w, h ) );
-      ImGuiSameLine();
-      ImGuiBeginGroup();
-      ImGuiText( assetPath );
-      // this will select the entity in the loadedModel->mWorld, not gCreation.mWorld!!!
-      // probably a super hack
-      //if( ImGuiButton( "Select in property window" ) )
-      //{
-      //  gCreation.ClearSelection();
-      //  gCreation.AddToSelection( *loadedModel->mWorld.mEntities.begin() );
-      //}
-
-      if( ImGuiButton( "Import object into scene" ) )
-      {
-        Entity* prefab { *loadedModel->mWorld.mEntities.begin() };
-        const RelativeSpace relativeSpace{
-          gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
-        gCreation.InstantiateAsCopy(world,camera, prefab, relativeSpace );
-      }
-      ImGuiEndGroup();
-    }
-    else if( loadedModel->mAttemptedToLoadEntity )
-    {
-      ImGuiText( ShortFixedString::Concat( assetPath, "has nothing to import" ) );
-    }
-    else
-    {
-      ImGuiText( ShortFixedString::Concat( "IDK what this code path is ", assetPath ) );
-    }
-  }
 
   static Render::CreateTextureParams GetTexColorParams()
   {
@@ -476,6 +372,124 @@ namespace Tac
                             errors );
   }
 
+  static void UIFoldersUpToCurr()
+  {
+    TAC_ASSERT( !sAssetViewFolderStack.empty() );
+
+    ImGuiText( "Path: " );
+    ImGuiSameLine();
+
+    for( int iStack {}; iStack < sAssetViewFolderStack.size(); ++iStack )
+    {
+      const FileSys::Path& folder { sAssetViewFolderStack[ iStack ] };
+      if( ImGuiButton( folder.u8string() ) )
+      {
+        sAssetViewFolderStack.resize( iStack + 1 );
+      }
+
+      if( iStack != sAssetViewFolderStack.size() - 1 )
+      {
+        ImGuiSameLine();
+        ImGuiText( "/" );
+        ImGuiSameLine();
+      }
+    }
+  }
+
+  static void UIFoldersNext( Errors& errors )
+  {
+    const int n { sAssetViewFolders.size() };
+    for( int i {}; i < n; ++i )
+    {
+      const FileSys::Path& path { sAssetViewFolders[ i ] };
+      const int iPath { i };
+
+      const AssetPathString assetPath{ ModifyPathRelative( path, errors ) };
+
+      String folder{ path.filename().u8string() };
+      //String buttonStr{ assetPath.c_str() };
+      //if( buttonStr.starts_with( sAssetViewFolderCur.c_str() ) )
+      //  buttonStr = buttonStr.substr( sAssetViewFolderCur.size() );
+      //if( buttonStr.starts_with( "/" ) )
+      //  buttonStr = buttonStr.substr( 1 );
+
+      if( ImGuiButton( folder ) )
+      {
+        sAssetViewFolderStack.push_back( folder );
+      }
+      //if( iPath != sAssetViewFolders.size() - 1 )
+      //  ImGuiSameLine();
+    }
+  }
+
+  static void UIFilesOther( Errors& errors )
+  {
+    const FileSys::Paths paths{ GetOtherPaths() };
+    for( const FileSys::Path& path : paths )
+    {
+      const AssetPathStringView assetPath{ ModifyPathRelative( path, errors ) };
+      if( assetPath.ends_with( ".meta" ) )
+        continue;
+
+      ImGuiText( path.filename().u8string() );
+    }
+  }
+
+  static void UIFilesModelImGui( World* world,
+                                 Camera* camera,
+                                 const FileSys::Path& path,
+                                 Errors& errors )
+  {
+    const AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
+    TAC_ASSERT( !errors );
+
+    const String filename{ path.filename().u8string() };
+
+    //const String filename = Filesystem::FilepathToFilename( path );
+    AssetViewImportedModel* loadedModel { GetLoadedModel( assetPath ) };
+    if( !loadedModel )
+    {
+      const ShortFixedString text{
+        ShortFixedString::Concat( "Loading ", filename, LoadEllipses() ) };
+
+      ImGuiText( text );
+      return;
+    }
+
+    if( loadedModel->mWorld.mEntities.size() )
+    {
+      ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( w, h ) );
+      ImGuiSameLine();
+      ImGuiBeginGroup();
+      ImGuiText( filename );
+      // this will select the entity in the loadedModel->mWorld, not gCreation.mWorld!!!
+      // probably a super hack
+      //if( ImGuiButton( "Select in property window" ) )
+      //{
+      //  gCreation.ClearSelection();
+      //  gCreation.AddToSelection( *loadedModel->mWorld.mEntities.begin() );
+      //}
+
+      if( ImGuiButton( "Import object into scene" ) )
+      {
+        Entity* prefab { *loadedModel->mWorld.mEntities.begin() };
+        const RelativeSpace relativeSpace{
+          gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
+        gCreation.InstantiateAsCopy(world,camera, prefab, relativeSpace );
+      }
+      ImGuiEndGroup();
+    }
+    else if( loadedModel->mAttemptedToLoadEntity )
+    {
+      ImGuiText( ShortFixedString::Concat( assetPath, "has nothing to import" ) );
+    }
+    else
+    {
+      ImGuiText( ShortFixedString::Concat( "IDK what this code path is ", assetPath ) );
+    }
+  }
+
+
   static void UIFilesModels( World* world, Camera* camera, Errors& errors )
   {
     FileSys::Paths paths{ GetModelPaths() };
@@ -498,11 +512,12 @@ namespace Tac
 
       goSameLine = false;
 
+      const String text{ path.filename().u8string() };
       const AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
 
       ImGuiBeginChild( assetPath, { 200, 100 } );
 
-      ImGuiText( assetPath );
+      ImGuiText( text );
       const Render::TextureHandle textureHandle {
         TextureAssetManager::GetTexture( assetPath, sAssetViewErrors ) };
       if( textureHandle.IsValid() )
@@ -545,15 +560,21 @@ namespace Tac
     const int oldStackSize { sAssetViewFolderStack.size() };
 
     if( sAssetViewFolderStack.empty() )
-    {
-      //const String root = "assets";
-      //const FileSys::Path root = ShellGetInitialWorkingDir() / "assets";
-      sAssetViewFolderStack.push_back( "assets" );
-    }
+      sAssetViewFolderStack.push_back( AssetPathString( "assets" ) );
 
     UIFoldersUpToCurr();
-    UIFoldersNext();
+
+    {
+      ImGuiBeginGroup();
+      TAC_CALL( UIFoldersNext( errors ) );
+      ImGuiEndGroup();
+    }
+
+    ImGuiSameLine();
+
+    ImGuiBeginGroup();
     TAC_CALL( UIFiles( world, camera, errors ) );
+    ImGuiEndGroup();
 
     if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
     {
