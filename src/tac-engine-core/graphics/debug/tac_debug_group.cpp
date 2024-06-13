@@ -16,7 +16,7 @@ namespace Tac::Render::DebugGroup
   bool        Iterator::Contains( const Node* node ) const
   {
     // search back to front
-    const int n = mNodeStack.size();
+    const int n { mNodeStack.size() };
     for( int i{}; i < n; ++i )
       if( mNodeStack[ n - i - 1 ] == node )
         return true;
@@ -74,6 +74,7 @@ namespace Tac::Render::DebugGroup
          curNode != commonParent;
          curNode = FindNode( curNode->mParent ) )
       it.mNodeStack.push_back( curNode );
+
     Tac::Reverse( it.mNodeStack.begin() + oldNodeCount, it.mNodeStack.end() );
     for( int i{ oldNodeCount }; i < it.mNodeStack.size(); ++i )
     {
@@ -84,7 +85,7 @@ namespace Tac::Render::DebugGroup
 
   void        Stack::IterateEnd( Iterator& it )
   {
-    const int n = it.mNodeStack.size();
+    const int n { it.mNodeStack.size() };
     for( int i{}; i < n; ++i )
       it.mRenderContext->DebugEventEnd();
 
@@ -110,10 +111,10 @@ namespace Tac::Render::DebugGroup
     mNodes.resize( nodeIndex + 1 );
     mNodes.back() = Node
     {
-      .mName = str,
-      .mHeight = parentNode ? parentNode->mHeight + 1 : 0,
-      .mSelf = nodeIndex,
-      .mParent = mCurNodeIdx,
+      .mName   { str },
+      .mHeight { parentNode ? parentNode->mHeight + 1 : 0 },
+      .mSelf   { nodeIndex },
+      .mParent { mCurNodeIdx },
     };
 
     mCurNodeIdx = nodeIndex;
@@ -121,7 +122,7 @@ namespace Tac::Render::DebugGroup
 
   void        Stack::Pop()
   {
-    Node* node = FindNode( mCurNodeIdx );
+    Node* node { FindNode( mCurNodeIdx ) };
     TAC_ASSERT( node );
     mCurNodeIdx = node->mParent;
   }

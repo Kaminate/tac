@@ -17,6 +17,7 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
+#define TAC_IMGUI_RESIZE_DEBUG() TAC_IS_DEBUG_MODE() && false
 
 Tac::ImGuiNextWindow          Tac::gNextWindow;
 
@@ -341,6 +342,9 @@ namespace Tac
     //if( !mWindowHandleOwned )
     //  return;
 
+    if( mParent )
+      return;
+
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
     const UIStyle style{ globals.mUIStyle };
     const float windowPadding { style.windowPadding };
@@ -353,11 +357,10 @@ namespace Tac
     const ImGuiRect origWindowRect_VS{ ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
     ImGuiRect targetWindowRect_VS{ origWindowRect_VS };
 
-    const int E = 1 << 0;
-    const int S = 1 << 1;
-    const int W = 1 << 2;
-    const int N = 1 << 3;
-    const bool debuggingResizeControls{};
+    const int E { 1 << 0 };
+    const int S { 1 << 1 };
+    const int W { 1 << 2 };
+    const int N { 1 << 3 };
 
     int hoverMask = 0;
 
@@ -374,17 +377,37 @@ namespace Tac
         case E: edgeRect_VS.mMini.x = edgeRect_VS.mMaxi.x - windowPadding; break;
         case S: edgeRect_VS.mMini.y = edgeRect_VS.mMaxi.y - windowPadding; break;
         case W: edgeRect_VS.mMaxi.x = edgeRect_VS.mMini.x + windowPadding; break;
-        case N: edgeRect_VS.mMaxi.y = edgeRect_VS.mMini.x + windowPadding; break;
+        case N: edgeRect_VS.mMaxi.y = edgeRect_VS.mMini.y + windowPadding; break;
         }
 
         const bool hovered{ IsHovered( edgeRect_VS ) };
         const bool edgeActive{ anyEdgeActive && ( globals.mResizeMask & dir ) };
 
-        if( debuggingResizeControls )
+#if TAC_IMGUI_RESIZE_DEBUG()
+        const bool drawBorder { true };
+#else
+        const bool drawBorder { hovered || edgeActive };
+#endif
+
+        if( drawBorder )
         {
           const v4 red{ 1, 0, 0, 1 };
           const v4 green{ 0, 1, 0, 1 };
-          const v4 color{ ( hovered || edgeActive ) ? green : red };
+          const v4 yellow{ 1, 1, 0, 1 };
+          v4 color { red };
+
+#if TAC_IMGUI_RESIZE_DEBUG()
+          if( hovered )
+            color = yellow;
+          if( edgeActive )
+            color = green;
+#else
+            color = ImGuiGetColor( ImGuiCol::FrameBG );
+            if( edgeActive )
+              color.xyz() *= 2;
+            else if( hovered )
+              color.xyz() *= 3;
+#endif
 
           const UI2DDrawData::Box box
           {
@@ -799,6 +822,11 @@ namespace Tac
 
     UpdatePerFrame( renderContext, windowSize, errors );
 
+    if( true ) // todo: if viewport is owned by a imguiwindow
+    {
+      renderContext->ClearColor( swapChainColor, v4( 0, 0, 0, 1 ) );
+      renderContext->ClearDepth( swapChainDepth, 1.0f );
+    }
     renderContext->SetVertexBuffer( renderBuffers.mVB.mBuffer );
     renderContext->SetIndexBuffer( renderBuffers.mIB.mBuffer );
     renderContext->SetPipeline( element.mPipeline );
