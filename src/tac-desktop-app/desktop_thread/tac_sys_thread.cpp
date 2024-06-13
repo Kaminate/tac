@@ -71,12 +71,11 @@ namespace Tac
   {
     TAC_ASSERT( mErrors && mApp );
     sSysThreadAllocator.Init(  1024 * 1024 * 10  ); // 10 MB
-    //TAC_CALL( Render::Init2( Render::InitParams{}, errors ) );
+    FrameMemorySetThreadAllocator( & sSysThreadAllocator );
   }
 
   void SysThread::Update( Errors& errors )
   {
-    FrameMemorySetThreadAllocator( & sSysThreadAllocator );
     TAC_ASSERT( mErrors && mApp );
 
     PlatformFns* platform { PlatformFns::GetInstance() };

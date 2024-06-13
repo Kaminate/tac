@@ -572,7 +572,7 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
 
   if( parentHWND )
   {
-    WindowHandle hParent = Win32WindowManagerFindWindow( parentHWND );
+    WindowHandle hParent { Win32WindowManagerFindWindow( parentHWND ) };
     TAC_ASSERT_MSG( hParent.IsValid(), "The parent was deleted!" );
   }
 
@@ -609,7 +609,9 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
   }
 
   if( !parentHWND )
-    parentHWND = hwnd;
+  {
+    //parentHWND = hwnd;
+  }
 
   // Sets the keyboard focus to the specified window
   SetFocus( hwnd );

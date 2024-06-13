@@ -115,17 +115,22 @@ float3 ApplyLight( int iLight,
 
 PS_OUTPUT PS( VS_OUTPUT input )
 {
-  float3 colorDiffuse = float3( 0.0001, 0.0001, 0.001 ); // ambient so that when you draw something, you see something without light
-  // float3 colorDiffuse = float3( 0, 0, 0 );
+  // ambient so that when you draw something, you see something without light
+  float ambient = 0.1; // 0.001 // 0
+  float3 colorDiffuse = float3( ambient, ambient, ambient );
+
   if( useLights )
   {
     for( int iLight = 0; iLight < lightCount; ++iLight )
+    {
       colorDiffuse += ApplyLight( iLight, input );
+    }
   }
   else
   {
     colorDiffuse = Color.xyz;
   }
+
 
   PS_OUTPUT output = ( PS_OUTPUT )0;
   output.mColor.xyz = pow( colorDiffuse, 1.0 / 2.2 );

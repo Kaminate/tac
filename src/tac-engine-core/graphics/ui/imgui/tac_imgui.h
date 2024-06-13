@@ -69,6 +69,7 @@ namespace Tac
     FrameBGHovered,
     FrameBGActive,
     Scrollbar,
+    ScrollbarHovered,
     ScrollbarActive,
     ScrollbarBG,
     Checkmark,

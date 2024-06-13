@@ -277,10 +277,9 @@ namespace Tac
     ImGuiSelectedEntities();
     ImGuiEndGroup();
 
-    //if( ImGuiButton( "Close window" ) )
-    //  sShowWindow = false;
+    if( ImGuiButton( "Close window" ) )
+      sShowWindow = false;
 
-    //ImGuiDebugDraw();
     ImGuiEnd();
   }
 }

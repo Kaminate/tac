@@ -122,6 +122,7 @@ namespace Tac
     const bool scrollBarEnabled { globals.mScrollBarEnabled };
     if( !scrollBarEnabled )
       return;
+
     SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
 
     const bool stuffBelowScreen { mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y };
@@ -182,15 +183,34 @@ namespace Tac
 
     const ImGuiRect scrollbarForegroundRect{ ImGuiRect::FromMinMax( scrollbarForegroundMini,
                                                                      scrollbarForegroundMaxi ) };
+    const ImGuiID id{ GetID( "##SCROLLBAR" ) };
+
     const bool hovered { IsHovered( scrollbarForegroundRect ) };
+    if( hovered )
+    {
+      SetHoveredID( id );
+
+      if( keyboardApi.JustPressed( Key::MouseLeft ) )
+      {
+        SetActiveID( id, this );
+        mScrollMousePosScreenspaceInitial = keyboardApi.GetMousePosScreenspace();
+      }
+    }
+
     const float scrollbarHeight { scrollbarForegroundRect.GetHeight() };
-    const bool active { hovered || mScrolling };
+    const bool active { GetActiveID() == id };
+
+    v4 barColor{ ImGuiGetColor( ImGuiCol::Scrollbar ) };
+    if( hovered )
+      barColor =  ImGuiGetColor( ImGuiCol::ScrollbarHovered );
+    if( active )
+      barColor =  ImGuiGetColor( ImGuiCol::ScrollbarActive );
 
     const UI2DDrawData::Box scrollbarBox
     {
       .mMini  { scrollbarForegroundMini },
       .mMaxi  { scrollbarForegroundMaxi },
-      .mColor { ImGuiGetColor( active ? ImGuiCol::Scrollbar : ImGuiCol::ScrollbarActive ) },
+      .mColor { barColor },
     };
 
     mDrawData->AddBox( scrollbarBox );
@@ -199,7 +219,8 @@ namespace Tac
     //if( active )
     //  Mouse::TryConsumeMouseMovement( &consumeT, TAC_STACK_FRAME );
 
-    if( mScrolling )
+
+    if(active)
     {
       const float mouseDY{
         keyboardApi.GetMousePosScreenspace().y
@@ -210,12 +231,9 @@ namespace Tac
 
 
       if( !keyboardApi.IsPressed( Key::MouseLeft ) )
-        mScrolling = false;
-    }
-    else if( keyboardApi.JustPressed( Key::MouseLeft ) && hovered )//&& consumeT )
-    {
-      mScrolling = true;
-      mScrollMousePosScreenspaceInitial = keyboardApi.GetMousePosScreenspace();
+      {
+        ClearActiveID();
+      }
     }
 
     mViewportSpaceVisibleRegion.mMaxi.x -= scrollbarWidth;
@@ -251,12 +269,13 @@ namespace Tac
 
   void         ImGuiWindow::BeginFrame()
   {
-    const ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
+    dynmc ImGuiGlobals& globals { ImGuiGlobals::Instance };
 
+    const SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
     const UIStyle& style{ ImGuiGetStyle() };
     const float windowPadding{ style.windowPadding };
 
+    globals.mHoveredID = {};
     mDrawData->PushDebugGroup( "BeginFrame(" + mName + ")" ); // popped in ImGuiWindow::EndFrame
 
     mWindowID = Hash( mName );
@@ -322,7 +341,7 @@ namespace Tac
     if( !keyboardApi.JustPressed( Key::MouseLeft ) )
       return;
       
-    if( globals.mActiveID.IsValid()  )
+    if( globals.mActiveID.IsValid() || globals.mHoveredID.IsValid() )
       return;
 
     //if( !mWindowHandleOwned )
@@ -346,25 +365,23 @@ namespace Tac
       return;
 
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+    const ImGuiID id{ GetID( "##RESIZE" ) };
     const UIStyle style{ globals.mUIStyle };
     const float windowPadding { style.windowPadding };
-
     const SimWindowApi windowApi{ globals.mSimWindowApi };
     const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
     const v2i viewportPos_SS{ windowApi.GetPos( mDesktopWindow->mWindowHandle ) };
     const v2 mousePos_VS{ GetMousePosViewport() };
-
     const ImGuiRect origWindowRect_VS{ ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
+
     ImGuiRect targetWindowRect_VS{ origWindowRect_VS };
 
     const int E { 1 << 0 };
     const int S { 1 << 1 };
     const int W { 1 << 2 };
     const int N { 1 << 3 };
+    int hoverMask { 0 };
 
-    int hoverMask = 0;
-
-    const ImGuiID id{ GetID( "##RESIZE" ) };
     const bool anyEdgeActive{ globals.mActiveID == id };
 
     for( int iSide{}; iSide < 4; ++iSide )
@@ -1167,6 +1184,12 @@ Tac::ImGuiID Tac::GetActiveID()
   {
     return ImGuiGlobals::Instance.mActiveID;
   }
+
+void         Tac::SetHoveredID( ImGuiID id )
+{
+  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  globals.mHoveredID = id;
+}
 
 void         Tac::SetActiveID( ImGuiID id, ImGuiWindow* window )
 {

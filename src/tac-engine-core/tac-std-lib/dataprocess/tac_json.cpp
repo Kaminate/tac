@@ -338,6 +338,8 @@ namespace Tac
     mString = json->mString;
     mNumber = json->mNumber;
     mBoolean = json->mBoolean;
+    mObjectChildrenMap.clear();
+    mArrayElements.clear();
 
     for( auto [childKey, childJson] : json->mObjectChildrenMap )
       GetChild( childKey ).DeepCopy( childJson );

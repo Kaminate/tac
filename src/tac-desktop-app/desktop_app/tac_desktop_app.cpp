@@ -217,7 +217,6 @@ namespace Tac
     initParams.mWindowApi = sSysWindowApi;
     initParams.mKeyboardApi = sSysKeyboardApi;
 
-    sApp->Init( initParams, errors );
     TAC_CALL( sApp->Init( initParams, errors ) );
 
 

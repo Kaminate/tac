@@ -448,6 +448,7 @@ const char* Tac::ImGuiGetColName( const ImGuiCol colIdx )
     "FrameBGActive",
     "Scrollbar",
     "ScrollbarHovered",
+    "ScrollbarActive",
     "ScrollbarBG",
     "Checkmark",
   };
@@ -1147,9 +1148,10 @@ void Tac::ImGuiDefaultColors()
   ImGuiSetColor( ImGuiCol::FrameBG, v4( 75, 104, 65, 128 ) / 255.0f );
   ImGuiSetColor( ImGuiCol::FrameBGHovered, v4( 115, 143, 91, 128 ) / 255.0f );
   ImGuiSetColor( ImGuiCol::FrameBGActive, v4( 128, 163, 85, 128 ) / 255.0f );
-  ImGuiSetColor( ImGuiCol::Scrollbar, v4( 100, 100, 100, 128 ) / 255.0f );
-  ImGuiSetColor( ImGuiCol::ScrollbarActive, v4( 130, 130, 130, 128 ) / 255.0f );
-  ImGuiSetColor( ImGuiCol::ScrollbarBG, v4( 50, 50, 50, 255 ) / 255.0f );
+  ImGuiSetColor( ImGuiCol::Scrollbar, v4( 150, 150, 150, 128 ) / 255.0f );
+  ImGuiSetColor( ImGuiCol::ScrollbarHovered, v4( 200, 200, 200, 128 ) / 255.0f );
+  ImGuiSetColor( ImGuiCol::ScrollbarActive, v4( 60, 60, 60, 128 ) / 255.0f );
+  ImGuiSetColor( ImGuiCol::ScrollbarBG, v4( 20, 20, 20, 255 ) / 255.0f );
   ImGuiSetColor( ImGuiCol::Checkmark, v4( 249, 181, 53, 255 ) / 255.0f );
 
   for( v4& color : style.colors )

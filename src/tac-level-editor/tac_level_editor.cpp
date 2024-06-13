@@ -164,14 +164,13 @@ namespace Tac
   {
     mSettingsNode = settingsNode;
 
+    CreationMainWindow::sShowWindow =
+      settingsNode.GetChild( "show main window" ).GetValueWithFallback( true );
+    CreationPropertyWindow::sShowWindow =
+      settingsNode.GetChild( "show property window" ).GetValueWithFallback( true );
+    CreationGameWindow::sShowWindow =
+      settingsNode.GetChild( "show game window" ).GetValueWithFallback( true );
 
-    TAC_CALL( PrefabLoad( mSettingsNode,
-                          &mEntityUUIDCounter,
-                          mSimState.mWorld,
-                          mSimState.mEditorCamera,
-                          errors ) );
-
-    CreationMainWindow::sShowWindow = true;
     //CreationPropertyWindow::sShowWindow = true;
 
     sIconRenderer.Init( errors );
@@ -188,6 +187,12 @@ namespace Tac
     CreationGameWindow::Init( &mGizmoMgr, &mMousePicking, mSettingsNode, errors );
     //CreationPropertyWindow::Init();
     //CreationProfileWindow::Init();
+
+    TAC_CALL( PrefabLoad( mSettingsNode,
+                          &mEntityUUIDCounter,
+                          mSimState.mWorld,
+                          mSimState.mEditorCamera,
+                          errors ) );
   }
 
   void                Creation::Uninit( Errors& errors )

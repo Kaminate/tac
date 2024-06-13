@@ -109,7 +109,6 @@ namespace Tac
     //                            rendering any ui elements.
     float                         mScroll                           {};
     v2                            mScrollMousePosScreenspaceInitial {};
-    bool                          mScrolling                        {};
 
     Vector< GroupData >           mGroupSK;
 
@@ -251,6 +250,7 @@ namespace Tac
   };
 
   void    SetActiveID( ImGuiID, ImGuiWindow* );
+  void    SetHoveredID( ImGuiID );
   void    ClearActiveID();
   ImGuiID GetActiveID();
 

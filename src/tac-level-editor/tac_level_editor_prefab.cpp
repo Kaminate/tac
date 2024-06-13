@@ -271,6 +271,7 @@ void                Tac::PrefabLoad( SettingsNode settingsNode,
   for( SettingsNode child : settingsNode.GetChild( prefabSettingsPath ).GetChildrenArray() )
     paths.push_back( child.GetValue().mString );
 
+
   for( String path : paths )
   {
     TAC_CALL( PrefabLoadAtPath( settingsNode, entityUUIDCounter, world, camera, path, errors ) );
