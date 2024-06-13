@@ -216,7 +216,7 @@ namespace Tac
     CheckSavePrefab( world );
 
     CreationSystemWindow::Update( world, mSettingsNode );
-    CreationAssetView::Update( world, camera );
+    TAC_CALL( CreationAssetView::Update( world, camera, errors ) );
     TAC_CALL( CreationMainWindow::Update( world, errors ) );
     TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
     TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );

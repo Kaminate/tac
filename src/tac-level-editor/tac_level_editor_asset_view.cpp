@@ -250,12 +250,16 @@ namespace Tac
     }
   }
 
-
-  static void UIFilesOther()
+  static void UIFilesOther( Errors& errors )
   {
     FileSys::Paths paths{ GetOtherPaths() };
     for( const FileSys::Path& path : paths )
-      ImGuiText( path.u8string() );
+    {
+      AssetPathStringView assetPath{ ModifyPathRelative( path, errors ) };
+      if( assetPath.ends_with( ".meta" ) )
+        continue;
+      ImGuiText( assetPath );
+    }
   }
 
   static void AttemptLoadEntity( AssetViewImportedModel* loadedModel,
@@ -334,10 +338,12 @@ namespace Tac
     }
   }
 
-  static void UIFilesModelImGui( World* world, Camera* camera, const FileSys::Path& path )
+  static void UIFilesModelImGui( World* world,
+                                 Camera* camera,
+                                 const FileSys::Path& path,
+                                 Errors& errors )
   {
-    Errors errors;
-    AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
+    const AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
     TAC_ASSERT( !errors );
 
     //const String filename = Filesystem::FilepathToFilename( path );
@@ -470,18 +476,16 @@ namespace Tac
                             errors );
   }
 
-
-
-  static void UIFilesModels( World* world, Camera* camera)
+  static void UIFilesModels( World* world, Camera* camera, Errors& errors )
   {
     FileSys::Paths paths{ GetModelPaths() };
     for( const FileSys::Path& path : paths )
     {
-      UIFilesModelImGui(  world, camera ,path );
+      UIFilesModelImGui( world, camera, path , errors );
     }
   }
 
-  static void UIFilesImages()
+  static void UIFilesImages( Errors& errors )
   {
     FileSys::Paths paths{ GetImagePaths() };
 
@@ -494,13 +498,13 @@ namespace Tac
 
       goSameLine = false;
 
-      const String pathUTF8 { path.u8string() };
+      const AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
 
-      ImGuiBeginChild( pathUTF8, { 200, 100 } );
+      ImGuiBeginChild( assetPath, { 200, 100 } );
 
-      ImGuiText(  pathUTF8 );
+      ImGuiText( assetPath );
       const Render::TextureHandle textureHandle {
-        TextureAssetManager::GetTexture( pathUTF8, sAssetViewErrors ) };
+        TextureAssetManager::GetTexture( assetPath, sAssetViewErrors ) };
       if( textureHandle.IsValid() )
         ImGuiImage( textureHandle.GetIndex(), v2( 50, 50 ) );
 
@@ -511,52 +515,50 @@ namespace Tac
     }
   }
 
-  static void UIFiles(World*world, Camera*camera)
+  static void UIFiles(World*world, Camera*camera, Errors& errors )
   {
     if( sAssetViewFiles.empty() )
       ImGuiText( "no files :(" );
 
-    UIFilesImages();
-    UIFilesModels( world, camera );
-    UIFilesOther();
+    TAC_CALL( UIFilesImages( errors ) );
+    TAC_CALL( UIFilesModels( world, camera, errors ) );
+    TAC_CALL( UIFilesOther( errors ) );
   }
 
 
   bool CreationAssetView::sShowWindow{};
 
-  void CreationAssetView::Update( World* world, Camera* camera)
+  void CreationAssetView::Update( World* world, Camera* camera, Errors& errors )
   {
     if( !sShowWindow )
       return;
 
-    TAC_PROFILE_BLOCK;
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowMoveResize();
-    const bool open { ImGuiBegin( "Asset View" ) };
-    if( open )
+    if(  !ImGuiBegin( "Asset View" )  )
+      return;
+    TAC_PROFILE_BLOCK;
+    ImGuiText( "--- Asset View ---" );
+    if( sAssetViewErrors )
+      ImGuiText( sAssetViewErrors.ToString() );
+
+    const int oldStackSize { sAssetViewFolderStack.size() };
+
+    if( sAssetViewFolderStack.empty() )
     {
-      ImGuiText( "--- Asset View ---" );
-      if( sAssetViewErrors )
-        ImGuiText( sAssetViewErrors.ToString() );
+      //const String root = "assets";
+      //const FileSys::Path root = ShellGetInitialWorkingDir() / "assets";
+      sAssetViewFolderStack.push_back( "assets" );
+    }
 
-      const int oldStackSize = sAssetViewFolderStack.size();
+    UIFoldersUpToCurr();
+    UIFoldersNext();
+    TAC_CALL( UIFiles( world, camera, errors ) );
 
-      if( sAssetViewFolderStack.empty() )
-      {
-        //const String root = "assets";
-        //const FileSys::Path root = ShellGetInitialWorkingDir() / "assets";
-        sAssetViewFolderStack.push_back( "assets" );
-      }
-
-      UIFoldersUpToCurr();
-      UIFoldersNext();
-      UIFiles( world, camera );
-
-      if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
-      {
-        sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
-        PopulateFolderContents();
-      }
+    if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
+    {
+      sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
+      PopulateFolderContents();
     }
     ImGuiEnd();
   }

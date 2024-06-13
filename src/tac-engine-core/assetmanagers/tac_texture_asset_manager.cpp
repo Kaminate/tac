@@ -85,6 +85,7 @@ namespace Tac
     Render::TextureHandle CreateTexSingle( Errors& );
     Render::TextureHandle CreateTexCubemap( Errors& );
     void                  ExecuteTexSingleJob( Errors& );
+    int                   CalculateMipCount( int, int, SettingsNode );
     void                  ExecuteTexCubemapJob( Errors& );
     void                  GenerateMip( int );
 
@@ -208,6 +209,26 @@ namespace Tac
       ExecuteTexSingleJob( errors );
   }
 
+  int TextureLoadJob::CalculateMipCount( int w, int h, SettingsNode settingsNode )
+  {
+    int n{ 1 };
+    const bool genMips{ settingsNode.GetChild( "gen mips" ).GetValueWithFallback( true ) };
+    if( genMips )
+    {
+      for( ;; )
+      {
+        w /= 2;
+        h /= 2;
+        if( !w || !h )
+          break;
+
+        n++;
+      }
+    }
+
+    return n;
+  }
+
   void TextureLoadJob::ExecuteTexSingleJob( Errors& errors )
   {
     TAC_CALL( const String memory{ FileSys::LoadFilePath( mFilepath, errors ) } );
@@ -221,13 +242,12 @@ namespace Tac
       }( ) };
 
     SettingsRoot settingsRoot;
+    TAC_ON_DESTRUCT( settingsRoot.Flush( errors ) );
     TAC_CALL( settingsRoot.Init( metaPath, errors ) );
 
     SettingsNode settingsNode{ settingsRoot.GetRootNode() };
     mIs_sRGB = settingsNode.GetChild( "is sRGB" ).GetValueWithFallback( true );
     
-    const bool genMips{ settingsNode.GetChild( "gen mips" ).GetValueWithFallback( true ) };
-    TAC_CALL( settingsRoot.Flush( errors ) );
 
     int x;
     int y;
@@ -276,19 +296,8 @@ namespace Tac
       .mFormat { mTexFmt },
     };
 
-    const int subresourceCount{
-      [ & ]()
-      {
-        if( !genMips )
-          return 1;
-
-        int w { x };
-        int n { 1 };
-        while( w /= 2 )
-          n++;
-
-        return n;
-      }( ) };
+    const int subresourceCount{ CalculateMipCount( x, y, settingsNode ) };
+    
 
     mSubresources.resize( subresourceCount );
 
@@ -297,9 +306,8 @@ namespace Tac
     mip0.mPitch = pitch;
     MemCpy( mip0.mBytes.data(), loaded, imageDataByteCount );
 
-    if( genMips )
-      for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
-        GenerateMip( currMip );
+    for( int currMip{ 1 }; currMip < subresourceCount; ++currMip )
+      GenerateMip( currMip );
 
 #if TAC_TEST_MIPS_BY_SAVING_TO_DISC()
     TestMipsBySavingToDisk();

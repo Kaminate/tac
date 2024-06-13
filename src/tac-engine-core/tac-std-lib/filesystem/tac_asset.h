@@ -48,7 +48,7 @@ namespace Tac
     bool                IsDirectory() const;
   };
 
-  using AssetPathStrings = Vector<AssetPathString>;
+  using AssetPathStrings = Vector< AssetPathString >;
   enum class AssetIterateType { Default, Recursive };
 
   void             SaveToFile( const AssetPathStringView&, const void*, int, Errors& );
