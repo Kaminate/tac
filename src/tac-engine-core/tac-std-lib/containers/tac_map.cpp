@@ -34,13 +34,13 @@ void Tac::MapUnitTest()
     OS::OSDebugPrintLine(str); 
   }
 
-  if( auto it = myMap.Find( 0 ); it )
+  if( auto it { myMap.Find( 0 ) }; it )
   {
     const String s { it.GetValue() };
     OS::OSDebugPrintLine( s );
   }
 
-  if( auto it = myMap.Find( 3 ); it != myMap.end() )
+  if( auto it { myMap.Find( 3 ) }; it != myMap.end() )
   {
     String s { it.GetValue() };
     OS::OSDebugPrintLine( s );

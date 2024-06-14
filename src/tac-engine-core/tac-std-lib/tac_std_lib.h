@@ -24,9 +24,6 @@ namespace Tac
   struct StringLiteral;
   struct ShortFixedString;
 
-  struct AssetPathString;
-  struct AssetPathStringView;
-
   struct Errors;
   struct Json;
   struct StackFrame;

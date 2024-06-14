@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-rhi/render3/tac_render_api.h"

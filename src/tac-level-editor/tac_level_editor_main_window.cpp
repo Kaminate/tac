@@ -21,7 +21,7 @@
 #include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 

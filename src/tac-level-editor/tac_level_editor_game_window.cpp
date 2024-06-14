@@ -446,8 +446,8 @@ namespace Tac
                                                        errors ) );
 
     IconRenderer* IconRenderer{ gCreation.mSysState.mIconRenderer };
-    TAC_CALL( IconRenderer->RenderLights( gCreation.mSimState.mWorld,
-                                          gCreation.mSimState.mEditorCamera,
+    TAC_CALL( IconRenderer->RenderLights( world,
+                                          camera,
                                           renderContext,
                                           windowHandle,
                                           errors ) );
@@ -460,6 +460,7 @@ namespace Tac
                                viewHandle );
 #endif
 
+    TAC_CALL( renderContext->Execute( errors ) );
   }
 
   void CreationGameWindow::Update( World* world, Camera* camera, Errors& errors )

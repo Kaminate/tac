@@ -4,7 +4,7 @@
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/math/tac_vector2.h" // v2
 #include "tac-std-lib/containers/tac_map.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/thirdparty/stb_truetype.h"

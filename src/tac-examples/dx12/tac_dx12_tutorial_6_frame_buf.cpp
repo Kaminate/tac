@@ -11,7 +11,7 @@
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/containers/tac_span.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/math/tac_math.h"

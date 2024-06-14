@@ -29,6 +29,7 @@ if( WIN32 )
                                VS_SETTINGS "ExcludedFromBuild=true" )
 endif()
 
+add_subdirectory( asset )
 add_subdirectory( assetmanagers )
 add_subdirectory( framememory )
 add_subdirectory( graphics )

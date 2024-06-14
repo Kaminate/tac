@@ -1,7 +1,7 @@
 #include "tac_resident_model_file.h" // self-inc
 
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"

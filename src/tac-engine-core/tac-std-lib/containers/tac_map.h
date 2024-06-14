@@ -19,8 +19,8 @@ struct Tac::Map
 {
   struct Pair
   {
-    TKey mFirst{};
-    TVal mSecond{};
+    TKey mFirst  {};
+    TVal mSecond {};
   };
 
   struct Node
@@ -36,7 +36,7 @@ struct Tac::Map
     const Pair& operator *() const            { return mCur->mPair; }
 
     bool  operator ==( const ConstIterator& ) const = default;
-    operator bool() const                     { return mCur->mOccupied; }
+    operator bool() const                     { return mCur && mCur->mOccupied; }
     TVal GetValue() const                     { return mCur->mPair.mSecond; }
 
     const Node* mCur       {};
@@ -49,7 +49,7 @@ struct Tac::Map
     Pair& operator *() const                  { return mCur->mPair; }
 
     bool  operator ==( const Iterator& ) const = default;
-    operator bool() const                     { return mCur->mOccupied; }
+    operator bool() const                     { return mCur && mCur->mOccupied; }
     TVal GetValue() const                     { return mCur->mPair.mSecond; }
 
     Node* mCur       {};
@@ -185,8 +185,6 @@ int              Tac::Map<TKey, TVal>::FindNodeIndex( TKey key ) const
   }
 }
 
-
-
 template< typename TKey, typename TVal >
 void Tac::Map< TKey, TVal >::Reserve( int capacity )
 {
@@ -242,14 +240,14 @@ template< typename TKey, typename TVal >
 Tac::Map< TKey, TVal >::Iterator Tac::Map< TKey, TVal >::Find( TKey key )
 {
   Node* node { FindNode( key ) };
-  return node->mOccupied ? Iterator{ .mCur = node } : Iterator{};
+  return node->mOccupied ? Iterator{ .mCur { node } } : Iterator{};
 }
 
 template< typename TKey, typename TVal >
 Tac::Map< TKey, TVal >::ConstIterator    Tac::Map< TKey, TVal >::Find( TKey key ) const
 {
   Node* node { FindNode( key ) };
-  return node->mOccupied ? ConstIterator{ .mCur = node } : ConstIterator{};
+  return node->mOccupied ? ConstIterator{ .mCur { node } } : ConstIterator{};
 }
 
 template< typename TKey, typename TVal >

@@ -103,6 +103,9 @@ namespace Tac
     mComponents.clear();
   }
 
+  Components::ConstIter Components::begin() const { return mComponents.begin(); };
+  Components::ConstIter Components::end() const { return mComponents.end(); }
+
   Component*                Components::Remove( const ComponentRegistryEntry* componentRegistryEntry )
   {
     for( auto it { mComponents.begin() }; it != mComponents.end(); ++it )
@@ -179,29 +182,45 @@ namespace Tac
 
   void             Entity::DeepCopy( const Entity& entity )
   {
-    //TAC_ASSERT( mWorld && entity.mWorld && mWorld != entity.mWorld );
+    TAC_ASSERT( mWorld );
+    TAC_ASSERT( entity.mWorld );
+    TAC_ASSERT( mWorld != entity.mWorld );
+
     mEntityUUID = entity.mEntityUUID;
     mName = entity.mName;
     mInheritParentScale = entity.mInheritParentScale;
     mRelativeSpace = entity.mRelativeSpace;
+
     RemoveAllComponents();
 
-    //for( auto oldComponent : entity.mComponents )
-    //{
-    //  auto componentType = oldComponent->GetComponentType();
-    //  auto newComponent = AddNewComponent( componentType );
-    //  auto componentData = GetComponentData( componentType );
-    //  for( auto& networkBit : componentData->mNetworkBits )
-    //  {
-    //    auto dst = ( char* )newComponent + networkBit.mByteOffset;
-    //    auto src = ( char* )oldComponent + networkBit.mByteOffset;
-    //    auto size = networkBit.mComponentByteCount * networkBit.mComponentCount;
-    //    std::memcpy( dst, src, size );
-    //  }
-    //}
     for( Entity* child : mChildren )
       mWorld->KillEntity( child );
+
     mChildren.clear();
+
+    for( Component* oldComponent : entity.mComponents )
+    {
+      const ComponentRegistryEntry* entry{ oldComponent->GetEntry() };
+      Component* newComponent { AddNewComponent( entry ) };
+
+      const NetworkBits& netBits{ entry->mNetworkBits };
+      const int nMembers{ netBits.size() };
+
+      TAC_ASSERT_UNIMPLEMENTED;
+
+      for( int iMember{}; iMember < nMembers; ++iMember )
+      {
+        const NetworkBit& netBit{ netBits[ iMember ] };
+        void* dst { ( char* )newComponent + netBit.mByteOffset };
+        const void* src { ( char* )oldComponent + netBit.mByteOffset };
+        const int size { netBit.mComponentByteCount * netBit.mComponentCount };
+        MemCpy( dst, src, size );
+      }
+    }
+
+    // shouldn't this fn be recursive?
+
+
   }
 
   void             Entity::AddChild( Entity* child )

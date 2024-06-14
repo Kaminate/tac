@@ -1,6 +1,6 @@
 #include "tac_win32_file_dialog.h" // self-inc
 
-#include "tac-std-lib/filesystem/tac_asset.h" // AssetPathRootFolderName
+#include "tac-engine-core/asset/tac_asset.h" // AssetPathRootFolderName
 #include "tac-std-lib/error/tac_error_handling.h" // Errors
 #include "tac-engine-core/shell/tac_shell.h" // sShellInitialWorkingDir
 #include "tac-win32/tac_win32.h" // TAC_HR_CALL

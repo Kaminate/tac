@@ -3,7 +3,7 @@
 #include "tac-ecs/component/tac_component.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 
 namespace Tac
 {
@@ -17,8 +17,8 @@ namespace Tac
     //GeometryUUID                       mGeometryUUID = NullGeometryUUID;
 
     //                                   todo: rename mColor_sRGB
-    v3                                   mColorRGB  { 1, 1, 1 };
-    AssetPathString                      mModelPath;
+    v3                                   mColorRGB   { 1, 1, 1 };
+    AssetPathString                      mModelPath  {};
     int                                  mModelIndex { -1 };
   };
 

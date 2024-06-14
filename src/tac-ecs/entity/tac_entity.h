@@ -24,13 +24,16 @@ namespace Tac
 
   struct Components
   {
-    void          Add( Component* );
-    void          Clear();
-    Component*    Remove( const ComponentRegistryEntry* );
-    auto          begin() const { return mComponents.begin(); };
-    auto          end() const { return mComponents.end(); }
+    using Container = List< Component* >;
+    using ConstIter = Container::ConstIterator;
 
-    List< Component* > mComponents;
+    void        Add( Component* );
+    void        Clear();
+    Component*  Remove( const ComponentRegistryEntry* );
+    ConstIter   begin() const;
+    ConstIter   end() const;
+
+    Container   mComponents;
   };
 
   struct Entity
@@ -52,30 +55,30 @@ namespace Tac
     Json              Save();
     void              Load( Json& );
 
-    Entity*           mParent { nullptr };
-    Vector< Entity* > mChildren;
-    World*            mWorld { nullptr };
-    EntityUUID        mEntityUUID { NullEntityUUID };
-    Components        mComponents;
+    Entity*           mParent             { nullptr };
+    Vector< Entity* > mChildren           {};
+    World*            mWorld              { nullptr };
+    EntityUUID        mEntityUUID         { NullEntityUUID };
+    Components        mComponents         {};
 
 
     //                Position / Rotation / Scale of the entity relative to its parent.
     //                Used to construct mWorldPosition and mWorldTransform
-    RelativeSpace     mRelativeSpace;
+    RelativeSpace     mRelativeSpace      {};
 
     bool              mInheritParentScale { false };
-    bool              mActive { true };
+    bool              mActive             { true };
 
     //                Position of this entity in worldspace.
     //                Computed automatically during the hierarchical world traversl.
-    v3                mWorldPosition  {};
+    v3                mWorldPosition      {};
 
     //                World transformation matrix ( aka world matrix ) of this entity.
     //                Computed automatically during the hierarchical world traversl.
-    m4                mWorldTransform { m4::Identity() };
+    m4                mWorldTransform     { m4::Identity() };
 
     //                can this be a tag or smthn
-    String            mName;
+    String            mName               {};
   };
 
 

@@ -1,7 +1,7 @@
 #include "tac_win32_os.h" // self-inc
 
 #include "tac-win32/tac_win32_com_ptr.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/containers/tac_optional.h"

@@ -2,7 +2,7 @@
 
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_vector2i.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"

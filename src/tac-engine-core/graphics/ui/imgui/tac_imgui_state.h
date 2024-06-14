@@ -163,6 +163,10 @@ namespace Tac
     int                                mVertexCount{};
     int                                mIndexCount{};
 
+    // cant really give it a debug name because this is assocaited wiht hte viewport, not the wnd
+    //
+    //String                             mDebugName;
+
   private:
     void CopyIdxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );
     void CopyVtxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );

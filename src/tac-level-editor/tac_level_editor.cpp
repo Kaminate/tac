@@ -210,8 +210,8 @@ namespace Tac
     World* world{ renderParams->mSimState.mWorld };
     Camera* camera{ renderParams->mSimState.mEditorCamera };
 
-    //CreationAssetView::Render(errors);
-    //CreationGameWindow::Render(world, camera, errors );
+    CreationAssetView::Render( errors );
+    CreationGameWindow::Render( world, camera, errors );
   }
 
   void                Creation::Update( World* world, Camera* camera, Errors& errors )

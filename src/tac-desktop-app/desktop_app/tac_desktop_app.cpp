@@ -31,6 +31,7 @@
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
+#include "tac-engine-core/asset/tac_asset_hash_cache.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
@@ -154,6 +155,8 @@ namespace Tac
 
     const FileSys::Path settingsPath{ sShellPrefPath / ( sShellAppName + ".tac.cfg" ) };
     TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
+
+    TAC_CALL( AssetHashCache::Init( errors ) );
 
     if( sApp->IsRenderEnabled() )
     {

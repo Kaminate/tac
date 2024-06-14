@@ -4,7 +4,7 @@
 #include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_model_load_synchronous.h"
 #include "tac-engine-core/assetmanagers/obj/tac_model_asset_loader_obj.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 //#include "tac-rhi/render3/tac_render_api.h"

@@ -835,7 +835,7 @@ void        Tac::GamePresentationRender( World* world,
 
   renderContext->DebugEventBegin( "GamePresentationRender" );
 
-  TAC_CALL( ShadowPresentationRender( world, errors ) );
+  //  TAC_CALL( ShadowPresentationRender( world, errors ) );
 
   TAC_CALL( RenderModels( renderContext,
                           world,
@@ -844,6 +844,7 @@ void        Tac::GamePresentationRender( World* world,
                           dstColorTex,
                           errors ) );
 
+  /*
   TAC_CALL( RenderTerrain( renderContext,
                            world,
                            camera,
@@ -872,6 +873,7 @@ void        Tac::GamePresentationRender( World* world,
                                                        viewSize,
                                                        errors ) );
   }
+  */
 
   renderContext->DebugEventEnd();
   TAC_CALL( renderContext->Execute( errors ) );

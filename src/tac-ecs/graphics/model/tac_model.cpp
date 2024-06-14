@@ -50,13 +50,15 @@ namespace Tac
 
 	const Model*                   Model::GetModel( const Entity* entity )
 	{
-    const ComponentRegistryEntry* entry = ComponentRegistry_GetComponentAtIndex( sRegistryIndex );
+    const ComponentRegistryEntry* entry {
+      ComponentRegistry_GetComponentAtIndex( sRegistryIndex ) };
 		return ( Model* )entity->GetComponent( entry );
 	}
 
 	Model*                         Model::GetModel( Entity* entity )
 	{
-    const ComponentRegistryEntry* entry = ComponentRegistry_GetComponentAtIndex( sRegistryIndex );
+    const ComponentRegistryEntry* entry {
+      ComponentRegistry_GetComponentAtIndex( sRegistryIndex ) };
 		return ( Model* )entity->GetComponent( entry );
 	}
 
@@ -79,7 +81,7 @@ namespace Tac
     *entry = ComponentRegistryEntry
     {
       .mName         { "Model" },
-      //.mNetworkBits { ComponentModelBits },
+      //.mNetworkBits  { ComponentModelBits },
       .mCreateFn     { CreateModelComponent },
       .mDestroyFn    { DestroyModelComponent },
       .mDebugImguiFn { DebugImguiFn },

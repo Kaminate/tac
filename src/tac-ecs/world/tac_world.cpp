@@ -291,7 +291,7 @@ namespace Tac
 
     for( Entity* fromEntity : world.mEntities )
     {
-      Entity* toEntity = SpawnEntity( fromEntity->mEntityUUID );
+      Entity* toEntity { SpawnEntity( fromEntity->mEntityUUID ) };
       toEntity->DeepCopy( *fromEntity );
     }
 

@@ -3,7 +3,7 @@
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/filesystem/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/tac_ints.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/memory/tac_memory.h"
