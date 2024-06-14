@@ -24,23 +24,12 @@ namespace Tac
   }
 
   NetBitDiff GetNetVarfield( const void* oldData,
-                                 const void* newData,
-                                 const NetVars& networkBits )
+                             const void* newData,
+                             const NetVars& vars )
   {
-    if( !oldData )
-      return NetBitDiff{ 0xff };
+    return vars.Diff( oldData, newData );
 
-    u8 bitfield { 0 };
-    for( int i{}; i < networkBits.size(); ++i )
-    {
-      const NetVar& bits { networkBits[ i ] };
-      char* oldBits { ( char* )oldData + bits.mByteOffset };
-      char* newBits { ( char* )newData + bits.mByteOffset };
-      const int componentTotalSize { bits.mComponentCount * bits.mComponentByteCount };
-      if( MemCmp( oldBits, newBits, componentTotalSize ) )
-        bitfield |= 1 << i;
-    }
-    return NetBitDiff{ bitfield };
+
   }
 
   void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )

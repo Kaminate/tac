@@ -91,9 +91,12 @@ namespace Tac
     bool Read( Reader* reader, void* dst ) override
     {
       AssetHash assetHash;
-      reader->Read( &assetHash );
+      if( !reader->Read( &assetHash ) )
+        return false;
+
       AssetPathString* assetPath{ ( AssetPathString* )dst };
       *assetPath = AssetHashCache::GetPathFromHash( assetHash );
+      return true;
     }
   };
 

@@ -24,30 +24,30 @@ namespace Tac
 
   void               PlayerNetVarsRegister()
   {
-    sNetVars.Clear();
-    sNetVars.Add(
-      NetVar
-      {
-        .mDebugName          { "mEntityUUID" },
-        .mByteOffset         { ( int )TAC_OFFSET_OF( Player, mEntityUUID ) },
-        .mComponentByteCount { sizeof ( EntityUUID )},
-        .mComponentCount     {  1},
-      } );
+    const NetVar netEntityUUID
+    {
+      .mDebugName        { "mEntityUUID" },
+      .mByteOffset       { ( int )TAC_OFFSET_OF( Player, mEntityUUID ) },
+      .mElementByteCount { sizeof( EntityUUID ) },
+      .mElementCount     { 1 },
+    };
 
-    sNetVars.Add(
-      NetVar
-      {
-        .mDebugName          { "mInputDirection" },
-        .mByteOffset         { ( int )TAC_OFFSET_OF( Player, mInputDirection ) },
-        .mComponentByteCount { sizeof ( float )},
-        .mComponentCount     {  2}
-      } );
+    const NetVar netInputDir
+    {
+      .mDebugName        { "mInputDirection" },
+      .mByteOffset       { ( int )TAC_OFFSET_OF( Player, mInputDirection ) },
+      .mElementByteCount { sizeof( float ) },
+      .mElementCount     { 2 }
+    };
+
+    sNetVars.Clear();
+    sNetVars.Add( netEntityUUID );
+    sNetVars.Add( netInputDir );
   }
 
   const NetVars& PlayerNetVarsGet()
   {
     return sNetVars;
   }
-
 }
 

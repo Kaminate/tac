@@ -18,6 +18,7 @@ namespace Tac
   void       StrCpy( char*, const char* );
   int        StrLen( const char* );
 
+  // Returns 0 if they match
   int        MemCmp( const void*, const void*, int );
   void       MemCpy( void*, const void*, int );
   void       MemSet( void*, unsigned char, int );

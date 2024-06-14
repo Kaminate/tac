@@ -203,18 +203,20 @@ namespace Tac
       const ComponentRegistryEntry* entry{ oldComponent->GetEntry() };
       Component* newComponent { AddNewComponent( entry ) };
 
-      const NetVars& netBits{ entry->mNetVars };
-      const int nMembers{ netBits.size() };
+      const NetVars& vars{ entry->mNetVars };
+      const int nVars{ vars.size() };
 
       TAC_ASSERT_UNIMPLEMENTED;
 
-      for( int iMember{}; iMember < nMembers; ++iMember )
+      for( int iVar{}; iVar < nVars; ++iVar )
       {
-        const NetVar& netBit{ netBits[ iMember ] };
-        void* dst { ( char* )newComponent + netBit.mByteOffset };
-        const void* src { ( char* )oldComponent + netBit.mByteOffset };
-        const int size { netBit.mComponentByteCount * netBit.mComponentCount };
-        MemCpy( dst, src, size );
+        const NetVar& var{ vars[ iVar ] };
+        void* dst { ( char* )newComponent + var.mByteOffset };
+        const void* src { ( char* )oldComponent + var.mByteOffset };
+
+        var.CopyFrom( dst, src );
+
+
       }
     }
 

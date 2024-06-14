@@ -26,27 +26,37 @@ namespace Tac
 
   Endianness GetEndianness();
 
-  struct NetVarReader
-  {
-    virtual bool Read( Reader*, void* dst ) = 0;
-  };
+  struct NetVarReader     { virtual bool Read( Reader*, void* dst ) = 0; };
+  struct NetVarWriter     { virtual void Write( Writer*, const void* src ) = 0; };
+  struct NetVarComparison { virtual bool Equals( const void*, const void* ) = 0; };
 
-  struct NetVarWriter
-  {
-    virtual void Write( Writer*, const void* src ) = 0;
-  };
-
-  // A NetVar (terrible name) describes a single member variable of a component, which is
+  // A NetVar describes a single member variable of a component, which is
   // networked through snapshots.
   struct NetVar
   {
-    const char*       mDebugName        {};
-    int               mByteOffset       {};
-    int               mElementByteCount {};
-    int               mElementCount     {};
-    NetVarReader*     mVarReader        {};
-    NetVarWriter*     mVarWriter        {};
+    bool Equals( const void*, const void* ) const;
+    void CopyFrom( void* dst, const void* src ) const;
+
+    const char*       mDebugName           {};
+    int               mByteOffset          {};
+    int               mElementByteCount    {};
+    int               mElementCount        {};
+    NetVarReader*     mVarReader           {};
+    NetVarWriter*     mVarWriter           {};
+    NetVarComparison* mVarCompare          {};
+    bool              mIsTriviallyCopyable {};
   };
+
+  // a bitfield which marks which NetVars of a component need to be networked
+  struct NetBitDiff
+  {
+    bool IsSet( int ) const;
+    void Set( int );
+    bool Empty() const;
+
+    u8 mBitfield {};
+  };
+
 
   // A `NetVars` is a collection of `NetVar`, which lists all the data members of a
   // component to be networked through snapshots.
@@ -55,27 +65,22 @@ namespace Tac
   // couold be a typedef?
   struct NetVars
   {
-    const NetVar&               operator[]( int ) const;
-    int                             size() const;
-    void                            Add( NetVar );
-    void                            Clear() { mNetVars.clear(); }
+    int                        size() const;
+    void                       Add( NetVar );
+    void                       Clear();
+    NetBitDiff                 Diff( const void*, const void* ) const;
+    const NetVar&              operator[]( int ) const;
+
   private:
     FixedVector< NetVar, 10 >   mNetVars;
   };
 
-  // a bitfield which marks which NetVars of a component need to be networked
-  struct NetBitDiff
-  {
-    bool IsSet( int i ) const { return mBitfield & ( 1 << i ); }
-    bool Empty() const        { return !mBitfield; }
-
-    u8 mBitfield {};
-  };
 
 
   // I should separate the byte stream from the endianness stuff
   struct Reader
   {
+    // return true on success, false otherwise
     bool Read( void* values, int valueCount, int sizeOfValue );
     bool Read( void* bytes, const NetVars& networkBits );
     void Read( void* bytes, const NetVars& networkBits, Errors& errors )
