@@ -157,7 +157,7 @@ namespace Tac
   {
     sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
     sComponentRegistryEntry->mName = "Light";
-    //sComponentRegistryEntry->mNetworkBits = ComponentLightBits;
+    //sComponentRegistryEntry->mNetVars = ComponentLightBits;
     sComponentRegistryEntry->mCreateFn = CreateLightComponent;
     sComponentRegistryEntry->mDestroyFn = DestroyLightComponent;
     sComponentRegistryEntry->mDebugImguiFn = []( Component* component )

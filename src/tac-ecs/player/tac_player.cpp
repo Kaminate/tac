@@ -20,13 +20,13 @@ namespace Tac
     //ImGui::DragFloat3( "camera pos", mCameraPos.data(), 0.1f );
   }
 
-  static NetworkBits sNetworkBits;
+  static NetVars sNetVars;
 
-  void               PlayerNetworkBitsRegister()
+  void               PlayerNetVarsRegister()
   {
-    sNetworkBits.Clear();
-    sNetworkBits.Add(
-      NetworkBit
+    sNetVars.Clear();
+    sNetVars.Add(
+      NetVar
       {
         .mDebugName          { "mEntityUUID" },
         .mByteOffset         { ( int )TAC_OFFSET_OF( Player, mEntityUUID ) },
@@ -34,8 +34,8 @@ namespace Tac
         .mComponentCount     {  1},
       } );
 
-    sNetworkBits.Add(
-      NetworkBit
+    sNetVars.Add(
+      NetVar
       {
         .mDebugName          { "mInputDirection" },
         .mByteOffset         { ( int )TAC_OFFSET_OF( Player, mInputDirection ) },
@@ -44,9 +44,9 @@ namespace Tac
       } );
   }
 
-  const NetworkBits& PlayerNetworkBitsGet()
+  const NetVars& PlayerNetVarsGet()
   {
-    return sNetworkBits;
+    return sNetVars;
   }
 
 }

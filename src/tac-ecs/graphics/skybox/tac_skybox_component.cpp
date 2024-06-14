@@ -37,7 +37,7 @@ namespace Tac
 	{
     sRegistryEntry = ComponentRegistry_RegisterComponent();
 		sRegistryEntry->mName = "Skybox";
-		//sRegistryEntry->mNetworkBits = ComponentSkyboxBits;
+		//sRegistryEntry->mNetVars = ComponentSkyboxBits;
 		sRegistryEntry->mCreateFn = CreateSkyboxComponent;
 		sRegistryEntry->mDestroyFn = DestroySkyboxComponent;
 		//sRegistryEntry->mDebugImguiFn = SkyboxDebugImgui;

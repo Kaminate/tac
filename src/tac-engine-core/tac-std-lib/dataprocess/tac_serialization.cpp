@@ -6,9 +6,9 @@
 
 namespace Tac
 {
-  const NetworkBit& NetworkBits::operator[]( int i ) const { return mNetworkBits[ i ]; }
-  int               NetworkBits::size() const              { return mNetworkBits.size(); }
-  void              NetworkBits::Add( NetworkBit b )       { mNetworkBits.push_back( b ); }
+  const NetVar& NetVars::operator[]( int i ) const { return mNetVars[ i ]; }
+  int               NetVars::size() const              { return mNetVars.size(); }
+  void              NetVars::Add( NetVar b )       { mNetVars.push_back( b ); }
 
   Endianness GetEndianness()
   {
@@ -52,20 +52,24 @@ namespace Tac
     mBegin = ( char* )mBegin + ( intptr_t )sizeOfValue * valueCount;
     return true;
   }
-  bool Reader::Read( void* bytes, const NetworkBits& networkBits )
+
+  bool Reader::Read( void* bytes, const NetVars& vars )
   {
-    char bitfield;
+    u8 bitfield;
     if( !Read( &bitfield ) )
       return false;
+
     TAC_ASSERT( bitfield ); // y u sending me nothin
-    for( int networkBitIndex = 0; networkBitIndex < networkBits.size(); ++networkBitIndex )
+    const int nVars{ vars.size() };
+    for( int iVar {}; iVar < nVars; ++iVar )
     {
-      if( !( bitfield & ( 1 << networkBitIndex ) ) )
+      if( !( bitfield & ( 1 << iVar ) ) )
         continue;
-      auto networkBit = networkBits[ networkBitIndex ];
-      if( !Read( ( char* )bytes + networkBit.mByteOffset,
-          networkBit.mComponentCount,
-          networkBit.mComponentByteCount ) )
+
+      const NetVar& var { vars[ iVar ] };
+      void* varBytes{ ( char* )bytes + var.mByteOffset };
+
+      if( !var.mVarReader->Read( this, varBytes ) )
         return false;
     }
     return true;
@@ -77,7 +81,7 @@ namespace Tac
   {
     TAC_ASSERT( mFrom != Endianness::Unknown );
     TAC_ASSERT( mTo != Endianness::Unknown );
-    const int oldSize = mBytes.size();
+    const int oldSize { mBytes.size() };
     mBytes.resize( oldSize + sizeOfValue * valueCount );
     for( int i{}; i < valueCount; ++i )
     {
@@ -87,22 +91,22 @@ namespace Tac
     }
   }
   void Writer::Write( const void* bytes,
-                      NetBitDiff netBitDiff,
-                      const NetworkBits& networkBits )
+                      NetBitDiff diff,
+                      const NetVars& vars )
   {
-    const u8 bitfield = netBitDiff.mBitfield;
+    const u8 bitfield { diff.mBitfield };
     TAC_ASSERT( bitfield );
 
     Write( bitfield );
-    for( int networkBitIndex {}; networkBitIndex < networkBits.size(); ++networkBitIndex )
+    const int nVars{ vars.size() };
+    for( int iVar {}; iVar < nVars; ++iVar )
     {
-      if( !netBitDiff.IsSet( networkBitIndex ) )
+      if( !diff.IsSet( iVar ) )
         continue;
 
-      const NetworkBit& networkBit { networkBits[ networkBitIndex ] };
-      Write( ( char* )bytes + networkBit.mByteOffset,
-             networkBit.mComponentCount,
-             networkBit.mComponentByteCount );
+      const NetVar& var { vars[ iVar ] };
+      const void* varBytes{ ( char* )bytes + var.mByteOffset};
+      var.mVarWriter->Write( this, varBytes );
     }
   }
 } // namespace Tac

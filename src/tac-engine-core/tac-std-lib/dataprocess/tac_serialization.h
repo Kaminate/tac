@@ -14,6 +14,8 @@
 namespace Tac
 {
 
+  struct Reader;
+  struct Writer;
 
   enum class Endianness
   {
@@ -24,37 +26,50 @@ namespace Tac
 
   Endianness GetEndianness();
 
-  // A NetworkBit (terrible name) describes a single member variable of a component, which is
-  // networked through snapshots.
-  struct NetworkBit
+  struct NetVarReader
   {
-    const char* mDebugName;
-    int         mByteOffset;
-    int         mComponentByteCount; // rename sizeOfComponent
-    int         mComponentCount;
+    virtual bool Read( Reader*, void* dst ) = 0;
   };
 
-  // A `NetworkBits` is a collection of `NetworkBit`, which lists all the data members of a
+  struct NetVarWriter
+  {
+    virtual void Write( Writer*, const void* src ) = 0;
+  };
+
+  // A NetVar (terrible name) describes a single member variable of a component, which is
+  // networked through snapshots.
+  struct NetVar
+  {
+    const char*       mDebugName        {};
+    int               mByteOffset       {};
+    int               mElementByteCount {};
+    int               mElementCount     {};
+    NetVarReader*     mVarReader        {};
+    NetVarWriter*     mVarWriter        {};
+  };
+
+  // A `NetVars` is a collection of `NetVar`, which lists all the data members of a
   // component to be networked through snapshots.
-  // There is one NetworkBits per Component type
+  // There is one NetVars per Component type
   //
   // couold be a typedef?
-  struct NetworkBits
+  struct NetVars
   {
-    const NetworkBit&               operator[]( int ) const;
+    const NetVar&               operator[]( int ) const;
     int                             size() const;
-    void                            Add( NetworkBit );
-    void                            Clear() { mNetworkBits.clear(); }
+    void                            Add( NetVar );
+    void                            Clear() { mNetVars.clear(); }
   private:
-    FixedVector< NetworkBit, 10 >   mNetworkBits;
+    FixedVector< NetVar, 10 >   mNetVars;
   };
 
-  // a bitfield which marks which NetworkBits of a component need to be networked
+  // a bitfield which marks which NetVars of a component need to be networked
   struct NetBitDiff
   {
     bool IsSet( int i ) const { return mBitfield & ( 1 << i ); }
-    bool Empty() const { return !mBitfield; }
-    u8 mBitfield = 0;
+    bool Empty() const        { return !mBitfield; }
+
+    u8 mBitfield {};
   };
 
 
@@ -62,8 +77,8 @@ namespace Tac
   struct Reader
   {
     bool Read( void* values, int valueCount, int sizeOfValue );
-    bool Read( void* bytes, const NetworkBits& networkBits );
-    void Read( void* bytes, const NetworkBits& networkBits, Errors& errors )
+    bool Read( void* bytes, const NetVars& networkBits );
+    void Read( void* bytes, const NetVars& networkBits, Errors& errors )
     {
       TAC_RAISE_ERROR_IF( !Read( bytes, networkBits ), "read failed" );
     }
@@ -88,7 +103,7 @@ namespace Tac
   struct Writer
   {
     void Write( const void* values, int valueCount, int sizeOfValue );
-    void Write( const void* bytes, NetBitDiff bitfield, const NetworkBits& networkBits );
+    void Write( const void* bytes, NetBitDiff bitfield, const NetVars& networkBits );
     template< typename T > void Write( T t )                    { return Write( &t, 1, sizeof( T ) ); }
     template< typename T > void Write( const T* t, int tCount ) { return Write( t, tCount, sizeof( T ) ); }
     Endianness     mFrom { Endianness::Unknown };

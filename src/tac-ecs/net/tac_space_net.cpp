@@ -23,9 +23,9 @@ namespace Tac
     return reader->Read<NetMsgType>( errors );
   }
 
-  NetBitDiff GetNetworkBitfield( const void* oldData,
+  NetBitDiff GetNetVarfield( const void* oldData,
                                  const void* newData,
-                                 const NetworkBits& networkBits )
+                                 const NetVars& networkBits )
   {
     if( !oldData )
       return NetBitDiff{ 0xff };
@@ -33,7 +33,7 @@ namespace Tac
     u8 bitfield { 0 };
     for( int i{}; i < networkBits.size(); ++i )
     {
-      const NetworkBit& bits { networkBits[ i ] };
+      const NetVar& bits { networkBits[ i ] };
       char* oldBits { ( char* )oldData + bits.mByteOffset };
       char* newBits { ( char* )newData + bits.mByteOffset };
       const int componentTotalSize { bits.mComponentCount * bits.mComponentByteCount };

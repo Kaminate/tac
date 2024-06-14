@@ -24,9 +24,9 @@ namespace Tac
   NetMsgType ReadNetMsgHeader( Reader*, Errors& );
 
 
-  NetBitDiff GetNetworkBitfield( const void* oldData,
+  NetBitDiff GetNetVarfield( const void* oldData,
                                  const void* newData,
-                                 const NetworkBits& networkBits );
+                                 const NetVars& networkBits );
 
   struct DelayedNetMsg
   {

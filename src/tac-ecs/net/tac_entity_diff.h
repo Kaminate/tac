@@ -36,7 +36,7 @@ namespace Tac
     bool       IsDirty() const;
 
   private:
-    // Each element in this array is a bitfield which represents dirty NetworkBits corresponding
+    // Each element in this array is a bitfield which represents dirty NetVars corresponding
     // to a single a component registry entry
     NetBitDiff mData[ 64 ]  {};
     bool       mDirty { false };

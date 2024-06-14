@@ -6,7 +6,7 @@
 #include "tac-ecs/entity/tac_entity.h" // GetComponent
 #include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/world/tac_world.h"
-#include "tac-ecs/net/tac_space_net.h" // GetNetworkBitfield
+#include "tac-ecs/net/tac_space_net.h" // GetNetVarfield
 
 namespace Tac
 {
@@ -101,9 +101,9 @@ namespace Tac
 
       const Component* oldComponent { oldEntity->GetComponent( &componentData ) };
       const Component* newComponent { newEntity->GetComponent( &componentData ) };
-      const NetBitDiff netBit{ GetNetworkBitfield( oldComponent,
+      const NetBitDiff netBit{ GetNetVarfield( oldComponent,
                                                     newComponent,
-                                                    componentData.mNetworkBits ) };
+                                                    componentData.mNetVars ) };
 
       changedComponentBitfields.Set( &componentData, netBit );
     }
@@ -145,7 +145,7 @@ namespace Tac
         if( Component* component = entity->GetComponent( &componentData ) )
           writer->Write( component,
                          NetBitDiff{ 0xff },
-                         componentData.mNetworkBits );
+                         componentData.mNetVars );
     }
   }
 
@@ -160,7 +160,7 @@ namespace Tac
         if( Component* component = mod.mEntity->GetComponent( &componentData ) )
           writer->Write( component,
                          mod.mChangedComponentBitfields.Get( &componentData ),
-                         componentData.mNetworkBits );
+                         componentData.mNetVars );
     }
   }
 
@@ -204,7 +204,7 @@ namespace Tac
         {
           Component* component { entity->AddNewComponent( &componentRegistryEntry ) };
           component->PreReadDifferences();
-          TAC_CALL( reader->Read( component, componentRegistryEntry.mNetworkBits, errors ) );
+          TAC_CALL( reader->Read( component, componentRegistryEntry.mNetVars, errors ) );
           component->PostReadDifferences();
         }
       }
@@ -241,7 +241,7 @@ namespace Tac
         : entity->AddNewComponent( &componentRegistryEntry ) };
 
         component->PreReadDifferences();
-        TAC_CALL( reader->Read( component, componentRegistryEntry.mNetworkBits, errors ) );
+        TAC_CALL( reader->Read( component, componentRegistryEntry.mNetVars, errors ) );
         component->PostReadDifferences();
       }
     }

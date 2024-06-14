@@ -5,7 +5,7 @@
 //#include "tac-ecs/entity/tac_entity.h" // GetComponent
 #include "tac-ecs/player/tac_player.h"
 #include "tac-ecs/world/tac_world.h"
-//#include "tac-ecs/net/tac_space_net.h" // GetNetworkBitfield
+//#include "tac-ecs/net/tac_space_net.h" // GetNetVarfield
 
 namespace Tac
 {
@@ -28,7 +28,7 @@ namespace Tac
       const PlayerUUID playerUUID { newPlayer->mPlayerUUID };
       const Player* oldPlayer { oldWorld->FindPlayer( playerUUID ) };
 
-      const NetBitDiff bitfield { GetNetworkBitfield( oldPlayer, newPlayer, PlayerNetworkBitsGet() ) };
+      const NetBitDiff bitfield { GetNetVarfield( oldPlayer, newPlayer, PlayerNetVarsGet() ) };
       if( bitfield.Empty() )
         continue;
 
@@ -53,7 +53,7 @@ namespace Tac
     for( PlayerDifference& diff : oldAndNewPlayers )
     {
       writer->Write( diff.playerUUID );
-      writer->Write( diff.mNewPlayer, diff.mBitfield, PlayerNetworkBitsGet() );
+      writer->Write( diff.mNewPlayer, diff.mBitfield, PlayerNetVarsGet() );
     }
   }
 
@@ -79,7 +79,7 @@ namespace Tac
       if( !player )
         player = world->SpawnPlayer( differentPlayerUUID );
 
-      TAC_RAISE_ERROR_IF( !reader->Read( player, PlayerNetworkBitsGet() ),
+      TAC_RAISE_ERROR_IF( !reader->Read( player, PlayerNetVarsGet() ),
                           "failed to read player bits" );
     }
 

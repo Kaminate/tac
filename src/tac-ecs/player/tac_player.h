@@ -20,8 +20,8 @@ namespace Tac
     World*     mWorld           {};
   };
 
-  void               PlayerNetworkBitsRegister();
-  const NetworkBits& PlayerNetworkBitsGet();
+  void               PlayerNetVarsRegister();
+  const NetVars& PlayerNetVarsGet();
 
 }
 

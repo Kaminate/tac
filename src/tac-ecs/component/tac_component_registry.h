@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-std-lib/dataprocess/tac_serialization.h" // NetworkBits
+#include "tac-std-lib/dataprocess/tac_serialization.h" // NetVars
 #include "tac-ecs/tac_space.h"
 
 namespace Tac { struct Json; }
@@ -31,7 +31,7 @@ namespace Tac
 
 
     //                     Used for serializing components over the network
-    NetworkBits            mNetworkBits;
+    NetVars                mNetVars;
   };
 
   struct ComponentRegistryIterator

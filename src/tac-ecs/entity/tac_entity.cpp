@@ -203,14 +203,14 @@ namespace Tac
       const ComponentRegistryEntry* entry{ oldComponent->GetEntry() };
       Component* newComponent { AddNewComponent( entry ) };
 
-      const NetworkBits& netBits{ entry->mNetworkBits };
+      const NetVars& netBits{ entry->mNetVars };
       const int nMembers{ netBits.size() };
 
       TAC_ASSERT_UNIMPLEMENTED;
 
       for( int iMember{}; iMember < nMembers; ++iMember )
       {
-        const NetworkBit& netBit{ netBits[ iMember ] };
+        const NetVar& netBit{ netBits[ iMember ] };
         void* dst { ( char* )newComponent + netBit.mByteOffset };
         const void* src { ( char* )oldComponent + netBit.mByteOffset };
         const int size { netBit.mComponentByteCount * netBit.mComponentCount };

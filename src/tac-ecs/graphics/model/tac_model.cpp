@@ -6,6 +6,8 @@
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/asset/tac_asset_hash_cache.h"
+
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/os/tac_os.h"
 
@@ -74,19 +76,54 @@ namespace Tac
     ModelDebugImgui( (Model*) component );
   }
 
+  struct AssetPathNetWriter : public NetVarWriter
+  {
+    void Write( Writer* writer, const void* src )
+    {
+      const AssetPathString* assetPath{ ( const AssetPathString* )src };
+      const AssetHash assetHash( *assetPath );
+      writer->Write( assetHash ); 
+    }
+  };
+
+  struct AssetPathNetReader : public NetVarReader
+  {
+    bool Read( Reader* reader, void* dst ) override
+    {
+      AssetHash assetHash;
+      reader->Read( &assetHash );
+      AssetPathString* assetPath{ ( AssetPathString* )dst };
+      *assetPath = AssetHashCache::GetPathFromHash( assetHash );
+    }
+  };
+
+  static AssetPathNetWriter sAssetPathNetWriter;
+  static AssetPathNetReader sAssetPathNetReader;
+
 	void RegisterModelComponent()
 	{
+    const NetVar netPath
+    {
+      .mDebugName  { "mModelPath" },
+      .mByteOffset { TAC_OFFSET_OF( Model, mModelPath ) },
+      .mVarReader  { &sAssetPathNetReader },
+      .mVarWriter  { &sAssetPathNetWriter },
+    };
+
+    NetVars netBits;
+    netBits.Add( netPath );
+
     ComponentRegistryEntry* entry { ComponentRegistry_RegisterComponent() };
     sRegistryIndex = entry->GetIndex(); 
     *entry = ComponentRegistryEntry
     {
       .mName         { "Model" },
-      //.mNetworkBits  { ComponentModelBits },
       .mCreateFn     { CreateModelComponent },
       .mDestroyFn    { DestroyModelComponent },
       .mDebugImguiFn { DebugImguiFn },
       .mSaveFn       { SaveModelComponent },
       .mLoadFn       { LoadModelComponent },
+      .mNetVars      { netBits },
     };
 	}
 

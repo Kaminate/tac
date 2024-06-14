@@ -61,7 +61,7 @@ namespace Tac
   {
     sRegistry = ComponentRegistry_RegisterComponent();
     sRegistry->mName = "Terrain";
-    sRegistry->mNetworkBits = {};
+    sRegistry->mNetVars = {};
     sRegistry->mCreateFn = CreateTerrainComponent;
     sRegistry->mDestroyFn = DestroyTerrainComponent;
     sRegistry->mDebugImguiFn = []( Component* component ){ TerrainDebugImgui( ( Terrain* )component ); };
