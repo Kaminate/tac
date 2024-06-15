@@ -96,30 +96,13 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  //DX12DescriptorRegionManager::RegionDesc* DX12DescriptorRegionManager::RegionDesc::GetLeft( DX12DescriptorRegionManager* mgr )
-  //{
-  //  return mgr->GetRegionAtIndex( mLeftIndex );
-  //}
-
-  //DX12DescriptorRegionManager::RegionDesc* DX12DescriptorRegionManager::RegionDesc::GetRight( DX12DescriptorRegionManager* mgr )
-  //{
-  //  return mgr->GetRegionAtIndex( mRightIndex );
-  //}
-
-  void DX12DescriptorRegionManager::RegionDesc::PosInsertAfter( RegionDesc* left, DX12DescriptorRegionManager* mgr )
+  void DX12DescriptorRegionManager::RegionDesc::PosInsertAfter( RegionDesc* left,
+                                                                DX12DescriptorRegionManager* mgr )
   {
     const RegionIndex iMiddle{ mgr->GetIndex( this ) };
     const RegionIndex iRight{ left->mRightIndex };
     const RegionIndex iLeft{ mgr->GetIndex( left ) };
 
-#if 1
-      if( mState == kUnknown)
-        ++asdf;
-      if( iMiddle == (RegionIndex)23 && mState == kUnknown)
-        ++asdf;
-      if( iMiddle == DX12DescriptorRegionManager::RegionIndex::kNull )
-        ++asdf;
-#endif
     left->mRightIndex = iMiddle;
     RegionDesc * right{ mgr->GetRegionAtIndex( iRight ) };
     if( right )
@@ -127,31 +110,19 @@ namespace Tac::Render
 
     mLeftIndex = iLeft;
     mRightIndex = iRight;
-#if 1
-      if( iRight == DX12DescriptorRegionManager::RegionIndex::kNull && mState == kUnknown)
-        ++asdf;
-      if( iRight == (RegionIndex)23 )
-        ++asdf;
-#endif
   }
 
   void DX12DescriptorRegionManager::RegionDesc::PosRemove(  DX12DescriptorRegionManager* mgr )
   {
     if( RegionDesc * left{ mgr->GetRegionAtIndex( mLeftIndex ) } )
     {
-#if 1
-      if( mRightIndex == DX12DescriptorRegionManager::RegionIndex::kNull && left->mState == kUnknown)
-        ++asdf;
-
-      if( mRightIndex == (RegionIndex)23 )
-        ++asdf;
-#endif
-
       left->mRightIndex = mRightIndex;
     }
 
     if( RegionDesc * right{ mgr->GetRegionAtIndex( mRightIndex ) } )
+    {
       right->mLeftIndex = mLeftIndex;
+    }
 
     mLeftIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
     mRightIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
@@ -174,7 +145,7 @@ namespace Tac::Render
     mRegions.resize( 1 );
     mRegions[ 0 ] = RegionDesc
     {
-      .mLeftIndex       { RegionIndex::kNull   },
+      .mLeftIndex       { RegionIndex::kNull },
       .mRightIndex      { RegionIndex::kNull },
       .mDescriptorIndex {},
       .mDescriptorCount { descriptorCount },
@@ -383,7 +354,6 @@ namespace Tac::Render
     OS::OSDebugPrintLine("");
   }
 
-  // TODO: switch to `FIFOQueue`
   void DX12DescriptorRegionManager::PumpFreeQueue()
   {
     int iiRegion{};
@@ -405,53 +375,10 @@ namespace Tac::Render
     mPendingFreeNodes.resize( n );
   }
 
-//  void DX12DescriptorRegionManager::Free( DX12Descriptor descriptor, FenceSignal fenceSignal )
-//  {
-//    RegionDesc* region{ GetRegion( descriptor ) };
-//
-//#if TAC_GPU_REGION_DEBUG()
-//    for( RegionToFree regionToFree : mRegionsToFree )
-//    {
-//      TAC_ASSERT( regionToFree.mRegion != region );
-//    }
-//#endif
-//
-//    const RegionToFree regionToFree
-//    {
-//      .mRegion { region },
-//      .mFence  { fenceSignal },
-//    };
-//    mRegionsToFree.push_back( regionToFree );
-//  }
-
-
   DX12DescriptorRegionManager::RegionDesc* DX12DescriptorRegionManager::GetRegionAtIndex( RegionIndex index )
   {
     return index == RegionIndex::kNull ? nullptr : &mRegions[ ( int )index ];
   }
-
-  //DX12DescriptorRegionManager::RegionDesc* DX12DescriptorRegionManager::GetRegion(
-  //  DX12Descriptor descriptor )
-  //{
-  //  TAC_ASSERT( descriptor.Valid() );
-  //  TAC_ASSERT( descriptor.mOwner == mOwner );
-  //  TAC_ASSERT( descriptor.mCount > 0 );
-  //  TAC_ASSERT_INDEX( descriptor.mIndex, mAllRegions.size() );
-
-  //  RegionDesc* region{ &mAllRegions[ descriptor.mIndex ] };
-
-  //  TAC_ASSERT( region->mSize == descriptor.mCount );
-  //  TAC_ASSERT( region->mLeft );
-  //  TAC_ASSERT( region->mRight );
-
-  //  return region;
-  //}
-
-  //void DX12DescriptorRegionManager::FreeNoSignal( DX12Descriptor descriptor )
-  //{
-  //  RegionDesc* region{ GetRegion( descriptor ) };
-  //  Free( region );
-  //}
 
   void DX12DescriptorRegionManager::Free( RegionDesc* region )
   {
@@ -462,15 +389,6 @@ namespace Tac::Render
       RegionIndex index{ GetIndex( region ) };
       OS::OSDebugPrintLine( "free idx " + ToString( ( int )index ) );
       ++asdf;
-      if( ( int )index == 2 )
-      {
-        static int free2Count;
-        ++free2Count;
-        if( free2Count == 4 )
-          ++asdf;
-
-        ++asdf;
-      }
     }
 #endif
 

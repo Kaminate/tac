@@ -1,21 +1,21 @@
-#pragma once
+// The DX12DescriptorRegionManager manages the descriptor heaps of a DX12DescriptorHeap by
+// implementing a memory manangement system of a heap.
+//
+// Memory is allocated in the form of DX12DescriptorRegion, which is a DX12DescriptorRegion that
+// works with the DX12DescriptorRegionManager.
+// 
+// When a DX12DescriptorRegion SetFence() is called, the memory region is marked as pending free,
+// and only becomes truly free when the command queue signals the fence.
+//
+// Regions of contiguous descriptors are referred to as DX12DescriptorRegionManager::RegionDesc,
+// and when a region is freed, it merges with adjacent free regions
+//
+// tl;dr: This file implements a heap for gpu-visible descriptor indexes
 
-namespace Tac { struct Errors; }
+#pragma once
 
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-dx/dx12/tac_dx12_command_queue.h"
-#include "tac-std-lib/containers/tac_inlist.h"
-
-
-namespace Tac
-{
-  template< typename T >
-  struct FIFOQueue
-  {
-    Vector< T > mEnq;
-    Vector< T > mDeq;
-  };
-}
 
 namespace Tac::Render
 {
@@ -31,8 +31,6 @@ namespace Tac::Render
     void                 Init( Params );
     DX12DescriptorRegion Alloc( int );
     void                 PumpFreeQueue();
-    //void           Free( DX12Descriptor, FenceSignal );
-    //void           FreeNoSignal( DX12Descriptor );
 
   private:
 
@@ -58,8 +56,6 @@ namespace Tac::Render
 
       void PosInsertAfter( RegionDesc*, DX12DescriptorRegionManager* );
       void PosRemove( DX12DescriptorRegionManager* );
-      //RegionDesc* GetLeft( DX12DescriptorRegionManager* );
-      //RegionDesc* GetRight( DX12DescriptorRegionManager* );
 
       static StringView StateToString( State );
     };
