@@ -875,7 +875,9 @@ void        Tac::GamePresentationRender( Render::IContext* renderContext,
   renderContext->SetRenderTargets( renderTargets );
 
 
-  //  TAC_CALL( ShadowPresentationRender( world, errors ) );
+#if 0
+  TAC_CALL( ShadowPresentationRender( world, errors ) );
+#endif
 
   TAC_CALL( RenderModels( renderContext,
                           world,
@@ -884,14 +886,16 @@ void        Tac::GamePresentationRender( Render::IContext* renderContext,
                           dstColorTex,
                           errors ) );
 
-  /*
+#if 0
   TAC_CALL( RenderTerrain( renderContext,
                            world,
                            camera,
                            viewSize,
                            dstColorTex,
                            errors ) );
+#endif
 
+#if 0
   // Skybox should be last to reduce pixel shader invocations
   TAC_CALL( RenderSkybox( renderContext,
                           world,
@@ -899,6 +903,7 @@ void        Tac::GamePresentationRender( Render::IContext* renderContext,
                           viewSize,
                           dstColorTex,
                           errors ) );
+#endif
 
   if( mRenderEnabledDebug3D )
   {
@@ -913,7 +918,6 @@ void        Tac::GamePresentationRender( Render::IContext* renderContext,
                                                        viewSize,
                                                        errors ) );
   }
-  */
 
   renderContext->DebugEventEnd();
 }

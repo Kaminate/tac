@@ -131,7 +131,6 @@ namespace Tac
         mGizmoMgr->mTranslationGizmoDir = arrowDir;
         mGizmoMgr->mTranslationGizmoOffset = Dot( arrowDir, worldSpaceHitPoint - gizmoOrigin );
         mGizmoMgr->mTranslationGizmoAxis = pickData.arrowAxis;
-        mGizmoMgr->mGizmoOrigin = gizmoOrigin;
       } break;
 
       case PickedObject::Entity:

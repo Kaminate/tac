@@ -275,7 +275,6 @@ namespace Tac
     const UIStyle& style{ ImGuiGetStyle() };
     const float windowPadding{ style.windowPadding };
 
-    globals.mHoveredID = {};
     mDrawData->PushDebugGroup( "BeginFrame(" + mName + ")" ); // popped in ImGuiWindow::EndFrame
 
     mWindowID = Hash( mName );
@@ -339,6 +338,9 @@ namespace Tac
     const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
 
     if( !keyboardApi.JustPressed( Key::MouseLeft ) )
+      return;
+
+    if( !IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) ) )
       return;
       
     if( globals.mActiveID.IsValid() || globals.mHoveredID.IsValid() )
@@ -544,6 +546,11 @@ namespace Tac
   void         ImGuiWindow::PushXOffset()
   {
     mXOffsets.push_back( mViewportSpaceCurrCursor.x - mViewportSpacePos.x );
+  }
+
+  float        ImGuiWindow::GetRemainingHeight() const
+  {
+    return mViewportSpaceVisibleRegion.mMaxi.y - mViewportSpaceCurrCursor.y;
   }
 
   float        ImGuiWindow::GetRemainingWidth() const

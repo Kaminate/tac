@@ -7,7 +7,6 @@
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
-//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-std-lib/containers/tac_vector.h"
@@ -22,13 +21,21 @@
 namespace Tac
 {
 
+  // This function converts indexes from the given T into int.
   template< typename T >
   static Vector< int >        ConvertIndexes( const cgltf_accessor* indices )
   {
-    auto indiciesData { ( T* )( ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset ) };
-    Vector< int > result( ( int )indices->count );
-    for( int i{}; i < ( int )indices->count; ++i )
+    const int n{( int )indices->count};
+    T* indiciesData { ( T* )( ( char* )
+                                indices->buffer_view->buffer->data +
+                                indices->buffer_view->offset ) };
+    Vector< int > result( n );
+    for( int i{}; i < n; ++i )
+    {
+      // Here we are casting from T to int
       result[ i ] = ( int )indiciesData[ i ];
+    }
+    
     return result;
   }
 
@@ -36,19 +43,21 @@ namespace Tac
   {
     switch( indices->component_type )
     {
-      case cgltf_component_type_r_8:   return ConvertIndexes< i8 >( indices ); break;
-      case cgltf_component_type_r_8u:  return ConvertIndexes< u8 >( indices ); break;
-      case cgltf_component_type_r_16:  return ConvertIndexes< i16 >( indices ); break;
-      case cgltf_component_type_r_16u: return ConvertIndexes< u16 >( indices ); break;
-      case cgltf_component_type_r_32u: return ConvertIndexes< u32 >( indices ); break;
+      case cgltf_component_type_r_8:   return ConvertIndexes< i8 >( indices );    break;
+      case cgltf_component_type_r_8u:  return ConvertIndexes< u8 >( indices );    break;
+      case cgltf_component_type_r_16:  return ConvertIndexes< i16 >( indices );   break;
+      case cgltf_component_type_r_16u: return ConvertIndexes< u16 >( indices );   break;
+      case cgltf_component_type_r_32u: return ConvertIndexes< u32 >( indices );   break;
       case cgltf_component_type_r_32f: return ConvertIndexes< float >( indices ); break;
       default: return {};
     }
   }
 
-  static void                 GetTris( const cgltf_primitive* parsedPrim, SubMeshTriangles& tris )
+  static void                 GetTris( const cgltf_primitive* parsedPrim,
+                                       SubMeshTriangles& tris )
   {
-    const cgltf_attribute* posAttribute { FindAttributeOfType( parsedPrim, cgltf_attribute_type_position ) };
+    const cgltf_attribute* posAttribute {
+      FindAttributeOfType( parsedPrim, cgltf_attribute_type_position ) };
     if( !posAttribute )
       return;
 
@@ -56,7 +65,7 @@ namespace Tac
     if( indexes.empty() )
       return;
 
-    auto srcVtx{ ( char* )
+    const char* srcVtx{ ( char* )
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->offset +
       posAttribute->data->offset };
@@ -64,7 +73,7 @@ namespace Tac
     int iVert {};
     for( int i : indexes )
     {
-      auto vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };
+      const v3* vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };
       tri[ iVert++ ] = *vert;
       if( iVert == 3 )
       {
@@ -136,8 +145,10 @@ namespace Tac
     {
       const Render::VertexDeclaration& vertexDeclaration { decls[ iVertexDeclaration ] };
       const Render::VertexAttributeFormat& dstFormat { vertexDeclaration.mFormat };
-      const cgltf_attribute_type gltfVertAttributeType { GetGltfFromAttribute( vertexDeclaration.mAttribute ) };
-      const cgltf_attribute* gltfVertAttribute { FindAttributeOfType( parsedPrim, gltfVertAttributeType ) };
+      const cgltf_attribute_type gltfVertAttributeType {
+        GetGltfFromAttribute( vertexDeclaration.mAttribute ) };
+      const cgltf_attribute* gltfVertAttribute {
+        FindAttributeOfType( parsedPrim, gltfVertAttributeType ) };
       if( !gltfVertAttribute )
         continue;
 
@@ -177,16 +188,19 @@ namespace Tac
     TAC_ASSERT( dstVtxBytes.size() );
     TAC_UNUSED_PARAMETER( dstVtxStride );
 
-    Render::CreateBufferParams createBufferParams
+    const Render::CreateBufferParams createBufferParams
     {
-      .mByteCount { dstVtxBytes.size() },
-      .mBytes { dstVtxBytes.data() },
+      .mByteCount    { dstVtxBytes.size() },
+      .mBytes        { dstVtxBytes.data() },
+      .mStride       { dstVtxStride },
+      .mUsage        { Render::Usage::Static },
+      .mBinding      { Render::Binding::VertexBuffer },
       .mOptionalName { bufferName },
-      .mStackFrame { TAC_STACK_FRAME },
-       //dstVtxStride,
+      .mStackFrame   { TAC_STACK_FRAME },
     };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::BufferHandle vertexBuffer { renderDevice->CreateBuffer( createBufferParams, errors ) };
+    const Render::BufferHandle vertexBuffer {
+      renderDevice->CreateBuffer( createBufferParams, errors ) };
     return vertexBuffer;
   }
 
@@ -198,16 +212,24 @@ namespace Tac
     TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
 
     const cgltf_accessor* indices { parsedPrim->indices };
-    const void* indiciesData { ( char* )indices->buffer_view->buffer->data + indices->buffer_view->offset };
-    const Render::VertexAttributeFormat indexFormat { FillDataType( indices ) };
-    const int indexBufferByteCount { ( int )indices->count * indexFormat.CalculateTotalByteCount() };
+    const void* indiciesData{ ( char* )
+      indices->buffer_view->buffer->data +
+      indices->buffer_view->offset };
+
+    TAC_ASSERT( indices->type == cgltf_type_scalar );
+    TAC_ASSERT( indices->component_type == cgltf_component_type_r_16u );
+    const Render::TexFmt fmt{ Render::TexFmt::kR16_uint };
+
+    const int indexBufferByteCount { ( int )indices->count * (int)sizeof( u16 ) };
     const Render::CreateBufferParams createBufferParams
     {
       .mByteCount    { indexBufferByteCount },
       .mBytes        { indiciesData },
+      .mUsage        { Render::Usage::Static },
+      .mBinding      { Render::Binding::IndexBuffer },
+      .mGpuBufferFmt { fmt },
       .mOptionalName { bufferName },
       .mStackFrame   { TAC_STACK_FRAME },
-      //indexFormat,
     };
     Render::IDevice* device { Render::RenderApi::GetRenderDevice() };
     TAC_CALL_RET( {}, const Render::BufferHandle indexBuffer{
@@ -219,7 +241,7 @@ namespace Tac
   static void                 PopulateSubmeshes( Vector< SubMesh >& submeshes,
                                                  const AssetPathStringView& path,
                                                  const int specifiedMeshIndex,
-                                                 const Render::VertexDeclarations& vertexDeclarations,
+                                                 const Render::VertexDeclarations& vtxDecls,
                                                  Errors& errors )
   {
     LoadedGltfData loadedData;
@@ -261,24 +283,24 @@ namespace Tac
                   ConvertToIndexBuffer( parsedPrim, bufferName, errors ) } );
 
         TAC_CALL( const Render::BufferHandle vertexBuffer{
-          ConvertToVertexBuffer( vertexDeclarations, parsedPrim, bufferName, errors ) } );
+          ConvertToVertexBuffer( vtxDecls, parsedPrim, bufferName, errors ) } );
 
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
 
-        const Render::PrimitiveTopology primitiveTopology { Render::PrimitiveTopology::TriangleList };
-        const cgltf_primitive_type supportedType { GetGltfFromTopology( primitiveTopology ) };
+        const Render::PrimitiveTopology topology { Render::PrimitiveTopology::TriangleList };
+        const cgltf_primitive_type supportedType { GetGltfFromTopology( topology ) };
         TAC_ASSERT( parsedPrim->type == supportedType );
 
         const SubMesh subMesh
         {
-          .mPrimitiveTopology { primitiveTopology },
-          .mVertexBuffer { vertexBuffer },
-          .mIndexBuffer { indexBuffer },
-          .mTris { tris },
-          .mIndexCount { indexCount },
-          .mVertexCount { vertexCount },
-          .mName {  StringView( bufferName )  },
+          .mPrimitiveTopology { topology },
+          .mVertexBuffer      { vertexBuffer },
+          .mIndexBuffer       { indexBuffer },
+          .mTris              { tris },
+          .mIndexCount        { indexCount },
+          .mVertexCount       { vertexCount },
+          .mName              { StringView( bufferName ) },
         };
         submeshes.push_back( subMesh );
       }
@@ -287,12 +309,12 @@ namespace Tac
 
   static Mesh                 LoadMeshFromGltf( const AssetPathStringView& path,
                                                 const int specifiedMeshIndex,
-                                                const Render::VertexDeclarations& vertexDeclarations,
+                                                const Render::VertexDeclarations& vtxDecls,
                                                 Errors& errors )
   {
     Vector< SubMesh > submeshes;
 
-    TAC_CALL_RET( {}, PopulateSubmeshes( submeshes, path, specifiedMeshIndex, vertexDeclarations, errors ));
+    TAC_CALL_RET( {}, PopulateSubmeshes( submeshes, path, specifiedMeshIndex, vtxDecls, errors ) );
 
     return Mesh
     {

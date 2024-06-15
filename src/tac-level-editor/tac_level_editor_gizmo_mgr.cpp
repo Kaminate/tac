@@ -43,10 +43,21 @@ namespace Tac
     mArrowLen = arrowLen;
   }
 
-  void                GizmoMgr::Update( v3 worldSpaceMouseDir, const Camera* camera, Errors& errors )
+  void                GizmoMgr::Update( const v3 worldSpaceMouseDir,
+                                        const Camera* camera,
+                                        Errors& errors )
   {
+    if( !mSelectedEntities->empty() )
+    {
+      mTranslationGizmoVisible = true;
+      mGizmoOrigin = mSelectedEntities->ComputeAveragePosition();
+    }
+
+
     if( !mSelectedGizmo )
+    {
       return;
+    }
 
     SimKeyboardApi keyboardApi;
     if( !keyboardApi.IsPressed( Key::MouseLeft ) )

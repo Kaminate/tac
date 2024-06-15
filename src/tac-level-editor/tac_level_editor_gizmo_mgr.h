@@ -20,6 +20,7 @@ namespace Tac
 
     bool                mSelectedGizmo           {};
     v3                  mGizmoOrigin             {};
+    bool                mTranslationGizmoVisible {};
     v3                  mTranslationGizmoDir     {};
     float               mTranslationGizmoOffset  {};
     int                 mTranslationGizmoAxis    {};

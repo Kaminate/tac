@@ -1,3 +1,4 @@
+// The widget renderer is responsibile for rendering the widgets of the gizmo manager
 #pragma once
 
 #include "tac-std-lib/error/tac_error_handling.h"

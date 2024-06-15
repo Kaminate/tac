@@ -28,6 +28,8 @@
 
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
+#include "tac-level-editor/tac_level_editor_main_window.h"
+#include "tac-level-editor/tac_level_editor_property_window.h"
 
 #include "tac-rhi/render3/tac_render_api.h"
 
@@ -282,6 +284,12 @@ namespace Tac
 
     if( ImGuiButton( "Close Window" ) )
       CreationGameWindow::sShowWindow = false;
+
+    if( ImGuiButton( "Close Other Windows" ) )
+    {
+      CreationMainWindow::sShowWindow = false;
+      CreationPropertyWindow::sShowWindow = false;
+    }
     
 
     ImGuiCheckbox( "Draw grid", &drawGrid );
@@ -312,6 +320,12 @@ namespace Tac
     }
 
     ImGuiEndChild();
+    ImGuiSameLine();
+
+    // The purpose of this invisible button is to obscure the game window, so that you
+    // can move an entity via the translation widget GizmoMgr::Update, without unintentionally
+    // calling ImGuiWindow::BeginMoveControls and dragging the whole damn window
+    ImGuiInvisibleButton( "BUTTON", -v2( 8, 8 ) );
   }
 
   static void CameraUpdateControls( Camera* camera )
@@ -440,7 +454,7 @@ namespace Tac
                             &mWorldBuffers,
                             errors );
 
-#if 0
+#if 1
 
     WidgetRenderer* widgetRenderer{ gCreation.mSysState.mWidgetRenderer };
     TAC_CALL( widgetRenderer->RenderTranslationWidget( renderContext,

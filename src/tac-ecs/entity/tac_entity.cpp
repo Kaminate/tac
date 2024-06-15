@@ -190,6 +190,10 @@ namespace Tac
     mName = entity.mName;
     mInheritParentScale = entity.mInheritParentScale;
     mRelativeSpace = entity.mRelativeSpace;
+    mWorldPosition = entity.mWorldPosition;
+    mWorldTransform = entity.mWorldTransform;
+    mInheritParentScale = entity.mInheritParentScale;
+    mActive = entity.mActive;
 
     RemoveAllComponents();
 

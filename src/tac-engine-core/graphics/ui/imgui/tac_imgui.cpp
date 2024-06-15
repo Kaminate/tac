@@ -622,6 +622,7 @@ bool Tac::ImGuiBegin( const StringView& name )
     window = TAC_NEW ImGuiWindow;
     window->mName = name;
     window->mDrawData = TAC_NEW UI2DDrawData;
+    window->mTextInputData = TAC_NEW TextInputData;
     window->mDesktopWindow = imguiDesktopWindow;
     window->mWindowHandleOwned = !gNextWindow.mWindowHandle.IsValid();
     window->mViewportSpacePos = {};
@@ -976,8 +977,40 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   return clicked;
 }
 
+bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
+{
+  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
 
-bool Tac::ImGuiButton( const StringView& str )
+  ImGuiWindow* window{ globals.mCurrentWindow };
+
+  dynmc v2 buttonSize{ size };
+  if( size.x < 0 )
+    buttonSize.x += window->GetRemainingWidth();
+  if( size.y < 0 )
+    buttonSize.y += window->GetRemainingHeight();
+
+  const v2 pos{ window->mViewportSpaceCurrCursor };
+
+  window->ItemSize( buttonSize );
+
+  const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, buttonSize ) };
+  if( !window->Overlaps( origRect ) )
+    return false;
+
+  const ImGuiRect clipRect{ window->Clip( origRect ) };
+  const bool hovered{ window->IsHovered( clipRect ) };
+
+  if( hovered )
+  {
+    const ImGuiID id{ window->GetID( str ) };
+    SetHoveredID( id );
+  }
+
+  return hovered && keyboardApi.JustPressed( Key::MouseLeft );
+}
+
+bool Tac::ImGuiButton( const StringView& str, v2 size )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
@@ -988,7 +1021,16 @@ bool Tac::ImGuiButton( const StringView& str )
   ImGuiWindow* window{ globals.mCurrentWindow };
 
   const v2 textSize{ CalculateTextSize( str, fontSize ) };
-  const v2 buttonSize{ textSize + v2( 2 * buttonPadding, 0 ) };
+  dynmc v2 buttonSize{ textSize + v2( 2 * buttonPadding, 0 ) };
+  if( size.x != 0 )
+    buttonSize.x = size.x;
+  if( size.y != 0 )
+    buttonSize.y = size.y;
+  if( buttonSize.x < 0 )
+    buttonSize.x += window->GetRemainingWidth();
+  if( buttonSize.y < 0 )
+    buttonSize.y += window->GetRemainingHeight();
+
   const v2 pos{ window->mViewportSpaceCurrCursor };
 
   window->ItemSize( buttonSize );
@@ -1004,6 +1046,9 @@ bool Tac::ImGuiButton( const StringView& str )
 
   if( hovered )
   {
+    const ImGuiID id{ window->GetID( str ) };
+    SetHoveredID( id );
+
     //static Timestamp d;
     //Mouse::TryConsumeMouseMovement( &d, TAC_STACK_FRAME );
   }
@@ -1323,6 +1368,7 @@ void Tac::ImGuiBeginFrame( const BeginFrameData& data )
   globals.mElapsedSeconds = data.mElapsedSeconds;
   globals.mMouseHoveredWindow = data.mMouseHoveredWindow;
   globals.mMouseCursor = ImGuiMouseCursor::kArrow;
+  globals.mHoveredID = {};
 
   if( ImGuiWindow * window{ globals.mMovingWindow } )
     window->UpdateMoveControls();

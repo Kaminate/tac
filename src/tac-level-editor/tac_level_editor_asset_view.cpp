@@ -295,10 +295,12 @@ namespace Tac
       .mHeight { h },
       .mFormat { Render::TexFmt::kRGBA8_unorm }
     };
+
     const Render::CreateTextureParams texSpecColor
     {
-      .mImage   { colorImg },
-      .mBinding { Render::Binding::ShaderResource | Render::Binding::RenderTarget },
+      .mImage    { colorImg },
+      .mMipCount { 1 },
+      .mBinding  { Render::Binding::ShaderResource | Render::Binding::RenderTarget },
     };
     return texSpecColor;
   }
@@ -314,6 +316,7 @@ namespace Tac
     const Render::CreateTextureParams texSpecDepth
     {
       .mImage    { depthImg },
+      .mMipCount { 1 },
       .mBinding  { Render::Binding::DepthStencil },
     };
     return texSpecDepth;

@@ -77,6 +77,7 @@ namespace Tac
     ImGuiID                       GetID( StringView );
 
     float                         GetRemainingWidth() const;
+    float                         GetRemainingHeight() const;
     WindowHandle                  GetWindowHandle() const;
     //const DesktopWindowState*     GetDesktopWindowState() const;
 

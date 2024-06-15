@@ -286,7 +286,7 @@ namespace Tac
     if( !mGizmoMgr->mGizmosEnabled )
       return;
 
-    if( !mGizmoMgr->mSelectedGizmo )
+    if( !mGizmoMgr->mTranslationGizmoVisible )
       return;
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
@@ -297,6 +297,7 @@ namespace Tac
     for( int i{}; i < 3; ++i )
     {
       TAC_CALL( UpdatePerObject( renderContext, i, errors ) );
+      renderContext->CommitShaderVariables();
 
       const Mesh* mesh{ mArrow };
       for( const SubMesh& subMesh : mesh->mSubMeshes )

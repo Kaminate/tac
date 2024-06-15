@@ -137,6 +137,7 @@ namespace Tac
 
     void Render( App::RenderParams renderParams, Errors& errors ) override
     {
+      // todo: interpolate between old and new state?
       CreationAppState* state{ ( CreationAppState* )renderParams.mNewState };
       gCreation.Render( state, errors );
     }
@@ -219,6 +220,8 @@ namespace Tac
     TAC_PROFILE_BLOCK;
 
     CheckSavePrefab( world );
+
+    world->mDebug3DDrawData->Clear();
 
     CreationSystemWindow::Update( world, mSettingsNode );
     TAC_CALL( CreationAssetView::Update( world, camera, errors ) );

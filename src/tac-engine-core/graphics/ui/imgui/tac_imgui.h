@@ -199,13 +199,16 @@ namespace Tac
 
   //   ImGuiText
   void ImGuiText( const StringView& );
-  
-  //   ImGui... widgets
   bool ImGuiInputText( const StringView& label, String& text );
+
+
+  //   ImGuiButton
+  bool ImGuiButton( const StringView&, v2 size = { 0, 0 } );
+  bool ImGuiInvisibleButton( const StringView&, v2 size = { 0, 0 } );
+
   bool ImGuiSelectable( const StringView& , bool );
-  bool ImGuiButton( const StringView& );
   bool ImGuiCheckbox( const StringView& , bool* );
-  void ImGuiImage( int hTex, const v2& size, const v4& color = { 1,1,1,1 } );
+  void ImGuiImage( int hTex, const v2& size, const v4& color = { 1, 1, 1, 1 } );
   bool ImGuiCollapsingHeader( const StringView&, ImGuiNodeFlags = ImGuiNodeFlags_None );
   void ImGuiSameLine();
 
