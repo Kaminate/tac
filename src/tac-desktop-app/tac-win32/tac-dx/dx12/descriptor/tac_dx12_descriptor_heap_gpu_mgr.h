@@ -6,6 +6,17 @@ namespace Tac { struct Errors; }
 #include "tac-dx/dx12/tac_dx12_command_queue.h"
 #include "tac-std-lib/containers/tac_inlist.h"
 
+
+namespace Tac
+{
+  template< typename T >
+  struct FIFOQueue
+  {
+    Vector< T > mEnq;
+    Vector< T > mDeq;
+  };
+}
+
 namespace Tac::Render
 {
   struct DX12DescriptorRegion;
@@ -36,13 +47,13 @@ namespace Tac::Render
       };
 
       // Either the RegionDesc keeps left/right offsets, or the list must be sorted
-      RegionIndex mLeftIndex        { -1 };
-      RegionIndex mRightIndex       { -1 };
+      RegionIndex mLeftIndex        { RegionIndex::kNull };
+      RegionIndex mRightIndex       { RegionIndex::kNull };
 
       int         mDescriptorIndex  {};
       int         mDescriptorCount  {};
 
-      State       mState            {};
+      State       mState            { kUnknown };
       FenceSignal mFence            {};
 
       void PosInsertAfter( RegionDesc*, DX12DescriptorRegionManager* );
@@ -54,13 +65,12 @@ namespace Tac::Render
     };
 
     void           Free( RegionDesc* );
-    RegionIndex            GetIndex( RegionDesc* ) const;
-    //RegionDesc*    GetRegion( DX12Descriptor );
+    RegionIndex    GetIndex( RegionDesc* ) const;
     RegionDesc*    GetRegionAtIndex( RegionIndex );
     void           DebugPrint();
     String         DebugFreeListString();
     String         DebugPendingFreeListString();
-    void RemoveFromFreeList( RegionDesc* );
+    void           RemoveFromFreeList( RegionDesc* );
 
 
     Vector< RegionDesc >   mRegions          {};
