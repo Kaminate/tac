@@ -211,11 +211,13 @@ namespace Tac
     {
       .mByteCount    { dstVtxBytes.size() },
       .mBytes        { dstVtxBytes.data() },
-      .mUsage        { Render::Usage::Default },
+      .mStride       { stride },
+      .mUsage        { Render::Usage::Static },
+      .mBinding      { Render::Binding::VertexBuffer },
       .mOptionalName { name },
       .mStackFrame   { TAC_STACK_FRAME },
     };
-    TAC_CALL_RET( {},const Render::BufferHandle vertexBuffer {
+    TAC_CALL_RET( {}, const Render::BufferHandle vertexBuffer{
        renderDevice->CreateBuffer( vertexBufferParams, errors ) } );
 
     const SubMesh subMesh

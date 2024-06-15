@@ -191,17 +191,15 @@ namespace Tac
     const Render::TextureHandle backbufferDepth{
       renderDevice->GetSwapChainDepth( swapChain ) };
 
-    {
-      TAC_CALL( Render::IContext::Scope renderContext{
-        renderDevice->CreateRenderContext( errors ) } );
+    TAC_CALL( Render::IContext::Scope renderContext{
+      renderDevice->CreateRenderContext( errors ) } );
 
-      renderContext->ClearColor( backbufferColor, v4( 0, 0, 0, 1 ) );
-      renderContext->ClearDepth( backbufferDepth, 1.0f );
-      TAC_CALL( renderContext->Execute( errors ) );
-    }
+    renderContext->ClearColor( backbufferColor, v4( 0, 0, 0, 1 ) );
+    renderContext->ClearDepth( backbufferDepth, 1.0f );
 
 
-    TAC_CALL( GamePresentationRender( &state->mWorld,
+    TAC_CALL( GamePresentationRender( renderContext,
+                                      &state->mWorld,
                                       &state->mCamera,
                                       windowSize,
                                       backbufferColor,
@@ -209,6 +207,7 @@ namespace Tac
                                       &sDebug3DDrawBuffers,
                                       errors ) );
 
+    TAC_CALL( renderContext->Execute( errors ) );
   }
 
   static void ExamplesUpdateCallback( App::UpdateParams updateParams, Errors& errors )

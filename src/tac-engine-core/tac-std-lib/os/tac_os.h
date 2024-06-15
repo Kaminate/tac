@@ -25,6 +25,7 @@ namespace Tac::OS
 
   void                OSDebugAssert( const StringView&, const StackFrame& );
   void                OSDebugPrintLine( const StringView& );
+  void                OSDebugPrint( const StringView& );
   extern void        ( *OSDebugPopupBox )( const StringView& );
 
   //                 Gets the path where you can save files to, such as user configs

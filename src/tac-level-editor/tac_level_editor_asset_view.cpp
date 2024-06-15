@@ -344,7 +344,8 @@ namespace Tac
   }
 
   static void RenderImportedModel( Render::IContext* renderContext,
-                                   AssetViewImportedModel* loadedModel, Errors& errors )
+                                   AssetViewImportedModel* loadedModel,
+                                   Errors& errors )
   {
     if( loadedModel->mWorld.mEntities.empty() )
       return;
@@ -363,7 +364,8 @@ namespace Tac
     renderContext->SetRenderTargets( renderTargets );
     renderContext->SetViewport( viewSize );
     renderContext->SetScissor( viewSize );
-    GamePresentationRender( &loadedModel->mWorld,
+    GamePresentationRender( renderContext,
+                            &loadedModel->mWorld,
                             &loadedModel->mCamera,
                             viewSize,
                             loadedModel->mTextureHandleColor,

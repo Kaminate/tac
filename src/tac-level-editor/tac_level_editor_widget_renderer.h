@@ -8,6 +8,10 @@
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-level-editor/tac_level_editor_mouse_picking.h"
 
+#define TAC_IS_WIDGET_RENDERER_ENABLED() 1
+
+#if TAC_IS_WIDGET_RENDERER_ENABLED()
+
 namespace Tac
 {
   struct WidgetRenderer
@@ -50,3 +54,4 @@ namespace Tac
 
   };
 }
+#endif

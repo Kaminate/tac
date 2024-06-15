@@ -32,6 +32,19 @@ namespace Tac
 
     return diff;
   }
+  void          NetVars::CopyFrom( void* dstComponent, const void* srcComponent ) const
+  {
+    const int nVars{ mNetVars.size() };
+
+    for( int iVar{}; iVar < nVars; ++iVar )
+    {
+      const NetVar& var{ mNetVars[ iVar ] };
+      void* dst{ ( char* )dstComponent + var.mByteOffset };
+      const void* src{ ( const char* )srcComponent + var.mByteOffset };
+
+      var.CopyFrom( dst, src );
+    }
+  }
 
   // -----------------------------------------------------------------------------------------------
 

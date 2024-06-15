@@ -373,8 +373,14 @@ namespace Tac::Render
       pDSV = &DSV;
       mState.mRenderTargetDepth = DSV;
 
-      // [ ] Q: Should the depth texture resource be transitioned
-      //        to a specific D3D12_RESOURCE_STATE?
+      // Assume the the shader has depth write enabled
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { depthTexture->mResource.Get() },
+        .mStateBefore { &depthTexture->mState },
+        .mStateAfter  { D3D12_RESOURCE_STATE_DEPTH_WRITE },
+      };
+      transitionHelper.Append( transitionParams );
     }
 
     mState.mRenderTargetColors = rtDescs;
@@ -459,6 +465,8 @@ namespace Tac::Render
     DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) };
     if( !buffer )
       return;
+
+    TAC_ASSERT( Binding{} != ( buffer->mCreateParams.mBinding & Binding::VertexBuffer ) );
 
     const UINT StartSlot{};
     const UINT NumViews{ 1 };

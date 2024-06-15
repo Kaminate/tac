@@ -40,6 +40,11 @@ namespace Tac::Render
   {
     const Binding binding{ params.mBinding };
 
+    if( Binding{} != ( binding & Binding::VertexBuffer ) )
+    {
+      TAC_ASSERT( params.mStride );
+    }
+
     Optional< DX12Descriptor > srv;
     Optional< DX12Descriptor > uav;
 

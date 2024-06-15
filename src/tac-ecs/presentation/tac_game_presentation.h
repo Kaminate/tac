@@ -1,6 +1,13 @@
 #pragma once
 
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-ecs/world/tac_world.h"
+#include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/graphics/tac_graphics.h"
 
 #define TAC_GAME_PRESENTATION_ENABLED() 1
 
@@ -8,22 +15,11 @@
 
 namespace Tac
 {
-  struct Errors;
-  struct World;
-  struct Camera;
-  struct Mesh;
-  struct Model;
-  struct Graphics;
-  struct WindowHandle;
-  struct Debug3DDrawBuffers;
-}
-
-namespace Tac
-{
 
   void                          GamePresentationInit( Errors& );
   void                          GamePresentationUninit();
-  void                          GamePresentationRender( World*, // why is this non const?
+  void                          GamePresentationRender( Render::IContext*,
+                                                        const World*, // why is this non const?
                                                         const Camera*,
                                                         v2i viewSize,
                                                         Render::TextureHandle color,

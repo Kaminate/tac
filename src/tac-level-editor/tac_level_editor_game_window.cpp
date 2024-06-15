@@ -431,7 +431,8 @@ namespace Tac
     renderContext->SetScissor( windowSize );
     renderContext->SetRenderTargets( renderTargets );
 
-    GamePresentationRender( world,
+    GamePresentationRender( renderContext,
+                            world,
                             camera,
                             windowSize,
                             rtColor,
@@ -439,18 +440,23 @@ namespace Tac
                             &mWorldBuffers,
                             errors );
 
+#if 0
+
     WidgetRenderer* widgetRenderer{ gCreation.mSysState.mWidgetRenderer };
     TAC_CALL( widgetRenderer->RenderTranslationWidget( renderContext,
                                                        windowHandle,
                                                        camera,
                                                        errors ) );
+#endif
 
+#if 0
     IconRenderer* IconRenderer{ gCreation.mSysState.mIconRenderer };
     TAC_CALL( IconRenderer->RenderLights( world,
                                           camera,
                                           renderContext,
                                           windowHandle,
                                           errors ) );
+#endif
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     VoxelGIPresentationRender( gCreation.mWorld,

@@ -43,26 +43,23 @@ namespace Tac::OS
       std::exit( -1 );
     }
 
+    void        OSDebugPrint( const StringView& s )
+    {
+      if constexpr( IsDebugMode )
+      {
+        std::cout << s.c_str();
+        LogApi::LogMessage( s );
+      }
+    }
+
     void        OSDebugPrintLine( const StringView& s )
     {
       if constexpr( !IsDebugMode )
         return;
 
       const char* szstr { s.c_str() };
-
-      //static bool printing; // prevent recursion?
-      //if( printing )
-      //{
-      //  OSDebugBreak();
-      //  return;
-      //}
-
-      //printing = true;
       std::cout << szstr << std::endl;
-      //printing = false;
-
       LogApi::LogMessage( s );
-
       const bool good { std::cout.good() };
       if( !good )
       {

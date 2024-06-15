@@ -68,6 +68,7 @@ namespace Tac
     int                        size() const;
     void                       Add( NetVar );
     void                       Clear();
+    void                       CopyFrom( void* dst, const void* src ) const;
     NetBitDiff                 Diff( const void*, const void* ) const;
     const NetVar&              operator[]( int ) const;
 

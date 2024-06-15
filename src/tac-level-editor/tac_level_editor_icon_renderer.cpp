@@ -8,6 +8,7 @@
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 
+#if TAC_IS_ICON_RENDERER_ENABLED()
 
 namespace Tac
 {
@@ -267,3 +268,4 @@ namespace Tac
     }
   }
 } // namespace Tac
+#endif

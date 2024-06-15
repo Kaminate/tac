@@ -29,14 +29,15 @@ namespace Tac
 
   World::~World()
   {
-    for( System* system : mSystems )
-      TAC_DELETE system;
-
     for( Player* player : mPlayers )
       TAC_DELETE player;
 
     for( Entity* entity : mEntities )
       TAC_DELETE entity;
+
+    // Delete system last, so entities can remove their components
+    for( System* system : mSystems )
+      TAC_DELETE system;
 
     TAC_DELETE mDebug3DDrawData ;
   }

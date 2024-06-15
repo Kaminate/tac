@@ -198,31 +198,15 @@ namespace Tac
 
     mChildren.clear();
 
-    for( Component* oldComponent : entity.mComponents )
+    for( const Component* oldComponent : entity.mComponents )
     {
       const ComponentRegistryEntry* entry{ oldComponent->GetEntry() };
-      Component* newComponent { AddNewComponent( entry ) };
-
       const NetVars& vars{ entry->mNetVars };
-      const int nVars{ vars.size() };
-
-      TAC_ASSERT_UNIMPLEMENTED;
-
-      for( int iVar{}; iVar < nVars; ++iVar )
-      {
-        const NetVar& var{ vars[ iVar ] };
-        void* dst { ( char* )newComponent + var.mByteOffset };
-        const void* src { ( char* )oldComponent + var.mByteOffset };
-
-        var.CopyFrom( dst, src );
-
-
-      }
+      Component* newComponent { AddNewComponent( entry ) };
+      vars.CopyFrom( newComponent, oldComponent );
     }
 
     // shouldn't this fn be recursive?
-
-
   }
 
   void             Entity::AddChild( Entity* child )

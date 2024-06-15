@@ -10,9 +10,12 @@ namespace Tac
   {
     void Init( IconRenderer*,
                WidgetRenderer*,
+
                Errors& );
     void Uninit();
+
     IconRenderer*     mIconRenderer             {};
+
     WidgetRenderer*   mWidgetRenderer           {};
   };
 

@@ -43,15 +43,11 @@ namespace Tac
   };
 
   static Render::BufferHandle          mTerrainConstBuf;
+  static Render::TextureHandle         s1x1White;
   static Render::ProgramHandle         m3DShader;
   static Render::ProgramHandle         mTerrainShader;
   static Render::PipelineHandle        mTerrainPipeline;
   static Render::PipelineHandle        mGamePipeline;
-  //static Render::VertexFormatHandle    m3DVertexFormat;
-  //static Render::VertexFormatHandle    mTerrainVertexFormat;
-  //static Render::DepthStateHandle      mDepthState;
-  //static Render::BlendStateHandle      mBlendState;
-  //static Render::RasterizerStateHandle mRasterizerState;
   static Render::SamplerHandle         mSamplerPoint;
   static Render::SamplerHandle         mSamplerLinear;
   static Render::SamplerHandle         mSamplerAniso;
@@ -63,7 +59,6 @@ namespace Tac
   static Render::IShaderVar*           mShaderTerrainConstBuf;
   static Render::IShaderVar*           mShaderGameShadowMaps;
   static Render::IShaderVar*           mShaderGameLights;
-  //static Render::IShaderVar*           mShaderGameLinearSampler;
   static Render::IShaderVar*           mShaderGameShadowSampler;
   static Render::IShaderVar*           mShaderGamePerFrame;
   static Render::IShaderVar*           mShaderGamePerObject;
@@ -220,8 +215,9 @@ namespace Tac
     };
 
     FixedVector< Render::TextureHandle, Render::CBufferLights::TAC_MAX_SHADER_LIGHTS > shadowMaps;
-
     Render::CBufferLights cBufferLights;
+
+    // populate `shadowMaps` and `cBufferLights`
     if( mUseLights )
     {
       for( int i{}; i < lightCount; ++i )
@@ -245,8 +241,14 @@ namespace Tac
                                            updateLights,
                                            errors ) );
 
-    for( int i{}; i < shadowMaps.size(); ++i )
+    const int nShadowMaps{shadowMaps.size()};
+    for( int i{}; i < nShadowMaps; ++i )
       mShaderGameShadowMaps->SetTextureAtIndex( i, shadowMaps[ i ] );
+    for( int i{ nShadowMaps }; i < Render::CBufferLights::TAC_MAX_SHADER_LIGHTS; ++i )
+    {
+      // hack, currently every element needs to be bound
+      mShaderGameShadowMaps->SetTextureAtIndex( i, s1x1White );
+    }
 
     mDebugCBufferLights = cBufferLights;
 
@@ -495,7 +497,7 @@ namespace Tac
   }
 
   static void RenderModels( Render::IContext* renderContext,
-                            World* world,
+                            const World* world,
                             const Camera* camera,
                             const v2i viewSize,
                             const Render::TextureHandle viewId,
@@ -516,7 +518,7 @@ namespace Tac
                                  updateBufferParams,
                                  errors );
 
-    Graphics* graphics{ GetGraphics( world ) };
+    const Graphics* graphics{ GetGraphics( world ) };
     struct : public ModelVisitor
     {
       void operator()( Model* model ) override
@@ -547,7 +549,7 @@ namespace Tac
 
       Render::IContext*     mRenderContext {};
       Render::TextureHandle mViewId        {};
-      Graphics*             mGraphics      {};
+      const Graphics*             mGraphics      {};
       Errors*               mErrors        {};
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
@@ -806,6 +808,36 @@ void        Tac::GamePresentationInit( Errors& errors )
 
   mShaderGamePerObject = renderDevice->GetShaderVariable( mGamePipeline, "CBufferPerObject" );
   mShaderGamePerObject->SetBuffer( Render::DefaultCBufferPerObject::sHandle );
+
+  mShaderGamePerFrame = renderDevice->GetShaderVariable( mGamePipeline, "CBufferPerFrame" );
+  mShaderGamePerFrame->SetBuffer( Render::DefaultCBufferPerFrame::sHandle );
+
+
+  {
+    char bytes[ 4 ]{ 1, 1, 1, 1 };
+    const Render::CreateTextureParams::Subresource subRsc
+    {
+      .mBytes { bytes },
+      .mPitch { 4 },
+    };
+
+    const Render::Image img
+    {
+      .mWidth   { 1 },
+      .mHeight  { 1 },
+      .mFormat  { Render::TexFmt::kRGBA8_unorm },
+    };
+
+    const Render::CreateTextureParams createTextureParams
+    {
+      .mImage        { img },
+      .mMipCount     { 1 },
+      .mSubresources { subRsc },
+      .mBinding      { Render::Binding::ShaderResource },
+      .mOptionalName { "unbound_shadowmap"},
+    };
+    TAC_CALL( s1x1White = renderDevice->CreateTexture(createTextureParams, errors ) );
+  }
 }
 
 void        Tac::GamePresentationUninit()
@@ -821,7 +853,8 @@ void        Tac::GamePresentationUninit()
 }
 
 
-void        Tac::GamePresentationRender( World* world,
+void        Tac::GamePresentationRender( Render::IContext* renderContext,
+                                         const World* world,
                                          const Camera* camera,
                                          const v2i viewSize,
                                          const Render::TextureHandle dstColorTex,
@@ -829,11 +862,18 @@ void        Tac::GamePresentationRender( World* world,
                                          Debug3DDrawBuffers* debug3DDrawBuffers,
                                          Errors& errors )
 {
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) };
-  Render::IContext* renderContext{ renderContextScope.GetContext() };
+  const Render::Targets renderTargets
+  {
+    .mColors { dstColorTex },
+    .mDepth  { dstDepthTex },
+  };
+
 
   renderContext->DebugEventBegin( "GamePresentationRender" );
+  renderContext->SetViewport( viewSize );
+  renderContext->SetScissor( viewSize );
+  renderContext->SetRenderTargets( renderTargets );
+
 
   //  TAC_CALL( ShadowPresentationRender( world, errors ) );
 
@@ -876,7 +916,6 @@ void        Tac::GamePresentationRender( World* world,
   */
 
   renderContext->DebugEventEnd();
-  TAC_CALL( renderContext->Execute( errors ) );
 }
 
 void Tac::GamePresentationDebugImGui( Graphics* graphics )
