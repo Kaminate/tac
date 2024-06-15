@@ -136,6 +136,10 @@ namespace Tac
 
         TAC_CALL( FontApi::UpdateGPU( errors ) );
 
+        ImGuiSimFrame* imguiSimFrame{ &pair.mNewState->mImGuiSimFrame };
+
+        TAC_CALL( ImGuiPlatformRenderFrameBegin( imguiSimFrame, windowApi, errors ) );
+
         const App::RenderParams renderParams
         {
           .mWindowApi   { windowApi },
@@ -154,7 +158,6 @@ namespace Tac
         //  .mTimestamp     { interpolatedTimestamp },
         //};
 
-        ImGuiSimFrame* imguiSimFrame{ &pair.mNewState->mImGuiSimFrame };
         TAC_CALL( ImGuiPlatformRender( imguiSimFrame, windowApi, errors ) );
 
         static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };

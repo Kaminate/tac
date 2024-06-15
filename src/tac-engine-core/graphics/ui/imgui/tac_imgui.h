@@ -238,8 +238,9 @@ namespace Tac
   struct ImGuiSimFrame;
   ImGuiSimFrame ImGuiGetSimFrame();
 
-  void               ImGuiPlatformRender( ImGuiSimFrame*, SysWindowApi, Errors& );
-  void               ImGuiPlatformPresent( ImGuiSimFrame*, SysWindowApi, Errors& );
+  void ImGuiPlatformRenderFrameBegin( ImGuiSimFrame*, SysWindowApi, Errors& );
+  void ImGuiPlatformRender( ImGuiSimFrame*, SysWindowApi, Errors& );
+  void ImGuiPlatformPresent( ImGuiSimFrame*, SysWindowApi, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

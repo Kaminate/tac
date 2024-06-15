@@ -518,7 +518,6 @@ namespace Tac::Render
     {
       const D3D12_DRAW_INDEXED_ARGUMENTS dx12DrawArgs
       {
-        // Is it weird to pass the "vertexcount" parameter to an "indexcount" value?
         .IndexCountPerInstance { ( UINT )args.mIndexCount },
 
         .InstanceCount         { 1 },
@@ -528,6 +527,7 @@ namespace Tac::Render
         .BaseVertexLocation    {},
         .StartInstanceLocation {},
       };
+      TAC_ASSERT( dx12DrawArgs.IndexCountPerInstance );
       commandList->DrawIndexedInstanced( dx12DrawArgs.IndexCountPerInstance,
                                          dx12DrawArgs.InstanceCount,
                                          dx12DrawArgs.StartIndexLocation,
@@ -540,9 +540,10 @@ namespace Tac::Render
       {
         .VertexCountPerInstance { ( UINT )args.mVertexCount },
         .InstanceCount          { 1 },
-        .StartVertexLocation    { ( UINT )args.mStartVertex},
+        .StartVertexLocation    { ( UINT )args.mStartVertex },
         .StartInstanceLocation  {},
       };
+      TAC_ASSERT( dx12DrawArgs.VertexCountPerInstance );
       commandList->DrawInstanced( dx12DrawArgs.VertexCountPerInstance,
                                   dx12DrawArgs.InstanceCount,
                                   dx12DrawArgs.StartVertexLocation,

@@ -1458,6 +1458,41 @@ void Tac::ImGuiPlatformRender( ImGuiSimFrame* simFrame, SysWindowApi windowApi, 
   ImGuiPersistantPlatformData::Instance.UpdateAndRender( simFrame, windowApi, errors );
 }
 
+void Tac::ImGuiPlatformRenderFrameBegin( ImGuiSimFrame* simFrame,
+                                         const SysWindowApi windowApi,
+                                         Errors& errors )
+{
+
+  for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )
+  {
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    const WindowHandle hDesktopWindow{ simDraw.mHandle };
+    if( !windowApi.IsShown( hDesktopWindow ) )
+      continue;
+
+    TAC_CALL( Render::IContext::Scope renderContextScope{
+      renderDevice->CreateRenderContext( errors ) } );
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+
+    const Render::SwapChainHandle fb{ windowApi.GetSwapChainHandle( hDesktopWindow ) };
+
+    const String renderGroupStr{ String()
+      + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
+
+    {
+      TAC_RENDER_GROUP_BLOCK( renderContext, renderGroupStr );
+
+      const Render::TextureHandle swapChainColor{ renderDevice->GetSwapChainCurrentColor( fb ) };
+      const Render::TextureHandle swapChainDepth{ renderDevice->GetSwapChainDepth( fb ) };
+      renderContext->ClearColor( swapChainColor, v4( 0, 0, 0, 1 ) );
+      renderContext->ClearDepth( swapChainDepth, 1.0f );
+    }
+    TAC_CALL( renderContext->Execute(errors) );
+  }
+}
+
 void Tac::ImGuiPlatformPresent( ImGuiSimFrame* simFrame, const SysWindowApi windowApi, Errors& errors )
 {
   for( const ImGuiSimWindowDraws& windowDraw : simFrame->mWindowDraws )

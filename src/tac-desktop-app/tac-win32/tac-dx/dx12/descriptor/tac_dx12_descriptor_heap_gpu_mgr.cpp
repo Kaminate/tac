@@ -249,16 +249,6 @@ namespace Tac::Render
       .mCount { allocRegion->mDescriptorCount },
     };
 
-#if TAC_GPU_REGION_DEBUG()
-    for( RegionDesc* desc{ &mRegions[ 0 ] }; desc; desc = GetRegionAtIndex( desc->mRightIndex ) )
-    {
-      TAC_ASSERT( desc->mState != RegionDesc::kUnknown );
-    }
-
-    if( mOwner->GetType() == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV )
-      DebugPrint();
-#endif
-
     return DX12DescriptorRegion( descriptor, this, iAlloc );
   }
 

@@ -262,8 +262,8 @@ namespace Tac
 
       const Render::DrawArgs drawArgs
       {
-        .mIndexCount { subMesh.mIndexCount },
-        .mStartIndex { 0 },
+        .mVertexCount { subMesh.mVertexCount },
+        .mIndexCount  { subMesh.mIndexCount },
       };
 
       TAC_RENDER_GROUP_BLOCK( renderContext, groupName );
@@ -549,7 +549,7 @@ namespace Tac
 
       Render::IContext*     mRenderContext {};
       Render::TextureHandle mViewId        {};
-      const Graphics*             mGraphics      {};
+      const Graphics*       mGraphics      {};
       Errors*               mErrors        {};
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;

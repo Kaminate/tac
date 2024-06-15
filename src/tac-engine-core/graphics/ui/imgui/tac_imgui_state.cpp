@@ -839,11 +839,6 @@ namespace Tac
 
     UpdatePerFrame( renderContext, windowSize, errors );
 
-    if( true ) // todo: if viewport is owned by a imguiwindow
-    {
-      renderContext->ClearColor( swapChainColor, v4( 0, 0, 0, 1 ) );
-      renderContext->ClearDepth( swapChainDepth, 1.0f );
-    }
     renderContext->SetVertexBuffer( renderBuffers.mVB.mBuffer );
     renderContext->SetIndexBuffer( renderBuffers.mIB.mBuffer );
     renderContext->SetPipeline( element.mPipeline );
