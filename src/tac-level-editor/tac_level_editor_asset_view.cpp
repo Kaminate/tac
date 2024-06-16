@@ -293,7 +293,7 @@ namespace Tac
     {
       .mWidth  { w },
       .mHeight { h },
-      .mFormat { Render::TexFmt::kRGBA8_unorm }
+      .mFormat { Render::TexFmt::kRGBA16F }, // kRGBA8_unorm }
     };
 
     const Render::CreateTextureParams texSpecColor
@@ -364,6 +364,8 @@ namespace Tac
       .mColors{ loadedModel->mTextureHandleColor },
       .mDepth{ loadedModel->mTextureHandleDepth },
     };
+    renderContext->ClearColor(loadedModel->mTextureHandleColor, v4( 0, 0, 0, 1 ) );
+    renderContext->ClearDepth(loadedModel->mTextureHandleDepth, 1.0f);
     renderContext->SetRenderTargets( renderTargets );
     renderContext->SetViewport( viewSize );
     renderContext->SetScissor( viewSize );

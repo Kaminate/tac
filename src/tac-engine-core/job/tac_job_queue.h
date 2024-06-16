@@ -19,6 +19,8 @@ namespace Tac
 
     // May be completed successfully, failed, or aborted
     ThreadFinished,
+
+    Cleared,
   };
 
   struct Job
@@ -30,6 +32,7 @@ namespace Tac
     void                    SetState( JobState );
     bool                    AbortRequested() const;
     JobState                GetStatus() const;
+    void                    Clear();
 
     //                      Errors which occurred while running the job, passed to Execute()
     Errors                  mErrors;

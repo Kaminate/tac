@@ -74,6 +74,13 @@ namespace Tac
     //mStatusMutex.unlock();
   }
 
+  void Job::Clear()
+  {
+    mErrors.clear();
+    mAsyncLoadStatus = JobState::Cleared;
+    mAbortRequested = false;
+  }
+
   JobState Job::GetStatus() const
   {
     //mStatusMutex.lock();

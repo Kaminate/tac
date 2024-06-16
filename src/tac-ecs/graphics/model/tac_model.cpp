@@ -105,6 +105,15 @@ namespace Tac
 
 	void RegisterModelComponent()
 	{
+    const NetVar netColor
+    {
+      .mDebugName           { "mColorRGB" },
+      .mByteOffset          { TAC_OFFSET_OF( Model, mColorRGB ) },
+      .mElementByteCount    { sizeof( float ) },
+      .mElementCount        { 3 },
+      .mIsTriviallyCopyable { true },
+    };
+
     const NetVar netPath
     {
       .mDebugName  { "mModelPath" },
@@ -113,8 +122,19 @@ namespace Tac
       .mVarWriter  { &sAssetPathNetWriter },
     };
 
+    const NetVar netIndex
+    {
+      .mDebugName           { "mModelIndex" },
+      .mByteOffset          { TAC_OFFSET_OF( Model, mModelIndex ) },
+      .mElementByteCount    { sizeof( Model::mModelIndex ) },
+      .mElementCount        { 1 },
+      .mIsTriviallyCopyable { true },
+    };
+
     NetVars netBits;
+    netBits.Add( netColor );
     netBits.Add( netPath );
+    netBits.Add( netIndex );
 
     ComponentRegistryEntry* entry { ComponentRegistry_RegisterComponent() };
     sRegistryIndex = entry->GetIndex(); 

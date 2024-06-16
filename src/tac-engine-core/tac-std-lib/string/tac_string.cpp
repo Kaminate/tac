@@ -173,11 +173,7 @@ namespace Tac
   String::String( StringView rhs ) { append( rhs.mStr, rhs.mLen ); }
   String::String( const String& rhs )
   {
-    *this = rhs;
-    //mLen = rhs.mLen;
-    //mStr = new char[ mAllocatedByteCount = mLen + 1 ];
-    //MemCpy( mStr, rhs.mStr, mLen );
-    //mStr[ mLen ] = '\0';
+    assign( rhs );
   }
   String::String( int len, char c )
   {

@@ -90,7 +90,7 @@ namespace Tac::Render
           D3D12_CLEAR_VALUE
           {
             .Format { TexFmtToDxgiFormat( params.mImage.mFormat ) },
-            .Color  {},
+            .Color  { 0, 0, 0, 1 },
           } );
     }
 

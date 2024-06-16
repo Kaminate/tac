@@ -21,38 +21,6 @@
 namespace Tac
 {
 
-  // This function converts indexes from the given T into int.
-  template< typename T >
-  static Vector< int >        ConvertIndexes( const cgltf_accessor* indices )
-  {
-    const int n{( int )indices->count};
-    T* indiciesData { ( T* )( ( char* )
-                                indices->buffer_view->buffer->data +
-                                indices->buffer_view->offset ) };
-    Vector< int > result( n );
-    for( int i{}; i < n; ++i )
-    {
-      // Here we are casting from T to int
-      result[ i ] = ( int )indiciesData[ i ];
-    }
-    
-    return result;
-  }
-
-  static Vector< int >        ConvertIndexes( const cgltf_accessor* indices )
-  {
-    switch( indices->component_type )
-    {
-      case cgltf_component_type_r_8:   return ConvertIndexes< i8 >( indices );    break;
-      case cgltf_component_type_r_8u:  return ConvertIndexes< u8 >( indices );    break;
-      case cgltf_component_type_r_16:  return ConvertIndexes< i16 >( indices );   break;
-      case cgltf_component_type_r_16u: return ConvertIndexes< u16 >( indices );   break;
-      case cgltf_component_type_r_32u: return ConvertIndexes< u32 >( indices );   break;
-      case cgltf_component_type_r_32f: return ConvertIndexes< float >( indices ); break;
-      default: return {};
-    }
-  }
-
   static void                 GetTris( const cgltf_primitive* parsedPrim,
                                        SubMeshTriangles& tris )
   {
@@ -61,19 +29,27 @@ namespace Tac
     if( !posAttribute )
       return;
 
-    const Vector< int > indexes { ConvertIndexes( parsedPrim->indices ) };
-    if( indexes.empty() )
-      return;
-
     const char* srcVtx{ ( char* )
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->offset +
       posAttribute->data->offset };
+
+    const char* endVtx{ ( char* )
+      posAttribute->data->buffer_view->buffer->data +
+      posAttribute->data->buffer_view->buffer->size };
+
     SubMeshTriangle tri  {};
     int iVert {};
-    for( int i : indexes )
+
+    for( cgltf_size ii {}; ii < parsedPrim->indices->count; ++ii )
     {
+      cgltf_size i{ cgltf_accessor_read_index( parsedPrim->indices, ii ) };
+
       const v3* vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };
+
+      TAC_ASSERT( ( void* )vert >= ( void* )srcVtx );
+      TAC_ASSERT( ( void* )vert < ( void* )endVtx );
+
       tri[ iVert++ ] = *vert;
       if( iVert == 3 )
       {
@@ -105,11 +81,11 @@ namespace Tac
   {
     void Load( const AssetPathStringView& path, Errors& errors )
     {
-      TAC_CALL( const String bytes{ LoadAssetPath( path, errors ) } );
+      TAC_CALL( mFileBytes = LoadAssetPath( path, errors ) );
 
       const cgltf_options options  {};
 
-      TAC_GLTF_CALL( cgltf_parse, &options, bytes.data(), bytes.size(), &parsedData );
+      TAC_GLTF_CALL( cgltf_parse, &options, mFileBytes.data(), mFileBytes.size(), &parsedData );
 
       TAC_GLTF_CALL( cgltf_validate, parsedData );
 
@@ -118,6 +94,7 @@ namespace Tac
                                                                   StringView( "/" ) ) };
 
       TAC_GLTF_CALL( cgltf_load_buffers, &options, parsedData, basePath.data() );
+
     }
 
     ~LoadedGltfData()
@@ -125,7 +102,9 @@ namespace Tac
       cgltf_free( parsedData );
     }
 
-    cgltf_data* parsedData { nullptr };
+    // Some of the parsed data may point into the mFileBytes string
+    String      mFileBytes {};
+    cgltf_data* parsedData {};
   };
   
   static Render::BufferHandle ConvertToVertexBuffer( const Render::VertexDeclarations& decls,

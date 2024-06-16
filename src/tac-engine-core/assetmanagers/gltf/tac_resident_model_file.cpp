@@ -16,9 +16,9 @@ namespace Tac
     void             Execute( Errors& ) override;
     void             Clear();
 
-    String           bytes;
-    FileSys::Path    mPath;
-    cgltf_data*      mParsedData { nullptr };
+    String           bytes       {};
+    FileSys::Path    mPath       {};
+    cgltf_data*      mParsedData {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -45,6 +45,7 @@ namespace Tac
     mPath.clear();
     cgltf_free( mParsedData );
     mParsedData = nullptr;
+    Job::Clear();
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -53,10 +54,10 @@ namespace Tac
   {
     void             Clear();
 
-    FileSys::Path mPath;
-    StringID         mAssetPathID;
-    Timestamp        mLastRequestSeconds;
-    cgltf_data*      mParsedData { nullptr };
+    FileSys::Path    mPath               {};
+    StringID         mAssetPathID        {};
+    Timestamp        mLastRequestSeconds {};
+    cgltf_data*      mParsedData         {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -76,7 +77,7 @@ namespace Tac
     void             Clear();
     
 
-    FileSys::Path mPath;
+    FileSys::Path    mPath;
     StringID         mAssetPathID;
     LoadJob          mJob;
   };
@@ -87,6 +88,7 @@ namespace Tac
   {
     mPath.clear();
     mJob.Clear();
+    mAssetPathID = {};
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -142,6 +144,7 @@ namespace Tac
       loadedStuff->mPath = loadingStuff.mPath;
       loadedStuff->mLastRequestSeconds = currUpdateSeconds;
       loadedStuff->mParsedData = loadingStuff.mJob.mParsedData;
+      loadedStuff->mAssetPathID = loadingStuff.mAssetPathID;
       loadingStuff.mJob.mParsedData = nullptr;
       loadingStuff.Clear();
     }
