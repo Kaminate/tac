@@ -30,9 +30,16 @@ namespace Tac
 
   struct AssetViewImportedModel
   {
-    bool                      mAttemptedToLoadEntity { false };
+    Entity* SpawnEntity()
+    {
+      const EntityUUID entityUUID{ mEntityUUIDCounter.AllocateNewUUID() };
+      return mWorld.SpawnEntity( entityUUID );
+    }
+
+    bool                      mAttemptedToLoadEntity {};
     EntityUUIDCounter         mEntityUUIDCounter;
     World                     mWorld;
+    Entity*                   mPrefab{};
     Render::TextureHandle     mTextureHandleColor;
     Render::TextureHandle     mTextureHandleDepth;
     Camera                    mCamera;
@@ -158,9 +165,9 @@ namespace Tac
 
     // On-rotation-deformation-zones-for-finite-strain-Cosserat-plasticity.pdf
     // Rot( x, y, z ) = rotZ(phi) * rotY(theta) * rotX(psi)
-    float zPhi { 0 };
-    float yTheta { 0 };
-    float xPsi { 0 };
+    float zPhi{};
+    float yTheta{};
+    float xPsi{};
 
 
     if( r31 != 1.0f && r31 != -1.0f )
@@ -222,17 +229,19 @@ namespace Tac
 
     TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
 
-    Entity* entityRoot { loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() ) };
-    entityRoot->mName = path;// Filesystem::FilepathToFilename( path );
+    Entity* entityRoot{ loadedModel->SpawnEntity() };
+    entityRoot->mName = path.GetFilename();
 
-    Vector< Entity* > entityNodes;
-    for( int i { 0 }; i < (int)gltfData->nodes_count; ++i )
-    {
-      Entity* entityNode { loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() ) };
-      entityNodes.push_back( entityNode );
-    }
+    loadedModel->mPrefab = entityRoot;
 
-    for( int i { 0 }; i < (int)gltfData->nodes_count; ++i )
+
+    const int nNodes{ ( int )gltfData->nodes_count };
+
+    Vector< Entity* > entityNodes( nNodes );
+    for( int i {}; i < nNodes; ++i )
+      entityNodes[ i ] = loadedModel->SpawnEntity();
+
+    for( int i{}; i < nNodes; ++i )
     {
       const cgltf_node& node { gltfData->nodes[ i ] };
 
@@ -243,7 +252,7 @@ namespace Tac
         name += ToString( i );
       }
 
-      Entity* entityNode { loadedModel->mWorld.SpawnEntity( loadedModel->mEntityUUIDCounter.AllocateNewUUID() ) };
+      Entity* entityNode{ entityNodes[ i ] };
       entityNode->mName = name;
       entityNode->mRelativeSpace = DecomposeGLTFTransform( &node );
 
@@ -261,29 +270,29 @@ namespace Tac
         //}( );
 
 
-        auto model { ( Model* )entityNode->AddNewComponent( Model().GetEntry() ) };
+        Model* model { ( Model* )entityNode->AddNewComponent( Model().GetEntry() ) };
         model->mModelPath = path;
-        //model->mModelName = node.mesh->name;
         model->mModelIndex = ( int )( node.mesh - gltfData->meshes );
         //model->mTryingNewThing = true;
-
 
         // ** REMEMBER **, we don't care about the textures on this model component.
         // that's a job for the material component
       }
 
-      if( node.children_count )
+      const int nChildren{ (int)node.children_count };
+      for( int iChild{}; iChild < nChildren; ++iChild )
       {
-        for( cgltf_node* child { *node.children }; child < *node.children + node.children_count; ++child )
-        {
-          Entity* childEntity { entityNodes[ ( int )( child - *node.children ) ] };
-          entityNode->AddChild( childEntity );
-        }
+        cgltf_node* child{ node.children[ iChild ] };
+        Entity* childEntity{ entityNodes[ child - gltfData->nodes ] };
+        entityNode->AddChild( childEntity );
       }
 
       if( !node.parent )
         entityRoot->AddChild( entityNode );
     }
+
+    // step the world to compute hierarchies
+    loadedModel->mWorld.Step( 0 );
   }
 
 
@@ -463,8 +472,10 @@ namespace Tac
       return;
     }
 
-    if( loadedModel->mWorld.mEntities.size() )
+    if( !loadedModel->mWorld.mEntities.empty() )
     {
+      loadedModel->mWorld.Step( TAC_DELTA_FRAME_SECONDS );
+
       ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( w, h ) );
       ImGuiSameLine();
       ImGuiBeginGroup();
@@ -479,10 +490,14 @@ namespace Tac
 
       if( ImGuiButton( "Import object into scene" ) )
       {
-        Entity* prefab { *loadedModel->mWorld.mEntities.begin() };
+        Vector< Entity* > entities;
+        for( Entity* entity : loadedModel->mWorld.mEntities )
+          entities.push_back( entity );
+
+        Entity* prefab{ loadedModel->mPrefab };
         const RelativeSpace relativeSpace{
           gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
-        gCreation.InstantiateAsCopy(world,camera, prefab, relativeSpace );
+        gCreation.InstantiateAsCopy( world, camera, prefab, relativeSpace );
       }
       ImGuiEndGroup();
     }

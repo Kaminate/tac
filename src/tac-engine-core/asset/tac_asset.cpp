@@ -19,6 +19,7 @@ namespace Tac
       || IsDigit( c )
       || c == '.'
       || c == '_'
+      || c == '-'
       || c == ' '
       || c == AssetPathSeperator;
   }

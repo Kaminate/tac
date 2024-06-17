@@ -271,6 +271,25 @@ namespace Tac
         const cgltf_primitive_type supportedType { GetGltfFromTopology( topology ) };
         TAC_ASSERT( parsedPrim->type == supportedType );
 
+
+        v4 color{ 1, 1, 1, 1 };
+        cgltf_material* material{ parsedPrim->material };
+        if( material )
+        {
+          if( material->has_pbr_metallic_roughness )
+          {
+            const cgltf_pbr_metallic_roughness& pbr_metallic_roughness{
+              material->pbr_metallic_roughness};
+            const cgltf_float* base_color_factor{
+              pbr_metallic_roughness.base_color_factor };
+
+            color[ 0 ] = base_color_factor[ 0 ];
+            color[ 1 ] = base_color_factor[ 1 ];
+            color[ 2 ] = base_color_factor[ 2 ];
+            color[ 3 ] = base_color_factor[ 3 ];
+          }
+        }
+
         const SubMesh subMesh
         {
           .mPrimitiveTopology { topology },
@@ -279,6 +298,7 @@ namespace Tac
           .mTris              { tris },
           .mIndexCount        { indexCount },
           .mVertexCount       { vertexCount },
+          .mColor             { color },
           .mName              { StringView( bufferName ) },
         };
         submeshes.push_back( subMesh );

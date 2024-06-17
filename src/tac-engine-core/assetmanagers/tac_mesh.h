@@ -26,6 +26,7 @@ namespace Tac
     SubMeshTriangles           mTris;
     int                        mIndexCount        {};
     int                        mVertexCount       {};
+    v4                         mColor             { 1, 1, 1, 1 };
     String                     mName;
   };
 

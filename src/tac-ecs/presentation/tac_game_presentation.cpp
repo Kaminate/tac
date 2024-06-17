@@ -208,10 +208,14 @@ namespace Tac
     if( !mesh )
       return;
 
+    v4 color{ model->mColorRGB , 1 };
+    if( mesh->mSubMeshes.size() == 1 )
+      color = mesh->mSubMeshes[0].mColor;
+
     const Render::DefaultCBufferPerObject perObjectData
     {
       .World { model->mEntity->mWorldTransform },
-      .Color { Render::PremultipliedAlpha::From_sRGB( model->mColorRGB ) },
+      .Color { Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ) },
     };
 
     FixedVector< Render::TextureHandle, Render::CBufferLights::TAC_MAX_SHADER_LIGHTS > shadowMaps;

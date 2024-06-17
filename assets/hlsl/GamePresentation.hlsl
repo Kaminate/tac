@@ -135,6 +135,12 @@ PS_OUTPUT PS( VS_OUTPUT input )
   output.mColor.xyz = pow( colorDiffuse, 1.0 / 2.2 );
   output.mColor.w = Color.w;
 
+
+  // temp begin
+  output.mColor.xyz /= 1000.0;
+  output.mColor.xyz += Color.xyz;
+  // temp end
+
   return output;
 }
 
