@@ -20,6 +20,7 @@ namespace Tac
     v3                                   mColorRGB   { 1, 1, 1 };
     AssetPathString                      mModelPath  {};
     int                                  mModelIndex { -1 };
+    bool                                 mIsStatic   { false };
   };
 
   void                                   RegisterModelComponent();

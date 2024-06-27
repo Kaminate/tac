@@ -178,8 +178,13 @@ namespace Tac::Render
         if( heapType == D3D12_HEAP_TYPE_UPLOAD )
           return D3D12_RESOURCE_STATE_GENERIC_READ;
 
-        if( params.mBytes )
-          return D3D12_RESOURCE_STATE_COPY_DEST;
+        // | Reason for commenting out:
+        // | Warning: ID3D12Device::CreateCommittedResource2: Ignoring InitialState
+        // | D3D12_RESOURCE_STATE_COPY_DEST. Buffers are effectively created in state
+        // | D3D12_RESOURCE_STATE_COMMON.
+        // v
+        //if( params.mBytes )
+        //  return D3D12_RESOURCE_STATE_COPY_DEST;
 
         return D3D12_RESOURCE_STATE_COMMON;
       }( ) };
@@ -215,6 +220,17 @@ namespace Tac::Render
       }
       else
       {
+
+        const DX12TransitionHelper::Params transitionParams
+        {
+          .mResource    { resource },
+          .mStateBefore { &resourceStates },
+          .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
+        };
+        DX12TransitionHelper transitionHelper;
+        transitionHelper.Append( transitionParams );
+        transitionHelper.ResourceBarrier( commandList );
+
         DX12UploadAllocator::DynAlloc allocation{
           context->mGPUUploadAllocator.Allocate( byteCount, errors ) };
 
@@ -231,6 +247,18 @@ namespace Tac::Render
 
     const DescriptorBindings descriptorBindings{ CreateBindings( resource, params ) };
 
+    const BufferHandle h{ AllocBufferHandle() };
+    const int i { h.GetIndex() };
+
+    const DX12Name name
+    {
+      .mName          { params.mOptionalName },
+      .mStackFrame    { params.mStackFrame },
+      .mResourceType  { "Buffer" },
+      .mResourceIndex { i },
+    };
+    DX12SetName( resource, name );
+
     // Transition to the intended usage for context root signature binding
     TransitionBuffer( params.mBinding,
                       resource,
@@ -243,17 +271,6 @@ namespace Tac::Render
 
     const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
 
-    const BufferHandle h{ AllocBufferHandle() };
-    const int i { h.GetIndex() };
-
-    const DX12Name name
-    {
-      .mName          { params.mOptionalName },
-      .mStackFrame    { params.mStackFrame },
-      .mResourceType  { "Buffer" },
-      .mResourceIndex { i },
-    };
-    DX12SetName( resource, name );
 
     mBuffers[ i ] = DX12Buffer
     {

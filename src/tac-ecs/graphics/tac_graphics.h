@@ -7,15 +7,22 @@ namespace Tac
 {
 
   template< typename T > struct ComponentVisitor { virtual void operator()( T* ) = 0; };
-  typedef ComponentVisitor< Model > ModelVisitor;
-  typedef ComponentVisitor< Skybox > SkyboxVisitor;
-  typedef ComponentVisitor< Light > LightVisitor;
+  typedef ComponentVisitor< Model >    ModelVisitor;
+  typedef ComponentVisitor< Skybox >   SkyboxVisitor;
+  typedef ComponentVisitor< Light >    LightVisitor;
+  typedef ComponentVisitor< Material > MaterialVisitor;
 
   struct Graphics : public System
   {
     virtual Model*  CreateModelComponent() = 0;
     virtual void    DestroyModelComponent( Model* ) = 0;
     virtual void    VisitModels( ModelVisitor* ) const = 0;
+
+    virtual Material* CreateMaterialComponent() = 0;
+    virtual void      DestroyMaterialComponent( Material* ) = 0;
+
+    // any reason this should exist?
+    virtual void      VisitMaterials( MaterialVisitor* ) const = 0;
 
     virtual Skybox* CreateSkyboxComponent() = 0;
     virtual void    DestroySkyboxComponent( Skybox* ) = 0;

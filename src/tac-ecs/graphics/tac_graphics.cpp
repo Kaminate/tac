@@ -8,6 +8,7 @@
 #include "tac-std-lib/containers/tac_set.h"
 
 #include "tac-ecs/graphics/light/tac_light.h"
+#include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
@@ -42,6 +43,27 @@ namespace Tac
       for( Model* model : mModels )
         if( model->mEntity->mActive )
           ( *modelVisitor )( model );
+    }
+    
+    //                  Material
+    Material*   CreateMaterialComponent() override
+    {
+      auto material { TAC_NEW Material };
+      mMaterials.insert( material );
+      return material;
+    }
+
+    void        DestroyMaterialComponent( Material* material ) override
+    {
+      mMaterials.erase( material );
+      TAC_DELETE material;
+    }
+
+    void        VisitMaterials( MaterialVisitor* materialVisitor) const override
+    {
+      for( Material* material : mMaterials )
+        if( material->mEntity->mActive )
+          ( *materialVisitor )( material );
     }
 
 
@@ -90,9 +112,10 @@ namespace Tac
     }
 
 
-    Set< Model* >  mModels;
-    Set< Skybox* > mSkyboxes;
-    Set< Light* >  mLights;
+    Set< Model* >     mModels;
+    Set< Skybox* >    mSkyboxes;
+    Set< Light* >     mLights;
+    Set< Material* >  mMaterials;
   };
 
   static SystemRegistryEntry* gGraphicsSystemRegistryEntry;
@@ -125,6 +148,7 @@ namespace Tac
     RegisterModelComponent();
     RegisterSkyboxComponent();
     RegisterLightComponent();
+    Material::RegisterComponent();
   }
 
   Graphics* GetGraphics( World* world )

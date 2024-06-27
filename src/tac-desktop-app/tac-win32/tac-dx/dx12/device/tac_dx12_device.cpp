@@ -21,6 +21,7 @@ namespace Tac::Render
     ID3D12Device* pDevice{ mDevice.Get() };
     DX12SetName( pDevice, "Device" );
 
+
     if constexpr( IsDebugMode )
     {
       mDevice.QueryInterface( mDebugDevice );

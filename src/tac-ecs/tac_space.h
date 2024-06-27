@@ -12,6 +12,7 @@ namespace Tac
   struct Skybox;
   struct Light;
   struct Terrain;
+  struct Material;
 
   // Entity-Component Systems
   struct Component;
