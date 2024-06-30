@@ -545,26 +545,14 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
-    WindowHandle mWindowHandle{ ImGuiGetWindowHandle() };
-    //WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
+    const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
 
     if( mSoul )
     {
-      //static bool once;
-      //if( !once )
-      //{
-      //  once = true;
-      //  Entity* entity = gCreation.CreateEntity();
-      //  entity->mName = "Starry-eyed girl";
-      //  entity->mPosition = {}; // { 4.5f, -4.0f, -0.5f };
-      //  auto model = ( Model* )entity->AddNewComponent( ComponentRegistryEntryIndex::Model );
-      //  model->mModelPath = "assets/editor/Box.gltf";
-      //}
       TAC_CALL( mSoul->Update( errors ) );
     }
 
-
-    mMousePicking->BeginFrame( mWindowHandle, camera );
+    mMousePicking->BeginFrame( windowHandle, camera );
     CameraUpdateSaved( mSettingsNode, gCreation.mSimState.mEditorCamera );
     CameraUpdateControls( camera );
     mGizmoMgr->ComputeArrowLen( camera );
@@ -593,7 +581,7 @@ namespace Tac
     const v2 origCursorPos{ ImGuiGetCursorPos() };
 
     SimWindowApi windowApi;
-    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+    const v2i windowSize{ windowApi.GetSize( windowHandle ) };
     const m4 proj{ GetProjMtx( camera, windowSize ) };
     const m4 view{ camera->View() };
 
@@ -605,11 +593,12 @@ namespace Tac
 
 
         Errors getmeshErrors;
-        Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                       model->mModelIndex,
-                                                       m3DVertexFormatDecls,
-                                                       getmeshErrors ) };
-        if( !mesh)
+        Mesh* mesh{
+          ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+                                                  model->mModelIndex,
+                                                  m3DVertexFormatDecls,
+                                                  getmeshErrors ) };
+        if( !mesh )
           return;
 
 
@@ -618,61 +607,58 @@ namespace Tac
           for( SubMeshTriangle& subMeshTri : subMesh.mTris )
           {
 
-            v3 triv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
-            v3 triv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
-            v3 triv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
-            v3 trivs[ 3 ]{ triv0, triv1,triv2 };
+            v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
+            v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
+            v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
+            v3 wsTrivs[ 3 ]{ wsTriv0, wsTriv1,wsTriv2 };
+
             v3 color{ 1, 0, 0 };
-            drawData->DebugDraw3DLine( triv0, triv1, color );
-            drawData->DebugDraw3DLine( triv0, triv2, color );
-            drawData->DebugDraw3DLine( triv1, triv2, color );
-
-            v3 e1{ triv1 - triv0 };
-            v3 e2{ triv2 - triv0 };
-            float area{ Cross( e1, e2 ).Length() };
-            float radius = area * 0.01f;
-
+            drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
 
             for( int i{}; i < 3; ++i )
             {
-              v4 triV{ trivs[ i ], 1.0f };
+              const v4 wsTriV{ wsTrivs[ i ], 1.0f };
+              const float radius{ 0.01f * Distance( wsTriV.xyz(), camera->mPos ) };
 
-              drawData->DebugDraw3DCircle( triV.xyz(), camera->mForwards, radius );
+              if( RaySphere( camera->mPos, wsMouseDir, wsTriV.xyz(), radius ) > 0 )
+              {
+                drawData->DebugDraw3DCircle( wsTriV.xyz(), camera->mForwards, radius );
 
-              triV = view * triV;
-              triV = proj * triV;
-              triV.xyz() /= triV.w;
-              triV.x = ( triV.x * 0.5f + 0.5f ) * windowSize.x;
-              triV.y = ( 1 - ( triV.y * 0.5f + 0.5f ) ) * windowSize.y;
+                const v4 vsTriV{ view * wsTriV };
+                const v4 csTriV{ proj * vsTriV };
+                const v4 ndcTriV{ csTriV / csTriV.w };
+                const v2 ssTriV
+                {
+                   ( 0 + ( ndcTriV.x * 0.5f + 0.5f ) ) * windowSize.x,
+                   ( 1 - ( ndcTriV.y * 0.5f + 0.5f ) ) * windowSize.y,
+                };
 
-              Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-              Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
-              ndcAttribs.mMinZ;
-              ndcAttribs.mMaxZ;
+                ImGuiSetCursorPos( ssTriV );
+                ImGuiText( String()
+                           + "v" + ToString( i ) + ": ("
+                           + ToString( subMeshTri[ i ].x ) + ", "
+                           + ToString( subMeshTri[ i ].y ) + ", "
+                           + ToString( subMeshTri[ i ].z ) + " )" );
+              }
 
-              const v2 vCursorPos{ triV.xy() };
-              ImGuiSetCursorPos( vCursorPos );
-              ImGuiText( String()
-                         + "v" + ToString( i ) + ": ("
-                         + ToString( subMeshTri[i].x ) + ", " 
-                         + ToString( subMeshTri[i].y ) + ", " 
-                         + ToString( subMeshTri[i].z ) + " )" );
             }
           }
         }
 
       }
-      m4 view;
-      m4 proj;
-      v2i windowSize;
+      m4      view;
+      m4      proj;
+      v2i     windowSize;
       Camera* camera;
+      v3      wsMouseDir;
     } sVisitor;
     sVisitor.proj = proj;
     sVisitor.view = view;
     sVisitor.windowSize = windowSize;
     sVisitor.camera = camera;
+    sVisitor.wsMouseDir = wsMouseDir;
 
-    Graphics* graphics{GetGraphics( world )};
+    Graphics* graphics{ GetGraphics( world ) };
     graphics->VisitModels( &sVisitor );
 
     ImGuiSetCursorPos( origCursorPos );

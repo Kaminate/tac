@@ -88,6 +88,7 @@ float3 ApplyLight( int iLight,
 {
   Texture2D shadowMap = shadowMaps[ iLight ];
   Light light = lights[ iLight ];
+  float4 color = sPerObj.mColor;
 
   const bool lightCastsShadows = LightGetCastsShadows( light.mFlags );
   if( lightCastsShadows )
@@ -136,8 +137,9 @@ float3 ApplyLight( int iLight,
     const float ndotl = dot( n, l );
 
     // dont need to check if ndotl < 0 because of the ndc check?
-    return ndotl * light.mColorRadiance.xyz * Color.xyz;
+    return ndotl * light.mColorRadiance.xyz * color;
   }
+
   return float3( 0, 0, 0 );
 }
 

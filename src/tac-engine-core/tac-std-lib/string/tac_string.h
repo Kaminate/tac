@@ -87,6 +87,7 @@ namespace Tac
     bool   starts_with( StringView ) const;
     bool   starts_with( char ) const;
     bool   ends_with( StringView ) const;
+    bool   ends_with( char ) const;
     void   assign( const char*, int );
     void   assign( const StringView& );
     void   append( const char*, int );
@@ -100,7 +101,9 @@ namespace Tac
     char*  begin() const;
     char*  end() const;
     char&  back();
+    char   back() const;
     char&  front();
+    char   front() const;
     int    compare( const char* ) const;
     //     returns npos if not found
     int    find_last_of( const char* c ) const;

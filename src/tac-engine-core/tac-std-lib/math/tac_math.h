@@ -112,6 +112,7 @@ namespace Tac
   // ------------
   float                    Fract( float );
   inline float             Abs( float v )              { return v > 0 ? v : -v; }
+  inline double            Abs( double v )             { return v > 0 ? v : -v; }
   v2                       Abs( const v2& );
   v3                       Abs( const v3& );
   float                    Pow( float base, float exp );

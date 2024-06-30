@@ -123,7 +123,7 @@ Tac::String Tac::Itoa( int val, int base )
 
 float       Tac::Atof( const StringView& s )
 {
-  return (float)std::atof( s.data() );
+  return ( float )std::atof( s.data() );
 }
 
 int         Tac::Atoi( const StringView& s )
@@ -140,28 +140,34 @@ Tac::String Tac::ToString( unsigned long long val ) { return ItoaU64( ( u64 )val
 Tac::String Tac::ToString( int val )                { return Itoa( val ); }
 Tac::String Tac::ToString( char c )                 { return String( 1, c ); }
 Tac::String Tac::ToString( const void* val )        { return "0x" + ItoaU64( ( u64 )val, 16 ); }
-Tac::String Tac::ToString( double val )
+Tac::String Tac::ToString( const double val )
 {
   const bool isNegative{ val < 0 };
-  if( isNegative )
-    val *= -1;
+  const double absVal{ Abs( val ) };
+  const double epsilon{ 0.0001 };
+  const double fractionalVal{ absVal - ( u64 )absVal };
+  const int places{ 1000 };
 
-  if( val < 0.001 )
-    return "0";
+  String result;
+  result += isNegative ? "-" : "";
+  result += ItoaU64( ( u64 )absVal );
 
-  const auto integralPart{ ( u64 )val };
-  const auto fractionalPart{ ( u64 )( ( val - integralPart ) * 1000 ) };
+  String fractionalStr{ ItoaU64( ( u64 )( fractionalVal * places ) ) };
+  while( fractionalStr.ends_with( '0' ) )
+    fractionalStr.pop_back();
 
-  return String()
-    + ( isNegative ? "-" : "" )
-    + ItoaU64( integralPart )
-    + "."
-    + ItoaU64( fractionalPart );
+  if( !fractionalStr.empty() )
+  {
+    result += ".";
+    result += fractionalStr;
+  }
+
+  return result;
 }
 
-Tac::String Tac::ToString( float val )             
+Tac::String Tac::ToString( float val )
 {
-  return ToString( (double)val);
+  return ToString( ( double )val );
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -221,7 +227,7 @@ namespace Tac
     mStr[ mLen = lenNotIncNull ] = '\0';
   }
 
-  void         String::replace( StringView a, StringView b)
+  void         String::replace( StringView a, StringView b )
   {
     String result;
     StringView remainder { *this };
@@ -286,7 +292,7 @@ namespace Tac
   //void   String::operator += ( const char* str )       { append( str, StrLen( str ) ); }
   //void   String::operator += ( const String& s )       { append( s.mStr, s.mLen ); }
   void         String::operator += ( char c )                { append( &c, 1 ); }
-  void         String::operator += ( const StringView& sv ) { append( sv.data(), sv.size() ); }
+  void         String::operator += ( const StringView& sv )  { append( sv.data(), sv.size() ); }
 
   void         String::erase( int pos, int len )
   {
@@ -305,8 +311,9 @@ namespace Tac
   {
     return mLen >= s.mLen && MemCmp( mStr + mLen - s.mLen, s.mStr, s.mLen ) == 0;
   }
+  bool         String::ends_with( char c ) const         { return mLen && back() == c; }
 
-  void         String::assign( const StringView& s)
+  void         String::assign( const StringView& s )
   {
     assign( s.data(), s.size() );
   }
@@ -325,7 +332,7 @@ namespace Tac
     MemCpy( mStr + mLen, str, len );
     mStr[ mLen = newLen ] = '\0';
   }
-  void         String::append( const char* str)
+  void         String::append( const char* str )
   {
     append( str, StrLen( str ) );
   }
@@ -334,7 +341,9 @@ namespace Tac
   char*        String::begin() const                  { return mStr;              }
   char*        String::end() const                    { return mStr + mLen;       }
   char&        String::back()                         { return mStr[ mLen - 1 ];  }
+  char         String::back() const                   { return mStr[ mLen - 1 ];  }
   char&        String::front()                        { return *mStr;             }
+  char         String::front() const                  { return *mStr;             }
   int          String::compare( const char* s ) const { return StrCmp( mStr, s ); }
 
   // This constexpr implicit conversion function, which calls constexpr StringView(),

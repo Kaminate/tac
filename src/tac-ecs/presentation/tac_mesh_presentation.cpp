@@ -79,6 +79,9 @@ namespace Tac
   static bool                          mUseLights{ true };
   static Render::CBufferLights         mDebugCBufferLights{};
   static bool                          sInitialized;
+  static v4                            sAmbient{ 0.4f, 0.3f, 0.2f, 1.0f };
+  static bool                          sUseAmbient{ true };
+
 
   static void CheckShaderPadding()
   {
@@ -122,54 +125,17 @@ namespace Tac
     return proj;
   }
 
-  static Render::DefaultCBufferPerFrame GetPerFrameBuf( const Camera* camera,
-                                                        const v2i viewSize )
+  static MeshPerFrameBuf GetPerFrameBuf( const Camera* camera,
+                                         const v2i viewSize )
   {
-    const Timestamp elapsedSeconds{ Timestep::GetElapsedTime() };
     const m4 view{ camera->View() };
     const m4 proj{ GetProjMtx( camera, viewSize ) };
-    return Render::DefaultCBufferPerFrame
+    return MeshPerFrameBuf
     {
-      .mView        { view },
-      .mProjection  { proj },
-      .mFar         { camera->mFarPlane },
-      .mNear        { camera->mNearPlane },
-      .mGbufferSize { ( float )viewSize.x,  ( float )viewSize.y  },
-      .mSecModTau   { ( float )Fmod( elapsedSeconds, 6.2831853 ) },
+      .mView    { view },
+      .mProj    { proj },
+      .mAmbient { sUseAmbient ? sAmbient : v4{ 0, 0, 0, 0 } },
     };
-  }
-
-
-  static void Debug3DEachTri( Graphics* graphics )
-  {
-    struct : public ModelVisitor
-    {
-      void operator()( Model* model ) override
-      {
-        Errors errors;
-        Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                            model->mModelIndex,
-                                                            m3DVertexFormatDecls,
-                                                            errors ) };
-        if( !mesh )
-          return;
-
-        for( const SubMesh& subMesh : mesh->mSubMeshes )
-        {
-          for( const SubMeshTriangle& tri : subMesh.mTris )
-          {
-            const v3 p0{ ( model->mEntity->mWorldTransform * v4( tri[ 0 ], 1 ) ).xyz() };
-            const v3 p1{ ( model->mEntity->mWorldTransform * v4( tri[ 1 ], 1 ) ).xyz() };
-            const v3 p2{ ( model->mEntity->mWorldTransform * v4( tri[ 2 ], 1 ) ).xyz() };
-            mDrawData->DebugDraw3DTriangle( p0, p1, p2 );
-          }
-        }
-      }
-      Debug3DDrawData* mDrawData{ nullptr };
-    } visitor{};
-    visitor.mDrawData = graphics->mWorld->mDebug3DDrawData;
-
-    graphics->VisitModels( &visitor );
   }
 
   static Mesh* LoadModel( const Model* model )
@@ -181,17 +147,26 @@ namespace Tac
                                                    getmeshErrors );
   }
 
-  static void RenderMeshWorldAddDrawCall( Render::IContext* renderContext,
-                                          const Light** lights,
-                                          int lightCount,
-                                          const Model* model,
-                                          const Render::TextureHandle viewId,
-                                          Errors& errors )
+  static void UpdatePerFrameCBuf( const Camera* camera,
+                                  const v2i viewSize,
+                                  Render::IContext* renderContext,
+                                  Errors& errors )
   {
-    const Mesh* mesh{ LoadModel( model ) };
-    if( !mesh )
-      return;
+    const MeshPerFrameBuf perFrameData{ GetPerFrameBuf( camera, viewSize ) };
 
+    const Render::UpdateBufferParams updateBufferParams
+    {
+      .mSrcBytes     { &perFrameData },
+      .mSrcByteCount { sizeof( MeshPerFrameBuf ) },
+    };
+    TAC_CALL( renderContext->UpdateBuffer( mMeshPerFrameBuf, updateBufferParams, errors ) );
+  }
+
+  static void UpdatePerObjectCBuf( const Model* model,
+                                   const Mesh* mesh ,
+                                   Render::IContext* renderContext,
+                                   Errors& errors )
+  {
     v4 color{ model->mColorRGB , 1 };
     if( mesh->mSubMeshes.size() == 1 )
       color = mesh->mSubMeshes[ 0 ].mColor;
@@ -202,13 +177,33 @@ namespace Tac
       .Color { Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ) },
     };
 
+    const Render::UpdateBufferParams updatePerObject
+    {
+      .mSrcBytes     { &perObjectData },
+      .mSrcByteCount { sizeof( MeshPerObjBuf ) },
+    };
+    TAC_CALL( renderContext->UpdateBuffer( mMeshPerObjBuf, updatePerObject, errors ) );
+  }
+
+  static void RenderMeshWorldAddDrawCall( Render::IContext* renderContext,
+                                          Span< const Light* > lights,
+                                          const Model* model,
+                                          const Render::TextureHandle viewId,
+                                          Errors& errors )
+  {
+    const Mesh* mesh{ LoadModel( model ) };
+    if( !mesh )
+      return;
+
+
     FixedVector< Render::TextureHandle, Render::CBufferLights::TAC_MAX_SHADER_LIGHTS > shadowMaps;
     Render::CBufferLights cBufferLights;
 
     // populate `shadowMaps` and `cBufferLights`
     if( mUseLights )
     {
-      for( int i{}; i < lightCount; ++i )
+      const int nLights{ lights.size()};
+      for( int i{}; i < nLights; ++i )
       {
         const Light* light{ lights[ i ] };
         const int shaderLightIndex{ (int)cBufferLights.lightCount };
@@ -229,7 +224,7 @@ namespace Tac
                                            updateLights,
                                            errors ) );
 
-    const int nShadowMaps{shadowMaps.size()};
+    const int nShadowMaps{ shadowMaps.size() };
     for( int i{}; i < nShadowMaps; ++i )
       mShaderMeshShadowMaps->SetTextureAtIndex( i, shadowMaps[ i ] );
     for( int i{ nShadowMaps }; i < Render::CBufferLights::TAC_MAX_SHADER_LIGHTS; ++i )
@@ -256,12 +251,7 @@ namespace Tac
 
       TAC_RENDER_GROUP_BLOCK( renderContext, groupName );
 
-      const Render::UpdateBufferParams updatePerObject
-      {
-        .mSrcBytes     { &perObjectData },
-        .mSrcByteCount { sizeof( Render::DefaultCBufferPerObject ) },
-      };
-      TAC_CALL( renderContext->UpdateBuffer( Render::DefaultCBufferPerObject::sHandle,updatePerObject, errors  ) );
+      TAC_CALL( UpdatePerObjectCBuf( model, mesh, renderContext, errors ) );
 
       renderContext->SetPipeline( mMeshPipeline );
       renderContext->CommitShaderVariables();
@@ -271,8 +261,6 @@ namespace Tac
       renderContext->Draw( drawArgs );
     }
   }
-
-
 
   static void Create3DShader( Errors& errors )
   {
@@ -390,17 +378,8 @@ namespace Tac
     if( !mRenderEnabledModel )
       return;
 
-    const Render::DefaultCBufferPerFrame perFrameData{
-      GetPerFrameBuf( camera, viewSize ) };
 
-    const Render::UpdateBufferParams updateBufferParams
-    {
-      .mSrcBytes     { &perFrameData },
-      .mSrcByteCount { sizeof( Render::DefaultCBufferPerFrame ) },
-    };
-    renderContext->UpdateBuffer( Render::DefaultCBufferPerFrame::sHandle,
-                                 updateBufferParams,
-                                 errors );
+    TAC_CALL( UpdatePerFrameCBuf( camera, viewSize, renderContext, errors ) );
 
     const Graphics* graphics{ GetGraphics( world ) };
     struct : public ModelVisitor
@@ -422,10 +401,11 @@ namespace Tac
         sLightVisitor.mLights.resize(
           Min( sLightVisitor.mLights.size(), Render::CBufferLights::TAC_MAX_SHADER_LIGHTS ) );
 
+        Span< const Light* > lightSpan( sLightVisitor.mLights.data(),
+                                        sLightVisitor.mLights.size() );
 
         TAC_CALL( RenderMeshWorldAddDrawCall( mRenderContext,
-                                              sLightVisitor.mLights.data(),
-                                              sLightVisitor.mLights.size(),
+                                              lightSpan,
                                               model,
                                               mViewId,
                                               errors ) );
@@ -575,10 +555,10 @@ void        Tac::MeshPresentationInit( Errors& errors )
   TAC_CALL( mMeshPerObjBuf = renderDevice->CreateBuffer( meshPerObjParams, errors ) );
   TAC_CALL( mMeshPerFrameBuf = renderDevice->CreateBuffer( meshPerFrameParams, errors ) );
 
-  mShaderMeshPerObject = renderDevice->GetShaderVariable( mMeshPipeline, "CBufferPerObject" );
+  mShaderMeshPerObject = renderDevice->GetShaderVariable( mMeshPipeline, "sPerObj" );
   mShaderMeshPerObject->SetBuffer( mMeshPerObjBuf );
 
-  mShaderMeshPerFrame = renderDevice->GetShaderVariable( mMeshPipeline, "CBufferPerFrame" );
+  mShaderMeshPerFrame = renderDevice->GetShaderVariable( mMeshPipeline, "sPerFrame" );
   mShaderMeshPerFrame->SetBuffer( mMeshPerFrameBuf );
 
 
@@ -705,6 +685,15 @@ void Tac::MeshPresentationDebugImGui()
   ImGuiCheckbox( "Mesh Presentation Enabled Model", &mRenderEnabledModel );
 
   ImGuiCheckbox( "Mesh Presentation use lights", &mUseLights );
+
+  ImGuiCheckbox( "Use Ambient", &sUseAmbient );
+  if( ImGuiDragFloat3( "ambient color", sAmbient.data() ) )
+  {
+    sAmbient.x = Saturate( sAmbient.x );
+    sAmbient.y = Saturate( sAmbient.y );
+    sAmbient.z = Saturate( sAmbient.z );
+    sAmbient.w = Saturate( sAmbient.w );
+  }
 
 
   if( mUseLights )
