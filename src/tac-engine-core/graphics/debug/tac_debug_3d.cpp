@@ -254,7 +254,7 @@ namespace Tac
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
                                          const v3& p1 )
   {
-    DebugDraw3DLine(p0,p1, v4(1,1,1,1));
+    DebugDraw3DLine( p0, p1, v4( 1, 1, 1, 1 ) );
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -306,8 +306,8 @@ namespace Tac
        .mColor    { color1},
     };
 
-    mDebugDrawVerts.push_back(v0);
-    mDebugDrawVerts.push_back(v1);
+    mDebugDrawVerts.push_back( v0 );
+    mDebugDrawVerts.push_back( v1 );
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,

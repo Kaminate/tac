@@ -9,11 +9,13 @@ struct PerObjType
   row_major matrix mWorld;
 };
 
+typedef ConstantBuffer< PerFrameType > PerFrameBuf;
+typedef ConstantBuffer< PerObjType >   PerObjBuf;
 
-ConstantBuffer< PerFrameType > perFrame      : register( b0 );
-ConstantBuffer< PerObjType >   perObj        : register( b1 );
-Texture2D                      sprite        : TAC_AUTO_REGISTER;
-SamplerState                   linearSampler : TAC_AUTO_REGISTER;
+PerFrameBuf  perFrame      : TAC_AUTO_REGISTER( b );
+PerObjBuf    perObj        : TAC_AUTO_REGISTER( b );
+Texture2D    sprite        : TAC_AUTO_REGISTER;
+SamplerState linearSampler : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {

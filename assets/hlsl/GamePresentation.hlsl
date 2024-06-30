@@ -1,6 +1,28 @@
 #include "Common.hlsl"
 #include "LightsCommon.hlsl"
 
+
+struct PerFrameStruct
+{
+  row_major matrix mView;
+  row_major matrix mProj;
+};
+
+
+struct PerObjectStruct
+{
+  row_major matrix mWorld;
+
+  // Is this premultiplied alpha?
+  // Is this sRGB?
+  float4           mColor;
+};
+
+typedef ConstantBuffer< PerFrameStruct > PerFrameBuf;
+typedef ConstantBuffer< PerObjectStruct > PerObjectBuf;
+
+
+
 struct VS_INPUT
 {
   float3 Position : POSITION;
@@ -9,6 +31,8 @@ struct VS_INPUT
 
 Texture2D    shadowMaps[ 4 ]   : TAC_AUTO_REGISTER;
 SamplerState shadowMapSampler  : TAC_AUTO_REGISTER;
+PerFrameBuf  sPerFrame         : TAC_AUTO_REGISTER( b );
+PerObjectBuf sPerObj           : TAC_AUTO_REGISTER( b );
 
 struct VS_OUTPUT
 {
@@ -140,6 +164,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
   output.mColor.xyz /= 1000.0;
   output.mColor.xyz += Color.xyz;
   // temp end
+  output.mColor.xyz += float3(0.8f, 0.8f, 0.8f);
 
   return output;
 }

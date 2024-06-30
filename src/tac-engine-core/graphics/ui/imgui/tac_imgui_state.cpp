@@ -776,6 +776,9 @@ namespace Tac
           && !window->mParent )
       {
         // Yoink
+
+        window->mDrawData->mDebugGroupStack.AssertNodeHeights();
+
         drawData.push_back( window->mDrawData );
         vertexCount += window->mDrawData->mVtxs.size();
         indexCount += window->mDrawData->mIdxs.size();
@@ -787,7 +790,6 @@ namespace Tac
             child->mDrawData = child->mParent->mDrawData;
       }
     }
-
 
     return ImGuiSimWindowDraws
     {
@@ -856,9 +858,13 @@ namespace Tac
     renderContext->DebugEventBegin( renderGroupStr );
     renderContext->DebugMarker( "hello hello" );
 
-    for( SmartPtr< UI2DDrawData >& drawData : simDraws->mDrawData )
+    for( const SmartPtr< UI2DDrawData >& drawData : simDraws->mDrawData )
     {
-      Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
+      const Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
+      debugGroupStack.AssertNodeHeights();
+
+
+
       Render::DebugGroup::Iterator debugGroupIterator{
         debugGroupStack.IterateBegin( renderContext ) };
 

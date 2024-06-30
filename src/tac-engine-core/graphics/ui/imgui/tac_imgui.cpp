@@ -685,6 +685,7 @@ void Tac::ImGuiBeginChild( const StringView& name, const v2& size )
     child->mName = name;
     child->mParent = parent;
     child->mDrawData = parent->mDrawData;
+    child->mTextInputData = parent->mTextInputData;
     Instance.mAllWindows.push_back( child );
   }
   child->mRequestTime = ImGuiGlobals::Instance.mElapsedSeconds;
@@ -715,7 +716,7 @@ void Tac::ImGuiBeginGroup()
   const GroupData groupData
   {
     .mSavedCursorDrawPos { window->mViewportSpaceCurrCursor },
-    .mSavedLineHeight { window->mCurrLineHeight },
+    .mSavedLineHeight    { window->mCurrLineHeight },
   };
   window->mGroupSK.push_back( groupData );
 }
@@ -821,7 +822,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   const String oldText{ text };
   const v2 pos{ window->mViewportSpaceCurrCursor };
   const int lineCount{ ComputeLineCount( text ) };
-  const float width = window->GetRemainingWidth();
+  const float width { window->GetRemainingWidth() };
   const v2 totalSize( width, lineCount * fontSize );
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, totalSize ) };
 
@@ -854,8 +855,8 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 
   const UI2DDrawData::Box box
   {
-    .mMini { pos },
-    .mMaxi { textBackgroundMaxi },
+    .mMini  { pos },
+    .mMaxi  { textBackgroundMaxi },
     .mColor { GetFrameColor( hovered ) },
   };
 
@@ -902,19 +903,19 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 
   const UI2DDrawData::Text drawText
   {
-    .mPos { textPos },
+    .mPos      { textPos },
     .mFontSize { fontSize },
-    .mUtf8 { text },
-    .mColor { ImGuiGetColor( ImGuiCol::Text ) },
+    .mUtf8     { text },
+    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
   };
   drawData->AddText( drawText, &clipRect );
 
   const UI2DDrawData::Text labelText
   {
-    .mPos { v2( textBackgroundMaxi.x + itemSpacing.x, pos.y ) },
+    .mPos      { v2( textBackgroundMaxi.x + itemSpacing.x, pos.y ) },
     .mFontSize { fontSize },
-    .mUtf8 { label },
-    .mColor { ImGuiGetColor( ImGuiCol::Text ) },
+    .mUtf8     { label },
+    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
   };
   drawData->AddText( labelText, &clipRect );
 
@@ -959,8 +960,8 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   {
     const UI2DDrawData::Box box
     {
-      .mMini { buttonPosViewport },
-      .mMaxi { buttonPosViewport + buttonSize },
+      .mMini  { buttonPosViewport },
+      .mMaxi  { buttonPosViewport + buttonSize },
       .mColor { GetFrameColor( hovered ) },
     };
     drawData->AddBox( box, &clipRectViewport );
@@ -968,10 +969,10 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
 
   const UI2DDrawData::Text text
   {
-    .mPos { buttonPosViewport },
+    .mPos      { buttonPosViewport },
     .mFontSize { fontSize },
-    .mUtf8 { str },
-    .mColor { ImGuiGetColor( ImGuiCol::Text ) },
+    .mUtf8     { str },
+    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
   };
   drawData->AddText( text, &clipRectViewport );
   return clicked;
@@ -1055,9 +1056,9 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
 
   const UI2DDrawData::Box box
   {
-    .mMini { pos },
-    .mMaxi { pos + buttonSize },
-    .mColor{ GetFrameColor( hovered ) },
+    .mMini  { pos },
+    .mMaxi  { pos + buttonSize },
+    .mColor { GetFrameColor( hovered ) },
   };
 
   const UI2DDrawData::Text text

@@ -373,13 +373,15 @@ namespace Tac::Render
     };
 
     PCom< IDxcResult > pResults;
-    TAC_ASSERT( SUCCEEDED( pCompiler->Compile(
+
+    const HRESULT compileHR{ pCompiler->Compile(
       &Source,
       pArguments,
       argCount,
       nullptr,
       pResults.iid(),
-      pResults.ppv() ) ) );
+      pResults.ppv() ) };
+    TAC_ASSERT( SUCCEEDED( compileHR ) );
 
     CheckCompileSuccess( pResults.Get(), errors );
 

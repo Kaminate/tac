@@ -58,6 +58,7 @@ namespace Tac
     ImGuiWindow* window { globals.mCurrentWindow };
     UI2DDrawData* drawData { window->mDrawData };
     TextInputData* inputData { window->mTextInputData };
+    TAC_ASSERT( inputData );
 
     const ImGuiID id { window->mIDStack.back() }; // assumption
     const v2 pos { window->mViewportSpaceCurrCursor };

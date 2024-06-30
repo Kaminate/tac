@@ -36,6 +36,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
+#include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/os/tac_os.h"
 
@@ -290,6 +291,8 @@ namespace Tac
       CreationMainWindow::sShowWindow = false;
       CreationPropertyWindow::sShowWindow = false;
     }
+
+
     
 
     ImGuiCheckbox( "Draw grid", &drawGrid );
@@ -483,6 +486,52 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
+  struct GameModelVtx
+  {
+    v3 mPos;
+    v3 mNor;
+  };
+
+  static Render::VertexDeclarations    m3DVertexFormatDecls;
+  static void Create3DVertexFormat()
+  {
+    const Render::VertexDeclaration posDecl
+    {
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mPos ) },
+    };
+
+    const Render::VertexDeclaration norDecl
+    {
+      .mAttribute         { Render::Attribute::Normal },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mNor ) },
+    };
+
+    m3DVertexFormatDecls.clear();
+    m3DVertexFormatDecls.push_back( posDecl );
+    m3DVertexFormatDecls.push_back( norDecl );
+  }
+
+  static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
+  {
+    const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
+    const m4::ProjectionMatrixParams projParams
+    {
+      .mNDCMinZ       { ndcAttribs.mMinZ },
+      .mNDCMaxZ       { ndcAttribs.mMaxZ },
+      .mViewSpaceNear { camera->mNearPlane },
+      .mViewSpaceFar  { camera->mFarPlane },
+      .mAspectRatio   { aspectRatio },
+      .mFOVYRadians   { camera->mFovyrad },
+    };
+    const m4 proj{ m4::ProjPerspective( projParams ) };
+    return proj;
+  }
+
   void CreationGameWindow::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
@@ -532,6 +581,101 @@ namespace Tac
       world->mDebug3DDrawData->DebugDraw3DCircle( mGizmoMgr->mGizmoOrigin,
                                                   camera->mForwards,
                                                   mGizmoMgr->mArrowLen );
+
+    static bool once;
+    if( !once )
+    {
+      once = true;
+      Create3DVertexFormat();
+    }
+
+
+    const v2 origCursorPos{ ImGuiGetCursorPos() };
+
+    SimWindowApi windowApi;
+    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+    const m4 proj{ GetProjMtx( camera, windowSize ) };
+    const m4 view{ camera->View() };
+
+    struct : public ModelVisitor
+    {
+      void operator()( Model* model ) override
+      {
+        Debug3DDrawData* drawData{ model->mEntity->mWorld->mDebug3DDrawData };
+
+
+        Errors getmeshErrors;
+        Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+                                                       model->mModelIndex,
+                                                       m3DVertexFormatDecls,
+                                                       getmeshErrors ) };
+        if( !mesh)
+          return;
+
+
+        for( SubMesh& subMesh : mesh->mSubMeshes )
+        {
+          for( SubMeshTriangle& subMeshTri : subMesh.mTris )
+          {
+
+            v3 triv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
+            v3 triv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
+            v3 triv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
+            v3 trivs[ 3 ]{ triv0, triv1,triv2 };
+            v3 color{ 1, 0, 0 };
+            drawData->DebugDraw3DLine( triv0, triv1, color );
+            drawData->DebugDraw3DLine( triv0, triv2, color );
+            drawData->DebugDraw3DLine( triv1, triv2, color );
+
+            v3 e1{ triv1 - triv0 };
+            v3 e2{ triv2 - triv0 };
+            float area{ Cross( e1, e2 ).Length() };
+            float radius = area * 0.01f;
+
+
+            for( int i{}; i < 3; ++i )
+            {
+              v4 triV{ trivs[ i ], 1.0f };
+
+              drawData->DebugDraw3DCircle( triV.xyz(), camera->mForwards, radius );
+
+              triV = view * triV;
+              triV = proj * triV;
+              triV.xyz() /= triV.w;
+              triV.x = ( triV.x * 0.5f + 0.5f ) * windowSize.x;
+              triV.y = ( 1 - ( triV.y * 0.5f + 0.5f ) ) * windowSize.y;
+
+              Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+              Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
+              ndcAttribs.mMinZ;
+              ndcAttribs.mMaxZ;
+
+              const v2 vCursorPos{ triV.xy() };
+              ImGuiSetCursorPos( vCursorPos );
+              ImGuiText( String()
+                         + "v" + ToString( i ) + ": ("
+                         + ToString( subMeshTri[i].x ) + ", " 
+                         + ToString( subMeshTri[i].y ) + ", " 
+                         + ToString( subMeshTri[i].z ) + " )" );
+            }
+          }
+        }
+
+      }
+      m4 view;
+      m4 proj;
+      v2i windowSize;
+      Camera* camera;
+    } sVisitor;
+    sVisitor.proj = proj;
+    sVisitor.view = view;
+    sVisitor.windowSize = windowSize;
+    sVisitor.camera = camera;
+
+    Graphics* graphics{GetGraphics( world )};
+    graphics->VisitModels( &sVisitor );
+
+    ImGuiSetCursorPos( origCursorPos );
 
     TAC_CALL( ImGuiOverlay( camera, errors ) );
   }

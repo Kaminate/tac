@@ -210,7 +210,7 @@ namespace Tac
 
     v4 color{ model->mColorRGB , 1 };
     if( mesh->mSubMeshes.size() == 1 )
-      color = mesh->mSubMeshes[0].mColor;
+      color = mesh->mSubMeshes[ 0 ].mColor;
 
     const Render::DefaultCBufferPerObject perObjectData
     {
@@ -462,6 +462,10 @@ namespace Tac
     {
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::Back },
+
+      //.mFillMode              { Render::FillMode::Wireframe },
+      //.mCullMode              { Render::CullMode::None },
+
       .mFrontCounterClockwise { true },
       .mMultisample           { false },
     };

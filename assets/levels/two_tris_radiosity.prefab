@@ -1,0 +1,94 @@
+{
+  "mEntityUUID": 1,
+  "mPosition":
+  {
+    "x": 0,
+    "y": 1,
+    "z": 0
+  },
+  "mName": "two_tri_radio.glb",
+  "mScale":
+  {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "mEulerRads":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mChildren":
+  [
+    {
+      "mEntityUUID": 2,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "light obj",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "Model":
+      {
+        "mModelIndex": 0,
+        "mModelPath": "assets/radiosity-tests/two-tris/two_tri_radio.glb",
+        "mColorRGB":
+        {
+          "g": 1,
+          "r": 1,
+          "b": 1
+        }
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 3,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "ground obj",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "Model":
+      {
+        "mModelIndex": 1,
+        "mModelPath": "assets/radiosity-tests/two-tris/two_tri_radio.glb",
+        "mColorRGB":
+        {
+          "g": 1,
+          "r": 1,
+          "b": 1
+        }
+      },
+      "mActive": true
+    }
+  ],
+  "mActive": true
+}
