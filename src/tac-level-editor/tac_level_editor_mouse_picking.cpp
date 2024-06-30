@@ -5,9 +5,8 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-
 #include "tac-ecs/presentation/tac_game_presentation.h"
-
+#include "tac-ecs/presentation/tac_mesh_presentation.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 
 
@@ -267,7 +266,7 @@ namespace Tac
                                                       float* dist )
   {
     const Entity* entity { model->mEntity };
-    const Mesh* mesh { GamePresentationGetModelMesh( model ) };
+    const Mesh* mesh { MeshPresentationGetModelMesh( model ) };
     if( !mesh )
     {
       *hit = false;

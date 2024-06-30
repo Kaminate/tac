@@ -12,6 +12,7 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/presentation/tac_game_presentation.h"
+#include "tac-ecs/presentation/tac_mesh_presentation.h"
 
 namespace Tac
 {
@@ -193,7 +194,7 @@ namespace Tac
     const Mesh* mesh { nullptr };
 
 #if TAC_GAME_PRESENTATION_ENABLED()
-    mesh = GamePresentationGetModelMesh( model );
+    mesh = MeshPresentationGetModelMesh( model );
 #endif
 
     if( !mesh )

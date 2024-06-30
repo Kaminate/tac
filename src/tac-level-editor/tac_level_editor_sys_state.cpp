@@ -15,25 +15,15 @@ namespace Tac
     mIconRenderer = iconRenderer;
     mWidgetRenderer = widgetRenderer;
 
-    TAC_CALL( SkyboxPresentationInit( errors ) );
     TAC_CALL( GamePresentationInit( errors ) );
-    TAC_CALL( ShadowPresentationInit( errors ) );
 
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    TAC_CALL( VoxelGIPresentationInit( errors ) );
-#endif
 
   }
   
   void CreationSysState:: Uninit()
   {
-    SkyboxPresentationUninit();
     GamePresentationUninit();
-    ShadowPresentationUninit();
 
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    VoxelGIPresentationUninit();
-#endif
 
   }
 

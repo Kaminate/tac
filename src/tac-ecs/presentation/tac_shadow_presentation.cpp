@@ -66,6 +66,7 @@ namespace Tac
   static Render::BufferHandle   sCBufPerFrame;
   static Render::BufferHandle   sCBufPerObj;
   static Render::PipelineHandle sPipeline;
+  static bool                   sInitialized;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -304,6 +305,8 @@ namespace Tac
 
 void Tac::ShadowPresentationInit( Errors& errors )
 {
+  if( sInitialized )
+    return;
   Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
   const Render::ProgramParams programParams
   {
@@ -350,15 +353,20 @@ void Tac::ShadowPresentationInit( Errors& errors )
 
   Render::IShaderVar* shaderPerObj{ renderDevice->GetShaderVariable( sPipeline, "sPerObj" ) };
   shaderPerObj->SetBuffer( sCBufPerObj );
+sInitialized = true;
 }
 
 void Tac::ShadowPresentationUninit()
 {
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  renderDevice->DestroyProgram( sShader );
-  renderDevice->DestroyBuffer( sCBufPerFrame );
-  renderDevice->DestroyBuffer( sCBufPerObj );
-  renderDevice->DestroyPipeline( sPipeline );
+  if( sInitialized )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyProgram( sShader );
+    renderDevice->DestroyBuffer( sCBufPerFrame );
+    renderDevice->DestroyBuffer( sCBufPerObj );
+    renderDevice->DestroyPipeline( sPipeline );
+    sInitialized = false;
+  }
 }
 
 void Tac::ShadowPresentationRender( World* world, Errors& errors )
@@ -381,7 +389,7 @@ void Tac::ShadowPresentationRender( World* world, Errors& errors )
   TAC_CALL( renderContext->Execute( errors ) );
 }
 
-void Tac::ShadowPresentationDebugImGui( Graphics* graphics )
+void Tac::ShadowPresentationDebugImGui()
 {
   if( !ImGuiCollapsingHeader( "Shadow Presentation" ) )
     return;

@@ -1,11 +1,12 @@
-#include "Common.hlsl"
+//#include "Common.hlsl"
 #include "LightsCommon.hlsl"
-
 
 struct PerFrameStruct
 {
   row_major matrix mView;
   row_major matrix mProj;
+  // todo: add editor params, ie v4 addColor, bool unlit show albedo
+  float4 mAmbient;
 };
 
 
@@ -43,14 +44,18 @@ struct VS_OUTPUT
 
 VS_OUTPUT VS( VS_INPUT input )
 {
-  float4 worldSpacePosition = mul( World, float4( input.Position, 1 ) );
-  float4 viewSpacePosition = mul( View, worldSpacePosition );
-  float4 clipSpacePosition = mul( Projection, viewSpacePosition);
+  matrix world = sPerObj.mWorld;
+  matrix view = sPerFrame.mView;
+  matrix proj = sPerFrame.mProj;
+
+  float4 worldSpacePosition = mul( world, float4( input.Position, 1 ) );
+  float4 viewSpacePosition = mul( view, worldSpacePosition );
+  float4 clipSpacePosition = mul( proj, viewSpacePosition);
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;
   output.mWorldSpacePosition = worldSpacePosition;
-  output.mWorldSpaceNormal = mul( World, float4( input.Normal, 0 ) ).xyz;
+  output.mWorldSpaceNormal = mul( world, float4( input.Normal, 0 ) ).xyz;
   return output;
 }
 
@@ -142,6 +147,8 @@ PS_OUTPUT PS( VS_OUTPUT input )
   float ambient = 0.1; // 0.001 // 0
   float3 colorDiffuse = float3( ambient, ambient, ambient );
 
+  float4 color = sPerObj.mColor;
+
   if( useLights )
   {
     for( int iLight = 0; iLight < lightCount; ++iLight )
@@ -151,20 +158,21 @@ PS_OUTPUT PS( VS_OUTPUT input )
   }
   else
   {
-    colorDiffuse = Color.xyz;
+    colorDiffuse = color.xyz;
   }
 
 
   PS_OUTPUT output = ( PS_OUTPUT )0;
   output.mColor.xyz = pow( colorDiffuse, 1.0 / 2.2 );
-  output.mColor.w = Color.w;
+  output.mColor.w = color.w;
 
 
   // temp begin
   output.mColor.xyz /= 1000.0;
-  output.mColor.xyz += Color.xyz;
+  output.mColor.xyz += color.xyz;
   // temp end
-  output.mColor.xyz += float3(0.8f, 0.8f, 0.8f);
+
+  output.mColor.xyz += sPerFrame.mAmbient.xyz;
 
   return output;
 }

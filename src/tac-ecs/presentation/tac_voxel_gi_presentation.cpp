@@ -45,15 +45,16 @@ namespace Tac
   static Render::FramebufferHandle     voxelFramebuffer;
   static Render::MagicBufferHandle     voxelRWStructuredBuf;
   static Render::RasterizerStateHandle voxelRasterizerState;
-  static Render::ProgramHandle          voxelCopyShader;
-  static Render::ProgramHandle          voxelVisualizerShader;
-  static Render::ProgramHandle          voxelizerShader;
+  static Render::ProgramHandle         voxelCopyShader;
+  static Render::ProgramHandle         voxelVisualizerShader;
+  static Render::ProgramHandle         voxelizerShader;
   static Render::TextureHandle         voxelFramebufferTexture;
   static Render::TextureHandle         voxelTextureRadianceBounce0;
   static Render::TextureHandle         voxelTextureRadianceBounce1;
   static Render::VertexDeclarations    voxelVertexDeclarations;
   static Render::VertexFormatHandle    voxelVertexFormat;
   static Render::ViewHandle            voxelView;
+  static bool                          sInitialized;
 
   struct VoxelSettings
   {
@@ -556,6 +557,8 @@ namespace Tac
 
   void VoxelGIPresentationInit( Errors& )
   {
+    if( sInitialized )
+      return;
     GetMetaType< VoxelSettings >().JsonDeserialize( VoxelSettingsRoot(), &voxelSettingsSaved );
     voxelSettingsCurrent = voxelSettingsSaved;
     CBufferVoxelizer::Init();
@@ -571,11 +574,16 @@ namespace Tac
     CreateVertexFormat();
     CreateVoxelDepthState();
     CreateVoxelizeDepthState();
+    sInitialized = true;
   }
 
   void VoxelGIPresentationUninit()
   {
-    DestroyVoxelView();
+    if( sInitialized )
+    {
+      DestroyVoxelView();
+      sInitialized = false;
+    }
   }
 
   void VoxelGIPresentationRender( const World* world,

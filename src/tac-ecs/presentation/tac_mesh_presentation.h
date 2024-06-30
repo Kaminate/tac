@@ -9,24 +9,24 @@
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 
-#define TAC_GAME_PRESENTATION_ENABLED() 1
+#define TAC_MESH_PRESENTATION_ENABLED() 1
 
-#if TAC_GAME_PRESENTATION_ENABLED()
+#if TAC_MESH_PRESENTATION_ENABLED()
 
 namespace Tac
 {
 
-  void                          GamePresentationInit( Errors& );
-  void                          GamePresentationUninit();
-  void                          GamePresentationRender( Render::IContext*,
-                                                        const World*, // why is this non const?
+  void                          MeshPresentationInit( Errors& );
+  void                          MeshPresentationUninit();
+  void                          MeshPresentationRender( Render::IContext*,
+                                                        const World*,
                                                         const Camera*,
                                                         v2i viewSize,
                                                         Render::TextureHandle color,
                                                         Render::TextureHandle depth,
-                                                        Debug3DDrawBuffers*,
                                                         Errors& );
-  void                          GamePresentationDebugImGui( Graphics* );
+  void                          MeshPresentationDebugImGui();
+  const Mesh*                   MeshPresentationGetModelMesh( const Model* );
 }
 
 #endif

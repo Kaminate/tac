@@ -33,6 +33,7 @@ namespace Tac
     static void                 SpaceInitPhysics();
     static SystemRegistryEntry* PhysicsSystemRegistryEntry;
     static Physics*             GetSystem( World* );
+    static const Physics*       GetSystem( const World* );
 
     // ---------------------------------------------------------------------------------------------
 

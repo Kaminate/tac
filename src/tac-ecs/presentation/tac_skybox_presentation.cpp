@@ -1,18 +1,21 @@
 #include "tac_skybox_presentation.h" // self-inc
 
-#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-engine-core/graphics/camera/tac_camera.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
-#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-ecs/graphics/tac_graphics.h"
+#include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
 
@@ -30,23 +33,66 @@ namespace Tac
   static Render::IShaderVar*           sShaderConstantBuffer;
   static Render::IShaderVar*           sShaderCubemap;
   static Render::IShaderVar*           sShaderSampler;
+  static bool                          sInitialized;
+  static bool                          mRenderEnabledSkybox{ true };
 
   struct SkyboxConstantBuffer
   {
     m4 mView;
     m4 mProj;
   };
+
+  struct SkyboxRenderParams
+  {
+    const Camera*         mCamera;
+    v2i                   mViewSize;
+    Render::TextureHandle mViewId;
+    AssetPathStringView   mSkyboxDir;
+  };
+
+  static void RenderSkybox( Render::IContext* renderContext,
+                            const World* world,
+                            const Camera* camera,
+                            const v2i viewSize,
+                            const Render::TextureHandle viewId,
+                            Errors& errors )
+  {
+
+
+  }
+
+  static Skybox* GetSkybox( const World* world )
+  {
+    const Graphics* graphics{ GetGraphics( world ) };
+    struct : public SkyboxVisitor
+    {
+      void operator()( Skybox* skybox ) override
+      {
+        mSkybox = skybox;
+      }
+      Skybox* mSkybox{};
+    } mySkyboxVisitor;
+    graphics->VisitSkyboxes( &mySkyboxVisitor );
+    return mySkyboxVisitor.mSkybox;
+  }
 }
 
 void Tac::SkyboxPresentationUninit()
 {
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  renderDevice->DestroyProgram( mShader );
-  //Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
+  if( sInitialized )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyProgram( mShader );
+    //Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
+    sInitialized = false;
+  }
 }
 
 void Tac::SkyboxPresentationInit( Errors& errors )
 {
+  if( sInitialized )
+    return;
+
 
   Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
   const Render::ProgramParams programParams
@@ -116,34 +162,45 @@ void Tac::SkyboxPresentationInit( Errors& errors )
   sShaderCubemap = renderDevice->GetShaderVariable( sPipeline, "cubemap" );
   sShaderConstantBuffer = renderDevice->GetShaderVariable( sPipeline, "cBuf" );
   sShaderSampler = renderDevice->GetShaderVariable( sPipeline, "linearSampler" );
+  sInitialized = true;
 }
 
-void Tac::SkyboxPresentationRender( SkyboxRenderParams params, Errors& errors )
+void Tac::SkyboxPresentationRender( Render::IContext* renderContext,
+                                    const World* world,
+                                    const Camera* camera,
+                                    const v2i viewSize,
+                                    const Render::TextureHandle viewId,
+                                    Errors& errors )
 {
-  const Camera* camera{ params.mCamera };
-  const int viewWidth{ params.mViewSize.x };
-  const int viewHeight{ params.mViewSize.y };
-  const Render::TextureHandle viewId{ params.mViewId };
-  const AssetPathStringView skyboxDir{ params.mSkyboxDir };
+  if( !mRenderEnabledSkybox )
+    return;
+
+  Skybox* skybox{ GetSkybox( world ) };
+  if( !skybox )
+    return;
+
+  const AssetPathStringView skyboxDir{ skybox->mSkyboxDir };
 
   /*TAC_PROFILE_BLOCK*/;
   const AssetPathStringView defaultSkybox{ "assets/skybox/daylight" };
   const AssetPathStringView skyboxDirToUse{ skyboxDir.empty() ? defaultSkybox : skyboxDir };
-  TAC_CALL( const Render::TextureHandle cubemap{ TextureAssetManager::GetTextureCube( skyboxDirToUse, errors ) } );
+  TAC_CALL( const Render::TextureHandle cubemap{
+    TextureAssetManager::GetTextureCube( skyboxDirToUse, errors ) } );
   if( !cubemap.IsValid() )
     return;
 
-  TAC_CALL( Mesh * boxMesh{ ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
-                                                       0,
-                                                       mVertexDecls,
-                                                       errors ) } );
+  TAC_CALL( Mesh * boxMesh{
+    ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
+                                            0,
+                                            mVertexDecls,
+                                            errors ) } );
   if( !boxMesh )
     return;
 
   Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
   const Render::IDevice::Info renderDeviceInfo{ renderDevice->GetInfo() };
   const Render::NDCAttribs ndcAttribs{ renderDeviceInfo.mNDCAttribs };
-  const float aspect { ( float )viewWidth / ( float )viewHeight };
+  const float aspect { ( float )viewSize.x / ( float )viewSize.y };
   const m4::ProjectionMatrixParams projMtxParams
   {
     .mNDCMinZ       { ndcAttribs.mMinZ },
@@ -171,8 +228,6 @@ void Tac::SkyboxPresentationRender( SkyboxRenderParams params, Errors& errors )
   TAC_ASSERT( !boxMesh->mSubMeshes.empty() );
   const SubMesh* subMesh{ &boxMesh->mSubMeshes[ 0 ] };
 
-  TAC_CALL( Render::IContext::Scope renderContext{ renderDevice->CreateRenderContext( errors ) } );
-
   const Render::UpdateBufferParams updatePerFrame
   {
     .mSrcBytes     { &skyboxConstantBuffer },
@@ -189,8 +244,8 @@ void Tac::SkyboxPresentationRender( SkyboxRenderParams params, Errors& errors )
   sShaderConstantBuffer->SetBuffer( sConstantBuffer );
   sShaderSampler->SetSampler( mSamplerState );
 
-  renderContext->SetViewport( params.mViewSize );
-  renderContext->SetScissor( params.mViewSize );
+  renderContext->SetViewport( viewSize );
+  renderContext->SetScissor( viewSize );
   TAC_CALL( renderContext->UpdateBuffer( Render::DefaultCBufferPerFrame::sHandle,
                                          updatePerFrame,
                                          errors ) );
@@ -206,7 +261,11 @@ void Tac::SkyboxPresentationRender( SkyboxRenderParams params, Errors& errors )
   //Render::Submit( viewId, TAC_STACK_FRAME );
   renderContext->CommitShaderVariables();
   renderContext->Draw( drawArgs );
-  TAC_CALL( renderContext->Execute( errors ) );
+}
+
+void                          Tac::SkyboxPresentationDebugImGui()
+{
+  ImGuiCheckbox( "Skybox Enabled", &mRenderEnabledSkybox );
 }
 
 #endif

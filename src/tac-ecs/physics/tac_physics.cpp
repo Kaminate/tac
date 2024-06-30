@@ -388,6 +388,11 @@ namespace Tac
     return ( Physics* )world->GetSystem( Physics::PhysicsSystemRegistryEntry );
   }
 
+  const Physics* Physics::GetSystem( const World* world )
+  {
+    return ( const Physics* )world->GetSystem( Physics::PhysicsSystemRegistryEntry );
+  }
+
 
   // -----------------------------------------------------------------------------------------------
 

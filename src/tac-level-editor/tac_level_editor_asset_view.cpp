@@ -370,8 +370,8 @@ namespace Tac
 
     const Render::Targets renderTargets
     {
-      .mColors{ loadedModel->mTextureHandleColor },
-      .mDepth{ loadedModel->mTextureHandleDepth },
+      .mColors { loadedModel->mTextureHandleColor },
+      .mDepth  { loadedModel->mTextureHandleDepth },
     };
     renderContext->ClearColor(loadedModel->mTextureHandleColor, v4( 0, 0, 0, 1 ) );
     renderContext->ClearDepth(loadedModel->mTextureHandleDepth, 1.0f);
