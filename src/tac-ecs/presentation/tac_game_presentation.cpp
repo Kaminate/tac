@@ -73,44 +73,6 @@ namespace Tac
     m3DVertexFormatDecls.push_back( norDecl );
   }
 
-
-  //static void Debug3DEachTri( Graphics* graphics )
-  //{
-  //  struct : public ModelVisitor
-  //  {
-  //    void operator()( Model* model ) override
-  //    {
-  //      const Mesh* mesh{ MeshPresentationGetModelMesh( model ) };
-  //      if( !mesh )
-  //        return;
-  //      for( const SubMesh& subMesh : mesh->mSubMeshes )
-  //      {
-  //        for( const SubMeshTriangle& tri : subMesh.mTris )
-  //        {
-  //          const v3 p0{ ( model->mEntity->mWorldTransform * v4( tri[ 0 ], 1 ) ).xyz() };
-  //          const v3 p1{ ( model->mEntity->mWorldTransform * v4( tri[ 1 ], 1 ) ).xyz() };
-  //          const v3 p2{ ( model->mEntity->mWorldTransform * v4( tri[ 2 ], 1 ) ).xyz() };
-  //          mDrawData->DebugDraw3DTriangle( p0, p1, p2 );
-  //        }
-  //      }
-  //    }
-  //    Debug3DDrawData* mDrawData{ nullptr };
-  //  } visitor{};
-  //  visitor.mDrawData = graphics->mWorld->mDebug3DDrawData;
-  //  graphics->VisitModels( &visitor );
-  //}
-
-  
-  //static void DebugImgui3DTris( Graphics* graphics )
-  //{
-  //  if( !mRenderEnabledDebug3D )
-  //    return;
-  //  static bool debugEachTri;
-  //  ImGuiCheckbox( "debug each tri", &debugEachTri );
-  //  if( debugEachTri )
-  //    Debug3DEachTri( graphics );
-  //}
-
 }
 
 
@@ -233,9 +195,6 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
   ShadowPresentationDebugImGui();
   SkyboxPresentationDebugImGui();
   TerrainPresentationDebugImGui();
-
-  // this logic is in tac level_editor_game_window.h
-  //DebugImgui3DTris( graphics );
 }
 
 #endif
