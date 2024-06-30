@@ -15,6 +15,8 @@ namespace Tac
     float*       end();
     float*       data();
     const float* data() const;
+    v2&          xy();
+    const v2&    xy() const;
     v3&          xyz();
     const v3&    xyz() const;
     float&       operator[]( int );
