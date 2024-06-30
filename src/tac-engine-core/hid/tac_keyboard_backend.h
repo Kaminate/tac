@@ -49,7 +49,7 @@ namespace Tac
     void SetKeyState( Key, KeyState );
     void SetCodepoint( Codepoint );
     void SetMousePos( v2 screenspace );
-    void SetMouseWheel( float );
+    void AddMouseWheelDelta( float );
     void ApplyEnd();
   };
 

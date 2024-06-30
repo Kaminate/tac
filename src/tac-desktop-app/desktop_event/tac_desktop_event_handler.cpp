@@ -78,7 +78,7 @@ namespace Tac
 
   void DesktopEventHandler::Handle( const DesktopEventApi::MouseWheelEvent& data ) 
   {
-    mKeyboardBackend->SetMouseWheel( data.mDelta );
+    mKeyboardBackend->AddMouseWheelDelta( data.mDelta );
   }
 
   void DesktopEventHandler::Handle( const DesktopEventApi::WindowMoveEvent& data ) 

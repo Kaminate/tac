@@ -75,10 +75,10 @@ namespace Tac
     sMousePosScreenspace = screenspace;
   }
 
-  void SysKeyboardApiBackend::SetMouseWheel( float wheelPos )
+  void SysKeyboardApiBackend::AddMouseWheelDelta( float wheelDelta )
   {
     TAC_ASSERT( sModificationAllowed );
-    sMouseWheel = wheelPos;
+    sMouseWheel += wheelDelta;
   }
 
   // -----------------------------------------------------------------------------------------------
