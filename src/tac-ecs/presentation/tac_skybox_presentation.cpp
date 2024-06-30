@@ -265,6 +265,10 @@ void Tac::SkyboxPresentationRender( Render::IContext* renderContext,
 
 void                          Tac::SkyboxPresentationDebugImGui()
 {
+  if( !ImGuiCollapsingHeader( "Skybox" ) )
+    return;
+
+  TAC_IMGUI_INDENT_BLOCK;
   ImGuiCheckbox( "Skybox Enabled", &mRenderEnabledSkybox );
 }
 

@@ -391,7 +391,5 @@ void Tac::ShadowPresentationRender( World* world, Errors& errors )
 
 void Tac::ShadowPresentationDebugImGui()
 {
-  if( !ImGuiCollapsingHeader( "Shadow Presentation" ) )
-    return;
 }
 

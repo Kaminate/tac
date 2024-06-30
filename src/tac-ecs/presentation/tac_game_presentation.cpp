@@ -1,37 +1,38 @@
 #include "tac_game_presentation.h" // self-inc
 
 
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/graphics/light/tac_light.h"
+#include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/graphics/skybox/tac_skybox_component.h"
+#include "tac-ecs/graphics/tac_graphics.h"
+#include "tac-ecs/physics/tac_physics.h"
+#include "tac-ecs/presentation/tac_mesh_presentation.h"
+#include "tac-ecs/presentation/tac_radiosity_bake_presentation.h"
+#include "tac-ecs/presentation/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/tac_terrain_presentation.h"
+#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
+#include "tac-ecs/terrain/tac_terrain.h"
+#include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/graphics/camera/tac_camera.h"
-#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/tac_ints.h"
-#include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-ecs/graphics/tac_graphics.h"
-#include "tac-ecs/graphics/light/tac_light.h"
-#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/physics/tac_physics.h"
-#include "tac-ecs/presentation/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/tac_mesh_presentation.h"
-#include "tac-ecs/presentation/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/tac_terrain_presentation.h"
-#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
-#include "tac-ecs/graphics/skybox/tac_skybox_component.h"
-#include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/world/tac_world.h"
-#include "tac-ecs/terrain/tac_terrain.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
+#include "tac-std-lib/tac_ints.h"
 
 
 #if TAC_GAME_PRESENTATION_ENABLED()
@@ -88,6 +89,11 @@ void        Tac::GamePresentationInit( Errors& errors )
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     TAC_CALL( VoxelGIPresentationInit( errors ) );
 #endif
+
+#if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
+    TAC_CALL( RadiosityBakePresentation::Init( errors ) );
+#endif
+
   sInitialized = true;
 }
 
@@ -99,9 +105,15 @@ void        Tac::GamePresentationUninit()
     MeshPresentationUninit();
     SkyboxPresentationUninit();
     ShadowPresentationUninit();
+
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     VoxelGIPresentationUninit();
 #endif
+
+#if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
+    RadiosityBakePresentation::Uninit();
+#endif
+
     sInitialized = false;
   }
 
@@ -166,6 +178,13 @@ void        Tac::GamePresentationRender( Render::IContext* renderContext,
 #endif
 #endif
 
+#if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
+  RadiosityBakePresentation::Render( renderContext,
+                                     world,
+                                     camera,
+                                     errors );
+#endif
+
   if( mRenderEnabledDebug3D )
   {
     TAC_CALL( const Debug3DDrawBuffers::Buffer * debug3DDrawBuffer{
@@ -195,6 +214,7 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
   ShadowPresentationDebugImGui();
   SkyboxPresentationDebugImGui();
   TerrainPresentationDebugImGui();
+  RadiosityBakePresentation::DebugImGui();
 }
 
 #endif

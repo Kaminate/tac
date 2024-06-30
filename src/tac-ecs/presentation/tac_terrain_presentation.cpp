@@ -453,7 +453,7 @@ void Tac::TerrainPresentationDebugImGui()
     return;
 
   TAC_IMGUI_INDENT_BLOCK;
-
+  ImGuiCheckbox( "Terrain Enabled", &mRenderEnabledTerrain );
 }
 
 #endif
