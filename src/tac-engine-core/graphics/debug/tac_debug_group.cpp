@@ -47,6 +47,19 @@ namespace Tac::Render::DebugGroup
     return Iterator( context );
   }
 
+    void           Stack::AssertNodeHeights() const
+    {
+
+      for( const Render::DebugGroup::Node& node : mNodes )
+      {
+        ++asdf;
+        TAC_ASSERT( node.mHeight < 100 );
+        ++asdf;
+        TAC_ASSERT( node.mHeight >= 0 );
+        ++asdf;
+      }
+    }
+
   void        Stack::IterateElement( Iterator& it,
                                      const NodeIndex info ) const
   {
@@ -83,7 +96,7 @@ namespace Tac::Render::DebugGroup
     }
   }
 
-  void        Stack::IterateEnd( Iterator& it )
+  void        Stack::IterateEnd( Iterator& it ) const
   {
     const int n { it.mNodeStack.size() };
     for( int i{}; i < n; ++i )
@@ -95,7 +108,7 @@ namespace Tac::Render::DebugGroup
 
   Node*       Stack::FindNode( NodeIndex i )
   {
-    return  i == NullNodeIndex ? nullptr : &mNodes[ i ];
+    return i == NullNodeIndex ? nullptr : &mNodes[ i ];
   }
 
   const Node* Stack::FindNode( NodeIndex i ) const
@@ -105,10 +118,13 @@ namespace Tac::Render::DebugGroup
 
   void     Stack::Push( StringView str )
   {
-    const Node* parentNode { FindNode( mCurNodeIdx ) };
     const NodeIndex nodeIndex{ mNodes.size() };
 
     mNodes.resize( nodeIndex + 1 );
+
+    // Find parent node after resize (or else it can be invalidated)
+    const Node* parentNode { FindNode( mCurNodeIdx ) };
+
     mNodes.back() = Node
     {
       .mName   { str },

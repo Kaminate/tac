@@ -7,6 +7,7 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_span.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac::Render::DebugGroup
@@ -60,7 +61,13 @@ namespace Tac::Render::DebugGroup
 
     Iterator       IterateBegin( Render::IContext* ) const;
     void           IterateElement( Iterator&, NodeIndex ) const;
-    void           IterateEnd( Iterator& );
+    void           IterateEnd( Iterator& ) const;
+    void           AssertNodeHeights() const;
+    
+    Span< const Node > GetNodes() const
+    {
+      return Span< const Node >( mNodes.data(), mNodes.size() );
+    }
 
   private:
     Node*          FindNode( NodeIndex );
