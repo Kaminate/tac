@@ -23,7 +23,7 @@ namespace Tac
     return mName;
   }
 
-  size_t            MetaCompositeType::GetSizeOf() const
+  int               MetaCompositeType::GetSizeOf() const
   {
     return mSize;
   }

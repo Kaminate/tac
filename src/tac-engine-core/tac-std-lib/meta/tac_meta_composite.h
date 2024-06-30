@@ -22,7 +22,7 @@ namespace Tac
   {
     MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars );
     const char*           GetName() const override;
-    size_t                GetSizeOf() const override;
+    int                   GetSizeOf() const override;
     String                ToString( const void* ) const override;
     float                 ToNumber( const void* ) const override;
     void                  Cast( void* dst, const void* src, const MetaType* srcType ) const override;
@@ -33,7 +33,7 @@ namespace Tac
   private:
     Vector< MetaMember >  mMetaVars;
     const char*           mName;
-    size_t                mSize;
+    int                   mSize;
   };
 
 #define TAC_REQUIRE_SEMICOLON void missing_semicolon()

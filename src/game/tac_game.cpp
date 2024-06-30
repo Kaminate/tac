@@ -10,8 +10,6 @@
 #include "tac-ecs/ghost/tac_ghost.h"
 #include "tac-ecs/tac_space.h"
 
-import std; // #include <functional> // std::function
-
 namespace Tac
 {
   static WindowHandle   mWindowHandle;

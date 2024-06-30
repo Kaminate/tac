@@ -3,8 +3,6 @@
 #include "tac-engine-core/shell/tac_shell_timestamp.h"
 #include "tac-std-lib/tac_ints.h"
 
-//import std; // chrono
-
 namespace Tac
 {
   struct Timepoint

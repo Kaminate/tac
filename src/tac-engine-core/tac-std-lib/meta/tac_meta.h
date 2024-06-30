@@ -1,15 +1,12 @@
 #pragma once
 
-import std; // size_t
-//#include <cstddef> // size_t
-
 namespace Tac
 {
   struct Json;
   struct MetaType
   {
     virtual const char* GetName() const = 0;
-    virtual size_t      GetSizeOf() const = 0;
+    virtual int         GetSizeOf() const = 0;
     virtual String      ToString( const void* ) const = 0;
     virtual float       ToNumber( const void* ) const = 0;
     virtual void        Cast( void* dst, const void* src, const MetaType* srcType ) const = 0;

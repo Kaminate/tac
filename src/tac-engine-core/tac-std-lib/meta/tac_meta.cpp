@@ -42,7 +42,7 @@ namespace Tac
   struct IntMetaType : public MetaType
   {
     const char* GetName() const override;
-    size_t      GetSizeOf() const override;
+    int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
     void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
@@ -54,7 +54,7 @@ namespace Tac
   struct CharStarMetaType : public MetaType
   {
     const char* GetName() const override;
-    size_t      GetSizeOf() const override;
+    int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
     void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
@@ -66,7 +66,7 @@ namespace Tac
   struct FloatMetaType : public MetaType
   {
     const char* GetName() const override;
-    size_t      GetSizeOf() const override;
+    int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
     void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
@@ -78,7 +78,7 @@ namespace Tac
   struct DoubleMetaType : public MetaType
   {
     const char* GetName() const override;
-    size_t      GetSizeOf() const override;
+    int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
     void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
@@ -91,7 +91,7 @@ namespace Tac
   struct NullMetaType : public MetaType
   {
     const char* GetName() const override;
-    size_t      GetSizeOf() const override;
+    int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
     void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
@@ -126,7 +126,7 @@ namespace Tac
 
   const char* IntMetaType::GetName() const  { return "int"; }
 
-  size_t      IntMetaType::GetSizeOf() const  { return sizeof( int ); }
+  int         IntMetaType::GetSizeOf() const  { return sizeof( int ); }
 
   float       IntMetaType::ToNumber( const void* v ) const
   {
@@ -152,7 +152,7 @@ namespace Tac
 
   const char* FloatMetaType::GetName() const { return "float"; }
 
-  size_t      FloatMetaType::GetSizeOf() const { return sizeof( float ); }
+  int         FloatMetaType::GetSizeOf() const { return sizeof( float ); }
 
   float       FloatMetaType::ToNumber( const void* v ) const { return ToFloat( v ); }
 
@@ -193,7 +193,7 @@ namespace Tac
 
   const char* DoubleMetaType::GetName() const { return "double"; }
 
-  size_t      DoubleMetaType::GetSizeOf() const { return sizeof( double ); }
+  int         DoubleMetaType::GetSizeOf() const { return sizeof( double ); }
 
   float       DoubleMetaType::ToNumber( const void* v ) const 
   {
@@ -219,7 +219,7 @@ namespace Tac
 
   const char* NullMetaType::GetName() const              { return "null"; }
 
-  size_t      NullMetaType::GetSizeOf() const            { return 0; }
+  int         NullMetaType::GetSizeOf() const            { return 0; }
 
   String      NullMetaType::ToString( const void* v ) const    { return "null"; }
 
@@ -244,7 +244,7 @@ namespace Tac
 
   const char* CharStarMetaType::GetName() const  { return "char*"; }
 
-  size_t      CharStarMetaType::GetSizeOf() const  { return sizeof( char* ); }
+  int         CharStarMetaType::GetSizeOf() const  { return sizeof( char* ); }
 
   String      CharStarMetaType::ToString( const void* v ) const  { return *( const char** )v; }
 

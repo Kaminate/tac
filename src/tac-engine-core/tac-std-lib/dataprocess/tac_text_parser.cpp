@@ -3,8 +3,6 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
-//import std; // cstdlib(strtof)
-
 namespace Tac
 {
 
@@ -60,18 +58,9 @@ namespace Tac
     return result > 0;
   }
 
-  static Optional<float> ToFloat( StringView s )
+  static Optional< float > ToFloat( StringView s )
   {
     return Atof( s );
-#if 0
-    // std::strtof requires a szstring
-    const String szstr( s );
-    const char* szbegin { szstr.data() };
-    char* szend;
-    const float number { std::strtof( szbegin, &szend ) };
-    const bool valid { !( number == 0 && szend == szbegin ) };
-    return valid ? Optional<float>{ number } : Optional<float>{};
-#endif
   }
 
   Optional<float>   ParseData::EatFloat()
