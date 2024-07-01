@@ -13,6 +13,7 @@
 #include "tac-ecs/presentation/tac_skybox_presentation.h"
 #include "tac-ecs/presentation/tac_terrain_presentation.h"
 #include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
+#include "tac-ecs/presentation/tac_infinite_grid_presentation.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
@@ -83,7 +84,15 @@ void        Tac::GamePresentationInit( Errors& errors )
     return;
 
   TAC_CALL( MeshPresentationInit( errors ) );
+
+#if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
+  TAC_CALL( InfiniteGrid::Init( errors ) );
+#endif
+
+#if TAC_SKYBOX_PRESENTATION_ENABLED()
   TAC_CALL( SkyboxPresentationInit( errors ) );
+#endif
+
   TAC_CALL( ShadowPresentationInit( errors ) );
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
@@ -102,9 +111,20 @@ void        Tac::GamePresentationUninit()
   if( sInitialized )
   {
     Create3DVertexFormat();
+
+#if TAC_MESH_PRESENTATION_ENABLED()
     MeshPresentationUninit();
+#endif
+
+#if TAC_SKYBOX_PRESENTATION_ENABLED()
     SkyboxPresentationUninit();
+#endif
+
     ShadowPresentationUninit();
+
+#if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
+    InfiniteGrid::Uninit();
+#endif
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     VoxelGIPresentationUninit();

@@ -37,9 +37,10 @@ namespace Tac::FileSys
   static String FormatFileError( const Path& path, const char* operation )
   {
     std::stringstream ss;
-    ss << "Failed to open path for ";
-    ss << operation;
+    ss << "Failed to open path (";
     ss << path.Get();
+    ss << ") for ";
+    ss << operation;
     String errmsg( ss.str().c_str() );
     return errmsg;
   }

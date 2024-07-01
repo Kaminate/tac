@@ -6,6 +6,8 @@
 namespace Tac { struct Camera; }
 
 #define TAC_VOXEL_GI_PRESENTATION_ENABLED() 0
+
+
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED
 
 namespace Tac

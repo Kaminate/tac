@@ -2,6 +2,7 @@ target_sources( TacECS
   PUBLIC
   "tac_game_presentation.h"
   "tac_mesh_presentation.h"
+  "tac_infinite_grid_presentation.h"
   "tac_voxel_gi_presentation.h"
   "tac_terrain_presentation.h"
   "tac_shadow_presentation.h"
@@ -10,6 +11,7 @@ target_sources( TacECS
   PRIVATE
   "tac_game_presentation.cpp"
   "tac_mesh_presentation.cpp"
+  "tac_infinite_grid_presentation.cpp"
   "tac_voxel_gi_presentation.cpp"
   "tac_terrain_presentation.cpp"
   "tac_shadow_presentation.cpp"
