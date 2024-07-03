@@ -160,7 +160,7 @@ namespace Tac
 
     const Render::DrawArgs drawArgs
     {
-      .mVertexCount { 3 },
+      .mVertexCount { 6 },
     };
 
     UpdateConstantData( camera, viewSize );
