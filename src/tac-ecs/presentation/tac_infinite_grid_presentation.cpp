@@ -9,7 +9,8 @@ namespace Tac
 
   struct ConstantBuffer
   {
-    m4 mView;
+    m4 mInvView;
+    m4 mInvProj;
   };
 
   static Render::ProgramHandle         sProgram;
@@ -22,11 +23,16 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static void UpdateConstantData( const Camera* camera )
+  static void UpdateConstantData( const Camera* camera, const v2i viewSize )
   {
+    const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
+    const m4 invView{ camera->ViewInv() };
+    const m4 invProj{ camera->ProjInv( aspectRatio ) };
+
     const ConstantBuffer constantBuffer
     {
-      .mView { camera->View() },
+      .mInvView { invView },
+      .mInvProj { invProj },
     };
     sConstantData = constantBuffer;
   }
@@ -157,7 +163,7 @@ namespace Tac
       .mVertexCount { 3 },
     };
 
-    UpdateConstantData( camera );
+    UpdateConstantData( camera, viewSize );
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Infinite Grid" );
     renderContext->SetViewport( viewSize );

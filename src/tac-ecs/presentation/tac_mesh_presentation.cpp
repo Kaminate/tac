@@ -1,6 +1,5 @@
 #include "tac_mesh_presentation.h" // self-inc
 
-
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
