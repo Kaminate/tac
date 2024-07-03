@@ -63,6 +63,7 @@ namespace Tac
       float mFOVYRadians;
     };
     static m4    ProjPerspective( ProjectionMatrixParams );
+    static m4    ProjPerspectiveInv( ProjectionMatrixParams );
     static m4    ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio );
   };
 

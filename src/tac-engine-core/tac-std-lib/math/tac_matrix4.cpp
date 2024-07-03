@@ -357,65 +357,81 @@ namespace Tac
     return result;
   }
 
+  struct AB
+  {
+    AB( m4::ProjectionMatrixParams params )
+    {
+      // Given the following knowns:
+      //   -n in view space is projected onto parmas.mNDCNearZ in ndc space
+      //   -f in view space is projected onto parmas.mNDCFarZ in ndc space
+      //   
+      // We are solving for the following unknowns:
+      //   A
+      //   B
+      //
+      // [ sX 0  0  0 ] [ x_view ] = [ sX * x_view    ]           [ ( sX * x_view ) / -z_view    ]
+      // [ 0  sY 0  0 ] [ y_view ] = [ sY * y_view    ] /w_clip = [ ( sY * y_view ) / -z_view    ]
+      // [ 0  0  A  B ] [ z_view ] = [ z_view * A + B ]           [ ( z_view * A + B ) / -z_view ]
+      // [ 0  0 -1  0 ] [ 1      ] = [    -z_view     ]           [              1               ]
+      //    ProjMtx     view space      clip space                          ndc space
+      //
+      // z_ndc = ( ( z_view ) A + B ) / ( -z_view )
+      //
+      // Two equations, two unknowns
+      // params.mNDCMinZ = ( -nA + B ) / n
+      // params.mNDCMaxZ = ( -fA + B ) / f
+
+      const float f { params.mViewSpaceFar };
+      const float n { params.mViewSpaceNear };
+
+      const float ndcZMin { params.mNDCMinZ }; // 0 in DirectX, -1 in OpenGL
+      const float ndcZMax { params.mNDCMaxZ }; // 1 in DirectX, 1 in OpenGL
+
+      float A {};
+      float B {};
+
+      if( ndcZMin == -1 && ndcZMax == 1 ) // OpenGL style
+      {
+        // -1 = ( -nA + B ) / n
+        //  1 = ( -fA + B ) / f
+        A = ( n + f ) / ( n - f );
+        B = n * ( A - 1 );
+      }
+      else if(  ndcZMin == 0 && ndcZMax == 1 ) // DirectX style
+      {
+        // 0 = ( -nA + B ) / n
+        // 1 = ( -fA + B ) / f
+        A = ( 1 * f ) / ( n - f );
+        B = ( n * f ) / ( n - f );
+
+        // note that https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
+        // uses -A and -B from ours, but their perspective matrix uses a 1 instead of our -1
+      }
+      else
+      {
+        TAC_ASSERT_INVALID_CODE_PATH;
+      }
+
+      mA = A;
+      mB = B;
+    }
+
+    float mA;
+    float mB;
+  };
+
   m4           m4::ProjPerspective( ProjectionMatrixParams params )
   {
     TAC_ASSERT( params.mViewSpaceNear > 0 );
     TAC_ASSERT( params.mViewSpaceFar > 0 );
 
-    const float ndcZMin { params.mNDCMinZ }; // 0 in DirectX, -1 in OpenGL
-    const float ndcZMax { params.mNDCMaxZ }; // 1 in DirectX, 1 in OpenGL
 
-    // Given the following knowns:
-    //   -n in view space is projected onto parmas.mNDCNearZ in ndc space
-    //   -f in view space is projected onto parmas.mNDCFarZ in ndc space
-    //   
-    // We are solving for the following unknowns:
-    //   A
-    //   B
-    //
-    // [ sX 0  0  0 ] [ x_view ] = [ sX * x_view    ]           [ ( sX * x_view ) / -z_view    ]
-    // [ 0  sY 0  0 ] [ y_view ] = [ sY * y_view    ] /w_clip = [ ( sY * y_view ) / -z_view    ]
-    // [ 0  0  A  B ] [ z_view ] = [ z_view * A + B ]           [ ( z_view * A + B ) / -z_view ]
-    // [ 0  0 -1  0 ] [ 1      ] = [    -z_view     ]           [              1               ]
-    //    ProjMtx     view space      clip space                          ndc space
-    //
-    // z_ndc = ( ( z_view ) A + B ) / ( -z_view )
-    //
-    // Two equations, two unknowns
-    // params.mNDCMinZ = ( -nA + B ) / n
-    // params.mNDCMaxZ = ( -fA + B ) / f
-
-    const float f { params.mViewSpaceFar };
-    const float n { params.mViewSpaceNear };
-
-    float A {};
-    float B {};
-
-    if( params.mNDCMinZ == -1 && params.mNDCMaxZ == 1 ) // OpenGL style
-    {
-      // -1 = ( -nA + B ) / n
-      //  1 = ( -fA + B ) / f
-      A = ( n + f ) / ( n - f );
-      B = n * ( A - 1 );
-    }
-    else if(  params.mNDCMinZ == 0 && params.mNDCMaxZ == 1 ) // DirectX style
-    {
-      // 0 = ( -nA + B ) / n
-      // 1 = ( -fA + B ) / f
-      A = ( 1 * f ) / ( n - f );
-      B = ( n * f ) / ( n - f );
-
-      // note that https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
-      // uses -A and -B from ours, but their perspective matrix uses a 1 instead of our -1
-    }
-    else
-    {
-      TAC_ASSERT_INVALID_CODE_PATH;
-    }
-
-    float cotTheta { 1.0f / Tan( params.mFOVYRadians / 2.0f ) };
-    float sX { cotTheta / params.mAspectRatio }; // sX, sY map to -1, 1
-    float sY { cotTheta };
+    const AB ab( params );
+    const float A { ab.mA};
+    const float B { ab.mB };
+    const float cotTheta { 1.0f / Tan( params.mFOVYRadians / 2.0f ) };
+    const float sX { cotTheta / params.mAspectRatio }; // sX, sY map to -1, 1
+    const float sY { cotTheta };
 
     return { sX, 0, 0, 0,
              0, sY, 0, 0,
@@ -456,6 +472,22 @@ namespace Tac
              0, sY, 0, 0,
              0, 0, A, B,
              0, 0, -1, 0 };
+  }
+
+  m4           m4::ProjPerspectiveInv( ProjectionMatrixParams params )
+  {
+    // http://allenchou.net/2014/02/game-math-how-to-eyeball-the-inverse-of-a-matrix/
+    const float theta = params.mFOVYRadians / 2.0f;
+    const float cotTheta = 1.0f / Tan( theta );
+    const float sX = cotTheta / params.mAspectRatio; // maps x to -1, 1
+    const float sY = cotTheta; // maps y to -1, 1
+    const AB ab( params );
+    const float A { ab.mA};
+    const float B { ab.mB };
+    return { 1.0f / sX, 0, 0, 0,
+             0, 1.0f / sY, 0, 0,
+             0, 0, 0, -1,
+             0, 0, 1.0f / B, A / B };
   }
 
   m4           m4::ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
