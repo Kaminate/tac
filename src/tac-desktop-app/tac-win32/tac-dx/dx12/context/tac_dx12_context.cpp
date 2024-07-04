@@ -362,6 +362,8 @@ namespace Tac::Render
       };
       transitionHelper.Append( transitionParams );
 
+      TAC_ASSERT( colorTexture->mRTV.HasValue() );
+      TAC_ASSERT( colorTexture->mRTV->IsValid() );
       rtDescs.push_back( colorTexture->mRTV->GetCPUHandle() );
     }
 

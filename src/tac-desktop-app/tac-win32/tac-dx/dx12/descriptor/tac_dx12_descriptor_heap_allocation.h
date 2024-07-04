@@ -11,7 +11,7 @@ namespace Tac::Render
   {
     D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle( int = 0 ) const;
     D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle( int = 0 ) const;
-    bool Valid() const;
+    bool IsValid() const;
 
     DX12DescriptorHeap* mOwner {};
     int                 mIndex {};

@@ -42,7 +42,7 @@ namespace Tac::Render
     mGPUDescs.push_back( move( mGpuRegionMgr->Alloc( nDescriptors ) ) );
 
     DX12DescriptorRegion* result{ &mGPUDescs.back() };
-    TAC_ASSERT( result->Valid() );
+    TAC_ASSERT( result->IsValid() );
     return result;
   }
 

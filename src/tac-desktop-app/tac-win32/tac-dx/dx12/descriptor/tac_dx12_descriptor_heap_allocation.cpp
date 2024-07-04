@@ -13,7 +13,7 @@ namespace Tac::Render
     return mOwner->IndexGPUDescriptorHandle( mIndex + offset);
   }
 
-  bool DX12Descriptor::Valid() const
+  bool DX12Descriptor::IsValid() const
   {
     return mCount && mOwner;
   }
