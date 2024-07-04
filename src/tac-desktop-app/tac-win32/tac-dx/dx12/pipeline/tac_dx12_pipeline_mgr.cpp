@@ -5,17 +5,8 @@
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-dx/dx12/pipeline/tac_dx12_root_sig_builder.h"
 #include "tac-dx/dx12/pipeline/tac_dx12_input_layout.h"
-
-//#include "tac-dx/hlsl/tac_hlsl_preprocess.h"
-//#include "tac-dx/dxc/tac_dxc.h"
-//#include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
-//#include "tac-dx/dx12/tac_dx12_root_sig_bindings.h" // D3D12RootSigBindings
+#include "tac-rhi/render3/tac_render_backend.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-//#include "tac-dx/dx12/tac_dx12_root_sig_builder.h"
-
-#if !TAC_DELETE_ME()
-#include "tac-std-lib/os/tac_os.h"
-#endif
 
 namespace Tac::Render
 {
@@ -23,7 +14,7 @@ namespace Tac::Render
   {
     switch( depthFunc )
     {
-    case DepthFunc::Less: return D3D12_COMPARISON_FUNC_LESS;
+    case DepthFunc::Less:        return D3D12_COMPARISON_FUNC_LESS;
     case DepthFunc::LessOrEqual: return D3D12_COMPARISON_FUNC_LESS_EQUAL;
     default: TAC_ASSERT_INVALID_CASE( depthFunc ); return D3D12_COMPARISON_FUNC_LESS;
     }
@@ -33,8 +24,8 @@ namespace Tac::Render
   {
     switch( fillMode )
     {
-    case FillMode::Solid: return D3D12_FILL_MODE_SOLID;
-    case FillMode::Wireframe:return D3D12_FILL_MODE_WIREFRAME;
+    case FillMode::Solid:     return D3D12_FILL_MODE_SOLID;
+    case FillMode::Wireframe: return D3D12_FILL_MODE_WIREFRAME;
     default: TAC_ASSERT_INVALID_CASE( fillMode ); return D3D12_FILL_MODE_SOLID;
     }
   }
@@ -43,8 +34,8 @@ namespace Tac::Render
   {
     switch( cullMode )
     {
-    case CullMode::None: return D3D12_CULL_MODE_NONE;
-    case CullMode::Back: return D3D12_CULL_MODE_BACK;
+    case CullMode::None:  return D3D12_CULL_MODE_NONE;
+    case CullMode::Back:  return D3D12_CULL_MODE_BACK;
     case CullMode::Front: return D3D12_CULL_MODE_FRONT;
     default: TAC_ASSERT_INVALID_CASE( cullMode ); return D3D12_CULL_MODE_NONE;
     }
@@ -54,10 +45,10 @@ namespace Tac::Render
   {
     switch( blendConstants )
     {
-    case BlendConstants::One: return D3D12_BLEND_ONE;
-    case BlendConstants::Zero: return D3D12_BLEND_ZERO;
-    case BlendConstants::SrcRGB: return D3D12_BLEND_SRC_COLOR;
-    case BlendConstants::SrcA: return D3D12_BLEND_SRC_ALPHA;
+    case BlendConstants::One:          return D3D12_BLEND_ONE;
+    case BlendConstants::Zero:         return D3D12_BLEND_ZERO;
+    case BlendConstants::SrcRGB:       return D3D12_BLEND_SRC_COLOR;
+    case BlendConstants::SrcA:         return D3D12_BLEND_SRC_ALPHA;
     case BlendConstants::OneMinusSrcA: return D3D12_BLEND_INV_SRC_ALPHA;
     default: TAC_ASSERT_INVALID_CASE( blendConstants ); return D3D12_BLEND_ONE;
     }
@@ -88,6 +79,7 @@ namespace Tac::Render
     }
   }
 
+
   // -----------------------------------------------------------------------------------------------
 
   void DX12PipelineMgr::Init( ID3D12Device* device, DX12ProgramMgr* programMgr )
@@ -99,10 +91,15 @@ namespace Tac::Render
   void DX12PipelineMgr::DestroyPipeline( PipelineHandle h )
   {
     if( h.IsValid() )
+    {
+      FreeHandle( h );
       mPipelines[ h.GetIndex() ] = {};
+    }
   }
 
-  void DX12PipelineMgr::CreatePipeline( PipelineHandle h, PipelineParams params, Errors& errors )
+  void           DX12PipelineMgr::CreatePipelineAtIndex( PipelineHandle h,
+                                                         PipelineParams params,
+                                                         Errors& errors )
   {
     ID3D12Device* device{ mDevice };
     DX12Program* program{ mProgramMgr->FindProgram( params.mProgram ) };
@@ -202,12 +199,44 @@ namespace Tac::Render
       .mPSO             { pso },
       .mRootSignature   { rootSig },
       .mShaderVariables { shaderVariables },
+      .mPipelineParams  { params },
     };
+  }
+
+  PipelineHandle DX12PipelineMgr::CreatePipeline( PipelineParams params, Errors& errors )
+  {
+    const PipelineHandle h{ AllocPipelineHandle() };
+    CreatePipelineAtIndex( h, params, errors );
+    return h;
   }
 
   DX12Pipeline* DX12PipelineMgr::FindPipeline( PipelineHandle h )
   {
     return h.IsValid() ? &mPipelines[ h.GetIndex() ] : nullptr;
   }
+
+  void          DX12PipelineMgr::HotReload( Span< ProgramHandle > changedPrograms,
+                                            Errors& errors )
+  {
+    const int n{mPipelines.size()};
+    for( int i{}; i < n; ++i )
+    {
+      DX12Pipeline& pipeline{ mPipelines[ i ] };
+      if( !pipeline.IsValid() )
+        continue;
+
+      bool programChanged = false;
+      for( ProgramHandle changedProgram : changedPrograms )
+        if( pipeline.mPipelineParams.mProgram.GetIndex() == changedProgram.GetIndex() )
+          programChanged = true;
+
+      if( !programChanged )
+        continue;
+
+      PipelineHandle h{ i };
+      TAC_CALL( CreatePipelineAtIndex( h, pipeline.mPipelineParams, errors ) );
+    }
+  }
+
 } // namespace Tac::Render
 

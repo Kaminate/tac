@@ -3,11 +3,10 @@
 #include "tac-dx/hlsl/tac_hlsl_preprocess.h"
 #include "tac-dx/dxc/tac_dxc.h"
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
-//#include "tac-dx/dx12/program/tac_dx12_program_bindings.h" // D3D12ProgramBindings
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-//#include "tac-dx/dx12/tac_dx12_root_sig_builder.h"
-
+#include "tac-std-lib/os/tac_os.h"
 #include "tac-rhi/render3/tac_render_backend.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 
 #if !TAC_DELETE_ME()
 #include "tac-std-lib/os/tac_os.h"
@@ -15,7 +14,10 @@
 
 namespace Tac::Render
 {
-  static const D3D_SHADER_MODEL sShaderModel = D3D_SHADER_MODEL_6_5;
+  static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
+  static Timestamp              sHotReloadTick;
+  static const char*            sShaderExt{ ".hlsl" };
+  static const char*            sShaderDir{ "assets/hlsl/" };
 
   static D3D12_SHADER_BYTECODE IDxcBlobToBytecode( PCom<IDxcBlob>& blob )
   {
@@ -49,84 +51,12 @@ namespace Tac::Render
     return lowestDefined;
   }
 
-#if 0
-  static D3D12RootSigBinding::Type ShaderInputToRootSigBindType( D3D_SHADER_INPUT_TYPE Type )
+  static DXCCompileOutput Compile( StringView fileStem, Errors& errors )
   {
-    switch( Type )
-    {
-    case D3D_SIT_CBUFFER: return D3D12RootSigBinding::Type::kCBuf;
-    case D3D_SIT_TEXTURE: return D3D12RootSigBinding::Type::kTexture;
-    case D3D_SIT_SAMPLER: return D3D12RootSigBinding::Type::kSampler;
-    case D3D_SIT_BYTEADDRESS: return D3D12RootSigBinding::Type::kSRV;
-    default: TAC_ASSERT_INVALID_CASE( Type ); return D3D12RootSigBinding::Type::kUnknown;
-    }
-  }
+    const String fileName{ fileStem + sShaderExt };
+    const String filePath{ sShaderDir + fileName };
 
-  static void ShaderInputToRootSigBinding( D3D12_SHADER_INPUT_BIND_DESC& info,
-                                           D3D12RootSigBindings* bindings )
-  {
-  }
-
-  static D3D12_DESCRIPTOR_RANGE_TYPE ShaderInputToDescriptorRangeType( D3D_SHADER_INPUT_TYPE Type )
-  {
-    switch( Type )
-    {
-    case D3D_SIT_SAMPLER: return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-    case D3D_SIT_CBUFFER: return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-    case D3D_SIT_BYTEADDRESS: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    case D3D_SIT_TEXTURE: return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    default: TAC_ASSERT_INVALID_CASE( Type ); return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-    }
-  }
-
-  static D3D12_ROOT_PARAMETER_TYPE ShaderInputToRootParamType( D3D_SHADER_INPUT_TYPE Type )
-  {
-    switch( Type )
-    {
-    case D3D_SIT_CBUFFER:     return D3D12_ROOT_PARAMETER_TYPE_CBV;
-    case D3D_SIT_BYTEADDRESS: return D3D12_ROOT_PARAMETER_TYPE_SRV;
-    case D3D_SIT_TEXTURE:     return D3D12_ROOT_PARAMETER_TYPE_SRV;
-    case D3D_SIT_SAMPLER:
-      TAC_ASSERT_CRITICAL( "Samplers are bound through descriptor heaps "
-                           "and cannot be root parameters" );
-      return ( D3D12_ROOT_PARAMETER_TYPE )0;
-    default: TAC_ASSERT_INVALID_CASE( Type ); return ( D3D12_ROOT_PARAMETER_TYPE )0;
-    }
-  }
-
-#endif
-
-
-  // -----------------------------------------------------------------------------------------------
-
-  void DX12ProgramMgr::Init( ID3D12Device* device, Errors& errors )
-  {
-    mDevice = device;
-
-    const D3D_SHADER_MODEL highestShaderModel { GetHighestShaderModel( device ) };
-    TAC_RAISE_ERROR_IF( sShaderModel > highestShaderModel, "Shader model too high" );
-  }
-
-  DX12Program* DX12ProgramMgr::FindProgram( ProgramHandle h )
-  {
-    return h.IsValid() ? &mPrograms[ h.GetIndex() ] : nullptr;
-  }
-
-  void DX12ProgramMgr::DestroyProgram( ProgramHandle h )
-  {
-    if( h.IsValid() )
-    {
-      FreeHandle( h );
-      mPrograms[ h.GetIndex() ] = {};
-    }
-  }
-
-  ProgramHandle DX12ProgramMgr::CreateProgram( ProgramParams params,
-                                      Errors& errors )
-  {
-    const String fileName{ params.mFileStem + ".hlsl" };
-    TAC_CALL_RET( {}, const String preprocessedShader{
-      HLSLPreprocess( "assets/hlsl/" + fileName, errors ) } );
+    TAC_CALL_RET( {}, const String preprocessedShader{ HLSLPreprocess( filePath, errors ) } );
 
     const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
     const DXCCompileParams input
@@ -138,20 +68,45 @@ namespace Tac::Render
     };
 
     TAC_CALL_RET( {}, DXCCompileOutput output{ DXCCompile( input, errors ) } );
+    return output;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  void DX12ProgramMgr::Init( Params params, Errors& errors )
+  {
+    mDevice = params.mDevice;
+    TAC_ASSERT(mDevice);
+    
+    mPipelineMgr = params.mPipelineMgr;
+    TAC_ASSERT(mPipelineMgr);
+
+    const D3D_SHADER_MODEL highestShaderModel { GetHighestShaderModel( mDevice ) };
+    TAC_RAISE_ERROR_IF( sShaderModel > highestShaderModel, "Shader model too high" );
+  }
+
+  DX12Program*  DX12ProgramMgr::FindProgram( ProgramHandle h )
+  {
+    return h.IsValid() ? &mPrograms[ h.GetIndex() ] : nullptr;
+  }
+
+  void          DX12ProgramMgr::DestroyProgram( ProgramHandle h )
+  {
+    if( h.IsValid() )
+    {
+      FreeHandle( h );
+      mPrograms[ h.GetIndex() ] = {};
+    }
+  }
+
+  void          DX12ProgramMgr::CreateProgramAtIndex( ProgramHandle h ,
+                                                      ProgramParams params,
+                                                      Errors& errors )
+  {
+    TAC_CALL( DXCCompileOutput output{ Compile( params.mFileStem, errors ) } );
 
     const D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
                                          output.mReflInfo.mReflBindings.size() );
-
-    // Here's what im thinking.
-    // Every descriptor table has its own root parameter,
-    // so there wouldn't be a descriptor table that has CBVs, SRVs, and UAVs.
-    // Instead that would be 3 separate root parameters.
-#if 0
-    for( D3D12_SHADER_INPUT_BIND_DESC& info : output.mReflInfo.mReflBindings )
-    {
-      ShaderInputToRootSigBinding( info, &bindings );
-    }
-#endif
 
     const int programInputCount{ output.mReflInfo.mInputs.size() };
     Vector< DX12Program::Input > programInputs( programInputCount );
@@ -166,19 +121,110 @@ namespace Tac::Render
       };
     }
 
-    const ProgramHandle h{ AllocProgramHandle() };
+    const String filePath{ sShaderDir + params.mFileStem + sShaderExt };
+    TAC_CALL( FileSys::Time fileTime{
+      FileSys::GetFileLastModifiedTime( filePath, errors ) } );
+
     mPrograms[ h.GetIndex() ] = DX12Program
     {
       .mFileStem        { params.mFileStem },
+      .mFileTime        { fileTime },
       .mVSBlob          { output.mVSBlob },
       .mVSBytecode      { IDxcBlobToBytecode( output.mVSBlob ) },
       .mPSBlob          { output.mPSBlob },
       .mPSBytecode      { IDxcBlobToBytecode( output.mPSBlob ) },
       .mProgramBindings { bindings },
+      .mProgramParams   { params },
       .mInputs          { programInputs },
     };
 
+  }
+
+  ProgramHandle DX12ProgramMgr::CreateProgram( ProgramParams params,
+                                               Errors& errors )
+  {
+    const ProgramHandle h{ AllocProgramHandle() };
+    CreateProgramAtIndex( h, params, errors );
     return h;
+  }
+
+  void          DX12ProgramMgr::HotReload( Errors& errors )
+  {
+    Timestamp curTime{ Timestep::GetElapsedTime() };
+    TimestampDifference diffTime{ curTime - sHotReloadTick };
+    if( diffTime.mSeconds < 1.0f )
+      return;
+
+    Vector< ProgramHandle > reloadedPrograms;
+
+    const int n{ mPrograms.size()};
+    for( int i{}; i < n; ++i )
+    {
+      ProgramHandle h{i};
+      DX12Program& program{ mPrograms[ i ] };
+      if( program.mFileStem.empty() )
+        continue;
+
+      const String filePath{ sShaderDir + program.mFileStem + sShaderExt };
+      TAC_CALL( FileSys::Time fileTime{ FileSys::GetFileLastModifiedTime( filePath, errors ) } );
+
+      if( fileTime == program.mFileTime )
+        continue;
+
+      Errors reloadErrors;
+
+#if 0
+      DXCCompileOutput output;
+      for( ;; )
+      {
+        output = Compile( program.mFileStem, errors );
+        if( reloadErrors )
+        {
+          const String errorStr{ reloadErrors.ToString() };
+          OS::OSDebugPrintLine( errorStr );
+          OS::OSDebugPopupBox( errorStr );
+          reloadErrors = {};
+        }
+        else
+        {
+          break;
+        }
+      }
+
+      program.mFileTime   = fileTime;
+      program.mVSBlob     = output.mVSBlob;
+      program.mPSBlob     = output.mPSBlob;
+      program.mVSBytecode = IDxcBlobToBytecode( output.mVSBlob );
+      program.mPSBytecode = IDxcBlobToBytecode( output.mPSBlob );
+#else
+
+      for( ;; )
+      {
+        CreateProgramAtIndex( h, program.mProgramParams, reloadErrors );
+        if( reloadErrors )
+        {
+          const String errorStr{ reloadErrors.ToString() };
+          OS::OSDebugPrintLine( errorStr );
+          OS::OSDebugPopupBox( errorStr );
+          reloadErrors = {};
+        }
+        else
+        {
+          break;
+        }
+      }
+#endif
+
+      reloadedPrograms.push_back( h );
+    }
+
+    sHotReloadTick = curTime;
+
+    Span< ProgramHandle > reloadedProgramSpan{
+      reloadedPrograms.data(),
+      reloadedPrograms.size() };
+
+    TAC_CALL( mPipelineMgr->HotReload( reloadedProgramSpan, errors ) );
   }
 } // namespace Tac::Render
 

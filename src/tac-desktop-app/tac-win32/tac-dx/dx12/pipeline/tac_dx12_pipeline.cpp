@@ -11,6 +11,12 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+
+    bool DX12Pipeline:: IsValid() const
+    {
+      return mPSO.Get() != nullptr;
+    }
+
   DX12Pipeline::Variable::Variable( const D3D12ProgramBinding* binding )
   {
     mBinding = binding;

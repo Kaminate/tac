@@ -30,43 +30,10 @@ namespace Tac { struct Errors; }
 namespace Tac::Render
 {
 
-  struct DX12Renderer
-  {
-    void Init( Errors& );
-    void InitDescriptorHeaps( Errors& );
-
-    DX12CommandQueue           mCommandQueue;
-    DX12CommandAllocatorPool   mCommandAllocatorPool;
-    DX12ContextManager         mContextManager;
-    DX12UploadPageMgr          mUploadPageManager;
-    DX12DeviceInitializer      mDeviceInitializer;
-    DX12DebugLayer             mDebugLayer;
-    DX12InfoQueue              mInfoQueue;
-
-    // Managers
-    DX12SwapChainMgr           mSwapChainMgr;
-    DX12BufferMgr              mBufMgr;
-    DX12TextureMgr             mTexMgr;
-    DX12ProgramMgr             mProgramMgr;
-    DX12PipelineMgr            mPipelineMgr;
-    DX12SamplerMgr             mSamplerMgr;
-
-    // CPU Heaps (used for creating resources)
-    DX12DescriptorHeap         mCpuDescriptorHeapRTV;
-    DX12DescriptorHeap         mCpuDescriptorHeapDSV;
-    DX12DescriptorHeap         mCpuDescriptorHeapCBV_SRV_UAV;
-    DX12DescriptorHeap         mCpuDescriptorHeapSampler;
-
-    // GPU Heaps (used for rendering)
-    DX12DescriptorHeap         mGpuDescriptorHeapCBV_SRV_UAV;
-    DX12DescriptorHeap         mGpuDescriptorHeapSampler;
-
-    ID3D12Device* mDevice{};
-  };
-
   struct DX12Device : public IDevice
   {
     void Init( Errors& ) override;
+    void Update( Errors& ) override;
 
     Info            GetInfo() const override;
 
@@ -95,34 +62,5 @@ namespace Tac::Render
     void            DestroyTexture( TextureHandle ) override;
 
     IContext::Scope CreateRenderContext( Errors& ) override;
-
-  private:
-
-
-/*
-    Cmds GetCommandList( ContextHandle, Errors& ) override;
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Frame timings
-
-    // Index of the render target that
-    // 1. our commands will be drawing onto
-    // 2. our swap chain will present to the monitor
-    int                        m_backbufferIndex{};
-
-    // total number of frames sent to the gpu
-    u64                        mSentGPUFrameCount = 0;
-
-    // index of the next gpu frame to be in-flight ( see also MAX_GPU_FRAME_COUNT )
-    u64                        m_gpuFlightFrameIndex = 0;
-
-
-    */
-    /*
-    DX12Samplers               mSamplers;
-    Vector< FenceSignal >      mFenceValues;
-    Vector< DX12Context >      mContexts;
-    */
   };
 } // namespace Tac::Render

@@ -1,3 +1,5 @@
+// 
+
 struct ConstBufStruct
 {
   row_major matrix mInvView;
@@ -61,6 +63,7 @@ VS_OUTPUT VS( VS_INPUT input )
   const matrix invProj = sConstants.mInvProj;
   const uint iVtx = input.mVertexID;
 
+  // https://mynameismjp.wordpress.com/2009/03/10/reconstructing-position-from-depth/
   const float2 nearplane_xy_ndc = GetXY_ndc( iVtx );
   const float4 nearplane_pos_vs_aux = mul( invProj, float4( nearplane_xy_ndc, 0, 1 ) );
   const float4 nearplane_pos_vs = nearplane_pos_vs_aux / nearplane_pos_vs_aux.w;
@@ -100,6 +103,14 @@ bool intersect( float4 rayPos, float4 rayDir, out float t )
   return true;
 }
 
+// https://bgolus.medium.com/the-best-darn-grid-shader-yet-727f9278b9d8
+// http://iquilezles.org/articles/filterableprocedurals
+
+float GetGridColor(float2 uv)
+{
+  return frac(uv.x);
+}
+
 PS_OUTPUT PS( PS_INPUT input )
 {
   const matrix viewProj = sConstants.mViewProj;
@@ -118,8 +129,11 @@ PS_OUTPUT PS( PS_INPUT input )
   float4 hitPos_cs = mul(viewProj, hitPos_ws);
   float4 hitPos_ns = hitPos_cs / hitPos_cs.w;
 
+  float grid = GetGridColor(hitPos_ws.xz);
+
   PS_OUTPUT output;
-  output.mColor = float4( frac( hitPos_ws.xz ), 0, 1 );
+  //output.mColor = float4(frac(hitPos_ws.xz), 0, 1);
+  output.mColor = float4(grid, grid, grid, 1);
   output.mDepth = hitPos_ns.z;
   return output;
 }

@@ -1,11 +1,11 @@
 #pragma once
 
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/string/tac_string_view.h"
 
-import std; // <filesystem>, <ctime> ( std::time_t )
-
-
-namespace Tac { struct String; struct StringView; struct Errors; }
+import std; // <filesystem>
 
 namespace Tac::FileSys
 {
@@ -76,14 +76,13 @@ namespace Tac::FileSys
 
   Path GetCurrentWorkingDirectory();
 
-  [[nodiscard]]
   bool Exists( const Path& );
 
-  [[nodiscard]]
   bool Exists( const char* );
 
   bool IsDirectory( const Path& );
 
+#undef CreateDirectory
   void CreateDirectory( const Path& );
   void CreateDirectory2( const Path& );
 
@@ -107,7 +106,6 @@ namespace Tac::FileSys
 
   void        SaveToFile( const Path&, StringView, Errors& );
   void        SaveToFile( const Path&, const void*, int, Errors& );
-  //void        SaveToFile( const char*, const void*, int, Errors& );
   String      LoadFilePath( const Path&, Errors& );
 
   // not using time_t anymore, just using the default clock cppstl filesystem comes with

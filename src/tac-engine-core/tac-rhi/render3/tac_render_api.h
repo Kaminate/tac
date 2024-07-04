@@ -358,7 +358,7 @@ namespace Tac::Render
 
   struct ProgramParams
   {
-    StringView mFileStem;
+    String     mFileStem;
     StackFrame mStackFrame;
   };
 
@@ -372,7 +372,7 @@ namespace Tac::Render
     TexFmt                   mDSVDepthFmt       { TexFmt::kUnknown };
     VertexDeclarations       mVtxDecls;
     PrimitiveTopology        mPrimitiveTopology { PrimitiveTopology::TriangleList };
-    StringView               mName;
+    String                   mName;
     StackFrame               mStackFrame;
   };
 
@@ -505,6 +505,7 @@ namespace Tac::Render
     };
 
     virtual void            Init( Errors& )                                  {};
+    virtual void            Update( Errors& )                                {};
 
     virtual Info            GetInfo() const                                  { return {}; }
 

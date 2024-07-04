@@ -1,14 +1,6 @@
 #include "tac_renderer_dx12_ver3.h" // self-inc
-#include "tac_dx12_transition_helper.h"
 
-//#include "tac-rhi/render3/tac_render_api.h"
-
-#if !TAC_DELETE_ME()
-#include "tac-std-lib/os/tac_os.h" // OS::DebugBreak
-#endif
-//#include "tac-rhi/render/tac_render.h"
-//#include "tac-rhi/render/tac_render.h"
-//#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
 #include "tac-dx/dxgi/tac_dxgi.h" // DXGICreateSwapChain
 
@@ -16,8 +8,118 @@
 
 namespace Tac::Render
 {
+  struct DX12Renderer
+  {
+    void Init( Errors& );
+    void InitDescriptorHeaps( Errors& );
+
+    DX12CommandQueue           mCommandQueue;
+    DX12CommandAllocatorPool   mCommandAllocatorPool;
+    DX12ContextManager         mContextManager;
+    DX12UploadPageMgr          mUploadPageManager;
+    DX12DeviceInitializer      mDeviceInitializer;
+    DX12DebugLayer             mDebugLayer;
+    DX12InfoQueue              mInfoQueue;
+
+    // Managers
+    DX12SwapChainMgr           mSwapChainMgr;
+    DX12BufferMgr              mBufMgr;
+    DX12TextureMgr             mTexMgr;
+    DX12ProgramMgr             mProgramMgr;
+    DX12PipelineMgr            mPipelineMgr;
+    DX12SamplerMgr             mSamplerMgr;
+
+    // CPU Heaps (used for creating resources)
+    DX12DescriptorHeap         mCpuDescriptorHeapRTV;
+    DX12DescriptorHeap         mCpuDescriptorHeapDSV;
+    DX12DescriptorHeap         mCpuDescriptorHeapCBV_SRV_UAV;
+    DX12DescriptorHeap         mCpuDescriptorHeapSampler;
+
+    // GPU Heaps (used for rendering)
+    DX12DescriptorHeap         mGpuDescriptorHeapCBV_SRV_UAV;
+    DX12DescriptorHeap         mGpuDescriptorHeapSampler;
+
+    ID3D12Device* mDevice{};
+
+    void InitProgramMgr( Errors& errors )
+    {
+      const DX12ProgramMgr::Params params
+      {
+        .mDevice      { mDevice },
+        .mPipelineMgr { &mPipelineMgr },
+      };
+      TAC_CALL( mProgramMgr.Init( params, errors ) );
+    }
+
+    void InitTextureMgr()
+    {
+      const DX12TextureMgr::Params params
+      {
+        .mDevice                       { mDevice },
+        .mCpuDescriptorHeapRTV         { &mCpuDescriptorHeapRTV },
+        .mCpuDescriptorHeapDSV         { &mCpuDescriptorHeapDSV },
+        .mCpuDescriptorHeapCBV_SRV_UAV { &mCpuDescriptorHeapCBV_SRV_UAV },
+        .mContextManager               { &mContextManager },
+      };
+      mTexMgr.Init( params );
+    }
+
+    void InitSwapChainMgr()
+    {
+      const DX12SwapChainMgr::Params params
+      {
+        .mTextureManager   { &mTexMgr },
+        .mCommandQueue     { &mCommandQueue },
+      };
+      mSwapChainMgr.Init( params );
+    }
+
+    void InitBufferMgr()
+    {
+      const DX12BufferMgr::Params params
+      {
+        .mDevice                       { mDevice },
+        .mCpuDescriptorHeapCBV_SRV_UAV { &mCpuDescriptorHeapCBV_SRV_UAV },
+        .mContextManager               { &mContextManager },
+      };
+
+      mBufMgr.Init( params );
+    }
+
+    void InitContextMgr()
+    {
+      const DX12ContextManager::Params params
+      {
+        .mCommandAllocatorPool         { &mCommandAllocatorPool },
+        .mCommandQueue                 { &mCommandQueue },
+        .mUploadPageManager            { &mUploadPageManager },
+        .mSwapChainMgr                 { &mSwapChainMgr },
+        .mTextureMgr                   { &mTexMgr },
+        .mBufferMgr                    { &mBufMgr },
+        .mPipelineMgr                  { &mPipelineMgr },
+        .mSamplerMgr                   { &mSamplerMgr },
+        .mDevice                       { mDevice },
+        .mGpuDescriptorHeapCBV_SRV_UAV { &mGpuDescriptorHeapCBV_SRV_UAV },
+        .mGpuDescriptorHeapSampler     { &mGpuDescriptorHeapSampler },
+      };
+
+      mContextManager.Init( params );
+    }
+
+    void InitSamplerMgr()
+    {
+      const DX12SamplerMgr::Params params
+      {
+        .mDevice                   { mDevice },
+        .mCpuDescriptorHeapSampler { &mCpuDescriptorHeapSampler },
+      };
+      mSamplerMgr.Init( params );
+    }
+  };
 
   static DX12Renderer sRenderer;
+
+
 
   // -----------------------------------------------------------------------------------------------
 
@@ -35,77 +137,22 @@ namespace Tac::Render
 
     TAC_CALL( InitDescriptorHeaps( errors ) );
 
-    TAC_CALL( mProgramMgr.Init( mDevice, errors ) );
+    TAC_CALL( InitProgramMgr( errors ) );
 
     TAC_CALL( mPipelineMgr.Init( mDevice, &mProgramMgr ) );
 
-    mTexMgr.Init( {
-      .mDevice                       { mDevice },
-      .mCpuDescriptorHeapRTV         { &mCpuDescriptorHeapRTV },
-      .mCpuDescriptorHeapDSV         { &mCpuDescriptorHeapDSV },
-      .mCpuDescriptorHeapCBV_SRV_UAV { &mCpuDescriptorHeapCBV_SRV_UAV },
-      .mContextManager               { &mContextManager },
-                  } );
+    InitTextureMgr();
+    InitSwapChainMgr();
+    InitBufferMgr();
 
-    mSwapChainMgr.Init( {
-      .mTextureManager   { &mTexMgr },
-      .mCommandQueue     { &mCommandQueue },
-                        } );
-
-    mBufMgr.Init( {
-      .mDevice                       { mDevice },
-      .mCpuDescriptorHeapCBV_SRV_UAV { &mCpuDescriptorHeapCBV_SRV_UAV },
-      .mContextManager               { &mContextManager },
-                  } );
-
-    //const int maxGPUFrameCount = RenderApi::GetMaxGPUFrameCount();
-    /*
-    const int maxGPUFrameCount = Render::GetMaxGPUFrameCount();
-    TAC_ASSERT( maxGPUFrameCount );
-    mFenceValues.resize( maxGPUFrameCount );
-
-    TAC_CALL( DXGIInit( errors ) );
-
-    TAC_CALL( debugLayer.Init( errors ) );
-
-    TAC_CALL( mDevice.Init( debugLayer, errors ) );
-    ID3D12Device* device = mDevice.GetID3D12Device();
-
-    TAC_CALL( infoQueue.Init( debugLayer, device, errors ) );
-
-    */
     TAC_CALL( mCommandQueue.Create( mDevice, errors ) );
     mCommandAllocatorPool.Init( mDevice, &mCommandQueue );
 
-    mContextManager.Init( {
-      .mCommandAllocatorPool         { &mCommandAllocatorPool },
-      .mCommandQueue                 { &mCommandQueue },
-      .mUploadPageManager            { &mUploadPageManager },
-      .mSwapChainMgr                 { &mSwapChainMgr },
-      .mTextureMgr                   { &mTexMgr },
-      .mBufferMgr                    { &mBufMgr },
-      .mPipelineMgr                  { &mPipelineMgr },
-      .mSamplerMgr                   { &mSamplerMgr },
-      .mDevice                       { mDevice },
-      .mGpuDescriptorHeapCBV_SRV_UAV { &mGpuDescriptorHeapCBV_SRV_UAV },
-      .mGpuDescriptorHeapSampler     { &mGpuDescriptorHeapSampler },
-                          } );
-      
+    InitContextMgr();
+
     mUploadPageManager.Init( mDevice, &mCommandQueue );
-    /*
 
-    TAC_CALL( mSRVDescriptorHeap.InitSRV( 100, device, errors ) );
-    TAC_CALL( mSamplerDescriptorHeap.InitSampler( 100, device, errors ) );
-
-
-
-    mSamplers.Init( device, &mSamplerDescriptorHeap );
-    */
-
-    mSamplerMgr.Init( {
-      .mDevice                   { mDevice },
-      .mCpuDescriptorHeapSampler { &mCpuDescriptorHeapSampler },
-                      });
+    InitSamplerMgr();
   }
 
   void DX12Renderer::InitDescriptorHeaps( Errors& errors )
@@ -233,6 +280,11 @@ namespace Tac::Render
     sRenderer.Init( errors );
   }
 
+  void              DX12Device::Update( Errors& errors )
+  {
+    sRenderer.mProgramMgr.HotReload( errors );
+  }
+
   IDevice::Info     DX12Device::GetInfo() const
   {
     const NDCAttribs ndcAttribs
@@ -250,9 +302,7 @@ namespace Tac::Render
   PipelineHandle    DX12Device::CreatePipeline( PipelineParams params,
                                                 Errors& errors )
   {
-    const PipelineHandle h{ AllocPipelineHandle() };
-    sRenderer.mPipelineMgr.CreatePipeline( h, params, errors );
-    return h;
+    return sRenderer.mPipelineMgr.CreatePipeline( params, errors );
   }
 
   IShaderVar*       DX12Device::GetShaderVariable( PipelineHandle h, StringView sv )
@@ -269,11 +319,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroyPipeline( PipelineHandle h )
   {
-    if( h.IsValid() )
-    {
-      FreeHandle( h );
-      sRenderer.mPipelineMgr.DestroyPipeline( h );
-    }
+    sRenderer.mPipelineMgr.DestroyPipeline( h );
   }
 
   ProgramHandle     DX12Device::CreateProgram( ProgramParams params, Errors& errors )

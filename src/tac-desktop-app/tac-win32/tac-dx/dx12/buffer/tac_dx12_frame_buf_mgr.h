@@ -17,9 +17,10 @@ namespace Tac::Render
   {
     struct Params
     {
-      DX12TextureMgr* mTextureManager{};
+      DX12TextureMgr*   mTextureManager{};
       DX12CommandQueue* mCommandQueue{};
     };
+
     void Init( Params );
 
     SwapChainHandle CreateSwapChain( SwapChainParams, Errors& );

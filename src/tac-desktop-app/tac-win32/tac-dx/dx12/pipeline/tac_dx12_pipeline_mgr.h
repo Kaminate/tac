@@ -9,13 +9,16 @@ namespace Tac::Render
 {
   struct DX12PipelineMgr
   {
-    void          Init( ID3D12Device*, DX12ProgramMgr* );
-    void          CreatePipeline( PipelineHandle, PipelineParams, Errors& );
-    void          DestroyPipeline( PipelineHandle );
-    DX12Pipeline* FindPipeline( PipelineHandle );
+    void           Init( ID3D12Device*, DX12ProgramMgr* );
+    PipelineHandle CreatePipeline( PipelineParams, Errors& );
+    void           DestroyPipeline( PipelineHandle );
+    DX12Pipeline*  FindPipeline( PipelineHandle );
+    void           HotReload( Span< ProgramHandle > changed, Errors& );
 
   private:
     using DX12Pipelines = Array< DX12Pipeline, 100 >;
+
+    void           CreatePipelineAtIndex( PipelineHandle, PipelineParams, Errors& );
 
     DX12Pipelines   mPipelines  {};
     ID3D12Device*   mDevice     {};

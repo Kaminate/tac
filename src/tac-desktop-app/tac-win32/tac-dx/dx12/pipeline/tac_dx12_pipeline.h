@@ -61,9 +61,12 @@ namespace Tac::Render
       const D3D12ProgramBinding* mBinding{};
     };
 
+    bool IsValid() const;
+
     PCom< ID3D12PipelineState > mPSO;
     PCom< ID3D12RootSignature > mRootSignature;
     Vector< Variable >          mShaderVariables;
+    PipelineParams              mPipelineParams;
   };
 } // namespace Tac::Render
 
