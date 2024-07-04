@@ -186,6 +186,7 @@ void        Tac::GamePresentationRender( Render::IContext* renderContext,
 #endif
 
 
+
 #if 0
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
   // Skybox should be last to reduce pixel shader invocations
@@ -196,6 +197,15 @@ void        Tac::GamePresentationRender( Render::IContext* renderContext,
                                       dstColorTex,
                                       errors ) );
 #endif
+#endif
+
+#if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
+  TAC_CALL( InfiniteGrid::Render( renderContext,
+                                  camera,
+                                  viewSize,
+                                  dstColorTex,
+                                  dstDepthTex,
+                                  errors ) );
 #endif
 
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
