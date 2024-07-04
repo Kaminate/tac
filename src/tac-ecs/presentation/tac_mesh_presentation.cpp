@@ -510,9 +510,9 @@ void        Tac::MeshPresentationInit( Errors& errors )
 
   const Render::PipelineParams meshPipelineParams
   {
-    .mProgram           { m3DShader},
-    .mBlendState        { blendState},
-    .mDepthState        { depthState},
+    .mProgram           { m3DShader },
+    .mBlendState        { blendState },
+    .mDepthState        { depthState },
     .mRasterizerState   { rasterizerState },
     .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
     .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
