@@ -172,6 +172,13 @@ PS_OUTPUT PS( VS_OUTPUT input )
   // temp begin
   output.mColor.xyz /= 1000.0;
   output.mColor.xyz += color.xyz;
+  output.mColor.x += input.mClipSpacePosition.x / 1000.0;
+  output.mColor.x += input.mClipSpacePosition.y / 1000.0;
+  output.mColor.x += input.mClipSpacePosition.z / 1000.0;
+  output.mColor.x += input.mClipSpacePosition.w / 1000.0;
+  
+  float d = input.mClipSpacePosition.z / input.mClipSpacePosition.w;
+  output.mColor.x += d / 1000.0f;
   // temp end
 
   output.mColor.xyz += sPerFrame.mAmbient.xyz;
