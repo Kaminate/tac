@@ -95,7 +95,7 @@ namespace Tac::Render
     {
       DX12Descriptor descriptor{
         GetDescriptor( iHandle, transitionHelper, mTextureMgr, mSamplerMgr, mBufferMgr ) };
-      TAC_ASSERT( descriptor.Valid() );
+      TAC_ASSERT( descriptor.IsValid() );
       *dst++ = descriptor;
     }
 
