@@ -115,6 +115,18 @@ namespace Tac::Render
       };
       mSamplerMgr.Init( params );
     }
+
+    void InitPipelineMgr()
+    {
+      const DX12PipelineMgr::Params params
+      {
+        .mDevice        { mDevice },
+        .mProgramMgr    { &mProgramMgr },
+        .mCommandQueue  { &mCommandQueue },
+      };
+      mPipelineMgr.Init( params );
+    }
+
   };
 
   static DX12Renderer sRenderer;
@@ -139,7 +151,7 @@ namespace Tac::Render
 
     TAC_CALL( InitProgramMgr( errors ) );
 
-    TAC_CALL( mPipelineMgr.Init( mDevice, &mProgramMgr ) );
+    InitPipelineMgr();
 
     InitTextureMgr();
     InitSwapChainMgr();

@@ -108,7 +108,17 @@ bool intersect( float4 rayPos, float4 rayDir, out float t )
 
 float GetGridColor(float2 uv)
 {
-  return frac(uv.x);
+  // [ line aa ][ line width ][ line aa ]
+  // [ ------- ][ ---------- ][ ------- ]
+
+  //return frac(uv.y);
+  float lineWidth = 0.2f;
+  float lineAA = fwidth(uv.x);
+  float gridUV = abs(uv.x * 2.0);
+  float grid = smoothstep(lineWidth + lineAA, lineWidth - lineAA, gridUV);
+  //float grid = smoothstep(lineWidth - lineAA, lineWidth + lineAA, gridUV);
+  return grid;
+  //return frac(uv.y);
 }
 
 PS_OUTPUT PS( PS_INPUT input )

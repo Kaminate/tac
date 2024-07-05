@@ -7,6 +7,7 @@
 
 //#include "tac-dx/dx12/tac_dx12_root_sig_bindings.h"
 
+#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
 
 //#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
 
@@ -16,7 +17,6 @@
 namespace Tac { struct Errors; }
 namespace Tac::Render
 {
-  struct D3D12ProgramBinding;
   struct DX12Descriptor;
   struct DX12TextureMgr;
   struct DX12SamplerMgr;
@@ -31,7 +31,7 @@ namespace Tac::Render
     struct Variable : public IShaderVar
     {
       Variable() = default;
-      Variable( const D3D12ProgramBinding* );
+      Variable( D3D12ProgramBinding );
 
       void SetBuffer( BufferHandle ) override;
       void SetTexture( TextureHandle ) override;
@@ -57,8 +57,8 @@ namespace Tac::Render
                                     DX12BufferMgr* ) const;
 
     public:
-      Vector< int >              mHandleIndexes;
-      const D3D12ProgramBinding* mBinding{};
+      Vector< int >             mHandleIndexes {};
+      D3D12ProgramBinding       mBinding       {};
     };
 
     bool IsValid() const;

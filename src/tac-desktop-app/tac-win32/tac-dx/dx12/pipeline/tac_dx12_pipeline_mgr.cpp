@@ -5,6 +5,7 @@
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-dx/dx12/pipeline/tac_dx12_root_sig_builder.h"
 #include "tac-dx/dx12/pipeline/tac_dx12_input_layout.h"
+#include "tac-dx/dx12/tac_dx12_command_queue.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
@@ -82,10 +83,16 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12PipelineMgr::Init( ID3D12Device* device, DX12ProgramMgr* programMgr )
+  void DX12PipelineMgr::Init( Params params )
   {
-    mDevice = device;
-    mProgramMgr = programMgr;
+    mDevice = params.mDevice;
+    TAC_ASSERT( mDevice );
+
+    mProgramMgr = params.mProgramMgr;
+    TAC_ASSERT( mProgramMgr );
+
+    mCommandQueue = params.mCommandQueue;
+    TAC_ASSERT( mCommandQueue );
   }
 
   void DX12PipelineMgr::DestroyPipeline( PipelineHandle h )
@@ -191,8 +198,8 @@ namespace Tac::Render
     DX12SetName( pPS, name );
 
     Vector< DX12Pipeline::Variable > shaderVariables;
-    for( const D3D12ProgramBinding& binding : program->mProgramBindings )
-      shaderVariables.push_back( DX12Pipeline::Variable( &binding ) );
+    for( const D3D12ProgramBinding binding : program->mProgramBindings )
+      shaderVariables.push_back( DX12Pipeline::Variable( binding ) );
 
     mPipelines[ h.GetIndex() ] = DX12Pipeline
     {
@@ -218,6 +225,13 @@ namespace Tac::Render
   void          DX12PipelineMgr::HotReload( Span< ProgramHandle > changedPrograms,
                                             Errors& errors )
   {
+    if( changedPrograms.empty() )
+      return;
+
+    // try prevent error OBJECT_DELETED_WHILE_STILL_IN_USE when deleting a pipeline that referenced
+    // by in-flight operations on a command queue
+    TAC_CALL( mCommandQueue->WaitForIdle( errors ) );
+
     const int n{mPipelines.size()};
     for( int i{}; i < n; ++i )
     {
@@ -233,8 +247,19 @@ namespace Tac::Render
       if( !programChanged )
         continue;
 
+      const IShaderVar* pVarsPrev{ pipeline.mShaderVariables.data() };
+      const int nVarsPrev{ pipeline.mShaderVariables.size() };
+
       PipelineHandle h{ i };
       TAC_CALL( CreatePipelineAtIndex( h, pipeline.mPipelineParams, errors ) );
+
+      const IShaderVar* pVarsCurr{ pipeline.mShaderVariables.data() };
+      const int nVarsCurr{ pipeline.mShaderVariables.size() };
+
+      // check that IShaderVar* out in the wild are still valid
+      TAC_ASSERT( pVarsCurr == pVarsPrev );
+      TAC_ASSERT( nVarsCurr == nVarsPrev );
+
     }
   }
 

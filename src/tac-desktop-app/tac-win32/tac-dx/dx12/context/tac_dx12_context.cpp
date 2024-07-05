@@ -38,11 +38,11 @@ namespace Tac::Render
 
   static D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( const DX12Pipeline::Variable& var )
   {
-    const D3D12ProgramBinding* binding{ var.mBinding };
-    if( binding->IsBuffer() || binding->IsTexture() )
+    D3D12ProgramBinding binding{ var.mBinding };
+    if( binding.IsBuffer() || binding.IsTexture() )
       return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-    if( binding->IsSampler() )
+    if( binding.IsSampler() )
       return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 
     TAC_ASSERT_INVALID_CODE_PATH;
@@ -114,9 +114,9 @@ namespace Tac::Render
     {
       const UINT rootParameterIndex{ ( UINT )i };
       const DX12Pipeline::Variable& var{ pipeline->mShaderVariables[ i ] };
-      const D3D12ProgramBinding* binding{ var.mBinding };
+      const D3D12ProgramBinding& binding{ var.mBinding };
 
-      if( binding->BindsAsDescriptorTable() )
+      if( binding.BindsAsDescriptorTable() )
       {
         const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( var ) };
 
@@ -159,29 +159,29 @@ namespace Tac::Render
         TAC_ASSERT( var.mHandleIndexes.size() == 1 );
         const int iHandle{ var.mHandleIndexes[ 0 ] };
 
-        TAC_ASSERT_MSG( !binding->IsTexture(),
+        TAC_ASSERT_MSG( !binding.IsTexture(),
                         "textures must be bound thorugh descriptor tables" );
 
         // this includes constant buffers
-        TAC_ASSERT( binding->IsBuffer() );
+        TAC_ASSERT( binding.IsBuffer() );
 
         DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
         TAC_ASSERT( buffer );
         gpuVirtualAddress = buffer->mGPUVirtualAddr;
         TAC_ASSERT( gpuVirtualAddress );
 
-        if( binding->IsConstantBuffer() )
+        if( binding.IsConstantBuffer() )
         {
           TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
           commandList->SetGraphicsRootConstantBufferView( rootParameterIndex, gpuVirtualAddress );
         }
-        else if( binding->IsSRV() )
+        else if( binding.IsSRV() )
         {
           TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
           // Textures are not supported
           commandList->SetGraphicsRootShaderResourceView( rootParameterIndex, gpuVirtualAddress );
         }
-        else if( binding->IsUAV() )
+        else if( binding.IsUAV() )
         {
 
           TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );

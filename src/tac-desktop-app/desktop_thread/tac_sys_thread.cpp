@@ -99,6 +99,9 @@ namespace Tac
 
       TAC_CALL( sWindowBackendSysApi.Sync( errors ) );
 
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      TAC_CALL( renderDevice->Update( errors ) );
+
       //if( mApp->IsRenderEnabled() )
       //{
       //  TAC_CALL( Render::RenderFrame( errors ) );
