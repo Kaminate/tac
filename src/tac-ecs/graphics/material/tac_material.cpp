@@ -22,13 +22,12 @@ namespace Tac
 
   static void       SaveMaterialComponent( Json& materialJson, Component* component )
   {
-    auto material { ( Material* )component };
+    Material* material{ ( Material* )component };
   }
 
   static void       LoadMaterialComponent( Json& materialJson, Component* component )
   {
-    auto material = ( Material* )component;
-
+    Material* material{ ( Material* )component };
   }
 
   // ------------------------
