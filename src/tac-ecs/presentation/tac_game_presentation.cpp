@@ -101,6 +101,10 @@ void Tac::GamePresentationUninit()
     RadiosityBakePresentation::Uninit();
 #endif
 
+#if TAC_TERRAIN_PRESENTATION_ENABLED()
+    TerrainPresentation::Uninit();
+#endif
+
     sInitialized = false;
   }
 
@@ -143,7 +147,7 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
 
 #if 0
 #if TAC_TERRAIN_PRESENTATION_ENABLED()
-  TAC_CALL( TerrainPresentationRender( renderContext,
+  TAC_CALL( TerrainPresentation::Render( renderContext,
                                        world,
                                        camera,
                                        viewSize,
@@ -224,7 +228,7 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
 #endif
 
 #if TAC_TERRAIN_PRESENTATION_ENABLED()
-  TerrainPresentationDebugImGui();
+  TerrainPresentation::DebugImGui();
 #endif
 
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()

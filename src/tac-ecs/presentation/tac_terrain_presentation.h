@@ -15,18 +15,21 @@
 
 namespace Tac
 {
+  struct TerrainPresentation
+  {
+    static void        Init( Errors& );
+    static void        Uninit();
+    static void        Render( Render::IContext*,
+                               const World*,
+                               const Camera*,
+                               v2i viewSize,
+                               Render::TextureHandle color,
+                               Render::TextureHandle depth,
+                               Errors& );
+    static void        DebugImGui();
+    static const Mesh* GetModelMesh( const Model* );
 
-  void                          TerrainPresentationInit( Errors& );
-  void                          TerrainPresentationUninit();
-  void                          TerrainPresentationRender( Render::IContext*,
-                                                        const World*, // why is this non const?
-                                                        const Camera*,
-                                                        v2i viewSize,
-                                                        Render::TextureHandle color,
-                                                        Render::TextureHandle depth,
-                                                        Errors& );
-  void                          TerrainPresentationDebugImGui();
-  const Mesh*                   TerrainPresentationGetModelMesh( const Model* );
+  };
 }
 
 #endif
