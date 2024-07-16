@@ -40,45 +40,11 @@
 
 namespace Tac
 {
-
-  struct MeshModelVtx
-  {
-    v3 mPos;
-    v3 mNor;
-  };
-
-
-
   static bool                          mRenderEnabledDebug3D{ true };
-  static Render::CBufferLights         mDebugCBufferLights{};
   static bool                          sInitialized;
-  static Render::VertexDeclarations    m3DVertexFormatDecls;
-
-  static void Create3DVertexFormat()
-  {
-    const Render::VertexDeclaration posDecl
-    {
-      .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( MeshModelVtx, mPos ) },
-    };
-
-    const Render::VertexDeclaration norDecl
-    {
-      .mAttribute         { Render::Attribute::Normal },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( MeshModelVtx, mNor ) },
-    };
-
-    m3DVertexFormatDecls.clear();
-    m3DVertexFormatDecls.push_back( posDecl );
-    m3DVertexFormatDecls.push_back( norDecl );
-  }
-
 }
 
-
-void        Tac::GamePresentationInit( Errors& errors )
+void Tac::GamePresentationInit( Errors& errors )
 {
   if( sInitialized )
     return;
@@ -106,11 +72,10 @@ void        Tac::GamePresentationInit( Errors& errors )
   sInitialized = true;
 }
 
-void        Tac::GamePresentationUninit()
+void Tac::GamePresentationUninit()
 {
   if( sInitialized )
   {
-    Create3DVertexFormat();
 
 #if TAC_MESH_PRESENTATION_ENABLED()
     MeshPresentationUninit();
@@ -140,7 +105,7 @@ void        Tac::GamePresentationUninit()
 }
 
 
-void        Tac::GamePresentationRender( Render::IContext* renderContext,
+void Tac::GamePresentationRender( Render::IContext* renderContext,
                                          const World* world,
                                          const Camera* camera,
                                          const v2i viewSize,
