@@ -15,18 +15,20 @@
 
 namespace Tac
 {
-
-  void                          MeshPresentationInit( Errors& );
-  void                          MeshPresentationUninit();
-  void                          MeshPresentationRender( Render::IContext*,
-                                                        const World*,
-                                                        const Camera*,
-                                                        v2i viewSize,
-                                                        Render::TextureHandle color,
-                                                        Render::TextureHandle depth,
-                                                        Errors& );
-  void                          MeshPresentationDebugImGui();
-  const Mesh*                   MeshPresentationGetModelMesh( const Model* );
+  struct MeshPresentation
+  {
+    static void        Init( Errors& );
+    static void        Uninit();
+    static void        Render( Render::IContext*,
+                               const World*,
+                               const Camera*,
+                               v2i viewSize,
+                               Render::TextureHandle color,
+                               Render::TextureHandle depth,
+                               Errors& );
+    static void        DebugImGui();
+    static const Mesh* GetModelMesh( const Model* );
+  };
 }
 
 #endif

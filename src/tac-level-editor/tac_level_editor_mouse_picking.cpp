@@ -266,7 +266,7 @@ namespace Tac
                                                       float* dist )
   {
     const Entity* entity { model->mEntity };
-    const Mesh* mesh { MeshPresentationGetModelMesh( model ) };
+    const Mesh* mesh { MeshPresentation::GetModelMesh( model ) };
     if( !mesh )
     {
       *hit = false;

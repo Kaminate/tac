@@ -301,95 +301,97 @@ namespace Tac
     modelVisitor.mVertexDeclarations = ShadowGetVtxDecls();
     graphics->VisitModels( &modelVisitor );
   }
-}
 
-void Tac::ShadowPresentationInit( Errors& errors )
-{
-  if( sInitialized )
-    return;
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  const Render::ProgramParams programParams
+  // -----------------------------------------------------------------------------------------------
+
+  void ShadowPresentation::Init( Errors& errors )
   {
-    .mFileStem   { "Shadow" },
-    .mStackFrame { TAC_STACK_FRAME },
-  };
-  sShader = renderDevice->CreateProgram( programParams, errors );
+    if( sInitialized )
+      return;
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams
+    {
+      .mFileStem   { "Shadow" },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+    sShader = renderDevice->CreateProgram( programParams, errors );
 
-  const Render::CreateBufferParams createPerFrame
+    const Render::CreateBufferParams createPerFrame
+    {
+      .mByteCount     { sizeof( ShadowPerFrame ) },
+      .mUsage         { Render::Usage::Default },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "shadow-per-frame" },
+    };
+
+    const Render::CreateBufferParams createPerObj
+    {
+      .mByteCount     { sizeof( ShadowPerObj ) },
+      .mUsage         { Render::Usage::Default },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "shadow-per-obj" },
+    };
+
+    TAC_CALL( sCBufPerFrame = renderDevice->CreateBuffer( createPerFrame, errors ) );
+    TAC_CALL( sCBufPerObj = renderDevice->CreateBuffer( createPerObj, errors ) );
+
+    const Render::PipelineParams pipelineParams
+    {
+      .mProgram           { sShader},
+      .mBlendState        { ShadowGetBlendState() },
+      .mDepthState        { ShadowGetDepthState() },
+      .mRasterizerState   { ShadowGetRasterizer() },
+      .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+      .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+      .mVtxDecls          { ShadowGetVtxDecls() },
+      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+      .mName              { "shadow-pipeline" },
+    };
+    TAC_CALL( sPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
+
+    Render::IShaderVar* shaderPerFrame{ renderDevice->GetShaderVariable( sPipeline, "sPerFrame" ) };
+    shaderPerFrame->SetBuffer( sCBufPerFrame );
+
+    Render::IShaderVar* shaderPerObj{ renderDevice->GetShaderVariable( sPipeline, "sPerObj" ) };
+    shaderPerObj->SetBuffer( sCBufPerObj );
+  sInitialized = true;
+  }
+
+  void ShadowPresentation::Uninit()
   {
-    .mByteCount     { sizeof( ShadowPerFrame ) },
-    .mUsage         { Render::Usage::Default },
-    .mBinding       { Render::Binding::ConstantBuffer },
-    .mOptionalName  { "shadow-per-frame" },
-  };
+    if( sInitialized )
+    {
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      renderDevice->DestroyProgram( sShader );
+      renderDevice->DestroyBuffer( sCBufPerFrame );
+      renderDevice->DestroyBuffer( sCBufPerObj );
+      renderDevice->DestroyPipeline( sPipeline );
+      sInitialized = false;
+    }
+  }
 
-  const Render::CreateBufferParams createPerObj
-  {
-    .mByteCount     { sizeof( ShadowPerObj ) },
-    .mUsage         { Render::Usage::Default },
-    .mBinding       { Render::Binding::ConstantBuffer },
-    .mOptionalName  { "shadow-per-obj" },
-  };
-
-  TAC_CALL( sCBufPerFrame = renderDevice->CreateBuffer( createPerFrame, errors ) );
-  TAC_CALL( sCBufPerObj = renderDevice->CreateBuffer( createPerObj, errors ) );
-
-  const Render::PipelineParams pipelineParams
-  {
-    .mProgram           { sShader},
-    .mBlendState        { ShadowGetBlendState() },
-    .mDepthState        { ShadowGetDepthState() },
-    .mRasterizerState   { ShadowGetRasterizer() },
-    .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
-    .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
-    .mVtxDecls          { ShadowGetVtxDecls() },
-    .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
-    .mName              { "shadow-pipeline" },
-  };
-  TAC_CALL( sPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
-
-  Render::IShaderVar* shaderPerFrame{ renderDevice->GetShaderVariable( sPipeline, "sPerFrame" ) };
-  shaderPerFrame->SetBuffer( sCBufPerFrame );
-
-  Render::IShaderVar* shaderPerObj{ renderDevice->GetShaderVariable( sPipeline, "sPerObj" ) };
-  shaderPerObj->SetBuffer( sCBufPerObj );
-sInitialized = true;
-}
-
-void Tac::ShadowPresentationUninit()
-{
-  if( sInitialized )
+  void ShadowPresentation::Render( World* world, Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyProgram( sShader );
-    renderDevice->DestroyBuffer( sCBufPerFrame );
-    renderDevice->DestroyBuffer( sCBufPerObj );
-    renderDevice->DestroyPipeline( sPipeline );
-    sInitialized = false;
+    Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) };
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+
+    Graphics* graphics { GetGraphics( world ) };
+
+    ShadowLightVisitor lightVisitor;
+    lightVisitor.graphics = graphics;
+    lightVisitor.mErrors = &errors;
+    lightVisitor.mRenderContext = renderContext;
+
+    renderContext->DebugEventBegin( "Render Shadow Maps" );
+    renderContext->SetPipeline( sPipeline );
+    graphics->VisitLights( &lightVisitor );
+    renderContext->DebugEventEnd();
+    TAC_CALL( renderContext->Execute( errors ) );
   }
-}
 
-void Tac::ShadowPresentationRender( World* world, Errors& errors )
-{
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) };
-  Render::IContext* renderContext{ renderContextScope.GetContext() };
-
-  Graphics* graphics { GetGraphics( world ) };
-
-  ShadowLightVisitor lightVisitor;
-  lightVisitor.graphics = graphics;
-  lightVisitor.mErrors = &errors;
-  lightVisitor.mRenderContext = renderContext;
-
-  renderContext->DebugEventBegin( "Render Shadow Maps" );
-  renderContext->SetPipeline( sPipeline );
-  graphics->VisitLights( &lightVisitor );
-  renderContext->DebugEventEnd();
-  TAC_CALL( renderContext->Execute( errors ) );
-}
-
-void Tac::ShadowPresentationDebugImGui()
+  void ShadowPresentation::DebugImGui()
 {
 }
 
+} // namespace Tac

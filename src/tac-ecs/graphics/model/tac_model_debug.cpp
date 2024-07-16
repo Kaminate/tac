@@ -194,7 +194,7 @@ namespace Tac
     const Mesh* mesh { nullptr };
 
 #if TAC_GAME_PRESENTATION_ENABLED()
-    mesh = MeshPresentationGetModelMesh( model );
+    mesh = MeshPresentation::GetModelMesh( model );
 #endif
 
     if( !mesh )

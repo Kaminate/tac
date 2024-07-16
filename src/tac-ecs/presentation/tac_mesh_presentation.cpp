@@ -162,7 +162,7 @@ namespace Tac
   }
 
   static void UpdatePerObjectCBuf( const Model* model,
-                                   const Mesh* mesh ,
+                                   const Mesh* mesh,
                                    Render::IContext* renderContext,
                                    Errors& errors )
   {
@@ -201,11 +201,11 @@ namespace Tac
     // populate `shadowMaps` and `cBufferLights`
     if( mUseLights )
     {
-      const int nLights{ lights.size()};
+      const int nLights{ lights.size() };
       for( int i{}; i < nLights; ++i )
       {
         const Light* light{ lights[ i ] };
-        const int shaderLightIndex{ (int)cBufferLights.lightCount };
+        const int shaderLightIndex{ ( int )cBufferLights.lightCount };
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
         {
           shadowMaps.push_back( light->mShadowMapDepth );
@@ -410,10 +410,10 @@ namespace Tac
                                               errors ) );
       }
 
-      Render::IContext*     mRenderContext {};
-      Render::TextureHandle mViewId        {};
-      const Graphics*       mGraphics      {};
-      Errors*               mErrors        {};
+      Render::IContext* mRenderContext{};
+      Render::TextureHandle mViewId{};
+      const Graphics* mGraphics{};
+      Errors* mErrors{};
     } myModelVisitor;
     myModelVisitor.mViewId = viewId;
     myModelVisitor.mGraphics = graphics;
@@ -432,17 +432,17 @@ namespace Tac
     if( !ImGuiCollapsingHeader( ShortFixedString::Concat( "Light ", ToString( iLight ) ) ) )
       return;
 
-    Render::ShaderLight* shaderLight { &mDebugCBufferLights.lights[ iLight ] };
+    Render::ShaderLight* shaderLight{ &mDebugCBufferLights.lights[ iLight ] };
     String rowsStrs[ 4 ];
-    for( int r {  }; r < 4; ++r )
-      for( int c {  }; c < 4; ++c )
+    for( int r{  }; r < 4; ++r )
+      for( int c{  }; c < 4; ++c )
         rowsStrs[ r ] += ToString( shaderLight->mWorldToClip( r, c ) );
 
-    const Render::ShaderFlags::Info* lightTypeInfo { Render::GetShaderLightFlagType() };
-    const Render::ShaderFlags::Info* castsShadowsInfo { Render::GetShaderLightFlagCastsShadows() };
+    const Render::ShaderFlags::Info* lightTypeInfo{ Render::GetShaderLightFlagType() };
+    const Render::ShaderFlags::Info* castsShadowsInfo{ Render::GetShaderLightFlagCastsShadows() };
 
-    const Light::Type lightType { ( Light::Type )lightTypeInfo->Extract( shaderLight->mFlags ) };
-    const bool castsShadows { ( bool )castsShadowsInfo->Extract( shaderLight->mFlags ) };
+    const Light::Type lightType{ ( Light::Type )lightTypeInfo->Extract( shaderLight->mFlags ) };
+    const bool castsShadows{ ( bool )castsShadowsInfo->Extract( shaderLight->mFlags ) };
 
     TAC_IMGUI_INDENT_BLOCK;
     ImGuiText( "World to clip matrix" );
@@ -457,10 +457,10 @@ namespace Tac
     ImGuiDragFloat( "light radiance", &shaderLight->mColorRadiance.w );
     ImGuiImage( -1, v2( 1, 1 ) * 50, v4( shaderLight->mColorRadiance.xyz(), 1.0f ) );
     ImGuiText( ShortFixedString::Concat( "Light type: ",
-               LightTypeToString( lightType ),
-               "(",
-               ToString( ( int )lightType ),
-               ")" ) );
+                                         LightTypeToString( lightType ),
+                                         "(",
+                                         ToString( ( int )lightType ),
+                                         ")" ) );
     ImGuiText( String() + "casts shadows: " + ( castsShadows ? "true" : "false" ) );
   }
 
@@ -474,230 +474,231 @@ namespace Tac
     ImGuiText( String() + "light count " + ToString( mDebugCBufferLights.lightCount ) );
     ImGuiText( String() + "text number " + ToString( mDebugCBufferLights.testNumber ) );
 
-    const int n { ( int )mDebugCBufferLights.lightCount };
-    for( int iLight {}; iLight < n; iLight++ )
+    const int n{ ( int )mDebugCBufferLights.lightCount };
+    for( int iLight{}; iLight < n; iLight++ )
       DebugImguiCBufferLight( iLight );
   }
 
 
-}
+  // ----------------
 
-const Tac::Mesh* Tac::MeshPresentationGetModelMesh( const Model* model )
-{
-  return LoadModel( model );
-}
-
-void        Tac::MeshPresentationInit( Errors& errors )
-{
-  if( sInitialized )
-    return;
-
-  CheckShaderPadding();
-
-  TAC_CALL( Create3DShader( errors ) );
-
-
-  Create3DVertexFormat();
-
-  const Render::BlendState blendState{ GetBlendState() };
-  const Render::DepthState depthState{ GetDepthState() };
-  const Render::RasterizerState rasterizerState{ GetRasterizerState() };
-
-  CreatePointSampler();
-  CreateLinearSampler();
-  CreateAnisoSampler();
-
-
-  const Render::PipelineParams meshPipelineParams
+  const Tac::Mesh* MeshPresentation::GetModelMesh( const Model* model )
   {
-    .mProgram           { m3DShader },
-    .mBlendState        { blendState },
-    .mDepthState        { depthState },
-    .mRasterizerState   { rasterizerState },
-    .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
-    .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
-    .mVtxDecls          { m3DVertexFormatDecls },
-    .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
-    .mName              { "mesh-pso" },
-  };
-
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  TAC_CALL( mMeshPipeline = renderDevice->CreatePipeline( meshPipelineParams, errors ) );
-  
-
-
-  mShaderMeshLights = renderDevice->GetShaderVariable( mMeshPipeline, "CBufferLights" );
-
-  mShaderMeshShadowMaps = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMaps" );
-  //mShaderMeshLinearSampler = renderDevice->GetShaderVariable( mMeshPipeline, "linearSampler" );
-  //mShaderMeshLinearSampler->SetSampler( mSamplerLinear );
-  mShaderMeshShadowSampler = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMapSampler" );
-  mShaderMeshShadowSampler->SetSampler( mSamplerPoint );
-
-
-  const Render::CreateBufferParams meshPerFrameParams
-  {
-    .mByteCount     { sizeof( MeshPerFrameBuf ) },
-    .mUsage         { Render::Usage::Dynamic },
-    .mBinding       { Render::Binding::ConstantBuffer },
-    .mOptionalName  { "mesh-per-frame-cbuf" },
-  };
-
-  const Render::CreateBufferParams meshPerObjParams
-  {
-    .mByteCount     { sizeof( MeshPerObjBuf ) },
-    .mUsage         { Render::Usage::Dynamic },
-    .mBinding       { Render::Binding::ConstantBuffer },
-    .mOptionalName  { "mesh-per-obj-cbuf" },
-  };
-
-  TAC_CALL( mMeshPerObjBuf = renderDevice->CreateBuffer( meshPerObjParams, errors ) );
-  TAC_CALL( mMeshPerFrameBuf = renderDevice->CreateBuffer( meshPerFrameParams, errors ) );
-
-  mShaderMeshPerObject = renderDevice->GetShaderVariable( mMeshPipeline, "sPerObj" );
-  mShaderMeshPerObject->SetBuffer( mMeshPerObjBuf );
-
-  mShaderMeshPerFrame = renderDevice->GetShaderVariable( mMeshPipeline, "sPerFrame" );
-  mShaderMeshPerFrame->SetBuffer( mMeshPerFrameBuf );
-
-
-  {
-    char bytes[ 4 ]{ 1, 1, 1, 1 };
-    const Render::CreateTextureParams::Subresource subRsc
-    {
-      .mBytes { bytes },
-      .mPitch { 4 },
-    };
-
-    const Render::Image img
-    {
-      .mWidth   { 1 },
-      .mHeight  { 1 },
-      .mFormat  { Render::TexFmt::kRGBA8_unorm },
-    };
-
-    const Render::CreateTextureParams createTextureParams
-    {
-      .mImage        { img },
-      .mMipCount     { 1 },
-      .mSubresources { subRsc },
-      .mBinding      { Render::Binding::ShaderResource },
-      .mOptionalName { "unbound_shadowmap"},
-    };
-    TAC_CALL( s1x1White = renderDevice->CreateTexture(createTextureParams, errors ) );
+    return LoadModel( model );
   }
 
-  TAC_CALL( SkyboxPresentationInit( errors ) );
-  TAC_CALL( ShadowPresentationInit( errors ) );
+  void             MeshPresentation::Init( Errors& errors )
+  {
+    if( sInitialized )
+      return;
+
+    CheckShaderPadding();
+
+    TAC_CALL( Create3DShader( errors ) );
+
+
+    Create3DVertexFormat();
+
+    const Render::BlendState blendState{ GetBlendState() };
+    const Render::DepthState depthState{ GetDepthState() };
+    const Render::RasterizerState rasterizerState{ GetRasterizerState() };
+
+    CreatePointSampler();
+    CreateLinearSampler();
+    CreateAnisoSampler();
+
+
+    const Render::PipelineParams meshPipelineParams
+    {
+      .mProgram           { m3DShader },
+      .mBlendState        { blendState },
+      .mDepthState        { depthState },
+      .mRasterizerState   { rasterizerState },
+      .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+      .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+      .mVtxDecls          { m3DVertexFormatDecls },
+      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+      .mName              { "mesh-pso" },
+    };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( mMeshPipeline = renderDevice->CreatePipeline( meshPipelineParams, errors ) );
+
+
+
+    mShaderMeshLights = renderDevice->GetShaderVariable( mMeshPipeline, "CBufferLights" );
+
+    mShaderMeshShadowMaps = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMaps" );
+    //mShaderMeshLinearSampler = renderDevice->GetShaderVariable( mMeshPipeline, "linearSampler" );
+    //mShaderMeshLinearSampler->SetSampler( mSamplerLinear );
+    mShaderMeshShadowSampler = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMapSampler" );
+    mShaderMeshShadowSampler->SetSampler( mSamplerPoint );
+
+
+    const Render::CreateBufferParams meshPerFrameParams
+    {
+      .mByteCount     { sizeof( MeshPerFrameBuf ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "mesh-per-frame-cbuf" },
+    };
+
+    const Render::CreateBufferParams meshPerObjParams
+    {
+      .mByteCount     { sizeof( MeshPerObjBuf ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "mesh-per-obj-cbuf" },
+    };
+
+    TAC_CALL( mMeshPerObjBuf = renderDevice->CreateBuffer( meshPerObjParams, errors ) );
+    TAC_CALL( mMeshPerFrameBuf = renderDevice->CreateBuffer( meshPerFrameParams, errors ) );
+
+    mShaderMeshPerObject = renderDevice->GetShaderVariable( mMeshPipeline, "sPerObj" );
+    mShaderMeshPerObject->SetBuffer( mMeshPerObjBuf );
+
+    mShaderMeshPerFrame = renderDevice->GetShaderVariable( mMeshPipeline, "sPerFrame" );
+    mShaderMeshPerFrame->SetBuffer( mMeshPerFrameBuf );
+
+
+    {
+      char bytes[ 4 ]{ 1, 1, 1, 1 };
+      const Render::CreateTextureParams::Subresource subRsc
+      {
+        .mBytes { bytes },
+        .mPitch { 4 },
+      };
+
+      const Render::Image img
+      {
+        .mWidth   { 1 },
+        .mHeight  { 1 },
+        .mFormat  { Render::TexFmt::kRGBA8_unorm },
+      };
+
+      const Render::CreateTextureParams createTextureParams
+      {
+        .mImage        { img },
+        .mMipCount     { 1 },
+        .mSubresources { subRsc },
+        .mBinding      { Render::Binding::ShaderResource },
+        .mOptionalName { "unbound_shadowmap"},
+      };
+      TAC_CALL( s1x1White = renderDevice->CreateTexture( createTextureParams, errors ) );
+    }
+
+    TAC_CALL( SkyboxPresentationInit( errors ) );
+    TAC_CALL( ShadowPresentation::Init( errors ) );
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     TAC_CALL( VoxelGIPresentationInit( errors ) );
 #endif
-  sInitialized = true;
-}
-
-void        Tac::MeshPresentationUninit()
-{
-  if( sInitialized )
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyProgram( m3DShader );
-    renderDevice->DestroyPipeline( mMeshPipeline );
-    renderDevice->DestroySampler( mSamplerAniso );
-    renderDevice->DestroySampler( mSamplerPoint );
-    renderDevice->DestroySampler( mSamplerLinear );
-    SkyboxPresentationUninit();
-    ShadowPresentationUninit();
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    VoxelGIPresentationUninit();
-#endif
-    sInitialized = false;
+    sInitialized = true;
   }
 
-}
-
-
-void        Tac::MeshPresentationRender( Render::IContext* renderContext,
-                                         const World* world,
-                                         const Camera* camera,
-                                         const v2i viewSize,
-                                         const Render::TextureHandle dstColorTex,
-                                         const Render::TextureHandle dstDepthTex,
-                                         Errors& errors )
-{
-  const Render::Targets renderTargets
+  void             MeshPresentation::Uninit()
   {
-    .mColors { dstColorTex },
-    .mDepth  { dstDepthTex },
-  };
+    if( sInitialized )
+    {
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      renderDevice->DestroyProgram( m3DShader );
+      renderDevice->DestroyPipeline( mMeshPipeline );
+      renderDevice->DestroySampler( mSamplerAniso );
+      renderDevice->DestroySampler( mSamplerPoint );
+      renderDevice->DestroySampler( mSamplerLinear );
+      SkyboxPresentationUninit();
+      ShadowPresentation::Uninit();
+#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
+      VoxelGIPresentationUninit();
+#endif
+      sInitialized = false;
+    }
 
-  renderContext->DebugEventBegin( "MeshPresentationRender" );
-  renderContext->SetViewport( viewSize );
-  renderContext->SetScissor( viewSize );
-  renderContext->SetRenderTargets( renderTargets );
+  }
+
+
+  void             MeshPresentation::Render( Render::IContext* renderContext,
+                                           const World* world,
+                                           const Camera* camera,
+                                           const v2i viewSize,
+                                           const Render::TextureHandle dstColorTex,
+                                           const Render::TextureHandle dstDepthTex,
+                                           Errors& errors )
+  {
+    const Render::Targets renderTargets
+    {
+      .mColors { dstColorTex },
+      .mDepth  { dstDepthTex },
+    };
+
+    renderContext->DebugEventBegin( "MeshPresentationRender" );
+    renderContext->SetViewport( viewSize );
+    renderContext->SetScissor( viewSize );
+    renderContext->SetRenderTargets( renderTargets );
 
 #if 0
-  TAC_CALL( ShadowPresentationRender( world, errors ) );
+    TAC_CALL( ShadowPresentationRender( world, errors ) );
 #endif
 
-  TAC_CALL( RenderModels( renderContext,
-                          world,
-                          camera,
-                          viewSize,
-                          dstColorTex,
-                          errors ) );
+    TAC_CALL( RenderModels( renderContext,
+                            world,
+                            camera,
+                            viewSize,
+                            dstColorTex,
+                            errors ) );
 
 #if 0
 #if TAC_TERRAIN_PRESENTATION_ENABLED()
-  TAC_CALL( RenderTerrain( renderContext,
-                           world,
-                           camera,
-                           viewSize,
-                           dstColorTex,
-                           errors ) );
+    TAC_CALL( RenderTerrain( renderContext,
+                             world,
+                             camera,
+                             viewSize,
+                             dstColorTex,
+                             errors ) );
 #endif
 #endif
 
 
 #if 0
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
-  // Skybox should be last to reduce pixel shader invocations
-  TAC_CALL( SkyboxPresentationRender( renderContext,
-                                      world,
-                                      camera,
-                                      viewSize,
-                                      dstColorTex,
-                                      errors ) );
+    // Skybox should be last to reduce pixel shader invocations
+    TAC_CALL( SkyboxPresentationRender( renderContext,
+                                        world,
+                                        camera,
+                                        viewSize,
+                                        dstColorTex,
+                                        errors ) );
 #endif
 #endif
 
 
-  renderContext->DebugEventEnd();
-}
-
-void Tac::MeshPresentationDebugImGui()
-{
-  if( !ImGuiCollapsingHeader( "Mesh Presentation" ) )
-    return;
-
-  TAC_IMGUI_INDENT_BLOCK;
-  ImGuiCheckbox( "Mesh Presentation Enabled Model", &mRenderEnabledModel );
-
-  ImGuiCheckbox( "Mesh Presentation use lights", &mUseLights );
-
-  ImGuiCheckbox( "Use Ambient", &sUseAmbient );
-  if( ImGuiDragFloat3( "ambient color", sAmbient.data() ) )
-  {
-    sAmbient.x = Saturate( sAmbient.x );
-    sAmbient.y = Saturate( sAmbient.y );
-    sAmbient.z = Saturate( sAmbient.z );
-    sAmbient.w = Saturate( sAmbient.w );
+    renderContext->DebugEventEnd();
   }
 
+  void             MeshPresentation::DebugImGui()
+  {
+    if( !ImGuiCollapsingHeader( "Mesh Presentation" ) )
+      return;
 
-  if( mUseLights )
-    DebugImguiCBufferLights();
+    TAC_IMGUI_INDENT_BLOCK;
+    ImGuiCheckbox( "Mesh Presentation Enabled Model", &mRenderEnabledModel );
 
+    ImGuiCheckbox( "Mesh Presentation use lights", &mUseLights );
+
+    ImGuiCheckbox( "Use Ambient", &sUseAmbient );
+    if( ImGuiDragFloat3( "ambient color", sAmbient.data() ) )
+    {
+      sAmbient.x = Saturate( sAmbient.x );
+      sAmbient.y = Saturate( sAmbient.y );
+      sAmbient.z = Saturate( sAmbient.z );
+      sAmbient.w = Saturate( sAmbient.w );
+    }
+
+
+    if( mUseLights )
+      DebugImguiCBufferLights();
+
+  }
 }
 
 #endif

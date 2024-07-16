@@ -239,7 +239,7 @@ namespace Tac
       SpaceInit();
       TAC_CALL( SkyboxPresentationInit( errors ) );
       TAC_CALL( GamePresentationInit( errors ) );
-      TAC_CALL( ShadowPresentationInit( errors ) );
+      TAC_CALL( ShadowPresentation::Init( errors ) );
       //TAC_CALL( VoxelGIPresentationInit( errors ) );
       ExamplesInitCallback( initParams, errors );
     }

@@ -49,7 +49,7 @@ void Tac::GamePresentationInit( Errors& errors )
   if( sInitialized )
     return;
 
-  TAC_CALL( MeshPresentationInit( errors ) );
+  TAC_CALL( MeshPresentation::Init( errors ) );
 
 #if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
   TAC_CALL( InfiniteGrid::Init( errors ) );
@@ -59,7 +59,7 @@ void Tac::GamePresentationInit( Errors& errors )
   TAC_CALL( SkyboxPresentationInit( errors ) );
 #endif
 
-  TAC_CALL( ShadowPresentationInit( errors ) );
+  TAC_CALL( ShadowPresentation::Init( errors ) );
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
     TAC_CALL( VoxelGIPresentationInit( errors ) );
@@ -78,14 +78,14 @@ void Tac::GamePresentationUninit()
   {
 
 #if TAC_MESH_PRESENTATION_ENABLED()
-    MeshPresentationUninit();
+    MeshPresentation::Uninit();
 #endif
 
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
     SkyboxPresentationUninit();
 #endif
 
-    ShadowPresentationUninit();
+    ShadowPresentation::Uninit();
 
 #if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
     InfiniteGrid::Uninit();
@@ -130,7 +130,7 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
 #endif
 
 #if TAC_MESH_PRESENTATION_ENABLED()
-  TAC_CALL( MeshPresentationRender( renderContext,
+  TAC_CALL( MeshPresentation::Render( renderContext,
                                     world,
                                     camera,
                                     viewSize,
@@ -205,8 +205,8 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
   TAC_IMGUI_INDENT_BLOCK;
   ImGuiCheckbox( "Game Presentation Enabled Debug3D", &mRenderEnabledDebug3D );
 
-  MeshPresentationDebugImGui();
-  ShadowPresentationDebugImGui();
+  MeshPresentation::DebugImGui();
+  ShadowPresentation::DebugImGui();
   SkyboxPresentationDebugImGui();
   TerrainPresentationDebugImGui();
   RadiosityBakePresentation::DebugImGui();
