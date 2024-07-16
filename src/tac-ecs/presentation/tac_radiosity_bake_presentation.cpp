@@ -40,10 +40,12 @@ namespace Tac
 
   void RadiosityBakePresentation::DebugImGui()
   {
+#if 0
     if( !ImGuiCollapsingHeader( "Radiosity Bake" ) )
       return;
 
     TAC_IMGUI_INDENT_BLOCK;
+#endif
 
     if( ImGuiButton( "Bake Radiosity" ) )
     {

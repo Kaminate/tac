@@ -449,10 +449,6 @@ void        Tac::TerrainPresentationRender( Render::IContext* renderContext,
 
 void Tac::TerrainPresentationDebugImGui()
 {
-  if( !ImGuiCollapsingHeader( "Terrain Presentation" ) )
-    return;
-
-  TAC_IMGUI_INDENT_BLOCK;
   ImGuiCheckbox( "Terrain Enabled", &mRenderEnabledTerrain );
 }
 

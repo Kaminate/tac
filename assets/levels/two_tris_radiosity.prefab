@@ -53,6 +53,7 @@
           "b": 1
         }
       },
+      "Material": null,
       "mActive": true
     },
     {
@@ -87,6 +88,7 @@
           "b": 1
         }
       },
+      "Material": null,
       "mActive": true
     }
   ],

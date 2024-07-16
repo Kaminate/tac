@@ -681,9 +681,9 @@ void Tac::MeshPresentationDebugImGui()
     return;
 
   TAC_IMGUI_INDENT_BLOCK;
-  ImGuiCheckbox( "Mesh Presentation Enabled Model", &mRenderEnabledModel );
+  ImGuiCheckbox( "Render Models", &mRenderEnabledModel );
 
-  ImGuiCheckbox( "Mesh Presentation use lights", &mUseLights );
+  ImGuiCheckbox( "Use lights", &mUseLights );
 
   ImGuiCheckbox( "Use Ambient", &sUseAmbient );
   if( ImGuiDragFloat3( "ambient color", sAmbient.data() ) )
