@@ -67,11 +67,11 @@ namespace Tac
   static Render::SamplerHandle         mSamplerLinear;
   static Render::SamplerHandle         mSamplerAniso;
   static Render::VertexDeclarations    m3DVertexFormatDecls;
-  static Render::IShaderVar*           mShaderMeshShadowMaps;
-  static Render::IShaderVar*           mShaderMeshLights;
-  static Render::IShaderVar*           mShaderMeshShadowSampler;
-  static Render::IShaderVar*           mShaderMeshPerFrame;
-  static Render::IShaderVar*           mShaderMeshPerObject;
+  static Render::IShaderVar* mShaderMeshShadowMaps;
+  static Render::IShaderVar* mShaderMeshLights;
+  static Render::IShaderVar* mShaderMeshShadowSampler;
+  static Render::IShaderVar* mShaderMeshPerFrame;
+  static Render::IShaderVar* mShaderMeshPerObject;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
   static bool                          mRenderEnabledModel{ true };
@@ -480,7 +480,7 @@ namespace Tac
   }
 
 
-  // ----------------
+  // -----------------------------------------------------------------------------------------------
 
   const Tac::Mesh* MeshPresentation::GetModelMesh( const Model* model )
   {
@@ -616,14 +616,13 @@ namespace Tac
 
   }
 
-
   void             MeshPresentation::Render( Render::IContext* renderContext,
-                                           const World* world,
-                                           const Camera* camera,
-                                           const v2i viewSize,
-                                           const Render::TextureHandle dstColorTex,
-                                           const Render::TextureHandle dstDepthTex,
-                                           Errors& errors )
+                                             const World* world,
+                                             const Camera* camera,
+                                             const v2i viewSize,
+                                             const Render::TextureHandle dstColorTex,
+                                             const Render::TextureHandle dstDepthTex,
+                                             Errors& errors )
   {
     const Render::Targets renderTargets
     {
@@ -671,26 +670,7 @@ namespace Tac
 #endif
 #endif
 
-  renderContext->DebugEventEnd();
-}
-
-void Tac::MeshPresentationDebugImGui()
-{
-  if( !ImGuiCollapsingHeader( "Mesh Presentation" ) )
-    return;
-
-  TAC_IMGUI_INDENT_BLOCK;
-  ImGuiCheckbox( "Render Models", &mRenderEnabledModel );
-
-  ImGuiCheckbox( "Use lights", &mUseLights );
-
-  ImGuiCheckbox( "Use Ambient", &sUseAmbient );
-  if( ImGuiDragFloat3( "ambient color", sAmbient.data() ) )
-  {
-    sAmbient.x = Saturate( sAmbient.x );
-    sAmbient.y = Saturate( sAmbient.y );
-    sAmbient.z = Saturate( sAmbient.z );
-    sAmbient.w = Saturate( sAmbient.w );
+    renderContext->DebugEventEnd();
   }
 
   void             MeshPresentation::DebugImGui()
@@ -699,9 +679,9 @@ void Tac::MeshPresentationDebugImGui()
       return;
 
     TAC_IMGUI_INDENT_BLOCK;
-    ImGuiCheckbox( "Mesh Presentation Enabled Model", &mRenderEnabledModel );
+    ImGuiCheckbox( "Render Models", &mRenderEnabledModel );
 
-    ImGuiCheckbox( "Mesh Presentation use lights", &mUseLights );
+    ImGuiCheckbox( "Use lights", &mUseLights );
 
     ImGuiCheckbox( "Use Ambient", &sUseAmbient );
     if( ImGuiDragFloat3( "ambient color", sAmbient.data() ) )
@@ -712,11 +692,12 @@ void Tac::MeshPresentationDebugImGui()
       sAmbient.w = Saturate( sAmbient.w );
     }
 
-
     if( mUseLights )
       DebugImguiCBufferLights();
 
   }
-}
 
+  // -----------------------------------------------------------------------------------------------
+
+}
 #endif
