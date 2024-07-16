@@ -14,20 +14,20 @@
 
 namespace Tac
 {
+  struct SkyboxPresentation
+  {
 
-  void SkyboxPresentationInit( Errors& );
-  void SkyboxPresentationUninit();
-  //void SkyboxPresentationRender( SkyboxRenderParams, Errors& );
-  void SkyboxPresentationRender( 
+    static void Init( Errors& );
+    static void Uninit();
+    static void Render( Render::IContext*,
+                                   const World*,
+                                   const Camera*,
+                                   const v2i viewSize,
+                                   const Render::TextureHandle viewId,
+                                   Errors& );
 
-   Render::IContext* renderContext,
-                            const World* world,
-                            const Camera* camera,
-                            const v2i viewSize,
-                            const Render::TextureHandle viewId,
-                            Errors& errors  );
-
-  void                          SkyboxPresentationDebugImGui();
+    static void DebugImGui();
+  };
 }
 
 #endif

@@ -4,6 +4,10 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 
+#define TAC_SHADOW_PRESENTATION_ENABLED() 1
+
+#if TAC_SHADOW_PRESENTATION_ENABLED()
+
 namespace Tac
 {
   struct ShadowPresentation
@@ -15,3 +19,4 @@ namespace Tac
   };
 }
 
+#endif

@@ -56,7 +56,7 @@ void Tac::GamePresentationInit( Errors& errors )
 #endif
 
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
-  TAC_CALL( SkyboxPresentationInit( errors ) );
+  TAC_CALL( SkyboxPresentation::Init( errors ) );
 #endif
 
   TAC_CALL( ShadowPresentation::Init( errors ) );
@@ -82,10 +82,12 @@ void Tac::GamePresentationUninit()
 #endif
 
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
-    SkyboxPresentationUninit();
+    SkyboxPresentation::Uninit();
 #endif
 
+#if TAC_SHADOW_PRESENTATION_ENABLED()
     ShadowPresentation::Uninit();
+#endif
 
 #if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
     InfiniteGrid::Uninit();
@@ -205,11 +207,29 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
   TAC_IMGUI_INDENT_BLOCK;
   ImGuiCheckbox( "Game Presentation Enabled Debug3D", &mRenderEnabledDebug3D );
 
+#if TAC_MESH_PRESENTATION_ENABLED()
   MeshPresentation::DebugImGui();
+#endif
+
+#if TAC_SHADOW_PRESENTATION_ENABLED()
   ShadowPresentation::DebugImGui();
-  SkyboxPresentationDebugImGui();
+#endif
+
+#if TAC_SKYBOX_PRESENTATION_ENABLED()
+  SkyboxPresentation::DebugImGui();
+#endif
+
+#if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
+  InfiniteGrid::DebugImGui();
+#endif
+
+#if TAC_TERRAIN_PRESENTATION_ENABLED()
   TerrainPresentationDebugImGui();
+#endif
+
+#if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
   RadiosityBakePresentation::DebugImGui();
+#endif
 }
 
 #endif

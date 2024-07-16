@@ -237,7 +237,7 @@ namespace Tac
     {
       sSettingsNode = mSettingsNode;
       SpaceInit();
-      TAC_CALL( SkyboxPresentationInit( errors ) );
+      TAC_CALL( SkyboxPresentation::Init( errors ) );
       TAC_CALL( GamePresentationInit( errors ) );
       TAC_CALL( ShadowPresentation::Init( errors ) );
       //TAC_CALL( VoxelGIPresentationInit( errors ) );

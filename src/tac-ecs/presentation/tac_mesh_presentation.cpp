@@ -587,7 +587,7 @@ namespace Tac
       TAC_CALL( s1x1White = renderDevice->CreateTexture( createTextureParams, errors ) );
     }
 
-    TAC_CALL( SkyboxPresentationInit( errors ) );
+    TAC_CALL( SkyboxPresentation::Init( errors ) );
     TAC_CALL( ShadowPresentation::Init( errors ) );
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
@@ -606,7 +606,7 @@ namespace Tac
       renderDevice->DestroySampler( mSamplerAniso );
       renderDevice->DestroySampler( mSamplerPoint );
       renderDevice->DestroySampler( mSamplerLinear );
-      SkyboxPresentationUninit();
+      SkyboxPresentation::Uninit();
       ShadowPresentation::Uninit();
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
       VoxelGIPresentationUninit();

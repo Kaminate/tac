@@ -1,5 +1,7 @@
 #include "tac_shadow_presentation.h" // self-inc
 
+#if TAC_SHADOW_PRESENTATION_ENABLED()
+
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
@@ -22,6 +24,8 @@
 #include "tac-ecs/presentation/tac_game_presentation.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
+
+
 
 namespace Tac
 {
@@ -395,3 +399,4 @@ namespace Tac
 }
 
 } // namespace Tac
+#endif

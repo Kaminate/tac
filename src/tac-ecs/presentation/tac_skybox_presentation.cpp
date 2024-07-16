@@ -21,11 +21,7 @@
 
 namespace Tac
 {
-  //static Render::VertexFormatHandle    mVertexFormat;
-  static Render::ProgramHandle          mShader;
-  //static Render::BlendStateHandle      mBlendState;
-  //static Render::DepthStateHandle      mDepthState;
-  //static Render::RasterizerStateHandle mRasterizerState;
+  static Render::ProgramHandle         mShader;
   static Render::SamplerHandle         mSamplerState;
   static Render::VertexDeclarations    mVertexDecls;
   static Render::PipelineHandle        sPipeline;
@@ -75,195 +71,196 @@ namespace Tac
     graphics->VisitSkyboxes( &mySkyboxVisitor );
     return mySkyboxVisitor.mSkybox;
   }
-}
 
-void Tac::SkyboxPresentationUninit()
-{
-  if( sInitialized )
+  // ---------------
+
+  void SkyboxPresentation::Uninit()
   {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyProgram( mShader );
-    //Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
-    sInitialized = false;
+    if( sInitialized )
+    {
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      renderDevice->DestroyProgram( mShader );
+      //Render::DestroyVertexFormat( mVertexFormat, TAC_STACK_FRAME );
+      sInitialized = false;
+    }
   }
-}
 
-void Tac::SkyboxPresentationInit( Errors& errors )
-{
-  if( sInitialized )
-    return;
-
-
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  const Render::ProgramParams programParams
+  void SkyboxPresentation::Init( Errors& errors )
   {
-    .mFileStem { "Skybox" },
-    .mStackFrame { TAC_STACK_FRAME },
-  };
-  mShader = renderDevice->CreateProgram( programParams, errors );
+    if( sInitialized )
+      return;
 
-  const Render::VertexAttributeFormat posFmt{ Render::VertexAttributeFormat::GetVector3() };
-  const Render::VertexDeclaration vtxDecl
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams
+    {
+      .mFileStem { "Skybox" },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+    mShader = renderDevice->CreateProgram( programParams, errors );
+
+    const Render::VertexAttributeFormat posFmt{ Render::VertexAttributeFormat::GetVector3() };
+    const Render::VertexDeclaration vtxDecl
+    {
+      .mAttribute { Render::Attribute::Position },
+      .mFormat    { posFmt },
+    };
+
+    mVertexDecls.clear();
+    mVertexDecls.push_back( vtxDecl );
+
+
+    const Render::BlendState blendState
+    {
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::Zero },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::Zero },
+      .mDstA     { Render::BlendConstants::One },
+      .mBlendA   { Render::BlendMode::Add },
+    };
+
+    const Render::DepthState depthState
+    {
+      .mDepthTest  { true },
+      .mDepthWrite { true },
+      .mDepthFunc  { Render::DepthFunc::LessOrEqual },
+    };
+
+    const Render::RasterizerState rasterizerState
+    {
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mMultisample           { false },
+    };
+
+    const Render::CreateSamplerParams createSkyboxSampler
+    {
+      .mFilter { Render::Filter::Linear },
+      .mName { "skybox-sampler" },
+    };
+    mSamplerState = renderDevice->CreateSampler( createSkyboxSampler );
+
+    const Render::PipelineParams pipelineParams
+    {
+      .mProgram           { mShader },
+      .mBlendState        { blendState },
+      .mDepthState        { depthState },
+      .mRasterizerState   { rasterizerState },
+      .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+      .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+      .mVtxDecls          { mVertexDecls },
+      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+      .mName              { "skybox_pipeline" },
+    };
+    TAC_CALL( sPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
+
+    sShaderCubemap = renderDevice->GetShaderVariable( sPipeline, "cubemap" );
+    sShaderConstantBuffer = renderDevice->GetShaderVariable( sPipeline, "cBuf" );
+    sShaderSampler = renderDevice->GetShaderVariable( sPipeline, "linearSampler" );
+    sInitialized = true;
+  }
+
+  void SkyboxPresentation::Render( Render::IContext* renderContext,
+                                      const World* world,
+                                      const Camera* camera,
+                                      const v2i viewSize,
+                                      const Render::TextureHandle viewId,
+                                      Errors& errors )
   {
-    .mAttribute { Render::Attribute::Position },
-    .mFormat    { posFmt },
-  };
+    if( !mRenderEnabledSkybox )
+      return;
 
-  mVertexDecls.clear();
-  mVertexDecls.push_back( vtxDecl );
+    Skybox* skybox{ GetSkybox( world ) };
+    if( !skybox )
+      return;
 
+    const AssetPathStringView skyboxDir{ skybox->mSkyboxDir };
 
-  const Render::BlendState blendState
-  {
-    .mSrcRGB   { Render::BlendConstants::One },
-    .mDstRGB   { Render::BlendConstants::Zero },
-    .mBlendRGB { Render::BlendMode::Add },
-    .mSrcA     { Render::BlendConstants::Zero },
-    .mDstA     { Render::BlendConstants::One },
-    .mBlendA   { Render::BlendMode::Add },
-  };
+    /*TAC_PROFILE_BLOCK*/;
+    const AssetPathStringView defaultSkybox{ "assets/skybox/daylight" };
+    const AssetPathStringView skyboxDirToUse{ skyboxDir.empty() ? defaultSkybox : skyboxDir };
+    TAC_CALL( const Render::TextureHandle cubemap{
+      TextureAssetManager::GetTextureCube( skyboxDirToUse, errors ) } );
+    if( !cubemap.IsValid() )
+      return;
 
-  const Render::DepthState depthState
-  {
-    .mDepthTest  { true },
-    .mDepthWrite { true },
-    .mDepthFunc  { Render::DepthFunc::LessOrEqual },
-  };
+    TAC_CALL( Mesh * boxMesh{
+      ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
+                                              0,
+                                              mVertexDecls,
+                                              errors ) } );
+    if( !boxMesh )
+      return;
 
-  const Render::RasterizerState rasterizerState
-  {
-    .mFillMode              { Render::FillMode::Solid },
-    .mCullMode              { Render::CullMode::None },
-    .mFrontCounterClockwise { true },
-    .mMultisample           { false },
-  };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::IDevice::Info renderDeviceInfo{ renderDevice->GetInfo() };
+    const Render::NDCAttribs ndcAttribs{ renderDeviceInfo.mNDCAttribs };
+    const float aspect { ( float )viewSize.x / ( float )viewSize.y };
+    const m4::ProjectionMatrixParams projMtxParams
+    {
+      .mNDCMinZ       { ndcAttribs.mMinZ },
+      .mNDCMaxZ       { ndcAttribs.mMaxZ },
+      .mViewSpaceNear { camera->mNearPlane },
+      .mViewSpaceFar  { camera->mFarPlane },
+      .mAspectRatio   { aspect },
+      .mFOVYRadians   { camera->mFovyrad },
+    };
 
-  const Render::CreateSamplerParams createSkyboxSampler
-  {
-    .mFilter { Render::Filter::Linear },
-    .mName { "skybox-sampler" },
-  };
-  mSamplerState = renderDevice->CreateSampler( createSkyboxSampler );
+    const v3 zeroCameraPos{ 0, 0, 0 };
 
-  const Render::PipelineParams pipelineParams
-  {
-    .mProgram           { mShader },
-    .mBlendState        { blendState },
-    .mDepthState        { depthState },
-    .mRasterizerState   { rasterizerState },
-    .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
-    .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
-    .mVtxDecls          { mVertexDecls },
-    .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
-    .mName              { "skybox_pipeline" },
-  };
-  TAC_CALL( sPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
+    const m4 view{ m4::ViewInv( zeroCameraPos,
+                                camera->mForwards,
+                                camera->mRight,
+                                camera->mUp ) };
+    const m4 proj{ m4::ProjPerspective( projMtxParams ) };
 
-  sShaderCubemap = renderDevice->GetShaderVariable( sPipeline, "cubemap" );
-  sShaderConstantBuffer = renderDevice->GetShaderVariable( sPipeline, "cBuf" );
-  sShaderSampler = renderDevice->GetShaderVariable( sPipeline, "linearSampler" );
-  sInitialized = true;
-}
+    const SkyboxConstantBuffer skyboxConstantBuffer
+    {
+      .mView{ view },
+      .mProj{ proj },
+    };
 
-void Tac::SkyboxPresentationRender( Render::IContext* renderContext,
-                                    const World* world,
-                                    const Camera* camera,
-                                    const v2i viewSize,
-                                    const Render::TextureHandle viewId,
-                                    Errors& errors )
-{
-  if( !mRenderEnabledSkybox )
-    return;
+    TAC_ASSERT( !boxMesh->mSubMeshes.empty() );
+    const SubMesh* subMesh{ &boxMesh->mSubMeshes[ 0 ] };
 
-  Skybox* skybox{ GetSkybox( world ) };
-  if( !skybox )
-    return;
+    const Render::UpdateBufferParams updatePerFrame
+    {
+      .mSrcBytes     { &skyboxConstantBuffer },
+      .mSrcByteCount { sizeof( SkyboxConstantBuffer ) },
+    };
 
-  const AssetPathStringView skyboxDir{ skybox->mSkyboxDir };
+    const Render::DrawArgs drawArgs
+    {
+      .mIndexCount { subMesh->mIndexCount },
+      .mStartIndex {},
+    };
 
-  /*TAC_PROFILE_BLOCK*/;
-  const AssetPathStringView defaultSkybox{ "assets/skybox/daylight" };
-  const AssetPathStringView skyboxDirToUse{ skyboxDir.empty() ? defaultSkybox : skyboxDir };
-  TAC_CALL( const Render::TextureHandle cubemap{
-    TextureAssetManager::GetTextureCube( skyboxDirToUse, errors ) } );
-  if( !cubemap.IsValid() )
-    return;
+    sShaderCubemap->SetTexture( cubemap );
+    sShaderConstantBuffer->SetBuffer( sConstantBuffer );
+    sShaderSampler->SetSampler( mSamplerState );
 
-  TAC_CALL( Mesh * boxMesh{
-    ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
-                                            0,
-                                            mVertexDecls,
-                                            errors ) } );
-  if( !boxMesh )
-    return;
+    renderContext->SetViewport( viewSize );
+    renderContext->SetScissor( viewSize );
+    TAC_CALL( renderContext->UpdateBuffer( Render::DefaultCBufferPerFrame::sHandle,
+                                           updatePerFrame,
+                                           errors ) );
+    renderContext->SetVertexBuffer( subMesh->mVertexBuffer );
+    renderContext->SetIndexBuffer( subMesh->mIndexBuffer );
+    renderContext->SetPipeline( sPipeline );
+    //Render::SetVertexFormat( mVertexFormat );
+    //Render::SetShader( mShader );
+    //Render::SetBlendState( mBlendState );
+    //Render::SetDepthState( mDepthState );
+    //Render::SetRasterizerState( mRasterizerState );
+    //Render::SetSamplerState( { mSamplerState } );
+    //Render::Submit( viewId, TAC_STACK_FRAME );
+    renderContext->CommitShaderVariables();
+    renderContext->Draw( drawArgs );
+  }
 
-  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  const Render::IDevice::Info renderDeviceInfo{ renderDevice->GetInfo() };
-  const Render::NDCAttribs ndcAttribs{ renderDeviceInfo.mNDCAttribs };
-  const float aspect { ( float )viewSize.x / ( float )viewSize.y };
-  const m4::ProjectionMatrixParams projMtxParams
-  {
-    .mNDCMinZ       { ndcAttribs.mMinZ },
-    .mNDCMaxZ       { ndcAttribs.mMaxZ },
-    .mViewSpaceNear { camera->mNearPlane },
-    .mViewSpaceFar  { camera->mFarPlane },
-    .mAspectRatio   { aspect },
-    .mFOVYRadians   { camera->mFovyrad },
-  };
-
-  const v3 zeroCameraPos{ 0, 0, 0 };
-
-  const m4 view{ m4::ViewInv( zeroCameraPos,
-                              camera->mForwards,
-                              camera->mRight,
-                              camera->mUp ) };
-  const m4 proj{ m4::ProjPerspective( projMtxParams ) };
-
-  const SkyboxConstantBuffer skyboxConstantBuffer
-  {
-    .mView{ view },
-    .mProj{ proj },
-  };
-
-  TAC_ASSERT( !boxMesh->mSubMeshes.empty() );
-  const SubMesh* subMesh{ &boxMesh->mSubMeshes[ 0 ] };
-
-  const Render::UpdateBufferParams updatePerFrame
-  {
-    .mSrcBytes     { &skyboxConstantBuffer },
-    .mSrcByteCount { sizeof( SkyboxConstantBuffer ) },
-  };
-
-  const Render::DrawArgs drawArgs
-  {
-    .mIndexCount { subMesh->mIndexCount },
-    .mStartIndex {},
-  };
-
-  sShaderCubemap->SetTexture( cubemap );
-  sShaderConstantBuffer->SetBuffer( sConstantBuffer );
-  sShaderSampler->SetSampler( mSamplerState );
-
-  renderContext->SetViewport( viewSize );
-  renderContext->SetScissor( viewSize );
-  TAC_CALL( renderContext->UpdateBuffer( Render::DefaultCBufferPerFrame::sHandle,
-                                         updatePerFrame,
-                                         errors ) );
-  renderContext->SetVertexBuffer( subMesh->mVertexBuffer );
-  renderContext->SetIndexBuffer( subMesh->mIndexBuffer );
-  renderContext->SetPipeline( sPipeline );
-  //Render::SetVertexFormat( mVertexFormat );
-  //Render::SetShader( mShader );
-  //Render::SetBlendState( mBlendState );
-  //Render::SetDepthState( mDepthState );
-  //Render::SetRasterizerState( mRasterizerState );
-  //Render::SetSamplerState( { mSamplerState } );
-  //Render::Submit( viewId, TAC_STACK_FRAME );
-  renderContext->CommitShaderVariables();
-  renderContext->Draw( drawArgs );
-}
-
-void                          Tac::SkyboxPresentationDebugImGui()
+  void SkyboxPresentation::DebugImGui()
 {
   if( !ImGuiCollapsingHeader( "Skybox" ) )
     return;
@@ -271,5 +268,7 @@ void                          Tac::SkyboxPresentationDebugImGui()
   TAC_IMGUI_INDENT_BLOCK;
   ImGuiCheckbox( "Skybox Enabled", &mRenderEnabledSkybox );
 }
+
+} // namespace Tac
 
 #endif
