@@ -16,7 +16,7 @@
 
 
 #ifdef TAC_PIX_NUGET
-#define TAC_INCLUDED_PIX_HEADER() false
+#define TAC_INCLUDED_PIX_HEADER() ( TAC_IS_DEBUG_MODE() && false )
 // | Reason for commenting out: Having just updated Visual Studio 2022, I get
 // | error C2733 : '_mm_add_ss' : you cannot overload a function with 'extern "C"' linkage
 // V
@@ -33,10 +33,8 @@
 namespace Tac::Render
 {
 
-#if TAC_IS_DEBUG_MODE()
   struct PixRuntime
   {
-
 #if !TAC_INCLUDED_PIX_HEADER()
     using PixBeginEventSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
     using PixEndEventSig = void( WINAPI* )( ID3D12GraphicsCommandList* );
@@ -61,32 +59,35 @@ namespace Tac::Render
 
     void BeginEvent( ID3D12GraphicsCommandList* commandList,  StringView str )
     {
+#if TAC_IS_DEBUG_MODE()
 #if TAC_INCLUDED_PIX_HEADER()
       PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
 #else
       sBeginEventOnCommandList(commandList, sDefaultColor, str );
 #endif
+#endif
     }
 
-    void EndEvent(ID3D12GraphicsCommandList* commandList)
+    void EndEvent( ID3D12GraphicsCommandList* commandList )
     {
+#if TAC_IS_DEBUG_MODE()
 #if TAC_INCLUDED_PIX_HEADER()
       PIXEndEvent( commandList );
 #else
       sEndEventOnCommandList(commandList );
 #endif
-
+#endif
     }
 
     void SetMarker( ID3D12GraphicsCommandList* commandList, StringView str )
     {
-
+#if TAC_IS_DEBUG_MODE()
 #if TAC_INCLUDED_PIX_HEADER()
       PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
 #else
       sSetMarkerOnCommandList(commandList, sDefaultColor, str );
 #endif
-
+#endif
     }
 
 #if !TAC_INCLUDED_PIX_HEADER()
@@ -99,7 +100,6 @@ namespace Tac::Render
   };
 
   static PixRuntime sPixRuntime;
-#endif
 
   static D3D12_PRIMITIVE_TOPOLOGY   GetDX12PrimitiveTopology( PrimitiveTopology topology )
   {
@@ -403,23 +403,17 @@ namespace Tac::Render
 
   void DX12Context::DebugEventBegin( StringView str )
   {
-#if TAC_IS_DEBUG_MODE()
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    //PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
-    sPixRuntime.BeginEvent(commandList, str );
+    ID3D12GraphicsCommandList* commandList{ GetCommandList() };
+    sPixRuntime.BeginEvent( commandList, str );
     mState.mEventCount++;
-#endif
   }
 
   void DX12Context::DebugEventEnd()
   {
-#if TAC_IS_DEBUG_MODE()
     TAC_ASSERT( mState.mEventCount > 0 );
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    //PIXEndEvent( commandList );
-    sPixRuntime.EndEvent(commandList );
+    ID3D12GraphicsCommandList* commandList{ GetCommandList() };
+    sPixRuntime.EndEvent( commandList );
     mState.mEventCount--;
-#endif
   }
 
   void DX12Context::MoveFrom( DX12Context&& ) noexcept
@@ -429,11 +423,8 @@ namespace Tac::Render
 
   void DX12Context::DebugMarker( StringView str )
   {
-#if TAC_IS_DEBUG_MODE()
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    //PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
-    sPixRuntime.SetMarker(commandList, str );
-#endif
+    ID3D12GraphicsCommandList* commandList{ GetCommandList() };
+    sPixRuntime.SetMarker( commandList, str );
   }
 
   void DX12Context::SetRenderTargets( Targets targets )
@@ -445,7 +436,7 @@ namespace Tac::Render
     for( TextureHandle colorTarget : targets.mColors )
     {
       DX12Texture* colorTexture{ mTextureMgr->FindTexture( colorTarget ) };
-      if( ! colorTexture )
+      if( !colorTexture )
         continue;
 
       const DX12TransitionHelper::Params transitionParams
