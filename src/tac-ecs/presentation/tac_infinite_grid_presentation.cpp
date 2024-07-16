@@ -22,6 +22,7 @@ namespace Tac
   static Render::UpdateBufferParams    sConstantUpdateParams;
   static ConstantBuffer                sConstantData;
   static bool                          sInitialized;
+  static bool                          sEnabled { true };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -172,6 +173,10 @@ namespace Tac
                              const Render::TextureHandle dstDepthTex,
                              Errors& errors )
   {
+    if( !sEnabled )
+      return;
+
+#if 0
     if( true ) // deleteme
     {
       const float aspect = ( float )viewSize.x / ( float )viewSize.y;
@@ -192,6 +197,7 @@ namespace Tac
       v4 pos_f_ns = pos_f_cs / pos_f_cs.w;
       Prettifyv4( pos_f_ns );
 
+      // ------------------------
 
       const float theta = camera->mFovyrad / 2;
 
@@ -208,6 +214,7 @@ namespace Tac
       v4 pos_nearPlane_tr_cs = proj * pos_nearPlane_tr_vs;
       Prettifyv4( pos_nearPlane_tr_cs );
 
+      // ( 1, 1, 0, 1 )
       v4 pos_nearPlane_tr_ns = pos_nearPlane_tr_cs / pos_nearPlane_tr_cs.w;
       Prettifyv4( pos_nearPlane_tr_ns );
 
@@ -221,6 +228,7 @@ namespace Tac
 
       ++asdf;
     }
+#endif
 
     const Render::Targets renderTargets
     {
@@ -250,9 +258,7 @@ namespace Tac
 
   void InfiniteGrid::DebugImGui()
   {
-    //if( !ImGuiCollapsingHeader( "Infinite Grid" ) )
-    //  return;
-    //TAC_IMGUI_INDENT_BLOCK;
+    ImGuiCheckbox( "Infinite Grid", &sEnabled );
   }
 
 } // namespace Tac

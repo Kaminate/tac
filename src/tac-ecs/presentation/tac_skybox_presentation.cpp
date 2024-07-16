@@ -262,10 +262,6 @@ namespace Tac
 
   void SkyboxPresentation::DebugImGui()
 {
-  if( !ImGuiCollapsingHeader( "Skybox" ) )
-    return;
-
-  TAC_IMGUI_INDENT_BLOCK;
   ImGuiCheckbox( "Skybox Enabled", &mRenderEnabledSkybox );
 }
 

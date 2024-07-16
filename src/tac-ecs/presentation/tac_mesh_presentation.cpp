@@ -671,8 +671,26 @@ namespace Tac
 #endif
 #endif
 
+  renderContext->DebugEventEnd();
+}
 
-    renderContext->DebugEventEnd();
+void Tac::MeshPresentationDebugImGui()
+{
+  if( !ImGuiCollapsingHeader( "Mesh Presentation" ) )
+    return;
+
+  TAC_IMGUI_INDENT_BLOCK;
+  ImGuiCheckbox( "Render Models", &mRenderEnabledModel );
+
+  ImGuiCheckbox( "Use lights", &mUseLights );
+
+  ImGuiCheckbox( "Use Ambient", &sUseAmbient );
+  if( ImGuiDragFloat3( "ambient color", sAmbient.data() ) )
+  {
+    sAmbient.x = Saturate( sAmbient.x );
+    sAmbient.y = Saturate( sAmbient.y );
+    sAmbient.z = Saturate( sAmbient.z );
+    sAmbient.w = Saturate( sAmbient.w );
   }
 
   void             MeshPresentation::DebugImGui()

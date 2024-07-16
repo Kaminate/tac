@@ -209,7 +209,7 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
     return;
 
   TAC_IMGUI_INDENT_BLOCK;
-  ImGuiCheckbox( "Game Presentation Enabled Debug3D", &mRenderEnabledDebug3D );
+  ImGuiCheckbox( "Debug 3D", &mRenderEnabledDebug3D );
 
 #if TAC_MESH_PRESENTATION_ENABLED()
   MeshPresentation::DebugImGui();

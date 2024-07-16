@@ -458,4 +458,101 @@ namespace Tac
 
 } // namespace Tac
 
+void        Tac::TerrainPresentationInit( Errors& errors )
+{
+  TAC_CALL( CreateTerrainShader( errors ) );
+
+  CreateTerrainVertexDecls();
+
+  const Render::BlendState blendState{ GetBlendState() };
+  const Render::DepthState depthState{ GetDepthState() };
+  const Render::RasterizerState rasterizerState{ GetRasterizerState() };
+
+  CreatePointSampler();
+  CreateLinearSampler();
+  CreateAnisoSampler();
+
+  const Render::PipelineParams terrainPipelineParams
+  {
+    .mProgram           { mTerrainShader},
+    .mBlendState        { blendState},
+    .mDepthState        { depthState},
+    .mRasterizerState   { rasterizerState },
+    .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+    .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+    .mVtxDecls          { mTerrainVtxDecls },
+    .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+    .mName              { "terrain-pso" },
+  };
+
+
+  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  TAC_CALL( mTerrainPipeline = renderDevice->CreatePipeline( terrainPipelineParams, errors ) );
+  
+  mShaderTerrainHeightmap = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainTexture" );
+  mShaderTerrainNoise = renderDevice->GetShaderVariable( mTerrainPipeline, "noiseTexture" );
+  mShaderTerrainSampler = renderDevice->GetShaderVariable( mTerrainPipeline, "linearSampler" );
+  mShaderTerrainSampler->SetSampler( mSamplerAniso );
+
+  const Render::CreateBufferParams terrainConstBufParams
+  {
+    .mByteCount     { sizeof( TerrainConstBuf ) },
+    .mUsage         { Render::Usage::Dynamic },
+    .mBinding       { Render::Binding::ConstantBuffer },
+    .mOptionalName  { "terrain-const-buf" },
+  };
+  TAC_CALL( mTerrainConstBuf = renderDevice->CreateBuffer( terrainConstBufParams, errors ) );
+  mShaderTerrainConstBuf = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainConstBuf" );
+  mShaderTerrainConstBuf->SetBuffer( mTerrainConstBuf );
+}
+
+void        Tac::TerrainPresentationUninit()
+{
+  Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  renderDevice->DestroyPipeline( mTerrainPipeline );
+  renderDevice->DestroySampler( mSamplerAniso );
+  renderDevice->DestroySampler( mSamplerPoint );
+  renderDevice->DestroySampler( mSamplerLinear );
+  renderDevice->DestroyBuffer( mTerrainConstBuf );
+}
+
+
+void        Tac::TerrainPresentationRender( Render::IContext* renderContext,
+                                         const World* world,
+                                         const Camera* camera,
+                                         const v2i viewSize,
+                                         const Render::TextureHandle dstColorTex,
+                                         const Render::TextureHandle dstDepthTex,
+                                         Errors& errors )
+{
+  const Render::Targets renderTargets
+  {
+    .mColors { dstColorTex },
+    .mDepth  { dstDepthTex },
+  };
+
+
+  renderContext->DebugEventBegin( "TerrainPresentationRender" );
+  renderContext->SetViewport( viewSize );
+  renderContext->SetScissor( viewSize );
+  renderContext->SetRenderTargets( renderTargets );
+
+
+  TAC_CALL( RenderTerrain( renderContext,
+                           world,
+                           camera,
+                           viewSize,
+                           dstColorTex,
+                           errors ) );
+
+
+
+  renderContext->DebugEventEnd();
+}
+
+void Tac::TerrainPresentationDebugImGui()
+{
+  ImGuiCheckbox( "Terrain Enabled", &mRenderEnabledTerrain );
+}
+
 #endif
