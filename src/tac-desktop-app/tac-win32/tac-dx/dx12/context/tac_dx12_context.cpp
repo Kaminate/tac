@@ -14,7 +14,16 @@
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h" // Swap
 
-#include <WinPixEventRuntime/pix3.h>
+
+#ifdef TAC_PIX_NUGET
+#define TAC_INCLUDED_PIX_HEADER() false
+// | Reason for commenting out: Having just updated Visual Studio 2022, I get
+// | error C2733 : '_mm_add_ss' : you cannot overload a function with 'extern "C"' linkage
+// V
+// #include <WinPixEventRuntime/pix3.h>
+#else
+#define TAC_INCLUDED_PIX_HEADER() false
+#endif
 
 #if !TAC_DELETE_ME()
 #include "tac-std-lib/os/tac_os.h"
@@ -23,6 +32,74 @@
 
 namespace Tac::Render
 {
+
+#if TAC_IS_DEBUG_MODE()
+  struct PixRuntime
+  {
+
+#if !TAC_INCLUDED_PIX_HEADER()
+    using PixBeginEventSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
+    using PixEndEventSig = void( WINAPI* )( ID3D12GraphicsCommandList* );
+    using PixSetMarkerSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
+#endif
+
+    void Init( Errors& errors )
+    {
+      if( sInitialized  )
+        return;
+
+#if !TAC_INCLUDED_PIX_HEADER()
+      const HMODULE module { LoadLibraryA( "WinPixEventRuntime.dll" ) };
+      TAC_RAISE_ERROR_IF( !module,  "Failed to load WinPixEventRuntime.dll");
+
+      sBeginEventOnCommandList = ( PixBeginEventSig )GetProcAddress( module, "PIXBeginEventOnCommandList" );
+      sEndEventOnCommandList   = ( PixEndEventSig )GetProcAddress( module, "PIXEndEventOnCommandList" );
+      sSetMarkerOnCommandList  = ( PixSetMarkerSig )GetProcAddress( module, "PIXSetMarkerOnCommandList" );
+#endif
+      sInitialized = true;
+    }
+
+    void BeginEvent( ID3D12GraphicsCommandList* commandList,  StringView str )
+    {
+#if TAC_INCLUDED_PIX_HEADER()
+      PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
+#else
+      sBeginEventOnCommandList(commandList, sDefaultColor, str );
+#endif
+    }
+
+    void EndEvent(ID3D12GraphicsCommandList* commandList)
+    {
+#if TAC_INCLUDED_PIX_HEADER()
+      PIXEndEvent( commandList );
+#else
+      sEndEventOnCommandList(commandList );
+#endif
+
+    }
+
+    void SetMarker( ID3D12GraphicsCommandList* commandList, StringView str )
+    {
+
+#if TAC_INCLUDED_PIX_HEADER()
+      PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
+#else
+      sSetMarkerOnCommandList(commandList, sDefaultColor, str );
+#endif
+
+    }
+
+#if !TAC_INCLUDED_PIX_HEADER()
+    PixBeginEventSig sBeginEventOnCommandList{};
+    PixEndEventSig   sEndEventOnCommandList{};
+    PixSetMarkerSig  sSetMarkerOnCommandList{};
+#endif
+    bool             sInitialized{};
+    UINT64           sDefaultColor{};
+  };
+
+  static PixRuntime sPixRuntime;
+#endif
 
   static D3D12_PRIMITIVE_TOPOLOGY   GetDX12PrimitiveTopology( PrimitiveTopology topology )
   {
@@ -53,37 +130,45 @@ namespace Tac::Render
 
   void DX12Context::Init( Params params )
   {
-      mCommandList = params.mCommandList;
-      mGPUUploadAllocator.Init( params.mUploadPageManager );
-      mCommandAllocatorPool = params.mCommandAllocatorPool;
-      mContextManager = params.mContextManager;
-      mCommandQueue = params.mCommandQueue;
-      mSawpChainMgr = params.mSwapChainMgr;
-      mTextureMgr = params.mTextureMgr;
-      mBufferMgr = params.mBufferMgr;
-      mPipelineMgr = params.mPipelineMgr;
-      mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV]
-        = params.mGpuDescriptorHeapCBV_SRV_UAV;
-      mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ]
-        = params.mGpuDescriptorHeapSampler;
-      mSamplerMgr = params.mSamplerMgr;
-      mDevice = params.mDevice;
 
-      TAC_ASSERT( mCommandList );
-      TAC_ASSERT( mCommandAllocatorPool );
-      TAC_ASSERT( mContextManager );
-      TAC_ASSERT( mCommandQueue );
-      TAC_ASSERT( mSawpChainMgr );
-      TAC_ASSERT( mTextureMgr );
-      TAC_ASSERT( mBufferMgr );
-      TAC_ASSERT( mPipelineMgr );
-      TAC_ASSERT( mSamplerMgr );
-      TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] );
-      TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ] );
-      TAC_ASSERT( mDevice );
+#if TAC_IS_DEBUG_MODE()
+    static Errors errors; // temp
+    if( !sPixRuntime.sInitialized )
+    {
+      sPixRuntime.Init( errors );
+      TAC_ASSERT( !errors );
+    }
+#endif
+
+    mCommandList = params.mCommandList;
+    mGPUUploadAllocator.Init( params.mUploadPageManager );
+    mCommandAllocatorPool = params.mCommandAllocatorPool;
+    mContextManager = params.mContextManager;
+    mCommandQueue = params.mCommandQueue;
+    mSawpChainMgr = params.mSwapChainMgr;
+    mTextureMgr = params.mTextureMgr;
+    mBufferMgr = params.mBufferMgr;
+    mPipelineMgr = params.mPipelineMgr;
+    mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ]
+      = params.mGpuDescriptorHeapCBV_SRV_UAV;
+    mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ]
+      = params.mGpuDescriptorHeapSampler;
+    mSamplerMgr = params.mSamplerMgr;
+    mDevice = params.mDevice;
+
+    TAC_ASSERT( mCommandList );
+    TAC_ASSERT( mCommandAllocatorPool );
+    TAC_ASSERT( mContextManager );
+    TAC_ASSERT( mCommandQueue );
+    TAC_ASSERT( mSawpChainMgr );
+    TAC_ASSERT( mTextureMgr );
+    TAC_ASSERT( mBufferMgr );
+    TAC_ASSERT( mPipelineMgr );
+    TAC_ASSERT( mSamplerMgr );
+    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] );
+    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ] );
+    TAC_ASSERT( mDevice );
   }
-
-
 
   void DX12Context::CommitShaderVariables()
   {
@@ -318,17 +403,23 @@ namespace Tac::Render
 
   void DX12Context::DebugEventBegin( StringView str )
   {
+#if TAC_IS_DEBUG_MODE()
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
+    //PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
+    sPixRuntime.BeginEvent(commandList, str );
     mState.mEventCount++;
+#endif
   }
 
   void DX12Context::DebugEventEnd()
   {
+#if TAC_IS_DEBUG_MODE()
     TAC_ASSERT( mState.mEventCount > 0 );
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    PIXEndEvent( commandList );
+    //PIXEndEvent( commandList );
+    sPixRuntime.EndEvent(commandList );
     mState.mEventCount--;
+#endif
   }
 
   void DX12Context::MoveFrom( DX12Context&& ) noexcept
@@ -338,8 +429,11 @@ namespace Tac::Render
 
   void DX12Context::DebugMarker( StringView str )
   {
+#if TAC_IS_DEBUG_MODE()
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
+    //PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
+    sPixRuntime.SetMarker(commandList, str );
+#endif
   }
 
   void DX12Context::SetRenderTargets( Targets targets )
