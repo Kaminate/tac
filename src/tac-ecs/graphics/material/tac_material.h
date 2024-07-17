@@ -30,6 +30,7 @@ namespace Tac
 
     Vector< Data > mData;
     String         mShader;
+    bool           mDisableRender{ false };
   };
 
 }

@@ -1,4 +1,4 @@
-target_sources( TacWin32 PRIVATE
+target_sources( TacDX PRIVATE
   "tac_hlsl_preprocess.cpp"
   "tac_hlsl_preprocess.h"
 )

@@ -1,4 +1,4 @@
-target_sources( TacWin32 PRIVATE
+target_sources( TacDX PRIVATE
   "tac_hlsl_preprocess_comment.cpp"
   "tac_hlsl_preprocess_comment.h"
   "tac_hlsl_preprocess_backend.cpp"

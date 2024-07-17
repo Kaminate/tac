@@ -16,13 +16,16 @@
 
 
 #ifdef TAC_PIX_NUGET
-#define TAC_INCLUDED_PIX_HEADER() ( TAC_IS_DEBUG_MODE() && false )
+#define TAC_INCLUDED_PIX_HEADER() ( TAC_IS_DEBUG_MODE() && true )
 // | Reason for commenting out: Having just updated Visual Studio 2022, I get
 // | error C2733 : '_mm_add_ss' : you cannot overload a function with 'extern "C"' linkage
 // V
-// #include <WinPixEventRuntime/pix3.h>
 #else
 #define TAC_INCLUDED_PIX_HEADER() false
+#endif
+
+#if TAC_INCLUDED_PIX_HEADER()
+#include <WinPixEventRuntime/pix3.h>
 #endif
 
 #if !TAC_DELETE_ME()

@@ -1,7 +1,6 @@
 add_library( TacDX )
 target_include_directories( TacDX PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
-# add_subdirectory( dx11 )
 add_subdirectory( dxc )
 add_subdirectory( dxgi )
 add_subdirectory( dx12 )
