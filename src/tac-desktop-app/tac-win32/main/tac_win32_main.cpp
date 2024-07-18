@@ -20,18 +20,18 @@
 #include "tac-win32/net/tac_net_winsock.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h" // DX12Backend
 #include "tac-dx/dxgi/tac_dxgi_debug.h" // DXGIReportLiveObjects
-#include "tac-dx/pix/tac_pix.h" // AllowPIXDebuggerAttachment
+#include "tac-dx/pix/tac_pix_dbg_attach.h" // AllowPIXDebuggerAttachment
 #include "tac-win32/tac_win32.h"
 
 import std; // #include <iostream>
 
-static Tac::Win32PlatformFns sWin32PlatformFns;
+static Tac::Win32PlatformFns   sWin32PlatformFns;
 static Tac::Render::DX12Device sDX12Device;
 
-int CALLBACK WinMain( HINSTANCE hInstance,
-                      HINSTANCE hPrevInstance,
-                      LPSTR lpCmdLine,
-                      int nCmdShow )
+int CALLBACK WinMain( _In_     HINSTANCE hInstance,
+                      _In_opt_ HINSTANCE hPrevInstance,
+                      _In_     LPSTR lpCmdLine,
+                      _In_     int nCmdShow )
 {
   using namespace Tac;
 

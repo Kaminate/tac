@@ -31,23 +31,6 @@ target_link_libraries( TacDX TacWin32 )
 target_link_libraries( TacDX TacStdLib )
 target_link_libraries( TacWin32Main TacDX )
 
-# pix nuget test
-if( TRUE )
-
-  include( ${CMAKE_SOURCE_DIR}/cmake/pix.cmake )
-  add_pix_target()
-  target_link_libraries( TacWin32 PIX )
-
-  add_custom_command( TARGET TacWin32
-                      PRE_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                              ${PIX_DLL_PATH}
-                              $<TARGET_FILE_DIR:TacWin32> )
-
-  target_compile_definitions( TacWin32 PUBLIC TAC_PIX_NUGET )
-
-
-endif()
 
 
 # this is used in tac_register_renderers for __has_include( "tac_renderer_directx11.h" )

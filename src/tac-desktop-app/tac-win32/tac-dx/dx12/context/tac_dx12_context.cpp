@@ -8,6 +8,7 @@
 #include "tac-dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_gpu_mgr.h"
+#include "tac-dx/pix/tac_pix_runtime.h"
 
 
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -15,95 +16,8 @@
 #include "tac-std-lib/algorithm/tac_algorithm.h" // Swap
 
 
-#ifdef TAC_PIX_NUGET
-#define TAC_INCLUDED_PIX_HEADER() ( TAC_IS_DEBUG_MODE() && true )
-// | Reason for commenting out: Having just updated Visual Studio 2022, I get
-// | error C2733 : '_mm_add_ss' : you cannot overload a function with 'extern "C"' linkage
-// V
-#else
-#define TAC_INCLUDED_PIX_HEADER() false
-#endif
-
-#if TAC_INCLUDED_PIX_HEADER()
-#include <WinPixEventRuntime/pix3.h>
-#endif
-
-#if !TAC_DELETE_ME()
-#include "tac-std-lib/os/tac_os.h"
-#endif
-
-
 namespace Tac::Render
 {
-
-  struct PixRuntime
-  {
-#if !TAC_INCLUDED_PIX_HEADER()
-    using PixBeginEventSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
-    using PixEndEventSig = void( WINAPI* )( ID3D12GraphicsCommandList* );
-    using PixSetMarkerSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
-#endif
-
-    void Init( Errors& errors )
-    {
-      if( sInitialized  )
-        return;
-
-#if !TAC_INCLUDED_PIX_HEADER()
-      const HMODULE module { LoadLibraryA( "WinPixEventRuntime.dll" ) };
-      TAC_RAISE_ERROR_IF( !module,  "Failed to load WinPixEventRuntime.dll");
-
-      sBeginEventOnCommandList = ( PixBeginEventSig )GetProcAddress( module, "PIXBeginEventOnCommandList" );
-      sEndEventOnCommandList   = ( PixEndEventSig )GetProcAddress( module, "PIXEndEventOnCommandList" );
-      sSetMarkerOnCommandList  = ( PixSetMarkerSig )GetProcAddress( module, "PIXSetMarkerOnCommandList" );
-#endif
-      sInitialized = true;
-    }
-
-    void BeginEvent( ID3D12GraphicsCommandList* commandList,  StringView str )
-    {
-#if TAC_IS_DEBUG_MODE()
-#if TAC_INCLUDED_PIX_HEADER()
-      PIXBeginEvent( commandList, PIX_COLOR_DEFAULT, str );
-#else
-      sBeginEventOnCommandList(commandList, sDefaultColor, str );
-#endif
-#endif
-    }
-
-    void EndEvent( ID3D12GraphicsCommandList* commandList )
-    {
-#if TAC_IS_DEBUG_MODE()
-#if TAC_INCLUDED_PIX_HEADER()
-      PIXEndEvent( commandList );
-#else
-      sEndEventOnCommandList(commandList );
-#endif
-#endif
-    }
-
-    void SetMarker( ID3D12GraphicsCommandList* commandList, StringView str )
-    {
-#if TAC_IS_DEBUG_MODE()
-#if TAC_INCLUDED_PIX_HEADER()
-      PIXSetMarker( commandList, PIX_COLOR_DEFAULT, str );
-#else
-      sSetMarkerOnCommandList(commandList, sDefaultColor, str );
-#endif
-#endif
-    }
-
-#if !TAC_INCLUDED_PIX_HEADER()
-    PixBeginEventSig sBeginEventOnCommandList{};
-    PixEndEventSig   sEndEventOnCommandList{};
-    PixSetMarkerSig  sSetMarkerOnCommandList{};
-#endif
-    bool             sInitialized{};
-    UINT64           sDefaultColor{};
-  };
-
-  static PixRuntime sPixRuntime;
-
   static D3D12_PRIMITIVE_TOPOLOGY   GetDX12PrimitiveTopology( PrimitiveTopology topology )
   {
     switch( topology )
@@ -133,16 +47,6 @@ namespace Tac::Render
 
   void DX12Context::Init( Params params )
   {
-
-#if TAC_IS_DEBUG_MODE()
-    static Errors errors; // temp
-    if( !sPixRuntime.sInitialized )
-    {
-      sPixRuntime.Init( errors );
-      TAC_ASSERT( !errors );
-    }
-#endif
-
     mCommandList = params.mCommandList;
     mGPUUploadAllocator.Init( params.mUploadPageManager );
     mCommandAllocatorPool = params.mCommandAllocatorPool;
@@ -407,7 +311,7 @@ namespace Tac::Render
   void DX12Context::DebugEventBegin( StringView str )
   {
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
-    sPixRuntime.BeginEvent( commandList, str );
+    PixRuntimeApi::BeginEvent( commandList, str );
     mState.mEventCount++;
   }
 
@@ -415,7 +319,7 @@ namespace Tac::Render
   {
     TAC_ASSERT( mState.mEventCount > 0 );
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
-    sPixRuntime.EndEvent( commandList );
+    PixRuntimeApi::EndEvent( commandList );
     mState.mEventCount--;
   }
 
@@ -427,7 +331,7 @@ namespace Tac::Render
   void DX12Context::DebugMarker( StringView str )
   {
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
-    sPixRuntime.SetMarker( commandList, str );
+    PixRuntimeApi::SetMarker( commandList, str );
   }
 
   void DX12Context::SetRenderTargets( Targets targets )

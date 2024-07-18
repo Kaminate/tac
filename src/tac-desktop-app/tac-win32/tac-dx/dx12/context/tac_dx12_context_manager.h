@@ -42,7 +42,7 @@ namespace Tac::Render
       DX12DescriptorHeap*       mGpuDescriptorHeapCBV_SRV_UAV {};
       DX12DescriptorHeap*       mGpuDescriptorHeapSampler     {};
     };
-    void Init( Params );
+    void Init( Params, Errors& );
 
     DX12Context*                      GetContext( Errors& );
     void                              RetireContext( DX12Context* );

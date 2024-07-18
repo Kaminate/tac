@@ -86,7 +86,7 @@ namespace Tac::Render
       mBufMgr.Init( params );
     }
 
-    void InitContextMgr()
+    void InitContextMgr( Errors& errors)
     {
       const DX12ContextManager::Params params
       {
@@ -103,7 +103,7 @@ namespace Tac::Render
         .mGpuDescriptorHeapSampler     { &mGpuDescriptorHeapSampler },
       };
 
-      mContextManager.Init( params );
+      mContextManager.Init( params, errors );
     }
 
     void InitSamplerMgr()
@@ -160,7 +160,7 @@ namespace Tac::Render
     TAC_CALL( mCommandQueue.Create( mDevice, errors ) );
     mCommandAllocatorPool.Init( mDevice, &mCommandQueue );
 
-    InitContextMgr();
+    TAC_CALL( InitContextMgr(errors) );
 
     mUploadPageManager.Init( mDevice, &mCommandQueue );
 
