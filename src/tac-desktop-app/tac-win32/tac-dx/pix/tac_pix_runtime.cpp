@@ -31,18 +31,18 @@
   sSetMarkerOnCommandList  = ( PixSetMarkerSig )GetProcAddress( module, "PIXSetMarkerOnCommandList" );
   ```
 */
-#define TAC_IS_COMPILER_BROKEN() true
 
-#ifdef TAC_PIX_NUGET
-
-#if TAC_IS_COMPILER_BROKEN()
-  using PixBeginEventSig = void(WINAPI*)(ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR);
-  using PixEndEventSig = void(WINAPI*)(ID3D12GraphicsCommandList*);
-  using PixSetMarkerSig = void(WINAPI*)(ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR);
-#else
-#include <WinPixEventRuntime/pix3.h>
+#ifndef TAC_PIX_NUGET
+#error pix runtime is not available
 #endif
 
+#define TAC_IS_COMPILER_BROKEN() true
+#if TAC_IS_COMPILER_BROKEN()
+using PixBeginEventSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
+using PixEndEventSig = void( WINAPI* )( ID3D12GraphicsCommandList* );
+using PixSetMarkerSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
+#else
+#include <WinPixEventRuntime/pix3.h>
 #endif
 
 namespace Tac::Render
