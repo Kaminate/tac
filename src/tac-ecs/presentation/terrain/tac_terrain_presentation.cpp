@@ -253,7 +253,7 @@ namespace Tac
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::Back },
       .mFrontCounterClockwise { true },
-      .mMultisample           { false },
+      .mMultisample           {},
     };
   }
 

@@ -6,9 +6,10 @@ namespace Tac
 
   void RegisterMetaphysics()
   {
-    static bool registered { false };
+    static bool registered {};
     if( registered )
       return;
+
     registered = true;
 
     //auto meta = Meta::GetInstance();

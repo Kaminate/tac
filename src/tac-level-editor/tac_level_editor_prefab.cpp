@@ -180,7 +180,7 @@ namespace Tac
     for( int iPrefab{  }; iPrefab < prefabCount; ++iPrefab )
     {
       Prefab* prefab{ mPrefabs[ iPrefab ] };
-      bool removedEntityFromPrefab{ false };
+      bool removedEntityFromPrefab{};
       int prefabEntityCount{ prefab->mEntities.size() };
       for( int iPrefabEntity{  }; iPrefabEntity < prefabEntityCount; ++iPrefabEntity )
       {

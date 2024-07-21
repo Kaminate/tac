@@ -75,12 +75,8 @@ namespace Tac
     {
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::Back },
-
-      //.mFillMode              { Render::FillMode::Wireframe },
-      //.mCullMode              { Render::CullMode::None },
-
       .mFrontCounterClockwise { true },
-      .mMultisample           { false },
+      .mMultisample           {},
     };
   }
 
