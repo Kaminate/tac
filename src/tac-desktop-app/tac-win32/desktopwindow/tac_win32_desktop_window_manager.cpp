@@ -19,15 +19,13 @@
 
 namespace Tac
 {
-  static const char* classname { "tac" };
+  static const char*  classname                        { "tac" };
 
   //                  Elements in this array are added/removed by wndproc
-  static HWND         sHWNDs[ kDesktopWindowCapacity ];
-
-  static HWND         mParentHWND { nullptr };
-
-  static WindowHandle sWindowUnderConstruction;
-  static bool         sMouseInWindow{};
+  static HWND         sHWNDs[ kDesktopWindowCapacity ] {};
+  static HWND         mParentHWND                      {};
+  static WindowHandle sWindowUnderConstruction         {};
+  static bool         sMouseInWindow                   {};
 
   static Key GetKey( u8 keyCode )
   {

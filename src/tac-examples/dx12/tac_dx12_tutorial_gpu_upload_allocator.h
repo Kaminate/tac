@@ -12,12 +12,10 @@ namespace Tac::Render
 
   struct DX12ExampleGPUUploadPage
   {
-    PCom< ID3D12Resource >    mBuffer;
-
-    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr {};
-    void*                     mCPUAddr { nullptr };
-    int                       mByteCount {};
-
+    PCom< ID3D12Resource >    mBuffer           {};
+    D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr          {};
+    void*                     mCPUAddr          {};
+    int                       mByteCount        {};
 
     static const int          kDefaultByteCount { 2 * 1024 * 1024 };
   };

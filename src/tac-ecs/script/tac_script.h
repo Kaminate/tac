@@ -64,8 +64,9 @@ namespace Tac
     void                      OnMsg( const ScriptMsg* scriptMsg );
     void                      OnMsg( StringView scriptMsgType );
     ScriptThread*             GetThread( StringView name );
-    Set< ScriptThread* >      mChildren;
-    Ghost*                    mGhost { nullptr };
+
+    Set< ScriptThread* >      mChildren {};
+    Ghost*                    mGhost    {};
   };
 
 }

@@ -27,8 +27,8 @@ namespace Tac
     // The window must have been created with the SDL_WINDOW_VULKAN flag and instance must have been
     // created with extensions returned by SDL_Vulkan_GetInstanceExtensions() enabled.
 
-    SDL_Window* window { nullptr };
-    SDL_bool created { SDL_Vulkan_CreateSurface( window, instance, psurface ) };
+    SDL_Window* window {};
+    const SDL_bool created { SDL_Vulkan_CreateSurface( window, instance, psurface ) };
     TAC_RAISE_ERROR_IF(created == SDL_FALSE, "SDL_Vulkan_CreateSurface failed", errors );
   }
 

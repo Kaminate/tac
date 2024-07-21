@@ -139,7 +139,7 @@ namespace Tac
     const String serverTypeGameClient { TAC_STRINGIFY( ScriptGameClient ) };
     const String serverType { settingsNode.GetChild( "server type" ).GetValueWithFallback( serverTypeGameClient ) };
 
-    ScriptThread* child { nullptr };
+    ScriptThread* child {};
     if( serverType == serverTypeGameClient )
       child = TAC_NEW ScriptGameClient( mSettingsNode );
     else

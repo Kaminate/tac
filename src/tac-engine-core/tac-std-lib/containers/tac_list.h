@@ -53,7 +53,7 @@ public:
       return it;
     } 
 
-    Node*       mNode { nullptr };
+    Node*       mNode {};
   };
 
   List() = default;

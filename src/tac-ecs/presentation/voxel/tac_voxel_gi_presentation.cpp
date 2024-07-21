@@ -498,10 +498,10 @@ namespace Tac
         }
       }
 
-      Render::ViewHandle            mViewHandle;
-      Render::SamplerStateHandle    mSamplerState;
-      Render::DrawCallTextures* textures { nullptr };
-      Render::CBufferLights* cBufferLights { nullptr };
+      Render::ViewHandle            mViewHandle   {};
+      Render::SamplerStateHandle    mSamplerState {};
+      Render::DrawCallTextures* textures          {};
+      Render::CBufferLights* cBufferLights        {};
     } modelVisitor;
     modelVisitor.mViewHandle = viewHandle;
     modelVisitor.mSamplerState = GamePresentationGetSamplerState();

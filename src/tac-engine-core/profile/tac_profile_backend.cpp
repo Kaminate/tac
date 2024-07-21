@@ -8,11 +8,11 @@
 namespace Tac
 {
 
-  const float kProfileStoreSeconds { 0.1f };
+  const float                      kProfileStoreSeconds { 0.1f };
 
   // The function corresponding to the most recent unended ProfileBlockBegin() 
   // Following the parent chain forms the current call stack.
-  thread_local ProfileFunction*    sFunctionUnfinished { nullptr };
+  thread_local ProfileFunction*    sFunctionUnfinished  {};
 
   static bool               sIsRunning;
   static Timepoint          sGameFrameTimepointCurr;
