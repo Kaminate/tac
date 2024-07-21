@@ -213,7 +213,7 @@ namespace Tac::Network
     AddNewline();
   }
 
-  Net* Net::Instance { nullptr };
+  Net* Net::Instance {};
   Net::Net()
   {
     Instance = this;

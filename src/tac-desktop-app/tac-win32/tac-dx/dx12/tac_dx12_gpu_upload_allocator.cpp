@@ -21,7 +21,7 @@ namespace Tac::Render
     // so normally, when allocating a page, you first check if a retired page can be reused,
     // but large pages are just deleted when they are no longer used.
 
-    DX12UploadPage* pageToAllocateFrom { nullptr };
+    DX12UploadPage* pageToAllocateFrom {};
     if( byteCount > DX12UploadPage::kDefaultByteCount )
     {
       TAC_CALL_RET( {}, DX12UploadPage requested{

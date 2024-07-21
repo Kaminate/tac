@@ -16,9 +16,9 @@ namespace Tac
 
   struct TerrainOBB
   {
-    v3 mPos;
-    v3 mHalfExtents;
-    v3 mEulerRads;
+    v3 mPos         {};
+    v3 mHalfExtents {};
+    v3 mEulerRads   {};
   };
 
   struct Heightmap
@@ -39,27 +39,28 @@ namespace Tac
     v3                             GetGridVal( int iRow, int iCol ) const;
     v3                             GetGridValNormal( int iRow, int iCol ) const;
     void                           Recompute();
-    int                            mSideVertexCount { 50 };
-    float                          mSideLength { 50.0f };
-    float                          mUpwardsHeight { 20.0f };
-    Vector< v3 >                   mRowMajorGrid;
-    Vector< v3 >                   mRowMajorGridNormals;
-    AssetPathString                mHeightmapTexturePath;
-    AssetPathString                mGroundTexturePath;
-    AssetPathString                mNoiseTexturePath;
-    int                            mTestHeightmapWidth { 0 };
-    int                            mTestHeightmapHeight { 0 };
-    float                          mPower { 1 };
-    Vector< unsigned char >        mTestHeightmapImageMemory;
-    m4                             mWorldLevelEditorTransform = {};
+
+    int                            mSideVertexCount           { 50 };
+    float                          mSideLength                { 50.0f };
+    float                          mUpwardsHeight             { 20.0f };
+    Vector< v3 >                   mRowMajorGrid              {};
+    Vector< v3 >                   mRowMajorGridNormals       {};
+    AssetPathString                mHeightmapTexturePath      {};
+    AssetPathString                mGroundTexturePath         {};
+    AssetPathString                mNoiseTexturePath          {};
+    int                            mTestHeightmapWidth        {};
+    int                            mTestHeightmapHeight       {};
+    float                          mPower                     { 1 };
+    Vector< unsigned char >        mTestHeightmapImageMemory  {};
+    m4                             mWorldLevelEditorTransform {};
 
 
     // do you think this shit should actually be owned by the game presentation?
-    Render::BufferHandle           mVertexBuffer;
-    Render::BufferHandle           mIndexBuffer;
-    int                            mIndexCount { 0 };
-    Vector< TerrainOBB >           mTerrainOBBs;
-    Errors                         mTestHeightmapLoadErrors;
+    Render::BufferHandle           mVertexBuffer              {};
+    Render::BufferHandle           mIndexBuffer               {};
+    int                            mIndexCount                {};
+    Vector< TerrainOBB >           mTerrainOBBs               {};
+    Errors                         mTestHeightmapLoadErrors   {};
   };
 
 

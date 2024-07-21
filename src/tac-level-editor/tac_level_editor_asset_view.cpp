@@ -2,7 +2,7 @@
 
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_model_load_synchronous.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"
@@ -132,7 +132,7 @@ namespace Tac
     cgltf_node_transform_local( node, local );
 
     m4 mLocal;
-    for( int i { 0 }; i < 16; ++i )
+    for( int i {}; i < 16; ++i )
       mLocal[ i ] = local[ i ];
     mLocal.Transpose();
 

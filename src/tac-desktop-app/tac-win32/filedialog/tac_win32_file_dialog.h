@@ -20,19 +20,19 @@ namespace Tac
     FileDialogHelper( Type );
     ~FileDialogHelper();
 
-    FileSys::Path        Run( Errors& );
+    FileSys::Path           Run( Errors& );
 
   private:
     void                    SetDefaultFolder( Errors& );
     void                    CreateDialogInstance( Errors& );
     void                    Show( Errors& );
-    FileSys::Path        GetResult( Errors& );
+    FileSys::Path           GetResult( Errors& );
 
-    IFileDialog*            mDialog { nullptr };
-    PCom< IFileOpenDialog > mOpenDialog;
-    PCom< IFileSaveDialog > mSaveDialog;
-    bool                    mCancelled { false };
-    Type                    mType;
+    IFileDialog*            mDialog     {};
+    PCom< IFileOpenDialog > mOpenDialog {};
+    PCom< IFileSaveDialog > mSaveDialog {};
+    bool                    mCancelled  {};
+    Type                    mType       {};
   };
 
 }

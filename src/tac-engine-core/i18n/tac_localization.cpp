@@ -168,8 +168,9 @@ namespace Tac
     Codepoint   Extract();
   private:
     char        GetNextByte();
-    const char* mBegin { nullptr };
-    const char* mEnd { nullptr };
+
+    const char* mBegin {};
+    const char* mEnd   {};
   };
 
   Converter::Converter( StringView stringView )
@@ -183,35 +184,33 @@ namespace Tac
     const char b0 { GetNextByte() };
     if( !b0 )
       return 0;
+
     if( ( b0 & 0b10000000 ) == 0 )
-    {
       return ( 0b01111111 & b0 ) << 0;
-    }
 
     const char b1 { GetNextByte() };
     if( !b1 )
       return 0;
+
     if( ( b0 & 0b00100000 ) == 0 )
-    {
       return
         ( ( 0b00111111 & b1 ) << 0 ) |
         ( ( 0b00011111 & b0 ) << 6 );
-    }
 
     const char b2 { GetNextByte() };
     if( !b2 )
       return 0;
+
     if( ( b0 & 0b00010000 ) == 0 )
-    {
       return
         ( ( 0b00111111 & b2 ) << 0 ) |
         ( ( 0b00111111 & b1 ) << 6 ) |
         ( ( 0b00001111 & b0 ) << 12 );
-    }
 
     const char b3 { GetNextByte() };
     if( !b3 )
       return 0;
+
     return
       ( ( 0b00111111 & b3 ) << 0 ) |
       ( ( 0b00111111 & b2 ) << 6 ) |

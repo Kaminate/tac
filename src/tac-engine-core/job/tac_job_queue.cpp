@@ -6,14 +6,14 @@
 
 namespace Tac
 {
-  const int                    kMinThreadCount{ 4 };
-  static bool                  sJobQueueRunning{ false };
-  static Vector< std::thread > sJobQueueThreads;
-  static std::mutex            sJobQueueMutex;
+  const int                    kMinThreadCount        { 4 };
+  static bool                  sJobQueueRunning       {};
+  static Vector< std::thread > sJobQueueThreads       {};
+  static std::mutex            sJobQueueMutex         {};
 
   // The jobs are unowned
-  static RingVector< Job* >    sJobQueueUnstarted;
-  static float                 sJobQueueMinJobSeconds{};
+  static RingVector< Job* >    sJobQueueUnstarted     {};
+  static float                 sJobQueueMinJobSeconds {};
 
   //int JobQueueGetThreadCount()
   //{

@@ -29,19 +29,6 @@ namespace Tac
 
   struct ClientData
   {
-    LagTest                 mSavedNetworkMessages;
-    World*                  mWorld { nullptr };
-    World*                  mEmptyWorld { nullptr };
-    PlayerUUID              mPlayerUUID { NullPlayerUUID };
-
-    // < Prediction >
-    static const int        sMaxSavedInputCount { 60 };
-    List< SavedInput >      mSavedInputs;
-    bool                    mIsPredicting { true };
-    // </>
-
-    Timestamp               mMostRecentSnapshotTime;
-    SnapshotBuffer          mSnapshots;
     void                    ReadSnapshotBody( Reader*, Errors& );
     void                    OnClientDisconnect();
     void                    WriteInputBody( Writer* );
@@ -55,6 +42,20 @@ namespace Tac
     void                    ReceiveMessage( void* bytes,
                                             int byteCount,
                                             Errors& );
+
+    LagTest                 mSavedNetworkMessages   {};
+    World*                  mWorld                  {};
+    World*                  mEmptyWorld             {};
+    PlayerUUID              mPlayerUUID             { NullPlayerUUID };
+
+    // < Prediction >
+    static const int        sMaxSavedInputCount     { 60 };
+    List< SavedInput >      mSavedInputs            {};
+    bool                    mIsPredicting           { true };
+    // </>
+
+    Timestamp               mMostRecentSnapshotTime {};
+    SnapshotBuffer          mSnapshots              {};
   };
 
 }

@@ -119,9 +119,9 @@ namespace Tac
       if( !mDrawGrid )
         return;
 
-      for( int iRow { 0 }; iRow < mTerrain->mSideVertexCount; ++iRow )
+      for( int iRow {}; iRow < mTerrain->mSideVertexCount; ++iRow )
       {
-        for( int iCol { 0 }; iCol < mTerrain->mSideVertexCount; ++iCol )
+        for( int iCol {}; iCol < mTerrain->mSideVertexCount; ++iCol )
         {
           const v3 topLeft { mTerrain->GetGridVal( iRow, iCol ) + offset };
 
@@ -144,14 +144,14 @@ namespace Tac
       }
     }
 
-    bool mDrawGrid { false };
-    Errors mNoiseTextureDialogErrors;
-    Errors mTerrainTextureDialogErrors;
-    Errors mHeightmapFileDialogErrors;
-    Errors mHeightmapDirectoryIterateErrors;
-    Terrain* mTerrain { nullptr };
-    bool iterated { false };
-    Vector< FileSys::Path > heightmapPaths;
+    bool mDrawGrid                          {};
+    Errors mNoiseTextureDialogErrors        {};
+    Errors mTerrainTextureDialogErrors      {};
+    Errors mHeightmapFileDialogErrors       {};
+    Errors mHeightmapDirectoryIterateErrors {};
+    Terrain* mTerrain                       {};
+    bool iterated                           {};
+    Vector< FileSys::Path > heightmapPaths  {};
   } gTerrainDebugger;
 
   void TerrainDebugImgui( Terrain* terrain )

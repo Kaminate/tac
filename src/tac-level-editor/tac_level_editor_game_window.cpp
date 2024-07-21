@@ -7,9 +7,9 @@
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/graphics/tac_graphics.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
-#include "tac-ecs/presentation/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
+#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
@@ -44,7 +44,7 @@
 
 namespace Tac
 {
-  static bool                          drawGrid                  { false };
+  static bool                          drawGrid                  {};
   static float                         sWASDCameraPanSpeed       { 10 };
   static float                         sWASDCameraOrbitSpeed     { 0.1f };
   static bool                          sWASDCameraOrbitSnap      {};
@@ -88,9 +88,9 @@ namespace Tac
 
   static v3 SnapToUnitDir( const v3 v ) // Returns the unit vector that best aligns with v
   {
-    float biggestDot { 0 };
+    float biggestDot {};
     v3 biggestUnitDir  {};
-    for( int iAxis { 0 }; iAxis < 3; ++iAxis )
+    for( int iAxis {}; iAxis < 3; ++iAxis )
     {
       for( float sign : { -1.0f, 1.0f } )
       {
@@ -271,7 +271,7 @@ namespace Tac
 
   static void ImGuiOverlay( Camera* camera, Errors& errors )
   {
-    static bool mHideUI { false };
+    static bool mHideUI {};
     if( mHideUI )
       return;
 

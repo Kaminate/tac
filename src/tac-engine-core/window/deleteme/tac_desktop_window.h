@@ -11,13 +11,13 @@ namespace Tac
     v2                        GetPosV2() const;
     v2                        GetSizeV2() const;
 
-    int                       mX { };
-    int                       mY { };
-    int                       mWidth { };
-    int                       mHeight { };
+    int                       mX      {};
+    int                       mY      {};
+    int                       mWidth  {};
+    int                       mHeight {};
     //const void*               mNativeWindowHandle = nullptr;
-    bool                      mShown{ false };
-    String                    mName;
+    bool                      mShown  {};
+    String                    mName   {};
   };
 
   struct DesktopWindowRect

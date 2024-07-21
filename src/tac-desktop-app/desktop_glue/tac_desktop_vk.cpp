@@ -24,7 +24,7 @@ namespace Tac
 {
   VkSurfaceFn GetVkSurfaceFn()
   {
-    VkSurfaceFn fn { nullptr };
+    VkSurfaceFn fn {};
 
 #if TAC_INCLUDED_WIN_VK
     fn = Win32VkCreateSurface;

@@ -47,11 +47,12 @@ namespace Tac::Controller
     void                    DebugImgui();
     virtual void            DebugImguiInner();
     ControllerIndex         FindControllerIndex();
+
     ControllerState         mControllerStatePrev  {};
     ControllerState         mControllerStateCurr  {};
-    bool                    mDebugging;
-    String                  mName;
-    ControllerInput*        mInput { nullptr };
+    bool                    mDebugging            {};
+    String                  mName                 {};
+    ControllerInput*        mInput                {};
   };
 
 
@@ -68,10 +69,11 @@ namespace Tac::Controller
     ControllerIndex         GetConnectedControllerCount();
     ControllerIndex         AddController( Controller* );
     Controller*             GetController( ControllerIndex );
+
     Controller*             mControllers[ TAC_CONTROLLER_COUNT_MAX ]  {};
-    bool                    mDebugging;
-    bool                    mForceIndexOverride {};
-    int                     mIndexOverride {};
+    bool                    mDebugging                                {};
+    bool                    mForceIndexOverride                       {};
+    int                     mIndexOverride                            {};
   };
 
 } // namespace Tac::Controller

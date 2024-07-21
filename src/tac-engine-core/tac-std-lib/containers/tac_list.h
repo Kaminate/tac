@@ -35,7 +35,7 @@ public:
     void        operator ++() { mNode = mNode->mNext; }
     void        operator --() { mNode = mNode->mPrev; }
 
-    const Node* mNode { nullptr };
+    const Node* mNode {};
   };
 
   struct Iterator

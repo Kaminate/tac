@@ -5,8 +5,8 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
-#include "tac-ecs/presentation/tac_mesh_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
+#include "tac-ecs/presentation/mesh/tac_mesh_presentation.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 
 
@@ -26,10 +26,10 @@ namespace Tac
       return pickedObject == PickedObject::None || dist < closestDist;
     }
 
-    PickedObject pickedObject;
-    float        closestDist;
-    Entity*      closest;
-    int          arrowAxis;
+    PickedObject pickedObject {};
+    float        closestDist  {};
+    Entity*      closest      {};
+    int          arrowAxis    {};
   };
 
   static PickData pickData;
@@ -62,7 +62,7 @@ namespace Tac
       m4::Identity(),
       m4::RotRadX( -3.14f / 2.0f ), };
 
-    for( int i { 0 }; i < 3; ++i )
+    for( int i {}; i < 3; ++i )
     {
       // 1/3: inverse transform
       v3 modelSpaceRayPos3 { camera->mPos - selectionGizmoOrigin };
@@ -97,8 +97,8 @@ namespace Tac
   {
     for( Entity* entity : world->mEntities )
     {
-      bool hit { false };
-      float dist { 0 };
+      bool hit {};
+      float dist {};
       MousePickingEntity( camera, entity, &hit, &dist );
       if( !hit || !pickData.IsNewClosest( dist ) )
         continue;

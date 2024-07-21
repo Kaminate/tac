@@ -11,8 +11,8 @@
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
-#include "tac-ecs/presentation/tac_mesh_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
+#include "tac-ecs/presentation/mesh/tac_mesh_presentation.h"
 
 namespace Tac
 {
@@ -191,7 +191,7 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    const Mesh* mesh { nullptr };
+    const Mesh* mesh {};
 
 #if TAC_GAME_PRESENTATION_ENABLED()
     mesh = MeshPresentation::GetModelMesh( model );

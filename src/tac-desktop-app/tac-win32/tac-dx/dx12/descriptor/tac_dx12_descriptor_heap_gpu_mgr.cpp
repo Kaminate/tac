@@ -385,7 +385,7 @@ namespace Tac::Render
     // was considered used till now (fence signalled)
     TAC_ASSERT( region->mDescriptorCount > 0 );
 
-    bool regionInFreeList{ false };
+    bool regionInFreeList{};
 
     // Merge ourself into the left region
     RegionDesc* left{ GetRegionAtIndex( region->mLeftIndex ) };

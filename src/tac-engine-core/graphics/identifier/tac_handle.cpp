@@ -1,3 +1,4 @@
+#if 0
 #include "src/common/identifier/tac_handle.h"
 
 namespace Tac
@@ -12,3 +13,4 @@ namespace Tac
   bool Handle::IsValid() const                          { return mIndex != -1;            }
   int  Handle::GetIndex() const                         { return mIndex;                  }
 }
+#endif

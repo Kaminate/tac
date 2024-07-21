@@ -19,8 +19,8 @@ private:
   {
     ~Node()                { TAC_DELETE mNext; mNext = nullptr; }
 
-    T        mT;
-    Node*    mNext { nullptr };
+    T        mT    {};
+    Node*    mNext {};
   };
 
 public:
@@ -30,7 +30,7 @@ public:
     const T&    operator *()  { return mNode->mT; }
     void        operator ++() { mNode = mNode->mNext; }
 
-    const Node* mNode { nullptr };
+    const Node* mNode {};
   };
 
   struct Iterator
@@ -39,7 +39,7 @@ public:
     T&          operator *()  { return mNode->mT; }
     void        operator ++() { mNode = mNode->mNext; }
 
-    Node*       mNode { nullptr };
+    Node*       mNode {};
   };
 
   ~ForwardList()           { Clear(); }

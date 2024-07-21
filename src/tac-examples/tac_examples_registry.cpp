@@ -56,7 +56,7 @@ namespace Tac
 
   int GetExampleIndex( const StringView& name )
   {
-    for( int i { 0 }; i < sExamples.size(); ++i )
+    for( int i {}; i < sExamples.size(); ++i )
       if( ( StringView )sExamples[ i ].mExampleName == name )
         return i;
     return -1;

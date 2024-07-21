@@ -29,7 +29,7 @@ namespace Tac
 
   void SubMesh::SubMeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist ) const
   {
-    bool submeshHit { false };
+    bool submeshHit {};
     float submeshDist {};
     int triCount { ( int )mTris.size() };
     for( int iTri {}; iTri < triCount; ++iTri )
@@ -55,11 +55,11 @@ namespace Tac
 
   void Mesh::MeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist ) const
   {
-    bool meshHit { false };
+    bool meshHit {};
     float meshDist {};
     for( const SubMesh& subMesh : mSubMeshes )
     {
-      bool subMeshHit { false };
+      bool subMeshHit {};
       float submeshDist {};
       subMesh.SubMeshModelSpaceRaycast( inRayPos, inRayDir, &subMeshHit, &submeshDist );
       if( !subMeshHit )

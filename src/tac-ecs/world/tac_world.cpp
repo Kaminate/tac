@@ -76,12 +76,12 @@ namespace Tac
   void               World::KillEntity( EntityIterator it )
   {
     TAC_ASSERT( it != mEntities.end() );
-    Entity* entity = *it;
+    Entity* entity { *it };
 
     // Remove this entity from its parent's list of children
     if( Entity * parent{ entity->mParent } )
     {
-      int iEntity { 0 };
+      int iEntity {};
       int entityCount { parent->mChildren.size() };
       while( iEntity < entityCount )
       {
@@ -97,7 +97,7 @@ namespace Tac
     }
 
     Vector< EntityIterator > treeIterators  { it };
-    int iTreeIterator { 0 };
+    int iTreeIterator {};
     for( ;; )
     {
       if( iTreeIterator == treeIterators.size() )

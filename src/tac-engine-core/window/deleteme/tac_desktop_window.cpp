@@ -50,26 +50,26 @@ namespace Tac
 
   DesktopWindowRect   DesktopWindowHandle::GetDesktopWindowRectScreenspace() const
   {
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState();
+ }    const DesktopWindowState* desktopWindowState = GetDesktopWindowState();
     const DesktopWindowRect desktopWindowRect
     {
-      .mLeft = desktopWindowState->mX,
-      .mRight = desktopWindowState->mX + desktopWindowState->mWidth,
-      .mBottom = desktopWindowState->mY + desktopWindowState->mHeight,
-      .mTop = desktopWindowState->mY,
+      .mLeft   { desktopWindowState->mX },
+      .mRight  { desktopWindowState->mX + desktopWindowState->mWidth },
+      .mBottom { desktopWindowState->mY + desktopWindowState->mHeight },
+      .mTop    { desktopWindowState->mY },
     };
     return desktopWindowRect;
   }
 
   DesktopWindowRect   DesktopWindowHandle::GetDesktopWindowRectWindowspace() const
   {
-    const DesktopWindowState* desktopWindowState = GetDesktopWindowState();
+    const DesktopWindowState* desktopWindowState { GetDesktopWindowState() };
     const DesktopWindowRect desktopWindowRect
     {
-      .mLeft { 0 },
-      .mRight { desktopWindowState->mWidth },
+      .mLeft   {},
+      .mRight  { desktopWindowState->mWidth },
       .mBottom { desktopWindowState->mHeight },
-      .mTop { 0 },
+      .mTop    {},
     };
     return desktopWindowRect;
   }
@@ -95,13 +95,13 @@ void Tac::DesktopWindowDebugImgui()
 
   TAC_IMGUI_INDENT_BLOCK;
 
-  int maxNameLen { 0 };
+  int maxNameLen {};
   for( const DesktopWindowState& state : sDesktopWindowStates )
     maxNameLen = Max( maxNameLen, state.mName.size() );
 
 
-  int stateCount { 0 };
-  for( int iWindow{ 0 }; iWindow < kDesktopWindowCapacity; ++iWindow )
+  int stateCount {};
+  for( int iWindow{}; iWindow < kDesktopWindowCapacity; ++iWindow )
   {
     const DesktopWindowState* state = &sDesktopWindowStates[ iWindow ];
     if( !state->mNativeWindowHandle )

@@ -119,7 +119,7 @@ namespace Tac
       .mName  { name },
       .mPos   { pos },
       .mSize  { size },
-      .mShown { false },
+      .mShown {},
     };
     sSysNative[ i ] = nwh;
 

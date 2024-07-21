@@ -182,9 +182,9 @@ namespace Tac
   void EntityDiffs::ReadDeleted( World* world, Reader* reader, Errors& errors )
   {
     const auto numDeletedEntities = TAC_CALL( reader->Read<EntityCount>( errors ) );
-    for( EntityCount i { 0 }; i < numDeletedEntities; ++i )
+    for( EntityCount i {}; i < numDeletedEntities; ++i )
     {
-      const auto entityUUID = TAC_CALL( reader->Read<EntityUUID >( errors ) );
+      TAC_CALL( const auto entityUUID { reader->Read<EntityUUID >( errors )  });
       world->KillEntity( entityUUID );
     }
   }
@@ -192,7 +192,7 @@ namespace Tac
   void EntityDiffs::ReadCreated( World* world, Reader* reader, Errors& errors )
   {
     TAC_CALL( const auto n { reader->Read<EntityCount>( errors )  });
-    for( EntityCount i { 0 }; i < n; ++i )
+    for( EntityCount i {}; i < n; ++i )
     {
       TAC_CALL( const auto entityUUID { reader->Read<EntityUUID>( errors ) });
       TAC_CALL( const auto componentRegistryBits { reader->Read<ComponentRegistryBits>( errors ) });

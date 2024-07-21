@@ -382,7 +382,7 @@ namespace Tac
     const int S { 1 << 1 };
     const int W { 1 << 2 };
     const int N { 1 << 3 };
-    int hoverMask { 0 };
+    int hoverMask {};
 
     const bool anyEdgeActive{ globals.mActiveID == id };
 
@@ -1023,8 +1023,8 @@ namespace Tac
   {
     const Render::DepthState depthState
     {
-      .mDepthTest  { false },
-      .mDepthWrite { false },
+      .mDepthTest  {},
+      .mDepthWrite {},
       .mDepthFunc  { Render::DepthFunc::Less },
     };
     return depthState;
@@ -1037,7 +1037,7 @@ namespace Tac
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::None },
       .mFrontCounterClockwise { true },
-      .mMultisample           { false },
+      .mMultisample           {},
     };
     return rasterizerState;
   }

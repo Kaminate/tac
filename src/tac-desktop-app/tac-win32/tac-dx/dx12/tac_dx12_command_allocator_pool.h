@@ -44,10 +44,10 @@ namespace Tac::Render
       FenceSignal                    mSignalValue;
     };
 
-    ID3D12Device*         m_device { nullptr };
-    RingVector< Element > mElements;
-    DX12CommandQueue*     mCommandQueue { nullptr };
-    int                   mAllocatorCount;
+    ID3D12Device*         m_device        {};
+    RingVector< Element > mElements       {};
+    DX12CommandQueue*     mCommandQueue   {};
+    int                   mAllocatorCount {};
   };
 
 } // namespace Tac

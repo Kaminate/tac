@@ -46,14 +46,14 @@ namespace Tac::Network
   // Should these struct S be merged and the callback be a union?
   struct SocketCallbackData
   {
-    SocketCallback*        mCallback { nullptr };
-    void*                  mUserData { nullptr };
+    SocketCallback*        mCallback {};
+    void*                  mUserData {};
   };
 
   struct SocketCallbackDataMessage
   {
-    SocketCallbackMessage* mCallback { nullptr };
-    void*                  mUserData { nullptr };
+    SocketCallbackMessage* mCallback {};
+    void*                  mUserData {};
   };
 
   struct Socket
@@ -68,17 +68,17 @@ namespace Tac::Network
                                                        Errors& ) = 0;
     void                                OnMessage( void* bytes, int byteCount );
 
-    String                              mName;
-    SocketType                          mSocketType { SocketType::Count };
-    AddressFamily                       mAddressFamily { AddressFamily::Count };
-    Timestamp                           mElapsedSecondsOnLastRecv;
-    Net*                                mNet { nullptr };
-    bool                                mTCPIsConnected { false };
-    bool                                mRequestDeletion { false };
-    Vector< SocketCallbackDataMessage > mTCPOnMessage;
-    Vector< SocketCallbackData >        mTCPOnConnectionClosed;
-    bool                                mRequiresWebsocketFrame { false };
-    SocketCallbackData                  mKeepaliveOverride;
+    String                              mName                     {};
+    SocketType                          mSocketType               { SocketType::Count };
+    AddressFamily                       mAddressFamily            { AddressFamily::Count };
+    Timestamp                           mElapsedSecondsOnLastRecv {};
+    Net*                                mNet                      {};
+    bool                                mTCPIsConnected           {};
+    bool                                mRequestDeletion          {};
+    Vector< SocketCallbackDataMessage > mTCPOnMessage             {};
+    Vector< SocketCallbackData >        mTCPOnConnectionClosed    {};
+    bool                                mRequiresWebsocketFrame   {};
+    SocketCallbackData                  mKeepaliveOverride        {};
   };
 
   struct HTTPRequest

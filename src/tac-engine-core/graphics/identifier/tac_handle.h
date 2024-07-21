@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 namespace Tac
@@ -27,3 +28,4 @@ namespace Tac
 
 } // namespace Tac
 
+#endif

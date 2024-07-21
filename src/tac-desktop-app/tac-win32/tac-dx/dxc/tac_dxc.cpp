@@ -108,7 +108,7 @@ namespace Tac::Render
       verInfo2->GetVersion( &major, &minor );
     }
 
-    char* ver { nullptr };
+    char* ver {};
     if( PCom<IDxcVersionInfo3> verInfo3{ verInfo.QueryInterface<IDxcVersionInfo3>() } )
     {
       verInfo3->GetCustomVersionString( &ver );

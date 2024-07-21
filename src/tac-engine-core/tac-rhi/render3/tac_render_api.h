@@ -219,8 +219,8 @@ namespace Tac::Render
 
   struct DepthState
   {
-    bool      mDepthTest  { false };
-    bool      mDepthWrite { false };
+    bool      mDepthTest  {};
+    bool      mDepthWrite {};
     DepthFunc mDepthFunc  { DepthFunc::Less };
   };
 
@@ -229,7 +229,7 @@ namespace Tac::Render
     FillMode mFillMode              { FillMode::Solid };
     CullMode mCullMode              { CullMode::None };
     bool     mFrontCounterClockwise { true };
-    bool     mMultisample           { false };
+    bool     mMultisample           {};
   };
 
 

@@ -19,13 +19,13 @@ namespace Tac
 
     struct Data
     {
-      String mKey;
-      Json   mValue;
+      String mKey   {};
+      Json   mValue {};
     };
 
-    Vector< Data > mData;
-    String         mShader;
-    bool           mDisableRender{ false };
+    Vector< Data > mData           {};
+    String         mMaterialShader {};
+    bool           mDisableRender  {};
   };
 
 }

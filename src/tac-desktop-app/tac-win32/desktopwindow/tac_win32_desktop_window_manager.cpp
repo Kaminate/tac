@@ -95,10 +95,10 @@ namespace Tac
                                          const WPARAM wParam,
                                          const LPARAM lParam )
   {
-    static bool verboseMouseInWindow { false };
-    static bool verboseFocus { false };
-    static bool verboseActivate { false };
-    static bool verboseCapture { false };
+    static bool verboseMouseInWindow {};
+    static bool verboseFocus {};
+    static bool verboseActivate {};
+    static bool verboseCapture {};
 
     // [ ] Q: wtf is sWindowUnderConstruction???
     const WindowHandle windowHandleFound { Win32WindowManagerFindWindow( hwnd ) };
@@ -322,7 +322,7 @@ namespace Tac
       const DesktopEventApi::KeyStateEvent data
       {
         .mKey  { key },
-        .mDown { false },
+        .mDown {},
       };
       DesktopEventApi::Queue( data );
 
@@ -397,7 +397,7 @@ namespace Tac
     //   This member must be a handle to a cursor resource.
     //   If this member is NULL, an application must explicitly set the cursor shape whenever
     //   the mouse moves into the application's window.
-    const HCURSOR hCursor{ nullptr };
+    const HCURSOR hCursor{};
 
     const WNDCLASSEX wc
     {
@@ -409,7 +409,7 @@ namespace Tac
       .hCursor       { hCursor },
       .hbrBackground { ( HBRUSH )GetStockObject( BLACK_BRUSH ) },
       .lpszClassName { classname },
-      .hIconSm       { nullptr }, // If null, the system searches for a small icon from the hIcon member
+      .hIconSm       {}, // If null, the system searches for a small icon from the hIcon member
     };
 
     TAC_RAISE_ERROR_IF( !RegisterClassEx( &wc ),
@@ -568,7 +568,7 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
 
   sWindowUnderConstruction = windowHandle;
 
-  static HWND parentHWND { nullptr };
+  static HWND parentHWND {};
 
   if( parentHWND )
   {

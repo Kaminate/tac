@@ -128,7 +128,7 @@ namespace Tac::Render
     const D3D12_ROOT_DESCRIPTOR_TABLE1 DescriptorTable
     {
       .NumDescriptorRanges { 1 },
-      .pDescriptorRanges   { nullptr }, // fill this in later
+      .pDescriptorRanges   {}, // fill this in later
     };
 
     const D3D12_ROOT_PARAMETER1 rootParam

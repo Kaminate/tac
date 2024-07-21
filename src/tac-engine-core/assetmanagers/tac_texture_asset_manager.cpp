@@ -593,7 +593,7 @@ namespace Tac
     const TextureLoadJob::Params params
     {
       .mFilepath  { textureFilepath },
-      .mIsCubemap { false },
+      .mIsCubemap {},
     };
     TextureLoadJob* asyncTexture{ TAC_NEW TextureLoadJob( params ) };
 

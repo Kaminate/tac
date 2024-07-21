@@ -55,9 +55,9 @@ namespace Tac
     Json              Save();
     void              Load( Json& );
 
-    Entity*           mParent             { nullptr };
+    Entity*           mParent             {};
     Vector< Entity* > mChildren           {};
-    World*            mWorld              { nullptr };
+    World*            mWorld              {};
     EntityUUID        mEntityUUID         { NullEntityUUID };
     Components        mComponents         {};
 
@@ -66,7 +66,7 @@ namespace Tac
     //                Used to construct mWorldPosition and mWorldTransform
     RelativeSpace     mRelativeSpace      {};
 
-    bool              mInheritParentScale { false };
+    bool              mInheritParentScale {};
     bool              mActive             { true };
 
     //                Position of this entity in worldspace.

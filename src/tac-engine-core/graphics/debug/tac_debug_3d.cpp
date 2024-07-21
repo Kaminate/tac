@@ -110,7 +110,7 @@ namespace Tac
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::None },
       .mFrontCounterClockwise { true },
-      .mMultisample           { false }, 
+      .mMultisample           {}, 
     };
   }
 
@@ -693,7 +693,7 @@ namespace Tac
     const Render::DrawArgs drawArgs
     {
       .mVertexCount { mVtxCount },
-      .mStartVertex { 0 },
+      .mStartVertex {},
     };
 
     const Render::Targets renderTargets

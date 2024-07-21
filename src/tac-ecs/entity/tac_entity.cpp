@@ -64,9 +64,9 @@ namespace Tac
 
     // On-rotation-deformation-zones-for-finite-strain-Cosserat-plasticity.pdf
     // Rot( x, y, z ) = rotZ(phi) * rotY(theta) * rotX(psi)
-    float zPhi { 0 };
-    float yTheta { 0 };
-    float xPsi { 0 };
+    float zPhi {};
+    float yTheta {};
+    float xPsi {};
 
 
     if( r31 != 1.0f && r31 != -1.0f )
@@ -286,7 +286,7 @@ namespace Tac
   {
     if( !mParent )
       return;
-    for( int iChild { 0 }; iChild < mParent->mChildren.size(); ++iChild )
+    for( int iChild {}; iChild < mParent->mChildren.size(); ++iChild )
     {
       if( mParent->mChildren[ iChild ] == this )
       {

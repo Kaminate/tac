@@ -152,9 +152,9 @@ namespace Tac
 
     const float width { mSideLength };
     const float height { mSideLength };
-    for( int iRow { 0 }; iRow < mSideVertexCount; ++iRow )
+    for( int iRow {}; iRow < mSideVertexCount; ++iRow )
     {
-      for( int iCol { 0 }; iCol < mSideVertexCount; ++iCol )
+      for( int iCol {}; iCol < mSideVertexCount; ++iCol )
       {
         const float xPercent { ( float )iRow / ( float )( mSideVertexCount - 1 ) };
         const float zPercent { ( float )iCol / ( float )( mSideVertexCount - 1 ) };
@@ -183,9 +183,9 @@ namespace Tac
       }
     }
 
-    for( int iRow { 0 }; iRow < mSideVertexCount; ++iRow )
+    for( int iRow {}; iRow < mSideVertexCount; ++iRow )
     {
-      for( int iCol { 0 }; iCol < mSideVertexCount; ++iCol )
+      for( int iCol {}; iCol < mSideVertexCount; ++iCol )
       {
         const v3 pos { GetGridVal( iRow, iCol ) };
         const v3 posR { iCol + 1 < mSideVertexCount ? GetGridVal( iRow, iCol + 1 ) : pos };

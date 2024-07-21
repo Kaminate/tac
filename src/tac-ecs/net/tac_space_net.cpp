@@ -67,7 +67,7 @@ namespace Tac
 
   void SnapshotBuffer::AddSnapshot( const World* world )
   {
-    World* snapshot { nullptr };
+    World* snapshot {};
     if( mSnapshots.size() == maxSnapshots )
     {
       snapshot = mSnapshots.front();

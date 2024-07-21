@@ -285,8 +285,8 @@ namespace Tac
 
     const Render::DepthState depthStateData
     {
-      .mDepthTest  { false },
-      .mDepthWrite { false },
+      .mDepthTest  {},
+      .mDepthWrite {},
       .mDepthFunc  { Render::DepthFunc::Less },
     };
     mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
@@ -298,7 +298,7 @@ namespace Tac
       .mCullMode              { Render::CullMode::None },
       .mFrontCounterClockwise { true },
       .mScissor               { true },
-      .mMultisample           { false },
+      .mMultisample           {},
     };
     mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mRasterizerState , "2d-rast" );

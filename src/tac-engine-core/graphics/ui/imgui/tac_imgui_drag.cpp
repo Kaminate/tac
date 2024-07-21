@@ -12,14 +12,14 @@ namespace Tac
 
   enum class DragMode
   {
-    Drag,
+    Drag = 0,
     TextInput
   };
 
   struct DragData
   {
-    DragMode       mMode             { ( DragMode )0 };
-    float          mDragDistPx       { 0 };
+    DragMode       mMode             {};
+    float          mDragDistPx       {};
 
     // This is the value of the variable we are gizmoing for at the start of the mouse drag.
     // That way, we can accumulate all the mouse drag pixels and apply them to ints in
@@ -53,7 +53,7 @@ namespace Tac
     const float buttonPadding { ImGuiGetButtonPadding() };
 
     String valueStr { getter( valueBytes ) };
-    bool changed { false };
+    bool changed {};
 
     ImGuiWindow* window { globals.mCurrentWindow };
     UI2DDrawData* drawData { window->mDrawData };
@@ -256,7 +256,7 @@ namespace Tac
     TAC_ASSERT( n <= 4 );
     const char* ids[]{ "x", "y", "z", "w" };
 
-    bool changed { false };
+    bool changed {};
     for( int i{}; i < n; ++i )
     {
       PushID( ids[ i ] );

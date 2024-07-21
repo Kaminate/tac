@@ -624,7 +624,7 @@ namespace Tac
     };
 
     // must be null for resources of dimension buffer
-    const D3D12_CLEAR_VALUE* pOptimizedClearValue { nullptr };
+    const D3D12_CLEAR_VALUE* pOptimizedClearValue {};
 
     // D3D12_RESOURCE_STATE_GENERIC_READ
     //   An OR'd combination of other read-state bits.

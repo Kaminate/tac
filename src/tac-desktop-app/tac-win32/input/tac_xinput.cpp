@@ -26,9 +26,9 @@ namespace Tac::Controller
     ~DirectInputPerController();
     void DebugImguiInner() override;
 
-    DIDEVICEINSTANCE          mInstance {  };
-    IDirectInputDevice8*      mDevice { nullptr };
-    DIJOYSTATE2               mJoystate {  };
+    DIDEVICEINSTANCE          mInstance {};
+    IDirectInputDevice8*      mDevice   {};
+    DIJOYSTATE2               mJoystate {};
   };
 
   struct XInput : public ControllerInput
@@ -39,8 +39,8 @@ namespace Tac::Controller
     void                      EnumerateController( const DIDEVICEINSTANCE* );
     DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* );
 
-    IDirectInput8*            mDirectInput { nullptr };
-    float                     mSecondsTillDiscover {};
+    IDirectInput8*            mDirectInput            {};
+    float                     mSecondsTillDiscover    {};
     float                     mSecondsTillDiscoverMax { 1 };
   };
 
@@ -238,7 +238,8 @@ namespace Tac::Controller
     DirectInputPerController* controller { FindDInputController( pdidInstance ) };
     if( controller )
       return;
-    IDirectInputDevice8* joystick { nullptr };
+
+    IDirectInputDevice8* joystick {};
     HRESULT hr{ mDirectInput->CreateDevice( pdidInstance->guidInstance,
                                             &joystick,
                                             NULL ) };

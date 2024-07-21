@@ -1,10 +1,10 @@
 #include "tac_examples.h"
 
 #include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
-#include "tac-ecs/presentation/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
+#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"

@@ -26,7 +26,7 @@
 // set to true to use IASetVertexBuffers with an input layout
 // set to false to use bindless through a descriptor table
 // ( technically both use a vertex buffer, but only one uses input layout )
-static const bool sUseInputLayout { false };
+static const bool sUseInputLayout {};
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -311,7 +311,7 @@ namespace Tac
     };
 
     // must be null for buffer
-    const D3D12_CLEAR_VALUE* pOptimizedClearValue { nullptr };
+    const D3D12_CLEAR_VALUE* pOptimizedClearValue {};
 
     // D3D12_RESOURCE_STATE_GENERIC_READ
     //   An OR'd combination of other read-state bits.
@@ -524,8 +524,8 @@ namespace Tac
       // [x] Q: Why is BlendEnable = false? Why not just leave it out?
       //     A: You can leave it out.
 #if 0
-      .BlendEnable           { false },
-      .LogicOpEnable         { false },
+      .BlendEnable           {},
+      .LogicOpEnable         {},
       .SrcBlend              { D3D12_BLEND_ONE },
       .DestBlend             { D3D12_BLEND_ZERO },
       .BlendOp               { D3D12_BLEND_OP_ADD },

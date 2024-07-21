@@ -28,10 +28,10 @@ namespace Tac
 
   struct Sim5CollisionResult
   {
-    bool mCollided { false };
-    v3 mNormal; // collision normal from obj A to obj B
-    v3 mPoint; // collision point
-    float mDist; // penetration distance
+    bool  mCollided {};
+    v3    mNormal   {}; // collision normal from obj A to obj B
+    v3    mPoint    {}; // collision point
+    float mDist     {}; // penetration distance
   };
 
   static Sim5CollisionResult Sim5CollideSphereSphere(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
@@ -153,7 +153,7 @@ namespace Tac
     if (!ImGuiCollapsingHeader(obj.mName))
       return;
 
-    bool changed { false };
+    bool changed {};
     changed |= ImGuiDragFloat("radius", &obj.mRadius);
     if (changed)
       obj.Recompute();

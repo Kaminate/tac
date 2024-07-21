@@ -293,15 +293,15 @@ namespace Tac
 
     const bool intersecting { Quadrance( closest0, closest1 ) < Square( capsule0.mRadius + capsule1.mRadius ) };
     const v3 colors[]  { color0, color1 };
-    Sim6Capsule* caps[]  { &capsule0, &capsule1 };
-    v3 closests[]  { closest0, closest1 };
-    for( int i { 0 }; i < 2; ++i )
+    const Sim6Capsule* caps[]  { &capsule0, &capsule1 };
+    const v3 closests[]  { closest0, closest1 };
+    for( int i {}; i < 2; ++i )
     {
-      v3 color { colors[ i ] };
-      Sim6Capsule* cap { caps[ i ] };
-      DrawLineSegment( cap->mLineSegment, color, drawData, mCamera );
-      v3 closest = closests[ i ];
+      const v3 color { colors[ i ] };
+      const Sim6Capsule* cap { caps[ i ] };
+      const v3 closest { closests[ i ] };
 
+      DrawLineSegment( cap->mLineSegment, color, drawData, mCamera );
       drawData->DebugDraw3DCircle( closest, mCamera->mForwards, 0.1f + 0.05f * ( i + 1 ), color * 2.0f );
     }
 

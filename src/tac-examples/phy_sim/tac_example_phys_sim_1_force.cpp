@@ -7,7 +7,7 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
 

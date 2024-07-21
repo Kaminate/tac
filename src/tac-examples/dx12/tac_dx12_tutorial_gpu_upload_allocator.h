@@ -39,16 +39,16 @@ namespace Tac::Render
 
     struct RetiredPage
     {
-      DX12ExampleGPUUploadPage mPage;
-      FenceSignal mFence{};
+      DX12ExampleGPUUploadPage mPage  {};
+      FenceSignal              mFence {};
     };
 
-    Vector< RetiredPage > mRetiredPages;
-    Vector< DX12ExampleGPUUploadPage > mAvailablePages;
+    Vector< RetiredPage >              mRetiredPages   {};
+    Vector< DX12ExampleGPUUploadPage > mAvailablePages {};
 
     // singletons
-    PCom< ID3D12Device > m_device;
-    DX12ExampleCommandQueue* mCommandQueue { nullptr };
+    PCom< ID3D12Device >               m_device        {};
+    DX12ExampleCommandQueue*           mCommandQueue   {};
   };
 
   struct DX12ExampleGPUUploadAllocator
@@ -82,6 +82,6 @@ namespace Tac::Render
     Vector< DX12ExampleGPUUploadPage > mLargePages;
 
     // singletons
-    DX12ExampleGPUUploadPageManager* mPageManager = nullptr;
+    DX12ExampleGPUUploadPageManager* mPageManager {};
   };
 }//namespace Tac::Render

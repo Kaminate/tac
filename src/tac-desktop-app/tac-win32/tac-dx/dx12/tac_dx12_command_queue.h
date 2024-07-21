@@ -49,8 +49,8 @@ namespace Tac::Render
     // set on fence completion, then immediately waited on
     Win32Event                         m_fenceEvent;
 
-    UINT64                             mLastCompletedFenceValue{0};
-    UINT64                             mNextFenceValue{1};
+    UINT64                             mLastCompletedFenceValue {};
+    UINT64                             mNextFenceValue          { 1 };
 
     // A ID3D12CommandQueue provides methods for
     // - submitting command lists,

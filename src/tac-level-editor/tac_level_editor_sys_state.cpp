@@ -1,9 +1,9 @@
 #include "tac_level_editor_sys_state.h"
 
-#include "tac-ecs/presentation/tac_game_presentation.h"
-#include "tac-ecs/presentation/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
+#include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
 
 namespace Tac
 {

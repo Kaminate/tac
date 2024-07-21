@@ -51,7 +51,7 @@ namespace Tac
   //    void operator++() { mIndex++; }
   //    int mIndex;
   //  };
-  //  Iterator begin() { return { 0 }; }
+  //  Iterator begin() { return {}; }
   //  Iterator end() { return { ComponentRegistry_GetComponentCount() }; }
   //};
 

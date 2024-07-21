@@ -248,15 +248,15 @@ namespace Tac::Render::DXC
       UINT32 flags{};
       UINT32 major{};
       UINT32 minor{};
-      if( PCom<IDxcVersionInfo2> verInfo2 = verInfo.QueryInterface<IDxcVersionInfo2>() )
+      if ( PCom<IDxcVersionInfo2> verInfo2{ verInfo.QueryInterface<IDxcVersionInfo2>() } )
       {
         verInfo2->GetCommitInfo( &commitCount, &commitHash );
         verInfo2->GetFlags( &flags );
         verInfo2->GetVersion( &major, &minor );
       }
 
-      char* ver { nullptr };
-      if( PCom<IDxcVersionInfo3> verInfo3 = verInfo.QueryInterface<IDxcVersionInfo3>() )
+      char* ver {};
+      if ( PCom<IDxcVersionInfo3> verInfo3{ verInfo.QueryInterface<IDxcVersionInfo3>() } )
       {
         verInfo3->GetCustomVersionString( &ver );
       }

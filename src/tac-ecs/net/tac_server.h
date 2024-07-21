@@ -62,16 +62,17 @@ namespace Tac
                                              const void* bytes,
                                              int byteCount,
                                              Errors& );
-    SnapshotBuffer            mSnapshots;
-    float                     mSnapshotUntilNextSecondsCur { 0 };
-    World*                    mWorld { nullptr };
-    World*                    mEmptyWorld { nullptr };
-    static const int          sOtherPlayerCountMax { 3 };
-    List< OtherPlayer* >      mOtherPlayers;
-    //PlayerUUID                mPlayerUUIDCounter = NullPlayerUUID;
-    //EntityUUID                mEntityUUIDCounter = NullEntityUUID;
-    PlayerUUIDCounter         mPlayerUUIDCounter;
-    EntityUUIDCounter         mEntityUUIDCounter;
+
+    SnapshotBuffer            mSnapshots                   {};
+    float                     mSnapshotUntilNextSecondsCur {};
+    World*                    mWorld                       {};
+    World*                    mEmptyWorld                  {};
+    static const int          sOtherPlayerCountMax         { 3 };
+    List< OtherPlayer* >      mOtherPlayers                {};
+    //PlayerUUID                mPlayerUUIDCounter { NullPlayerUUID };
+    //EntityUUID                mEntityUUIDCounter { NullEntityUUID };
+    PlayerUUIDCounter         mPlayerUUIDCounter           {};
+    EntityUUIDCounter         mEntityUUIDCounter           {};
   };
 
   extern const float sSnapshotUntilNextSecondsMax;

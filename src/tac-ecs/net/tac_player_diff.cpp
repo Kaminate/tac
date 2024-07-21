@@ -63,7 +63,7 @@ namespace Tac
 
     TAC_CALL( const auto numPlayerDeleted{ reader->Read<PlayerCount>( errors ) } );
 
-    for( PlayerCount i{ 0 }; i < numPlayerDeleted; ++i )
+    for( PlayerCount i{}; i < numPlayerDeleted; ++i )
     {
       TAC_CALL( const auto deletedPlayerUUID{ reader->Read<PlayerUUID >( errors ) } );
       world->KillPlayer( deletedPlayerUUID );
@@ -71,7 +71,7 @@ namespace Tac
 
     TAC_CALL( const auto numPlayersDifferent{ reader->Read<PlayerCount>( errors ) } );
 
-    for( PlayerCount i = 0; i < numPlayersDifferent; ++i )
+    for( PlayerCount i {  }; i < numPlayersDifferent; ++i )
     {
       TAC_CALL( const auto differentPlayerUUID{ reader->Read<PlayerUUID>( errors ) } );
 

@@ -35,19 +35,19 @@ namespace Tac
       kCount,
     };
 
-    bool                      mOverrideClipPlanes     { false };
+    bool                      mOverrideClipPlanes     {};
     float                     mFarPlaneOverride       { 10000.0f };
     float                     mNearPlaneOverride      { 0.1f };
     float                     mSpotHalfFOVRadians     { 0.5f };
     Type                      mType                   { kSpot };
     bool                      mCastsShadows           { true };
     int                       mShadowResolution       { 512 };
-    bool                      mCreatedRenderResources { false };
+    bool                      mCreatedRenderResources {};
 
     // this is a texture with a depth stencil view binding. ( depth buffer ) 
     // basically this will be the only thing bound to the framebuffer, without color buffers.
     Render::TextureHandle     mShadowMapDepth;
-    v3                        mColor                  {  1, 1, 1 } ;
+    v3                        mColor                  { 1, 1, 1 } ;
     float                     mRadiance               { 5.0f }; // i guess?
   };
 

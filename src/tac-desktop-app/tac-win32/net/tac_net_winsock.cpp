@@ -49,10 +49,11 @@ namespace Tac::Network
                                              SocketType,
                                              Errors& ) override;
     Vector< Socket* >          GetSockets() override;
-    Set< SocketWinsock* > mSocketWinsocks;
-    bool                       mPrintReceivedMessages { false };
+
+    Set< SocketWinsock* >      mSocketWinsocks           {};
+    bool                       mPrintReceivedMessages    {};
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
-    Timestamp                  mKeepaliveNextSeconds { 0.0 };
+    Timestamp                  mKeepaliveNextSeconds     {};
     TimestampDifference        mKeepaliveIntervalSeconds { 30.0f };
   };
 
@@ -231,7 +232,7 @@ namespace Tac::Network
       TAC_RAISE_ERROR( errorMsg);
     }
     TAC_ON_DESTRUCT( freeaddrinfo( addrinfos ) );
-    addrinfo* targetAddrInfo { nullptr };
+    addrinfo* targetAddrInfo {};
     for( addrinfo* curAddrInfo { addrinfos }; curAddrInfo; curAddrInfo = curAddrInfo->ai_next )
     {
       if( curAddrInfo->ai_family != mWinsockAddressFamily )

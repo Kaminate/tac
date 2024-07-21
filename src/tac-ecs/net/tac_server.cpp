@@ -21,7 +21,7 @@ namespace Tac
 {
   // decreasing to 0 for easier debugging
   // ( consistant update between server/client )
-  const float sSnapshotUntilNextSecondsMax { 0 }; //0.1f;
+  const float sSnapshotUntilNextSecondsMax {}; //0.1f;
 
   ServerData::ServerData()
   {

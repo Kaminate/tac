@@ -52,7 +52,7 @@ namespace Tac
   {
     if( !gjk.mIsColliding )
     {
-      for( int iSupport { 0 }; iSupport < gjk.mSupports.size(); ++iSupport )
+      for( int iSupport {}; iSupport < gjk.mSupports.size(); ++iSupport )
       {
         auto supporti { gjk.mSupports[ iSupport ] };
         graphics->DebugDrawSphere( supporti.mDiffPt, 0.1f );

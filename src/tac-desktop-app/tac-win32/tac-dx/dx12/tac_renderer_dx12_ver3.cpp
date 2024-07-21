@@ -301,13 +301,13 @@ namespace Tac::Render
   {
     const NDCAttribs ndcAttribs
     {
-      .mMinZ{ 0 },
-      .mMaxZ{ 1 },
+      .mMinZ {},
+      .mMaxZ { 1 },
     };
 
     return Info
     {
-      .mNDCAttribs{ndcAttribs},
+      .mNDCAttribs{ ndcAttribs },
     };
   }
 

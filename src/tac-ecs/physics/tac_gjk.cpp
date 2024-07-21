@@ -96,7 +96,7 @@ namespace Tac
 
   v3 ConvexPolygonSupport::GetFurthestPoint( const v3& dir ) const
   {
-    int iLargestDot { 0 };
+    int iLargestDot {};
     float largestDot { -1 };
     const int pointCount { ( int )mPoints.size() };
     for( int i{}; i < pointCount; ++i )

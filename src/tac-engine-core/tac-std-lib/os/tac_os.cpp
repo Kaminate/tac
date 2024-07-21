@@ -9,9 +9,9 @@ import std; // <cstdio> ( printf ), <thread>, <iostream>
 namespace Tac::OS
 {
 
-    static bool mStopRunRequested { false };
+    static bool mStopRunRequested {};
 
-#define TAC_INIT_PTR( ptr ) decltype( ptr ) ptr { nullptr }
+#define TAC_INIT_PTR( ptr ) decltype( ptr ) ptr {}
 
     TAC_INIT_PTR( OSDebugBreak );
     TAC_INIT_PTR( OSDebugPopupBox );

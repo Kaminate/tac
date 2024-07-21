@@ -107,7 +107,7 @@ namespace Tac
   // care to describe what this function does?
   static void SetCursorLock( CursorDir cursorDir )
   {
-    bool verbose { false };
+    bool verbose {};
     if( verbose )
       OS::OSDebugPrintLine( ShortFixedString( "Cursor lock: ", cursorDir ) );
 

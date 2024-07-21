@@ -20,7 +20,7 @@ namespace Tac
 #if TAC_IS_DEBUG_MODE()
   constexpr bool IsDebugMode { true };
 #else
-  constexpr bool IsDebugMode { false };
+  constexpr bool IsDebugMode {};
 #endif
 }
 

@@ -27,8 +27,8 @@ namespace Tac
 
     int denomination { 1 };
     int i{};
-    bool approx { false };
-    bool carry { false };
+    bool approx {};
+    bool carry {};
     while( byteCount )
     {
       int n { byteCount % 1024 };

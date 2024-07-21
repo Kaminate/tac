@@ -33,10 +33,10 @@ namespace Tac
 
   private:
 
-    String               mMessage;
-    Vector< StackFrame > mFrames;
-    Flags                mFlags { kNone };
-    bool                 mBroken { false };
+    String               mMessage {};
+    Vector< StackFrame > mFrames  {};
+    Flags                mFlags   {};
+    bool                 mBroken  {};
   };
 
 } // namespace Tac
