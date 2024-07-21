@@ -132,7 +132,7 @@ namespace Tac
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::None },
       .mFrontCounterClockwise { true },
-      .mMultisample           { false },
+      .mMultisample           {},
     };
 
     const Render::CreateSamplerParams createSkyboxSampler

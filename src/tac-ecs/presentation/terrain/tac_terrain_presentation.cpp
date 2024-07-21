@@ -6,8 +6,8 @@
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/physics/tac_physics.h"
-#include "tac-ecs/presentation/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
@@ -342,7 +342,7 @@ namespace Tac
       const Render::DrawArgs drawArgs
       {
         .mIndexCount { terrain->mIndexCount },
-        .mStartIndex { 0 },
+        .mStartIndex {},
       };
  
       renderContext->CommitShaderVariables();

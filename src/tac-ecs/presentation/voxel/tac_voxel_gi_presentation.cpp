@@ -23,7 +23,7 @@
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/world/tac_world.h"
@@ -60,13 +60,13 @@ namespace Tac
   {
     int   voxelDimension              { 1 }; // eventually 128
     bool  voxelDebug                  { true };
-    bool  voxelDebugDrawVoxelOutlines { false };
+    bool  voxelDebugDrawVoxelOutlines {};
     bool  voxelDebugDrawGridOutline   { true };
     bool  voxelDebugDrawVoxels        { true };
     bool  voxelEnabled                { true };
     v3    voxelGridCenter             { 0, 0, 0 };
     float voxelGridHalfWidth          { 10.0f };
-    bool  voxelGridSnapCamera         { false };
+    bool  voxelGridSnapCamera         {};
   };
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( VoxelSettings )
@@ -283,19 +283,19 @@ namespace Tac
     {
       .mImage =
       {
-        .mWidth { voxelSettingsCurrent.voxelDimension },
+        .mWidth  { voxelSettingsCurrent.voxelDimension },
         .mHeight { voxelSettingsCurrent.voxelDimension },
-        .mDepth { voxelSettingsCurrent.voxelDimension },
+        .mDepth  { voxelSettingsCurrent.voxelDimension },
         .mFormat =
         {
-          .mElementCount { 4 },
+          .mElementCount        { 4 },
           .mPerElementByteCount { 2 },
-          .mPerElementDataType { Render::GraphicsType::real },
+          .mPerElementDataType  { Render::GraphicsType::real },
         },
       },
-      .mPitch { 0 },
-      .mBinding { Render::Binding::ShaderResource | Render::Binding::UnorderedAccess },
-      .mAccess { Render::Access::Default }, 
+      .mPitch     {},
+      .mBinding   { Render::Binding::ShaderResource | Render::Binding::UnorderedAccess },
+      .mAccess    { Render::Access::Default }, 
       .mCpuAccess { Render::CPUAccess::None },
     };
   }
@@ -360,9 +360,9 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     for( int i{}; i < voxelSettingsCurrent.voxelDimension; ++i )
     {
-      for( int j { 0 }; j < voxelSettingsCurrent.voxelDimension; ++j )
+      for( int j {}; j < voxelSettingsCurrent.voxelDimension; ++j )
       {
-        for( int k { 0 }; k < voxelSettingsCurrent.voxelDimension; ++k )
+        for( int k {}; k < voxelSettingsCurrent.voxelDimension; ++k )
         {
           const float voxelWidth
           { ( voxelSettingsCurrent.voxelGridHalfWidth * 2.0f )

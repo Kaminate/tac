@@ -22,10 +22,11 @@
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/physics/tac_physics.h"
-#include "tac-ecs/presentation/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/tac_terrain_presentation.h"
-#include "tac-ecs/presentation/tac_voxel_gi_presentation.h"
+#include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
+#include "tac-ecs/presentation/terrain/tac_terrain_presentation.h"
+#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
+#include "tac-ecs/presentation/mesh/tac_render_material.h"
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
@@ -56,8 +57,6 @@ namespace Tac
     v3 mNor;
   };
 
-
-
   static Render::BufferHandle          mMeshPerFrameBuf;
   static Render::BufferHandle          mMeshPerObjBuf;
   static Render::TextureHandle         s1x1White;
@@ -67,19 +66,19 @@ namespace Tac
   static Render::SamplerHandle         mSamplerLinear;
   static Render::SamplerHandle         mSamplerAniso;
   static Render::VertexDeclarations    m3DVertexFormatDecls;
-  static Render::IShaderVar* mShaderMeshShadowMaps;
-  static Render::IShaderVar* mShaderMeshLights;
-  static Render::IShaderVar* mShaderMeshShadowSampler;
-  static Render::IShaderVar* mShaderMeshPerFrame;
-  static Render::IShaderVar* mShaderMeshPerObject;
+  static Render::IShaderVar*           mShaderMeshShadowMaps;
+  static Render::IShaderVar*           mShaderMeshLights;
+  static Render::IShaderVar*           mShaderMeshShadowSampler;
+  static Render::IShaderVar*           mShaderMeshPerFrame;
+  static Render::IShaderVar*           mShaderMeshPerObject;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
-  static bool                          mRenderEnabledModel{ true };
-  static bool                          mUseLights{ true };
-  static Render::CBufferLights         mDebugCBufferLights{};
-  static bool                          sInitialized;
-  static v4                            sAmbient{ 0.4f, 0.3f, 0.2f, 1.0f };
-  static bool                          sUseAmbient{ true };
+  static bool                          mRenderEnabledModel      { true };
+  static bool                          mUseLights               { true };
+  static Render::CBufferLights         mDebugCBufferLights      {};
+  static bool                          sInitialized             {};
+  static v4                            sAmbient                 { 0.4f, 0.3f, 0.2f, 1.0f };
+  static bool                          sUseAmbient              { true };
 
 
   static void CheckShaderPadding()
@@ -325,12 +324,8 @@ namespace Tac
     {
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::Back },
-
-      //.mFillMode              { Render::FillMode::Wireframe },
-      //.mCullMode              { Render::CullMode::None },
-
       .mFrontCounterClockwise { true },
-      .mMultisample           { false },
+      .mMultisample           {},
     };
   }
 

@@ -21,7 +21,7 @@
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/presentation/tac_game_presentation.h"
+#include "tac-ecs/presentation/game/tac_game_presentation.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
 
@@ -244,7 +244,7 @@ namespace Tac
       .mFillMode              { Render::FillMode::Solid },
       .mCullMode              { Render::CullMode::Back },
       .mFrontCounterClockwise { true },
-      .mMultisample           { false },
+      .mMultisample           {},
     };
   }
 
