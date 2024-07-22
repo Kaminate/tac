@@ -2,7 +2,112 @@
 
 namespace Tac::Render
 {
-  RenderMaterial* MaterialManager::GetRenderMaterial( StringView materialShader )
+  struct MeshModelVtx
+  {
+    v3 mPos;
+    v3 mNor;
+  };
+
+  static Render::DepthState GetDepthState()
+  {
+    return Render::DepthState
+    {
+      .mDepthTest  { true },
+      .mDepthWrite { true },
+      .mDepthFunc  { Render::DepthFunc::Less },
+    };
+  }
+
+  static Render::BlendState GetBlendState()
+  {
+    const Render::BlendState state
+    {
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::Zero },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::Zero },
+      .mDstA     { Render::BlendConstants::One },
+      .mBlendA   { Render::BlendMode::Add },
+    };
+    return state;
+  }
+
+  static Render::RasterizerState GetRasterizerState()
+  {
+    return Render::RasterizerState
+    {
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::Back },
+      .mFrontCounterClockwise { true },
+      .mMultisample           {},
+    };
+  }
+
+  static Render::VertexDeclarations GetVertexDeclarations()
+  {
+    const Render::VertexDeclaration posDecl
+    {
+      .mAttribute         { Render::Attribute::Position },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( MeshModelVtx, mPos ) },
+    };
+
+    const Render::VertexDeclaration norDecl
+    {
+      .mAttribute         { Render::Attribute::Normal },
+      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( MeshModelVtx, mNor ) },
+    };
+
+    Render::VertexDeclarations decls;
+    decls.push_back( posDecl );
+    decls.push_back( norDecl );
+    return decls;
+  }
+
+  static const Render::VertexDeclarations m3DVertexFormatDecls{GetVertexDeclarations()};
+
+
+  static Render::ProgramHandle Create3DShader( StringView fileStem, Errors& errors )
+  {
+    TAC_UNUSED_PARAMETER( errors );
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    Render::ProgramParams programParams
+    {
+      .mFileStem   { fileStem },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+    return renderDevice->CreateProgram( programParams, errors );
+  }
+
+  static Render::PipelineHandle CreatePipeline( Render::ProgramHandle program,
+                                                Errors& errors )
+  {
+    const Render::BlendState blendState{ GetBlendState() };
+    const Render::DepthState depthState{ GetDepthState() };
+    const Render::RasterizerState rasterizerState{ GetRasterizerState() };
+
+    const Render::PipelineParams meshPipelineParams
+    {
+      .mProgram           { program },
+      .mBlendState        { blendState },
+      .mDepthState        { depthState },
+      .mRasterizerState   { rasterizerState },
+      .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+      .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+      .mVtxDecls          { m3DVertexFormatDecls },
+      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+      .mName              { "mesh-pso" },
+    };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL_RET( {}, Render::PipelineHandle meshPipeline{
+      renderDevice->CreatePipeline( meshPipelineParams, errors ) }  );
+
+    return meshPipeline;
+  }
+
+  RenderMaterial* MaterialManager::GetRenderMaterial( StringView materialShader, Errors& errors )
   {
     HashValue hashValue{ Hash( materialShader ) };
     for ( RenderMaterial& renderMaterial : mRenderMaterials )
@@ -14,8 +119,9 @@ namespace Tac::Render
       }
     }
 
-    Render::PipelineHandle        meshPipeline;
-    Vector< Render::IShaderVar* > shaderVars;
+    TAC_CALL_RET( {}, Render::ProgramHandle program{ Create3DShader( materialShader, errors ) } );
+    TAC_CALL_RET( {}, Render::PipelineHandle meshPipeline{ CreatePipeline( program, errors ) } );
+    Vector< Render::IShaderVar* > shaderVars{ ... };
 
     mRenderMaterials.resize( mRenderMaterials.size() + 1 );
     RenderMaterial& renderMaterial{ mRenderMaterials.back() };
@@ -23,6 +129,7 @@ namespace Tac::Render
     {
       .mMaterialShader     { materialShader },
       .mMaterialShaderHash { hashValue },
+      .m3DShader           { program },
       .mMeshPipeline       { meshPipeline },
       .mShaderVars         { shaderVars },
     };

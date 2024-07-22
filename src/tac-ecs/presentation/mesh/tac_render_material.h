@@ -3,6 +3,7 @@
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/dataprocess/tac_hash.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac::Render
@@ -19,7 +20,7 @@ namespace Tac::Render
 
   struct MaterialManager
   {
-    RenderMaterial* GetRenderMaterial( StringView materialShader );
+    RenderMaterial* GetRenderMaterial( StringView materialShader, Errors& );
 
     Vector< RenderMaterial > mRenderMaterials;
   };
