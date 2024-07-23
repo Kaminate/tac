@@ -70,7 +70,7 @@ namespace Tac
       sRequests[ entity ] = isUniform;
   }
 
-  static void EntityImGui(Entity* entity )
+  static void EntityImGui( Entity* entity )
   {
     ImGuiInputText( "Name", entity->mName );
 
@@ -92,7 +92,8 @@ namespace Tac
     EntityImGuiRotation( entity );
     EntityImGuiScale( entity );
 
-    ImGuiCheckbox( "active", &entity->mActive );
+    ImGuiCheckbox( "Active", &entity->mActive );
+    ImGuiCheckbox( "Static", &entity->mStatic );
 
     Vector< const ComponentRegistryEntry* > addableComponentTypes;
 
@@ -103,6 +104,7 @@ namespace Tac
       if( ImGuiButton( "Unparent" ) )
         entity->Unparent();
     }
+
     if( entity->mChildren.size() && ImGuiCollapsingHeader( "Children" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
@@ -123,6 +125,7 @@ namespace Tac
         }
       }
     }
+
     Vector< Entity* > potentialParents;
     for( Entity* potentialParent : entity->mWorld->mEntities )
     {

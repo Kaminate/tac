@@ -7,16 +7,16 @@ namespace Tac
 
   using UUID = u32;
 
-  const UUID NullUUID = 0;
+  const UUID NullUUID {};
 
   enum class ConnectionUUID : UUID;
-  const ConnectionUUID NullConnectionUUID = ( ConnectionUUID )NullUUID;
+  const ConnectionUUID NullConnectionUUID { ( ConnectionUUID )NullUUID };
 
   enum class PlayerUUID : UUID;
-  const PlayerUUID NullPlayerUUID = ( PlayerUUID )NullUUID;
+  const PlayerUUID NullPlayerUUID { ( PlayerUUID )NullUUID };
 
   enum class EntityUUID : UUID;
-  const EntityUUID NullEntityUUID = ( EntityUUID )NullUUID;
+  const EntityUUID NullEntityUUID { ( EntityUUID )NullUUID };
 
   using PlayerCount = u8;
   using EntityCount = u16;

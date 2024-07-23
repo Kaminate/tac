@@ -121,7 +121,7 @@ namespace Tac
   static Render::IShaderVar*           mShaderMeshPerObject;
   static Errors                        mGetTextureErrorsGround;
   static Errors                        mGetTextureErrorsNoise;
-  static bool                          mRenderEnabledModel      { true };
+  static bool                          mRenderEnabledModel      { false };
   static bool                          mUseLights               { true };
   static Render::CBufferLights         mDebugCBufferLights      {};
   static bool                          sInitialized             {};

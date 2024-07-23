@@ -20,7 +20,9 @@ namespace Tac
     v3 mScale     { 1, 1, 1 };
   };
 
+#if 0
   RelativeSpace RelativeSpaceFromMatrix( const m4& );
+#endif
 
   struct Components
   {
@@ -68,6 +70,7 @@ namespace Tac
 
     bool              mInheritParentScale {};
     bool              mActive             { true };
+    bool              mStatic             {};
 
     //                Position of this entity in worldspace.
     //                Computed automatically during the hierarchical world traversl.

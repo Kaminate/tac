@@ -21,6 +21,7 @@ namespace Tac
     };
     return v;
   }
+
   static Json* Vector3ToJson( v3 v )
   {
     static Json json;
@@ -29,8 +30,10 @@ namespace Tac
     json.GetChild( "z" ).SetNumber( v.z );
     return &json;
   }
+}
 
-  RelativeSpace RelativeSpaceFromMatrix( const m4& mLocal )
+#if 0
+Tac::RelativeSpace Tac::RelativeSpaceFromMatrix( const m4& mLocal )
   {
     v3 c0  { mLocal.m00, mLocal.m10, mLocal.m20 };
     v3 c1  { mLocal.m01, mLocal.m11, mLocal.m21 };
@@ -92,6 +95,11 @@ namespace Tac
 
     return { .mPosition = c3, .mEulerRads = { xPsi, yTheta, zPhi }, .mScale = scale };
   }
+#endif
+
+namespace Tac
+{
+  // -----------------------------------------------------------------------------------------------
 
   void                      Components::Add( Component* component )
   {
@@ -103,17 +111,18 @@ namespace Tac
     mComponents.clear();
   }
 
-  Components::ConstIter Components::begin() const { return mComponents.begin(); };
-  Components::ConstIter Components::end() const { return mComponents.end(); }
+  Components::ConstIter     Components::begin() const { return mComponents.begin(); }
 
-  Component*                Components::Remove( const ComponentRegistryEntry* componentRegistryEntry )
+  Components::ConstIter     Components::end() const   { return mComponents.end(); }
+
+  Component*                Components::Remove( const ComponentRegistryEntry* entry )
   {
     for( auto it { mComponents.begin() }; it != mComponents.end(); ++it )
     {
       Component* component { *it };
-      if( component->GetEntry() == componentRegistryEntry )
+      if( component->GetEntry() == entry )
       {
-        mComponents.erase(it);
+        mComponents.erase( it );
         return component;
       }
     }
@@ -121,9 +130,7 @@ namespace Tac
     return nullptr;
   }
 
-  //Components::ConstIterator Components::begin() const { return mComponents.begin(); }
-
-  //Components::ConstIterator Components::end() const { return mComponents.end(); }
+  // -----------------------------------------------------------------------------------------------
 
   Entity::~Entity()
   {
@@ -194,6 +201,7 @@ namespace Tac
     mWorldTransform = entity.mWorldTransform;
     mInheritParentScale = entity.mInheritParentScale;
     mActive = entity.mActive;
+    mStatic = entity.mStatic;
 
     RemoveAllComponents();
 
@@ -224,6 +232,7 @@ namespace Tac
 
   void             Entity::DebugImgui()
   {
+    // This has been moved to tac_level_editor_property_window.cpp EntityImGui() (?)
 #if 0
     ImGui::PushID( this );
     OnDestruct( ImGui::PopID() );
@@ -286,6 +295,7 @@ namespace Tac
   {
     if( !mParent )
       return;
+
     for( int iChild {}; iChild < mParent->mChildren.size(); ++iChild )
     {
       if( mParent->mChildren[ iChild ] == this )
@@ -295,6 +305,7 @@ namespace Tac
         break;
       }
     }
+
     mParent = nullptr;
     // todo: relative positioning
   }
@@ -310,6 +321,7 @@ namespace Tac
     entityJson[ "mEulerRads" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mEulerRads ) );
     entityJson[ "mEntityUUID" ].SetNumber( ( JsonNumber )entity->mEntityUUID );
     entityJson[ "mActive" ].SetBool( entity->mActive );
+    entityJson[ "mStatic" ].SetBool( entity->mStatic );
 
     for( Component* component : entity->mComponents )
     {
@@ -338,6 +350,8 @@ namespace Tac
     Json* jsonName { prefabJson.FindChild( "mName" ) };
     Json* jsonUUID { prefabJson.FindChild( "mEntityUUID" ) };
     Json* jsonActive { prefabJson.FindChild( "mActive" ) };
+    Json* jsonStatic { prefabJson.FindChild( "mStatic" ) };
+
     Entity* entity { this };
     entity->mRelativeSpace.mPosition = Vector3FromJson( *jsonPos );
     entity->mRelativeSpace.mScale = Vector3FromJson( *jsonScale );
@@ -345,6 +359,7 @@ namespace Tac
     entity->mName = jsonName->mString;
     entity->mEntityUUID = ( EntityUUID )( UUID )jsonUUID->mNumber;
     entity->mActive = jsonActive ? jsonActive->mBoolean : entity->mActive;
+    entity->mStatic = jsonStatic ? jsonStatic->mBoolean : entity->mStatic;
 
     // I think these should have its own mComponents json node
     for( auto& pair : prefabJson.mObjectChildrenMap )
