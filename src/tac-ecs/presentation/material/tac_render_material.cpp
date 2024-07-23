@@ -8,6 +8,8 @@ namespace Tac::Render
     v3 mNor;
   };
 
+  // -----------------------------------------------------------------------------------------------
+
   static Render::DepthState GetDepthState()
   {
     return Render::DepthState
@@ -43,7 +45,7 @@ namespace Tac::Render
     };
   }
 
-  static Render::VertexDeclarations GetVertexDeclarations()
+  static Render::VertexDeclarations CreateVertexDeclarations()
   {
     const Render::VertexDeclaration posDecl
     {
@@ -65,9 +67,6 @@ namespace Tac::Render
     return decls;
   }
 
-  static const Render::VertexDeclarations m3DVertexFormatDecls{GetVertexDeclarations()};
-
-
   static Render::ProgramHandle Create3DShader( StringView fileStem, Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -86,6 +85,7 @@ namespace Tac::Render
     const Render::BlendState blendState{ GetBlendState() };
     const Render::DepthState depthState{ GetDepthState() };
     const Render::RasterizerState rasterizerState{ GetRasterizerState() };
+    const Render::VertexDeclarations vtxDecls{ CreateVertexDeclarations() };
 
     const Render::PipelineParams meshPipelineParams
     {
@@ -95,7 +95,7 @@ namespace Tac::Render
       .mRasterizerState   { rasterizerState },
       .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
       .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
-      .mVtxDecls          { m3DVertexFormatDecls },
+      .mVtxDecls          { vtxDecls },
       .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
       .mName              { "mesh-pso" },
     };
@@ -107,9 +107,32 @@ namespace Tac::Render
     return meshPipeline;
   }
 
-  RenderMaterial* MaterialManager::GetRenderMaterial( StringView materialShader, Errors& errors )
+  // -----------------------------------------------------------------------------------------------
+
+  static Render::VertexDeclarations       sVtxDecls;
+  static Vector< RenderMaterial >         mRenderMaterials;
+  static bool                             sInitialized;
+
+  // -----------------------------------------------------------------------------------------------
+
+
+  void            RenderMaterial::Uninit()
   {
-    HashValue hashValue{ Hash( materialShader ) };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyProgram( m3DShader );
+    renderDevice->DestroyPipeline( mMeshPipeline );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  RenderMaterial*                   RenderMaterialApi::GetRenderMaterial( const Material* material,
+                                                                          Errors& errors )
+  {
+    const StringView materialShader{ material->mMaterialShader };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    const HashValue hashValue{ Hash( materialShader ) };
     for ( RenderMaterial& renderMaterial : mRenderMaterials )
     {
       if ( renderMaterial.mMaterialShaderHash == hashValue &&
@@ -121,7 +144,11 @@ namespace Tac::Render
 
     TAC_CALL_RET( {}, Render::ProgramHandle program{ Create3DShader( materialShader, errors ) } );
     TAC_CALL_RET( {}, Render::PipelineHandle meshPipeline{ CreatePipeline( program, errors ) } );
-    Vector< Render::IShaderVar* > shaderVars{ ... };
+
+    Render::IShaderVar* shaderVarPerFrame  {
+      renderDevice->GetShaderVariable( meshPipeline, "sPerObj" ) };
+    Render::IShaderVar* shaderVarPerObject {
+      renderDevice->GetShaderVariable( meshPipeline, "sPerFrame" ) };
 
     mRenderMaterials.resize( mRenderMaterials.size() + 1 );
     RenderMaterial& renderMaterial{ mRenderMaterials.back() };
@@ -131,10 +158,30 @@ namespace Tac::Render
       .mMaterialShaderHash { hashValue },
       .m3DShader           { program },
       .mMeshPipeline       { meshPipeline },
-      .mShaderVars         { shaderVars },
+      .mShaderVarPerFrame  { shaderVarPerFrame },
+      .mShaderVarPerObject { shaderVarPerObject },
     };
 
     return &renderMaterial;
+  }
+
+  const Render::VertexDeclarations& RenderMaterialApi::GetVertexDeclarations()
+  {
+    return sVtxDecls;
+  }
+
+  void                              RenderMaterialApi::Init()
+  {
+    sVtxDecls = CreateVertexDeclarations();
+    sInitialized = true;
+  }
+
+  void                              RenderMaterialApi::Uninit()
+  {
+    for( RenderMaterial& renderMaterial : mRenderMaterials )
+      renderMaterial.Uninit();
+
+    mRenderMaterials = {};
   }
 
 } // namespace Tac::Render

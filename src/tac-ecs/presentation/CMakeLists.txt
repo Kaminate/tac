@@ -1,6 +1,7 @@
 add_subdirectory( game )
 add_subdirectory( infinitegrid )
 add_subdirectory( mesh )
+add_subdirectory( material )
 add_subdirectory( radiosity )
 add_subdirectory( shadow )
 add_subdirectory( skybox )

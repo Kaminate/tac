@@ -127,6 +127,7 @@ namespace Tac::Render
     Point,
     Linear,
     Aniso,
+    Count,
   };
 
   enum class DepthFunc

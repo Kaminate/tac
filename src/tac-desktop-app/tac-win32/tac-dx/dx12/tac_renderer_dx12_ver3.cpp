@@ -325,7 +325,6 @@ namespace Tac::Render
         return &var;
 
     TAC_ASSERT_INVALID_CODE_PATH;
-
     return nullptr;
   }
 

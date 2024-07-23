@@ -26,7 +26,6 @@
 #include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/presentation/terrain/tac_terrain_presentation.h"
 #include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
-#include "tac-ecs/presentation/mesh/tac_render_material.h"
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
@@ -40,31 +39,80 @@ namespace Tac
 
   struct MeshPerFrameBuf
   {
-    m4 mView;
-    m4 mProj;
-    v4 mAmbient{};
+    m4 mView    {};
+    m4 mProj    {};
+    v4 mAmbient {};
   };
 
   struct MeshPerObjBuf
   {
-    m4 mWorld;
-    v4 mColor;
+    m4 mWorld {};
+    v4 mColor {};
   };
 
   struct MeshModelVtx
   {
-    v3 mPos;
-    v3 mNor;
+    v3 mPos {};
+    v3 mNor {};
   };
+
+  struct Samplers
+  {
+    Render::SamplerHandle GetSampler( Render::Filter filter )
+    {
+      return mSamplerHandles[ (int)filter ];
+    }
+
+    void Init()
+    {
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+      for( int i{}; i < ( int )Render::Filter::Count; ++i )
+      {
+        const Render::Filter filter{( Render::Filter )i};
+        const char* name{ GetName( filter ) };
+        const Render::CreateSamplerParams params
+        {
+          .mFilter { filter },
+          .mName   { name },
+        };
+        mSamplerHandles[ i ] = renderDevice->CreateSampler( params );
+      }
+    }
+
+    void Uninit()
+    {
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      for( Render::SamplerHandle& samplerHandle : mSamplerHandles )
+      {
+        renderDevice->DestroySampler( samplerHandle );
+        samplerHandle = {};
+      }
+    }
+
+  private:
+
+    const char* GetName( Render::Filter filter )
+    {
+      switch ( filter )
+      {
+      case Render::Filter::Linear: return "linear";
+      case Render::Filter::Point: return "linear";
+      case Render::Filter::Aniso: return "aniso";
+      default: TAC_ASSERT_INVALID_CASE( filter ); return "";
+      }
+    }
+
+    Render::SamplerHandle mSamplerHandles[ ( int )Render::Filter::Count ];
+  };
+
 
   static Render::BufferHandle          mMeshPerFrameBuf;
   static Render::BufferHandle          mMeshPerObjBuf;
   static Render::TextureHandle         s1x1White;
   static Render::ProgramHandle         m3DShader;
   static Render::PipelineHandle        mMeshPipeline;
-  static Render::SamplerHandle         mSamplerPoint;
-  static Render::SamplerHandle         mSamplerLinear;
-  static Render::SamplerHandle         mSamplerAniso;
+  static Samplers                      sSamplers;
   static Render::VertexDeclarations    m3DVertexFormatDecls;
   static Render::IShaderVar*           mShaderMeshShadowMaps;
   static Render::IShaderVar*           mShaderMeshLights;
@@ -193,7 +241,6 @@ namespace Tac
     if( !mesh )
       return;
 
-
     FixedVector< Render::TextureHandle, Render::CBufferLights::TAC_MAX_SHADER_LIGHTS > shadowMaps;
     Render::CBufferLights cBufferLights;
 
@@ -234,7 +281,7 @@ namespace Tac
     mDebugCBufferLights = cBufferLights;
 
     //mShaderMeshLinearSampler->SetSampler( mSamplerLinear );
-    mShaderMeshShadowSampler->SetSampler( mSamplerPoint );
+    mShaderMeshShadowSampler->SetSampler( sSamplers.GetSampler( Render::Filter::Point ) );
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
@@ -329,38 +376,6 @@ namespace Tac
     };
   }
 
-  static void CreateLinearSampler()
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::CreateSamplerParams params
-    {
-      .mFilter { Render::Filter::Linear },
-      .mName   { "mesh-linear-sampler" },
-    };
-    mSamplerLinear = renderDevice->CreateSampler( params );
-  }
-
-  static void CreatePointSampler()
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::CreateSamplerParams params
-    {
-      .mFilter { Render::Filter::Point},
-      .mName   { "mesh-point-sampler" },
-    };
-    mSamplerPoint = renderDevice->CreateSampler( params );
-  }
-
-  static void CreateAnisoSampler()
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::CreateSamplerParams params
-    {
-      .mFilter { Render::Filter::Aniso},
-      .mName   { "mesh-aniso-sampler" },
-    };
-    mSamplerAniso = renderDevice->CreateSampler( params );
-  }
 
   static void RenderModels( Render::IContext* renderContext,
                             const World* world,
@@ -474,6 +489,59 @@ namespace Tac
       DebugImguiCBufferLight( iLight );
   }
 
+  static void Create1x1White(Errors& errors)
+  {
+    char bytes[ 4 ]{ 1, 1, 1, 1 };
+    const Render::CreateTextureParams::Subresource subRsc
+    {
+      .mBytes { bytes },
+      .mPitch { 4 },
+    };
+
+    const Render::Image img
+    {
+      .mWidth   { 1 },
+      .mHeight  { 1 },
+      .mFormat  { Render::TexFmt::kRGBA8_unorm },
+    };
+
+    const Render::CreateTextureParams createTextureParams
+    {
+      .mImage        { img },
+      .mMipCount     { 1 },
+      .mSubresources { subRsc },
+      .mBinding      { Render::Binding::ShaderResource },
+      .mOptionalName { "unbound_shadowmap"},
+    };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( s1x1White = renderDevice->CreateTexture( createTextureParams, errors ) );
+  }
+
+  static void CreatePerMesh( Errors& errors )
+  {
+    const Render::CreateBufferParams meshPerFrameParams
+    {
+      .mByteCount     { sizeof( MeshPerFrameBuf ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "mesh-per-frame-cbuf" },
+    };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( mMeshPerFrameBuf = renderDevice->CreateBuffer( meshPerFrameParams, errors ) );
+  }
+
+  static void CreatePerObj( Errors& errors )
+  {
+    const Render::CreateBufferParams meshPerObjParams
+    {
+      .mByteCount     { sizeof( MeshPerObjBuf ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "mesh-per-obj-cbuf" },
+    };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( mMeshPerObjBuf = renderDevice->CreateBuffer( meshPerObjParams, errors ) );
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -498,10 +566,7 @@ namespace Tac
     const Render::DepthState depthState{ GetDepthState() };
     const Render::RasterizerState rasterizerState{ GetRasterizerState() };
 
-    CreatePointSampler();
-    CreateLinearSampler();
-    CreateAnisoSampler();
-
+    sSamplers.Init();
 
     const Render::PipelineParams meshPipelineParams
     {
@@ -519,35 +584,14 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     TAC_CALL( mMeshPipeline = renderDevice->CreatePipeline( meshPipelineParams, errors ) );
 
-
-
     mShaderMeshLights = renderDevice->GetShaderVariable( mMeshPipeline, "CBufferLights" );
 
     mShaderMeshShadowMaps = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMaps" );
-    //mShaderMeshLinearSampler = renderDevice->GetShaderVariable( mMeshPipeline, "linearSampler" );
-    //mShaderMeshLinearSampler->SetSampler( mSamplerLinear );
     mShaderMeshShadowSampler = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMapSampler" );
-    mShaderMeshShadowSampler->SetSampler( mSamplerPoint );
+    mShaderMeshShadowSampler->SetSampler( sSamplers.GetSampler( Render::Filter::Point ) );
 
-
-    const Render::CreateBufferParams meshPerFrameParams
-    {
-      .mByteCount     { sizeof( MeshPerFrameBuf ) },
-      .mUsage         { Render::Usage::Dynamic },
-      .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "mesh-per-frame-cbuf" },
-    };
-
-    const Render::CreateBufferParams meshPerObjParams
-    {
-      .mByteCount     { sizeof( MeshPerObjBuf ) },
-      .mUsage         { Render::Usage::Dynamic },
-      .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "mesh-per-obj-cbuf" },
-    };
-
-    TAC_CALL( mMeshPerObjBuf = renderDevice->CreateBuffer( meshPerObjParams, errors ) );
-    TAC_CALL( mMeshPerFrameBuf = renderDevice->CreateBuffer( meshPerFrameParams, errors ) );
+    TAC_CALL( CreatePerMesh( errors ) );
+    TAC_CALL( CreatePerObj( errors ) );
 
     mShaderMeshPerObject = renderDevice->GetShaderVariable( mMeshPipeline, "sPerObj" );
     mShaderMeshPerObject->SetBuffer( mMeshPerObjBuf );
@@ -555,32 +599,7 @@ namespace Tac
     mShaderMeshPerFrame = renderDevice->GetShaderVariable( mMeshPipeline, "sPerFrame" );
     mShaderMeshPerFrame->SetBuffer( mMeshPerFrameBuf );
 
-
-    {
-      char bytes[ 4 ]{ 1, 1, 1, 1 };
-      const Render::CreateTextureParams::Subresource subRsc
-      {
-        .mBytes { bytes },
-        .mPitch { 4 },
-      };
-
-      const Render::Image img
-      {
-        .mWidth   { 1 },
-        .mHeight  { 1 },
-        .mFormat  { Render::TexFmt::kRGBA8_unorm },
-      };
-
-      const Render::CreateTextureParams createTextureParams
-      {
-        .mImage        { img },
-        .mMipCount     { 1 },
-        .mSubresources { subRsc },
-        .mBinding      { Render::Binding::ShaderResource },
-        .mOptionalName { "unbound_shadowmap"},
-      };
-      TAC_CALL( s1x1White = renderDevice->CreateTexture( createTextureParams, errors ) );
-    }
+    TAC_CALL( Create1x1White( errors ) );
 
     TAC_CALL( SkyboxPresentation::Init( errors ) );
     TAC_CALL( ShadowPresentation::Init( errors ) );
@@ -598,9 +617,7 @@ namespace Tac
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       renderDevice->DestroyProgram( m3DShader );
       renderDevice->DestroyPipeline( mMeshPipeline );
-      renderDevice->DestroySampler( mSamplerAniso );
-      renderDevice->DestroySampler( mSamplerPoint );
-      renderDevice->DestroySampler( mSamplerLinear );
+      sSamplers.Uninit();
       SkyboxPresentation::Uninit();
       ShadowPresentation::Uninit();
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()

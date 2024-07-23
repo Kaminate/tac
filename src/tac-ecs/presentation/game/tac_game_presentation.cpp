@@ -8,6 +8,7 @@
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/presentation/mesh/tac_mesh_presentation.h"
+#include "tac-ecs/presentation/material/tac_material_presentation.h"
 #include "tac-ecs/presentation/radiosity/tac_radiosity_bake_presentation.h"
 #include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
 #include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
@@ -49,7 +50,13 @@ void Tac::GamePresentationInit( Errors& errors )
   if( sInitialized )
     return;
 
+#if TAC_MESH_PRESENTATION_ENABLED()
   TAC_CALL( MeshPresentation::Init( errors ) );
+#endif
+
+#if TAC_MATERIAL_PRESENTATION_ENABLED()
+  TAC_CALL( MaterialPresentation::Init( errors ) );
+#endif
 
 #if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
   TAC_CALL( InfiniteGrid::Init( errors ) );
@@ -79,6 +86,10 @@ void Tac::GamePresentationUninit()
 
 #if TAC_MESH_PRESENTATION_ENABLED()
     MeshPresentation::Uninit();
+#endif
+
+#if TAC_MATERIAL_PRESENTATION_ENABLED()
+   MaterialPresentation::Uninit();
 #endif
 
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
@@ -144,6 +155,17 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
                                     dstDepthTex,
                                     errors ) );
 #endif
+
+#if TAC_MATERIAL_PRESENTATION_ENABLED()
+  TAC_CALL( MaterialPresentation::Render( renderContext,
+                                    world,
+                                    camera,
+                                    viewSize,
+                                    dstColorTex,
+                                    dstDepthTex,
+                                    errors ) );
+#endif
+
 
 #if 0
 #if TAC_TERRAIN_PRESENTATION_ENABLED()

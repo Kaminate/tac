@@ -41,17 +41,32 @@ namespace Tac
     return hasher;
   }
 
+  static HashValue GetModelHash( const AssetPathStringView& path,
+                                 const int iModel,
+                                 const Render::VertexDeclarations& vtxDecls )
+  {
+    const HashValue hashPath{ Hash( ( StringView )path ) };
+    const HashValue hashDecl{ HashVertexDeclarations( vtxDecls ) };
+
+    Hasher hasher;
+    hasher.Eat( hashPath );
+    hasher.Eat( hashDecl );
+    hasher.Eat( ( HashValue )iModel );
+    return hasher;
+  }
+
+
+  // -----------------------------------------------------------------------------------------------
+  
   Mesh* ModelAssetManagerGetMeshTryingNewThing( const AssetPathStringView& path,
                                                 const int iModel,
                                                 const Render::VertexDeclarations& vtxDecls,
                                                 Errors& errors )
   {
-    if(path.empty())
+    if ( path.empty() )
       return nullptr;
 
-    const HashValue hashedValue{ Hash( Hash( ( StringView )path ),
-                                        HashVertexDeclarations( vtxDecls ),
-                                        ( HashValue )iModel ) };
+    const HashValue hashedValue{ GetModelHash( path, iModel , vtxDecls ) };
 
     if( Optional< Mesh* > mesh{ sTryNewTHingMeshes.FindVal( hashedValue ) } )
       return *mesh;
