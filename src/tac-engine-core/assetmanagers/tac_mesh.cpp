@@ -27,50 +27,58 @@ namespace Tac
     return false;
   }
 
-  void SubMesh::SubMeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist ) const
+  // -----------------------------------------------------------------------------------------------
+
+  MeshRaycastResult SubMesh::SubMeshModelSpaceRaycast( MeshRay meshRay ) const
   {
     bool submeshHit {};
     float submeshDist {};
-    int triCount { ( int )mTris.size() };
+    const int triCount { ( int )mTris.size() };
     for( int iTri {}; iTri < triCount; ++iTri )
     {
-      const SubMeshTriangle& tri { mTris[ iTri ] };
+      const SubMeshTriangle& tri{ mTris[ iTri ] };
       float triDist{};
       const bool triHit{ RaycastTriangle( tri[ 0 ],
-                                           tri[ 1 ],
-                                           tri[ 2 ],
-                                           inRayPos,
-                                           inRayDir,
-                                           triDist ) };
-      if( !triHit )
+                                          tri[ 1 ],
+                                          tri[ 2 ],
+                                          meshRay.mPos,
+                                          meshRay.mDir,
+                                          triDist ) };
+      if ( !triHit )
         continue;
-      if( submeshHit && triDist > submeshDist )
+      if ( submeshHit && triDist > submeshDist )
         continue;
+
       submeshDist = triDist;
       submeshHit = true;
     }
-    *outHit = submeshHit;
-    *outDist = submeshDist;
+
+    return MeshRaycastResult
+    {
+      .mHit { submeshHit },
+      .mT   { submeshDist },
+    };
   }
 
-  void Mesh::MeshModelSpaceRaycast( v3 inRayPos, v3 inRayDir, bool* outHit, float* outDist ) const
+  // -----------------------------------------------------------------------------------------------
+
+  MeshRaycastResult Mesh::MeshModelSpaceRaycast( MeshRay meshRay ) const
   {
-    bool meshHit {};
-    float meshDist {};
+    MeshRaycastResult raycastResult{};
+
     for( const SubMesh& subMesh : mSubMeshes )
     {
-      bool subMeshHit {};
-      float submeshDist {};
-      subMesh.SubMeshModelSpaceRaycast( inRayPos, inRayDir, &subMeshHit, &submeshDist );
-      if( !subMeshHit )
+      const MeshRaycastResult submeshRaycastResult { subMesh.SubMeshModelSpaceRaycast( meshRay ) };
+      if( !submeshRaycastResult.mHit )
         continue;
-      if( meshHit && submeshDist > meshDist )
+
+      if( raycastResult.mHit && submeshRaycastResult.mT > raycastResult.mT )
         continue;
-      meshDist = submeshDist;
-      meshHit = true;
+
+      raycastResult = submeshRaycastResult;
     }
-    *outHit = meshHit;
-    *outDist = meshDist;
+
+    return raycastResult;
   }
 
-}
+} // namespace Tac

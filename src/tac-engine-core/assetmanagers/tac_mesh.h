@@ -8,34 +8,45 @@
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
+#define TAC_HACK_COLOR_INTO_MESH() false
+
 namespace Tac
 {
   typedef Array< v3, 3 >            SubMeshTriangle;
   typedef Vector< SubMeshTriangle > SubMeshTriangles;
 
+  struct MeshRay
+  {
+    v3 mPos;
+    v3 mDir;
+  };
+
+  struct MeshRaycastResult
+  {
+    bool  mHit {};
+    float mT   {};
+  };
+
   struct SubMesh
   {
-    void                       SubMeshModelSpaceRaycast( v3 inRayPos,
-                                                         v3 inRayDir,
-                                                         bool* outHit,
-                                                         float* outDist ) const;
+    MeshRaycastResult          SubMeshModelSpaceRaycast( MeshRay ) const;
 
     Render::PrimitiveTopology  mPrimitiveTopology { Render::PrimitiveTopology::Unknown };
-    Render::BufferHandle       mVertexBuffer;
-    Render::BufferHandle       mIndexBuffer;
-    SubMeshTriangles           mTris;
+    Render::BufferHandle       mVertexBuffer      {};
+    Render::BufferHandle       mIndexBuffer       {};
+    SubMeshTriangles           mTris              {};
     int                        mIndexCount        {};
     int                        mVertexCount       {};
+#if TAC_HACK_COLOR_INTO_MESH()
     v4                         mColor             { 1, 1, 1, 1 };
-    String                     mName;
+#endif
+    String                     mName              {};
   };
 
   struct Mesh
   {
-    void                       MeshModelSpaceRaycast( v3 inRayPos,
-                                                      v3 inRayDir,
-                                                      bool* outHit,
-                                                      float* outDist ) const;
+    MeshRaycastResult          MeshModelSpaceRaycast( MeshRay ) const;
+
     Vector< SubMesh >          mSubMeshes;
   };
 

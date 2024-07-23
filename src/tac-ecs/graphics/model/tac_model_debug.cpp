@@ -225,7 +225,6 @@ namespace Tac
     //               mesh->mTransform.m32,
     //               mesh->mTransform.m33 ) );
 
-    ImGuiText( ShortFixedString::Concat( "model index: ", ToString( model->mModelIndex ) ) );
     ImGuiDragInt( "model index", &model->mModelIndex );
     static int iSelectedSubmesh { -1 };
     for( const SubMesh& subMesh : mesh->mSubMeshes )

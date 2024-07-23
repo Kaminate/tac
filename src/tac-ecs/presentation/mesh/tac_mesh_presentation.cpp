@@ -213,9 +213,14 @@ namespace Tac
                                    Render::IContext* renderContext,
                                    Errors& errors )
   {
+  #if TAC_HACK_COLOR_INTO_MESH()
     v4 color{ model->mColorRGB , 1 };
     if( mesh->mSubMeshes.size() == 1 )
       color = mesh->mSubMeshes[ 0 ].mColor;
+#else
+    v4 color{ 1, 1, 1, 1 };
+#endif
+
 
     const Render::DefaultCBufferPerObject perObjectData
     {

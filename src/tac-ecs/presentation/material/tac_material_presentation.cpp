@@ -182,6 +182,12 @@ namespace Tac
       if( !material )
         continue;
 
+      if( material->mMaterialShader.empty() )
+        continue;
+
+      if( material->mDisableRender )
+        continue;
+
       const Render::VertexDeclarations& vtxDecls{
         Render::RenderMaterialApi::GetVertexDeclarations() };
 

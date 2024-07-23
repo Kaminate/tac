@@ -18,6 +18,7 @@
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/tac_ints.h"
 
+
 namespace Tac
 {
 
@@ -272,6 +273,7 @@ namespace Tac
         TAC_ASSERT( parsedPrim->type == supportedType );
 
 
+#if TAC_HACK_COLOR_INTO_MESH()
         v4 color{ 1, 1, 1, 1 };
         cgltf_material* material{ parsedPrim->material };
         if( material )
@@ -289,6 +291,7 @@ namespace Tac
             color[ 3 ] = base_color_factor[ 3 ];
           }
         }
+#endif
 
         const SubMesh subMesh
         {
@@ -298,7 +301,9 @@ namespace Tac
           .mTris              { tris },
           .mIndexCount        { indexCount },
           .mVertexCount       { vertexCount },
+#if TAC_HACK_COLOR_INTO_MESH()
           .mColor             { color },
+#endif
           .mName              { StringView( bufferName ) },
         };
         submeshes.push_back( subMesh );
