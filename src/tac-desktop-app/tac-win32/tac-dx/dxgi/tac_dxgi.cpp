@@ -203,10 +203,11 @@ namespace Tac::Render
       const DWORD dwError{ ( DWORD )HRESULT_CODE( createSwapChainHR ) }; // ???
       const String dxgiErrStr { TryInferDXGIErrorStr( createSwapChainHR ) };
       const String win32ErrStr { Win32ErrorStringFromDWORD( dwError ) };
-      TAC_RAISE_ERROR_RETURN( String()
-                              + "CreateSwapChainForHwnd failed, "
-                              + dxgiErrStr
-                              + win32ErrStr, {} );
+      TAC_RAISE_ERROR_RETURN( {},
+                                String()
+                                + "CreateSwapChainForHwnd failed, "
+                                + dxgiErrStr
+                                + win32ErrStr );
     }
 
     return swapChain1.QueryInterface< IDXGISwapChain4 >();

@@ -82,8 +82,8 @@ namespace Tac
 
   float ParseData::EatFloat(Errors& errors)
   {
-    Optional<float> f { EatFloat() };
-    TAC_RAISE_ERROR_IF_RETURN( !f.HasValue(), "Failed to eat float", {} );
+    Optional< float > f { EatFloat() };
+    TAC_RAISE_ERROR_IF_RETURN( {}, !f.HasValue(), "Failed to eat float" );
     return f;
   }
 

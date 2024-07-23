@@ -43,9 +43,9 @@ namespace Tac
 
 // Raise an error, returning from the function
 #define TAC_RAISE_ERROR( msg )                       { errors.Raise( msg, TAC_STACK_FRAME ); return; }
-#define TAC_RAISE_ERROR_RETURN( msg, ret )           { errors.Raise( msg, TAC_STACK_FRAME ); return ret; }
+#define TAC_RAISE_ERROR_RETURN( ret, msg )           { errors.Raise( msg, TAC_STACK_FRAME ); return ret; }
 #define TAC_RAISE_ERROR_IF( pred, msg)               if( pred ){ TAC_RAISE_ERROR( msg ); }
-#define TAC_RAISE_ERROR_IF_RETURN( pred, msg, ret )  if( pred ){ TAC_RAISE_ERROR_RETURN( msg, ret ); }
+#define TAC_RAISE_ERROR_IF_RETURN( ret, pred, msg )  if( pred ){ TAC_RAISE_ERROR_RETURN( ret , msg ); }
 
 // Call a function, and upon errors propagates the stack frame
 #define TAC_CALL( call )                             call; if( errors ){ errors.Propagate( TAC_STACK_FRAME ); return; }

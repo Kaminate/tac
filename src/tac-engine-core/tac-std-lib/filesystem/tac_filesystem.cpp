@@ -271,7 +271,7 @@ namespace Tac
   String            FileSys::LoadFilePath( const Path& path, Errors& errors )
   {
     std::ifstream ifs(  path.Get(), std::ios_base::binary );
-    TAC_RAISE_ERROR_IF_RETURN( !ifs.is_open() , FormatFileError( path, "reading" ),  {} );
+    TAC_RAISE_ERROR_IF_RETURN( {}, !ifs.is_open() , FormatFileError( path, "reading" ) );
     ifs.seekg( 0, std::ifstream::end );
     std::streampos byteCount = ifs.tellg();
     ifs.seekg( 0, std::ifstream::beg );

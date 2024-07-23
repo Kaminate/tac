@@ -71,11 +71,9 @@ namespace Tac
     String pathUTF8 { path.u8string() };
     if( path.is_absolute() )
     {
-      if( !pathUTF8.starts_with( workingUTF8 ) )
-      {
-        const String msg { pathUTF8 + String( " is not in " ) + workingUTF8 };
-        TAC_RAISE_ERROR_RETURN( msg, {} );
-      }
+      TAC_RAISE_ERROR_IF_RETURN( {},
+                                   !pathUTF8.starts_with( workingUTF8 ), 
+                                   String() + pathUTF8 + String( " is not in " ) + workingUTF8 );
 
       pathUTF8.erase( 0, workingUTF8.size() );
       pathUTF8 = FileSys::StripLeadingSlashes( pathUTF8 );

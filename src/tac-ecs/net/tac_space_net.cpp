@@ -17,7 +17,7 @@ namespace Tac
     for( const char cExpected : tac )
     {
       TAC_CALL_RET( {}, const char cActual{ reader->Read< char >( errors ) } );
-      TAC_RAISE_ERROR_IF_RETURN( cExpected != cActual, "net msg header mismatch", {} );
+      TAC_RAISE_ERROR_IF_RETURN( {}, cExpected != cActual, "net msg header mismatch" );
     }
 
     return reader->Read<NetMsgType>( errors );

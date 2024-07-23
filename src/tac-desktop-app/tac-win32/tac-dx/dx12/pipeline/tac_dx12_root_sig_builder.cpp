@@ -208,12 +208,12 @@ namespace Tac::Render
                                             blobErr.CreateAddress() ) };
 
     TAC_RAISE_ERROR_IF_RETURN(
+      {},
       FAILED( serializeHr ),
       String() +
       "Failed to serialize root signature! "
       "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
-      "HRESULT = " + DX12_HRESULT_ToString( serializeHr ),
-      {}
+      "HRESULT = " + DX12_HRESULT_ToString( serializeHr )
     );
 
 

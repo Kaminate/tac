@@ -387,7 +387,7 @@ namespace Tac::Render
 
     ReflectShader( pUtils.Get(), pResults.Get(), reflInfo, reflectShaderInputs );
     
-    TAC_RAISE_ERROR_IF_RETURN( !pResults->HasOutput( DXC_OUT_OBJECT ), "no shader binary", {} );
+    TAC_RAISE_ERROR_IF_RETURN( {}, !pResults->HasOutput( DXC_OUT_OBJECT ), "no shader binary" );
     PCom< IDxcBlob > pShader;
     PCom< IDxcBlobUtf16 > pShaderName;
     TAC_DX12_CALL_RET( {},
@@ -396,7 +396,7 @@ namespace Tac::Render
                        pShader.iid(),
                        pShader.ppv(),
                        pShaderName.CreateAddress() ) );
-    TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
+    TAC_RAISE_ERROR_IF_RETURN( {}, !pShader, "No shader dxil" );
     const String outputShaderName { GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() ) };
     const FileSys::Path dxilShaderPath { input.mOutputDir / outputShaderName };
     TAC_CALL_RET( {}, SaveBlobToFile( pShader, dxilShaderPath, errors ) );
@@ -417,15 +417,16 @@ namespace Tac
 {
   Render::DXCCompileOutput Render::DXCCompile( const DXCCompileParams& input, Errors& errors )
   {
-    PCom< IDxcBlob > vsBlob;
-    PCom< IDxcBlob > psBlob;
-
     DXCReflInfo reflInfo;
+    PCom< IDxcBlob > vsBlob { DXCCompileBlob( sVSData, &reflInfo, input, true, errors ) };
+    TAC_RAISE_ERROR_IF_RETURN( {},
+                                 !vsBlob ,
+                                 "Failed to compile vtx shader from " + input.mFileName );
 
-    vsBlob = DXCCompileBlob( sVSData, &reflInfo, input, true, errors );
-    psBlob = DXCCompileBlob( sPSData, &reflInfo, input, false, errors );
-
-    TAC_RAISE_ERROR_IF_RETURN( !vsBlob && !psBlob, "Failed to find any shaders", {} );
+    PCom< IDxcBlob > psBlob { DXCCompileBlob( sPSData, &reflInfo, input, false, errors ) };
+    TAC_RAISE_ERROR_IF_RETURN( {},
+                                 !psBlob ,
+                                 "Failed to compile px shader from " + input.mFileName );
 
     return DXCCompileOutput
     {

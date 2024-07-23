@@ -53,6 +53,8 @@ namespace Tac::Render
 
   static DXCCompileOutput Compile( StringView fileStem, Errors& errors )
   {
+    TAC_RAISE_ERROR_IF_RETURN( {}, fileStem.empty(), "No shader specified to compile" );
+
     const String fileName{ fileStem + sShaderExt };
     const String filePath{ sShaderDir + fileName };
 

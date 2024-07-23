@@ -92,23 +92,27 @@ namespace Tac::Render
       PCom< ID3DBlob > blob;
       PCom< ID3DBlob > blobErr;
 
-      TAC_RAISE_ERROR_IF_RETURN( const HRESULT hr =
-                                 D3D12SerializeVersionedRootSignature(
-                                 &desc,
-                                 blob.CreateAddress(),
-                                 blobErr.CreateAddress() ); FAILED( hr ),
-                                 String() +
-                                 "Failed to serialize root signature! "
-                                 "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
-                                 "HRESULT = " + DX12_HRESULT_ToString( hr ), {} );
+
+      const HRESULT serializeHr{
+        D3D12SerializeVersionedRootSignature( &desc,
+                                              blob.CreateAddress(),
+                                              blobErr.CreateAddress() ) };
+                                 
+
+      TAC_RAISE_ERROR_IF_RETURN( {},
+                                   FAILED( serializeHr ),
+                                   String() +
+                                   "Failed to serialize root signature! "
+                                   "Blob = " + ( const char* )blobErr->GetBufferPointer() + ", "
+                                   "HRESULT = " + DX12_HRESULT_ToString( serializeHr ) );
 
       PCom< ID3D12RootSignature > rootSignature;
       TAC_DX12_CALL_RET( {},
                          mDevice->CreateRootSignature( 0,
-                         blob->GetBufferPointer(),
-                         blob->GetBufferSize(),
-                         rootSignature.iid(),
-                         rootSignature.ppv() ) );
+                                                       blob->GetBufferPointer(),
+                                                       blob->GetBufferSize(),
+                                                       rootSignature.iid(),
+                                                       rootSignature.ppv() ) );
 
       return rootSignature;
     }

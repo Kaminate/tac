@@ -13,9 +13,9 @@ namespace Tac::Render
 {
   struct DXCCompileParams
   {
-    StringView          mFileName; // ie: "foo.hlsl"
-    StringView          mPreprocessedShader;
-    D3D_SHADER_MODEL    mShaderModel = ( D3D_SHADER_MODEL )0;
+    StringView       mFileName; // ie: "foo.hlsl"
+    StringView       mPreprocessedShader;
+    D3D_SHADER_MODEL mShaderModel = ( D3D_SHADER_MODEL )0;
     FileSys::Path    mOutputDir;
   };
 

@@ -91,8 +91,9 @@ namespace Tac
     template< typename T > bool Read( T* values, int valueCount = 1 ) { return Read( values, valueCount, sizeof( T ) ); }
     template< typename T > T Read( Errors& errors )
     {
-      T t;
-      TAC_RAISE_ERROR_IF_RETURN( !Read( &t, 1, sizeof( T ) ), "read failed", t );
+      T t{};
+      const bool didReadSucceed{ Read( &t, 1, sizeof( T ) ) };
+      TAC_RAISE_ERROR_IF_RETURN( {}, !didReadSucceed, "read failed" );
       return t;
     }
     Endianness  mFrom  { Endianness::Unknown };

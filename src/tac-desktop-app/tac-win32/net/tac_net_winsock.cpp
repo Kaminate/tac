@@ -288,9 +288,9 @@ namespace Tac::Network
     const int winsockAddressFamily { GetWinsockAddressFamily( addressFamily ) };
     const int winsockProtocol {}; // don't really know what this is
     const SOCKET winsockSocket { socket( winsockAddressFamily, winsockSocketType, winsockProtocol ) };
-    TAC_RAISE_ERROR_IF_RETURN( winsockSocket == INVALID_SOCKET,
-                               String() + "socket failed with: " + GetLastWSAErrorString(),
-                               nullptr );
+    TAC_RAISE_ERROR_IF_RETURN( {},
+                                 winsockSocket == INVALID_SOCKET,
+                                 String() + "socket failed with: " + GetLastWSAErrorString() );
 
     auto netWinsocket { TAC_NEW SocketWinsock };
     TAC_ON_DESTRUCT( if( errors ) TAC_DELETE netWinsocket );
