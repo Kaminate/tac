@@ -515,6 +515,7 @@ namespace Tac::Render
     virtual void            DestroyPipeline( PipelineHandle )                {}
 
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& )          {}
+    virtual String          GetProgramBindings_TEST( ProgramHandle )         = 0;
     virtual void            DestroyProgram( ProgramHandle )                  {}
 
     virtual SamplerHandle   CreateSampler( CreateSamplerParams )             {}

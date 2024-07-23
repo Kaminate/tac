@@ -150,6 +150,22 @@ namespace Tac::Render
     return h;
   }
 
+  String        DX12ProgramMgr::GetProgramBindings_TEST( ProgramHandle h )
+  {
+    DX12Program* program{ FindProgram( h ) };
+    if( !program )
+      return {};
+
+    String result;
+    for( const D3D12ProgramBinding& binding : program->mProgramBindings )
+    {
+      result += binding.mName;
+      result += " ";
+    }
+
+    return result;
+  }
+
   void          DX12ProgramMgr::HotReload( Errors& errors )
   {
     Timestamp curTime{ Timestep::GetElapsedTime() };
@@ -228,5 +244,6 @@ namespace Tac::Render
 
     TAC_CALL( mPipelineMgr->HotReload( reloadedProgramSpan, errors ) );
   }
+
 } // namespace Tac::Render
 

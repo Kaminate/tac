@@ -42,6 +42,7 @@ namespace Tac::Render
     void            DestroyPipeline( PipelineHandle ) override;
 
     ProgramHandle   CreateProgram( ProgramParams, Errors& ) override;
+    String          GetProgramBindings_TEST( ProgramHandle ) override;
     void            DestroyProgram( ProgramHandle ) override;
 
     SamplerHandle   CreateSampler( CreateSamplerParams ) override;

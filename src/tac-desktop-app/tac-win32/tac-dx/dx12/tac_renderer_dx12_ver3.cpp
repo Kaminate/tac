@@ -338,6 +338,11 @@ namespace Tac::Render
     return sRenderer.mProgramMgr.CreateProgram( params, errors );
   }
 
+  String            DX12Device::GetProgramBindings_TEST( ProgramHandle h )
+  {
+    return sRenderer.mProgramMgr.GetProgramBindings_TEST( h );
+  }
+
   void              DX12Device::DestroyProgram( ProgramHandle h )
   {
     sRenderer.mProgramMgr.DestroyProgram( h );

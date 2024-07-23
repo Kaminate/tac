@@ -17,6 +17,7 @@ namespace Tac::Render
 
     void          Init( Params, Errors& );
     ProgramHandle CreateProgram( ProgramParams, Errors& );
+    String        GetProgramBindings_TEST( ProgramHandle );
     void          DestroyProgram( ProgramHandle );
     DX12Program*  FindProgram( ProgramHandle );
     void          HotReload( Errors& );

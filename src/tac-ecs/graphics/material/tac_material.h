@@ -25,7 +25,7 @@ namespace Tac
 
     Vector< Data > mData           {};
     String         mMaterialShader {};
-    bool           mDisableRender  {};
+    bool           mRenderEnabled  { true };
   };
 
 }

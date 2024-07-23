@@ -185,7 +185,7 @@ namespace Tac
       if( material->mMaterialShader.empty() )
         continue;
 
-      if( material->mDisableRender )
+      if( !material->mRenderEnabled )
         continue;
 
       const Render::VertexDeclarations& vtxDecls{
