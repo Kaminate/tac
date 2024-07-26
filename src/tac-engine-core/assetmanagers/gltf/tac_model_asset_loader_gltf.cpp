@@ -273,7 +273,7 @@ namespace Tac
         TAC_ASSERT( parsedPrim->type == supportedType );
 
 
-#if TAC_HACK_COLOR_INTO_MESH()
+#if 1//TAC_HACK_COLOR_INTO_MESH()
         v4 color{ 1, 1, 1, 1 };
         cgltf_material* material{ parsedPrim->material };
         if( material )

@@ -10,7 +10,7 @@
 namespace Tac
 {
 
-  void                PrefabSave( World*, Errors& );
+  bool                PrefabSave( World*, Errors& );
   void                PrefabLoadAtPath( SettingsNode,
                                         EntityUUIDCounter*,
                                         World*,

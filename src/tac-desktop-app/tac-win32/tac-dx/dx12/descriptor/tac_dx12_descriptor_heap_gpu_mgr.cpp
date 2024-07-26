@@ -68,6 +68,11 @@ namespace Tac::Render
       }
     }
 
+    DX12DescriptorRegionManager::RegionIndex DX12DescriptorRegion::GetRegionIndex() const
+    {
+      return mRegionIndex;
+    }
+
     void DX12DescriptorRegion::SetFence( FenceSignal fenceSignal )
     {
 

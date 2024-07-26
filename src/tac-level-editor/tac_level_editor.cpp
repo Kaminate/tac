@@ -86,11 +86,17 @@ namespace Tac
       return;
 
     Errors saveErrors;
-    PrefabSave( world, saveErrors );
+    bool saved = PrefabSave( world, saveErrors );
 
     const TimestampDifference errorDurationSecs{ 60.0f };
     const TimestampDifference successDurationSecs{ 5.0f };
-    const StringView msg{ saveErrors ? saveErrors.ToString() : "Saved prefabs!" };
+    String msg;
+    if( saveErrors )
+      msg = saveErrors.ToString();
+    else if( saved )
+      msg = "Saved Prefabs!";
+    else
+      msg = "Didn't save prefabs";
     const TimestampDifference duration{ saveErrors ? errorDurationSecs : successDurationSecs };
     CreationGameWindow::SetStatusMessage( msg, duration );
   }

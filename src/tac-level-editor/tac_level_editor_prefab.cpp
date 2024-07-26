@@ -134,11 +134,11 @@ namespace Tac
     return nullptr;
   }
 
-  static void PrefabSaveEntity( Entity* entity, Errors& errors )
+  static bool PrefabSaveEntity( Entity* entity, Errors& errors )
   {
     // Why?
     if( entity->mParent )
-      return;
+      return false;
 
     Prefab* prefab{ PrefabFind( entity ) };
     if( !prefab )
@@ -158,9 +158,11 @@ namespace Tac
         .mSuggestedFilename { &suggestedFilename },
       };
 
-      TAC_CALL( const FileSys::Path savePath{ OS::OSSaveDialog( saveParams, errors ) } );
+      TAC_CALL_RET( {}, const FileSys::Path savePath{
+        OS::OSSaveDialog( saveParams, errors ) } );
 
-      TAC_CALL( const AssetPathStringView assetPath{ ModifyPathRelative( savePath, errors ) } );
+      TAC_CALL_RET( {}, const AssetPathStringView assetPath{
+        ModifyPathRelative( savePath, errors ) } );
 
       prefab->mAssetPath = assetPath;
     }
@@ -170,7 +172,8 @@ namespace Tac
     const void* bytes{ prefabJsonString.data() };
     const int byteCount{ prefabJsonString.size() };
     const FileSys::Path fsPath( prefab->mAssetPath );
-    TAC_CALL( FileSys::SaveToFile( fsPath, bytes, byteCount, errors ) );
+    TAC_CALL_RET( {}, FileSys::SaveToFile( fsPath, bytes, byteCount, errors ) );
+    return true;
   }
 
 
@@ -280,10 +283,13 @@ void                Tac::PrefabLoad( SettingsNode settingsNode,
 
 
 
-void                Tac::PrefabSave( World* world, Errors& errors )
+bool                Tac::PrefabSave( World* world, Errors& errors )
 {
+  bool result = false;
   for( Entity* entity : world->mEntities )
-    PrefabSaveEntity( entity, errors );
+    result |= PrefabSaveEntity( entity, errors );
+
+  return result;
 }
 
 void                Tac::PrefabSaveCamera( SettingsNode settingsNode, Camera* camera )

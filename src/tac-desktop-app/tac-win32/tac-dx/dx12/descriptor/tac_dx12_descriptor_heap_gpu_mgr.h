@@ -89,11 +89,11 @@ namespace Tac::Render
     DX12DescriptorRegion( DX12DescriptorRegion&& );
     ~DX12DescriptorRegion();
 
+    void                                     SetFence( FenceSignal );
+    DX12DescriptorRegionManager::RegionIndex GetRegionIndex() const;
+
     void operator = ( DX12DescriptorRegion&& );
     void operator = ( const DX12DescriptorRegion& ) = delete;
-    void SetFence( FenceSignal );
-
-    DX12DescriptorRegionManager::RegionIndex GetRegionIndex() const { return mRegionIndex; }
 
   private:
     void SwapWith( DX12DescriptorRegion&& );

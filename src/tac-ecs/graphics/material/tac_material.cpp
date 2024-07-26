@@ -93,7 +93,7 @@ namespace Tac
         .mFileStem{ material->mMaterialShader },
       };
 
-      Render::ProgramHandle programHandle{ renderDevice->CreateProgram( programParams, errors ) };
+      const Render::ProgramHandle programHandle{ renderDevice->CreateProgram( programParams, errors ) };
       if( !errors )
       {
         bindings = renderDevice->GetProgramBindings_TEST( programHandle );

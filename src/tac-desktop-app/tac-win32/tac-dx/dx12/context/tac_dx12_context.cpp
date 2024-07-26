@@ -137,12 +137,10 @@ namespace Tac::Render
           TAC_ASSERT( dst.ptr );
 
           mDevice->CopyDescriptorsSimple( 1, dst, src, heapType );
-
         }
 
         const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
         commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
-
       }
 
       else
