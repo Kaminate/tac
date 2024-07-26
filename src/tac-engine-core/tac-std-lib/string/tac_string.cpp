@@ -153,6 +153,8 @@ Tac::String Tac::ToString( const double val )
   result += ItoaU64( ( u64 )absVal );
 
   String fractionalStr{ ItoaU64( ( u64 )( fractionalVal * places ) ) };
+  while( fractionalStr.size() < 3 )
+    fractionalStr.prepend( "0" );
   while( fractionalStr.ends_with( '0' ) )
     fractionalStr.pop_back();
 
