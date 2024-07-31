@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h" // FrameIndex
 #include "tac-engine-core/shell/tac_shell_timestamp.h" // Timestamp
 #include "tac-engine-core/shell/tac_shell_timer.h" // Timepoint

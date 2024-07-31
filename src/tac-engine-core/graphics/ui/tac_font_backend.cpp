@@ -24,12 +24,14 @@ namespace Tac
 {
 
   static_assert( FontCellInnerSDFPadding, "cant get anything to render w/o padding" );
-
-  const int maxCells { 100 };
+  
+  static const bool          sVerbose;
+  static const int           maxCells { 100 };
 
   // onedge_value     
-  // value 0-255 to test the SDF against to reconstruct the character (i.e. the isocontour of the character)
-  const unsigned char onedge_value{ 128 }; // [0,255]
+  // value 0-255 to test the SDF against to reconstruct the character
+  // (i.e. the isocontour of the character)
+  static const unsigned char onedge_value{ 128 }; // [0,255]
 
   // pixel_dist_scale
   //   what value the SDF should increase by when moving one SDF "pixel" away from the edge (on the 0..255 scale)
@@ -49,7 +51,7 @@ namespace Tac
   //   At 3 pixel away from boundary edge will have value 128 - ( 25.6 * 3 ) = 51
   //   At 4 pixel away from boundary edge will have value 128 - ( 25.6 * 4 ) = 25
   //   At 5 pixel away from boundary edge will have value 128 - ( 25.6 * 5 ) = 0
-  const float pixel_dist_scale{ onedge_value / ( float )FontCellInnerSDFPadding };
+  static const float         pixel_dist_scale{ onedge_value / ( float )FontCellInnerSDFPadding };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -278,20 +280,23 @@ namespace Tac
     };
     const String formattedBytes{ FormatBytes( formatByteSpec ) };
 
-    String msg;
-    msg += "Font atlas vram size: ";
-    msg += formattedBytes;
-    msg += ", Atlas dims (";
-    msg += ToString( mPxWidth );
-    msg += "x";
-    msg += ToString( mPxHeight );
-    msg += "), Cell Count: ";
-    msg += ToString( totalCellCount );
-    msg += ", Row Count: ";
-    msg += ToString( mCellRowCount );
-    msg += ", Col Count: ";
-    msg += ToString( mCellColCount );
-    OS::OSDebugPrintLine( msg );
+    if( sVerbose )
+    {
+      String msg;
+      msg += "Font atlas vram size: ";
+      msg += formattedBytes;
+      msg += ", Atlas dims (";
+      msg += ToString( mPxWidth );
+      msg += "x";
+      msg += ToString( mPxHeight );
+      msg += "), Cell Count: ";
+      msg += ToString( totalCellCount );
+      msg += ", Row Count: ";
+      msg += ToString( mCellRowCount );
+      msg += ", Col Count: ";
+      msg += ToString( mCellColCount );
+      OS::OSDebugPrintLine( msg );
+    }
 
     const u8 dark { ( u8 )( 0.25f * 255 ) };
     const u8 light { ( u8 )( 0.75f * 255 ) };

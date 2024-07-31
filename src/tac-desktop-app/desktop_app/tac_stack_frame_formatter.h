@@ -9,7 +9,7 @@ namespace Tac
   
   struct StackFrameFormatter
   {
-    StackFrameFormatter( const Span< StackFrame > );
+    StackFrameFormatter( Span< const StackFrame > );
     String FormatFrames() const;
 
   private:
@@ -18,9 +18,9 @@ namespace Tac
     String FmtFile( StackFrame ) const;
     String FmtLine( StackFrame ) const;
 
-    int mMaxLenFilename {};
-    int mMaxLenLine{};
-    Span< StackFrame > mFrames;
+    int                      mMaxLenFilename {};
+    int                      mMaxLenLine     {};
+    Span< const StackFrame > mFrames         {};
   };
 
 

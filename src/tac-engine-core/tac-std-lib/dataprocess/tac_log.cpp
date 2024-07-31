@@ -227,7 +227,8 @@ namespace Tac
     void Flush();
     void EnsurePath();
     void EnsureOpen();
-    void LogMessage( StringView );
+    void LogMessagePrint( StringView );
+    void LogMessagePrintLine( StringView );
     void SetPath( FileSys::Path );
 
   private:
@@ -295,13 +296,17 @@ namespace Tac
     // Question: Should this close the file and reopen in append mode?
   }
 
-  void Log::LogMessage( StringView sv )
+  void Log::LogMessagePrintLine( StringView sv )
   {
-    if( sv.empty() )
-      return;
-
     mBuffer += sv;
     mBuffer += '\n';
+    if( mBuffer.size() > 1024 * 1024 * 100 )
+      Flush();
+  }
+
+  void Log::LogMessagePrint( StringView sv )
+  {
+    mBuffer += sv;
     if( mBuffer.size() > 1024 * 1024 * 100 )
       Flush();
   }
@@ -319,9 +324,16 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void LogApi::LogMessage( const StringView& sv, Severity severity )
+  void LogApi::LogMessagePrint( const StringView& sv, Severity severity )
   {
-    sLog.LogMessage( sv );
+    sLog.LogMessagePrint( sv );
+    if( severity == kError )
+      sLog.Flush();
+  }
+
+  void LogApi::LogMessagePrintLine( const StringView& sv, Severity severity )
+  {
+    sLog.LogMessagePrintLine( sv );
     if( severity == kError )
       sLog.Flush();
   }
@@ -342,7 +354,7 @@ void Tac::MedievalDebugAux( const StackFrame sf )
   const String msg{ String() + sf.GetFile() + ":"
                        + ToString( sf.GetLine() )
                        + " " + sf.GetFunction() };
-  LogApi::LogMessage( msg, Tac::LogApi::Severity::kError );
+  LogApi::LogMessagePrintLine( msg, Tac::LogApi::Severity::kError );
 }
 
 

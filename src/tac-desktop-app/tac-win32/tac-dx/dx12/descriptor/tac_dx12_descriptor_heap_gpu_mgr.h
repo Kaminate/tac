@@ -41,7 +41,10 @@ namespace Tac::Render
     {
       enum State
       {
-        kUnknown = 0, kAllocated, kFree, kPendingFree
+        kUnknown = 0,
+        kAllocated, // Allocated but not used in any command queues
+        kFree,
+        kPendingFree, // Allocated and used in a command queue
       };
 
       // Either the RegionDesc keeps left/right offsets, or the list must be sorted
@@ -61,9 +64,12 @@ namespace Tac::Render
     };
 
     void           Free( RegionDesc* );
+    //void           CoalesceFreeBlock( RegionDesc* );
     RegionIndex    GetIndex( RegionDesc* ) const;
     RegionDesc*    GetRegionAtIndex( RegionIndex );
     void           DebugPrint();
+    void           DebugTitleBegin( StringView );
+    void           DebugTitleEnd( StringView );
     String         DebugFreeListString();
     String         DebugPendingFreeListString();
     void           RemoveFromFreeList( RegionDesc* );

@@ -27,8 +27,8 @@ namespace Tac
     void                 clear();
     void                 Raise( StringView, StackFrame );
     void                 Propagate( StackFrame );
-    Span< StackFrame >   GetFrames();
-    StringView           GetMessage();
+    Span< const StackFrame >   GetFrames() const;
+    StringView           GetMessage() const;
     String               ToString() const;
 
   private:

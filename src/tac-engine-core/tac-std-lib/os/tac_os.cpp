@@ -37,7 +37,7 @@ namespace Tac::OS
         + frame.GetFunction() };
 
       OSDebugPrintLine( str );
-      LogApi::LogMessage( str, LogApi::kError );
+      LogApi::LogMessagePrintLine( str, LogApi::kError );
       OSDebugPopupBox( str );
       OSDebugBreak();
       std::exit( -1 );
@@ -48,7 +48,7 @@ namespace Tac::OS
       if constexpr( IsDebugMode )
       {
         std::cout << s.c_str();
-        LogApi::LogMessage( s );
+        LogApi::LogMessagePrint( s );
       }
     }
 
@@ -59,7 +59,7 @@ namespace Tac::OS
 
       const char* szstr { s.c_str() };
       std::cout << szstr << std::endl;
-      LogApi::LogMessage( s );
+      LogApi::LogMessagePrintLine( s );
       const bool good { std::cout.good() };
       if( !good )
       {

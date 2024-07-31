@@ -15,54 +15,63 @@ namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
 
-  struct NamedError
+  struct NamedErrors
   {
-    String      FormatErrorString() const;
+    String      FormatErrorString( int i ) const
+    {
+      const char* name{ mNames[i]};
+      const Errors* errors{ mErrorPointers[i]};
 
-    const char* mName;
-    Errors*     mErrorPointer;
+      String errorStr;
+      errorStr += "Errors in ";
+      errorStr += name;
+      errorStr += '\n';
+      errorStr += errors->GetMessage();
+      errorStr += '\n';
+      errorStr += StackFrameFormatter( errors->GetFrames() ).FormatFrames();
+      return errorStr;
+    }
+
+
+    void        Add( const char* name, Errors* errors )
+    {
+      mNames.push_back( name );
+      mErrorPointers.push_back( errors );
+    }
+
+    String      FormatErrorString() const
+    {
+      String result;
+
+      const int n{ mNames.size() };
+      for( int i{}; i < n; ++i )
+      {
+        result += FormatErrorString( i );
+        result += "\n";
+      }
+
+      return result;
+    }
+
+    Vector< const char* > mNames;
+    Vector< Errors* >     mErrorPointers;
   };
 
   // -----------------------------------------------------------------------------------------------
 
-  String NamedError::FormatErrorString() const
-  {
-    String errorStr;
-    errorStr += "Errors in ";
-    errorStr += mName;
-    errorStr += '\n';
-    errorStr += mErrorPointer->GetMessage();
-    errorStr += '\n';
-    errorStr += StackFrameFormatter( mErrorPointer->GetFrames() ).FormatFrames();
-    return errorStr;
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  static Vector< NamedError > sNamedErrors;
+  static NamedErrors sNamedErrors;
 
   void DesktopAppErrorReport::Add( const char* name, Errors* errors )
   {
-    const NamedError namedError
-    {
-      .mName         { name },
-      .mErrorPointer { errors },
-    };
-    sNamedErrors.push_back( namedError );
+    sNamedErrors.Add( name, errors );
   }
 
   void DesktopAppErrorReport::Report()
   {
-
-    String combinedErrorStr;
-    for( const NamedError& namedError : sNamedErrors )
-      if( !namedError.mErrorPointer->empty() )
-        combinedErrorStr += namedError.FormatErrorString() + '\n';
-
+    const String combinedErrorStr{ sNamedErrors.FormatErrorString() };
     if( !combinedErrorStr.empty() )
     {
-      LogApi::LogMessage( combinedErrorStr );
-      LogApi::LogFlush();
+      LogApi::LogMessagePrintLine( combinedErrorStr, LogApi::kError );
       OS::OSDebugPopupBox( combinedErrorStr );
     }
   }

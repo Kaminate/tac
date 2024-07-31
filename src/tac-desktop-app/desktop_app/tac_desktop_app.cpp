@@ -64,6 +64,7 @@ namespace Tac
   static SysWindowApi                  sSysWindowApi{};
 
   static SettingsRoot                  sSettingsRoot;
+  static const bool                    sVerbose;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -163,7 +164,8 @@ namespace Tac
       TAC_CALL( DesktopInitRendering( errors ) );
     }
 
-    LogApi::LogMessage( "DesktopApp::Init" );
+    if( sVerbose )
+      LogApi::LogMessagePrintLine( "DesktopApp::Init" );
   }
 
   void                DesktopApp::Run( Errors& errors )

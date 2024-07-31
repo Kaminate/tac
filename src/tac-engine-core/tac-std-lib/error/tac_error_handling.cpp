@@ -30,9 +30,9 @@ namespace Tac
     mBroken = false;
   }
 
-  Span< StackFrame > Errors::GetFrames() { return Span( mFrames.data(), mFrames.size() ); }
+  Span< const StackFrame > Errors::GetFrames() const { return Span( mFrames.data(), mFrames.size() ); }
 
-  StringView         Errors::GetMessage() { return mMessage; }
+  StringView         Errors::GetMessage() const { return mMessage; }
 
   void               Errors::Raise( StringView msg, StackFrame sf )
   {

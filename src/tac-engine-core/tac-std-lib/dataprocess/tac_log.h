@@ -63,7 +63,8 @@ namespace Tac
       kWarning,
       kError,
     };
-    void LogMessage( const StringView&, Severity = kInfo );
+    void LogMessagePrint( const StringView&, Severity = kInfo );
+    void LogMessagePrintLine( const StringView&, Severity = kInfo );
     void LogFlush();
     void LogSetPath( const FileSys::Path& );
   }

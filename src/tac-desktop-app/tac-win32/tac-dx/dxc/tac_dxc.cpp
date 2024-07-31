@@ -48,8 +48,11 @@ namespace Tac::Render
     char mLetter;
   };
 
-  static const ShaderTypeData sVSData{ .mLetter = 'v' };
-  static const ShaderTypeData sPSData{ .mLetter = 'p' };
+  static const ShaderTypeData sVSData{ .mLetter { 'v' } };
+  static const ShaderTypeData sPSData{ .mLetter { 'p' } };
+  static const bool           sVerbose;
+  static dynmc bool           sPrintedCompilerInfo;
+
 
   // -----------------------------------------------------------------------------------------------
 
@@ -77,11 +80,9 @@ namespace Tac::Render
 
   static void PrintCompilerInfo( IDxcPdbUtils* pdbUtils, IDxcBlob* pPDB )
   {
-    static bool printed;
-    if( printed )
+    if( sPrintedCompilerInfo )
       return;
 
-    printed = true;
 
     if constexpr( not IsDebugMode )
       return;
@@ -124,6 +125,7 @@ namespace Tac::Render
     strs.push_back( String() + "Custom Version: " + ( ver ? ver : "n/a" ) );
 
     OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
+    sPrintedCompilerInfo = true;
   }
 
   bool DXCReflInfo::HasBinding( StringView name )
@@ -259,7 +261,8 @@ namespace Tac::Render
     const FileSys::Path pdbPath { outputDir / pdbName };
     TAC_CALL( SaveBlobToFile( pPDB, pdbPath, errors ) );
 
-    PrintCompilerInfo( pdbUtils, pPDB.Get() );
+    if( sVerbose )
+      PrintCompilerInfo( pdbUtils, pPDB.Get() );
   }
 
   static void CheckCompileSuccess( IDxcResult* pResults, Errors& errors )

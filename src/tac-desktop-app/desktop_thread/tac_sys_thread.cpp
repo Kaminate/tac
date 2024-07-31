@@ -170,7 +170,8 @@ namespace Tac
         {
           oldCursor = newCursor;
           platform->PlatformSetMouseCursor( newCursor );
-          OS::OSDebugPrintLine( "set mouse cursor : " + ToString( (int)newCursor ) );
+          if( sVerbose )
+            OS::OSDebugPrintLine( "set mouse cursor : " + ToString( (int)newCursor ) );
         }
 
         for( const auto& sizeData : imguiSimFrame->mWindowSizeDatas )
