@@ -17,8 +17,15 @@
 
 namespace Tac::Render
 {
-  struct ShaderTypeData
+  struct ShaderCompiler
   {
+
+    struct DXCCompileBlobInputs
+    {
+       DXCReflInfo*            reflInfo;
+       const DXCCompileParams& input;
+    };
+
     String             GetTarget( D3D_SHADER_MODEL model ) const
     {
       // example return value: "vs_6_1"
@@ -45,14 +52,17 @@ namespace Tac::Render
       return {};
     }
 
+    PCom< IDxcBlob >   DXCCompileBlob( DXCCompileBlobInputs , Errors& ) const;
+
     char mLetter;
+    bool reflectShaderInputs;
   };
 
-  static const ShaderTypeData sVSData{ .mLetter { 'v' } };
-  static const ShaderTypeData sPSData{ .mLetter { 'p' } };
+  static const ShaderCompiler sVSData{ .mLetter { 'v' }, .reflectShaderInputs{ true }, };
+  static const ShaderCompiler sPSData{ .mLetter { 'p' }, .reflectShaderInputs{ false }, };
+  static const ShaderCompiler sCSData{ .mLetter { 'c' }, .reflectShaderInputs{ true }, };
   static const bool           sVerbose;
   static dynmc bool           sPrintedCompilerInfo;
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -290,18 +300,24 @@ namespace Tac::Render
     TAC_RAISE_ERROR( String() + "Shader compilation failed: " + errorBlobStr );
   }
 
-  static PCom< IDxcBlob > DXCCompileBlob( const ShaderTypeData& typeData,
-                                          DXCReflInfo* reflInfo,
-                                          const DXCCompileParams& input,
-                                          bool reflectShaderInputs,
-                                          Errors& errors  )
-  {
-    TAC_ASSERT( !input.mOutputDir.empty() );
 
-    Optional< String > entryPoint { typeData.FindEntryPoint( input.mPreprocessedShader ) };
-    if( !entryPoint.HasValue() )
+  PCom< IDxcBlob > ShaderCompiler::DXCCompileBlob( DXCCompileBlobInputs inputs,
+                                                   Errors& errors ) const
+  {
+    const Optional< String > optEntryPoint{
+      this->FindEntryPoint( inputs.input.mPreprocessedShader ) };
+    if( !optEntryPoint.HasValue() )
       return {};
 
+    const String entryPoint{ optEntryPoint.GetValue() };
+
+    const String target{ GetTarget( inputs.input.mShaderModel ) };
+
+    DXCReflInfo*            reflInfo{ inputs.reflInfo };
+    const DXCCompileParams& input{ inputs.input };
+    //bool                    reflectShaderInputs{ inputs.reflectShaderInputs };
+
+    TAC_ASSERT( !input.mOutputDir.empty() );
     TAC_ASSERT_MSG(
       input.mShaderModel >= D3D_SHADER_MODEL_6_0,
       "Specifically using dxc instead of d3dcompiler to support a newer shader model" );
@@ -316,8 +332,6 @@ namespace Tac::Render
 
     PCom< IDxcPdbUtils > pdbUtils;
     TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcPdbUtils, pdbUtils.iid(), pdbUtils.ppv() ) );
-
-
 
     // this shit don't work (try and get the version)
     if( false )
@@ -344,7 +358,6 @@ namespace Tac::Render
       ++asdf;
     }
 
-    const String target { typeData.GetTarget( input.mShaderModel ) };
 
     const int iSlash{ input.mFileName.find_last_of( "/\\" ) };
     const StringView inputShaderName{
@@ -357,7 +370,7 @@ namespace Tac::Render
 
     dynmc DXCArgHelper::Params argHelperSetup
     {
-      .mEntryPoint    { entryPoint.GetValue() },
+      .mEntryPoint    { entryPoint },
       .mTargetProfile { target },
       .mFilename      { inputShaderName },
       .mPDBDir        { input.mOutputDir },
@@ -421,22 +434,27 @@ namespace Tac
   Render::DXCCompileOutput Render::DXCCompile( const DXCCompileParams& input, Errors& errors )
   {
     DXCReflInfo reflInfo;
-    PCom< IDxcBlob > vsBlob { DXCCompileBlob( sVSData, &reflInfo, input, true, errors ) };
-    TAC_RAISE_ERROR_IF_RETURN( {},
-                                 !vsBlob ,
-                                 "Failed to compile vtx shader from " + input.mFileName );
 
-    PCom< IDxcBlob > psBlob { DXCCompileBlob( sPSData, &reflInfo, input, false, errors ) };
-    TAC_RAISE_ERROR_IF_RETURN( {},
-                                 !psBlob ,
-                                 "Failed to compile px shader from " + input.mFileName );
+    const ShaderCompiler::DXCCompileBlobInputs blobInput
+    {
+      .reflInfo            { &reflInfo },
+      .input               { input },
+    };
+
+    TAC_CALL_RET( {}, PCom< IDxcBlob > vsBlob { sVSData.DXCCompileBlob( blobInput, errors ) } );
+    TAC_CALL_RET( {}, PCom< IDxcBlob > psBlob { sPSData.DXCCompileBlob( blobInput, errors ) } );
+    TAC_CALL_RET( {}, PCom< IDxcBlob > csBlob { sCSData.DXCCompileBlob( blobInput, errors ) } );
+
+    TAC_RAISE_ERROR_IF_RETURN( {}, !( vsBlob || psBlob || csBlob ),
+                               String() + "Shader " + input.mFileName + " compiled no blobs" );
 
     return DXCCompileOutput
     {
       .mVSBlob   { vsBlob },
       .mPSBlob   { psBlob },
+      .mCSBlob   { csBlob },
       .mReflInfo { reflInfo },
     };
   }
 
-}
+} // namespace Tac

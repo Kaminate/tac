@@ -135,6 +135,8 @@ namespace Tac::Render
       .mVSBytecode      { IDxcBlobToBytecode( output.mVSBlob ) },
       .mPSBlob          { output.mPSBlob },
       .mPSBytecode      { IDxcBlobToBytecode( output.mPSBlob ) },
+      .mCSBlob          { output.mCSBlob },
+      .mCSBytecode      { IDxcBlobToBytecode( output.mCSBlob ) },
       .mProgramBindings { bindings },
       .mProgramParams   { params },
       .mInputs          { programInputs },

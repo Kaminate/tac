@@ -108,6 +108,8 @@ namespace Tac::Render
                                                          PipelineParams params,
                                                          Errors& errors )
   {
+    TAC_ASSERT( params.mProgram.IsValid() );
+
     ID3D12Device* device{ mDevice };
     DX12Program* program{ mProgramMgr->FindProgram( params.mProgram ) };
 
@@ -164,28 +166,40 @@ namespace Tac::Render
 
     const D3D12_PRIMITIVE_TOPOLOGY_TYPE topology{ GetDX12PrimTopo( params.mPrimitiveTopology ) };
 
-    dynmc D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
-    {
-      .pRootSignature        { ( ID3D12RootSignature* )rootSig },
-      .VS                    { program->mVSBytecode },
-      .PS                    { program->mPSBytecode },
-      .BlendState            { BlendState },
-      .SampleMask            { UINT_MAX },
-      .RasterizerState       { RasterizerState },
-      .DepthStencilState     { depthStencilDesc },
-      .InputLayout           { inputLayout },
-      .PrimitiveTopologyType { topology },
-      .NumRenderTargets      { NumRenderTargets },
-      .DSVFormat             { DSVFormat },
-      .SampleDesc            { SampleDesc },
-    };
-
-    const int n { params.mRTVColorFmts.size() };
-    for( int i{}; i < n; ++i )
-      psoDesc.RTVFormats[ i ] = TexFmtToDxgiFormat( params.mRTVColorFmts[ i ] );
-
     PCom< ID3D12PipelineState > pso;
-    TAC_CALL( device->CreateGraphicsPipelineState( &psoDesc, pso.iid(), pso.ppv() ) );
+    if( program->mCSBlob )
+    {
+      const D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc
+      {
+        .pRootSignature        { ( ID3D12RootSignature* )rootSig },
+        .CS                    { program->mCSBytecode },
+      };
+      TAC_CALL( device->CreateComputePipelineState( &psoDesc, pso.iid(), pso.ppv() ) );
+    }
+    else
+    {
+      dynmc D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
+      {
+        .pRootSignature        { ( ID3D12RootSignature* )rootSig },
+        .VS                    { program->mVSBytecode },
+        .PS                    { program->mPSBytecode },
+        .BlendState            { BlendState },
+        .SampleMask            { UINT_MAX },
+        .RasterizerState       { RasterizerState },
+        .DepthStencilState     { depthStencilDesc },
+        .InputLayout           { inputLayout },
+        .PrimitiveTopologyType { topology },
+        .NumRenderTargets      { NumRenderTargets },
+        .DSVFormat             { DSVFormat },
+        .SampleDesc            { SampleDesc },
+      };
+
+      const int n{ params.mRTVColorFmts.size() };
+      for( int i{}; i < n; ++i )
+        psoDesc.RTVFormats[ i ] = TexFmtToDxgiFormat( params.mRTVColorFmts[ i ] );
+
+      TAC_CALL( device->CreateGraphicsPipelineState( &psoDesc, pso.iid(), pso.ppv() ) );
+    }
 
     ID3D12PipelineState* pPS{ pso.Get() };
     const DX12Name name
@@ -217,12 +231,12 @@ namespace Tac::Render
     return h;
   }
 
-  DX12Pipeline* DX12PipelineMgr::FindPipeline( PipelineHandle h )
+  DX12Pipeline*  DX12PipelineMgr::FindPipeline( PipelineHandle h )
   {
     return h.IsValid() ? &mPipelines[ h.GetIndex() ] : nullptr;
   }
 
-  void          DX12PipelineMgr::HotReload( Span< ProgramHandle > changedPrograms,
+  void           DX12PipelineMgr::HotReload( Span< ProgramHandle > changedPrograms,
                                             Errors& errors )
   {
     if( changedPrograms.empty() )

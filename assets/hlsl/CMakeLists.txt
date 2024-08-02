@@ -15,6 +15,7 @@ set(TAC_SHADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/DepthBufferVisualizer.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/MeshPresentation.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/LightsCommon.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/jppt.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/Shadow.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/Skybox.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/Terrain.hlsl

@@ -23,6 +23,9 @@ namespace Tac::Render
     PCom< IDxcBlob >      mPSBlob;
     D3D12_SHADER_BYTECODE mPSBytecode;
 
+    PCom< IDxcBlob >      mCSBlob;
+    D3D12_SHADER_BYTECODE mCSBytecode;
+
     D3D12ProgramBindings  mProgramBindings;
     ProgramParams         mProgramParams;
 

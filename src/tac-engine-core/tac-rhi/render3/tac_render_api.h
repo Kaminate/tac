@@ -311,10 +311,10 @@ namespace Tac::Render
 
     using CubemapFaces = Array< CubemapFace, 6 >;
 
-    Image        mImage;
-    int          mMipCount{};
-    Subresources mSubresources;
-    CubemapFaces mCubemapFaces;
+    Image        mImage                  {};
+    int          mMipCount               {};
+    Subresources mSubresources           {};
+    CubemapFaces mCubemapFaces           {};
 
     Binding      mBinding                { Binding::None };
     Usage        mUsage                  { Usage::Default };
@@ -351,10 +351,10 @@ namespace Tac::Render
 
   struct UpdateTextureParams
   {
-    Image                             mSrcImage;
-    CreateTextureParams::Subresources mSrcSubresource;
-    int                               mDstSubresourceIndex{};
-    v2i                               mDstPos{};
+    Image                             mSrcImage            {};
+    CreateTextureParams::Subresources mSrcSubresource      {};
+    int                               mDstSubresourceIndex {};
+    v2i                               mDstPos              {};
   };
 
   struct ProgramParams
@@ -365,16 +365,16 @@ namespace Tac::Render
 
   struct PipelineParams
   {
-    ProgramHandle            mProgram;
-    BlendState               mBlendState;
-    DepthState               mDepthState;
-    RasterizerState          mRasterizerState;
-    FixedVector< TexFmt, 8 > mRTVColorFmts;
+    ProgramHandle            mProgram           {};
+    BlendState               mBlendState        {};
+    DepthState               mDepthState        {};
+    RasterizerState          mRasterizerState   {};
+    FixedVector< TexFmt, 8 > mRTVColorFmts      {};
     TexFmt                   mDSVDepthFmt       { TexFmt::kUnknown };
-    VertexDeclarations       mVtxDecls;
+    VertexDeclarations       mVtxDecls          {};
     PrimitiveTopology        mPrimitiveTopology { PrimitiveTopology::TriangleList };
-    String                   mName;
-    StackFrame               mStackFrame;
+    String                   mName              {};
+    StackFrame               mStackFrame        {};
   };
 
   // i think like a view could be a higher order construct, like in Tac::Space

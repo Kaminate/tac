@@ -13,10 +13,10 @@ namespace Tac::Render
 {
   struct DXCCompileParams
   {
-    StringView       mFileName; // ie: "foo.hlsl"
-    StringView       mPreprocessedShader;
-    D3D_SHADER_MODEL mShaderModel = ( D3D_SHADER_MODEL )0;
-    FileSys::Path    mOutputDir;
+    StringView       mFileName            {}; // ie: "foo.hlsl"
+    StringView       mPreprocessedShader  {};
+    D3D_SHADER_MODEL mShaderModel         {};
+    FileSys::Path    mOutputDir           {};
   };
 
   struct DXCReflInfo
@@ -46,6 +46,7 @@ namespace Tac::Render
   {
     PCom< IDxcBlob > mVSBlob;
     PCom< IDxcBlob > mPSBlob;
+    PCom< IDxcBlob > mCSBlob;
     DXCReflInfo      mReflInfo;
   };
 

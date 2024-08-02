@@ -32,6 +32,7 @@ namespace Tac::Render
 
     case D3D_SIT_UAV_RWSTRUCTURED:
     case D3D_SIT_UAV_RWBYTEADDRESS:
+    case D3D_SIT_UAV_RWTYPED:
     case D3D_SIT_UAV_APPEND_STRUCTURED:
     case D3D_SIT_UAV_CONSUME_STRUCTURED:
     case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
@@ -80,6 +81,7 @@ namespace Tac::Render
     // Samplers and textures can only be set through descriptor tables ( not root descriptors )
     return mBindCount != 1
       || mType == D3D12ProgramBinding::Type::kSampler
+      || IsUAV() // typed uav cannot be root descriptor
       || IsTexture();
   }
 

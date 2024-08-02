@@ -11,34 +11,77 @@
 
 namespace Tac
 {
-  static WindowHandle   mWindowHandle;
-  static SettingsNode   sSettingsNode;
-  static v2i   sWindowPos;
-  static v2i   sWindowSize;
-
+  static v2i                      sWindowPos;
+  static v2i                      sWindowSize;
+  static const char*              sWindowName{ "JPPT" };
+  static Render::TextureHandle    sTexture;
+  static Render::ProgramHandle    sProgram;
+  static Render::PipelineHandle   sPipeline;
 
   JPPTApp::JPPTApp( Config cfg ) : App( cfg )
   {
   }
 
+
+  void    JPPTApp::CreateTexture( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    const Render::Image image
+    {
+      .mWidth   { sWindowSize.x },
+      .mHeight  { sWindowSize.y },
+      .mDepth   { 1 },
+      .mFormat  { Render::TexFmt::kRGBA8_unorm },
+    };
+
+    const Render::Binding binding
+    {
+      Render::Binding::ShaderResource | // ImGuiImage input 
+      Render::Binding::UnorderedAccess // compute shader output 
+    };
+
+    const Render::CreateTextureParams createTextureParams
+    {
+      .mImage                  { image },
+      .mMipCount               { 1 },
+      .mBinding                { binding },
+      .mUsage                  { Render::Usage::Default },
+      .mCpuAccess              { Render::CPUAccess::None },
+      .mOptionalName           { "JPPT" }
+    };
+    TAC_CALL( sTexture = renderDevice->CreateTexture( createTextureParams, errors ) );
+  }
+
   void    JPPTApp::Init( InitParams initParams, Errors& errors)
   {
     const Monitor monitor{ OS::OSGetPrimaryMonitor() };
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    const v2i size( ( int )( monitor.mSize.x * 0.8f ),
-                    ( int )( monitor.mSize.y * 0.8f ) );
-    const v2i pos{ ( monitor.mSize - size ) / 2 };
-    const WindowCreateParams windowCreateParams
+    sWindowSize = v2i( ( int )( monitor.mSize.x * 0.8f ),
+                       ( int )( monitor.mSize.y * 0.8f ) );
+    sWindowPos = ( monitor.mSize - sWindowSize ) / 2;
+
+    TAC_CALL( CreateTexture( errors ) );
+    TAC_CALL( CreatePipeline( errors ) );
+  }
+
+  void    JPPTApp::CreatePipeline(  Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams
     {
-      .mName { "JPPT" },
-      .mPos  { pos },
-      .mSize { size },
+      .mFileStem{ "jppt" },
     };
 
-    sWindowPos = pos;
-    sWindowSize = size;
-    //TAC_CALL( mWindowHandle = windowApi.CreateWindow( windowCreateParams, errors ) );
-    sSettingsNode = mSettingsNode;
+    TAC_CALL( sProgram = renderDevice->CreateProgram( programParams, errors ) );
+    const Render::PipelineParams pipelineParams
+    {
+      .mProgram{ sProgram },
+    };
+    TAC_CALL( sPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
+
+    Render::IShaderVar* outputTexture {
+      renderDevice->GetShaderVariable( sPipeline, "sOutputTexture" ) };
+    outputTexture->SetTexture( sTexture );
   }
 
   void    JPPTApp::Update( UpdateParams updateParams, Errors& )
@@ -46,15 +89,48 @@ namespace Tac
     ImGuiSetNextWindowDisableBG();
     ImGuiSetNextWindowPosition( sWindowPos );
     ImGuiSetNextWindowSize( sWindowSize );
-    if( ImGuiBegin("jppt") )
+    if( ImGuiBegin( sWindowName ) )
     {
-      ImGuiText("hi");
+      ImGuiText( "hi" );
+      ImGuiSetCursorPos( {} );
+      ImGuiImage( sTexture.GetIndex(), sWindowSize );
       ImGuiEnd();
     }
   }
 
-  void    JPPTApp::Render( RenderParams, Errors& )
+  void    JPPTApp::Render( RenderParams renderParams, Errors& errors )
   {
+    const WindowHandle windowHandle{ ImGuiGetWindowHandle(sWindowName)};
+    const SysWindowApi windowApi{ renderParams.mWindowApi};
+    const bool shown{ windowApi.IsShown( windowHandle ) };
+    if( !shown )
+      return;
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::SwapChainHandle swapChain{ windowApi.GetSwapChainHandle( windowHandle ) };
+    const Render::TextureHandle swapChainColor{
+      renderDevice->GetSwapChainCurrentColor( swapChain ) };
+    const Render::TextureHandle swapChainDepth{
+      renderDevice->GetSwapChainDepth( swapChain ) };
+    TAC_CALL( Render::IContext::Scope renderContextScope{
+      renderDevice->CreateRenderContext( errors ) } );
+
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+    const Render::Targets renderTargets
+    {
+      .mColors { swapChainColor },
+      .mDepth  { swapChainDepth },
+    };
+
+    const float t{ ( float )Sin( renderParams.mTimestamp.mSeconds ) * 0.5f + 0.5f };
+
+    //renderContext->SetRenderTargets( renderTargets );
+    renderContext->ClearColor( swapChainColor, v4( t, 0, 1, 1 ) );
+
+    renderContext->SetPipeline( sPipeline );
+    renderContext->... execute compute ;
+
+    TAC_CALL( renderContext->Execute( errors ) );
   }
 
   void    JPPTApp::Present( PresentParams, Errors& )
