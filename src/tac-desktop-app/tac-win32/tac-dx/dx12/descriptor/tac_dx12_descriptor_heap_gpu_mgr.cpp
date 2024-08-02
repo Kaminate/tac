@@ -36,86 +36,86 @@ namespace Tac::Render
 
   void DX12DescriptorRegion::operator = ( DX12DescriptorRegion&& other )
   {
-      SwapWith( move( other ) );
+    SwapWith( move( other ) );
   }
 
-    DX12DescriptorRegion::DX12DescriptorRegion( DX12DescriptorRegion&& other )
+  DX12DescriptorRegion::DX12DescriptorRegion( DX12DescriptorRegion&& other )
+  {
+    SwapWith( move( other ) );
+  }
+
+  void DX12DescriptorRegion::SwapWith( DX12DescriptorRegion&& other )
+  {
+    Swap( ( DX12Descriptor& )( *this ), ( DX12Descriptor& )other );
+    Swap( mRegionIndex, other.mRegionIndex );
+    Swap( mRegionManager, other.mRegionManager );
+  }
+
+  DX12DescriptorRegion::~DX12DescriptorRegion()
+  {
+    if( !mRegionManager )
+      return;
+
+    DX12DescriptorRegionManager::RegionDesc* regionDesc{
+      mRegionManager->GetRegionAtIndex( mRegionIndex ) };
+
+    if( !regionDesc )
+      return;
+
+    if( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated )
     {
-      SwapWith( move( other ) );
+      mRegionManager->Free( regionDesc );
     }
+  }
 
-    void DX12DescriptorRegion::SwapWith( DX12DescriptorRegion&& other )
-    {
-      Swap( ( DX12Descriptor& )( *this ), ( DX12Descriptor& )other );
-      Swap( mRegionIndex, other.mRegionIndex );
-      Swap( mRegionManager, other.mRegionManager );
-    }
+  DX12DescriptorRegionManager::RegionIndex DX12DescriptorRegion::GetRegionIndex() const
+  {
+    return mRegionIndex;
+  }
 
-    DX12DescriptorRegion::~DX12DescriptorRegion()
-    {
-      if( !mRegionManager )
-        return;
-
-      DX12DescriptorRegionManager::RegionDesc * regionDesc{
-        mRegionManager->GetRegionAtIndex( mRegionIndex ) };
-
-      if( !regionDesc )
-        return;
-
-      if( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated )
-      {
-        mRegionManager->Free( regionDesc );
-      }
-    }
-
-    DX12DescriptorRegionManager::RegionIndex DX12DescriptorRegion::GetRegionIndex() const
-    {
-      return mRegionIndex;
-    }
-
-    void DX12DescriptorRegion::SetFence( FenceSignal fenceSignal )
-    {
+  void DX12DescriptorRegion::SetFence( FenceSignal fenceSignal )
+  {
 
 #if TAC_GPU_REGION_DEBUG()
-      const String dbgTitle{ "SetFence( "
-                              "region " + ToString( ( int )mRegionIndex ) + ", "
-                              "fence " + ToString( fenceSignal.GetValue() ) + " )" };
+    const String dbgTitle{ "SetFence( "
+                            "region " + ToString( ( int )mRegionIndex ) + ", "
+                            "fence " + ToString( fenceSignal.GetValue() ) + " )" };
 
-      mRegionManager->DebugTitleBegin( dbgTitle );
+    mRegionManager->DebugTitleBegin( dbgTitle );
 #endif
 
-      DX12DescriptorRegionManager::RegionDesc* regionDesc{
-        mRegionManager->GetRegionAtIndex( mRegionIndex ) };
+    DX12DescriptorRegionManager::RegionDesc* regionDesc{
+      mRegionManager->GetRegionAtIndex( mRegionIndex ) };
 
-      TAC_ASSERT( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated );
-      regionDesc->mState = DX12DescriptorRegionManager::RegionDesc::kPendingFree;
-      regionDesc->mFence = fenceSignal;
+    TAC_ASSERT( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated );
+    regionDesc->mState = DX12DescriptorRegionManager::RegionDesc::kPendingFree;
+    regionDesc->mFence = fenceSignal;
 
-      //------------------
-      if( true )
+    //------------------
+    if( true )
+    {
+      auto iToAdd{ mRegionManager->GetIndex( regionDesc ) };
+      for( auto iExisting : mRegionManager->mPendingFreeNodes )
       {
-        auto iToAdd{ mRegionManager->GetIndex( regionDesc ) };
-        for( auto iExisting : mRegionManager->mPendingFreeNodes )
-        {
-          TAC_ASSERT( iToAdd != iExisting );
-        }
+        TAC_ASSERT( iToAdd != iExisting );
       }
-      //------------------
+    }
+    //------------------
 
-      mRegionManager->mPendingFreeNodes.push_back( mRegionManager->GetIndex( regionDesc ) );
-      mRegionIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
+    mRegionManager->mPendingFreeNodes.push_back( mRegionManager->GetIndex( regionDesc ) );
+    mRegionIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
 
 #if TAC_GPU_REGION_DEBUG()
-      if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
-      {
-        mRegionManager->DebugPrint();
-      }
+    if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
+    {
+      mRegionManager->DebugPrint();
+    }
 
-      mRegionManager->DebugTitleEnd( dbgTitle );
+    mRegionManager->DebugTitleEnd( dbgTitle );
 #endif
 
-      mRegionManager = nullptr;
-    }
+    mRegionManager = nullptr;
+  }
 
   // -----------------------------------------------------------------------------------------------
 
