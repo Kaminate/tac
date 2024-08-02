@@ -36,7 +36,9 @@ namespace Tac::Render
     case D3D_SIT_UAV_APPEND_STRUCTURED:
     case D3D_SIT_UAV_CONSUME_STRUCTURED:
     case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-      return D3D12ProgramBinding::Type::kBufferUAV;
+      return info.Dimension == D3D_SRV_DIMENSION_BUFFER
+        ? D3D12ProgramBinding::Type::kBufferUAV
+        : D3D12ProgramBinding::Type::kTextureUAV;
 
     default: TAC_ASSERT_INVALID_CASE( Type );
       return D3D12ProgramBinding::Type::kUnknown;

@@ -12,23 +12,18 @@
 
 namespace Tac::Render
 {
-  //static void* AlignPtr( void* ptr, UPtr align )
-  //{
-  //  UPtr u{ ( UPtr )ptr };
-  //  u += align - 1;
-  //  u /= align;
-  //  u *= align;
-  //  return ( void* )u;
-  //}
-
   static D3D12_RESOURCE_FLAGS GetResourceFlags( Binding binding )
   {
     D3D12_RESOURCE_FLAGS Flags{};
+
     if( Binding{} != ( binding & Binding::RenderTarget ) )
       Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
     if( Binding{} != ( binding & Binding::DepthStencil ) )
       Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+    if( Binding{} != ( binding & Binding::UnorderedAccess ) )
+      Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
     return Flags;
   }
@@ -64,10 +59,20 @@ namespace Tac::Render
 
   static D3D12_RESOURCE_STATES GetBindingResourceState( Binding binding )
   {
-    if( Binding{} != ( binding & Binding::ShaderResource ) )
-      return D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
-
-    return D3D12_RESOURCE_STATE_COMMON;
+    switch( binding )
+    {
+    case Binding::None:            return D3D12_RESOURCE_STATE_COMMON;
+    case Binding::ShaderResource:  return D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
+    case Binding::UnorderedAccess: return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+    case Binding::DepthStencil:    return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+    default:
+    {
+      TAC_ASSERT_CRITICAL( "It is ambiguous what state you want to transition to."
+                           "(Your binding has multiple values, but we can only "
+                           "transition to 1 state)" );
+      return D3D12_RESOURCE_STATE_COMMON;
+    }
+    }
   };
 
 
@@ -162,10 +167,9 @@ namespace Tac::Render
     TAC_ASSERT( mContextManager );
   }
 
-  TextureHandle DX12TextureMgr::CreateTexture(  CreateTextureParams params,
-                                      Errors& errors )
+  TextureHandle DX12TextureMgr::CreateTexture( CreateTextureParams params,
+                                               Errors& errors )
   {
-
     const bool hasImageBytes{ !params.mSubresources.empty() };
     const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
 
@@ -231,9 +235,13 @@ namespace Tac::Render
 
     ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
 
-    DX12TransitionHelper transitionHelper;
-    TransitionResource( pResource, &resourceStates, params.mBinding, &transitionHelper );
-    transitionHelper.ResourceBarrier( commandList );
+    // transition if power of two (single binding)
+    if( u32 b{ ( u32 )params.mBinding }; ( b & ( b - 1 ) ) == 0 )
+    {
+      DX12TransitionHelper transitionHelper;
+      TransitionResource( pResource, &resourceStates, params.mBinding, &transitionHelper );
+      transitionHelper.ResourceBarrier( commandList );
+    }
 
     // do we context->SetSynchronous() ?
     TAC_CALL_RET( {}, context->Execute( errors ) );
@@ -262,6 +270,7 @@ namespace Tac::Render
       .mRTV               { bindings.mRTV },
       .mDSV               { bindings.mDSV },
       .mSRV               { bindings.mSRV },
+      .mUAV               { bindings.mUAV },
     };
     return h;
   }
@@ -407,11 +416,24 @@ namespace Tac::Render
       mDevice->CreateShaderResourceView( pResource, pSRVDesc, descDescriptor );
     }
 
+    Optional< DX12Descriptor > UAV;
+    if( Binding{} != ( binding & Binding::UnorderedAccess ) )
+    {
+      UAV = mCpuDescriptorHeapCBV_SRV_UAV->Allocate();
+      const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { UAV->GetCPUHandle() };
+      const D3D12_UNORDERED_ACCESS_VIEW_DESC* pUAVDesc{};
+      mDevice->CreateUnorderedAccessView( pResource,
+                                          nullptr, // ID3D12Resource* pCounterResource
+                                          pUAVDesc,
+                                          descDescriptor );
+    }
+
     return Bindings
     {
       .mRTV{ RTV },
       .mDSV{ DSV },
       .mSRV{ SRV },
+      .mUAV{ UAV },
     };
   }
 

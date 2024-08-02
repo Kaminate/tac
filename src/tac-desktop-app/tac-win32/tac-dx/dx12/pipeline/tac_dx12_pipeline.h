@@ -67,6 +67,7 @@ namespace Tac::Render
     PCom< ID3D12RootSignature > mRootSignature;
     Vector< Variable >          mShaderVariables;
     PipelineParams              mPipelineParams;
+    bool                        mIsCompute{};
   };
 } // namespace Tac::Render
 

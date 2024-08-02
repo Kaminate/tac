@@ -166,8 +166,9 @@ namespace Tac::Render
 
     const D3D12_PRIMITIVE_TOPOLOGY_TYPE topology{ GetDX12PrimTopo( params.mPrimitiveTopology ) };
 
+    const bool isCompute{ program->mCSBlob };
     PCom< ID3D12PipelineState > pso;
-    if( program->mCSBlob )
+    if( isCompute )
     {
       const D3D12_COMPUTE_PIPELINE_STATE_DESC psoDesc
       {
@@ -221,6 +222,7 @@ namespace Tac::Render
       .mRootSignature   { rootSig },
       .mShaderVariables { shaderVariables },
       .mPipelineParams  { params },
+      .mIsCompute       { isCompute },
     };
   }
 

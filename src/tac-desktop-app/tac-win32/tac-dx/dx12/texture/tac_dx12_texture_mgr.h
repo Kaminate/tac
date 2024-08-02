@@ -50,6 +50,7 @@ namespace Tac::Render
       Optional< DX12Descriptor > mRTV;
       Optional< DX12Descriptor > mDSV;
       Optional< DX12Descriptor > mSRV;
+      Optional< DX12Descriptor > mUAV;
     };
 
     Bindings CreateBindings( ID3D12Resource*, Binding );

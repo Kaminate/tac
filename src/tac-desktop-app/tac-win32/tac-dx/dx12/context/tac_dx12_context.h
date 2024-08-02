@@ -77,6 +77,7 @@ namespace Tac::Render
     void SetVertexBuffer( BufferHandle ) override;
     void SetIndexBuffer( BufferHandle ) override;
     void Draw( DrawArgs ) override;
+    void Dispatch( v3i ) override;
     void DebugEventBegin( StringView ) override;
     void DebugEventEnd() override;
     void DebugMarker( StringView ) override;
@@ -101,6 +102,7 @@ namespace Tac::Render
       BufferHandle          mVertexBuffer         {};
       BufferHandle          mIndexBuffer          {};
       PipelineHandle        mPipeline             {};
+      bool                  mIsCompute            {};
       bool                  mSynchronous          {};
       bool                  mExecuted             {};
       int                   mEventCount           {};

@@ -140,9 +140,11 @@ namespace Tac::Render
         }
 
         const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
-        commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
+        if( mState.mIsCompute )
+          commandList->SetComputeRootDescriptorTable( rootParameterIndex, gpuHandle );
+        else
+          commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
       }
-
       else
       {
         D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress{};
@@ -163,19 +165,29 @@ namespace Tac::Render
         if( binding.IsConstantBuffer() )
         {
           TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
-          commandList->SetGraphicsRootConstantBufferView( rootParameterIndex, gpuVirtualAddress );
+          if( mState.mIsCompute )
+            commandList->SetComputeRootConstantBufferView( rootParameterIndex, gpuVirtualAddress );
+          else
+            commandList->SetGraphicsRootConstantBufferView( rootParameterIndex, gpuVirtualAddress );
         }
         else if( binding.IsSRV() )
         {
           TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+
           // Textures are not supported
-          commandList->SetGraphicsRootShaderResourceView( rootParameterIndex, gpuVirtualAddress );
+
+          if( mState.mIsCompute )
+            commandList->SetComputeRootShaderResourceView( rootParameterIndex, gpuVirtualAddress );
+          else
+            commandList->SetGraphicsRootShaderResourceView( rootParameterIndex, gpuVirtualAddress );
         }
         else if( binding.IsUAV() )
         {
-
           TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
-          commandList->SetGraphicsRootUnorderedAccessView( rootParameterIndex, gpuVirtualAddress );
+          if( mState.mIsCompute )
+            commandList->SetComputeRootUnorderedAccessView( rootParameterIndex, gpuVirtualAddress );
+          else
+            commandList->SetGraphicsRootUnorderedAccessView( rootParameterIndex, gpuVirtualAddress );
         }
         else
         {
@@ -396,8 +408,12 @@ namespace Tac::Render
     ID3D12RootSignature* rootSignature { pipeline->mRootSignature.Get() };
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->SetPipelineState( pipelineState );
-    commandList->SetGraphicsRootSignature( rootSignature );
+    if( pipeline->mIsCompute )
+      commandList->SetComputeRootSignature( rootSignature );
+    else
+      commandList->SetGraphicsRootSignature( rootSignature );
     mState.mPipeline = h;
+    mState.mIsCompute = pipeline->mIsCompute;
   }
 
   void DX12Context::ClearColor( TextureHandle h, v4 values )
@@ -501,6 +517,15 @@ namespace Tac::Render
     transitionHelper.Append( transitionParams );
     transitionHelper.ResourceBarrier( commandList );
     commandList->ClearDepthStencilView( DSV, ClearFlags,Depth, 0, 0, nullptr );
+  }
+
+  void DX12Context::Dispatch( v3i threadGroupCounts )
+  {
+    const UINT ThreadGroupCountX{ ( UINT )threadGroupCounts.x };
+    const UINT ThreadGroupCountY{ ( UINT )threadGroupCounts.y };
+    const UINT ThreadGroupCountZ{ ( UINT )threadGroupCounts.z };
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    commandList->Dispatch( ThreadGroupCountX, ThreadGroupCountY, ThreadGroupCountZ );
   }
 
   void DX12Context::Draw( DrawArgs args )

@@ -220,12 +220,12 @@ namespace Tac
     // todo: hard code this to always expect rgba16f with d24s8
     struct Element
     {
-      Render::PipelineHandle mPipeline;
-      Render::TexFmt         mTexFmt;
-      Render::IShaderVar*    mShaderImage{};
-      Render::IShaderVar*    mShaderSampler{};
-      Render::IShaderVar*    mShaderPerObject{};
-      Render::IShaderVar*    mShaderPerFrame{};
+      Render::PipelineHandle mPipeline        {};
+      Render::TexFmt         mTexFmt          {};
+      Render::IShaderVar*    mShaderImage     {};
+      Render::IShaderVar*    mShaderSampler   {};
+      Render::IShaderVar*    mShaderPerObject {};
+      Render::IShaderVar*    mShaderPerFrame  {};
     };
 
     Element&                   GetElement( Render::TexFmt, Errors& );

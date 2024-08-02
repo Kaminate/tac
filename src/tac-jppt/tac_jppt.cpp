@@ -33,6 +33,7 @@ namespace Tac
       .mHeight  { sWindowSize.y },
       .mDepth   { 1 },
       .mFormat  { Render::TexFmt::kRGBA8_unorm },
+      //.mFormat  { Render::TexFmt::kRGBA8_unorm_srgb }, // cannot be used with typed uav
     };
 
     const Render::Binding binding
@@ -110,25 +111,31 @@ namespace Tac
     const Render::SwapChainHandle swapChain{ windowApi.GetSwapChainHandle( windowHandle ) };
     const Render::TextureHandle swapChainColor{
       renderDevice->GetSwapChainCurrentColor( swapChain ) };
-    const Render::TextureHandle swapChainDepth{
-      renderDevice->GetSwapChainDepth( swapChain ) };
+    //const Render::TextureHandle swapChainDepth{
+    //  renderDevice->GetSwapChainDepth( swapChain ) };
     TAC_CALL( Render::IContext::Scope renderContextScope{
       renderDevice->CreateRenderContext( errors ) } );
 
     Render::IContext* renderContext{ renderContextScope.GetContext() };
-    const Render::Targets renderTargets
-    {
-      .mColors { swapChainColor },
-      .mDepth  { swapChainDepth },
-    };
+    //const Render::Targets renderTargets
+    //{
+    //  .mColors { swapChainColor },
+    //  .mDepth  { swapChainDepth },
+    //};
 
-    const float t{ ( float )Sin( renderParams.mTimestamp.mSeconds ) * 0.5f + 0.5f };
+    const float t{ ( float )Sin( renderParams.mTimestamp.mSeconds * 2.0 ) * 0.5f + 0.5f };
+
+    const v3i threadGroupCounts( RoundUpToNearestMultiple( sWindowSize.x, 8 ),
+                                 RoundUpToNearestMultiple( sWindowSize.y, 8 ),
+                                 1 );
 
     //renderContext->SetRenderTargets( renderTargets );
     renderContext->ClearColor( swapChainColor, v4( t, 0, 1, 1 ) );
 
     renderContext->SetPipeline( sPipeline );
-    renderContext->... execute compute ;
+    renderContext->CommitShaderVariables();
+    renderContext->Dispatch( threadGroupCounts );
+    renderContext->SetSynchronous(); // imgui happens after
 
     TAC_CALL( renderContext->Execute( errors ) );
   }

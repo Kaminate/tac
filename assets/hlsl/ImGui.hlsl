@@ -15,6 +15,14 @@ struct VS_OUTPUT
   float2 mDXTexCoord        : TAC_AUTO_SEMANTIC;
 };
 
+#if 1
+#define kImage 0
+#define kText 1
+#else // idk i think the shader reflection is putting this in a cbuffer
+const uint kText = 1;
+const uint kImage = 0;
+#endif
+
 struct PerObjectType
 {
   float4 mColor;
@@ -56,7 +64,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
 
   const float4 linearPremultipliedAlpha = perObject.mColor;
 
-  if( perObject.mType == 0 )
+  if( perObject.mType == kImage )
   {
     const float4 sampled = image.Sample( linearSampler, input.mDXTexCoord );
     // see: premultiplied alpha https://en.wikipedia.org/wiki/Alpha_compositing
@@ -69,7 +77,7 @@ PS_OUTPUT PS( VS_OUTPUT input )
 
     output.mColor = linearPremultipliedAlpha * linearSampled;
   }
-  else if( perObject.mType == 1 )
+  else if( perObject.mType == kText )
   {
     const float sampled = image.Sample( linearSampler, input.mDXTexCoord ).r;
 

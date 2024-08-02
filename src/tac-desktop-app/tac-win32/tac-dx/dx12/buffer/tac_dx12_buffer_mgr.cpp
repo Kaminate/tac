@@ -303,12 +303,19 @@ namespace Tac::Render
 
       if( Binding{} != ( binding & Binding::RenderTarget ) )
       {
+        // (new) How would this be hit? This is the buffer mgr, not the texture mgr
+        TAC_ASSERT_INVALID_CODE_PATH;
+
         usageFromBinding |= D3D12_RESOURCE_STATE_RENDER_TARGET;
         // D3D12_RESOURCE_STATE_PRESENT ?
       }
 
       if( Binding{} != ( binding & Binding::DepthStencil ) )
       {
+        // (new) How would this be hit? This is the buffer mgr, not the texture mgr
+        TAC_ASSERT_INVALID_CODE_PATH;
+
+
         usageFromBinding |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
         // D3D12_RESOURCE_STATE_DEPTH_READ ?
       }

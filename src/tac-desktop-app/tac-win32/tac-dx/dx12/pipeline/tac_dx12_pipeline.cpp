@@ -121,17 +121,24 @@ namespace Tac::Render
       DX12Texture* texture{ textureMgr->FindTexture( textureHandle ) };
       TAC_ASSERT( texture );
 
-      textureMgr->TransitionTexture( textureHandle, transitionHelper );
-
-      TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+      //textureMgr->TransitionTexture( textureHandle, transitionHelper );
+      //TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
 
       if( binding.mType == D3D12ProgramBinding::kTextureSRV )
       {
+        textureMgr->TransitionResource( texture->mResource.Get(),
+                                        &texture->mState,
+                                        Render::Binding::ShaderResource,
+                                        transitionHelper );
         return texture->mSRV.GetValue();
       }
 
       if( binding.mType == D3D12ProgramBinding::kTextureUAV )
       {
+        textureMgr->TransitionResource( texture->mResource.Get(),
+                                        &texture->mState,
+                                        Render::Binding::UnorderedAccess,
+                                        transitionHelper );
         TAC_ASSERT( texture->mUAV.HasValue() );
         TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
         return texture->mUAV.GetValue();
@@ -147,17 +154,29 @@ namespace Tac::Render
 
       if( binding.mType == D3D12ProgramBinding::kBufferSRV )
       {
+        textureMgr->TransitionResource( buffer->mResource.Get(),
+                                        &buffer->mState,
+                                        Render::Binding::ShaderResource,
+                                        transitionHelper );
         return buffer->mSRV.GetValue();
       }
 
       if( binding.mType == D3D12ProgramBinding::kBufferUAV )
       {
+        textureMgr->TransitionResource( buffer->mResource.Get(),
+                                        &buffer->mState,
+                                        Render::Binding::UnorderedAccess,
+                                        transitionHelper );
         TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
         return buffer->mUAV.GetValue();
       }
 
       if( binding.mType == D3D12ProgramBinding::kConstantBuffer )
       {
+        textureMgr->TransitionResource( buffer->mResource.Get(),
+                                        &buffer->mState,
+                                        Render::Binding::ConstantBuffer,
+                                        transitionHelper );
         TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
         TAC_ASSERT_UNIMPLEMENTED;
       }

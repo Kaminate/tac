@@ -433,6 +433,7 @@ namespace Tac::Render
       IContext* operator ->();
       IContext* GetContext() { return mContext; }
       operator IContext* ()  { return mContext; }
+
     private:
       IContext* mContext{};
     };
@@ -468,6 +469,7 @@ namespace Tac::Render
     virtual void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) {}
 
     virtual void Draw( DrawArgs ) {}
+    virtual void Dispatch( v3i ) {}
     virtual void Execute( Errors& ) {}
     virtual void CommitShaderVariables() {}
 
