@@ -3,6 +3,10 @@ if( NOT WIN32 )
 endif()
 
 add_executable( TacJPPT WIN32 
+  "tac_jppt_BVH.cpp"
+  "tac_jppt_BVH.h"
+  "tac_jppt_Scene.cpp"
+  "tac_jppt_Scene.h"
   "tac_jppt.cpp"
   "tac_jppt.h"
 )

@@ -17,6 +17,7 @@ namespace Tac
 
     m4() = default;
     m4( const m3& );
+    m4( float );
     m4( float, float, float, float,
         float, float, float, float,
         float, float, float, float,

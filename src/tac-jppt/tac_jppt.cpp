@@ -9,6 +9,8 @@
 //#include "tac-ecs/ghost/tac_ghost.h"
 //#include "tac-ecs/tac_space.h"
 
+#include "tac_jppt_BVH.h"
+
 namespace Tac
 {
   static v2i                      sWindowPos;
@@ -17,6 +19,9 @@ namespace Tac
   static Render::TextureHandle    sTexture;
   static Render::ProgramHandle    sProgram;
   static Render::PipelineHandle   sPipeline;
+
+  static gpupt::Scene*            sScene;
+  static gpupt::SceneBVH*         sSceneBVH;
 
   JPPTApp::JPPTApp( Config cfg ) : App( cfg )
   {
@@ -27,13 +32,15 @@ namespace Tac
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
+    // kRGBA8_unorm_srgb cannot be used with typed uav
+    const Render::TexFmt fmt{ Render::TexFmt::kRGBA8_unorm };
+
     const Render::Image image
     {
       .mWidth   { sWindowSize.x },
       .mHeight  { sWindowSize.y },
       .mDepth   { 1 },
-      .mFormat  { Render::TexFmt::kRGBA8_unorm },
-      //.mFormat  { Render::TexFmt::kRGBA8_unorm_srgb }, // cannot be used with typed uav
+      .mFormat  { fmt },
     };
 
     const Render::Binding binding
@@ -63,6 +70,9 @@ namespace Tac
 
     TAC_CALL( CreateTexture( errors ) );
     TAC_CALL( CreatePipeline( errors ) );
+
+    sScene = gpupt::Scene::CreateCornellBox();
+    sSceneBVH = gpupt::SceneBVH::CreateBVH( sScene );
   }
 
   void    JPPTApp::CreatePipeline(  Errors& errors )

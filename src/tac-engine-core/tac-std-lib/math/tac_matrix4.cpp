@@ -17,6 +17,12 @@ namespace Tac
                 0, 0, 0, 1 );
   }
 
+  m4::m4( float f )
+    : m00( f ), m01( 0 ), m02( 0 ), m03( 0 )
+    , m10( 0 ), m11( f ), m12( 0 ), m13( 0 )
+    , m20( 0 ), m21( 0 ), m22( f ), m23( 0 )
+    , m30( 0 ), m31( 0 ), m32( 0 ), m33( f ) {}
+
   m4::m4( float mm00, float mm01, float mm02, float mm03,
           float mm10, float mm11, float mm12, float mm13,
           float mm20, float mm21, float mm22, float mm23,
