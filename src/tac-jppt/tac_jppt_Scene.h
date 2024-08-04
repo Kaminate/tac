@@ -1,12 +1,14 @@
 #pragma once
 
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector3i.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac::gpupt
@@ -35,7 +37,7 @@ namespace Tac::gpupt
     m4  GetModelMatrix() const;
 
     v3  mPosition;
-    v3  mRotation; // is this euler radians?
+    v3  mRotation; // Euler angles, in radians
     v3  mScale{ 1 };
     int mShape{ InvalidID };
   };
@@ -45,11 +47,12 @@ namespace Tac::gpupt
   struct Shape
   {
     void CalculateTangents();
+    void CalculateNormals();
 
     Vector< v3 >  mPositions;
     Vector< v3 >  mNormals;
     Vector< v2 >  mTexCoords;
-    Vector< v4 >  mColours;
+    Vector< v4 >  mColors;
     Vector< v4 >  mTangents;
     Vector< v3i > mTriangles;
   };
@@ -57,7 +60,7 @@ namespace Tac::gpupt
   // ???
   struct Scene
   {
-    static Scene* CreateCornellBox();
+    static Scene* CreateCornellBox(Errors&);
 
     Vector< Camera >     mCameras;
     Vector< Instance >   mInstances;

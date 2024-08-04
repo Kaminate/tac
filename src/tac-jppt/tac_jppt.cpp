@@ -71,7 +71,7 @@ namespace Tac
     TAC_CALL( CreateTexture( errors ) );
     TAC_CALL( CreatePipeline( errors ) );
 
-    sScene = gpupt::Scene::CreateCornellBox();
+    TAC_CALL(sScene = gpupt::Scene::CreateCornellBox(errors));
     sSceneBVH = gpupt::SceneBVH::CreateBVH( sScene );
   }
 

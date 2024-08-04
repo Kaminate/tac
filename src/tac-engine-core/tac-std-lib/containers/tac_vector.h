@@ -122,6 +122,16 @@ namespace Tac
       new( &mTs[ mTCount++ ] )T( t );
     }
 
+    template< class ... Args >
+    T&       emplace_back( Args&& ... args )
+    {
+      if( mTCount == mTCapacity )
+        reserve( int( mTCount * 1.5f ) + 1 );
+
+      new( &mTs[ mTCount++ ] )T( forward< Args>( args )... );
+      return back();
+    }
+
     void     pop_back()                 { TAC_ASSERT( mTCount ); mTCount--; }
     bool     empty() const              { return !mTCount; }
     int      size() const               { return mTCount; }

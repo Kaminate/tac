@@ -95,6 +95,9 @@ namespace Tac
     // etc idk
     return static_cast< remove_reference_t<T>&& >( t );
   }
+
+  template <class T> constexpr T&& forward( remove_reference_t< T >& t ) noexcept { return static_cast< T&& >( t ); }
+  template <class T> constexpr T&& forward( remove_reference_t< T >&& t ) noexcept { return static_cast< T&& >( t ); }
 }
 
 // -------------------------------------------------------------------------------------------------
