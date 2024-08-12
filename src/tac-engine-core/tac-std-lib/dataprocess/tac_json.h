@@ -55,12 +55,13 @@ namespace Tac
 		void                      SetNumber( JsonNumber );
 		void                      SetBool( bool );
 		void                      SetString( StringView );
-		void                      operator = ( const Json& );
-		void                      operator = ( const Json* );
-		void                      operator = ( StringView );
-		void                      operator = ( JsonNumber );
-		void                      operator = ( bool );
-		void                      operator = ( Json&& ) noexcept;
+		Json&                     operator = ( const Json& );
+		Json&                     operator = ( const Json* );
+		Json&                     operator = ( StringView );
+		Json&                     operator = ( JsonNumber );
+		Json&                     operator = ( int );
+		Json&                     operator = ( bool );
+		Json&                     operator = ( Json&& ) noexcept;
 
 		// Getters
 		Json*                     AddChild();
@@ -75,6 +76,7 @@ namespace Tac
 		String                    Stringify( const Indentation* = nullptr, int tabCount = 0 ) const;
 		Json&                     operator[]( StringView );
 		Json&                     operator[]( const char* );
+		Json&                     operator[]( int );
 		operator String();
 		operator JsonNumber();
 		operator bool();

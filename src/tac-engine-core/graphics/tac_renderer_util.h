@@ -10,7 +10,6 @@
 #include "tac-std-lib/tac_ints.h"
 
 
-#define TAC_PAD_BYTES( byteCount ) char TAC_CONCAT( mPadding, __COUNTER__ )[ byteCount ]
 
 namespace Tac::Render
 {

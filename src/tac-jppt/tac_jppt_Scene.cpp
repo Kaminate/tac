@@ -4,6 +4,11 @@
 namespace Tac::gpupt
 {
 
+  m4  Instance::GetModelMatrixInv() const
+  {
+    return m4::TransformInverse( mScale, mRotation, mPosition );
+  }
+
   m4  Instance::GetModelMatrix() const
   {
     return m4::Transform( mScale, mRotation, mPosition );
@@ -151,7 +156,7 @@ namespace Tac::gpupt
     floor.mPositions = { {-1, 0, 1}, {1, 0, 1}, {1, 0, -1}, {-1, 0, -1} };
     floor.mTriangles = { {0, 1, 2}, {2, 3, 0} };
     floor.mTexCoords = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
-    floor.mColors = { {0.5,0.5,0.5,1},{0.5,0.5,0.5,1},{0.5,0.5,0.5,1},{0.5,0.5,0.5,1} };
+    floor.mColors.resize(floor.mPositions.size(),  {0.5,0.5,0.5,1} );
     Instance& floorInstance { scene->mInstances.emplace_back() };
     floorInstance.mShape = ( int )scene->mShapes.size() - 1;
     scene->mShapeNames.push_back( "Floor" );
@@ -161,15 +166,9 @@ namespace Tac::gpupt
     mCeilingShape.mPositions = { {-1, 2, 1}, {-1, 2, -1}, {1, 2, -1}, {1, 2, 1} };
     mCeilingShape.mTriangles = { {0, 1, 2}, {2, 3, 0} };
     mCeilingShape.mTexCoords = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
-    mCeilingShape.mColors =
-    {
-      {0.6f,0.6f,0.6f,1},
-      {0.6f,0.6f,0.6f,1},
-      {0.6f,0.6f,0.6f,1},
-      {0.6f,0.6f,0.6f,1}
-    };
-    Instance& mCeilingInstance = scene->mInstances.emplace_back();
-    mCeilingInstance.mShape = ( int )scene->mShapes.size() - 1;
+    mCeilingShape.mColors.resize( mCeilingShape.mPositions.size(), {0.6f,0.6f,0.6f,1} );
+    Instance& ceilingInstance = scene->mInstances.emplace_back();
+    ceilingInstance.mShape = ( int )scene->mShapes.size() - 1;
     scene->mShapeNames.push_back( "mCeiling" );
     scene->mInstanceNames.push_back( "mCeiling" );
 
@@ -177,13 +176,7 @@ namespace Tac::gpupt
     backWallShape.mPositions = { {-1, 0, -1}, {1, 0, -1}, {1, 2, -1}, {-1, 2, -1} };
     backWallShape.mTriangles = { {0, 1, 2}, {2, 3, 0} };
     backWallShape.mTexCoords = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
-    backWallShape.mColors =
-    {
-      {0.4f,0.4f,0.4f,1},
-      {0.4f,0.4f,0.4f,1},
-      {0.4f,0.4f,0.4f,1},
-      {0.4f,0.4f,0.4f,1}
-    };
+    backWallShape.mColors.resize( backWallShape.mPositions.size(), {0.4f,0.4f,0.4f,1} );
     Instance& backWallInstance = scene->mInstances.emplace_back();
     backWallInstance.mShape = ( int )scene->mShapes.size() - 1;
     scene->mShapeNames.push_back( "BackWall" );
@@ -193,17 +186,17 @@ namespace Tac::gpupt
     rightWallShape.mPositions = { {1, 0, -1}, {1, 0, 1}, {1, 2, 1}, {1, 2, -1} };
     rightWallShape.mTriangles = { {0, 1, 2}, {2, 3, 0} };
     rightWallShape.mTexCoords = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
-    rightWallShape.mColors = { {1,0,0,1},{1,0,0,1},{1,0,0,1},{1,0,0,1} };
+    rightWallShape.mColors.resize(rightWallShape.mPositions.size(), {1,0,0,1});
     Instance& rightWallInstance = scene->mInstances.emplace_back();
     rightWallInstance.mShape = ( int )scene->mShapes.size() - 1;
     scene->mShapeNames.push_back( "RightWall" );
     scene->mInstanceNames.push_back( "RightWall" );
 
-    Shape& LeftWallShape { scene->mShapes.emplace_back() };
-    LeftWallShape.mPositions = { {-1, 0, 1}, {-1, 0, -1}, {-1, 2, -1}, {-1, 2, 1} };
-    LeftWallShape.mTriangles = { {0, 1, 2}, {2, 3, 0} };
-    LeftWallShape.mTexCoords = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
-    LeftWallShape.mColors = { {0,1,0,1},{0,1,0,1},{0,1,0,1},{0,1,0,1} };
+    Shape& leftWallShape { scene->mShapes.emplace_back() };
+    leftWallShape.mPositions = { {-1, 0, 1}, {-1, 0, -1}, {-1, 2, -1}, {-1, 2, 1} };
+    leftWallShape.mTriangles = { {0, 1, 2}, {2, 3, 0} };
+    leftWallShape.mTexCoords = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
+    leftWallShape.mColors.resize(leftWallShape.mPositions.size(), {0,1,0,1});
     Instance& leftWallInstance { scene->mInstances.emplace_back() };
     leftWallInstance.mShape = ( int )scene->mShapes.size() - 1;
     scene->mShapeNames.push_back( "LeftWall" );

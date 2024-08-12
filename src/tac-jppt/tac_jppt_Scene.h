@@ -17,15 +17,15 @@ namespace Tac::gpupt
 
   struct Camera
   {
-    m4    mFrame{ 1 };
-    float mLens{ 0.05f }; // ?
-    float mFilm{ 0.036f }; // ?
-    float mAspect{ 1.5f };
-    float mFocus{ 1000 }; // ?
-    v3    mPad0{};
-    float mAperture{};
-    i32   mOrthographics{};
-    v3    mPad1{};
+    m4    mFrame        { 1 };
+    float mLens         { 0.05f }; // ?
+    float mFilm         { 0.036f }; // ?
+    float mAspect       { 1.5f };
+    float mFocus        { 1000 }; // ?
+    v3    mPad0         {};
+    float mAperture     {};
+    i32   mOrthographic {};
+    v3    mPad1         {};
   };
   // ^ wat is with this weird padding
 
@@ -35,11 +35,12 @@ namespace Tac::gpupt
   struct Instance
   {
     m4  GetModelMatrix() const;
+    m4  GetModelMatrixInv() const;
 
-    v3  mPosition;
-    v3  mRotation; // Euler angles, in radians
-    v3  mScale{ 1 };
-    int mShape{ InvalidID };
+    v3  mPosition {};
+    v3  mRotation {}; // Euler angles, in radians
+    v3  mScale    { 1 };
+    int mShape    { InvalidID };
   };
 
 
@@ -63,11 +64,14 @@ namespace Tac::gpupt
     static Scene* CreateCornellBox(Errors&);
 
     Vector< Camera >     mCameras;
-    Vector< Instance >   mInstances;
-    Vector< Shape >      mShapes;
     Vector< String >     mCameraNames;
+
+    Vector< Instance >   mInstances;
     Vector< String >     mInstanceNames;
+
+    Vector< Shape >      mShapes;
     Vector< String >     mShapeNames;
+
     Render::BufferHandle mCamerasBuffer;
   };
 

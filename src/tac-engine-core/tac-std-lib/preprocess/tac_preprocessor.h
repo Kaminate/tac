@@ -37,6 +37,8 @@ namespace Tac
 #define TAC_STRINGIFY( stuff )                             TAC_STRINGIFY_AUX( stuff )
 #define TAC_OFFSET_OF( type, member )                      ((int)(size_t)&reinterpret_cast<char const volatile&>((((type*)0)->member)))
 
+#define TAC_PAD_BYTES( n )                                 char TAC_CONCAT( mPadding, __COUNTER__ )[ n ]
+
 // replace with c++17 [[maybe_unused]]?
 #define TAC_UNUSED_PARAMETER( param )                      ( void ) param
 

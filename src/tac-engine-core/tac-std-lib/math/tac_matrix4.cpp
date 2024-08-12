@@ -135,6 +135,12 @@ namespace Tac
 
   m4           m4::RotRadZ( float v ) { return m3::RotRadZ( v ); }
 
+  m4           m4::Transpose( m4 m )
+  {
+    m.Transpose();
+    return m;
+  }
+
   m4           m4::Translate( const v3& translate )
   {
     return { 1, 0, 0, translate[ 0 ],

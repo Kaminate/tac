@@ -13,11 +13,10 @@ namespace Tac::gpupt
 
   const float inf { 1e30f };
 
-  // I want to name this like, padded aabb
-  struct AABB
+  struct AABB32
   {
     float Area() const;
-    void  Grow( const AABB& );
+    void  Grow( const AABB32& );
     void  Grow( v3 );
 
     v3    mMin{ inf };
@@ -26,29 +25,35 @@ namespace Tac::gpupt
     float mPad1;
   };
 
-  static_assert_gpu_padded( AABB );
+  static_assert_gpu_padded( AABB32 );
 
-  struct Ray
+  //struct Ray
+  //{
+  //  v3 mOrigin;
+  //  v3 mDirection;
+  //  v3 mInvDir;
+  //};
+
+  //struct RayPayload
+  //{
+  //  float mDirection;
+  //  float mU;
+  //  float mV;
+  //  v3    mEmission; // ???
+  //  u32   mInstanceIndex; // ???
+  //  u32   mMaterialIndex; // ???
+  //  u32   mPrimitiveIndex; // ???
+  //  u32   mRandomState; // ???
+  //  u8    mDepth; // ???
+  //};
+
+  struct Bin
   {
-    v3 mOrigin;
-    v3 mDirection;
-    v3 mInvDir;
+      AABB32 mBounds;
+      u32    mTriangleCount = 0;
   };
 
-  struct RayPayload
-  {
-    float mDirectoin;
-    float mU;
-    float mV;
-    v3    mEmission; // ???
-    u32   mInstanceIndex; // ???
-    u32   mMaterialIndex; // ???
-    u32   mPrimitiveIndex; // ???
-    u32   mRandomState; // ???
-    u8    mDepth; // ???
-  };
-
-  struct Triangle
+  struct BVHTriangle
   {
     v3    mV0;
     float mPad0;
@@ -63,41 +68,37 @@ namespace Tac::gpupt
     float mPad3;
   };
 
-  static_assert_gpu_padded( Triangle );
+  static_assert_gpu_padded( BVHTriangle );
 
-  struct TriangleExtraData
+  struct VertexExtraData
   {
-    v3    mNormal0;
+    v3    mNormal;
     float mPad0;
 
-    v3    mNormal1;
-    float mPad1;
+    v2    mUV;
+    v2    mPad1;
 
-    v3    mNormal2;
-    float mPad2;
-
-    v2    mUV0;
-    v2    mUV1;
-    v2    mUV2;
-    v2    mPad3;
-
-    v4    mColor0;
-    v4    mColor1;
-    v4    mColor2;
-
-    v4    mTangent0;
-    v4    mTangent1;
-    v4    mTangent2;
+    v4    mColor;
+    v4    mTangent;
   };
 
-  static_assert_gpu_padded( TriangleExtraData );
+  struct BVHTriangleExtraData
+  {
+    VertexExtraData mVertexExtraDatas[ 3 ];
+  };
+
+  static_assert_gpu_padded( BVHTriangleExtraData );
 
   struct BVHNode
   {
     bool IsLeaf() const;
 
-    AABB mAABB;
-    u32  mLeftChildOrFirst;
+    AABB32 mAABB;
+    union
+    {
+      u32  mLeftChild;
+      u32  mFirstTriangleIndex; // this is actually a index index
+    };
     u32  mTriangleCount;
     v2   mPad;
   };
@@ -105,42 +106,31 @@ namespace Tac::gpupt
   static_assert_gpu_padded( BVHNode );
 
   struct BVH;
-  struct Mesh;
+  struct BVHMesh;
 
   struct BVH
   {
-    BVH( Mesh* );
     void  Build();
     void  Refit();
-    void  Subdividie( u32 );
+    void  Subdivide( u32 );
     void  UpdateNodeBounds( u32 );
-    float FindBestSplitPlane( BVHNode&, int&, float& );
-    float EvaluateSAH( BVHNode&, int&, float );
-    float CalculateNodeCost( BVHNode& );
+    float FindBestSplitPlane( const BVHNode&, int&, float& );
+    float EvaluateSAH( const BVHNode&, int, float );
+    float CalculateNodeCost( const BVHNode& );
 
-    Mesh*             mMesh{};
-    Vector< u32 >     mTriangleIndices;
-    Vector< BVHNode > mBVHNodes;
-    u32               mNodesUsed{ 1 };
-    u32               mRootNodeIndex{};
+    BVHMesh*          mMesh            {};
+    Vector< u32 >     mTriangleIndices {};
+    Vector< BVHNode > mBVHNodes        {};
+    u32               mNodesUsed       {};
   };
 
-
-  struct Vertex
+  struct BVHMesh
   {
-    v3 mPosition;
-    v3 mNormal;
-    v3 mTangent;
-    v3 mMatInx; // ???
-  };
+    void SetShape( const Shape& );
 
-  struct Mesh
-  {
-    Mesh( const Shape& );
-
-    BVH*                        mBVH{};
-    Vector< Triangle >          mTriangles;
-    Vector< TriangleExtraData > mTrianglesExtraData;
+    BVH                            mBVH{};
+    Vector< BVHTriangle >          mTriangles;
+    Vector< BVHTriangleExtraData > mTrianglesExtraData;
   };
 
   struct TLASNode
@@ -148,38 +138,58 @@ namespace Tac::gpupt
     bool IsLeaf() const { return !mLeftRight; }
 
     v3  mAABBMin;
+
+    // this is (left + right << 16)
+    // could maybe instead use u16 left, u16 right?
+    // https://github.com/microsoft/DirectXShaderCompiler/wiki/16-Bit-Scalar-Types
+    //   supported since Shader Model 6.2  
     u32 mLeftRight;
     v3  mAABBMax;
+
+    // an index into SceneBVH::mTLASInstancesBuffer, which is basically
+    // Vector<BVHInstance> SceneBVH::mInstances
     u32 mBLAS;
   };
 
   static_assert_gpu_padded( TLASNode );
 
+  // this is referenced as
+  // Span< BVHInstance > TLAS::mBLAS, and
+  // Vector< BVHInstance > SceneBVH::mInstances
   struct BVHInstance
   {
     // why sends a vector*? why not const?
-    void SetTransform( const m4&, Vector< Mesh* >* );
+    void SetTransform( const m4& transform,
+                       const m4& transformInv,
+                       AABB32 );
 
-    m4   mInverseTransform;
-    m4   mTransform;
-    m4   mNormalTransform; // ???
-    AABB mBounds;
-    u32  mMeshIndex;
-    u32  mIndex{};
-    v2   mPad;
+    m4     mInverseTransform;
+    m4     mTransform;
+    m4     mNormalTransform; // ???
+    AABB32 mBounds;
+    u32    mMeshIndex; // ??? used by the shader, indexes into SceneBVH::mIndexDataBuffer 
+    u32    mIndex{}; // ??? index into SceneBVH::mInstances;
+    v2     mPad;
   };
 
   static_assert_gpu_padded( BVHInstance );
 
   struct TLAS
   {
-    Vector< BVHInstance >* mBLAS; // why a pointer?
+    void Build();
+
+  private:
+    int FindBestMatch( int* List, int N, int A );
+
+  public:
+
+    Span< BVHInstance >    mBLAS;
     Vector< TLASNode >     mNodes;
     u32                    mNodesUsed{};
   };
 
   // ???
-  struct IndexData
+  struct BVHIndexData
   {
     u32 mTriangleTriangleDataStartInx;
     u32 mIndicesDataStartInx;
@@ -189,27 +199,29 @@ namespace Tac::gpupt
 
   struct SceneBVH
   {
-    void Destroy();
-    static SceneBVH* CreateBVH( const Scene* );
+    void CreateBuffers( Errors& );
 
-    TLAS                        mTLAS;
-    Vector< Mesh* >             mMeshes;
-    Vector< BVHInstance >       mInstances;
-    Vector< IndexData >         mIndexData;
-    Vector< Triangle >          mAllTriangles;
-    Vector< TriangleExtraData > mAllTrianglesEx;
-    Vector< u32 >               mAllTriangleIndices;
-    Vector< BVHNode >           mAllBVHNodes;
+    static SceneBVH*            CreateBVH( const Scene*,Errors& );
+    static Render::BufferHandle CreateBuffer( int, const void*, int, const char*, Errors&);
 
-    Render::BufferHandle        mTrianglesBuffer;
-    Render::BufferHandle        mTrianglesExBuffer;
-    Render::BufferHandle        mBVHBuffer;
-    Render::BufferHandle        mIndicesBuffer;
-    Render::BufferHandle        mIndexDataBuffer;
-    Render::BufferHandle        mTLASInstancesBuffer;
-    Render::BufferHandle        mTLASNodeBuffer;
+    TLAS                           mTLAS;
+    Vector< BVHMesh >              mMeshes;
+    Vector< BVHInstance >          mInstances;
+    Vector< BVHIndexData >         mIndexData;
+    Vector< BVHTriangle >          mAllTriangles;
+    Vector< BVHTriangleExtraData > mAllTrianglesEx;
+    Vector< u32 >                  mAllTriangleIndices;
+    Vector< BVHNode >              mAllBVHNodes;
 
-    Scene*                      mScene{};
+    Render::BufferHandle mIndexDataBuffer;
+    Render::BufferHandle mAllTrianglesBuffer;
+    Render::BufferHandle mAllTrianglesExBuffer;
+    Render::BufferHandle mAllTriangleIndicesBuffer;
+    Render::BufferHandle mAllBVHNodesBuffer;
+    Render::BufferHandle mTLASInstancesBuffer;
+    Render::BufferHandle mTLASNodeBuffer;
+
+    const Scene*                mScene{};
   };
 
 } // namespace Tac::gpupt

@@ -1,5 +1,6 @@
 #include "tac_jppt.h" // self-inc
 
+
 #include "tac-rhi/render3/tac_render_api.h"
 //#include "tac-engine-core/window/tac_window_handle.h"
 //#include "tac-engine-core/window/tac_sys_window_api.h"
@@ -10,6 +11,7 @@
 //#include "tac-ecs/tac_space.h"
 
 #include "tac_jppt_BVH.h"
+#include "tac_jppt_cornell_box.h"
 
 namespace Tac
 {
@@ -69,13 +71,13 @@ namespace Tac
     sWindowPos = ( monitor.mSize - sWindowSize ) / 2;
 
     TAC_CALL( CreateTexture( errors ) );
-    TAC_CALL( CreatePipeline( errors ) );
+    //TAC_CALL( CreatePipeline( errors ) );
 
-    TAC_CALL(sScene = gpupt::Scene::CreateCornellBox(errors));
-    sSceneBVH = gpupt::SceneBVH::CreateBVH( sScene );
+    TAC_CALL( sScene = gpupt::Scene::CreateCornellBox( errors ) );
+    TAC_CALL( sSceneBVH = gpupt::SceneBVH::CreateBVH( sScene, errors ) );
   }
 
-  void    JPPTApp::CreatePipeline(  Errors& errors )
+  void    JPPTApp::CreatePipeline( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::ProgramParams programParams
@@ -102,7 +104,7 @@ namespace Tac
     ImGuiSetNextWindowSize( sWindowSize );
     if( ImGuiBegin( sWindowName ) )
     {
-      ImGuiText( "hi" );
+      CornellBox::DebugImGui();
       ImGuiSetCursorPos( {} );
       ImGuiImage( sTexture.GetIndex(), sWindowSize );
       ImGuiEnd();
@@ -111,6 +113,9 @@ namespace Tac
 
   void    JPPTApp::Render( RenderParams renderParams, Errors& errors )
   {
+    if( true )
+      return;
+
     const WindowHandle windowHandle{ ImGuiGetWindowHandle(sWindowName)};
     const SysWindowApi windowApi{ renderParams.mWindowApi};
     const bool shown{ windowApi.IsShown( windowHandle ) };

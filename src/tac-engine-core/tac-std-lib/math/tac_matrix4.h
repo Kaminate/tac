@@ -45,6 +45,7 @@ namespace Tac
     static m4    RotRadX( float );
     static m4    RotRadY( float );
     static m4    RotRadZ( float );
+    static m4    Transpose( m4 );
     static m4    Translate( const v3& translate );
     static m4    Transform( const v3& scale, const m3& rot, const v3& translate );
     static m4    Transform( const v3& scale, const v3& eulerRads, const v3& translate );

@@ -44,7 +44,7 @@ namespace Tac
 
   Entity* World::SpawnEntity( EntityUUID entityUUID )
   {
-    auto entity { TAC_NEW Entity() };
+    auto entity { TAC_NEW Entity };
     entity->mEntityUUID = entityUUID;
     entity->mWorld = this;
     mEntities.push_front( entity );

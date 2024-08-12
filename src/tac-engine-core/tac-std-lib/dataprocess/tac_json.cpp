@@ -298,12 +298,19 @@ namespace Tac
   }
   Json&  Json::operator[]( StringView key )    { return GetChild( key ); }
   Json&  Json::operator[]( const char* key )   { return GetChild( key ); }
-  void   Json::operator = ( const Json& json ) { DeepCopy( &json ); }
-  void   Json::operator = ( const Json* json ) { DeepCopy( json ); }
-  void   Json::operator = ( Json&& json ) noexcept { TakeOver( move( json ) ); }
-  void   Json::operator = ( StringView v )     { SetString( v ); }
-  void   Json::operator = ( JsonNumber v )     { SetNumber( v ); }
-  void   Json::operator = ( bool v )           { SetBool( v ); }
+  Json&  Json::operator[]( [[maybe_unused]] int i )
+  {
+    mType = JsonType::Array;
+    TAC_ASSERT( i == mArrayElements.size() );
+    return *AddChild();
+  }
+  Json&  Json::operator = ( const Json& json ) { DeepCopy( &json ); return *this; }
+  Json&  Json::operator = ( const Json* json ) { DeepCopy( json );return *this;  }
+  Json&  Json::operator = ( Json&& json ) noexcept { TakeOver( move( json ) ); return *this; }
+  Json&  Json::operator = ( StringView v )     { SetString( v ); return *this; }
+  Json&  Json::operator = ( JsonNumber v )     { SetNumber( v ); return *this; }
+  Json&  Json::operator = ( int v )            { SetNumber( ( JsonNumber )v );return *this;  }
+  Json&  Json::operator = ( bool v )           { SetBool( v ); return *this; }
 
   void   Json::AddChild( const Json& json )
   {

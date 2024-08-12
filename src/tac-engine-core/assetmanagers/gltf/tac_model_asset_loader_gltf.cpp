@@ -1,7 +1,6 @@
 #include "tac_model_asset_loader_gltf.h" // self-inc
 
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
-#include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_model_load_synchronous.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"

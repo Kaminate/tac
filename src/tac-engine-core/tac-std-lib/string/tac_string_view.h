@@ -18,6 +18,7 @@ namespace Tac
   {
     StringView() = default;
     StringView( const char* );
+    StringView( int ) = delete; // prevent StringView( 0 ) from compiling
     //        StringView( const char*, int );
     constexpr StringView( const char* , int );
   //        StringView::StringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
