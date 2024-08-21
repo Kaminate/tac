@@ -72,11 +72,11 @@ namespace Tac
       return *mesh;
 
     const StringView pathExt { path.GetFileExtension() };
-    MeshLoadFunction meshLoadFunction { ModelLoadFunctionFind( pathExt ) };
+    const MeshLoadFunction meshLoadFunction { ModelLoadFunctionFind( pathExt ) };
     if( !meshLoadFunction )
       return nullptr;
 
-    auto mesh { TAC_NEW Mesh };
+    Mesh* mesh { TAC_NEW Mesh };
     *mesh = TAC_CALL_RET( {}, meshLoadFunction( path, iModel, vtxDecls, errors ) );
 
     sTryNewTHingMeshes[ hashedValue ] = mesh;
@@ -87,7 +87,7 @@ namespace Tac
 
   void  ModelAssetManagerInit()
   {
-    WavefrontObjLoaderInit();
+    WavefrontObj::Init();
     GltfLoaderInit();
   }
 

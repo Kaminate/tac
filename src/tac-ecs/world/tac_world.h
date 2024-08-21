@@ -26,6 +26,7 @@ namespace Tac
     void          Step( float seconds );
     void          DebugImgui();
     void          ApplyInput( Player*, float seconds );
+    void          ComputeTransformsRecursively();
     void          ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, Entity* );
 
     //            Entity api

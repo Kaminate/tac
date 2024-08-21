@@ -2,11 +2,6 @@
 
 namespace Tac::Render
 {
-  struct MeshModelVtx
-  {
-    v3 mPos;
-    v3 mNor;
-  };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -47,6 +42,12 @@ namespace Tac::Render
 
   static Render::VertexDeclarations CreateVertexDeclarations()
   {
+    struct MeshModelVtx
+    {
+      v3 mPos;
+      v3 mNor;
+    };
+
     const Render::VertexDeclaration posDecl
     {
       .mAttribute         { Render::Attribute::Position },
@@ -113,6 +114,22 @@ namespace Tac::Render
   static Vector< RenderMaterial >         mRenderMaterials;
   static bool                             sInitialized;
 
+  static RenderMaterial* FindRenderMaterial( const Material* material )
+  {
+    const StringView materialShader{ material->mMaterialShader };
+    const HashValue hashValue{ Hash( materialShader ) };
+    for ( RenderMaterial& renderMaterial : mRenderMaterials )
+    {
+      if ( renderMaterial.mMaterialShaderHash == hashValue &&
+        ( StringView )renderMaterial.mMaterialShader == materialShader )
+      {
+        return &renderMaterial;
+      }
+    }
+
+    return nullptr;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
 
@@ -128,22 +145,15 @@ namespace Tac::Render
   RenderMaterial*                   RenderMaterialApi::GetRenderMaterial( const Material* material,
                                                                           Errors& errors )
   {
+    if( RenderMaterial * renderMaterial{ FindRenderMaterial( material ) } )
+      return renderMaterial;
+
     const StringView materialShader{ material->mMaterialShader };
-
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-    const HashValue hashValue{ Hash( materialShader ) };
-    for ( RenderMaterial& renderMaterial : mRenderMaterials )
-    {
-      if ( renderMaterial.mMaterialShaderHash == hashValue &&
-        ( StringView )renderMaterial.mMaterialShader == materialShader )
-      {
-        return &renderMaterial;
-      }
-    }
-
     TAC_CALL_RET( {}, Render::ProgramHandle program{ Create3DShader( materialShader, errors ) } );
     TAC_CALL_RET( {}, Render::PipelineHandle meshPipeline{ CreatePipeline( program, errors ) } );
+
+    const HashValue hashValue{ Hash( materialShader ) };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     Render::IShaderVar* shaderVarPerFrame  {
       renderDevice->GetShaderVariable( meshPipeline, "sPerObj" ) };

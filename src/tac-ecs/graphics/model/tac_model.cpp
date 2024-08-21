@@ -28,25 +28,25 @@ namespace Tac
 	static void       SaveModelComponent( Json& modelJson, Component* component )
 	{
 		auto model { ( Model* )component };
-		Json colorRGBJson;
-		colorRGBJson[ "r" ].SetNumber( model->mColorRGB[ 0 ] );
-		colorRGBJson[ "g" ].SetNumber( model->mColorRGB[ 1 ] );
-		colorRGBJson[ "b" ].SetNumber( model->mColorRGB[ 2 ] );
+		//Json colorRGBJson;
+		//colorRGBJson[ "r" ].SetNumber( model->mColorRGB[ 0 ] );
+		//colorRGBJson[ "g" ].SetNumber( model->mColorRGB[ 1 ] );
+		//colorRGBJson[ "b" ].SetNumber( model->mColorRGB[ 2 ] );
 		modelJson[ "mModelPath" ].SetString( model->mModelPath.c_str() );
     modelJson[ "mModelIndex" ].SetNumber( model->mModelIndex );
     //modelJson[ "mTryingNewThing" ].SetNumber( model->mTryingNewThing );
-		modelJson[ "mColorRGB" ].DeepCopy( &colorRGBJson );
+		//modelJson[ "mColorRGB" ] = colorRGBJson;
 	}
 
 	static void       LoadModelComponent( Json& modelJson, Component* component )
 	{
 		auto model { ( Model* )component };
-		Json& colorRGBJson { modelJson[ "mColorRGB" ] };
+		//Json& colorRGBJson { modelJson[ "mColorRGB" ] };
     model->mModelIndex = ( int )modelJson[ "mModelIndex" ].mNumber;
 		model->mModelPath = modelJson[ "mModelPath" ].mString;
-		model->mColorRGB.x = ( float )colorRGBJson[ "r" ].mNumber;
-		model->mColorRGB.y = ( float )colorRGBJson[ "g" ].mNumber;
-		model->mColorRGB.z = ( float )colorRGBJson[ "b" ].mNumber;
+		//model->mColorRGB.x = ( float )colorRGBJson[ "r" ].mNumber;
+		//model->mColorRGB.y = ( float )colorRGBJson[ "g" ].mNumber;
+		//model->mColorRGB.z = ( float )colorRGBJson[ "b" ].mNumber;
 	}
 
 
@@ -105,14 +105,14 @@ namespace Tac
 
 	void RegisterModelComponent()
 	{
-    const NetVar netColor
-    {
-      .mDebugName           { "mColorRGB" },
-      .mByteOffset          { TAC_OFFSET_OF( Model, mColorRGB ) },
-      .mElementByteCount    { sizeof( float ) },
-      .mElementCount        { 3 },
-      .mIsTriviallyCopyable { true },
-    };
+    //const NetVar netColor
+    //{
+    //  .mDebugName           { "mColorRGB" },
+    //  .mByteOffset          { TAC_OFFSET_OF( Model, mColorRGB ) },
+    //  .mElementByteCount    { sizeof( float ) },
+    //  .mElementCount        { 3 },
+    //  .mIsTriviallyCopyable { true },
+    //};
 
     const NetVar netPath
     {
@@ -132,7 +132,7 @@ namespace Tac
     };
 
     NetVars netBits;
-    netBits.Add( netColor );
+    //netBits.Add( netColor );
     netBits.Add( netPath );
     netBits.Add( netIndex );
 

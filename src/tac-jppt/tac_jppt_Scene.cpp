@@ -133,7 +133,6 @@ namespace Tac::gpupt
       mTangents[ i ] = v4( Normalize( t - n * Dot( n, t ) ), 1 );
       mTangents[ i ].w = Dot( Cross( n, t ), tan1[ i ] ) < 0.0f ? -1.0f : 1.0f;
     }
-
   }
 
   Scene* Scene::CreateCornellBox(Errors& errors)

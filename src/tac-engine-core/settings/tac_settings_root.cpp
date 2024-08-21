@@ -22,7 +22,7 @@ namespace Tac
     }
   }
 
-  SettingsNode SettingsRoot::GetRootNode()
+  SettingsNode  SettingsRoot::GetRootNode()
   {
     return SettingsNode( this, &sJson );
   }
@@ -61,6 +61,7 @@ namespace Tac
     sDirty = true;
   }
 }
+
 #if 0
 
 void            Tac::SettingsInit( const FileSys::Path& path, Errors& errors )

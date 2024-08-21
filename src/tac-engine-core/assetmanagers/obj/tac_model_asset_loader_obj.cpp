@@ -15,30 +15,11 @@
 
 namespace Tac
 {
-  struct WavefrontObjVertex
-  {
-    int miPosition {};
-    int miNormal {};
-    int miTexCoord {};
-  };
 
-  struct WavefrontObjFace
-  {
-    WavefrontObjVertex mVertexes[ 3 ]  {};
-  };
-
-  struct WavefrontObj
-  {
-    Vector< v3 >               normals;
-    Vector< v2 >               texcoords;
-    Vector< v3 >               positions;
-    Vector< WavefrontObjFace > faces;
-  };
-
-  static WavefrontObjVertex WavefrontObjParseVertex( StringView line )
+  static WavefrontObj::Vertex WavefrontObjParseVertex( StringView line )
   {
     ParseData parseData( line.begin(), line.end() );
-    WavefrontObjVertex vertex;
+    WavefrontObj::Vertex vertex;
     const int slashCount = Count( line, '/' );
     if( slashCount == 0 )
     {
@@ -62,28 +43,25 @@ namespace Tac
     return vertex;
   }
 
-  static WavefrontObjFace   WavefrontObjParseFace( ParseData* parseData )
+  static WavefrontObj::Face   WavefrontObjParseFace( ParseData* parseData )
   {
     //ParseData parseData( line.begin(), line.end() );
-    WavefrontObjFace face  {};
-    for( WavefrontObjVertex* vertex = face.mVertexes; vertex < face.mVertexes + 3; ++vertex )
-    {
-      StringView vertexString { parseData->EatWord() };
-      if( vertexString.empty() )
-        break;
-      *vertex = WavefrontObjParseVertex( vertexString );
-    }
+    WavefrontObj::Face face  {};
+    for( WavefrontObj::Vertex* vertex { face.mVertexes }; vertex < face.mVertexes + 3; ++vertex )
+      if( StringView vertexString { parseData->EatWord() }; !vertexString.empty() )
+        *vertex = WavefrontObjParseVertex( vertexString );
+
     return face;
   }
 
-  v2 EatV2( ParseData* parseData )
+  static v2 EatV2( ParseData* parseData )
   {
     float x { parseData->EatFloat().GetValue() };
     float y { parseData->EatFloat().GetValue() };
     return { x, y };
   }
 
-  v3 EatV3( ParseData* parseData )
+  static v3 EatV3( ParseData* parseData )
   {
     float x { parseData->EatFloat().GetValue() };
     float y { parseData->EatFloat().GetValue() };
@@ -91,40 +69,42 @@ namespace Tac
     return { x, y, z };
   }
 
-  static WavefrontObj       WavefrontObjLoad( const void* bytes, int byteCount )
+  WavefrontObj       WavefrontObj::Load( const void* bytes, int byteCount )
   {
     ParseData                  parseData( ( const char* )bytes, byteCount );
     Vector< v3 >               normals;
     Vector< v2 >               texcoords;
     Vector< v3 >               positions;
-    Vector< WavefrontObjFace > faces;
+    Vector< Face > faces;
 
     for( ;; )
     {
       if( parseData.GetRemainingByteCount() == 0 )
         break;
 
-      const StringView word { parseData.EatWord() };
-      if( word == StringView("f" ) )
+      const StringView word{ parseData.EatWord() };
+      if( word == StringView( "f" ) )
         faces.push_back( WavefrontObjParseFace( &parseData ) );
-
-      if( word == StringView("vn") )
+      else if( word == StringView( "vn" ) )
         normals.push_back( EatV3( &parseData ) );
-
-      if( word == StringView("vt") )
+      else if( word == StringView( "vt" ) )
         texcoords.push_back( EatV2( &parseData ) );
-
-      if( word == StringView("v") )
+      else if( word == StringView( "v" ) )
         positions.push_back( EatV3( &parseData ) );
+      else
+      {
+        TAC_ASSERT_UNIMPLEMENTED;
+      }
 
       parseData.EatRestOfLine();
     }
 
-    return WavefrontObj{
-      .normals { normals },
-      .texcoords { texcoords },
-      .positions { positions },
-      .faces { faces },
+    return WavefrontObj
+    {
+      .mNormals   { normals },
+      .mTexCoords { texcoords },
+      .mPositions { positions },
+      .mFaces     { faces },
     };
   }
 
@@ -153,47 +133,52 @@ namespace Tac
 
     SubMeshTriangles subMeshTriangles;
 
-    for( const WavefrontObjFace& face : wavefrontObj.faces )
+    for( const WavefrontObj::Face& face : wavefrontObj.mFaces )
     {
       SubMeshTriangle subMeshTriangle  {};
       for( int iTriVert {}; iTriVert < 3; ++iTriVert )
       {
-        const WavefrontObjVertex& tri { face.mVertexes[ iTriVert ] };
-        subMeshTriangle[ iTriVert ] = wavefrontObj.positions[ tri.miPosition ];
+        const WavefrontObj::Vertex& tri { face.mVertexes[ iTriVert ] };
+        subMeshTriangle[ iTriVert ] = wavefrontObj.mPositions[ tri.miPosition ];
 
         MemSet( vertexBytes.data(), 0, vertexBytes.size() );
 
         for( const Render::VertexDeclaration& decl : vertexDeclarations )
         {
-          if( decl.mAttribute == Render::Attribute::Position && wavefrontObj.positions.size() )
+          const int nPos{ wavefrontObj.mPositions.size() };
+          if( decl.mAttribute == Render::Attribute::Position && nPos )
           {
             TAC_ASSERT( decl.mFormat.mElementCount == 3 );
             TAC_ASSERT( decl.mFormat.mPerElementByteCount == sizeof( float ) );
             TAC_ASSERT( decl.mFormat.mPerElementDataType == Render::GraphicsType::real );
-            TAC_ASSERT_INDEX( tri.miPosition, wavefrontObj.positions.size() );
+            TAC_ASSERT_INDEX( tri.miPosition, wavefrontObj.mPositions.size() );
             MemCpy( vertexBytes.data() + decl.mAlignedByteOffset,
-                    wavefrontObj.positions[ tri.miPosition ].data(),
+                    wavefrontObj.mPositions[ tri.miPosition ].data(),
                     sizeof( v3 ) );
 
           }
-          if( decl.mAttribute == Render::Attribute::Normal && wavefrontObj.normals.size() )
+
+          const int nNor{ wavefrontObj.mNormals.size() };
+          if( decl.mAttribute == Render::Attribute::Normal && nNor )
           {
             TAC_ASSERT( decl.mFormat.mElementCount == 3 );
             TAC_ASSERT( decl.mFormat.mPerElementByteCount == sizeof( float ) );
             TAC_ASSERT( decl.mFormat.mPerElementDataType == Render::GraphicsType::real );
-            TAC_ASSERT_INDEX( tri.miNormal, wavefrontObj.normals.size() );
+            TAC_ASSERT_INDEX( tri.miNormal, wavefrontObj.mNormals.size() );
             MemCpy( vertexBytes.data() + decl.mAlignedByteOffset,
-                    wavefrontObj.normals[ tri.miNormal ].data(),
+                    wavefrontObj.mNormals[ tri.miNormal ].data(),
                     sizeof( v3 ) );
           }
-          if( decl.mAttribute == Render::Attribute::Texcoord && wavefrontObj.texcoords.size() )
+
+          const int nUV{ wavefrontObj.mTexCoords.size() };
+          if( decl.mAttribute == Render::Attribute::Texcoord && nUV )
           {
             TAC_ASSERT( decl.mFormat.mElementCount == 2 );
             TAC_ASSERT( decl.mFormat.mPerElementByteCount == sizeof( float ) );
             TAC_ASSERT( decl.mFormat.mPerElementDataType == Render::GraphicsType::real );
-            TAC_ASSERT_INDEX( tri.miTexCoord, wavefrontObj.texcoords.size() );
+            TAC_ASSERT_INDEX( tri.miTexCoord, wavefrontObj.mTexCoords.size() );
             MemCpy( vertexBytes.data() + decl.mAlignedByteOffset,
-                    wavefrontObj.texcoords[ tri.miTexCoord ].data(),
+                    wavefrontObj.mTexCoords[ tri.miTexCoord ].data(),
                     sizeof( v2 ) );
           }
         }
@@ -225,7 +210,7 @@ namespace Tac
       .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
       .mVertexBuffer      { vertexBuffer },
       .mTris              { subMeshTriangles },
-      .mVertexCount       { wavefrontObj.faces.size() * 3 },
+      .mVertexCount       { wavefrontObj.mFaces.size() * 3 },
       .mName              { name },
     };
 
@@ -239,12 +224,12 @@ namespace Tac
   {
     const StringView name { assetPath.GetFilename() };
     const String bytes { LoadAssetPath( assetPath, errors ) };
-    const WavefrontObj wavefrontObj { WavefrontObjLoad( bytes.data(), bytes.size() ) };
+    const WavefrontObj wavefrontObj { WavefrontObj::Load( bytes.data(), bytes.size() ) };
     const Mesh mesh { WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations, errors ) };
     return mesh;
   }
 
-  void                      WavefrontObjLoaderInit()
+  void                      WavefrontObj::Init()
   {
     ModelLoadFunctionRegister( WavefrontObjLoadIntoMesh, ".obj" );
   }

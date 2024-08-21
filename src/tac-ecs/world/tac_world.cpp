@@ -229,15 +229,19 @@ namespace Tac
     }
   }
 
+  void               World::ComputeTransformsRecursively()
+  {
+    const m4 identity { m4::Identity() };
+    for( Entity* entity : mEntities )
+      if( !entity->mParent )
+        ComputeTransformsRecursively( identity, entity );
+  }
+
   void               World::Step( float seconds )
   {
     TAC_PROFILE_BLOCK;
-    const m4 identity { m4::Identity() };
-    for( Entity* entity : mEntities )
-    {
-      if( !entity->mParent )
-        ComputeTransformsRecursively( identity, entity );
-    }
+
+    ComputeTransformsRecursively();
 
     for( Player* player : mPlayers )
       ApplyInput( player, seconds );

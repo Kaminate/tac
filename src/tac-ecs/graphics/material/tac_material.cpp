@@ -22,15 +22,51 @@ namespace Tac
     GetGraphics( world )->DestroyMaterialComponent( ( Material* )component );
   }
 
-  static void       SaveMaterialComponent( Json& materialJson, Component* component )
+#if 0
+  static void       SettingsSaveMaterialComponent( SettingsNode node, Component* component )
   {
-    Material* material{ ( Material* )component };
   }
 
-  static void       LoadMaterialComponent( Json& materialJson, Component* component )
+  static void       SettingsLoadMaterialComponent( SettingsNode node, Component* component )
+  {
+  }
+#else
+
+  static void       SaveMaterialComponent( Json& json, Component* component )
   {
     Material* material{ ( Material* )component };
+
+    json[ TAC_MEMBER_NAME( Material, mIsGlTF_PBR_MetallicRoughness ) ].SetBool( material->mIsGlTF_PBR_MetallicRoughness );
+    json[ TAC_MEMBER_NAME( Material, mIsGlTF_PBR_SpecularGlossiness ) ].SetBool( material->mIsGlTF_PBR_SpecularGlossiness );
+    json[ TAC_MEMBER_NAME( Material, mColor ) ][ 0 ].SetNumber( material->mColor[0]);
+    json[ TAC_MEMBER_NAME( Material, mColor ) ][ 1 ].SetNumber( material->mColor[1]);
+    json[ TAC_MEMBER_NAME( Material, mColor ) ][ 2 ].SetNumber( material->mColor[2]);
+    json[ TAC_MEMBER_NAME( Material, mColor ) ][ 3 ].SetNumber( material->mColor[3]);
+    json[ TAC_MEMBER_NAME( Material, mEmissive ) ][ 0 ].SetNumber( material->mEmissive[0]);
+    json[ TAC_MEMBER_NAME( Material, mEmissive ) ][ 1 ].SetNumber( material->mEmissive[1]);
+    json[ TAC_MEMBER_NAME( Material, mEmissive ) ][ 2 ].SetNumber( material->mEmissive[2] );
+    json[ TAC_MEMBER_NAME( Material, mRenderEnabled ) ].SetBool( material->mRenderEnabled );
+    json[ TAC_MEMBER_NAME( Material, mMaterialShader ) ].SetString( material->mMaterialShader );
+
   }
+
+  static void       LoadMaterialComponent( Json& json, Component* component )
+  {
+    Material* material{ ( Material* )component };
+
+    material->mIsGlTF_PBR_MetallicRoughness = json[ TAC_MEMBER_NAME( Material, mIsGlTF_PBR_MetallicRoughness ) ];
+    material->mIsGlTF_PBR_SpecularGlossiness = json[ TAC_MEMBER_NAME( Material, mIsGlTF_PBR_SpecularGlossiness ) ];
+    material->mColor[ 0 ] = ( float )( JsonNumber )json[ TAC_MEMBER_NAME( Material, mColor ) ][ 0 ];
+    material->mColor[ 1 ] = ( float )( JsonNumber )json[ TAC_MEMBER_NAME( Material, mColor ) ][ 1 ];
+    material->mColor[ 2 ] = ( float )( JsonNumber )json[ TAC_MEMBER_NAME( Material, mColor ) ][ 2 ];
+    material->mColor[ 3 ] = ( float )( JsonNumber )json[ TAC_MEMBER_NAME( Material, mColor ) ][ 3 ];
+    material->mEmissive[ 0 ] = ( float )( JsonNumber )json[ TAC_MEMBER_NAME( Material, mEmissive ) ][ 0 ];
+    material->mEmissive[ 1 ] = ( float )( JsonNumber )json[ TAC_MEMBER_NAME( Material, mEmissive ) ][ 1 ];
+    material->mEmissive[ 2 ] = ( float )( JsonNumber )json[ TAC_MEMBER_NAME( Material, mEmissive ) ][ 2 ];
+    material->mRenderEnabled = json[ TAC_MEMBER_NAME( Material, mRenderEnabled ) ];
+    material->mMaterialShader = json[ TAC_MEMBER_NAME( Material, mMaterialShader ) ];
+  }
+#endif
 
   // ------------------------
 
@@ -51,6 +87,77 @@ namespace Tac
 
   void                             Material::RegisterComponent()
   {
+#if 0
+    const ComponentSettings::Element elements[]
+    {
+      ComponentSettings::Element
+      {
+        .mPath       { TAC_MEMBER_NAME( Material, mIsGlTF_PBR_MetallicRoughness ) },
+        .mType       { JsonType::Bool },
+        .mByteOffset { TAC_OFFSET_OF( Material, mIsGlTF_PBR_MetallicRoughness ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { TAC_MEMBER_NAME( Material, mIsGlTF_PBR_SpecularGlossiness ) },
+        .mType       { JsonType::Bool },
+        .mByteOffset { TAC_OFFSET_OF( Material, mIsGlTF_PBR_SpecularGlossiness ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[0]"},
+        .mType       { JsonType::Number },
+        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 0 ] ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[1]"},
+        .mType       { JsonType::Number },
+        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 1 ] ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[2]"},
+        .mType       { JsonType::Number },
+        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 2 ] ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[3]"},
+        .mType       { JsonType::Number },
+        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 3 ] ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { String() + TAC_MEMBER_NAME( Material, mEmissive ) + "[0]"},
+        .mType       { JsonType::Number },
+        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 0 ] ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { String() + TAC_MEMBER_NAME( Material, mEmissive ) + "[1]"},
+        .mType       { JsonType::Number },
+        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 1 ] ) },
+      },
+
+      ComponentSettings::Element
+      {
+        .mPath       { String() + TAC_MEMBER_NAME( Material, mEmissive ) + "[2]"},
+        .mType       { JsonType::Number },
+        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 2 ] ) },
+      },
+    };
+#endif
+
+
+
+
     sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
     sComponentRegistryEntry->mName = "Material";
     //sComponentRegistryEntry->mNetVars = ComponentMaterialBits;
@@ -60,8 +167,13 @@ namespace Tac
       {
         Material::DebugImgui( ( Material* )component );
       };
+#if 0
+    sComponentRegistryEntry->mSettingsSaveFn = SettingsSaveMaterialComponent;
+    sComponentRegistryEntry->mSettingsLoadFn = SettingsLoadMaterialComponent;
+#else
     sComponentRegistryEntry->mSaveFn = SaveMaterialComponent;
     sComponentRegistryEntry->mLoadFn = LoadMaterialComponent;
+#endif
   }
 
   void                             Material::DebugImgui( Material* material )
@@ -105,6 +217,12 @@ namespace Tac
       ImGuiText( "Bindings: <none>" );
     else
       ImGuiText( "Bindings: " + bindings );
+
+
+    ImGuiCheckbox( "gltf pbr mr", &material->mIsGlTF_PBR_MetallicRoughness );
+    ImGuiCheckbox( "gltf pbr sg", &material->mIsGlTF_PBR_SpecularGlossiness );
+    ImGuiDragFloat4( "color", material->mColor.data() );
+    ImGuiDragFloat3( "emissive", material->mEmissive.data() );
   }
 
 

@@ -184,6 +184,17 @@ namespace Tac
   }
 
 
+  static Render::TexFmt ConvertIndexFormat( cgltf_component_type gltfType )
+  {
+    switch( gltfType )
+    {
+    //case cgltf_component_type_r_8u: return Render::TexFmt::kR8_uint;
+    case cgltf_component_type_r_16u: return Render::TexFmt::kR16_uint;
+    case cgltf_component_type_r_32u: return Render::TexFmt::kR32_uint;
+    default: TAC_ASSERT_INVALID_CASE( gltfType ); return Render::TexFmt::kUnknown;
+    }
+  }
+
   static Render::BufferHandle ConvertToIndexBuffer( const cgltf_primitive* parsedPrim,
                                                     const StringView& bufferName,
                                                     Errors& errors )
@@ -196,10 +207,14 @@ namespace Tac
       indices->buffer_view->offset };
 
     TAC_ASSERT( indices->type == cgltf_type_scalar );
-    TAC_ASSERT( indices->component_type == cgltf_component_type_r_16u );
-    const Render::TexFmt fmt{ Render::TexFmt::kR16_uint };
 
-    const int indexBufferByteCount { ( int )indices->count * (int)sizeof( u16 ) };
+    const Render::TexFmt fmt{ ConvertIndexFormat( indices->component_type ) };
+    TAC_RAISE_ERROR_IF_RETURN( {},
+                               fmt == Render::TexFmt::kUnknown,
+                               "unsupported index buffer type " +
+                               ToString( ( int )indices->component_type ) );
+
+    const int indexBufferByteCount{ ( int )indices->count * ( int )sizeof( u16 ) };
     const Render::CreateBufferParams createBufferParams
     {
       .mByteCount    { indexBufferByteCount },

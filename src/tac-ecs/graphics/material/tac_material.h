@@ -23,6 +23,11 @@ namespace Tac
       Json   mValue {};
     };
 
+    bool           mIsGlTF_PBR_MetallicRoughness{};
+    bool           mIsGlTF_PBR_SpecularGlossiness{};
+    v4             mColor{};
+    v3             mEmissive{};
+
     Vector< Data > mData           {};
     String         mMaterialShader {};
     bool           mRenderEnabled  { true };

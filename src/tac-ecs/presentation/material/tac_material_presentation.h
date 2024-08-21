@@ -7,7 +7,7 @@
 //#include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-ecs/world/tac_world.h"
 
-#define TAC_MATERIAL_PRESENTATION_ENABLED() 1
+#define TAC_MATERIAL_PRESENTATION_ENABLED() 0
 
 #if TAC_MATERIAL_PRESENTATION_ENABLED()
 

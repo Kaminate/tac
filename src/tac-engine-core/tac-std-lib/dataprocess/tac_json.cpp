@@ -301,8 +301,12 @@ namespace Tac
   Json&  Json::operator[]( [[maybe_unused]] int i )
   {
     mType = JsonType::Array;
-    TAC_ASSERT( i == mArrayElements.size() );
-    return *AddChild();
+
+    const int n{ mArrayElements.size() };
+    while( mArrayElements.size() <= i )
+      AddChild();
+
+    return *mArrayElements[ i ];
   }
   Json&  Json::operator = ( const Json& json ) { DeepCopy( &json ); return *this; }
   Json&  Json::operator = ( const Json* json ) { DeepCopy( json );return *this;  }

@@ -1,0 +1,419 @@
+{
+  "mEntityUUID": 1,
+  "mPosition":
+  {
+    "x": 0,
+    "y": 1,
+    "z": 0
+  },
+  "mName": "CornellBoxFixed.glb",
+  "mScale":
+  {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "mEulerRads":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mStatic": false,
+  "mChildren":
+  [
+    {
+      "mEntityUUID": 2,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "floor",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 0,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.485,
+          0.462,
+          0.416,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 3,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "ceiling",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 1,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.485,
+          0.462,
+          0.416,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 4,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "backWall",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 2,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.485,
+          0.462,
+          0.416,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 5,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "rightWall",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 3,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.017,
+          0.171,
+          0.008,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 6,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "leftWall",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 4,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.356,
+          0.004,
+          0.004,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 7,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "shortBox",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 5,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.485,
+          0.462,
+          0.416,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 8,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "tallBox",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 6,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.485,
+          0.462,
+          0.416,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    },
+    {
+      "mEntityUUID": 9,
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "light",
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mStatic": false,
+      "Model":
+      {
+        "mModelIndex": 7,
+        "mModelPath": "assets/cornell-box/CornellBoxFixed.glb"
+      },
+      "Material":
+      {
+        "mRenderEnabled": true,
+        "mColor":
+        [
+          0.57,
+          0.57,
+          0.57,
+          1
+        ],
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mEmissive":
+        [
+          0,
+          0,
+          0
+        ],
+        "mMaterialShader": "materials/glTFpbr"
+      },
+      "mActive": true
+    }
+  ],
+  "mActive": true
+}

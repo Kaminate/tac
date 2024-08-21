@@ -251,19 +251,19 @@ namespace Tac
     }
   }
 
-  static void ModelDebugImguiColor( Model* model )
-  {
-    if( ImGuiDragFloat3( "rgb", model->mColorRGB.data() ) )
-      for( float& f : model->mColorRGB )
-        f = Saturate( f );
-  }
+  //static void ModelDebugImguiColor( Model* model )
+  //{
+  //  if( ImGuiDragFloat3( "rgb", model->mColorRGB.data() ) )
+  //    for( float& f : model->mColorRGB )
+  //      f = Saturate( f );
+  //}
 
   void ModelDebugImgui( Model* model )
   {
     ModelDebugImguiMesh( model );
     ModelDebugImguiChangeModel( model );
     ModelDebugImguiChangeTexture( model );
-    ModelDebugImguiColor( model );
+    //ModelDebugImguiColor( model );
   }
 
   //void ModelDebugImgui( Component* component ) { ModelDebugImgui( ( Model* )component ); }

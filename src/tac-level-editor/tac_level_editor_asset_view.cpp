@@ -2,10 +2,12 @@
 
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-ecs/presentation/game/tac_game_presentation.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_model_load_synchronous.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"
+#include "tac-engine-core/assetmanagers/obj/tac_model_asset_loader_obj.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
@@ -84,6 +86,7 @@ namespace Tac
     Vector< const char* > exts;
     exts.push_back( ".gltf" );
     exts.push_back( ".glb" );
+    //exts.push_back( ".obj" );
     return HasExt( path, exts );
   }
 
@@ -218,81 +221,108 @@ namespace Tac
 
 
   static void AttemptLoadEntity( AssetViewImportedModel* loadedModel,
-                                 const AssetPathStringView& path )
+                                 const AssetPathStringView& path,
+                                 Errors& errors )
   {
     if( loadedModel->mAttemptedToLoadEntity )
       return;
 
-    const cgltf_data* gltfData { TryGetGLTFData( path ) };
-    if( !gltfData )
-      return;
-
-    TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
-
-    Entity* entityRoot{ loadedModel->SpawnEntity() };
-    entityRoot->mName = path.GetFilename();
-
-    loadedModel->mPrefab = entityRoot;
-
-
-    const int nNodes{ ( int )gltfData->nodes_count };
-
-    Vector< Entity* > entityNodes( nNodes );
-    for( int i {}; i < nNodes; ++i )
-      entityNodes[ i ] = loadedModel->SpawnEntity();
-
-    for( int i{}; i < nNodes; ++i )
+#if 0
+    if( path.ends_with( ".obj" ) )
     {
-      const cgltf_node& node { gltfData->nodes[ i ] };
+      TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
 
-      String name { node.name };
-      if( name.empty() )
+      ++asdf;
+      // todo: async
+      TAC_CALL( const String fileStr{ FileSys::LoadFilePath( path, errors ) } );
+      const void* fileBytes{ fileStr.data() };
+      const int fileByteCount{ fileStr.size() };
+      const WavefrontObj wavefrontObj{ WavefrontObj::Load( fileBytes, fileByteCount ) };
+
+
+
+    }
+    else
+#endif
+    {
+
+      const cgltf_data* gltfData{ TryGetGLTFData( path ) };
+      if( !gltfData )
+        return;
+
+      TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
+
+      Entity* entityRoot{ loadedModel->SpawnEntity() };
+      entityRoot->mName = path.GetFilename();
+
+      loadedModel->mPrefab = entityRoot;
+
+
+      const int nNodes{ ( int )gltfData->nodes_count };
+
+      Vector< Entity* > entityNodes( nNodes );
+      for( int i{}; i < nNodes; ++i )
+        entityNodes[ i ] = loadedModel->SpawnEntity();
+
+      for( int i{}; i < nNodes; ++i )
       {
-        name += "node ";
-        name += ToString( i );
+        const cgltf_node& gltfNode{ gltfData->nodes[ i ] };
+        const cgltf_mesh* gltfMesh{gltfNode.mesh};
+
+        const String name
+        {
+          [ & ]() -> String
+          {
+            if( gltfNode.name )
+              return gltfNode.name;
+
+            if( gltfMesh && gltfMesh->name )
+                return gltfMesh->name;
+
+            return String() + "node " + ToString( i );
+          }()
+        };
+
+        Entity* entity{ entityNodes[ i ] };
+        entity->mName = name;
+        entity->mRelativeSpace = DecomposeGLTFTransform( &gltfNode );
+
+        if( gltfMesh )
+        {
+          Model* model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
+          model->mModelPath = path;
+          model->mModelIndex = ( int )( gltfMesh - gltfData->meshes );
+
+          TAC_ASSERT( gltfMesh->primitives_count == 1 );
+          const cgltf_primitive* gltfPrimitive{ &gltfMesh->primitives[ 0 ] };
+          const cgltf_material* gltfMaterial{ gltfPrimitive->material };
+          if( gltfMaterial->has_pbr_metallic_roughness )
+          {
+            const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
+              &gltfMaterial->pbr_metallic_roughness };
+            Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
+            ecsMaterial->mMaterialShader = "materials/glTFpbr";
+            ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
+            for( int i = 0; i < 4; ++i )
+              ecsMaterial->mColor[ i ] = pbr_metallic_roughness->base_color_factor[ i ];
+          }
+        }
+
+        const int nChildren{ ( int )gltfNode.children_count };
+        for( int iChild{}; iChild < nChildren; ++iChild )
+        {
+          const cgltf_node* gltfChild{ gltfNode.children[ iChild ] };
+          Entity* ecsChild{ entityNodes[ gltfChild - gltfData->nodes ] };
+          // shouldnt this be recursive
+          entity->AddChild( ecsChild );
+        }
+
+        if( !gltfNode.parent )
+          entityRoot->AddChild( entity );
       }
-
-      Entity* entityNode{ entityNodes[ i ] };
-      entityNode->mName = name;
-      entityNode->mRelativeSpace = DecomposeGLTFTransform( &node );
-
-      if( node.mesh )
-      {
-        //const String modelPath = [ path ]()
-        //{
-        //  const FileSys::Path& initialWorkingDir = ShellGetInitialWorkingDir();
-        //  String modelPath = path;
-        //  if( modelPath.starts_with( initialWorkingDir ) )
-        //    modelPath = modelPath.substr( initialWorkingDir.size() );
-        //  while( modelPath.starts_with( '/' ) || modelPath.starts_with( '\\' ) )
-        //    modelPath.erase( 0, 1 );
-        //  return modelPath;
-        //}( );
-
-
-        Model* model { ( Model* )entityNode->AddNewComponent( Model().GetEntry() ) };
-        model->mModelPath = path;
-        model->mModelIndex = ( int )( node.mesh - gltfData->meshes );
-        //model->mTryingNewThing = true;
-
-        // ** REMEMBER **, we don't care about the textures on this model component.
-        // that's a job for the material component
-      }
-
-      const int nChildren{ (int)node.children_count };
-      for( int iChild{}; iChild < nChildren; ++iChild )
-      {
-        cgltf_node* child{ node.children[ iChild ] };
-        Entity* childEntity{ entityNodes[ child - gltfData->nodes ] };
-        entityNode->AddChild( childEntity );
-      }
-
-      if( !node.parent )
-        entityRoot->AddChild( entityNode );
     }
 
-    // step the world to compute hierarchies
-    loadedModel->mWorld.Step( 0 );
+    loadedModel->mWorld.ComputeTransformsRecursively();
   }
 
 
@@ -622,7 +652,7 @@ namespace Tac
         TAC_CALL( loadedModel = CreateLoadedModel( assetPath, errors ) );
       }
 
-      AttemptLoadEntity( loadedModel, assetPath );
+      AttemptLoadEntity( loadedModel, assetPath, errors );
 
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       TAC_CALL( Render::IContext::Scope renderContext{
