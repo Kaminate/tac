@@ -11,10 +11,11 @@ namespace Tac::Render
 
     struct DX12DescriptorCache
     {
-      void SetRegionManager( DX12DescriptorRegionManager* );
-      void SetFence( FenceSignal );
-      void Clear();
+      void                  SetRegionManager( DX12DescriptorRegionManager* );
+      void                  SetFence( FenceSignal );
+      void                  Clear();
       DX12DescriptorRegion* GetGPUDescriptorForCPUDescriptors( Span< DX12Descriptor > );
+
     private:
       DX12DescriptorRegion* Lookup( DX12Descriptor );
       

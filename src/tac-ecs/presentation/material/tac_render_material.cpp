@@ -40,34 +40,6 @@ namespace Tac::Render
     };
   }
 
-  static Render::VertexDeclarations CreateVertexDeclarations()
-  {
-    struct MeshModelVtx
-    {
-      v3 mPos;
-      v3 mNor;
-    };
-
-    const Render::VertexDeclaration posDecl
-    {
-      .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( MeshModelVtx, mPos ) },
-    };
-
-    const Render::VertexDeclaration norDecl
-    {
-      .mAttribute         { Render::Attribute::Normal },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( MeshModelVtx, mNor ) },
-    };
-
-    Render::VertexDeclarations decls;
-    decls.push_back( posDecl );
-    decls.push_back( norDecl );
-    return decls;
-  }
-
   static Render::ProgramHandle Create3DShader( StringView fileStem, Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
@@ -86,7 +58,6 @@ namespace Tac::Render
     const Render::BlendState blendState{ GetBlendState() };
     const Render::DepthState depthState{ GetDepthState() };
     const Render::RasterizerState rasterizerState{ GetRasterizerState() };
-    const Render::VertexDeclarations vtxDecls{ CreateVertexDeclarations() };
 
     const Render::PipelineParams meshPipelineParams
     {
@@ -96,7 +67,7 @@ namespace Tac::Render
       .mRasterizerState   { rasterizerState },
       .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
       .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
-      .mVtxDecls          { vtxDecls },
+      .mVtxDecls          {},
       .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
       .mName              { "mesh-pso" },
     };
@@ -110,7 +81,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  static Render::VertexDeclarations       sVtxDecls;
   static Vector< RenderMaterial >         mRenderMaterials;
   static bool                             sInitialized;
 
@@ -175,10 +145,8 @@ namespace Tac::Render
     return &renderMaterial;
   }
 
-
   void                              RenderMaterialApi::Init()
   {
-    sVtxDecls = CreateVertexDeclarations();
     sInitialized = true;
   }
 
@@ -188,6 +156,7 @@ namespace Tac::Render
       renderMaterial.Uninit();
 
     mRenderMaterials = {};
+    sInitialized = {};
   }
 
 } // namespace Tac::Render

@@ -507,15 +507,17 @@ namespace Tac::Render
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
 
-    DX12TransitionHelper transitionHelper;
     const DX12TransitionHelper::Params transitionParams
     {
       .mResource    { texture->mResource.Get() },
       .mStateBefore { & texture->mState  },
       .mStateAfter  { D3D12_RESOURCE_STATE_DEPTH_WRITE },
     };
+
+    DX12TransitionHelper transitionHelper;
     transitionHelper.Append( transitionParams );
     transitionHelper.ResourceBarrier( commandList );
+
     commandList->ClearDepthStencilView( DSV, ClearFlags,Depth, 0, 0, nullptr );
   }
 

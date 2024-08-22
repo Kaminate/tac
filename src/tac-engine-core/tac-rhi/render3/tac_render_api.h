@@ -466,6 +466,19 @@ namespace Tac::Render
     //                                       v then i can call updatebuffer from multiple places.
     virtual void UpdateBuffer( BufferHandle, Span< const UpdateBufferParams >, Errors& ) {}
 
+#if 1
+    template< typename T > void UpdateBufferSimple( BufferHandle h, const T& t, Errors& errors )
+    {
+      const UpdateBufferParams params
+      { 
+        .mSrcBytes     { &t },
+        .mSrcByteCount { sizeof( T ) },
+      };
+      Span< const UpdateBufferParams > span{ params };
+      UpdateBuffer( h, span, errors ); 
+    }
+#endif
+
     virtual void UpdateTexture( TextureHandle, UpdateTextureParams, Errors& ) {}
 
     virtual void Draw( DrawArgs ) {}

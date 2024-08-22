@@ -11,12 +11,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-
-  bool DX12Pipeline:: IsValid() const
-  {
-    return mPSO.Get() != nullptr;
-  }
-
   DX12Pipeline::Variable::Variable( D3D12ProgramBinding binding )
   {
     mBinding = binding;
@@ -77,7 +71,6 @@ namespace Tac::Render
 
     mHandleIndexes[ iArray ] = iHandle;
   }
-
 
   StringView DX12Pipeline::Variable::GetName() const
   {
@@ -192,5 +185,54 @@ namespace Tac::Render
 
     return {};
   }
+
+  // -----------------------------------------------------------------------------------------------
+
+  DX12Pipeline::Variables::Variables( const D3D12ProgramBindings& bindings )
+  {
+    for( const D3D12ProgramBinding binding : bindings )
+      mShaderVariables.push_back( DX12Pipeline::Variable( binding ) );
+  }
+
+  int DX12Pipeline::Variables::size() const
+  {
+    return mShaderVariables.size();
+  }
+
+  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::begin()
+  {
+    return mShaderVariables.begin();
+  }
+
+  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::end()
+  {
+    return mShaderVariables.end();
+  }
+
+  const DX12Pipeline::Variable* DX12Pipeline::Variables::begin() const
+  {
+    return mShaderVariables.begin();
+  }
+
+  const DX12Pipeline::Variable* DX12Pipeline::Variables::end() const
+  {
+    return mShaderVariables.end();
+  }
+
+  const DX12Pipeline::Variable* DX12Pipeline::Variables::data() const { return mShaderVariables.data(); }
+  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::data() dynmc { return mShaderVariables.data(); }
+
+  const DX12Pipeline::Variable& DX12Pipeline::Variables::operator[]( int i ) const
+  {
+    return mShaderVariables[ i ];
+  }
+  
+  // -----------------------------------------------------------------------------------------------
+
+  bool DX12Pipeline:: IsValid() const
+  {
+    return mPSO.Get() != nullptr;
+  }
+
 } // namespace Tac::Render
 

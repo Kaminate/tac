@@ -21,8 +21,7 @@
 
 namespace Tac
 {
-  static Map< StringID, Mesh* >    mMeshes;
-  static Map< HashValue, Mesh* >   sTryNewTHingMeshes;
+  static Map< HashValue, Mesh* >   sMeshMap;
 
   static HashValue HashVertexDeclaration( const Render::VertexDeclaration& vertexDeclaration )
   {
@@ -38,6 +37,7 @@ namespace Tac
     Hasher hasher;
     for( const Render::VertexDeclaration& vertexDeclaration : vertexDeclarations )
       hasher.Eat( HashVertexDeclaration( vertexDeclaration ) );
+
     return hasher;
   }
 
@@ -68,7 +68,7 @@ namespace Tac
 
     const HashValue hashedValue{ GetModelHash( path, iModel , vtxDecls ) };
 
-    if( Optional< Mesh* > mesh{ sTryNewTHingMeshes.FindVal( hashedValue ) } )
+    if( Optional< Mesh* > mesh{ sMeshMap.FindVal( hashedValue ) } )
       return *mesh;
 
     const StringView pathExt { path.GetFileExtension() };
@@ -79,7 +79,7 @@ namespace Tac
     Mesh* mesh { TAC_NEW Mesh };
     *mesh = TAC_CALL_RET( {}, meshLoadFunction( path, iModel, vtxDecls, errors ) );
 
-    sTryNewTHingMeshes[ hashedValue ] = mesh;
+    sMeshMap[ hashedValue ] = mesh;
 
     return mesh;
   }
@@ -93,15 +93,18 @@ namespace Tac
 
   void  ModelAssetManagerUninit()
   {
-    for( auto [sid, mesh] : mMeshes )
+    for( auto pair : sMeshMap )
     {
+      Mesh* mesh{ pair.mSecond };
       for( SubMesh& submesh : mesh->mSubMeshes )
       {
-        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-        renderDevice->DestroyBuffer( submesh.mIndexBuffer );
-        renderDevice->DestroyBuffer( submesh.mVertexBuffer );
+        submesh.ClearBuffers();
       }
+
+      TAC_DELETE mesh;
     }
+
+    sMeshMap = {};
   }
 
 

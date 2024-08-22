@@ -21,9 +21,9 @@ namespace Tac
 
   struct MaterialPerObjBuf
   {
-    m4  mWorld {};
-    u32 mIVtxBuf { (u32)-1 };
-    u32 mIMtlBuf { (u32)-1 };
+    m4  mWorld    {};
+    u32 mIVtxBuf  { ( u32 )-1 };
+    u32 mIMtlBuf  { ( u32 )-1 };
   };
 
   struct MaterialBufferData
@@ -89,42 +89,20 @@ namespace Tac
     };
   }
 
-  static void UpdatePerFrameCBuf( const Camera* camera,
-                                  const v2i viewSize,
-                                  Render::IContext* renderContext,
-                                  Errors& errors )
-  {
-    const MaterialPerFrameBuf perFrameData{ GetPerFrameBuf( camera, viewSize ) };
-
-    const Render::UpdateBufferParams updateBufferParams
-    {
-      .mSrcBytes     { &perFrameData },
-      .mSrcByteCount { sizeof( MaterialPerFrameBuf ) },
-    };
-    TAC_CALL( renderContext->UpdateBuffer( mMaterialPerFrameBuf, updateBufferParams, errors ) );
-  }
-
-  static void UpdatePerObjectCBuf( const Model* model,
-                                   const Material* material, // <-- todo: use
-                                   Render::IContext* renderContext,
-                                   Errors& errors )
+  static MaterialPerObjBuf GetPerObjBuf( const Model* model,
+                                         const Material* material )// <-- todo: use 
   {
     const m4 world { model->mEntity->mWorldTransform };
 
-    const MaterialPerObjBuf perObjectData
+    TAC_ASSERT_UNIMPLEMENTED; // .mIVtxBuf , .mIMtlBuf ,
+    return MaterialPerObjBuf
     {
       .mWorld { world },
       .mIVtxBuf {},
       .mIMtlBuf {},
     };
-
-    const Render::UpdateBufferParams updatePerObject
-    {
-      .mSrcBytes     { &perObjectData },
-      .mSrcByteCount { sizeof( MaterialPerObjBuf ) },
-    };
-    TAC_CALL( renderContext->UpdateBuffer( mMaterialPerObjBuf, updatePerObject, errors ) );
   }
+
 
   static Render::BufferHandle CreateDynCBuf( int byteCount, const char* name, Errors& errors )
   {
@@ -191,7 +169,8 @@ namespace Tac
     renderContext->SetScissor( viewSize );
     renderContext->SetRenderTargets( renderTargets );
 
-    TAC_CALL( UpdatePerFrameCBuf( camera, viewSize, renderContext, errors ) );
+    const MaterialPerFrameBuf perFrameData{ GetPerFrameBuf( camera, viewSize ) };
+    TAC_CALL( renderContext->UpdateBuffer( mMaterialPerFrameBuf, perFrameData, errors ) );
 
     for( const Entity* entity : world->mEntities )
     {
@@ -209,6 +188,7 @@ namespace Tac
       if( !material->mRenderEnabled )
         continue;
 
+      TAC_ASSERT_UNIMPLEMENTED;
       const Render::VertexDeclarations vtxDecls{ };
 
       TAC_CALL( const Mesh* mesh{
@@ -221,7 +201,9 @@ namespace Tac
 
       TAC_RENDER_GROUP_BLOCK( renderContext, model->mEntity->mName );
 
-      TAC_CALL( UpdatePerObjectCBuf( model, material, renderContext, errors ) );
+      const MaterialPerObjBuf perObj{ GetPerObjBuf( model ,material ) };
+      TAC_CALL( renderContext->UpdateBuffer( mMaterialPerObjBuf, perObj, errors ) );
+
       TAC_CALL( Render::RenderMaterial* renderMaterial{
         Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );
 
@@ -263,4 +245,5 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
 }
+
 #endif

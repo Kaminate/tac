@@ -61,11 +61,30 @@ namespace Tac::Render
       D3D12ProgramBinding       mBinding       {};
     };
 
+    struct Variables
+    {
+      Variables() = default;
+      Variables( const D3D12ProgramBindings& );
+
+      int             size() const;
+      const Variable* begin() const;
+      const Variable* end() const;
+      Variable*       begin();
+      Variable*       end();
+      const Variable* data() const;
+      Variable*       data();
+      const Variable& operator[]( int ) const;
+
+    private:
+
+      Vector< Variable > mShaderVariables;
+    };
+
     bool IsValid() const;
 
     PCom< ID3D12PipelineState > mPSO;
     PCom< ID3D12RootSignature > mRootSignature;
-    Vector< Variable >          mShaderVariables;
+    Variables                   mShaderVariables;
     PipelineParams              mPipelineParams;
     bool                        mIsCompute{};
   };

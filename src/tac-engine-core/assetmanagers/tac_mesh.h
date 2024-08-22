@@ -30,10 +30,13 @@ namespace Tac
   struct SubMesh
   {
     MeshRaycastResult          SubMeshModelSpaceRaycast( MeshRay ) const;
+    void                       ClearBuffers();
 
     Render::PrimitiveTopology  mPrimitiveTopology { Render::PrimitiveTopology::Unknown };
+
     Render::BufferHandle       mVertexBuffer      {};
     Render::BufferHandle       mIndexBuffer       {};
+
     SubMeshTriangles           mTris              {};
     int                        mIndexCount        {};
     int                        mVertexCount       {};

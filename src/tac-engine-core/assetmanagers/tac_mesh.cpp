@@ -29,6 +29,8 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+
+
   MeshRaycastResult SubMesh::SubMeshModelSpaceRaycast( MeshRay meshRay ) const
   {
     bool submeshHit {};
@@ -58,6 +60,16 @@ namespace Tac
       .mHit { submeshHit },
       .mT   { submeshDist },
     };
+  }
+
+
+  void              SubMesh::ClearBuffers()
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyBuffer( mIndexBuffer );
+    renderDevice->DestroyBuffer( mVertexBuffer );
+    mIndexBuffer = {};
+    mVertexBuffer = {};
   }
 
   // -----------------------------------------------------------------------------------------------

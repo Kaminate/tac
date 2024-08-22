@@ -25,6 +25,7 @@ namespace Tac
     Hasher hasher;
     for( char c : ext )
       hasher.Eat( ToLower( c ) );
+
     return hasher;
   }
 }
@@ -40,10 +41,10 @@ void Tac::ModelLoadFunctionRegister( MeshLoadFunction meshLoadFunction,
 
 Tac::MeshLoadFunction Tac::ModelLoadFunctionFind( MeshFileExt ext )
 {
-  ValidateExt(ext);
+  ValidateExt( ext );
 
   const HashValue hashedValue { ModelExtensionHash( ext ) };
-  const Optional< MeshLoadFunction > fn = functionMap.FindVal( hashedValue );
+  const Optional< MeshLoadFunction > fn{ functionMap.FindVal( hashedValue ) };
 
   return fn.GetValueOr( nullptr );
 }

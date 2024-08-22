@@ -212,11 +212,10 @@ namespace Tac::Render
     };
     DX12SetName( pPS, name );
 
-    Vector< DX12Pipeline::Variable > shaderVariables;
-    for( const D3D12ProgramBinding binding : program->mProgramBindings )
-      shaderVariables.push_back( DX12Pipeline::Variable( binding ) );
+    const DX12Pipeline::Variables shaderVariables( program->mProgramBindings );
 
-    mPipelines[ h.GetIndex() ] = DX12Pipeline
+    const int iPipeline{ h.GetIndex() };
+    mPipelines[ iPipeline ] = DX12Pipeline
     {
       .mPSO             { pso },
       .mRootSignature   { rootSig },

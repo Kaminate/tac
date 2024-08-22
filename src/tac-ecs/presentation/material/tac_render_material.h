@@ -6,7 +6,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-ecs/graphics/material/tac_material.h"
-#include "tac-ecs/tac_space_types.h"
+#include "tac-ecs/tac_space_types.h" // EntityUUID
 
 namespace Tac::Render
 {
@@ -16,10 +16,10 @@ namespace Tac::Render
   {
     void Uninit();
 
-    String                        mMaterialShader;
-    HashValue                     mMaterialShaderHash;
-    Render::ProgramHandle         m3DShader;
-    Render::PipelineHandle        mMeshPipeline;
+    String                        mMaterialShader     {};
+    HashValue                     mMaterialShaderHash {};
+    Render::ProgramHandle         m3DShader           {};
+    Render::PipelineHandle        mMeshPipeline       {};
     Render::IShaderVar*           mShaderVarPerFrame  {};
     Render::IShaderVar*           mShaderVarPerObject {};
     bool                          mAreShaderVarsSet   {};
@@ -31,8 +31,8 @@ namespace Tac::Render
   struct RenderMaterialProperties
   {
     Render::BufferHandle mMaterialData {};
-    EntityUUID           mEntityUUID{ NullEntityUUID };
-    HashValue            mMaterialHash; // for updating the buffer
+    EntityUUID           mEntityUUID   { NullEntityUUID };
+    HashValue            mMaterialHash {}; // for updating the buffer
   };
 
   struct RenderMaterialApi
