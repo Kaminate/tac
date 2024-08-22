@@ -6,6 +6,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-ecs/graphics/material/tac_material.h"
+#include "tac-ecs/tac_space_types.h"
 
 namespace Tac::Render
 {
@@ -31,7 +32,7 @@ namespace Tac::Render
   {
     Render::BufferHandle mMaterialData {};
     EntityUUID           mEntityUUID{ NullEntityUUID };
-    Hash                 mMaterialHash; // for updating the buffer
+    HashValue            mMaterialHash; // for updating the buffer
   };
 
   struct RenderMaterialApi

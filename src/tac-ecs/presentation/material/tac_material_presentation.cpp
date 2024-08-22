@@ -22,8 +22,8 @@ namespace Tac
   struct MaterialPerObjBuf
   {
     m4  mWorld {};
-    u32 mIVtxBuf { -1 };
-    u32 mIMtlBuf { -1 };
+    u32 mIVtxBuf { (u32)-1 };
+    u32 mIMtlBuf { (u32)-1 };
   };
 
   struct MaterialBufferData
@@ -114,8 +114,8 @@ namespace Tac
     const MaterialPerObjBuf perObjectData
     {
       .mWorld { world },
-      .mIVtxBuf { ... },
-      .mIMtlBuf { ... },
+      .mIVtxBuf {},
+      .mIMtlBuf {},
     };
 
     const Render::UpdateBufferParams updatePerObject
@@ -153,7 +153,7 @@ namespace Tac
                                                     errors ) );
 
     TAC_CALL( mMaterialPerObjBuf = CreateDynCBuf( sizeof( MaterialPerObjBuf ),
-                                                 "material-per-obj-cbuf"
+                                                 "material-per-obj-cbuf",
                                                  errors ) );
 
     sInitialized = true;
@@ -209,8 +209,7 @@ namespace Tac
       if( !material->mRenderEnabled )
         continue;
 
-      const Render::VertexDeclarations& vtxDecls{
-        Render::RenderMaterialApi::GetVertexDeclarations() };
+      const Render::VertexDeclarations vtxDecls{ };
 
       TAC_CALL( const Mesh* mesh{
         ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),

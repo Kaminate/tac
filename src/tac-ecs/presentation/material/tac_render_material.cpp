@@ -175,10 +175,6 @@ namespace Tac::Render
     return &renderMaterial;
   }
 
-  const Render::VertexDeclarations& RenderMaterialApi::GetVertexDeclarations()
-  {
-    return sVtxDecls;
-  }
 
   void                              RenderMaterialApi::Init()
   {
