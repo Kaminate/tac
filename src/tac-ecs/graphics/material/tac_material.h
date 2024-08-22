@@ -23,13 +23,21 @@ namespace Tac
       Json   mValue {};
     };
 
+
+    // Collection of data of various material shaders.
+    // The actual material shader picks which data to use
     bool           mIsGlTF_PBR_MetallicRoughness{};
     bool           mIsGlTF_PBR_SpecularGlossiness{};
     v4             mColor{};
     v3             mEmissive{};
 
+    // this could be used if we were to support arbitrary data
     Vector< Data > mData           {};
+
+    // Instead, the material "type" is encoded by the shader.
     String         mMaterialShader {};
+
+    // Whether entities with this material component should render or not
     bool           mRenderEnabled  { true };
   };
 

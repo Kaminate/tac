@@ -9,7 +9,8 @@
 
 namespace Tac::Render
 {
-
+  // The renderer-side of Tac::Material
+  // There is one RenderMaterial per material shader string
   struct RenderMaterial
   {
     void Uninit();
@@ -23,11 +24,20 @@ namespace Tac::Render
     bool                          mAreShaderVarsSet   {};
   };
 
+  // The instance data of RenderMaterial.
+  // ie: if there are two entities that share the same material,
+  //     but have different properties
+  struct RenderMaterialProperties
+  {
+    Render::BufferHandle mMaterialData {};
+    EntityUUID           mEntityUUID{ NullEntityUUID };
+    Hash                 mMaterialHash; // for updating the buffer
+  };
+
   struct RenderMaterialApi
   {
-    static void                      Init();
-    static void                      Uninit();
-    static RenderMaterial*           GetRenderMaterial( const Material*, Errors& );
-    static const VertexDeclarations& GetVertexDeclarations();
+    static void            Init();
+    static void            Uninit();
+    static RenderMaterial* GetRenderMaterial( const Material*, Errors& );
   };
 }

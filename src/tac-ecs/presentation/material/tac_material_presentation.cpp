@@ -21,8 +21,37 @@ namespace Tac
 
   struct MaterialPerObjBuf
   {
-    m4 mWorld {};
-    v4 mColor {};
+    m4  mWorld {};
+    u32 mIVtxBuf { -1 };
+    u32 mIMtlBuf { -1 };
+  };
+
+  struct MaterialBufferData
+  {
+    struct Flags
+    {
+      enum Flag
+      {
+        kDefault,
+        kIsGLTF_PBR_MetallicRoughness,
+        kIsGLTF_PBR_SpecularGlossiness,
+        kCount,
+      };
+
+      static_assert( Flag::kCount < 32 );
+
+      bool IsSet( Flag f ) const { return mFlags & ( 1 << f ); }
+      void Set( Flag f )         { mFlags |= ( 1 << f ); }
+      void Set( Flag f, bool b ) { if( b ) Set( f ); else Clear( f ); }
+      void Clear()               { mFlags = 0; }
+      void Clear( Flag f )       { mFlags &= ~( 1 << f ); }
+
+      u32 mFlags {};
+    };
+    
+    v4    mColor {};
+    v4    mEmissive {};
+    Flags mFlags {};
   };
 
   static Render::BufferHandle          mMaterialPerFrameBuf;
@@ -76,16 +105,17 @@ namespace Tac
   }
 
   static void UpdatePerObjectCBuf( const Model* model,
-                                   const Material* material,
+                                   const Material* material, // <-- todo: use
                                    Render::IContext* renderContext,
                                    Errors& errors )
   {
-    v4 color{ 1, 1, 1, 1 };
+    const m4 world { model->mEntity->mWorldTransform };
 
-    const Render::DefaultCBufferPerObject perObjectData
+    const MaterialPerObjBuf perObjectData
     {
-      .World { model->mEntity->mWorldTransform },
-      .Color { Render::PremultipliedAlpha::From_sRGB_linearAlpha( color ) },
+      .mWorld { world },
+      .mIVtxBuf { ... },
+      .mIMtlBuf { ... },
     };
 
     const Render::UpdateBufferParams updatePerObject
@@ -96,31 +126,17 @@ namespace Tac
     TAC_CALL( renderContext->UpdateBuffer( mMaterialPerObjBuf, updatePerObject, errors ) );
   }
 
-
-  static void CreatePerMaterial( Errors& errors )
+  static Render::BufferHandle CreateDynCBuf( int byteCount, const char* name, Errors& errors )
   {
-    const Render::CreateBufferParams materialPerFrameParams
+    const Render::CreateBufferParams params
     {
-      .mByteCount     { sizeof( MaterialPerFrameBuf ) },
+      .mByteCount     { byteCount },
       .mUsage         { Render::Usage::Dynamic },
       .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "material-per-frame-cbuf" },
+      .mOptionalName  { name },
     };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL( mMaterialPerFrameBuf = renderDevice->CreateBuffer( materialPerFrameParams, errors ) );
-  }
-
-  static void CreatePerObj( Errors& errors )
-  {
-    const Render::CreateBufferParams materialPerObjParams
-    {
-      .mByteCount     { sizeof( MaterialPerObjBuf ) },
-      .mUsage         { Render::Usage::Dynamic },
-      .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "material-per-obj-cbuf" },
-    };
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL( mMaterialPerObjBuf = renderDevice->CreateBuffer( materialPerObjParams, errors ) );
+    return renderDevice->CreateBuffer( params, errors );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -132,8 +148,13 @@ namespace Tac
 
     Render::RenderMaterialApi::Init();
 
-    TAC_CALL( CreatePerMaterial( errors ) );
-    TAC_CALL( CreatePerObj( errors ) );
+    TAC_CALL( mMaterialPerFrameBuf = CreateDynCBuf( sizeof( MaterialPerFrameBuf ),
+                                                    "material-per-frame-cbuf",
+                                                    errors ) );
+
+    TAC_CALL( mMaterialPerObjBuf = CreateDynCBuf( sizeof( MaterialPerObjBuf ),
+                                                 "material-per-obj-cbuf"
+                                                 errors ) );
 
     sInitialized = true;
   }
