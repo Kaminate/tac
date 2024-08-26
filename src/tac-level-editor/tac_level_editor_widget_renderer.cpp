@@ -169,10 +169,13 @@ namespace Tac
 
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetVtxDecls3D() };
 
-    TAC_CALL( mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
-                                                               0,
-                                                               m3DvertexFormatDecls,
-                                                               errors ) );
+    const ModelAssetManager::Params meshParms
+    {
+      .mPath{"assets/editor/arrow.gltf"},
+      .mOptVtxDecls{m3DvertexFormatDecls},
+    };
+
+    TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParms, errors ) );
 
     TAC_CALL( mBufferPerFrame = renderDevice->CreateBuffer( GetPerFrameParams(), errors ) );
     TAC_CALL( mBufferPerObj = renderDevice->CreateBuffer( GetPerObjParams(), errors ) );

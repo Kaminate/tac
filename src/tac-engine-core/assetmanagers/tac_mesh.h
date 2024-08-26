@@ -5,10 +5,8 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_matrix4.h"
-//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
-#define TAC_HACK_COLOR_INTO_MESH() false
 
 namespace Tac
 {
@@ -40,9 +38,6 @@ namespace Tac
     SubMeshTriangles           mTris              {};
     int                        mIndexCount        {};
     int                        mVertexCount       {};
-#if TAC_HACK_COLOR_INTO_MESH()
-    v4                         mColor             { 1, 1, 1, 1 };
-#endif
     String                     mName              {};
   };
 
@@ -51,6 +46,7 @@ namespace Tac
     MeshRaycastResult          MeshModelSpaceRaycast( MeshRay ) const;
 
     Vector< SubMesh >          mSubMeshes;
+    Render::VertexDeclarations mVertexDecls;
   };
 
 } // namespace Tac

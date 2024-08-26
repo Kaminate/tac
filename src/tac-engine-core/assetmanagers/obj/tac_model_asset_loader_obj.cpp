@@ -108,29 +108,9 @@ namespace Tac
     };
   }
 
-  static int                WavefrontObjCalculateStride( const Render::VertexDeclarations& vertexDeclarations )
+
+  static SubMeshTriangles   WavefrontObjGetSubMeshTriangles( const WavefrontObj& wavefrontObj )
   {
-    int maxStride {};
-    for( const Render::VertexDeclaration& decl : vertexDeclarations )
-    {
-      const int curStride { decl.mAlignedByteOffset + decl.mFormat.CalculateTotalByteCount() };
-      maxStride = Max( maxStride, curStride );
-    }
-
-    return maxStride;
-  }
-
-  static Mesh               WavefrontObjConvertToMesh( const StringView& name,
-                                                       const WavefrontObj& wavefrontObj,
-                                                       const Render::VertexDeclarations& vertexDeclarations,
-                                                       Errors& errors )
-  {
-    const int stride { WavefrontObjCalculateStride( vertexDeclarations ) };
-
-    Vector< char > dstVtxBytes;
-    Vector< char > dstIdxBytes;
-    Vector< char > vertexBytes( stride );
-
     SubMeshTriangles subMeshTriangles;
 
     for( const WavefrontObj::Face& face : wavefrontObj.mFaces )
@@ -140,6 +120,33 @@ namespace Tac
       {
         const WavefrontObj::Vertex& tri { face.mVertexes[ iTriVert ] };
         subMeshTriangle[ iTriVert ] = wavefrontObj.mPositions[ tri.miPosition ];
+      }
+
+      subMeshTriangles.push_back( subMeshTriangle );
+    }
+
+    return subMeshTriangles;
+  }
+
+
+  static Mesh               WavefrontObjConvertToMesh( const StringView& name,
+                                                       const WavefrontObj& wavefrontObj,
+                                                       const Render::VertexDeclarations& vertexDeclarations,
+                                                       Errors& errors )
+  {
+    const int stride { vertexDeclarations.CalculateStride() };
+
+    Vector< char > dstVtxBytes;
+    Vector< char > dstIdxBytes;
+    Vector< char > vertexBytes( stride );
+
+    const SubMeshTriangles subMeshTriangles{ WavefrontObjGetSubMeshTriangles( wavefrontObj ) };
+
+    for( const WavefrontObj::Face& face : wavefrontObj.mFaces )
+    {
+      for( int iTriVert {}; iTriVert < 3; ++iTriVert )
+      {
+        const WavefrontObj::Vertex& tri { face.mVertexes[ iTriVert ] };
 
         MemSet( vertexBytes.data(), 0, vertexBytes.size() );
 
@@ -186,8 +193,6 @@ namespace Tac
         for( char c : vertexBytes )
           dstVtxBytes.push_back( c );
       }
-
-      subMeshTriangles.push_back( subMeshTriangle );
     }
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -205,28 +210,78 @@ namespace Tac
     TAC_CALL_RET( {}, const Render::BufferHandle vertexBuffer{
        renderDevice->CreateBuffer( vertexBufferParams, errors ) } );
 
+      const int vtxCount{ wavefrontObj.mFaces.size() * 3 };
+
     const SubMesh subMesh
     {
       .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
       .mVertexBuffer      { vertexBuffer },
       .mTris              { subMeshTriangles },
-      .mVertexCount       { wavefrontObj.mFaces.size() * 3 },
+      .mVertexCount       { vtxCount },
       .mName              { name },
     };
 
-    return Mesh{ .mSubMeshes { subMesh } };
+    return Mesh
+    {
+      .mSubMeshes   { subMesh },
+      .mVertexDecls { vertexDeclarations },
+    };
   }
 
-  static Mesh               WavefrontObjLoadIntoMesh( const AssetPathStringView& assetPath,
-                                                      [[maybe_unused]] const int iModel,
-                                                      const Render::VertexDeclarations& vertexDeclarations,
+  struct WavefrontObjVtxDeclCreator
+  {
+    static Render::VertexDeclarations Create( const WavefrontObj& wavefrontObj  )
+    {
+      return WavefrontObjVtxDeclCreator( wavefrontObj ).mVertexDeclarations;
+    }
+
+  private:
+    WavefrontObjVtxDeclCreator( const WavefrontObj& wavefrontObj )
+    {
+      if( !wavefrontObj.mPositions.empty() )
+        AddAttribute( Render::Attribute::Position, Render::VertexAttributeFormat::GetVector3() );
+
+      if( !wavefrontObj.mNormals.empty() )
+        AddAttribute( Render::Attribute::Normal, Render::VertexAttributeFormat::GetVector3() );
+
+      if( !wavefrontObj.mTexCoords.empty() )
+        AddAttribute( Render::Attribute::Texcoord, Render::VertexAttributeFormat::GetVector2() );
+
+      TAC_ASSERT( mVertexDeclarations.CalculateStride() == mRunningStride );
+    };
+
+    void AddAttribute( Render::Attribute attrib, Render::VertexAttributeFormat vaf )
+    {
+        const Render::VertexDeclaration vtxDecl
+        {
+          .mAttribute         { attrib },
+          .mFormat            { vaf },
+          .mAlignedByteOffset { mRunningStride },
+        };
+        mVertexDeclarations.push_back( vtxDecl );
+        mRunningStride += vaf.CalculateTotalByteCount();
+    }
+
+    int                        mRunningStride{};
+    Render::VertexDeclarations mVertexDeclarations;
+  };
+
+
+  static Mesh               WavefrontObjLoadIntoMesh( ModelAssetManager::Params params,
                                                       Errors& errors )
   {
+
+    const AssetPathStringView assetPath{ params.mPath };
+    const int iModel{ params.mModelIndex };
+    dynmc Render::VertexDeclarations vertexDeclarations{ params.mOptVtxDecls };
+
     const StringView name { assetPath.GetFilename() };
     const String bytes { LoadAssetPath( assetPath, errors ) };
     const WavefrontObj wavefrontObj { WavefrontObj::Load( bytes.data(), bytes.size() ) };
-    const Mesh mesh { WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations, errors ) };
-    return mesh;
+    if( vertexDeclarations.empty() )
+      vertexDeclarations = WavefrontObjVtxDeclCreator::Create( wavefrontObj );
+
+    return WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations, errors );
   }
 
   void                      WavefrontObj::Init()

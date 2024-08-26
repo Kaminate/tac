@@ -556,7 +556,7 @@ namespace Tac
     CameraUpdateSaved( mSettingsNode, gCreation.mSimState.mEditorCamera );
     CameraUpdateControls( camera );
     mGizmoMgr->ComputeArrowLen( camera );
-    mMousePicking->Update( world, camera );
+    TAC_CALL(mMousePicking->Update( world, camera, errors ) );
 
     const v3 wsMouseDir{ mMousePicking->GetWorldspaceMouseDir() };
 
@@ -593,26 +593,26 @@ namespace Tac
 
 
         Errors getmeshErrors;
-        Mesh* mesh{
-          ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                  model->mModelIndex,
-                                                  m3DVertexFormatDecls,
-                                                  getmeshErrors ) };
+        const ModelAssetManager::Params meshParams
+        {
+          .mPath{model->mModelPath},
+          .mModelIndex{model->mModelIndex},
+          .mOptVtxDecls{m3DVertexFormatDecls},
+        };
+        Mesh* mesh{ ModelAssetManager::GetMesh( meshParams, getmeshErrors ) };
         if( !mesh )
           return;
-
 
         for( SubMesh& subMesh : mesh->mSubMeshes )
         {
           for( SubMeshTriangle& subMeshTri : subMesh.mTris )
           {
+            const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
+            const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
+            const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
+            const v3 wsTrivs[ 3 ]{ wsTriv0, wsTriv1,wsTriv2 };
 
-            v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
-            v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
-            v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
-            v3 wsTrivs[ 3 ]{ wsTriv0, wsTriv1,wsTriv2 };
-
-            v3 color{ 1, 0, 0 };
+            const v3 color{ 1, 0, 0 };
             drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
 
             for( int i{}; i < 3; ++i )

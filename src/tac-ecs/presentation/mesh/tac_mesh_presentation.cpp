@@ -184,13 +184,15 @@ namespace Tac
     };
   }
 
-  static Mesh* LoadModel( const Model* model )
+  static Mesh* LoadModel( const Model* model, Errors& errors )
   {
-    Errors getmeshErrors;
-    return ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                   model->mModelIndex,
-                                                   m3DVertexFormatDecls,
-                                                   getmeshErrors );
+    const ModelAssetManager::Params meshParams
+    {
+      .mPath {model->mModelPath},
+      .mModelIndex {model->mModelIndex},
+      .mOptVtxDecls {m3DVertexFormatDecls},
+    };
+    return ModelAssetManager::GetMesh( meshParams, errors );
   }
 
   static void UpdatePerFrameCBuf( const Camera* camera,
@@ -213,14 +215,7 @@ namespace Tac
                                    Render::IContext* renderContext,
                                    Errors& errors )
   {
-  #if TAC_HACK_COLOR_INTO_MESH()
-    v4 color{ model->mColorRGB , 1 };
-    if( mesh->mSubMeshes.size() == 1 )
-      color = mesh->mSubMeshes[ 0 ].mColor;
-#else
     v4 color{ 1, 1, 1, 1 };
-#endif
-
 
     const Render::DefaultCBufferPerObject perObjectData
     {
@@ -242,7 +237,7 @@ namespace Tac
                                           const Render::TextureHandle viewId,
                                           Errors& errors )
   {
-    const Mesh* mesh{ LoadModel( model ) };
+    TAC_CALL( const Mesh* mesh{ LoadModel( model, errors ) } );
     if( !mesh )
       return;
 
@@ -550,9 +545,9 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  const Tac::Mesh* MeshPresentation::GetModelMesh( const Model* model )
+  const Tac::Mesh* MeshPresentation::GetModelMesh( const Model* model, Errors& errors )
   {
-    return LoadModel( model );
+    return LoadModel( model, errors );
   }
 
   void             MeshPresentation::Init( Errors& errors )

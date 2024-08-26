@@ -27,7 +27,7 @@ namespace Tac
                                Render::TextureHandle depth,
                                Errors& );
     static void        DebugImGui();
-    static const Mesh* GetModelMesh( const Model* );
+    static const Mesh* GetModelMesh( const Model*, Errors& );
   };
 }
 

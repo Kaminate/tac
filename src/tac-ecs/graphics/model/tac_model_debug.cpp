@@ -184,7 +184,7 @@ namespace Tac
     //}
   }
 
-  static void ModelDebugImguiMesh(  Model* model  )
+  static void ModelDebugImguiMesh( Model* model  )
   {
     if( !ImGuiCollapsingHeader( "Mesh" ) )
       return;
@@ -194,7 +194,9 @@ namespace Tac
     const Mesh* mesh {};
 
 #if TAC_GAME_PRESENTATION_ENABLED()
-    mesh = MeshPresentation::GetModelMesh( model );
+    static Errors getMeshErrors;
+    mesh = MeshPresentation::GetModelMesh( model, getMeshErrors );
+    ImGuiText( getMeshErrors ? "Errors: " + getMeshErrors.ToString() : "" );
 #endif
 
     if( !mesh )

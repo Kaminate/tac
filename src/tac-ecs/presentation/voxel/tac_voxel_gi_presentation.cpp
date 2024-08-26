@@ -458,7 +458,7 @@ namespace Tac
       void operator()( Model* model ) override
       {
         Errors errors;
-        Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
+        Mesh* mesh{ ModelAssetManager::GetMesh( model->mModelPath.c_str(),
                                                              model->mModelIndex,
                                                              voxelVertexDeclarations,
                                                              errors ) };

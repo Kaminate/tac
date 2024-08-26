@@ -194,7 +194,10 @@ namespace Tac::Render
     int                   mAlignedByteOffset {};
   };
 
-  struct VertexDeclarations : public FixedVector< VertexDeclaration, 10 > {};
+  struct VertexDeclarations : public FixedVector< VertexDeclaration, 10 >
+  {
+    int CalculateStride() const;
+  };
 
   // $$$ Should this still be called an "Image", since the data parameter was removed?
   struct Image

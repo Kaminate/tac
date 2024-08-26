@@ -99,4 +99,18 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  int VertexDeclarations::CalculateStride() const
+  {
+    int maxStride {};
+    for( const VertexDeclaration& decl : *this )
+    {
+      const int curStride { decl.mAlignedByteOffset + decl.mFormat.CalculateTotalByteCount() };
+      maxStride = Max( maxStride, curStride );
+    }
+
+    return maxStride;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
 } // namespace Tac::Render

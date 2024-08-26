@@ -5,7 +5,7 @@
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-ecs/world/tac_world.h"
 
-#define TAC_MATERIAL_PRESENTATION_ENABLED() 0
+#define TAC_MATERIAL_PRESENTATION_ENABLED() 1
 
 #if TAC_MATERIAL_PRESENTATION_ENABLED()
 

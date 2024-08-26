@@ -125,10 +125,8 @@ namespace Tac::Render
     const HashValue hashValue{ Hash( materialShader ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    Render::IShaderVar* shaderVarPerFrame  {
-      renderDevice->GetShaderVariable( meshPipeline, "sPerObj" ) };
-    Render::IShaderVar* shaderVarPerObject {
-      renderDevice->GetShaderVariable( meshPipeline, "sPerFrame" ) };
+    Render::IShaderVar* perFrame { renderDevice->GetShaderVariable( meshPipeline, "sPerObj" ) };
+    Render::IShaderVar* perObj   { renderDevice->GetShaderVariable( meshPipeline, "sPerFrame" ) };
 
     mRenderMaterials.resize( mRenderMaterials.size() + 1 );
     RenderMaterial& renderMaterial{ mRenderMaterials.back() };
@@ -138,8 +136,8 @@ namespace Tac::Render
       .mMaterialShaderHash { hashValue },
       .m3DShader           { program },
       .mMeshPipeline       { meshPipeline },
-      .mShaderVarPerFrame  { shaderVarPerFrame },
-      .mShaderVarPerObject { shaderVarPerObject },
+      .mShaderVarPerFrame  { perFrame },
+      .mShaderVarPerObject { perObj },
     };
 
     return &renderMaterial;

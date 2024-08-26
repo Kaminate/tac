@@ -22,6 +22,7 @@ namespace Tac
 {
   cgltf_attribute_type          GetGltfFromAttribute( Render::Attribute );
   cgltf_primitive_type          GetGltfFromTopology( Render::PrimitiveTopology );
+  Render::Attribute             GLTFToTacAttribute( cgltf_attribute_type );
 
   const char*                   GetcgltfErrorAsString( cgltf_result );
   const char*                   GltfFmtErrMsg( cgltf_result, const char*, const char* );

@@ -61,6 +61,20 @@ namespace Tac
     return results[ parseResult ];
   }
 
+  Render::Attribute        GLTFToTacAttribute( cgltf_attribute_type attributeType )
+  {
+    switch( attributeType )
+    {
+      case cgltf_attribute_type_position: return Render::Attribute::Position;
+      case cgltf_attribute_type_normal: return Render::Attribute::Normal;
+      case cgltf_attribute_type_texcoord: return Render::Attribute::Texcoord;
+      case cgltf_attribute_type_color: return Render::Attribute::Color;
+      case cgltf_attribute_type_joints: return Render::Attribute::BoneIndex;
+      case cgltf_attribute_type_weights: return Render::Attribute::BoneWeight;
+      default: TAC_ASSERT_INVALID_CASE( attributeType ); return Render::Attribute::Count;
+    }
+  }
+
   cgltf_attribute_type        GetGltfFromAttribute( const Render::Attribute attributeType )
   {
     switch( attributeType )

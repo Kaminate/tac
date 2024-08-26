@@ -50,6 +50,7 @@ namespace Tac
     Render::IContext*             mRenderContext {};
     Render::TextureHandle         mShadowDepth;
     Render::VertexDeclarations    mVertexDeclarations;
+    Errors                        mErrors;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -253,11 +254,15 @@ namespace Tac
   void ShadowModelVisitor::operator()( Model* model )
   {
     Render::IContext* renderContext{ mRenderContext };
-    Errors errors;
-    Mesh* mesh{ ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                        model->mModelIndex,
-                                                        mVertexDeclarations,
-                                                        errors ) };
+    Errors& errors{ mErrors };
+    const ModelAssetManager::Params meshParams
+    {
+      .mPath         { model->mModelPath },
+      .mModelIndex   { model->mModelIndex },
+      .mOptVtxDecls  { mVertexDeclarations },
+    };
+
+    Mesh* mesh{ ModelAssetManager::GetMesh( meshParams, errors ) };
     if( !mesh )
       return;
 

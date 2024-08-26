@@ -170,7 +170,7 @@ namespace Tac
     renderContext->SetRenderTargets( renderTargets );
 
     const MaterialPerFrameBuf perFrameData{ GetPerFrameBuf( camera, viewSize ) };
-    TAC_CALL( renderContext->UpdateBuffer( mMaterialPerFrameBuf, perFrameData, errors ) );
+    TAC_CALL( renderContext->UpdateBufferSimple( mMaterialPerFrameBuf, perFrameData, errors ) );
 
     for( const Entity* entity : world->mEntities )
     {
@@ -189,20 +189,23 @@ namespace Tac
         continue;
 
       TAC_ASSERT_UNIMPLEMENTED;
-      const Render::VertexDeclarations vtxDecls{ };
+      const Render::VertexDeclarations vtxDecls{};
 
-      TAC_CALL( const Mesh* mesh{
-        ModelAssetManagerGetMeshTryingNewThing( model->mModelPath.c_str(),
-                                                model->mModelIndex,
-                                                vtxDecls,
-                                                errors ) } );
+      const ModelAssetManager::Params meshParams
+      {
+        .mPath        { model->mModelPath.c_str() },
+        .mModelIndex  { model->mModelIndex },
+        .mOptVtxDecls { vtxDecls},
+      };
+
+      TAC_CALL( const Mesh * mesh{ ModelAssetManager::GetMesh( meshParams, errors ) } );
       if( !mesh )
         return;
 
       TAC_RENDER_GROUP_BLOCK( renderContext, model->mEntity->mName );
 
       const MaterialPerObjBuf perObj{ GetPerObjBuf( model ,material ) };
-      TAC_CALL( renderContext->UpdateBuffer( mMaterialPerObjBuf, perObj, errors ) );
+      TAC_CALL( renderContext->UpdateBufferSimple( mMaterialPerObjBuf, perObj, errors ) );
 
       TAC_CALL( Render::RenderMaterial* renderMaterial{
         Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );

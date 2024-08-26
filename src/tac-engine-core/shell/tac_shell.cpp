@@ -35,7 +35,7 @@ namespace Tac
 
     //delete mLog;
 
-    ModelAssetManagerUninit();
+    ModelAssetManager::Uninit();
 
     // last, so resources can be freed
     Render::RenderApi::Uninit();
@@ -45,7 +45,7 @@ namespace Tac
   {
     JobQueueInit();
 
-    ModelAssetManagerInit();
+    ModelAssetManager::Init();
 
     TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ));
 

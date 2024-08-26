@@ -186,11 +186,14 @@ namespace Tac
     if( !cubemap.IsValid() )
       return;
 
-    TAC_CALL( Mesh * boxMesh{
-      ModelAssetManagerGetMeshTryingNewThing( "assets/editor/Box.gltf",
-                                              0,
-                                              mVertexDecls,
-                                              errors ) } );
+
+    const ModelAssetManager::Params meshParams
+    {
+      .mPath        { "assets/editor/Box.gltf"},
+      .mOptVtxDecls { mVertexDecls},
+    };
+
+    TAC_CALL( Mesh * boxMesh{ ModelAssetManager::GetMesh( meshParams, errors ) } );
     if( !boxMesh )
       return;
 

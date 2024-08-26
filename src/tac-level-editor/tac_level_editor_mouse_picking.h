@@ -16,13 +16,13 @@ namespace Tac
   {
     void                          BeginFrame( WindowHandle, Camera* );
     void                          Init( SelectedEntities*, GizmoMgr*, Errors& );
-    void                          Update( const World*, const Camera* );
+    void                          Update( const World*, const Camera*, Errors& );
     bool                          IsTranslationWidgetPicked( int );
     v3                            GetWorldspaceMouseDir() const;
 
   private:
 
-    void                          MousePickingEntities( const World*, const Camera* );
+    void                          MousePickingEntities( const World*, const Camera*, Errors& );
     void                          MousePickingGizmos( const Camera*);
     void                          MousePickingSelection( const Camera*);
 

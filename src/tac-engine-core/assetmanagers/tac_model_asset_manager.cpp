@@ -7,7 +7,6 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
-//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
@@ -55,43 +54,49 @@ namespace Tac
     return hasher;
   }
 
+  static HashValue GetModelHash( const ModelAssetManager::Params& params)
+  {
+    const AssetPathStringView& path{ params.mPath };
+    const int iModel{ params.mModelIndex };
+    const Render::VertexDeclarations& vtxDecls{ params.mOptVtxDecls };
+    const HashValue hashedValue{ GetModelHash( path, iModel , vtxDecls ) };
+    return hashedValue;
+  }
+
 
   // -----------------------------------------------------------------------------------------------
   
-  Mesh* ModelAssetManagerGetMeshTryingNewThing( const AssetPathStringView& path,
-                                                const int iModel,
-                                                const Render::VertexDeclarations& vtxDecls,
-                                                Errors& errors )
+  Mesh* ModelAssetManager::GetMesh( Params params, Errors& errors )
   {
-    if ( path.empty() )
+    if ( params.mPath.empty() )
       return nullptr;
 
-    const HashValue hashedValue{ GetModelHash( path, iModel , vtxDecls ) };
+    const HashValue hashedValue{ GetModelHash( params ) };
 
     if( Optional< Mesh* > mesh{ sMeshMap.FindVal( hashedValue ) } )
       return *mesh;
 
-    const StringView pathExt { path.GetFileExtension() };
+    const StringView pathExt{ params.mPath.GetFileExtension() };
     const MeshLoadFunction meshLoadFunction { ModelLoadFunctionFind( pathExt ) };
     if( !meshLoadFunction )
       return nullptr;
 
     Mesh* mesh { TAC_NEW Mesh };
-    *mesh = TAC_CALL_RET( {}, meshLoadFunction( path, iModel, vtxDecls, errors ) );
+    *mesh = TAC_CALL_RET( {}, meshLoadFunction( params, errors ) );
+    TAC_ASSERT( !mesh->mVertexDecls.empty() );
 
     sMeshMap[ hashedValue ] = mesh;
 
     return mesh;
   }
 
-
-  void  ModelAssetManagerInit()
+  void  ModelAssetManager::Init()
   {
     WavefrontObj::Init();
     GltfLoaderInit();
   }
 
-  void  ModelAssetManagerUninit()
+  void  ModelAssetManager::Uninit()
   {
     for( auto pair : sMeshMap )
     {

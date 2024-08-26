@@ -77,10 +77,10 @@ namespace Tac
     };
   }
 
-  static RaycastResult MousePickingEntityModel( Ray ray, const Model* model )
+  static RaycastResult MousePickingEntityModel( Ray ray, const Model* model, Errors& errors )
   {
     const Entity* entity { model->mEntity };
-    const Mesh* mesh { MeshPresentation::GetModelMesh( model ) };
+    TAC_CALL_RET( {}, const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
     if( !mesh )
     {
       return {};
@@ -120,11 +120,12 @@ namespace Tac
     };
   }
 
-  static RaycastResult MousePickingEntity( Ray ray, const Entity* entity )
+  static RaycastResult MousePickingEntity( Ray ray, const Entity* entity, Errors& errors )
   {
     if( const Model * model{ Model::GetModel( entity ) } )
     {
-      const RaycastResult raycastResult{ MousePickingEntityModel( ray, model ) };
+      TAC_CALL_RET( {}, const RaycastResult raycastResult{
+        MousePickingEntityModel( ray, model, errors ) } );
       if( raycastResult.mHit )
         return raycastResult;
     }
@@ -191,7 +192,9 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::MousePickingEntities( const World* world, const Camera* camera )
+  void CreationMousePicking::MousePickingEntities( const World* world,
+                                                   const Camera* camera,
+                                                   Errors& errors )
   {
     const Ray ray
     {
@@ -201,7 +204,7 @@ namespace Tac
 
     for( Entity* entity : world->mEntities )
     {
-      const RaycastResult raycastResult{ MousePickingEntity( ray, entity ) };
+      TAC_CALL( const RaycastResult raycastResult{ MousePickingEntity( ray, entity, errors ) } );
       if( !raycastResult.mHit || !pickData.IsNewClosest( raycastResult.mT ) )
         continue;
 
@@ -257,10 +260,12 @@ namespace Tac
     mGizmoMgr = gizmoMgr;
 
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetPosOnlyVtxDecls() };
-    TAC_CALL( mArrow = ModelAssetManagerGetMeshTryingNewThing( "assets/editor/arrow.gltf",
-                                                               0,
-                                                               m3DvertexFormatDecls,
-                                                               errors ) );
+    const ModelAssetManager::Params meshParams
+    {
+      .mPath{"assets/editor/arrow.gltf"},
+      .mOptVtxDecls{m3DvertexFormatDecls},
+    };
+    TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParams, errors ) );
   }
 
   v3   CreationMousePicking::GetWorldspaceMouseDir() const { return mWorldSpaceMouseDir; }
@@ -273,7 +278,7 @@ namespace Tac
     return picked;
   }
 
-  void CreationMousePicking::Update( const World* world, const Camera* camera )
+  void CreationMousePicking::Update( const World* world, const Camera* camera, Errors& errors )
   {
     pickData = {};
 
@@ -282,7 +287,7 @@ namespace Tac
     if( !mWindowHovered )
       return;
 
-    MousePickingEntities( world, camera );
+    TAC_CALL( MousePickingEntities( world, camera, errors ) );
 
     MousePickingGizmos( camera );
 

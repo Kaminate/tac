@@ -232,10 +232,45 @@ namespace Tac
     return indexBuffer;
   }
 
+  struct GLTFVtxDecl : public Render::VertexDeclarations
+  {
+    GLTFVtxDecl( const cgltf_primitive* prim )
+    {
+      int mRunningStride{};
+      for( cgltf_size i{}; i < prim->attributes_count; ++i )
+      {
+        const cgltf_attribute& attribute{ prim->attributes[i] };
+        const cgltf_type gltfType{ attribute.data->type };
+        const cgltf_attribute_type gltfAttribType{ attribute.type };
+        const Render::Attribute tacAttribType{ GLTFToTacAttribute( gltfAttribType ) };
+
+        Render::VertexAttributeFormat tacVAF{};
+        if( gltfType == cgltf_type_vec2 )
+          tacVAF = Render::VertexAttributeFormat::GetVector2();
+        else if ( gltfType == cgltf_type_vec3 )
+          tacVAF = Render::VertexAttributeFormat::GetVector3();
+        else
+        {
+          TAC_ASSERT_UNIMPLEMENTED;
+        }
+
+        const Render::VertexDeclaration vtxDecl
+        {
+          .mAttribute         { tacAttribType },
+          .mFormat            { tacVAF },
+          .mAlignedByteOffset { mRunningStride },
+        };
+        push_back( vtxDecl );
+
+        mRunningStride += vtxDecl.mFormat.CalculateTotalByteCount();
+      }
+    }
+  };
+
   static void                 PopulateSubmeshes( Vector< SubMesh >& submeshes,
                                                  const AssetPathStringView& path,
                                                  const int specifiedMeshIndex,
-                                                 const Render::VertexDeclarations& vtxDecls,
+                                                 dynmc Render::VertexDeclarations& vtxDecls,
                                                  Errors& errors )
   {
     LoadedGltfData loadedData;
@@ -258,6 +293,9 @@ namespace Tac
         cgltf_primitive* parsedPrim{ &parsedMesh->primitives[ iPrim ] };
         if( !parsedPrim->attributes_count )
           continue;
+
+        if( vtxDecls.empty() )
+          vtxDecls = GLTFVtxDecl( parsedPrim );
 
         TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
 
@@ -286,27 +324,6 @@ namespace Tac
         const cgltf_primitive_type supportedType { GetGltfFromTopology( topology ) };
         TAC_ASSERT( parsedPrim->type == supportedType );
 
-
-#if 1//TAC_HACK_COLOR_INTO_MESH()
-        v4 color{ 1, 1, 1, 1 };
-        cgltf_material* material{ parsedPrim->material };
-        if( material )
-        {
-          if( material->has_pbr_metallic_roughness )
-          {
-            const cgltf_pbr_metallic_roughness& pbr_metallic_roughness{
-              material->pbr_metallic_roughness};
-            const cgltf_float* base_color_factor{
-              pbr_metallic_roughness.base_color_factor };
-
-            color[ 0 ] = base_color_factor[ 0 ];
-            color[ 1 ] = base_color_factor[ 1 ];
-            color[ 2 ] = base_color_factor[ 2 ];
-            color[ 3 ] = base_color_factor[ 3 ];
-          }
-        }
-#endif
-
         const SubMesh subMesh
         {
           .mPrimitiveTopology { topology },
@@ -315,9 +332,6 @@ namespace Tac
           .mTris              { tris },
           .mIndexCount        { indexCount },
           .mVertexCount       { vertexCount },
-#if TAC_HACK_COLOR_INTO_MESH()
-          .mColor             { color },
-#endif
           .mName              { StringView( bufferName ) },
         };
         submeshes.push_back( subMesh );
@@ -325,18 +339,22 @@ namespace Tac
     }
   }
 
-  static Mesh                 LoadMeshFromGltf( const AssetPathStringView& path,
-                                                const int specifiedMeshIndex,
-                                                const Render::VertexDeclarations& vtxDecls,
+  static Mesh                 LoadMeshFromGltf( ModelAssetManager::Params params,
                                                 Errors& errors )
   {
+
+    const AssetPathStringView& path{ params.mPath };
+    const int specifiedMeshIndex{ params.mModelIndex };
+    dynmc Render::VertexDeclarations vtxDecls{ params.mOptVtxDecls };
+
     Vector< SubMesh > submeshes;
 
     TAC_CALL_RET( {}, PopulateSubmeshes( submeshes, path, specifiedMeshIndex, vtxDecls, errors ) );
 
     return Mesh
     {
-      .mSubMeshes { submeshes },
+      .mSubMeshes   { submeshes },
+      .mVertexDecls { vtxDecls },
     };
   }
 
