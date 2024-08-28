@@ -40,7 +40,7 @@ namespace Tac
     return 0;
   }
 
-  void              MetaCompositeType::Cast( void* dst, const void* src, const MetaType* srcType ) const
+  void              MetaCompositeType::Cast( CastParams ) const
   {
     TAC_ASSERT_INVALID_CODE_PATH;
   }

@@ -60,17 +60,20 @@ namespace Tac
     //                     Used to create components at runtime
     //                     ( from prefabs, or hardcode, or in editor, or whenever )
     //                     Component* ( *mCreateFn )( World* ) = nullptr;
-    ComponentCreateFn      mCreateFn     {};
-    ComponentDestroyFn     mDestroyFn    {};
-    ComponentDebugImguiFn  mDebugImguiFn {};
-    ComponentSaveFn        mSaveFn       {};
-    ComponentLoadFn        mLoadFn       {};
-    ComponentSettingsSaveFn        mSettingsSaveFn       {};
-    ComponentSettingsLoadFn        mSettingsLoadFn       {};
+    ComponentCreateFn       mCreateFn     {};
+    ComponentDestroyFn      mDestroyFn    {};
+    ComponentDebugImguiFn   mDebugImguiFn {};
+    //ComponentSaveFn         mSaveFn       {};
+    //ComponentLoadFn         mLoadFn       {};
+    ComponentSettingsSaveFn mSettingsSaveFn       {};
+    ComponentSettingsLoadFn mSettingsLoadFn       {};
 
 
     //                     Used for serializing components over the network
-    NetVars                mNetVars;
+    //NetVars                mNetVars;
+
+    NetVarReaderWriter       mNetVarReaderWriter {};
+    const MetaCompositeType* mMetaType        {};
 
     ComponentSettings      mComponentSettings;
   };

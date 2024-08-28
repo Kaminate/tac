@@ -35,6 +35,8 @@ namespace Tac
           UnionWith( &entry );
   }
 
+  u64  ComponentRegistryBits::GetBitfield() const { return mBitfield; }
+
   // ----------------------------------------------------------------------------------------------
 
   void        ChangedComponentBitfields::Set( const ComponentRegistryEntry* entry,
@@ -121,20 +123,20 @@ namespace Tac
     mModified.push_back( mod );
   }
 
-  void EntityDiffs::Write( World* oldWorld, World* newWorld, Writer* writer )
+  void EntityDiffs::Write( World* oldWorld, World* newWorld, WriteStream* writer )
   {
     EntityDiffs diffs( oldWorld, newWorld );
     diffs.Write( writer );
   }
 
-  void EntityDiffs::WriteDeleted( Writer* writer )
+  void EntityDiffs::WriteDeleted( WriteStream* writer )
   {
     writer->Write( ( EntityCount )mDestroyed.size() );
     for( EntityUUID entityUUID : mDestroyed )
         writer->Write( entityUUID );
   }
 
-  void EntityDiffs::WriteCreated( Writer* writer )
+  void EntityDiffs::WriteCreated( WriteStream* writer )
   {
     writer->Write( ( EntityCount )mCreated.size() );
     for( Entity* entity : mCreated )
@@ -149,7 +151,7 @@ namespace Tac
     }
   }
 
-  void EntityDiffs::WriteModified( Writer* writer )
+  void EntityDiffs::WriteModified( WriteStream* writer )
   {
     writer->Write( ( EntityCount )mModified.size() );
     for( const EntityMod& mod : mModified )
@@ -164,14 +166,14 @@ namespace Tac
     }
   }
 
-  void EntityDiffs::Write( Writer* writer )
+  void EntityDiffs::Write( WriteStream* writer )
   {
     WriteDeleted(writer);
     WriteCreated(writer);
     WriteModified(writer);
   }
 
-  void EntityDiffs::Read( World* world, Reader* reader, Errors& errors )
+  void EntityDiffs::Read( World* world, ReadStream* reader, Errors& errors )
   {
     TAC_CALL( ReadDeleted( world, reader, errors ) );
     TAC_CALL( ReadCreated( world, reader, errors ) );
@@ -179,7 +181,7 @@ namespace Tac
 
   }
 
-  void EntityDiffs::ReadDeleted( World* world, Reader* reader, Errors& errors )
+  void EntityDiffs::ReadDeleted( World* world, ReadStream* reader, Errors& errors )
   {
     const auto numDeletedEntities = TAC_CALL( reader->Read<EntityCount>( errors ) );
     for( EntityCount i {}; i < numDeletedEntities; ++i )
@@ -189,7 +191,7 @@ namespace Tac
     }
   }
 
-  void EntityDiffs::ReadCreated( World* world, Reader* reader, Errors& errors )
+  void EntityDiffs::ReadCreated( World* world, ReadStream* reader, Errors& errors )
   {
     TAC_CALL( const auto n { reader->Read<EntityCount>( errors )  });
     for( EntityCount i {}; i < n; ++i )
@@ -211,7 +213,7 @@ namespace Tac
     }
   }
 
-  void EntityDiffs::ReadModified( World* world, Reader* reader, Errors& errors )
+  void EntityDiffs::ReadModified( World* world, ReadStream* reader, Errors& errors )
   {
     TAC_CALL( const auto n{ reader->Read<EntityCount >( errors ) } );
     for( EntityCount i = 0; i < n; ++i )

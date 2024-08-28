@@ -1,6 +1,7 @@
 target_sources( TacStdLib 
   PUBLIC
   tac_string.h
+  tac_string_meta.h
   tac_string_view.h
   tac_short_fixed_string.h
   tac_string_literal.h
@@ -9,6 +10,7 @@ target_sources( TacStdLib
   tac_string_util.h
   PRIVATE
   tac_string.cpp
+  tac_string_meta.cpp
   tac_string_view.cpp
   tac_short_fixed_string.cpp
   tac_string_literal.cpp

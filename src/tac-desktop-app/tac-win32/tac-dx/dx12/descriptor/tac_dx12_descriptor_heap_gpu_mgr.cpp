@@ -356,7 +356,6 @@ namespace Tac::Render
 
   void DX12DescriptorRegionManager::DebugPrint()
   {
-
     String str;
     for( int i{}; i < 100; ++i)
       str += "-";

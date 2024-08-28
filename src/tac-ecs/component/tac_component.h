@@ -12,6 +12,7 @@ namespace Tac
     virtual void                          PreReadDifferences() {};
     virtual void                          PostReadDifferences() {};
     virtual const ComponentRegistryEntry* GetEntry() const = 0;
+    void                                  CopyFrom( const Component* );
     Entity*                               mEntity {};
   };
 

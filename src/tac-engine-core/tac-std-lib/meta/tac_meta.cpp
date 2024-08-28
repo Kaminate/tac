@@ -39,13 +39,28 @@ namespace Tac
     }
   }
 
+  // -----------------------------------------------------------------------------------------------
+
+  void        MetaType::Read( ReadStream*, dynmc void* )  const  { TAC_ASSERT_UNIMPLEMENTED; }
+  void        MetaType::Write( WriteStream*, const void* ) const { TAC_ASSERT_UNIMPLEMENTED; }
+  void        MetaType::Copy( CopyParams ) const                 { TAC_ASSERT_UNIMPLEMENTED; }
+
+  bool        MetaType::Equals( const void*, const void* ) const
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return false;
+  }
+
+
+  // -----------------------------------------------------------------------------------------------
+
   struct IntMetaType : public MetaType
   {
     const char* GetName() const override;
     int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
-    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
+    void        Cast( CastParams ) const override;
     void        JsonSerialize( Json* , const void* ) const override;
     void        JsonDeserialize( const Json* , void* ) const override;
     int         ToInt( const void* ) const;
@@ -57,7 +72,7 @@ namespace Tac
     int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
-    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
+    void        Cast( CastParams ) const override;
     void        JsonSerialize( Json* , const void* ) const override;
     void        JsonDeserialize( const Json* , void* ) const override;
     
@@ -69,7 +84,7 @@ namespace Tac
     int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
-    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
+    void        Cast( CastParams ) const override;
     void        JsonSerialize( Json*, const void* ) const override;
     void        JsonDeserialize( const Json*, void* ) const override;
     float       ToFloat( const void* v ) const;
@@ -81,7 +96,7 @@ namespace Tac
     int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
-    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
+    void        Cast( CastParams ) const override;
     void        JsonSerialize( Json* , const void* ) const override;
     void        JsonDeserialize( const Json* , void* ) const override;
     double      ToDouble( const void* ) const;
@@ -94,7 +109,7 @@ namespace Tac
     int         GetSizeOf() const override;
     String      ToString( const void* ) const override;
     float       ToNumber( const void* ) const override;
-    void        Cast( void* dst, const void* src, const MetaType* srcType ) const override;
+    void        Cast( CastParams ) const override;
     void        JsonSerialize( Json*, const void* ) const override;
     void        JsonDeserialize( const Json*, void* ) const override;
 
@@ -133,9 +148,9 @@ namespace Tac
     return ( float )ToInt( v );
   }
 
-  void        IntMetaType::Cast( void* dst, const void* src, const MetaType* srcType ) const 
+  void        IntMetaType::Cast( CastParams castParams ) const 
   {
-    *( int* )dst = ( int )srcType->ToNumber( src );
+    *( int* )castParams.mDst = ( int )castParams.mSrcType->ToNumber( castParams.mSrc );
   }
 
   void        IntMetaType::JsonSerialize( Json* json, const void* v ) const 
@@ -145,7 +160,13 @@ namespace Tac
 
   void        IntMetaType::JsonDeserialize( const Json* json, void* v ) const 
   {
-    Cast( v, TryGetJsonMetapointer( json ), TryGetJsonMetatype( json ) );
+    const CastParams castParams
+    {
+      .mDst     { v},
+      .mSrc     { TryGetJsonMetapointer( json )},
+      .mSrcType { TryGetJsonMetatype( json )},
+    };
+    Cast( castParams );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -156,9 +177,9 @@ namespace Tac
 
   float       FloatMetaType::ToNumber( const void* v ) const { return ToFloat( v ); }
 
-  void        FloatMetaType::Cast( void* dst, const void* src, const MetaType* srcType ) const 
+  void        FloatMetaType::Cast( CastParams castParams ) const 
   {
-    *( float* )dst = ( float )srcType->ToNumber( src );
+    *( float* )castParams.mDst = ( float )castParams.mSrcType->ToNumber( castParams.mSrc );
   }
 
   void        FloatMetaType::JsonSerialize( Json* json, const void* v ) const 
@@ -168,7 +189,13 @@ namespace Tac
 
   void        FloatMetaType::JsonDeserialize( const Json* json, void* v ) const 
   {
-    Cast( v, TryGetJsonMetapointer( json ), TryGetJsonMetatype( json ) );
+    const CastParams castParams
+    {
+      .mDst     { v },
+      .mSrc     { TryGetJsonMetapointer( json ) },
+      .mSrcType { TryGetJsonMetatype( json ) },
+    };
+    Cast( castParams );
   }
 
   String      FloatMetaType::ToString( const void* v ) const
@@ -200,9 +227,9 @@ namespace Tac
     return ( float )ToDouble( v );
   }
 
-  void        DoubleMetaType::Cast( void* dst, const void* src, const MetaType* srcType ) const 
+  void        DoubleMetaType::Cast( CastParams castParams ) const 
   {
-    *( double* )dst = ( double )srcType->ToNumber( src );
+    *( double* )castParams.mDst = ( double )castParams.mSrcType->ToNumber( castParams.mSrc );
   }
 
   void        DoubleMetaType::JsonSerialize( Json* json, const void* v ) const 
@@ -212,7 +239,13 @@ namespace Tac
 
   void        DoubleMetaType::JsonDeserialize( const Json* json, void* v ) const 
   {
-    Cast( v, TryGetJsonMetapointer( json ), TryGetJsonMetatype( json ) );
+    const CastParams castParams
+    {
+      .mDst     { v},
+      .mSrc     { TryGetJsonMetapointer( json )},
+      .mSrcType { TryGetJsonMetatype( json )},
+    };
+    Cast( castParams );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -225,7 +258,7 @@ namespace Tac
 
   float       NullMetaType::ToNumber( const void* v ) const    { return 0; }
 
-  void        NullMetaType::Cast( void* dst, const void* src, const MetaType* srcType ) const 
+  void        NullMetaType::Cast( CastParams ) const 
   {
     TAC_ASSERT_INVALID_CODE_PATH;
   }
@@ -250,7 +283,7 @@ namespace Tac
 
   float       CharStarMetaType::ToNumber( const void* v ) const  { return ( float )Atoi( *( const char** )v ); }
 
-  void        CharStarMetaType::Cast( void* dst, const void* src, const MetaType* srcType ) const 
+  void        CharStarMetaType::Cast( CastParams ) const 
   {
     //*( const char** )dst = srcType->ToString( src );
     TAC_ASSERT_INVALID_CODE_PATH;

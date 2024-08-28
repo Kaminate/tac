@@ -263,7 +263,7 @@
           0,
           0
         ],
-        "mMaterialShader": "materials/glTFpbr"
+        "mMaterialShader": "glTFpbr"
       },
       "mActive": true
     },
@@ -397,9 +397,9 @@
         "mRenderEnabled": true,
         "mColor":
         [
-          0.57,
-          0.57,
-          0.57,
+          0.569,
+          0.569,
+          0.569,
           1
         ],
         "mIsGlTF_PBR_SpecularGlossiness": false,

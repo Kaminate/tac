@@ -21,7 +21,13 @@ namespace Tac
   template < typename T > T MetaCast( Variable v )
   {
     T t{};
-    GetMetaType( t ).Cast( &t, v.mAddr, v.mType );
+    const MetaType::CastParams castParams
+    {
+      .mDst     { &t },
+      .mSrc     { v.mAddr },
+      .mSrcType { v.mType },
+    };
+    GetMetaType( t ).Cast( castParams );
     return t;
   }
 
@@ -30,7 +36,13 @@ namespace Tac
   template< typename Ret >
   void Apply( Ret fnRes, Variable ret )
   {
-    ret.mType->Cast( ret.mAddr, &fnRes, ret.mType );
+    const MetaType::CastParams castParams
+    {
+      .mDst     { ret.mAddr },
+      .mSrc     { &fnRes },
+      .mSrcType { ret.mType },
+    };
+    ret.mType->Cast( castParams );
   }
 
   template< typename Ret >

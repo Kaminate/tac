@@ -25,7 +25,7 @@ namespace Tac
     int                   GetSizeOf() const override;
     String                ToString( const void* ) const override;
     float                 ToNumber( const void* ) const override;
-    void                  Cast( void* dst, const void* src, const MetaType* srcType ) const override;
+    void                  Cast( CastParams ) const override;
     const MetaMember&     GetMember( int ) const;
     int                   GetMemberCount() const;
     void                  JsonSerialize( Json* json, const void* v ) const override;

@@ -4,33 +4,32 @@
 
 namespace Tac
 {
-  const String tac( "tac" );
-
-  void WriteNetMsgHeader( Writer* writer, NetMsgType networkMessageType )
+  void WriteNetMsgHeader( WriteStream* writer, NetMsgType networkMessageType )
   {
-    writer->Write( tac.data(), tac.size(), 1 );
-    writer->Write( networkMessageType );
+    writer->Write( ( u8 )'t' );
+    writer->Write( ( u8 )'a' );
+    writer->Write( ( u8 )'c' );
+    writer->Write( ( u8 )networkMessageType );
   }
 
-  NetMsgType ReadNetMsgHeader( Reader* reader,  Errors& errors )
+  NetMsgType ReadNetMsgHeader( ReadStream* reader,  Errors& errors )
   {
-    for( const char cExpected : tac )
-    {
-      TAC_CALL_RET( {}, const char cActual{ reader->Read< char >( errors ) } );
-      TAC_RAISE_ERROR_IF_RETURN( {}, cExpected != cActual, "net msg header mismatch" );
-    }
+    TAC_CALL_RET( {}, const u8 t { reader->ReadT< u8 >( errors ) } );
+    TAC_CALL_RET( {}, const u8 a { reader->ReadT< u8 >( errors ) } );
+    TAC_CALL_RET( {}, const u8 c { reader->ReadT< u8 >( errors ) } );
+    TAC_RAISE_ERROR_IF_RETURN( {}, t != 't', "net msg header mismatch" );
+    TAC_RAISE_ERROR_IF_RETURN( {}, a != 'a', "net msg header mismatch" );
+    TAC_RAISE_ERROR_IF_RETURN( {}, c != 'c', "net msg header mismatch" );
 
-    return reader->Read<NetMsgType>( errors );
+    return reader->ReadT<NetMsgType>( errors );
   }
 
-  NetBitDiff GetNetVarfield( const void* oldData,
-                             const void* newData,
-                             const NetVars& vars )
-  {
-    return vars.Diff( oldData, newData );
-
-
-  }
+  //NetBitDiff GetNetVarfield( const void* oldData,
+  //                           const void* newData,
+  //                           const NetVars& vars )
+  //{
+  //  return vars.Diff( oldData, newData );
+  //}
 
   void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )
   {

@@ -11,14 +11,14 @@ namespace Tac
   struct ComponentRegistryEntry;
   struct Entity;
 
-  // As a whole, this struct represents the components owned by an entity
+  // Represents the components owned by an entity
   struct ComponentRegistryBits
   {
-    ComponentRegistryBits(Entity* = nullptr);
+    ComponentRegistryBits( Entity* = nullptr );
     void UnionWith( const ComponentRegistryEntry* );
     bool HasComponent( const ComponentRegistryEntry* ) const;
+    u64  GetBitfield() const;
     bool operator == ( const ComponentRegistryBits& ) const = default;
-    u64 GetBitfield() const { return mBitfield; }
 
   private:
     u64 Mask( const ComponentRegistryEntry* ) const;
@@ -51,19 +51,19 @@ namespace Tac
 
   struct EntityDiffs
   {
-    static void Write( World* oldWorld, World* newWorld, Writer* writer );
-    static void Read( World* world, Reader* reader, Errors& errors );
+    static void Write( World* oldWorld, World* newWorld, WriteStream* writer );
+    static void Read( World* , ReadStream* , Errors& );
 
   private:
     EntityDiffs( World* oldWorld, World* newWorld );
-    void Write( Writer* );
-    void WriteDeleted( Writer* );
-    void WriteCreated( Writer* );
-    void WriteModified( Writer* );
+    void Write( WriteStream* );
+    void WriteDeleted( WriteStream* );
+    void WriteCreated( WriteStream* );
+    void WriteModified( WriteStream* );
     void DiffEntities( Entity* oldEntity, Entity* newEntity );
-    static void ReadDeleted( World* world, Reader* reader, Errors& errors );
-    static void ReadCreated( World* world, Reader* reader, Errors& errors );
-    static void ReadModified( World* world, Reader* reader, Errors& errors );
+    static void ReadDeleted( World* , ReadStream* , Errors& );
+    static void ReadCreated( World* , ReadStream* , Errors& );
+    static void ReadModified( World* , ReadStream* , Errors& );
 
     Vector< Entity* >    mCreated;
     Vector< EntityUUID > mDestroyed;

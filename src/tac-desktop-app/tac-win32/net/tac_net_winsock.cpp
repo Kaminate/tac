@@ -32,10 +32,11 @@ namespace Tac::Network
     void        TCPTryConnect( StringView hostname,
                                u16 port,
                                Errors& ) override;
-    SOCKET      mSocket { INVALID_SOCKET };
+
+    SOCKET      mSocket               { INVALID_SOCKET };
     int         mWinsockAddressFamily {};
-    int         mWinsockSocketType {};
-    String      mHostname;
+    int         mWinsockSocketType    {};
+    String      mHostname             {};
   };
 
   struct NetWinsock : public Net
@@ -119,14 +120,18 @@ namespace Tac::Network
   void SocketWinsock::Send( void* bytes, int byteCount, Errors& errors )
   {
     Vector< u8 > framed;
+
+    TAC_ASSERT_INVALID_CASE( !mRequiresWebsocketFrame );
+#if 0
     if( mRequiresWebsocketFrame )
     {
       u8 payloadByteCount7Bit {};
 
-      Writer writer
+      WriteStream writeStream;
+      EndianWriter writer
       {
         .mFrom { GetEndianness() },
-        .mTo { Endianness::Big },
+        .mTo   { Endianness::Big },
       };
 
       if( byteCount < 126 )
@@ -142,7 +147,7 @@ namespace Tac::Network
         writer.Write( ( u64 )byteCount );
       }
 
-      const int frameByteCount { 2 + ( int )writer.mBytes.size() + 4 + byteCount };
+      const int frameByteCount { 2 + ( int )writeStream.Size() + 4 + byteCount };
       framed.resize( frameByteCount );
 
       int iByte {};
@@ -169,8 +174,8 @@ namespace Tac::Network
       for( int i{}; i < byteCount; ++i )
       {
         const u8 unmaskedByte { *unmaskedBytes++ };
-        const u8 mask { masks[ i % 4 ] };
-        const u8 maskedByte { (u8)(unmaskedByte ^ mask) };
+        const u8 mask{ masks[ i % 4 ] };
+        const u8 maskedByte{ ( u8 )( unmaskedByte ^ mask ) };
         framed[ iByte++ ] = maskedByte;
       }
 
@@ -179,6 +184,7 @@ namespace Tac::Network
       bytes = framed.data();
       byteCount = ( int )framed.size();
     }
+#endif
 
     // Should we send right now or queue it for NetWinsock::Update?
     const char* sendBytes { ( const char* )bytes };

@@ -3,6 +3,9 @@
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/meta/tac_meta_composite.h"
+#include "tac-std-lib/math/tac_math_meta.h"
+#include "tac-std-lib/string/tac_string_meta.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/entity/tac_entity.h"
@@ -10,6 +13,17 @@
 
 namespace Tac
 {
+
+  TAC_META_REGISTER_COMPOSITE_BEGIN( Material )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mIsGlTF_PBR_MetallicRoughness )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mIsGlTF_PBR_SpecularGlossiness )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mColor )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mEmissive )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mMaterialShader )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mRenderEnabled )
+  TAC_META_REGISTER_COMPOSITE_END( Material );
+
+
   static ComponentRegistryEntry* sComponentRegistryEntry;
 
   static Component* CreateMaterialComponent( World* world )
@@ -48,6 +62,9 @@ namespace Tac
     json[ TAC_MEMBER_NAME( Material, mRenderEnabled ) ].SetBool( material->mRenderEnabled );
     json[ TAC_MEMBER_NAME( Material, mMaterialShader ) ].SetString( material->mMaterialShader );
 
+    const MetaType& metaMaterial{ GetMetaType< Material >() };
+    metaMaterial.JsonSerialize( &json, component );
+
   }
 
   static void       LoadMaterialComponent( Json& json, Component* component )
@@ -84,6 +101,7 @@ namespace Tac
   {
     return sComponentRegistryEntry;
   }
+
 
   void                             Material::RegisterComponent()
   {
@@ -155,7 +173,61 @@ namespace Tac
     };
 #endif
 
+#if 0
+    NetVar netVar
+    {
+      .mDebugName { TAC_MEMBER_NAME( Material, mIsGlTF_PBR_MetallicRoughness ) },
+      .mByteOffset {
+      int               mByteOffset          {};
+      int               mElementByteCount    {};
+      int               mElementCount        {};
+      NetVarReader*     mVarReader           {};
+      NetVarWriter*     mVarWriter           {};
+      NetVarComparison* mVarCompare          {};
+      bool              mIsTriviallyCopyable {};
 
+
+    };
+
+    NetVar{ bool         mIsGlTF_PBR_SpecularGlossiness };
+    NetVar{ v4           mColor };
+    NetVar{ v3           mEmissive };
+    NetVar{ String       mMaterialShader };
+    NetVar{     bool         mRenderEnabled };
+
+
+    NetVars netVars;
+    netVars.Add( );
+
+#endif
+
+
+#if 1
+    NetVars netVars;
+
+    TAC_MEMBER_NAME();
+
+    const MetaCompositeType& metaMaterial{ ( const MetaCompositeType& )GetMetaType< Material >() };
+    const int nMembers{ metaMaterial.GetMemberCount() };
+    for( int iMember{}; iMember < nMembers; ++iMember )
+    {
+      const MetaMember& metaMember{ metaMaterial.GetMember( iMember ) };
+      metaMember.mMetaType;
+      metaMember.mName;
+      metaMember.mOffset;
+
+      NetVar netVar;
+      netVar.mDebugName = metaMember.mName;
+      netVar.mByteOffset = metaMember.mOffset;
+    int               mElementByteCount    {};
+    int               mElementCount        {};
+    NetVarReader*     mVarReader           {};
+    NetVarWriter*     mVarWriter           {};
+    NetVarComparison* mVarCompare          {};
+    bool              mIsTriviallyCopyable {};
+    }
+    MetaMember;
+#endif
 
 
     sComponentRegistryEntry = ComponentRegistry_RegisterComponent();

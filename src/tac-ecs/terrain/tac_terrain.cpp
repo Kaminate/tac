@@ -18,6 +18,17 @@ namespace Tac
 {
   static ComponentRegistryEntry* sRegistry;
 
+  TAC_META_REGISTER_COMPOSITE_BEGIN( Terrain )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mSideVertexCount )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mSideLength )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mUpwardsHeight )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mHeightmapTexturePath )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mGroundTexturePath )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mNoiseTexturePath )
+  TAC_META_REGISTER_COMPOSITE_END( Terrain );
+
+
+#if 0
   static void        TerrainSavePrefab( Json& json, Component* component )
   {
     auto terrain { ( Terrain* )component };
@@ -39,6 +50,7 @@ namespace Tac
     terrain->mGroundTexturePath = json[ "mGroundTexturePath" ].mString;
     terrain->mNoiseTexturePath = json[ "mNoiseTexturePath" ].mString;
   }
+#endif
 
   static Component*  CreateTerrainComponent( World* world )
   {
@@ -61,12 +73,12 @@ namespace Tac
   {
     sRegistry = ComponentRegistry_RegisterComponent();
     sRegistry->mName = "Terrain";
-    sRegistry->mNetVars = {};
     sRegistry->mCreateFn = CreateTerrainComponent;
     sRegistry->mDestroyFn = DestroyTerrainComponent;
     sRegistry->mDebugImguiFn = []( Component* component ){ TerrainDebugImgui( ( Terrain* )component ); };
-    sRegistry->mLoadFn = TerrainLoadPrefab;
-    sRegistry->mSaveFn = TerrainSavePrefab;
+    sRegistry->mNetVarReaderWriter = ;
+    //sRegistry->mLoadFn = TerrainLoadPrefab;
+    //sRegistry->mSaveFn = TerrainSavePrefab;
   }
 
   const ComponentRegistryEntry* Terrain::GetEntry() const { return sRegistry; }

@@ -213,9 +213,26 @@ namespace Tac
     for( const Component* oldComponent : entity.mComponents )
     {
       const ComponentRegistryEntry* entry{ oldComponent->GetEntry() };
-      const NetVars& vars{ entry->mNetVars };
+      //const NetVars& vars{ entry->mNetVars };
       Component* newComponent { AddNewComponent( entry ) };
+      newComponent->CopyFrom( oldComponent );
+
+#if 0
+
       vars.CopyFrom( newComponent, oldComponent );
+
+      const int nVars{ mNetVars.size() };
+
+      for( int iVar{}; iVar < nVars; ++iVar )
+      {
+        const NetVar& var{ mNetVars[ iVar ] };
+        const MetaMember* metaMember{ var.mMetaMember };
+        dynmc void* dst{ ( dynmc char* )dstComponent + metaMember->mOffset };
+        const void* src{ ( const char* )srcComponent + metaMember->mOffset };
+
+        var.CopyFrom( dst, src );
+      }
+#endif
     }
 
     // shouldn't this fn be recursive?
@@ -327,8 +344,10 @@ namespace Tac
     {
       const ComponentRegistryEntry* entry { component->GetEntry() };
       Json componentJson;
-      if( entry->mSaveFn )
-        entry->mSaveFn( componentJson, component );
+      entry->mMetaType->JsonSerialize( &componentJson, component );
+      //if( entry->mSaveFn )
+      //  entry->mSaveFn( componentJson, component );
+
       entityJson[ StringView( entry->mName ) ].DeepCopy( &componentJson );
     }
 
@@ -373,8 +392,9 @@ namespace Tac
 
       TAC_ASSERT( componentRegistryEntry );
       Component* component { entity->AddNewComponent( componentRegistryEntry ) };
-      if( componentRegistryEntry->mLoadFn )
-        componentRegistryEntry->mLoadFn( *componentJson, component );
+      //if( componentRegistryEntry->mLoadFn )
+      //  componentRegistryEntry->mLoadFn( *componentJson, component );
+      componentRegistryEntry->mMetaType->JsonDeserialize( componentJson, component );
     }
 
     if( Json * childrenJson{ prefabJson.mObjectChildrenMap[ "mChildren" ] } )

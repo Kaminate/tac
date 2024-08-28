@@ -20,13 +20,13 @@ namespace Tac
     Count,
   };
 
-  void       WriteNetMsgHeader( Writer*, NetMsgType );
-  NetMsgType ReadNetMsgHeader( Reader*, Errors& );
+  void       WriteNetMsgHeader( WriteStream*, NetMsgType );
+  NetMsgType ReadNetMsgHeader( ReadStream*, Errors& );
 
 
-  NetBitDiff GetNetVarfield( const void* oldData,
-                                 const void* newData,
-                                 const NetVars& networkBits );
+  //NetBitDiff GetNetVarfield( const void* oldData,
+  //                               const void* newData,
+  //                               const NetVars& networkBits );
 
   struct DelayedNetMsg
   {
