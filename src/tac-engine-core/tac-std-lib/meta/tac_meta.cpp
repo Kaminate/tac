@@ -115,11 +115,11 @@ namespace Tac
 
   };
 
-  static IntMetaType      sIntMetaType;
-  static CharStarMetaType sCharStarMetaType;
-  static FloatMetaType    sFloatMetaType;
-  static DoubleMetaType   sDoubleMetaType;
-  static NullMetaType     sNullMetaType;
+  static const IntMetaType      sIntMetaType;
+  static const CharStarMetaType sCharStarMetaType;
+  static const FloatMetaType    sFloatMetaType;
+  static const DoubleMetaType   sDoubleMetaType;
+  static const NullMetaType     sNullMetaType;
 
   const MetaType& GetMetaType( const int& )    { return sIntMetaType; }
   const MetaType& GetMetaType( const float& )  { return sFloatMetaType; }

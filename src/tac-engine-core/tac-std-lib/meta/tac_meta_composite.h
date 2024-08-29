@@ -36,31 +36,30 @@ namespace Tac
     int                   mSize;
   };
 
-#define TAC_REQUIRE_SEMICOLON void missing_semicolon()
-
-#define TAC_META_DECLARE_COMPOSITE( T ) const MetaCompositeType& GetMetaType( const T& )
-
-#define TAC_META_COMPOSITE_NAME( T ) s##T##MetaType
-
+#define TAC_REQUIRE_SEMICOLON           void missing_semicolon()
 
   // The macros
   // - TAC_META_REGISTER_COMPOSITE_BEGIN
   // - TAC_META_REGISTER_COMPOSITE_MEMBER
   // - TAC_META_REGISTER_COMPOSITE_END
   // are used to overload GetMetaType(const T&) to be used by GetMetaType<T>()
-#define TAC_META_REGISTER_COMPOSITE_BEGIN_alt( T, members ) 
-#define TAC_META_REGISTER_COMPOSITE_BEGIN( T )                                                 \
-  static MetaCompositeType TAC_META_COMPOSITE_NAME( T )(                                       \
-    #T,                                                                                        \
-    sizeof( T ),                                                                               \
-    {
 
-#define TAC_META_REGISTER_COMPOSITE_MEMBER( T, M )                                             \
-        TAC_META_MEMBER( T, M ),
+// Step 1 of 3: Declare a struct and open its ctor
+#define TAC_META_REGISTER_COMPOSITE_BEGIN( T )                                                     \
+  struct TAC_META_TYPE_NAME( T ) : public MetaCompositeType /* Open the struct */                  \
+  {                                                                                                \
+    TAC_META_TYPE_NAME( T )() : MetaCompositeType( #T, sizeof( T ), /* Open the ctor*/             \
+      { /* Open the metamembers */
 
-#define TAC_META_REGISTER_COMPOSITE_END( T )                                                   \
-    } );                                                                                       \
-  const MetaCompositeType& GetMetaType( const T& ) { return TAC_META_COMPOSITE_NAME( T ); }    \
+// Step 2 of 3: Define a vector of metamembers
+#define TAC_META_REGISTER_COMPOSITE_MEMBER( T, M ) TAC_META_MEMBER( T, M ),
+
+// Step 3 of 3
+#define TAC_META_REGISTER_COMPOSITE_END( T )                                                       \
+      } /* Close the metamembers */                                                                \
+    ){ } /* Close the ctor */                                                                      \
+  }; /* Close the struct */                                                                        \
+  TAC_META_IMPL( T ); /* Define the GetMetaType() fn */                                            \
   TAC_REQUIRE_SEMICOLON
 
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+
 namespace Tac
 {
   struct Json;
@@ -49,11 +51,29 @@ namespace Tac
     // Metadata
   };
 
+#define TAC_META_INSTANCE_NAME( T ) s##Meta##T
+#define TAC_META_TYPE_NAME( T )     Meta##T
 
+#if 1
+#define TAC_META_DECL( T ) const MetaType& GetMetaType( const T& )
+#define TAC_META_IMPL( T )                                                 \
+  static const TAC_META_TYPE_NAME( T ) TAC_META_INSTANCE_NAME( T );        \
+  const MetaType& GetMetaType( const T& )                                  \
+  {                                                                        \
+    return TAC_META_INSTANCE_NAME( T );                                    \
+  }
+
+  TAC_META_DECL( int );
+  TAC_META_DECL( float );
+  TAC_META_DECL( char* );
+  TAC_META_DECL( double );
+#else
   const MetaType&                        GetMetaType( const int& );
   const MetaType&                        GetMetaType( const float& );
   const MetaType&                        GetMetaType( const char*& );
   const MetaType&                        GetMetaType( const double& );
+#endif
+
   const MetaType&                        GetNullMetaType();
 
   template< typename T > const MetaType& GetMetaType()         { T t{}; return GetMetaType( t ); }

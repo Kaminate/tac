@@ -20,7 +20,7 @@ namespace Tac
     World*     mWorld           {};
   };
 
-  TAC_META_DECLARE_COMPOSITE( Player );
+  TAC_META_DECL( Player );
 
   void                      PlayerNetVarsRegister();
   const NetVarReaderWriter& PlayerNetVarsGet();

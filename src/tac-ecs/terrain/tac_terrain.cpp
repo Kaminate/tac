@@ -64,6 +64,11 @@ namespace Tac
 
   void TerrainDebugImgui( Terrain* );
 
+  static void DebugTerrainComponent( Component* component )
+  {
+     TerrainDebugImgui( ( Terrain* )component );
+  }
+
   Terrain::Terrain()
   {
     mHeightmapTexturePath = "assets/heightmaps/heightmap2.png";
@@ -75,8 +80,8 @@ namespace Tac
     sRegistry->mName = "Terrain";
     sRegistry->mCreateFn = CreateTerrainComponent;
     sRegistry->mDestroyFn = DestroyTerrainComponent;
-    sRegistry->mDebugImguiFn = []( Component* component ){ TerrainDebugImgui( ( Terrain* )component ); };
-    sRegistry->mNetVarReaderWriter = ;
+    sRegistry->mDebugImguiFn = DebugTerrainComponent;
+    //sRegistry->mNetVarReaderWriter = ;
     //sRegistry->mLoadFn = TerrainLoadPrefab;
     //sRegistry->mSaveFn = TerrainSavePrefab;
   }

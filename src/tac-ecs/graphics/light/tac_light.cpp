@@ -15,6 +15,15 @@ namespace Tac
 {
   static ComponentRegistryEntry* sComponentRegistryEntry;
 
+  TAC_META_REGISTER_COMPOSITE_BEGIN( Light )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mSpotHalfFOVRadians )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mType )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mShadowResolution )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mOverrideClipPlanes )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mFarPlaneOverride )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mNearPlaneOverride )
+  TAC_META_REGISTER_COMPOSITE_END( Light );
+
   static Component* CreateLightComponent( World* world )
   {
     return GetGraphics( world )->CreateLightComponent();
@@ -28,7 +37,6 @@ namespace Tac
   static void       SaveLightComponent( Json& lightJson, Component* component )
   {
     auto light { ( Light* )component };
-    lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].SetNumber( light->mSpotHalfFOVRadians );
     lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].SetNumber( light->mSpotHalfFOVRadians );
     lightJson[ TAC_MEMBER_NAME( Light, mType ) ].SetString( LightTypeToString( light->mType ) );
     lightJson[ TAC_MEMBER_NAME( Light, mShadowResolution ) ].SetNumber( light->mShadowResolution );
@@ -164,8 +172,8 @@ namespace Tac
       {
         LightDebugImgui( ( Light* )component );
       };
-    sComponentRegistryEntry->mSaveFn = SaveLightComponent;
-    sComponentRegistryEntry->mLoadFn = LoadLightComponent;
+    //sComponentRegistryEntry->mSaveFn = SaveLightComponent;
+    //sComponentRegistryEntry->mLoadFn = LoadLightComponent;
   }
 
   const char*                            LightTypeToString( Light::Type type )

@@ -56,5 +56,8 @@ namespace Tac
   const char*         LightTypeToString( Light::Type );
   Light::Type         LightTypeFromString( const StringView& );
   void                LightDebugImgui( Light* );
+
+  TAC_META_DECL( Light );
+  //const MetaType&     GetMetaType( const Light& );
 }
 
