@@ -6,6 +6,7 @@
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/tac_std_lib.h" // ReadStream, WriteStream
 
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/net/tac_space_net.h"
@@ -23,15 +24,15 @@ namespace Tac
                                                      int byteCount,
                                                      void* userData );
 
-  struct Reader;
-  struct Writer;
+  //struct Reader;
+  //struct Writer;
 
 
   struct ClientData
   {
-    void                    ReadSnapshotBody( Reader*, Errors& );
+    void                    ReadSnapshotBody( ReadStream*, Errors& );
     void                    OnClientDisconnect();
-    void                    WriteInputBody( Writer* );
+    void                    WriteInputBody( WriteStream* );
     void                    ExecuteNetMsg( void* bytes, int byteCount, Errors& );
     void                    ApplyPrediction( Timestamp lastTime );
     void                    Update( float seconds,

@@ -32,9 +32,9 @@ namespace Tac
     return nullptr;
   }
 
-  int                     ComponentRegistry_GetComponentCount() { return mEntries.size(); }
+  //int                     ComponentRegistry_GetComponentCount() { return mEntries.size(); }
 
-  ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int i ) { return &mEntries[ i ]; }
+  //ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int i ) { return &mEntries[ i ]; }
 
 
 #if 1

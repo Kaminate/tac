@@ -3,6 +3,7 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/meta/tac_meta_decl.h"
 
 namespace Tac
 {
@@ -55,5 +56,7 @@ namespace Tac
   String           LoadAssetPath( const AssetPathStringView&, Errors& );
   bool             Exists( const AssetPathStringView& );
   AssetPathStrings IterateAssetsInDir( const AssetPathStringView&, AssetIterateType, Errors& );
+
+  TAC_META_DECL( AssetPathString );
 
 } // namespace Tac

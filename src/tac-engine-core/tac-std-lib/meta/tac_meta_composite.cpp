@@ -1,6 +1,7 @@
 #include "tac_meta_composite.h" // self-inc
 
 #include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/os/tac_os.h"
 
 namespace Tac

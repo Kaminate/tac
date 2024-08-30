@@ -1,13 +1,14 @@
 #pragma once
 
+#include "tac-ecs/component/tac_component.h"
 #include "tac-engine-core/asset/tac_asset.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector3.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-ecs/component/tac_component.h"
+#include "tac-std-lib/meta/tac_meta_impl.h"
 
 namespace Tac
 {
@@ -63,6 +64,7 @@ namespace Tac
     Errors                         mTestHeightmapLoadErrors   {};
   };
 
+  TAC_META_DECL( Terrain );
 
 #if 0
   struct CollideResult

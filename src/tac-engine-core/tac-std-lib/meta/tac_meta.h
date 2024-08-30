@@ -1,72 +1,27 @@
 #pragma once
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/tac_ints.h"
+#include "tac-std-lib/meta/tac_meta_type.h"
+#include "tac-std-lib/meta/tac_meta_decl.h"
+#include "tac-std-lib/meta/tac_meta_impl.h"
 
 namespace Tac
 {
-  struct Json;
-  struct ReadStream;
-  struct WriteStream;
-
-  struct MetaType
-  {
-    struct CastParams
-    {
-      void*           mDst     {};
-      const void*     mSrc     {};
-      const MetaType* mSrcType {};
-    };
-
-    struct CopyParams { void* mDst {}; const void* mSrc {}; };
-
-    virtual const char* GetName() const = 0;
-    virtual int         GetSizeOf() const = 0;
-    virtual String      ToString( const void* ) const = 0;
-    virtual float       ToNumber( const void* ) const = 0;
-    virtual void        Cast( CastParams ) const = 0;
-
-    virtual void        JsonSerialize( Json*, const void* ) const = 0;
-    virtual void        JsonDeserialize( const Json*, void* ) const = 0;
-
-    virtual void        Read( ReadStream*, dynmc void* ) const;
-    virtual void        Write( WriteStream*, const void* ) const;
-
-    virtual bool        Equals( const void*, const void* ) const;
-    virtual void        Copy( CopyParams ) const;
-
-    // others...
-    // New
-    // Placement New
-    // Delete
-    // Dtor
-    // Cast
-    // Dereference Type
-    // Dereference
-    // Address type
-    // Address
-    // Lua Accessors
-    // Serialization
-    // Parsing
-    // Alignment
-    // Metadata
-  };
-
-#define TAC_META_INSTANCE_NAME( T ) s##Meta##T
-#define TAC_META_TYPE_NAME( T )     Meta##T
-
 #if 1
-#define TAC_META_DECL( T ) const MetaType& GetMetaType( const T& )
-#define TAC_META_IMPL( T )                                                 \
-  static const TAC_META_TYPE_NAME( T ) TAC_META_INSTANCE_NAME( T );        \
-  const MetaType& GetMetaType( const T& )                                  \
-  {                                                                        \
-    return TAC_META_INSTANCE_NAME( T );                                    \
-  }
-
-  TAC_META_DECL( int );
+  //TAC_META_DECL( int );
   TAC_META_DECL( float );
   TAC_META_DECL( char* );
   TAC_META_DECL( double );
+  TAC_META_DECL( i8 );
+  TAC_META_DECL( i16 );
+  TAC_META_DECL( i32 );
+  TAC_META_DECL( i64 );
+
+  TAC_META_DECL( u8 );
+  TAC_META_DECL( u16 );
+  TAC_META_DECL( u32 );
+  TAC_META_DECL( u64 );
 #else
   const MetaType&                        GetMetaType( const int& );
   const MetaType&                        GetMetaType( const float& );
@@ -76,8 +31,12 @@ namespace Tac
 
   const MetaType&                        GetNullMetaType();
 
+  // For GetMetaType() to work, files that define new meta types must be included before this one
   template< typename T > const MetaType& GetMetaType()         { T t{}; return GetMetaType( t ); }
   template <> inline const MetaType&     GetMetaType< void >() { return GetNullMetaType(); }
+
+#define TAC_GET_META_TYPE_DEFINED
+
   template < typename T > T              MetaCast( const void* v, const MetaType* m )
   {
     T t{};
@@ -97,9 +56,10 @@ namespace Tac
     struct Iterator
     {
       Iterator( T* t ) : mT( t )            {}
-      T* operator*()                        { return mT; }
+      T*   operator*()                      { return mT; }
       void operator++()                     { mT = ( ( AutoLister* )mT )->mNext; }
       bool operator!=( const Iterator& it ) { return mT != it.mT; }
+
       T* mT;
     };
 
@@ -111,6 +71,7 @@ namespace Tac
 
     static T*& Head()                       { static T* sHead; return sHead; }
     AutoLister()                            { mNext = Head(); Head() = ( T* )this; }
+
     T* mNext;
   };
 

@@ -3,14 +3,39 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h" // IsDebugMode
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/error/tac_assert.h"
-#if !TAC_DELETE_ME()
-#include "tac-std-lib/os/tac_os.h" 
-#endif
 //#include "tac-engine-core/shell/tac_shell.h"
 
 namespace Tac
 {
+
+  struct MetaAssetPathString : public MetaType
+  {
+    const char* GetName() const override                                                            { return "AssetPathString"; }
+    int         GetSizeOf() const override                                                          { return sizeof( AssetPathString ); }
+    String      ToString( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; }
+    float       ToNumber( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; }
+    void        Cast( CastParams castParams ) const  override                                       { TAC_ASSERT_UNIMPLEMENTED; }
+
+    void        JsonSerialize( Json* json, const void* v ) const override                           { TAC_ASSERT_UNIMPLEMENTED; }
+    void        JsonDeserialize( const Json* json, void* v ) const override                         { TAC_ASSERT_UNIMPLEMENTED; }
+
+    void        Read( ReadStream* readStream, dynmc void* v ) const override                        { TAC_ASSERT_UNIMPLEMENTED; }
+    void        Write( WriteStream* writeStream, const void* v ) const override                     { TAC_ASSERT_UNIMPLEMENTED; }
+
+    bool        Equals( const void* a, const void* b ) const override                               { TAC_ASSERT_UNIMPLEMENTED; }
+    void        Copy( CopyParams  copyParams ) const override                                       { TAC_ASSERT_UNIMPLEMENTED; }
+
+  private:
+    dynmc AssetPathString& ToRef( dynmc void* v )                                                   { return *( AssetPathString* )v; }
+    const AssetPathString& ToRef( const void* v )                                                   { return *( AssetPathString* )v; }
+  };
+
+  static MetaAssetPathString sMetaAssetPathString;
+  TAC_META_IMPL_INSTANCE( AssetPathString, sMetaAssetPathString );
+
+
   // -----------------------------------------------------------------------------------------------
 
   static bool IsValid( const char c )

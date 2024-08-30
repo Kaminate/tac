@@ -317,6 +317,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  void  WriteStream::WriteBytes( const void* src, int n )
+  {
+    dynmc void* dst{ Advance( n ) };
+    MemCpy( dst, src, n );
+  }
+
   void* WriteStream::Advance( int n )
   {
     const int oldSize{ mBytes.size() };
@@ -325,45 +331,53 @@ namespace Tac
     return &mBytes[ oldSize ];
   }
 
-  void WriteStream::Write( u8 v )    { WriteT( v ); }
-  void WriteStream::Write( u16 v )   { WriteT( v ); }
-  void WriteStream::Write( u32 v )   { WriteT( v ); }
-  void WriteStream::Write( u64 v )   { WriteT( v ); }
-  void WriteStream::Write( float v ) { WriteT( v ); }
-  int  WriteStream::Size() const     { return mBytes.size(); }
 
   // -----------------------------------------------------------------------------------------------
 
-  void* ReadStream::Advance( int n )
+#if 0
+  const void* ReadStream::Advance( int n )
   {
     if( mIndex + n > mBytes.size() )
       return nullptr;
 
-    void* result { &mBytes[ mIndex ] };
+    const void* result { &mBytes[ mIndex ] };
     mIndex += n;
     return result;
   }
-  //bool ReadStream::Read( u8* v )     { return ReadT( u ); }
+  bool ReadStream::Read( char* v )   { return ReadT( v ); }
+  bool ReadStream::Read( u8* v )     { return ReadT( v ); }
   bool ReadStream::Read( u16* v )    { return ReadT( v ); }
   bool ReadStream::Read( u32* v )    { return ReadT( v ); }
   bool ReadStream::Read( u64* v )    { return ReadT( v ); }
   bool ReadStream::Read( float* v )  { return ReadT( v ); }
   int ReadStream::Remaining() const { return mBytes.size() - mIndex; }
+#endif
 
   // -----------------------------------------------------------------------------------------------
 
-  static void CheckFlip( void* v, int n, Endianness mFrom, Endianness mTo )
+  // -----------------------------------------------------------------------------------------------
+
+  NetEndianConverter::NetEndianConverter( Params params )
   {
-    TAC_ASSERT( mFrom != Endianness::Unknown );
-    TAC_ASSERT( mTo != Endianness::Unknown );
-    if( mFrom != mTo )
-    {
+    TAC_ASSERT( params.mFrom != Endianness::Unknown );
+    TAC_ASSERT( params.mTo != Endianness::Unknown );
+    mFlip = params.mFrom != params.mTo;
+  }
+
+  void  NetEndianConverter::Convert( void* v, int n )
+  {
+    if( mFlip )
       Reverse( ( char* )v, ( char* )v + n );
-    }
-  };
+  }
+  u8    NetEndianConverter::Convert( u8 v )    { Convert( &v, sizeof( u8 ) ); return v; }
+  u16   NetEndianConverter::Convert( u16 v )   { Convert( &v, sizeof( u16 ) ); return v; }
+  u32   NetEndianConverter::Convert( u32 v )   { Convert( &v, sizeof( u32 ) ); return v; }
+  u64   NetEndianConverter::Convert( u64 v )   { Convert( &v, sizeof( u64 ) ); return v; }
+  float NetEndianConverter::Convert( float v ) { Convert( &v, sizeof( float ) ); return v; }
 
   // -----------------------------------------------------------------------------------------------
 
+#if 0
   bool EndianReader::Read( u8* v )    { return ReadT( v ); }
   bool EndianReader::Read( u16* v )   { return ReadT( v ); }
   bool EndianReader::Read( u32* v )   { return ReadT( v ); }
@@ -378,6 +392,7 @@ namespace Tac
   void EndianWriter::Write( u64 v )   { WriteT( v ); }
   void EndianWriter::Write( float v ) { WriteT( v ); }
   void EndianWriter::PreWrite( void* v, int n) { CheckFlip( v, n, mFrom, mTo ); }
+#endif
 
 #endif
 } // namespace Tac

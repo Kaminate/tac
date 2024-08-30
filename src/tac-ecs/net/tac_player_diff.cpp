@@ -11,7 +11,7 @@ namespace Tac
 {
   // ----------------------------------------------------------------------------------------------
 
-  void PlayerDiffs::Write( World* oldWorld, World* newWorld, Writer* writer )
+  void PlayerDiffs::Write( World* oldWorld, World* newWorld, WriteStream* writer )
   {
     PlayerDiffs playerDiffs( oldWorld, newWorld );
     playerDiffs.Write( writer );
@@ -28,7 +28,10 @@ namespace Tac
       const PlayerUUID playerUUID { newPlayer->mPlayerUUID };
       const Player* oldPlayer { oldWorld->FindPlayer( playerUUID ) };
 
-      const NetBitDiff bitfield { GetNetVarfield( oldPlayer, newPlayer, PlayerNetVarsGet() ) };
+      const NetVarReaderWriter& playerNetVars{ PlayerNetVarsGet() };
+      //  return vars.Diff( oldData, newData );
+
+      const NetBitDiff bitfield { GetNetVarfield( oldPlayer, newPlayer,  ) };
       if( bitfield.Empty() )
         continue;
 
@@ -43,7 +46,7 @@ namespace Tac
 
   }
 
-  void PlayerDiffs::Write( Writer* writer )
+  void PlayerDiffs::Write( WriteStream* writer )
   {
     writer->Write( ( PlayerCount )deletedPlayerUUIDs.size() );
     for( PlayerUUID playerUUID : deletedPlayerUUIDs )
@@ -58,28 +61,28 @@ namespace Tac
   }
 
 
-  void PlayerDiffs::Read( World* world, Reader* reader, Errors& errors )
+  void PlayerDiffs::Read( World* world, ReadStream* reader, Errors& errors )
   {
 
-    TAC_CALL( const auto numPlayerDeleted{ reader->Read<PlayerCount>( errors ) } );
+    TAC_CALL( const auto numPlayerDeleted{ reader->ReadT<PlayerCount>( errors ) } );
 
     for( PlayerCount i{}; i < numPlayerDeleted; ++i )
     {
-      TAC_CALL( const auto deletedPlayerUUID{ reader->Read<PlayerUUID >( errors ) } );
+      TAC_CALL( const auto deletedPlayerUUID{ reader->ReadT<PlayerUUID >( errors ) } );
       world->KillPlayer( deletedPlayerUUID );
     }
 
-    TAC_CALL( const auto numPlayersDifferent{ reader->Read<PlayerCount>( errors ) } );
+    TAC_CALL( const auto numPlayersDifferent{ reader->ReadT<PlayerCount>( errors ) } );
 
     for( PlayerCount i {  }; i < numPlayersDifferent; ++i )
     {
-      TAC_CALL( const auto differentPlayerUUID{ reader->Read<PlayerUUID>( errors ) } );
+      TAC_CALL( const auto differentPlayerUUID{ reader->ReadT<PlayerUUID>( errors ) } );
 
       Player* player { world->FindPlayer( differentPlayerUUID ) };
       if( !player )
         player = world->SpawnPlayer( differentPlayerUUID );
 
-      TAC_RAISE_ERROR_IF( !reader->Read( player, PlayerNetVarsGet() ),
+      TAC_RAISE_ERROR_IF( !reader->ReadT( player, PlayerNetVarsGet() ),
                           "failed to read player bits" );
     }
 

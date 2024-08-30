@@ -100,8 +100,8 @@ namespace Tac
   //};
 
 
-  int                     ComponentRegistry_GetComponentCount();
-  ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int );
+  //int                     ComponentRegistry_GetComponentCount();
+  //ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int );
   ComponentRegistryEntry* ComponentRegistry_RegisterComponent();
   ComponentRegistryEntry* ComponentRegistry_FindComponentByName( const char* );
 

@@ -31,8 +31,8 @@ namespace Tac
 
 
   // Serialization
-  struct Reader;
-  struct Writer;
+  struct ReadStream;
+  struct WriteStream;
 
   struct DesktopWindowHandle;
   struct DesktopWindowRect;

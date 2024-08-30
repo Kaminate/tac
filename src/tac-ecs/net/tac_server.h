@@ -52,11 +52,11 @@ namespace Tac
 
     void                      OnLoseClient( ConnectionUUID );
 
-    void                      ReadInput( Reader*,
+    void                      ReadInput( ReadStream*,
                                          ConnectionUUID,
                                          Errors& );
 
-    void                      WriteSnapshotBody( OtherPlayer*, Writer* );
+    void                      WriteSnapshotBody( OtherPlayer*, WriteStream* );
 
     void                      ExecuteNetMsg( ConnectionUUID,
                                              const void* bytes,

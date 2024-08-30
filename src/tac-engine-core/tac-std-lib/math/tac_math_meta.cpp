@@ -1,5 +1,8 @@
+#include "tac_math_meta.h" // self-inc
+
+#include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
-#include "tac-std-lib/math/tac_math_meta.h"
+#include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"

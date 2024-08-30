@@ -380,7 +380,7 @@ namespace Tac
     Physics::PhysicsSystemRegistryEntry->mName = "Physics";
     Physics::PhysicsSystemRegistryEntry->mDebugImGui = PhysicsDebugImgui;
     Terrain::SpaceInitPhysicsTerrain();
-    RegisterColliderComponent();
+    Collider::RegisterComponent();
   }
 
   Physics* Physics::GetSystem( World* world )

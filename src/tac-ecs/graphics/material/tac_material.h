@@ -3,6 +3,7 @@
 #include "tac-ecs/component/tac_component.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/meta/tac_meta_impl.h"
 
 namespace Tac
 {
@@ -40,6 +41,8 @@ namespace Tac
     // Whether entities with this material component should render or not
     bool           mRenderEnabled  { true };
   };
+
+  TAC_META_DECL( Material );
 
 }
 

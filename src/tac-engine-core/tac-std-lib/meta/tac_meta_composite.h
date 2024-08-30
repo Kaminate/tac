@@ -1,6 +1,9 @@
 #pragma once
 
-#include "tac-std-lib/meta/tac_meta.h"
+//#include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/meta/tac_meta_decl.h"
+#include "tac-std-lib/meta/tac_meta_impl.h"
+#include "tac-std-lib/meta/tac_meta_type.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/containers/tac_vector.h"

@@ -132,8 +132,7 @@ namespace Tac
   void EntityDiffs::WriteDeleted( WriteStream* writer )
   {
     writer->Write( ( EntityCount )mDestroyed.size() );
-    for( EntityUUID entityUUID : mDestroyed )
-        writer->Write( entityUUID );
+    writer->WriteBytes( mDestroyed.data(), mDestroyed.size() * sizeof( EntityUUID ) );
   }
 
   void EntityDiffs::WriteCreated( WriteStream* writer )

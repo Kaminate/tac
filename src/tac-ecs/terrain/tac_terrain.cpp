@@ -1,13 +1,15 @@
 #include "tac_terrain.h" // self-inc
 
-#include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
+#include "tac-engine-core/thirdparty/stb_image.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/thirdparty/stb_image.h"
 
 #include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/entity/tac_entity.h"

@@ -36,15 +36,6 @@ namespace Tac
     GetGraphics( world )->DestroyMaterialComponent( ( Material* )component );
   }
 
-#if 0
-  static void       SettingsSaveMaterialComponent( SettingsNode node, Component* component )
-  {
-  }
-
-  static void       SettingsLoadMaterialComponent( SettingsNode node, Component* component )
-  {
-  }
-#else
 
   static void       SaveMaterialComponent( Json& json, Component* component )
   {
@@ -83,7 +74,6 @@ namespace Tac
     material->mRenderEnabled = json[ TAC_MEMBER_NAME( Material, mRenderEnabled ) ];
     material->mMaterialShader = json[ TAC_MEMBER_NAME( Material, mMaterialShader ) ];
   }
-#endif
 
   // ------------------------
 
@@ -105,131 +95,6 @@ namespace Tac
 
   void                             Material::RegisterComponent()
   {
-#if 0
-    const ComponentSettings::Element elements[]
-    {
-      ComponentSettings::Element
-      {
-        .mPath       { TAC_MEMBER_NAME( Material, mIsGlTF_PBR_MetallicRoughness ) },
-        .mType       { JsonType::Bool },
-        .mByteOffset { TAC_OFFSET_OF( Material, mIsGlTF_PBR_MetallicRoughness ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { TAC_MEMBER_NAME( Material, mIsGlTF_PBR_SpecularGlossiness ) },
-        .mType       { JsonType::Bool },
-        .mByteOffset { TAC_OFFSET_OF( Material, mIsGlTF_PBR_SpecularGlossiness ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[0]"},
-        .mType       { JsonType::Number },
-        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 0 ] ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[1]"},
-        .mType       { JsonType::Number },
-        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 1 ] ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[2]"},
-        .mType       { JsonType::Number },
-        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 2 ] ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { String() + TAC_MEMBER_NAME( Material, mColor ) + "[3]"},
-        .mType       { JsonType::Number },
-        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 3 ] ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { String() + TAC_MEMBER_NAME( Material, mEmissive ) + "[0]"},
-        .mType       { JsonType::Number },
-        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 0 ] ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { String() + TAC_MEMBER_NAME( Material, mEmissive ) + "[1]"},
-        .mType       { JsonType::Number },
-        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 1 ] ) },
-      },
-
-      ComponentSettings::Element
-      {
-        .mPath       { String() + TAC_MEMBER_NAME( Material, mEmissive ) + "[2]"},
-        .mType       { JsonType::Number },
-        .mByteOffset { TAC_OFFSET_OF( Material, mColor[ 2 ] ) },
-      },
-    };
-#endif
-
-#if 0
-    NetVar netVar
-    {
-      .mDebugName { TAC_MEMBER_NAME( Material, mIsGlTF_PBR_MetallicRoughness ) },
-      .mByteOffset {
-      int               mByteOffset          {};
-      int               mElementByteCount    {};
-      int               mElementCount        {};
-      NetVarReader*     mVarReader           {};
-      NetVarWriter*     mVarWriter           {};
-      NetVarComparison* mVarCompare          {};
-      bool              mIsTriviallyCopyable {};
-
-
-    };
-
-    NetVar{ bool         mIsGlTF_PBR_SpecularGlossiness };
-    NetVar{ v4           mColor };
-    NetVar{ v3           mEmissive };
-    NetVar{ String       mMaterialShader };
-    NetVar{     bool         mRenderEnabled };
-
-
-    NetVars netVars;
-    netVars.Add( );
-
-#endif
-
-
-#if 1
-    NetVars netVars;
-
-    TAC_MEMBER_NAME();
-
-    const MetaCompositeType& metaMaterial{ ( const MetaCompositeType& )GetMetaType< Material >() };
-    const int nMembers{ metaMaterial.GetMemberCount() };
-    for( int iMember{}; iMember < nMembers; ++iMember )
-    {
-      const MetaMember& metaMember{ metaMaterial.GetMember( iMember ) };
-      metaMember.mMetaType;
-      metaMember.mName;
-      metaMember.mOffset;
-
-      NetVar netVar;
-      netVar.mDebugName = metaMember.mName;
-      netVar.mByteOffset = metaMember.mOffset;
-    int               mElementByteCount    {};
-    int               mElementCount        {};
-    NetVarReader*     mVarReader           {};
-    NetVarWriter*     mVarWriter           {};
-    NetVarComparison* mVarCompare          {};
-    bool              mIsTriviallyCopyable {};
-    }
-    MetaMember;
-#endif
-
-
     sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
     sComponentRegistryEntry->mName = "Material";
     //sComponentRegistryEntry->mNetVars = ComponentMaterialBits;
@@ -239,13 +104,6 @@ namespace Tac
       {
         Material::DebugImgui( ( Material* )component );
       };
-#if 0
-    sComponentRegistryEntry->mSettingsSaveFn = SettingsSaveMaterialComponent;
-    sComponentRegistryEntry->mSettingsLoadFn = SettingsLoadMaterialComponent;
-#else
-    sComponentRegistryEntry->mSaveFn = SaveMaterialComponent;
-    sComponentRegistryEntry->mLoadFn = LoadMaterialComponent;
-#endif
   }
 
   void                             Material::DebugImgui( Material* material )

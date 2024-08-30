@@ -5,6 +5,11 @@
 
 namespace Tac
 {
+
+  struct PlayerUUIDMeta
+  {
+  };
+
   TAC_META_REGISTER_COMPOSITE_BEGIN( Player )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Player, mPlayerUUID )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Player, mEntityUUID )

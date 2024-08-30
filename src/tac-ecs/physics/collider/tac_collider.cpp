@@ -20,7 +20,6 @@ namespace Tac
   Collider*                     Collider::CreateCollider( World* world )
   {
     return Physics::GetSystem( world )->CreateCollider();
-
   }
 
   static void       DestroyColliderComponent( World* world, Component* component )
@@ -34,19 +33,27 @@ namespace Tac
   }
 
   void ColliderDebugImgui( Collider* );
-  void RegisterColliderComponent()
+
+  static void DebugComponent(  Component* component  )
   {
+       ColliderDebugImgui( ( Collider* )component );
+  }
+
+
+  void Collider::RegisterComponent()
+  {
+#if 0
     NetVars networkBits;
     networkBits.Add( { "mVelocity",    ( int )TAC_OFFSET_OF( Collider, mVelocity ),    sizeof( float ), 3 } );
     networkBits.Add( { "mRadius",      ( int )TAC_OFFSET_OF( Collider, mRadius ),      sizeof( float ), 1 } );
     networkBits.Add( { "mTotalHeight", ( int )TAC_OFFSET_OF( Collider, mTotalHeight ), sizeof( float ), 1 } );
+#endif
     sEntry = ComponentRegistry_RegisterComponent();
     sEntry->mName = "Collider";
-    sEntry->mNetVars = networkBits;
+    //sEntry->mNetVars = networkBits;
     sEntry->mCreateFn = CreateColliderComponent;
     sEntry->mDestroyFn = DestroyColliderComponent;
-    sEntry->mDebugImguiFn =
-      []( Component* component ) { ColliderDebugImgui( ( Collider* )component ); };
+    sEntry->mDebugImguiFn = DebugComponent;
   }
 
 }

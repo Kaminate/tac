@@ -61,7 +61,7 @@ namespace Tac
   template< typename Ret, typename A0, typename A1 >
   void Apply( Ret( *fn )( A0, A1 ), Variable ret, Variable* args, int argCount )
   {
-    TAC_UNUSED_PARAMETER(argCount);
+    TAC_UNUSED_PARAMETER( argCount );
     Apply( fn( MetaCast< A0 >( args[ 0 ] ),
                MetaCast< A1 >( args[ 1 ] ) ), ret );
   }

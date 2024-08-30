@@ -13,7 +13,9 @@
 
 namespace Tac
 {
-  static int sRegistryIndex;
+  //static int sRegistryIndex;
+
+  static ComponentRegistryEntry* sEntry;
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( Model )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Model, mModelPath )
@@ -31,6 +33,7 @@ namespace Tac
 		GetGraphics( world )->DestroyModelComponent( ( Model* )component );
 	}
 
+#if 0
 	static void       SaveModelComponent( Json& modelJson, Component* component )
 	{
 		auto model { ( Model* )component };
@@ -54,25 +57,22 @@ namespace Tac
 		//model->mColorRGB.y = ( float )colorRGBJson[ "g" ].mNumber;
 		//model->mColorRGB.z = ( float )colorRGBJson[ "b" ].mNumber;
 	}
+#endif
 
 
 	const Model*                   Model::GetModel( const Entity* entity )
 	{
-    const ComponentRegistryEntry* entry {
-      ComponentRegistry_GetComponentAtIndex( sRegistryIndex ) };
-		return ( Model* )entity->GetComponent( entry );
+		return ( Model* )entity->GetComponent( sEntry );
 	}
 
 	Model*                         Model::GetModel( Entity* entity )
 	{
-    const ComponentRegistryEntry* entry {
-      ComponentRegistry_GetComponentAtIndex( sRegistryIndex ) };
-		return ( Model* )entity->GetComponent( entry );
+		return ( Model* )entity->GetComponent( sEntry );
 	}
 
 	const ComponentRegistryEntry*  Model::GetEntry() const
 	{
-    return ComponentRegistry_GetComponentAtIndex( sRegistryIndex );
+    return sEntry;
 	}
 
 	void ModelDebugImgui( Model* );
@@ -82,6 +82,7 @@ namespace Tac
     ModelDebugImgui( (Model*) component );
   }
 
+#if 0
   struct AssetPathNetWriter : public NetVarWriter
   {
     void Write( Writer* writer, const void* src )
@@ -100,14 +101,14 @@ namespace Tac
       if( !reader->Read( &assetHash ) )
         return false;
 
-      AssetPathString* assetPath{ ( AssetPathString* )dst };
-      *assetPath = AssetHashCache::GetPathFromHash( assetHash );
+      *( AssetPathString* )dst = AssetHashCache::GetPathFromHash( assetHash );
       return true;
     }
   };
 
   static AssetPathNetWriter sAssetPathNetWriter;
   static AssetPathNetReader sAssetPathNetReader;
+#endif
 
 	void RegisterModelComponent()
 	{
@@ -119,6 +120,8 @@ namespace Tac
     //  .mElementCount        { 3 },
     //  .mIsTriviallyCopyable { true },
     //};
+
+#if 0
 
     const NetVar netPath
     {
@@ -141,18 +144,17 @@ namespace Tac
     //netBits.Add( netColor );
     netBits.Add( netPath );
     netBits.Add( netIndex );
+#endif
 
-    ComponentRegistryEntry* entry { ComponentRegistry_RegisterComponent() };
-    sRegistryIndex = entry->GetIndex(); 
-    *entry = ComponentRegistryEntry
+    * ( sEntry = ComponentRegistry_RegisterComponent() ) = ComponentRegistryEntry
     {
       .mName         { "Model" },
       .mCreateFn     { CreateModelComponent },
       .mDestroyFn    { DestroyModelComponent },
       .mDebugImguiFn { DebugImguiFn },
-      .mSaveFn       { SaveModelComponent },
-      .mLoadFn       { LoadModelComponent },
-      .mNetVars      { netBits },
+      //.mSaveFn       { SaveModelComponent },
+      //.mLoadFn       { LoadModelComponent },
+      //.mNetVars      { netBits },
     };
 	}
 

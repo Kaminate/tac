@@ -3,6 +3,7 @@
 #include "tac-rhi/render3/tac_render_api.h" // Render::TextureHandle
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-ecs/component/tac_component.h"
+#include "tac-std-lib/meta/tac_meta_decl.h"
 
 // Okay but like
 // arent we already making too many generalizations?

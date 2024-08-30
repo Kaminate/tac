@@ -20,7 +20,7 @@ namespace Tac
 
 
 
-  void ClientData::WriteInputBody( Writer* writer )
+  void ClientData::WriteInputBody( WriteStream* writer )
   {
     writer->Write( mSavedInputs.back().mInputDirection );
     writer->Write( mMostRecentSnapshotTime );
@@ -105,16 +105,23 @@ namespace Tac
       ApplyPrediction( oldGameTime );
   }
 
-  void ClientData::ExecuteNetMsg( void* bytes,
+  void ClientData::ExecuteNetMsg( const void* bytes,
                                   int byteCount,
                                   Errors& errors )
   {
-    Reader reader
+    ReadStream readStream
+    {
+      .mBytes { ( const char* )bytes, byteCount },
+    };
+
+    EndianReader endianReader
     {
       .mFrom  { GameEndianness },
       .mTo    { GetEndianness() },
-      .mBegin { bytes },
-      .mEnd   { ( char* )bytes + byteCount },
+    };
+
+
+    {
     };
 
     TAC_CALL( const NetMsgType networkMessage{ ReadNetMsgHeader( &reader, errors ) } );
