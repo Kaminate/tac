@@ -32,6 +32,7 @@ namespace Tac
   const MetaType&                        GetNullMetaType();
 
   // For GetMetaType() to work, files that define new meta types must be included before this one
+  // ^ is this even true?
   template< typename T > const MetaType& GetMetaType()         { T t{}; return GetMetaType( t ); }
   template <> inline const MetaType&     GetMetaType< void >() { return GetNullMetaType(); }
 

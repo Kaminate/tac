@@ -14,8 +14,8 @@ namespace Tac
   {
     const char* GetName() const override                                                            { return "AssetPathString"; }
     int         GetSizeOf() const override                                                          { return sizeof( AssetPathString ); }
-    String      ToString( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; }
-    float       ToNumber( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; }
+    String      ToString( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; return {}; }
+    float       ToNumber( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; return {}; }
     void        Cast( CastParams castParams ) const  override                                       { TAC_ASSERT_UNIMPLEMENTED; }
 
     void        JsonSerialize( Json* json, const void* v ) const override                           { TAC_ASSERT_UNIMPLEMENTED; }
@@ -24,7 +24,7 @@ namespace Tac
     void        Read( ReadStream* readStream, dynmc void* v ) const override                        { TAC_ASSERT_UNIMPLEMENTED; }
     void        Write( WriteStream* writeStream, const void* v ) const override                     { TAC_ASSERT_UNIMPLEMENTED; }
 
-    bool        Equals( const void* a, const void* b ) const override                               { TAC_ASSERT_UNIMPLEMENTED; }
+    bool        Equals( const void* a, const void* b ) const override                               { TAC_ASSERT_UNIMPLEMENTED; return {}; }
     void        Copy( CopyParams  copyParams ) const override                                       { TAC_ASSERT_UNIMPLEMENTED; }
 
   private:
