@@ -87,7 +87,7 @@ namespace Tac
     mOtherPlayers.erase( it );
   }
 
-  void ServerData::ReadInput( Reader* reader,
+  void ServerData::ReadInput( ReadStream* reader,
                               ConnectionUUID connectionID,
                               Errors& errors )
   {
@@ -98,27 +98,30 @@ namespace Tac
     if( !player )
       return;
 
-    TAC_RAISE_ERROR_IF( !reader->Read( &player->mInputDirection ),
-                        "failed to read player input direction" );
-
-    TAC_RAISE_ERROR_IF( !reader->Read( &otherPlayer->mTimeStamp ),
-                        "failed to read player time stamp" );
+    TAC_CALL( player->mInputDirection = reader->Read<v2>( errors ) );
+    TAC_CALL( otherPlayer->mTimeStamp = reader->Read<Timestamp>( errors ) );
   }
 
   // OtherPlayer is the player who is the receipient of this snapshot
-  void ServerData::WriteSnapshotBody( OtherPlayer* otherPlayer, Writer* writer )
+  void ServerData::WriteSnapshotBody( OtherPlayer* otherPlayer, WriteStream* writer )
   {
     writer->Write( mWorld->mElapsedSecs );
     TAC_ASSERT( otherPlayer );
-    World* oldWorld = mSnapshots.FindSnapshot( otherPlayer->mTimeStamp );
+    World* oldWorld { mSnapshots.FindSnapshot( otherPlayer->mTimeStamp ) };
     if( !oldWorld )
       oldWorld = mEmptyWorld;
 
     writer->Write( otherPlayer->mTimeStamp );
     writer->Write( ( UUID )otherPlayer->mPlayerUUID );
 
-    PlayerDiffs::Write( oldWorld, mWorld, writer );
-    EntityDiffs::Write( oldWorld, mWorld, writer );
+    const WorldsToDiff worldDiff
+    {
+      .mOldWorld{ oldWorld },
+      .mNewWorld{ mWorld },
+    };
+
+    PlayerDiffs::Write( worldDiff, writer );
+    EntityDiffs::Write( worldDiff, writer );
   }
 
   void ServerData::ExecuteNetMsg( const ConnectionUUID connectionID,
@@ -126,13 +129,7 @@ namespace Tac
                                   const int byteCount,
                                   Errors& errors )
   {
-    Reader reader
-    {
-      .mFrom  { GameEndianness },
-      .mTo    { GetEndianness() },
-      .mBegin { bytes },
-      .mEnd   { ( char* )bytes + byteCount },
-    };
+    ReadStream reader { .mBytes { ( const char* )bytes, byteCount }, };
 
     TAC_CALL( const auto networkMessage { ReadNetMsgHeader( &reader, errors )  });
     switch( networkMessage )
@@ -211,22 +208,21 @@ namespace Tac
     mSnapshotUntilNextSecondsCur -= seconds;
     if( mSnapshotUntilNextSecondsCur > 0 )
       return;
+
     mSnapshotUntilNextSecondsCur = sSnapshotUntilNextSecondsMax;
 
     mSnapshots.AddSnapshot( mWorld );
 
     for( OtherPlayer* otherPlayer : mOtherPlayers )
     {
-      Writer writer;
-      writer.mFrom = GetEndianness();
-      writer.mTo = GameEndianness;
+      WriteStream writer{};
 
       WriteNetMsgHeader( &writer, NetMsgType::Snapshot );
       WriteSnapshotBody( otherPlayer, &writer );
       if( sendNetworkMessageCallback )
       {
-        const void* bytes { writer.mBytes.data() };
-        const int byteCount { ( int )writer.mBytes.size() };
+        const void* bytes { writer.Data() };
+        const int byteCount { ( int )writer.Size() };
         sendNetworkMessageCallback( otherPlayer->mConnectionUUID,
                                     bytes,
                                     byteCount,

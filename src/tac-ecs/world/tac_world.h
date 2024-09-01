@@ -54,5 +54,8 @@ namespace Tac
     //                   each system can access it
     Debug3DDrawData*     mDebug3DDrawData {};
   };
-}
+
+  struct WorldsToDiff{ World* mOldWorld; World* mNewWorld; };
+
+} // namespace Tac
 

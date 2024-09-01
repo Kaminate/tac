@@ -72,8 +72,8 @@ namespace Tac
     //                     Used for serializing components over the network
     //NetVars                mNetVars;
 
-    NetVarReaderWriter       mNetVarReaderWriter {};
-    const MetaCompositeType* mMetaType        {};
+    NetVarRegistration       mNetVarRegistration {};
+    const MetaCompositeType* mMetaType           {};
 
     ComponentSettings      mComponentSettings;
   };

@@ -162,7 +162,7 @@ namespace Tac
     mShadowMapDepth = {};
   }
 
-  void                                   RegisterLightComponent()
+  void                                   Light::RegisterComponent()
   {
     sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
     sComponentRegistryEntry->mName = "Light";

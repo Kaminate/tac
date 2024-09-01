@@ -29,31 +29,38 @@ namespace Tac
     Big, // Also called host byte order
   };
 
-  Endianness GetEndianness();
+  Endianness GetEndianness();            
 
-  // a bitfield which marks which NetVars of a component need to be networked
-  struct NetBitDiff
+  template< typename T >
+  struct Bitfield
   {
+    Bitfield() = default;
+    Bitfield( T t ) : mBitfield{ t }        {}
     bool IsSet( int i ) const               { return mBitfield & ( 1 << i ); }
     void Set( int i )                       { mBitfield |= ( 1 << i ); }
     bool Empty() const                      { return !mBitfield; }
+    void SetAll()                           { mBitfield = ( T )( -1 ); }
 
-    u8 mBitfield {};
+    T mBitfield {};
   };
 
-  struct NetVarReaderWriter
+  // a bitfield which marks which NetVars of a component need to be networked
+  struct NetVarDiff : public Bitfield< u8 >{};
+  struct NetMembers : public Bitfield< u8 >{};
+
+  struct NetVarRegistration
   {
+    struct DiffParams{ const void* mOld; const void* mNew; };
+
     void Add( const char* );
-    void Read( ReadStream*, dynmc void* );
-    void Write( WriteStream*, const void* );
-    //NetVarReader*            mReaders[ 8 ];
-    //NetVarWriter*            mWriters[ 8 ];
-    NetBitDiff               mEnabled  {};
-    const MetaCompositeType* mMetaType {};
+
+    void       Read( ReadStream*, dynmc void*, Errors& ) const;
+    void       Write( WriteStream*, const void*, NetVarDiff ) const;
+    NetVarDiff Diff( DiffParams ) const;
+
+    NetMembers               mNetMembers {};
+    const MetaCompositeType* mMetaType   {};
   };
-
-
-
 
   struct ReadStream
   {
@@ -63,26 +70,11 @@ namespace Tac
     Span< const char > mBytes {};
     int                mIndex {};
 
-    template< typename T > T ReadT( Errors& errors )
-    {
-      T t{};
-      TAC_RAISE_ERROR_IF_RETURN( {}, ! ReadT( &t ), "ReadStream::ReadT() failed" );
-      return t;
-    }
 
   private:
     const void* Advance( int );
     int Remaining() const;
 
-    template< typename T > bool ReadT( T* t )
-    {
-      const int remaining{ Remaining() };
-      if( remaining < sizeof( T ) )
-        return false;
-
-      *t = *( T* )Advance( sizeof( T ) );
-      return true;
-    }
   };
 
   struct WriteStream

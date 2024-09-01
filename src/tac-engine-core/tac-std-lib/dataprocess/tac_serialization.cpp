@@ -7,112 +7,14 @@
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-#if 0
 
-  const NetVar& NetVars::operator[]( int i ) const { return mNetVars[ i ]; }
-  int           NetVars::size() const              { return mNetVars.size(); }
-  void          NetVars::Add( NetVar b )           { mNetVars.push_back( b ); }
-  void          NetVars::Clear()                   { mNetVars.clear(); }
-  NetBitDiff    NetVars::Diff( const void* oldData, const void* newData ) const
-  {
-    if( !oldData || !newData )
-      return NetBitDiff{ 0xff };
-
-    NetBitDiff diff{};
-
-    const int nVars{ mNetVars.size() };
-    for( int iVar{}; iVar < nVars; ++iVar )
-    {
-      const NetVar& var{ mNetVars[ iVar ] };
-      const MetaMember* metaMember{ var.mMetaMember };
-
-      const void* oldBits{ ( const char* )oldData + metaMember->mOffset };
-      const void* newBits{ ( const char* )newData + metaMember->mOffset };
-
-      if( !var.Equals( oldBits, newBits ) )
-        diff.Set( iVar );
-    }
-
-    return diff;
-  }
-#endif
-
-#if 0
-  void          NetVars::CopyFrom( dynmc void* dstComponent,
-                                   const void* srcComponent ) const
-  {
-    const int nVars{ mNetVars.size() };
-
-    for( int iVar{}; iVar < nVars; ++iVar )
-    {
-      const NetVar& var{ mNetVars[ iVar ] };
-      const MetaMember* metaMember{ var.mMetaMember };
-      dynmc void* dst{ ( dynmc char* )dstComponent + metaMember->mOffset };
-      const void* src{ ( const char* )srcComponent + metaMember->mOffset };
-
-      var.CopyFrom( dst, src );
-    }
-  }
-#endif
 
   // -----------------------------------------------------------------------------------------------
 
 
   // -----------------------------------------------------------------------------------------------
 
-#if 0
 
-  bool          NetVar::Equals( const void* a, const void* b ) const
-  {
-    const MetaType* metaType{ mMetaMember->mMetaType };
-    return metaType->Equals( a, b );
-    //if( mVarCompare )
-    //  return mVarCompare->Equals( a, b );
-    //TAC_ASSERT( mIsTriviallyCopyable );
-    //const int n{ mElementCount * mElementByteCount };
-    //return MemCmp( a, b, n ) == 0;
-  }
-#endif
-
-
-#if 0
-  void          NetVar::CopyFrom( void* dst, const void* src ) const
-  {
-    const MetaType* metaType{ mMetaMember->mMetaType };
-    metaType->Copy( dst, src );
-
-    if( mVarWriter || mVarReader )
-    {
-      TAC_ASSERT( mVarWriter && mVarReader );
-
-      const Endianness endianness{ GetEndianness() };
-      Writer writer
-      {
-        .mFrom { endianness },
-        .mTo   { endianness },
-      };
-
-      mVarWriter->Write( &writer, src );
-
-      Reader reader
-      {
-        .mFrom  { endianness },
-        .mTo    { endianness },
-        .mBegin { writer.mBytes.data() },
-        .mEnd   { writer.mBytes.data() + writer.mBytes.size() },
-      };
-      const bool readSuccess{ mVarReader->Read( &reader, dst ) };
-      TAC_ASSERT( readSuccess );
-    }
-    else
-    {
-      const int size { mElementByteCount * mElementCount };
-      TAC_ASSERT( size );
-      TAC_ASSERT( mIsTriviallyCopyable );
-      MemCpy( dst, src, size );
-    }
-  }
-#endif
 
   // -----------------------------------------------------------------------------------------------
 
@@ -138,134 +40,13 @@ namespace Tac
 {
 
 
-  static void CopyValueAccountForEndianness( void* dst,
-                                             const void* src,
-                                             int size,
-                                             Endianness a,
-                                             Endianness b )
-  {
-    MemCpy( dst, src, size );
-    if( a != b )
-      Reverse( ( char* )dst, ( char* )dst + size );
-  }
 
-  static void Copy( void* dst, const void* src, int size, Endianness a, Endianness b )
-  {
-    CopyValueAccountForEndianness( dst, src, size, a, b );
-  }
-
-  // -----------------------------------------------------------------------------------------------
-#if 0
-
-  bool Reader::Read( void* values, int valueCount, int sizeOfValue )
-  {
-    TAC_ASSERT( mFrom != Endianness::Unknown );
-    TAC_ASSERT( mTo != Endianness::Unknown );
-    auto dstDiff { ( char* )mEnd - ( char* )mBegin };
-    auto srcDiff { ( std::intptr_t )valueCount * ( intptr_t )sizeOfValue };
-    if( dstDiff < srcDiff )
-      return false;
-    for( int i{}; i < valueCount; ++i )
-      CopyValueAccountForEndianness( ( char* )values + ( intptr_t )sizeOfValue * i,
-      ( char* )mBegin + ( intptr_t )sizeOfValue * i,
-                                     sizeOfValue, mFrom, mTo );
-    mBegin = ( char* )mBegin + ( intptr_t )sizeOfValue * valueCount;
-    return true;
-  }
-
-  const void* Reader::ReadBytes( int byteCount )
-  {
-    const void* newBegin{ ( char* )mBegin + byteCount };
-    if( newBegin > mEnd )
-      return nullptr;
-
-    const void* result{ mBegin };
-    mBegin = newBegin;
-    return result;
-  }
-
-  bool Reader::Read( void* bytes, const NetVars& vars )
-  {
-    NetBitDiff netBitDiff;
-    if( !Read( &netBitDiff.mBitfield ) )
-      return false;
-
-    TAC_ASSERT( !netBitDiff.Empty() ); // y u sending me nothin
-    const int nVars{ vars.size() };
-    for( int iVar {}; iVar < nVars; ++iVar )
-    {
-      if( !netBitDiff.IsSet( iVar ) )
-        continue;
-
-      const NetVar& var { vars[ iVar ] };
-      const MetaMember* metaMember{ var.mMetaMember };
-      const MetaType* metaType{ metaMember->mMetaType };
-
-      void* dst{ ( char* )bytes + metaMember->mOffset };
-
-      if( var.mIsTriviallyCopyable )
-      {
-        const void* src{ ReadBytes( metaType->GetSizeOf() ) };
-        if( !src )
-          return false;
-
-        metaType->Copy( { .mDst{ dst }, .mSrc{ src }, } );
-      }
-      else
-      {
-        if( !var.mVarReader->Read( this, dst ) )
-        {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
-  void Writer::Write( const void* values,
-                      int valueCount,
-                      int sizeOfValue )
-  {
-    TAC_ASSERT( mFrom != Endianness::Unknown );
-    TAC_ASSERT( mTo != Endianness::Unknown );
-    const int oldSize { mBytes.size() };
-    mBytes.resize( oldSize + sizeOfValue * valueCount );
-    for( int i{}; i < valueCount; ++i )
-    {
-      void* dst { ( char* )mBytes.data() + std::ptrdiff_t( oldSize + i * sizeOfValue) };
-      const void* src { ( const char* )values + sizeOfValue * i };
-      CopyValueAccountForEndianness( dst, src, sizeOfValue, mFrom, mTo );
-    }
-  }
-  void Writer::Write( const void* bytes,
-                      NetBitDiff diff,
-                      const NetVars& vars )
-  {
-    const u8 bitfield { diff.mBitfield };
-    TAC_ASSERT( bitfield );
-
-    Write( bitfield );
-    const int nVars{ vars.size() };
-    for( int iVar {}; iVar < nVars; ++iVar )
-    {
-      if( !diff.IsSet( iVar ) )
-        continue;
-
-      const NetVar& var { vars[ iVar ] };
-      const MetaMember* metaMember{ var.mMetaMember };
-      //const MetaType* metaType{ metaMember->mMetaType };
-      const void* varBytes{ ( char* )bytes + metaMember->mOffset};
-      var.mVarWriter->Write( this, varBytes );
-    }
-  }
-#else
-
   // -----------------------------------------------------------------------------------------------
 
-  void NetVarReaderWriter::Add( const char* name )
+  void NetVarRegistration::Add( const char* name )
   {
     TAC_ASSERT( mMetaType );
     const int n{ mMetaType->GetMemberCount() };
@@ -275,7 +56,7 @@ namespace Tac
       const MetaMember& metaMember{ mMetaType->GetMember( i ) };
       if( metaMember.mName == ( StringView )name )
       {
-        mEnabled.Set( i );
+        mNetMembers.Set( i );
         return;
       }
     }
@@ -283,15 +64,18 @@ namespace Tac
     TAC_ASSERT_INVALID_CODE_PATH;
   }
 
-  void NetVarReaderWriter::Read( ReadStream* stream, dynmc void* basePtr )
+  void NetVarRegistration::Read( ReadStream* stream, dynmc void* basePtr, Errors& errors ) const
   {
     TAC_ASSERT( mMetaType );
     TAC_ASSERT( stream );
     TAC_ASSERT( basePtr );
+
+    TAC_CALL( const NetVarDiff diff{ stream->Read< NetVarDiff >( errors ) } );
+
     const int n{ mMetaType->GetMemberCount() };
     for( int i{}; i < n; ++i )
     {
-      if( mEnabled.IsSet( i ) )
+      if( mNetMembers.IsSet( i ) && diff.IsSet(i) )
       {
         const MetaMember& metaMember{ mMetaType->GetMember( i ) };
         metaMember.mMetaType->Read( stream, ( char* )basePtr + metaMember.mOffset );
@@ -299,20 +83,54 @@ namespace Tac
     }
   }
 
-  void NetVarReaderWriter::Write( WriteStream* stream, const void* basePtr )
+  void NetVarRegistration::Write( WriteStream* stream, const void* basePtr, NetVarDiff diff ) const
   {
     TAC_ASSERT( mMetaType );
     TAC_ASSERT( stream );
     TAC_ASSERT( basePtr );
+
+    stream->Write( diff.mBitfield );
+
     const int n{ mMetaType->GetMemberCount() };
     for( int i{}; i < n; ++i )
     {
-      if( mEnabled.IsSet( i ) )
+      if( mNetMembers.IsSet( i ) && diff.IsSet( i ) )
       {
         const MetaMember& metaMember{ mMetaType->GetMember( i ) };
         metaMember.mMetaType->Write( stream, ( char* )basePtr + metaMember.mOffset );
       }
     }
+  }
+
+  NetVarDiff NetVarRegistration::Diff( DiffParams diffParams ) const
+  {
+    NetVarDiff result;
+
+    const void* oldObj{ diffParams.mOld };
+    const void* newObj{ diffParams.mNew };
+
+    TAC_ASSERT( newObj );
+    if( !oldObj )
+    {
+      result.SetAll();
+      return result;
+    }
+
+    const int n{ mMetaType->GetMemberCount() };
+    for( int i{}; i < n; ++i )
+    {
+      if( mNetMembers.IsSet( i ) )
+      {
+        const MetaMember& metaMember{ mMetaType->GetMember( i ) };
+        const void* oldMember{ ( const char* )oldObj + metaMember.mOffset };
+        const void* newMember{ ( const char* )newObj + metaMember.mOffset };
+        const bool isEqual{ metaMember.mMetaType->Equals( oldMember, newMember ) };
+        if( !isEqual )
+          result.Set( i );
+      }
+    }
+
+    return result;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -334,7 +152,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-#if 0
   const void* ReadStream::Advance( int n )
   {
     if( mIndex + n > mBytes.size() )
@@ -344,14 +161,7 @@ namespace Tac
     mIndex += n;
     return result;
   }
-  bool ReadStream::Read( char* v )   { return ReadT( v ); }
-  bool ReadStream::Read( u8* v )     { return ReadT( v ); }
-  bool ReadStream::Read( u16* v )    { return ReadT( v ); }
-  bool ReadStream::Read( u32* v )    { return ReadT( v ); }
-  bool ReadStream::Read( u64* v )    { return ReadT( v ); }
-  bool ReadStream::Read( float* v )  { return ReadT( v ); }
   int ReadStream::Remaining() const { return mBytes.size() - mIndex; }
-#endif
 
   // -----------------------------------------------------------------------------------------------
 
@@ -377,23 +187,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-#if 0
-  bool EndianReader::Read( u8* v )    { return ReadT( v ); }
-  bool EndianReader::Read( u16* v )   { return ReadT( v ); }
-  bool EndianReader::Read( u32* v )   { return ReadT( v ); }
-  bool EndianReader::Read( u64* v )   { return ReadT( v ); }
-  bool EndianReader::Read( float* v ) { return ReadT( v ); }
-  void EndianReader::PostRead( void* v, int n ) { CheckFlip( v, n, mFrom, mTo ); }
 
-  // -----------------------------------------------------------------------------------------------
-  void EndianWriter::Write( u8 v )    { WriteT( v ); }
-  void EndianWriter::Write( u16 v )   { WriteT( v ); }
-  void EndianWriter::Write( u32 v )   { WriteT( v ); }
-  void EndianWriter::Write( u64 v )   { WriteT( v ); }
-  void EndianWriter::Write( float v ) { WriteT( v ); }
-  void EndianWriter::PreWrite( void* v, int n) { CheckFlip( v, n, mFrom, mTo ); }
-#endif
-
-#endif
 } // namespace Tac
 

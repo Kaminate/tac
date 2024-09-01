@@ -84,6 +84,8 @@ namespace Tac
     String            mName               {};
   };
 
+  struct EntitiesToDiff{ Entity* mOldEntity; Entity* mNewEntity; };
 
-}
+
+} // namespace Tac
 

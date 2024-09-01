@@ -7,24 +7,10 @@
 
 namespace Tac
 {
-  struct PlayerDifference
-  {
-    NetBitDiff mBitfield  {};
-    Player*    mNewPlayer {};
-    PlayerUUID playerUUID {};
-  };
-
   struct PlayerDiffs
   {
-    static void Write(  World* oldWorld, World* newWorld , WriteStream* );
-    static void Read( World* world, ReadStream* reader, Errors& errors );
-
-  private:
-    PlayerDiffs( World* oldWorld, World* newWorld );
-    void Write( WriteStream* );
-
-    Vector< PlayerUUID >       deletedPlayerUUIDs;
-    Vector< PlayerDifference > oldAndNewPlayers;
+    static void Write( WorldsToDiff, WriteStream* );
+    static void Read( World*, ReadStream*, Errors& );
   };
 
 } // namespace Tac

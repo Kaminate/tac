@@ -20,9 +20,12 @@ namespace Tac
 {
   struct Light : public Component
   {
-    static Light* GetLight( Entity* );
+    static void         RegisterComponent();
+    static dynmc Light* GetLight( Entity* );
     static const Light* GetLight( const Entity* );
+
     const ComponentRegistryEntry* GetEntry() const override;
+
     void                                 FreeRenderResources();
     Camera                               GetCamera() const;
     v3                                   GetUnitDirection() const;
@@ -53,7 +56,6 @@ namespace Tac
   };
 
   Render::ShaderLight LightToShaderLight( const Light* );
-  void                RegisterLightComponent();
   const char*         LightTypeToString( Light::Type );
   Light::Type         LightTypeFromString( const StringView& );
   void                LightDebugImgui( Light* );

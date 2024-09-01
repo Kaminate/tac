@@ -5,11 +5,12 @@
 
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/net/tac_space_net.h"
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/world/tac_world.h"
 
 namespace Tac
 {
   struct ComponentRegistryEntry;
-  struct Entity;
 
   // Represents the components owned by an entity
   struct ComponentRegistryBits
@@ -31,14 +32,14 @@ namespace Tac
 
   struct ChangedComponentBitfields
   {
-    void       Set( const ComponentRegistryEntry*, NetBitDiff );
-    NetBitDiff Get( const ComponentRegistryEntry* ) const;
+    void       Set( const ComponentRegistryEntry*, NetVarDiff );
+    NetVarDiff Get( const ComponentRegistryEntry* ) const;
     bool       IsDirty() const;
 
   private:
     // Each element in this array is a bitfield which represents dirty NetVars corresponding
     // to a single a component registry entry
-    NetBitDiff mData[ 64 ]  {};
+    NetVarDiff mData[ 64 ]  {};
     bool       mDirty       {};
   };
 
@@ -51,16 +52,16 @@ namespace Tac
 
   struct EntityDiffs
   {
-    static void Write( World* oldWorld, World* newWorld, WriteStream* writer );
+    static void Write( WorldsToDiff, WriteStream* writer );
     static void Read( World* , ReadStream* , Errors& );
 
   private:
-    EntityDiffs( World* oldWorld, World* newWorld );
+    EntityDiffs( WorldsToDiff );
     void Write( WriteStream* );
     void WriteDeleted( WriteStream* );
     void WriteCreated( WriteStream* );
     void WriteModified( WriteStream* );
-    void DiffEntities( Entity* oldEntity, Entity* newEntity );
+    void DiffEntities( EntitiesToDiff );
     static void ReadDeleted( World* , ReadStream* , Errors& );
     static void ReadCreated( World* , ReadStream* , Errors& );
     static void ReadModified( World* , ReadStream* , Errors& );
@@ -68,16 +69,6 @@ namespace Tac
     Vector< Entity* >    mCreated;
     Vector< EntityUUID > mDestroyed;
     Vector< EntityMod >  mModified;
-  };
-
-
-  // Compares two entities, returns info about what has changed
-  struct EntityDiff
-  {
-    // Needed for Created and Modified
-
-    // Needed for Created, Modified, and Destroyed
-    EntityUUID                mEntityUUID { NullEntityUUID };
   };
 
 } // namespace Tac

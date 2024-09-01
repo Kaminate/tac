@@ -7,6 +7,8 @@ namespace Tac
 {
   struct Skybox : public Component
   {
+  static void RegisterComponent();
+
     static Skybox*                 GetSkybox( Entity* );
     static const Skybox*           GetSkybox( const Entity* );
     const ComponentRegistryEntry*  GetEntry() const override;
@@ -15,7 +17,6 @@ namespace Tac
   };
 
 
-  void RegisterSkyboxComponent();
 
 }
 

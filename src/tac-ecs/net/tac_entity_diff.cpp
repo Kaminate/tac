@@ -40,14 +40,14 @@ namespace Tac
   // ----------------------------------------------------------------------------------------------
 
   void        ChangedComponentBitfields::Set( const ComponentRegistryEntry* entry,
-                                              NetBitDiff data )
+                                              NetVarDiff data )
   {
     mData[ entry->GetIndex() ] = data;
 
     mDirty |= !data.Empty();
   }
 
-  NetBitDiff  ChangedComponentBitfields::Get( const ComponentRegistryEntry* entry ) const
+  NetVarDiff  ChangedComponentBitfields::Get( const ComponentRegistryEntry* entry ) const
   {
     return mData[ entry->GetIndex() ];
   }
@@ -59,8 +59,11 @@ namespace Tac
 
   // ----------------------------------------------------------------------------------------------
 
-  EntityDiffs::EntityDiffs( World* oldWorld, World* newWorld )
+  EntityDiffs::EntityDiffs( WorldsToDiff worldDiff )
   {
+    World* oldWorld{ worldDiff.mOldWorld };
+    World* newWorld{ worldDiff.mNewWorld };
+
     Set< EntityUUID > entityUUIDs;
 
     for( Entity* entity : oldWorld->mEntities )
@@ -71,14 +74,22 @@ namespace Tac
 
     for( EntityUUID entityUUID : entityUUIDs )
     {
-      Entity* oldEntity = oldWorld->FindEntity( entityUUID );
-      Entity* newEntity = newWorld->FindEntity( entityUUID );
-      DiffEntities( oldEntity, newEntity );
+      Entity* oldEntity{ oldWorld->FindEntity( entityUUID ) };
+      Entity* newEntity{ newWorld->FindEntity( entityUUID ) };
+      const EntitiesToDiff entityDiff
+      {
+        .mOldEntity{oldEntity},
+        .mNewEntity{newEntity},
+      };
+      DiffEntities( entityDiff );
     }
   }
 
-  void EntityDiffs::DiffEntities( Entity* oldEntity, Entity* newEntity )
+  void EntityDiffs::DiffEntities(EntitiesToDiff entityDiff )
   {
+    Entity* oldEntity{ entityDiff.mOldEntity };
+    Entity* newEntity{ entityDiff.mNewEntity };
+
     if( oldEntity && !newEntity )
     {
       mDestroyed.push_back(oldEntity->mEntityUUID );
@@ -103,7 +114,7 @@ namespace Tac
 
       const Component* oldComponent { oldEntity->GetComponent( &componentData ) };
       const Component* newComponent { newEntity->GetComponent( &componentData ) };
-      const NetBitDiff netBit{ GetNetVarfield( oldComponent,
+      const NetVarDiff netBit{ GetNetVarfield( oldComponent,
                                                     newComponent,
                                                     componentData.mNetVars ) };
 
@@ -123,9 +134,9 @@ namespace Tac
     mModified.push_back( mod );
   }
 
-  void EntityDiffs::Write( World* oldWorld, World* newWorld, WriteStream* writer )
+  void EntityDiffs::Write( WorldsToDiff worldDiff, WriteStream* writer )
   {
-    EntityDiffs diffs( oldWorld, newWorld );
+    EntityDiffs diffs( worldDiff );
     diffs.Write( writer );
   }
 

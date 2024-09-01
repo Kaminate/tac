@@ -33,7 +33,7 @@ namespace Tac
     GetGraphics( world )->DestroySkyboxComponent( ( Skybox* )component );
   }
 
-	void              RegisterSkyboxComponent()
+	void              Skybox::RegisterComponent()
 	{
     sRegistryEntry = ComponentRegistry_RegisterComponent();
 		sRegistryEntry->mName = "Skybox";
@@ -45,5 +45,5 @@ namespace Tac
 		//sRegistryEntry->mLoadFn = LoadSkyboxComponent;
 	}
 
-}
+} // namespace Tac
 

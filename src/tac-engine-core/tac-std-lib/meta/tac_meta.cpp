@@ -6,6 +6,7 @@
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/meta/tac_meta_integral.h"
 
 import std; // fstream, iostream, iomanip, format
 //#include <fstream>
@@ -52,6 +53,7 @@ namespace Tac
 
 
   // -----------------------------------------------------------------------------------------------
+#if 0
 
   template< typename T >
   struct MetaIntegralType : public MetaType
@@ -79,6 +81,8 @@ namespace Tac
     const T&    As_T( const void* v ) const                                                         { return *(T*)v; }
     dynmc T&    As_T( dynmc void* v ) const                                                         { return *(T*)v; }
   };
+
+#endif
 
   static const MetaIntegralType< i8 >  sMeta_i8( "i8" );
   static const MetaIntegralType< i16 > sMeta_i16("16");

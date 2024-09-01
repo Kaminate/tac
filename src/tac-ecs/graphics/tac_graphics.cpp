@@ -145,9 +145,9 @@ namespace Tac
     gGraphicsSystemRegistryEntry->mCreateFn = CreateGraphicsSystem;
     gGraphicsSystemRegistryEntry->mName = "Graphics";
     gGraphicsSystemRegistryEntry->mDebugImGui = GraphicsDebugImgui;
-    RegisterModelComponent();
-    RegisterSkyboxComponent();
-    RegisterLightComponent();
+    Model::RegisterComponent();
+    Skybox::RegisterComponent();
+    Light::RegisterComponent();
     Material::RegisterComponent();
   }
 

@@ -33,7 +33,7 @@ namespace Tac
     void                    ReadSnapshotBody( ReadStream*, Errors& );
     void                    OnClientDisconnect();
     void                    WriteInputBody( WriteStream* );
-    void                    ExecuteNetMsg( void* bytes, int byteCount, Errors& );
+    void                    ExecuteNetMsg( const void*, int, Errors& );
     void                    ApplyPrediction( Timestamp lastTime );
     void                    Update( float seconds,
                                     v2 inputDir,

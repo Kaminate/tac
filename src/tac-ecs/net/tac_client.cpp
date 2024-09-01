@@ -62,7 +62,7 @@ namespace Tac
   }
 
 
-  void ClientData::ReadSnapshotBody( Reader* reader,
+  void ClientData::ReadSnapshotBody( ReadStream* reader,
                                      Errors& errors )
   {
     TAC_CALL( const Timestamp newGameTime{ reader->Read< Timestamp >( errors ) } );
@@ -114,23 +114,13 @@ namespace Tac
       .mBytes { ( const char* )bytes, byteCount },
     };
 
-    EndianReader endianReader
-    {
-      .mFrom  { GameEndianness },
-      .mTo    { GetEndianness() },
-    };
-
-
-    {
-    };
-
-    TAC_CALL( const NetMsgType networkMessage{ ReadNetMsgHeader( &reader, errors ) } );
+    TAC_CALL( const NetMsgType networkMessage{ ReadNetMsgHeader( &readStream, errors ) } );
 
     switch( networkMessage )
     {
       case NetMsgType::Snapshot:
       {
-        TAC_CALL( ReadSnapshotBody( &reader, errors ) );
+        TAC_CALL( ReadSnapshotBody( &readStream, errors ) );
       } break;
       //case NetMsgType::Text: { ReadIncomingChatMessageBody( &reader, &mChat, errors ); } break;
     }
@@ -149,17 +139,13 @@ namespace Tac
       TAC_CALL( ExecuteNetMsg( delayedMsg.data(), ( int )delayedMsg.size(), errors ) );
     }
 
-    Writer writer
-    {
-      .mFrom { GetEndianness() },
-      .mTo   { GameEndianness },
-    };
+    WriteStream writer{};
 
     WriteNetMsgHeader( &writer, NetMsgType::Input );
 
-    SavedInput newInput
+    const SavedInput newInput
     {
-      .mTimestamp { mWorld->mElapsedSecs },
+      .mTimestamp      { mWorld->mElapsedSecs },
       .mInputDirection { inputDir },
     };
 
@@ -168,17 +154,12 @@ namespace Tac
     mSavedInputs.push_back( newInput );
 
     if( mIsPredicting )
-    {
-      auto player = mWorld->FindPlayer( mPlayerUUID );
-      if( player )
+      if( Player* player { mWorld->FindPlayer( mPlayerUUID ) } )
         player->mInputDirection = inputDir;
-    }
 
     WriteInputBody( &writer );
 
-    sendNetworkMessageCallback( writer.mBytes.data(),
-                                ( int )writer.mBytes.size(),
-                                userData );
+    sendNetworkMessageCallback( writer.Data(), writer.Size(), userData );
 
     mWorld->Step( seconds );
 

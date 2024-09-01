@@ -6,6 +6,7 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/meta/tac_meta_decl.h"
 
 namespace Tac
 {
@@ -23,7 +24,7 @@ namespace Tac
   TAC_META_DECL( Player );
 
   void                      PlayerNetVarsRegister();
-  const NetVarReaderWriter& PlayerNetVarsGet();
+  const NetVarRegistration& PlayerNetVarsGet();
 
 }
 
