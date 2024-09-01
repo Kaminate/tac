@@ -1,6 +1,8 @@
 #pragma once
 
 #include "tac-ecs/tac_space.h"
+#include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
 {
@@ -24,15 +26,17 @@ namespace Tac
     using SystemCreateFn = System* ( * )();
     using SystemImGuiFn = void ( * )( System* );
 
-    static SystemInfo*  Register();
+    static dynmc SystemInfo*  Register();
+    static const SystemInfo*  Find( StringView );
+
+    //                  Index of this system in the registry, also the 
+    //                  index of this system in the world systems array
+    int                 GetIndex() const;
 
     const char*         mName       {};
     SystemCreateFn      mCreateFn   {};
     SystemImGuiFn       mDebugImGui {};
 
-    //                  Index of this system in the registry, also the 
-    //                  index of this system in the world systems array
-    int                 mIndex      { -1 };
   };
 
 

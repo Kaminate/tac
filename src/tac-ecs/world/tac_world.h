@@ -5,6 +5,7 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac { struct m4; struct Debug3DDrawData; }
 
@@ -20,7 +21,7 @@ namespace Tac
     World();
     ~World();
 
-    System*       GetSystem( const SystemInfo* );
+    dynmc System* GetSystem( const SystemInfo* );
     const System* GetSystem( const SystemInfo* ) const;
     void          DeepCopy( const World& );
     void          Step( float seconds );

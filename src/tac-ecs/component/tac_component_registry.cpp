@@ -8,25 +8,25 @@ namespace Tac
   // or between server/clients
   // maybe it should be sorted by entry name or something?
 
-  static FixedVector< ComponentInfo, 10 > mEntries;
+  static FixedVector< ComponentInfo, 10 > sSystemInfos;
 
-  ComponentInfo* ComponentInfo::Iterate::begin() { return mEntries.begin(); }
-  ComponentInfo* ComponentInfo::Iterate::end()   { return mEntries.end(); }
+  ComponentInfo* ComponentInfo::Iterate::begin() { return sSystemInfos.begin(); }
+  ComponentInfo* ComponentInfo::Iterate::end()   { return sSystemInfos.end(); }
 
   int                    ComponentInfo::GetIndex() const
   {
-    return ( int )( this - mEntries.data() );
+    return ( int )( this - sSystemInfos.data() );
   }
 
   ComponentInfo* ComponentInfo::Register()
   {
-    mEntries.push_back( ComponentInfo() );
-    return &mEntries.back();
+    sSystemInfos.push_back( ComponentInfo() );
+    return &sSystemInfos.back();
   }
 
   ComponentInfo* ComponentInfo::Find( const char* name )
   {
-    for( ComponentInfo& entry : mEntries )
+    for( ComponentInfo& entry : sSystemInfos )
       if( !StrCmp( entry.mName, name ) )
         return &entry;
     return nullptr;

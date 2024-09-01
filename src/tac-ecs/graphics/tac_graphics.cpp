@@ -141,12 +141,11 @@ namespace Tac
 
   void              Graphics::SpaceInitGraphics()
   {
-    *( sGraphicsInfo = SystemInfo::Register() ) = SystemInfo
-    {
-      .mName       { "Graphics" },
-      .mCreateFn   { CreateGraphicsSystem },
-      .mDebugImGui { GraphicsDebugImgui },
-    };
+    sGraphicsInfo = SystemInfo::Register();
+    sGraphicsInfo->mName = "Graphics";
+    sGraphicsInfo->mCreateFn = CreateGraphicsSystem;
+    sGraphicsInfo->mDebugImGui = GraphicsDebugImgui;
+
     Model::RegisterComponent();
     Skybox::RegisterComponent();
     Light::RegisterComponent();

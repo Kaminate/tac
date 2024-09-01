@@ -305,14 +305,14 @@ namespace Tac
     mDebug3DDrawData->CopyFrom( *world.mDebug3DDrawData );
   }
 
-  System* World::GetSystem( const SystemInfo* systemRegistryEntry )
+  dynmc System* World::GetSystem( const SystemInfo* systemInfo )
   {
-    return mSystems[ systemRegistryEntry->mIndex ];
+    return mSystems[ systemInfo->GetIndex() ];
   }
 
-  const System* World::GetSystem( const SystemInfo* systemRegistryEntry ) const
+  const System* World::GetSystem( const SystemInfo* systemInfo ) const
   {
-    return mSystems[ systemRegistryEntry->mIndex ];
+    return mSystems[ systemInfo->GetIndex() ];
   }
 
   void               World::DebugImgui()

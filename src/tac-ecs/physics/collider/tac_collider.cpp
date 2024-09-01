@@ -50,10 +50,10 @@ namespace Tac
 #endif
     *( sEntry = ComponentInfo::Register() ) = ComponentInfo
     {
-      .mName { "Collider" },
+      .mName         { "Collider" },
       //sEntry->mNetVars = networkBits;
-      .mCreateFn { CreateColliderComponent },
-      .mDestroyFn { DestroyColliderComponent },
+      .mCreateFn     { CreateColliderComponent },
+      .mDestroyFn    { DestroyColliderComponent },
       .mDebugImguiFn { DebugComponent },
     };
   }

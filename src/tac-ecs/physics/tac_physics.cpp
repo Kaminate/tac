@@ -375,12 +375,10 @@ namespace Tac
 
   void Physics::SpaceInitPhysics()
   {
-    *( Physics::sInfo = SystemInfo::Register() ) = SystemInfo
-    {
-      .mName       { "Physics" },
-      .mCreateFn   { CreatePhysicsSystem },
-      .mDebugImGui { PhysicsDebugImgui },
-    };
+    sInfo = SystemInfo::Register();
+    sInfo->mName = "Physics";
+    sInfo->mCreateFn = CreatePhysicsSystem;
+    sInfo->mDebugImGui = PhysicsDebugImgui;
 
     Terrain::SpaceInitPhysicsTerrain();
     Collider::RegisterComponent();
