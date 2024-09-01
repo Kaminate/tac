@@ -250,13 +250,13 @@ namespace Tac
     // capsule - terrain narrowphase collision
     for( auto collider : mColliders )
     {
-      auto colliderStuff = ( Stuff* )collider->mEntity->GetComponent( ComponentRegistryEntryIndex::Stuff );
+      auto colliderStuff = ( Stuff* )collider->mEntity->GetComponent( ComponentInfoIndex::Stuff );
 
       CapsuleSupport capsuleSupport( colliderStuff->mPosition, collider->mCapsuleHeight, collider->mCapsuleRadius );
 
       for( auto terrainData : terrainDatas )
       {
-        //auto terrainStuff = ( Stuff* )collider->mEntity->GetComponent( ComponentRegistryEntryIndex::Stuff );
+        //auto terrainStuff = ( Stuff* )collider->mEntity->GetComponent( ComponentInfoIndex::Stuff );
         UnusedParameter( colliderStuff );
         UnusedParameter( terrainData );
 

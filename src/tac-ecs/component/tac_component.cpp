@@ -6,7 +6,7 @@ namespace Tac
 {
   void Component::CopyFrom( const Component* component )
   {
-    const ComponentRegistryEntry* entry{ GetEntry() };
+    const ComponentInfo* entry{ GetEntry() };
     const MetaType::CopyParams copyParams
     {
       .mDst { this },

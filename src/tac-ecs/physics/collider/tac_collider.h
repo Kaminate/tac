@@ -13,7 +13,7 @@ namespace Tac
 
     static Collider*               CreateCollider( World* );
     static Collider*               GetCollider( Entity* );
-    const ComponentRegistryEntry*  GetEntry() const override;
+    const ComponentInfo*  GetEntry() const override;
 
     v3                             mVelocity    {};
     float                          mRadius      { 0.5f };

@@ -16,7 +16,7 @@ namespace Tac
 
   // Entity-Component Systems
   struct Component;
-  struct ComponentRegistryEntry;
+  struct ComponentInfo;
   struct Entity;
   struct RelativeSpace;
   struct System;

@@ -16,20 +16,20 @@
 namespace Tac
 {
 
-  struct ComponentRegistryEntry;
+  struct ComponentInfo;
 
   // Represents the components owned by an entity
   struct ComponentRegistryBits
   {
     ComponentRegistryBits() = default;
     ComponentRegistryBits( Entity* );
-    void UnionWith( const ComponentRegistryEntry* );
-    bool HasComponent( const ComponentRegistryEntry* ) const;
+    void UnionWith( const ComponentInfo* );
+    bool HasComponent( const ComponentInfo* ) const;
     u64  GetBitfield() const;
     bool operator == ( const ComponentRegistryBits& ) const = default;
 
   private:
-    u64 Mask( const ComponentRegistryEntry* ) const;
+    u64 Mask( const ComponentInfo* ) const;
 
     // Each bit of the bitfield represents an entry in the Component Registry
     u64 mBitfield {};
@@ -39,8 +39,8 @@ namespace Tac
 
   struct ChangedComponentBitfields
   {
-    void       Set( const ComponentRegistryEntry*, NetVarDiff );
-    NetVarDiff Get( const ComponentRegistryEntry* ) const;
+    void       Set( const ComponentInfo*, NetVarDiff );
+    NetVarDiff Get( const ComponentInfo* ) const;
     bool       IsDirty() const;
 
   private:
@@ -79,33 +79,33 @@ namespace Tac
 
   // ----------------------------------------------------------------------------------------------
 
-  u64 ComponentRegistryBits::Mask( const ComponentRegistryEntry* entry ) const
+  u64 ComponentRegistryBits::Mask( const ComponentInfo* entry ) const
   {
     return ( u64 )1 << entry->GetIndex();
   }
 
-  void ComponentRegistryBits::UnionWith( const ComponentRegistryEntry* entry )
+  void ComponentRegistryBits::UnionWith( const ComponentInfo* entry )
   {
     mBitfield |= Mask( entry );
   }
 
-  bool ComponentRegistryBits::HasComponent( const ComponentRegistryEntry* entry ) const
+  bool ComponentRegistryBits::HasComponent( const ComponentInfo* entry ) const
   {
     return mBitfield & Mask( entry );
   }
 
   ComponentRegistryBits::ComponentRegistryBits( Entity* entity )
   {
-    for( const ComponentRegistryEntry& entry : ComponentRegistryIterator() )
-      if( entity->HasComponent( &entry ) )
-        UnionWith( &entry );
+    for( const ComponentInfo& info : ComponentInfo::Iterate() )
+      if( entity->HasComponent( &info ) )
+        UnionWith( &info );
   }
 
   u64  ComponentRegistryBits::GetBitfield() const { return mBitfield; }
 
   // ----------------------------------------------------------------------------------------------
 
-  void        ChangedComponentBitfields::Set( const ComponentRegistryEntry* entry,
+  void        ChangedComponentBitfields::Set( const ComponentInfo* entry,
                                               NetVarDiff data )
   {
     mData[ entry->GetIndex() ] = data;
@@ -113,7 +113,7 @@ namespace Tac
     mDirty |= !data.Empty();
   }
 
-  NetVarDiff  ChangedComponentBitfields::Get( const ComponentRegistryEntry* entry ) const
+  NetVarDiff  ChangedComponentBitfields::Get( const ComponentInfo* entry ) const
   {
     return mData[ entry->GetIndex() ];
   }
@@ -173,7 +173,7 @@ namespace Tac
 
     ChangedComponentBitfields changedComponentBitfields;
 
-    for( const ComponentRegistryEntry& componentData : ComponentRegistryIterator() )
+    for( const ComponentInfo& componentData : ComponentInfo::Iterate() )
     {
       if( !newComponents.HasComponent( &componentData ) )
         continue;
@@ -220,7 +220,7 @@ namespace Tac
     {
       writer->Write( entity->mEntityUUID );
       writer->Write( ComponentRegistryBits( entity ) );
-      for( const ComponentRegistryEntry& componentData : ComponentRegistryIterator() )
+      for( const ComponentInfo& componentData : ComponentInfo::Iterate() )
         if( Component* component { entity->GetComponent( &componentData ) } )
           componentData.mNetVarRegistration.Write( writer, component, netVarDiff );
     }
@@ -234,7 +234,7 @@ namespace Tac
       Entity* entity{ mod.mEntity };
       writer->Write( entity->mEntityUUID );
       writer->Write( ComponentRegistryBits( entity ) );
-      for( const ComponentRegistryEntry& componentData : ComponentRegistryIterator() )
+      for( const ComponentInfo& componentData : ComponentInfo::Iterate() )
       {
         Component* component{ entity->GetComponent( &componentData ) };
         if( !component )
@@ -274,13 +274,13 @@ namespace Tac
         reader->Read< ComponentRegistryBits >( errors ) } );
 
       Entity* entity { world->SpawnEntity( entityUUID ) };
-      for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
+      for( const ComponentInfo& componentInfo : ComponentInfo::Iterate() )
       {
-        if( componentRegistryBits.HasComponent( &componentRegistryEntry ) )
+        if( componentRegistryBits.HasComponent( &componentInfo ) )
         {
-          Component* component { entity->AddNewComponent( &componentRegistryEntry ) };
+          Component* component { entity->AddNewComponent( &componentInfo ) };
           component->PreReadDifferences();
-          TAC_CALL( componentRegistryEntry.mNetVarRegistration.Read( reader, component, errors ) );
+          TAC_CALL( componentInfo.mNetVarRegistration.Read( reader, component, errors ) );
           component->PostReadDifferences();
         }
       }
@@ -300,25 +300,25 @@ namespace Tac
       TAC_CALL( const ComponentRegistryBits newComponents{
         reader->Read< ComponentRegistryBits >( errors ) } );
 
-      for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
+      for( const ComponentInfo& componentInfo : ComponentInfo::Iterate() )
       {
-        const bool had { oldComponents.HasComponent( &componentRegistryEntry ) };
-        const bool has { newComponents.HasComponent( &componentRegistryEntry ) };
+        const bool had { oldComponents.HasComponent( &componentInfo ) };
+        const bool has { newComponents.HasComponent( &componentInfo ) };
         if( !had && !has )
           continue;
 
         if( had && !has )
         {
-          entity->RemoveComponent( &componentRegistryEntry );
+          entity->RemoveComponent( &componentInfo );
           continue;
         }
 
         Component* component{ has
-          ? entity->GetComponent( &componentRegistryEntry )
-        : entity->AddNewComponent( &componentRegistryEntry ) };
+          ? entity->GetComponent( &componentInfo )
+        : entity->AddNewComponent( &componentInfo ) };
 
         component->PreReadDifferences();
-        TAC_CALL( componentRegistryEntry.mNetVarRegistration.Read( reader, component, errors ) );
+        TAC_CALL( componentInfo.mNetVarRegistration.Read( reader, component, errors ) );
         component->PostReadDifferences();
       }
     }

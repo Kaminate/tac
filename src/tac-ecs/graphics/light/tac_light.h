@@ -24,7 +24,7 @@ namespace Tac
     static dynmc Light* GetLight( Entity* );
     static const Light* GetLight( const Entity* );
 
-    const ComponentRegistryEntry* GetEntry() const override;
+    const ComponentInfo* GetEntry() const override;
 
     void                                 FreeRenderResources();
     Camera                               GetCamera() const;

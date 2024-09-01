@@ -197,7 +197,7 @@ namespace Tac
     collider->mVelocity = v3( velX, velY, velZ );
 
     // update rotation
-    //auto stuff = ( Stuff* )entity->GetComponent( ComponentRegistryEntryIndex::Stuff );
+    //auto stuff = ( Stuff* )entity->GetComponent( ComponentInfoIndex::Stuff );
     //stuff->mWaddleParams.Update( player->mInputDirection, seconds );
     //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
   }

@@ -17,7 +17,7 @@ namespace Tac
 {
   //static int sRegistryIndex;
 
-  static ComponentRegistryEntry* sEntry;
+  static ComponentInfo* sEntry;
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( Model )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Model, mModelPath )
@@ -72,7 +72,7 @@ namespace Tac
 		return ( Model* )entity->GetComponent( sEntry );
 	}
 
-	const ComponentRegistryEntry*  Model::GetEntry() const
+	const ComponentInfo*  Model::GetEntry() const
 	{
     return sEntry;
 	}
@@ -148,7 +148,7 @@ namespace Tac
     netBits.Add( netIndex );
 #endif
 
-    * ( sEntry = ComponentRegistry_RegisterComponent() ) = ComponentRegistryEntry
+    * ( sEntry = ComponentInfo::Register() ) = ComponentInfo
     {
       .mName         { "Model" },
       .mCreateFn     { CreateModelComponent },

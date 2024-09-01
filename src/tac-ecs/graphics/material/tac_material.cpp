@@ -24,7 +24,7 @@ namespace Tac
   TAC_META_REGISTER_COMPOSITE_END( Material );
 
 
-  static ComponentRegistryEntry* sComponentRegistryEntry;
+  static ComponentInfo* sComponentInfo;
 
   static Component* CreateMaterialComponent( World* world )
   {
@@ -81,31 +81,30 @@ namespace Tac
 
   Material*                        Material::GetMaterial( Entity* entity )
   {
-    return ( Material* )entity->GetComponent( sComponentRegistryEntry );
+    return ( Material* )entity->GetComponent( sComponentInfo );
   }
 
   const Material*                  Material::GetMaterial( const Entity* entity )
   {
-    return ( Material* )entity->GetComponent( sComponentRegistryEntry );
+    return ( Material* )entity->GetComponent( sComponentInfo );
   }
 
-  const ComponentRegistryEntry*    Material::GetEntry() const
+  const ComponentInfo*    Material::GetEntry() const
   {
-    return sComponentRegistryEntry;
+    return sComponentInfo;
   }
 
 
   void                             Material::RegisterComponent()
   {
-    sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
-    sComponentRegistryEntry->mName = "Material";
-    //sComponentRegistryEntry->mNetVars = ComponentMaterialBits;
-    sComponentRegistryEntry->mCreateFn = CreateMaterialComponent;
-    sComponentRegistryEntry->mDestroyFn = DestroyMaterialComponent;
-    sComponentRegistryEntry->mDebugImguiFn = []( Component* component )
-      {
-        Material::DebugImgui( ( Material* )component );
-      };
+    *( sComponentInfo = ComponentInfo::Register() ) = ComponentInfo
+    {
+      .mName         { "Material" },
+      //sComponentInfo->mNetVars = ComponentMaterialBits;
+      .mCreateFn     { CreateMaterialComponent },
+      .mDestroyFn    { DestroyMaterialComponent },
+      .mDebugImguiFn { []( Component* c ) { Material::DebugImgui( ( Material* )c ); } },
+    };
   }
 
   void                             Material::DebugImgui( Material* material )

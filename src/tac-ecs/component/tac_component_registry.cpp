@@ -8,25 +8,25 @@ namespace Tac
   // or between server/clients
   // maybe it should be sorted by entry name or something?
 
-  static FixedVector< ComponentRegistryEntry, 10 > mEntries;
+  static FixedVector< ComponentInfo, 10 > mEntries;
 
-  ComponentRegistryEntry* ComponentRegistryIterator::begin() { return mEntries.begin(); }
-  ComponentRegistryEntry* ComponentRegistryIterator::end() { return mEntries.end(); }
+  ComponentInfo* ComponentInfo::Iterate::begin() { return mEntries.begin(); }
+  ComponentInfo* ComponentInfo::Iterate::end()   { return mEntries.end(); }
 
-  int                    ComponentRegistryEntry::GetIndex() const
+  int                    ComponentInfo::GetIndex() const
   {
     return ( int )( this - mEntries.data() );
   }
 
-  ComponentRegistryEntry* ComponentRegistry_RegisterComponent()
+  ComponentInfo* ComponentInfo::Register()
   {
-    mEntries.push_back( ComponentRegistryEntry() );
+    mEntries.push_back( ComponentInfo() );
     return &mEntries.back();
   }
 
-  ComponentRegistryEntry* ComponentRegistry_FindComponentByName( const char* name )
+  ComponentInfo* ComponentInfo::Find( const char* name )
   {
-    for( ComponentRegistryEntry& entry : mEntries )
+    for( ComponentInfo& entry : mEntries )
       if( !StrCmp( entry.mName, name ) )
         return &entry;
     return nullptr;
@@ -34,10 +34,10 @@ namespace Tac
 
   //int                     ComponentRegistry_GetComponentCount() { return mEntries.size(); }
 
-  //ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int i ) { return &mEntries[ i ]; }
+  //ComponentInfo* ComponentRegistry_GetComponentAtIndex( int i ) { return &mEntries[ i ]; }
 
 
-#if 1
+#if 0
 
   Json ComponentSettings::Element::GetValue( const Component* component )
   {

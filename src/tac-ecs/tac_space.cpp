@@ -22,7 +22,7 @@ namespace Tac
       TAC_ASSERT( entry.mName );
     }
 
-    for( const ComponentRegistryEntry& entry : ComponentRegistryIterator() )
+    for( const ComponentInfo& entry : ComponentInfo::Iterate() )
     {
       TAC_ASSERT( entry.mName );
     }

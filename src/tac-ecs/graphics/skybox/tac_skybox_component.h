@@ -7,11 +7,11 @@ namespace Tac
 {
   struct Skybox : public Component
   {
-  static void RegisterComponent();
+    static void RegisterComponent();
 
     static Skybox*                 GetSkybox( Entity* );
     static const Skybox*           GetSkybox( const Entity* );
-    const ComponentRegistryEntry*  GetEntry() const override;
+    const ComponentInfo*  GetEntry() const override;
 
     String                         mSkyboxDir;
   };

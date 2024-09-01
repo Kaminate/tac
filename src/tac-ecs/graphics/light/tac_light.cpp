@@ -14,7 +14,7 @@
 
 namespace Tac
 {
-  static ComponentRegistryEntry* sComponentRegistryEntry;
+  static ComponentInfo* sComponentInfo;
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( Light )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mSpotHalfFOVRadians )
@@ -72,17 +72,17 @@ namespace Tac
 
   Light*                        Light::GetLight( Entity* entity )
   {
-    return ( Light* )entity->GetComponent( sComponentRegistryEntry );
+    return ( Light* )entity->GetComponent( sComponentInfo );
   }
 
   const Light*                  Light::GetLight( const Entity* entity )
   {
-    return ( Light* )entity->GetComponent( sComponentRegistryEntry );
+    return ( Light* )entity->GetComponent( sComponentInfo );
   }
 
-  const ComponentRegistryEntry* Light::GetEntry() const
+  const ComponentInfo* Light::GetEntry() const
   {
-    return sComponentRegistryEntry;
+    return sComponentInfo;
   }
 
   v3                            Light::GetUnitDirection() const
@@ -164,17 +164,16 @@ namespace Tac
 
   void                                   Light::RegisterComponent()
   {
-    sComponentRegistryEntry = ComponentRegistry_RegisterComponent();
-    sComponentRegistryEntry->mName = "Light";
-    //sComponentRegistryEntry->mNetVars = ComponentLightBits;
-    sComponentRegistryEntry->mCreateFn = CreateLightComponent;
-    sComponentRegistryEntry->mDestroyFn = DestroyLightComponent;
-    sComponentRegistryEntry->mDebugImguiFn = []( Component* component )
-      {
-        LightDebugImgui( ( Light* )component );
-      };
-    //sComponentRegistryEntry->mSaveFn = SaveLightComponent;
-    //sComponentRegistryEntry->mLoadFn = LoadLightComponent;
+    *( sComponentInfo = ComponentInfo::Register() ) = ComponentInfo
+    {
+      .mName         { "Light" },
+      //sComponentInfo->mNetVars = ComponentLightBits;
+      .mCreateFn     { CreateLightComponent },
+      .mDestroyFn    { DestroyLightComponent },
+      .mDebugImguiFn { []( Component* c ) { LightDebugImgui( ( Light* )c ); } },
+      //sComponentInfo->mSaveFn = SaveLightComponent;
+      //sComponentInfo->mLoadFn = LoadLightComponent;
+    };
   }
 
   const char*                            LightTypeToString( Light::Type type )

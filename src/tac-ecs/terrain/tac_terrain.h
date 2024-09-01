@@ -32,7 +32,7 @@ namespace Tac
   {
     Terrain();
     static void                    SpaceInitPhysicsTerrain();
-    const ComponentRegistryEntry*  GetEntry() const override;
+    const ComponentInfo*  GetEntry() const override;
     static Terrain*                GetComponent( Entity* );
     void                           LoadTestHeightmap();
     void                           PopulateGrid();

@@ -7,7 +7,7 @@
 
 namespace Tac
 {
-#if 1
+#if 0
   //  Used for serializing components to/from disk
   //
   // commented out because im not sure what Element::Path should be.
@@ -40,7 +40,7 @@ namespace Tac
 #endif
 
 
-  struct ComponentRegistryEntry
+  struct ComponentInfo
   {
     using  ComponentCreateFn       = Component* (*) ( World* );
     using  ComponentDestroyFn      = void       (*) ( World*, Component* );
@@ -49,6 +49,15 @@ namespace Tac
     using  ComponentLoadFn         = void       (*) ( Json&, Component* );
     using  ComponentSettingsSaveFn = void       (*) ( SettingsNode, Component* );
     using  ComponentSettingsLoadFn = void       (*) ( SettingsNode, Component* );
+
+    struct Iterate
+    {
+      ComponentInfo* begin();
+      ComponentInfo* end();
+    };
+
+    static ComponentInfo*  Register();
+    static ComponentInfo*  Find( const char* );
 
     int                    GetIndex() const;
 
@@ -75,16 +84,11 @@ namespace Tac
     NetVarRegistration       mNetVarRegistration {};
     const MetaCompositeType* mMetaType           {};
 
-    ComponentSettings      mComponentSettings;
+    //ComponentSettings      mComponentSettings;
   };
 
-  struct ComponentRegistryIterator
-  {
-    ComponentRegistryEntry* begin();
-    ComponentRegistryEntry* end();
-  };
 
-  // Index of a registered component in the ComponentRegistryEntry
+  // Index of a registered component in the ComponentInfo
   //enum ComponentRegistryIndex : int {};
 
   //struct ComponentRegistryIndexes
@@ -101,9 +105,7 @@ namespace Tac
 
 
   //int                     ComponentRegistry_GetComponentCount();
-  //ComponentRegistryEntry* ComponentRegistry_GetComponentAtIndex( int );
-  ComponentRegistryEntry* ComponentRegistry_RegisterComponent();
-  ComponentRegistryEntry* ComponentRegistry_FindComponentByName( const char* );
+  //ComponentInfo* ComponentRegistry_GetComponentAtIndex( int );
 
 }
 

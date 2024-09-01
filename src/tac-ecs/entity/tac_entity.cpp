@@ -111,13 +111,13 @@ namespace Tac
   {
     for( Component* component : mComponents )
     {
-      const ComponentRegistryEntry* entry { component->GetEntry() };
+      const ComponentInfo* entry { component->GetEntry() };
       entry->mDestroyFn( mWorld, component );
     }
     mComponents.Clear();
   }
 
-  Component*       Entity::AddNewComponent( const ComponentRegistryEntry* entry )
+  Component*       Entity::AddNewComponent( const ComponentInfo* entry )
   {
     TAC_ASSERT( entry );
     TAC_ASSERT( !HasComponent( entry ) );
@@ -129,7 +129,7 @@ namespace Tac
     return component;
   }
 
-  Component*       Entity::GetComponent( const ComponentRegistryEntry* entry )
+  Component*       Entity::GetComponent( const ComponentInfo* entry )
   {
     for( Component* component : mComponents )
       if( component->GetEntry() == entry )
@@ -137,7 +137,7 @@ namespace Tac
     return nullptr;
   }
 
-  const Component* Entity::GetComponent( const ComponentRegistryEntry* entry ) const
+  const Component* Entity::GetComponent( const ComponentInfo* entry ) const
   {
     for( const Component* component : mComponents )
       if( component->GetEntry() == entry )
@@ -145,12 +145,12 @@ namespace Tac
     return nullptr;
   }
 
-  bool             Entity::HasComponent( const ComponentRegistryEntry* entry )
+  bool             Entity::HasComponent( const ComponentInfo* entry )
   {
     return GetComponent( entry ) != nullptr;
   }
 
-  void             Entity::RemoveComponent( const ComponentRegistryEntry* entry )
+  void             Entity::RemoveComponent( const ComponentInfo* entry )
   {
     Component* component { mComponents.Remove( entry ) };
     entry->mDestroyFn( mWorld, component );
@@ -181,7 +181,7 @@ namespace Tac
 
     for( const Component* oldComponent : entity.mComponents )
     {
-      const ComponentRegistryEntry* entry{ oldComponent->GetEntry() };
+      const ComponentInfo* entry{ oldComponent->GetEntry() };
       //const NetVars& vars{ entry->mNetVars };
       Component* newComponent { AddNewComponent( entry ) };
       newComponent->CopyFrom( oldComponent );
@@ -231,10 +231,10 @@ namespace Tac
     OnDestruct( ImGui::Unindent() );
     ImGui::DragFloat3( "Position", mPosition.data(), 0.1f );
 
-    Vector< ComponentRegistryEntryIndex > couldBeAdded;
-    for( int i{}; i < ( int )ComponentRegistryEntryIndex::Count; i++ )
+    Vector< ComponentInfoIndex > couldBeAdded;
+    for( int i{}; i < ( int )ComponentInfoIndex::Count; i++ )
     {
-      auto componentType = ( ComponentRegistryEntryIndex )i;
+      auto componentType = ( ComponentInfoIndex )i;
       if( HasComponent( componentType ) )
         continue;
 
@@ -246,7 +246,7 @@ namespace Tac
 
     if( !couldBeAdded.empty() && ImGui::BeginMenu( "Add Component" ) )
     {
-      for( ComponentRegistryEntryIndex componentType : couldBeAdded )
+      for( ComponentInfoIndex componentType : couldBeAdded )
       {
         auto componentData = GetComponentData( componentType );
         if( !ImGui::MenuItem( componentData->mName ) )
@@ -311,7 +311,7 @@ namespace Tac
 
     for( Component* component : entity->mComponents )
     {
-      const ComponentRegistryEntry* entry { component->GetEntry() };
+      const ComponentInfo* entry { component->GetEntry() };
       Json componentJson;
       entry->mMetaType->JsonSerialize( &componentJson, component );
       //if( entry->mSaveFn )
@@ -355,15 +355,15 @@ namespace Tac
       const StringView key { pair.mFirst };
       Json* componentJson { pair.mSecond };
 
-      ComponentRegistryEntry* componentRegistryEntry { ComponentRegistry_FindComponentByName( key ) };
-      if( !componentRegistryEntry )
+      ComponentInfo* componentInfo { ComponentInfo::Find( key ) };
+      if( !componentInfo )
         continue; // This key-value pair is not a component
 
-      TAC_ASSERT( componentRegistryEntry );
-      Component* component { entity->AddNewComponent( componentRegistryEntry ) };
-      //if( componentRegistryEntry->mLoadFn )
-      //  componentRegistryEntry->mLoadFn( *componentJson, component );
-      componentRegistryEntry->mMetaType->JsonDeserialize( componentJson, component );
+      TAC_ASSERT( componentInfo );
+      Component* component { entity->AddNewComponent( componentInfo ) };
+      //if( componentInfo->mLoadFn )
+      //  componentInfo->mLoadFn( *componentJson, component );
+      componentInfo->mMetaType->JsonDeserialize( componentJson, component );
     }
 
     if( Json * childrenJson{ prefabJson.mObjectChildrenMap[ "mChildren" ] } )

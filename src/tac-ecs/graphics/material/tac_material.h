@@ -11,7 +11,7 @@ namespace Tac
   {
     static Material*              GetMaterial( Entity* );
     static const Material*        GetMaterial( const Entity* );
-    const ComponentRegistryEntry* GetEntry() const override;
+    const ComponentInfo* GetEntry() const override;
 
     static void                   RegisterComponent();
     static void                   DebugImgui( Material* );

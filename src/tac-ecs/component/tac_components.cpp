@@ -17,7 +17,7 @@ namespace Tac
 
   Components::ConstIter     Components::end() const   { return mComponents.end(); }
 
-  Component*                Components::Remove( const ComponentRegistryEntry* entry )
+  Component*                Components::Remove( const ComponentInfo* entry )
   {
     for( auto it { mComponents.begin() }; it != mComponents.end(); ++it )
     {

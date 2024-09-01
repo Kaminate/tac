@@ -5,14 +5,14 @@
 
 namespace Tac
 {
-  static ComponentRegistryEntry* sEntry;
+  static ComponentInfo* sEntry;
 
   Collider*                     Collider::GetCollider( Entity* entity )
   {
     return ( Collider* )entity->GetComponent( sEntry );
   }
 
-  const ComponentRegistryEntry* Collider::GetEntry() const
+  const ComponentInfo* Collider::GetEntry() const
   {
     return sEntry;
   }
@@ -48,12 +48,14 @@ namespace Tac
     networkBits.Add( { "mRadius",      ( int )TAC_OFFSET_OF( Collider, mRadius ),      sizeof( float ), 1 } );
     networkBits.Add( { "mTotalHeight", ( int )TAC_OFFSET_OF( Collider, mTotalHeight ), sizeof( float ), 1 } );
 #endif
-    sEntry = ComponentRegistry_RegisterComponent();
-    sEntry->mName = "Collider";
-    //sEntry->mNetVars = networkBits;
-    sEntry->mCreateFn = CreateColliderComponent;
-    sEntry->mDestroyFn = DestroyColliderComponent;
-    sEntry->mDebugImguiFn = DebugComponent;
+    *( sEntry = ComponentInfo::Register() ) = ComponentInfo
+    {
+      .mName { "Collider" },
+      //sEntry->mNetVars = networkBits;
+      .mCreateFn { CreateColliderComponent },
+      .mDestroyFn { DestroyColliderComponent },
+      .mDebugImguiFn { DebugComponent },
+    };
   }
 
 }

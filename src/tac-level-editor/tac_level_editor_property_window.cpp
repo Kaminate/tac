@@ -95,7 +95,7 @@ namespace Tac
     ImGuiCheckbox( "Active", &entity->mActive );
     ImGuiCheckbox( "Static", &entity->mStatic );
 
-    Vector< const ComponentRegistryEntry* > addableComponentTypes;
+    Vector< const ComponentInfo* > addableComponentTypes;
 
     if( entity->mParent )
     {
@@ -152,27 +152,27 @@ namespace Tac
       }
     }
 
-    for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
+    for( const ComponentInfo& componentInfo : ComponentInfo::Iterate() )
     {
-      if( !entity->HasComponent( &componentRegistryEntry ) )
+      if( !entity->HasComponent( &componentInfo ) )
       {
-        addableComponentTypes.push_back( &componentRegistryEntry );
+        addableComponentTypes.push_back( &componentInfo );
         continue;
       }
 
-      Component* component { entity->GetComponent( &componentRegistryEntry ) };
-      if( ImGuiCollapsingHeader( componentRegistryEntry.mName ) )
+      Component* component { entity->GetComponent( &componentInfo ) };
+      if( ImGuiCollapsingHeader( componentInfo.mName ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
         if( ImGuiButton( "Remove component" ) )
         {
-          entity->RemoveComponent( &componentRegistryEntry );
+          entity->RemoveComponent( &componentInfo );
           break;
         }
 
-        if( componentRegistryEntry.mDebugImguiFn )
+        if( componentInfo.mDebugImguiFn )
         {
-          componentRegistryEntry.mDebugImguiFn( component );
+          componentInfo.mDebugImguiFn( component );
         }
       }
     }
@@ -180,7 +180,7 @@ namespace Tac
     if( !addableComponentTypes.empty() && ImGuiCollapsingHeader( "Add component" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( const ComponentRegistryEntry* componentType : addableComponentTypes )
+      for( const ComponentInfo* componentType : addableComponentTypes )
       {
         const ShortFixedString str{ ShortFixedString::Concat(
           "Add ",

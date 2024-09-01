@@ -10,7 +10,7 @@ namespace Tac
 
     void        Add( Component* );
     void        Clear();
-    Component*  Remove( const ComponentRegistryEntry* );
+    Component*  Remove( const ComponentInfo* );
     ConstIter   begin() const;
     ConstIter   end() const;
 

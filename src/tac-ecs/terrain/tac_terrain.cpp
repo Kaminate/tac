@@ -18,7 +18,7 @@
 
 namespace Tac
 {
-  static ComponentRegistryEntry* sRegistry;
+  static ComponentInfo* sRegistry;
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( Terrain )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mSideVertexCount )
@@ -78,17 +78,19 @@ namespace Tac
 
   void                    Terrain::SpaceInitPhysicsTerrain()
   {
-    sRegistry = ComponentRegistry_RegisterComponent();
-    sRegistry->mName = "Terrain";
-    sRegistry->mCreateFn = CreateTerrainComponent;
-    sRegistry->mDestroyFn = DestroyTerrainComponent;
-    sRegistry->mDebugImguiFn = DebugTerrainComponent;
-    //sRegistry->mNetVarReaderWriter = ;
-    //sRegistry->mLoadFn = TerrainLoadPrefab;
-    //sRegistry->mSaveFn = TerrainSavePrefab;
+    *( sRegistry = ComponentInfo::Register() ) = ComponentInfo
+    {
+      .mName         { "Terrain" },
+      .mCreateFn     { CreateTerrainComponent },
+      .mDestroyFn    { DestroyTerrainComponent },
+      .mDebugImguiFn { DebugTerrainComponent },
+      //sRegistry->mNetVarReaderWriter = ;
+      //sRegistry->mLoadFn = TerrainLoadPrefab;
+      //sRegistry->mSaveFn = TerrainSavePrefab;
+    };
   }
 
-  const ComponentRegistryEntry* Terrain::GetEntry() const { return sRegistry; }
+  const ComponentInfo* Terrain::GetEntry() const { return sRegistry; }
 
   Terrain*                Terrain::GetComponent( Entity* entity )
   {

@@ -30,11 +30,11 @@ namespace Tac
     ~Entity();
 
     void              RemoveAllComponents();
-    Component*        GetComponent( const ComponentRegistryEntry* );
-    const Component*  GetComponent( const ComponentRegistryEntry* ) const;
-    bool              HasComponent( const ComponentRegistryEntry* );
-    Component*        AddNewComponent( const ComponentRegistryEntry* );
-    void              RemoveComponent( const ComponentRegistryEntry* );
+    Component*        GetComponent( const ComponentInfo* );
+    const Component*  GetComponent( const ComponentInfo* ) const;
+    bool              HasComponent( const ComponentInfo* );
+    Component*        AddNewComponent( const ComponentInfo* );
+    void              RemoveComponent( const ComponentInfo* );
 
     void              DeepCopy( const Entity& );
     void              DebugImgui();

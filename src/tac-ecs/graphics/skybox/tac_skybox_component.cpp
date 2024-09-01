@@ -6,7 +6,7 @@
 
 namespace Tac
 {
-	static ComponentRegistryEntry* sRegistryEntry;
+	static ComponentInfo* sRegistryEntry;
 
 	const Skybox*                 Skybox::GetSkybox( const Entity* entity )
 	{
@@ -18,7 +18,7 @@ namespace Tac
 		return ( Skybox* )entity->GetComponent( sRegistryEntry );
 	}
 
-	const ComponentRegistryEntry* Skybox::GetEntry() const
+	const ComponentInfo* Skybox::GetEntry() const
 	{
 		return sRegistryEntry;
   }
@@ -35,14 +35,16 @@ namespace Tac
 
 	void              Skybox::RegisterComponent()
 	{
-    sRegistryEntry = ComponentRegistry_RegisterComponent();
-		sRegistryEntry->mName = "Skybox";
-		//sRegistryEntry->mNetVars = ComponentSkyboxBits;
-		sRegistryEntry->mCreateFn = CreateSkyboxComponent;
-		sRegistryEntry->mDestroyFn = DestroySkyboxComponent;
-		//sRegistryEntry->mDebugImguiFn = SkyboxDebugImgui;
-		//sRegistryEntry->mSaveFn = SaveSkyboxComponent;
-		//sRegistryEntry->mLoadFn = LoadSkyboxComponent;
+    *( sRegistryEntry = ComponentInfo::Register() ) = ComponentInfo
+    {
+      .mName       { "Skybox" },
+      //sRegistryEntry->mNetVars = ComponentSkyboxBits;
+      .mCreateFn   { CreateSkyboxComponent },
+      .mDestroyFn  { DestroySkyboxComponent },
+      //sRegistryEntry->mDebugImguiFn = SkyboxDebugImgui;
+      //sRegistryEntry->mSaveFn = SaveSkyboxComponent;
+      //sRegistryEntry->mLoadFn = LoadSkyboxComponent;
+    };
 	}
 
 } // namespace Tac

@@ -265,7 +265,7 @@ namespace Tac
 
     for( Component* prefabComponent : prefabEntity->mComponents )
     {
-      const ComponentRegistryEntry* entry { prefabComponent->GetEntry() };
+      const ComponentInfo* entry { prefabComponent->GetEntry() };
       Component* copyComponent { copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
 
       const MetaType::CopyParams copyParams

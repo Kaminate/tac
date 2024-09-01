@@ -92,7 +92,7 @@ namespace Tac
     //else
     //{
 
-    //  auto stuff = ( Stuff* )mEntity->GetComponent( ComponentRegistryEntryIndex::Stuff );
+    //  auto stuff = ( Stuff* )mEntity->GetComponent( ComponentInfoIndex::Stuff );
 
     //  ImGui::Text( "Model path: %s", assetManager->GetGeometryPath( mGeometryUUID ).c_str() );
     //  auto geometry = assetManager->GetGeometry( mGeometryUUID );
