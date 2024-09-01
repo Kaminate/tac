@@ -5,6 +5,7 @@ namespace Tac
   struct Json;
   struct ReadStream;
   struct WriteStream;
+  struct String;
 
   struct MetaType
   {
@@ -15,7 +16,11 @@ namespace Tac
       const MetaType* mSrcType {};
     };
 
-    struct CopyParams { void* mDst {}; const void* mSrc {}; };
+    struct CopyParams
+    {
+      void*       mDst {};
+      const void* mSrc {};
+    };
 
     virtual const char* GetName() const = 0;
     virtual int         GetSizeOf() const = 0;
@@ -26,7 +31,7 @@ namespace Tac
     virtual void        JsonSerialize( Json*, const void* ) const = 0;
     virtual void        JsonDeserialize( const Json*, void* ) const = 0;
 
-    virtual void        Read( ReadStream*, dynmc void* ) const;
+    virtual void        Read( ReadStream*, void* ) const;
     virtual void        Write( WriteStream*, const void* ) const;
 
     virtual bool        Equals( const void*, const void* ) const;

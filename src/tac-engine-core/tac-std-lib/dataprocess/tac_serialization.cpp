@@ -150,6 +150,7 @@ namespace Tac
   }
 
 
+
   // -----------------------------------------------------------------------------------------------
 
   const void* ReadStream::Advance( int n )
@@ -161,7 +162,12 @@ namespace Tac
     mIndex += n;
     return result;
   }
-  int ReadStream::Remaining() const { return mBytes.size() - mIndex; }
+  int         ReadStream::Remaining() const { return mBytes.size() - mIndex; }
+
+  void        ReadStream::ReadBytes( void* dst, int n, Errors& errors )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+  }
 
   // -----------------------------------------------------------------------------------------------
 

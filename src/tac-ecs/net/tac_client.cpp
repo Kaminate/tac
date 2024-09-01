@@ -94,10 +94,10 @@ namespace Tac
     mWorld->DeepCopy( *snapshotFrom );
     mWorld->mElapsedSecs = newGameTime;
 
-    TAC_CALL( mPlayerUUID = reader->Read<PlayerUUID>( errors ) );
+    TAC_CALL( mPlayerUUID = reader->Read< PlayerUUID >( errors ) );
 
-    TAC_CALL( PlayerDiffs::Read(mWorld, reader, errors ) );
-    TAC_CALL( EntityDiffs::Read( mWorld, reader, errors ) );
+    TAC_CALL( PlayerDiffs::Read( mWorld, reader, errors ) );
+    TAC_CALL( EntityDiffAPI::Read( mWorld, reader, errors ) );
 
     mSnapshots.AddSnapshot( mWorld );;
 

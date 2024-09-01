@@ -267,9 +267,19 @@ namespace Tac
     {
       const ComponentRegistryEntry* entry { prefabComponent->GetEntry() };
       Component* copyComponent { copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
-      Json entityJson;
-      entry->mSaveFn( entityJson, prefabComponent );
-      entry->mLoadFn( entityJson, copyComponent );
+
+      const MetaType::CopyParams copyParams
+      {
+        .mDst{ copyComponent },
+        .mSrc{ prefabComponent },
+      };
+      entry->mMetaType->Copy( copyParams );
+
+      TAC_ASSERT_UNIMPLEMENTED; // TODO: test if the copy worked (in watch window)
+
+      //Json entityJson;
+      //entry->mSaveFn( entityJson, prefabComponent );
+      //entry->mLoadFn( entityJson, copyComponent );
     }
 
     for( Entity* prefabChildEntity : prefabEntity->mChildren )

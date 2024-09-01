@@ -121,7 +121,7 @@ namespace Tac
     };
 
     PlayerDiffs::Write( worldDiff, writer );
-    EntityDiffs::Write( worldDiff, writer );
+    EntityDiffAPI::Write( worldDiff, writer );
   }
 
   void ServerData::ExecuteNetMsg( const ConnectionUUID connectionID,

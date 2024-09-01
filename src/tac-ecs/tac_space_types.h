@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/tac_ints.h"
+#include "tac-std-lib/meta/tac_meta_decl.h"
 
 namespace Tac
 {
@@ -30,6 +31,12 @@ namespace Tac
 
   typedef UUIDCounter< EntityUUID > EntityUUIDCounter;
   typedef UUIDCounter< PlayerUUID > PlayerUUIDCounter;
+
+
+
+  TAC_META_DECL( PlayerUUID );
+  TAC_META_DECL( EntityUUID );
+
 
 
 }

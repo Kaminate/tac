@@ -6,12 +6,10 @@
 #include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/meta/tac_meta_integral.h"
 #include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/math/tac_math_meta.h"
 
 namespace Tac
 {
-  static const MetaIntegralType< PlayerUUID > sPlayerUUIDMeta( "PlayerUUID" );
-
-  TAC_META_IMPL_INSTANCE( PlayerUUID, sPlayerUUIDMeta );
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( Player )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Player, mPlayerUUID )

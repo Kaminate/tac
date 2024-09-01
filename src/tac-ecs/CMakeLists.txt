@@ -1,6 +1,7 @@
 add_library( TacECS
   "tac_space.cpp"
   "tac_space.h"
+  "tac_space_types.cpp"
   "tac_space_types.h"
 )
 

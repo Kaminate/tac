@@ -2,10 +2,10 @@
 
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/tac_space.h"
+#include "tac-ecs/component/tac_components.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/string/tac_string.h"
 
@@ -24,19 +24,6 @@ namespace Tac
   RelativeSpace RelativeSpaceFromMatrix( const m4& );
 #endif
 
-  struct Components
-  {
-    using Container = List< Component* >;
-    using ConstIter = Container::ConstIterator;
-
-    void        Add( Component* );
-    void        Clear();
-    Component*  Remove( const ComponentRegistryEntry* );
-    ConstIter   begin() const;
-    ConstIter   end() const;
-
-    Container   mComponents;
-  };
 
   struct Entity
   {

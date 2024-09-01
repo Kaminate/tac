@@ -1,5 +1,10 @@
 #include "tac-ecs/net/tac_entity_diff.h" // self-inc
 
+#include "tac-std-lib/containers/tac_optional.h"
+#include "tac-std-lib/tac_ints.h"
+#include "tac-ecs/tac_space_types.h"
+#include "tac-ecs/net/tac_space_net.h"
+#include "tac-ecs/entity/tac_entity.h"
 #include "tac-std-lib/containers/tac_set.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-ecs/component/tac_component_registry.h" // GetIndex
@@ -10,6 +15,68 @@
 
 namespace Tac
 {
+
+  struct ComponentRegistryEntry;
+
+  // Represents the components owned by an entity
+  struct ComponentRegistryBits
+  {
+    ComponentRegistryBits() = default;
+    ComponentRegistryBits( Entity* );
+    void UnionWith( const ComponentRegistryEntry* );
+    bool HasComponent( const ComponentRegistryEntry* ) const;
+    u64  GetBitfield() const;
+    bool operator == ( const ComponentRegistryBits& ) const = default;
+
+  private:
+    u64 Mask( const ComponentRegistryEntry* ) const;
+
+    // Each bit of the bitfield represents an entry in the Component Registry
+    u64 mBitfield {};
+  };
+
+  //bool operator == ( const ComponentRegistryBits&,  const ComponentRegistryBits&  );
+
+  struct ChangedComponentBitfields
+  {
+    void       Set( const ComponentRegistryEntry*, NetVarDiff );
+    NetVarDiff Get( const ComponentRegistryEntry* ) const;
+    bool       IsDirty() const;
+
+  private:
+    // Each element in this array is a bitfield which represents dirty NetVars corresponding
+    // to a single a component registry entry
+    //
+    // Keyed by the component registration index, ie mData[ Model().GetEntry().GetIndex() ]
+    NetVarDiff mData[ 64 ]  {};
+    bool       mDirty       {};
+  };
+
+  struct EntityMod
+  {
+    ChangedComponentBitfields mChangedComponentBitfields  {};
+    ComponentRegistryBits     mComponents                 {};
+    Entity*                   mEntity                     {};
+  };
+
+  struct EntityDiffs
+  {
+    EntityDiffs( WorldsToDiff );
+    void Write( WriteStream* );
+    void WriteDeleted( WriteStream* );
+    void WriteCreated( WriteStream* );
+    void WriteModified( WriteStream* );
+    void DiffEntities( EntitiesToDiff );
+    static void ReadDeleted( World* , ReadStream* , Errors& );
+    static void ReadCreated( World* , ReadStream* , Errors& );
+    static void ReadModified( World* , ReadStream* , Errors& );
+
+    Vector< Entity* >    mCreated;
+    Vector< EntityUUID > mDestroyed;
+    Vector< EntityMod >  mModified;
+  };
+
+
   // ----------------------------------------------------------------------------------------------
 
   u64 ComponentRegistryBits::Mask( const ComponentRegistryEntry* entry ) const
@@ -29,10 +96,9 @@ namespace Tac
 
   ComponentRegistryBits::ComponentRegistryBits( Entity* entity )
   {
-    if( entity )
-      for( const ComponentRegistryEntry& entry : ComponentRegistryIterator() )
-        if( entity->HasComponent( &entry ) )
-          UnionWith( &entry );
+    for( const ComponentRegistryEntry& entry : ComponentRegistryIterator() )
+      if( entity->HasComponent( &entry ) )
+        UnionWith( &entry );
   }
 
   u64  ComponentRegistryBits::GetBitfield() const { return mBitfield; }
@@ -114,11 +180,14 @@ namespace Tac
 
       const Component* oldComponent { oldEntity->GetComponent( &componentData ) };
       const Component* newComponent { newEntity->GetComponent( &componentData ) };
-      const NetVarDiff netBit{ GetNetVarfield( oldComponent,
-                                                    newComponent,
-                                                    componentData.mNetVars ) };
+      const NetVarRegistration::DiffParams diffParams
+      {
+        .mOld{ oldComponent },
+        .mNew{ newComponent },
+      };
+      const NetVarDiff componentDiff{ componentData.mNetVarRegistration.Diff( diffParams ) };
 
-      changedComponentBitfields.Set( &componentData, netBit );
+      changedComponentBitfields.Set( &componentData, componentDiff );
     }
 
     if( oldComponents == newComponents && !changedComponentBitfields.IsDirty() )
@@ -134,11 +203,6 @@ namespace Tac
     mModified.push_back( mod );
   }
 
-  void EntityDiffs::Write( WorldsToDiff worldDiff, WriteStream* writer )
-  {
-    EntityDiffs diffs( worldDiff );
-    diffs.Write( writer );
-  }
 
   void EntityDiffs::WriteDeleted( WriteStream* writer )
   {
@@ -148,16 +212,17 @@ namespace Tac
 
   void EntityDiffs::WriteCreated( WriteStream* writer )
   {
+    NetVarDiff netVarDiff;
+    netVarDiff.SetAll();
+
     writer->Write( ( EntityCount )mCreated.size() );
     for( Entity* entity : mCreated )
     {
       writer->Write( entity->mEntityUUID );
-      writer->Write( ComponentRegistryBits(entity) );
+      writer->Write( ComponentRegistryBits( entity ) );
       for( const ComponentRegistryEntry& componentData : ComponentRegistryIterator() )
-        if( Component* component = entity->GetComponent( &componentData ) )
-          writer->Write( component,
-                         NetBitDiff{ 0xff },
-                         componentData.mNetVars );
+        if( Component* component { entity->GetComponent( &componentData ) } )
+          componentData.mNetVarRegistration.Write( writer, component, netVarDiff );
     }
   }
 
@@ -166,13 +231,18 @@ namespace Tac
     writer->Write( ( EntityCount )mModified.size() );
     for( const EntityMod& mod : mModified )
     {
-      writer->Write( mod.mEntity->mEntityUUID );
-      writer->Write( ComponentRegistryBits( mod.mEntity ) );
+      Entity* entity{ mod.mEntity };
+      writer->Write( entity->mEntityUUID );
+      writer->Write( ComponentRegistryBits( entity ) );
       for( const ComponentRegistryEntry& componentData : ComponentRegistryIterator() )
-        if( Component* component = mod.mEntity->GetComponent( &componentData ) )
-          writer->Write( component,
-                         mod.mChangedComponentBitfields.Get( &componentData ),
-                         componentData.mNetVars );
+      {
+        Component* component{ entity->GetComponent( &componentData ) };
+        if( !component )
+          continue;
+
+        const NetVarDiff netVarDiff{ mod.mChangedComponentBitfields.Get( &componentData ) };
+        componentData.mNetVarRegistration.Write( writer, component, netVarDiff );
+      }
     }
   }
 
@@ -183,13 +253,6 @@ namespace Tac
     WriteModified(writer);
   }
 
-  void EntityDiffs::Read( World* world, ReadStream* reader, Errors& errors )
-  {
-    TAC_CALL( ReadDeleted( world, reader, errors ) );
-    TAC_CALL( ReadCreated( world, reader, errors ) );
-    TAC_CALL( ReadModified( world, reader, errors ) );
-
-  }
 
   void EntityDiffs::ReadDeleted( World* world, ReadStream* reader, Errors& errors )
   {
@@ -206,8 +269,9 @@ namespace Tac
     TAC_CALL( const auto n { reader->Read<EntityCount>( errors )  });
     for( EntityCount i {}; i < n; ++i )
     {
-      TAC_CALL( const auto entityUUID { reader->Read<EntityUUID>( errors ) });
-      TAC_CALL( const auto componentRegistryBits { reader->Read<ComponentRegistryBits>( errors ) });
+      TAC_CALL( const EntityUUID entityUUID{ reader->Read< EntityUUID >( errors ) } );
+      TAC_CALL( const ComponentRegistryBits componentRegistryBits{
+        reader->Read< ComponentRegistryBits >( errors ) } );
 
       Entity* entity { world->SpawnEntity( entityUUID ) };
       for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
@@ -216,7 +280,7 @@ namespace Tac
         {
           Component* component { entity->AddNewComponent( &componentRegistryEntry ) };
           component->PreReadDifferences();
-          TAC_CALL( reader->Read( component, componentRegistryEntry.mNetVars, errors ) );
+          TAC_CALL( componentRegistryEntry.mNetVarRegistration.Read( reader, component, errors ) );
           component->PostReadDifferences();
         }
       }
@@ -226,14 +290,15 @@ namespace Tac
   void EntityDiffs::ReadModified( World* world, ReadStream* reader, Errors& errors )
   {
     TAC_CALL( const auto n{ reader->Read<EntityCount >( errors ) } );
-    for( EntityCount i = 0; i < n; ++i )
+    for( EntityCount i {}; i < n; ++i )
     {
       TAC_CALL( const auto entityUUID{ reader->Read<EntityUUID >( errors ) } );
 
       Entity* entity { world->FindEntity( entityUUID ) };
 
-      const auto oldComponents { ComponentRegistryBits( entity ) };
-      TAC_CALL( const auto newComponents{ reader->Read<ComponentRegistryBits>( errors ) } );
+      const ComponentRegistryBits oldComponents( entity );
+      TAC_CALL( const ComponentRegistryBits newComponents{
+        reader->Read< ComponentRegistryBits >( errors ) } );
 
       for( const ComponentRegistryEntry& componentRegistryEntry : ComponentRegistryIterator() )
       {
@@ -253,7 +318,7 @@ namespace Tac
         : entity->AddNewComponent( &componentRegistryEntry ) };
 
         component->PreReadDifferences();
-        TAC_CALL( reader->Read( component, componentRegistryEntry.mNetVars, errors ) );
+        TAC_CALL( componentRegistryEntry.mNetVarRegistration.Read( reader, component, errors ) );
         component->PostReadDifferences();
       }
     }
@@ -263,6 +328,20 @@ namespace Tac
 
 
 } // namespace Tac
+
+void Tac::EntityDiffAPI::Read( World* world, ReadStream* reader, Errors& errors )
+{
+  TAC_CALL( EntityDiffs::ReadDeleted( world, reader, errors ) );
+  TAC_CALL( EntityDiffs::ReadCreated( world, reader, errors ) );
+  TAC_CALL( EntityDiffs::ReadModified( world, reader, errors ) );
+}
+
+void Tac::EntityDiffAPI::Write( WorldsToDiff worldDiff, WriteStream* writer )
+{
+  EntityDiffs diffs( worldDiff );
+  diffs.Write( writer );
+}
+
 
 
 
