@@ -385,7 +385,7 @@ namespace Tac
     Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) };
     Render::IContext* renderContext{ renderContextScope.GetContext() };
 
-    Graphics* graphics { GetGraphics( world ) };
+    Graphics* graphics { Graphics::From( world ) };
 
     ShadowLightVisitor lightVisitor;
     lightVisitor.graphics = graphics;

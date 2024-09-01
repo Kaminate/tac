@@ -228,7 +228,7 @@ namespace Tac
     SysWindowApi windowApi;
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    const Graphics* graphics { GetGraphics( world ) };
+    const Graphics* graphics { Graphics::From( world ) };
     const v2i windowSize{ windowApi.GetSize( viewHandle ) };
     Render::SwapChainHandle swapChain { windowApi.GetSwapChainHandle( viewHandle ) };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };

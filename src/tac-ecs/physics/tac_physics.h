@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/containers/tac_set.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 #include "tac-ecs/system/tac_system.h"
 #include "tac-ecs/tac_space.h"
@@ -31,9 +32,9 @@ namespace Tac
     // ---------------------------------------------------------------------------------------------
 
     static void                 SpaceInitPhysics();
-    static SystemRegistryEntry* PhysicsSystemRegistryEntry;
-    static Physics*             GetSystem( World* );
+    static dynmc Physics*       GetSystem( dynmc World* );
     static const Physics*       GetSystem( const World* );
+    static SystemInfo*          sInfo;
 
     // ---------------------------------------------------------------------------------------------
 

@@ -5,7 +5,7 @@
 
 namespace Tac
 {
-  static FixedVector< SystemRegistryEntry, 10 > mEntries;
+  static FixedVector< SystemInfo, 10 > mEntries;
 
   //SystemRegistry* SystemRegistry::Instance()
   //{
@@ -13,29 +13,29 @@ namespace Tac
   //  return &systemRegistry;
   //}
 
-  SystemRegistryEntry* SystemRegisterNewEntry()
+  SystemInfo* SystemInfo::Register()
   {
     const int index { mEntries.size() };
     mEntries.resize( index + 1 );
-    SystemRegistryEntry* systemRegistryEntry { &mEntries[ index ] };
+    SystemInfo* systemRegistryEntry { &mEntries[ index ] };
     systemRegistryEntry->mIndex = index;
     return systemRegistryEntry;
   }
 
-  //const SystemRegistryEntry* SystemRegistry::Find( StringView name ) const
+  //const SystemInfo* SystemRegistry::Find( StringView name ) const
   //{
-  //  for( const SystemRegistryEntry& systemRegistryEntry : mEntries )
+  //  for( const SystemInfo& systemRegistryEntry : mEntries )
   //    if( systemRegistryEntry.mName == name )
   //      return &systemRegistryEntry;
   //  return nullptr;
   //}
 
-  const SystemRegistryEntry* SystemRegistryIterator::begin() const { return mEntries.begin(); }
-  const SystemRegistryEntry* SystemRegistryIterator::end() const { return mEntries.end(); }
+  const SystemInfo* SystemInfo::Iterate::begin() const { return mEntries.begin(); }
+  const SystemInfo* SystemInfo::Iterate::end() const   { return mEntries.end(); }
 
 //  static SystemRegistry* Instance();
-//  SystemRegistryEntry* RegisterNewEntry();
-//  //const SystemRegistryEntry* Find( const char* ) const;
-//  FixedVector< SystemRegistryEntry, 10 > mEntries;
+//  SystemInfo* RegisterNewEntry();
+//  //const SystemInfo* Find( const char* ) const;
+//  FixedVector< SystemInfo, 10 > mEntries;
 //};
-}
+} // namespace Tac

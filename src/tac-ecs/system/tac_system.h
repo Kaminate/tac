@@ -9,28 +9,32 @@ namespace Tac
     virtual ~System() = default;
     virtual void DebugImgui() {};
     virtual void Update()     {};
+
     World*       mWorld       {};
   };
 
-  struct SystemRegistryEntry
+  struct SystemInfo
   {
-    typedef System*     SystemCreateFn();
-    typedef void        SystemDebugImGuiFn( System* );
-    SystemCreateFn*     mCreateFn   {};
+    struct Iterate
+    {
+      const SystemInfo* begin() const;
+      const SystemInfo* end() const;
+    };
+
+    using SystemCreateFn = System* ( * )();
+    using SystemImGuiFn = void ( * )( System* );
+
+    static SystemInfo*  Register();
+
     const char*         mName       {};
-    SystemDebugImGuiFn* mDebugImGui {};
+    SystemCreateFn      mCreateFn   {};
+    SystemImGuiFn       mDebugImGui {};
 
     //                  Index of this system in the registry, also the 
     //                  index of this system in the world systems array
     int                 mIndex      { -1 };
   };
 
-  struct SystemRegistryIterator
-  {
-    const SystemRegistryEntry* begin() const;
-    const SystemRegistryEntry* end() const;
-  };
 
-  SystemRegistryEntry* SystemRegisterNewEntry();
-}
+} // namespace Tac
 

@@ -16,7 +16,7 @@ namespace Tac
 
   World::World()
   {
-    for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
+    for( const SystemInfo& entry : SystemInfo::Iterate() )
     {
       System* system { entry.mCreateFn() };
       TAC_ASSERT( system );
@@ -44,7 +44,7 @@ namespace Tac
 
   Entity* World::SpawnEntity( EntityUUID entityUUID )
   {
-    auto entity { TAC_NEW Entity };
+    Entity* entity { TAC_NEW Entity };
     entity->mEntityUUID = entityUUID;
     entity->mWorld = this;
     mEntities.push_front( entity );
@@ -257,20 +257,22 @@ namespace Tac
 
 
     mElapsedSecs += seconds;
+#if TAC_TEMPORARILY_DISABLED()
     if( mDebugDrawEntityOrigins )
     {
-      auto boxSize { v3( 1, 1, 1 ) * 0.1f };
+      v3 boxSize { v3( 1, 1, 1 ) * 0.1f };
       v3 boxRot  {};
-      Graphics* graphics { GetGraphics( this ) };
+      Graphics* graphics { Graphics::From( this ) };
       if( graphics )
       {
         for( Entity* entity : mEntities )
         {
           TAC_UNUSED_PARAMETER( entity );
-          //graphics->DebugDrawOBB( entity->mPosition, boxSize, boxRot );
+          graphics->DebugDrawOBB( entity->mPosition, boxSize, boxRot );
         }
       }
     }
+#endif
   }
 
   void               World::DeepCopy( const World& world )
@@ -303,12 +305,12 @@ namespace Tac
     mDebug3DDrawData->CopyFrom( *world.mDebug3DDrawData );
   }
 
-  System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry )
+  System* World::GetSystem( const SystemInfo* systemRegistryEntry )
   {
     return mSystems[ systemRegistryEntry->mIndex ];
   }
 
-  const System* World::GetSystem( const SystemRegistryEntry* systemRegistryEntry ) const
+  const System* World::GetSystem( const SystemInfo* systemRegistryEntry ) const
   {
     return mSystems[ systemRegistryEntry->mIndex ];
   }

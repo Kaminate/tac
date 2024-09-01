@@ -17,16 +17,16 @@
 
 namespace Tac
 {
-  static const SystemRegistryEntry* sSystemRegistryEntry{};
+  static const SystemInfo*          sSystemInfo{};
   static const char*                nSysPath{ "SystemWindow.nSys" };
   static bool                       sInitialized;
 
-  static void Initialize( SettingsNode mSettingsNode  )
+  static void Initialize( SettingsNode mSettingsNode )
   {
     const String systemName{ mSettingsNode.GetChild( nSysPath ).GetValueWithFallback( "" ) };
-    for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
+    for( const SystemInfo& entry : SystemInfo::Iterate() )
       if( entry.mName == systemName.c_str() )
-        sSystemRegistryEntry = &entry;
+        sSystemInfo = &entry;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -47,15 +47,15 @@ namespace Tac
     if( ImGuiCollapsingHeader( "Select System" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      for( const SystemRegistryEntry& systemRegistryEntry : SystemRegistryIterator() )
+      for( const SystemInfo& systemRegistryEntry : SystemInfo::Iterate() )
       {
         if( ImGuiButton( systemRegistryEntry.mName ) )
         {
-          sSystemRegistryEntry = &systemRegistryEntry;
+          sSystemInfo = &systemRegistryEntry;
           mSettingsNode.GetChild( nSysPath ).SetValue( systemRegistryEntry.mName );
         }
 
-        if( sSystemRegistryEntry == &systemRegistryEntry )
+        if( sSystemInfo == &systemRegistryEntry )
         {
           ImGuiSameLine();
           ImGuiText( "<-- currently selected" );
@@ -63,16 +63,16 @@ namespace Tac
       }
     }
 
-    if( sSystemRegistryEntry && sSystemRegistryEntry->mDebugImGui )
+    if( sSystemInfo && sSystemInfo->mDebugImGui )
     {
       const ShortFixedString headerStr{
-        ShortFixedString::Concat( sSystemRegistryEntry->mName, " Debug" ) };
+        ShortFixedString::Concat( sSystemInfo->mName, " Debug" ) };
 
       if( ImGuiCollapsingHeader( headerStr ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        System* system{ world->GetSystem( sSystemRegistryEntry ) };
-        sSystemRegistryEntry->mDebugImGui( system );
+        System* system{ world->GetSystem( sSystemInfo ) };
+        sSystemInfo->mDebugImGui( system );
       }
     }
 

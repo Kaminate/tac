@@ -390,7 +390,7 @@ namespace Tac
 
     TAC_CALL( UpdatePerFrameCBuf( camera, viewSize, renderContext, errors ) );
 
-    const Graphics* graphics{ GetGraphics( world ) };
+    const Graphics* graphics{ Graphics::From( world ) };
     struct : public ModelVisitor
     {
       void operator()( Model* model ) override

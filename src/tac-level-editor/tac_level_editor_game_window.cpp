@@ -658,7 +658,7 @@ namespace Tac
     sVisitor.camera = camera;
     sVisitor.wsMouseDir = wsMouseDir;
 
-    Graphics* graphics{ GetGraphics( world ) };
+    Graphics* graphics{ Graphics::From( world ) };
     graphics->VisitModels( &sVisitor );
 
     ImGuiSetCursorPos( origCursorPos );

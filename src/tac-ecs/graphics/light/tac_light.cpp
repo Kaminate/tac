@@ -27,12 +27,12 @@ namespace Tac
 
   static Component* CreateLightComponent( World* world )
   {
-    return GetGraphics( world )->CreateLightComponent();
+    return Graphics::From( world )->CreateLightComponent();
   }
 
   static void       DestroyLightComponent( World* world, Component* component )
   {
-    GetGraphics( world )->DestroyLightComponent( ( Light* )component );
+    Graphics::From( world )->DestroyLightComponent( ( Light* )component );
   }
 
   static void       SaveLightComponent( Json& lightJson, Component* component )

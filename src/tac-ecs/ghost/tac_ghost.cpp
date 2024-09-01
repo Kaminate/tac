@@ -352,7 +352,7 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     //World* world = mServerData->mWorld;
-    //Graphics* graphics = GetGraphics( world );
+    //Graphics* graphics = Graphics::Get( world );
 
     //Renderer::Instance->DebugBegin( "Draw world" );
     //TAC_ON_DESTRUCT( Renderer::Instance->DebugEnd() );

@@ -20,7 +20,7 @@ namespace Tac
   struct Entity;
   struct RelativeSpace;
   struct System;
-  struct SystemRegistryEntry;
+  struct SystemInfo;
 
   // Systems
   struct Graphics;

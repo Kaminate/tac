@@ -17,7 +17,7 @@ namespace Tac
     Graphics::SpaceInitGraphics();
     Physics::SpaceInitPhysics();
 
-    for( const SystemRegistryEntry& entry : SystemRegistryIterator() )
+    for( const SystemInfo& entry : SystemInfo::Iterate() )
     {
       TAC_ASSERT( entry.mName );
     }

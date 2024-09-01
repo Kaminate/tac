@@ -11,11 +11,12 @@ namespace Tac
     virtual ~Component() = default;
     virtual void                          PreReadDifferences() {};
     virtual void                          PostReadDifferences() {};
-    virtual const ComponentInfo* GetEntry() const = 0;
+    virtual const ComponentInfo*          GetEntry() const = 0;
     void                                  CopyFrom( const Component* );
+
     Entity*                               mEntity {};
   };
 
 
-}
+} // namespace Tac
 

@@ -20,8 +20,8 @@ namespace Tac
     World();
     ~World();
 
-    System*       GetSystem( const SystemRegistryEntry* );
-    const System* GetSystem( const SystemRegistryEntry* ) const;
+    System*       GetSystem( const SystemInfo* );
+    const System* GetSystem( const SystemInfo* ) const;
     void          DeepCopy( const World& );
     void          Step( float seconds );
     void          DebugImgui();

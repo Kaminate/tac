@@ -118,7 +118,7 @@ namespace Tac
     Set< Material* >  mMaterials;
   };
 
-  static SystemRegistryEntry* gGraphicsSystemRegistryEntry;
+  static SystemInfo* sGraphicsInfo;
 
   static System* CreateGraphicsSystem()
   {
@@ -139,27 +139,22 @@ namespace Tac
   }
 
 
-  void      Graphics::SpaceInitGraphics()
+  void              Graphics::SpaceInitGraphics()
   {
-    gGraphicsSystemRegistryEntry = SystemRegisterNewEntry();
-    gGraphicsSystemRegistryEntry->mCreateFn = CreateGraphicsSystem;
-    gGraphicsSystemRegistryEntry->mName = "Graphics";
-    gGraphicsSystemRegistryEntry->mDebugImGui = GraphicsDebugImgui;
+    *( sGraphicsInfo = SystemInfo::Register() ) = SystemInfo
+    {
+      .mName       { "Graphics" },
+      .mCreateFn   { CreateGraphicsSystem },
+      .mDebugImGui { GraphicsDebugImgui },
+    };
     Model::RegisterComponent();
     Skybox::RegisterComponent();
     Light::RegisterComponent();
     Material::RegisterComponent();
   }
 
-  Graphics* GetGraphics( World* world )
-  {
-    return ( Graphics* )world->GetSystem( gGraphicsSystemRegistryEntry );
-  }
+  dynmc Graphics*   Graphics::From( dynmc World* world ) { return ( dynmc Graphics* )world->GetSystem( sGraphicsInfo ); }
+  const Graphics*   Graphics::From( const World* world ) { return ( const Graphics* )world->GetSystem( sGraphicsInfo ); }
 
-  const Graphics*   GetGraphics( const World* world )
-  {
-    return ( const Graphics* )world->GetSystem( gGraphicsSystemRegistryEntry );
-  }
-
-}
+} // namespace Tac
 

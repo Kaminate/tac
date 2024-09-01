@@ -455,7 +455,7 @@ namespace Tac
 		//auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
 		//ServerData* serverData = ghost->mServerData;
 		//World* world = serverData->mWorld;
-		//Graphics* graphics = GetGraphics( world );
+		//Graphics* graphics = Graphics::Get( world );
 		//float boxWidth = 5;
 		//if( false )
 		//{

@@ -31,7 +31,7 @@ namespace Tac
 
   // Static variables
 
-  SystemRegistryEntry* Physics::PhysicsSystemRegistryEntry = nullptr;
+  SystemInfo* Physics::sInfo {};
 
   // -----------------------------------------------------------------------------------------------
 
@@ -39,10 +39,10 @@ namespace Tac
 
   static CapsuleSupport GetSupport( const Collider* collider )
   {
-          const CapsuleSupport capsuleSupport( collider->mEntity->mRelativeSpace.mPosition,
-                                               collider->mTotalHeight,
-                                               collider->mRadius );
-          return capsuleSupport;
+    const CapsuleSupport capsuleSupport( collider->mEntity->mRelativeSpace.mPosition,
+                                         collider->mTotalHeight,
+                                         collider->mRadius );
+    return capsuleSupport;
   }
 
   static System* CreatePhysicsSystem() { return TAC_NEW Physics; }
@@ -130,10 +130,10 @@ namespace Tac
 
   void      Physics::DebugDrawCapsules()
   {
-    //Graphics* graphics = GetGraphics( mWorld );
+    //Graphics* graphics = Graphics::Get( mWorld );
     for( Collider* collider : mColliders )
     {
-      const CapsuleSupport capsuleSupport = GetSupport( collider );
+      const CapsuleSupport capsuleSupport { GetSupport( collider ) };
       //graphics->DebugDrawCapsule( capsuleSupport.mBotSpherePos,
       //                               capsuleSupport.mTopSpherePos,
       //                               capsuleSupport.mRadius,
@@ -142,7 +142,7 @@ namespace Tac
   }
   void      Physics::DebugDrawTerrains()
   {
-    //Graphics* graphics = GetGraphics( mWorld );
+    //Graphics* graphics = Graphics::Get( mWorld );
 
     // Load heightmap mesh from heighap image
     for( Terrain* terrain : mTerrains )
@@ -178,7 +178,7 @@ namespace Tac
   void      Physics::Narrowphase()
   {
     /*TAC_PROFILE_BLOCK*/;
-    //Graphics* graphics = GetGraphics( mWorld );
+    //Graphics* graphics = Graphics::Get( mWorld );
     for( Terrain* terrain : mTerrains )
     {
       for( const TerrainOBB& obb : terrain->mTerrainOBBs )
@@ -336,7 +336,7 @@ namespace Tac
       ImGui::Indent();
       OnDestruct( ImGui::Unindent() );
       int iTerrain = 0;
-      for( auto terrain : mTerrains )
+      for( Terrain* terrain : mTerrains )
       {
         ImGui::PushID( terrain );
         OnDestruct( ImGui::PopID() );
@@ -375,22 +375,25 @@ namespace Tac
 
   void Physics::SpaceInitPhysics()
   {
-    Physics::PhysicsSystemRegistryEntry = SystemRegisterNewEntry();
-    Physics::PhysicsSystemRegistryEntry->mCreateFn = CreatePhysicsSystem;
-    Physics::PhysicsSystemRegistryEntry->mName = "Physics";
-    Physics::PhysicsSystemRegistryEntry->mDebugImGui = PhysicsDebugImgui;
+    *( Physics::sInfo = SystemInfo::Register() ) = SystemInfo
+    {
+      .mName       { "Physics" },
+      .mCreateFn   { CreatePhysicsSystem },
+      .mDebugImGui { PhysicsDebugImgui },
+    };
+
     Terrain::SpaceInitPhysicsTerrain();
     Collider::RegisterComponent();
   }
 
   Physics* Physics::GetSystem( World* world )
   {
-    return ( Physics* )world->GetSystem( Physics::PhysicsSystemRegistryEntry );
+    return ( Physics* )world->GetSystem( Physics::sInfo );
   }
 
   const Physics* Physics::GetSystem( const World* world )
   {
-    return ( const Physics* )world->GetSystem( Physics::PhysicsSystemRegistryEntry );
+    return ( const Physics* )world->GetSystem( Physics::sInfo );
   }
 
 

@@ -514,7 +514,7 @@ namespace Tac
                                   sizeof( CBufferVoxelizer ),
                                   TAC_STACK_FRAME );
 
-    const Graphics* graphics { GetGraphics( world ) };
+    const Graphics* graphics { Graphics::From( world ) };
     graphics->VisitLights( &lightVisitor );
     graphics->VisitModels( &modelVisitor );
   }

@@ -59,7 +59,7 @@ namespace Tac
 
   static Skybox* GetSkybox( const World* world )
   {
-    const Graphics* graphics{ GetGraphics( world ) };
+    const Graphics* graphics{ Graphics::From( world ) };
     struct : public SkyboxVisitor
     {
       void operator()( Skybox* skybox ) override

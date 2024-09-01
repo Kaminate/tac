@@ -28,12 +28,12 @@ namespace Tac
 
   static Component* CreateMaterialComponent( World* world )
   {
-    return GetGraphics( world )->CreateMaterialComponent();
+    return Graphics::From( world )->CreateMaterialComponent();
   }
 
   static void       DestroyMaterialComponent( World* world, Component* component )
   {
-    GetGraphics( world )->DestroyMaterialComponent( ( Material* )component );
+    Graphics::From( world )->DestroyMaterialComponent( ( Material* )component );
   }
 
 
