@@ -195,7 +195,7 @@ namespace Tac
       {
         .mPath        { model->mModelPath.c_str() },
         .mModelIndex  { model->mModelIndex },
-        .mOptVtxDecls { vtxDecls},
+        .mOptVtxDecls { vtxDecls },
       };
 
       TAC_CALL( const Mesh * mesh{ ModelAssetManager::GetMesh( meshParams, errors ) } );
