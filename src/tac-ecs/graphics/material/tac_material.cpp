@@ -97,13 +97,20 @@ namespace Tac
 
   void                             Material::RegisterComponent()
   {
+    const MetaCompositeType* metaType{ ( MetaCompositeType* )&GetMetaType< Material >() };
+
+    NetVarRegistration netVarRegistration {};
+    netVarRegistration.mNetMembers.SetAll();
+    netVarRegistration.mMetaType = metaType;
+
     *( sComponentInfo = ComponentInfo::Register() ) = ComponentInfo
     {
-      .mName         { "Material" },
-      //sComponentInfo->mNetVars = ComponentMaterialBits;
-      .mCreateFn     { CreateMaterialComponent },
-      .mDestroyFn    { DestroyMaterialComponent },
-      .mDebugImguiFn { []( Component* c ) { Material::DebugImgui( ( Material* )c ); } },
+      .mName               { "Material" },
+      .mCreateFn           { CreateMaterialComponent },
+      .mDestroyFn          { DestroyMaterialComponent },
+      .mDebugImguiFn       { []( Component* c ) { Material::DebugImgui( ( Material* )c ); } },
+      .mNetVarRegistration { netVarRegistration },
+      .mMetaType           { metaType },
     };
   }
 

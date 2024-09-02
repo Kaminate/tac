@@ -1,5 +1,7 @@
 #pragma once
 
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+
 namespace Tac
 {
   struct Json;
@@ -28,10 +30,10 @@ namespace Tac
     virtual float       ToNumber( const void* ) const = 0;
     virtual void        Cast( CastParams ) const = 0;
 
-    virtual void        JsonSerialize( Json*, const void* ) const = 0;
-    virtual void        JsonDeserialize( const Json*, void* ) const = 0;
+    virtual void        JsonSerialize( dynmc Json*, const void* ) const = 0;
+    virtual void        JsonDeserialize( const Json*, dynmc void* ) const = 0;
 
-    virtual void        Read( ReadStream*, void* ) const;
+    virtual void        Read( ReadStream*, dynmc void* ) const;
     virtual void        Write( WriteStream*, const void* ) const;
 
     virtual bool        Equals( const void*, const void* ) const;

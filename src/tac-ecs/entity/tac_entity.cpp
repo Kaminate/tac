@@ -8,6 +8,8 @@
 #include "tac-std-lib/dataprocess/tac_json.h"
 //#include "tac-std-lib/memory/tac_frame_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/meta/tac_meta_composite.h"
+#include "tac-std-lib/meta/tac_meta.h"
 
 namespace Tac
 {
@@ -30,6 +32,17 @@ namespace Tac
     json.GetChild( "z" ).SetNumber( v.z );
     return &json;
   }
+
+
+  //struct MetaEntity : public MetaCompositeType
+  //{
+  //  MetaEntity() : MetaCompositeType( "Entity", sizeof( Entity ), {} )
+  //  {
+  //    mMetaVars.push_back( TAC_META_MEMBER( Entity, mEntityUUID ) );
+  //    mMetaVars.push_back( TAC_META_MEMBER( Entity, mEntityUUID ) );
+  //  }
+  //};
+
 }
 
 #if 0
@@ -182,26 +195,8 @@ namespace Tac
     for( const Component* oldComponent : entity.mComponents )
     {
       const ComponentInfo* entry{ oldComponent->GetEntry() };
-      //const NetVars& vars{ entry->mNetVars };
       Component* newComponent { AddNewComponent( entry ) };
       newComponent->CopyFrom( oldComponent );
-
-#if 0
-
-      vars.CopyFrom( newComponent, oldComponent );
-
-      const int nVars{ mNetVars.size() };
-
-      for( int iVar{}; iVar < nVars; ++iVar )
-      {
-        const NetVar& var{ mNetVars[ iVar ] };
-        const MetaMember* metaMember{ var.mMetaMember };
-        dynmc void* dst{ ( dynmc char* )dstComponent + metaMember->mOffset };
-        const void* src{ ( const char* )srcComponent + metaMember->mOffset };
-
-        var.CopyFrom( dst, src );
-      }
-#endif
     }
 
     // shouldn't this fn be recursive?
@@ -378,5 +373,16 @@ namespace Tac
     }
   }
 
-}
+} // namespace Tac
+
+//void dsf()
+//{
+//  entity.save();
+//
+//  entity.load()
+//    for each metamember
+//      metamember.load
+//        components.load
+//        components.mEntity;
+//}
 

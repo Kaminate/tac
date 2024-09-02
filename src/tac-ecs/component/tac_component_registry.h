@@ -82,7 +82,8 @@ namespace Tac
     //NetVars                mNetVars;
 
     NetVarRegistration       mNetVarRegistration {};
-    const MetaCompositeType* mMetaType           {};
+    //const MetaCompositeType* mMetaType           {};
+    const MetaType* mMetaType           {};
 
     //ComponentSettings      mComponentSettings;
   };

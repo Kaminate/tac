@@ -18,6 +18,7 @@ namespace Tac
     String      ToString( const void* v ) const override                                            { return Tac::ToString( (u64) As_T( v ) ); } // just u64 it here
     float       ToNumber( const void* v ) const override                                            { return ( float )As_T( v ); }
     void        Cast( CastParams castParams ) const override                                        { As_T( castParams.mDst ) = ( T )castParams.mSrcType->ToNumber( castParams.mSrc ); }
+
     void        JsonSerialize( Json* json, const void* v ) const override                          
     {
       const T t{ As_T( v ) };
@@ -30,6 +31,7 @@ namespace Tac
         TAC_ASSERT_UNIMPLEMENTED;
       }
     }
+
     void        JsonDeserialize( const Json* json, void* v ) const override
     {   
       T& t { As_T( v ) };
@@ -41,6 +43,9 @@ namespace Tac
         default: TAC_ASSERT_INVALID_CASE( json->mType ); break;
       }
     }
+
+    bool        Equals( const void* a, const void* b ) const override                               { return As_T( a ) == As_T( b ); }
+    void        Copy( CopyParams copyParams ) const override                                        { As_T( copyParams.mDst ) = As_T( copyParams.mSrc ); }
 
   private:
 

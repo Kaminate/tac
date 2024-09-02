@@ -8,11 +8,13 @@
 
 namespace Tac
 {
-#if 1
-  //TAC_META_DECL( int );
   TAC_META_DECL( float );
-  TAC_META_DECL( char* );
   TAC_META_DECL( double );
+
+  TAC_META_DECL( char* );
+
+  TAC_META_DECL( bool );
+
   TAC_META_DECL( i8 );
   TAC_META_DECL( i16 );
   TAC_META_DECL( i32 );
@@ -22,12 +24,6 @@ namespace Tac
   TAC_META_DECL( u16 );
   TAC_META_DECL( u32 );
   TAC_META_DECL( u64 );
-#else
-  const MetaType&                        GetMetaType( const int& );
-  const MetaType&                        GetMetaType( const float& );
-  const MetaType&                        GetMetaType( const char*& );
-  const MetaType&                        GetMetaType( const double& );
-#endif
 
   const MetaType&                        GetNullMetaType();
 

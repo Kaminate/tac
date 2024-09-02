@@ -148,17 +148,25 @@ namespace Tac
     netBits.Add( netIndex );
 #endif
 
+    const MetaCompositeType* metaType{ ( MetaCompositeType* )&GetMetaType< Model >() };
+
+    NetVarRegistration netVarRegistration;
+    netVarRegistration.mMetaType = metaType;
+    netVarRegistration.mNetMembers.SetAll();
+
     * ( sEntry = ComponentInfo::Register() ) = ComponentInfo
     {
-      .mName         { "Model" },
-      .mCreateFn     { CreateModelComponent },
-      .mDestroyFn    { DestroyModelComponent },
-      .mDebugImguiFn { DebugImguiFn },
+      .mName               { "Model" },
+      .mCreateFn           { CreateModelComponent },
+      .mDestroyFn          { DestroyModelComponent },
+      .mDebugImguiFn       { DebugImguiFn },
+      .mNetVarRegistration { netVarRegistration },
+      .mMetaType           { metaType },
       //.mSaveFn       { SaveModelComponent },
       //.mLoadFn       { LoadModelComponent },
       //.mNetVars      { netBits },
     };
 	}
 
-}
+} // namespace Tac
 

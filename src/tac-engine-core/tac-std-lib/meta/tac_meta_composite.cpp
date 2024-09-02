@@ -78,6 +78,34 @@ namespace Tac
     }
   }
 
+  bool              MetaCompositeType::Equals( const void* a, const void* b ) const
+  {
+    for( const MetaMember& metaMember : mMetaVars )
+    {
+      const void* aMember{ ( const char* )a + metaMember.mOffset };
+      const void* bMember{ ( const char* )b + metaMember.mOffset };
+      if( !metaMember.mMetaType->Equals( aMember, bMember ) )
+        return false;
+    }
+
+    return true;
+  }
+
+  void              MetaCompositeType::Copy( CopyParams copyParams ) const
+  {
+    for( const MetaMember& metaMember : mMetaVars )
+    {
+      dynmc void* dstMember{ ( dynmc char* )copyParams.mDst + metaMember.mOffset };
+      const void* srcMember{ ( const char* )copyParams.mSrc + metaMember.mOffset };
+      const CopyParams memberCopyParams
+      {
+        .mDst{dstMember},
+        .mSrc{srcMember},
+      };
+      metaMember.mMetaType->Copy( memberCopyParams );
+    }
+  }
+
   //===------------ Unit Test ------------===//
 
   struct MetaCompositeTestStruct

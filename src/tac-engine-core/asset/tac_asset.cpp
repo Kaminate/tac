@@ -5,6 +5,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
 //#include "tac-engine-core/shell/tac_shell.h"
 
 namespace Tac
@@ -18,18 +19,18 @@ namespace Tac
     float       ToNumber( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; return {}; }
     void        Cast( CastParams castParams ) const  override                                       { TAC_ASSERT_UNIMPLEMENTED; }
 
-    void        JsonSerialize( Json* json, const void* v ) const override                           { TAC_ASSERT_UNIMPLEMENTED; }
-    void        JsonDeserialize( const Json* json, void* v ) const override                         { TAC_ASSERT_UNIMPLEMENTED; }
+    void        JsonSerialize( Json* json, const void* v ) const override                           { json->SetString( ToRef( v ) ); }
+    void        JsonDeserialize( const Json* json, void* v ) const override                         { ToRef( v ) = json->mString; }
 
     void        Read( ReadStream* readStream, dynmc void* v ) const override                        { TAC_ASSERT_UNIMPLEMENTED; }
     void        Write( WriteStream* writeStream, const void* v ) const override                     { TAC_ASSERT_UNIMPLEMENTED; }
 
-    bool        Equals( const void* a, const void* b ) const override                               { TAC_ASSERT_UNIMPLEMENTED; return {}; }
-    void        Copy( CopyParams  copyParams ) const override                                       { TAC_ASSERT_UNIMPLEMENTED; }
+    bool        Equals( const void* a, const void* b ) const override                               { return ToRef( a ) == ToRef( b ); }
+    void        Copy( CopyParams copyParams ) const override                                        { ToRef( copyParams.mDst ) = ToRef( copyParams.mSrc ); }
 
   private:
-    dynmc AssetPathString& ToRef( dynmc void* v )                                                   { return *( AssetPathString* )v; }
-    const AssetPathString& ToRef( const void* v )                                                   { return *( AssetPathString* )v; }
+    dynmc AssetPathString& ToRef( dynmc void* v ) const                                             { return *( AssetPathString* )v; }
+    const AssetPathString& ToRef( const void* v ) const                                             { return *( AssetPathString* )v; }
   };
 
   static MetaAssetPathString sMetaAssetPathString;
@@ -96,25 +97,10 @@ namespace Tac
 
   // AssetPathStringView
 
-  AssetPathStringView::AssetPathStringView( const char* s ) : StringView( s )
-  {
-    Validate( s );
-  }
-
-  AssetPathStringView::AssetPathStringView( const String& s ) : StringView( s )
-  {
-    Validate( s );
-  }
-
-  AssetPathStringView::AssetPathStringView( const AssetPathString& s ) : StringView( s )
-  {
-    // already validated
-  }
-
-  AssetPathStringView::AssetPathStringView( const StringView& s ) : StringView( s )
-  {
-    Validate( s );
-  };
+  AssetPathStringView::AssetPathStringView( const char* s ) : StringView( s )                       { Validate( s ); }
+  AssetPathStringView::AssetPathStringView( const String& s ) : StringView( s )                     { Validate( s ); }
+  AssetPathStringView::AssetPathStringView( const AssetPathString& s ) : StringView( s )            {} // already validated
+  AssetPathStringView::AssetPathStringView( const StringView& s ) : StringView( s )                 { Validate( s ); };
 
   AssetPathStringView AssetPathStringView::GetDirectory() const
   {

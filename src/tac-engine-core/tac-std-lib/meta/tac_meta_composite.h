@@ -33,7 +33,10 @@ namespace Tac
     int                   GetMemberCount() const;
     void                  JsonSerialize( Json* json, const void* v ) const override;
     void                  JsonDeserialize( const Json* json, void* v ) const override;
-  private:
+    bool                  Equals( const void*, const void* ) const override;
+    void                  Copy( CopyParams ) const override;
+
+  protected:
     Vector< MetaMember >  mMetaVars;
     const char*           mName;
     int                   mSize;
