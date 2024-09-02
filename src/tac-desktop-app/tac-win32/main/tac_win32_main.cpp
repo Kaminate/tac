@@ -46,12 +46,11 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   TAC_CALL_RET( 0, sDX12Device.Init( errors ) );
   TAC_CALL_RET( 0, Controller::XInputInit( errors ) );
   Win32MouseEdgeInit();
-  DesktopApp* desktopApp{ DesktopApp::GetInstance() };
   PlatformFns::SetInstance( &sWin32PlatformFns );
-  TAC_CALL_RET( 0, desktopApp->Init( errors ) );
+  TAC_CALL_RET( 0, DesktopApp::Init( errors ) );
   TAC_CALL_RET( 0, Win32WindowManagerInit( errors ) );
   TAC_CALL_RET( 0, Network::NetWinsockInit( errors ) );
-  TAC_CALL_RET( 0, desktopApp->Run( errors ) );
+  TAC_CALL_RET( 0, DesktopApp::Run( errors ) );
   Render::DXGIReportLiveObjects();
   return 0;
 }

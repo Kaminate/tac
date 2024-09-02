@@ -79,7 +79,6 @@ namespace Tac
     TAC_ASSERT( mErrors && mApp );
 
     PlatformFns* platform { PlatformFns::GetInstance() };
-    DesktopApp* desktopApp { DesktopApp::GetInstance() };
 
     const SysWindowApi      windowApi{ mWindowApi };
     const SysKeyboardApi    keyboardApi{ mKeyboardApi };
@@ -94,7 +93,7 @@ namespace Tac
       // Apply queued wndproc to saved keyboard/window state
       TAC_CALL( DesktopEventApi::Apply( errors ) );
 
-      TAC_CALL( desktopApp->Update( errors ) );
+      TAC_CALL( DesktopApp::Update( errors ) );
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 
       TAC_CALL( sWindowBackendSysApi.Sync( errors ) );

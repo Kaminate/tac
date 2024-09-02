@@ -10,11 +10,10 @@ namespace Tac
 {
   struct DesktopApp
   {
-    void                Init( Errors& );
-    void                Run( Errors& );
-    void                Update( Errors& );
-    void                DebugImGui( Errors& );
-    static DesktopApp*  GetInstance();
+    static void         Init( Errors& );
+    static void         Run( Errors& );
+    static void         Update( Errors& );
+    static void         DebugImGui( Errors& );
     static Errors&      GetMainErrors();
   };
 

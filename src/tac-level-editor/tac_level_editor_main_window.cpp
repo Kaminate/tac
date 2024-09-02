@@ -102,8 +102,7 @@ namespace Tac
     if( ImGuiButton( "Close Application" ) )
       OS::OSAppStopRunning();
 
-    DesktopApp* desktopApp { DesktopApp::GetInstance() };
-    TAC_CALL( desktopApp->DebugImGui( errors ) );
+    TAC_CALL( DesktopApp::DebugImGui( errors ) );
 
     ImGuiEnd();
   }

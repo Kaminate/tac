@@ -121,8 +121,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  DesktopApp*         DesktopApp::GetInstance() { return &sDesktopApp; }
-
   void                DesktopApp::Init( Errors& errors )
   {
     TAC_ASSERT( PlatformFns::GetInstance() );
