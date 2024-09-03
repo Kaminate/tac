@@ -11,8 +11,8 @@ namespace Tac::Render
   {
     struct Params
     {
-      ID3D12Device*    mDevice{};
-      DX12PipelineMgr* mPipelineMgr{};
+      ID3D12Device*    mDevice      {};
+      DX12PipelineMgr* mPipelineMgr {};
     };
 
     void          Init( Params, Errors& );
@@ -26,9 +26,9 @@ namespace Tac::Render
 
     void          CreateProgramAtIndex( ProgramHandle, ProgramParams, Errors& );
 
-    Array< DX12Program, 100 > mPrograms;
-    ID3D12Device*             mDevice{};
-    DX12PipelineMgr*          mPipelineMgr{};
+    Array< DX12Program, 100 > mPrograms    {};
+    ID3D12Device*             mDevice      {};
+    DX12PipelineMgr*          mPipelineMgr {};
   };
 } // namespace Tac::Render
 

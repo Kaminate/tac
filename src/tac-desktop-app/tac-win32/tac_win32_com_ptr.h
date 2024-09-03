@@ -42,9 +42,11 @@ namespace Tac
     void** ppv()          { return ( void** )&mT; }
 
     // Member functions
-    T**    CreateAddress() { return &mT; } // used during creation by a typed api
-    T*     Get()           { return mT; }
-    T*     Get() const     { return mT; }
+    T**      CreateAddress() { return &mT; } // used during creation by a typed api
+    dynmc T* Get() dynmc     { return mT; }
+    // Even though this member fn is const, it returns a non-const T* because id3d12 objects are
+    // not necessarily const-correct...
+    dynmc T* Get() const     { return mT; }
 
     void swap( PCom&& other )
     {
@@ -74,8 +76,11 @@ namespace Tac
 
     // arrow oprator
 
-    T*       operator ->()       { return mT; }
-    const T* operator ->() const { return mT; }
+    dynmc T* operator ->() dynmc { return mT; }
+
+    // Even though this member fn is const, it returns a non-const T* because id3d12 objects are
+    // not necessarily const-correct...
+    dynmc T* operator ->() const { return mT; }
 
     // Conversion operators
 

@@ -951,7 +951,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::ProgramParams programParams2DImage
     {
-      .mFileStem { "ImGui" },
+      .mInputs { "ImGui" },
     };
     TAC_CALL( mProgram = renderDevice->CreateProgram( programParams2DImage, errors ) );
   }

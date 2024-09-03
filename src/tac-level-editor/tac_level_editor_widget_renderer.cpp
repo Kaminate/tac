@@ -77,7 +77,7 @@ namespace Tac
   {
     return Render::ProgramParams
     {
-      .mFileStem   { "3DTest" },
+      .mInputs     { "3DTest" },
       .mStackFrame { TAC_STACK_FRAME },
     };
   }

@@ -16,10 +16,10 @@ namespace Tac::Render
   {
     struct Params
     {
-      StringView mEntryPoint;
-      StringView mTargetProfile;
-      StringView mFilename;
-      FileSys::Path mPDBDir;
+      StringView        mEntryPoint;
+      StringView        mTargetProfile;
+      StringView        mFilename;
+      FileSys::Path     mPDBDir;
       PCom< IDxcUtils > mUtils;
     };
 

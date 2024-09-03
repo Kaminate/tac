@@ -140,7 +140,7 @@ namespace Tac
 
       const Render::ProgramParams programParams
       {
-        .mFileStem{ material->mMaterialShader },
+        .mInputs{ material->mMaterialShader },
       };
 
       const Render::ProgramHandle programHandle{ renderDevice->CreateProgram( programParams, errors ) };

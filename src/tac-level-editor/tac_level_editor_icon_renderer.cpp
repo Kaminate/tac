@@ -29,7 +29,7 @@ namespace Tac
   {
     return Render::ProgramParams
     {
-      .mFileStem   { "3DSprite" },
+      .mInputs     { "3DSprite" },
       .mStackFrame { TAC_STACK_FRAME },
     };
   }

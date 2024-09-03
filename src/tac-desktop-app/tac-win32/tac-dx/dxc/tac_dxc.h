@@ -44,6 +44,10 @@ namespace Tac::Render
 
   struct DXCCompileOutput
   {
+    D3D12_SHADER_BYTECODE GetVSBytecode() const;
+    D3D12_SHADER_BYTECODE GetPSBytecode() const;
+    D3D12_SHADER_BYTECODE GetCSBytecode() const;
+
     PCom< IDxcBlob > mVSBlob;
     PCom< IDxcBlob > mPSBlob;
     PCom< IDxcBlob > mCSBlob;

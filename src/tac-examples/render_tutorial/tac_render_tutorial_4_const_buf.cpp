@@ -119,7 +119,7 @@ namespace Tac
     };
     mConstantBuf = renderDevice->CreateBuffer( cBufParams, errors );
 
-    const Render::ProgramParams programParams{ .mFileStem { "HelloConstBuf" }, };
+    const Render::ProgramParams programParams{ .mInputs { "HelloConstBuf" }, };
     TAC_CALL( mShader = renderDevice->CreateProgram( programParams, errors ) );
 
     const Render::PipelineParams pipelineParams

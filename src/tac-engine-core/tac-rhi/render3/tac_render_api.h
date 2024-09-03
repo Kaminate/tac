@@ -362,8 +362,14 @@ namespace Tac::Render
 
   struct ProgramParams
   {
-    String     mFileStem;
-    StackFrame mStackFrame;
+    //               mName is used in IDxcUtils::BuildArguments as an optional argument for errors
+    //               and include handlers
+    //
+    //               It's also used for the file stem to save the preprocessed shader, (for PIX?)
+    String           mName;
+
+    Vector< String > mInputs;
+    StackFrame       mStackFrame;
   };
 
   struct PipelineParams

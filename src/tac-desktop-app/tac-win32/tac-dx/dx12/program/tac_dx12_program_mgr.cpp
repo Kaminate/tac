@@ -19,13 +19,6 @@ namespace Tac::Render
   static const char*            sShaderExt{ ".hlsl" };
   static const char*            sShaderDir{ "assets/hlsl/" };
 
-  static D3D12_SHADER_BYTECODE IDxcBlobToBytecode( PCom<IDxcBlob>& blob )
-  {
-    return blob ?
-      D3D12_SHADER_BYTECODE{ blob->GetBufferPointer(), blob->GetBufferSize() } :
-      D3D12_SHADER_BYTECODE{};
-  }
-
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
     const D3D_SHADER_MODEL lowestDefined { D3D_SHADER_MODEL_5_1 };
@@ -51,16 +44,52 @@ namespace Tac::Render
     return lowestDefined;
   }
 
-  static DXCCompileOutput Compile( StringView fileStem, Errors& errors )
+  static Vector< AssetPathString > GetPreprocessorInput( ProgramParams programParams )
   {
-    TAC_RAISE_ERROR_IF_RETURN( {}, fileStem.empty(), "No shader specified to compile" );
+    Vector< AssetPathString > assetPaths;
+    for( const String& input : programParams.mInputs )
+    {
+      const AssetPathString inputAsset{ sShaderDir + input + sShaderExt };
+      assetPaths.push_back( inputAsset );
+    }
 
-    const String fileName{ fileStem + sShaderExt };
-    const String filePath{ sShaderDir + fileName };
+    return assetPaths;
+  }
 
-    TAC_CALL_RET( {}, const String preprocessedShader{ HLSLPreprocess( filePath, errors ) } );
+  static DXCCompileOutput Compile( ProgramParams programParams, Errors& errors )
+  {
+    TAC_RAISE_ERROR_IF_RETURN( {}, programParams.mInputs.empty(), "Missing shader sources" );
+
+    if( programParams.mName.empty() && programParams.mInputs.size() == 1 )
+      programParams.mName = programParams.mInputs[ 0 ];
+
+    TAC_RAISE_ERROR_IF_RETURN( {}, programParams.mName.empty(), "Missing shader name" );
+
+
+#if 0
+    if( programParams.mInputs.size() > 1 )
+    {
+      String combinedInputs;
+      for( const String& input : programParams.mInputs )
+      {
+        TAC_CALL_RET( {}, const String inputStr{
+          FileSys::LoadFilePath( sShaderDir + input + sShaderExt, errors ) } );
+
+        combinedInputs += inputStr;
+        combinedInputs += "\n";
+      }
+
+      TAC_CALL_RET( {}, FileSys::SaveToFile( filePath, combinedInputs, errors ) );
+    }
+#endif
+
+    const Vector< AssetPathString > assetPaths{ GetPreprocessorInput( programParams ) };
+
+    TAC_CALL_RET( {}, const String preprocessedShader{
+      HLSLPreprocessor::Process( assetPaths, errors ) } );
 
     const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
+    const String fileName{ programParams.mName + sShaderExt };
     const DXCCompileParams input
     {
       .mFileName           { fileName },
@@ -69,8 +98,27 @@ namespace Tac::Render
       .mOutputDir          { outputDir },
     };
 
-    TAC_CALL_RET( {}, DXCCompileOutput output{ DXCCompile( input, errors ) } );
-    return output;
+    return DXCCompile( input, errors );
+  }
+
+  static Vector< DX12Program::HotReloadInput > GetHotReloadInputs( ProgramParams params,
+                                                                   Errors& errors )
+  {
+    Vector< DX12Program::HotReloadInput > hotReloadInputs;
+    for( const String& input : params.mInputs )
+    {
+      const FileSys::Path filePath{ sShaderDir + input + sShaderExt };
+      TAC_CALL_RET( {}, const FileSys::Time fileTime{
+        FileSys::GetFileLastModifiedTime( filePath, errors ) } );
+      const DX12Program::HotReloadInput hotReloadInput;
+      {
+        FileSys::Path mFilePath;
+        FileSys::Time mFileTime;
+      };
+      hotReloadInputs.push_back( hotReloadInput );
+    }
+
+    return hotReloadInputs;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -105,7 +153,8 @@ namespace Tac::Render
                                                       ProgramParams params,
                                                       Errors& errors )
   {
-    TAC_CALL( DXCCompileOutput output{ Compile( params.mFileStem, errors ) } );
+    // Basically const, but 
+    TAC_CALL( const DXCCompileOutput output{ Compile( params, errors ) } );
 
     const D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
                                          output.mReflInfo.mReflBindings.size() );
@@ -123,23 +172,21 @@ namespace Tac::Render
       };
     }
 
-    const String filePath{ sShaderDir + params.mFileStem + sShaderExt };
-    TAC_CALL( FileSys::Time fileTime{
-      FileSys::GetFileLastModifiedTime( filePath, errors ) } );
+    TAC_CALL( const Vector< DX12Program::HotReloadInput > hotReloadInputs{
+      GetHotReloadInputs( params, errors ) } );
 
     mPrograms[ h.GetIndex() ] = DX12Program
     {
-      .mFileStem        { params.mFileStem },
-      .mFileTime        { fileTime },
       .mVSBlob          { output.mVSBlob },
-      .mVSBytecode      { IDxcBlobToBytecode( output.mVSBlob ) },
+      .mVSBytecode      { output.GetVSBytecode() },
       .mPSBlob          { output.mPSBlob },
-      .mPSBytecode      { IDxcBlobToBytecode( output.mPSBlob ) },
+      .mPSBytecode      { output.GetPSBytecode() },
       .mCSBlob          { output.mCSBlob },
-      .mCSBytecode      { IDxcBlobToBytecode( output.mCSBlob ) },
+      .mCSBytecode      { output.GetCSBytecode() },
       .mProgramBindings { bindings },
       .mProgramParams   { params },
       .mInputs          { programInputs },
+      .mHotReloadInputs { hotReloadInputs },
     };
 
   }
@@ -180,43 +227,26 @@ namespace Tac::Render
     const int n{ mPrograms.size()};
     for( int i{}; i < n; ++i )
     {
-      ProgramHandle h{i};
-      DX12Program& program{ mPrograms[ i ] };
-      if( program.mFileStem.empty() )
-        continue;
+      ProgramHandle h{ i };
+      dynmc DX12Program& program{ mPrograms[ i ] };
 
-      const String filePath{ sShaderDir + program.mFileStem + sShaderExt };
-      TAC_CALL( FileSys::Time fileTime{ FileSys::GetFileLastModifiedTime( filePath, errors ) } );
-
-      if( fileTime == program.mFileTime )
-        continue;
-
-      Errors reloadErrors;
-
-#if 0
-      DXCCompileOutput output;
-      for( ;; )
+      int updatedTimeCount{};
+      for( dynmc DX12Program::HotReloadInput& hotReloadInput : program.mHotReloadInputs )
       {
-        output = Compile( program.mFileStem, errors );
-        if( reloadErrors )
+        TAC_CALL( const FileSys::Time fileTime{
+          FileSys::GetFileLastModifiedTime( hotReloadInput.mFilePath, errors ) } );
+
+        if( hotReloadInput.mFileTime != fileTime )
         {
-          const String errorStr{ reloadErrors.ToString() };
-          OS::OSDebugPrintLine( errorStr );
-          OS::OSDebugPopupBox( errorStr );
-          reloadErrors = {};
-        }
-        else
-        {
-          break;
+          hotReloadInput.mFileTime = fileTime;
+          ++updatedTimeCount;
         }
       }
 
-      program.mFileTime   = fileTime;
-      program.mVSBlob     = output.mVSBlob;
-      program.mPSBlob     = output.mPSBlob;
-      program.mVSBytecode = IDxcBlobToBytecode( output.mVSBlob );
-      program.mPSBytecode = IDxcBlobToBytecode( output.mPSBlob );
-#else
+      if( !updatedTimeCount )
+        continue;
+
+      Errors reloadErrors;
 
       for( ;; )
       {
@@ -233,7 +263,6 @@ namespace Tac::Render
           break;
         }
       }
-#endif
 
       reloadedPrograms.push_back( h );
     }

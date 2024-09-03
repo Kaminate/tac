@@ -79,23 +79,22 @@ namespace Tac::Render
     const AssetPathStringView& path,
     Errors& errors ) const
   {
+    const String shaderStrProcessed { HLSLPreprocessor::Process( { path }, errors ) };
 
-    const String shaderStrProcessed = HLSLPreprocess( path, errors );
-
-    DXCCompileParams compileParams
+    const DXCCompileParams compileParams
     {
-      .mFileName = path,
-      .mPreprocessedShader = shaderStrProcessed,
-      .mShaderModel = shaderModel,
-      .mOutputDir = sOutputDir,
+      .mFileName           { path },
+      .mPreprocessedShader { shaderStrProcessed },
+      .mShaderModel        { shaderModel },
+      .mOutputDir          { sOutputDir },
     };
 
-    DXCCompileOutput compileOutput = TAC_CALL_RET( {}, DXCCompile( compileParams, errors ) );
+    TAC_CALL_RET( {}, DXCCompileOutput compileOutput{ DXCCompile( compileParams, errors ) } );
 
-    PCom< IDxcBlob >& PSBlob = compileOutput.mPSBlob;
-    PCom< IDxcBlob >& VSBlob = compileOutput.mVSBlob;
-    D3D12_SHADER_BYTECODE VSBytecode{ VSBlob->GetBufferPointer(), VSBlob->GetBufferSize() };
-    D3D12_SHADER_BYTECODE PSBytecode{ PSBlob->GetBufferPointer(),  PSBlob->GetBufferSize() };
+    const PCom< IDxcBlob > PSBlob { compileOutput.mPSBlob };
+    const PCom< IDxcBlob > VSBlob { compileOutput.mVSBlob };
+    const D3D12_SHADER_BYTECODE VSBytecode{ VSBlob->GetBufferPointer(), VSBlob->GetBufferSize() };
+    const D3D12_SHADER_BYTECODE PSBytecode{ PSBlob->GetBufferPointer(), PSBlob->GetBufferSize() };
 
     return Result
     {

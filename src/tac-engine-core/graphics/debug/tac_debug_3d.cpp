@@ -140,7 +140,7 @@ namespace Tac
   {
     return Render::ProgramParams
     {
-      .mFileStem   { "3DDebug" },
+      .mInputs     { "3DDebug" },
       .mStackFrame { TAC_STACK_FRAME },
     };
   }

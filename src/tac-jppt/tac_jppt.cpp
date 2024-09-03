@@ -82,7 +82,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::ProgramParams programParams
     {
-      .mFileStem{ "jppt" },
+      .mInputs{ "jppt" },
     };
 
     TAC_CALL( sProgram = renderDevice->CreateProgram( programParams, errors ) );

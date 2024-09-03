@@ -22,11 +22,6 @@ namespace Tac::Render
     return result;
   }
 
-  HLSLLinePreprocessorIncludes::HLSLLinePreprocessorIncludes( AssetPathStringView assetPath)
-  {
-    mAssetPath = assetPath;
-  }
-
   Optional< String > HLSLLinePreprocessorIncludes::Preprocess( Input input, Errors& errors )
   {
     const StringView line{ input.mLine};
@@ -52,13 +47,18 @@ namespace Tac::Render
       mIncluded.push_back( includeName );
     }
 
-    const AssetPathString assetDir { ( ( AssetPathStringView )mAssetPath ).GetDirectory() };
+    const AssetPathString assetDir {
+      AssetPathStringView( input.mFile ).GetDirectory()
+      //( ( AssetPathStringView )mAssetPath ).GetDirectory()
+    };
     const AssetPathString assetPath { AssetPathStringView( ( String )assetDir + '/' + includeName ) };
 
     String result;
+
     if( Exists( assetPath ) )
       result += TAC_CALL_RET( {}, IncludeFile( assetPath, errors ) );
 
+    // Including a ".hlsli" file automatically also includes the ".hlsl" file
     if( includeName.ends_with( ".hlsli" ) )
     {
       AssetPathString hlslPath { assetPath };

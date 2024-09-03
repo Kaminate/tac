@@ -46,7 +46,7 @@ namespace Tac::Render
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem   { fileStem },
+      .mInputs     { fileStem },
       .mStackFrame { TAC_STACK_FRAME },
     };
     return renderDevice->CreateProgram( programParams, errors );

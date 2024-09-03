@@ -94,7 +94,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::ProgramParams programParams
     {
-      .mFileStem { "Skybox" },
+      .mInputs     { "Skybox" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     mShader = renderDevice->CreateProgram( programParams, errors );

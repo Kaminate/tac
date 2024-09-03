@@ -189,7 +189,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem   { "Terrain" },
+      .mInputs     { "Terrain" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     mTerrainShader = renderDevice->CreateProgram( programParams, errors );

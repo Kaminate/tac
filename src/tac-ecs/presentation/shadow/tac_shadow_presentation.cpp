@@ -320,7 +320,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::ProgramParams programParams
     {
-      .mFileStem   { "Shadow" },
+      .mInputs     { "Shadow" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     sShader = renderDevice->CreateProgram( programParams, errors );

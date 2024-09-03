@@ -22,8 +22,8 @@ namespace Tac::Render
 
     struct DXCCompileBlobInputs
     {
-       DXCReflInfo*            reflInfo;
-       const DXCCompileParams& input;
+       dynmc DXCReflInfo*      mReflInfo;
+       const DXCCompileParams& mCompileParams;
     };
 
     String             GetTarget( D3D_SHADER_MODEL model ) const
@@ -52,15 +52,15 @@ namespace Tac::Render
       return {};
     }
 
-    PCom< IDxcBlob >   DXCCompileBlob( DXCCompileBlobInputs , Errors& ) const;
+    PCom< IDxcBlob >   DXCCompileBlob( DXCCompileBlobInputs, Errors& ) const;
 
     char mLetter;
-    bool reflectShaderInputs;
+    bool mReflectShaderInputs;
   };
 
-  static const ShaderCompiler sVSData{ .mLetter { 'v' }, .reflectShaderInputs{ true }, };
-  static const ShaderCompiler sPSData{ .mLetter { 'p' }, .reflectShaderInputs{ false }, };
-  static const ShaderCompiler sCSData{ .mLetter { 'c' }, .reflectShaderInputs{ true }, };
+  static const ShaderCompiler sVSData{ .mLetter { 'v' }, .mReflectShaderInputs{ true }, };
+  static const ShaderCompiler sPSData{ .mLetter { 'p' }, .mReflectShaderInputs{ false }, };
+  static const ShaderCompiler sCSData{ .mLetter { 'c' }, .mReflectShaderInputs{ true }, };
   static const bool           sVerbose;
   static dynmc bool           sPrintedCompilerInfo;
 
@@ -152,6 +152,14 @@ namespace Tac::Render
       return;
 
     mReflBindings.push_back( desc );
+  }
+
+  static D3D12_SHADER_BYTECODE GetBytecode( const PCom< IDxcBlob >& blob )
+  {
+    dynmc IDxcBlob* pBlob{ blob.Get() };
+    return pBlob ?
+      D3D12_SHADER_BYTECODE{ pBlob->GetBufferPointer(), pBlob->GetBufferSize() } :
+      D3D12_SHADER_BYTECODE{};
   }
 
   static void ReflectShader( IDxcUtils* pUtils,
@@ -305,16 +313,16 @@ namespace Tac::Render
                                                    Errors& errors ) const
   {
     const Optional< String > optEntryPoint{
-      this->FindEntryPoint( inputs.input.mPreprocessedShader ) };
+      FindEntryPoint( inputs.mCompileParams.mPreprocessedShader ) };
     if( !optEntryPoint.HasValue() )
       return {};
 
     const String entryPoint{ optEntryPoint.GetValue() };
 
-    const String target{ GetTarget( inputs.input.mShaderModel ) };
+    const String target{ GetTarget( inputs.mCompileParams.mShaderModel ) };
 
-    DXCReflInfo*            reflInfo{ inputs.reflInfo };
-    const DXCCompileParams& input{ inputs.input };
+    DXCReflInfo* reflInfo{ inputs.mReflInfo };
+    const DXCCompileParams& input{ inputs.mCompileParams };
     //bool                    reflectShaderInputs{ inputs.reflectShaderInputs };
 
     TAC_ASSERT( !input.mOutputDir.empty() );
@@ -358,28 +366,15 @@ namespace Tac::Render
       ++asdf;
     }
 
-
-    const int iSlash{ input.mFileName.find_last_of( "/\\" ) };
-    const StringView inputShaderName{
-      iSlash == StringView::npos ? input.mFileName : input.mFileName.substr( iSlash + 1 ) };
-
-    const FileSys::Path hlslShaderPath { input.mOutputDir / inputShaderName };
-
-    TAC_CALL_RET( {}, FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
-
-
     dynmc DXCArgHelper::Params argHelperSetup
     {
       .mEntryPoint    { entryPoint },
       .mTargetProfile { target },
-      .mFilename      { inputShaderName },
+      .mFilename      { inputs.mCompileParams.mFileName },
       .mPDBDir        { input.mOutputDir },
       .mUtils         { pUtils },
     };
     dynmc DXCArgHelper argHelper( argHelperSetup );
-
-    const auto pArguments { argHelper.GetArgs() };
-    const auto argCount { argHelper.GetArgCount() };
 
     const DxcBuffer Source
     {
@@ -390,18 +385,18 @@ namespace Tac::Render
 
     PCom< IDxcResult > pResults;
 
-    const HRESULT compileHR{ pCompiler->Compile(
-      &Source,
-      pArguments,
-      argCount,
-      nullptr,
-      pResults.iid(),
-      pResults.ppv() ) };
+    const HRESULT compileHR{
+      pCompiler->Compile( &Source,
+                          argHelper.GetArgs() ,
+                          argHelper.GetArgCount() ,
+                          nullptr,
+                          pResults.iid(),
+                          pResults.ppv() ) };
     TAC_ASSERT( SUCCEEDED( compileHR ) );
 
     CheckCompileSuccess( pResults.Get(), errors );
 
-    ReflectShader( pUtils.Get(), pResults.Get(), reflInfo, reflectShaderInputs );
+    ReflectShader( pUtils.Get(), pResults.Get(), reflInfo, mReflectShaderInputs );
     
     TAC_RAISE_ERROR_IF_RETURN( {}, !pResults->HasOutput( DXC_OUT_OBJECT ), "no shader binary" );
     PCom< IDxcBlob > pShader;
@@ -427,6 +422,10 @@ namespace Tac::Render
     return pShader;
   }
 
+
+  D3D12_SHADER_BYTECODE DXCCompileOutput::GetVSBytecode() const { return GetBytecode( mVSBlob ); }
+  D3D12_SHADER_BYTECODE DXCCompileOutput::GetPSBytecode() const { return GetBytecode( mPSBlob ); };
+  D3D12_SHADER_BYTECODE DXCCompileOutput::GetCSBytecode() const { return GetBytecode( mCSBlob ); };
 } // namespace Tac::Render
 
 namespace Tac
@@ -437,9 +436,23 @@ namespace Tac
 
     const ShaderCompiler::DXCCompileBlobInputs blobInput
     {
-      .reflInfo            { &reflInfo },
-      .input               { input },
+      .mReflInfo            { &reflInfo },
+      .mCompileParams       { input },
     };
+
+    {
+#if 0
+      const int iSlash{ input.mFileName.find_last_of( "/\\" ) };
+      const StringView inputShaderName{
+        iSlash == StringView::npos ? input.mFileName : input.mFileName.substr( iSlash + 1 ) };
+      const FileSys::Path hlslShaderPath { input.mOutputDir / inputShaderName };
+      TAC_CALL_RET( {}, FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
+#else
+      TAC_ASSERT( !input.mFileName.contains( "/\\" ) );
+      const FileSys::Path hlslShaderPath { input.mOutputDir / input.mFileName };
+      TAC_CALL_RET( {}, FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
+#endif
+    }
 
     TAC_CALL_RET( {}, PCom< IDxcBlob > vsBlob { sVSData.DXCCompileBlob( blobInput, errors ) } );
     TAC_CALL_RET( {}, PCom< IDxcBlob > psBlob { sPSData.DXCCompileBlob( blobInput, errors ) } );
@@ -456,5 +469,6 @@ namespace Tac
       .mReflInfo { reflInfo },
     };
   }
+
 
 } // namespace Tac

@@ -92,8 +92,8 @@ namespace Tac
   void HelloTriangle::InitShader( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::ProgramParams paramsBindless    { .mFileStem { "HelloTriangleBindless" }, };
-    const Render::ProgramParams paramsInputLayout { .mFileStem { "HelloTriangleInputLayout" }, };
+    const Render::ProgramParams paramsBindless    { .mInputs { "HelloTriangleBindless" }, };
+    const Render::ProgramParams paramsInputLayout { .mInputs { "HelloTriangleInputLayout" }, };
     TAC_CALL( mShaderInputLayout = renderDevice->CreateProgram( paramsInputLayout, errors ) );
     TAC_CALL( mShaderBindless = renderDevice->CreateProgram( paramsBindless, errors ) );
   }

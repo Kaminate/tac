@@ -12,10 +12,10 @@
 
 namespace Tac::Render
 {
-  String HLSLPreprocess( AssetPathStringView assetPath, Errors& errors )
+  String HLSLPreprocessor::Process( Vector< AssetPathString > assetPaths, Errors& errors )
   {
     HLSLLinePreprocessorRegister processorRegister;
-    HLSLLinePreprocessorIncludes processorIncludes( assetPath );
+    HLSLLinePreprocessorIncludes processorIncludes;
     HLSLLinePreprocessorPadding processorPadding;
     HLSLLinePreprocessorComment processorComment;
     HLSLLinePreprocessorBitfield processorBitfield;
@@ -31,7 +31,14 @@ namespace Tac::Render
     preprocessor.Add( &processorFx );
     preprocessor.Add( &processorSemantic );
 
-    return preprocessor.PreprocessFile( assetPath, errors );
+    String result;
+    for( const AssetPathString& assetPath : assetPaths )
+    {
+      TAC_CALL_RET( {}, result += preprocessor.PreprocessFile( assetPath, errors ) );
+      result += "\n";
+    }
+
+    return result;
   }
 } // namespace Tac::Render
 

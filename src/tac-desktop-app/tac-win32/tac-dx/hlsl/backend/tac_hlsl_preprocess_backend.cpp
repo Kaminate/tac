@@ -43,8 +43,8 @@ namespace Tac::Render
       const StringView origLine { shaderParseData.EatRestOfLine() };
       const HLSLLinePreprocessor::Input preprocessorInput
       {
-        .mLine       { origLine},
-        .mFile       { mAssetPath},
+        .mLine       { origLine },
+        .mFile       { mAssetPath },
         .mLineNumber { lineNumber },
       };
       TAC_CALL_RET( {}, Optional< String > optResult{
@@ -72,7 +72,6 @@ namespace Tac::Render
     mAssetPath = assetPath;
     TAC_CALL_RET( {}, const String sourceCode{ LoadAssetPath( assetPath, errors ) } );
     return PreprocessSource( sourceCode, errors );
-
   }
 
 }// namespace Tac::Render

@@ -188,7 +188,6 @@ namespace Tac
       if( !material->mRenderEnabled )
         continue;
 
-      TAC_ASSERT_UNIMPLEMENTED;
       const Render::VertexDeclarations vtxDecls{};
 
       const ModelAssetManager::Params meshParams
@@ -204,11 +203,12 @@ namespace Tac
 
       TAC_RENDER_GROUP_BLOCK( renderContext, model->mEntity->mName );
 
+      TAC_CALL( Render::RenderMaterial* renderMaterial{
+        Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );
+
       const MaterialPerObjBuf perObj{ GetPerObjBuf( model ,material ) };
       TAC_CALL( renderContext->UpdateBufferSimple( mMaterialPerObjBuf, perObj, errors ) );
 
-      TAC_CALL( Render::RenderMaterial* renderMaterial{
-        Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );
 
       // $$$ gross
       if( !renderMaterial->mAreShaderVarsSet )

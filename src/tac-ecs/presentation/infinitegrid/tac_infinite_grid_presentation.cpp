@@ -90,9 +90,9 @@ namespace Tac
       return;
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams programParams
+    const Render::ProgramParams programParams
     {
-      .mFileStem   { "InfiniteGrid" },
+      .mInputs   { "InfiniteGrid" },
     };
     sProgram = renderDevice->CreateProgram( programParams, errors );
 

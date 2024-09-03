@@ -121,7 +121,7 @@ namespace Tac
     };
     mVtxBuf = renderDevice->CreateBuffer( vtxBufParams, errors );
 
-    const Render::ProgramParams programParams{ .mFileStem { "HelloTexture" }, };
+    const Render::ProgramParams programParams{ .mInputs { "HelloTexture" }, };
     TAC_CALL( mShader = renderDevice->CreateProgram( programParams, errors ) );
 
     const Render::CreateSamplerParams samplerParams

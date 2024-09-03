@@ -313,7 +313,7 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::ProgramParams programParams
     {
-      .mFileStem   { "MeshPresentation" },
+      .mInputs     { "MeshPresentation" },
       .mStackFrame { TAC_STACK_FRAME },
     };
     m3DShader = renderDevice->CreateProgram( programParams, errors );
