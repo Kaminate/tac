@@ -110,10 +110,10 @@ namespace Tac::Render
       const FileSys::Path filePath{ sShaderDir + input + sShaderExt };
       TAC_CALL_RET( {}, const FileSys::Time fileTime{
         FileSys::GetFileLastModifiedTime( filePath, errors ) } );
-      const DX12Program::HotReloadInput hotReloadInput;
+      const DX12Program::HotReloadInput hotReloadInput
       {
-        FileSys::Path mFilePath;
-        FileSys::Time mFileTime;
+        .mFilePath{ filePath },
+        .mFileTime{ fileTime },
       };
       hotReloadInputs.push_back( hotReloadInput );
     }
@@ -149,10 +149,16 @@ namespace Tac::Render
     }
   }
 
-  void          DX12ProgramMgr::CreateProgramAtIndex( ProgramHandle h ,
-                                                      ProgramParams params,
-                                                      Errors& errors )
+  void          DX12ProgramMgr::CreateProgramAtIndex( const ProgramHandle h ,
+                                                      dynmc ProgramParams params,
+                                                      dynmc Errors& errors )
   {
+    if( params.mName.empty() && params.mInputs.size() == 1 )
+      params.mName = params.mInputs[ 0 ];
+
+    TAC_RAISE_ERROR_IF( params.mInputs.empty(), "Missing shader sources" );
+    TAC_RAISE_ERROR_IF( params.mName.empty(), "Missing shader name" );
+
     // Basically const, but 
     TAC_CALL( const DXCCompileOutput output{ Compile( params, errors ) } );
 

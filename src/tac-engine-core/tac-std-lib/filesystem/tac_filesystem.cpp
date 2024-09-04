@@ -201,9 +201,9 @@ namespace Tac
   FileSys::Time  FileSys::GetFileLastModifiedTime( const FileSys::Path& path,
                                                          Errors& errors )
   {
-    const std::filesystem::path& fsPath = path.Get();
-    const auto time = std::filesystem::last_write_time( fsPath );
-    return Time{ .mTime = time, };
+    const std::filesystem::path& fsPath { path.Get() };
+    const auto time { std::filesystem::last_write_time( fsPath ) };
+    return Time{ .mTime { time }, };
   }
 
   static bool IsEntryDirectory( const std::filesystem::directory_entry& entry )

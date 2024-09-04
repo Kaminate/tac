@@ -56,7 +56,7 @@ namespace Tac
 
   static Render::BufferHandle          mMaterialPerFrameBuf;
   static Render::BufferHandle          mMaterialPerObjBuf;
-  static bool                          sEnabled{ true };
+  static bool                          sEnabled{ false };
   static bool                          sInitialized;
 
   static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
