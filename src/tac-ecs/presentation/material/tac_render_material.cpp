@@ -40,13 +40,41 @@ namespace Tac::Render
     };
   }
 
-  static Render::ProgramHandle Create3DShader( StringView fileStem, Errors& errors )
+  static Render::ProgramHandle Create3DShader( const Material* material, Errors& errors )
   {
+    const StringView materialShader{ material->mMaterialShader };
+
     TAC_UNUSED_PARAMETER( errors );
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    Render::ProgramParams programParams
+
+    const Vector< String > inputs
     {
-      .mInputs     { fileStem },
+      material->mMaterialShader,
+      "Material.hlsl",
+    };
+
+      /*
+
+      +----------+
+      | material | shader graph
+      +----------+
+        |
+        +-- Define required vtx inputs (pos3, nor3, uv2, etc)
+        |
+        +-- this is fed into shader creation, which defines VS_OUT attributes
+
+
+        Goals for the material system:
+
+          - Be able to have shadertoy pixel shaders
+
+          - Support multiple input layouts. Although we need to change PSOs, this is performant
+            because thats what PSOs were made for
+      */
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams
+    {
+      .mInputs     { inputs },
       .mStackFrame { TAC_STACK_FRAME },
     };
     return renderDevice->CreateProgram( programParams, errors );
@@ -118,29 +146,24 @@ namespace Tac::Render
     if( RenderMaterial * renderMaterial{ FindRenderMaterial( material ) } )
       return renderMaterial;
 
-    const StringView materialShader{ material->mMaterialShader };
-    TAC_CALL_RET( {}, Render::ProgramHandle program{ Create3DShader( materialShader, errors ) } );
+    TAC_CALL_RET( {}, Render::ProgramHandle program{ Create3DShader( material, errors ) } );
     TAC_CALL_RET( {}, Render::PipelineHandle meshPipeline{ CreatePipeline( program, errors ) } );
 
-    const HashValue hashValue{ Hash( materialShader ) };
+    const HashValue hashValue{ Hash( material->mMaterialShader ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     Render::IShaderVar* perFrame { renderDevice->GetShaderVariable( meshPipeline, "sPerObj" ) };
     Render::IShaderVar* perObj   { renderDevice->GetShaderVariable( meshPipeline, "sPerFrame" ) };
 
-    mRenderMaterials.resize( mRenderMaterials.size() + 1 );
-    RenderMaterial& renderMaterial{ mRenderMaterials.back() };
-    renderMaterial = RenderMaterial
-    {
-      .mMaterialShader     { materialShader },
-      .mMaterialShaderHash { hashValue },
-      .m3DShader           { program },
-      .mMeshPipeline       { meshPipeline },
-      .mShaderVarPerFrame  { perFrame },
-      .mShaderVarPerObject { perObj },
-    };
-
-    return &renderMaterial;
+    return &( mRenderMaterials.emplace_back() = RenderMaterial
+              {
+                .mMaterialShader     { material->mMaterialShader },
+                .mMaterialShaderHash { hashValue },
+                .m3DShader           { program },
+                .mMeshPipeline       { meshPipeline },
+                .mShaderVarPerFrame  { perFrame },
+                .mShaderVarPerObject { perObj },
+              } );
   }
 
   void                              RenderMaterialApi::Init()

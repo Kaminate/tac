@@ -21,16 +21,3 @@ struct MaterialInput
 
 Material GetMaterial( MaterialInput );
 
-
-
-
-
-struct VS_OUTPUT
-{
-  float4 mClipSpacePosition : SV_POSITION;
-  float4 mUVs               : TAC_AUTO_SEMANTIC;
-};
-
-
-
-
