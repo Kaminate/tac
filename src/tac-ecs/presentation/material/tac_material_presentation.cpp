@@ -49,15 +49,15 @@ namespace Tac
       u32 mFlags {};
     };
     
-    v4    mColor {};
+    v4    mColor    {};
     v4    mEmissive {};
-    Flags mFlags {};
+    Flags mFlags    {};
   };
 
-  static Render::BufferHandle          mMaterialPerFrameBuf;
-  static Render::BufferHandle          mMaterialPerObjBuf;
-  static bool                          sEnabled{ false };
-  static bool                          sInitialized;
+  static Render::BufferHandle          mMaterialPerFrameBuf {};
+  static Render::BufferHandle          mMaterialPerObjBuf   {};
+  static bool                          sEnabled             { false };
+  static bool                          sInitialized         {};
 
   static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
   {
