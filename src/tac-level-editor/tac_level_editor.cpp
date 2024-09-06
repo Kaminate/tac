@@ -27,6 +27,7 @@
 // level_editor
 #include "tac-level-editor/tac_level_editor_asset_view.h"
 #include "tac-level-editor/tac_level_editor_game_window.h"
+#include "tac-level-editor/tac_level_editor_shader_graph_window.h"
 #include "tac-level-editor/tac_level_editor_main_window.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-level-editor/tac_level_editor_profile_window.h"
@@ -108,6 +109,7 @@ namespace Tac
       CreationMainWindow::sShowWindow ||
       CreationAssetView::sShowWindow ||
       CreationGameWindow::sShowWindow ||
+      CreationShaderGraphWindow::sShowWindow ||
       CreationPropertyWindow::sShowWindow };
     static bool hasAnyWindowShown;
     hasAnyWindowShown |= isAnyWindowShown;
@@ -231,6 +233,7 @@ namespace Tac
 
     CreationSystemWindow::Update( world, mSettingsNode );
     TAC_CALL( CreationAssetView::Update( world, camera, errors ) );
+    TAC_CALL( CreationShaderGraphWindow::Update(  errors ) );
     TAC_CALL( CreationMainWindow::Update( world, errors ) );
     TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
     TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );

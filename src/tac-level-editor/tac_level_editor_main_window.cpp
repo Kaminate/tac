@@ -19,6 +19,7 @@
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/tac_level_editor_game_object_menu_window.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
+#include "tac-level-editor/tac_level_editor_shader_graph_window.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/asset/tac_asset.h"
@@ -92,6 +93,7 @@ namespace Tac
     ImGuiCheckbox( "Show Properties Window", &CreationPropertyWindow::sShowWindow );
     ImGuiCheckbox( "Show Profile Window", &CreationProfileWindow::sShowWindow );
     ImGuiCheckbox( "Show Asset View", &CreationAssetView::sShowWindow  );
+    ImGuiCheckbox( "Show Shader Graph Window", &CreationShaderGraphWindow::sShowWindow  );
     ImGuiUnindent();
 
     PrefabImGui();

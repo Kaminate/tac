@@ -61,6 +61,8 @@ function( tac_target )
     "tac_level_editor_main_window.h"
     "tac_level_editor_profile_window.cpp"
     "tac_level_editor_profile_window.h"
+    "tac_level_editor_shader_graph_window.cpp"
+    "tac_level_editor_shader_graph_window.h"
     "tac_level_editor_property_window.cpp"
     "tac_level_editor_property_window.h"
     "tac_level_editor_system_window.cpp"
