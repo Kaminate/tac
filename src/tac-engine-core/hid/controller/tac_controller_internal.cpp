@@ -174,7 +174,7 @@ namespace Tac::Controller
   ControllerIndex ControllerInput::AddController( Controller* controller )
   {
     TAC_ASSERT( CanAddController() );
-    for( ControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
+    for( ControllerIndex iController {}; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
     {
       if( mControllers[ iController ] )
         continue;
