@@ -838,17 +838,19 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   TAC_ON_DESTRUCT( drawData->PopDebugGroup() );
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const ImGuiID oldWindowActiveId{ GetActiveID() };
+  const ImGuiID activeId{ GetActiveID() };
   const bool hovered{ window->IsHovered( clipRect ) };
-  if( hovered )
-  {
-    //static Timestamp mouseMovementConsummation;
-    //Mouse::TryConsumeMouseMovement( &mouseMovementConsummation, TAC_STACK_FRAME );
+  const bool isActive{ activeId == id };
+  const bool mouseLeftJustPressed{ keyboardApi.JustPressed( Key::MouseLeft ) };
 
-    if( keyboardApi.JustPressed( Key::MouseLeft ) )
-      SetActiveID( id, window );
+  if( mouseLeftJustPressed && hovered && !isActive )
+  {
+    SetActiveID( id, window );
+    textInputData->SetText( text );
   }
 
+  if( mouseLeftJustPressed && !hovered && isActive )
+    ClearActiveID();
 
   const v2 textPos{ pos + v2( buttonPadding, 0 ) };
   const v2 textBackgroundMaxi{ pos + v2( totalSize.x * ( 2.0f / 3.0f ), totalSize.y ) };
@@ -862,13 +864,8 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 
   drawData->AddBox( box, &clipRect );
 
-  if( oldWindowActiveId == id )
+  if( isActive )
   {
-    if( oldWindowActiveId != id ) // just became active
-    {
-      textInputData->SetText( text );
-    }
-
     TextInputDataUpdateKeys( textInputData, window->GetMousePosViewport(), textPos );
 
     // handle double click
