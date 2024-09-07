@@ -194,6 +194,7 @@ namespace Tac::Controller
       Controller* controller { mControllers[ iController ] };
       if( !controller )
         continue;
+
       DirectInputPerController* directInputPerController { ( DirectInputPerController* )controller };
       if( mForceIndexOverride && ( iController != mIndexOverride ) )
         continue;
@@ -218,7 +219,10 @@ namespace Tac::Controller
       }
       else if( hr == DIERR_INPUTLOST )
       {
-        TAC_ASSERT_UNIMPLEMENTED;
+        // Windows went asleep?
+
+        TAC_DELETE controller;
+        mControllers[ iController ] = nullptr;
       }
       else
       {
@@ -228,7 +232,7 @@ namespace Tac::Controller
         TAC_ASSERT_INVALID_CODE_PATH;
       }
 
-      ControllerState controllerState = ToControllerState( js );
+      const ControllerState controllerState{ ToControllerState( js ) };
       controller->mControllerStateCurr = controllerState;
     }
   }
