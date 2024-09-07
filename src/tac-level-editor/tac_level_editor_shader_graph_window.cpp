@@ -97,8 +97,7 @@ namespace Tac
       ImGuiText( "Edit Variable" );
       TAC_IMGUI_INDENT_BLOCK;
 
-
-      const StringView displaySemantic{ GetDisplaySemantic() };
+      const StringView displaySemantic{ mAutoSemantic ? mVariableNameInput : mSemanticNameInput };
 
       String varAsString;
       varAsString += mMetaType ? mMetaType->GetName() : "(missing type)";
@@ -145,7 +144,7 @@ namespace Tac
       Span< const MetaType* const > allowedMetaTypes( allMetaTypes.data(),
                                                       allMetaTypes.size() );
 
-      if( const SVSemantic * svSemantic{ sSVSemantics.Find( GetDisplaySemantic() ) } )
+      if( const SVSemantic * svSemantic{ sSVSemantics.Find( displaySemantic ) } )
       {
         allowedMetaTypes = Span< const MetaType* const >( svSemantic->mAllowedTypes.data(),
                                                           svSemantic->mAllowedTypes.size() );
@@ -175,17 +174,15 @@ namespace Tac
           {
             .mMetaType{ mMetaType },
             .mName    { mVariableNameInput },
-            .mSemantic{ GetDisplaySemantic() }
+            .mSemantic{ displaySemantic }
           };
+
+          EditVariable( nullptr );
         }
       }
 
     }
 
-    StringView GetDisplaySemantic() const
-    {
-      return mAutoSemantic ? mVariableNameInput : mSemanticNameInput;
-    }
 
     const MetaType* mMetaType          {};
     String          mVariableNameInput {};
@@ -279,7 +276,7 @@ namespace Tac
     {
       const int i{ (int)(toMoveUp - sVertexShaderOutput.mVariables.data() )};
       const int j{ i - 1 };
-      if( i >= 0 )
+      if( j >= 0 )
       {
         Swap( sVertexShaderOutput.mVariables[ i ],
               sVertexShaderOutput.mVariables[ j ] );
