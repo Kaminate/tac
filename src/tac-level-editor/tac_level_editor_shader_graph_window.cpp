@@ -7,53 +7,12 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/math/tac_math_meta.h"
 #include "tac-std-lib/meta/tac_meta.h"
+#include "tac-ecs/graphics/material/tac_material_input.h"
+#include "tac-ecs/graphics/material/tac_material_input_layout.h"
 
 namespace Tac
 {
 
-  struct MaterialInput
-  {
-    using UnderlyingType = u32;
-
-    // $$$ instead of creating a custom constant buffer type, just fucking make a uberbuffer
-    enum Type : UnderlyingType
-    {
-      kWorldMatrix,
-      kVertexBuffer,
-      kCount,
-    };
-
-    static StringView ToString( Type mi )
-    {
-      switch( mi )
-      {
-      case Type::kWorldMatrix: return "world_matrix";
-      case Type::kVertexBuffer: return "vertex_buffer";
-      default: TAC_ASSERT_INVALID_CASE( mi ); return "";
-      }
-    }
-    static Type       FromString( StringView s )
-    {
-      for( int i{}; i < ( int )Type::kCount; ++i )
-      {
-        const Type type{ ( Type )i };
-        if( ( StringView )ToString( type ) == s )
-          return type;
-      }
-      TAC_ASSERT_INVALID_CODE_PATH;
-      return Type::kCount;
-    }
-
-    void Set( Type t )                                                                              { ( UnderlyingType& )mBitfield |= ( UnderlyingType )( 1 << t  ); }
-    void Set( Type t, bool b )                                                                      { if( b ) Set( t ); else Clear( t ); }
-    void Clear( Type t )                                                                            { ( UnderlyingType& )mBitfield &= ~( 1 << t  ); }
-    void Clear()                                                                                    { mBitfield = {}; }
-    bool IsSet( Type t ) const                                                                      { return ( UnderlyingType )mBitfield & ( 1 << t ); }
-
-  private:
-
-    Type mBitfield{};
-  };
 
   struct SVSemantic
   {
@@ -94,34 +53,19 @@ namespace Tac
   };
 
 
-  struct VertexShaderOutput
-  {
-    struct Variable
-    {
-      const MetaType* mMetaType     {};
-      String          mName         {};
-      String          mSemantic     {};
-    };
-
-
-    Vector< Variable > mVariables;
-  };
-
-
-
 
   struct ShaderGraph
   {
-    VertexShaderOutput  mVertexShaderOutput {};
-    MaterialInput       mMaterialInputs     {};
-    String              mMaterialShader     {};
+    MaterialInputLayout  mVertexShaderOutput {};
+    MaterialInput        mMaterialInputs     {};
+    String               mMaterialShader     {};
   };
 
   static ShaderGraph sShaderGraph;
 
   struct InputLayoutElementEditUI
   {
-    void EditVariable(  VertexShaderOutput::Variable* var )
+    void EditVariable(  MaterialInputLayout::Variable* var )
 
     {
       mToEdit = var;
@@ -213,7 +157,7 @@ namespace Tac
       {
         if( ImGuiButton( "Apply Edits" ) )
         {
-          *mToEdit = VertexShaderOutput::Variable
+          *mToEdit = MaterialInputLayout::Variable
           {
             .mMetaType{ mMetaType },
             .mName    { mVariableNameInput },
@@ -231,7 +175,7 @@ namespace Tac
     String          mSemanticNameInput {};
     bool            mAutoSemantic      {};
 
-    VertexShaderOutput::Variable* mToEdit {};
+    MaterialInputLayout::Variable* mToEdit {};
   };
 
   static InputLayoutElementEditUI sInputLayoutElementEditUI;
@@ -240,134 +184,57 @@ namespace Tac
 
   static const char* sJsonKeyInputLayout     { "input_layout" };
   static const char* sJsonKeyMaterialInputs  { "material_inputs" };
+  static const char* sJsonKeyMaterialShader  { "material_shader" };
 
-  static const MetaType* FindMetaType( StringView str )
-  {
-    const Array allMetaTypes
-    {
-      &GetMetaType<v2>(),
-      &GetMetaType<v3>(),
-      &GetMetaType<v4>(),
-      &GetMetaType<float>(),
-      &GetMetaType<u32>(),
-    };
 
-    for( const MetaType* metaType : allMetaTypes )
-      if( ( StringView )metaType->GetName() == str )
-        return metaType;
-
-    return nullptr;
-  }
-
-  static VertexShaderOutput VertexShaderOutputFromJson( const Json* inputLayout )
-  {
-    VertexShaderOutput vso;
-
-    if( inputLayout )
-    {
-      for( Json* varJson : inputLayout->mArrayElements )
-      {
-        const String typeStr{ varJson->GetChild( "type" ).mString };
-
-        VertexShaderOutput::Variable var;
-        var.mMetaType = FindMetaType(  typeStr );
-        var.mName = varJson->GetChild( "name" ).mString;
-        var.mSemantic = varJson->GetChild( "semantic" ).mString;
-
-        vso.mVariables.push_back( var );
-      }
-    }
-
-    return vso;
-  }
-
-  static Json VertexShaderOutputToJson( const VertexShaderOutput& vso )
-  {
-    Json inputLayout;
-    for( const VertexShaderOutput::Variable& var : vso.mVariables )
-    {
-      Json& varJson{ *inputLayout.AddChild() };
-      varJson[ "name" ] = ( StringView )var.mName;
-      varJson[ "semantic" ] = ( StringView )var.mSemantic;
-      varJson[ "type" ] = ( StringView )var.mMetaType->GetName();
-    }
-    return inputLayout;
-  }
-
-  static MaterialInput MaterialInputsFromJson( const Json* materialInputsJson )
-  {
-    MaterialInput materialInputs{};
-    if( materialInputsJson )
-    {
-      for( Json* varJson : materialInputsJson->mArrayElements )
-      {
-        materialInputs.Set( MaterialInput::FromString( varJson->mString ) );
-      }
-    }
-
-    return materialInputs;
-  }
-
-  static Json MaterialInputsToJson( const MaterialInput& materialInputs )
+  static Json SaveShaderGraphToJson( const ShaderGraph& sg )
   {
     Json json;
-    for( int i{}; i < (int)MaterialInput::Type::kCount; ++i)
-    {
-      const MaterialInput::Type type{ ( MaterialInput::Type )i };
-      if( materialInputs.IsSet( type ) )
-      {
-        *json.AddChild() = MaterialInput::ToString( type );
-      }
-    }
-
+    json[ sJsonKeyInputLayout ] = MaterialInputLayout::ToJson( sg.mVertexShaderOutput );
+    json[ sJsonKeyMaterialInputs ] = MaterialInput::ToJson( sg.mMaterialInputs );
+    json[ sJsonKeyMaterialShader ] = ( StringView )sg.mMaterialShader;
     return json;
   }
 
-  static Json SaveToJson()
+  static ShaderGraph LoadShaderGraphFromJson( const Json& json )
   {
-    Json json;
-    json[ sJsonKeyInputLayout ] = VertexShaderOutputToJson( sShaderGraph.mVertexShaderOutput );
-    json[ sJsonKeyMaterialInputs ] = MaterialInputsToJson( sShaderGraph.mMaterialInputs );
-    return json;
+    const Json* materialShaderJson{ json.FindChild( sJsonKeyMaterialShader ) };
+    const Json* inputLayoutJson{ json.FindChild( sJsonKeyInputLayout ) };
+    const Json* materialInputsJson{ json.FindChild( sJsonKeyMaterialInputs ) };
+
+    ShaderGraph sg{};
+    sg.mVertexShaderOutput = MaterialInputLayout::FromJson( inputLayoutJson );
+    sg.mMaterialInputs = MaterialInput::FromJson( materialInputsJson );
+    sg.mMaterialShader = materialShaderJson ? materialShaderJson->mString : "";
+    return sg;
   }
 
-  static void LoadFromJson( const Json& json )
+  static void SaveShaderGraphToPath( const ShaderGraph& sg,
+                                     AssetPathStringView path,
+                                     Errors& errors )
   {
-    sShaderGraph = {};
-    sShaderGraph.mVertexShaderOutput =
-      VertexShaderOutputFromJson( json.FindChild( sJsonKeyInputLayout ) );
-    sShaderGraph.mMaterialInputs =
-      MaterialInputsFromJson( json.FindChild( sJsonKeyMaterialInputs ) );
-  }
+    TAC_ASSERT( !path.empty() );
 
-  static void SaveToPath( AssetPathStringView path, Errors& errors )
-  {
-    if( path.empty() )
-      return;
-
-    sCurrentFile = path;
-
-    const Json json{ SaveToJson() };
+    const Json json{ SaveShaderGraphToJson( sg ) };
     const String string{ json.Stringify() };
 
-    TAC_CALL( SaveToFile( sCurrentFile, string.data(), string.size(), errors ) );
+    TAC_CALL( SaveToFile( path, string.data(), string.size(), errors ) );
   }
 
-  static void LoadFromPath( AssetPathStringView path, Errors& errors )
+  static ShaderGraph LoadShaderGraphFromPath( AssetPathStringView path, Errors& errors )
   {
-    if( path.empty() )
-      return;
+    TAC_ASSERT( !path.empty() );
 
-    sCurrentFile = path;
-
-    TAC_CALL( const String string{ LoadAssetPath( sCurrentFile, errors ) } );
+    TAC_CALL_RET( {}, const String str{ LoadAssetPath( path, errors ) } );
 
     Json json;
-    TAC_CALL( json.Parse( string, errors ) );
-    LoadFromJson( json );
+    TAC_CALL_RET( {}, json.Parse( str, errors ) );
+
+    ShaderGraph sg { LoadShaderGraphFromJson( json ) };
+    return sg;
   }
 
-  static void InputLayoutImGui( VertexShaderOutput& vso )
+  static void InputLayoutImGui( MaterialInputLayout& vso )
   {
     if( !ImGuiCollapsingHeader( "Vertex Shader Output" ) )
       return;
@@ -375,10 +242,10 @@ namespace Tac
     TAC_IMGUI_INDENT_BLOCK;
 
 
-    VertexShaderOutput::Variable* toRemove{};
-    VertexShaderOutput::Variable* toMoveUp{};
-    VertexShaderOutput::Variable* toMoveDown{};
-    for( dynmc VertexShaderOutput::Variable& var : vso.mVariables )
+    MaterialInputLayout::Variable* toRemove{};
+    MaterialInputLayout::Variable* toMoveUp{};
+    MaterialInputLayout::Variable* toMoveDown{};
+    for( dynmc MaterialInputLayout::Variable& var : vso.mVariables )
     {
       const StringView displayType{ var.mMetaType? var.mMetaType->GetName(): "(missing type)" };
       const StringView displayName{ var.mName.empty() ? "(missing name)" : var.mName };
@@ -408,8 +275,8 @@ namespace Tac
 
     if( toRemove )
     {
-      Vector< VertexShaderOutput::Variable > newElements;
-      for( VertexShaderOutput::Variable& element : vso.mVariables )
+      Vector< MaterialInputLayout::Variable > newElements;
+      for( MaterialInputLayout::Variable& element : vso.mVariables )
         if( &element != toRemove )
           newElements.push_back( element );
       vso.mVariables = newElements;
@@ -418,7 +285,7 @@ namespace Tac
 
     if( ImGuiButton( "Add Variable" ) )
     {
-      VertexShaderOutput::Variable* var{ &vso.mVariables.emplace_back() };
+      MaterialInputLayout::Variable* var{ &vso.mVariables.emplace_back() };
       sInputLayoutElementEditUI.EditVariable( var );
     }
 
@@ -464,7 +331,7 @@ namespace Tac
       const MaterialInput::Type miType{ ( MaterialInput::Type )i };
       if( mi.IsSet( miType ) )
       {
-        ImGuiText( MaterialInput::ToString( miType ) );
+        ImGuiText( ToString( miType ) );
         ImGuiSameLine();
         if( ImGuiButton( "Remove" ) )
           mi.Clear( miType );
@@ -476,11 +343,31 @@ namespace Tac
       const MaterialInput::Type miType{ ( MaterialInput::Type )i };
       if( !mi.IsSet( miType ) )
       {
-        if( ImGuiButton( "Add " +  MaterialInput::ToString( miType )  ) )
+        if( ImGuiButton( "Add " + ToString( miType )  ) )
           mi.Set( miType );
       }
     }
 
+  }
+
+  static void ShaderGraphImGui( ShaderGraph& sg, Errors& errors )
+  {
+    InputLayoutImGui( sg.mVertexShaderOutput );
+
+    MaterialInputImGui( sg.mMaterialInputs );
+
+    ImGuiText( "Material Shader: " + sg.mMaterialShader.empty() ? "n/a" : sg.mMaterialShader );
+    ImGuiSameLine();
+    if( ImGuiButton( "Select" ) )
+    {
+      TAC_CALL( const FileSys::Path path{ OS::OSOpenDialog( errors ) } );
+      if( !path.empty() )
+      {
+        const String ext{ path.extension().u8string() };
+        const String pathu8{ path.u8string() };
+        sg.mMaterialShader = pathu8.substr( 0, pathu8.size() - ext.size() );
+      }
+    }
   }
 
   static void FileSaveImGui( Errors& errors )
@@ -502,17 +389,22 @@ namespace Tac
 
     if( shouldSave )
     {
-      TAC_CALL( SaveToPath( savePath, errors ) );
+      sCurrentFile = savePath;
+      TAC_CALL( SaveShaderGraphToPath( sShaderGraph, savePath, errors ) );
     }
   }
 
   static void FileLoadImGui( Errors& errors )
   {
-    if( ImGuiButton( "File --> Open" ) )
-    {
-      TAC_CALL( const AssetPathStringView openPath{ AssetOpenDialog( errors ) } );
-      TAC_CALL( LoadFromPath( openPath, errors ) );
-    }
+    if( !ImGuiButton( "File --> Open" ) )
+      return;
+
+    TAC_CALL( const AssetPathStringView openPath{ AssetOpenDialog( errors ) } );
+    if( openPath.empty() )
+      return;
+
+    TAC_CALL( sShaderGraph = LoadShaderGraphFromPath( openPath, errors ) );
+    sCurrentFile = openPath;
   }
 
   bool CreationShaderGraphWindow::sShowWindow{};
@@ -528,9 +420,7 @@ namespace Tac
 
     sShowWindow |= !ImGuiButton( "Close Window" );
 
-    InputLayoutImGui( sShaderGraph.mVertexShaderOutput );
-
-    MaterialInputImGui( sShaderGraph.mMaterialInputs );
+    TAC_CALL( ShaderGraphImGui( sShaderGraph, errors ) );
 
     ImGuiText( "Current shader graph: " +
                ( sCurrentFile.empty() ? ( StringView )"none" : ( StringView )sCurrentFile ) );
