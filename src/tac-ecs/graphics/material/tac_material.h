@@ -37,8 +37,7 @@ namespace Tac
     // this could be used if we were to support arbitrary data
     Vector< Data >  mData           {};
 
-    // Instead, the material "type" is encoded by the shader.
-    String         mMaterialShader {}; // it's not technically an asset path (has no ext)
+    AssetPathString mShaderGraph;
 
     // Whether entities with this material component should render or not
     bool            mRenderEnabled  { true };

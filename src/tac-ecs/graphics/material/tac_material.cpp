@@ -4,6 +4,7 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/shell/tac_shell.h" // AssetOpenDialog
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math_meta.h"
@@ -19,7 +20,7 @@ namespace Tac
   TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mIsGlTF_PBR_SpecularGlossiness )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mColor )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mEmissive )
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mMaterialShader )
+  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mShaderGraph )
   TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mRenderEnabled )
   TAC_META_REGISTER_COMPOSITE_END( Material );
 
@@ -37,6 +38,7 @@ namespace Tac
   }
 
 
+#if 0
   static void       SaveMaterialComponent( Json& json, Component* component )
   {
     Material* material{ ( Material* )component };
@@ -76,8 +78,52 @@ namespace Tac
     material->mRenderEnabled = json[ TAC_MEMBER_NAME( Material, mRenderEnabled ) ];
     material->mMaterialShader = json[ TAC_MEMBER_NAME( Material, mMaterialShader ) ];
   }
+#endif
 
-  // ------------------------
+  struct BindingsUI
+  {
+    void RefreshBindings( Material* material, Errors& errors )
+    {
+#if 0 // commented out after introduction of shader graph
+      if( !material->mMaterialShader.empty() )
+      {
+        mBindings = {};
+        return;
+      }
+
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+
+      const Render::ProgramParams programParams
+      {
+        .mInputs{ material->mMaterialShader },
+      };
+
+      const Render::ProgramHandle programHandle{
+        renderDevice->CreateProgram( programParams, errors ) };
+
+      if( !errors )
+      {
+        mBindings = renderDevice->GetProgramBindings_TEST( programHandle );
+        renderDevice->DestroyProgram( programHandle );
+      }
+#endif
+    }
+
+    void UI( Material* material, Errors& errors )
+    {
+      if( ImGuiButton( "Refresh bindings" ) )
+        RefreshBindings( material, errors );
+
+      ImGuiText( "Bindings: " + mBindings.empty() ? "<none>" : mBindings );
+    }
+
+    String mBindings;
+  };
+
+  static BindingsUI sBindingsUI;
+
+  // -----------------------------------------------------------------------------------------------
 
   Material*                        Material::GetMaterial( Entity* entity )
   {
@@ -89,11 +135,10 @@ namespace Tac
     return ( Material* )entity->GetComponent( sComponentInfo );
   }
 
-  const ComponentInfo*    Material::GetEntry() const
+  const ComponentInfo*             Material::GetEntry() const
   {
     return sComponentInfo;
   }
-
 
   void                             Material::RegisterComponent()
   {
@@ -119,43 +164,21 @@ namespace Tac
     static Errors errors;
 
     ImGuiCheckbox( "Enabled", &material->mRenderEnabled );
-    if( !material->mMaterialShader.empty() )
-      ImGuiText( "Shader: " + material->mMaterialShader );
+    ImGuiText( "Shader Graph: " + material->mShaderGraph.empty()
+               ? ( StringView )"<none>"
+               : ( StringView )material->mShaderGraph );
 
-    if( ImGuiButton( "Select Shader" ) )
+    if( ImGuiButton( "Select Shader Graph" ) )
     {
       errors.clear();
-      const FileSys::Path shaderPath{ OS::OSOpenDialog( errors ) };
-      if( shaderPath.has_stem() )
-        material->mMaterialShader = shaderPath.stem().u8string();
+      if( const AssetPathString path{ AssetOpenDialog( errors ) }; !errors && !path.empty() )
+        material->mShaderGraph = path;
     }
 
     if( errors )
       ImGuiText( errors.ToString() );
 
-    static String bindings;
-    if( !material->mMaterialShader.empty() && ImGuiButton( "Refresh bindings" ) )
-    {
-      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-      const Render::ProgramParams programParams
-      {
-        .mInputs{ material->mMaterialShader },
-      };
-
-      const Render::ProgramHandle programHandle{ renderDevice->CreateProgram( programParams, errors ) };
-      if( !errors )
-      {
-        bindings = renderDevice->GetProgramBindings_TEST( programHandle );
-        renderDevice->DestroyProgram( programHandle );
-      }
-    }
-
-    if( bindings.empty() )
-      ImGuiText( "Bindings: <none>" );
-    else
-      ImGuiText( "Bindings: " + bindings );
-
+    sBindingsUI.UI( material, errors );
 
     ImGuiCheckbox( "gltf pbr mr", &material->mIsGlTF_PBR_MetallicRoughness );
     ImGuiCheckbox( "gltf pbr sg", &material->mIsGlTF_PBR_SpecularGlossiness );

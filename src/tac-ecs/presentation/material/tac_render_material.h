@@ -6,6 +6,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-ecs/graphics/material/tac_material.h"
+#include "tac-ecs/graphics/material/tac_shader_graph.h"
 #include "tac-ecs/tac_space_types.h" // EntityUUID
 
 namespace Tac::Render
@@ -16,7 +17,8 @@ namespace Tac::Render
   {
     void Uninit();
 
-    String                        mMaterialShader     {};
+    AssetPathString               mShaderGraphPath    {};
+    ShaderGraph                   mShaderGraph        {};
     HashValue                     mMaterialShaderHash {};
     Render::ProgramHandle         m3DShader           {};
     Render::PipelineHandle        mMeshPipeline       {};

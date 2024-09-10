@@ -182,7 +182,7 @@ namespace Tac
       if( !material )
         continue;
 
-      if( material->mMaterialShader.empty() )
+      if( material->mShaderGraph.empty() )
         continue;
 
       if( !material->mRenderEnabled )

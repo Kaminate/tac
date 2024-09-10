@@ -300,11 +300,16 @@ namespace Tac
           {
             const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
               &gltfMaterial->pbr_metallic_roughness };
+
+            const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
+                            pbr_metallic_roughness->base_color_factor[ 1 ],
+                            pbr_metallic_roughness->base_color_factor[ 2 ],
+                            pbr_metallic_roughness->base_color_factor[ 3 ] );
+
             Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
-            ecsMaterial->mMaterialShader = "materials/glTFpbr";
+            ecsMaterial->mShaderGraph = "shader-graphs/gltf_pbr.sg";
             ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
-            for( int i = 0; i < 4; ++i )
-              ecsMaterial->mColor[ i ] = pbr_metallic_roughness->base_color_factor[ i ];
+            ecsMaterial->mColor = color;
           }
         }
 

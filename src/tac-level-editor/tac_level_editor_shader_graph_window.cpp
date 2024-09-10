@@ -7,16 +7,14 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/math/tac_math_meta.h"
 #include "tac-std-lib/meta/tac_meta.h"
-#include "tac-ecs/graphics/material/tac_material_input.h"
-#include "tac-ecs/graphics/material/tac_material_input_layout.h"
+#include "tac-ecs/graphics/material/tac_shader_graph.h"
 
 namespace Tac
 {
-
-
+  // Helper struct that defines the allowed data types for system-value semantic
   struct SVSemantic
   {
-    bool Contains(  const MetaType* metaType )const
+    bool Contains( const MetaType* metaType )const
     {
       for( const MetaType* mt : mAllowedTypes )
         if( mt == metaType )
@@ -49,20 +47,9 @@ namespace Tac
 
     const char*                       mSemanticName;
     FixedVector< const MetaType*, 4 > mAllowedTypes;
-
   };
 
-
-
-  struct ShaderGraph
-  {
-    MaterialInputLayout  mVertexShaderOutput {};
-    MaterialInput        mMaterialInputs     {};
-    String               mMaterialShader     {};
-  };
-
-  static ShaderGraph sShaderGraph;
-
+  // Helper struct to edit a MaterialInputLayout::Variable*
   struct InputLayoutElementEditUI
   {
     void EditVariable(  MaterialInputLayout::Variable* var )
@@ -178,61 +165,13 @@ namespace Tac
     MaterialInputLayout::Variable* mToEdit {};
   };
 
+  // -----------------------------------------------------------------------------------------------
+
+  static ShaderGraph              sShaderGraph;
   static InputLayoutElementEditUI sInputLayoutElementEditUI;
+  static AssetPathString          sCurrentFile;
 
-  static AssetPathString sCurrentFile;
-
-  static const char* sJsonKeyInputLayout     { "input_layout" };
-  static const char* sJsonKeyMaterialInputs  { "material_inputs" };
-  static const char* sJsonKeyMaterialShader  { "material_shader" };
-
-
-  static Json SaveShaderGraphToJson( const ShaderGraph& sg )
-  {
-    Json json;
-    json[ sJsonKeyInputLayout ] = MaterialInputLayout::ToJson( sg.mVertexShaderOutput );
-    json[ sJsonKeyMaterialInputs ] = MaterialInput::ToJson( sg.mMaterialInputs );
-    json[ sJsonKeyMaterialShader ] = ( StringView )sg.mMaterialShader;
-    return json;
-  }
-
-  static ShaderGraph LoadShaderGraphFromJson( const Json& json )
-  {
-    const Json* materialShaderJson{ json.FindChild( sJsonKeyMaterialShader ) };
-    const Json* inputLayoutJson{ json.FindChild( sJsonKeyInputLayout ) };
-    const Json* materialInputsJson{ json.FindChild( sJsonKeyMaterialInputs ) };
-
-    ShaderGraph sg{};
-    sg.mVertexShaderOutput = MaterialInputLayout::FromJson( inputLayoutJson );
-    sg.mMaterialInputs = MaterialInput::FromJson( materialInputsJson );
-    sg.mMaterialShader = materialShaderJson ? materialShaderJson->mString : "";
-    return sg;
-  }
-
-  static void SaveShaderGraphToPath( const ShaderGraph& sg,
-                                     AssetPathStringView path,
-                                     Errors& errors )
-  {
-    TAC_ASSERT( !path.empty() );
-
-    const Json json{ SaveShaderGraphToJson( sg ) };
-    const String string{ json.Stringify() };
-
-    TAC_CALL( SaveToFile( path, string.data(), string.size(), errors ) );
-  }
-
-  static ShaderGraph LoadShaderGraphFromPath( AssetPathStringView path, Errors& errors )
-  {
-    TAC_ASSERT( !path.empty() );
-
-    TAC_CALL_RET( {}, const String str{ LoadAssetPath( path, errors ) } );
-
-    Json json;
-    TAC_CALL_RET( {}, json.Parse( str, errors ) );
-
-    ShaderGraph sg { LoadShaderGraphFromJson( json ) };
-    return sg;
-  }
+  // -----------------------------------------------------------------------------------------------
 
   static void InputLayoutImGui( MaterialInputLayout& vso )
   {
@@ -390,7 +329,7 @@ namespace Tac
     if( shouldSave )
     {
       sCurrentFile = savePath;
-      TAC_CALL( SaveShaderGraphToPath( sShaderGraph, savePath, errors ) );
+      TAC_CALL( ShaderGraph::ToPath( sShaderGraph, savePath, errors ) );
     }
   }
 
@@ -403,9 +342,11 @@ namespace Tac
     if( openPath.empty() )
       return;
 
-    TAC_CALL( sShaderGraph = LoadShaderGraphFromPath( openPath, errors ) );
+    TAC_CALL( sShaderGraph = ShaderGraph::FromPath( openPath, errors ) );
     sCurrentFile = openPath;
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   bool CreationShaderGraphWindow::sShowWindow{};
 

@@ -1,11 +1,13 @@
 #include "tac_render_material.h" // self-inc
 
+#include "tac_render_material_cache.h"
+
 namespace Tac::Render
 {
 
   // -----------------------------------------------------------------------------------------------
 
-  static Render::DepthState GetDepthState()
+  static Render::DepthState      GetDepthState()
   {
     return Render::DepthState
     {
@@ -15,7 +17,7 @@ namespace Tac::Render
     };
   }
 
-  static Render::BlendState GetBlendState()
+  static Render::BlendState      GetBlendState()
   {
     const Render::BlendState state
     {
@@ -40,48 +42,25 @@ namespace Tac::Render
     };
   }
 
-  static Render::ProgramHandle Create3DShader( const Material* material, Errors& errors )
+  static Render::ProgramHandle   Create3DShader( const ShaderGraph& shaderGraph, Errors& errors )
   {
-    const StringView materialShader{ material->mMaterialShader };
-
-    TAC_UNUSED_PARAMETER( errors );
-
     const Vector< String > inputs
     {
-      material->mMaterialShader,
+      shaderGraph.mMaterialShader,
       "Material.hlsl",
     };
 
-      /*
-
-      +----------+
-      | material | shader graph
-      +----------+
-        |
-        +-- Define required vtx inputs (pos3, nor3, uv2, etc)
-        |
-        +-- this is fed into shader creation, which defines VS_OUT attributes
-
-
-        Goals for the material system:
-
-          - Be able to have shadertoy pixel shaders
-
-          - Support multiple input layouts. Although we need to change PSOs, this is performant
-            because thats what PSOs were made for
-      */
-
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::ProgramParams programParams
     {
       .mInputs     { inputs },
       .mStackFrame { TAC_STACK_FRAME },
     };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     return renderDevice->CreateProgram( programParams, errors );
   }
 
-  static Render::PipelineHandle CreatePipeline( Render::ProgramHandle program,
-                                                Errors& errors )
+  static Render::PipelineHandle  CreatePipeline( Render::ProgramHandle program, Errors& errors )
   {
     const Render::BlendState blendState{ GetBlendState() };
     const Render::DepthState depthState{ GetDepthState() };
@@ -109,24 +88,9 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  static Vector< RenderMaterial >         mRenderMaterials;
-  static bool                             sInitialized;
+  static bool                sInitialized;
+  static RenderMaterialCache sRenderMaterialCache;
 
-  static RenderMaterial* FindRenderMaterial( const Material* material )
-  {
-    const StringView materialShader{ material->mMaterialShader };
-    const HashValue hashValue{ Hash( materialShader ) };
-    for ( RenderMaterial& renderMaterial : mRenderMaterials )
-    {
-      if ( renderMaterial.mMaterialShaderHash == hashValue &&
-        ( StringView )renderMaterial.mMaterialShader == materialShader )
-      {
-        return &renderMaterial;
-      }
-    }
-
-    return nullptr;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -140,43 +104,52 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  RenderMaterial*                   RenderMaterialApi::GetRenderMaterial( const Material* material,
-                                                                          Errors& errors )
+  RenderMaterial* RenderMaterialApi::GetRenderMaterial( const Material* material,
+                                                        Errors& errors )
   {
-    if( RenderMaterial * renderMaterial{ FindRenderMaterial( material ) } )
+    if( RenderMaterial * renderMaterial{ sRenderMaterialCache.Find( material ) } )
       return renderMaterial;
 
-    TAC_CALL_RET( {}, Render::ProgramHandle program{ Create3DShader( material, errors ) } );
-    TAC_CALL_RET( {}, Render::PipelineHandle meshPipeline{ CreatePipeline( program, errors ) } );
+    // TODO: async
+    TAC_CALL_RET( {}, const ShaderGraph shaderGraph{
+      ShaderGraph::FromPath( material->mShaderGraph, errors ) } );
 
-    const HashValue hashValue{ Hash( material->mMaterialShader ) };
+    TAC_CALL_RET( {}, const Render::ProgramHandle program{
+      Create3DShader( shaderGraph, errors ) } );
+
+    TAC_CALL_RET( {}, const Render::PipelineHandle meshPipeline{
+      CreatePipeline( program, errors ) } );
+
+    const HashValue hashValue{ Hash( ( StringView )material->mShaderGraph ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     Render::IShaderVar* perFrame { renderDevice->GetShaderVariable( meshPipeline, "sPerObj" ) };
     Render::IShaderVar* perObj   { renderDevice->GetShaderVariable( meshPipeline, "sPerFrame" ) };
 
-    return &( mRenderMaterials.emplace_back() = RenderMaterial
-              {
-                .mMaterialShader     { material->mMaterialShader },
-                .mMaterialShaderHash { hashValue },
-                .m3DShader           { program },
-                .mMeshPipeline       { meshPipeline },
-                .mShaderVarPerFrame  { perFrame },
-                .mShaderVarPerObject { perObj },
-              } );
+
+    const RenderMaterial renderMaterial
+    {
+      .mShaderGraphPath    { material->mShaderGraph },
+      .mShaderGraph        { shaderGraph },
+      .mMaterialShaderHash { hashValue },
+      .m3DShader           { program },
+      .mMeshPipeline       { meshPipeline },
+      .mShaderVarPerFrame  { perFrame },
+      .mShaderVarPerObject { perObj },
+    };
+
+    return &( sRenderMaterialCache.mRenderMaterials.emplace_back() = renderMaterial );
   }
 
-  void                              RenderMaterialApi::Init()
+  void            RenderMaterialApi::Init()
   {
     sInitialized = true;
   }
 
-  void                              RenderMaterialApi::Uninit()
+  void            RenderMaterialApi::Uninit()
   {
-    for( RenderMaterial& renderMaterial : mRenderMaterials )
-      renderMaterial.Uninit();
+    sRenderMaterialCache.Clear();
 
-    mRenderMaterials = {};
     sInitialized = {};
   }
 
