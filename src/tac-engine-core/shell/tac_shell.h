@@ -31,10 +31,11 @@ namespace Tac
   //
   void                    ShellInit( Errors& );
   void                    ShellUninit();
+
   extern String           sShellAppName;
   extern String           sShellStudioName;
-  extern FileSys::Path sShellPrefPath;
-  extern FileSys::Path sShellInitialWorkingDir;
+  extern FileSys::Path    sShellPrefPath;
+  extern FileSys::Path    sShellInitialWorkingDir;
 
   //                      Converts a filesystem path to an asset path
   //

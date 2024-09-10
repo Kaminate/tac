@@ -21,89 +21,87 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 
-namespace Tac
-{
 
-  void            ShellUninit()
-  {
-    UI2DCommonDataUninit();
-    Debug3DCommonDataUninit();
+Tac::String        Tac::sShellAppName;
+Tac::String        Tac::sShellStudioName;
+Tac::FileSys::Path Tac::sShellPrefPath; // Path where the app can save files to
+Tac::FileSys::Path Tac::sShellInitialWorkingDir;
+
+void                         Tac::ShellUninit()
+{
+  UI2DCommonDataUninit();
+  Debug3DCommonDataUninit();
 
 #if TAC_FONT_ENABLED()
-    FontApi::Uninit();
+  FontApi::Uninit();
 #endif
 
-    //delete mLog;
+  //delete mLog;
 
-    ModelAssetManager::Uninit();
+  ModelAssetManager::Uninit();
 
-    // last, so resources can be freed
-    Render::RenderApi::Uninit();
-  }
+  // last, so resources can be freed
+  Render::RenderApi::Uninit();
+}
 
-  void            ShellInit( Errors& errors )
+void                         Tac::ShellInit( Errors& errors )
+{
+  JobQueueInit();
+
+  ModelAssetManager::Init();
+
+  TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ));
+
+  TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );
+  TAC_CALL( Render::DefaultCBufferPerObject::Init( errors ) );
+  TAC_CALL( Render::CBufferLights::Init( errors ) );
+
+  TAC_CALL( UI2DCommonDataInit( errors ));
+
+  TAC_CALL( Debug3DCommonDataInit( errors ));
+}
+
+
+Tac::AssetPathStringView     Tac::ModifyPathRelative( const FileSys::Path& path, Errors& errors )
+{
+  const FileSys::Path& workingDir { sShellInitialWorkingDir };
+  const String workingUTF8 { workingDir.u8string() };
+
+  String pathUTF8 { path.u8string() };
+  if( path.is_absolute() )
   {
-    JobQueueInit();
+    TAC_RAISE_ERROR_IF_RETURN( {},
+                                 !pathUTF8.starts_with( workingUTF8 ), 
+                                 String() + pathUTF8 + String( " is not in " ) + workingUTF8 );
 
-    ModelAssetManager::Init();
-
-    TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ));
-
-    TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );
-    TAC_CALL( Render::DefaultCBufferPerObject::Init( errors ) );
-    TAC_CALL( Render::CBufferLights::Init( errors ) );
-
-    TAC_CALL( UI2DCommonDataInit( errors ));
-
-    TAC_CALL( Debug3DCommonDataInit( errors ));
+    pathUTF8.erase( 0, workingUTF8.size() );
+    pathUTF8 = FileSys::StripLeadingSlashes( pathUTF8 );
   }
 
-  String        sShellAppName;
-  String        sShellStudioName;
-  FileSys::Path sShellPrefPath; // Path where the app can save files to
-  FileSys::Path sShellInitialWorkingDir;
+  for( char& c : pathUTF8 )
+    if( c == '\\' )
+      c = '/';
 
-  AssetPathStringView     ModifyPathRelative( const FileSys::Path& path, Errors& errors )
+  return FrameMemoryCopy( pathUTF8.c_str() );
+}
+
+
+Tac::AssetPathStringView     Tac::AssetOpenDialog( Errors& errors )
+{
+  const FileSys::Path fsPath = TAC_CALL_RET( {}, OS::OSOpenDialog( errors ));
+
+  return ModifyPathRelative( fsPath, errors );
+}
+
+Tac::AssetPathStringView     Tac::AssetSaveDialog( const AssetSaveDialogParams& params,
+                                                   Errors& errors )
+{
+  FileSys::Path suggestedFilename { params.mSuggestedFilename };
+  const OS::SaveParams saveParams
   {
-    const FileSys::Path& workingDir { sShellInitialWorkingDir };
-    const String workingUTF8 { workingDir.u8string() };
+    .mSuggestedFilename { &suggestedFilename },
+  };
+  const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
+  return ModifyPathRelative( fsPath, errors );
+}
 
-    String pathUTF8 { path.u8string() };
-    if( path.is_absolute() )
-    {
-      TAC_RAISE_ERROR_IF_RETURN( {},
-                                   !pathUTF8.starts_with( workingUTF8 ), 
-                                   String() + pathUTF8 + String( " is not in " ) + workingUTF8 );
-
-      pathUTF8.erase( 0, workingUTF8.size() );
-      pathUTF8 = FileSys::StripLeadingSlashes( pathUTF8 );
-    }
-
-    for( char& c : pathUTF8 )
-      if( c == '\\' )
-        c = '/';
-
-    return FrameMemoryCopy( pathUTF8.c_str() );
-  }
-
-  AssetPathStringView     AssetOpenDialog( Errors& errors )
-  {
-    const FileSys::Path fsPath = TAC_CALL_RET( {}, OS::OSOpenDialog( errors ));
-
-    return ModifyPathRelative( fsPath, errors );
-  }
-
-  AssetPathStringView     AssetSaveDialog(
-    const AssetSaveDialogParams& assetSaveDialogParams,
-    Errors& errors )
-  {
-    FileSys::Path suggestedFilename { assetSaveDialogParams.mSuggestedFilename };
-    const OS::SaveParams saveParams
-    {
-      .mSuggestedFilename = &suggestedFilename,
-    };
-    const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
-    return ModifyPathRelative( fsPath, errors );
-  }
-
-} // namespace Tac
