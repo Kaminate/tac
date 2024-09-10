@@ -291,11 +291,11 @@ namespace Tac
 
   static void ShaderGraphImGui( ShaderGraph& sg, Errors& errors )
   {
-    InputLayoutImGui( sg.mVertexShaderOutput );
+    InputLayoutImGui( sg.mMaterialInputLayout );
 
     MaterialInputImGui( sg.mMaterialInputs );
 
-    ImGuiText( "Material Shader: " + sg.mMaterialShader.empty() ? "n/a" : sg.mMaterialShader );
+    ImGuiText( "Material Shader: " + ( sg.mMaterialShader.empty() ? "n/a" : sg.mMaterialShader ) );
     ImGuiSameLine();
     if( ImGuiButton( "Select" ) )
     {

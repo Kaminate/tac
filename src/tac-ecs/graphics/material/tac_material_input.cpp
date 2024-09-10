@@ -5,7 +5,7 @@
 namespace Tac
 {
 
-  static StringView          ToString( MaterialInput::Type mi )
+  StringView          MaterialInput::Type_to_String( MaterialInput::Type mi )
   {
     switch( mi )
     {
@@ -15,7 +15,7 @@ namespace Tac
     }
   }
 
-  static MaterialInput::Type FromString( StringView s )
+  MaterialInput::Type MaterialInput::String_to_Type( StringView s )
   {
     for( int i{}; i < ( int )MaterialInput::Type::kCount; ++i )
     {
@@ -29,21 +29,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  MaterialInput       MaterialInput::FromJson( const Json* materialInputsJson )
+  MaterialInput       MaterialInput::Json_to_MaterialInput( const Json* materialInputsJson )
   {
     MaterialInput materialInputs{};
     if( materialInputsJson )
     {
       for( Json* varJson : materialInputsJson->mArrayElements )
       {
-        materialInputs.Set( FromString( varJson->mString ) );
+        materialInputs.Set( MaterialInput::String_to_Type( varJson->mString ) );
       }
     }
 
     return materialInputs;
   }
 
-  Json                MaterialInput::ToJson( const MaterialInput& materialInputs )
+  Json                MaterialInput::MaterialInput_to_Json( const MaterialInput& materialInputs )
   {
     Json json;
     const int n{ ( int )MaterialInput::Type::kCount };
@@ -52,7 +52,7 @@ namespace Tac
       const MaterialInput::Type type{ ( MaterialInput::Type )i };
       if( materialInputs.IsSet( type ) )
       {
-        *json.AddChild() = ToString( type );
+        *json.AddChild() = MaterialInput::Type_to_String( type );
       }
     }
 

@@ -14,9 +14,9 @@ namespace Tac
     static void          ToPath( const ShaderGraph&, AssetPathStringView, Errors& );
     static ShaderGraph   FromPath( AssetPathStringView, Errors& );
 
-    MaterialInputLayout  mVertexShaderOutput {};
-    MaterialInput        mMaterialInputs     {};
-    String               mMaterialShader     {};
+    MaterialInputLayout  mMaterialInputLayout {};
+    MaterialInput        mMaterialInputs      {};
+    String               mMaterialShader      {};
   };
 } // namespace Tac
 

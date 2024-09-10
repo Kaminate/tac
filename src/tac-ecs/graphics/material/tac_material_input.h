@@ -18,8 +18,10 @@ namespace Tac
       kCount,
     };
 
-    static MaterialInput FromJson( const Json* );
-    static Json          ToJson( const MaterialInput& );
+    static StringView    Type_to_String( Type );
+    static Type          String_to_Type( StringView );
+    static MaterialInput Json_to_MaterialInput( const Json* );
+    static Json          MaterialInput_to_Json( const MaterialInput& );
 
     void Set( Type t );
     void Set( Type t, bool b );
