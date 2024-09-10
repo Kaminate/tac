@@ -238,8 +238,7 @@ void                Tac::PrefabLoadAtPath( SettingsNode settingsNode,
 {
   TAC_CALL( const String memory{ LoadAssetPath( prefabPath, errors ) } );
 
-  Json prefabJson;
-  prefabJson.Parse( memory.data(), memory.size(), errors );
+  TAC_CALL( const Json prefabJson{ Json::Parse( memory, errors ) } );
 
   Entity* entity{ world->SpawnEntity( NullEntityUUID ) };
   entity->Load( prefabJson );

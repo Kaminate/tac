@@ -27,6 +27,7 @@ namespace Tac
     const float q{ v.Quadrance() };
     if( q < 0.01f )
       return;
+
     mForwards = v / Sqrt( q );
     mRight = Normalize( Cross( mForwards, v3( 0, 1, 0 ) ) );
     mUp = Cross( mRight, mForwards );

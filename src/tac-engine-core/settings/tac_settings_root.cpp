@@ -18,7 +18,7 @@ namespace Tac
     if( FileSys::Exists( sSavePath ) )
     {
       const String loaded{ LoadFilePath( sSavePath, errors ) };
-      sJson.Parse( loaded.data(), ( int )loaded.size(), errors );
+      sJson = Json::Parse( loaded, errors );
     }
   }
 

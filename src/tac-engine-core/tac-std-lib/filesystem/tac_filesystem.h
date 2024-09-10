@@ -26,13 +26,13 @@ namespace Tac::FileSys
 
     // Functions
 
-    Path parent_path() const;
-    Path stem() const; // ie: foo/bar.txt --> bar
-    Path extension() const; // includes the '.'
-    Path filename() const; // ie: foo/bar.txt --> bar.txt
-    Path dirname() const;
+    Path parent_path() const; // ie: foo/bar/qux.txt --> foo/bar
+    Path stem() const;        // ie: foo/bar/qux.txt --> qux
+    Path extension() const;   // ie: foo/bar/qux.txt --> .txt
+    Path filename() const;    // ie: foo/bar/qux.txt --> qux.txt
+    Path dirname() const;     // ie: foo/bar/qux.txt --> bar
     
-    String u8string() const; // convert to utf-8
+    String u8string() const;  // convert to utf-8
     bool empty() const;
     void clear();
 

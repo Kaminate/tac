@@ -325,7 +325,7 @@ namespace Tac
     return entityJson;
   }
 
-  void             Entity::Load( Json& prefabJson )
+  void             Entity::Load( const Json& prefabJson )
   {
     Json* jsonPos { prefabJson.FindChild( "mPosition" ) };
     Json* jsonScale { prefabJson.FindChild( "mScale" ) };
@@ -361,9 +361,11 @@ namespace Tac
       componentInfo->mMetaType->JsonDeserialize( componentJson, component );
     }
 
-    if( Json * childrenJson{ prefabJson.mObjectChildrenMap[ "mChildren" ] } )
+
+    if( Optional< Json* > childrenJson{ prefabJson.mObjectChildrenMap.FindVal( "mChildren" ) };
+        childrenJson )
     {
-      for( Json* childJson : childrenJson->mArrayElements )
+      for( Json* childJson : ( *childrenJson )->mArrayElements )
       {
         Entity* childEntity { mWorld->SpawnEntity( NullEntityUUID ) };
         childEntity->Load( *childJson );
@@ -374,15 +376,4 @@ namespace Tac
   }
 
 } // namespace Tac
-
-//void dsf()
-//{
-//  entity.save();
-//
-//  entity.load()
-//    for each metamember
-//      metamember.load
-//        components.load
-//        components.mEntity;
-//}
 

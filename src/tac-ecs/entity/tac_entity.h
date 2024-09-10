@@ -42,7 +42,7 @@ namespace Tac
     void              Unparent();
     void              AddChild( Entity* );
     Json              Save();
-    void              Load( Json& );
+    void              Load( const Json& );
 
     Entity*           mParent             {};
     Vector< Entity* > mChildren           {};

@@ -270,7 +270,7 @@ namespace Tac
       const MaterialInput::Type miType{ ( MaterialInput::Type )i };
       if( mi.IsSet( miType ) )
       {
-        ImGuiText( ToString( miType ) );
+        ImGuiText( MaterialInput::Type_to_String( miType ) );
         ImGuiSameLine();
         if( ImGuiButton( "Remove" ) )
           mi.Clear( miType );
@@ -282,8 +282,10 @@ namespace Tac
       const MaterialInput::Type miType{ ( MaterialInput::Type )i };
       if( !mi.IsSet( miType ) )
       {
-        if( ImGuiButton( "Add " + ToString( miType )  ) )
+        if( ImGuiButton( "Add " + MaterialInput::Type_to_String( miType ) ) )
+        {
           mi.Set( miType );
+        }
       }
     }
 
@@ -299,12 +301,41 @@ namespace Tac
     ImGuiSameLine();
     if( ImGuiButton( "Select" ) )
     {
-      TAC_CALL( const FileSys::Path path{ OS::OSOpenDialog( errors ) } );
-      if( !path.empty() )
+      TAC_CALL( dynmc String assetPath{ AssetOpenDialog( errors ) } );
+      if( !assetPath.empty() )
       {
-        const String ext{ path.extension().u8string() };
-        const String pathu8{ path.u8string() };
-        sg.mMaterialShader = pathu8.substr( 0, pathu8.size() - ext.size() );
+        const Render::ProgramAttribs programAttribs{
+          Render::RenderApi::GetRenderDevice()->GetInfo().mProgramAttribs };
+
+        if( assetPath.starts_with( programAttribs.mDir ) )
+          assetPath = assetPath.substr( programAttribs.mDir.size() );
+
+        if( assetPath.ends_with( programAttribs.mExt ) )
+          assetPath = assetPath.substr( 0, assetPath.size() - programAttribs.mExt.size() );
+
+        //const StringView ext{ assetPath.GetFileExtension() };
+        sg.mMaterialShader = assetPath; //.substr( 0, assetPath.size() - ext.size() );
+      }
+    }
+    if( !sg.mMaterialShader.empty() )
+    {
+      ImGuiSameLine();
+
+      const Render::ProgramAttribs programAttribs{
+        Render::RenderApi::GetRenderDevice()->GetInfo().mProgramAttribs };
+
+      const AssetPathString assetPath{
+        programAttribs.mDir + sg.mMaterialShader + programAttribs.mExt };
+
+      if( ImGuiButton( "Open " + assetPath ) )
+      {
+        //FileSys::Path path{ sg.mMaterialShader };
+        //FileSys::Path dir{ path.parent_path() };
+
+        //TAC_CALL( FileSys::Paths paths{
+        //  FileSys::IterateFiles( dir, FileSys::IterateType::Default, errors ) } );
+
+        OS::OSOpenPath( assetPath );
       }
     }
   }

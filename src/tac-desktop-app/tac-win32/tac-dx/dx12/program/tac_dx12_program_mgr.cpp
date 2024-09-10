@@ -16,8 +16,16 @@ namespace Tac::Render
 {
   static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
   static Timestamp              sHotReloadTick;
-  static const char*            sShaderExt{ ".hlsl" };
-  static const char*            sShaderDir{ "assets/hlsl/" };
+
+  static ProgramAttribs GetProgramAttribs()
+  {
+    const IDevice* device{ Render::RenderApi::GetRenderDevice() };
+    const IDevice::Info info{ device->GetInfo() };
+    return info.mProgramAttribs;
+  }
+
+  static const char*            GetShaderDir() { return GetProgramAttribs().mDir; }
+  static const char*            GetShaderExt() { return GetProgramAttribs().mExt; }
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
@@ -49,7 +57,7 @@ namespace Tac::Render
     Vector< AssetPathString > assetPaths;
     for( const String& input : programParams.mInputs )
     {
-      const AssetPathString inputAsset{ sShaderDir + input + sShaderExt };
+      const AssetPathString inputAsset{ GetShaderDir() + input + GetShaderExt() };
       assetPaths.push_back( inputAsset );
     }
 
@@ -89,7 +97,7 @@ namespace Tac::Render
       HLSLPreprocessor::Process( assetPaths, errors ) } );
 
     const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
-    const String fileName{ programParams.mName + sShaderExt };
+    const String fileName{ programParams.mName + GetShaderExt() };
     const DXCCompileParams input
     {
       .mFileName           { fileName },
@@ -107,7 +115,7 @@ namespace Tac::Render
     Vector< DX12Program::HotReloadInput > hotReloadInputs;
     for( const String& input : params.mInputs )
     {
-      const FileSys::Path filePath{ sShaderDir + input + sShaderExt };
+      const FileSys::Path filePath{ GetShaderDir() + input + GetShaderExt() };
       TAC_CALL_RET( {}, const FileSys::Time fileTime{
         FileSys::GetFileLastModifiedTime( filePath, errors ) } );
       const DX12Program::HotReloadInput hotReloadInput

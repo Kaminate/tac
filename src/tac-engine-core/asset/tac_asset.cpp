@@ -75,7 +75,7 @@ namespace Tac
 
     const char quote { '\"' };
 
-    String msg = "Invalid Asset path ";
+    String msg { "Invalid Asset path " };
     msg += quote;
     msg += s;
     msg += quote;
@@ -179,19 +179,19 @@ namespace Tac
                                                AssetIterateType type,
                                                Errors& errors )
   {
-    const FileSys::IterateType fsIterate = AssetToFSIterateType( type );
+    const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
 
-    const FileSys::Paths paths =
-      TAC_CALL_RET( {}, FileSys::IterateFiles( dir, fsIterate, errors ) );
+    TAC_CALL_RET( {}, const FileSys::Paths paths{
+      FileSys::IterateFiles( dir, fsIterate, errors ) } );
 
     AssetPathStrings result;
     for( const FileSys::Path& path : paths )
     {
-      String s = path.u8string();
+      String s { path.u8string() };
       s.replace("\\", "/");
-      const int i = s.find( "assets/" );
+      const int i { s.find( "assets/" ) };
       TAC_ASSERT( i != s.npos );
-      s = s.substr(i);
+      s = s.substr( i );
 
       const AssetPathString assetPath( s );
 

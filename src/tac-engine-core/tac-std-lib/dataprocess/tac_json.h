@@ -45,10 +45,12 @@ namespace Tac
     Json( const Json& );
 		~Json();
 
+    // [[nodiscard]] is being ignored? compiler bug?
+    static [[nodiscard]] Json Parse( StringView, Errors& );
+		static [[nodiscard]] Json Parse( const char* bytes, int byteCount, Errors& );
+
 		// Setters
 		void                      Clear();
-		void                      Parse( const char* bytes, int byteCount, Errors& );
-		void                      Parse( StringView, Errors& );
 		void                      DeepCopy( const Json* );
 		void                      TakeOver( Json&& ) noexcept;
 		void                      SetNull();

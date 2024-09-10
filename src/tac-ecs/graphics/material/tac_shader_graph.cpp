@@ -58,14 +58,10 @@ namespace Tac
   ShaderGraph ShaderGraph::FromPath( AssetPathStringView path, Errors& errors )
   {
     TAC_ASSERT( !path.empty() );
-
+    TAC_ASSERT( path.starts_with( "assets/shader-graphs/" ) );
     TAC_CALL_RET( {}, const String str{ LoadAssetPath( path, errors ) } );
-
-    Json json;
-    TAC_CALL_RET( {}, json.Parse( str, errors ) );
-
-    ShaderGraph sg { ShaderGraph::FromJson( json ) };
-    return sg;
+    TAC_CALL_RET( {}, const Json json{ Json::Parse( str, errors ) } );
+    return ShaderGraph::FromJson( json );
   }
 } // namespace Tac
 

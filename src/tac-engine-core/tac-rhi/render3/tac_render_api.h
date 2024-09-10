@@ -522,11 +522,18 @@ namespace Tac::Render
     float mMaxZ;
   };
 
+  struct ProgramAttribs
+  {
+    StringView mDir {};
+    StringView mExt {};
+  };
+
   struct IDevice
   {
     struct Info
     {
-      NDCAttribs mNDCAttribs;
+      NDCAttribs     mNDCAttribs;
+      ProgramAttribs mProgramAttribs;
     };
 
     virtual void            Init( Errors& )                                  {};

@@ -43,7 +43,6 @@ namespace Tac
   //                      returns AssetPaths instead of FileSys::Path's
   AssetPathStringView     ModifyPathRelative( const FileSys::Path&, Errors& );
 
-
   struct AssetSaveDialogParams
   {
     String mSuggestedFilename;

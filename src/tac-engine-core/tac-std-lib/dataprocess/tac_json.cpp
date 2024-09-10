@@ -268,14 +268,25 @@ namespace Tac
     json.mType = JsonType::Null;
   };
 
-  void   Json::Parse( const char* bytes, int byteCount, Errors& errors )
+
+  [[nodiscard]] Json   Json::Parse( const char* bytes, int byteCount, Errors& errors )
   {
     ParseData parseData( bytes, byteCount );
-    ParseUnknownType( this, &parseData, errors );
+
+    Json json;
+    ParseUnknownType( &json, &parseData, errors );
+
+    return json;
   }
-  void   Json::Parse( StringView s, Errors& errors )
+
+  [[nodiscard]] Json   Json::Parse( StringView s, Errors& errors )
   {
-    Parse( s.data(), s.size(), errors );
+    ParseData parseData( s.data(), s.size() );
+
+    Json json;
+    ParseUnknownType( &json, &parseData, errors );
+
+    return json;
   }
 
   Json*  Json::FindChild( StringView key ) const
@@ -308,13 +319,13 @@ namespace Tac
 
     return *mArrayElements[ i ];
   }
-  Json&  Json::operator = ( const Json& json ) { DeepCopy( &json ); return *this; }
-  Json&  Json::operator = ( const Json* json ) { DeepCopy( json );return *this;  }
+  Json&  Json::operator = ( const Json& json )     { DeepCopy( &json ); return *this; }
+  Json&  Json::operator = ( const Json* json )     { DeepCopy( json );return *this;  }
   Json&  Json::operator = ( Json&& json ) noexcept { TakeOver( move( json ) ); return *this; }
-  Json&  Json::operator = ( StringView v )     { SetString( v ); return *this; }
-  Json&  Json::operator = ( JsonNumber v )     { SetNumber( v ); return *this; }
-  Json&  Json::operator = ( int v )            { SetNumber( ( JsonNumber )v );return *this;  }
-  Json&  Json::operator = ( bool v )           { SetBool( v ); return *this; }
+  Json&  Json::operator = ( StringView v )         { SetString( v ); return *this; }
+  Json&  Json::operator = ( JsonNumber v )         { SetNumber( v ); return *this; }
+  Json&  Json::operator = ( int v )                { SetNumber( ( JsonNumber )v );return *this;  }
+  Json&  Json::operator = ( bool v )               { SetBool( v ); return *this; }
 
   void   Json::AddChild( const Json& json )
   {

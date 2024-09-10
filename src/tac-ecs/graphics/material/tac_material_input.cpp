@@ -20,7 +20,7 @@ namespace Tac
     for( int i{}; i < ( int )MaterialInput::Type::kCount; ++i )
     {
       const MaterialInput::Type type{ ( MaterialInput::Type )i };
-      if( ( StringView )ToString( type ) == s )
+      if( ( StringView )MaterialInput::Type_to_String( type ) == s )
         return type;
     }
     TAC_ASSERT_INVALID_CODE_PATH;

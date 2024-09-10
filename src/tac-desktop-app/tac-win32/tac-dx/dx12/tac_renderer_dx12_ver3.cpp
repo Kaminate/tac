@@ -305,9 +305,16 @@ namespace Tac::Render
       .mMaxZ { 1 },
     };
 
+    const ProgramAttribs programAttribs
+    {
+      .mDir { "assets/hlsl/" },
+      .mExt { ".hlsl" },
+    };
+
     return Info
     {
-      .mNDCAttribs{ ndcAttribs },
+      .mNDCAttribs     { ndcAttribs },
+      .mProgramAttribs { programAttribs },
     };
   }
 

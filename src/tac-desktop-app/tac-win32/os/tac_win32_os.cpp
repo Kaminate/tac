@@ -81,6 +81,12 @@ namespace Tac
     return lib;
   }
 
+  static void Win32OSOpenPath( const FileSys::Path& path )
+  {
+    const String pathStr{ path.u8string() };
+    ::ShellExecuteA( NULL, "open", pathStr.data(), NULL, NULL, SW_SHOWDEFAULT );
+  }
+
   static bool IsDirectorySeparator( char c )
   {
     return c == '/' || c == '\\';
@@ -157,6 +163,7 @@ namespace Tac
     OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
     OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;
     OS::OSLoadDLL = Win32OSLoadDLL;
+    OS::OSOpenPath = Win32OSOpenPath;
   }
 }
 

@@ -38,6 +38,7 @@ namespace Tac::OS
 
   extern FileSys::Path( *OSSaveDialog )( const SaveParams&, Errors& );
   extern FileSys::Path( *OSOpenDialog )( Errors& );
+  extern void         ( *OSOpenPath )( const FileSys::Path& );
 
 
   extern Monitor        ( *OSGetPrimaryMonitor )();
@@ -59,8 +60,8 @@ namespace Tac::OS
   bool                OSAppIsRunning();
   void                OSAppStopRunning();
 
-  extern void*        (*OSGetLoadedDLL)(const StringView& name);
-  extern void*        (*OSLoadDLL)(const StringView& path);
+  extern void*        ( *OSGetLoadedDLL )( const StringView& name );
+  extern void*        ( *OSLoadDLL )( const StringView& path );
 
   struct ISemaphore
   {
