@@ -81,10 +81,18 @@ namespace Tac
     return lib;
   }
 
-  static void Win32OSOpenPath( const FileSys::Path& path )
+  static void Win32OSOpenPath( const FileSys::Path& path, Errors& errors )
   {
-    const String pathStr{ path.u8string() };
-    ::ShellExecuteA( NULL, "open", pathStr.data(), NULL, NULL, SW_SHOWDEFAULT );
+    String pathStr{ path.u8string() };
+    pathStr.replace( "/", "\\" ); // <-- important
+
+    const INT_PTR shellExecuteResult{ ( INT_PTR )
+      ::ShellExecuteA( NULL, "open", pathStr.data(), NULL, NULL, SW_SHOWDEFAULT ) };
+    if( shellExecuteResult > 32 )
+      return; // The operation completed successfully;
+
+    const String extErrInfoStr{ Win32GetLastErrorString() };
+    TAC_RAISE_ERROR( extErrInfoStr );
   }
 
   static bool IsDirectorySeparator( char c )
