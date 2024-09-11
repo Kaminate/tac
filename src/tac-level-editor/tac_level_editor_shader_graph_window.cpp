@@ -205,10 +205,13 @@ namespace Tac
 
       if( ImGuiButton( "Remove" ) ) { toRemove = &var; }
 
-      ImGuiSameLine();
-      if( ImGuiButton( "^" ) ) { toMoveUp = &var; }
-      ImGuiSameLine();
-      if( ImGuiButton( "v" ) ) { toMoveDown = &var; }
+      if(  vso.mVariables.size() > 1 )
+      {
+        ImGuiSameLine();
+        if( ImGuiButton( "^" ) ) { toMoveUp = &var; }
+        ImGuiSameLine();
+        if( ImGuiButton( "v" ) ) { toMoveDown = &var; }
+      }
     }
 
     if( toRemove )
@@ -292,6 +295,9 @@ namespace Tac
 
   static void ShaderGraphImGui( ShaderGraph& sg, Errors& errors )
   {
+    if( !ImGuiCollapsingHeader( "Shader Graph" ) )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
     MaterialVSOutImGui( sg.mMaterialVSOut );
 
     MaterialInputImGui( sg.mMaterialInputs );
@@ -359,7 +365,7 @@ namespace Tac
     if( shouldSave )
     {
       sCurrentFile = savePath;
-      TAC_CALL( ShaderGraph::ToPath( sShaderGraph, savePath, errors ) );
+      TAC_CALL( ShaderGraph::FileSave( sShaderGraph, savePath, errors ) );
     }
   }
 
@@ -372,7 +378,7 @@ namespace Tac
     if( openPath.empty() )
       return;
 
-    TAC_CALL( sShaderGraph = ShaderGraph::FromPath( openPath, errors ) );
+    TAC_CALL( sShaderGraph = ShaderGraph::FileLoad( openPath, errors ) );
     sCurrentFile = openPath;
   }
 

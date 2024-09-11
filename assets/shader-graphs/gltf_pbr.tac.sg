@@ -1,5 +1,4 @@
 {
-  "material_shader": "materials/glTFpbr",
   "material_vs_out":
   [
     {
@@ -8,5 +7,6 @@
       "name": "mPos_clipspace"
     }
   ],
+  "material_shader": "materials/glTFpbr",
   "material_inputs": null
 }

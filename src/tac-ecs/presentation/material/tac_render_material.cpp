@@ -112,7 +112,7 @@ namespace Tac::Render
 
     // TODO: async
     TAC_CALL_RET( {}, const ShaderGraph shaderGraph{
-      ShaderGraph::FromPath( material->mShaderGraph, errors ) } );
+      ShaderGraph::FileLoad( material->mShaderGraph, errors ) } );
 
     TAC_CALL_RET( {}, const Render::ProgramHandle program{
       Create3DShader( shaderGraph, errors ) } );

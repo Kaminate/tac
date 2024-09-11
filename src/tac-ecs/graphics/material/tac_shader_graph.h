@@ -8,11 +8,11 @@ namespace Tac
 {
   struct ShaderGraph
   {
-    static Json          ToJson( const ShaderGraph& );
-    static ShaderGraph   FromJson( const Json& );
+    static Json          JsonSave( const ShaderGraph& );
+    static ShaderGraph   JsonLoad( const Json& );
 
-    static void          ToPath( const ShaderGraph&, AssetPathStringView, Errors& );
-    static ShaderGraph   FromPath( AssetPathStringView, Errors& );
+    static void          FileSave( const ShaderGraph&, AssetPathStringView, Errors& );
+    static ShaderGraph   FileLoad( AssetPathStringView, Errors& );
 
     MaterialVSOut        mMaterialVSOut       {};
     MaterialInput        mMaterialInputs      {};

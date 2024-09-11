@@ -11,7 +11,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  Json        ShaderGraph::ToJson( const ShaderGraph& sg )
+  Json        ShaderGraph::JsonSave( const ShaderGraph& sg )
   {
     Json json;
     json[ sJsonKeyMaterialVSOut ] = MaterialVSOut::ToJson( sg.mMaterialVSOut );
@@ -20,7 +20,7 @@ namespace Tac
     return json;
   }
 
-  ShaderGraph ShaderGraph::FromJson( const Json& json )
+  ShaderGraph ShaderGraph::JsonLoad( const Json& json )
   {
     const Json* materialShaderJson{ json.FindChild( sJsonKeyMaterialShader ) };
     const Json* inputLayoutJson{ json.FindChild( sJsonKeyMaterialVSOut ) };
@@ -42,25 +42,25 @@ namespace Tac
     };
   }
 
-  void        ShaderGraph::ToPath( const ShaderGraph& sg,
+  void        ShaderGraph::FileSave( const ShaderGraph& sg,
                                    AssetPathStringView path,
                                    Errors& errors )
   {
     TAC_ASSERT( !path.empty() );
 
-    const Json json{ ShaderGraph::ToJson( sg ) };
+    const Json json{ ShaderGraph::JsonSave( sg ) };
     const String string{ json.Stringify() };
 
     TAC_CALL( SaveToFile( path, string.data(), string.size(), errors ) );
   }
 
-  ShaderGraph ShaderGraph::FromPath( AssetPathStringView path, Errors& errors )
+  ShaderGraph ShaderGraph::FileLoad( AssetPathStringView path, Errors& errors )
   {
     TAC_ASSERT( !path.empty() );
     TAC_ASSERT( path.starts_with( "assets/shader-graphs/" ) );
     TAC_CALL_RET( {}, const String str{ LoadAssetPath( path, errors ) } );
     TAC_CALL_RET( {}, const Json json{ Json::Parse( str, errors ) } );
-    return ShaderGraph::FromJson( json );
+    return ShaderGraph::JsonLoad( json );
   }
 } // namespace Tac
 
