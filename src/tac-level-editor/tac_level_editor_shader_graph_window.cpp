@@ -49,10 +49,10 @@ namespace Tac
     FixedVector< const MetaType*, 4 > mAllowedTypes;
   };
 
-  // Helper struct to edit a MaterialInputLayout::Variable*
-  struct InputLayoutElementEditUI
+  // Helper struct to edit a MaterialVSOut::Variable*
+  struct MaterialVSOutEditUI
   {
-    void EditVariable(  MaterialInputLayout::Variable* var )
+    void EditVariable( MaterialVSOut::Variable* var )
 
     {
       mToEdit = var;
@@ -63,7 +63,6 @@ namespace Tac
         mVariableNameInput = var->mName;
         mSemanticNameInput = var->mSemantic;
       }
-
     }
 
     void ImGui()
@@ -144,11 +143,11 @@ namespace Tac
       {
         if( ImGuiButton( "Apply Edits" ) )
         {
-          *mToEdit = MaterialInputLayout::Variable
+          *mToEdit = MaterialVSOut::Variable
           {
-            .mMetaType{ mMetaType },
-            .mName    { mVariableNameInput },
-            .mSemantic{ displaySemantic }
+            .mMetaType { mMetaType },
+            .mName     { mVariableNameInput },
+            .mSemantic { displaySemantic }
           };
 
           EditVariable( nullptr );
@@ -157,23 +156,23 @@ namespace Tac
 
     }
 
-    const MetaType* mMetaType          {};
-    String          mVariableNameInput {};
-    String          mSemanticNameInput {};
-    bool            mAutoSemantic      {};
+    const MetaType*          mMetaType          {};
+    String                   mVariableNameInput {};
+    String                   mSemanticNameInput {};
+    bool                     mAutoSemantic      {};
 
-    MaterialInputLayout::Variable* mToEdit {};
+    MaterialVSOut::Variable* mToEdit            {};
   };
 
   // -----------------------------------------------------------------------------------------------
 
   static ShaderGraph              sShaderGraph;
-  static InputLayoutElementEditUI sInputLayoutElementEditUI;
+  static MaterialVSOutEditUI      sVSOutEditUI;
   static AssetPathString          sCurrentFile;
 
   // -----------------------------------------------------------------------------------------------
 
-  static void InputLayoutImGui( MaterialInputLayout& vso )
+  static void MaterialVSOutImGui( MaterialVSOut& vso )
   {
     if( !ImGuiCollapsingHeader( "Vertex Shader Output" ) )
       return;
@@ -181,10 +180,10 @@ namespace Tac
     TAC_IMGUI_INDENT_BLOCK;
 
 
-    MaterialInputLayout::Variable* toRemove{};
-    MaterialInputLayout::Variable* toMoveUp{};
-    MaterialInputLayout::Variable* toMoveDown{};
-    for( dynmc MaterialInputLayout::Variable& var : vso.mVariables )
+    MaterialVSOut::Variable* toRemove{};
+    MaterialVSOut::Variable* toMoveUp{};
+    MaterialVSOut::Variable* toMoveDown{};
+    for( dynmc MaterialVSOut::Variable& var : vso.mVariables )
     {
       const StringView displayType{ var.mMetaType? var.mMetaType->GetName(): "(missing type)" };
       const StringView displayName{ var.mName.empty() ? "(missing name)" : var.mName };
@@ -200,7 +199,7 @@ namespace Tac
 
       ImGuiSameLine();
 
-      if( ImGuiButton( "Edit" ) ) { sInputLayoutElementEditUI.EditVariable( &var ); }
+      if( ImGuiButton( "Edit" ) ) { sVSOutEditUI.EditVariable( &var ); }
 
       ImGuiSameLine();
 
@@ -214,18 +213,18 @@ namespace Tac
 
     if( toRemove )
     {
-      Vector< MaterialInputLayout::Variable > newElements;
-      for( MaterialInputLayout::Variable& element : vso.mVariables )
+      Vector< MaterialVSOut::Variable > newElements;
+      for( MaterialVSOut::Variable& element : vso.mVariables )
         if( &element != toRemove )
           newElements.push_back( element );
       vso.mVariables = newElements;
-      if( ImGuiButton( "Edit" ) ) { sInputLayoutElementEditUI.EditVariable( nullptr ); }
+      if( ImGuiButton( "Edit" ) ) { sVSOutEditUI.EditVariable( nullptr ); }
     }
 
     if( ImGuiButton( "Add Variable" ) )
     {
-      MaterialInputLayout::Variable* var{ &vso.mVariables.emplace_back() };
-      sInputLayoutElementEditUI.EditVariable( var );
+      MaterialVSOut::Variable* var{ &vso.mVariables.emplace_back() };
+      sVSOutEditUI.EditVariable( var );
     }
 
     if( toMoveDown )
@@ -239,7 +238,7 @@ namespace Tac
               vso.mVariables[ j ] );
       }
 
-      sInputLayoutElementEditUI.EditVariable(nullptr);
+      sVSOutEditUI.EditVariable(nullptr);
     }
 
     if( toMoveUp )
@@ -252,10 +251,10 @@ namespace Tac
               vso.mVariables[ j ] );
       }
 
-      sInputLayoutElementEditUI.EditVariable(nullptr);
+      sVSOutEditUI.EditVariable(nullptr);
     }
 
-    sInputLayoutElementEditUI.ImGui();
+    sVSOutEditUI.ImGui();
   }
 
   static void MaterialInputImGui( MaterialInput& mi )
@@ -293,7 +292,7 @@ namespace Tac
 
   static void ShaderGraphImGui( ShaderGraph& sg, Errors& errors )
   {
-    InputLayoutImGui( sg.mMaterialInputLayout );
+    MaterialVSOutImGui( sg.mMaterialVSOut );
 
     MaterialInputImGui( sg.mMaterialInputs );
 
@@ -335,7 +334,7 @@ namespace Tac
         //TAC_CALL( FileSys::Paths paths{
         //  FileSys::IterateFiles( dir, FileSys::IterateType::Default, errors ) } );
 
-        OS::OSOpenPath( assetPath );
+        OS::OSOpenPath( assetPath, errors );
       }
     }
   }

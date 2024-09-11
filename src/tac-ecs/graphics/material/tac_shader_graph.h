@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-ecs/graphics/material/tac_material_input.h"
-#include "tac-ecs/graphics/material/tac_material_input_layout.h"
+#include "tac-ecs/graphics/material/tac_material_vs_out.h"
 #include "tac-engine-core/asset/tac_asset.h"
 
 namespace Tac
@@ -14,7 +14,7 @@ namespace Tac
     static void          ToPath( const ShaderGraph&, AssetPathStringView, Errors& );
     static ShaderGraph   FromPath( AssetPathStringView, Errors& );
 
-    MaterialInputLayout  mMaterialInputLayout {};
+    MaterialVSOut        mMaterialVSOut       {};
     MaterialInput        mMaterialInputs      {};
     String               mMaterialShader      {};
   };

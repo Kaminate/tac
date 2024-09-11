@@ -1,4 +1,4 @@
-#include "tac_material_input_layout.h" // self-inc
+#include "tac_material_vs_out.h" // self-inc
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/math/tac_math_meta.h"
 #include "tac-std-lib/meta/tac_meta.h"
@@ -26,16 +26,16 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  MaterialInputLayout MaterialInputLayout::FromJson( const Json* inputLayout )
+  MaterialVSOut MaterialVSOut::FromJson( const Json* json )
   {
     Vector< Variable > vars;
-    if( inputLayout )
+    if( json )
     {
-      for( Json* varJson : inputLayout->mArrayElements )
+      for( Json* varJson : json->mArrayElements )
       {
         const String typeStr{ varJson->GetChild( "type" ).mString };
 
-        MaterialInputLayout::Variable var;
+        MaterialVSOut::Variable var;
         var.mMetaType = FindMetaType( typeStr );
         var.mName = varJson->GetChild( "name" ).mString;
         var.mSemantic = varJson->GetChild( "semantic" ).mString;
@@ -44,22 +44,23 @@ namespace Tac
       }
     }
 
-    MaterialInputLayout vso;
+    MaterialVSOut vso;
     vso.mVariables = vars;
     return vso;
   }
 
-  Json                MaterialInputLayout::ToJson( const MaterialInputLayout& vso )
+  Json          MaterialVSOut::ToJson( const MaterialVSOut& vso )
   {
-    Json inputLayout;
-    for( const MaterialInputLayout::Variable& var : vso.mVariables )
+    Json json;
+    for( const MaterialVSOut::Variable& var : vso.mVariables )
     {
-      Json& varJson{ *inputLayout.AddChild() };
+      Json& varJson{ *json.AddChild() };
       varJson[ "name" ] = ( StringView )var.mName;
       varJson[ "semantic" ] = ( StringView )var.mSemantic;
       varJson[ "type" ] = ( StringView )var.mMetaType->GetName();
     }
-    return inputLayout;
+
+    return json;
   }
 } // namespace Tac
 

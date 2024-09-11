@@ -5,7 +5,7 @@
 namespace Tac
 {
 
-  static const char* sJsonKeyInputLayout     { "input_layout" };
+  static const char* sJsonKeyMaterialVSOut   { "material_vs_out" };
   static const char* sJsonKeyMaterialInputs  { "material_inputs" };
   static const char* sJsonKeyMaterialShader  { "material_shader" };
 
@@ -14,7 +14,7 @@ namespace Tac
   Json        ShaderGraph::ToJson( const ShaderGraph& sg )
   {
     Json json;
-    json[ sJsonKeyInputLayout ] = MaterialInputLayout::ToJson( sg.mMaterialInputLayout );
+    json[ sJsonKeyMaterialVSOut ] = MaterialVSOut::ToJson( sg.mMaterialVSOut );
     json[ sJsonKeyMaterialInputs ] = MaterialInput::MaterialInput_to_Json( sg.mMaterialInputs );
     json[ sJsonKeyMaterialShader ] = ( StringView )sg.mMaterialShader;
     return json;
@@ -23,21 +23,20 @@ namespace Tac
   ShaderGraph ShaderGraph::FromJson( const Json& json )
   {
     const Json* materialShaderJson{ json.FindChild( sJsonKeyMaterialShader ) };
-    const Json* inputLayoutJson{ json.FindChild( sJsonKeyInputLayout ) };
+    const Json* inputLayoutJson{ json.FindChild( sJsonKeyMaterialVSOut ) };
     const Json* materialInputsJson{ json.FindChild( sJsonKeyMaterialInputs ) };
 
-    const MaterialInputLayout  materialInputLayout{
-      MaterialInputLayout::FromJson( inputLayoutJson ) };
+    const MaterialVSOut materialVSOut{
+      MaterialVSOut::FromJson( inputLayoutJson ) };
 
-    const MaterialInput        materialInputs{
+    const MaterialInput materialInputs{
       MaterialInput::Json_to_MaterialInput( materialInputsJson ) };
 
-    const String               materialShader{
-      materialShaderJson ? materialShaderJson->mString : "" };
+    const String materialShader{ materialShaderJson ? materialShaderJson->mString : "" };
 
     return ShaderGraph
     {
-      .mMaterialInputLayout { materialInputLayout },
+      .mMaterialVSOut       { materialVSOut },
       .mMaterialInputs      { materialInputs },
       .mMaterialShader      { materialShader },
     };

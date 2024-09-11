@@ -7,8 +7,9 @@
 
 namespace Tac
 {
-
-  struct MaterialInputLayout
+  // Describes, at a "material" level, the variables the vertex shader's output struct will contain
+  // Used when generating the shader program
+  struct MaterialVSOut
   {
     struct Variable
     {
@@ -17,8 +18,8 @@ namespace Tac
       String          mSemantic     {};
     };
 
-    static MaterialInputLayout FromJson( const Json* );
-    static Json                ToJson( const MaterialInputLayout& );
+    static MaterialVSOut FromJson( const Json* );
+    static Json          ToJson( const MaterialVSOut& );
 
     Vector< Variable > mVariables;
   };

@@ -38,7 +38,7 @@ namespace Tac::OS
 
   extern FileSys::Path( *OSSaveDialog )( const SaveParams&, Errors& );
   extern FileSys::Path( *OSOpenDialog )( Errors& );
-  extern void         ( *OSOpenPath )( const FileSys::Path& );
+  extern void         ( *OSOpenPath )( const FileSys::Path&, Errors& );
 
 
   extern Monitor        ( *OSGetPrimaryMonitor )();
