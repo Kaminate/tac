@@ -22,45 +22,22 @@ namespace Tac::Render
   struct IContext;
   struct IDevice;
 
-#if TAC_IS_IHANDLE_TEMPLATE()
-  enum class HandleType
-  {
-    kSwapChain,
-    kPipeline,
-    kProgram,
-    kBuffer,
-    kTexture,
-    kSampler,
-  };
-#endif
-
-#if TAC_IS_IHANDLE_TEMPLATE()
-  template< HandleType T > 
-#endif
   struct IHandle
   {
-    IHandle( int i = -1 ) : mIndex( i ) {}
-    int GetIndex() const { return mIndex; }
-    bool IsValid() const { return mIndex != -1; }
+    IHandle( int i = -1 );
+    int GetIndex() const;
+    bool IsValid() const;
+
   private:
     int mIndex;
   };
 
-#if TAC_IS_IHANDLE_TEMPLATE()
-  using SwapChainHandle = IHandle< HandleType::kSwapChain >;
-  using PipelineHandle  = IHandle< HandleType::kPipeline >;
-  using ProgramHandle   = IHandle< HandleType::kProgram >;
-  using BufferHandle    = IHandle< HandleType::kBuffer >;
-  using TextureHandle   = IHandle< HandleType::kTexture >;
-  using SamplerHandle   = IHandle< HandleType::kSampler >;
-#else
   struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = -1 ) : IHandle{ i } {} };
   struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = -1 ) : IHandle( i ) {} };
   struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = -1 ) : IHandle{ i } {} };
   struct BufferHandle    : public IHandle { BufferHandle    ( int i = -1 ) : IHandle{ i } {} };
   struct TextureHandle   : public IHandle { TextureHandle   ( int i = -1 ) : IHandle{ i } {} };
   struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = -1 ) : IHandle{ i } {} };
-#endif
 
   // Used for Textures and Index Buffers and Structured Vertex Buffers
   enum class TexFmt
@@ -158,7 +135,6 @@ namespace Tac::Render
     real
   };
 
-
   struct FormatElement
   {
     static FormatElement GetFloat();
@@ -181,7 +157,6 @@ namespace Tac::Render
     int           mElementCount        {};
     int           mPerElementByteCount {};
     GraphicsType  mPerElementDataType  { GraphicsType::unknown };
-
   };
 
   struct VertexDeclaration
@@ -368,7 +343,9 @@ namespace Tac::Render
     //               It's also used for the file stem to save the preprocessed shader, (for PIX?)
     String           mName;
 
+    //               Subpaths (no extension) within ProgramAttribs::mDir
     Vector< String > mInputs;
+
     StackFrame       mStackFrame;
   };
 
@@ -524,8 +501,8 @@ namespace Tac::Render
 
   struct ProgramAttribs
   {
-    StringView mDir {};
-    StringView mExt {};
+    StringView mDir {}; // for directx: "assets/hlsl/"
+    StringView mExt {}; // for directx: ".hlsl"
   };
 
   struct IDevice

@@ -187,7 +187,8 @@ namespace Tac
     {
       const StringView displayType{ var.mMetaType? var.mMetaType->GetName(): "(missing type)" };
       const StringView displayName{ var.mName.empty() ? "(missing name)" : var.mName };
-      const StringView displaySemantic{ var.mSemantic.empty() ? "(missing semantic)" : var.mSemantic };
+      const StringView displaySemantic{
+        var.mSemantic.empty() ? "(missing semantic)" : var.mSemantic };
 
       ImGuiText( displayType );
       ImGuiSameLine();
@@ -205,7 +206,7 @@ namespace Tac
 
       if( ImGuiButton( "Remove" ) ) { toRemove = &var; }
 
-      if(  vso.mVariables.size() > 1 )
+      if( vso.mVariables.size() > 1 )
       {
         ImGuiSameLine();
         if( ImGuiButton( "^" ) ) { toMoveUp = &var; }
@@ -220,6 +221,7 @@ namespace Tac
       for( MaterialVSOut::Variable& element : vso.mVariables )
         if( &element != toRemove )
           newElements.push_back( element );
+
       vso.mVariables = newElements;
       if( ImGuiButton( "Edit" ) ) { sVSOutEditUI.EditVariable( nullptr ); }
     }
@@ -246,7 +248,7 @@ namespace Tac
 
     if( toMoveUp )
     {
-      const int i{ (int)(toMoveUp - vso.mVariables.data() )};
+      const int i{ ( int )( toMoveUp - vso.mVariables.data() ) };
       const int j{ i - 1 };
       if( j >= 0 )
       {
@@ -264,6 +266,7 @@ namespace Tac
   {
     if( !ImGuiCollapsingHeader("Material Inputs") )
       return;
+
     TAC_IMGUI_INDENT_BLOCK;
 
     const int n{ ( int )MaterialInput::Type::kCount };

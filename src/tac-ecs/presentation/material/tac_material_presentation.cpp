@@ -13,51 +13,57 @@
 
 namespace Tac
 {
-  struct MaterialPerFrameBuf
+  struct MaterialFlags
   {
-    m4 mView    {};
-    m4 mProj    {};
-  };
-
-  struct MaterialPerObjBuf
-  {
-    m4  mWorld    {};
-    u32 mIVtxBuf  { ( u32 )-1 };
-    u32 mIMtlBuf  { ( u32 )-1 };
-  };
-
-  struct MaterialBufferData
-  {
-    struct Flags
+    enum Flag
     {
-      enum Flag
-      {
-        kDefault,
-        kIsGLTF_PBR_MetallicRoughness,
-        kIsGLTF_PBR_SpecularGlossiness,
-        kCount,
-      };
-
-      static_assert( Flag::kCount < 32 );
-
-      bool IsSet( Flag f ) const { return mFlags & ( 1 << f ); }
-      void Set( Flag f )         { mFlags |= ( 1 << f ); }
-      void Set( Flag f, bool b ) { if( b ) Set( f ); else Clear( f ); }
-      void Clear()               { mFlags = 0; }
-      void Clear( Flag f )       { mFlags &= ~( 1 << f ); }
-
-      u32 mFlags {};
+      kDefault,
+      kIsGLTF_PBR_MetallicRoughness,
+      kIsGLTF_PBR_SpecularGlossiness,
+      kCount,
     };
-    
-    v4    mColor    {};
-    v4    mEmissive {};
-    Flags mFlags    {};
+
+    static_assert( Flag::kCount < 32 );
+
+    bool IsSet( Flag f ) const { return mFlags & ( 1 << f ); }
+    void Set( Flag f )         { mFlags |= ( 1 << f ); }
+    void Set( Flag f, bool b ) { if( b ) Set( f ); else Clear( f ); }
+    void Clear()               { mFlags = 0; }
+    void Clear( Flag f )       { mFlags &= ~( 1 << f ); }
+
+    u32 mFlags {};
   };
 
-  static Render::BufferHandle          mMaterialPerFrameBuf {};
-  static Render::BufferHandle          mMaterialPerObjBuf   {};
-  static bool                          sEnabled             { false };
-  static bool                          sInitialized         {};
+  struct ConstBufData_PerFrame
+  {
+    m4 mWorldToClip    {};
+  };
+
+  struct ConstBufData_ShaderGraph
+  {
+    static ConstBufData_ShaderGraph Get( const Entity*,
+                                         const Model*,
+                                         const Material*,
+                                         const Render::RenderMaterial* );
+    m4  mWorld              {};
+    u32 mVertexBufferIndex  { ( u32 )-1 };
+    u32 mInputLayoutIndex   { ( u32 )-1 };
+  };
+
+  struct ConstBufData_Material
+  {
+    v4            mColor              {};
+    v4            mEmissive           {};
+    MaterialFlags mFlags              {};
+    u32           mDiffuseTextureIdx  {};
+    u32           mSpecularTextureIdx {};
+  };
+
+  static Render::BufferHandle          sConstBufHandle_PerFrame    {};
+  static Render::BufferHandle          sConstBufHandle_Material    {};
+  static Render::BufferHandle          sConstBufHandle_ShaderGraph {};
+  static bool                          sEnabled                    { true };
+  static bool                          sInitialized                {};
 
   static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
   {
@@ -77,30 +83,116 @@ namespace Tac
     return proj;
   }
 
-  static MaterialPerFrameBuf GetPerFrameBuf( const Camera* camera,
+  static ConstBufData_PerFrame GetPerFrameParams( const Camera* camera,
                                          const v2i viewSize )
   {
     const m4 view{ camera->View() };
     const m4 proj{ GetProjMtx( camera, viewSize ) };
-    return MaterialPerFrameBuf
+    const m4 worldToClip{ proj * view };
+    return ConstBufData_PerFrame
     {
-      .mView    { view },
-      .mProj    { proj },
+      .mWorldToClip    { worldToClip },
     };
   }
 
-  static MaterialPerObjBuf GetPerObjBuf( const Model* model,
+  static ConstBufData_Material GetMaterialParams( const Model* model,
                                          const Material* material )// <-- todo: use 
   {
-    const m4 world { model->mEntity->mWorldTransform };
-
-    TAC_ASSERT_UNIMPLEMENTED; // .mIVtxBuf , .mIMtlBuf ,
-    return MaterialPerObjBuf
+    return ConstBufData_Material
     {
-      .mWorld { world },
-      .mIVtxBuf {},
-      .mIMtlBuf {},
+      .mColor              {},
+      .mEmissive           {},
+      .mFlags              {},
+      .mDiffuseTextureIdx  {},
+      .mSpecularTextureIdx {},
     };
+  }
+
+  ConstBufData_ShaderGraph
+    ConstBufData_ShaderGraph::Get( const Entity* entity,
+                                   const Model* model,
+                                   const Material* material,
+                                   const Render::RenderMaterial* renderMaterial )
+  {
+
+    struct ConstBufData_ShaderGraph_Getter
+    {
+      ConstBufData_ShaderGraph Get( const Entity* entity,
+                                    const Model* model,
+                                    const Material* material,
+                                    const Render::RenderMaterial* renderMaterial )
+      {
+        ConstBufData_ShaderGraph result{};
+
+        const Params params
+        {
+          .mEntity         { entity },
+          .mModel          { model },
+          .mMaterial       { material },
+          .mRenderMaterial { renderMaterial },
+          .mShaderGraph    { &result },
+        };
+
+        const MaterialInput& materialInput{ renderMaterial->mShaderGraph.mMaterialInputs };
+
+        const int n{ ( int )MaterialInput::Type::kCount };
+        for( int i{}; i < n; ++i )
+        {
+          const MaterialInput::Type type{ ( MaterialInput::Type )i };
+          if( materialInput.IsSet( type ) )
+          {
+            const Handler handler{ mHandlers[ i ] };
+            handler( params );
+          }
+        }
+
+        return result;
+      }
+
+      ConstBufData_ShaderGraph_Getter()
+      {
+        mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle_VertexBuffer;
+        mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle_VertexBuffer;
+
+        for( Handler handler : mHandlers )
+        {
+          TAC_ASSERT( handler );
+        }
+      }
+
+    private:
+
+      struct Params
+      {
+        // input
+        const Entity* mEntity;
+        const Model* mModel;
+        const Material* mMaterial;
+        const Render::RenderMaterial* mRenderMaterial;
+
+        // output
+        dynmc ConstBufData_ShaderGraph* mShaderGraph;
+      };
+
+      using Handler = void ( * )( const Params& );
+
+      static void Handle_WorldMatrix( const Params& params )
+      {
+        params.mShaderGraph->mWorld = params.mEntity->mWorldTransform;
+      }
+
+      static void Handle_VertexBuffer( const Params& params )
+      {
+        params.mShaderGraph->mVertexBufferIndex = (u32)-1;
+      }
+
+
+      Handler mHandlers[ ( int )MaterialInput::Type::kCount ]{};
+    };
+
+    static ConstBufData_ShaderGraph_Getter getter;
+
+    return getter.Get( entity, model, material, renderMaterial );
   }
 
 
@@ -126,13 +218,17 @@ namespace Tac
 
     Render::RenderMaterialApi::Init();
 
-    TAC_CALL( mMaterialPerFrameBuf = CreateDynCBuf( sizeof( MaterialPerFrameBuf ),
-                                                    "material-per-frame-cbuf",
-                                                    errors ) );
+    TAC_CALL( sConstBufHandle_PerFrame = CreateDynCBuf( sizeof( ConstBufData_PerFrame ),
+                                                  "material-presentation-per-frame",
+                                                  errors ) );
 
-    TAC_CALL( mMaterialPerObjBuf = CreateDynCBuf( sizeof( MaterialPerObjBuf ),
-                                                 "material-per-obj-cbuf",
-                                                 errors ) );
+    TAC_CALL( sConstBufHandle_Material = CreateDynCBuf( sizeof( ConstBufData_Material ),
+                                                  "material-presentation-material",
+                                                  errors ) );
+
+    TAC_CALL( sConstBufHandle_ShaderGraph = CreateDynCBuf( sizeof( ConstBufData_ShaderGraph ),
+                                                     "material-presentation-shader-graph",
+                                                     errors ) );
 
     sInitialized = true;
   }
@@ -169,8 +265,11 @@ namespace Tac
     renderContext->SetScissor( viewSize );
     renderContext->SetRenderTargets( renderTargets );
 
-    const MaterialPerFrameBuf perFrameData{ GetPerFrameBuf( camera, viewSize ) };
-    TAC_CALL( renderContext->UpdateBufferSimple( mMaterialPerFrameBuf, perFrameData, errors ) );
+    const ConstBufData_PerFrame constBufData_PerFrame{
+      GetPerFrameParams( camera, viewSize ) };
+    TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_PerFrame,
+                                                 constBufData_PerFrame,
+                                                 errors ) );
 
     for( const Entity* entity : world->mEntities )
     {
@@ -206,15 +305,25 @@ namespace Tac
       TAC_CALL( Render::RenderMaterial* renderMaterial{
         Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );
 
-      const MaterialPerObjBuf perObj{ GetPerObjBuf( model ,material ) };
-      TAC_CALL( renderContext->UpdateBufferSimple( mMaterialPerObjBuf, perObj, errors ) );
+      const ConstBufData_ShaderGraph constBufData_ShaderGraph{
+        ConstBufData_ShaderGraph::Get( entity, model ,material, renderMaterial ) };
+      TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_ShaderGraph,
+                                                   constBufData_ShaderGraph,
+                                                   errors ) );
 
+      const ConstBufData_Material constBufData_Material{
+        GetMaterialParams( model ,material ) };
+      TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_Material,
+                                                   constBufData_Material,
+                                                   errors ) );
 
       // $$$ gross
       if( !renderMaterial->mAreShaderVarsSet )
       {
-        renderMaterial->mShaderVarPerFrame->SetBuffer( mMaterialPerFrameBuf );
-        renderMaterial->mShaderVarPerObject->SetBuffer( mMaterialPerObjBuf );
+        renderMaterial->mShaderVar_PerFrame->SetBuffer( sConstBufHandle_PerFrame );
+        renderMaterial->mShaderVar_Material->SetBuffer( sConstBufHandle_Material );
+        renderMaterial->mShaderVar_ShaderGraph->SetBuffer( sConstBufHandle_ShaderGraph );
+        renderMaterial->mShaderVar_Buffers->SetBufferAtIndex( ... );
         renderMaterial->mAreShaderVarsSet = true;
       }
 

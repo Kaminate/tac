@@ -33,6 +33,12 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  IHandle::IHandle( int i ) : mIndex( i ) {}
+  int IHandle::GetIndex() const { return mIndex; }
+  bool IHandle::IsValid() const { return mIndex != -1; }
+
+  // -----------------------------------------------------------------------------------------------
+
   static VertexAttributeFormat FromFloats( int n )
   {
     return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), n );

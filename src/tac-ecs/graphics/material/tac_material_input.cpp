@@ -17,19 +17,21 @@ namespace Tac
 
   MaterialInput::Type MaterialInput::String_to_Type( StringView s )
   {
-    for( int i{}; i < ( int )MaterialInput::Type::kCount; ++i )
+    const int n{ ( int )MaterialInput::Type::kCount };
+    for( int i{}; i < n; ++i )
     {
       const MaterialInput::Type type{ ( MaterialInput::Type )i };
       if( ( StringView )MaterialInput::Type_to_String( type ) == s )
         return type;
     }
+
     TAC_ASSERT_INVALID_CODE_PATH;
     return MaterialInput::Type::kCount;
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  MaterialInput       MaterialInput::Json_to_MaterialInput( const Json* materialInputsJson )
+  MaterialInput       MaterialInput::JsonLoad( const Json* materialInputsJson )
   {
     MaterialInput materialInputs{};
     if( materialInputsJson )
@@ -43,7 +45,7 @@ namespace Tac
     return materialInputs;
   }
 
-  Json                MaterialInput::MaterialInput_to_Json( const MaterialInput& materialInputs )
+  Json                MaterialInput::JsonSave( const MaterialInput& materialInputs )
   {
     Json json;
     const int n{ ( int )MaterialInput::Type::kCount };

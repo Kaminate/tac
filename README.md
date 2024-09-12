@@ -27,13 +27,13 @@ git clone --recurse-submodules https://github.com/Kaminate/tac.git
 ```
 
 
-## Building ( Windows Visual Studio 2019 )
+## Building ( Windows Visual Studio 2022 )
 
 ```
 pushd run
-run_vs2019
+run_vs2022
 popd
-pushd build_vs2019
+pushd build_vs2022
 tac.sln
 ```
 
@@ -146,7 +146,7 @@ modify it
 
 
 ## License
-(c) 2017 Nathan Park  
+(c) 2024 Nathan Park  
 This work is liscensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.  
 You should have received a copy of the license along with this work.  
 If not, see <http://creativecommons.org/licenses/by-nc-sa/4.0/>.  

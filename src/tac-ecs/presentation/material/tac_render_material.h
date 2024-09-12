@@ -17,25 +17,27 @@ namespace Tac::Render
   {
     void Uninit();
 
-    AssetPathString               mShaderGraphPath    {};
-    ShaderGraph                   mShaderGraph        {};
-    HashValue                     mMaterialShaderHash {};
-    Render::ProgramHandle         m3DShader           {};
-    Render::PipelineHandle        mMeshPipeline       {};
-    Render::IShaderVar*           mShaderVarPerFrame  {};
-    Render::IShaderVar*           mShaderVarPerObject {};
-    bool                          mAreShaderVarsSet   {};
+    AssetPathString               mShaderGraphPath       {};
+    ShaderGraph                   mShaderGraph           {};
+    HashValue                     mMaterialShaderHash    {};
+    Render::ProgramHandle         m3DShader              {};
+    Render::PipelineHandle        mMeshPipeline          {};
+    Render::IShaderVar*           mShaderVar_PerFrame    {};
+    Render::IShaderVar*           mShaderVar_Material    {};
+    Render::IShaderVar*           mShaderVar_ShaderGraph {};
+    Render::IShaderVar*           mShaderVar_Buffers     {};
+    bool                          mAreShaderVarsSet      {};
   };
 
   // The instance data of RenderMaterial.
   // ie: if there are two entities that share the same material,
   //     but have different properties
-  struct RenderMaterialProperties
-  {
-    Render::BufferHandle mMaterialData {};
-    EntityUUID           mEntityUUID   { NullEntityUUID };
-    HashValue            mMaterialHash {}; // for updating the buffer
-  };
+  //struct RenderMaterialProperties
+  //{
+  //  Render::BufferHandle mMaterialData {};
+  //  EntityUUID           mEntityUUID   { NullEntityUUID };
+  //  HashValue            mMaterialHash {}; // for updating the buffer
+  //};
 
   struct RenderMaterialApi
   {

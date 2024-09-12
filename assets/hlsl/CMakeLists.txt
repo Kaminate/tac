@@ -3,6 +3,12 @@ IF (NOT WIN32)
 endif()
 
 set(TAC_SHADERS 
+  ${CMAKE_CURRENT_SOURCE_DIR}/InputLayout.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/MaterialPreVertexShader.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/Material.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/MaterialTypes.hlsl
+  ${CMAKE_CURRENT_SOURCE_DIR}/InputLayout.hlsli
+  ${CMAKE_CURRENT_SOURCE_DIR}/materials/glTFpbr.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/2D.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/2DText.hlsl
   ${CMAKE_CURRENT_SOURCE_DIR}/3DDebug.hlsl

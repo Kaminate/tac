@@ -15,7 +15,7 @@ namespace Tac
   {
     Json json;
     json[ sJsonKeyMaterialVSOut ] = MaterialVSOut::ToJson( sg.mMaterialVSOut );
-    json[ sJsonKeyMaterialInputs ] = MaterialInput::MaterialInput_to_Json( sg.mMaterialInputs );
+    json[ sJsonKeyMaterialInputs ] = MaterialInput::JsonSave( sg.mMaterialInputs );
     json[ sJsonKeyMaterialShader ] = ( StringView )sg.mMaterialShader;
     return json;
   }
@@ -30,7 +30,7 @@ namespace Tac
       MaterialVSOut::FromJson( inputLayoutJson ) };
 
     const MaterialInput materialInputs{
-      MaterialInput::Json_to_MaterialInput( materialInputsJson ) };
+      MaterialInput::JsonLoad( materialInputsJson ) };
 
     const String materialShader{ materialShaderJson ? materialShaderJson->mString : "" };
 

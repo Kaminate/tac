@@ -44,14 +44,26 @@ namespace Tac::Render
 
   static Render::ProgramHandle   Create3DShader( const ShaderGraph& shaderGraph, Errors& errors )
   {
+    // subpath within Tac::Render::ProgramAttribs::mDir (no ext)
     const Vector< String > inputs
     {
+      "MaterialTypes",
+      "MaterialPreVertexShader",
       shaderGraph.mMaterialShader,
-      "Material.hlsl",
+      "Material",
     };
+
+    const String name{ [ & ]() { // remove folder from path
+        const int i { shaderGraph.mMaterialShader.find_last_of( "/\\" ) };
+        return i == String::npos
+          ? shaderGraph.mMaterialShader
+          : shaderGraph.mMaterialShader.substr( i + 1 );
+      }( ) };
+
 
     const Render::ProgramParams programParams
     {
+      .mName       { name },
       .mInputs     { inputs },
       .mStackFrame { TAC_STACK_FRAME },
     };
@@ -123,19 +135,29 @@ namespace Tac::Render
     const HashValue hashValue{ Hash( ( StringView )material->mShaderGraph ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    Render::IShaderVar* perFrame { renderDevice->GetShaderVariable( meshPipeline, "sPerObj" ) };
-    Render::IShaderVar* perObj   { renderDevice->GetShaderVariable( meshPipeline, "sPerFrame" ) };
+    Render::IShaderVar* svPerFrame {
+      renderDevice->GetShaderVariable( meshPipeline, "sPerFrameParams" ) };
 
+    Render::IShaderVar* svMaterial{
+      renderDevice->GetShaderVariable( meshPipeline, "sMaterialParams" ) };
+
+    Render::IShaderVar* svShaderGraph{
+      renderDevice->GetShaderVariable( meshPipeline, "sShaderGraphParams" ) };
+
+    Render::IShaderVar* svBuffers{
+      renderDevice->GetShaderVariable( meshPipeline, "sBuffers" ) };
 
     const RenderMaterial renderMaterial
     {
-      .mShaderGraphPath    { material->mShaderGraph },
-      .mShaderGraph        { shaderGraph },
-      .mMaterialShaderHash { hashValue },
-      .m3DShader           { program },
-      .mMeshPipeline       { meshPipeline },
-      .mShaderVarPerFrame  { perFrame },
-      .mShaderVarPerObject { perObj },
+      .mShaderGraphPath       { material->mShaderGraph },
+      .mShaderGraph           { shaderGraph },
+      .mMaterialShaderHash    { hashValue },
+      .m3DShader              { program },
+      .mMeshPipeline          { meshPipeline },
+      .mShaderVar_PerFrame    { svPerFrame },
+      .mShaderVar_Material    { svMaterial },
+      .mShaderVar_ShaderGraph { svShaderGraph },
+      .mShaderVar_Buffers     { svBuffers },
     };
 
     return &( sRenderMaterialCache.mRenderMaterials.emplace_back() = renderMaterial );

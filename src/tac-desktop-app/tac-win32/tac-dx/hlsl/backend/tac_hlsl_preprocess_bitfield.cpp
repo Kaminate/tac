@@ -140,7 +140,7 @@ namespace Tac::Render
       TAC_ASSERT( mProcessing );
       mProcessing = false;
       mRunningBitCount = 0;
-      return Optional< String >( "" );
+      return String();
     }
 
     return {};

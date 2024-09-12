@@ -115,7 +115,7 @@ namespace Tac
       if( ImGuiButton( "Refresh bindings" ) )
         RefreshBindings( material, errors );
 
-      ImGuiText( "Bindings: " + mBindings.empty() ? "<none>" : mBindings );
+      ImGuiText( "Bindings: " + ( mBindings.empty() ? "<none>" : mBindings ) );
     }
 
     String mBindings;
@@ -164,9 +164,9 @@ namespace Tac
     static Errors errors;
 
     ImGuiCheckbox( "Enabled", &material->mRenderEnabled );
-    ImGuiText( "Shader Graph: " + material->mShaderGraph.empty()
-               ? ( StringView )"<none>"
-               : ( StringView )material->mShaderGraph );
+    ImGuiText( "Shader Graph: " + ( material->mShaderGraph.empty()
+                                    ? ( StringView )"<none>"
+                                    : ( StringView )material->mShaderGraph ) );
 
     if( ImGuiButton( "Select Shader Graph" ) )
     {

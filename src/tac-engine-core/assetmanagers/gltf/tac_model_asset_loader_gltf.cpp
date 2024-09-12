@@ -59,24 +59,6 @@ namespace Tac
     }
   }
 
-
-  static int ComputeStride( const Render::VertexDeclarations& vertexDeclarations )
-  {
-    int dstVtxStride {};
-
-    for( const Render::VertexDeclaration& decl : vertexDeclarations )
-    {
-      const int vertexEnd{
-        decl.mAlignedByteOffset +
-        decl.mFormat.CalculateTotalByteCount() };
-      dstVtxStride = Max( dstVtxStride, vertexEnd );
-    }
-
-    TAC_ASSERT( dstVtxStride );
-    return dstVtxStride;
-  }
-
-
   struct LoadedGltfData
   {
     void Load( const AssetPathStringView& path, Errors& errors )
@@ -112,7 +94,7 @@ namespace Tac
                                                      const StringView& bufferName,
                                                      Errors& errors )
   {
-    const int dstVtxStride { ComputeStride( decls ) };
+    const int dstVtxStride{ decls.CalculateStride() };
     TAC_ASSERT( dstVtxStride );
 
     const int vertexCount { ( int )parsedPrim->attributes[ 0 ].data->count };

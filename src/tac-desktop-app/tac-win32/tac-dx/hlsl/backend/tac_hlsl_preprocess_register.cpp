@@ -48,6 +48,7 @@ namespace Tac::Render
       { "Texture3D", 't'},
       { "TextureCube", 't'},
       { "cbuffer", 'b'},
+      { "ConstantBuffer", 'b'},
       { "sampler", 's'},
       { "SamplerState", 's'},
     };

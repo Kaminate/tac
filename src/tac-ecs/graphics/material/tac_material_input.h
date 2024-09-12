@@ -20,14 +20,15 @@ namespace Tac
 
     static StringView    Type_to_String( Type );
     static Type          String_to_Type( StringView );
-    static MaterialInput Json_to_MaterialInput( const Json* );
-    static Json          MaterialInput_to_Json( const MaterialInput& );
 
-    void Set( Type t );
-    void Set( Type t, bool b );
-    void Clear( Type t );
+    static MaterialInput JsonLoad( const Json* );
+    static Json          JsonSave( const MaterialInput& );
+
+    void Set( Type );
+    void Set( Type, bool );
+    void Clear( Type );
     void Clear();
-    bool IsSet( Type t ) const;
+    bool IsSet( Type ) const;
 
   private:
 

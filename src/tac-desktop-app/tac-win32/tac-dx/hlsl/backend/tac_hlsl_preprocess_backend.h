@@ -8,17 +8,16 @@
 
 namespace Tac::Render
 {
-  //struct HLSLFilePreprocessor;
   struct HLSLLinePreprocessor
   {
     struct Input
     {
-      StringView mLine;
-      StringView mFile;
-      int        mLineNumber;
+      StringView          mLine;
+      AssetPathStringView mFile;
+      int                 mLineNumber;
     };
+
     virtual Optional< String > Preprocess( Input, Errors& ) = 0;
-    //HLSLFilePreprocessor* mParent{};
   };
 
   struct HLSLFilePreprocessor

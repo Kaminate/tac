@@ -57,20 +57,22 @@ namespace Tac
 
   void              MetaCompositeType::JsonSerialize( Json* json, const void* v ) const
   {
-    for( int iMember {}; iMember < GetMemberCount(); ++iMember )
+    const int n{ GetMemberCount() };
+    for( int i {}; i < n; ++i )
     {
-      const MetaMember& member { GetMember( iMember ) };
+      const MetaMember& member { GetMember( i ) };
       void* settingBytes { member.mOffset + ( char* )v };
       Json& child { json->GetChild( member.mName ) };
-      member.mMetaType->JsonDeserialize( &child, settingBytes );
+      member.mMetaType->JsonSerialize( &child, settingBytes );
     }
   }
 
   void              MetaCompositeType::JsonDeserialize( const Json* json, void* v ) const
   {
-    for( int iMember {}; iMember < GetMemberCount(); ++iMember )
+    const int n{ GetMemberCount() };
+    for( int i {}; i < n; ++i )
     {
-      const MetaMember& member { GetMember( iMember ) };
+      const MetaMember& member { GetMember( i ) };
       if( Json * child{ json->FindChild( member.mName ) } )
       {
         member.mMetaType->JsonDeserialize( child, member.mOffset + ( char* )v );

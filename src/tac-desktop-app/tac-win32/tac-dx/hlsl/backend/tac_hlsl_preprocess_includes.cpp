@@ -11,9 +11,15 @@
 
 namespace Tac::Render
 {
-  String HLSLLinePreprocessorIncludes::IncludeFile(  AssetPathStringView path, Errors& errors )
+  String             HLSLLinePreprocessorIncludes::IncludeFile( AssetPathStringView path,
+                                                                Errors& errors )
   {
-    TAC_CALL_RET( {}, const String includeSource {  LoadAssetPath( path, errors ) } );
+    if( IsIncluded( path ) )
+      return String();
+
+    mIncluded.push_back( path );
+
+    TAC_CALL_RET( {}, const String includeSource { LoadAssetPath( path, errors ) } );
 
     String result;
     result += "//===----- (begin include " + path + ") -----===//\n";
@@ -22,14 +28,27 @@ namespace Tac::Render
     return result;
   }
 
+  bool HLSLLinePreprocessorIncludes::IsIncluded( AssetPathString s ) const
+  {
+    for( AssetPathStringView includedPath : mIncluded )
+      if( ( StringView )includedPath == ( StringView )s )
+        return true;
+    return false;
+  }
+
   Optional< String > HLSLLinePreprocessorIncludes::Preprocess( Input input, Errors& errors )
   {
-    const StringView line{ input.mLine};
+    if( !IsIncluded( input.mFile ) )
+    {
+      mIncluded.push_back( input.mFile );
+    }
+
+    const StringView line{ input.mLine };
     ParseData lineParseData( line.data(), line.size() );
     lineParseData.EatWhitespace();
 
     if( lineParseData.EatStringExpected( "#pragma once" ) )
-      return Optional< String >{ "" };
+      return String();
 
     if( !lineParseData.EatStringExpected( "#include" ) )
       return {};
@@ -39,24 +58,18 @@ namespace Tac::Render
     lineParseData.EatUntilCharIsNext( '\"' );
     const char* includeEnd { lineParseData.GetPos() };
     const StringView includeName( includeBegin, includeEnd );
-
-    {
-      if( Contains( mIncluded, ( String )includeName ) )
-        return Optional<String>{ "" };
-
-      mIncluded.push_back( includeName );
-    }
-
     const AssetPathString assetDir {
-      AssetPathStringView( input.mFile ).GetDirectory()
-      //( ( AssetPathStringView )mAssetPath ).GetDirectory()
-    };
-    const AssetPathString assetPath { AssetPathStringView( ( String )assetDir + '/' + includeName ) };
+      AssetPathStringView( input.mFile ).GetDirectory() };
+    const AssetPathString assetPath {
+      AssetPathStringView( ( String )assetDir + '/' + includeName ) };
+
+    TAC_ASSERT( Exists( assetPath ) );
+
+    if( IsIncluded( assetPath ) )
+      return String();
 
     String result;
-
-    if( Exists( assetPath ) )
-      result += TAC_CALL_RET( {}, IncludeFile( assetPath, errors ) );
+    result += TAC_CALL_RET( {}, IncludeFile( assetPath, errors ) );
 
     // Including a ".hlsli" file automatically also includes the ".hlsl" file
     if( includeName.ends_with( ".hlsli" ) )
@@ -64,13 +77,13 @@ namespace Tac::Render
       AssetPathString hlslPath { assetPath };
       hlslPath.replace( ".hlsli", ".hlsl" );
 
-      if( Exists( hlslPath ) )
+      if( Exists( hlslPath ) && !IsIncluded( hlslPath ) )
         result += TAC_CALL_RET( {}, IncludeFile( hlslPath, errors ) );
     }
 
     TAC_RAISE_ERROR_IF_RETURN( {},
-                                 result.empty(),
-                                 "failed to open include file " + includeName );
+                               result.empty(),
+                               "failed to open include file " + includeName );
 
     return result;
   }

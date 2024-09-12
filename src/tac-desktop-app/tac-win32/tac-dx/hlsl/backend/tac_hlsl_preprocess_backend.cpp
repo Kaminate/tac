@@ -18,10 +18,10 @@ namespace Tac::Render
   Optional<String> HLSLFilePreprocessor::PreprocessLine( HLSLLinePreprocessor::Input input,
                                                          Errors& errors)
   {
-    for( auto lineProcessor : mProcessors )
+    for( HLSLLinePreprocessor* lineProcessor : mProcessors )
     {
-      TAC_CALL_RET( {},
-                    Optional< String > optNewLines{ lineProcessor->Preprocess( input, errors ) } );
+      TAC_CALL_RET( {}, Optional< String > optNewLines{
+        lineProcessor->Preprocess( input, errors ) } );
       if( optNewLines.HasValue() )
       {
         return optNewLines;

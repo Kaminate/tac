@@ -10,8 +10,9 @@ namespace Tac::Render
 
   private:
     String IncludeFile( AssetPathStringView , Errors& );
+    bool IsIncluded( AssetPathString ) const;
 
-    Vector< String > mIncluded;
+    Vector< AssetPathString > mIncluded;
   };
 }
 
