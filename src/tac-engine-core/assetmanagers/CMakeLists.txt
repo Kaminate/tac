@@ -1,6 +1,8 @@
 target_sources( TacEngineCore PRIVATE
   tac_mesh.cpp
   tac_mesh.h
+  tac_gpu_input_layout.cpp
+  tac_gpu_input_layout.h
   tac_model_asset_manager.cpp
   tac_model_asset_manager.h
   tac_model_asset_manager_backend.cpp

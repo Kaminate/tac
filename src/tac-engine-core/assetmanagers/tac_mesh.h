@@ -6,7 +6,7 @@
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-rhi/render3/tac_render_api.h"
-
+#include "tac-engine-core/assetmanagers/tac_gpu_input_layout.h"
 
 namespace Tac
 {
@@ -30,23 +30,25 @@ namespace Tac
     MeshRaycastResult          SubMeshModelSpaceRaycast( MeshRay ) const;
     void                       ClearBuffers();
 
-    Render::PrimitiveTopology  mPrimitiveTopology { Render::PrimitiveTopology::Unknown };
+    Render::PrimitiveTopology  mPrimitiveTopology    { Render::PrimitiveTopology::Unknown };
 
-    Render::BufferHandle       mVertexBuffer      {};
-    Render::BufferHandle       mIndexBuffer       {};
+    Render::BufferHandle       mVertexBuffer         {};
+    Render::BufferHandle       mIndexBuffer          {};
 
-    SubMeshTriangles           mTris              {};
-    int                        mIndexCount        {};
-    int                        mVertexCount       {};
-    String                     mName              {};
+    SubMeshTriangles           mTris                 {};
+    int                        mIndexCount           {};
+    int                        mVertexCount          {};
+    String                     mName                 {};
   };
 
   struct Mesh
   {
     MeshRaycastResult          MeshModelSpaceRaycast( MeshRay ) const;
 
-    Vector< SubMesh >          mSubMeshes;
-    Render::VertexDeclarations mVertexDecls;
+    Vector< SubMesh >          mSubMeshes            {};
+    Render::VertexDeclarations mVertexDecls          {};
+    Render::GPUInputLayout     mGPUInputLayout       {};
+    Render::BufferHandle       mGPUInputLayoutBuffer {};
   };
 
 } // namespace Tac

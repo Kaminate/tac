@@ -145,10 +145,10 @@ float Tac::Round( float f ) { return std::roundf( f ); }
 // Example:
 //   RoundUpToNearestMultiple( 10, 5 ) = 10
 //   RoundUpToNearestMultiple( 10, 4 ) = 12
-int Tac::RoundUpToNearestMultiple( int numToRound, int multiple )
-{
-  return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
-}
+//constexpr int Tac::RoundUpToNearestMultiple( int numToRound, int multiple )
+//{
+//  return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
+//}
 
 float    Tac::Floor( float f )
 {

@@ -165,6 +165,22 @@ namespace Tac
     return vertexBuffer;
   }
 
+  static Render::BufferHandle ConvertInputLayoutBuffer( const Render::GPUInputLayout& il, Errors& errors )
+  {
+    const Render::CreateBufferParams createBufferParams
+    {
+      .mByteCount    { sizeof( Render::GPUInputLayout ) },
+      .mBytes        { &il },
+      .mStride       { sizeof( Render::GPUInputLayout ) },
+      .mUsage        { Render::Usage::Static },
+      .mBinding      { Render::Binding::ShaderResource },
+      .mOptionalName { "input layout" },
+      .mStackFrame   { TAC_STACK_FRAME },
+    };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    return renderDevice->CreateBuffer( createBufferParams, errors );
+  }
+
 
   static Render::TexFmt ConvertIndexFormat( cgltf_component_type gltfType )
   {
@@ -293,11 +309,12 @@ namespace Tac
         const int vertexCount{ ( int )parsedPrim->attributes[ 0 ].data->count };
         const int indexCount{ ( int )parsedPrim->indices->count };
 
-        TAC_CALL( const Render::BufferHandle indexBuffer {
-                  ConvertToIndexBuffer( parsedPrim, bufferName, errors ) } );
+        TAC_CALL( const Render::BufferHandle indexBuffer{
+          ConvertToIndexBuffer( parsedPrim, bufferName, errors ) } );
 
         TAC_CALL( const Render::BufferHandle vertexBuffer{
           ConvertToVertexBuffer( vtxDecls, parsedPrim, bufferName, errors ) } );
+
 
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
@@ -308,13 +325,13 @@ namespace Tac
 
         const SubMesh subMesh
         {
-          .mPrimitiveTopology { topology },
-          .mVertexBuffer      { vertexBuffer },
-          .mIndexBuffer       { indexBuffer },
-          .mTris              { tris },
-          .mIndexCount        { indexCount },
-          .mVertexCount       { vertexCount },
-          .mName              { StringView( bufferName ) },
+          .mPrimitiveTopology    { topology },
+          .mVertexBuffer         { vertexBuffer },
+          .mIndexBuffer          { indexBuffer },
+          .mTris                 { tris },
+          .mIndexCount           { indexCount },
+          .mVertexCount          { vertexCount },
+          .mName                 { StringView( bufferName ) },
         };
         submeshes.push_back( subMesh );
       }
@@ -333,10 +350,17 @@ namespace Tac
 
     TAC_CALL_RET( {}, PopulateSubmeshes( submeshes, path, specifiedMeshIndex, vtxDecls, errors ) );
 
+    const Render::GPUInputLayout gpuInputLayout( vtxDecls );
+
+    TAC_CALL_RET( {}, const Render::BufferHandle gpuInputLayoutBuffer{
+      ConvertInputLayoutBuffer( gpuInputLayout, errors ) } );
+
     return Mesh
     {
-      .mSubMeshes   { submeshes },
-      .mVertexDecls { vtxDecls },
+      .mSubMeshes            { submeshes },
+      .mVertexDecls          { vtxDecls },
+      .mGPUInputLayout       { gpuInputLayout },
+      .mGPUInputLayoutBuffer { gpuInputLayoutBuffer },
     };
   }
 

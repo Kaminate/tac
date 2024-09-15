@@ -49,7 +49,10 @@ namespace Tac
   // Rounding
   // --------
   float                    Round( float );
-  int                      RoundUpToNearestMultiple( int numToRound, int multiple );
+  constexpr int                      RoundUpToNearestMultiple( int numToRound, int multiple )
+{
+  return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
+}
   float                    Floor( float );
   double                   Floor( double );
   v2                       Floor( const v2& );

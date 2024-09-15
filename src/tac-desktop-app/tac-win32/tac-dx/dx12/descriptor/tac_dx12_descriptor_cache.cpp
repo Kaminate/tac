@@ -39,6 +39,9 @@ namespace Tac::Render
       mGPUIndexes.push_back( iDesc );
     }
 
+    // im suspicious of how this fn works
+    
+
     mGPUDescs.push_back( move( mGpuRegionMgr->Alloc( nDescriptors ) ) );
 
     DX12DescriptorRegion* result{ &mGPUDescs.back() };

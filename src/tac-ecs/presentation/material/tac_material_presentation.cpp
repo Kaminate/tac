@@ -152,7 +152,7 @@ namespace Tac
       ConstBufData_ShaderGraph_Getter()
       {
         mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle_VertexBuffer;
-        mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle_VertexBuffer;
+        mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle_WorldMatrix;
 
         for( Handler handler : mHandlers )
         {
@@ -317,12 +317,16 @@ namespace Tac
                                                    constBufData_Material,
                                                    errors ) );
 
+
       // $$$ gross
       if( !renderMaterial->mAreShaderVarsSet )
       {
         renderMaterial->mShaderVar_PerFrame->SetBuffer( sConstBufHandle_PerFrame );
         renderMaterial->mShaderVar_Material->SetBuffer( sConstBufHandle_Material );
         renderMaterial->mShaderVar_ShaderGraph->SetBuffer( sConstBufHandle_ShaderGraph );
+
+        mesh->mGPUInputLayoutBuffer;
+
         renderMaterial->mShaderVar_Buffers->SetBufferAtIndex( ... );
         renderMaterial->mAreShaderVarsSet = true;
       }
