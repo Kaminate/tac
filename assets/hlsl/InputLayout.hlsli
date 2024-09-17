@@ -22,6 +22,10 @@ enum class GraphicsType
   kReal
 };
 
+struct FormatElement
+{
+};
+
 struct InputLayoutElement
 {
   uint mType           : 8;
