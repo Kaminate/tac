@@ -15,6 +15,7 @@ namespace Tac
     {
       kWorldMatrix,
       kVertexBuffer,
+      kInputLayout,
       kCount,
     };
 

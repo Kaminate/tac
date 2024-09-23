@@ -115,7 +115,7 @@ namespace Tac
                                    const Render::RenderMaterial* renderMaterial )
   {
 
-    struct ConstBufData_ShaderGraph_Getter
+    struct Getter
     {
       ConstBufData_ShaderGraph Get( const Entity* entity,
                                     const Model* model,
@@ -149,10 +149,11 @@ namespace Tac
         return result;
       }
 
-      ConstBufData_ShaderGraph_Getter()
+      Getter()
       {
         mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle_VertexBuffer;
         mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle_WorldMatrix;
+        mHandlers[ ( int )MaterialInput::Type::kInputLayout ] = Handle_InputLayout;
 
         for( Handler handler : mHandlers )
         {
@@ -183,14 +184,19 @@ namespace Tac
 
       static void Handle_VertexBuffer( const Params& params )
       {
-        params.mShaderGraph->mVertexBufferIndex = (u32)-1;
+        params.mShaderGraph->mVertexBufferIndex = ( u32 )-1;
+      }
+
+      static void Handle_InputLayout( const Params& params )
+      {
+        params.mShaderGraph->mInputLayoutIndex = ( u32 )-1;
       }
 
 
       Handler mHandlers[ ( int )MaterialInput::Type::kCount ]{};
     };
 
-    static ConstBufData_ShaderGraph_Getter getter;
+    static Getter getter;
 
     return getter.Get( entity, model, material, renderMaterial );
   }
@@ -327,7 +333,9 @@ namespace Tac
 
         mesh->mGPUInputLayoutBuffer;
 
-        renderMaterial->mShaderVar_Buffers->SetBufferAtIndex( ... );
+        TAC_ASSERT_UNIMPLEMENTED;
+
+        //renderMaterial->mShaderVar_Buffers->SetBufferAtIndex( ... );
         renderMaterial->mAreShaderVarsSet = true;
       }
 
