@@ -1,19 +1,12 @@
 #pragma once
 
-//#include "tac-std-lib/string/tac_string.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_span.h"
-
-//#include "tac-dx/dx12/tac_dx12_root_sig_bindings.h"
-
 #include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
 #include "tac-dx/dx12/pipeline/tac_dx12_pipeline_bind_cache.h"
 
-//#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
-
 #include <d3d12.h> // ID3D12PipelineState
-//#include <dxcapi.h> // (include after d3d12.h) IDxcBlob IDxcUtils, IDxcCompiler3, DxcCreateInstance
 
 namespace Tac { struct Errors; }
 namespace Tac::Render
@@ -70,8 +63,8 @@ namespace Tac::Render
                                     DX12BufferMgr* ) const;
 
     public:
-      Vector< int >             mHandleIndexes {};
-      D3D12ProgramBindDesc       mBinding       {};
+      Vector< int >        mHandleIndexes {};
+      D3D12ProgramBindDesc mBinding       {};
     };
 
     struct Variables
@@ -81,11 +74,11 @@ namespace Tac::Render
 
       int             size() const;
       const Variable* begin() const;
+      dynmc Variable* begin() dynmc;
       const Variable* end() const;
-      Variable*       begin();
-      Variable*       end();
+      dynmc Variable* end() dynmc;
       const Variable* data() const;
-      Variable*       data();
+      dynmc Variable* data() dynmc;
       const Variable& operator[]( int ) const;
 
     private:
