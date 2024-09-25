@@ -19,7 +19,10 @@
 
 namespace Tac::Render
 {
+  // Fwd decl for types defined in this file
   struct DX12DescriptorRegion;
+  struct DX12DescriptorRegionManager;
+
   struct DX12DescriptorRegionManager
   {
     struct Params

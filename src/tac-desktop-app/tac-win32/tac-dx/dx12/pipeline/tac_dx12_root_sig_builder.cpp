@@ -2,51 +2,57 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
-#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
+#include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
 
 namespace Tac::Render
 {
 
   static D3D12_DESCRIPTOR_RANGE_TYPE
-    D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( D3D12ProgramBinding::Type type )
+    D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( const D3D12ProgramBindType type )
   {
-    switch( type )
+    const D3D12ProgramBindType::Classification classification{ type.GetClassification() };
+    switch( classification )
     {
-    case D3D12ProgramBinding::Type::kTextureUAV:
-    case D3D12ProgramBinding::Type::kBufferUAV:
+    case D3D12ProgramBindType::kTextureUAV:
+    case D3D12ProgramBindType::kBufferUAV:
       return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
 
-    case D3D12ProgramBinding::Type::kTextureSRV:
-    case D3D12ProgramBinding::Type::kBufferSRV:
+    case D3D12ProgramBindType::kTextureSRV:
+    case D3D12ProgramBindType::kBufferSRV:
       return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 
-    case D3D12ProgramBinding::Type::kSampler:
+    case D3D12ProgramBindType::kSampler:
       return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
 
-    case D3D12ProgramBinding::Type::kConstantBuffer:
+    case D3D12ProgramBindType::kConstantBuffer:
       return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
 
-    default: TAC_ASSERT_INVALID_CASE( type ); return ( D3D12_DESCRIPTOR_RANGE_TYPE )0;
+    default:
+      TAC_ASSERT_INVALID_CASE( classification );
+      return ( D3D12_DESCRIPTOR_RANGE_TYPE )0;
     }
   }
 
   static D3D12_ROOT_PARAMETER_TYPE
-    D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( D3D12ProgramBinding::Type type )
+    D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( const D3D12ProgramBindType type )
   {
-    switch( type )
+    const D3D12ProgramBindType::Classification classification{ type.GetClassification() };
+    switch( classification )
     {
-    case D3D12ProgramBinding::Type::kTextureUAV:
-    case D3D12ProgramBinding::Type::kBufferUAV:
+    case D3D12ProgramBindType::kTextureUAV:
+    case D3D12ProgramBindType::kBufferUAV:
       return D3D12_ROOT_PARAMETER_TYPE_UAV;
 
-    case D3D12ProgramBinding::Type::kTextureSRV:
-    case D3D12ProgramBinding::Type::kBufferSRV:
+    case D3D12ProgramBindType::kTextureSRV:
+    case D3D12ProgramBindType::kBufferSRV:
       return D3D12_ROOT_PARAMETER_TYPE_SRV;
 
-    case D3D12ProgramBinding::Type::kConstantBuffer:
+    case D3D12ProgramBindType::kConstantBuffer:
       return D3D12_ROOT_PARAMETER_TYPE_CBV;
 
-    default: TAC_ASSERT_INVALID_CASE( type ); return ( D3D12_ROOT_PARAMETER_TYPE )0;
+    default:
+      TAC_ASSERT_INVALID_CASE( classification );
+      return ( D3D12_ROOT_PARAMETER_TYPE )0;
     }
   }
 
@@ -133,8 +139,8 @@ namespace Tac::Render
 
     const D3D12_ROOT_PARAMETER1 rootParam
     {
-      .ParameterType { D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE },
-      .DescriptorTable { DescriptorTable },
+      .ParameterType    { D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE },
+      .DescriptorTable  { DescriptorTable },
       .ShaderVisibility { D3D12_SHADER_VISIBILITY_ALL },
     };
 
@@ -150,9 +156,9 @@ namespace Tac::Render
   {
     const D3D12_ROOT_DESCRIPTOR1 Descriptor
     {
-      .ShaderRegister{ ( UINT )loc.mRegister },
-      .RegisterSpace { ( UINT )loc.mSpace },
-      .Flags         { D3D12_ROOT_DESCRIPTOR_FLAG_NONE },
+      .ShaderRegister { ( UINT )loc.mRegister },
+      .RegisterSpace  { ( UINT )loc.mSpace },
+      .Flags          { D3D12_ROOT_DESCRIPTOR_FLAG_NONE },
     };
 
     const D3D12_ROOT_PARAMETER1 rootParam
@@ -228,35 +234,35 @@ namespace Tac::Render
     return rootSignature;
   }
 
-  void DX12RootSigBuilder::AddBindings( const D3D12ProgramBinding* bindings, int n )
+  void DX12RootSigBuilder::AddBindings( const D3D12ProgramBindDesc* bindDescs, int n )
   {
     for( int i{}; i < n; ++i )
     {
-      const D3D12ProgramBinding& binding{ bindings[ i ] };
+      const D3D12ProgramBindDesc& bindDesc{ bindDescs[ i ] };
 
       const DX12RootSigBuilder::Location loc
       {
-        .mRegister { binding.mBindRegister },
-        .mSpace    { binding.mRegisterSpace },
+        .mRegister { bindDesc.mBindRegister },
+        .mSpace    { bindDesc.mRegisterSpace },
       };
 
-      if( binding.BindsAsDescriptorTable() )
+      if( bindDesc.BindsAsDescriptorTable() )
       {
         // Create a root descriptor table
-        const D3D12_DESCRIPTOR_RANGE_TYPE descriptorRangeType =
-          D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( binding.mType );
+        const D3D12_DESCRIPTOR_RANGE_TYPE descriptorRangeType {
+          D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( bindDesc.mType ) };
 
-        if( binding.mBindCount )
-          AddBoundedArray( descriptorRangeType, binding.mBindCount, loc );
+        if( bindDesc.mBindCount )
+          AddBoundedArray( descriptorRangeType, bindDesc.mBindCount, loc );
         else
           AddUnboundedArray( descriptorRangeType, loc );
       }
       else
       {
         // Create a root descriptor
-        const D3D12_ROOT_PARAMETER_TYPE type{
-          D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( binding.mType ) };
-        AddRootDescriptor( type, loc );
+        const D3D12_ROOT_PARAMETER_TYPE rootParameterType{
+          D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( bindDesc.mType ) };
+        AddRootDescriptor( rootParameterType, loc );
       }
 
     }

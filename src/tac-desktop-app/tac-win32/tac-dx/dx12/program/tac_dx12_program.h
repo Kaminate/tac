@@ -4,7 +4,7 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
-#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
+#include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
@@ -36,7 +36,7 @@ namespace Tac::Render
     PCom< IDxcBlob >         mCSBlob;
     D3D12_SHADER_BYTECODE    mCSBytecode;
 
-    D3D12ProgramBindings     mProgramBindings;
+    D3D12ProgramBindDescs    mProgramBindDescs;
     ProgramParams            mProgramParams;
 
     Vector< Input >          mInputs;

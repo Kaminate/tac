@@ -170,7 +170,7 @@ namespace Tac::Render
     // Basically const, but 
     TAC_CALL( const DXCCompileOutput output{ Compile( params, errors ) } );
 
-    const D3D12ProgramBindings bindings( output.mReflInfo.mReflBindings.data(),
+    const D3D12ProgramBindDescs bindings( output.mReflInfo.mReflBindings.data(),
                                          output.mReflInfo.mReflBindings.size() );
 
     const int programInputCount{ output.mReflInfo.mInputs.size() };
@@ -197,7 +197,7 @@ namespace Tac::Render
       .mPSBytecode      { output.GetPSBytecode() },
       .mCSBlob          { output.mCSBlob },
       .mCSBytecode      { output.GetCSBytecode() },
-      .mProgramBindings { bindings },
+      .mProgramBindDescs { bindings },
       .mProgramParams   { params },
       .mInputs          { programInputs },
       .mHotReloadInputs { hotReloadInputs },
@@ -220,7 +220,7 @@ namespace Tac::Render
       return {};
 
     String result;
-    for( const D3D12ProgramBinding& binding : program->mProgramBindings )
+    for( const D3D12ProgramBindDesc& binding : program->mProgramBindDescs )
     {
       result += binding.mName;
       result += " ";

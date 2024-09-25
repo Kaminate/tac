@@ -9,7 +9,7 @@
 
 namespace Tac { struct Errors; }
 
-namespace Tac::Render { struct D3D12ProgramBinding; }
+namespace Tac::Render { struct D3D12ProgramBindDesc; }
 namespace Tac::Render
 {
 
@@ -26,7 +26,7 @@ namespace Tac::Render
     void AddRootDescriptor( D3D12_ROOT_PARAMETER_TYPE, Location );
     void AddUnboundedArray( D3D12_DESCRIPTOR_RANGE_TYPE, Location );
     void AddBoundedArray( D3D12_DESCRIPTOR_RANGE_TYPE, int, Location );
-    void AddBindings( const D3D12ProgramBinding*, int );
+    void AddBindings( const D3D12ProgramBindDesc*, int );
     void SetInputLayoutEnabled( bool );
 
     PCom< ID3D12RootSignature > Build( Errors& errors );

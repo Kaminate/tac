@@ -7,7 +7,8 @@
 
 //#include "tac-dx/dx12/tac_dx12_root_sig_bindings.h"
 
-#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
+#include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
+#include "tac-dx/dx12/pipeline/tac_dx12_pipeline_bind_cache.h"
 
 //#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
 
@@ -28,10 +29,22 @@ namespace Tac::Render
 {
   struct DX12Pipeline
   {
+    struct BindlessArray
+    {
+      void SetBufferAtIndex( int, BufferHandle );
+      void SetTextureAtIndex( int, TextureHandle );
+      void SetSamplerAtIndex( int, SamplerHandle );
+
+    private:
+      void SetArrayElement( int, int );
+      D3D12ProgramBindType mType          {};
+      Vector< int >        mHandleIndexes {};
+    };
+
     struct Variable : public IShaderVar
     {
       Variable() = default;
-      Variable( D3D12ProgramBinding );
+      Variable( D3D12ProgramBindDesc );
 
       void SetBuffer( BufferHandle ) override;
       void SetTexture( TextureHandle ) override;
@@ -58,13 +71,13 @@ namespace Tac::Render
 
     public:
       Vector< int >             mHandleIndexes {};
-      D3D12ProgramBinding       mBinding       {};
+      D3D12ProgramBindDesc       mBinding       {};
     };
 
     struct Variables
     {
       Variables() = default;
-      Variables( const D3D12ProgramBindings& );
+      Variables( const D3D12ProgramBindDescs& );
 
       int             size() const;
       const Variable* begin() const;
@@ -86,6 +99,7 @@ namespace Tac::Render
     PCom< ID3D12RootSignature > mRootSignature;
     Variables                   mShaderVariables;
     PipelineParams              mPipelineParams;
+    PipelineBindCache           mPipelineBindCache;
     bool                        mIsCompute{};
   };
 } // namespace Tac::Render

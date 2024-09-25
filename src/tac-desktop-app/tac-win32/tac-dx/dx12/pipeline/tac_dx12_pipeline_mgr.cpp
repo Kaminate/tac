@@ -147,8 +147,8 @@ namespace Tac::Render
 
     DX12RootSigBuilder rootSigBuilder( device );
     rootSigBuilder.SetInputLayoutEnabled( hasInputLayout );
-    rootSigBuilder.AddBindings( program->mProgramBindings.data(),
-                                program->mProgramBindings.size() );
+    rootSigBuilder.AddBindings( program->mProgramBindDescs.data(),
+                                program->mProgramBindDescs.size() );
 
     TAC_CALL( PCom< ID3D12RootSignature > rootSig{ rootSigBuilder.Build( errors ) } );
 
@@ -212,7 +212,7 @@ namespace Tac::Render
     };
     DX12SetName( pPS, name );
 
-    const DX12Pipeline::Variables shaderVariables( program->mProgramBindings );
+    const DX12Pipeline::Variables shaderVariables( program->mProgramBindDescs );
 
     const int iPipeline{ h.GetIndex() };
     mPipelines[ iPipeline ] = DX12Pipeline

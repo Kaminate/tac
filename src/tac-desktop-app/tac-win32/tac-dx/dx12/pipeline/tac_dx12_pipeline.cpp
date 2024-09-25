@@ -1,5 +1,5 @@
 #include "tac_dx12_pipeline.h" // self-inc
-#include "tac-dx/dx12/program/tac_dx12_program_bindings.h"
+#include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-dx/dx12/texture/tac_dx12_texture_mgr.h"
 #include "tac-dx/dx12/sampler/tac_dx12_sampler_mgr.h"
@@ -11,7 +11,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  DX12Pipeline::Variable::Variable( D3D12ProgramBinding binding )
+  DX12Pipeline::Variable::Variable( D3D12ProgramBindDesc binding )
   {
     mBinding = binding;
     mHandleIndexes.resize( binding.mBindCount, -1 );
@@ -19,37 +19,37 @@ namespace Tac::Render
 
   void DX12Pipeline::Variable::SetBuffer( BufferHandle h )
   {
-    TAC_ASSERT( mBinding.IsBuffer() );
+    TAC_ASSERT( mBinding.mType. IsBuffer() );
     SetElement( h.GetIndex() );
   }
 
   void DX12Pipeline::Variable::SetTexture( TextureHandle h )
   {
-    TAC_ASSERT( mBinding.IsTexture() );
+    TAC_ASSERT( mBinding.mType.IsTexture() );
     SetElement( h.GetIndex() );
   }
 
   void DX12Pipeline::Variable::SetBufferAtIndex( int i, BufferHandle h )
   {
-    TAC_ASSERT( mBinding.IsBuffer() );
+    TAC_ASSERT( mBinding.mType.IsBuffer() );
     SetArrayElement( i, h.GetIndex() );
   }
 
   void DX12Pipeline::Variable::SetTextureAtIndex( int i, TextureHandle h )
   {
-    TAC_ASSERT( mBinding.IsTexture() );
+    TAC_ASSERT( mBinding.mType.IsTexture() );
     SetArrayElement( i, h.GetIndex() );
   }
 
   void DX12Pipeline::Variable::SetSamplerAtIndex( int i, SamplerHandle h )
   {
-    TAC_ASSERT( mBinding.IsSampler() );
+    TAC_ASSERT( mBinding.mType.IsSampler() );
     SetArrayElement( i, h.GetIndex() );
   }
 
   void DX12Pipeline::Variable::SetSampler( SamplerHandle h )
   {
-    TAC_ASSERT( mBinding.IsSampler() );
+    TAC_ASSERT( mBinding.mType.IsSampler() );
     SetElement( h.GetIndex() );
   }
 
@@ -106,91 +106,92 @@ namespace Tac::Render
                                                         DX12SamplerMgr* samplerMgr,
                                                         DX12BufferMgr* bufferMgr ) const
   {
-    const D3D12ProgramBinding binding{ mBinding };
+    const D3D12ProgramBindDesc binding{ mBinding };
+    const D3D12ProgramBindType::Classification classification{ binding.mType.GetClassification() };
 
-    if( binding.IsTexture() )
+    switch( classification )
+    {
+    case D3D12ProgramBindType::kTextureSRV:
     {
       const TextureHandle textureHandle{ iHandle };
       DX12Texture* texture{ textureMgr->FindTexture( textureHandle ) };
       TAC_ASSERT( texture );
-
-      //textureMgr->TransitionTexture( textureHandle, transitionHelper );
-      //TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
-
-      if( binding.mType == D3D12ProgramBinding::kTextureSRV )
-      {
-        textureMgr->TransitionResource( texture->mResource.Get(),
-                                        &texture->mState,
-                                        Render::Binding::ShaderResource,
-                                        transitionHelper );
-        return texture->mSRV.GetValue();
-      }
-
-      if( binding.mType == D3D12ProgramBinding::kTextureUAV )
-      {
-        textureMgr->TransitionResource( texture->mResource.Get(),
-                                        &texture->mState,
-                                        Render::Binding::UnorderedAccess,
-                                        transitionHelper );
-        TAC_ASSERT( texture->mUAV.HasValue() );
-        TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
-        return texture->mUAV.GetValue();
-      }
+      textureMgr->TransitionResource( texture->mResource.Get(),
+                                      &texture->mState,
+                                      Render::Binding::ShaderResource,
+                                      transitionHelper );
+      return texture->mSRV.GetValue();
     }
 
-    if( binding.IsBuffer() ) // this includes constant buffers
+    case D3D12ProgramBindType::kTextureUAV:
+    {
+      const TextureHandle textureHandle{ iHandle };
+      DX12Texture* texture{ textureMgr->FindTexture( textureHandle ) };
+      TAC_ASSERT( texture );
+      textureMgr->TransitionResource( texture->mResource.Get(),
+                                      &texture->mState,
+                                      Render::Binding::UnorderedAccess,
+                                      transitionHelper );
+      TAC_ASSERT( texture->mUAV.HasValue() );
+      TAC_ASSERT( texture->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
+      return texture->mUAV.GetValue();
+    }
+
+    case D3D12ProgramBindType::kBufferSRV:
     {
       DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
       TAC_ASSERT( buffer );
-
       TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
-
-      if( binding.mType == D3D12ProgramBinding::kBufferSRV )
-      {
-        textureMgr->TransitionResource( buffer->mResource.Get(),
-                                        &buffer->mState,
-                                        Render::Binding::ShaderResource,
-                                        transitionHelper );
-        return buffer->mSRV.GetValue();
-      }
-
-      if( binding.mType == D3D12ProgramBinding::kBufferUAV )
-      {
-        textureMgr->TransitionResource( buffer->mResource.Get(),
-                                        &buffer->mState,
-                                        Render::Binding::UnorderedAccess,
-                                        transitionHelper );
-        TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
-        return buffer->mUAV.GetValue();
-      }
-
-      if( binding.mType == D3D12ProgramBinding::kConstantBuffer )
-      {
-        textureMgr->TransitionResource( buffer->mResource.Get(),
-                                        &buffer->mState,
-                                        Render::Binding::ConstantBuffer,
-                                        transitionHelper );
-        TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
-        TAC_ASSERT_UNIMPLEMENTED;
-      }
+      textureMgr->TransitionResource( buffer->mResource.Get(),
+                                      &buffer->mState,
+                                      Render::Binding::ShaderResource,
+                                      transitionHelper );
+      return buffer->mSRV.GetValue();
     }
 
-    if( binding.IsSampler() )
+    case D3D12ProgramBindType::kBufferUAV:
+    {
+      DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
+      TAC_ASSERT( buffer );
+      TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+      textureMgr->TransitionResource( buffer->mResource.Get(),
+                                      &buffer->mState,
+                                      Render::Binding::UnorderedAccess,
+                                      transitionHelper );
+      TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
+      return buffer->mUAV.GetValue();
+    }
+
+    case D3D12ProgramBindType::kConstantBuffer:
+    {
+      DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
+      TAC_ASSERT( buffer );
+      TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+      textureMgr->TransitionResource( buffer->mResource.Get(),
+                                      &buffer->mState,
+                                      Render::Binding::ConstantBuffer,
+                                      transitionHelper );
+      TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
+      TAC_ASSERT_UNIMPLEMENTED; // ???
+      return {};
+    }
+
+    case D3D12ProgramBindType::kSampler:
     {
       DX12Sampler* sampler{ samplerMgr->FindSampler( SamplerHandle{ iHandle } ) };
       TAC_ASSERT( sampler );
-
       return sampler->mDescriptor;
     }
 
-    return {};
+    default: TAC_ASSERT_INVALID_CASE( classification ); return {};
+    }
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  DX12Pipeline::Variables::Variables( const D3D12ProgramBindings& bindings )
+  DX12Pipeline::Variables::Variables( const D3D12ProgramBindDescs& bindings )
   {
-    for( const D3D12ProgramBinding binding : bindings )
+    for( const D3D12ProgramBindDesc& binding : bindings )
       mShaderVariables.push_back( DX12Pipeline::Variable( binding ) );
   }
 
@@ -219,14 +220,52 @@ namespace Tac::Render
     return mShaderVariables.end();
   }
 
-  const DX12Pipeline::Variable* DX12Pipeline::Variables::data() const { return mShaderVariables.data(); }
-  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::data() dynmc { return mShaderVariables.data(); }
+  const DX12Pipeline::Variable* DX12Pipeline::Variables::data() const
+  {
+    return mShaderVariables.data();
+  }
+
+  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::data() dynmc
+  {
+    return mShaderVariables.data();
+  }
 
   const DX12Pipeline::Variable& DX12Pipeline::Variables::operator[]( int i ) const
   {
     return mShaderVariables[ i ];
   }
   
+  // -----------------------------------------------------------------------------------------------
+
+  void DX12Pipeline::BindlessArray::SetBufferAtIndex( int i, BufferHandle h)
+  {
+    TAC_ASSERT( mType.IsBuffer() );
+    SetArrayElement( i, h.GetIndex() );
+  }
+
+  void DX12Pipeline::BindlessArray::SetTextureAtIndex( int i, TextureHandle h )
+  {
+    TAC_ASSERT( mType.IsTexture() );
+    SetArrayElement( i, h.GetIndex() );
+  }
+
+  void DX12Pipeline::BindlessArray::SetSamplerAtIndex( int i, SamplerHandle h )
+  {
+    TAC_ASSERT( mType.IsSampler() );
+    SetArrayElement( i, h.GetIndex() );
+  }
+
+  void DX12Pipeline::BindlessArray::SetArrayElement( int i, int iHandle )
+  {
+    TAC_ASSERT_INDEX( i, 1000 ); // sanity
+
+    // resize unbounded array
+    if( i>= mHandleIndexes.size() )
+      mHandleIndexes.resize( i + 1, -1 );
+
+    mHandleIndexes[ i ] = iHandle;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   bool DX12Pipeline:: IsValid() const
