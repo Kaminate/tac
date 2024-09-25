@@ -17,15 +17,6 @@ namespace Tac::Render
   static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
   static Timestamp              sHotReloadTick;
 
-  static ProgramAttribs         GetProgramAttribs()
-  {
-    const IDevice* device{ Render::RenderApi::GetRenderDevice() };
-    const IDevice::Info info{ device->GetInfo() };
-    return info.mProgramAttribs;
-  }
-  static const char*            GetShaderDir() { return GetProgramAttribs().mDir; }
-  static const char*            GetShaderExt() { return GetProgramAttribs().mExt; }
-
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
   {
     const D3D_SHADER_MODEL lowestDefined { D3D_SHADER_MODEL_5_1 };
@@ -51,17 +42,24 @@ namespace Tac::Render
     return lowestDefined;
   }
 
-  static Vector< AssetPathString > GetPreprocessorInput( ProgramParams programParams )
+  struct PreprocessorInput : public AssetPathStrings
   {
-    Vector< AssetPathString > assetPaths;
-    for( const String& input : programParams.mInputs )
+    PreprocessorInput( const ProgramParams& programParams )
     {
-      const AssetPathString inputAsset{ GetShaderDir() + input + GetShaderExt() };
-      assetPaths.push_back( inputAsset );
-    }
+      const IDevice* device{ Render::RenderApi::GetRenderDevice() };
+      const IDevice::Info info{ device->GetInfo() };
+      const ProgramAttribs programAttribs{ info.mProgramAttribs };
+      const StringView shaderDir{ programAttribs.mDir };
+      const StringView shaderExt{ programAttribs.mExt };
 
-    return assetPaths;
-  }
+      Vector< AssetPathString > assetPaths;
+      for( const String& input : programParams.mInputs )
+      {
+        const AssetPathString inputAsset{ shaderDir + input + shaderExt };
+        push_back( inputAsset );
+      }
+    }
+  };
 
   static DXCCompileOutput Compile( ProgramParams programParams, Errors& errors )
   {
@@ -90,13 +88,18 @@ namespace Tac::Render
     }
 #endif
 
-    const Vector< AssetPathString > assetPaths{ GetPreprocessorInput( programParams ) };
+    const IDevice* device{ Render::RenderApi::GetRenderDevice() };
+    const IDevice::Info info{ device->GetInfo() };
+    const ProgramAttribs programAttribs{ info.mProgramAttribs };
+    const StringView shaderExt{ programAttribs.mExt };
+
+    const PreprocessorInput assetPaths( programParams );
 
     TAC_CALL_RET( {}, const String preprocessedShader{
       HLSLPreprocessor::Process( assetPaths, errors ) } );
 
     const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
-    const String fileName{ programParams.mName + GetShaderExt() };
+    const String fileName{ programParams.mName + shaderExt };
     const DXCCompileParams input
     {
       .mFileName           { fileName },
@@ -113,12 +116,12 @@ namespace Tac::Render
   void DX12ProgramMgr::Init( Params params, Errors& errors )
   {
     mDevice = params.mDevice;
-    TAC_ASSERT(mDevice);
-    
-    mPipelineMgr = params.mPipelineMgr;
-    TAC_ASSERT(mPipelineMgr);
+    TAC_ASSERT( mDevice );
 
-    const D3D_SHADER_MODEL highestShaderModel { GetHighestShaderModel( mDevice ) };
+    mPipelineMgr = params.mPipelineMgr;
+    TAC_ASSERT( mPipelineMgr );
+
+    const D3D_SHADER_MODEL highestShaderModel{ GetHighestShaderModel( mDevice ) };
     TAC_RAISE_ERROR_IF( sShaderModel > highestShaderModel, "Shader model too high" );
   }
 
@@ -149,7 +152,7 @@ namespace Tac::Render
     // Basically const, but 
     TAC_CALL( const DXCCompileOutput output{ Compile( params, errors ) } );
 
-    const D3D12ProgramBindDescs bindings( output.mReflInfo.mReflBindings );
+    const D3D12ProgramBindDescs programBindDescs( output.mReflInfo.mReflBindings );
 
     const DX12Program::Inputs programInputs( output.mReflInfo.mInputs );
 
@@ -157,16 +160,16 @@ namespace Tac::Render
 
     mPrograms[ h.GetIndex() ] = DX12Program
     {
-      .mVSBlob          { output.mVSBlob },
-      .mVSBytecode      { output.GetVSBytecode() },
-      .mPSBlob          { output.mPSBlob },
-      .mPSBytecode      { output.GetPSBytecode() },
-      .mCSBlob          { output.mCSBlob },
-      .mCSBytecode      { output.GetCSBytecode() },
-      .mProgramBindDescs { bindings },
-      .mProgramParams   { params },
-      .mInputs          { programInputs },
-      .mHotReloadInputs { hotReloadInputs },
+      .mVSBlob           { output.mVSBlob },
+      .mVSBytecode       { output.GetVSBytecode() },
+      .mPSBlob           { output.mPSBlob },
+      .mPSBytecode       { output.GetPSBytecode() },
+      .mCSBlob           { output.mCSBlob },
+      .mCSBytecode       { output.GetCSBytecode() },
+      .mProgramBindDescs { programBindDescs },
+      .mProgramParams    { params },
+      .mInputs           { programInputs },
+      .mHotReloadInputs  { hotReloadInputs },
     };
 
   }
