@@ -17,13 +17,12 @@ namespace Tac::Render
   static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
   static Timestamp              sHotReloadTick;
 
-  static ProgramAttribs GetProgramAttribs()
+  static ProgramAttribs         GetProgramAttribs()
   {
     const IDevice* device{ Render::RenderApi::GetRenderDevice() };
     const IDevice::Info info{ device->GetInfo() };
     return info.mProgramAttribs;
   }
-
   static const char*            GetShaderDir() { return GetProgramAttribs().mDir; }
   static const char*            GetShaderExt() { return GetProgramAttribs().mExt; }
 
@@ -109,26 +108,6 @@ namespace Tac::Render
     return DXCCompile( input, errors );
   }
 
-  static Vector< DX12Program::HotReloadInput > GetHotReloadInputs( ProgramParams params,
-                                                                   Errors& errors )
-  {
-    Vector< DX12Program::HotReloadInput > hotReloadInputs;
-    for( const String& input : params.mInputs )
-    {
-      const FileSys::Path filePath{ GetShaderDir() + input + GetShaderExt() };
-      TAC_CALL_RET( {}, const FileSys::Time fileTime{
-        FileSys::GetFileLastModifiedTime( filePath, errors ) } );
-      const DX12Program::HotReloadInput hotReloadInput
-      {
-        .mFilePath{ filePath },
-        .mFileTime{ fileTime },
-      };
-      hotReloadInputs.push_back( hotReloadInput );
-    }
-
-    return hotReloadInputs;
-  }
-
   // -----------------------------------------------------------------------------------------------
 
   void DX12ProgramMgr::Init( Params params, Errors& errors )
@@ -170,24 +149,11 @@ namespace Tac::Render
     // Basically const, but 
     TAC_CALL( const DXCCompileOutput output{ Compile( params, errors ) } );
 
-    const D3D12ProgramBindDescs bindings( output.mReflInfo.mReflBindings.data(),
-                                         output.mReflInfo.mReflBindings.size() );
+    const D3D12ProgramBindDescs bindings( output.mReflInfo.mReflBindings );
 
-    const int programInputCount{ output.mReflInfo.mInputs.size() };
-    Vector< DX12Program::Input > programInputs( programInputCount );
-    for( int i{}; i < programInputCount; ++i )
-    {
-      const DXCReflInfo::Input& reflInput{ output.mReflInfo.mInputs[ i ] };
-      programInputs[ i ] = DX12Program::Input
-      {
-        .mName     { reflInput.mName },
-        .mIndex    { reflInput.mIndex },
-        .mRegister { reflInput.mRegister },
-      };
-    }
+    const DX12Program::Inputs programInputs( output.mReflInfo.mInputs );
 
-    TAC_CALL( const Vector< DX12Program::HotReloadInput > hotReloadInputs{
-      GetHotReloadInputs( params, errors ) } );
+    TAC_CALL( const DX12Program::HotReloadInputs hotReloadInputs( params, errors ) );
 
     mPrograms[ h.GetIndex() ] = DX12Program
     {
@@ -215,7 +181,7 @@ namespace Tac::Render
 
   String        DX12ProgramMgr::GetProgramBindings_TEST( ProgramHandle h )
   {
-    DX12Program* program{ FindProgram( h ) };
+    const DX12Program* program{ FindProgram( h ) };
     if( !program )
       return {};
 
@@ -231,8 +197,8 @@ namespace Tac::Render
 
   void          DX12ProgramMgr::HotReload( Errors& errors )
   {
-    Timestamp curTime{ Timestep::GetElapsedTime() };
-    TimestampDifference diffTime{ curTime - sHotReloadTick };
+    const Timestamp curTime{ Timestep::GetElapsedTime() };
+    const TimestampDifference diffTime{ curTime - sHotReloadTick };
     if( diffTime.mSeconds < 1.0f )
       return;
 
@@ -241,7 +207,7 @@ namespace Tac::Render
     const int n{ mPrograms.size()};
     for( int i{}; i < n; ++i )
     {
-      ProgramHandle h{ i };
+      const ProgramHandle h{ i };
       dynmc DX12Program& program{ mPrograms[ i ] };
 
       int updatedTimeCount{};
@@ -283,10 +249,8 @@ namespace Tac::Render
 
     sHotReloadTick = curTime;
 
-    Span< ProgramHandle > reloadedProgramSpan{
-      reloadedPrograms.data(),
-      reloadedPrograms.size() };
-
+    const Span< ProgramHandle > reloadedProgramSpan( reloadedPrograms.data(),
+                                                     reloadedPrograms.size() );
     TAC_CALL( mPipelineMgr->HotReload( reloadedProgramSpan, errors ) );
   }
 

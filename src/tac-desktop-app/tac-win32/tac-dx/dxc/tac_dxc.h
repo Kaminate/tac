@@ -31,15 +31,21 @@ namespace Tac::Render
       int    mRegister;
     };
 
-    // Storing IDxcBlob / ID3D12ShaderReflection because I assume that the string pointers in the
-    // D3D12_SHADER_INPUT_BIND_DESC go inside one of these
-    Vector< PCom< IDxcBlob > >               mReflBlobs;
-    Vector< PCom< ID3D12ShaderReflection > > mRefls;
+    using Inputs            = Vector< Input >;
+    using Blobs             = Vector< PCom < IDxcBlob > >;
+    using BindDescs         = Vector< D3D12_SHADER_INPUT_BIND_DESC >;
+    using ShaderReflections = Vector< PCom< ID3D12ShaderReflection > >;
 
-    // Combined bindings from all shader stanges
-    Vector< D3D12_SHADER_INPUT_BIND_DESC >   mReflBindings;
+    //                Storing IDxcBlob / ID3D12ShaderReflection because I assume that the string
+    //                pointers in the D3D12_SHADER_INPUT_BIND_DESC go inside one of these
+    Blobs             mReflBlobs;
 
-    Vector< Input >                          mInputs;
+    ShaderReflections mRefls;
+
+    //                Combined bindings from all shader stanges
+    BindDescs         mReflBindings;
+
+    Inputs            mInputs;
   };
 
   struct DXCCompileOutput

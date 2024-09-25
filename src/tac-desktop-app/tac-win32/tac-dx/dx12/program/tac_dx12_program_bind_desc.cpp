@@ -17,8 +17,10 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  D3D12ProgramBindDescs::D3D12ProgramBindDescs( const D3D12_SHADER_INPUT_BIND_DESC* descs, int n )
+  D3D12ProgramBindDescs::D3D12ProgramBindDescs( const DXCReflInfo::BindDescs& descs )
   {
+    const int n{ descs.size() };
+    reserve( n );
     for( int i{}; i < n; ++i )
     {
       const D3D12_SHADER_INPUT_BIND_DESC& info { descs[ i ] };

@@ -5,6 +5,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
+#include "tac-dx/dxc/tac_dxc.h" // DXCReflInfo
 #include "tac-rhi/render3/tac_render_api.h"
 
 #include <d3d12.h> // D3D12_SHADER_BYTECODE
@@ -20,11 +21,23 @@ namespace Tac::Render
       FileSys::Time mFileTime;
     };
 
+    struct HotReloadInputs : public Vector< HotReloadInput >
+    {
+      HotReloadInputs() = default;
+      HotReloadInputs( const ProgramParams&, Errors& );
+    };
+
     struct Input
     {
       String mName; // this is a semantic name
       int    mIndex;
       int    mRegister;
+    };
+
+    struct Inputs : public Vector< Input >
+    {
+      Inputs() = default;
+      Inputs( const DXCReflInfo::Inputs& );
     };
 
     PCom< IDxcBlob >         mVSBlob;
@@ -39,7 +52,7 @@ namespace Tac::Render
     D3D12ProgramBindDescs    mProgramBindDescs;
     ProgramParams            mProgramParams;
 
-    Vector< Input >          mInputs;
+    Inputs                   mInputs;
     Vector< HotReloadInput > mHotReloadInputs;
   };
 } // namespace Tac::Render

@@ -3,6 +3,7 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-dx/dx12/program/tac_dx12_program_bind_type.h"
+#include "tac-dx/dxc/tac_dxc.h"
 
 #include <d3d12shader.h> // D3D12_SHADER_INPUT_BIND_DESC
 
@@ -24,7 +25,7 @@ namespace Tac::Render
   struct D3D12ProgramBindDescs : public Vector< D3D12ProgramBindDesc >
   {
     D3D12ProgramBindDescs() = default;
-    D3D12ProgramBindDescs( const D3D12_SHADER_INPUT_BIND_DESC*, int );
+    D3D12ProgramBindDescs( const DXCReflInfo::BindDescs& );
   };
 
 } // namespace Tac::Render
