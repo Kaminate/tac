@@ -22,18 +22,6 @@ namespace Tac::Render
 {
   struct DX12Pipeline
   {
-    struct BindlessArray
-    {
-      void SetBufferAtIndex( int, BufferHandle );
-      void SetTextureAtIndex( int, TextureHandle );
-      void SetSamplerAtIndex( int, SamplerHandle );
-
-    private:
-      void SetArrayElement( int, int );
-      D3D12ProgramBindType mType          {};
-      Vector< int >        mHandleIndexes {};
-    };
-
     struct Variable : public IShaderVar
     {
       Variable() = default;

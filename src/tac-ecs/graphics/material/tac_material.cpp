@@ -125,7 +125,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  Material*                        Material::GetMaterial( Entity* entity )
+  dynmc Material*                  Material::GetMaterial( dynmc Entity* entity )
   {
     return ( Material* )entity->GetComponent( sComponentInfo );
   }

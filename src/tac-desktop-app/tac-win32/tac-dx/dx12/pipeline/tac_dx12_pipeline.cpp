@@ -236,36 +236,6 @@ namespace Tac::Render
   }
   
   // -----------------------------------------------------------------------------------------------
-
-  void DX12Pipeline::BindlessArray::SetBufferAtIndex( int i, BufferHandle h)
-  {
-    TAC_ASSERT( mType.IsBuffer() );
-    SetArrayElement( i, h.GetIndex() );
-  }
-
-  void DX12Pipeline::BindlessArray::SetTextureAtIndex( int i, TextureHandle h )
-  {
-    TAC_ASSERT( mType.IsTexture() );
-    SetArrayElement( i, h.GetIndex() );
-  }
-
-  void DX12Pipeline::BindlessArray::SetSamplerAtIndex( int i, SamplerHandle h )
-  {
-    TAC_ASSERT( mType.IsSampler() );
-    SetArrayElement( i, h.GetIndex() );
-  }
-
-  void DX12Pipeline::BindlessArray::SetArrayElement( int i, int iHandle )
-  {
-    TAC_ASSERT_INDEX( i, 1000 ); // sanity
-
-    // resize unbounded array
-    if( i>= mHandleIndexes.size() )
-      mHandleIndexes.resize( i + 1, -1 );
-
-    mHandleIndexes[ i ] = iHandle;
-  }
-
   // -----------------------------------------------------------------------------------------------
 
   bool DX12Pipeline:: IsValid() const
