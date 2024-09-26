@@ -24,14 +24,14 @@ namespace Tac::Render
 
   struct PipelineBindlessArray
   {
-      void SetBufferAtIndex( int, BufferHandle );
-      void SetTextureAtIndex( int, TextureHandle );
-      void SetSamplerAtIndex( int, SamplerHandle );
+    void SetBufferAtIndex( int, BufferHandle );
+    void SetTextureAtIndex( int, TextureHandle );
+    void SetSamplerAtIndex( int, SamplerHandle );
 
-    private:
-      void SetArrayElement( int, int );
-      D3D12ProgramBindType mType          {};
-      Vector< int >        mHandleIndexes {};
+  private:
+    void SetArrayElement( int, int );
+    D3D12ProgramBindType mType{};
+    Vector< int >        mHandleIndexes{};
   };
 }
 

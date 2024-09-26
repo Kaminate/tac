@@ -14,7 +14,7 @@
 
 namespace Tac::Render
 {
-  static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
+  static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_6 };
   static Timestamp              sHotReloadTick;
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
