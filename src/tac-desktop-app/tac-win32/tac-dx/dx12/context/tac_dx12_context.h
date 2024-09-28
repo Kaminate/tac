@@ -125,7 +125,7 @@ namespace Tac::Render
     DX12CommandAllocatorPool*         mCommandAllocatorPool         {};
     DX12ContextManager*               mContextManager               {};
     DX12CommandQueue*                 mCommandQueue                 {};
-    DX12SwapChainMgr*                 mSawpChainMgr                 {};
+    DX12SwapChainMgr*                 mSwapChainMgr                 {};
     DX12TextureMgr*                   mTextureMgr                   {};
     DX12BufferMgr*                    mBufferMgr                    {};
     DX12PipelineMgr*                  mPipelineMgr                  {};

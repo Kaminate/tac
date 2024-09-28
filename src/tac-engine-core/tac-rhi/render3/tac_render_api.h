@@ -24,7 +24,9 @@ namespace Tac::Render
 
   struct IHandle
   {
-    IHandle( int i = -1 );
+    static constexpr int kInvalidIndex{ -1 };
+
+    IHandle( int i = kInvalidIndex );
     int GetIndex() const;
     bool IsValid() const;
 
@@ -32,12 +34,12 @@ namespace Tac::Render
     int mIndex;
   };
 
-  struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = -1 ) : IHandle{ i } {} };
-  struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = -1 ) : IHandle( i ) {} };
-  struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = -1 ) : IHandle{ i } {} };
-  struct BufferHandle    : public IHandle { BufferHandle    ( int i = -1 ) : IHandle{ i } {} };
-  struct TextureHandle   : public IHandle { TextureHandle   ( int i = -1 ) : IHandle{ i } {} };
-  struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = -1 ) : IHandle{ i } {} };
+  struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = kInvalidIndex ) : IHandle{ i } {} };
+  struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = kInvalidIndex ) : IHandle( i ) {} };
+  struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
+  struct BufferHandle    : public IHandle { BufferHandle    ( int i = kInvalidIndex ) : IHandle{ i } {} };
+  struct TextureHandle   : public IHandle { TextureHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
+  struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
 
   // Used for Textures and Index Buffers and Structured Vertex Buffers
   enum class TexFmt

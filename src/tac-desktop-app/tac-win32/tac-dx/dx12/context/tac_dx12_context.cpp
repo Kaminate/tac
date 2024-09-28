@@ -48,32 +48,43 @@ namespace Tac::Render
   void DX12Context::Init( Params params )
   {
     mCommandList = params.mCommandList;
+    TAC_ASSERT( mCommandList );
+
     mGPUUploadAllocator.Init( params.mUploadPageManager );
+
     mCommandAllocatorPool = params.mCommandAllocatorPool;
+    TAC_ASSERT( mCommandAllocatorPool );
+
     mContextManager = params.mContextManager;
+    TAC_ASSERT( mContextManager );
+
     mCommandQueue = params.mCommandQueue;
-    mSawpChainMgr = params.mSwapChainMgr;
+    TAC_ASSERT( mCommandQueue );
+
+    mSwapChainMgr = params.mSwapChainMgr;
+    TAC_ASSERT( mSwapChainMgr );
+
     mTextureMgr = params.mTextureMgr;
+    TAC_ASSERT( mTextureMgr );
+
     mBufferMgr = params.mBufferMgr;
+    TAC_ASSERT( mBufferMgr );
+
     mPipelineMgr = params.mPipelineMgr;
+    TAC_ASSERT( mPipelineMgr );
+
     mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ]
       = params.mGpuDescriptorHeapCBV_SRV_UAV;
+    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] );
+
     mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ]
       = params.mGpuDescriptorHeapSampler;
-    mSamplerMgr = params.mSamplerMgr;
-    mDevice = params.mDevice;
-
-    TAC_ASSERT( mCommandList );
-    TAC_ASSERT( mCommandAllocatorPool );
-    TAC_ASSERT( mContextManager );
-    TAC_ASSERT( mCommandQueue );
-    TAC_ASSERT( mSawpChainMgr );
-    TAC_ASSERT( mTextureMgr );
-    TAC_ASSERT( mBufferMgr );
-    TAC_ASSERT( mPipelineMgr );
-    TAC_ASSERT( mSamplerMgr );
-    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] );
     TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ] );
+
+    mSamplerMgr = params.mSamplerMgr;
+    TAC_ASSERT( mSamplerMgr );
+
+    mDevice = params.mDevice;
     TAC_ASSERT( mDevice );
   }
 
@@ -97,7 +108,7 @@ namespace Tac::Render
       }
     }
 
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    ID3D12GraphicsCommandList* commandList{ GetCommandList() };
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
 
@@ -117,10 +128,9 @@ namespace Tac::Render
           var.GetDescriptors( &transitionHelper, mTextureMgr, mSamplerMgr, mBufferMgr ) };
         transitionHelper.ResourceBarrier( commandList );
 
-        DX12DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
-        DX12DescriptorRegion* gpuDescriptor{
-          descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors )
-        };
+        dynmc DX12DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
+        const DX12DescriptorRegion* gpuDescriptor{
+          descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors ) };
 
         const int nDescriptors{ cpuDescriptors.size() };
         for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
@@ -147,19 +157,19 @@ namespace Tac::Render
       }
       else
       {
-        D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress{};
         TAC_ASSERT( var.mHandleIndexes.size() == 1 );
-        const int iHandle{ var.mHandleIndexes[ 0 ] };
+        const BufferHandle bufferHandle{ var.mHandleIndexes[ 0 ] };
 
-        TAC_ASSERT_MSG( !binding.mType. IsTexture(),
+        TAC_ASSERT_MSG( !binding.mType.IsTexture(),
                         "textures must be bound thorugh descriptor tables" );
 
         // this includes constant buffers
         TAC_ASSERT( binding.mType.IsBuffer() );
 
-        DX12Buffer* buffer{ mBufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
+        const DX12Buffer* buffer{ mBufferMgr->FindBuffer( bufferHandle ) };
         TAC_ASSERT( buffer );
-        gpuVirtualAddress = buffer->mGPUVirtualAddr;
+
+        const D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress{ buffer->mGPUVirtualAddr };
         TAC_ASSERT( gpuVirtualAddress );
 
         if( binding.mType.IsConstantBuffer() )
@@ -215,7 +225,7 @@ namespace Tac::Render
   {
     TAC_ASSERT( !mState.mExecuted );
 
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    ID3D12GraphicsCommandList* commandList{ GetCommandList() };
     if( !commandList )
       return; // This context has been (&&) moved
 
@@ -237,11 +247,9 @@ namespace Tac::Render
     for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
       mState.mDescriptorCaches[ i ].SetFence( fenceSignal );
 
-
     mCommandAllocatorPool->Retire( mCommandAllocator, fenceSignal );
     mCommandAllocator = {};
     mGPUUploadAllocator.FreeAll( fenceSignal );
-
     mState.mExecuted = true;
   }
 
@@ -389,7 +397,7 @@ namespace Tac::Render
 
     mState.mRenderTargetColors = rtDescs;
 
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
+    ID3D12GraphicsCommandList* commandList{ GetCommandList() };
     transitionHelper.ResourceBarrier( commandList );
     commandList->OMSetRenderTargets( ( UINT )rtDescs.size(), rtDescs.data(), false, pDSV );
   }

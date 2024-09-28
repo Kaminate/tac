@@ -2,34 +2,56 @@
 
 namespace Tac::Render
 {
-  void PipelineBindlessArray::SetBufferAtIndex( int i, BufferHandle h)
+  // -----------------------------------------------------------------------------------------------
+
+  PipelineBindlessArray::Binding::Binding( int i ) : mIndex{ i } {}
+
+  // -----------------------------------------------------------------------------------------------
+
+  PipelineBindlessArray::Binding PipelineBindlessArray::BindBuffer( BufferHandle h )
   {
     TAC_ASSERT( mType.IsBuffer() );
-    SetArrayElement( i, h.GetIndex() );
+    return BindInternal( h.GetIndex() );
   }
 
-  void PipelineBindlessArray::SetTextureAtIndex( int i, TextureHandle h )
+  PipelineBindlessArray::Binding PipelineBindlessArray::BindTexture( TextureHandle h )
   {
     TAC_ASSERT( mType.IsTexture() );
-    SetArrayElement( i, h.GetIndex() );
+    return BindInternal( h.GetIndex() );
   }
 
-  void PipelineBindlessArray::SetSamplerAtIndex( int i, SamplerHandle h )
+  PipelineBindlessArray::Binding PipelineBindlessArray::BindSampler( SamplerHandle h )
   {
     TAC_ASSERT( mType.IsSampler() );
-    SetArrayElement( i, h.GetIndex() );
+    return BindInternal( h.GetIndex() );
   }
 
-  void PipelineBindlessArray::SetArrayElement( int i, int iHandle )
+  void                           PipelineBindlessArray::Unbind( Binding binding )
   {
-    TAC_ASSERT_INDEX( i, 1000 ); // sanity
-
-    // resize unbounded array
-    if( i>= mHandleIndexes.size() )
-      mHandleIndexes.resize( i + 1, -1 );
-
-    mHandleIndexes[ i ] = iHandle;
+    mUnusedBindings.push_back( binding );
+    mHandleIndexes[ binding.mIndex ] = IHandle::kInvalidIndex;
   }
 
-}
+  PipelineBindlessArray::Binding PipelineBindlessArray::BindInternal(  int iHandle )
+  {
+    TAC_ASSERT_INDEX( iHandle, 1000 ); // sanity
+
+    if( mUnusedBindings.empty() )
+    {
+      const int n{ mHandleIndexes.size() };
+      const Binding binding{ n };
+      mHandleIndexes.resize( n + 1, iHandle );
+      return binding;
+    }
+    else
+    {
+      const Binding binding{ mUnusedBindings.back() };
+      mUnusedBindings.pop_back();
+      mHandleIndexes[ binding.mIndex ] = iHandle;
+      return binding;
+    }
+
+  }
+
+} // namespace Tac::Render
 
