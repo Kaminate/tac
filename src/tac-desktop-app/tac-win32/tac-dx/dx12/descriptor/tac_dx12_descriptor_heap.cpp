@@ -48,13 +48,13 @@ namespace Tac::Render
     {
       mCommandQueue = commandQueue;
 
-      const DX12DescriptorRegionManager::Params regionMgrParams
+      const DX12DescriptorAllocator::Params regionMgrParams
       {
         .mDescriptorHeap { this },
         .mCommandQueue   { commandQueue },
       };
 
-      mRegionMgr = TAC_NEW DX12DescriptorRegionManager;
+      mRegionMgr = TAC_NEW DX12DescriptorAllocator;
       mRegionMgr->Init( regionMgrParams );
     }
   }
@@ -134,7 +134,7 @@ namespace Tac::Render
     return mName;
   }
 
-  DX12DescriptorRegionManager* DX12DescriptorHeap::GetRegionMgr()
+  DX12DescriptorAllocator* DX12DescriptorHeap::GetRegionMgr()
   {
     return mRegionMgr;
   }

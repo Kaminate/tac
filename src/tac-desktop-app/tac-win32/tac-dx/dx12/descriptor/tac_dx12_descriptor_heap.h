@@ -13,7 +13,7 @@ namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
-  struct DX12DescriptorRegionManager;
+  struct DX12DescriptorAllocator;
   struct DX12CommandQueue;
   struct DX12DescriptorHeap
   {
@@ -38,7 +38,7 @@ namespace Tac::Render
     DX12Descriptor               Allocate( int = 1 );
     void                         Free( DX12Descriptor );
 
-    DX12DescriptorRegionManager* GetRegionMgr();
+    DX12DescriptorAllocator* GetRegionMgr();
     StringView                   GetName();
 
   private:
@@ -46,7 +46,7 @@ namespace Tac::Render
     int                          AllocateIndex();
 
     String                       mName{};
-    DX12DescriptorRegionManager* mRegionMgr{};
+    DX12DescriptorAllocator* mRegionMgr{};
     int                          mUsedIndexCount{};
     Vector< int >                mFreeIndexes{};
     PCom< ID3D12DescriptorHeap > mHeap{};

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_gpu_mgr.h" // DX12DescriptorRegion
+#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_allocator.h" // DX12DescriptorRegion
 #include "tac-dx/dx12/program/tac_dx12_program_bind_type.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-rhi/render3/tac_render_api.h"

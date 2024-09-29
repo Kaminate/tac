@@ -7,7 +7,7 @@
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
-#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_gpu_mgr.h"
+#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_allocator.h"
 #include "tac-dx/pix/tac_pix_runtime.h"
 
 

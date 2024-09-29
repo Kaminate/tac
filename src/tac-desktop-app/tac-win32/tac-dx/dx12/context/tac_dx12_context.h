@@ -6,7 +6,7 @@
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-dx/dx12/tac_dx12_gpu_upload_allocator.h"
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_allocation.h"
-#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_gpu_mgr.h"
+#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_allocator.h"
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_cache.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_backend.h"

@@ -1,4 +1,4 @@
-#include "tac_dx12_descriptor_heap_gpu_mgr.h" // self-inc
+#include "tac_dx12_descriptor_allocator.h" // self-inc
 #include "tac-std-lib/os/tac_os.h"
 
 #define TAC_GPU_REGION_DEBUG() TAC_IS_DEBUG_MODE() && 0
@@ -10,7 +10,7 @@
 namespace Tac::Render
 {
 
-  StringView DX12DescriptorRegionManager::RegionDesc::StateToString( State state )
+  StringView DX12DescriptorAllocator::RegionDesc::StateToString( State state )
   {
     switch( state )
     {
@@ -25,8 +25,8 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
   DX12DescriptorRegion::DX12DescriptorRegion( DX12Descriptor desc,
-                                              DX12DescriptorRegionManager* mgr,
-                                              DX12DescriptorRegionManager::RegionIndex regionIndex )
+                                              DX12DescriptorAllocator* mgr,
+                                              DX12DescriptorAllocator::RegionIndex regionIndex )
   {
     ( DX12Descriptor& )( *this ) = desc;
     mRegionManager = mgr;
@@ -56,24 +56,24 @@ namespace Tac::Render
     if( !mRegionManager )
       return;
 
-    DX12DescriptorRegionManager::RegionDesc* regionDesc{
+    DX12DescriptorAllocator::RegionDesc* regionDesc{
       mRegionManager->GetRegionAtIndex( mRegionIndex ) };
 
     if( !regionDesc )
       return;
 
-    if( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated )
+    if( regionDesc->mState == DX12DescriptorAllocator::RegionDesc::kAllocated )
     {
       mRegionManager->Free( regionDesc );
     }
   }
 
-  DX12DescriptorRegionManager::RegionIndex DX12DescriptorRegion::GetRegionIndex() const
-  {
-    return mRegionIndex;
-  }
+  //DX12DescriptorAllocator::RegionIndex DX12DescriptorRegion::GetRegionIndex() const
+  //{
+  //  return mRegionIndex;
+  //}
 
-  void DX12DescriptorRegion::SetFence( FenceSignal fenceSignal )
+  void DX12DescriptorRegion::Free( FenceSignal fenceSignal )
   {
 
 #if TAC_GPU_REGION_DEBUG()
@@ -84,11 +84,11 @@ namespace Tac::Render
     mRegionManager->DebugTitleBegin( dbgTitle );
 #endif
 
-    DX12DescriptorRegionManager::RegionDesc* regionDesc{
+    DX12DescriptorAllocator::RegionDesc* regionDesc{
       mRegionManager->GetRegionAtIndex( mRegionIndex ) };
 
-    TAC_ASSERT( regionDesc->mState == DX12DescriptorRegionManager::RegionDesc::kAllocated );
-    regionDesc->mState = DX12DescriptorRegionManager::RegionDesc::kPendingFree;
+    TAC_ASSERT( regionDesc->mState == DX12DescriptorAllocator::RegionDesc::kAllocated );
+    regionDesc->mState = DX12DescriptorAllocator::RegionDesc::kPendingFree;
     regionDesc->mFence = fenceSignal;
 
     //------------------
@@ -103,7 +103,7 @@ namespace Tac::Render
     //------------------
 
     mRegionManager->mPendingFreeNodes.push_back( mRegionManager->GetIndex( regionDesc ) );
-    mRegionIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
+    mRegionIndex = DX12DescriptorAllocator::RegionIndex::kNull;
 
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
@@ -119,8 +119,8 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12DescriptorRegionManager::RegionDesc::PosInsertAfter( RegionDesc* left,
-                                                                DX12DescriptorRegionManager* mgr )
+  void DX12DescriptorAllocator::RegionDesc::PosInsertAfter( RegionDesc* left,
+                                                                DX12DescriptorAllocator* mgr )
   {
     const RegionIndex iMiddle{ mgr->GetIndex( this ) };
     const RegionIndex iRight{ left->mRightIndex };
@@ -135,7 +135,7 @@ namespace Tac::Render
     mRightIndex = iRight;
   }
 
-  void DX12DescriptorRegionManager::RegionDesc::PosRemove(  DX12DescriptorRegionManager* mgr )
+  void DX12DescriptorAllocator::RegionDesc::PosRemove(  DX12DescriptorAllocator* mgr )
   {
     if( RegionDesc * left{ mgr->GetRegionAtIndex( mLeftIndex ) } )
     {
@@ -147,15 +147,15 @@ namespace Tac::Render
       right->mLeftIndex = mLeftIndex;
     }
 
-    mLeftIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
-    mRightIndex = DX12DescriptorRegionManager::RegionIndex::kNull;
+    mLeftIndex = DX12DescriptorAllocator::RegionIndex::kNull;
+    mRightIndex = DX12DescriptorAllocator::RegionIndex::kNull;
   }
 
 
   // -----------------------------------------------------------------------------------------------
 
 
-  void DX12DescriptorRegionManager::Init( Params params )
+  void DX12DescriptorAllocator::Init( Params params )
   {
     mOwner = params.mDescriptorHeap; 
     mCommandQueue = params.mCommandQueue ;
@@ -179,12 +179,12 @@ namespace Tac::Render
     mFreeNodes.push_back( ( RegionIndex )0 );
   }
 
-  DX12DescriptorRegionManager::RegionIndex DX12DescriptorRegionManager::GetIndex( RegionDesc* region ) const
+  DX12DescriptorAllocator::RegionIndex DX12DescriptorAllocator::GetIndex( RegionDesc* region ) const
   {
     return RegionIndex( region - mRegions.data() );
   }
 
-  void           DX12DescriptorRegionManager::DebugTitleBegin( StringView title )
+  void           DX12DescriptorAllocator::DebugTitleBegin( StringView title )
   {
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
@@ -197,7 +197,7 @@ namespace Tac::Render
 #endif
   }
 
-  void           DX12DescriptorRegionManager::DebugTitleEnd( StringView title )
+  void           DX12DescriptorAllocator::DebugTitleEnd( StringView title )
   {
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
@@ -210,7 +210,7 @@ namespace Tac::Render
 #endif
   }
 
-  DX12DescriptorRegion DX12DescriptorRegionManager::Alloc( const int descriptorCount )
+  DX12DescriptorRegion DX12DescriptorAllocator::Alloc( const int descriptorCount )
   {
     if( ++mPump % 8 == 0 ) { PumpFreeQueue(); }
 
@@ -305,7 +305,7 @@ namespace Tac::Render
     return DX12DescriptorRegion( descriptor, this, iAlloc );
   }
 
-  String DX12DescriptorRegionManager::DebugPendingFreeListString()
+  String DX12DescriptorAllocator::DebugPendingFreeListString()
   {
     const FenceSignal lastCompleted{ mCommandQueue->GetLastCompletedFenceValue() };
     const int nPendingFree{ mPendingFreeNodes.size() };
@@ -335,7 +335,7 @@ namespace Tac::Render
     return str;
   }
 
-  String DX12DescriptorRegionManager::DebugFreeListString()
+  String DX12DescriptorAllocator::DebugFreeListString()
   {
     String str;
     str += "( free list: ";
@@ -354,7 +354,7 @@ namespace Tac::Render
     return str;
   }
 
-  void DX12DescriptorRegionManager::DebugPrint()
+  void DX12DescriptorAllocator::DebugPrint()
   {
     String str;
     for( int i{}; i < 100; ++i)
@@ -407,7 +407,7 @@ namespace Tac::Render
     OS::OSDebugPrintLine("");
   }
 
-  void DX12DescriptorRegionManager::PumpFreeQueue()
+  void DX12DescriptorAllocator::PumpFreeQueue()
   {
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
@@ -447,12 +447,12 @@ namespace Tac::Render
 #endif
   }
 
-  DX12DescriptorRegionManager::RegionDesc* DX12DescriptorRegionManager::GetRegionAtIndex( RegionIndex index )
+  DX12DescriptorAllocator::RegionDesc* DX12DescriptorAllocator::GetRegionAtIndex( RegionIndex index )
   {
     return index == RegionIndex::kNull ? nullptr : &mRegions[ ( int )index ];
   }
 
-  void DX12DescriptorRegionManager::Free( RegionDesc* region )
+  void DX12DescriptorAllocator::Free( RegionDesc* region )
   {
 #if TAC_GPU_REGION_DEBUG()
     const RegionIndex index{ GetIndex( region ) };
@@ -524,7 +524,7 @@ namespace Tac::Render
   //{
   //}
 
-  void DX12DescriptorRegionManager::RemoveFromFreeList( RegionDesc* toRemove )
+  void DX12DescriptorAllocator::RemoveFromFreeList( RegionDesc* toRemove )
   {
     const RegionIndex iToRemove{ GetIndex( toRemove ) };
     const int n { mFreeNodes.size() };

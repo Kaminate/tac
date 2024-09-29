@@ -6,7 +6,7 @@ namespace Tac::Render
   void DX12DescriptorCache::SetFence( FenceSignal fenceSignal )
   {
     for( DX12DescriptorRegion& gpuDesc : mGPUDescs )
-      gpuDesc.SetFence( fenceSignal );
+      gpuDesc.Free( fenceSignal );
 
     Clear();
   }
@@ -18,7 +18,7 @@ namespace Tac::Render
     mGPUIndexes.clear();
   }
 
-  void DX12DescriptorCache::SetRegionManager( DX12DescriptorRegionManager* gpuRegionMgr )
+  void DX12DescriptorCache::SetRegionManager( DX12DescriptorAllocator* gpuRegionMgr )
   {
     mGpuRegionMgr = gpuRegionMgr;
   }
@@ -54,10 +54,11 @@ namespace Tac::Render
     const int n{ mCPUDescs.size() };
     for( int i{}; i < n; ++i )
     {
-      if( mCPUDescs[ i ].mIndex == cpuDescriptor.mIndex )
+      const DX12Descriptor& curCpuDesc{ mCPUDescs[ i ] };
+      if( curCpuDesc.mIndex == cpuDescriptor.mIndex )
       {
-        TAC_ASSERT( mCPUDescs[ i ].mOwner == cpuDescriptor.mOwner );
-        TAC_ASSERT( mCPUDescs[ i ].mCount >= cpuDescriptor.mCount );
+        TAC_ASSERT( curCpuDesc.mOwner == cpuDescriptor.mOwner );
+        TAC_ASSERT( curCpuDesc.mCount >= cpuDescriptor.mCount );
         return &mGPUDescs[ mGPUIndexes[ i ] ];
       }
     }

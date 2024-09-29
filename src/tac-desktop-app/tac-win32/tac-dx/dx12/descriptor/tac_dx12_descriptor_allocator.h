@@ -21,9 +21,9 @@ namespace Tac::Render
 {
   // Fwd decl for types defined in this file
   struct DX12DescriptorRegion;
-  struct DX12DescriptorRegionManager;
+  struct DX12DescriptorAllocator;
 
-  struct DX12DescriptorRegionManager
+  struct DX12DescriptorAllocator
   {
     struct Params
     {
@@ -60,8 +60,8 @@ namespace Tac::Render
       State       mState            { kUnknown };
       FenceSignal mFence            {};
 
-      void PosInsertAfter( RegionDesc*, DX12DescriptorRegionManager* );
-      void PosRemove( DX12DescriptorRegionManager* );
+      void PosInsertAfter( RegionDesc*, DX12DescriptorAllocator* );
+      void PosRemove( DX12DescriptorAllocator* );
 
       static StringView StateToString( State );
     };
@@ -93,22 +93,22 @@ namespace Tac::Render
   {
     DX12DescriptorRegion() = default;
     DX12DescriptorRegion( DX12Descriptor,
-                          DX12DescriptorRegionManager*,
-                          DX12DescriptorRegionManager::RegionIndex mRegionIndex );
+                          DX12DescriptorAllocator*,
+                          DX12DescriptorAllocator::RegionIndex mRegionIndex );
     DX12DescriptorRegion( DX12DescriptorRegion&& );
     ~DX12DescriptorRegion();
 
-    void                                     SetFence( FenceSignal );
-    DX12DescriptorRegionManager::RegionIndex GetRegionIndex() const;
+    void                                     Free( FenceSignal );
+    //DX12DescriptorAllocator::RegionIndex GetRegionIndex() const;
 
     void operator = ( DX12DescriptorRegion&& );
     void operator = ( const DX12DescriptorRegion& ) = delete;
 
   private:
     void SwapWith( DX12DescriptorRegion&& );
-    DX12DescriptorRegionManager*             mRegionManager {};
-    DX12DescriptorRegionManager::RegionIndex mRegionIndex{
-      DX12DescriptorRegionManager::RegionIndex::kNull };
+    DX12DescriptorAllocator*             mRegionManager {};
+    DX12DescriptorAllocator::RegionIndex mRegionIndex{
+      DX12DescriptorAllocator::RegionIndex::kNull };
   };
 
 } // namespace Tac::Render
