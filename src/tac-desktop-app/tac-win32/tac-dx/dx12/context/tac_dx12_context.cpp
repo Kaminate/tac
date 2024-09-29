@@ -50,67 +50,63 @@ namespace Tac::Render
     mCommandList = params.mCommandList;
     TAC_ASSERT( mCommandList );
 
-    mGPUUploadAllocator.Init( params.mUploadPageManager );
+    mGPUUploadAllocator.Init( &DX12Renderer::sRenderer.mUploadPageManager );
 
-    mCommandAllocatorPool = params.mCommandAllocatorPool;
+    mCommandAllocatorPool = &DX12Renderer::sRenderer.mCommandAllocatorPool;
     TAC_ASSERT( mCommandAllocatorPool );
 
-    mContextManager = params.mContextManager;
+    mContextManager = &DX12Renderer::sRenderer.mContextManager;
     TAC_ASSERT( mContextManager );
 
-    mCommandQueue = params.mCommandQueue;
+    mCommandQueue = &DX12Renderer::sRenderer.mCommandQueue;
     TAC_ASSERT( mCommandQueue );
 
-    mSwapChainMgr = params.mSwapChainMgr;
+    mSwapChainMgr = &DX12Renderer::sRenderer.mSwapChainMgr;
     TAC_ASSERT( mSwapChainMgr );
 
-    mTextureMgr = params.mTextureMgr;
+    mTextureMgr = &DX12Renderer::sRenderer.mTexMgr;
     TAC_ASSERT( mTextureMgr );
 
-    mBufferMgr = params.mBufferMgr;
+    mBufferMgr = &DX12Renderer::sRenderer.mBufMgr;
     TAC_ASSERT( mBufferMgr );
 
-    mPipelineMgr = params.mPipelineMgr;
+    mPipelineMgr = &DX12Renderer::sRenderer.mPipelineMgr;
     TAC_ASSERT( mPipelineMgr );
 
-    mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ]
-      = params.mGpuDescriptorHeapCBV_SRV_UAV;
-    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] );
+    mGpuDescriptorHeaps = &DX12Renderer::sRenderer.mGpuDescriptorHeaps;
+    TAC_ASSERT( mGpuDescriptorHeaps );
 
-    mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ]
-      = params.mGpuDescriptorHeapSampler;
-    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ] );
-
-    mSamplerMgr = params.mSamplerMgr;
+    mSamplerMgr = &DX12Renderer::sRenderer.mSamplerMgr;
     TAC_ASSERT( mSamplerMgr );
 
-    mDevice = params.mDevice;
+    mDevice = DX12Renderer::sRenderer.mDevice;
     TAC_ASSERT( mDevice );
   }
 
   void DX12Context::CommitShaderVariables()
   {
-    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] );
-    TAC_ASSERT( mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ] );
-
     DX12Pipeline* pipeline{ mPipelineMgr->FindPipeline( mState.mPipeline ) };
     if( !pipeline )
       return;
 
-    FixedVector< ID3D12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES > descHeaps;
+    const int iResource{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV };
+    const int iSampler{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER };
 
-    for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    DX12DescriptorHeap& heap_Resource{ ( *mGpuDescriptorHeaps )[ iResource ] };
+    DX12DescriptorHeap& heap_Sampler{ ( *mGpuDescriptorHeaps )[ iSampler ] };
+
+    const Array descHeaps
     {
-      if( DX12DescriptorHeap* gpuHeap{ mGpuDescriptorHeaps[ i ] } )
-      {
-        descHeaps.push_back( gpuHeap->GetID3D12DescriptorHeap() );
-        mState.mDescriptorCaches[ i ].SetRegionManager( gpuHeap->GetRegionMgr() ); // ugly
-      }
-    }
+      heap_Resource.GetID3D12DescriptorHeap(),
+      heap_Sampler.GetID3D12DescriptorHeap(),
+    };
+
+    mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Resource.GetRegionMgr() ); // ugly
+    mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Sampler.GetRegionMgr() ); // ugly
+
 
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
-
 
     const int n{ pipeline->mShaderVariables.size() };
     for( int i{}; i < n; ++i )

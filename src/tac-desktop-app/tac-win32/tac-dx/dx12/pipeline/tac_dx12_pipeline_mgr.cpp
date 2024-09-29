@@ -2,10 +2,11 @@
 
 #include "tac-dx/dx12/program/tac_dx12_program_mgr.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
-#include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-dx/dx12/pipeline/tac_dx12_root_sig_builder.h"
 #include "tac-dx/dx12/pipeline/tac_dx12_input_layout.h"
 #include "tac-dx/dx12/tac_dx12_command_queue.h"
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
+#include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
@@ -83,18 +84,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12PipelineMgr::Init( Params params )
-  {
-    mDevice = params.mDevice;
-    TAC_ASSERT( mDevice );
-
-    mProgramMgr = params.mProgramMgr;
-    TAC_ASSERT( mProgramMgr );
-
-    mCommandQueue = params.mCommandQueue;
-    TAC_ASSERT( mCommandQueue );
-  }
-
   void DX12PipelineMgr::DestroyPipeline( PipelineHandle h )
   {
     if( h.IsValid() )
@@ -110,8 +99,9 @@ namespace Tac::Render
   {
     TAC_ASSERT( params.mProgram.IsValid() );
 
-    ID3D12Device* device{ mDevice };
-    DX12Program* program{ mProgramMgr->FindProgram( params.mProgram ) };
+    ID3D12Device* device{ DX12Renderer::sRenderer. mDevice };
+    DX12ProgramMgr* programMgr{ &DX12Renderer::sRenderer.mProgramMgr };
+    DX12Program* program{ programMgr->FindProgram( params.mProgram ) };
 
     const D3D12_RASTERIZER_DESC RasterizerState
     {
@@ -243,11 +233,13 @@ namespace Tac::Render
     if( changedPrograms.empty() )
       return;
 
+    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+
     // try prevent error OBJECT_DELETED_WHILE_STILL_IN_USE when deleting a pipeline that referenced
     // by in-flight operations on a command queue
-    TAC_CALL( mCommandQueue->WaitForIdle( errors ) );
+    TAC_CALL( commandQueue->WaitForIdle( errors ) );
 
-    const int n{mPipelines.size()};
+    const int n{ mPipelines.size() };
     for( int i{}; i < n; ++i )
     {
       DX12Pipeline& pipeline{ mPipelines[ i ] };

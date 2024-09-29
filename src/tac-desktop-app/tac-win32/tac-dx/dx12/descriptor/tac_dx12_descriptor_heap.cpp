@@ -1,7 +1,7 @@
 #include "tac_dx12_descriptor_heap.h" // self-inc
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-dx/dx12/tac_dx12_fence.h"
-#include "tac-dx\dx12\descriptor\tac_dx12_descriptor_heap_gpu_mgr.h"
+#include "tac-dx\dx12\descriptor\tac_dx12_descriptor_allocator.h"
 
 #include "tac-dx/dx12/tac_dx12_command_queue.h"
 

@@ -19,12 +19,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12SamplerMgr::Init( Params params )
-  {
-    mDevice = params.mDevice;
-    mCpuDescriptorHeapSampler = params.mCpuDescriptorHeapSampler;
-    TAC_ASSERT( mDevice && mCpuDescriptorHeapSampler );
-  }
 
   DX12Sampler* DX12SamplerMgr::FindSampler( SamplerHandle h )
   {

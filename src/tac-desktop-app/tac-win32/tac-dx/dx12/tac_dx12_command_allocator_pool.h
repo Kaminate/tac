@@ -28,7 +28,6 @@ namespace Tac::Render
   // commandlistallocators
   struct DX12CommandAllocatorPool
   {
-    void                           Init( ID3D12Device*, DX12CommandQueue* );
     
     void                           Retire( PCom< ID3D12CommandAllocator >, FenceSignal  );
     PCom< ID3D12CommandAllocator > GetAllocator( FenceSignal, Errors&  );
@@ -44,9 +43,7 @@ namespace Tac::Render
       FenceSignal                    mSignalValue;
     };
 
-    ID3D12Device*         m_device        {};
     RingVector< Element > mElements       {};
-    DX12CommandQueue*     mCommandQueue   {};
     int                   mAllocatorCount {};
   };
 

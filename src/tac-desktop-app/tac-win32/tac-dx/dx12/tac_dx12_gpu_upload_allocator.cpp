@@ -3,6 +3,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 
 
 namespace Tac::Render
@@ -109,25 +110,19 @@ namespace Tac::Render
 
   // GPUUploadPageManager
 
-  void           DX12UploadPageMgr::Init( ID3D12Device* device, DX12CommandQueue* commandQueue )
-  {
-    mDevice = device;
-    mCommandQueue = commandQueue;
-    TAC_ASSERT( mDevice );
-    TAC_ASSERT( mCommandQueue );
-  };
 
   void           DX12UploadPageMgr::UnretirePages()
   {
-    int n { mRetiredPages.size() };
+    DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    dynmc int n { mRetiredPages.size() };
     if( !n )
       return;
 
     int i{};
     while( i < n )
     {
-      RetiredPage& currPage { mRetiredPages[ i ] };
-      RetiredPage& backPage { mRetiredPages[ n - 1 ] };
+      dynmc RetiredPage& currPage { mRetiredPages[ i ] };
+      dynmc RetiredPage& backPage { mRetiredPages[ n - 1 ] };
 
       const FenceSignal fenceValue { currPage.mFence };
       if( mCommandQueue->IsFenceComplete( fenceValue ) )
@@ -200,6 +195,7 @@ namespace Tac::Render
     };
 
     const D3D12_RESOURCE_STATES resourceState{ D3D12_RESOURCE_STATE_GENERIC_READ };
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
 
     PCom< ID3D12Resource > buffer;
     TAC_DX12_CALL_RET( {}, mDevice->CreateCommittedResource(

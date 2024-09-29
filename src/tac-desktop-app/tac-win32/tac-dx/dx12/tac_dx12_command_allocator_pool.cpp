@@ -1,17 +1,12 @@
-#include  "tac_dx12_command_allocator_pool.h" // self-inc
-#include  "tac_dx12_command_queue.h"
+#include "tac_dx12_command_allocator_pool.h" // self-inc
+#include "tac_dx12_command_queue.h"
 
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 
 namespace Tac::Render
 {
 
-  void DX12CommandAllocatorPool::Init( ID3D12Device* device,
-                                       DX12CommandQueue* commandQueue )
-  {
-    mCommandQueue = commandQueue;
-    m_device = device;
-  }
 
   void DX12CommandAllocatorPool::Retire( PCom< ID3D12CommandAllocator > allocator,
                                  FenceSignal signalVal )
@@ -29,10 +24,12 @@ namespace Tac::Render
   {
     PCom< ID3D12CommandAllocator > allocator;
 
+    ID3D12Device* device{ DX12Renderer::sRenderer.mDevice };
+    TAC_ASSERT( device );
+
     // a command allocator manages storage for cmd lists and bundles
-    TAC_ASSERT( m_device );
     TAC_DX12_CALL_RET( {},
-                       m_device->CreateCommandAllocator(
+                       device->CreateCommandAllocator(
                        D3D12_COMMAND_LIST_TYPE_DIRECT,
                        allocator.iid(),
                        allocator.ppv() ) );
@@ -44,7 +41,8 @@ namespace Tac::Render
 
   PCom< ID3D12CommandAllocator > DX12CommandAllocatorPool::GetAllocator( Errors& errors )
   {
-    FenceSignal fenceSignal { mCommandQueue->GetLastCompletedFenceValue() };
+    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    FenceSignal fenceSignal { commandQueue->GetLastCompletedFenceValue() };
     return GetAllocator( fenceSignal, errors );
   }
 

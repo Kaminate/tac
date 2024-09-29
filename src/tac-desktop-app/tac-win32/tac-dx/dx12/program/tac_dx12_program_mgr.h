@@ -9,13 +9,7 @@ namespace Tac::Render
 {
   struct DX12ProgramMgr
   {
-    struct Params
-    {
-      ID3D12Device*    mDevice      {};
-      DX12PipelineMgr* mPipelineMgr {};
-    };
-
-    void          Init( Params, Errors& );
+    void          Init( Errors& );
     ProgramHandle CreateProgram( ProgramParams, Errors& );
     String        GetProgramBindings_TEST( ProgramHandle );
     void          DestroyProgram( ProgramHandle );

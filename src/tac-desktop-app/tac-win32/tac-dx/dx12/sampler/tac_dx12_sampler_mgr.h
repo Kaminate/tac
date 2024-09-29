@@ -9,13 +9,6 @@ namespace Tac::Render
 {
   struct DX12SamplerMgr
   {
-    struct Params
-    {
-      ID3D12Device*       mDevice{};
-      DX12DescriptorHeap* mCpuDescriptorHeapSampler{};
-    };
-
-    void          Init( Params );
     SamplerHandle CreateSampler( CreateSamplerParams );
     void          DestroySampler( SamplerHandle );
     DX12Sampler*  FindSampler( SamplerHandle );

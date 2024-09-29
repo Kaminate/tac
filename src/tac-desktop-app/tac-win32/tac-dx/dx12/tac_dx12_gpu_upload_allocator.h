@@ -24,7 +24,6 @@ namespace Tac::Render
 
   struct DX12UploadPageMgr
   {
-    void           Init( ID3D12Device* , DX12CommandQueue* );
     DX12UploadPage RequestPage( int byteCount, Errors& );
     void           RetirePage( DX12UploadPage, FenceSignal );
 
@@ -43,9 +42,6 @@ namespace Tac::Render
     //Vector< RetiredPage >    mRetiredLargePages; // Retired large pages get deleted
     Vector< DX12UploadPage > mAvailablePages;
 
-    // singletons
-    PCom< ID3D12Device >     mDevice;
-    DX12CommandQueue*        mCommandQueue {};
     std::mutex               mPagesMutex;
   };
 

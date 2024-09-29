@@ -21,15 +21,6 @@ namespace Tac::Render
 
   struct DX12TextureMgr
   {
-    struct Params
-    {
-      ID3D12Device*       mDevice                       {};
-      DX12DescriptorHeap* mCpuDescriptorHeapRTV         {};
-      DX12DescriptorHeap* mCpuDescriptorHeapDSV         {};
-      DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV {};
-      DX12ContextManager* mContextManager               {};
-    };
-    void          Init( Params );
     TextureHandle CreateTexture( CreateTextureParams, Errors& );
     void          CreateRenderTargetColor( TextureHandle, PCom< ID3D12Resource >, Errors& );
     void          UpdateTexture( TextureHandle, UpdateTextureParams, DX12Context*, Errors& );
@@ -47,13 +38,14 @@ namespace Tac::Render
 
     struct Bindings
     {
+      Bindings() = default;
+      Bindings(  ID3D12Resource*, Binding );
+
       Optional< DX12Descriptor > mRTV;
       Optional< DX12Descriptor > mDSV;
       Optional< DX12Descriptor > mSRV;
       Optional< DX12Descriptor > mUAV;
     };
-
-    Bindings CreateBindings( ID3D12Resource*, Binding );
 
     void     UploadTextureData( ID3D12Resource*,
                                 D3D12_RESOURCE_STATES*,
@@ -62,10 +54,5 @@ namespace Tac::Render
                                 Errors& );
 
     DX12Textures        mTextures                     {};
-    ID3D12Device*       mDevice                       {};
-    DX12DescriptorHeap* mCpuDescriptorHeapRTV         {};
-    DX12DescriptorHeap* mCpuDescriptorHeapDSV         {};
-    DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV {};
-    DX12ContextManager* mContextManager               {};
   };
 } // namespace Tac::Render

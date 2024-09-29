@@ -14,14 +14,6 @@ namespace Tac::Render
 {
   struct DX12BufferMgr
   {
-    struct Params
-    {
-      ID3D12Device*       mDevice{};
-      DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV{};
-      DX12ContextManager* mContextManager{};
-    };
-
-    void         Init( Params );
     BufferHandle CreateBuffer( CreateBufferParams, Errors& );
     void         UpdateBuffer( BufferHandle, Span< const UpdateBufferParams >, DX12Context*, Errors& );
     DX12Buffer*  FindBuffer( BufferHandle );
@@ -43,9 +35,6 @@ namespace Tac::Render
                                           D3D12_RESOURCE_STATES*,
                                           ID3D12GraphicsCommandList* );
 
-    ID3D12Device*       mDevice                       {};
-    DX12DescriptorHeap* mCpuDescriptorHeapCBV_SRV_UAV {};
-    DX12ContextManager* mContextManager               {};
     DX12Buffers         mBuffers                      {};
   };
 } // namespace Tac::Render

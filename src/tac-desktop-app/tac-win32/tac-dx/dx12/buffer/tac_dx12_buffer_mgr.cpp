@@ -1,9 +1,10 @@
 #include "tac_dx12_buffer_mgr.h" // self-inc
 
+#include "tac-dx/dx12/context/tac_dx12_context.h"
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
+#include "tac-dx/dx12/context/tac_dx12_context_manager.h"
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
-#include "tac-dx/dx12/context/tac_dx12_context.h"
-#include "tac-dx/dx12/context/tac_dx12_context_manager.h"
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
 
@@ -38,6 +39,7 @@ namespace Tac::Render
   DX12BufferMgr::DescriptorBindings DX12BufferMgr::CreateBindings( ID3D12Resource* resource,
                                                                    CreateBufferParams params )
   {
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
     const Binding binding{ params.mBinding };
 
     if( Binding{} != ( binding & Binding::VertexBuffer ) )
@@ -50,7 +52,10 @@ namespace Tac::Render
 
     if( Binding{} != ( binding & Binding::ShaderResource ) )
     {
-      const DX12Descriptor allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
+      DX12DescriptorHeap* descriptorHeapResource{
+        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
+
+      const DX12Descriptor allocation{ descriptorHeapResource->Allocate() };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
 
       TAC_ASSERT( params.mGpuBufferMode != GpuBufferMode::kUndefined );
@@ -93,9 +98,12 @@ namespace Tac::Render
       srv = allocation;
     }
 
+
     if( Binding{} != ( binding & Binding::UnorderedAccess ) )
     {
-      const DX12Descriptor allocation{ mCpuDescriptorHeapCBV_SRV_UAV->Allocate() };
+      DX12DescriptorHeap* descriptorHeapResource{
+        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
+      const DX12Descriptor allocation{ descriptorHeapResource->Allocate() };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
       mDevice->CreateUnorderedAccessView( resource, nullptr, nullptr, DestDescriptor );
       srv = allocation;
@@ -108,19 +116,14 @@ namespace Tac::Render
     };
   }
 
-  void DX12BufferMgr::Init( Params params )
-  {
-    mDevice = params.mDevice;
-    mCpuDescriptorHeapCBV_SRV_UAV = params.mCpuDescriptorHeapCBV_SRV_UAV;
-    mContextManager = params.mContextManager;
-    TAC_ASSERT( mDevice && mCpuDescriptorHeapCBV_SRV_UAV && mContextManager );
-  }
-
   BufferHandle DX12BufferMgr::CreateBuffer( CreateBufferParams params,
                                     Errors& errors)
   {
     const int byteCount { params.mByteCount };
     const StackFrame sf { params.mStackFrame };
+
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
+    DX12ContextManager* mContextManager{ &DX12Renderer::sRenderer.mContextManager };
 
     if( params.mUsage == Usage::Dynamic )
     {

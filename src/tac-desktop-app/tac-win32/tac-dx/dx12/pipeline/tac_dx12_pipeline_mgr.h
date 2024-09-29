@@ -9,14 +9,7 @@ namespace Tac::Render
 {
   struct DX12PipelineMgr
   {
-    struct Params
-    {
-      ID3D12Device*     mDevice       {};
-      DX12ProgramMgr*   mProgramMgr   {};
-      DX12CommandQueue* mCommandQueue {};
-    };
 
-    void           Init( Params );
     PipelineHandle CreatePipeline( PipelineParams, Errors& );
     void           DestroyPipeline( PipelineHandle );
     DX12Pipeline*  FindPipeline( PipelineHandle );
@@ -27,10 +20,7 @@ namespace Tac::Render
 
     void           CreatePipelineAtIndex( PipelineHandle, PipelineParams, Errors& );
 
-    DX12Pipelines     mPipelines    {};
-    ID3D12Device*     mDevice       {};
-    DX12ProgramMgr*   mProgramMgr   {};
-    DX12CommandQueue* mCommandQueue {};
+    DX12Pipelines  mPipelines    {};
   };
 } // namespace Tac::Render
 

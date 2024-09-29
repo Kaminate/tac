@@ -29,6 +29,46 @@ namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
+  struct DX12Renderer
+  {
+    static DX12Renderer sRenderer;
+
+    void                       Init( Errors& );
+
+    DX12DescriptorHeap&        GetCpuHeap_RTV();
+    DX12DescriptorHeap&        GetCpuHeap_DSV();
+    DX12DescriptorHeap&        GetCpuHeap_CBV_SRV_UAV();
+    DX12DescriptorHeap&        GetCpuHeap_Sampler();
+
+    DX12DescriptorHeap&        GetGPUHeap_CBV_SRV_UAV();
+    DX12DescriptorHeap&        GetGPUHeap_Sampler();
+
+    DX12CommandQueue           mCommandQueue;
+    DX12CommandAllocatorPool   mCommandAllocatorPool;
+    DX12ContextManager         mContextManager;
+    DX12UploadPageMgr          mUploadPageManager;
+    DX12DeviceInitializer      mDeviceInitializer;
+    DX12DebugLayer             mDebugLayer;
+    DX12InfoQueue              mInfoQueue;
+
+    // Managers
+    DX12SwapChainMgr           mSwapChainMgr;
+    DX12BufferMgr              mBufMgr;
+    DX12TextureMgr             mTexMgr;
+    DX12ProgramMgr             mProgramMgr;
+    DX12PipelineMgr            mPipelineMgr;
+    DX12SamplerMgr             mSamplerMgr;
+
+    // CPU Heaps (used for creating resources)
+    DX12DescriptorHeaps        mCpuDescriptorHeaps;
+
+    // GPU Heaps (used for rendering)
+    DX12DescriptorHeaps        mGpuDescriptorHeaps;
+    ID3D12Device*              mDevice{};
+
+  private:
+    void InitDescriptorHeaps( Errors& );
+  };
 
   struct DX12Device : public IDevice
   {

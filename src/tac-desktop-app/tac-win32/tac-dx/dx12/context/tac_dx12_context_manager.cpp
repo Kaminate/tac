@@ -23,34 +23,12 @@ namespace Tac::Render
     mAvailableContexts.push_back( context );
   }
 
-  void DX12ContextManager::Init( Params params, Errors& errors )
+  void DX12ContextManager::Init( Errors& errors )
   {
     TAC_CALL( PixRuntimeApi::Init(errors) );
 
-    mBufferMgr = params.mBufferMgr;
-    mCommandAllocatorPool = params.mCommandAllocatorPool;
-    mCommandQueue = params.mCommandQueue;
-    mGpuDescriptorHeapCBV_SRV_UAV = params.mGpuDescriptorHeapCBV_SRV_UAV;
-    mGpuDescriptorHeapSampler = params.mGpuDescriptorHeapSampler;
-    mPipelineMgr = params.mPipelineMgr;
-    mSamplerMgr = params.mSamplerMgr;
-    mSwapChainMgr = params.mSwapChainMgr;
-    mTextureMgr = params.mTextureMgr;
-    mUploadPageManager = params.mUploadPageManager;
-
-    params.mDevice->QueryInterface( mDevice.iid(), mDevice.ppv() );
+    DX12Renderer::sRenderer.mDevice->QueryInterface( mDevice.iid(), mDevice.ppv() );
     TAC_ASSERT( mDevice );
-
-    TAC_ASSERT( mBufferMgr );
-    TAC_ASSERT( mCommandAllocatorPool );
-    TAC_ASSERT( mCommandQueue );
-    TAC_ASSERT( mGpuDescriptorHeapCBV_SRV_UAV );
-    TAC_ASSERT( mGpuDescriptorHeapSampler );
-    TAC_ASSERT( mPipelineMgr );
-    TAC_ASSERT( mSamplerMgr );
-    TAC_ASSERT( mSwapChainMgr );
-    TAC_ASSERT( mTextureMgr );
-    TAC_ASSERT( mUploadPageManager );
   }
 
   DX12Context* DX12ContextManager::GetContext( Errors& errors )
@@ -65,18 +43,7 @@ namespace Tac::Render
       const DX12Context::Params params
       {
         .mCommandList                  { commandList },
-        .mUploadPageManager            { mUploadPageManager },
-        .mCommandAllocatorPool         { mCommandAllocatorPool },
         .mContextManager               { this },
-        .mCommandQueue                 { mCommandQueue },
-        .mSwapChainMgr                 { mSwapChainMgr },
-        .mTextureMgr                   { mTextureMgr },
-        .mBufferMgr                    { mBufferMgr },
-        .mPipelineMgr                  { mPipelineMgr },
-        .mSamplerMgr                   { mSamplerMgr },
-        .mGpuDescriptorHeapCBV_SRV_UAV { mGpuDescriptorHeapCBV_SRV_UAV },
-        .mGpuDescriptorHeapSampler     { mGpuDescriptorHeapSampler },
-        .mDevice                       { mDevice.Get() },
       };
 
       dx12Context = TAC_NEW DX12Context;

@@ -3,6 +3,7 @@
 
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac_dx12_descriptor_heap_allocation.h"
@@ -46,7 +47,7 @@ namespace Tac::Render
     int                          AllocateIndex();
 
     String                       mName{};
-    DX12DescriptorAllocator* mRegionMgr{};
+    DX12DescriptorAllocator*     mRegionMgr{};
     int                          mUsedIndexCount{};
     Vector< int >                mFreeIndexes{};
     PCom< ID3D12DescriptorHeap > mHeap{};
@@ -56,5 +57,7 @@ namespace Tac::Render
     UINT                         mDescriptorSize{};
     DX12CommandQueue*            mCommandQueue{};
   };
+
+  using DX12DescriptorHeaps = Array< DX12DescriptorHeap, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;
 } // namespace Tac::Render
 

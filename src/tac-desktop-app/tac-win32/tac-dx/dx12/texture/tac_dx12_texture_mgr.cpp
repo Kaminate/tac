@@ -3,6 +3,7 @@
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap.h"
 #include "tac-dx/dx12/context/tac_dx12_context_manager.h"
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
 
@@ -153,25 +154,14 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12TextureMgr::Init( Params params )
-  {
-    mDevice = params.mDevice;
-    mCpuDescriptorHeapRTV = params.mCpuDescriptorHeapRTV;
-    mCpuDescriptorHeapDSV = params.mCpuDescriptorHeapDSV;
-    mCpuDescriptorHeapCBV_SRV_UAV = params.mCpuDescriptorHeapCBV_SRV_UAV;
-    mContextManager = params.mContextManager;
-    TAC_ASSERT( mDevice );
-    TAC_ASSERT( mCpuDescriptorHeapRTV );
-    TAC_ASSERT( mCpuDescriptorHeapDSV );
-    TAC_ASSERT( mCpuDescriptorHeapCBV_SRV_UAV );
-    TAC_ASSERT( mContextManager );
-  }
 
   TextureHandle DX12TextureMgr::CreateTexture( CreateTextureParams params,
                                                Errors& errors )
   {
+    DX12ContextManager* mContextManager{ &DX12Renderer::sRenderer.mContextManager};
     const bool hasImageBytes{ !params.mSubresources.empty() };
     const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice};
 
     const D3D12_HEAP_TYPE heapType{ params.mUsage == Usage::Staging
         ? D3D12_HEAP_TYPE_UPLOAD
@@ -231,7 +221,7 @@ namespace Tac::Render
         errors ) );
     }
 
-    const Bindings bindings{ CreateBindings( pResource, params.mBinding ) };
+    const Bindings bindings( pResource, params.mBinding );
 
     ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
 
@@ -385,13 +375,14 @@ namespace Tac::Render
     }
   }
 
-  DX12TextureMgr::Bindings DX12TextureMgr::CreateBindings( ID3D12Resource* pResource,
-                                                           Binding binding )
+  DX12TextureMgr::Bindings::Bindings( ID3D12Resource* pResource, Binding binding )
   {
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
 
     Optional< DX12Descriptor > RTV;
     if( Binding{} != ( binding & Binding::RenderTarget ) )
     {
+      DX12DescriptorHeap* mCpuDescriptorHeapRTV{ &DX12Renderer::sRenderer.GetCpuHeap_RTV() };
       RTV = mCpuDescriptorHeapRTV->Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { RTV->GetCPUHandle() };
       const D3D12_RENDER_TARGET_VIEW_DESC* pRTVDesc{};
@@ -401,6 +392,7 @@ namespace Tac::Render
     Optional< DX12Descriptor > DSV;
     if( Binding{} != ( binding & Binding::DepthStencil ) )
     {
+      DX12DescriptorHeap* mCpuDescriptorHeapDSV{ &DX12Renderer::sRenderer.GetCpuHeap_DSV() };
       DSV = mCpuDescriptorHeapDSV->Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { DSV->GetCPUHandle() };
       const D3D12_DEPTH_STENCIL_VIEW_DESC* pDSVDesc{};
@@ -410,7 +402,9 @@ namespace Tac::Render
     Optional< DX12Descriptor > SRV;
     if( Binding{} != ( binding & Binding::ShaderResource ) )
     {
-      SRV = mCpuDescriptorHeapCBV_SRV_UAV->Allocate();
+      DX12DescriptorHeap* mCpuDescriptorHeapResource{
+        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
+      SRV = mCpuDescriptorHeapResource->Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { SRV->GetCPUHandle() };
       const D3D12_SHADER_RESOURCE_VIEW_DESC* pSRVDesc{};
       mDevice->CreateShaderResourceView( pResource, pSRVDesc, descDescriptor );
@@ -419,7 +413,9 @@ namespace Tac::Render
     Optional< DX12Descriptor > UAV;
     if( Binding{} != ( binding & Binding::UnorderedAccess ) )
     {
-      UAV = mCpuDescriptorHeapCBV_SRV_UAV->Allocate();
+      DX12DescriptorHeap* mCpuDescriptorHeapResource{
+        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
+      UAV = mCpuDescriptorHeapResource->Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { UAV->GetCPUHandle() };
       const D3D12_UNORDERED_ACCESS_VIEW_DESC* pUAVDesc{};
       mDevice->CreateUnorderedAccessView( pResource,
@@ -428,19 +424,18 @@ namespace Tac::Render
                                           descDescriptor );
     }
 
-    return Bindings
-    {
-      .mRTV{ RTV },
-      .mDSV{ DSV },
-      .mSRV{ SRV },
-      .mUAV{ UAV },
-    };
+    mRTV = RTV;
+    mDSV = DSV;
+    mSRV = SRV;
+    mUAV = UAV;
   }
 
   void DX12TextureMgr::CreateRenderTargetColor( TextureHandle h,
                                                 PCom<ID3D12Resource> resource,
                                                 Errors& errors )
   {
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice};
+    DX12DescriptorHeap* mCpuDescriptorHeapRTV{ &DX12Renderer::sRenderer.GetCpuHeap_RTV() };
     DX12Texture* texture { FindTexture( h ) };
     TAC_ASSERT( texture );
 

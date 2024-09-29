@@ -47,18 +47,7 @@ namespace Tac::Render
     struct Params
     {
       PCom< ID3D12GraphicsCommandList > mCommandList                  {};
-      DX12UploadPageMgr*                mUploadPageManager            {};
-      DX12CommandAllocatorPool*         mCommandAllocatorPool         {};
       DX12ContextManager*               mContextManager               {};
-      DX12CommandQueue*                 mCommandQueue                 {};
-      DX12SwapChainMgr*                 mSwapChainMgr                 {};
-      DX12TextureMgr*                   mTextureMgr                   {};
-      DX12BufferMgr*                    mBufferMgr                    {};
-      DX12PipelineMgr*                  mPipelineMgr                  {};
-      DX12SamplerMgr*                   mSamplerMgr                   {};
-      DX12DescriptorHeap*               mGpuDescriptorHeapCBV_SRV_UAV {};
-      DX12DescriptorHeap*               mGpuDescriptorHeapSampler     {};
-      ID3D12Device*                     mDevice                       {};
     };
 
     void Init( Params );
@@ -91,7 +80,6 @@ namespace Tac::Render
 
     using RenderTargetColors = FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 >;
     using RenderTargetDepth = Optional< D3D12_CPU_DESCRIPTOR_HANDLE >;
-    using DX12DescriptorHeaps = Array< DX12DescriptorHeap*, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;
 
 
 
@@ -130,7 +118,7 @@ namespace Tac::Render
     DX12BufferMgr*                    mBufferMgr                    {};
     DX12PipelineMgr*                  mPipelineMgr                  {};
     DX12SamplerMgr*                   mSamplerMgr                   {};
-    DX12DescriptorHeaps               mGpuDescriptorHeaps           {};
+    DX12DescriptorHeaps*              mGpuDescriptorHeaps           {};
     ID3D12Device*                     mDevice                       {};
   };
 

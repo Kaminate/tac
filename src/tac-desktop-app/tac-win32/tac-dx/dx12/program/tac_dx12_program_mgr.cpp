@@ -7,6 +7,7 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 
 #if !TAC_DELETE_ME()
 #include "tac-std-lib/os/tac_os.h"
@@ -113,12 +114,12 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DX12ProgramMgr::Init( Params params, Errors& errors )
+  void DX12ProgramMgr::Init( Errors& errors )
   {
-    mDevice = params.mDevice;
+    mDevice = DX12Renderer::sRenderer.mDevice;
     TAC_ASSERT( mDevice );
 
-    mPipelineMgr = params.mPipelineMgr;
+    mPipelineMgr = &DX12Renderer::sRenderer.mPipelineMgr;
     TAC_ASSERT( mPipelineMgr );
 
     const D3D_SHADER_MODEL highestShaderModel{ GetHighestShaderModel( mDevice ) };
