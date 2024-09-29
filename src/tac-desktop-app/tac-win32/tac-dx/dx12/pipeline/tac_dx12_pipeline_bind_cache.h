@@ -26,11 +26,16 @@ namespace Tac::Render
   {
     struct [[nodiscard]] Binding
     {
+      ctor Binding() = default;
+      dtor ~Binding();
+      bool IsValid() const;
+      void Unbind();
+
     private:
-      Binding() = default;
-      Binding( int );
+      Binding( int, PipelineBindlessArray* );
       friend struct PipelineBindlessArray;
-      int mIndex{ -1 };
+      int                    mIndex { -1 };
+      PipelineBindlessArray* mArray {};
     };
 
     Binding BindBuffer( BufferHandle );

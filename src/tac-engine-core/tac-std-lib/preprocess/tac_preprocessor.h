@@ -81,13 +81,13 @@ namespace Tac
 
 namespace Tac
 {
-  template <class T> struct remove_reference      { using type = T; };
-  template <class T> struct remove_reference<T&>  { using type = T; };
-  template <class T> struct remove_reference<T&&> { using type = T; };
+  template < class T > struct remove_reference       { using type = T; };
+  template < class T > struct remove_reference< T& >  { using type = T; };
+  template < class T > struct remove_reference< T&& > { using type = T; };
 
-  template <class T> using remove_reference_t = typename remove_reference<T>::type;
+  template <class T > using remove_reference_t = typename remove_reference<T>::type;
 
-  template<typename T> remove_reference_t<T>&& move( T&& t )
+  template< typename T > remove_reference_t< T >&& move( T&& t )
   {
     // 't' is a lvalue (named rvalue reference)
     //
@@ -95,11 +95,11 @@ namespace Tac
     // which collapses to 'Foo&'
     // ...
     // etc idk
-    return static_cast< remove_reference_t<T>&& >( t );
+    return static_cast< remove_reference_t< T >&& >( t );
   }
 
-  template <class T> constexpr T&& forward( remove_reference_t< T >& t ) noexcept { return static_cast< T&& >( t ); }
-  template <class T> constexpr T&& forward( remove_reference_t< T >&& t ) noexcept { return static_cast< T&& >( t ); }
+  template < class T > constexpr T&& forward( remove_reference_t< T >& t ) noexcept { return static_cast< T&& >( t ); }
+  template < class T > constexpr T&& forward( remove_reference_t< T >&& t ) noexcept { return static_cast< T&& >( t ); }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -132,6 +132,7 @@ namespace Tac
 
 // -------------------------------------------------------------------------------------------------
 
+// insane
 #define ctor 
 #define dtor 
 

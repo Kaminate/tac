@@ -4,7 +4,30 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  PipelineBindlessArray::Binding::Binding( int i ) : mIndex{ i } {}
+  ctor PipelineBindlessArray::Binding::Binding( int i, PipelineBindlessArray* pba )
+    : mIndex{ i }
+    , mArray{ pba }
+  {}
+
+  dtor PipelineBindlessArray::Binding::~Binding()
+  {
+    Unbind();
+  }
+
+  void PipelineBindlessArray::Binding::Unbind()
+  {
+    if( IsValid() )
+    {
+      mArray->Unbind( *this );
+      mIndex = -1;
+      mArray = nullptr;
+    }
+  }
+
+  bool PipelineBindlessArray::Binding::IsValid() const
+  {
+    return mIndex != -1;
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -39,7 +62,7 @@ namespace Tac::Render
     if( mUnusedBindings.empty() )
     {
       const int n{ mHandleIndexes.size() };
-      const Binding binding{ n };
+      const Binding binding( n, this );
       mHandleIndexes.resize( n + 1, iHandle );
       return binding;
     }
