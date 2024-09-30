@@ -55,33 +55,20 @@ namespace Tac::Render
       D3D12ProgramBindDesc mBinding       {};
     };
 
-    struct Variables
+    struct Variables : public Vector< Variable >
     {
       Variables() = default;
       Variables( const D3D12ProgramBindDescs& );
-
-      int             size() const;
-      const Variable* begin() const;
-      dynmc Variable* begin() dynmc;
-      const Variable* end() const;
-      dynmc Variable* end() dynmc;
-      const Variable* data() const;
-      dynmc Variable* data() dynmc;
-      const Variable& operator[]( int ) const;
-
-    private:
-
-      Vector< Variable > mShaderVariables;
     };
 
     bool IsValid() const;
 
-    PCom< ID3D12PipelineState > mPSO;
-    PCom< ID3D12RootSignature > mRootSignature;
-    Variables                   mShaderVariables;
-    PipelineParams              mPipelineParams;
-    PipelineBindCache           mPipelineBindCache;
-    bool                        mIsCompute{};
+    PCom< ID3D12PipelineState > mPSO               {};
+    PCom< ID3D12RootSignature > mRootSignature     {};
+    Variables                   mShaderVariables   {};
+    PipelineParams              mPipelineParams    {};
+    PipelineBindCache           mPipelineBindCache {};
+    bool                        mIsCompute         {};
   };
 } // namespace Tac::Render
 

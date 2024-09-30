@@ -192,47 +192,7 @@ namespace Tac::Render
   DX12Pipeline::Variables::Variables( const D3D12ProgramBindDescs& bindings )
   {
     for( const D3D12ProgramBindDesc& binding : bindings )
-      mShaderVariables.push_back( DX12Pipeline::Variable( binding ) );
-  }
-
-  int DX12Pipeline::Variables::size() const
-  {
-    return mShaderVariables.size();
-  }
-
-  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::begin()
-  {
-    return mShaderVariables.begin();
-  }
-
-  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::end()
-  {
-    return mShaderVariables.end();
-  }
-
-  const DX12Pipeline::Variable* DX12Pipeline::Variables::begin() const
-  {
-    return mShaderVariables.begin();
-  }
-
-  const DX12Pipeline::Variable* DX12Pipeline::Variables::end() const
-  {
-    return mShaderVariables.end();
-  }
-
-  const DX12Pipeline::Variable* DX12Pipeline::Variables::data() const
-  {
-    return mShaderVariables.data();
-  }
-
-  dynmc DX12Pipeline::Variable* DX12Pipeline::Variables::data() dynmc
-  {
-    return mShaderVariables.data();
-  }
-
-  const DX12Pipeline::Variable& DX12Pipeline::Variables::operator[]( int i ) const
-  {
-    return mShaderVariables[ i ];
+      push_back( DX12Pipeline::Variable( binding ) );
   }
   
   // -----------------------------------------------------------------------------------------------
