@@ -8,7 +8,7 @@
 
 namespace Tac::Render
 {
-
+  // -----------------------------------------------------------------------------------------------
 
   DX12DescriptorHeap& DX12Renderer::GetCpuHeap_RTV()
   {
@@ -27,7 +27,6 @@ namespace Tac::Render
     return mCpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ];
   }
 
-
   DX12DescriptorHeap& DX12Renderer::GetGPUHeap_CBV_SRV_UAV()
   {
     return mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ];
@@ -37,9 +36,96 @@ namespace Tac::Render
     return mGpuDescriptorHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ];
   }
 
-
   DX12Renderer DX12Renderer::sRenderer;
 
+  // -----------------------------------------------------------------------------------------------
+
+  void DeletionQueue::Push( SwapChainHandle h)
+  {
+    const DeletionQueue::Entry entry
+    {
+      .mSwapChainHandle { h },
+      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
+    };
+    mEntries.push( entry );
+  }
+  void DeletionQueue::Push( PipelineHandle h)
+  {
+    const DeletionQueue::Entry entry
+    {
+      .mPipelineHandle { h },
+      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
+    };
+    mEntries.push( entry );
+  }
+  void DeletionQueue::Push( ProgramHandle h)
+  {
+    const DeletionQueue::Entry entry
+    {
+      .mProgramHandle { h },
+      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
+    };
+    mEntries.push( entry );
+  }
+  void DeletionQueue::Push( BufferHandle h)
+  {
+    const DeletionQueue::Entry entry
+    {
+      .mBufferHandle { h },
+      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
+    };
+    mEntries.push( entry );
+  }
+  void DeletionQueue::Push( TextureHandle h)
+  {
+    const DeletionQueue::Entry entry
+    {
+      .mTextureHandle { h },
+      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
+    };
+    mEntries.push( entry );
+  }
+  void DeletionQueue::Push( SamplerHandle h)
+  {
+    const DeletionQueue::Entry entry
+    {
+      .mSamplerHandle { h },
+      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
+    };
+    mEntries.push( entry );
+  }
+
+  void DeletionQueue::Update()
+  {
+    const int maxGPUFrameCount{ RenderApi::GetMaxGPUFrameCount() };
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+
+    DX12SwapChainMgr& swapChainMgr{ renderer.mSwapChainMgr };
+    DX12BufferMgr& bufMgr{ renderer.mBufMgr };
+    DX12TextureMgr& texMgr{ renderer.mTexMgr };
+    DX12ProgramMgr& programMgr{ renderer.mProgramMgr };
+    DX12PipelineMgr& pipelineMgr{ renderer.mPipelineMgr };
+    DX12SamplerMgr& samplerMgr{ renderer.mSamplerMgr };
+
+    for( ;; )
+    {
+      if( mEntries.empty() )
+        break;
+
+      const Entry& entry{ mEntries.front() };
+      if( entry.mFrame + maxGPUFrameCount < renderer.mRenderFrame )
+        break;
+
+      pipelineMgr.DestroyPipeline( entry.mPipelineHandle );
+      swapChainMgr.DestroySwapChain( entry.mSwapChainHandle );
+      bufMgr.DestroyBuffer( entry.mBufferHandle );
+      texMgr.DestroyTexture( entry.mTextureHandle );
+      programMgr.DestroyProgram( entry.mProgramHandle );
+      samplerMgr.DestroySampler( entry.mSamplerHandle );
+
+      mEntries.pop();
+    }
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -191,6 +277,7 @@ namespace Tac::Render
   void              DX12Device::Update( Errors& errors )
   {
     DX12Renderer::sRenderer.mProgramMgr.HotReload( errors );
+    DX12Renderer::sRenderer.mRenderFrame++;
   }
 
   IDevice::Info     DX12Device::GetInfo() const
@@ -233,7 +320,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroyPipeline( PipelineHandle h )
   {
-    DX12Renderer::sRenderer.mPipelineMgr.DestroyPipeline( h );
+    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   ProgramHandle     DX12Device::CreateProgram( ProgramParams params, Errors& errors )
@@ -248,7 +335,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroyProgram( ProgramHandle h )
   {
-    DX12Renderer::sRenderer.mProgramMgr.DestroyProgram( h );
+    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   SamplerHandle     DX12Device::CreateSampler( CreateSamplerParams params )
@@ -258,7 +345,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroySampler( SamplerHandle h )
   {
-    DX12Renderer::sRenderer.mSamplerMgr.DestroySampler( h );
+    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   SwapChainHandle   DX12Device::CreateSwapChain( SwapChainParams params, Errors& errors )
@@ -278,7 +365,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroySwapChain( SwapChainHandle h )
   {
-    return DX12Renderer::sRenderer.mSwapChainMgr.DestroySwapChain( h );
+    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   TextureHandle     DX12Device::GetSwapChainCurrentColor( SwapChainHandle h)
@@ -341,7 +428,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroyBuffer( BufferHandle h )
   {
-    DX12Renderer::sRenderer.mBufMgr.DestroyBuffer( h );
+    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   IContext::Scope   DX12Device::CreateRenderContext( Errors& errors )
@@ -357,7 +444,7 @@ namespace Tac::Render
 
   void              DX12Device::DestroyTexture( TextureHandle h )
   {
-    DX12Renderer::sRenderer.mTexMgr.DestroyTexture( h );
+    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
 } // namespace Tac::Render

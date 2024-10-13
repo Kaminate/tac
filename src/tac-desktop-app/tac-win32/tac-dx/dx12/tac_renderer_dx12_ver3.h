@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/tac_ints.h" // u64
 #include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_fifo_queue.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
@@ -29,6 +30,33 @@ namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
+
+  // todo: move to some shared render aux file
+  struct DeletionQueue
+  {
+    void Push( SwapChainHandle );
+    void Push( PipelineHandle );
+    void Push( ProgramHandle );
+    void Push( BufferHandle );
+    void Push( TextureHandle );
+    void Push( SamplerHandle );
+    void Update();
+
+  private:
+    struct Entry
+    {
+      SwapChainHandle mSwapChainHandle;
+      PipelineHandle  mPipelineHandle;
+      ProgramHandle   mProgramHandle;
+      BufferHandle    mBufferHandle;
+      TextureHandle   mTextureHandle;
+      SamplerHandle   mSamplerHandle;
+      u64             mFrame;
+    };
+
+    FifoQueue< Entry > mEntries;
+  };
+
   struct DX12Renderer
   {
     static DX12Renderer sRenderer;
@@ -65,6 +93,10 @@ namespace Tac::Render
     // GPU Heaps (used for rendering)
     DX12DescriptorHeaps        mGpuDescriptorHeaps;
     ID3D12Device*              mDevice{};
+
+    u64                        mRenderFrame{};
+
+    DeletionQueue              mDeletionQueue;
 
   private:
     void InitDescriptorHeaps( Errors& );

@@ -6,6 +6,7 @@ PUBLIC
   tac_list.h
   tac_inlist.h
   tac_forward_list.h
+  tac_fifo_queue.h
   tac_map.h
   tac_optional.h
   tac_ring_array.h

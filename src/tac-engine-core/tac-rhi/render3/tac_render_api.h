@@ -483,6 +483,8 @@ namespace Tac::Render
     struct InitParams
     {
       int                   mMaxGPUFrameCount { 2 };
+
+      //                    fwd decl to avoid filesys header inc 
       const FileSys::Path&  mShaderOutputPath;
     };
 
