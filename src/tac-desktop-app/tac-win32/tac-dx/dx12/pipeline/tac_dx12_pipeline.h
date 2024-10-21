@@ -33,9 +33,10 @@ namespace Tac::Render
       void SetBufferAtIndex( int, BufferHandle ) override;
       void SetTextureAtIndex( int, TextureHandle ) override;
       void SetSamplerAtIndex( int, SamplerHandle ) override;
-      StringView GetName() const;
 
+      void SetBindlessArray( IShaderBindlessArray* ) override;
 
+      StringView             GetName() const;
       Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper*,
                                              DX12TextureMgr*,
                                              DX12SamplerMgr*,

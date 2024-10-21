@@ -6,6 +6,7 @@
 
 namespace Tac
 {
+  // The MaterialInput describes ... $$$ todo comment
   struct MaterialInput
   {
     using UnderlyingType = u32;

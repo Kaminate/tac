@@ -74,7 +74,7 @@ namespace Tac
 
   void DX12AppHelloTexture::EnableDebug( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     PCom<ID3D12Debug> dx12debug;
@@ -116,7 +116,7 @@ namespace Tac
 
   void DX12AppHelloTexture::CreateInfoQueue( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     TAC_ASSERT( m_debugLayerEnabled );
@@ -159,7 +159,7 @@ namespace Tac
     ID3D12Device* pDevice{ device.Get() };
     DX12SetName( pDevice, "Device" );
 
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       mDevice.QueryInterface( m_debugDevice );
       TAC_ASSERT( m_debugDevice );

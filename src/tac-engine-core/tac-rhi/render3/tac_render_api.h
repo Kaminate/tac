@@ -10,6 +10,7 @@
 #include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"
+#include "tac-rhi/render3/tac_render_handle.h"
 
 // i dont like how the compiler shows it as IHandle<3> instead of like IHandle<kTexture>
 // also you cant fwd decalre
@@ -21,25 +22,6 @@ namespace Tac::Render
 {
   struct IContext;
   struct IDevice;
-
-  struct IHandle
-  {
-    static constexpr int kInvalidIndex{ -1 };
-
-    IHandle( int i = kInvalidIndex );
-    int GetIndex() const;
-    bool IsValid() const;
-
-  private:
-    int mIndex;
-  };
-
-  struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = kInvalidIndex ) : IHandle( i ) {} };
-  struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct BufferHandle    : public IHandle { BufferHandle    ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct TextureHandle   : public IHandle { TextureHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
 
   // Used for Textures and Index Buffers and Structured Vertex Buffers
   enum class TexFmt
@@ -396,6 +378,19 @@ namespace Tac::Render
     int mStartIndex    {};
   };
 
+  struct IShaderBindlessArray
+  {
+  };
+
+  template< typename T >
+  struct ShaderBindlessArray : public IShaderBindlessArray
+  {
+  };
+
+  using ShaderBindlessBuffers = ShaderBindlessArray< BufferHandle >;
+  using ShaderBindlessTextures = ShaderBindlessArray< TextureHandle >;
+  using ShaderBindlessSamplers = ShaderBindlessArray< SamplerHandle >;
+
   struct IShaderVar
   {
     virtual void SetBuffer( BufferHandle ) {};
@@ -404,6 +399,7 @@ namespace Tac::Render
     virtual void SetBufferAtIndex( int, BufferHandle ) {};
     virtual void SetTextureAtIndex( int, TextureHandle ) {};
     virtual void SetSamplerAtIndex( int, SamplerHandle ) {};
+    virtual void SetBindlessArray( IShaderBindlessArray* ) {};
   };
 
   struct CreateSamplerParams

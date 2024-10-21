@@ -31,7 +31,7 @@ namespace Tac
 
   void DX12AppHelloWindow::EnableDebug( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     PCom<ID3D12Debug> dx12debug;
@@ -55,7 +55,7 @@ namespace Tac
 
   void DX12AppHelloWindow::CreateInfoQueue( Errors& )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     TAC_ASSERT( m_dbgLayerEnabled );

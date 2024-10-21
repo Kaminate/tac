@@ -285,7 +285,7 @@ namespace Tac
   void Render::DXGIImpl::Init( Errors& errors )
   {
     // Only CreateDXGIFactory2 allows the use of flags
-    const UINT flags { IsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0 };
+    const UINT flags { kIsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0 };
     PCom< IDXGIFactory2 > factory2;
     TAC_DXGI_CALL( CreateDXGIFactory2( flags, factory2.iid(), factory2.ppv() ) );
     TAC_ASSERT( factory2 );

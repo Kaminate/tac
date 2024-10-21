@@ -85,7 +85,7 @@ namespace Tac::Render
 
   void AllowPIXDebuggerAttachment( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.

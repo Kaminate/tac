@@ -19,7 +19,7 @@ namespace Tac::Render
 
   void DXGIDebugWrapper::Init()
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     const UINT flags {};
@@ -28,7 +28,7 @@ namespace Tac::Render
 
   void DXGIDebugWrapper::Report()
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     if( !mDbg )
@@ -44,7 +44,7 @@ namespace Tac::Render
 
   void DXGIReportLiveObjects()
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     DXGIDebugWrapper wrapper;

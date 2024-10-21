@@ -124,7 +124,7 @@ namespace Tac
 
   static void Win32OSDebugPopupBox( const StringView& s )
   {
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       MessageBox( nullptr, s.data(), nullptr, MB_OK );
     }

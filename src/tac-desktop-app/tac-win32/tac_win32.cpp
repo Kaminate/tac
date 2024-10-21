@@ -75,7 +75,7 @@ namespace Tac
   void             Win32DebugBreak()
   {
     // todo: replace with std::breakpoint_if_debugging (C++26)
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       if( ::IsDebuggerPresent() )
       {

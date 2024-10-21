@@ -7,7 +7,7 @@ namespace Tac::Render
 {
   void DX12DebugLayer::Init( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     TAC_DX12_CALL( D3D12GetDebugInterface( m_debug.iid(), m_debug.ppv() ) );

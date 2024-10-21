@@ -40,7 +40,7 @@ namespace Tac
     mMessage += msg;
     mFrames.push_back( sf );
 
-    if( IsDebugMode && !mBroken && mFlags & Flags::kDebugBreaks )
+    if( kIsDebugMode && !mBroken && mFlags & Flags::kDebugBreaks )
     {
       const String errStr = ToString();
       OS::OSDebugPrintLine( errStr );

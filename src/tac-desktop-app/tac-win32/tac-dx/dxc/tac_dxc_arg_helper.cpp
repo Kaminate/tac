@@ -58,7 +58,7 @@ namespace Tac::Render
 
     SetHLSLVersion();
 
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       EnableDebug();
       DisableOptimizations();

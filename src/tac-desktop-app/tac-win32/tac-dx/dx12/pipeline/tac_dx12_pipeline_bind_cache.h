@@ -6,23 +6,27 @@
 #pragma once
 
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_allocator.h" // DX12DescriptorRegion
-#include "tac-dx/dx12/program/tac_dx12_program_bind_type.h"
+//#include "tac-dx/dx12/program/tac_dx12_program_bind_type.h"
+#include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac::Render
 {
+  struct PipelineArray;
+
   struct PipelineBindCache
   {
     struct Table
     {
-      DX12DescriptorRegion mRegion;
+      PipelineArray* mPipelineArray;
+      bool           mPipelineArrayOwned;
     };
 
     Vector< Table > mRootTables;
   };
 
-  struct PipelineBindlessArray
+  struct PipelineArray
   {
     struct [[nodiscard]] Binding
     {
@@ -32,24 +36,27 @@ namespace Tac::Render
       void Unbind();
 
     private:
-      Binding( int, PipelineBindlessArray* );
-      friend struct PipelineBindlessArray;
-      int                    mIndex { -1 };
-      PipelineBindlessArray* mArray {};
+      Binding( int, PipelineArray* );
+      friend struct PipelineArray;
+      int            mIndex { -1 };
+      PipelineArray* mArray {};
     };
 
-    Binding BindBuffer( BufferHandle );
-    Binding BindTexture( TextureHandle );
-    Binding BindSampler( SamplerHandle );
-
+    Binding Bind( ResourceHandle );
     void    Unbind( Binding );
+
+    //bool    IsBufferArray() const;
+    //bool    IsTextureArray() const;
+    //bool    IsSamplerArray() const;
 
   private:
     Binding BindInternal( int );
 
-    D3D12ProgramBindType mType           {};
-    Vector< int >        mHandleIndexes  {};
-    Vector< Binding >    mUnusedBindings {};
+    //D3D12ProgramBindType mType             {};
+    D3D12ProgramBindDesc mProgramBindDesc {};
+    Vector< IHandle >    mHandles;
+    Vector< Binding >    mUnusedBindings   {};
+    DX12DescriptorRegion mDescriptorRegion {};
   };
 
 } // namespace Tac::Render

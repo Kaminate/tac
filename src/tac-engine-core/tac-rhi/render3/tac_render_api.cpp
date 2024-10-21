@@ -31,13 +31,7 @@ namespace Tac::Render
   static FileSys::Path    sShaderOutputPath; 
   static IDevice*         sDevice;
 
-  // -----------------------------------------------------------------------------------------------
-
-  IHandle::IHandle( int i ) : mIndex( i ) {}
-  int IHandle::GetIndex() const { return mIndex; }
-  bool IHandle::IsValid() const { return mIndex != -1; }
-
-  // -----------------------------------------------------------------------------------------------
+   // -----------------------------------------------------------------------------------------------
 
   static VertexAttributeFormat FromFloats( int n )
   {

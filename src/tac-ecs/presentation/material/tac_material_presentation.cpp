@@ -34,6 +34,7 @@ namespace Tac
     u32 mFlags {};
   };
 
+  // comment please
   struct ConstBufData_PerFrame
   {
     m4 mWorldToClip    {};

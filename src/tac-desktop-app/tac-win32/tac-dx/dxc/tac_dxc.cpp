@@ -94,7 +94,7 @@ namespace Tac::Render
       return;
 
 
-    if constexpr( not IsDebugMode )
+    if constexpr( not kIsDebugMode )
       return;
 
 

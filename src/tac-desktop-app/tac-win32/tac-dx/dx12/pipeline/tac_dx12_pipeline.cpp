@@ -47,6 +47,11 @@ namespace Tac::Render
     SetArrayElement( i, h.GetIndex() );
   }
 
+  void DX12Pipeline::Variable::SetBindlessArray( IShaderBindlessArray* )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+  }
+
   void DX12Pipeline::Variable::SetSampler( SamplerHandle h )
   {
     TAC_ASSERT( mBinding.mType.IsSampler() );

@@ -6,6 +6,12 @@
 
 namespace Tac
 {
+  // The ShaderGraph defines the inputs that need to be bound to the shader program
+  //
+  // For example, a shader graph may say that the shader needs slot 0 to be a spec
+  // texture, but which texture to put in that slot is put in the Tac::Material
+  // 
+  // $$$ todo describe
   struct ShaderGraph
   {
     static Json          JsonSave( const ShaderGraph& );

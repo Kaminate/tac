@@ -244,7 +244,7 @@ namespace Tac::Render
     {
       // Make sure that App::Present() and ImGuiPlatformPresent() are not calling
       // the same IDXGISwapChain::Present() twice per render frame.
-      if constexpr( IsDebugMode )
+      if constexpr( kIsDebugMode )
       {
         OS::OSDebugBreak();
 

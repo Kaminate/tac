@@ -40,7 +40,7 @@ namespace Tac::Render
                             ID3D12Device* device,
                             Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     TAC_ASSERT( debugLayer.IsEnabled() );

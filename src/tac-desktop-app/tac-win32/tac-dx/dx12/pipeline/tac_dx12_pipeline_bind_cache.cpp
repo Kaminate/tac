@@ -3,18 +3,20 @@
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
+  //   PipelineArray::Binding
+  // -----------------------------------------------------------------------------------------------
 
-  ctor PipelineBindlessArray::Binding::Binding( int i, PipelineBindlessArray* pba )
+  ctor PipelineArray::Binding::Binding( int i, PipelineArray* pba )
     : mIndex{ i }
     , mArray{ pba }
   {}
 
-  dtor PipelineBindlessArray::Binding::~Binding()
+  dtor PipelineArray::Binding::~Binding()
   {
     Unbind();
   }
 
-  void PipelineBindlessArray::Binding::Unbind()
+  void PipelineArray::Binding::Unbind()
   {
     if( IsValid() )
     {
@@ -24,55 +26,55 @@ namespace Tac::Render
     }
   }
 
-  bool PipelineBindlessArray::Binding::IsValid() const
+  bool PipelineArray::Binding::IsValid() const
   {
     return mIndex != -1;
   }
 
   // -----------------------------------------------------------------------------------------------
+  //                     PipelineArray
+  // -----------------------------------------------------------------------------------------------
 
-  PipelineBindlessArray::Binding PipelineBindlessArray::BindBuffer( BufferHandle h )
+  PipelineArray::Binding PipelineArray::Bind( ResourceHandle h )
   {
-    TAC_ASSERT( mType.IsBuffer() );
-    return BindInternal( h.GetIndex() );
-  }
+    if constexpr ( kIsDebugMode )
+    {
+      const D3D12ProgramBindType type{ mProgramBindDesc.mType };
+      TAC_ASSERT( type.IsValid() );
+      TAC_ASSERT( !type.IsBuffer() || h.IsBuffer() );
+      TAC_ASSERT( !type.IsTexture() || h.IsTexture() );
+      TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
+    }
 
-  PipelineBindlessArray::Binding PipelineBindlessArray::BindTexture( TextureHandle h )
-  {
-    TAC_ASSERT( mType.IsTexture() );
-    return BindInternal( h.GetIndex() );
-  }
-
-  PipelineBindlessArray::Binding PipelineBindlessArray::BindSampler( SamplerHandle h )
-  {
-    TAC_ASSERT( mType.IsSampler() );
-    return BindInternal( h.GetIndex() );
-  }
-
-  void                           PipelineBindlessArray::Unbind( Binding binding )
-  {
-    mUnusedBindings.push_back( binding );
-    mHandleIndexes[ binding.mIndex ] = IHandle::kInvalidIndex;
-  }
-
-  PipelineBindlessArray::Binding PipelineBindlessArray::BindInternal(  int iHandle )
-  {
+    const int iHandle{ h.GetIndex() };
     TAC_ASSERT_INDEX( iHandle, 1000 ); // sanity
 
     if( mUnusedBindings.empty() )
     {
-      const int n{ mHandleIndexes.size() };
+      const int n{ mHandles.size() };
       const Binding binding( n, this );
-      mHandleIndexes.resize( n + 1, iHandle );
+      mHandles.resize( n + 1, iHandle );
       return binding;
     }
     else
     {
       const Binding binding{ mUnusedBindings.back() };
       mUnusedBindings.pop_back();
-      mHandleIndexes[ binding.mIndex ] = iHandle;
+      mHandles[ binding.mIndex ] = h;
       return binding;
     }
+  }
+
+  void                   PipelineArray::Unbind( Binding binding )
+  {
+    mUnusedBindings.push_back( binding );
+    mHandles[ binding.mIndex ] = IHandle::kInvalidIndex;
+  }
+
+  PipelineArray::Binding PipelineArray::BindInternal(  int iHandle )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
 
   }
 

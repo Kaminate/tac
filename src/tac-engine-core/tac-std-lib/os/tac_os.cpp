@@ -46,7 +46,7 @@ namespace Tac::OS
 
     void        OSDebugPrint( const StringView& s )
     {
-      if constexpr( IsDebugMode )
+      if constexpr( kIsDebugMode )
       {
         std::cout << s.c_str();
         LogApi::LogMessagePrint( s );
@@ -55,7 +55,7 @@ namespace Tac::OS
 
     void        OSDebugPrintLine( const StringView& s )
     {
-      if constexpr( !IsDebugMode )
+      if constexpr( !kIsDebugMode )
         return;
 
       const char* szstr { s.c_str() };

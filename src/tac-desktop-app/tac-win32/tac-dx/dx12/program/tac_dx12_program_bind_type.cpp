@@ -43,6 +43,11 @@ namespace Tac::Render
     }
   }
 
+  bool D3D12ProgramBindType::IsValid() const
+  {
+    return mClassification != kUnknown;
+  }
+
   bool D3D12ProgramBindType::IsSampler() const
   {
     return mClassification == kSampler;

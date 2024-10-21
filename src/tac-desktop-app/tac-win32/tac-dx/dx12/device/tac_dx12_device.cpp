@@ -9,7 +9,7 @@ namespace Tac::Render
 
   void DX12DeviceInitializer::Init( const DX12DebugLayer& debugLayer, Errors& errors )
   {
-    TAC_ASSERT( !IsDebugMode || debugLayer.IsEnabled() );
+    TAC_ASSERT( !kIsDebugMode || debugLayer.IsEnabled() );
 
     auto adapter { ( IDXGIAdapter* )DXGIGetBestAdapter() };
     TAC_DX12_CALL( D3D12CreateDevice(
@@ -22,7 +22,7 @@ namespace Tac::Render
     DX12SetName( pDevice, "Device" );
 
 
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       mDevice.QueryInterface( mDebugDevice );
       TAC_ASSERT( mDebugDevice );

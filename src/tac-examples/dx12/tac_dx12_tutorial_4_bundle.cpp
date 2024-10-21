@@ -55,7 +55,7 @@ namespace Tac
 
   void DX12AppHelloBundle::EnableDebug( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     PCom<ID3D12Debug> dx12debug;
@@ -97,7 +97,7 @@ namespace Tac
 
   void DX12AppHelloBundle::CreateInfoQueue( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     TAC_ASSERT( m_debugLayerEnabled );
@@ -139,7 +139,7 @@ namespace Tac
     m_device = device.QueryInterface<ID3D12Device5>();
     DX12SetName( m_device, "Device" );
 
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       m_device.QueryInterface( m_debugDevice );
       TAC_ASSERT( m_debugDevice );

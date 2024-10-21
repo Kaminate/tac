@@ -15,7 +15,7 @@ namespace Tac
 
   static void DebugSetStringLookup( StringID stringID, const StringView& stringView )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     String& lookupEntry = gStringLookup[ stringID % kMaxStringDictionaryEntries ];
@@ -78,7 +78,7 @@ namespace Tac
 
   StringView StringIDDebugLookup( const StringID stringID )
   {
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
       return "";
 
     return gStringLookup[ stringID % kMaxStringDictionaryEntries ];

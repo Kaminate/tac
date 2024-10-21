@@ -14,7 +14,7 @@ namespace Tac
     const int remainingByteCount { mCapacity - mSize };
     if( remainingByteCount < byteCount )
     {
-      if constexpr( IsDebugMode )
+      if constexpr( kIsDebugMode )
       {
         TAC_ASSERT_INVALID_CODE_PATH;
       }
@@ -46,7 +46,7 @@ namespace Tac
     TAC_ASSERT( mBytes );
     if( mSize < dataByteCount )
     {
-      if constexpr( IsDebugMode )
+      if constexpr( kIsDebugMode )
       {
         TAC_ASSERT_INVALID_CODE_PATH;
       }
@@ -67,7 +67,7 @@ namespace Tac
       mIndex = ( mIndex + dataByteCount ) % mCapacity;
     }
 
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
       for( int i{}; i < dataByteCount; ++i )
         mBytes[ ( origIndex + i ) % mCapacity ] = 0;
 

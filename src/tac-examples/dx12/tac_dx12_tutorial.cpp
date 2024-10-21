@@ -26,7 +26,7 @@ namespace Tac::Render
 
   void DX12ExampleDebugLayer::Init( Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     TAC_DX12_CALL( D3D12GetDebugInterface( mDebug.iid(), mDebug.ppv() ) );
@@ -65,7 +65,7 @@ namespace Tac::Render
 
   void DX12ExampleDevice::Init( const DX12ExampleDebugLayer& debugLayer, Errors& errors )
   {
-    TAC_ASSERT( !IsDebugMode || debugLayer.IsEnabled() );
+    TAC_ASSERT( !kIsDebugMode || debugLayer.IsEnabled() );
 
     auto adapter{ ( IDXGIAdapter* )Tac::Render::DXGIGetBestAdapter() };
     TAC_DX12_CALL( D3D12CreateDevice(
@@ -77,7 +77,7 @@ namespace Tac::Render
     ID3D12Device* pDevice{ mDevice.Get() };
     DX12SetName( pDevice, "Device" );
 
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       mDevice.QueryInterface( mDebugDevice );
       TAC_ASSERT( mDebugDevice );
@@ -90,7 +90,7 @@ namespace Tac::Render
                                    ID3D12Device* device,
                                    Errors& errors )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     TAC_ASSERT( debugLayer.IsEnabled() );

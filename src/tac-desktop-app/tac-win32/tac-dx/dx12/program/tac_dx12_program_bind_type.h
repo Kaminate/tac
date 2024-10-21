@@ -26,6 +26,7 @@ namespace Tac::Render
     bool IsConstantBuffer() const;
     bool IsSampler() const;
     bool IsTexture() const;
+    bool IsValid() const;
 
     bool IsSRV() const;
     bool IsUAV() const;
