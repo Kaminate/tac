@@ -17,15 +17,7 @@ namespace Tac { struct Errors; }
 
 namespace Tac::Render
 {
-  struct DX12CommandAllocatorPool;
   struct DX12ContextManager;
-  struct DX12CommandQueue;
-  struct DX12SwapChainMgr;
-  struct DX12TextureMgr;
-  struct DX12BufferMgr;
-  struct DX12PipelineMgr;
-  struct DX12SamplerMgr;
-  struct DX12DescriptorHeap;
 }
 
 namespace Tac::Render
@@ -37,19 +29,16 @@ namespace Tac::Render
   // However, the commandallocator is changed every time the context is recycled
   struct DX12Context : public IContext
   {
-    DX12Context() = default;
+    struct Params
+    {
+      PCom< ID3D12GraphicsCommandList > mCommandList    {};
+      DX12ContextManager*               mContextManager {};
+    };
 
-    // note(n473): i dont like how with dx12context::Begin and dx12context::Finish,
-    // there is no protection (afaict) to prevent someone from forgetting to call Finish.
     ID3D12GraphicsCommandList* GetCommandList();
     ID3D12CommandAllocator*    GetCommandAllocator();
 
-    struct Params
-    {
-      PCom< ID3D12GraphicsCommandList > mCommandList                  {};
-      DX12ContextManager*               mContextManager               {};
-    };
-
+    ctor DX12Context() = default;
     void Init( Params );
 
     //void SetName( StringView );
@@ -76,15 +65,11 @@ namespace Tac::Render
     void CommitShaderVariables() override;
     void Retire() override;
 
-    // begin state
-
-    using RenderTargetColors = FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 >;
-    using RenderTargetDepth = Optional< D3D12_CPU_DESCRIPTOR_HANDLE >;
-
-
-
     struct State
     {
+      using RenderTargetColors = FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 >;
+      using RenderTargetDepth = Optional< D3D12_CPU_DESCRIPTOR_HANDLE >;
+
       RenderTargetColors    mRenderTargetColors   {};
       RenderTargetDepth     mRenderTargetDepth    {}; 
       BufferHandle          mVertexBuffer         {};
@@ -100,26 +85,11 @@ namespace Tac::Render
 
     State mState{};
 
-
-    // end state
-
     PCom< ID3D12GraphicsCommandList > mCommandList                  {};
     PCom< ID3D12CommandAllocator >    mCommandAllocator             {};
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
     DX12UploadAllocator               mGPUUploadAllocator           {};
-
-    // singletons
-    DX12CommandAllocatorPool*         mCommandAllocatorPool         {};
-    DX12ContextManager*               mContextManager               {};
-    DX12CommandQueue*                 mCommandQueue                 {};
-    DX12SwapChainMgr*                 mSwapChainMgr                 {};
-    DX12TextureMgr*                   mTextureMgr                   {};
-    DX12BufferMgr*                    mBufferMgr                    {};
-    DX12PipelineMgr*                  mPipelineMgr                  {};
-    DX12SamplerMgr*                   mSamplerMgr                   {};
-    DX12DescriptorHeaps*              mGpuDescriptorHeaps           {};
-    ID3D12Device*                     mDevice                       {};
   };
 
-}
+} // namespace Tac::Render

@@ -18,17 +18,6 @@
 
 namespace Tac::Render
 {
-  static D3D12_PRIMITIVE_TOPOLOGY   GetDX12PrimitiveTopology( PrimitiveTopology topology )
-  {
-    switch( topology )
-    {
-    case PrimitiveTopology::Unknown:              return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-    case PrimitiveTopology::TriangleList:         return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-    case PrimitiveTopology::PointList:            return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-    case PrimitiveTopology::LineList:             return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-    default: TAC_ASSERT_INVALID_CASE( topology ); return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-    }
-  }
 
 
   // -----------------------------------------------------------------------------------------------
@@ -39,49 +28,24 @@ namespace Tac::Render
     TAC_ASSERT( mCommandList );
 
     mGPUUploadAllocator.Init( &DX12Renderer::sRenderer.mUploadPageManager );
-
-    mCommandAllocatorPool = &DX12Renderer::sRenderer.mCommandAllocatorPool;
-    TAC_ASSERT( mCommandAllocatorPool );
-
-    mContextManager = &DX12Renderer::sRenderer.mContextManager;
-    TAC_ASSERT( mContextManager );
-
-    mCommandQueue = &DX12Renderer::sRenderer.mCommandQueue;
-    TAC_ASSERT( mCommandQueue );
-
-    mSwapChainMgr = &DX12Renderer::sRenderer.mSwapChainMgr;
-    TAC_ASSERT( mSwapChainMgr );
-
-    mTextureMgr = &DX12Renderer::sRenderer.mTexMgr;
-    TAC_ASSERT( mTextureMgr );
-
-    mBufferMgr = &DX12Renderer::sRenderer.mBufMgr;
-    TAC_ASSERT( mBufferMgr );
-
-    mPipelineMgr = &DX12Renderer::sRenderer.mPipelineMgr;
-    TAC_ASSERT( mPipelineMgr );
-
-    mGpuDescriptorHeaps = &DX12Renderer::sRenderer.mGpuDescriptorHeaps;
-    TAC_ASSERT( mGpuDescriptorHeaps );
-
-    mSamplerMgr = &DX12Renderer::sRenderer.mSamplerMgr;
-    TAC_ASSERT( mSamplerMgr );
-
-    mDevice = DX12Renderer::sRenderer.mDevice;
-    TAC_ASSERT( mDevice );
   }
 
   void DX12Context::CommitShaderVariables()
   {
-    DX12Pipeline* pipeline{ mPipelineMgr->FindPipeline( mState.mPipeline ) };
+    DX12PipelineMgr* pipelineMgr{ &DX12Renderer::sRenderer.mPipelineMgr };
+    DX12DescriptorHeaps* descriptorHeaps{ &DX12Renderer::sRenderer.mGpuDescriptorHeaps };
+    TAC_ASSERT( pipelineMgr );
+    TAC_ASSERT( descriptorHeaps );
+
+    DX12Pipeline* pipeline{ pipelineMgr->FindPipeline( mState.mPipeline ) };
     if( !pipeline )
       return;
 
     const int iResource{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV };
     const int iSampler{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER };
 
-    DX12DescriptorHeap& heap_Resource{ ( *mGpuDescriptorHeaps )[ iResource ] };
-    DX12DescriptorHeap& heap_Sampler{ ( *mGpuDescriptorHeaps )[ iSampler ] };
+    DX12DescriptorHeap& heap_Resource{ ( *descriptorHeaps )[ iResource ] };
+    DX12DescriptorHeap& heap_Sampler{ ( *descriptorHeaps )[ iSampler ] };
 
     const Array descHeaps
     {
@@ -97,9 +61,9 @@ namespace Tac::Render
 
     const DX12Pipeline::Variable::CommitParams commitParams
     {
-        .mCommandList      {commandList},
-        .mDescriptorCaches {&mState.mDescriptorCaches},
-        .mIsCompute        {mState.mIsCompute},
+        .mCommandList      { commandList },
+        .mDescriptorCaches { &mState.mDescriptorCaches },
+        .mIsCompute        { mState.mIsCompute },
     };
 
     for( const DX12Pipeline::Variable& var : pipeline->mShaderVariables )
@@ -110,19 +74,29 @@ namespace Tac::Render
                                    UpdateTextureParams params,
                                    Errors& errors )
   {
-    mTextureMgr->UpdateTexture( h, params, this, errors );
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    TAC_ASSERT( textureMgr );
+    textureMgr->UpdateTexture( h, params, this, errors );
   }
 
   void DX12Context::UpdateBuffer( BufferHandle h,
                                   Span< const UpdateBufferParams > params,
                                   Errors& errors )
   {
-    mBufferMgr->UpdateBuffer( h, params, this, errors );
+    DX12BufferMgr* bufferMgr{ &DX12Renderer::sRenderer.mBufMgr };
+    TAC_ASSERT( bufferMgr );
+    bufferMgr->UpdateBuffer( h, params, this, errors );
   }
 
   void DX12Context::Execute( Errors& errors )
   {
     TAC_ASSERT( !mState.mExecuted );
+
+    DX12Renderer* renderer{ &DX12Renderer::sRenderer };
+    DX12CommandAllocatorPool* commandAllocatorPool{ &renderer->mCommandAllocatorPool };
+    TAC_ASSERT( commandAllocatorPool );
+    DX12CommandQueue* commandQueue{&renderer->mCommandQueue};
+    TAC_ASSERT( commandQueue );
 
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
     if( !commandList )
@@ -135,18 +109,17 @@ namespace Tac::Render
     TAC_DX12_CALL( commandList->Close() );
 
     TAC_CALL( const FenceSignal fenceSignal{
-      mCommandQueue->ExecuteCommandList( commandList, errors ) }  );
+      commandQueue->ExecuteCommandList( commandList, errors ) }  );
 
     if( mState.mSynchronous )
     {
-      TAC_CALL( mCommandQueue->WaitForFence( fenceSignal, errors ) );
+      TAC_CALL( commandQueue->WaitForFence( fenceSignal, errors ) );
     }
-
 
     for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
       mState.mDescriptorCaches[ i ].SetFence( fenceSignal );
 
-    mCommandAllocatorPool->Retire( mCommandAllocator, fenceSignal );
+    commandAllocatorPool->Retire( mCommandAllocator, fenceSignal );
     mCommandAllocator = {};
     mGPUUploadAllocator.FreeAll( fenceSignal );
     mState.mExecuted = true;
@@ -157,10 +130,12 @@ namespace Tac::Render
 
   void DX12Context::Reset( Errors& errors )
   {
+    DX12Renderer* renderer{ &DX12Renderer::sRenderer };
+    DX12CommandAllocatorPool* commandAllocatorPool{ &renderer->mCommandAllocatorPool };
     TAC_ASSERT( !mCommandAllocator );
+    TAC_ASSERT( commandAllocatorPool );
 
-    mCommandAllocator =
-      TAC_CALL( mCommandAllocatorPool->GetAllocator( errors ) );
+    mCommandAllocator = TAC_CALL( commandAllocatorPool->GetAllocator( errors ) );
 
     // Command list allocators can only be reset when the associated 
     // command lists have finished execution on the GPU; apps should use 
@@ -173,7 +148,6 @@ namespace Tac::Render
     //   executing any command lists that have recorded commands with the command allocator.
     ID3D12CommandAllocator* dxCommandAllocator { GetCommandAllocator() };
     TAC_DX12_CALL( mCommandAllocator->Reset() );
-
 
     // However( when ExecuteCommandList() is called on a particular command 
     // list, that command list can then be reset at any time and must be before 
@@ -190,13 +164,14 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* dxCommandList { GetCommandList() };
     TAC_DX12_CALL( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
+    // [ ] Q: why not mState = {}; ?
     State empty;
     Swap( mState, empty );
   }
 
   void DX12Context::SetSynchronous()
   {
-    mState.  mSynchronous = true;
+    mState.mSynchronous = true;
   }
 
   void DX12Context::SetViewport( v2i size )
@@ -253,13 +228,14 @@ namespace Tac::Render
 
   void DX12Context::SetRenderTargets( Targets targets )
   {
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
     FixedVector< D3D12_CPU_DESCRIPTOR_HANDLE, 10 > rtDescs;
 
     DX12TransitionHelper transitionHelper;
 
-    for( TextureHandle colorTarget : targets.mColors )
+    for( const TextureHandle colorTarget : targets.mColors )
     {
-      DX12Texture* colorTexture{ mTextureMgr->FindTexture( colorTarget ) };
+      DX12Texture* colorTexture{ textureMgr->FindTexture( colorTarget ) };
       if( !colorTexture )
         continue;
 
@@ -277,7 +253,7 @@ namespace Tac::Render
 
     D3D12_CPU_DESCRIPTOR_HANDLE DSV{};
     D3D12_CPU_DESCRIPTOR_HANDLE* pDSV{};
-    if( DX12Texture* depthTexture{ mTextureMgr->FindTexture( targets.mDepth ) } )
+    if( dynmc DX12Texture* depthTexture{ textureMgr->FindTexture( targets.mDepth ) } )
     {
       DSV = depthTexture->mDSV->GetCPUHandle();
       pDSV = &DSV;
@@ -301,29 +277,41 @@ namespace Tac::Render
 
   void DX12Context::SetPrimitiveTopology( PrimitiveTopology primitiveTopology )
   {
+    D3D12_PRIMITIVE_TOPOLOGY topoligies[ ( int )PrimitiveTopology::Count ];
+    topoligies[ ( int )PrimitiveTopology::TriangleList ] = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    topoligies[ ( int )PrimitiveTopology::PointList ] = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+    topoligies[ ( int )PrimitiveTopology::LineList ] = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+
+    const D3D12_PRIMITIVE_TOPOLOGY dx12Topology{ topoligies[ ( int )primitiveTopology ] };
+    TAC_ASSERT( primitiveTopology != PrimitiveTopology::Unknown ||
+                dx12Topology == D3D_PRIMITIVE_TOPOLOGY_UNDEFINED );
+
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    const D3D12_PRIMITIVE_TOPOLOGY dx12Topology { GetDX12PrimitiveTopology( primitiveTopology ) };
     commandList->IASetPrimitiveTopology( dx12Topology );
   }
 
   void DX12Context::SetPipeline( PipelineHandle h )
   {
-    DX12Pipeline* pipeline { mPipelineMgr->FindPipeline( h ) };
+    using CmdList = ID3D12GraphicsCommandList;
+
+    DX12PipelineMgr* pipelineMgr{ &DX12Renderer::sRenderer.mPipelineMgr };
+    TAC_ASSERT( pipelineMgr );
+    DX12Pipeline* pipeline { pipelineMgr->FindPipeline( h ) };
     ID3D12PipelineState* pipelineState { pipeline->mPSO.Get() };
     ID3D12RootSignature* rootSignature { pipeline->mRootSignature.Get() };
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     commandList->SetPipelineState( pipelineState );
-    if( pipeline->mIsCompute )
-      commandList->SetComputeRootSignature( rootSignature );
-    else
-      commandList->SetGraphicsRootSignature( rootSignature );
+    ( commandList ->* ( pipeline->mIsCompute
+                        ? &CmdList::SetComputeRootSignature
+                        : &CmdList::SetGraphicsRootSignature ) )( rootSignature );
     mState.mPipeline = h;
     mState.mIsCompute = pipeline->mIsCompute;
   }
 
   void DX12Context::ClearColor( TextureHandle h, v4 values )
   {
-    dynmc DX12Texture* texture{ mTextureMgr->FindTexture( h ) };
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    dynmc DX12Texture* texture{ textureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
 
     dynmc ID3D12GraphicsCommandList* commandList { GetCommandList() };
@@ -344,12 +332,14 @@ namespace Tac::Render
 
   void DX12Context::SetIndexBuffer( BufferHandle h )
   {
+    DX12BufferMgr* bufferMgr{ &DX12Renderer::sRenderer.mBufMgr };
+    TAC_ASSERT( bufferMgr );
+
     mState.mIndexBuffer = h;
 
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
 
-    DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) };
-    if( buffer )
+    if( DX12Buffer* buffer{ bufferMgr->FindBuffer( h ) } )
     {
       const DXGI_FORMAT Format{ TexFmtToDxgiFormat( buffer->mCreateParams.mGpuBufferFmt ) };
       const D3D12_INDEX_BUFFER_VIEW indexBufferView
@@ -360,20 +350,21 @@ namespace Tac::Render
       };
 
       commandList->IASetIndexBuffer( &indexBufferView );
-
     }
     else
     {
       commandList->IASetIndexBuffer( nullptr );
     }
-
   }
 
   void DX12Context::SetVertexBuffer( BufferHandle h )
   {
+    DX12BufferMgr* bufferMgr{ &DX12Renderer::sRenderer.mBufMgr };
+    TAC_ASSERT( bufferMgr );
+
     mState.mVertexBuffer = h;
 
-    DX12Buffer* buffer{ mBufferMgr->FindBuffer( h ) };
+    DX12Buffer* buffer{ bufferMgr->FindBuffer( h ) };
     if( !buffer )
       return;
 
@@ -400,15 +391,15 @@ namespace Tac::Render
 
   void DX12Context::ClearDepth( TextureHandle h, float value )
   {
-    DX12Texture* texture{ mTextureMgr->FindTexture( h ) };
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    DX12Texture* texture{ textureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
     TAC_ASSERT( texture->mDSV.HasValue() );
+    ID3D12GraphicsCommandList* commandList { GetCommandList() };
     
     const D3D12_CPU_DESCRIPTOR_HANDLE DSV { texture->mDSV.GetValue().GetCPUHandle() };
     const D3D12_CLEAR_FLAGS ClearFlags { D3D12_CLEAR_FLAG_DEPTH };
     const FLOAT Depth { 1.0f };
-
-    ID3D12GraphicsCommandList* commandList { GetCommandList() };
 
     const DX12TransitionHelper::Params transitionParams
     {
@@ -420,7 +411,7 @@ namespace Tac::Render
     transitionHelper.Append( transitionParams );
     transitionHelper.ResourceBarrier( commandList );
 
-    commandList->ClearDepthStencilView( DSV, ClearFlags,Depth, 0, 0, nullptr );
+    commandList->ClearDepthStencilView( DSV, ClearFlags, Depth, 0, 0, nullptr );
   }
 
   void DX12Context::Dispatch( v3i threadGroupCounts )
@@ -440,7 +431,6 @@ namespace Tac::Render
       const D3D12_DRAW_INDEXED_ARGUMENTS dx12DrawArgs
       {
         .IndexCountPerInstance { ( UINT )args.mIndexCount },
-
         .InstanceCount         { 1 },
         .StartIndexLocation    { ( UINT )args.mStartIndex },
 
@@ -474,6 +464,9 @@ namespace Tac::Render
 
   void DX12Context::Retire()
   {
+    DX12ContextManager* contextManager{ &DX12Renderer::sRenderer.mContextManager };
+    TAC_ASSERT( contextManager );
+
     TAC_ASSERT( !mState.mRetired );
     TAC_ASSERT( mState.mExecuted ); // this should be a warning instead
     mState.mRetired = true;
@@ -481,7 +474,7 @@ namespace Tac::Render
     for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
       mState.mDescriptorCaches[ i ].Clear();
 
-    mContextManager->RetireContext( this );
+    contextManager->RetireContext( this );
   }
 
 } // namespace Tac::Render

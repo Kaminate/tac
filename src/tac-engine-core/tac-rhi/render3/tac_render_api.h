@@ -206,6 +206,7 @@ namespace Tac::Render
     PointList,
     TriangleList,
     LineList,
+    Count,
   };
 
   //struct PipelineBindDesc
