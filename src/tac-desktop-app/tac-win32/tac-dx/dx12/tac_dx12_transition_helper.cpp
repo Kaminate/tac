@@ -20,18 +20,22 @@ namespace Tac::Render
 
   void DX12TransitionHelper::Append( Params params )
   {
-    TAC_ASSERT( params.mResource );
 
-    const D3D12_RESOURCE_STATES StateBefore{ *params.mStateBefore };
+    DX12Resource* dx12Resource{ params.mResource };
+    TAC_ASSERT( dx12Resource );
+
+    const D3D12_RESOURCE_STATES StateBefore{ dx12Resource->GetState() };
     const D3D12_RESOURCE_STATES StateAfter{ params.mStateAfter };
     if( StateBefore == StateAfter )
       return;
 
-    *params.mStateBefore = StateAfter;
+    dx12Resource->SetState( StateAfter );
+
+    ID3D12Resource* resource{ dx12Resource->Get() };
 
     const D3D12_RESOURCE_TRANSITION_BARRIER Transition
     {
-      .pResource   { params.mResource },
+      .pResource   { resource },
       .Subresource { D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES },
       .StateBefore { StateBefore },
       .StateAfter  { StateAfter },

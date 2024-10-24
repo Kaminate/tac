@@ -31,8 +31,7 @@ namespace Tac::Render
 
     DescriptorBindings  CreateBindings( ID3D12Resource* , CreateBufferParams );
     void                TransitionBuffer( Binding,
-                                          ID3D12Resource*,
-                                          D3D12_RESOURCE_STATES*,
+                                          DX12Resource*,
                                           ID3D12GraphicsCommandList* );
 
     DX12Buffers         mBuffers                      {};

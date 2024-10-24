@@ -391,8 +391,7 @@ namespace Tac::Render
 
     const DX12TransitionHelper::Params transitionParams
     {
-      .mResource    { texture->mResource.Get() },
-      .mStateBefore { &texture->mState },
+      .mResource    { &texture->mResource },
       .mStateAfter  { D3D12_RESOURCE_STATE_PRESENT },
     };
 

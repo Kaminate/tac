@@ -328,9 +328,9 @@ namespace Tac
       // $$$ gross
       if( !renderMaterial->mAreShaderVarsSet )
       {
-        renderMaterial->mShaderVar_PerFrame->SetBuffer( sConstBufHandle_PerFrame );
-        renderMaterial->mShaderVar_Material->SetBuffer( sConstBufHandle_Material );
-        renderMaterial->mShaderVar_ShaderGraph->SetBuffer( sConstBufHandle_ShaderGraph );
+        renderMaterial->mShaderVar_PerFrame->SetResource( sConstBufHandle_PerFrame );
+        renderMaterial->mShaderVar_Material->SetResource( sConstBufHandle_Material );
+        renderMaterial->mShaderVar_ShaderGraph->SetResource( sConstBufHandle_ShaderGraph );
 
         mesh->mGPUInputLayoutBuffer;
 

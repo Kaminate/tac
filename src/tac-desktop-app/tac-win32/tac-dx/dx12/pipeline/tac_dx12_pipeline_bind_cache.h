@@ -17,17 +17,21 @@ namespace Tac::Render
 
   struct PipelineBindCache
   {
-    struct Table
+    struct RootParameter
     {
-      PipelineArray* mPipelineArray;
-      bool           mPipelineArrayOwned;
+      PipelineArray*       mPipelineArray      {};
+      bool                 mPipelineArrayOwned {};
+      ResourceHandle       mResourceHandle     {};
+      D3D12ProgramBindDesc mProgramBindDesc    {};
+      UINT                 mRootParameterIndex {};
     };
 
-    Vector< Table > mRootTables;
+    Vector< RootParameter > mRootParameters;
   };
 
   struct PipelineArray
   {
+#if 0
     struct [[nodiscard]] Binding
     {
       ctor Binding() = default;
@@ -41,22 +45,31 @@ namespace Tac::Render
       int            mIndex { -1 };
       PipelineArray* mArray {};
     };
+#else
+    struct Binding
+    {
+      int mIndex;
+    };
+#endif
 
     Binding Bind( ResourceHandle );
+    Binding BindAtIndex( ResourceHandle, int );
     void    Unbind( Binding );
-
-    //bool    IsBufferArray() const;
-    //bool    IsTextureArray() const;
-    //bool    IsSamplerArray() const;
+    void    Resize( int );
+    void    SetFenceSignal( FenceSignal );
 
   private:
-    Binding BindInternal( int );
 
-    //D3D12ProgramBindType mType             {};
-    D3D12ProgramBindDesc mProgramBindDesc {};
-    Vector< IHandle >    mHandles;
+    using HeapType = D3D12_DESCRIPTOR_HEAP_TYPE;
+
+    HeapType GetHeapType() const;
+    void     CheckType( ResourceHandle );
+
+    D3D12ProgramBindType mProgramBindType  {};
+    Vector< IHandle >    mHandles          {};
     Vector< Binding >    mUnusedBindings   {};
     DX12DescriptorRegion mDescriptorRegion {};
+    FenceSignal          mFenceSignal      {};
   };
 
 } // namespace Tac::Render

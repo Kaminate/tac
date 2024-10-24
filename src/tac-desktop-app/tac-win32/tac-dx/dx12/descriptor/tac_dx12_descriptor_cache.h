@@ -18,10 +18,10 @@ namespace Tac::Render
   private:
     DX12DescriptorRegion* Lookup( DX12Descriptor );
 
-    Vector< DX12Descriptor >        mCPUDescs;
-    Vector< int >                   mGPUIndexes;
-    Vector< DX12DescriptorRegion >  mGPUDescs;
-    DX12DescriptorAllocator*        mGpuRegionMgr{};
+    Vector< DX12Descriptor >        mCPUDescs     {};
+    Vector< int >                   mGPUIndexes   {};
+    Vector< DX12DescriptorRegion >  mGPUDescs     {};
+    DX12DescriptorAllocator*        mGpuRegionMgr {};
   };
 
   using DX12DescriptorCaches = DX12DescriptorCache[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];

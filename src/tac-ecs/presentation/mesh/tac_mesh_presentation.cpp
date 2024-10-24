@@ -259,7 +259,7 @@ namespace Tac
       }
     }
 
-    mShaderMeshLights->SetBuffer( Render::CBufferLights::sHandle );
+    mShaderMeshLights->SetResource( Render::CBufferLights::sHandle );
     const Render::UpdateBufferParams updateLights
     {
       .mSrcBytes     { &cBufferLights },
@@ -271,17 +271,17 @@ namespace Tac
 
     const int nShadowMaps{ shadowMaps.size() };
     for( int i{}; i < nShadowMaps; ++i )
-      mShaderMeshShadowMaps->SetTextureAtIndex( i, shadowMaps[ i ] );
+      mShaderMeshShadowMaps->SetResourceAtIndex( i, shadowMaps[ i ] );
     for( int i{ nShadowMaps }; i < Render::CBufferLights::TAC_MAX_SHADER_LIGHTS; ++i )
     {
       // hack, currently every element needs to be bound
-      mShaderMeshShadowMaps->SetTextureAtIndex( i, s1x1White );
+      mShaderMeshShadowMaps->SetResourceAtIndex( i, s1x1White );
     }
 
     mDebugCBufferLights = cBufferLights;
 
     //mShaderMeshLinearSampler->SetSampler( mSamplerLinear );
-    mShaderMeshShadowSampler->SetSampler( sSamplers.GetSampler( Render::Filter::Point ) );
+    mShaderMeshShadowSampler->SetResource( sSamplers.GetSampler( Render::Filter::Point ) );
 
     for( const SubMesh& subMesh : mesh->mSubMeshes )
     {
@@ -588,16 +588,16 @@ namespace Tac
 
     mShaderMeshShadowMaps = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMaps" );
     mShaderMeshShadowSampler = renderDevice->GetShaderVariable( mMeshPipeline, "shadowMapSampler" );
-    mShaderMeshShadowSampler->SetSampler( sSamplers.GetSampler( Render::Filter::Point ) );
+    mShaderMeshShadowSampler->SetResource( sSamplers.GetSampler( Render::Filter::Point ) );
 
     TAC_CALL( CreatePerMesh( errors ) );
     TAC_CALL( CreatePerObj( errors ) );
 
     mShaderMeshPerObject = renderDevice->GetShaderVariable( mMeshPipeline, "sPerObj" );
-    mShaderMeshPerObject->SetBuffer( mMeshPerObjBuf );
+    mShaderMeshPerObject->SetResource( mMeshPerObjBuf );
 
     mShaderMeshPerFrame = renderDevice->GetShaderVariable( mMeshPipeline, "sPerFrame" );
-    mShaderMeshPerFrame->SetBuffer( mMeshPerFrameBuf );
+    mShaderMeshPerFrame->SetResource( mMeshPerFrameBuf );
 
     TAC_CALL( Create1x1White( errors ) );
 

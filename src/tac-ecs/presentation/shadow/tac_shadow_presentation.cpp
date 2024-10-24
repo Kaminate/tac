@@ -359,10 +359,10 @@ namespace Tac
     TAC_CALL( sPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
 
     Render::IShaderVar* shaderPerFrame{ renderDevice->GetShaderVariable( sPipeline, "sPerFrame" ) };
-    shaderPerFrame->SetBuffer( sCBufPerFrame );
+    shaderPerFrame->SetResource( sCBufPerFrame );
 
     Render::IShaderVar* shaderPerObj{ renderDevice->GetShaderVariable( sPipeline, "sPerObj" ) };
-    shaderPerObj->SetBuffer( sCBufPerObj );
+    shaderPerObj->SetResource( sCBufPerObj );
   sInitialized = true;
   }
 

@@ -39,23 +39,23 @@ namespace Tac::Render
     DX12Descriptor               Allocate( int = 1 );
     void                         Free( DX12Descriptor );
 
-    DX12DescriptorAllocator* GetRegionMgr();
+    DX12DescriptorAllocator*     GetRegionMgr();
     StringView                   GetName();
 
   private:
 
     int                          AllocateIndex();
 
-    String                       mName{};
-    DX12DescriptorAllocator*     mRegionMgr{};
-    int                          mUsedIndexCount{};
-    Vector< int >                mFreeIndexes{};
-    PCom< ID3D12DescriptorHeap > mHeap{};
-    D3D12_CPU_DESCRIPTOR_HANDLE  mHeapStartCPU{};
-    D3D12_GPU_DESCRIPTOR_HANDLE  mHeapStartGPU{};
-    D3D12_DESCRIPTOR_HEAP_DESC   mDesc{};
-    UINT                         mDescriptorSize{};
-    DX12CommandQueue*            mCommandQueue{};
+    String                       mName           {};
+    DX12DescriptorAllocator*     mRegionMgr      {}; // owned
+    int                          mUsedIndexCount {};
+    Vector< int >                mFreeIndexes    {};
+    PCom< ID3D12DescriptorHeap > mHeap           {};
+    D3D12_CPU_DESCRIPTOR_HANDLE  mHeapStartCPU   {};
+    D3D12_GPU_DESCRIPTOR_HANDLE  mHeapStartGPU   {};
+    D3D12_DESCRIPTOR_HEAP_DESC   mDesc           {};
+    UINT                         mDescriptorSize {};
+    DX12CommandQueue*            mCommandQueue   {};
   };
 
   using DX12DescriptorHeaps = Array< DX12DescriptorHeap, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;

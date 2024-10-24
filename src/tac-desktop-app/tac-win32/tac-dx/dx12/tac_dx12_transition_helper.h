@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-dx/dx12/resource/tac_dx12_resource.h"
 
 #include <d3d12.h>
 
@@ -12,10 +13,7 @@ namespace Tac::Render
   {
     struct Params
     {
-      //void Execute( ID3D12GraphicsCommandList* );
-
-      ID3D12Resource*        mResource    {};
-      D3D12_RESOURCE_STATES* mStateBefore {};
+      DX12Resource*          mResource    {};
       D3D12_RESOURCE_STATES  mStateAfter  {};
     };
 

@@ -330,13 +330,13 @@ namespace Tac
       if( !terrain->mVertexBuffer.IsValid() || !terrain->mIndexBuffer.IsValid() )
         continue;
 
-      const Render::TextureHandle terrainTexture =
-        TextureAssetManager::GetTexture( terrain->mGroundTexturePath, mGetTextureErrorsGround );
-      mShaderTerrainHeightmap->SetTexture( terrainTexture );
+      const Render::TextureHandle terrainTexture {
+        TextureAssetManager::GetTexture( terrain->mGroundTexturePath, mGetTextureErrorsGround ) };
+      mShaderTerrainHeightmap->SetResource( terrainTexture );
 
-      const Render::TextureHandle noiseTexture =
-        TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise );
-      mShaderTerrainNoise->SetTexture( noiseTexture );
+      const Render::TextureHandle noiseTexture {
+        TextureAssetManager::GetTexture( terrain->mNoiseTexturePath, mGetTextureErrorsNoise ) };
+      mShaderTerrainNoise->SetResource( noiseTexture );
 
       const Render::DefaultCBufferPerObject cbuf{};
       const Render::DrawArgs drawArgs
@@ -389,7 +389,7 @@ namespace Tac
     mShaderTerrainHeightmap = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainTexture" );
     mShaderTerrainNoise = renderDevice->GetShaderVariable( mTerrainPipeline, "noiseTexture" );
     mShaderTerrainSampler = renderDevice->GetShaderVariable( mTerrainPipeline, "linearSampler" );
-    mShaderTerrainSampler->SetSampler( mSamplerAniso );
+    mShaderTerrainSampler->SetResource( mSamplerAniso );
 
     const Render::CreateBufferParams terrainConstBufParams
     {
@@ -400,7 +400,7 @@ namespace Tac
     };
     TAC_CALL( mTerrainConstBuf = renderDevice->CreateBuffer( terrainConstBufParams, errors ) );
     mShaderTerrainConstBuf = renderDevice->GetShaderVariable( mTerrainPipeline, "terrainConstBuf" );
-    mShaderTerrainConstBuf->SetBuffer( mTerrainConstBuf );
+    mShaderTerrainConstBuf->SetResource( mTerrainConstBuf );
   }
 
   void        TerrainPresentation::Uninit()

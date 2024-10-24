@@ -3,6 +3,7 @@
 #include "tac_dx12_texture.h"
 //#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-dx/dx12/resource/tac_dx12_resource.h"
 #include "tac-std-lib/containers/tac_array.h"
 
 #include <d3d12.h>
@@ -28,8 +29,7 @@ namespace Tac::Render
     DX12Texture*  FindTexture( TextureHandle );
     void          TransitionTexture( TextureHandle, DX12TransitionHelper* );
     void          SetName( TextureHandle, StringView );
-    void          TransitionResource( ID3D12Resource*,
-                                      D3D12_RESOURCE_STATES*,
+    void          TransitionResource( DX12Resource*,
                                       Binding,
                                       DX12TransitionHelper* );
 
@@ -47,8 +47,7 @@ namespace Tac::Render
       Optional< DX12Descriptor > mUAV;
     };
 
-    void     UploadTextureData( ID3D12Resource*,
-                                D3D12_RESOURCE_STATES*,
+    void     UploadTextureData( DX12Resource*,
                                 UpdateTextureParams,
                                 DX12Context*,
                                 Errors& );

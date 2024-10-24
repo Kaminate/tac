@@ -30,18 +30,6 @@ namespace Tac::Render
     }
   }
 
-  static D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( const DX12Pipeline::Variable& var )
-  {
-    D3D12ProgramBindDesc binding{ var.mBinding };
-    if( binding.mType.IsBuffer() || binding.mType.IsTexture() )
-      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-    if( binding.mType.IsSampler() )
-      return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-
-    TAC_ASSERT_INVALID_CODE_PATH;
-    return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -104,103 +92,18 @@ namespace Tac::Render
     mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Resource.GetRegionMgr() ); // ugly
     mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Sampler.GetRegionMgr() ); // ugly
 
-
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
-    const int n{ pipeline->mShaderVariables.size() };
-    for( int i{}; i < n; ++i )
+    const DX12Pipeline::Variable::CommitParams commitParams
     {
-      const UINT rootParameterIndex{ ( UINT )i };
-      const DX12Pipeline::Variable& var{ pipeline->mShaderVariables[ i ] };
-      const D3D12ProgramBindDesc& binding{ var.mBinding };
+        .mCommandList      {commandList},
+        .mDescriptorCaches {&mState.mDescriptorCaches},
+        .mIsCompute        {mState.mIsCompute},
+    };
 
-      if( binding.BindsAsDescriptorTable() )
-      {
-        const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( var ) };
-
-        DX12TransitionHelper transitionHelper;
-        const Span< DX12Descriptor > cpuDescriptors{
-          var.GetDescriptors( &transitionHelper, mTextureMgr, mSamplerMgr, mBufferMgr ) };
-        transitionHelper.ResourceBarrier( commandList );
-
-        dynmc DX12DescriptorCache& descriptorCache{ mState.mDescriptorCaches[ heapType ] };
-        const DX12DescriptorRegion* gpuDescriptor{
-          descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors ) };
-
-        const int nDescriptors{ cpuDescriptors.size() };
-        for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
-        {
-          DX12Descriptor cpuDescriptor { cpuDescriptors[ iDescriptor ] };
-          DX12DescriptorHeap* srcHeap{ cpuDescriptor.mOwner };
-          TAC_ASSERT( srcHeap );
-          TAC_ASSERT( srcHeap->GetType() == heapType );
-
-          const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
-          const D3D12_CPU_DESCRIPTOR_HANDLE dst{ gpuDescriptor->GetCPUHandle( iDescriptor ) };
-
-          TAC_ASSERT( src.ptr );
-          TAC_ASSERT( dst.ptr );
-
-          mDevice->CopyDescriptorsSimple( 1, dst, src, heapType );
-        }
-
-        const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
-        if( mState.mIsCompute )
-          commandList->SetComputeRootDescriptorTable( rootParameterIndex, gpuHandle );
-        else
-          commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
-      }
-      else
-      {
-        TAC_ASSERT( var.mHandleIndexes.size() == 1 );
-        const BufferHandle bufferHandle{ var.mHandleIndexes[ 0 ] };
-
-        TAC_ASSERT_MSG( !binding.mType.IsTexture(),
-                        "textures must be bound thorugh descriptor tables" );
-
-        // this includes constant buffers
-        TAC_ASSERT( binding.mType.IsBuffer() );
-
-        const DX12Buffer* buffer{ mBufferMgr->FindBuffer( bufferHandle ) };
-        TAC_ASSERT( buffer );
-
-        const D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress{ buffer->mGPUVirtualAddr };
-        TAC_ASSERT( gpuVirtualAddress );
-
-        if( binding.mType.IsConstantBuffer() )
-        {
-          TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
-          if( mState.mIsCompute )
-            commandList->SetComputeRootConstantBufferView( rootParameterIndex, gpuVirtualAddress );
-          else
-            commandList->SetGraphicsRootConstantBufferView( rootParameterIndex, gpuVirtualAddress );
-        }
-        else if( binding.mType.IsSRV() )
-        {
-          TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
-
-          // Textures are not supported
-
-          if( mState.mIsCompute )
-            commandList->SetComputeRootShaderResourceView( rootParameterIndex, gpuVirtualAddress );
-          else
-            commandList->SetGraphicsRootShaderResourceView( rootParameterIndex, gpuVirtualAddress );
-        }
-        else if( binding.mType.IsUAV() )
-        {
-          TAC_ASSERT( buffer->mState & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
-          if( mState.mIsCompute )
-            commandList->SetComputeRootUnorderedAccessView( rootParameterIndex, gpuVirtualAddress );
-          else
-            commandList->SetGraphicsRootUnorderedAccessView( rootParameterIndex, gpuVirtualAddress );
-        }
-        else
-        {
-          TAC_ASSERT_INVALID_CODE_PATH;
-        }
-      }
-    }
+    for( const DX12Pipeline::Variable& var : pipeline->mShaderVariables )
+      var.Commit( commitParams );
   }
 
   void DX12Context::UpdateTexture( TextureHandle h,
@@ -362,8 +265,7 @@ namespace Tac::Render
 
       const DX12TransitionHelper::Params transitionParams
       {
-        .mResource    { colorTexture->mResource.Get() },
-        .mStateBefore { &colorTexture->mState },
+        .mResource    { &colorTexture->mResource },
         .mStateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
       };
       transitionHelper.Append( transitionParams );
@@ -384,8 +286,7 @@ namespace Tac::Render
       // Assume the the shader has depth write enabled
       const DX12TransitionHelper::Params transitionParams
       {
-        .mResource    { depthTexture->mResource.Get() },
-        .mStateBefore { &depthTexture->mState },
+        .mResource    { &depthTexture->mResource },
         .mStateAfter  { D3D12_RESOURCE_STATE_DEPTH_WRITE },
       };
       transitionHelper.Append( transitionParams );
@@ -426,13 +327,11 @@ namespace Tac::Render
     TAC_ASSERT( texture );
 
     dynmc ID3D12GraphicsCommandList* commandList { GetCommandList() };
-    dynmc ID3D12Resource* resource { texture->mResource.Get() };
     const FLOAT* colorRGBA{ values.data() };
     const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV->GetCPUHandle() };
     const DX12TransitionHelper::Params transitionParams
     {
-      .mResource    { resource },
-      .mStateBefore { &texture->mState },
+      .mResource    { &texture->mResource },
       .mStateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
     };
 
@@ -513,8 +412,7 @@ namespace Tac::Render
 
     const DX12TransitionHelper::Params transitionParams
     {
-      .mResource    { texture->mResource.Get() },
-      .mStateBefore { & texture->mState  },
+      .mResource    { &texture->mResource },
       .mStateAfter  { D3D12_RESOURCE_STATE_DEPTH_WRITE },
     };
 

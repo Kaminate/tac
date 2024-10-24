@@ -126,7 +126,7 @@ namespace Tac
     TAC_CALL( sConstantBuffer = renderDevice->CreateBuffer( constBufParams, errors ) );
 
     sShaderConstants = renderDevice->GetShaderVariable( sPipeline, "sConstants" );
-    sShaderConstants->SetBuffer( sConstantBuffer );
+    sShaderConstants->SetResource( sConstantBuffer );
 
     sConstantUpdateParams = Render::UpdateBufferParams 
     {

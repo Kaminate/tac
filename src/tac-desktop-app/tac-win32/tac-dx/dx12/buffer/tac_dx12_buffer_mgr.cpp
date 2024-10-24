@@ -117,7 +117,7 @@ namespace Tac::Render
   }
 
   BufferHandle DX12BufferMgr::CreateBuffer( CreateBufferParams params,
-                                    Errors& errors)
+                                            Errors& errors )
   {
     const int byteCount { params.mByteCount };
     const StackFrame sf { params.mStackFrame };
@@ -175,7 +175,7 @@ namespace Tac::Render
       .Flags            { ResourceFlags },
     };
 
-    D3D12_RESOURCE_STATES resourceStates{
+    const D3D12_RESOURCE_STATES initialResourceStates{
       [ & ]()
       {
         if( heapType == D3D12_HEAP_TYPE_UPLOAD )
@@ -194,15 +194,21 @@ namespace Tac::Render
 
     ID3D12Device* device{ mDevice };
 
-    PCom< ID3D12Resource > buffer;
-    TAC_DX12_CALL_RET( {}, device->CreateCommittedResource(
-      &HeapProps,
-      D3D12_HEAP_FLAG_NONE,
-      &ResourceDesc,
-      resourceStates,
-      nullptr,
-      buffer.iid(),
-      buffer.ppv() ) );
+    DX12Resource buffer;
+
+    {
+      PCom< ID3D12Resource > committedResource;
+      TAC_DX12_CALL_RET( {}, device->CreateCommittedResource(
+        &HeapProps,
+        D3D12_HEAP_FLAG_NONE,
+        &ResourceDesc,
+        initialResourceStates,
+        nullptr,
+        committedResource.iid(),
+        committedResource.ppv() ) );
+
+      buffer = DX12Resource( committedResource, ResourceDesc, initialResourceStates );
+    }
 
     ID3D12Resource* resource{ buffer.Get() };
 
@@ -226,8 +232,7 @@ namespace Tac::Render
 
         const DX12TransitionHelper::Params transitionParams
         {
-          .mResource    { resource },
-          .mStateBefore { &resourceStates },
+          .mResource    { &buffer },
           .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
         };
         DX12TransitionHelper transitionHelper;
@@ -264,8 +269,7 @@ namespace Tac::Render
 
     // Transition to the intended usage for context root signature binding
     TransitionBuffer( params.mBinding,
-                      resource,
-                      &resourceStates,
+                      &buffer,
                       commandList );
 
     // do we context->SetSynchronous() ?
@@ -274,18 +278,16 @@ namespace Tac::Render
 
     const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
 
-
     mBuffers[ i ] = DX12Buffer
     {
       .mResource       { buffer },
-      .mDesc           { ResourceDesc },
-      .mState          { resourceStates },
       .mGPUVirtualAddr { gpuVritualAddress },
       .mSRV            { descriptorBindings.mSRV },
       .mUAV            { descriptorBindings.mUAV },
       .mMappedCPUAddr  { mappedCPUAddr },
       .mCreateParams   { params },
     };
+
     return h;
   }
 
@@ -295,8 +297,7 @@ namespace Tac::Render
   }
 
   void DX12BufferMgr::TransitionBuffer( Binding binding,
-                                        ID3D12Resource* resource,
-                                        D3D12_RESOURCE_STATES* resourceState,
+                                        DX12Resource* resource,
                                         ID3D12GraphicsCommandList* commandList )
   {
       D3D12_RESOURCE_STATES usageFromBinding{ D3D12_RESOURCE_STATE_COMMON };
@@ -339,7 +340,6 @@ namespace Tac::Render
       const DX12TransitionHelper::Params transitionParams
       {
         .mResource    { resource },
-        .mStateBefore { resourceState },
         .mStateAfter  { usageFromBinding },
       };
       DX12TransitionHelper transitionHelper;
@@ -376,7 +376,10 @@ namespace Tac::Render
 
       buffer.mMappedCPUAddr = allocation.mCPUAddr;
       buffer.mGPUVirtualAddr = allocation.mGPUAddr;
-      buffer.mState = *allocation.mResourceState; // gross
+      // | commenting out because compile error of the shit im changing......
+      // | if this fucks shit so be it
+      // v
+      //buffer.mState = *allocation.mResourceState; // gross
 
       // uhh so like if the allocation could be used for other things, then
       // i dont really want to use buffer.mCreateParams.mOptionalName/buffer.mCreateName;

@@ -13,6 +13,11 @@
 
 namespace Tac::Render
 {
+  static bool IsPowerOfTwo( u32 n )
+  {
+    return ( n & ( n - 1 ) ) == 0;
+  }
+
   static D3D12_RESOURCE_FLAGS GetResourceFlags( Binding binding )
   {
     D3D12_RESOURCE_FLAGS Flags{};
@@ -75,7 +80,6 @@ namespace Tac::Render
     }
     }
   };
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -154,227 +158,6 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-
-  TextureHandle DX12TextureMgr::CreateTexture( CreateTextureParams params,
-                                               Errors& errors )
-  {
-    DX12ContextManager* mContextManager{ &DX12Renderer::sRenderer.mContextManager};
-    const bool hasImageBytes{ !params.mSubresources.empty() };
-    const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
-    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice};
-
-    const D3D12_HEAP_TYPE heapType{ params.mUsage == Usage::Staging
-        ? D3D12_HEAP_TYPE_UPLOAD
-        : D3D12_HEAP_TYPE_DEFAULT };
-
-    dynmc D3D12_RESOURCE_STATES resourceStates{
-      [ & ]()
-      {
-        if( heapType == D3D12_HEAP_TYPE_UPLOAD )
-          return D3D12_RESOURCE_STATE_GENERIC_READ;
-
-        if( hasImageBytes )
-          return D3D12_RESOURCE_STATE_COPY_DEST;
-
-        return D3D12_RESOURCE_STATE_COMMON;
-      }( ) };
-
-
-    PCom< ID3D12Resource > resource;
-    if( params.mUsage == Usage::Default ||
-        params.mUsage == Usage::Static )
-    {
-        const D3D12_HEAP_PROPERTIES heapProps{ .Type { heapType } };
-
-        const DX12ClearValue clearValue( params );
-
-        mDevice->CreateCommittedResource(
-          &heapProps,
-          D3D12_HEAP_FLAG_NONE,
-          &textureResourceDesc,
-          resourceStates,
-          clearValue.mClearValuePointer,
-          resource.iid(),
-          resource.ppv() );
-
-    }
-
-    DX12Context* context{ mContextManager->GetContext( errors ) };
-    DX12Context::Scope contextScope{ context };
-
-    ID3D12Resource* pResource { resource.Get() };
-
-    if( hasImageBytes )
-    {
-      const UpdateTextureParams updateTextureParams
-      {
-        .mSrcImage            { params.mImage },
-        .mSrcSubresource      { params.mSubresources },
-        .mDstSubresourceIndex {},
-        .mDstPos              {},
-      };
-      TAC_CALL_RET( {}, UploadTextureData(
-        pResource,
-        &resourceStates,
-        updateTextureParams,
-        context,
-        errors ) );
-    }
-
-    const Bindings bindings( pResource, params.mBinding );
-
-    ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
-
-    // transition if power of two (single binding)
-    if( u32 b{ ( u32 )params.mBinding }; ( b & ( b - 1 ) ) == 0 )
-    {
-      DX12TransitionHelper transitionHelper;
-      TransitionResource( pResource, &resourceStates, params.mBinding, &transitionHelper );
-      transitionHelper.ResourceBarrier( commandList );
-    }
-
-    // do we context->SetSynchronous() ?
-    TAC_CALL_RET( {}, context->Execute( errors ) );
-
-    const D3D12_RESOURCE_DESC resourceDesc{ resource->GetDesc() };
-
-    const TextureHandle h{ AllocTextureHandle() };
-    const int iTexture{ h.GetIndex() };
-
-    const DX12Name name
-    {
-      .mName          { params.mOptionalName },
-      .mStackFrame    { params.mStackFrame },
-      .mResourceType  { "Texture" },
-      .mResourceIndex { iTexture },
-    };
-    DX12SetName( pResource, name );
-
-    mTextures[ iTexture ] = DX12Texture
-    {
-      .mResource          { resource },
-      .mDesc              { resourceDesc },
-      .mState             { resourceStates },
-      .mBinding           { params.mBinding },
-      .mName              { params.mOptionalName },
-      .mRTV               { bindings.mRTV },
-      .mDSV               { bindings.mDSV },
-      .mSRV               { bindings.mSRV },
-      .mUAV               { bindings.mUAV },
-    };
-    return h;
-  }
-
-  void DX12TextureMgr::UploadTextureData( ID3D12Resource* dstRsc,
-                                          D3D12_RESOURCE_STATES* dstRscStates,
-                                          UpdateTextureParams updateTextureParams,
-                                          DX12Context* context,
-                                          Errors& errors )
-  {
-
-    const CreateTextureParams::Subresources srcSubresources{ updateTextureParams.mSrcSubresource };
-    const int nSubRscs{ srcSubresources.size() };
-    if( !nSubRscs )
-      return;
-
-    const int texFmtSize{ GetTexFmtSize( updateTextureParams.mSrcImage.mFormat ) };
-
-    ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
-
-    // Resource barrier
-    {
-      const DX12TransitionHelper::Params transitionParams
-      {
-        .mResource    { dstRsc },
-        .mStateBefore { dstRscStates },
-        .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
-      };
-      DX12TransitionHelper transitionHelper;
-      transitionHelper.Append( transitionParams );
-      transitionHelper.ResourceBarrier( commandList );
-    }
-
-    const DXGI_FORMAT srcFmt{ TexFmtToDxgiFormat( updateTextureParams.mSrcImage.mFormat ) };
-
-    const UploadCalculator uploadCalculator( updateTextureParams );
-
-    const int uploadBytes{
-      uploadCalculator.GetTotalSize() + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT };
-
-    const DX12UploadAllocator::DynAlloc upload{
-      context->mGPUUploadAllocator.Allocate( ( int )uploadBytes, errors ) };
-
-    MemSet( upload.mCPUAddr, 0, upload.mByteCount );
-
-    const int mip0Offset{ RoundUpToNearestMultiple( ( int )upload.mResourceOffest,
-                                                    D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT ) };
-    //void* mip0Ptr{ ( char* )upload.mUnoffsetCPUAddr 
-    //  + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT  };
-
-    for( int iSubRsc{}; iSubRsc < nSubRscs; ++iSubRsc )
-    {
-      const CreateTextureParams::Subresource subRsc{
-        updateTextureParams.mSrcSubresource[ iSubRsc ] };
-
-      const int uploadSubRscRowPitch{ uploadCalculator.GetPitch( iSubRsc ) };
-      const int uploadSubRscOffset{
-        mip0Offset +
-        uploadCalculator.GetCumulativeSubresourceOffset( iSubRsc ) };
-
-      const int srcW{ updateTextureParams.mSrcImage.mWidth >> iSubRsc };
-      const int srcH{ updateTextureParams.mSrcImage.mHeight >> iSubRsc };
-
-      for( int iRow{}; iRow < srcH; ++iRow )
-      {
-        char* src{ ( char* )subRsc.mBytes + subRsc.mPitch * iRow };
-        char* dst{ ( char* )upload.mUnoffsetCPUAddr
-          + uploadSubRscOffset
-          + uploadSubRscRowPitch * iRow };
-
-        if( iRow == 512 )
-          ++asdf;
-
-
-        MemCpy( dst, src, srcW * texFmtSize );
-      }
-
-      const D3D12_TEXTURE_COPY_LOCATION texCopyDst
-      {
-        .pResource        { dstRsc },
-        .Type             { D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX },
-        .SubresourceIndex { ( UINT )iSubRsc },
-      };
-
-      const D3D12_SUBRESOURCE_FOOTPRINT srcSubRscFootprint
-      {
-        .Format   { srcFmt },
-        .Width    { ( UINT )srcW },
-        .Height   { ( UINT )srcH },
-        .Depth    { 1 },
-        .RowPitch { ( UINT )uploadSubRscRowPitch },
-      };
-
-      const D3D12_PLACED_SUBRESOURCE_FOOTPRINT srcPlacedSubRscFootprint
-      {
-        .Offset    { ( UINT64 )uploadSubRscOffset },
-        .Footprint { srcSubRscFootprint },
-      };
-
-      const D3D12_TEXTURE_COPY_LOCATION texCopySrc
-      {
-        .pResource       { upload.mResource },
-        .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
-        .PlacedFootprint { srcPlacedSubRscFootprint },
-      };
-
-
-      const UINT DstX{ ( UINT )updateTextureParams.mDstPos.x };
-      const UINT DstY{ ( UINT )updateTextureParams.mDstPos.y };
-      const UINT DstZ{};
-      commandList->CopyTextureRegion( &texCopyDst, DstX, DstY, DstZ, &texCopySrc, nullptr );
-    }
-  }
-
   DX12TextureMgr::Bindings::Bindings( ID3D12Resource* pResource, Binding binding )
   {
     ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
@@ -430,45 +213,264 @@ namespace Tac::Render
     mUAV = UAV;
   }
 
-  void DX12TextureMgr::CreateRenderTargetColor( TextureHandle h,
-                                                PCom<ID3D12Resource> resource,
-                                                Errors& errors )
+  // -----------------------------------------------------------------------------------------------
+
+  TextureHandle DX12TextureMgr::CreateTexture( CreateTextureParams params,
+                                               Errors& errors )
   {
+    DX12ContextManager* mContextManager{ &DX12Renderer::sRenderer.mContextManager};
+    const bool hasImageBytes{ !params.mSubresources.empty() };
+    const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
     ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice};
+
+    const D3D12_HEAP_TYPE heapType{ params.mUsage == Usage::Staging
+        ? D3D12_HEAP_TYPE_UPLOAD
+        : D3D12_HEAP_TYPE_DEFAULT };
+
+    const D3D12_RESOURCE_STATES intialResourceStates{
+      [ & ]()
+      {
+        if( heapType == D3D12_HEAP_TYPE_UPLOAD )
+          return D3D12_RESOURCE_STATE_GENERIC_READ;
+
+        if( hasImageBytes )
+          return D3D12_RESOURCE_STATE_COPY_DEST;
+
+        return D3D12_RESOURCE_STATE_COMMON;
+      }( ) };
+
+    DX12Resource dx12Resource;
+
+    if( params.mUsage == Usage::Default ||
+        params.mUsage == Usage::Static )
+    {
+        const D3D12_HEAP_PROPERTIES heapProps{ .Type { heapType } };
+
+        const DX12ClearValue clearValue( params );
+
+        PCom< ID3D12Resource > resource;
+        mDevice->CreateCommittedResource(
+          &heapProps,
+          D3D12_HEAP_FLAG_NONE,
+          &textureResourceDesc,
+          intialResourceStates,
+          clearValue.mClearValuePointer,
+          resource.iid(),
+          resource.ppv() );
+
+        dx12Resource = DX12Resource( resource, textureResourceDesc, intialResourceStates );
+    }
+
+    DX12Context* context{ mContextManager->GetContext( errors ) };
+    DX12Context::Scope contextScope{ context };
+
+    //ID3D12Resource* pResource { resource.Get() };
+
+    if( hasImageBytes )
+    {
+      const UpdateTextureParams updateTextureParams
+      {
+        .mSrcImage            { params.mImage },
+        .mSrcSubresource      { params.mSubresources },
+        .mDstSubresourceIndex {},
+        .mDstPos              {},
+      };
+      TAC_CALL_RET( {}, UploadTextureData( &dx12Resource,
+                                           updateTextureParams,
+                                           context,
+                                           errors ) );
+    }
+
+    const Bindings bindings( dx12Resource, params.mBinding );
+
+    ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
+
+    if( const bool isSingleBinding{ IsPowerOfTwo( ( u32 )params.mBinding ) } )
+    {
+      DX12TransitionHelper transitionHelper;
+      TransitionResource( &dx12Resource, params.mBinding, &transitionHelper );
+      transitionHelper.ResourceBarrier( commandList );
+    }
+
+    // do we context->SetSynchronous() ?
+    TAC_CALL_RET( {}, context->Execute( errors ) );
+
+    //const D3D12_RESOURCE_DESC resourceDesc{ resource->GetDesc() };
+
+    const TextureHandle h{ AllocTextureHandle() };
+    const int iTexture{ h.GetIndex() };
+
+    const DX12Name name
+    {
+      .mName          { params.mOptionalName },
+      .mStackFrame    { params.mStackFrame },
+      .mResourceType  { "Texture" },
+      .mResourceIndex { iTexture },
+    };
+    DX12SetName( dx12Resource, name );
+
+
+    mTextures[ iTexture ] = DX12Texture
+    {
+      .mResource          { dx12Resource },
+      .mBinding           { params.mBinding },
+      .mName              { params.mOptionalName },
+      .mRTV               { bindings.mRTV },
+      .mDSV               { bindings.mDSV },
+      .mSRV               { bindings.mSRV },
+      .mUAV               { bindings.mUAV },
+    };
+    return h;
+  }
+
+  void          DX12TextureMgr::UploadTextureData( DX12Resource* dstRsc,
+                                                   UpdateTextureParams updateTextureParams,
+                                                   DX12Context* context,
+                                                   Errors& errors )
+  {
+    const CreateTextureParams::Subresources srcSubresources{ updateTextureParams.mSrcSubresource };
+    const int nSubRscs{ srcSubresources.size() };
+    if( !nSubRscs )
+      return;
+
+    const int texFmtSize{ GetTexFmtSize( updateTextureParams.mSrcImage.mFormat ) };
+
+    ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
+
+    // Resource barrier
+    {
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { dstRsc },
+        .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
+      };
+      DX12TransitionHelper transitionHelper;
+      transitionHelper.Append( transitionParams );
+      transitionHelper.ResourceBarrier( commandList );
+    }
+
+    const DXGI_FORMAT srcFmt{ TexFmtToDxgiFormat( updateTextureParams.mSrcImage.mFormat ) };
+
+    const UploadCalculator uploadCalculator( updateTextureParams );
+
+    const int uploadBytes{
+      uploadCalculator.GetTotalSize() + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT };
+
+    const DX12UploadAllocator::DynAlloc upload{
+      context->mGPUUploadAllocator.Allocate( ( int )uploadBytes, errors ) };
+
+    MemSet( upload.mCPUAddr, 0, upload.mByteCount );
+
+    const int mip0Offset{ RoundUpToNearestMultiple( ( int )upload.mResourceOffest,
+                                                    D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT ) };
+    //void* mip0Ptr{ ( char* )upload.mUnoffsetCPUAddr 
+    //  + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT  };
+
+    for( int iSubRsc{}; iSubRsc < nSubRscs; ++iSubRsc )
+    {
+      const CreateTextureParams::Subresource subRsc{
+        updateTextureParams.mSrcSubresource[ iSubRsc ] };
+
+      const int uploadSubRscRowPitch{ uploadCalculator.GetPitch( iSubRsc ) };
+      const int uploadSubRscOffset{
+        mip0Offset +
+        uploadCalculator.GetCumulativeSubresourceOffset( iSubRsc ) };
+
+      const int srcW{ updateTextureParams.mSrcImage.mWidth >> iSubRsc };
+      const int srcH{ updateTextureParams.mSrcImage.mHeight >> iSubRsc };
+
+      for( int iRow{}; iRow < srcH; ++iRow )
+      {
+        char* src{ ( char* )subRsc.mBytes + subRsc.mPitch * iRow };
+        char* dst{ ( char* )upload.mUnoffsetCPUAddr
+          + uploadSubRscOffset
+          + uploadSubRscRowPitch * iRow };
+
+        if( iRow == 512 )
+          ++asdf;
+
+
+        MemCpy( dst, src, srcW * texFmtSize );
+      }
+
+      const D3D12_TEXTURE_COPY_LOCATION texCopyDst
+      {
+        .pResource        { dstRsc->Get() },
+        .Type             { D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX },
+        .SubresourceIndex { ( UINT )iSubRsc },
+      };
+
+      const D3D12_SUBRESOURCE_FOOTPRINT srcSubRscFootprint
+      {
+        .Format   { srcFmt },
+        .Width    { ( UINT )srcW },
+        .Height   { ( UINT )srcH },
+        .Depth    { 1 },
+        .RowPitch { ( UINT )uploadSubRscRowPitch },
+      };
+
+      const D3D12_PLACED_SUBRESOURCE_FOOTPRINT srcPlacedSubRscFootprint
+      {
+        .Offset    { ( UINT64 )uploadSubRscOffset },
+        .Footprint { srcSubRscFootprint },
+      };
+
+      const D3D12_TEXTURE_COPY_LOCATION texCopySrc
+      {
+        .pResource       { upload.mResource },
+        .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
+        .PlacedFootprint { srcPlacedSubRscFootprint },
+      };
+
+
+      const UINT DstX{ ( UINT )updateTextureParams.mDstPos.x };
+      const UINT DstY{ ( UINT )updateTextureParams.mDstPos.y };
+      const UINT DstZ{};
+      commandList->CopyTextureRegion( &texCopyDst, DstX, DstY, DstZ, &texCopySrc, nullptr );
+    }
+  }
+
+
+  void          DX12TextureMgr::CreateRenderTargetColor( TextureHandle h,
+                                                         PCom<ID3D12Resource> resource,
+                                                         Errors& errors )
+  {
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
     DX12DescriptorHeap* mCpuDescriptorHeapRTV{ &DX12Renderer::sRenderer.GetCpuHeap_RTV() };
-    DX12Texture* texture { FindTexture( h ) };
+    DX12Texture* texture{ FindTexture( h ) };
     TAC_ASSERT( texture );
 
-    const DX12Descriptor allocation  { mCpuDescriptorHeapRTV->Allocate() };
-    const D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle { allocation.GetCPUHandle() };
+    const DX12Descriptor allocation{ mCpuDescriptorHeapRTV->Allocate() };
+    const D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle{ allocation.GetCPUHandle() };
 
-    ID3D12Resource* pResource { resource.Get() };
+    ID3D12Resource* pResource{ resource.Get() };
     mDevice->CreateRenderTargetView( pResource, nullptr, cpuHandle );
+
+    // Render targets are created in present state
+    const D3D12_RESOURCE_STATES state{ D3D12_RESOURCE_STATE_PRESENT };
+
+    const DX12Resource dx12Resource( resource, resource->GetDesc(), state );
 
     *texture = DX12Texture
     {
-      .mResource { resource },
-      .mDesc     { resource->GetDesc() },
-      .mState    { D3D12_RESOURCE_STATE_PRESENT }, // Render targets are created in present state
+      .mResource { dx12Resource },
       .mRTV      { allocation },
     };
   }
 
-  void DX12TextureMgr::UpdateTexture( TextureHandle h,
-                                      UpdateTextureParams updateTextureParams,
-                                      DX12Context* context,
-                                      Errors& errors )
+  void          DX12TextureMgr::UpdateTexture( TextureHandle h,
+                                               UpdateTextureParams updateTextureParams,
+                                               DX12Context* context,
+                                               Errors& errors )
   {
     DX12Texture& texture{ mTextures[ h.GetIndex() ] };
-    ID3D12Resource* resource{ texture.mResource.Get() };
-    UploadTextureData( resource,
-                       &texture.mState,
+    UploadTextureData( &texture.mResource,
                        updateTextureParams,
                        context,
                        errors );
   }
 
-  void DX12TextureMgr::DestroyTexture( TextureHandle h )
+  void          DX12TextureMgr::DestroyTexture( TextureHandle h )
   {
     if( h.IsValid() )
     {
@@ -496,38 +498,35 @@ namespace Tac::Render
     }
   }
 
-  DX12Texture* DX12TextureMgr::FindTexture( TextureHandle h )
+  DX12Texture*  DX12TextureMgr::FindTexture( TextureHandle h )
   {
     return h.IsValid() ? &mTextures[ h.GetIndex() ] : nullptr;
   }
 
-  void DX12TextureMgr::TransitionResource( ID3D12Resource* resource,
-                                           D3D12_RESOURCE_STATES* resourceState,
-                                           Binding binding,
-                                           DX12TransitionHelper* transitionHelper )
+  void          DX12TextureMgr::TransitionResource( DX12Resource* dx12Resource,
+                                                    Binding binding,
+                                                    DX12TransitionHelper* transitionHelper )
   {
     const D3D12_RESOURCE_STATES usageFromBinding{ GetBindingResourceState( binding ) };
 
     const DX12TransitionHelper::Params transitionParams
     {
-      .mResource    { resource },
-      .mStateBefore { resourceState },
+      .mResource    { dx12Resource },
       .mStateAfter  { usageFromBinding },
     };
     transitionHelper->Append( transitionParams );
   }
 
-  void DX12TextureMgr::TransitionTexture( TextureHandle h,
-                                          DX12TransitionHelper* transitionHelper )
+  void          DX12TextureMgr::TransitionTexture( TextureHandle h,
+                                                   DX12TransitionHelper* transitionHelper )
   {
     DX12Texture* texture{ FindTexture( h ) };
-    ID3D12Resource* resource{ texture->mResource.Get() };
-    TransitionResource( resource, &texture->mState, texture->mBinding, transitionHelper );
+    TransitionResource( &texture->mResource,  texture->mBinding, transitionHelper );
   }
 
   void          DX12TextureMgr::SetName( TextureHandle h, StringView s )
   {
     if( DX12Texture * texture{ FindTexture( h ) } )
-      DX12SetName( texture->mResource, s );
+      DX12SetName( texture->mResource.Get(), s );
   }
 } // namespace Tac::Render

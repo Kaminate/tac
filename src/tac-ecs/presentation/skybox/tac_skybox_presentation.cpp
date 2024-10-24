@@ -240,9 +240,9 @@ namespace Tac
       .mStartIndex {},
     };
 
-    sShaderCubemap->SetTexture( cubemap );
-    sShaderConstantBuffer->SetBuffer( sConstantBuffer );
-    sShaderSampler->SetSampler( mSamplerState );
+    sShaderCubemap->SetResource( cubemap );
+    sShaderConstantBuffer->SetResource( sConstantBuffer );
+    sShaderSampler->SetResource( mSamplerState );
 
     renderContext->SetViewport( viewSize );
     renderContext->SetScissor( viewSize );

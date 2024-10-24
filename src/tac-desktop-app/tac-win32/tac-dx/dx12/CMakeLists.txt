@@ -22,4 +22,5 @@ add_subdirectory( pipeline )
 add_subdirectory( program )
 add_subdirectory( sampler )
 add_subdirectory( texture )
+add_subdirectory( resource )
 
