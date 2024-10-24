@@ -190,7 +190,7 @@ namespace Tac
     TAC_CALL( mConstBuf = renderDevice->CreateBuffer( createConstBuf, errors ) );
 
     mShaderConstBuf = renderDevice->GetShaderVariable( mPipeline, "constBuf" );
-    mShaderConstBuf->SetBuffer( mConstBuf );
+    mShaderConstBuf->SetResource( mConstBuf );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -262,7 +262,7 @@ namespace Tac
                                          const v3& color0,
                                          const v3& color1 )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     const DefaultVertexColor v0
@@ -292,7 +292,7 @@ namespace Tac
                                          const v4& color0,
                                          const v4& color1 )
   {
-    if constexpr( !IsDebugMode )
+    if constexpr( !kIsDebugMode )
       return;
 
     const DefaultVertexColor v0

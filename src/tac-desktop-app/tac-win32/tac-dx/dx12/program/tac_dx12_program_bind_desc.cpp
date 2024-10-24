@@ -5,6 +5,8 @@ namespace Tac::Render
 {
 
 
+  // For visual examples of what is/isn't a descriptor table, see:
+  //   https://learn.microsoft.com/en-us/windows/win32/direct3d12/example-root-signatures
   bool D3D12ProgramBindDesc::BindsAsDescriptorTable() const
   {
     // Samplers and textures can only be set through descriptor tables ( not root descriptors )

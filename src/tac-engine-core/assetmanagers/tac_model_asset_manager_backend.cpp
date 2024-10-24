@@ -14,7 +14,7 @@ namespace Tac
 
   static void ValidateExt( MeshFileExt ext )
   {
-    if constexpr( IsDebugMode )
+    if constexpr( kIsDebugMode )
     {
       TAC_ASSERT( ext.size() > 1 && ext.front() == '.' );
     }

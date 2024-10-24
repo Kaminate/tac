@@ -381,16 +381,9 @@ namespace Tac::Render
 
   struct IShaderBindlessArray
   {
+    struct Binding { int mIndex; };
+    virtual Binding Bind( ResourceHandle ); 
   };
-
-  template< typename T >
-  struct ShaderBindlessArray : public IShaderBindlessArray
-  {
-  };
-
-  using ShaderBindlessBuffers = ShaderBindlessArray< BufferHandle >;
-  using ShaderBindlessTextures = ShaderBindlessArray< TextureHandle >;
-  using ShaderBindlessSamplers = ShaderBindlessArray< SamplerHandle >;
 
   struct IShaderVar
   {

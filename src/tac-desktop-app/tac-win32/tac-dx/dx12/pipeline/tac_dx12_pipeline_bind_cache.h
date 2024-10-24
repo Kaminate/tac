@@ -13,44 +13,32 @@
 
 namespace Tac::Render
 {
-  struct PipelineArray;
-
-  struct PipelineBindCache
+  struct IPipelineArray
   {
-    struct RootParameter
-    {
-      PipelineArray*       mPipelineArray      {};
-      bool                 mPipelineArrayOwned {};
-      ResourceHandle       mResourceHandle     {};
-      D3D12ProgramBindDesc mProgramBindDesc    {};
-      UINT                 mRootParameterIndex {};
-    };
-
-    Vector< RootParameter > mRootParameters;
   };
 
-  struct PipelineArray
+  // A new DX12DescriptorRegion is allocated for each draw call
+  struct PipelineDynamicArray : public IPipelineArray
   {
-#if 0
-    struct [[nodiscard]] Binding
-    {
-      ctor Binding() = default;
-      dtor ~Binding();
-      bool IsValid() const;
-      void Unbind();
+    
+  };
 
-    private:
-      Binding( int, PipelineArray* );
-      friend struct PipelineArray;
-      int            mIndex { -1 };
-      PipelineArray* mArray {};
-    };
-#else
-    struct Binding
-    {
-      int mIndex;
-    };
-#endif
+  struct RootParameterBinding
+  {
+    PipelineDynamicArray mPipelineDynamicArray {};
+    IPipelineArray*      mPipelineArray        {};
+    ResourceHandle       mResourceHandle       {};
+    D3D12ProgramBindDesc mProgramBindDesc      {};
+    UINT                 mRootParameterIndex   {};
+  };
+
+  struct PipelineBindCache : public Vector< RootParameterBinding > {};
+
+
+  // bindless, DX12DescriptorRegion persists between draw calls
+  struct PipelineBindlessArray : public IPipelineArray
+  {
+    struct Binding { int mIndex; };
 
     Binding Bind( ResourceHandle );
     Binding BindAtIndex( ResourceHandle, int );

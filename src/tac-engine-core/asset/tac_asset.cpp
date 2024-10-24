@@ -70,7 +70,7 @@ namespace Tac
 
   static void Validate( const StringView& s )
   {
-    if( !IsDebugMode || IsValid( s ) )
+    if( !kIsDebugMode || IsValid( s ) )
       return;
 
     const char quote { '\"' };

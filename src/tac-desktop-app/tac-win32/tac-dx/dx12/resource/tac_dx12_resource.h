@@ -10,6 +10,7 @@ namespace Tac::Render
   {
     ctor                        DX12Resource() = default;
     ctor                        DX12Resource( PCom< ID3D12Resource >,
+                                              // v can be removed in favor of resource->getdesc?
                                               D3D12_RESOURCE_DESC,
                                               D3D12_RESOURCE_STATES );
     D3D12_RESOURCE_STATES       GetState() const;

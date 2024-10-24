@@ -5,41 +5,10 @@
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
-  //   PipelineArray::Binding
+  //                     PipelineBindlessArray
   // -----------------------------------------------------------------------------------------------
 
-#if 0
-  ctor PipelineArray::Binding::Binding( int i, PipelineArray* pba )
-    : mIndex{ i }
-    , mArray{ pba }
-  {}
-
-  dtor PipelineArray::Binding::~Binding()
-  {
-    Unbind();
-  }
-
-  void PipelineArray::Binding::Unbind()
-  {
-    if( IsValid() )
-    {
-      mArray->Unbind( *this );
-      mIndex = -1;
-      mArray = {};
-    }
-  }
-
-  bool PipelineArray::Binding::IsValid() const
-  {
-    return mIndex != -1;
-  }
-#endif
-
-  // -----------------------------------------------------------------------------------------------
-  //                     PipelineArray
-  // -----------------------------------------------------------------------------------------------
-
-  void                    PipelineArray::CheckType( ResourceHandle h )
+  void                    PipelineBindlessArray::CheckType( ResourceHandle h )
   {
     if constexpr ( !kIsDebugMode )
       return;
@@ -51,7 +20,7 @@ namespace Tac::Render
     TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
   }
 
-  PipelineArray::HeapType PipelineArray::GetHeapType() const
+  PipelineBindlessArray::HeapType PipelineBindlessArray::GetHeapType() const
   {
     const D3D12ProgramBindType type{ mProgramBindType };
 
@@ -68,12 +37,12 @@ namespace Tac::Render
     return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
   }
 
-  void                    PipelineArray::SetFenceSignal( FenceSignal fenceSignal )
+  void                    PipelineBindlessArray::SetFenceSignal( FenceSignal fenceSignal )
   {
     mFenceSignal = fenceSignal;
   }
 
-  void                    PipelineArray::Resize( const int newSize )
+  void                    PipelineBindlessArray::Resize( const int newSize )
   {
     const int oldSize{ mHandles.size() };
 
@@ -103,7 +72,7 @@ namespace Tac::Render
     mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
   }
 
-  PipelineArray::Binding  PipelineArray::Bind( ResourceHandle h )
+  PipelineBindlessArray::Binding  PipelineBindlessArray::Bind( ResourceHandle h )
   {
     CheckType( h );
 
@@ -125,7 +94,7 @@ namespace Tac::Render
     return binding;
   }
 
-  PipelineArray::Binding  PipelineArray::BindAtIndex( ResourceHandle h, int i )
+  PipelineBindlessArray::Binding  PipelineBindlessArray::BindAtIndex( ResourceHandle h, int i )
   {
     CheckType( h );
 
@@ -146,7 +115,7 @@ namespace Tac::Render
     return Binding{ i };
   }
 
-  void                    PipelineArray::Unbind( Binding binding )
+  void                    PipelineBindlessArray::Unbind( Binding binding )
   {
     mUnusedBindings.push_back( binding );
     mHandles[ binding.mIndex ] = IHandle::kInvalidIndex;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tac_dx12_dyn_buf.h"
-//#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_array.h"
 
@@ -9,13 +8,19 @@
 
 namespace Tac { struct Errors; }
 
-namespace Tac::Render { struct DX12Context; struct DX12ContextManager; }
+namespace Tac::Render { struct DX12Context; }
 namespace Tac::Render
 {
   struct DX12BufferMgr
   {
     BufferHandle CreateBuffer( CreateBufferParams, Errors& );
-    void         UpdateBuffer( BufferHandle, Span< const UpdateBufferParams >, DX12Context*, Errors& );
+
+    //           !?! eww
+    void         UpdateBuffer( BufferHandle,
+                               Span< const UpdateBufferParams >,
+                               DX12Context*,
+                               Errors& );
+
     DX12Buffer*  FindBuffer( BufferHandle );
     void         DestroyBuffer( BufferHandle );
 

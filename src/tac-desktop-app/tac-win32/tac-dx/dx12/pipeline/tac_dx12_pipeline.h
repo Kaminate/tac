@@ -24,9 +24,11 @@ namespace Tac::Render
       ctor                   Variable() = default;
       ctor                   Variable( UINT, D3D12ProgramBindDesc );
 
-      void                   SetResource( ResourceHandle );
+      // virtual fns begin
+      void                   SetResource( ResourceHandle ) override;
       void                   SetResourceAtIndex( int, ResourceHandle ) override;
       void                   SetBindlessArray( IShaderBindlessArray* ) override;
+      // virtual fns end
 
       StringView             GetName() const;
       Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const;
@@ -39,16 +41,11 @@ namespace Tac::Render
       };
       void                   Commit( CommitParams ) const;
 
-      const D3D12ProgramBindDesc& GetBinding() const;
-
     private:
       void           SetArrayElement( int, IHandle );
       DX12Descriptor GetDescriptor( IHandle, DX12TransitionHelper* ) const;
 
-      PipelineArray* GetPipelineArray();
-
-      D3D12ProgramBindDesc mBinding;
-      UINT                 mRootParameterIndex;
+      RootParameterBinding* mRootParameterBinding {};
     };
 
     struct Variables : public Vector< Variable >

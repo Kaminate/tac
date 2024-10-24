@@ -38,7 +38,7 @@ namespace Tac::Render
     TAC_ASSERT_UNIMPLEMENTED;
   }
 
-  void                   DX12Pipeline::Variable::SetResource( ResourceHandle h )
+  void                   DX12Pipeline::Variable::SetResource( ResourceHandle h ) 
   {
     TAC_ASSERT_UNIMPLEMENTED;
   }
@@ -48,11 +48,6 @@ namespace Tac::Render
     TAC_ASSERT_UNIMPLEMENTED;
   }
 
-  PipelineArray*         DX12Pipeline::Variable::GetPipelineArray()
-  {
-    TAC_ASSERT_UNIMPLEMENTED;
-    return {};
-  }
 
   //void DX12Pipeline::Variable::SetBuffer( BufferHandle h )
   //{
@@ -84,9 +79,10 @@ namespace Tac::Render
   //  SetArrayElement( i, h.GetIndex() );
   //}
 
-  void                   DX12Pipeline::Variable::SetBindlessArray( IShaderBindlessArray* )
+  void                   DX12Pipeline::Variable::SetBindlessArray(
+    IShaderBindlessArray* bindlessArray )
   {
-    TAC_ASSERT_UNIMPLEMENTED;
+    mRootParameterBinding->mPipelineArray = bindlessArray;
   }
 
   //void DX12Pipeline::Variable::SetSampler( SamplerHandle h )
@@ -118,13 +114,12 @@ namespace Tac::Render
 
   StringView             DX12Pipeline::Variable::GetName() const
   {
-    return mBinding.mName;
+    return mRootParameterBinding->mProgramBindDesc.mName;
   }
 
   Span< DX12Descriptor > DX12Pipeline::Variable::GetDescriptors(
     DX12TransitionHelper* transitionHelper ) const
   {
-
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     DX12TextureMgr* textureMgr { &renderer.mTexMgr };
     DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
@@ -156,7 +151,8 @@ namespace Tac::Render
     DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
     DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
 
-    const D3D12ProgramBindDesc binding{ mBinding };
+    const D3D12ProgramBindDesc& binding{ mRootParameterBinding->mProgramBindDesc };
+
     const D3D12ProgramBindType::Classification classification{ binding.mType.GetClassification() };
     const int iHandle{ ih.GetIndex() };
 
@@ -237,16 +233,14 @@ namespace Tac::Render
     }
   }
 
-  const D3D12ProgramBindDesc& DX12Pipeline::Variable::GetBinding() const
-  {
-    return mBinding;
-  }
-
   void                   DX12Pipeline::Variable::Commit( CommitParams commitParams ) const
   {
+    const D3D12ProgramBindDesc& programBindDesc{ mRootParameterBinding->mProgramBindDesc };
     ID3D12GraphicsCommandList* commandList{ commitParams.mCommandList };
     DX12DescriptorCaches* descriptorCaches{ commitParams.mDescriptorCaches };
     const bool isCompute{ commitParams.mIsCompute };
+    const UINT rootParameterIndex{ mRootParameterBinding->mRootParameterIndex };
+    const D3D12ProgramBindType programBindType{ programBindDesc.mType };
 
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     DX12TextureMgr* textureMgr { &renderer.mTexMgr };
@@ -254,10 +248,9 @@ namespace Tac::Render
     DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
     ID3D12Device*   device     { renderer.mDevice };
 
-    if( mBinding.BindsAsDescriptorTable() )
+    if( programBindDesc.BindsAsDescriptorTable() )
     {
-      const UINT rootParameterIndex{ mRootParameterIndex };
-      const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mBinding.mType ) };
+      const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( programBindType ) };
 
       DX12TransitionHelper transitionHelper;
       const Span< DX12Descriptor > cpuDescriptors{ GetDescriptors( &transitionHelper ) };
@@ -292,11 +285,9 @@ namespace Tac::Render
     }
     else
     {
-      const UINT rootParameterIndex{ mRootParameterIndex };
       TAC_ASSERT( mHandleIndexes.size() == 1 );
       const BufferHandle bufferHandle{ mHandleIndexes[ 0 ] };
 
-      const D3D12ProgramBindType programBindType{mBinding.mType};
 
       TAC_ASSERT_MSG( !programBindType.IsTexture(),
                       "textures must be bound thorugh descriptor tables" );

@@ -194,21 +194,17 @@ namespace Tac::Render
 
     ID3D12Device* device{ mDevice };
 
-    DX12Resource buffer;
+    PCom< ID3D12Resource > committedResource;
+    TAC_DX12_CALL_RET( {}, device->CreateCommittedResource(
+      &HeapProps,
+      D3D12_HEAP_FLAG_NONE,
+      &ResourceDesc,
+      initialResourceStates,
+      nullptr,
+      committedResource.iid(),
+      committedResource.ppv() ) );
 
-    {
-      PCom< ID3D12Resource > committedResource;
-      TAC_DX12_CALL_RET( {}, device->CreateCommittedResource(
-        &HeapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &ResourceDesc,
-        initialResourceStates,
-        nullptr,
-        committedResource.iid(),
-        committedResource.ppv() ) );
-
-      buffer = DX12Resource( committedResource, ResourceDesc, initialResourceStates );
-    }
+    DX12Resource buffer{ DX12Resource( committedResource, ResourceDesc, initialResourceStates ) };
 
     ID3D12Resource* resource{ buffer.Get() };
 
@@ -274,7 +270,6 @@ namespace Tac::Render
 
     // do we context->SetSynchronous() ?
     TAC_CALL_RET( {}, context->Execute( errors ) );
-
 
     const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
 
@@ -342,6 +337,7 @@ namespace Tac::Render
         .mResource    { resource },
         .mStateAfter  { usageFromBinding },
       };
+
       DX12TransitionHelper transitionHelper;
       transitionHelper.Append( transitionParams );
       transitionHelper.ResourceBarrier( commandList );
@@ -352,7 +348,6 @@ namespace Tac::Render
                                     DX12Context* context,
                                     Errors& errors )
   {
-
     DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
     ID3D12Resource* resource{ buffer.mResource.Get() };
 

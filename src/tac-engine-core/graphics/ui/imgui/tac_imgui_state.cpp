@@ -876,7 +876,7 @@ namespace Tac
           ? uidrawCall.mTexture
           : m1x1White };
 
-        element.mShaderImage->SetTexture( texture );
+        element.mShaderImage->SetResource( texture );
 
 
         UpdatePerObject( renderContext, uidrawCall, errors );
@@ -1079,9 +1079,9 @@ namespace Tac
     Render::IShaderVar* shaderPerFrame{
       renderDevice->GetShaderVariable( pipeline, "perFrame" )};
 
-    shaderPerFrame->SetBuffer( mPerFrame );
-    shaderPerObject->SetBuffer( mPerObject );
-    shaderSampler->SetSampler( mSampler );
+    shaderPerFrame->SetResource( mPerFrame );
+    shaderPerObject->SetResource( mPerObject );
+    shaderSampler->SetResource( mSampler );
 
     element = Element
     {
