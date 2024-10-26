@@ -40,9 +40,11 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  IContext::Scope::Scope( IContext* context ) { mContext = context; }
-  IContext::Scope::~Scope()                   { if( mContext ) mContext->Retire(); }
-  IContext* IContext::Scope::operator ->()    { return mContext; }
+  ctor      IContext::Scope::Scope( IContext* context ) { mContext = context; }
+  dtor      IContext::Scope::~Scope()                   { if( mContext ) mContext->Retire(); }
+  IContext* IContext::Scope::GetContext()               { return mContext; }
+  oper      IContext::Scope::operator IContext* ()      { return mContext; }
+  IContext* IContext::Scope::operator ->()              { return mContext; }
 
   // -----------------------------------------------------------------------------------------------
 

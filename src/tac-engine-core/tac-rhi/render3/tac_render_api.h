@@ -402,11 +402,11 @@ namespace Tac::Render
   {
     struct Scope
     {
-      Scope( IContext* = nullptr );
-      ~Scope();
+      ctor      Scope( IContext* = nullptr );
+      dtor      ~Scope();
       IContext* operator ->();
-      IContext* GetContext() { return mContext; }
-      operator IContext* ()  { return mContext; }
+      IContext* GetContext();
+      oper      operator IContext* ();
 
     private:
       IContext* mContext{};

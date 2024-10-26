@@ -25,6 +25,8 @@ namespace Tac::Render
 
   struct RootParameterBinding
   {
+    // i feel like it makes sense for pipeline arrays to be dynamic by default.
+    // instead of having a static array, just use a bindless array
     PipelineDynamicArray mPipelineDynamicArray {};
     IPipelineArray*      mPipelineArray        {};
     ResourceHandle       mResourceHandle       {};
