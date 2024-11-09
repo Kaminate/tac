@@ -43,7 +43,9 @@ namespace Tac::Render
   ctor      IContext::Scope::Scope( IContext* context ) { mContext = context; }
   dtor      IContext::Scope::~Scope()                   { if( mContext ) mContext->Retire(); }
   IContext* IContext::Scope::GetContext()               { return mContext; }
-  oper      IContext::Scope::operator IContext* ()      { return mContext; }
+#if 0
+  /*oper*/      IContext::Scope::operator IContext* ()      { return mContext; }
+#endif
   IContext* IContext::Scope::operator ->()              { return mContext; }
 
   // -----------------------------------------------------------------------------------------------

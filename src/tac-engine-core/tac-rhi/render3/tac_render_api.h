@@ -406,7 +406,9 @@ namespace Tac::Render
       dtor      ~Scope();
       IContext* operator ->();
       IContext* GetContext();
-      oper      operator IContext* ();
+#if 0
+      /*oper*/      operator IContext* ();
+#endif
 
     private:
       IContext* mContext{};
@@ -474,8 +476,8 @@ namespace Tac::Render
       const FileSys::Path&  mShaderOutputPath;
     };
 
-    static void Init( InitParams, Errors& );
-    static void Uninit();
+    static void             Init( InitParams, Errors& );
+    static void             Uninit();
     static int              GetMaxGPUFrameCount();
     static FileSys::Path    GetShaderOutputPath();
     static IDevice*         GetRenderDevice();

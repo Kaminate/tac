@@ -43,7 +43,6 @@ namespace Tac::Render
 
     private:
       void           SetArrayElement( int, IHandle );
-      DX12Descriptor GetDescriptor( IHandle, DX12TransitionHelper* ) const;
 
       RootParameterBinding* mRootParameterBinding {};
     };

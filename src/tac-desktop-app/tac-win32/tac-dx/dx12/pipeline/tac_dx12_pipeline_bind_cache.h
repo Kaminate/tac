@@ -13,32 +13,49 @@
 
 namespace Tac::Render
 {
-  struct IPipelineArray
+  struct IPipelineArray 
   {
+    virtual Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* ) = 0;
   };
 
   // A new DX12DescriptorRegion is allocated for each draw call
   struct PipelineDynamicArray : public IPipelineArray
   {
-    
+    Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* ) override;
+
+  private:
+    DX12Descriptor GetDescriptor( IHandle, DX12TransitionHelper* ) ;
+    D3D12ProgramBindDesc mProgramBindDesc      {};
   };
+
 
   struct RootParameterBinding
   {
-    // i feel like it makes sense for pipeline arrays to be dynamic by default.
-    // instead of having a static array, just use a bindless array
+    enum class Type
+    {
+      kUnknown = 0,
+      kDynamicArray,
+      kBindlessArray,
+      kResourceHandle,
+    };
+    Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* );
+
+    // Resources can be bound in an array, or as a handle, depending
+    // on the resource type
     PipelineDynamicArray mPipelineDynamicArray {};
     IPipelineArray*      mPipelineArray        {};
     ResourceHandle       mResourceHandle       {};
+
     D3D12ProgramBindDesc mProgramBindDesc      {};
     UINT                 mRootParameterIndex   {};
+    Type                 mType                 {};
   };
 
   struct PipelineBindCache : public Vector< RootParameterBinding > {};
 
 
   // bindless, DX12DescriptorRegion persists between draw calls
-  struct PipelineBindlessArray : public IPipelineArray
+  struct PipelineBindlessArray : public IPipelineArray , public IShaderBindlessArray // ???
   {
     struct Binding { int mIndex; };
 
@@ -47,6 +64,7 @@ namespace Tac::Render
     void    Unbind( Binding );
     void    Resize( int );
     void    SetFenceSignal( FenceSignal );
+    Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* ) override;
 
   private:
 
@@ -60,6 +78,7 @@ namespace Tac::Render
     Vector< Binding >    mUnusedBindings   {};
     DX12DescriptorRegion mDescriptorRegion {};
     FenceSignal          mFenceSignal      {};
+    D3D12ProgramBindDesc mProgramBindDesc  {};
   };
 
 } // namespace Tac::Render
