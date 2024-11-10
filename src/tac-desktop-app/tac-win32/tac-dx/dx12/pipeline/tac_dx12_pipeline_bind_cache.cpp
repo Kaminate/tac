@@ -396,5 +396,24 @@ namespace Tac::Render
 
   }
 
+  // -----------------------------------------------------------------------------------------------
+
+  PipelineBindCache::PipelineBindCache( const D3D12ProgramBindDescs& descs )
+  {
+    const int n{ descs.size() };
+
+    for( int i{}; i < n; ++i )
+    {
+      const D3D12ProgramBindDesc& desc{ descs[ i ] };
+
+      RootParameterBinding rootParameterBinding;
+      rootParameterBinding.mProgramBindDesc = desc;
+      rootParameterBinding.mRootParameterIndex = i;
+      rootParameterBinding.mType = RootParameterBinding::Type::kDynamicArray;
+
+      push_back( ( RootParameterBinding&& )rootParameterBinding );
+    }
+  }
+
 } // namespace Tac::Render
 

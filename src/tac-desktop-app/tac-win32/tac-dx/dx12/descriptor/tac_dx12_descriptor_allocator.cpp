@@ -41,6 +41,14 @@ namespace Tac::Render
     SwapWith( move( other ) );
   }
 
+  //void DX12DescriptorRegion::operator = ( const DX12DescriptorRegion& other )
+  //{
+  //  TAC_ASSERT( !mRegionManager );
+  //  TAC_ASSERT( mRegionIndex == DX12DescriptorAllocator::RegionIndex::kNull );
+  //  TAC_ASSERT( !other.mRegionManager );
+  //  TAC_ASSERT( other.mRegionIndex == DX12DescriptorAllocator::RegionIndex::kNull );
+  //}
+
   DX12DescriptorRegion::DX12DescriptorRegion( DX12DescriptorRegion&& other )
   {
     SwapWith( move( other ) );

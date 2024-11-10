@@ -17,8 +17,6 @@ namespace Tac::Render
     using DX12Samplers = Array< DX12Sampler, 100 >;
 
     DX12Samplers        mSamplers                 {};
-    ID3D12Device*       mDevice                   {};
-    DX12DescriptorHeap* mCpuDescriptorHeapSampler {};
   };
 } // namespace Tac::Render
 

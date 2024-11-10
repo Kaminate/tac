@@ -202,16 +202,18 @@ namespace Tac::Render
     };
     DX12SetName( pPS, name );
 
-    const DX12Pipeline::Variables shaderVariables( program->mProgramBindDescs );
+    const PipelineBindCache pipelineBindCache( program->mProgramBindDescs );
+    const DX12Pipeline::Variables shaderVariables( h, pipelineBindCache.size() );
 
     const int iPipeline{ h.GetIndex() };
     mPipelines[ iPipeline ] = DX12Pipeline
     {
-      .mPSO             { pso },
-      .mRootSignature   { rootSig },
-      .mShaderVariables { shaderVariables },
-      .mPipelineParams  { params },
-      .mIsCompute       { isCompute },
+      .mPSO               { pso },
+      .mRootSignature     { rootSig },
+      .mShaderVariables   { shaderVariables },
+      .mPipelineParams    { params },
+      .mPipelineBindCache { ( PipelineBindCache&& )pipelineBindCache },
+      .mIsCompute         { isCompute },
     };
   }
 

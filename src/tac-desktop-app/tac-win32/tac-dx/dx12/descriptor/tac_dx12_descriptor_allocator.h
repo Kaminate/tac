@@ -101,7 +101,9 @@ namespace Tac::Render
     //DX12DescriptorAllocator::RegionIndex GetRegionIndex() const;
 
     void operator = ( DX12DescriptorRegion&& );
-    void operator = ( const DX12DescriptorRegion& ) = delete;
+
+     void operator = ( const DX12DescriptorRegion& ) = delete;
+    //void operator = ( const DX12DescriptorRegion& );
 
   private:
     void SwapWith( DX12DescriptorRegion&& );

@@ -15,7 +15,9 @@
 
 namespace Tac::Render
 {
-  static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_6 };
+  // 2024-11-10 dropping from 6_6 to 6_5 on desktop, idk it used to work before?
+  static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
+
   static Timestamp              sHotReloadTick;
 
   static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
@@ -26,18 +28,21 @@ namespace Tac::Render
          shaderModel >= lowestDefined;
          shaderModel = D3D_SHADER_MODEL( shaderModel - 1 ) )
     {
-      // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_feature_data_shader_model
-      //   After the function completes successfully, the HighestShaderModel field contains the
-      //   highest shader model that is both supported by the device and no higher than the
-      //   shader model passed in.
       dynmc D3D12_FEATURE_DATA_SHADER_MODEL featureData{ shaderModel };
       if( SUCCEEDED( device->CheckFeatureSupport(
         D3D12_FEATURE_SHADER_MODEL,
         &featureData,
         sizeof( D3D12_FEATURE_DATA_SHADER_MODEL ) ) ) )
-
-        // For some godforsaken fucking reason, this isn't the same as shaderModel
+      {
+        // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_feature_data_shader_model
+        //   After the function completes successfully, the HighestShaderModel field contains the
+        //   highest shader model that is both supported by the device and no higher than the
+        //   shader model passed in.
+        // ^
+        // |
+        // +-- For some godforsaken fucking reason, this isn't the same as shaderModel
         return featureData.HighestShaderModel;
+      }
     }
 
     return lowestDefined;

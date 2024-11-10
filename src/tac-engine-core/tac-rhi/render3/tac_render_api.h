@@ -389,7 +389,7 @@ namespace Tac::Render
 
   struct IShaderVar
   {
-    virtual void SetResource( ResourceHandle ) {};
+    virtual void SetResource( ResourceHandle )             {};
     virtual void SetResourceAtIndex( int, ResourceHandle ) {};
     virtual void SetBindlessArray( IShaderBindlessArray* ) {};
   };

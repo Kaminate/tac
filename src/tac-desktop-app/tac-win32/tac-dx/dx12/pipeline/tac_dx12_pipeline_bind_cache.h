@@ -32,7 +32,7 @@ namespace Tac::Render
   // A new DX12DescriptorRegion is allocated for each draw call
   struct PipelineDynamicArray // : public IPipelineArray
   {
-    Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const ; // override;
+    Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const; // override;
     void                   BindAtIndex( ResourceHandle, int );
     void                   SetFence( FenceSignal );
     void                   Commit( CommitParams );
@@ -73,7 +73,11 @@ namespace Tac::Render
     Type                  mType                 {};
   };
 
-  struct PipelineBindCache : public Vector< RootParameterBinding > {};
+  struct PipelineBindCache : public Vector< RootParameterBinding >
+  {
+    PipelineBindCache() = default;
+    PipelineBindCache( const D3D12ProgramBindDescs& );
+  };
 
 
   // bindless, DX12DescriptorRegion persists between draw calls

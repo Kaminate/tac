@@ -21,8 +21,8 @@ namespace Tac::Render
     //   bool D3D12ProgramBindDesc::BindsAsDescriptorTable() const
     struct Variable : public IShaderVar
     {
-      ctor                   Variable() = default;
-      ctor                   Variable( UINT, D3D12ProgramBindDesc );
+      //ctor                   Variable() = default;
+      //ctor                   Variable( UINT, D3D12ProgramBindDesc );
 
       // virtual fns begin
       void                   SetResource( ResourceHandle ) override;
@@ -33,17 +33,23 @@ namespace Tac::Render
       StringView             GetName() const;
       //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const;
 
+      RootParameterBinding*  GetRootParameterBinding() const;
 
-    private:
+    //private:
       //void                   SetArrayElement( int, IHandle );
 
-      RootParameterBinding* mRootParameterBinding {};
+      int            mRootParameterIndex;
+      PipelineHandle mPipelineHandle;
+
+      //RootParameterBinding*  mRootParameterBinding {};
     };
 
     struct Variables : public Vector< Variable >
     {
       Variables() = default;
-      Variables( const D3D12ProgramBindDescs& );
+      Variables( PipelineHandle, int );
+      //Variables(const PipelineBindCache&);
+      //Variables( const D3D12ProgramBindDescs& );
     };
 
     bool IsValid() const;
