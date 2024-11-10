@@ -660,9 +660,11 @@ namespace Tac
       AttemptLoadEntity( loadedModel, assetPath, errors );
 
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      TAC_CALL( Render::IContext::Scope renderContext{
+      TAC_CALL( Render::IContext::Scope renderContextScope{
         renderDevice->CreateRenderContext( errors ) } );
 
+      Render::IContext* renderContext{ renderContextScope.GetContext() };
+      
       RenderImportedModel( renderContext, loadedModel, errors );
 
       TAC_CALL( renderContext->Execute( errors ) );

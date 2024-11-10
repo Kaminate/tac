@@ -31,18 +31,11 @@ namespace Tac::Render
       // virtual fns end
 
       StringView             GetName() const;
-      Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const;
+      //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const;
 
-      struct CommitParams
-      {
-        ID3D12GraphicsCommandList* mCommandList      {};
-        DX12DescriptorCaches*      mDescriptorCaches {};
-        bool                       mIsCompute        {};
-      };
-      void                   Commit( CommitParams ) const;
 
     private:
-      void           SetArrayElement( int, IHandle );
+      //void                   SetArrayElement( int, IHandle );
 
       RootParameterBinding* mRootParameterBinding {};
     };

@@ -1,5 +1,7 @@
 #include "tac_dx12_descriptor_allocator.h" // self-inc
+
 #include "tac-std-lib/os/tac_os.h"
+#include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 
 #define TAC_GPU_REGION_DEBUG() TAC_IS_DEBUG_MODE() && 0
 #if TAC_GPU_REGION_DEBUG()
@@ -157,8 +159,9 @@ namespace Tac::Render
 
   void DX12DescriptorAllocator::Init( Params params )
   {
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
     mOwner = params.mDescriptorHeap; 
-    mCommandQueue = params.mCommandQueue ;
+    mCommandQueue = &renderer.mCommandQueue;
     TAC_ASSERT( mOwner );
     TAC_ASSERT( mCommandQueue );
 

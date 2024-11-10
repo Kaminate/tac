@@ -14,12 +14,12 @@ namespace Tac
   {
     switch( fmt )
     {
-    case TexFmt::kRGBA16F: return 8;
-    case TexFmt::kR8_unorm: return 1;
-    case TexFmt::kR16_uint: return 2;
-    case TexFmt::kR32_uint: return 4;
-    case TexFmt::kRGBA8_unorm: return 4;
-    case TexFmt::kRGBA8_unorm_srgb: return 4;
+    case TexFmt::kRGBA16F:                   return 8;
+    case TexFmt::kR8_unorm:                  return 1;
+    case TexFmt::kR16_uint:                  return 2;
+    case TexFmt::kR32_uint:                  return 4;
+    case TexFmt::kRGBA8_unorm:               return 4;
+    case TexFmt::kRGBA8_unorm_srgb:          return 4;
     default: TAC_ASSERT_INVALID_CASE( fmt ); return 0;
     }
   }

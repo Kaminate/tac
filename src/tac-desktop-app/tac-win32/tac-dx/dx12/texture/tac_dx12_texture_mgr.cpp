@@ -160,13 +160,15 @@ namespace Tac::Render
 
   DX12TextureMgr::Bindings::Bindings( ID3D12Resource* pResource, Binding binding )
   {
-    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    ID3D12Device* mDevice{ renderer.mDevice };
+    DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
 
     Optional< DX12Descriptor > RTV;
     if( Binding{} != ( binding & Binding::RenderTarget ) )
     {
-      DX12DescriptorHeap* mCpuDescriptorHeapRTV{ &DX12Renderer::sRenderer.GetCpuHeap_RTV() };
-      RTV = mCpuDescriptorHeapRTV->Allocate();
+      DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ] };
+      RTV = heap.Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { RTV->GetCPUHandle() };
       const D3D12_RENDER_TARGET_VIEW_DESC* pRTVDesc{};
       mDevice->CreateRenderTargetView( pResource, pRTVDesc, descDescriptor );
@@ -175,8 +177,8 @@ namespace Tac::Render
     Optional< DX12Descriptor > DSV;
     if( Binding{} != ( binding & Binding::DepthStencil ) )
     {
-      DX12DescriptorHeap* mCpuDescriptorHeapDSV{ &DX12Renderer::sRenderer.GetCpuHeap_DSV() };
-      DSV = mCpuDescriptorHeapDSV->Allocate();
+      DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_DSV ] };
+      DSV = heap.Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { DSV->GetCPUHandle() };
       const D3D12_DEPTH_STENCIL_VIEW_DESC* pDSVDesc{};
       mDevice->CreateDepthStencilView( pResource, pDSVDesc, descDescriptor );
@@ -185,9 +187,8 @@ namespace Tac::Render
     Optional< DX12Descriptor > SRV;
     if( Binding{} != ( binding & Binding::ShaderResource ) )
     {
-      DX12DescriptorHeap* mCpuDescriptorHeapResource{
-        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
-      SRV = mCpuDescriptorHeapResource->Allocate();
+      DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] };
+      SRV = heap.Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { SRV->GetCPUHandle() };
       const D3D12_SHADER_RESOURCE_VIEW_DESC* pSRVDesc{};
       mDevice->CreateShaderResourceView( pResource, pSRVDesc, descDescriptor );
@@ -196,9 +197,8 @@ namespace Tac::Render
     Optional< DX12Descriptor > UAV;
     if( Binding{} != ( binding & Binding::UnorderedAccess ) )
     {
-      DX12DescriptorHeap* mCpuDescriptorHeapResource{
-        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
-      UAV = mCpuDescriptorHeapResource->Allocate();
+      DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] };
+      UAV = heap.Allocate();
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { UAV->GetCPUHandle() };
       const D3D12_UNORDERED_ACCESS_VIEW_DESC* pUAVDesc{};
       mDevice->CreateUnorderedAccessView( pResource,
@@ -435,16 +435,18 @@ namespace Tac::Render
                                                          PCom<ID3D12Resource> resource,
                                                          Errors& errors )
   {
-    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
-    DX12DescriptorHeap* mCpuDescriptorHeapRTV{ &DX12Renderer::sRenderer.GetCpuHeap_RTV() };
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    ID3D12Device* device{ renderer.mDevice };
+    DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
+    DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ] };
     DX12Texture* texture{ FindTexture( h ) };
     TAC_ASSERT( texture );
 
-    const DX12Descriptor allocation{ mCpuDescriptorHeapRTV->Allocate() };
+    const DX12Descriptor allocation{ heap.Allocate() };
     const D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle{ allocation.GetCPUHandle() };
 
     ID3D12Resource* pResource{ resource.Get() };
-    mDevice->CreateRenderTargetView( pResource, nullptr, cpuHandle );
+    device->CreateRenderTargetView( pResource, nullptr, cpuHandle );
 
     // Render targets are created in present state
     const D3D12_RESOURCE_STATES state{ D3D12_RESOURCE_STATE_PRESENT };

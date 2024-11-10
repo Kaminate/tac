@@ -148,9 +148,9 @@ namespace Tac
     mShaderTexture  = renderDevice->GetShaderVariable( mSpritePipeline, "sprite" );
     mShaderSampler  = renderDevice->GetShaderVariable( mSpritePipeline, "linearSampler" );
 
-    mShaderPerFrame->SetBuffer( mPerFrame );
-    mShaderPerObj->SetBuffer( mPerObj );
-    mShaderSampler->SetSampler( mSampler );
+    mShaderPerFrame->SetResource( mPerFrame );
+    mShaderPerObj->SetResource( mPerObj );
+    mShaderSampler->SetResource( mSampler );
   }
 
   void IconRenderer::Uninit()
@@ -244,7 +244,7 @@ namespace Tac
       .mVertexCount { 6 },
     };
 
-    mShaderTexture->SetTexture( textureHandle );
+    mShaderTexture->SetResource( textureHandle );
     renderContext->SetScissor( windowSize );
     renderContext->SetRenderTargets( renderTargets );
     renderContext->SetViewport( windowSize );

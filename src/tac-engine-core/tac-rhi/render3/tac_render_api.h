@@ -382,7 +382,9 @@ namespace Tac::Render
   struct IShaderBindlessArray
   {
     struct Binding { int mIndex; };
-    virtual Binding Bind( ResourceHandle ); 
+
+    virtual Binding Bind( ResourceHandle ) = 0;
+    virtual void    Unbind( Binding ) = 0;
   };
 
   struct IShaderVar

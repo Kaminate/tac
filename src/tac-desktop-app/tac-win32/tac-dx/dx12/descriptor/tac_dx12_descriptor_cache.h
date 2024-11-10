@@ -8,6 +8,7 @@
 
 namespace Tac::Render
 {
+#if 0
   struct DX12DescriptorCache
   {
     void                  SetRegionManager( DX12DescriptorAllocator* );
@@ -25,4 +26,5 @@ namespace Tac::Render
   };
 
   using DX12DescriptorCaches = DX12DescriptorCache[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
-}
+#endif
+} // namespace Tac::Render

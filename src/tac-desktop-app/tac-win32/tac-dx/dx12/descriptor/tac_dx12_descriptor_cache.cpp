@@ -2,6 +2,7 @@
 
 namespace Tac::Render
 {
+#if 0
 
   void DX12DescriptorCache::SetFence( FenceSignal fenceSignal )
   {
@@ -65,4 +66,5 @@ namespace Tac::Render
     return nullptr;
   }
 
+#endif
 } // namespace Tac::Render

@@ -28,7 +28,6 @@ namespace Tac::Render
     struct Params
     {
       DX12DescriptorHeap* mDescriptorHeap {};
-      DX12CommandQueue*   mCommandQueue   {};
     };
 
     void                 Init( Params );

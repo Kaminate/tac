@@ -1,14 +1,27 @@
 #include "tac_dx12_pipeline_bind_cache.h" // self-inc
 
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
-  //                     PipelineBindlessArray
+
+  static D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( D3D12ProgramBindType type )
+  {
+    if( type.IsBuffer() || type.IsTexture() )
+      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+    if( type.IsSampler() )
+      return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+
+    TAC_ASSERT_INVALID_CODE_PATH;
+    return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
-  void                    PipelineBindlessArray::CheckType( ResourceHandle h )
+  void                          PipelineBindlessArray::CheckType( ResourceHandle h )
   {
     if constexpr ( !kIsDebugMode )
       return;
@@ -20,29 +33,12 @@ namespace Tac::Render
     TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
   }
 
-  PipelineBindlessArray::HeapType PipelineBindlessArray::GetHeapType() const
-  {
-    const D3D12ProgramBindType type{ mProgramBindType };
-
-    if( type.IsBuffer() )
-      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-    if( type.IsTexture() )
-      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-    if( type.IsSampler() )
-      return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-    TAC_ASSERT_INVALID_CODE_PATH;
-    return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
-  }
-
-  void                    PipelineBindlessArray::SetFenceSignal( FenceSignal fenceSignal )
+  void                          PipelineBindlessArray::SetFenceSignal( FenceSignal fenceSignal )
   {
     mFenceSignal = fenceSignal;
   }
 
-  void                    PipelineBindlessArray::Resize( const int newSize )
+  void                          PipelineBindlessArray::Resize( const int newSize )
   {
     const int oldSize{ mHandles.size() };
 
@@ -53,9 +49,10 @@ namespace Tac::Render
     for( int i{ oldSize }; i < newSize; ++i )
       mUnusedBindings.push_back( Binding{ i } );
 
-    const HeapType heapType{ GetHeapType() };
+    const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
-    DX12DescriptorHeap& heap{ renderer.mGpuDescriptorHeaps[ heapType ] };
+    DX12DescriptorHeapMgr& heapMgr{renderer.mDescriptorHeapMgr};
+    DX12DescriptorHeap& heap{ heapMgr.mGPUHeaps[ heapType ] };
     DX12DescriptorAllocator* regionMgr{ heap.GetRegionMgr() };
 
 
@@ -72,7 +69,7 @@ namespace Tac::Render
     mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
   }
 
-  PipelineBindlessArray::Binding  PipelineBindlessArray::Bind( ResourceHandle h )
+  IShaderBindlessArray::Binding PipelineBindlessArray::Bind( ResourceHandle h )
   {
     CheckType( h );
 
@@ -94,78 +91,34 @@ namespace Tac::Render
     return binding;
   }
 
-  PipelineBindlessArray::Binding  PipelineBindlessArray::BindAtIndex( ResourceHandle h, int i )
-  {
-    CheckType( h );
-
-    bool bindReady{};
-    for( Binding& binding : mUnusedBindings )
-    {
-      if( binding.mIndex == i )
-      {
-        Swap( binding, mUnusedBindings.back() );
-        mUnusedBindings.pop_back();
-        bindReady = true;
-      }
-    }
-
-    TAC_ASSERT( bindReady );
-    mHandles[ i ] = h;
-
-    return Binding{ i };
-  }
-
-  void                    PipelineBindlessArray::Unbind( Binding binding )
+  void                          PipelineBindlessArray::Unbind( Binding binding )
   {
     mUnusedBindings.push_back( binding );
     mHandles[ binding.mIndex ] = IHandle::kInvalidIndex;
   }
 
-
-  // ---------------
-  Span<DX12Descriptor> RootParameterBinding::GetDescriptors( DX12TransitionHelper* transitionHelper )
+#if 0
+  Span< DX12Descriptor >        PipelineBindlessArray::GetDescriptors(
+    DX12TransitionHelper* transitionHelper) const
   {
-    if( mResourceHandle.IsValid() )
-    {
-      TAC_ASSERT_UNIMPLEMENTED;
-      return {};
-    }
-    else
-      return mPipelineArray->GetDescriptors( transitionHelper )
-
+    TAC_ASSERT_UNIMPLEMENTED;
+    return{};
   }
+#endif
 
-  Span<DX12Descriptor> PipelineDynamicArray::GetDescriptors( DX12TransitionHelper* transitionHelper )
+  // -----------------------------------------------------------------------------------------------
+
+  DX12Descriptor         PipelineDynamicArray::GetDescriptor(
+    IHandle ih,
+    DX12TransitionHelper* transitionHelper ) const
   {
-    const int n{ mHandleIndexes.size() };
-    DX12Descriptor* dst{
-      ( DX12Descriptor* )FrameMemoryAllocate( sizeof( DX12Descriptor ) * n ) };
-
-    Span< DX12Descriptor > result( dst, n );
-
-    for( IHandle iHandle : mHandleIndexes )
-    {
-      DX12Descriptor descriptor{ GetDescriptor( iHandle, transitionHelper ) };
-      TAC_ASSERT( descriptor.IsValid() );
-      *dst++ = descriptor;
-    }
-
-    return result;
-      TAC_ASSERT_UNIMPLEMENTED;
-      return{};
-  }
-
-  DX12Descriptor PipelineDynamicArray::GetDescriptor( IHandle ih, DX12TransitionHelper* transitionHelper )
-  {
-
-    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    DX12Renderer&   renderer   { DX12Renderer::sRenderer };
     DX12TextureMgr* textureMgr { &renderer.mTexMgr };
     DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
     DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
 
-    const D3D12ProgramBindDesc& binding{ mProgramBindDesc };
-
-    const D3D12ProgramBindType::Classification classification{ binding.mType.GetClassification() };
+    const D3D12ProgramBindType::Classification classification{
+      mProgramBindType.GetClassification() };
     const int iHandle{ ih.GetIndex() };
 
     switch( classification )
@@ -246,13 +199,202 @@ namespace Tac::Render
 
   }
 
-  Span<DX12Descriptor> PipelineBindlessArray::GetDescriptors( DX12TransitionHelper* transitionHelper)
+  Span< DX12Descriptor > PipelineDynamicArray::GetDescriptors(
+    DX12TransitionHelper* transitionHelper ) const
   {
-    TAC_ASSERT_UNIMPLEMENTED;
-    return{};
+    const int n{ mHandleIndexes.size() };
+    DX12Descriptor* dst{
+      ( DX12Descriptor* )FrameMemoryAllocate( sizeof( DX12Descriptor ) * n ) };
 
+    Span< DX12Descriptor > result( dst, n );
+
+    for( IHandle iHandle : mHandleIndexes )
+    {
+      DX12Descriptor descriptor{ GetDescriptor( iHandle, transitionHelper ) };
+      TAC_ASSERT( descriptor.IsValid() );
+      *dst++ = descriptor;
+    }
+
+    return result;
   }
 
+  void                   PipelineDynamicArray::BindAtIndex( ResourceHandle h, int i )
+  {
+    CheckType( h );
+
+    mHandleIndexes[ i ] = h;
+  }
+
+  void                   PipelineDynamicArray::SetFence( FenceSignal fenceSignal )
+  {
+    mDescriptorRegion.Free( fenceSignal );
+  }
+
+  void                   PipelineDynamicArray::CheckType( ResourceHandle h )
+  {
+    if constexpr ( !kIsDebugMode )
+      return;
+
+    const D3D12ProgramBindType type{ mProgramBindType };
+    TAC_ASSERT( type.IsValid() );
+    TAC_ASSERT( !type.IsBuffer() || h.IsBuffer() );
+    TAC_ASSERT( !type.IsTexture() || h.IsTexture() );
+    TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
+  }
+
+  void                   PipelineDynamicArray::Commit( CommitParams commitParams )
+  {
+    ID3D12GraphicsCommandList* commandList{ commitParams.mCommandList };
+#if 0
+    DX12DescriptorCaches* descriptorCaches{ commitParams.mDescriptorCaches };
+#endif
+    const bool isCompute{ commitParams.mIsCompute };
+    const UINT rootParameterIndex{ commitParams.mRootParameterIndex };
+
+    DX12Renderer&   renderer   { DX12Renderer::sRenderer };
+    DX12TextureMgr* textureMgr { &renderer.mTexMgr };
+    DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
+    DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
+    ID3D12Device*   device     { renderer.mDevice };
+
+    if( true )// programBindDesc.BindsAsDescriptorTable() )
+    {
+      const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
+
+      DX12TransitionHelper transitionHelper;
+      const Span< DX12Descriptor > cpuDescriptors{ GetDescriptors( &transitionHelper ) };
+      transitionHelper.ResourceBarrier( commandList );
+
+#if 0
+      dynmc DX12DescriptorCache& descriptorCache{ ( *descriptorCaches )[ heapType ] };
+      const DX12DescriptorRegion* gpuDescriptor{
+        descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors ) };
+#else
+      DX12DescriptorHeap& heap{ renderer.mDescriptorHeapMgr.mGPUHeaps[ heapType ] };
+      DX12DescriptorAllocator* descriptorAllocator{ heap.GetRegionMgr() };
+      const int nDescriptors{ cpuDescriptors.size() };
+      mDescriptorRegion = ( DX12DescriptorRegion&& )descriptorAllocator->Alloc( nDescriptors );
+      DX12DescriptorRegion* gpuDescriptor{ &mDescriptorRegion };
+#endif
+
+      for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
+      {
+        DX12Descriptor cpuDescriptor { cpuDescriptors[ iDescriptor ] };
+        DX12DescriptorHeap* srcHeap{ cpuDescriptor.mOwner };
+        TAC_ASSERT( srcHeap );
+        TAC_ASSERT( srcHeap->GetType() == heapType );
+        const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
+        const D3D12_CPU_DESCRIPTOR_HANDLE dst{ gpuDescriptor->GetCPUHandle( iDescriptor ) };
+        TAC_ASSERT( src.ptr );
+        TAC_ASSERT( dst.ptr );
+        device->CopyDescriptorsSimple( 1, dst, src, heapType );
+      }
+
+      const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
+      if( isCompute )
+        commandList->SetComputeRootDescriptorTable( rootParameterIndex, gpuHandle );
+      else
+        commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+#if 0
+  Span< DX12Descriptor >
+                 RootParameterBinding::GetDescriptors(
+                   DX12TransitionHelper* transitionHelper ) const
+  {
+    if( mResourceHandle.IsValid() )
+    {
+      TAC_ASSERT_UNIMPLEMENTED;
+      return {};
+    }
+
+    return mPipelineArray->GetDescriptors( transitionHelper );
+  }
+#endif
+
+  void           RootParameterBinding::SetFence( FenceSignal fenceSignal )
+  {
+    if( mType == Type::kDynamicArray )
+    {
+      mPipelineDynamicArray.SetFence( fenceSignal );
+    }
+  }
+
+  void           RootParameterBinding::Commit( CommitParams commitParams )
+  {
+    if( mProgramBindDesc.BindsAsDescriptorTable() )
+    {
+      if( mType == RootParameterBinding::Type::kDynamicArray )
+      {
+        mPipelineDynamicArray.Commit( commitParams );
+      }
+      else
+      {
+        TAC_ASSERT_UNIMPLEMENTED;
+      }
+    }
+    else
+    {
+      const D3D12ProgramBindType programBindType{mProgramBindDesc.mType};
+      TAC_ASSERT_MSG( !programBindType.IsTexture(),
+                      "Textures must be bound through descriptor tables" );
+
+      // this includes constant buffers
+      TAC_ASSERT( programBindType.IsBuffer() );
+
+      const bool isCompute{ commitParams.mIsCompute };
+
+      const BufferHandle bufferHandle{ mResourceHandle.GetBufferHandle() };
+
+      DX12Renderer& renderer{ DX12Renderer::sRenderer };
+      DX12BufferMgr* bufferMgr{ &renderer.mBufMgr };
+
+      const DX12Buffer* buffer{ bufferMgr->FindBuffer( bufferHandle ) };
+      TAC_ASSERT( buffer );
+      
+      const D3D12_RESOURCE_STATES state{ buffer->mResource.GetState() };
+
+      const D3D12_GPU_VIRTUAL_ADDRESS gpuVirtualAddress{ buffer->mGPUVirtualAddr };
+      TAC_ASSERT( gpuVirtualAddress );
+
+      using CmdList = ID3D12GraphicsCommandList;
+      using CmdListFn = void ( CmdList::* )( UINT, D3D12_GPU_VIRTUAL_ADDRESS );
+
+      CmdListFn cmdListFn{};
+
+      if( programBindType.IsConstantBuffer() )
+      {
+        TAC_ASSERT( state & D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER );
+        cmdListFn = isCompute
+          ? &CmdList::SetComputeRootConstantBufferView
+          : &CmdList::SetGraphicsRootConstantBufferView;
+      }
+      else if( programBindType.IsSRV() )
+      {
+        TAC_ASSERT( state & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+
+        cmdListFn = isCompute
+          ? &CmdList::SetComputeRootShaderResourceView
+          : &CmdList::SetGraphicsRootShaderResourceView;
+      }
+      else if( programBindType.IsUAV() )
+      {
+        TAC_ASSERT( state & D3D12_RESOURCE_STATE_UNORDERED_ACCESS );
+        cmdListFn = isCompute
+          ? &CmdList::SetComputeRootUnorderedAccessView
+          : &CmdList::SetGraphicsRootUnorderedAccessView;
+      }
+
+      TAC_ASSERT( cmdListFn );
+      ID3D12GraphicsCommandList* commandList{ commitParams.mCommandList };
+      ( commandList->*cmdListFn )( mRootParameterIndex, gpuVirtualAddress );
+    }
+
+
+  }
 
 } // namespace Tac::Render
 

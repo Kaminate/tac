@@ -8,24 +8,42 @@
 #include "tac-dx/dx12/descriptor/tac_dx12_descriptor_allocator.h" // DX12DescriptorRegion
 //#include "tac-dx/dx12/program/tac_dx12_program_bind_type.h"
 #include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
+#include "tac-dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac::Render
 {
-  struct IPipelineArray 
+  //struct IPipelineArray 
+  //{
+  //  virtual Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const = 0;
+  //};
+
+  struct CommitParams
   {
-    virtual Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* ) = 0;
+    ID3D12GraphicsCommandList* mCommandList        {};
+#if 0
+    DX12DescriptorCaches*      mDescriptorCaches   {};
+#endif
+    bool                       mIsCompute          {};
+    UINT                       mRootParameterIndex {};
   };
 
   // A new DX12DescriptorRegion is allocated for each draw call
-  struct PipelineDynamicArray : public IPipelineArray
+  struct PipelineDynamicArray // : public IPipelineArray
   {
-    Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* ) override;
+    Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const ; // override;
+    void                   BindAtIndex( ResourceHandle, int );
+    void                   SetFence( FenceSignal );
+    void                   Commit( CommitParams );
 
   private:
-    DX12Descriptor GetDescriptor( IHandle, DX12TransitionHelper* ) ;
-    D3D12ProgramBindDesc mProgramBindDesc      {};
+    void                   CheckType( ResourceHandle );
+    DX12Descriptor         GetDescriptor( IHandle, DX12TransitionHelper* ) const;
+
+    Vector< IHandle >      mHandleIndexes        {};
+    D3D12ProgramBindType   mProgramBindType      {};
+    DX12DescriptorRegion   mDescriptorRegion     {};
   };
 
 
@@ -38,47 +56,46 @@ namespace Tac::Render
       kBindlessArray,
       kResourceHandle,
     };
-    Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* );
+    //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const;
+    void                   SetFence( FenceSignal );
+
+    void                   Commit( CommitParams );
 
     // Resources can be bound in an array, or as a handle, depending
     // on the resource type
-    PipelineDynamicArray mPipelineDynamicArray {};
-    IPipelineArray*      mPipelineArray        {};
-    ResourceHandle       mResourceHandle       {};
+    PipelineDynamicArray  mPipelineDynamicArray {};
+    IShaderBindlessArray* mBindlessArray        {}; // not owned
+    //IPipelineArray*       mPipelineArray        {};
+    ResourceHandle        mResourceHandle       {};
 
-    D3D12ProgramBindDesc mProgramBindDesc      {};
-    UINT                 mRootParameterIndex   {};
-    Type                 mType                 {};
+    D3D12ProgramBindDesc  mProgramBindDesc      {};
+    UINT                  mRootParameterIndex   {};
+    Type                  mType                 {};
   };
 
   struct PipelineBindCache : public Vector< RootParameterBinding > {};
 
 
   // bindless, DX12DescriptorRegion persists between draw calls
-  struct PipelineBindlessArray : public IPipelineArray , public IShaderBindlessArray // ???
+  struct PipelineBindlessArray : // public IPipelineArray ,
+    public IShaderBindlessArray // ???
   {
-    struct Binding { int mIndex; };
-
-    Binding Bind( ResourceHandle );
-    Binding BindAtIndex( ResourceHandle, int );
-    void    Unbind( Binding );
-    void    Resize( int );
-    void    SetFenceSignal( FenceSignal );
-    Span<DX12Descriptor> GetDescriptors( DX12TransitionHelper* ) override;
+    Binding                Bind( ResourceHandle ) override;
+    void                   Unbind( Binding ) override;
+    void                   Resize( int );
+    void                   SetFenceSignal( FenceSignal );
+    //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const override;
 
   private:
 
-    using HeapType = D3D12_DESCRIPTOR_HEAP_TYPE;
+    void                   CheckType( ResourceHandle );
 
-    HeapType GetHeapType() const;
-    void     CheckType( ResourceHandle );
-
-    D3D12ProgramBindType mProgramBindType  {};
-    Vector< IHandle >    mHandles          {};
-    Vector< Binding >    mUnusedBindings   {};
-    DX12DescriptorRegion mDescriptorRegion {};
-    FenceSignal          mFenceSignal      {};
-    D3D12ProgramBindDesc mProgramBindDesc  {};
+    Vector< IHandle >      mHandles          {};
+    Vector< Binding >      mUnusedBindings   {};
+    DX12DescriptorRegion   mDescriptorRegion {};
+    FenceSignal            mFenceSignal      {};
+    //D3D12ProgramBindDesc mProgramBindDesc  {};
+    D3D12ProgramBindType   mProgramBindType  {};
   };
 
 } // namespace Tac::Render

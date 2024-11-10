@@ -32,42 +32,49 @@ namespace Tac::Render
 
   void DX12Context::CommitShaderVariables()
   {
-    DX12PipelineMgr* pipelineMgr{ &DX12Renderer::sRenderer.mPipelineMgr };
-    DX12DescriptorHeaps* descriptorHeaps{ &DX12Renderer::sRenderer.mGpuDescriptorHeaps };
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
+    DX12PipelineMgr* pipelineMgr{ &renderer.mPipelineMgr };
     TAC_ASSERT( pipelineMgr );
-    TAC_ASSERT( descriptorHeaps );
+
 
     DX12Pipeline* pipeline{ pipelineMgr->FindPipeline( mState.mPipeline ) };
     if( !pipeline )
       return;
 
+#if 0
     const int iResource{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV };
     const int iSampler{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER };
-
     DX12DescriptorHeap& heap_Resource{ ( *descriptorHeaps )[ iResource ] };
     DX12DescriptorHeap& heap_Sampler{ ( *descriptorHeaps )[ iSampler ] };
-
-    const Array descHeaps
-    {
-      heap_Resource.GetID3D12DescriptorHeap(),
-      heap_Sampler.GetID3D12DescriptorHeap(),
-    };
-
     mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Resource.GetRegionMgr() ); // ugly
     mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Sampler.GetRegionMgr() ); // ugly
+#endif
 
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
-    commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
 
-    const DX12Pipeline::Variable::CommitParams commitParams
+    heapMgr.Bind( commandList );
+
+
+
+    for( RootParameterBinding& binding : pipeline->mPipelineBindCache )
     {
-        .mCommandList      { commandList },
-        .mDescriptorCaches { &mState.mDescriptorCaches },
-        .mIsCompute        { mState.mIsCompute },
-    };
+      const CommitParams commitParams
+      {
+          .mCommandList        { commandList },
+  #if 0
+          .mDescriptorCaches   { &mState.mDescriptorCaches },
+  #endif
+          .mIsCompute          { mState.mIsCompute },
+          .mRootParameterIndex { binding.mRootParameterIndex },
+      };
+      binding.Commit( commitParams );
+    }
+#if 0
 
     for( const DX12Pipeline::Variable& var : pipeline->mShaderVariables )
       var.Commit( commitParams );
+#endif
   }
 
   void DX12Context::UpdateTexture( TextureHandle h,
@@ -93,9 +100,11 @@ namespace Tac::Render
     TAC_ASSERT( !mState.mExecuted );
 
     DX12Renderer* renderer{ &DX12Renderer::sRenderer };
+
     DX12CommandAllocatorPool* commandAllocatorPool{ &renderer->mCommandAllocatorPool };
     TAC_ASSERT( commandAllocatorPool );
-    DX12CommandQueue* commandQueue{&renderer->mCommandQueue};
+
+    DX12CommandQueue* commandQueue{ &renderer->mCommandQueue };
     TAC_ASSERT( commandQueue );
 
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
@@ -116,8 +125,16 @@ namespace Tac::Render
       TAC_CALL( commandQueue->WaitForFence( fenceSignal, errors ) );
     }
 
+#if 0
     for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
       mState.mDescriptorCaches[ i ].SetFence( fenceSignal );
+#else
+    DX12PipelineMgr* pipelineMgr{ &renderer->mPipelineMgr };
+    TAC_ASSERT( pipelineMgr );
+    if( DX12Pipeline* pipeline{ pipelineMgr->FindPipeline( mState.mPipeline ) } )
+      for( RootParameterBinding& binding : pipeline->mPipelineBindCache )
+        binding.SetFence( fenceSignal );
+#endif
 
     commandAllocatorPool->Retire( mCommandAllocator, fenceSignal );
     mCommandAllocator = {};
@@ -471,8 +488,10 @@ namespace Tac::Render
     TAC_ASSERT( mState.mExecuted ); // this should be a warning instead
     mState.mRetired = true;
 
+#if 0
     for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
       mState.mDescriptorCaches[ i ].Clear();
+#endif
 
     contextManager->RetireContext( this );
   }

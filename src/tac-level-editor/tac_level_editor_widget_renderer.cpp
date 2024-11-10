@@ -171,8 +171,8 @@ namespace Tac
 
     const ModelAssetManager::Params meshParms
     {
-      .mPath{"assets/editor/arrow.gltf"},
-      .mOptVtxDecls{m3DvertexFormatDecls},
+      .mPath       { "assets/editor/arrow.gltf" },
+      .mOptVtxDecls{ m3DvertexFormatDecls },
     };
 
     TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParms, errors ) );
@@ -182,8 +182,8 @@ namespace Tac
     mShaderPerFrame = renderDevice->GetShaderVariable( m3DPipeline, "perFrame" );
     mShaderPerObj = renderDevice->GetShaderVariable( m3DPipeline, "perObj" );
 
-    mShaderPerFrame->SetBuffer( mBufferPerFrame );
-    mShaderPerObj->SetBuffer( mBufferPerObj );
+    mShaderPerFrame->SetResource( mBufferPerFrame );
+    mShaderPerObj->SetResource( mBufferPerObj );
 
   }
 

@@ -59,17 +59,9 @@ namespace Tac::Render
 
   struct DX12Renderer
   {
-    static DX12Renderer sRenderer;
-
     void                       Init( Errors& );
 
-    DX12DescriptorHeap&        GetCpuHeap_RTV();
-    DX12DescriptorHeap&        GetCpuHeap_DSV();
-    DX12DescriptorHeap&        GetCpuHeap_CBV_SRV_UAV();
-    DX12DescriptorHeap&        GetCpuHeap_Sampler();
-
-    DX12DescriptorHeap&        GetGPUHeap_CBV_SRV_UAV();
-    DX12DescriptorHeap&        GetGPUHeap_Sampler();
+    static DX12Renderer        sRenderer;
 
     DX12CommandQueue           mCommandQueue;
     DX12CommandAllocatorPool   mCommandAllocatorPool;
@@ -86,20 +78,11 @@ namespace Tac::Render
     DX12ProgramMgr             mProgramMgr;
     DX12PipelineMgr            mPipelineMgr;
     DX12SamplerMgr             mSamplerMgr;
+    DX12DescriptorHeapMgr      mDescriptorHeapMgr;
 
-    // CPU Heaps (used for creating resources)
-    DX12DescriptorHeaps        mCpuDescriptorHeaps;
-
-    // GPU Heaps (used for rendering)
-    DX12DescriptorHeaps        mGpuDescriptorHeaps;
-    ID3D12Device*              mDevice{};
-
+    ID3D12Device*              mDevice     {};
     u64                        mRenderFrame{};
-
     DeletionQueue              mDeletionQueue;
-
-  private:
-    void InitDescriptorHeaps( Errors& );
   };
 
   struct DX12Device : public IDevice

@@ -39,7 +39,11 @@ namespace Tac::Render
   DX12BufferMgr::DescriptorBindings DX12BufferMgr::CreateBindings( ID3D12Resource* resource,
                                                                    CreateBufferParams params )
   {
-    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
+    DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] };
+
+    ID3D12Device* mDevice{ renderer.mDevice };
     const Binding binding{ params.mBinding };
 
     if( Binding{} != ( binding & Binding::VertexBuffer ) )
@@ -52,10 +56,7 @@ namespace Tac::Render
 
     if( Binding{} != ( binding & Binding::ShaderResource ) )
     {
-      DX12DescriptorHeap* descriptorHeapResource{
-        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
-
-      const DX12Descriptor allocation{ descriptorHeapResource->Allocate() };
+      const DX12Descriptor allocation{ heap.Allocate() };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
 
       TAC_ASSERT( params.mGpuBufferMode != GpuBufferMode::kUndefined );
@@ -101,9 +102,7 @@ namespace Tac::Render
 
     if( Binding{} != ( binding & Binding::UnorderedAccess ) )
     {
-      DX12DescriptorHeap* descriptorHeapResource{
-        &DX12Renderer::sRenderer.GetCpuHeap_CBV_SRV_UAV() };
-      const DX12Descriptor allocation{ descriptorHeapResource->Allocate() };
+      const DX12Descriptor allocation{ heap.Allocate() };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
       mDevice->CreateUnorderedAccessView( resource, nullptr, nullptr, DestDescriptor );
       srv = allocation;

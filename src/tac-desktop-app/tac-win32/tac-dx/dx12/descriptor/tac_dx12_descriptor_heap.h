@@ -16,18 +16,16 @@ namespace Tac::Render
 {
   struct DX12DescriptorAllocator;
   struct DX12CommandQueue;
+
   struct DX12DescriptorHeap
   {
     struct Params
     {
       D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc     {};
-      ID3D12Device*              mDevice       {};
       StringView                 mName         {};
-      DX12CommandQueue*          mCommandQueue {};
     };
-    void Init( Params, Errors& );
-
-    ~DX12DescriptorHeap();
+    dtor                         ~DX12DescriptorHeap();
+    void                         Init( Params, Errors& );
     ID3D12DescriptorHeap*        GetID3D12DescriptorHeap();
     D3D12_DESCRIPTOR_HEAP_TYPE   GetType() const;
     UINT                         GetDescriptorCount() const;
@@ -55,9 +53,26 @@ namespace Tac::Render
     D3D12_GPU_DESCRIPTOR_HANDLE  mHeapStartGPU   {};
     D3D12_DESCRIPTOR_HEAP_DESC   mDesc           {};
     UINT                         mDescriptorSize {};
-    DX12CommandQueue*            mCommandQueue   {};
   };
 
-  using DX12DescriptorHeaps = Array< DX12DescriptorHeap, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;
+  struct DX12DescriptorHeapMgr
+  {
+    using HeapArray = Array< DX12DescriptorHeap, D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES >;
+
+    void Init( Errors& );
+    void Bind( ID3D12GraphicsCommandList* );
+
+    // CPU Heaps (used for creating resources)
+    HeapArray mCPUHeaps;
+
+    // GPU Heaps (used for rendering)
+    HeapArray mGPUHeaps;
+
+  private:
+    void InitCPUHeaps( Errors& );
+    void InitGPUHeaps( Errors& );
+    void InitCPUHeap( D3D12_DESCRIPTOR_HEAP_TYPE, int, StringView, Errors& );
+    void InitGPUHeap( D3D12_DESCRIPTOR_HEAP_TYPE, int, StringView, Errors& );
+  };
 } // namespace Tac::Render
 

@@ -191,8 +191,10 @@ namespace Tac
     const Render::TextureHandle backbufferDepth{
       renderDevice->GetSwapChainDepth( swapChain ) };
 
-    TAC_CALL( Render::IContext::Scope renderContext{
+    TAC_CALL( Render::IContext::Scope renderContextScope{
       renderDevice->CreateRenderContext( errors ) } );
+
+    Render::IContext* renderContext{renderContextScope.GetContext()};
 
     renderContext->ClearColor( backbufferColor, v4( 0, 0, 0, 1 ) );
     renderContext->ClearDepth( backbufferDepth, 1.0f );

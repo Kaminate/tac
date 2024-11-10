@@ -94,7 +94,7 @@ namespace Tac
 
     Render::IShaderVar* outputTexture {
       renderDevice->GetShaderVariable( sPipeline, "sOutputTexture" ) };
-    outputTexture->SetTexture( sTexture );
+    outputTexture->SetResource( sTexture );
   }
 
   void    JPPTApp::Update( UpdateParams updateParams, Errors& )
