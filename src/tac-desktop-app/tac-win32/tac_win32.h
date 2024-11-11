@@ -60,12 +60,12 @@ namespace Tac
   }                                                                                                \
 }
 
-#define TAC_HR_CALL_RET( ret, fn ) {                                                               \
+#define TAC_HR_CALL_RET( fn ) {                                                                    \
   const HRESULT hr = fn;                                                                           \
   const bool failed = FAILED( hr );                                                                \
   if( failed )                                                                                     \
   {                                                                                                \
-    TAC_CALL_RET( ret, Tac::HrCallAux( hr, #fn, errors ) );                                        \
+    TAC_CALL_RET( Tac::HrCallAux( hr, #fn, errors ) );                                             \
   }                                                                                                \
 }
 

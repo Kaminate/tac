@@ -410,7 +410,7 @@ namespace Tac::Render
     TAC_RAISE_ERROR_IF_RETURN( {}, !pShader, "No shader dxil" );
     const String outputShaderName { GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() ) };
     const FileSys::Path dxilShaderPath { input.mOutputDir / outputShaderName };
-    TAC_CALL_RET( {}, SaveBlobToFile( pShader, dxilShaderPath, errors ) );
+    TAC_CALL_RET( SaveBlobToFile( pShader, dxilShaderPath, errors ) );
 
     SavePDB( pUtils.Get(),
              pdbUtils.Get(),
@@ -440,26 +440,29 @@ namespace Tac
       .mCompileParams       { input },
     };
 
+    AssetPathStringView  fileName{ input.mFileName };
+
     {
 #if 0
       const int iSlash{ input.mFileName.find_last_of( "/\\" ) };
       const StringView inputShaderName{
         iSlash == StringView::npos ? input.mFileName : input.mFileName.substr( iSlash + 1 ) };
       const FileSys::Path hlslShaderPath { input.mOutputDir / inputShaderName };
-      TAC_CALL_RET( {}, FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
+      TAC_CALL_RET( FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 #else
-      TAC_ASSERT( !input.mFileName.contains( "/\\" ) );
-      const FileSys::Path hlslShaderPath { input.mOutputDir / input.mFileName };
-      TAC_CALL_RET( {}, FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
+      // ???? why
+      TAC_ASSERT( !fileName.contains( "/\\" ) );
+      const FileSys::Path hlslShaderPath { input.mOutputDir / fileName };
+      TAC_CALL_RET( FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 #endif
     }
 
-    TAC_CALL_RET( {}, PCom< IDxcBlob > vsBlob { sVSData.DXCCompileBlob( blobInput, errors ) } );
-    TAC_CALL_RET( {}, PCom< IDxcBlob > psBlob { sPSData.DXCCompileBlob( blobInput, errors ) } );
-    TAC_CALL_RET( {}, PCom< IDxcBlob > csBlob { sCSData.DXCCompileBlob( blobInput, errors ) } );
+    TAC_CALL_RET( PCom< IDxcBlob > vsBlob { sVSData.DXCCompileBlob( blobInput, errors ) } );
+    TAC_CALL_RET( PCom< IDxcBlob > psBlob { sPSData.DXCCompileBlob( blobInput, errors ) } );
+    TAC_CALL_RET( PCom< IDxcBlob > csBlob { sCSData.DXCCompileBlob( blobInput, errors ) } );
 
     TAC_RAISE_ERROR_IF_RETURN( {}, !( vsBlob || psBlob || csBlob ),
-                               String() + "Shader " + input.mFileName + " compiled no blobs" );
+                               String() + "Shader " + fileName + " compiled no blobs" );
 
     return DXCCompileOutput
     {

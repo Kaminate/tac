@@ -275,7 +275,7 @@ namespace Tac::Render
         .mDstSubresourceIndex {},
         .mDstPos              {},
       };
-      TAC_CALL_RET( {}, UploadTextureData( &dx12Resource,
+      TAC_CALL_RET( UploadTextureData( &dx12Resource,
                                            updateTextureParams,
                                            context,
                                            errors ) );
@@ -293,7 +293,7 @@ namespace Tac::Render
     }
 
     // do we context->SetSynchronous() ?
-    TAC_CALL_RET( {}, context->Execute( errors ) );
+    TAC_CALL_RET( context->Execute( errors ) );
 
     //const D3D12_RESOURCE_DESC resourceDesc{ resource->GetDesc() };
 

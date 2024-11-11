@@ -79,7 +79,7 @@ namespace Tac::Render
 
       const D3D12_BUFFER_SRV Buffer
       {
-        .FirstElement        {  },
+        .FirstElement        {},
         .NumElements         { NumElements },
         .StructureByteStride { StructureByteStride },
         .Flags               { Flags },
@@ -268,7 +268,7 @@ namespace Tac::Render
                       commandList );
 
     // do we context->SetSynchronous() ?
-    TAC_CALL_RET( {}, context->Execute( errors ) );
+    TAC_CALL_RET( context->Execute( errors ) );
 
     const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
 

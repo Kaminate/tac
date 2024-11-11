@@ -323,7 +323,7 @@ namespace Tac::Render::DXC
     const String inputShaderName =  input.mShaderAssetPath.GetFilename();
     const FileSys::Path hlslShaderPath = input.mOutputDir / inputShaderName;
 
-    TAC_CALL_RET( {}, Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
+    TAC_CALL_RET( Filesystem::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
 
     TAC_NOT_CONST ExampleDXCArgHelper::BasicSetup argHelperSetup
     {
@@ -399,7 +399,7 @@ namespace Tac::Render::DXC
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil", {} );
       const String outputShaderName = GetBlob16AsUTF8( pShaderName, pUtils );
       const FileSys::Path dxilShaderPath = input.mOutputDir / outputShaderName;
-      TAC_CALL_RET( {}, SaveBlobToFile(pShader, dxilShaderPath, errors ));
+      TAC_CALL_RET( SaveBlobToFile(pShader, dxilShaderPath, errors ));
     }
     else
     {
@@ -422,7 +422,7 @@ namespace Tac::Render::DXC
       TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader pdb", {} );
       const String pdbName = GetBlob16AsUTF8( pPDBName, pUtils );
       const FileSys::Path pdbPath = input.mOutputDir / pdbName;
-      TAC_CALL_RET( {}, SaveBlobToFile(pPDB, pdbPath, errors ));
+      TAC_CALL_RET( SaveBlobToFile(pPDB, pdbPath, errors ));
 
       PrintCompilerInfo( pdbUtils.Get(), pPDB.Get() );
 

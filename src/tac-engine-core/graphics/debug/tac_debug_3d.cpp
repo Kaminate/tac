@@ -231,7 +231,7 @@ namespace Tac
         .mOptionalName  { "debug-3d-vtx" },
       };
 
-      TAC_CALL_RET( {},mRenderVtxBuf = renderDevice->CreateBuffer( vtxBufCreate, errors ) );
+      TAC_CALL_RET( mRenderVtxBuf = renderDevice->CreateBuffer( vtxBufCreate, errors ) );
       buffer->mVtxBufByteCapacity = requiredByteCount;
     }
 
@@ -243,7 +243,7 @@ namespace Tac
       .mSrcByteCount { requiredByteCount },
     };
 
-    TAC_CALL_RET( {}, renderContext->UpdateBuffer( mRenderVtxBuf, vtxBufUpdate, errors ) );
+    TAC_CALL_RET( renderContext->UpdateBuffer( mRenderVtxBuf, vtxBufUpdate, errors ) );
     
     return buffer;
   }

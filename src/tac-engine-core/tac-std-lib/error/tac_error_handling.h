@@ -49,5 +49,5 @@ namespace Tac
 
 // Call a function, and upon errors propagates the stack frame
 #define TAC_CALL( call )                             call; if( errors ){ errors.Propagate( TAC_STACK_FRAME ); return; }
-#define TAC_CALL_RET( ret, call )                    call; if( errors ){ errors.Propagate( TAC_STACK_FRAME ); return ret; }
+#define TAC_CALL_RET( call )                         call; if( errors ){ errors.Propagate( TAC_STACK_FRAME ); return {}; }
 

@@ -34,7 +34,7 @@ namespace Tac::Render
     String result;
     for( const AssetPathString& assetPath : assetPaths )
     {
-      TAC_CALL_RET( {}, result += preprocessor.PreprocessFile( assetPath, errors ) );
+      TAC_CALL_RET( result += preprocessor.PreprocessFile( assetPath, errors ) );
       result += "\n";
     }
 

@@ -174,6 +174,7 @@ namespace Tac
       .mStride       { sizeof( Render::GPUInputLayout ) },
       .mUsage        { Render::Usage::Static },
       .mBinding      { Render::Binding::ShaderResource },
+      .mGpuBufferMode{ Render::GpuBufferMode::kUndefined },
       .mOptionalName { "input layout" },
       .mStackFrame   { TAC_STACK_FRAME },
     };
@@ -224,7 +225,7 @@ namespace Tac
       .mStackFrame   { TAC_STACK_FRAME },
     };
     Render::IDevice* device { Render::RenderApi::GetRenderDevice() };
-    TAC_CALL_RET( {}, const Render::BufferHandle indexBuffer{
+    TAC_CALL_RET( const Render::BufferHandle indexBuffer{
        device->CreateBuffer( createBufferParams, errors ) } );
 
     return indexBuffer;
@@ -348,11 +349,11 @@ namespace Tac
 
     Vector< SubMesh > submeshes;
 
-    TAC_CALL_RET( {}, PopulateSubmeshes( submeshes, path, specifiedMeshIndex, vtxDecls, errors ) );
+    TAC_CALL_RET( PopulateSubmeshes( submeshes, path, specifiedMeshIndex, vtxDecls, errors ) );
 
     const Render::GPUInputLayout gpuInputLayout( vtxDecls );
 
-    TAC_CALL_RET( {}, const Render::BufferHandle gpuInputLayoutBuffer{
+    TAC_CALL_RET( const Render::BufferHandle gpuInputLayoutBuffer{
       ConvertInputLayoutBuffer( gpuInputLayout, errors ) } );
 
     return Mesh

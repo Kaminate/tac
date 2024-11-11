@@ -19,7 +19,7 @@ namespace Tac::Render
 
     mIncluded.push_back( path );
 
-    TAC_CALL_RET( {}, const String includeSource { LoadAssetPath( path, errors ) } );
+    TAC_CALL_RET( const String includeSource { LoadAssetPath( path, errors ) } );
 
     String result;
     result += "//===----- (begin include " + path + ") -----===//\n";
@@ -69,7 +69,7 @@ namespace Tac::Render
       return String();
 
     String result;
-    result += TAC_CALL_RET( {}, IncludeFile( assetPath, errors ) );
+    result += TAC_CALL_RET( IncludeFile( assetPath, errors ) );
 
     // Including a ".hlsli" file automatically also includes the ".hlsl" file
     if( includeName.ends_with( ".hlsli" ) )
@@ -78,7 +78,7 @@ namespace Tac::Render
       hlslPath.replace( ".hlsli", ".hlsl" );
 
       if( Exists( hlslPath ) && !IsIncluded( hlslPath ) )
-        result += TAC_CALL_RET( {}, IncludeFile( hlslPath, errors ) );
+        result += TAC_CALL_RET( IncludeFile( hlslPath, errors ) );
     }
 
     TAC_RAISE_ERROR_IF_RETURN( {},

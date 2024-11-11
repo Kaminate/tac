@@ -6,10 +6,9 @@
 
 #pragma once
 
+#include "tac-std-lib/error/tac_stack_frame.h"
+#include "tac-std-lib/string/tac_string_view.h"
 
-// this hsould probably be pulled out of tac std lib, and isntead when an asser tis hit,
-// it calls an assert callback set by the os.1j
-namespace Tac { struct StringView; struct StackFrame; }
 namespace Tac::FileSys { struct Path; }
 
 namespace Tac

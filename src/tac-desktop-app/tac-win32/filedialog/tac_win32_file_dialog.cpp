@@ -24,10 +24,10 @@ namespace Tac
 
     FileSys::Path FileDialogHelper::Run( Errors& errors )
     {
-      TAC_HR_CALL_RET( {}, CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
-      TAC_CALL_RET( {}, CreateDialogInstance( errors ) );
-      TAC_CALL_RET( {}, SetDefaultFolder( errors ) );
-      TAC_CALL_RET( {}, Show( errors ) );
+      TAC_HR_CALL_RET( CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
+      TAC_CALL_RET( CreateDialogInstance( errors ) );
+      TAC_CALL_RET( SetDefaultFolder( errors ) );
+      TAC_CALL_RET( Show( errors ) );
       if( mCancelled )
         return {};
       return GetResult( errors );
@@ -66,10 +66,10 @@ namespace Tac
     FileSys::Path FileDialogHelper::GetResult( Errors& errors )
     {
       PCom< IShellItem > pItem;
-      TAC_HR_CALL_RET( {}, mDialog->GetResult( pItem.CreateAddress() ) );
+      TAC_HR_CALL_RET( mDialog->GetResult( pItem.CreateAddress() ) );
 
       PWSTR pszFilePath;
-      TAC_HR_CALL_RET( {}, pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
+      TAC_HR_CALL_RET( pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
       TAC_ON_DESTRUCT( CoTaskMemFree( pszFilePath ) );
 
       return std::filesystem::path( pszFilePath );

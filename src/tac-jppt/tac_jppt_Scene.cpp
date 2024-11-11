@@ -296,7 +296,7 @@ namespace Tac::gpupt
       .mBinding       { Render::Binding::ShaderResource },
       .mOptionalName  { "jppt" },
     };
-    TAC_CALL_RET( {}, scene->mCamerasBuffer = renderDevice->CreateBuffer( bufferParams, errors ) );
+    TAC_CALL_RET( scene->mCamerasBuffer = renderDevice->CreateBuffer( bufferParams, errors ) );
 
     return scene;
   }

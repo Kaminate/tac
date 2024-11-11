@@ -98,7 +98,7 @@ namespace Tac::Render
 
     if( mAvailableContexts.empty() )
     {
-      TAC_CALL_RET( {}, PCom<ID3D12GraphicsCommandList > cmdList{ CreateCommandList( errors ) } );
+      TAC_CALL_RET( PCom<ID3D12GraphicsCommandList > cmdList{ CreateCommandList( errors ) } );
       context.mCommandList = cmdList;
       context.mGPUUploadAllocator.Init(mUploadPageManager);
     }
@@ -108,7 +108,7 @@ namespace Tac::Render
       mAvailableContexts.pop_back();
     }
 
-    TAC_CALL_RET( {}, context.mCommandAllocator =
+    TAC_CALL_RET( context.mCommandAllocator =
                   mCommandAllocatorPool->GetAllocator( errors ) );
 
     ID3D12GraphicsCommandList* dxCommandList { context.GetCommandList() };

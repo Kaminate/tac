@@ -88,7 +88,7 @@ Tac::AssetPathStringView     Tac::ModifyPathRelative( const FileSys::Path& path,
 
 Tac::AssetPathStringView     Tac::AssetOpenDialog( Errors& errors )
 {
-  const FileSys::Path fsPath = TAC_CALL_RET( {}, OS::OSOpenDialog( errors ));
+  const FileSys::Path fsPath = TAC_CALL_RET( OS::OSOpenDialog( errors ));
 
   return ModifyPathRelative( fsPath, errors );
 }

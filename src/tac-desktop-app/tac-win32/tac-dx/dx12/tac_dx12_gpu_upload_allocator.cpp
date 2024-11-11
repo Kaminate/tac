@@ -25,7 +25,7 @@ namespace Tac::Render
     DX12UploadPage* pageToAllocateFrom {};
     if( byteCount > DX12UploadPage::kDefaultByteCount )
     {
-      TAC_CALL_RET( {}, DX12UploadPage requested{
+      TAC_CALL_RET( DX12UploadPage requested{
          mPageManager->RequestPage( byteCount, errors ) } );
       mLargePages.push_back( requested );
       pageToAllocateFrom = &mLargePages.back();
@@ -50,7 +50,7 @@ namespace Tac::Render
 
     if( !pageToAllocateFrom )
     {
-      TAC_CALL_RET( {}, DX12UploadPage requested{
+      TAC_CALL_RET( DX12UploadPage requested{
          mPageManager->RequestPage( DX12UploadPage::kDefaultByteCount, errors ) } );
 
       mActivePages.push_back( requested );

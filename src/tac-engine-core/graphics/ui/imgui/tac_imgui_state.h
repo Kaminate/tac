@@ -228,7 +228,7 @@ namespace Tac
       Render::IShaderVar*    mShaderPerFrame  {};
     };
 
-    Element&                   GetElement( Render::TexFmt, Errors& );
+    Element                    GetElement( Render::TexFmt, Errors& );
     Render::BlendState         GetBlendState() const;
     Render::DepthState         GetDepthState() const;
     Render::RasterizerState    GetRasterizerState() const;

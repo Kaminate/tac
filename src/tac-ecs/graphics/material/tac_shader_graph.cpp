@@ -58,8 +58,8 @@ namespace Tac
   {
     TAC_ASSERT( !path.empty() );
     TAC_ASSERT( path.starts_with( "assets/shader-graphs/" ) );
-    TAC_CALL_RET( {}, const String str{ LoadAssetPath( path, errors ) } );
-    TAC_CALL_RET( {}, const Json json{ Json::Parse( str, errors ) } );
+    TAC_CALL_RET( const String str{ LoadAssetPath( path, errors ) } );
+    TAC_CALL_RET( const Json json{ Json::Parse( str, errors ) } );
     return ShaderGraph::JsonLoad( json );
   }
 } // namespace Tac

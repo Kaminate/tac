@@ -181,7 +181,7 @@ namespace Tac
   {
     const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
 
-    TAC_CALL_RET( {}, const FileSys::Paths paths{
+    TAC_CALL_RET( const FileSys::Paths paths{
       FileSys::IterateFiles( dir, fsIterate, errors ) } );
 
     AssetPathStrings result;

@@ -36,15 +36,15 @@ namespace Tac::Render
     TAC_ASSERT( dxgiSwapChainParams.mDevice );
 
     DXGISwapChainWrapper swapChain;
-    TAC_CALL_RET( {}, swapChain.Init( dxgiSwapChainParams, errors ) );
+    TAC_CALL_RET( swapChain.Init( dxgiSwapChainParams, errors ) );
 
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
     TAC_DX12_CALL_RET( {}, swapChain->GetDesc1( &swapChainDesc ) );
 
-    TAC_CALL_RET( {},
+    TAC_CALL_RET( 
                   DX12SwapChainImages swapChainImages{ CreateColorTextures( swapChain, errors ) } );
 
-    TAC_CALL_RET( {}, const TextureHandle swapChainDepth{
+    TAC_CALL_RET( const TextureHandle swapChainDepth{
       CreateDepthTexture( size, params.mDepthFmt, errors ) } );
 
     const SwapChainHandle h{ AllocSwapChainHandle() };
@@ -88,7 +88,7 @@ namespace Tac::Render
       ID3D12Resource* resource{ renderTarget.Get() };
 
       const TextureHandle textureHandle { AllocTextureHandle() };
-      TAC_CALL_RET( {}, mTextureMgr->CreateRenderTargetColor(
+      TAC_CALL_RET( mTextureMgr->CreateRenderTargetColor(
         textureHandle, renderTarget, errors ) );
 
       swapChainImages.push_back( textureHandle );

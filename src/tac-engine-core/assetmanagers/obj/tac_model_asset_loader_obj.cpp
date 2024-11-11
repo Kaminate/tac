@@ -207,7 +207,7 @@ namespace Tac
       .mOptionalName { name },
       .mStackFrame   { TAC_STACK_FRAME },
     };
-    TAC_CALL_RET( {}, const Render::BufferHandle vertexBuffer{
+    TAC_CALL_RET( const Render::BufferHandle vertexBuffer{
        renderDevice->CreateBuffer( vertexBufferParams, errors ) } );
 
       const int vtxCount{ wavefrontObj.mFaces.size() * 3 };

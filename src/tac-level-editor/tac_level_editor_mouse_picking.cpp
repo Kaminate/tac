@@ -80,7 +80,7 @@ namespace Tac
   static RaycastResult MousePickingEntityModel( Ray ray, const Model* model, Errors& errors )
   {
     const Entity* entity { model->mEntity };
-    TAC_CALL_RET( {}, const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
+    TAC_CALL_RET( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
     if( !mesh )
     {
       return {};
@@ -124,7 +124,7 @@ namespace Tac
   {
     if( const Model * model{ Model::GetModel( entity ) } )
     {
-      TAC_CALL_RET( {}, const RaycastResult raycastResult{
+      TAC_CALL_RET( const RaycastResult raycastResult{
         MousePickingEntityModel( ray, model, errors ) } );
       if( raycastResult.mHit )
         return raycastResult;

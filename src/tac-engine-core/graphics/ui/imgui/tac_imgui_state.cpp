@@ -1042,7 +1042,7 @@ namespace Tac
     return rasterizerState;
   }
 
-  ImGuiPersistantPlatformData::Element& ImGuiPersistantPlatformData::GetElement(
+  ImGuiPersistantPlatformData::Element ImGuiPersistantPlatformData::GetElement(
     Render::TexFmt texFmt,
     Errors& errors )
   {
@@ -1064,7 +1064,7 @@ namespace Tac
     Element& element { mElements.back() };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL_RET( element, const Render::PipelineHandle pipeline{
+    TAC_CALL_RET( const Render::PipelineHandle pipeline{
       renderDevice->CreatePipeline( pipelineParams, errors ) } );
 
     Render::IShaderVar* shaderImage{

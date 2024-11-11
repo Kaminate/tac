@@ -83,14 +83,14 @@ namespace Tac::Render
       String combinedInputs;
       for( const String& input : programParams.mInputs )
       {
-        TAC_CALL_RET( {}, const String inputStr{
+        TAC_CALL_RET( const String inputStr{
           FileSys::LoadFilePath( sShaderDir + input + sShaderExt, errors ) } );
 
         combinedInputs += inputStr;
         combinedInputs += "\n";
       }
 
-      TAC_CALL_RET( {}, FileSys::SaveToFile( filePath, combinedInputs, errors ) );
+      TAC_CALL_RET( FileSys::SaveToFile( filePath, combinedInputs, errors ) );
     }
 #endif
 
@@ -101,7 +101,7 @@ namespace Tac::Render
 
     const PreprocessorInput assetPaths( programParams );
 
-    TAC_CALL_RET( {}, const String preprocessedShader{
+    TAC_CALL_RET( const String preprocessedShader{
       HLSLPreprocessor::Process( assetPaths, errors ) } );
 
     const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
@@ -109,9 +109,9 @@ namespace Tac::Render
     const DXCCompileParams input
     {
       .mFileName           { fileName },
+      .mOutputDir          { outputDir },
       .mPreprocessedShader { preprocessedShader },
       .mShaderModel        { sShaderModel },
-      .mOutputDir          { outputDir },
     };
 
     return DXCCompile( input, errors );

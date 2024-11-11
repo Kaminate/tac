@@ -51,7 +51,7 @@ namespace Tac::Render
     if( !FileSys::Exists( pixInstallPath ) )
       return {};
 
-    TAC_CALL_RET( {}, const FileSys::Paths subdirs{ FileSys::IterateDirectories(
+    TAC_CALL_RET( const FileSys::Paths subdirs{ FileSys::IterateDirectories(
       pixInstallPath,
       FileSys::IterateType::Default,
       errors ) }  );

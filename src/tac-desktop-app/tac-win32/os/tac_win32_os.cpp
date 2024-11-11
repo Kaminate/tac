@@ -142,7 +142,7 @@ namespace Tac
 
   static FileSys::Path Win32OSGetApplicationDataPath( Errors& errors )
   {
-    TAC_CALL_RET( {}, FileSys::Path path{ GetRoamingAppDataPathUTF8( errors ) } );
+    TAC_CALL_RET( FileSys::Path path{ GetRoamingAppDataPathUTF8( errors ) } );
     TAC_ASSERT( FileSys::Exists( path ) );
 
     path /= sShellStudioName;

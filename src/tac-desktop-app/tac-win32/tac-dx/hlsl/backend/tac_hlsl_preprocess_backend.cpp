@@ -20,7 +20,7 @@ namespace Tac::Render
   {
     for( HLSLLinePreprocessor* lineProcessor : mProcessors )
     {
-      TAC_CALL_RET( {}, Optional< String > optNewLines{
+      TAC_CALL_RET( Optional< String > optNewLines{
         lineProcessor->Preprocess( input, errors ) } );
       if( optNewLines.HasValue() )
       {
@@ -47,7 +47,7 @@ namespace Tac::Render
         .mFile       { mAssetPath },
         .mLineNumber { lineNumber },
       };
-      TAC_CALL_RET( {}, Optional< String > optResult{
+      TAC_CALL_RET( Optional< String > optResult{
         PreprocessLine( preprocessorInput, errors ) } );
       String procLine { optResult.GetValueOr( origLine ) };
       String recursed;
@@ -55,7 +55,7 @@ namespace Tac::Render
       if( !isSame )
       {
         // Recurse
-        recursed = TAC_CALL_RET( {}, PreprocessSource( procLine, errors ) );
+        recursed = TAC_CALL_RET( PreprocessSource( procLine, errors ) );
         procLine = recursed;
       }
 
@@ -70,7 +70,7 @@ namespace Tac::Render
                                                Errors& errors )
   {
     mAssetPath = assetPath;
-    TAC_CALL_RET( {}, const String sourceCode{ LoadAssetPath( assetPath, errors ) } );
+    TAC_CALL_RET( const String sourceCode{ LoadAssetPath( assetPath, errors ) } );
     return PreprocessSource( sourceCode, errors );
   }
 

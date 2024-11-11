@@ -17,7 +17,7 @@ Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi windowApi,
     .mPos  { windowPos },
     .mSize { windowSize },
   };
-  TAC_CALL_RET( {}, const WindowHandle windowHandle{
+  TAC_CALL_RET( const WindowHandle windowHandle{
     windowApi.CreateWindow( windowCreateParams, errors ) } );
 
 

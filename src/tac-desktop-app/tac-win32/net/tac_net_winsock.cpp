@@ -308,8 +308,8 @@ namespace Tac::Network
     netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
     netWinsocket->mWinsockSocketType = winsockSocketType;
     netWinsocket->mElapsedSecondsOnLastRecv = Timestep::GetElapsedTime();
-    TAC_CALL_RET( nullptr, netWinsocket->SetKeepalive( true, errors ) );
-    TAC_CALL_RET( nullptr, netWinsocket->SetIsBlocking( false, errors ) );
+    TAC_CALL_RET( netWinsocket->SetKeepalive( true, errors ) );
+    TAC_CALL_RET( netWinsocket->SetIsBlocking( false, errors ) );
 
     mSocketWinsocks.insert( netWinsocket );
     return ( Socket* )netWinsocket;

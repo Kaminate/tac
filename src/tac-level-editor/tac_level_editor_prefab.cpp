@@ -158,10 +158,10 @@ namespace Tac
         .mSuggestedFilename { &suggestedFilename },
       };
 
-      TAC_CALL_RET( {}, const FileSys::Path savePath{
+      TAC_CALL_RET( const FileSys::Path savePath{
         OS::OSSaveDialog( saveParams, errors ) } );
 
-      TAC_CALL_RET( {}, const AssetPathStringView assetPath{
+      TAC_CALL_RET( const AssetPathStringView assetPath{
         ModifyPathRelative( savePath, errors ) } );
 
       prefab->mAssetPath = assetPath;
@@ -172,7 +172,7 @@ namespace Tac
     const void* bytes{ prefabJsonString.data() };
     const int byteCount{ prefabJsonString.size() };
     const FileSys::Path fsPath( prefab->mAssetPath );
-    TAC_CALL_RET( {}, FileSys::SaveToFile( fsPath, bytes, byteCount, errors ) );
+    TAC_CALL_RET( FileSys::SaveToFile( fsPath, bytes, byteCount, errors ) );
     return true;
   }
 

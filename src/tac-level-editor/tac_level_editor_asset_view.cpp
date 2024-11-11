@@ -372,11 +372,11 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     const Render::CreateTextureParams colorParams{ GetTexColorParams() };
-    TAC_CALL_RET( {}, const Render::TextureHandle textureHandleColor{
+    TAC_CALL_RET( const Render::TextureHandle textureHandleColor{
       renderDevice->CreateTexture( colorParams, errors ) } );
 
     const Render::CreateTextureParams depthParams{ GetTexDepthParams() };
-    TAC_CALL_RET( {}, const Render::TextureHandle textureHandleDepth{
+    TAC_CALL_RET( const Render::TextureHandle textureHandleDepth{
       renderDevice->CreateTexture( depthParams, errors ) } );
 
     AssetViewImportedModel* result{ TAC_NEW AssetViewImportedModel

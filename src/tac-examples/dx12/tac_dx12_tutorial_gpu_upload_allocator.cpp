@@ -21,7 +21,7 @@ namespace Tac::Render
     if( byteCount > DX12ExampleGPUUploadPage::kDefaultByteCount )
     {
       DX12ExampleGPUUploadPage requested =
-        TAC_CALL_RET( {}, mPageManager->RequestPage( byteCount, errors ) );
+        TAC_CALL_RET( mPageManager->RequestPage( byteCount, errors ) );
       mLargePages.push_back( requested );
       pageToAllocateFrom = &mLargePages.back();
     }
@@ -43,7 +43,7 @@ namespace Tac::Render
     if( !pageToAllocateFrom )
     {
         DX12ExampleGPUUploadPage requested =
-          TAC_CALL_RET( {}, mPageManager->RequestPage( DX12ExampleGPUUploadPage::kDefaultByteCount, errors ) );
+          TAC_CALL_RET( mPageManager->RequestPage( DX12ExampleGPUUploadPage::kDefaultByteCount, errors ) );
         mActivePages.push_back( requested );
 
         TAC_ASSERT_MSG( mActivePages.size() < 100, "why do you have so many pages bro" );

@@ -11,12 +11,18 @@
 
 namespace Tac::Render
 {
+  // Does not contain the input source file(s), only what the compiler needs
   struct DXCCompileParams
   {
-    StringView       mFileName            {}; // ie: "foo.hlsl"
+    String           mFileName            {}; // ie: "foo.hlsl"
+
+    // ie: "C:/Users/Nate/AppData/Roaming/Sleeping Studio/DX12 Hello Triangle"
+    // Used to have shader source and pdb in a gpu debugger
+    FileSys::Path    mOutputDir           {};
+
+    //StringView       mFileName            {}; // ie: "foo.hlsl"
     StringView       mPreprocessedShader  {};
     D3D_SHADER_MODEL mShaderModel         {};
-    FileSys::Path    mOutputDir           {};
   };
 
   struct DXCReflInfo

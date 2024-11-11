@@ -84,12 +84,12 @@ namespace Tac::Render
     const DXCCompileParams compileParams
     {
       .mFileName           { path },
+      .mOutputDir          { sOutputDir },
       .mPreprocessedShader { shaderStrProcessed },
       .mShaderModel        { shaderModel },
-      .mOutputDir          { sOutputDir },
     };
 
-    TAC_CALL_RET( {}, DXCCompileOutput compileOutput{ DXCCompile( compileParams, errors ) } );
+    TAC_CALL_RET( DXCCompileOutput compileOutput{ DXCCompile( compileParams, errors ) } );
 
     const PCom< IDxcBlob > PSBlob { compileOutput.mPSBlob };
     const PCom< IDxcBlob > VSBlob { compileOutput.mVSBlob };

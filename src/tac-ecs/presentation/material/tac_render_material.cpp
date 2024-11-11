@@ -92,7 +92,7 @@ namespace Tac::Render
     };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL_RET( {}, Render::PipelineHandle meshPipeline{
+    TAC_CALL_RET( Render::PipelineHandle meshPipeline{
       renderDevice->CreatePipeline( meshPipelineParams, errors ) }  );
 
     return meshPipeline;
@@ -123,13 +123,13 @@ namespace Tac::Render
       return renderMaterial;
 
     // TODO: async
-    TAC_CALL_RET( {}, const ShaderGraph shaderGraph{
+    TAC_CALL_RET( const ShaderGraph shaderGraph{
       ShaderGraph::FileLoad( material->mShaderGraph, errors ) } );
 
-    TAC_CALL_RET( {}, const Render::ProgramHandle program{
+    TAC_CALL_RET( const Render::ProgramHandle program{
       Create3DShader( shaderGraph, errors ) } );
 
-    TAC_CALL_RET( {}, const Render::PipelineHandle meshPipeline{
+    TAC_CALL_RET( const Render::PipelineHandle meshPipeline{
       CreatePipeline( program, errors ) } );
 
     const HashValue hashValue{ Hash( ( StringView )material->mShaderGraph ) };

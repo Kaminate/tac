@@ -378,7 +378,7 @@ namespace Tac
     };
 
     PlatformFns* platform { PlatformFns::GetInstance() };
-    TAC_CALL_RET( {}, platform->PlatformSpawnWindow( platformParams, errors ) );
+    TAC_CALL_RET( platform->PlatformSpawnWindow( platformParams, errors ) );
     return h;
   }
 

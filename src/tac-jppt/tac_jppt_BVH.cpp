@@ -480,7 +480,7 @@ namespace Tac::gpupt
     }
 
 
-    TAC_CALL_RET( {}, Result->CreateBuffers( errors ) );
+    TAC_CALL_RET( Result->CreateBuffers( errors ) );
 
     Result->mScene = Scene;
     return Result;

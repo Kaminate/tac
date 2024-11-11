@@ -37,7 +37,7 @@ namespace Tac::Render
 
     if( mAvailableContexts.empty() )
     {
-      TAC_CALL_RET( {}, PCom< ID3D12GraphicsCommandList > commandList{
+      TAC_CALL_RET( PCom< ID3D12GraphicsCommandList > commandList{
         CreateCommandList( errors ) } );
 
       const DX12Context::Params params
@@ -55,7 +55,7 @@ namespace Tac::Render
       mAvailableContexts.pop_back();
     }
 
-    TAC_CALL_RET( {}, dx12Context->Reset( errors ) );
+    TAC_CALL_RET( dx12Context->Reset( errors ) );
 
     return dx12Context;
   }

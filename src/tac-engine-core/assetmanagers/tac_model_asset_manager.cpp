@@ -82,7 +82,7 @@ namespace Tac
       return nullptr;
 
     Mesh* mesh { TAC_NEW Mesh };
-    *mesh = TAC_CALL_RET( {}, meshLoadFunction( params, errors ) );
+    *mesh = TAC_CALL_RET( meshLoadFunction( params, errors ) );
     TAC_ASSERT( !mesh->mVertexDecls.empty() );
 
     sMeshMap[ hashedValue ] = mesh;
