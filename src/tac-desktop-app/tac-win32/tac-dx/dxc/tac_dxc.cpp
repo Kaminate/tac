@@ -440,7 +440,7 @@ namespace Tac
       .mCompileParams       { input },
     };
 
-    AssetPathStringView  fileName{ input.mFileName };
+    const StringView fileName{ input.mFileName };
 
     {
 #if 0

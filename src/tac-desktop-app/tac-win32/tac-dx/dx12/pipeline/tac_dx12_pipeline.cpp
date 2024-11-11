@@ -32,6 +32,7 @@ namespace Tac::Render
     RootParameterBinding* rootParameterBinding{ GetRootParameterBinding() };
     rootParameterBinding->mType = RootParameterBinding::Type::kResourceHandle;
     rootParameterBinding->mResourceHandle = h;
+    TAC_ASSERT_UNIMPLEMENTED;
   }
 
   void                   DX12Pipeline::Variable::SetResourceAtIndex( int i, ResourceHandle h )
