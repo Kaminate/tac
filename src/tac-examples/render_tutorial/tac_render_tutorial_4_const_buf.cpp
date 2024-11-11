@@ -131,7 +131,7 @@ namespace Tac
     mPipeline = renderDevice->CreatePipeline( pipelineParams, errors );
 
     mShaderVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
-    mShaderVtxBufs->SetResourceAtIndex( 0, mVtxBuf );
+    mShaderVtxBufs->SetResourceAtIndex( mVtxBuf, 0 );
 
     mShaderConstantBuffer = renderDevice->GetShaderVariable( mPipeline, "MyCBufInst" );
     mShaderConstantBuffer->SetResource( mConstantBuf );

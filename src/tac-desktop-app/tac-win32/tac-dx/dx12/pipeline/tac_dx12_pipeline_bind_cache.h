@@ -37,7 +37,7 @@ namespace Tac::Render
     void                   SetFence( FenceSignal );
     void                   Commit( CommitParams );
 
-  private:
+  // private:
     void                   CheckType( ResourceHandle );
     DX12Descriptor         GetDescriptor( IHandle, DX12TransitionHelper* ) const;
 

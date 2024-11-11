@@ -26,7 +26,7 @@ namespace Tac::Render
 
       // virtual fns begin
       void                   SetResource( ResourceHandle ) override;
-      void                   SetResourceAtIndex( int, ResourceHandle ) override;
+      void                   SetResourceAtIndex( ResourceHandle, int ) override;
       void                   SetBindlessArray( IShaderBindlessArray* ) override;
       // virtual fns end
 

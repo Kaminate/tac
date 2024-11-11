@@ -271,11 +271,12 @@ namespace Tac
 
     const int nShadowMaps{ shadowMaps.size() };
     for( int i{}; i < nShadowMaps; ++i )
-      mShaderMeshShadowMaps->SetResourceAtIndex( i, shadowMaps[ i ] );
+      mShaderMeshShadowMaps->SetResourceAtIndex( shadowMaps[ i ], i );
+
     for( int i{ nShadowMaps }; i < Render::CBufferLights::TAC_MAX_SHADER_LIGHTS; ++i )
     {
       // hack, currently every element needs to be bound
-      mShaderMeshShadowMaps->SetResourceAtIndex( i, s1x1White );
+      mShaderMeshShadowMaps->SetResourceAtIndex( s1x1White, i );
     }
 
     mDebugCBufferLights = cBufferLights;

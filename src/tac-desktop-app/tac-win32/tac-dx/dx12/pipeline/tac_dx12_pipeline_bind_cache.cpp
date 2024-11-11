@@ -222,6 +222,11 @@ namespace Tac::Render
   {
     CheckType( h );
 
+    if( i >= mHandleIndexes.size() )
+    {
+      mHandleIndexes.resize( i + 5 ); // magic grow number
+    }
+
     mHandleIndexes[ i ] = h;
   }
 
@@ -406,10 +411,23 @@ namespace Tac::Render
     {
       const D3D12ProgramBindDesc& desc{ descs[ i ] };
 
+      //PipelineDynamicArray pipelineDynamicArray;
+      //if( desc.BindsAsDescriptorTable() && desc.mBindCount > 0 )
+      //{
+      //}
+
       RootParameterBinding rootParameterBinding;
       rootParameterBinding.mProgramBindDesc = desc;
       rootParameterBinding.mRootParameterIndex = i;
-      rootParameterBinding.mType = RootParameterBinding::Type::kDynamicArray;
+      //rootParameterBinding.mPipelineDynamicArray = ( PipelineDynamicArray&& )pipelineDynamicArray;
+      rootParameterBinding.mPipelineDynamicArray.mProgramBindType = desc.mType;
+      if( desc.mBindCount > 0 )
+        rootParameterBinding.mPipelineDynamicArray.mHandleIndexes.resize( desc.mBindCount );
+      rootParameterBinding.mType = desc.BindsAsDescriptorTable()
+        ? RootParameterBinding::Type::kDynamicArray
+        : RootParameterBinding::Type::kResourceHandle;
+
+      //if( desc.mBindCount
 
       push_back( ( RootParameterBinding&& )rootParameterBinding );
     }

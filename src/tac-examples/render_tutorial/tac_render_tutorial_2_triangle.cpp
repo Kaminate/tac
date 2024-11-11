@@ -191,7 +191,7 @@ namespace Tac
     {
       Render::IShaderVar* shaderVar {
         renderDevice->GetShaderVariable( mPipelineBindless, "BufferTable" ) };
-      shaderVar->SetResourceAtIndex( 0, mVtxBuf );
+      shaderVar->SetResourceAtIndex( mVtxBuf, 0 );
       renderContext->CommitShaderVariables();
     }
     else

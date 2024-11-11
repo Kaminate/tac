@@ -142,8 +142,8 @@ namespace Tac
     mShaderSamplers = renderDevice->GetShaderVariable( mPipeline, "Samplers" );
     mShaderTextures = renderDevice->GetShaderVariable( mPipeline, "Textures" );
 
-    mShaderVtxBufs->SetResourceAtIndex( 0, mVtxBuf );
-    mShaderSamplers->SetResourceAtIndex( 0, mSampler );
+    mShaderVtxBufs->SetResourceAtIndex( mVtxBuf, 0 );
+    mShaderSamplers->SetResourceAtIndex( mSampler, 0 );
 
     // kickoff async loading
     TAC_CALL( TextureAssetManager::GetTexture( mTexPath, errors ) );
@@ -162,7 +162,7 @@ namespace Tac
       if( !mTexture.IsValid() )
         return;
 
-      mShaderTextures->SetResourceAtIndex( 0, mTexture );
+      mShaderTextures->SetResourceAtIndex( mTexture, 0 );
     }
 
 
