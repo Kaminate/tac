@@ -44,6 +44,7 @@ namespace Tac::Render
     Vector< IHandle >      mHandleIndexes        {};
     D3D12ProgramBindType   mProgramBindType      {};
     DX12DescriptorRegion   mDescriptorRegion     {};
+    int                    mMaxBoundIndex        { -1 };
   };
 
 

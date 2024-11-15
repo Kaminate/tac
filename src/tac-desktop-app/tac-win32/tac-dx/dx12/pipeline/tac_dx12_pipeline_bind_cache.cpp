@@ -202,20 +202,26 @@ namespace Tac::Render
   Span< DX12Descriptor > PipelineDynamicArray::GetDescriptors(
     DX12TransitionHelper* transitionHelper ) const
   {
-    const int n{ mHandleIndexes.size() };
+    if( mMaxBoundIndex == -1 )
+      return {};
+
+    const int nBound{ mMaxBoundIndex + 1 };
+    TAC_ASSERT( nBound <= mHandleIndexes.size() );
+
     DX12Descriptor* dst{
-      ( DX12Descriptor* )FrameMemoryAllocate( sizeof( DX12Descriptor ) * n ) };
+      ( DX12Descriptor* )FrameMemoryAllocate( sizeof( DX12Descriptor ) * nBound ) };
 
-    Span< DX12Descriptor > result( dst, n );
-
+    int i{};
     for( IHandle iHandle : mHandleIndexes )
     {
+      TAC_ASSERT( iHandle.IsValid() );
+
       DX12Descriptor descriptor{ GetDescriptor( iHandle, transitionHelper ) };
       TAC_ASSERT( descriptor.IsValid() );
-      *dst++ = descriptor;
+      dst[ i++ ] = descriptor;
     }
 
-    return result;
+    return Span< DX12Descriptor >( dst, nBound );
   }
 
   void                   PipelineDynamicArray::BindAtIndex( ResourceHandle h, int i )
@@ -228,11 +234,14 @@ namespace Tac::Render
     }
 
     mHandleIndexes[ i ] = h;
+
+    mMaxBoundIndex = Max( mMaxBoundIndex, i );
   }
 
   void                   PipelineDynamicArray::SetFence( FenceSignal fenceSignal )
   {
     mDescriptorRegion.Free( fenceSignal );
+    mMaxBoundIndex = -1;
   }
 
   void                   PipelineDynamicArray::CheckType( ResourceHandle h )
