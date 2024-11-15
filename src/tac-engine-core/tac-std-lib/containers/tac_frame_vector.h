@@ -2,8 +2,11 @@
 
 #pragma once
 
-import std; // initializer_list
-//#include <initializer_list>
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <initializer_list>
+#endif
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
@@ -45,13 +48,13 @@ namespace Tac
           mTs[ i ] = tbegin[ i ];
       }
 
-      FrameMemoryVector( std::initializer_list< T > ts )
-      {
-        resize( ( int )ts.size() );
-        int i{};
-        for( T t : ts )
-          mTs[ i++ ] = t;
-      }
+      //FrameMemoryVector( std::initializer_list< T > ts )
+      //{
+      //  resize( ( int )ts.size() );
+      //  int i{};
+      //  for( T t : ts )
+      //    mTs[ i++ ] = t;
+      //}
 
       void     push_back( const T& t )
       {

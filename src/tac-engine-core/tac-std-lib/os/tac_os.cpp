@@ -4,7 +4,12 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 
-import std; // <cstdio> ( printf ), <thread>, <iostream>
+#if TAC_SHOULD_IMPORT_STD()
+  import std; // <cstdio> ( printf ), <thread>, <iostream>
+#else
+  #include <thread>
+  #include <iostream>
+#endif
 
 namespace Tac::OS
 {

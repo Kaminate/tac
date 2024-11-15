@@ -5,7 +5,12 @@
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector3i.h"
 
-import std; // cstdlib, algorithm, cmath
+#if TAC_SHOULD_IMPORT_STD()
+  import std; // cstdlib, algorithm, cmath
+#else
+  #include <cmath>
+  #include <random>
+#endif
 
 // -------------
 // Interpolation

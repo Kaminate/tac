@@ -6,7 +6,11 @@
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/profile/tac_profile_function.h"
 
+#if TAC_SHOULD_IMPORT_STD()
 import std; // <thread>
+#else
+#include <thread>
+#endif
 
 namespace Tac
 {

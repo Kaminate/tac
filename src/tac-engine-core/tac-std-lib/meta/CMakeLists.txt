@@ -1,6 +1,7 @@
 target_sources( TacStdLib PRIVATE 
   tac_meta_composite.cpp
   tac_meta_composite.h
+  tac_meta_composite.hint
   tac_meta_fn_sig.cpp
   tac_meta_fn_sig.h
   tac_meta_fn.cpp

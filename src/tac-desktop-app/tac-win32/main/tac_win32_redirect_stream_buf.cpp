@@ -2,7 +2,7 @@
 
 #include "tac-win32/tac_win32.h" // OutputDebugStringA
 
-import std; // #include <iostream>
+//import std; // #include <iostream>
 
 static struct : public std::streambuf
 {

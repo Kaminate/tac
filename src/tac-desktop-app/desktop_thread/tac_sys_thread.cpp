@@ -22,6 +22,12 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/containers/tac_array.h"
 
+#if TAC_SHOULD_IMPORT_STD()
+import std;
+#else
+#include <thread>
+#endif
+
 
 namespace Tac
 {

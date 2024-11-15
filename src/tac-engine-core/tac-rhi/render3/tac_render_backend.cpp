@@ -1,6 +1,7 @@
 #include "tac_render_backend.h" // self-inc
 
 #include "tac-rhi/identifier/tac_id_collection.h"
+#include "tac-std-lib/mutex/tac_mutex.h"
 
 namespace Tac::Render
 {
@@ -15,18 +16,18 @@ namespace Tac
 
   private:
     IdCollection sCollection;
-    std::mutex   sMtx;
+    Mutex        sMtx;
   };
 
   int  IdMgr::Alloc()
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sMtx );
+    TAC_SCOPE_GUARD( LockGuard, sMtx );
     return sCollection.Alloc();
   }
 
   void IdMgr::Free( int i )
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sMtx );
+    TAC_SCOPE_GUARD( LockGuard, sMtx );
     return sCollection.Free( i );
   }
 

@@ -28,7 +28,7 @@ namespace Tac
               src,
               mCapacity - endIndex );
       MemCpy( mBytes,
-              src + std::ptrdiff_t ( mCapacity - endIndex ),
+              src + PtrDiffT( mCapacity - endIndex ),
               byteCount - ( mCapacity - endIndex ) );
     }
     else

@@ -1,6 +1,7 @@
 # --------------------------------------------------------------------------------------------------
 
-cmake_minimum_required( VERSION 3.28.0 )
+# 3.30 required for c++23 `import std`
+cmake_minimum_required( VERSION 3.31.0 )
 
 # --------------------------------------------------------------------------------------------------
 
@@ -24,11 +25,12 @@ message( VERBOSE "cmake binary dir: ${CMAKE_BINARY_DIR}" )
 if( MSVC )
 
     set( CMAKE_VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
-    add_compile_options( /ZI  # program database for edit and continue
+    add_compile_options( /ZI  # 
                          /W4  # warning level 4
                          /WX  # treat linker warnings as errors
                          /MP  # multi processor compilation
-                         /experimental:module) # modules???
+                         )
+                         # /experimental:module) # modules???
 else() # gcc, clang
 
     add_compile_options( -Wall
@@ -78,10 +80,6 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 # C++20 Modules, and `import std;`
 set( CMAKE_CXX_STANDARD 23 )
 
-if( MSVC )
-  set( CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1 )
-endif()
-
 # --------------------------------------------------------------------------------------------------
 
 # Clone git submodules (does this work?)
@@ -127,17 +125,21 @@ endfunction()
 #   --> Language
 #   --> Build ISO C++ 23 Standard Library Modules
 
-set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
-if( NOT EXISTS ${MODULE_PROP} )
-  message( FATAL_ERROR "cannot find std modules .props" )
-endif()
+if( FALSE )
 
-_get_all_cmake_targets( all_targets ${CMAKE_CURRENT_LIST_DIR} )
-foreach( target ${all_targets} )
-  set_property( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
-endforeach()
-list( LENGTH all_targets target_count )
-message( VERBOSE "setting all ${target_count} target VS_USER_PROPS to ${MODULE_PROP}" )
+  set( MODULE_PROP "${CMAKE_SOURCE_DIR}/build_std_modules.props" )
+  if( NOT EXISTS ${MODULE_PROP} )
+    message( FATAL_ERROR "cannot find std modules .props" )
+  endif()
+
+  _get_all_cmake_targets( all_targets ${CMAKE_CURRENT_LIST_DIR} )
+  foreach( target ${all_targets} )
+    set_property( TARGET ${target} PROPERTY VS_USER_PROPS ${MODULE_PROP} )
+  endforeach()
+  list( LENGTH all_targets target_count )
+  message( VERBOSE "setting all ${target_count} target VS_USER_PROPS to ${MODULE_PROP}" )
+
+endif()
 
 
 # --------------------------------------------------------------------------------------------------

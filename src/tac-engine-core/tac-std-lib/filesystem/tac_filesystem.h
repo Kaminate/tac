@@ -5,7 +5,7 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
-import std; // <filesystem>
+//import std; // <filesystem>
 
 namespace Tac::FileSys
 {
@@ -17,8 +17,9 @@ namespace Tac::FileSys
     // Constructors
 
     Path() = default;
-    Path( const std::filesystem::path& );
+    //Path( const std::filesystem::path& );
     Path( const char* );
+    Path( const char8_t* );
     Path( const String& );
     Path( const StringView& );
 
@@ -45,9 +46,6 @@ namespace Tac::FileSys
     bool has_filename() const;
     bool has_dirname() const;
 
-    std::filesystem::path& Get();
-    const std::filesystem::path& Get() const;
-
     // In-class Operators
 
 
@@ -58,11 +56,7 @@ namespace Tac::FileSys
     Path& operator += ( const StringView& );
 
   private:
-
-
-    // Data
-
-    std::filesystem::path mPath;
+    String mUTF8String;
   };
 
   // Outside of class operators
@@ -111,12 +105,18 @@ namespace Tac::FileSys
   // not using time_t anymore, just using the default clock cppstl filesystem comes with
   struct Time
   {
-    bool IsValid() const;
-    bool operator == ( const Time& ) const;
-    bool operator != ( const Time& ) const;
+    Time();
+    ~Time();
+    //bool IsValid() const;
+    //bool operator == ( const Time& ) const;
+    //bool operator != ( const Time& ) const;
 
-    std::filesystem::file_time_type mTime{};
+    void* mImpl;
+    //std::filesystem::file_time_type mTime{};
   };
+
+  bool operator == ( Time, Time );
+  bool operator != ( Time, Time );
 
   Time GetFileLastModifiedTime( const Path&, Errors& );
 

@@ -5,9 +5,11 @@
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h" // Swap
 
-import std; // std::initializer_list
-//#include <initializer_list>  // std::initializer_list
-//#include <utility> // std::move
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <initializer_list>
+#endif
 
 namespace Tac
 {
@@ -53,7 +55,7 @@ namespace Tac
         mTs[ i ] = tbegin[ i ];
     }
 
-    Vector( std::initializer_list< T > ts )    
+    Vector( std::initializer_list< T > ts )
     {
       assign( ts.begin(), ts.end() );
     }
@@ -119,7 +121,8 @@ namespace Tac
       if( mTCount == mTCapacity )
         reserve( int( mTCount * 1.5f ) + 1 );
 
-      new( &mTs[ mTCount++ ] )T( t );
+      T* dst{&mTs[ mTCount++ ]};
+      new( dst )T( t ); // placement new
     }
 
     template< class ... Args >
@@ -192,33 +195,33 @@ namespace Tac
       Swap( mTCapacity, other.mTCapacity );
     }
 
-    T*       begin()                    { return mTs; };
+    dynmc T* begin() dynmc              { return mTs; };
     const T* begin() const              { return mTs; };
-    T*       end()                      { return mTs + mTCount; };
+    dynmc T* end() dynmc                { return mTs + mTCount; };
     const T* end() const                { return mTs + mTCount; };
-    T&       front()                    { TAC_ASSERT( mTCount ); return *mTs; }
+    dynmc T& front() dynmc              { TAC_ASSERT( mTCount ); return *mTs; }
     const T& front() const              { TAC_ASSERT( mTCount ); return *mTs; }
-    T&       back()                     { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
+    dynmc T& back() dynmc               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
     const T& back() const               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
-    T*       data()                     { return mTs; }
+    dynmc T* data() dynmc               { return mTs; }
     const T* data() const               { return mTs; }
 
     // why do i use this fn?
-    T*       insert( T* pos, std::initializer_list< T > ts )
-    {
-      const int iPos { int( pos - mTs ) };
-      const int moveCount { mTCount - iPos };
-      reserve( mTCount + ( int )ts.size() );
-      pos = mTs + iPos;
-      for( int i{}; i < moveCount; ++i )
-        pos[ ts.size() + moveCount - i - 1 ] = Tac::move( pos[ moveCount - i - 1 ] ); // std::move( pos[ moveCount - i - 1 ] );
-      for( auto it : ts )
-        *pos++ = it;
-      mTCount += ( int )ts.size();
-      return mTs + iPos;
-    }
+    //T*       insert( T* pos, std::initializer_list< T > ts )
+    //{
+    //  const int iPos { int( pos - mTs ) };
+    //  const int moveCount { mTCount - iPos };
+    //  reserve( mTCount + ( int )ts.size() );
+    //  pos = mTs + iPos;
+    //  for( int i{}; i < moveCount; ++i )
+    //    pos[ ts.size() + moveCount - i - 1 ] = Tac::move( pos[ moveCount - i - 1 ] );
+    //  for( auto it : ts )
+    //    *pos++ = it;
+    //  mTCount += ( int )ts.size();
+    //  return mTs + iPos;
+    //}
 
-    T&       operator[]( int i )        { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
+    dynmc T& operator[]( int i ) dynmc  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
     const T& operator[]( int i ) const  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
 
     T*       mTs        {};

@@ -1,16 +1,17 @@
 #include "tac_render_state.h" // self-inc
 
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/mutex/tac_mutex.h"
 
 #if !TAC_DELETE_ME()
 #include "tac-std-lib/os/tac_os.h"
 #endif
 
-import std; // mutex
+//import std; // mutex
 
 namespace Tac
 {
-  static std::mutex sMutex; // protects mElements
+  static Mutex sMutex; // protects mElements
   static bool sVerbose;
 
   static void RemoveElements()
@@ -69,7 +70,7 @@ namespace Tac
     if( !state )
       return;
 
-    TAC_SCOPE_GUARD( std::lock_guard, sMutex );
+    TAC_SCOPE_GUARD( LockGuard, sMutex );
 
     CleanUnneeded();
 
@@ -84,7 +85,7 @@ namespace Tac
 
   GameStateManager::Pair GameStateManager::Dequeue()
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sMutex );
+    TAC_SCOPE_GUARD( LockGuard, sMutex );
 
     if( const int n { mElements.size() }; n < 2 )
       return {};

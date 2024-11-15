@@ -10,6 +10,12 @@
 //#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/os/tac_os.h"
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <fstream>
+#endif
+
 namespace Tac
 {
 #if 0

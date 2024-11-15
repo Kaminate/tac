@@ -3,6 +3,7 @@
 #include "tac-engine-core/profile/tac_profile_function_pool.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/mutex/tac_mutex.h"
 #include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
@@ -26,17 +27,17 @@ namespace Tac
       {
       }
 
-      ProfileFrame&                 mProfileFrame;
-      std::lock_guard< std::mutex > mLockGuard;
+      ProfileFrame&        mProfileFrame;
+      LockGuard            mLockGuard;
     };
 
   private:
-    static ProfileFrame         sProfiledFunctions;
-    static std::mutex           sProfiledFunctionsMutex;
+    static ProfileFrame    sProfiledFunctions;
+    static Mutex           sProfiledFunctionsMutex;
   };
 
-  ProfileFrame         ProfiledFunctions::sProfiledFunctions;
-  std::mutex           ProfiledFunctions::sProfiledFunctionsMutex;
+  ProfileFrame    ProfiledFunctions::sProfiledFunctions;
+  Mutex           ProfiledFunctions::sProfiledFunctionsMutex;
 
 
   //void              ProfileFunctionVisitor::Visit( ProfileFunction* profileFunction )

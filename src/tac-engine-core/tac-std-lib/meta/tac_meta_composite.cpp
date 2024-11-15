@@ -7,16 +7,29 @@
 namespace Tac
 {
 
-  MetaMember::MetaMember( const char* name, int offset, const MetaType* metaType ) :
-    mName( name ),
-    mOffset( offset ),
-    mMetaType( metaType ){}
+  //MetaMember::MetaMember( const char* name, int offset, const MetaType* metaType ) :
+  //  mName( name ),
+  //  mOffset( offset ),
+  //  mMetaType( metaType ){}
 
   MetaCompositeType::MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars ) :
     mName( name ),
     mSize( size ),
     mMetaVars( metaVars )
   {
+  }
+
+  void              MetaCompositeType::SetName( const char* name )
+  {
+    mName = name;
+  }
+  void              MetaCompositeType::SetSize( int size )
+  {
+    mSize = size;
+  }
+  void              MetaCompositeType::AddMetaMember( MetaMember m )
+  {
+    mMetaVars.push_back( m );
   }
 
   const char*       MetaCompositeType::GetName() const
@@ -116,10 +129,10 @@ namespace Tac
     float bar;
   };
 
-  TAC_META_REGISTER_COMPOSITE_BEGIN( MetaCompositeTestStruct )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( MetaCompositeTestStruct, foo )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( MetaCompositeTestStruct, bar )
-    TAC_META_REGISTER_COMPOSITE_END( MetaCompositeTestStruct );
+  TAC_META_REGISTER_COMPOSITE_BEGIN( MetaCompositeTestStruct );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( MetaCompositeTestStruct, foo );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( MetaCompositeTestStruct, bar );
+  TAC_META_REGISTER_COMPOSITE_END( MetaCompositeTestStruct );
 
   void MetaCompositeUnitTest()
   {

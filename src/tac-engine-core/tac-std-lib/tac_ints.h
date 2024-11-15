@@ -12,8 +12,10 @@ namespace Tac
   using u64 = unsigned long long;
   using UPtr = u64;
   using IPtr = i64;
-  using size_t = UPtr; // decltype( sizeof( int ) ); <-- alt?
-  using ptrdiff_t = IPtr; //  decltype( []() { int a; int b; return &a - &b; }( ) ); <-- alt?
+  using size_t = UPtr;
+  using SizeT = UPtr;
+  using ptrdiff_t = IPtr;
+  using PtrDiffT = IPtr;
 
   static_assert( sizeof( u8 ) == 1 );
   static_assert( sizeof( u16 ) == 2 );

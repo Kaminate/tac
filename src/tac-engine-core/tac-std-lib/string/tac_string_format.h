@@ -5,13 +5,16 @@
 #if 0
 
 
-import std; // size_t, formatted_size, forward, format_to_n, format_string, formatter, ...
 
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
-#include <cstdint>
+#if TAC_SHOULD_IMPORT_STD()
+  import std; // size_t, formatted_size, forward, format_to_n, format_string, formatter, ...
+#else
+  #include <cstdint>
+#endif
 
 namespace Tac
 {

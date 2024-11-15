@@ -5,9 +5,11 @@
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h" // Swap
 
-import std; // std::initializer_list
-//#include <initializer_list>  // std::initializer_list
-//#include <utility> // std::move
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <initializer_list>
+#endif
 
 namespace Tac
 {

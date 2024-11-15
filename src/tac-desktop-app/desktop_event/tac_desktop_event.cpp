@@ -2,9 +2,10 @@
 
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/mutex/tac_mutex.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 
-import std; // mutex, lock_guard, is_trivially_copyable_v
+//import std; // mutex, lock_guard, is_trivially_copyable_v
 
 namespace Tac
 {
@@ -44,7 +45,7 @@ namespace Tac
 
   private:
     RingBuffer mQueue;
-    std::mutex mMutex;
+    Mutex      mMutex;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -60,7 +61,7 @@ namespace Tac
                                          const int dataByteCount )
   {
     TAC_ASSERT( DesktopAppThreads::IsSysThread() );
-    std::lock_guard< std::mutex > lockGuard( mMutex );
+    TAC_SCOPE_GUARD( LockGuard, mMutex );
     // Tac::WindowProc still spews out events while a popupbox is open
     if( mQueue.capacity() - mQueue.size() < ( int )sizeof( DesktopEventType ) + dataByteCount )
       return;
@@ -71,13 +72,13 @@ namespace Tac
 
   bool DesktopEventQueueImpl::Empty()
   {
-    std::lock_guard< std::mutex > lockGuard( mMutex );
+    TAC_SCOPE_GUARD( LockGuard, mMutex );
     return mQueue.Empty();
   }
 
   bool DesktopEventQueueImpl::QueuePop( void* dataBytes, int dataByteCount )
   {
-    std::lock_guard< std::mutex > lockGuard( mMutex );
+    TAC_SCOPE_GUARD( LockGuard, mMutex );
     return mQueue.Pop( dataBytes, dataByteCount );
   }
 

@@ -69,17 +69,17 @@ namespace Tac
     bool  voxelGridSnapCamera         {};
   };
 
-  TAC_META_REGISTER_COMPOSITE_BEGIN( VoxelSettings )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDimension )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebug )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawVoxelOutlines )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawGridOutline )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawVoxels )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelEnabled )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridCenter )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridHalfWidth )
-    TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridSnapCamera )
-    TAC_META_REGISTER_COMPOSITE_END( VoxelSettings );
+  TAC_META_REGISTER_COMPOSITE_BEGIN( VoxelSettings );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDimension );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebug );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawVoxelOutlines );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawGridOutline );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelDebugDrawVoxels );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelEnabled );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridCenter );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridHalfWidth );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( VoxelSettings, voxelGridSnapCamera );
+  TAC_META_REGISTER_COMPOSITE_END( VoxelSettings );
 
   static VoxelSettings                 voxelSettingsCurrent;
   static VoxelSettings                 voxelSettingsSaved;
@@ -97,7 +97,7 @@ namespace Tac
     float    gVoxelWidth;
 
     //       Number of voxels on each side of the grid
-    u32 gVoxelGridSize;
+    u32      gVoxelGridSize;
 
     static Render::BufferHandle  Handle;
 

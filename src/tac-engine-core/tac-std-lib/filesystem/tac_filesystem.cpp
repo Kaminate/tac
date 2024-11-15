@@ -5,26 +5,19 @@
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/memory/tac_memory.h"
 //#include "tac-std-lib/os/tac_os.h"
 //#include "tac-engine-core/asset/tac_asset.h"
 
-//#include <fstream>
+#if TAC_SHOULD_IMPORT_STD()
+import std;
+#else
+#include <fstream>
 //#include <chrono>
-//#include <filesystem>
+#include <filesystem>
+#endif
 
 
-//namespace Tac
-//{
-//  // Time stuff TODO MOVE INTO DIFFERENT FILE
-//
-//  struct Time::Impl { std::time_t mTime{}; };
-//
-//  Time::Time() : mImpl( TAC_NEW Impl ) {}
-//
-//  Time::~Time() { TAC_DELETE mImpl; }
-//
-//  Time 
-//}
 
 namespace Tac::FileSys
 {
@@ -34,15 +27,46 @@ namespace Tac::FileSys
 
   using IterateFn = bool( * )( const std::filesystem::directory_entry& );
 
+
+  static std::filesystem::path StdPath( const char* s )
+  {
+    // Tell the filesystem path to interpret the input as UTF-8
+    return std::filesystem::path( ( char8_t* )s );
+  }
+
+  static std::filesystem::path StdPath( const String& s )
+  {
+    return StdPath( s.c_str() );
+  }
+
+  static std::filesystem::path StdPath( const StringView& sv )
+  {
+    return StdPath( sv.c_str() );
+  }
+
+  static std::filesystem::path StdPath( const Path *path )
+  {
+    return StdPath( path->u8string() );
+  }
+
+  static std::filesystem::path StdPath( const Path &path )
+  {
+    return StdPath( path.u8string() );
+  }
+
+  static Path                  TacPath( const std::filesystem::path& p )
+  {
+    return Path( p.u8string().c_str() );
+  }
+
   static String FormatFileError( const Path& path, const char* operation )
   {
-    std::stringstream ss;
-    ss << "Failed to open path (";
-    ss << path.Get();
-    ss << ") for ";
-    ss << operation;
-    String errmsg( ss.str().c_str() );
-    return errmsg;
+    String errMsg; 
+    errMsg += "Failed to open path (";
+    errMsg += path.u8string().c_str();
+    errMsg += ") for ";
+    errMsg += operation;
+    return errMsg;
   }
 
   template< typename T >
@@ -51,7 +75,7 @@ namespace Tac::FileSys
     Paths paths;
     for( const std::filesystem::directory_entry& entry : iter )
       if( isValid( entry ) )
-        paths.push_back( entry.path() );
+        paths.push_back( TacPath( entry.path() ) );
     return paths;
   }
 
@@ -60,11 +84,12 @@ namespace Tac::FileSys
                                                IterateFn isValid,
                                                [[maybe_unused]] Errors& errors )
   {
+    const std::filesystem::path stdPath{ StdPath( dir ) };
     if( type == IterateType::Default )
-      return IterateFilesHelperHelper( std::filesystem::directory_iterator( dir.Get() ), isValid );
+      return IterateFilesHelperHelper( std::filesystem::directory_iterator( stdPath ), isValid );
 
     if( type == IterateType::Recursive )
-      return IterateFilesHelperHelper( std::filesystem::recursive_directory_iterator( dir.Get() ), isValid );
+      return IterateFilesHelperHelper( std::filesystem::recursive_directory_iterator( stdPath ), isValid );
 
     return {};
   }
@@ -73,36 +98,37 @@ namespace Tac::FileSys
 
   // Constructors
 
-  Path::Path( const std::filesystem::path& path ) : mPath( path ) { }
+  //Path::Path( const std::filesystem::path& path ) : mPath( path ) { }
 
-  Path::Path( const char* path )                  : mPath( path ) {}
+  Path::Path( const char8_t* path ) : mUTF8String{ (const char*)path }{}
+  Path::Path( const char* path ) : mUTF8String{ path }
+    //: mUTF8String{ ( const char* )AsStdFilesystemPath( path ).u8string().c_str() }
+  {
+  }
 
   Path::Path( const String& path )                : Path( path.c_str() ) {}
 
   Path::Path( const StringView& path )            : Path( path.c_str() ) {}
 
-
   // -----------------------------------------------------------------------------------------------
 
   // Path Functions
 
-  Path   Path::parent_path() const               { return Get().parent_path(); }
-  bool   Path::has_parent_path() const           { return mPath.has_parent_path(); }
+  Path   Path::parent_path() const               { return TacPath(StdPath(this).parent_path()); }
+  bool   Path::has_parent_path() const           { return StdPath(this).has_parent_path(); }
 
-  Path   Path::filename() const                  { return Get().filename(); }
+  Path   Path::filename() const                  { return TacPath(StdPath(this).filename()); }
 
-  Path   Path::dirname() const
-  {
-    // uhh yeah... what if it ends with a slash?
-    // [ ] Q: this function is not part of the stl, how is it used in tac?
-    return Get().filename();
-  }
+  // [ ] Q: uhh yeah... what if it ends with a slash?
+  // [ ] Q: this function is not part of the stl, how is it used in tac?
+  Path   Path::dirname() const                   { return TacPath(StdPath(this).filename() ); }
 
-  Path   Path::stem() const                      { return mPath.stem(); }
-  bool   Path::has_stem() const                  { return mPath.has_stem(); }
+  Path   Path::stem() const                      { return TacPath(StdPath(this).stem()); }
+  bool   Path::has_stem() const                  { return StdPath(this).has_stem(); }
 
   String Path::u8string() const
   {
+#if 0
     const std::u8string s0 = Get().u8string();
     const int n = ( int )s0.size();
 
@@ -112,45 +138,88 @@ namespace Tac::FileSys
       s1[ i ] = s0[ i ];
 
     return s1;
+#else
+    return mUTF8String;
+#endif
   }
 
-  bool   Path::empty() const                     { return Get().empty(); }
+  bool   Path::empty() const                     { return StdPath(this).empty(); }
 
-  void   Path::clear()                           { return Get().clear(); }
-  bool   Path::is_absolute() const               { return Get().is_absolute(); }
-  bool   Path::is_relative() const               { return Get().is_relative(); }
+  void   Path::clear()                           { return StdPath(this).clear(); }
+  bool   Path::is_absolute() const               { return StdPath(this).is_absolute(); }
+  bool   Path::is_relative() const               { return StdPath(this).is_relative(); }
 
-  Path   Path::extension() const                 { return Get().extension(); }
-  bool   Path::has_extension() const             { return Get().has_extension(); }
-  bool   Path::has_filename() const              { return Get().has_filename(); }
-  bool   Path::has_dirname() const               { return Get().has_filename(); }
+  Path   Path::extension() const                 { return TacPath(StdPath(this).extension()); }
+  bool   Path::has_extension() const             { return StdPath(this).has_extension(); }
+  bool   Path::has_filename() const              { return StdPath(this).has_filename(); }
+  bool   Path::has_dirname() const               { return StdPath(this).has_filename(); }
   //Path&  Path::operator /= ( const char* p )     { Get() /= p; return *this; }
-  Path&  Path::operator /= ( const StringView& s ) { Get() /= s.data(); return *this; }
-  Path&  Path::operator += ( const StringView& s ) { Get() += s.data(); return *this; }
+  Path&  Path::operator /= ( const StringView& s ) { return *this = TacPath( StdPath(this) /= s.data() );  }
+  Path&  Path::operator += ( const StringView& s ) { return *this = TacPath( StdPath(this) += s.data() );  }
 
-  std::filesystem::path&       Path::Get()       { return mPath; }
-  const std::filesystem::path& Path::Get() const { return mPath; }
 
   // -----------------------------------------------------------------------------------------------
 
-  bool Time::IsValid() const
+  static std::filesystem::file_time_type StdTime( const Time time )
   {
-    return *this != Time{};
+    return *( std::filesystem::file_time_type* )time.mImpl;
   }
 
-  bool Time::operator == ( const Time& t ) const
+  static std::filesystem::file_time_type StdTime( const Time* time )
   {
-    return mTime.time_since_epoch() == t.mTime.time_since_epoch();
-  };
+    return *( std::filesystem::file_time_type* )time->mImpl;
+  }
 
-  bool Time::operator != ( const Time& t ) const
+  static Time TacTime( std::filesystem::file_time_type stdTime )
   {
-    return mTime.time_since_epoch() != t.mTime.time_since_epoch();
-  };
+    Time tacTime;
+    *( std::filesystem::file_time_type* )tacTime.mImpl = stdTime;
+    return tacTime;
+  }
+
+  Time::Time()
+    : mImpl { TAC_NEW std::filesystem::file_time_type }
+  {
+    //std::filesystem::file_time_type mTime{};
+  }
+
+  Time::~Time()
+  {
+    TAC_DELETE( std::filesystem::file_time_type* )mImpl;
+  }
+
+  // commenting out because std file_time_type doesnt have this, and
+  // what does it mean to be "valid". time_since_epoch != 0?
+  //bool Time::IsValid() const
+  //{
+  //  return StdTime(this) != Time{};
+  //}
+
+
+  //bool Time::operator == ( const Time& t ) const
+  //{
+  //  return StdTime(mTime.time_since_epoch() == t.mTime.time_since_epoch();
+  //};
+
+  //bool Time::operator != ( const Time& t ) const
+  //{
+  //  return mTime.time_since_epoch() != t.mTime.time_since_epoch();
+  //};
 
 
   // -----------------------------------------------------------------------------------------------
 }
+
+bool Tac::FileSys::operator == ( Time a, Time b)
+{
+  return StdTime(a).time_since_epoch() == StdTime(b).time_since_epoch();
+}
+
+bool Tac::FileSys::operator != ( Time a, Time b)
+{
+  return StdTime(a).time_since_epoch() != StdTime(b).time_since_epoch();
+}
+
 
 namespace Tac
 {
@@ -159,28 +228,27 @@ namespace Tac
 
   FileSys::Path  FileSys::operator / ( const Path& a, const Path& b )
   {
-    return a.Get() / b.Get();
+    return TacPath( StdPath(a) / StdPath( b ) );
   }
 
   bool              FileSys::operator == ( const Path& a, const Path& b )
   {
-    return a.Get() == b.Get();
+    return  StdPath( a ) == StdPath( b );
   }
 
   FileSys::Path  FileSys::GetCurrentWorkingDirectory()
   {
-    return std::filesystem::current_path();
+    return TacPath( std::filesystem::current_path() );
   }
 
   bool              FileSys::Exists( const Path& path )
   {
-    const std::filesystem::path& fsPath = path.Get();
-    return std::filesystem::exists( fsPath );
+    return std::filesystem::exists( StdPath( path ) );
   }
 
   bool              FileSys::IsDirectory( const Path& path )
   {
-    return std::filesystem::is_directory( path.Get() );
+    return std::filesystem::is_directory( StdPath( path ) );
   }
 
   bool              FileSys::Exists( const char* path )
@@ -190,20 +258,20 @@ namespace Tac
 
   void              FileSys::CreateDirectory( const Path& path )
   {
-    std::filesystem::create_directory( path.Get() );
+    std::filesystem::create_directory( StdPath( path) );
   }
 
   void              FileSys::CreateDirectory2( const Path& path )
   {
-    std::filesystem::create_directory( path.Get() );
+    std::filesystem::create_directory( StdPath( path) );
   }
 
   FileSys::Time  FileSys::GetFileLastModifiedTime( const FileSys::Path& path,
                                                          Errors& errors )
   {
-    const std::filesystem::path& fsPath { path.Get() };
-    const auto time { std::filesystem::last_write_time( fsPath ) };
-    return Time{ .mTime { time }, };
+    const std::filesystem::path stdPath{ StdPath( path ) };
+    const std::filesystem::file_time_type stdTime{ std::filesystem::last_write_time( stdPath ) };
+    return TacTime( stdTime );
   }
 
   static bool IsEntryDirectory( const std::filesystem::directory_entry& entry )
@@ -263,14 +331,16 @@ namespace Tac
                                             int byteCount,
                                             Errors& errors )
   {
-    std::ofstream ofs( path.Get(), std::ios_base::binary | std::ios_base::out );
+    const std::filesystem::path stdPath{ StdPath( path ) };
+    std::ofstream ofs( stdPath, std::ios_base::binary | std::ios_base::out );
     TAC_RAISE_ERROR_IF( !ofs.is_open(), FormatFileError( path, "writing" ) );
     ofs.write( ( const char* )bytes, byteCount );
   }
 
   String            FileSys::LoadFilePath( const Path& path, Errors& errors )
   {
-    std::ifstream ifs(  path.Get(), std::ios_base::binary );
+    const std::filesystem::path stdPath{ StdPath( path ) };
+    std::ifstream ifs( stdPath, std::ios_base::binary );
     TAC_RAISE_ERROR_IF_RETURN( {}, !ifs.is_open() , FormatFileError( path, "reading" ) );
     ifs.seekg( 0, std::ifstream::end );
     std::streampos byteCount = ifs.tellg();

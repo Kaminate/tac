@@ -4,10 +4,15 @@
 
 #pragma once
 
-import std; // initializer list
 
-//#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/error/tac_assert.h" // TAC_ASSERT
+
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <initializer_list>
+#endif
 
 namespace Tac
 {

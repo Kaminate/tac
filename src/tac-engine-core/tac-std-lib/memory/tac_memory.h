@@ -7,9 +7,16 @@
 #endif // #if defined( _MSC_VER )
 
 #include "tac-std-lib/error/tac_stack_frame.h"
+#include "tac-std-lib/tac_ints.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <memory>
+#endif
 
-import std; // std::size_t
+//import std; // std::size_t
 //#include <cstddef> // std::size_t
 
 namespace Tac

@@ -22,6 +22,8 @@ namespace Tac
 #else
   constexpr bool kIsDebugMode {};
 #endif
+
+#define TAC_SHOULD_IMPORT_STD() false
 }
 
 // -------------------------------------------------------------------------------------------------

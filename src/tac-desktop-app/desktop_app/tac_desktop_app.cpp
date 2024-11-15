@@ -41,7 +41,12 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/string/tac_string_view.h"
-import std; // mutex, thread, type_traits
+
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <thread>
+#endif
 
 namespace Tac
 {

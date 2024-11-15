@@ -1,10 +1,8 @@
 #pragma once
 
 #include "tac-std-lib/containers/tac_list.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
-
-
-namespace Tac { struct Errors; }
 
 namespace Tac
 {

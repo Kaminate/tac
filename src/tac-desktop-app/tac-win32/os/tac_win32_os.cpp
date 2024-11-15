@@ -18,7 +18,7 @@
 #include "tac-win32/tac_win32.h"
 #include "tac-win32/filedialog/tac_win32_file_dialog.h"
 
-import std; // iostream, filesystem, ctime (mktime )
+//import std; // iostream, filesystem, ctime (mktime )
 
 #include <Shlobj.h> // SHGetKnownFolderPath
 #include <shobjidl_core.h> // IFileSaveDialog, IFileOpenDialog
