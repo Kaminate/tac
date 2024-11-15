@@ -1,8 +1,13 @@
 #include "tac_shell_timer.h" // self-inc
 
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
-//import std; // chrono
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <chrono>
+#endif
 
 namespace Tac
 {

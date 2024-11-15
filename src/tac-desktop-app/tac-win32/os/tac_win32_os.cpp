@@ -18,6 +18,11 @@
 #include "tac-win32/tac_win32.h"
 #include "tac-win32/filedialog/tac_win32_file_dialog.h"
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <filesystem>
+#endif
 //import std; // iostream, filesystem, ctime (mktime )
 
 #include <Shlobj.h> // SHGetKnownFolderPath
@@ -137,7 +142,7 @@ namespace Tac
       SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath ) };
     TAC_ON_DESTRUCT( CoTaskMemFree( outPath ) );
     TAC_RAISE_ERROR_IF_RETURN( {}, hr != S_OK, "Failed to get roaming folder" );
-    return std::filesystem::path( outPath );
+    return std::filesystem::path( outPath ).u8string().c_str();
   }
 
   static FileSys::Path Win32OSGetApplicationDataPath( Errors& errors )

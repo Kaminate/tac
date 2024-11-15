@@ -3,6 +3,12 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/string/tac_string_util.h" // IsAscii
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <string>
+#endif
+
 namespace Tac::Render
 {
 
@@ -16,7 +22,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DXCArgHelper::SetEntryPoint( StringView s ) { AddArgs( "-E", s ); }
+  void DXCArgHelper::SetEntryPoint( StringView s )     { AddArgs( "-E", s ); }
   void DXCArgHelper::SetTargetProfile( StringView s )  { AddArgs( "-T", s ); }
   void DXCArgHelper::DefineMacro( StringView s )       { AddArgs( "-D", s ); }
   void DXCArgHelper::ColPackMtxs()                     { AddArg( "-Zpc" ); }

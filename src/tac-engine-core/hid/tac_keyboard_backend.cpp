@@ -4,6 +4,12 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <mutex>
+#endif
+
 namespace Tac
 {
   using KeyStates = Array< SysKeyboardApiBackend::KeyState, ( int )Key::Count >;

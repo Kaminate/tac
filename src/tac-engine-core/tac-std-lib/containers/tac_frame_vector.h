@@ -48,13 +48,13 @@ namespace Tac
           mTs[ i ] = tbegin[ i ];
       }
 
-      //FrameMemoryVector( std::initializer_list< T > ts )
-      //{
-      //  resize( ( int )ts.size() );
-      //  int i{};
-      //  for( T t : ts )
-      //    mTs[ i++ ] = t;
-      //}
+      FrameMemoryVector( std::initializer_list< T > ts )
+      {
+        resize( ( int )ts.size() );
+        int i{};
+        for( T t : ts )
+          mTs[ i++ ] = t;
+      }
 
       void     push_back( const T& t )
       {

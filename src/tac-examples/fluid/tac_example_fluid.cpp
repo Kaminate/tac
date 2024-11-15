@@ -512,8 +512,8 @@ namespace Tac
         const Vector< String > textsStep2 = [ & ]()
         {
           Vector< String > u { textsStep1 };
-          u.insert( u.end(),
-                    {
+          const char* msgs[]
+          {
                         "x = g(x)",
                         "The fixed point of g(x) is the point (x,g(x))",
                         "at which input x which equals output g(x)",
@@ -524,7 +524,9 @@ namespace Tac
                         "If the function is a contraction ( lipschitz type < 1 )",
                         "Then it's a converging cauchy sequence",
                         "x* = lim n -> infinity x_n"
-                    } );
+          };
+          for( const char* msg : msgs )
+          u.push_back( msg );
           return u;
         }( );
 

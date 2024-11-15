@@ -7,7 +7,11 @@
 
 #include "tac_dx12_command_queue.h"
 
-//import std; // mutex
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <mutex>
+#endif
 
 namespace Tac::Render
 {

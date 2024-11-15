@@ -4,6 +4,13 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/math/tac_math.h"
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <thread>
+  #include <mutex>
+#endif
+
 namespace Tac
 {
   const int                    kMinThreadCount        { 4 };

@@ -17,6 +17,12 @@
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/os/tac_os.h"
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <thread>
+#endif
+
 namespace Tac
 {
   static SimKeyboardApiBackend   sKeyboardBackendSimApi;

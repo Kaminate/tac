@@ -5,6 +5,12 @@
 #include "tac-engine-core/shell/tac_shell.h" // sShellInitialWorkingDir
 #include "tac-win32/tac_win32.h" // TAC_HR_CALL
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <string>
+  #include <filesystem>
+#endif
 
 #if 0
 #include <Shlobj.h> // SHGetKnownFolderPath
@@ -36,7 +42,8 @@ namespace Tac
     void FileDialogHelper::SetDefaultFolder( Errors& errors )
     {
       const FileSys::Path dir { sShellInitialWorkingDir / AssetPathRootFolderName };
-      const std::wstring wDir { dir.Get().wstring() };
+      const std::filesystem::path stdDir( ( char8_t* )dir.u8string().c_str() );
+      const std::wstring wDir { stdDir.wstring() };
 
       PCom< IShellItem > shDir;
       TAC_HR_CALL( SHCreateItemFromParsingName(
@@ -72,7 +79,8 @@ namespace Tac
       TAC_HR_CALL_RET( pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
       TAC_ON_DESTRUCT( CoTaskMemFree( pszFilePath ) );
 
-      return std::filesystem::path( pszFilePath );
+      const std::filesystem::path stdPath( pszFilePath );
+      return stdPath.u8string().c_str();
     }
 
 

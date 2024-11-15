@@ -9,15 +9,18 @@
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 
-
 #include "tac-rhi/render3/tac_render_api.h"
+
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <mutex>
+#endif
 
 namespace Tac
 {
-  static Render::TexFmt sSwapChainColorFormat = Render::TexFmt::kRGBA16F;
-  static Render::TexFmt sSwapChainDepthFormat = Render::TexFmt::kD24S8;
-
   bool SysWindowApiBackend::mCreatesSwapChain { true };
+
   struct WindowState
   {
     String mName;
@@ -45,6 +48,9 @@ namespace Tac
   static bool         sModificationAllowed;
   static NWHArray     sSysNative;
   static FBArray      sFramebuffers;
+
+  static Render::TexFmt sSwapChainColorFormat { Render::TexFmt::kRGBA16F };
+  static Render::TexFmt sSwapChainDepthFormat { Render::TexFmt::kD24S8 };
 
   // Contains data for a window to be created as requested by game logic simulation
   struct SimWindowCreate

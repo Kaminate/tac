@@ -2,6 +2,12 @@
 
 #include "tac-win32/tac_win32.h" // OutputDebugStringA
 
+#if TAC_SHOULD_IMPORT_STD
+  import std;
+#else
+  #include <iostream>
+#endif
+
 //import std; // #include <iostream>
 
 static struct : public std::streambuf

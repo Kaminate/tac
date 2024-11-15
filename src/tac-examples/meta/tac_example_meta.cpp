@@ -5,7 +5,11 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 
-//import std; // #include <sstream>
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <sstream>
+#endif
 
 namespace Tac
 {
