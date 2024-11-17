@@ -208,20 +208,26 @@ namespace Tac::Render
     const int nBound{ mMaxBoundIndex + 1 };
     TAC_ASSERT( nBound <= mHandleIndexes.size() );
 
-    DX12Descriptor* dst{
+    DX12Descriptor* dstBegin{
       ( DX12Descriptor* )FrameMemoryAllocate( sizeof( DX12Descriptor ) * nBound ) };
+    DX12Descriptor* dstCur{ dstBegin };
 
-    int i{};
-    for( IHandle iHandle : mHandleIndexes )
+
+    //const IHandle* hBegin{ mHandleIndexes.begin() };
+
+    for( const IHandle& iHandle : Span< const IHandle >( mHandleIndexes.begin(), nBound ) )
+    //for( const IHandle* hCur{ hBegin }; hCur < hBegin + nBound; hCur++ ) 
+    //for( IHandle iHandle : mHandleIndexes )
     {
+      //IHandle iHandle { *hCur };
       TAC_ASSERT( iHandle.IsValid() );
 
-      DX12Descriptor descriptor{ GetDescriptor( iHandle, transitionHelper ) };
+      const DX12Descriptor descriptor{ GetDescriptor( iHandle, transitionHelper ) };
       TAC_ASSERT( descriptor.IsValid() );
-      dst[ i++ ] = descriptor;
+      *dstCur++ = descriptor;
     }
 
-    return Span< DX12Descriptor >( dst, nBound );
+    return Span< DX12Descriptor >( dstBegin, nBound );
   }
 
   void                   PipelineDynamicArray::BindAtIndex( ResourceHandle h, int i )
@@ -241,7 +247,6 @@ namespace Tac::Render
   void                   PipelineDynamicArray::SetFence( FenceSignal fenceSignal )
   {
     mDescriptorRegion.Free( fenceSignal );
-    mMaxBoundIndex = -1;
   }
 
   void                   PipelineDynamicArray::CheckType( ResourceHandle h )

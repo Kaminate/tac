@@ -160,33 +160,39 @@ namespace Tac::FileSys
 
   // -----------------------------------------------------------------------------------------------
 
-  static std::filesystem::file_time_type StdTime( const Time time )
-  {
-    return *( std::filesystem::file_time_type* )time.mImpl;
-  }
-
-  static std::filesystem::file_time_type StdTime( const Time* time )
-  {
-    return *( std::filesystem::file_time_type* )time->mImpl;
-  }
+  static const std::filesystem::file_time_type& StdTime( const Time& time ) { return *( std::filesystem::file_time_type* )time.mImpl; }
+  static dynmc std::filesystem::file_time_type& StdTime( dynmc Time& time ) { return *( std::filesystem::file_time_type* )time.mImpl; }
+  static const std::filesystem::file_time_type& StdTime( const Time* time ) { return *( std::filesystem::file_time_type* )time->mImpl; }
+  static dynmc std::filesystem::file_time_type& StdTime( dynmc Time* time ) { return *( std::filesystem::file_time_type* )time->mImpl; }
 
   static Time TacTime( std::filesystem::file_time_type stdTime )
   {
     Time tacTime;
-    *( std::filesystem::file_time_type* )tacTime.mImpl = stdTime;
+    StdTime( tacTime ) = stdTime;
     return tacTime;
   }
 
-  Time::Time()
-    : mImpl { TAC_NEW std::filesystem::file_time_type }
+  void Time::SwapWith( Time&&other) noexcept
   {
-    //std::filesystem::file_time_type mTime{};
+    TAC_ASSERT( mImpl );
+    Swap( mImpl, other.mImpl );
   }
+
+  Time::Time( Time&& other ) noexcept : Time() { SwapWith( ( Time&& )other ); }
+
+  Time::Time() : mImpl { TAC_NEW std::filesystem::file_time_type } { }
+
+  Time::Time( const Time& other ) : Time() { StdTime( this ) = StdTime( other ); }
 
   Time::~Time()
   {
+    TAC_ASSERT( mImpl );
     TAC_DELETE( std::filesystem::file_time_type* )mImpl;
   }
+
+  void Time::operator = ( const Time& other ) { StdTime( this ) = StdTime( other ); }
+
+  void Time::operator = ( Time&& other ) noexcept { SwapWith( ( Time&& )other ); }
 
   // commenting out because std file_time_type doesnt have this, and
   // what does it mean to be "valid". time_since_epoch != 0?

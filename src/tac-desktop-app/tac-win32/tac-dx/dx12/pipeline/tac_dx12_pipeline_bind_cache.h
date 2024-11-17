@@ -43,7 +43,10 @@ namespace Tac::Render
 
     Vector< IHandle >      mHandleIndexes        {};
     D3D12ProgramBindType   mProgramBindType      {};
+
+    // Temporary per draw call, allocated during Commit(), and freed during SetFence()
     DX12DescriptorRegion   mDescriptorRegion     {};
+
     int                    mMaxBoundIndex        { -1 };
   };
 

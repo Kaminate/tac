@@ -370,10 +370,7 @@ namespace Tac::Render
 
       buffer.mMappedCPUAddr = allocation.mCPUAddr;
       buffer.mGPUVirtualAddr = allocation.mGPUAddr;
-      // | commenting out because compile error of the shit im changing......
-      // | if this fucks shit so be it
-      // v
-      //buffer.mState = *allocation.mResourceState; // gross
+      buffer.mResource.SetState( *allocation.mResourceState ); // ???
 
       // uhh so like if the allocation could be used for other things, then
       // i dont really want to use buffer.mCreateParams.mOptionalName/buffer.mCreateName;
