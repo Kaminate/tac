@@ -11,6 +11,11 @@ namespace Tac::Render
   {
   }
 
+  D3D12ProgramBindType::D3D12ProgramBindType( Classification classification )
+    : mClassification{ classification }
+  {
+  }
+
   D3D12ProgramBindType::Classification D3D12ProgramBindType::Classify(
      const D3D12_SHADER_INPUT_BIND_DESC& info  )
   {

@@ -86,6 +86,7 @@ namespace Tac::Render
   // ( as oppposed to a PipelineDynamicArray, where a DX12DescriptorRegion is allocated per call )
   struct BindlessArray : public IBindlessArray
   {
+    BindlessArray( IBindlessArray::Params );
     Binding                Bind( ResourceHandle ) override;
     void                   Unbind( Binding ) override;
     void                   Resize( int );

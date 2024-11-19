@@ -69,16 +69,18 @@ namespace Tac
 
   private:
 
-    WindowHandle           mWindowHandle;
-    Render::BufferHandle   mVtxBuf;
-    Render::BufferHandle   mConstantBuf;
-    Render::ProgramHandle  mShader;
-    Render::PipelineHandle mPipeline;
-    Render::TexFmt         mColorFormat;
-    Render::TexFmt         mDepthFormat;
-    Render::IShaderVar*    mShaderVtxBufs{};
-    Render::IShaderVar*    mShaderConstantBuffer{};
-    int                    mVtxCount{};
+    WindowHandle                    mWindowHandle;
+    Render::BufferHandle            mVtxBuf;
+    Render::BufferHandle            mConstantBuf;
+    Render::ProgramHandle           mShader;
+    Render::PipelineHandle          mPipeline;
+    Render::TexFmt                  mColorFormat;
+    Render::TexFmt                  mDepthFormat;
+    Render::IShaderVar*             mShaderVtxBufs{};
+    Render::IShaderVar*             mShaderConstantBuffer{};
+    Render::IBindlessArray*         mBindlessArray{};
+    Render::IBindlessArray::Binding mBindlessVtxBufBinding;
+    int                             mVtxCount{};
   };
 
   HelloConstBuf::HelloConstBuf( App::Config cfg ) : App{ cfg } {}
@@ -135,6 +137,14 @@ namespace Tac
 
     mShaderConstantBuffer = renderDevice->GetShaderVariable( mPipeline, "MyCBufInst" );
     mShaderConstantBuffer->SetResource( mConstantBuf );
+
+    const Render::IBindlessArray::Params bindlessArrayParams
+    {
+      .mHandleType { Render::HandleType::kBuffer },
+      .mBinding    { Render::Binding::ShaderResource },
+    };
+    mBindlessArray = renderDevice->CreateBindlessArray( bindlessArrayParams );
+    mBindlessVtxBufBinding = mBindlessArray->Bind( mVtxBuf );
   }
 
 
@@ -163,13 +173,6 @@ namespace Tac
       .mVertexBufferIndex {},
     };
 
-    const Render::UpdateBufferParams updateBufferParams
-    {
-      .mSrcBytes      { &cbuf },
-      .mSrcByteCount  { ( int )sizeof( MyCBufType ) },
-      .mDstByteOffset {},
-    };
-
     TAC_CALL( Render::IContext::Scope renderContext{
       renderDevice->CreateRenderContext( errors ) } );
     renderContext->SetRenderTargets( renderTargets );
@@ -180,7 +183,7 @@ namespace Tac
     renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
 
-    TAC_CALL( renderContext->UpdateBuffer( mConstantBuf, &updateBufferParams, errors ) );
+    TAC_CALL( renderContext->UpdateBufferSimple( mConstantBuf, &cbuf, errors ) );
 
     renderContext->CommitShaderVariables();
     renderContext->Draw( drawArgs );

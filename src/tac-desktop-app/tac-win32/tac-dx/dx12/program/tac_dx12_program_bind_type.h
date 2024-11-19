@@ -21,6 +21,7 @@ namespace Tac::Render
 
     D3D12ProgramBindType() = default;
     D3D12ProgramBindType( const D3D12_SHADER_INPUT_BIND_DESC& );
+    D3D12ProgramBindType( Classification );
 
     bool IsBuffer() const;
     bool IsConstantBuffer() const;

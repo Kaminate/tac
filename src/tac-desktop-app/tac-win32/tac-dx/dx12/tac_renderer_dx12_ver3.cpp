@@ -293,9 +293,9 @@ namespace Tac::Render
     return IContext::Scope( context );
   }
 
-  IBindlessArray*   DX12Device::CreateBindlessArray()
+  IBindlessArray*   DX12Device::CreateBindlessArray( IBindlessArray::Params params )
   {
-    return TAC_NEW BindlessArray;
+    return TAC_NEW BindlessArray(params);
   }
 
   TextureHandle     DX12Device::CreateTexture( CreateTextureParams params, Errors& errors )

@@ -49,6 +49,13 @@ namespace Tac::Render
   IContext* IContext::Scope::operator ->()              { return mContext; }
 
   // -----------------------------------------------------------------------------------------------
+  IBindlessArray::IBindlessArray( Params params )
+  {
+    mHandleType = params.mHandleType;
+    mBinding = params.mBinding;
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
   //ctor IHandle::IHandle( int i ) : mIndex( i ) {}
   //int  IHandle::GetIndex() const               { TAC_ASSERT( IsValid() ); return mIndex; }

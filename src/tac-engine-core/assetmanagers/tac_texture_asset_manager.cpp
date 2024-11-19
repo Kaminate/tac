@@ -70,8 +70,8 @@ namespace Tac
   public:
     struct Params
     {
-      FileSys::Path mFilepath;
-      bool          mIsCubemap{};
+      AssetPathStringView mFilepath;
+      bool                mIsCubemap{};
     };
 
     TextureLoadJob( Params );
@@ -582,7 +582,12 @@ namespace Tac
       if( !sBindlessArray )
       {
         Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-        sBindlessArray = renderDevice->CreateBindlessArray();
+        const Render::IBindlessArray::Params bindlessArrayParams
+        {
+          .mHandleType { Render::HandleType::kTexture },
+          .mBinding    { Render::Binding::ShaderResource },
+        };
+        sBindlessArray = renderDevice->CreateBindlessArray(bindlessArrayParams);
         TAC_ASSERT( sBindlessArray );
       }
 
@@ -598,24 +603,19 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static void StartLoadTexture( const AssetPathStringView textureFilepath,
-                                                         Errors& errors )
+  static void LoadTextureAux( TextureLoadJob::Params params,
+                                Errors& errors )
   {
-    const StringID id( textureFilepath );
+    const StringID id( params.mFilepath );
     if( TextureLoadJob* asyncTexture { FindLoadingTexture( id ) } )
     {
-      UpdateTextureLoadJob( textureFilepath, asyncTexture, errors );
+      UpdateTextureLoadJob( params.mFilepath, asyncTexture, errors );
       return;
     }
 
-    const TextureLoadJob::Params params
-    {
-      .mFilepath  { textureFilepath },
-      .mIsCubemap {},
-    };
     TextureLoadJob* asyncTexture{ TAC_NEW TextureLoadJob( params ) };
 
-    mLoadingTextures[ textureFilepath ] = asyncTexture;
+    mLoadingTextures[ id ] = asyncTexture;
     JobQueuePush( asyncTexture );
   }
 
@@ -631,7 +631,12 @@ namespace Tac
         loadedTexture->mTextureHandle.IsValid() )
       return loadedTexture->mTextureHandle;
 
-    StartLoadTexture( textureFilepath, errors );
+    const TextureLoadJob::Params params
+    {
+      .mFilepath  { textureFilepath },
+      .mIsCubemap {},
+    };
+    LoadTextureAux( params, errors );
     return {};
   }
 
@@ -645,10 +650,16 @@ namespace Tac
     const StringID id( textureFilepath );
 
     if( LoadedTexture* loadedTexture{ FindLoadedTexture( id ) };
-        loadedTexture->mBinding.IsValid() )
+        loadedTexture && loadedTexture->mBinding.IsValid() )
       return loadedTexture->mBinding;
 
-    StartLoadTexture( textureFilepath, errors );
+    const TextureLoadJob::Params params
+    {
+      .mFilepath  { textureFilepath },
+      .mIsCubemap { true },
+    };
+
+    LoadTextureAux( textureFilepath, errors );
     return {};
   }
 
@@ -656,23 +667,17 @@ namespace Tac
                                                              Errors& errors )
   {
     const StringID id( textureDir );
-    if( const Render::TextureHandle texture{ FindLoadedTexture( id ) }; texture.IsValid() )
-      return texture;
-
-    if( TextureLoadJob * asyncTexture{ FindLoadingTexture( id ) } )
-    {
-      UpdateTextureLoadJob( textureDir, asyncTexture, errors );
-      return {};
-    }
+    if( const LoadedTexture* loadedTexture{ FindLoadedTexture( id ) };
+        loadedTexture && loadedTexture->mTextureHandle.IsValid() )
+      return loadedTexture->mTextureHandle;
 
     const TextureLoadJob::Params params
     {
       .mFilepath  { textureDir },
       .mIsCubemap { true },
     };
-    TextureLoadJob* asyncTexture = TAC_NEW TextureLoadJob( params );
-    mLoadingTextures[ textureDir ] = asyncTexture;
-    JobQueuePush( asyncTexture );
+
+    LoadTextureAux( params, errors );
     return {};
   }
 

@@ -19,6 +19,23 @@ namespace Tac::Render
     return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
   }
 
+  static D3D12ProgramBindType::Classification GetClassification( IBindlessArray::Params params )
+  {
+    if( params.mHandleType == HandleType::kBuffer &&
+        params.mBinding == Render::Binding::ShaderResource )
+    {
+      return D3D12ProgramBindType::Classification::kBufferSRV;
+    }
+
+    if( params.mHandleType == HandleType::kTexture &&
+        params.mBinding == Render::Binding::ShaderResource )
+    {
+      return D3D12ProgramBindType::Classification::kTextureSRV;
+    }
+
+    return D3D12ProgramBindType::Classification::kUnknown;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   void                          BindlessArray::CheckType( ResourceHandle h )
@@ -67,6 +84,13 @@ namespace Tac::Render
     mDescriptorRegion.Free( mFenceSignal );
 
     mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
+  }
+
+  BindlessArray::BindlessArray( IBindlessArray::Params params ) : IBindlessArray( params )
+  {
+    const D3D12ProgramBindType::Classification classification{ GetClassification( params ) };
+    TAC_ASSERT( classification != D3D12ProgramBindType::Classification::kUnknown );
+    mProgramBindType = D3D12ProgramBindType( classification );
   }
 
   IBindlessArray::Binding BindlessArray::Bind( ResourceHandle h )

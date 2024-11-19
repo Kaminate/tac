@@ -381,14 +381,28 @@ namespace Tac::Render
 
   struct IBindlessArray
   {
+    struct Params
+    {
+      HandleType      mHandleType;
+      Render::Binding mBinding;
+    };
+
     struct Binding
     {
-      bool IsValid() const { return mIndex != -1 ; }
+      bool IsValid() const { return mIndex != Binding{}.mIndex; }
+      int GetIndex() const { return mIndex; }
+    private:
       int mIndex{ -1 };
     };
 
+    IBindlessArray( Params );
+
     virtual Binding Bind( ResourceHandle ) = 0;
     virtual void    Unbind( Binding ) = 0;
+
+  protected:
+    HandleType      mHandleType;
+    Render::Binding mBinding;
   };
 
   struct IShaderVar
@@ -542,7 +556,7 @@ namespace Tac::Render
     virtual void            DestroyTexture( TextureHandle )                  {}
 
     virtual IContext::Scope CreateRenderContext( Errors& )                   { return {}; }
-    virtual IBindlessArray* CreateBindlessArray()                            { return {}; }
+    virtual IBindlessArray* CreateBindlessArray( IBindlessArray::Params )    { return {}; }
   };
 }
 
