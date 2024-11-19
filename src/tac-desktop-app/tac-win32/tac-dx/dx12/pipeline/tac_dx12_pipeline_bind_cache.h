@@ -50,7 +50,6 @@ namespace Tac::Render
     int                    mMaxBoundIndex        { -1 };
   };
 
-
   struct RootParameterBinding
   {
     enum class Type
@@ -87,11 +86,12 @@ namespace Tac::Render
   struct BindlessArray : public IBindlessArray
   {
     BindlessArray( IBindlessArray::Params );
-    Binding                Bind( ResourceHandle ) override;
+    Binding                Bind( ResourceHandle, Errors& ) override;
     void                   Unbind( Binding ) override;
     void                   Resize( int );
     void                   SetFenceSignal( FenceSignal );
     //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const override;
+    void                   Commit( CommitParams );
 
   private:
 

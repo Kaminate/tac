@@ -31,6 +31,8 @@ namespace Tac::Render
   {
     RootParameterBinding* rootParameterBinding{ GetRootParameterBinding() };
     TAC_ASSERT( rootParameterBinding->mType == RootParameterBinding::Type::kResourceHandle );
+    TAC_ASSERT( !rootParameterBinding->mProgramBindDesc.BindsAsDescriptorTable() );
+    TAC_ASSERT( !rootParameterBinding->mBindlessArray );
     rootParameterBinding->mResourceHandle = h;
   }
 
@@ -38,6 +40,7 @@ namespace Tac::Render
   {
     RootParameterBinding* rootParameterBinding{ GetRootParameterBinding() };
     TAC_ASSERT( rootParameterBinding->mType == RootParameterBinding::Type::kDynamicArray );
+    TAC_ASSERT( !rootParameterBinding->mBindlessArray );
     rootParameterBinding->mPipelineDynamicArray.BindAtIndex( h, i );
   }
 
@@ -45,7 +48,10 @@ namespace Tac::Render
     IBindlessArray* bindlessArray )
   {
     RootParameterBinding* rootParameterBinding{ GetRootParameterBinding() };
+    TAC_ASSERT( rootParameterBinding->mProgramBindDesc.BindsAsDescriptorTable() );
+    TAC_ASSERT( bindlessArray );
     rootParameterBinding->mBindlessArray = bindlessArray;
+    rootParameterBinding->mType = RootParameterBinding::Type::kBindlessArray;
   }
 
   //void DX12Pipeline::Variable::SetSampler( SamplerHandle h )

@@ -49,11 +49,15 @@ namespace Tac::Render
   IContext* IContext::Scope::operator ->()              { return mContext; }
 
   // -----------------------------------------------------------------------------------------------
-  IBindlessArray::IBindlessArray( Params params )
+
+  ctor IBindlessArray::IBindlessArray( Params params )
+    : mHandleType{ params.mHandleType }
+    , mBinding{ params.mBinding }
   {
-    mHandleType = params.mHandleType;
-    mBinding = params.mBinding;
   }
+  ctor IBindlessArray::Binding::Binding( int index ) : mIndex{ index } {}
+  bool IBindlessArray::Binding::IsValid() const  { return mIndex != Binding{}.mIndex; }
+  int  IBindlessArray::Binding::GetIndex() const { return mIndex; }
 
   // -----------------------------------------------------------------------------------------------
 

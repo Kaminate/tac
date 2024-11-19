@@ -182,7 +182,7 @@ namespace Tac
     const AssetPathStringView defaultSkybox{ "assets/skybox/daylight" };
     const AssetPathStringView skyboxDirToUse{ skyboxDir.empty() ? defaultSkybox : skyboxDir };
     TAC_CALL( const Render::TextureHandle cubemap{
-      TextureAssetManager::GetTextureCube( skyboxDirToUse, errors ) } );
+      TextureAssetManager::GetTexture( skyboxDirToUse, errors ) } );
     if( !cubemap.IsValid() )
       return;
 

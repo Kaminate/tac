@@ -121,8 +121,9 @@ namespace Tac::Render
     const int byteCount { params.mByteCount };
     const StackFrame sf { params.mStackFrame };
 
-    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
-    DX12ContextManager* mContextManager{ &DX12Renderer::sRenderer.mContextManager };
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    ID3D12Device* mDevice{ renderer.mDevice };
+    DX12ContextManager* contextManager{ &renderer.mContextManager };
 
     if( params.mUsage == Usage::Dynamic )
     {
@@ -212,8 +213,8 @@ namespace Tac::Render
     if( heapType == D3D12_HEAP_TYPE_UPLOAD )
         resource->Map( 0, nullptr, &mappedCPUAddr );
 
-    DX12Context* context{ mContextManager->GetContext( errors ) };
-    DX12Context::Scope contextScope{ context };
+    DX12Context* context{ contextManager->GetContext( errors ) };
+    IContext::Scope contextScope{ context };
     ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
 
     if( params.mBytes )

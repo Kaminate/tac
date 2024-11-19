@@ -1,14 +1,16 @@
+#include "tac_render_tutorial_4_const_buf.h"
+
 #include "tac_render_tutorial.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-//#include "tac-engine-core/shell/tac_shell_timestep.h"
+
+#define TAC_HELLO_BINDLESS() 1
 
 namespace Tac
 {
@@ -59,30 +61,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  struct HelloConstBuf : public App
-  {
-    HelloConstBuf( App::Config );
-
-  protected:
-    void Init( InitParams, Errors& ) override;
-    void Render( RenderParams, Errors& ) override;
-
-  private:
-
-    WindowHandle                    mWindowHandle;
-    Render::BufferHandle            mVtxBuf;
-    Render::BufferHandle            mConstantBuf;
-    Render::ProgramHandle           mShader;
-    Render::PipelineHandle          mPipeline;
-    Render::TexFmt                  mColorFormat;
-    Render::TexFmt                  mDepthFormat;
-    Render::IShaderVar*             mShaderVtxBufs{};
-    Render::IShaderVar*             mShaderConstantBuffer{};
-    Render::IBindlessArray*         mBindlessArray{};
-    Render::IBindlessArray::Binding mBindlessVtxBufBinding;
-    int                             mVtxCount{};
-  };
-
   HelloConstBuf::HelloConstBuf( App::Config cfg ) : App{ cfg } {}
 
   void HelloConstBuf::Init( InitParams initParams, Errors& errors )
@@ -132,21 +110,26 @@ namespace Tac
     };
     mPipeline = renderDevice->CreatePipeline( pipelineParams, errors );
 
-    mShaderVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
-    mShaderVtxBufs->SetResourceAtIndex( mVtxBuf, 0 );
 
-    mShaderConstantBuffer = renderDevice->GetShaderVariable( mPipeline, "MyCBufInst" );
-    mShaderConstantBuffer->SetResource( mConstantBuf );
 
     const Render::IBindlessArray::Params bindlessArrayParams
     {
       .mHandleType { Render::HandleType::kBuffer },
       .mBinding    { Render::Binding::ShaderResource },
     };
-    mBindlessArray = renderDevice->CreateBindlessArray( bindlessArrayParams );
-    mBindlessVtxBufBinding = mBindlessArray->Bind( mVtxBuf );
-  }
 
+    mShaderVtxBufs = renderDevice->GetShaderVariable( mPipeline, "BufferTable" );
+#if TAC_HELLO_BINDLESS()
+    mBindlessArray = renderDevice->CreateBindlessArray( bindlessArrayParams );
+    mShaderVtxBufs->SetBindlessArray( mBindlessArray );
+    TAC_CALL( mBindlessVtxBufBinding = mBindlessArray->Bind( mVtxBuf, errors ) );
+#else
+    mShaderVtxBufs->SetResourceAtIndex( mVtxBuf, 0 );
+#endif
+
+    mShaderConstantBuffer = renderDevice->GetShaderVariable( mPipeline, "MyCBufInst" );
+    mShaderConstantBuffer->SetResource( mConstantBuf );
+  }
 
   void HelloConstBuf::Render( RenderParams renderParams, Errors& errors )
   {
@@ -165,12 +148,21 @@ namespace Tac
     const v4 clearColor{ 0.5f, 0.8f, 1, 0 };
     const Render::DrawArgs drawArgs { .mVertexCount { mVtxCount }, };
 
+#if TAC_HELLO_BINDLESS()
+    TAC_ASSERT( mBindlessVtxBufBinding.IsValid() );
+#endif
+
     const float translateX{ ( float )Sin( renderParams.mTimestamp.mSeconds / 2.0f ) / 2.0f };
     const m4 world{ m4::Translate( v3( translateX, 0, 0 ) ) };
     const MyCBufType cbuf
     {
       .mWorld             { world },
+
+#if TAC_HELLO_BINDLESS()
+      .mVertexBufferIndex { ( u32 )mBindlessVtxBufBinding.GetIndex() },
+#else
       .mVertexBufferIndex {},
+#endif
     };
 
     TAC_CALL( Render::IContext::Scope renderContext{
@@ -183,7 +175,7 @@ namespace Tac
     renderContext->ClearColor( swapChainColor, clearColor );
     renderContext->ClearDepth( swapChainDepth, 1 );
 
-    TAC_CALL( renderContext->UpdateBufferSimple( mConstantBuf, &cbuf, errors ) );
+    TAC_CALL( renderContext->UpdateBufferSimple( mConstantBuf, cbuf, errors ) );
 
     renderContext->CommitShaderVariables();
     renderContext->Draw( drawArgs );
@@ -191,6 +183,8 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
     TAC_CALL( renderDevice->Present( swapChain, errors ) );
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   App* App::Create()
   {

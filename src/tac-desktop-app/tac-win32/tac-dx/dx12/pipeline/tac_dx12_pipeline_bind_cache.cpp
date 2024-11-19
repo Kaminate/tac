@@ -21,22 +21,27 @@ namespace Tac::Render
 
   static D3D12ProgramBindType::Classification GetClassification( IBindlessArray::Params params )
   {
-    if( params.mHandleType == HandleType::kBuffer &&
-        params.mBinding == Render::Binding::ShaderResource )
-    {
-      return D3D12ProgramBindType::Classification::kBufferSRV;
-    }
+    const bool isShaderResource{ ( params.mBinding & Binding::ShaderResource ) != Binding::None };
+    const bool isBuffer{ params.mHandleType == HandleType::kBuffer };
+    const bool isTexture{ params.mHandleType == HandleType::kTexture };
 
-    if( params.mHandleType == HandleType::kTexture &&
-        params.mBinding == Render::Binding::ShaderResource )
-    {
+    if( isBuffer && isShaderResource )
+      return D3D12ProgramBindType::Classification::kBufferSRV;
+
+    if( isTexture && isShaderResource )
       return D3D12ProgramBindType::Classification::kTextureSRV;
-    }
 
     return D3D12ProgramBindType::Classification::kUnknown;
   }
 
   // -----------------------------------------------------------------------------------------------
+
+  BindlessArray::BindlessArray( IBindlessArray::Params params ) : IBindlessArray( params )
+  {
+    const D3D12ProgramBindType::Classification classification{ GetClassification( params ) };
+    TAC_ASSERT( classification != D3D12ProgramBindType::Classification::kUnknown );
+    mProgramBindType = D3D12ProgramBindType( classification );
+  }
 
   void                          BindlessArray::CheckType( ResourceHandle h )
   {
@@ -48,6 +53,20 @@ namespace Tac::Render
     TAC_ASSERT( !type.IsBuffer() || h.IsBuffer() );
     TAC_ASSERT( !type.IsTexture() || h.IsTexture() );
     TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
+  }
+
+  void                          BindlessArray::Commit( CommitParams commitParams )
+  {
+    ID3D12GraphicsCommandList* commandList{ commitParams.mCommandList };
+    const bool isCompute{ commitParams.mIsCompute };
+    const UINT rootParameterIndex{ commitParams.mRootParameterIndex };
+
+    const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ mDescriptorRegion.GetGPUHandle() };
+
+    if( isCompute )
+      commandList->SetComputeRootDescriptorTable( rootParameterIndex, gpuHandle );
+    else
+      commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
   }
 
   void                          BindlessArray::SetFenceSignal( FenceSignal fenceSignal )
@@ -63,8 +82,11 @@ namespace Tac::Render
     TAC_ASSERT( newSize > oldSize );
 
     mHandles.resize( newSize );
-    for( int i{ oldSize }; i < newSize; ++i )
-      mUnusedBindings.push_back( Binding{ i } );
+
+    // Allocating a new binding pops the back, so add in reverse order
+    const int addedCount{ newSize - oldSize };
+    for( int i{}; i < addedCount; ++i )
+      mUnusedBindings.push_back( Binding{ newSize - i - 1 } );
 
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
@@ -75,42 +97,97 @@ namespace Tac::Render
 
     DX12DescriptorRegion newRegion{ regionMgr->Alloc( newSize ) };
 
-    ID3D12Device* device{ renderer.mDevice };
-    device->CopyDescriptorsSimple( oldSize,
-                                   newRegion.GetCPUHandle(),
-                                   mDescriptorRegion.GetCPUHandle(),
-                                   heapType );
+    if( mDescriptorRegion.IsValid() )
+    {
+      ID3D12Device* device{ renderer.mDevice };
+      device->CopyDescriptorsSimple( oldSize,
+                                     newRegion.GetCPUHandle(),
+                                     mDescriptorRegion.GetCPUHandle(),
+                                     heapType );
+      mDescriptorRegion.Free( mFenceSignal );
+    }
 
-    mDescriptorRegion.Free( mFenceSignal );
 
     mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
   }
 
-  BindlessArray::BindlessArray( IBindlessArray::Params params ) : IBindlessArray( params )
-  {
-    const D3D12ProgramBindType::Classification classification{ GetClassification( params ) };
-    TAC_ASSERT( classification != D3D12ProgramBindType::Classification::kUnknown );
-    mProgramBindType = D3D12ProgramBindType( classification );
-  }
-
-  IBindlessArray::Binding BindlessArray::Bind( ResourceHandle h )
+  IBindlessArray::Binding       BindlessArray::Bind( ResourceHandle h, Errors& errors )
   {
     CheckType( h );
 
     if( mUnusedBindings.empty() )
     {
-      const int n{ mHandles.size() };
-      const Binding binding{ n };
-      const int newSize{ ( int )( ( n + 2 ) * 1.5 ) };
-      mHandles.resize( newSize );
+      const int oldSize{ mHandles.size() };
+      const int newSize{ ( int )( ( oldSize + 2 ) * 1.5 ) };
+      Resize( newSize );
     }
 
     const Binding binding{ mUnusedBindings.back() };
     mUnusedBindings.pop_back();
-    mHandles[ binding.mIndex ] = h;
+    mHandles[ binding.GetIndex() ] = h;
 
+    DX12Renderer&   renderer   { DX12Renderer::sRenderer };
+    DX12TextureMgr* textureMgr { &renderer.mTexMgr };
+    DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
+    ID3D12Device*   device     { renderer.mDevice };
+
+    const D3D12ProgramBindType::Classification classification{
+      mProgramBindType.GetClassification() };
+    const int iHandle{ h.GetIndex() };
+
+    DX12Descriptor cpuDescriptor;
+
+    DX12TransitionHelper transitionHelper;
+
+    switch( classification )
     {
+    case D3D12ProgramBindType::kTextureSRV:
+    {
+      const TextureHandle textureHandle{ iHandle };
+      DX12Texture* texture{ textureMgr->FindTexture( textureHandle ) };
+      TAC_ASSERT( texture );
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { &texture->mResource },
+        .mStateAfter  { D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE },
+      };
+      transitionHelper.Append( transitionParams );
+      cpuDescriptor = texture->mSRV.GetValue();
     }
+
+    case D3D12ProgramBindType::kBufferSRV:
+    {
+      DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
+      TAC_ASSERT( buffer );
+      const DX12TransitionHelper::Params transitionParams
+      {
+        .mResource    { &buffer->mResource },
+        .mStateAfter  { D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE },
+      };
+      transitionHelper.Append( transitionParams );
+      cpuDescriptor = buffer->mSRV.GetValue();
+    }
+    }
+
+    if( !transitionHelper.empty() )
+    {
+      DX12ContextManager* contextManager{ &renderer.mContextManager };
+
+      TAC_CALL_RET( DX12Context* context{ contextManager->GetContext( errors ) } );
+      context->SetSynchronous();
+      IContext::Scope contextScope{ context };
+
+      ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
+      transitionHelper.ResourceBarrier( commandList );
+      TAC_CALL_RET( context->Execute( errors ) );
+    }
+
+    TAC_ASSERT( cpuDescriptor.IsValid() );
+
+    const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
+    const D3D12_CPU_DESCRIPTOR_HANDLE dst{ mDescriptorRegion.GetCPUHandle( binding.GetIndex() ) };
+    const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
+    device->CopyDescriptorsSimple( 1, dst, src, heapType );
 
     return binding;
   }
@@ -118,7 +195,7 @@ namespace Tac::Render
   void                          BindlessArray::Unbind( Binding binding )
   {
     mUnusedBindings.push_back( binding );
-    mHandles[ binding.mIndex ] = IHandle::kInvalidIndex;
+    mHandles[ binding.GetIndex() ] = IHandle::kInvalidIndex;
   }
 
 #if 0
@@ -176,6 +253,8 @@ namespace Tac::Render
       DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
       TAC_ASSERT( buffer );
       TAC_ASSERT( buffer->mResource.GetState() & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+      // [ ] Q: why the fuck is this calling a textureMgr function?
+      //        arent we in the buffermgr?
       textureMgr->TransitionResource( &buffer->mResource,
                                       Binding::ShaderResource,
                                       transitionHelper );
@@ -188,6 +267,8 @@ namespace Tac::Render
       const D3D12_RESOURCE_STATES stateBefore{ buffer->mResource.GetState() };
       TAC_ASSERT( buffer );
       TAC_ASSERT( stateBefore & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+      // [ ] Q: why the fuck is this calling a textureMgr function?
+      //        arent we in the buffermgr?
       textureMgr->TransitionResource( &buffer->mResource,
                                       Binding::UnorderedAccess,
                                       transitionHelper );
@@ -202,6 +283,8 @@ namespace Tac::Render
       TAC_ASSERT( buffer );
       const D3D12_RESOURCE_STATES stateBefore{ buffer->mResource.GetState() };
       TAC_ASSERT( stateBefore & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
+      // [ ] Q: why the fuck is this calling a textureMgr function?
+      //        arent we in the buffermgr?
       textureMgr->TransitionResource( &buffer->mResource,
                                       Binding::ConstantBuffer,
                                       transitionHelper );
@@ -300,38 +383,35 @@ namespace Tac::Render
     DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
     ID3D12Device*   device     { renderer.mDevice };
 
-    if( true )// programBindDesc.BindsAsDescriptorTable() )
-    {
-      const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
+    const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
 
-      DX12TransitionHelper transitionHelper;
-      const Span< DX12Descriptor > cpuDescriptors{ GetDescriptors( &transitionHelper ) };
-      transitionHelper.ResourceBarrier( commandList );
+    DX12TransitionHelper transitionHelper;
+    const Span< DX12Descriptor > cpuDescriptors{ GetDescriptors( &transitionHelper ) };
+    transitionHelper.ResourceBarrier( commandList );
 
 #if 0
-      dynmc DX12DescriptorCache& descriptorCache{ ( *descriptorCaches )[ heapType ] };
-      const DX12DescriptorRegion* gpuDescriptor{
-        descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors ) };
+    dynmc DX12DescriptorCache& descriptorCache{ ( *descriptorCaches )[ heapType ] };
+    const DX12DescriptorRegion* gpuDescriptor{
+      descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors ) };
 #else
-      DX12DescriptorHeap& heap{ renderer.mDescriptorHeapMgr.mGPUHeaps[ heapType ] };
-      DX12DescriptorAllocator* descriptorAllocator{ heap.GetRegionMgr() };
-      const int nDescriptors{ cpuDescriptors.size() };
-      mDescriptorRegion = ( DX12DescriptorRegion&& )descriptorAllocator->Alloc( nDescriptors );
-      DX12DescriptorRegion* gpuDescriptor{ &mDescriptorRegion };
+    DX12DescriptorHeap& heap{ renderer.mDescriptorHeapMgr.mGPUHeaps[ heapType ] };
+    DX12DescriptorAllocator* descriptorAllocator{ heap.GetRegionMgr() };
+    const int nDescriptors{ cpuDescriptors.size() };
+    mDescriptorRegion = ( DX12DescriptorRegion&& )descriptorAllocator->Alloc( nDescriptors );
+    DX12DescriptorRegion* gpuDescriptor{ &mDescriptorRegion };
 #endif
 
-      for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
-      {
-        DX12Descriptor cpuDescriptor { cpuDescriptors[ iDescriptor ] };
-        DX12DescriptorHeap* srcHeap{ cpuDescriptor.mOwner };
-        TAC_ASSERT( srcHeap );
-        TAC_ASSERT( srcHeap->GetType() == heapType );
-        const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
-        const D3D12_CPU_DESCRIPTOR_HANDLE dst{ gpuDescriptor->GetCPUHandle( iDescriptor ) };
-        TAC_ASSERT( src.ptr );
-        TAC_ASSERT( dst.ptr );
-        device->CopyDescriptorsSimple( 1, dst, src, heapType );
-      }
+    for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
+    {
+      DX12Descriptor cpuDescriptor { cpuDescriptors[ iDescriptor ] };
+      DX12DescriptorHeap* srcHeap{ cpuDescriptor.mOwner };
+      TAC_ASSERT( srcHeap );
+      TAC_ASSERT( srcHeap->GetType() == heapType );
+      const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
+      const D3D12_CPU_DESCRIPTOR_HANDLE dst{ gpuDescriptor->GetCPUHandle( iDescriptor ) };
+      TAC_ASSERT( src.ptr );
+      TAC_ASSERT( dst.ptr );
+      device->CopyDescriptorsSimple( 1, dst, src, heapType );
 
       const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
       if( isCompute )
@@ -374,9 +454,14 @@ namespace Tac::Render
       {
         mPipelineDynamicArray.Commit( commitParams );
       }
+      else if( mType == Type::kBindlessArray )
+      {
+        // gross gross gross gross gross gross gross gross 
+        ( ( BindlessArray* )mBindlessArray )->Commit( commitParams );
+      }
       else
       {
-        TAC_ASSERT_UNIMPLEMENTED;
+        TAC_ASSERT_INVALID_CODE_PATH;
       }
     }
     else

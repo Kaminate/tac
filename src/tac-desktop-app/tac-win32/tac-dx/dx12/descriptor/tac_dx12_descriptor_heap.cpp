@@ -221,12 +221,12 @@ namespace Tac::Render
     ID3D12Device* device{ renderer.mDevice };
     TAC_CALL( InitGPUHeap( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
                            kMaxGPUDescriptorsCBV_SRV_UAV,
-                           "gpu cbv_srv_uav heap",
+                           "gpu_resources",
                            errors ) );
 
     TAC_CALL( InitGPUHeap( D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
                            kMaxGPUDescriptorsSampler,
-                           "gpu sampler heap",
+                           "gpu_samplers",
                            errors ) );
   }
 

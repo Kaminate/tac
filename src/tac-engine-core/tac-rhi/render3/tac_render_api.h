@@ -3,6 +3,7 @@
 #include "tac-std-lib/math/tac_vector2i.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/error/tac_stack_frame.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_span.h"
@@ -16,7 +17,12 @@
 // also you cant fwd decalre
 #define TAC_IS_IHANDLE_TEMPLATE() 0
 
-namespace Tac{ struct Errors; }
+namespace Tac {
+  template< typename T > struct IsPointer     { static constexpr bool value{}; };
+  template< typename T > struct IsPointer<T*> { static constexpr bool value{ true }; };
+  template< typename T > constexpr bool kIsPointer = IsPointer<T>::value;
+}
+
 namespace Tac::FileSys{ struct Path; }
 namespace Tac::Render
 {
@@ -389,15 +395,16 @@ namespace Tac::Render
 
     struct Binding
     {
-      bool IsValid() const { return mIndex != Binding{}.mIndex; }
-      int GetIndex() const { return mIndex; }
+      ctor Binding() = default;
+      ctor Binding( int );
+      bool IsValid() const;
+      int  GetIndex() const;
     private:
       int mIndex{ -1 };
     };
 
-    IBindlessArray( Params );
-
-    virtual Binding Bind( ResourceHandle ) = 0;
+    ctor            IBindlessArray( Params );
+    virtual Binding Bind( ResourceHandle, Errors& ) = 0;
     virtual void    Unbind( Binding ) = 0;
 
   protected:
@@ -409,7 +416,7 @@ namespace Tac::Render
   {
     virtual void SetResource( ResourceHandle )             {};
     virtual void SetResourceAtIndex( ResourceHandle, int ) {};
-    virtual void SetBindlessArray( IBindlessArray* ) {};
+    virtual void SetBindlessArray( IBindlessArray* )       {};
   };
 
   struct CreateSamplerParams
@@ -465,6 +472,7 @@ namespace Tac::Render
 #if 1
     template< typename T > void UpdateBufferSimple( BufferHandle h, const T& t, Errors& errors )
     {
+      static_assert( !kIsPointer< T > );
       const UpdateBufferParams params
       { 
         .mSrcBytes     { &t },

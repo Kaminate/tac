@@ -71,7 +71,6 @@ namespace Tac
     struct Params
     {
       AssetPathStringView mFilepath;
-      bool                mIsCubemap{};
     };
 
     TextureLoadJob( Params );
@@ -129,7 +128,7 @@ namespace Tac
   TextureLoadJob::TextureLoadJob( Params params )
   {
     mFilepath = params.mFilepath;
-    mIsCubemap = params.mIsCubemap;
+    mIsCubemap = FileSys::IsDirectory( mFilepath );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -591,7 +590,9 @@ namespace Tac
         TAC_ASSERT( sBindlessArray );
       }
 
-      const Render::IBindlessArray::Binding binding{ sBindlessArray->Bind( texture ) };
+      TAC_CALL( const Render::IBindlessArray::Binding binding{
+        sBindlessArray->Bind( texture, errors ) } );
+
       const LoadedTexture loadedTexture
       {
         .mTextureHandle { texture },
@@ -606,6 +607,9 @@ namespace Tac
   static void LoadTextureAux( TextureLoadJob::Params params,
                                 Errors& errors )
   {
+    if( params.mFilepath.empty() )
+      return;
+
     const StringID id( params.mFilepath );
     if( TextureLoadJob* asyncTexture { FindLoadingTexture( id ) } )
     {
@@ -622,61 +626,25 @@ namespace Tac
   Render::TextureHandle TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
                                                          Errors& errors )
   {
-    if( textureFilepath.empty() )
-      return {};
-
-    const StringID id( textureFilepath );
-
-    if( LoadedTexture* loadedTexture{ FindLoadedTexture( id ) };
-        loadedTexture->mTextureHandle.IsValid() )
+    if( LoadedTexture* loadedTexture{ FindLoadedTexture( textureFilepath ) };
+        loadedTexture && loadedTexture->mTextureHandle.IsValid() )
       return loadedTexture->mTextureHandle;
 
-    const TextureLoadJob::Params params
-    {
-      .mFilepath  { textureFilepath },
-      .mIsCubemap {},
-    };
+    const TextureLoadJob::Params params{ .mFilepath  { textureFilepath }, };
     LoadTextureAux( params, errors );
     return {};
   }
 
   Render::IBindlessArray::Binding
-    TextureAssetManager::GetBindlessTextureIndex( const AssetPathStringView textureFilepath,
-                                                  Errors& errors )
+    TextureAssetManager::GetBindlessIndex( const AssetPathStringView textureFilepath,
+                                           Errors& errors )
   {
-    if( textureFilepath.empty() )
-      return {};
 
-    const StringID id( textureFilepath );
-
-    if( LoadedTexture* loadedTexture{ FindLoadedTexture( id ) };
+    if( LoadedTexture* loadedTexture{ FindLoadedTexture( textureFilepath ) };
         loadedTexture && loadedTexture->mBinding.IsValid() )
       return loadedTexture->mBinding;
 
-    const TextureLoadJob::Params params
-    {
-      .mFilepath  { textureFilepath },
-      .mIsCubemap { true },
-    };
-
-    LoadTextureAux( textureFilepath, errors );
-    return {};
-  }
-
-  Render::TextureHandle TextureAssetManager::GetTextureCube( const AssetPathStringView textureDir,
-                                                             Errors& errors )
-  {
-    const StringID id( textureDir );
-    if( const LoadedTexture* loadedTexture{ FindLoadedTexture( id ) };
-        loadedTexture && loadedTexture->mTextureHandle.IsValid() )
-      return loadedTexture->mTextureHandle;
-
-    const TextureLoadJob::Params params
-    {
-      .mFilepath  { textureDir },
-      .mIsCubemap { true },
-    };
-
+    const TextureLoadJob::Params params { .mFilepath  { textureFilepath }, };
     LoadTextureAux( params, errors );
     return {};
   }

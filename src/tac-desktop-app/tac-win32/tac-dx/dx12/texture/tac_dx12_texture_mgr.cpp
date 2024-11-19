@@ -262,7 +262,7 @@ namespace Tac::Render
     }
 
     DX12Context* context{ mContextManager->GetContext( errors ) };
-    DX12Context::Scope contextScope{ context };
+    IContext::Scope contextScope{ context };
 
     //ID3D12Resource* pResource { resource.Get() };
 
