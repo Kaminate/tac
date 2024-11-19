@@ -32,12 +32,12 @@ struct Tac::Map
 
   struct ConstIterator
   {
-    void  operator ++();
+    void        operator ++();
     const Pair& operator *() const            { return mCur->mPair; }
+    operator    bool() const                  { return mCur && mCur->mOccupied; }
+    const TVal& GetValue() const              { return mCur->mPair.mSecond; }
 
     bool  operator ==( const ConstIterator& ) const = default;
-    operator bool() const                     { return mCur && mCur->mOccupied; }
-    TVal GetValue() const                     { return mCur->mPair.mSecond; }
 
     const Node* mCur       {};
     int         mRemaining {};
@@ -45,12 +45,12 @@ struct Tac::Map
 
   struct Iterator
   {
-    void  operator ++();
-    Pair& operator *() const                  { return mCur->mPair; }
+    void        operator ++();
+    Pair&       operator *() const            { return mCur->mPair; }
+    operator    bool() const                  { return mCur && mCur->mOccupied; }
+    dynmc TVal& GetValue() const              { return mCur->mPair.mSecond; }
 
     bool  operator ==( const Iterator& ) const = default;
-    operator bool() const                     { return mCur && mCur->mOccupied; }
-    TVal GetValue() const                     { return mCur->mPair.mSecond; }
 
     Node* mCur       {};
     int   mRemaining {};

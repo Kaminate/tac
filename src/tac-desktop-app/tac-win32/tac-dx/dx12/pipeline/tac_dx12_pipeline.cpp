@@ -42,7 +42,7 @@ namespace Tac::Render
   }
 
   void                   DX12Pipeline::Variable::SetBindlessArray(
-    IShaderBindlessArray* bindlessArray )
+    IBindlessArray* bindlessArray )
   {
     RootParameterBinding* rootParameterBinding{ GetRootParameterBinding() };
     rootParameterBinding->mBindlessArray = bindlessArray;

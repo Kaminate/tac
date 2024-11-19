@@ -68,8 +68,7 @@ namespace Tac::Render
     // Resources can be bound in an array, or as a handle, depending
     // on the resource type
     PipelineDynamicArray  mPipelineDynamicArray {};
-    IShaderBindlessArray* mBindlessArray        {}; // not owned
-    //IPipelineArray*       mPipelineArray        {};
+    IBindlessArray*       mBindlessArray        {}; // not owned
     ResourceHandle        mResourceHandle       {};
 
     D3D12ProgramBindDesc  mProgramBindDesc      {};
@@ -83,10 +82,9 @@ namespace Tac::Render
     PipelineBindCache( const D3D12ProgramBindDescs& );
   };
 
-
   // bindless, DX12DescriptorRegion persists between draw calls
-  struct PipelineBindlessArray : // public IPipelineArray ,
-    public IShaderBindlessArray // ???
+  // ( as oppposed to a PipelineDynamicArray, where a DX12DescriptorRegion is allocated per call )
+  struct BindlessArray : public IBindlessArray
   {
     Binding                Bind( ResourceHandle ) override;
     void                   Unbind( Binding ) override;

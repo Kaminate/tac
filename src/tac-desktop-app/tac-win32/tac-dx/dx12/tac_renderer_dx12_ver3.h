@@ -118,5 +118,6 @@ namespace Tac::Render
     void            DestroyTexture( TextureHandle ) override;
 
     IContext::Scope CreateRenderContext( Errors& ) override;
+    IBindlessArray* CreateBindlessArray() override;
   };
 } // namespace Tac::Render

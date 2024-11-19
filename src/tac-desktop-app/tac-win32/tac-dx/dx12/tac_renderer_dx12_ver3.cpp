@@ -293,6 +293,11 @@ namespace Tac::Render
     return IContext::Scope( context );
   }
 
+  IBindlessArray*   DX12Device::CreateBindlessArray()
+  {
+    return TAC_NEW BindlessArray;
+  }
+
   TextureHandle     DX12Device::CreateTexture( CreateTextureParams params, Errors& errors )
   {
     return  DX12Renderer::sRenderer.mTexMgr.CreateTexture( params, errors );

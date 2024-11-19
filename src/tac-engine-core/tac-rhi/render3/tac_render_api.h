@@ -379,9 +379,13 @@ namespace Tac::Render
     int mStartIndex    {};
   };
 
-  struct IShaderBindlessArray
+  struct IBindlessArray
   {
-    struct Binding { int mIndex; };
+    struct Binding
+    {
+      bool IsValid() const { return mIndex != -1 ; }
+      int mIndex{ -1 };
+    };
 
     virtual Binding Bind( ResourceHandle ) = 0;
     virtual void    Unbind( Binding ) = 0;
@@ -391,7 +395,7 @@ namespace Tac::Render
   {
     virtual void SetResource( ResourceHandle )             {};
     virtual void SetResourceAtIndex( ResourceHandle, int ) {};
-    virtual void SetBindlessArray( IShaderBindlessArray* ) {};
+    virtual void SetBindlessArray( IBindlessArray* ) {};
   };
 
   struct CreateSamplerParams
@@ -538,6 +542,7 @@ namespace Tac::Render
     virtual void            DestroyTexture( TextureHandle )                  {}
 
     virtual IContext::Scope CreateRenderContext( Errors& )                   { return {}; }
+    virtual IBindlessArray* CreateBindlessArray()                            { return {}; }
   };
 }
 

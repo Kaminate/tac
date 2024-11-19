@@ -6,7 +6,9 @@
 
 namespace Tac::TextureAssetManager
 {
-  Render::TextureHandle GetTexture( AssetPathStringView, Errors& );
-  Render::TextureHandle GetTextureCube( AssetPathStringView, Errors& );
+  Render::TextureHandle                 GetTexture( AssetPathStringView, Errors& );
+  Render::IBindlessArray::Binding GetBindlessTextureIndex( AssetPathStringView, Errors& );
+  Render::TextureHandle                 GetTextureCube( AssetPathStringView, Errors& );
+  Render::IBindlessArray*         GetBindlessArray();
 }
 

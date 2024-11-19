@@ -77,7 +77,7 @@ namespace Tac::Render
     return FormatElement
     {
       .mPerElementByteCount { sizeof( float ) },
-      .mPerElementDataType { GraphicsType::real },
+      .mPerElementDataType  { GraphicsType::real },
     };
   };
 

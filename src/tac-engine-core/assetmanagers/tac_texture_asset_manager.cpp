@@ -113,7 +113,17 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   static Map< StringID, TextureLoadJob* >       mLoadingTextures;
-  static Map< StringID, Render::TextureHandle > mLoadedTextures;
+
+  static Render::IBindlessArray*          sBindlessArray;
+
+  struct LoadedTexture
+  {
+    Render::TextureHandle                 mTextureHandle;
+    Render::IBindlessArray::Binding mBinding;
+  };
+
+  using LoadedTextureMap = Map< StringID, LoadedTexture >;
+  static LoadedTextureMap mLoadedTextures;
 
 
   TextureLoadJob::TextureLoadJob( Params params )
@@ -545,9 +555,10 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static Render::TextureHandle FindLoadedTexture( const StringID& key )
+  static LoadedTexture* FindLoadedTexture( const StringID& key )
   {
-    return mLoadedTextures.FindVal( key ).GetValueOr( {} );
+    LoadedTextureMap::Iterator it { mLoadedTextures.Find( key ) };
+    return it ? &it.GetValue() : nullptr;
   }
 
   static TextureLoadJob*       FindLoadingTexture( const StringID& key )
@@ -564,30 +575,37 @@ namespace Tac
     if( status == JobState::ThreadFinished )
     {
       TAC_RAISE_ERROR_IF( asyncTexture->mErrors, asyncTexture->mErrors.ToString() );
-      TAC_CALL( Render::TextureHandle texture { asyncTexture->CreateTexture( errors )  } );
+      TAC_CALL( const Render::TextureHandle texture { asyncTexture->CreateTexture( errors )  } );
       mLoadingTextures.erase( id );
       TAC_DELETE asyncTexture;
-      mLoadedTextures[ id ] = texture;
+
+      if( !sBindlessArray )
+      {
+        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+        sBindlessArray = renderDevice->CreateBindlessArray();
+        TAC_ASSERT( sBindlessArray );
+      }
+
+      const Render::IBindlessArray::Binding binding{ sBindlessArray->Bind( texture ) };
+      const LoadedTexture loadedTexture
+      {
+        .mTextureHandle { texture },
+        .mBinding       { binding },
+      };
+      mLoadedTextures[ id ] = loadedTexture;
     }
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  Render::TextureHandle TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
+  static void StartLoadTexture( const AssetPathStringView textureFilepath,
                                                          Errors& errors )
   {
-    if( textureFilepath.empty() )
-      return {};
-
     const StringID id( textureFilepath );
-
-    if( Render::TextureHandle texture{ FindLoadedTexture( id ) }; texture.IsValid() )
-      return texture;
-
     if( TextureLoadJob* asyncTexture { FindLoadingTexture( id ) } )
     {
       UpdateTextureLoadJob( textureFilepath, asyncTexture, errors );
-      return {};
+      return;
     }
 
     const TextureLoadJob::Params params
@@ -599,6 +617,38 @@ namespace Tac
 
     mLoadingTextures[ textureFilepath ] = asyncTexture;
     JobQueuePush( asyncTexture );
+  }
+
+  Render::TextureHandle TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
+                                                         Errors& errors )
+  {
+    if( textureFilepath.empty() )
+      return {};
+
+    const StringID id( textureFilepath );
+
+    if( LoadedTexture* loadedTexture{ FindLoadedTexture( id ) };
+        loadedTexture->mTextureHandle.IsValid() )
+      return loadedTexture->mTextureHandle;
+
+    StartLoadTexture( textureFilepath, errors );
+    return {};
+  }
+
+  Render::IBindlessArray::Binding
+    TextureAssetManager::GetBindlessTextureIndex( const AssetPathStringView textureFilepath,
+                                                  Errors& errors )
+  {
+    if( textureFilepath.empty() )
+      return {};
+
+    const StringID id( textureFilepath );
+
+    if( LoadedTexture* loadedTexture{ FindLoadedTexture( id ) };
+        loadedTexture->mBinding.IsValid() )
+      return loadedTexture->mBinding;
+
+    StartLoadTexture( textureFilepath, errors );
     return {};
   }
 
@@ -625,4 +675,9 @@ namespace Tac
     JobQueuePush( asyncTexture );
     return {};
   }
-}
+
+  Render::IBindlessArray* TextureAssetManager::GetBindlessArray()
+  {
+    return sBindlessArray;
+  }
+} // namespace Tac

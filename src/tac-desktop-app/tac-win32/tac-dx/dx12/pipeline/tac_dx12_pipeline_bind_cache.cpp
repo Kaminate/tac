@@ -21,7 +21,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void                          PipelineBindlessArray::CheckType( ResourceHandle h )
+  void                          BindlessArray::CheckType( ResourceHandle h )
   {
     if constexpr ( !kIsDebugMode )
       return;
@@ -33,12 +33,12 @@ namespace Tac::Render
     TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
   }
 
-  void                          PipelineBindlessArray::SetFenceSignal( FenceSignal fenceSignal )
+  void                          BindlessArray::SetFenceSignal( FenceSignal fenceSignal )
   {
     mFenceSignal = fenceSignal;
   }
 
-  void                          PipelineBindlessArray::Resize( const int newSize )
+  void                          BindlessArray::Resize( const int newSize )
   {
     const int oldSize{ mHandles.size() };
 
@@ -69,7 +69,7 @@ namespace Tac::Render
     mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
   }
 
-  IShaderBindlessArray::Binding PipelineBindlessArray::Bind( ResourceHandle h )
+  IBindlessArray::Binding BindlessArray::Bind( ResourceHandle h )
   {
     CheckType( h );
 
@@ -91,7 +91,7 @@ namespace Tac::Render
     return binding;
   }
 
-  void                          PipelineBindlessArray::Unbind( Binding binding )
+  void                          BindlessArray::Unbind( Binding binding )
   {
     mUnusedBindings.push_back( binding );
     mHandles[ binding.mIndex ] = IHandle::kInvalidIndex;
