@@ -30,10 +30,18 @@ namespace Tac::Render
   void                   DX12Pipeline::Variable::SetResource( ResourceHandle h ) 
   {
     RootParameterBinding* rootParameterBinding{ GetRootParameterBinding() };
-    TAC_ASSERT( rootParameterBinding->mType == RootParameterBinding::Type::kResourceHandle );
-    TAC_ASSERT( !rootParameterBinding->mProgramBindDesc.BindsAsDescriptorTable() );
-    TAC_ASSERT( !rootParameterBinding->mBindlessArray );
-    rootParameterBinding->mResourceHandle = h;
+
+    if( rootParameterBinding->mProgramBindDesc.BindsAsDescriptorTable() )
+    {
+      SetResourceAtIndex( h, 0 );
+    }
+    else
+    {
+      TAC_ASSERT( rootParameterBinding->mType == RootParameterBinding::Type::kResourceHandle );
+      TAC_ASSERT( !rootParameterBinding->mProgramBindDesc.BindsAsDescriptorTable() );
+      TAC_ASSERT( !rootParameterBinding->mBindlessArray );
+      rootParameterBinding->mResourceHandle = h;
+    }
   }
 
   void                   DX12Pipeline::Variable::SetResourceAtIndex( ResourceHandle h, int i )
