@@ -149,15 +149,22 @@ namespace Tac
     TAC_ASSERT( dstVtxBytes.size() );
     TAC_UNUSED_PARAMETER( dstVtxStride );
 
+    const Render::Binding binding
+    {
+      Render::Binding::VertexBuffer | // IASetVertexBuffers
+      Render::Binding::ShaderResource // bindless
+    };
+
     const Render::CreateBufferParams createBufferParams
     {
-      .mByteCount    { dstVtxBytes.size() },
-      .mBytes        { dstVtxBytes.data() },
-      .mStride       { dstVtxStride },
-      .mUsage        { Render::Usage::Static },
-      .mBinding      { Render::Binding::VertexBuffer },
-      .mOptionalName { bufferName },
-      .mStackFrame   { TAC_STACK_FRAME },
+      .mByteCount     { dstVtxBytes.size() },
+      .mBytes         { dstVtxBytes.data() },
+      .mStride        { dstVtxStride },
+      .mUsage         { Render::Usage::Static },
+      .mBinding       { binding },
+      .mGpuBufferMode { Render::GpuBufferMode::kByteAddress },
+      .mOptionalName  { bufferName },
+      .mStackFrame    { TAC_STACK_FRAME },
     };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::BufferHandle vertexBuffer {
@@ -174,7 +181,7 @@ namespace Tac
       .mStride       { sizeof( Render::GPUInputLayout ) },
       .mUsage        { Render::Usage::Static },
       .mBinding      { Render::Binding::ShaderResource },
-      .mGpuBufferMode{ Render::GpuBufferMode::kUndefined },
+      .mGpuBufferMode{ Render::GpuBufferMode::kByteAddress },
       .mOptionalName { "input layout" },
       .mStackFrame   { TAC_STACK_FRAME },
     };
