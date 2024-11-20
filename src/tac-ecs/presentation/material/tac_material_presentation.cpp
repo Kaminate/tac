@@ -42,10 +42,16 @@ namespace Tac
 
   struct ConstBufData_ShaderGraph
   {
-    static ConstBufData_ShaderGraph Get( const Entity*,
-                                         const Model*,
-                                         const Material*,
-                                         const Render::RenderMaterial* );
+    struct Params
+    {
+      const Entity*                 mEntity         {};
+      const Model*                  mModel          {};
+      const Mesh*                   mMesh           {};
+      const SubMesh*                mSubMesh        {};
+      const Material*               mMaterial       {};
+      const Render::RenderMaterial* mRenderMaterial {};
+    };
+    static ConstBufData_ShaderGraph Get( const Params& );
     m4  mWorld              {};
     u32 mVertexBufferIndex  { ( u32 )-1 };
     u32 mInputLayoutIndex   { ( u32 )-1 };
@@ -60,9 +66,10 @@ namespace Tac
     u32           mSpecularTextureIdx {};
   };
 
-  static Render::BufferHandle          sConstBufHandle_PerFrame    {};
-  static Render::BufferHandle          sConstBufHandle_Material    {};
-  static Render::BufferHandle          sConstBufHandle_ShaderGraph {};
+  Render::BufferHandle          MaterialPresentation::sConstBufHandle_PerFrame    {};
+  Render::BufferHandle          MaterialPresentation::sConstBufHandle_Material    {};
+  Render::BufferHandle          MaterialPresentation::sConstBufHandle_ShaderGraph {};
+
   static bool                          sEnabled                    { true };
   static bool                          sInitialized                {};
 
@@ -97,8 +104,9 @@ namespace Tac
   }
 
   static ConstBufData_Material GetMaterialParams( const Model* model,
-                                         const Material* material )// <-- todo: use 
+                                                  const Material* material )// <-- todo: use 
   {
+    TAC_ASSERT_UNIMPLEMENTED;
     return ConstBufData_Material
     {
       .mColor              {},
@@ -109,97 +117,55 @@ namespace Tac
     };
   }
 
-  ConstBufData_ShaderGraph
-    ConstBufData_ShaderGraph::Get( const Entity* entity,
-                                   const Model* model,
-                                   const Material* material,
-                                   const Render::RenderMaterial* renderMaterial )
+  ConstBufData_ShaderGraph ConstBufData_ShaderGraph::Get( const Params& params )
   {
-
-    struct Getter
+    struct Handle
     {
-      ConstBufData_ShaderGraph Get( const Entity* entity,
-                                    const Model* model,
-                                    const Material* material,
-                                    const Render::RenderMaterial* renderMaterial )
+      static void WorldMatrix( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
       {
-        ConstBufData_ShaderGraph result{};
-
-        const Params params
-        {
-          .mEntity         { entity },
-          .mModel          { model },
-          .mMaterial       { material },
-          .mRenderMaterial { renderMaterial },
-          .mShaderGraph    { &result },
-        };
-
-        const MaterialInput& materialInput{ renderMaterial->mShaderGraph.mMaterialInputs };
-
-        const int n{ ( int )MaterialInput::Type::kCount };
-        for( int i{}; i < n; ++i )
-        {
-          const MaterialInput::Type type{ ( MaterialInput::Type )i };
-          if( materialInput.IsSet( type ) )
-          {
-            const Handler handler{ mHandlers[ i ] };
-            handler( params );
-          }
-        }
-
-        return result;
+        shaderGraph->mWorld = params.mEntity->mWorldTransform;
       }
 
-      Getter()
+      static void VertexBuffer( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
       {
-        mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle_VertexBuffer;
-        mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle_WorldMatrix;
-        mHandlers[ ( int )MaterialInput::Type::kInputLayout ] = Handle_InputLayout;
-
-        for( Handler handler : mHandlers )
-        {
-          TAC_ASSERT( handler );
-        }
+        TAC_ASSERT( params.mSubMesh->mVertexBufferBinding.IsValid() );
+        shaderGraph->mVertexBufferIndex = ( u32 )params.mSubMesh->mVertexBufferBinding.GetIndex();
       }
 
-    private:
-
-      struct Params
+      static void InputLayout( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
       {
-        // input
-        const Entity* mEntity;
-        const Model* mModel;
-        const Material* mMaterial;
-        const Render::RenderMaterial* mRenderMaterial;
-
-        // output
-        dynmc ConstBufData_ShaderGraph* mShaderGraph;
-      };
-
-      using Handler = void ( * )( const Params& );
-
-      static void Handle_WorldMatrix( const Params& params )
-      {
-        params.mShaderGraph->mWorld = params.mEntity->mWorldTransform;
+        TAC_ASSERT( params.mMesh->mGPUInputLayoutBinding.IsValid() );
+        shaderGraph->mInputLayoutIndex = ( u32 )params.mMesh->mGPUInputLayoutBinding.GetIndex();
       }
-
-      static void Handle_VertexBuffer( const Params& params )
-      {
-        params.mShaderGraph->mVertexBufferIndex = ( u32 )-1;
-      }
-
-      static void Handle_InputLayout( const Params& params )
-      {
-        params.mShaderGraph->mInputLayoutIndex = ( u32 )-1;
-      }
-
-
-      Handler mHandlers[ ( int )MaterialInput::Type::kCount ]{};
     };
 
-    static Getter getter;
+    using HandleFn = void ( * )( const Params&, dynmc ConstBufData_ShaderGraph* );
 
-    return getter.Get( entity, model, material, renderMaterial );
+    HandleFn mHandlers[ ( int )MaterialInput::Type::kCount ]{};
+    mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle::VertexBuffer;
+    mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle::WorldMatrix;
+    mHandlers[ ( int )MaterialInput::Type::kInputLayout ] = Handle::InputLayout;
+    for( HandleFn handler : mHandlers )
+    {
+      TAC_ASSERT( handler );
+    }
+
+    ConstBufData_ShaderGraph shaderGraph{};
+
+    const MaterialInput& materialInput{ params.mRenderMaterial->mShaderGraph.mMaterialInputs };
+    const int n{ ( int )MaterialInput::Type::kCount };
+    for( int i{}; i < n; ++i )
+    {
+      const MaterialInput::Type type{ ( MaterialInput::Type )i };
+      if( materialInput.IsSet( type ) )
+      {
+        const HandleFn handler{ mHandlers[ i ] };
+        handler( params, &shaderGraph );
+      }
+    }
+
+    return shaderGraph;
+
   }
 
 
@@ -226,16 +192,16 @@ namespace Tac
     Render::RenderMaterialApi::Init();
 
     TAC_CALL( sConstBufHandle_PerFrame = CreateDynCBuf( sizeof( ConstBufData_PerFrame ),
-                                                  "material-presentation-per-frame",
-                                                  errors ) );
+                                                        "material-presentation-per-frame",
+                                                        errors ) );
 
     TAC_CALL( sConstBufHandle_Material = CreateDynCBuf( sizeof( ConstBufData_Material ),
-                                                  "material-presentation-material",
-                                                  errors ) );
+                                                        "material-presentation-material",
+                                                        errors ) );
 
     TAC_CALL( sConstBufHandle_ShaderGraph = CreateDynCBuf( sizeof( ConstBufData_ShaderGraph ),
-                                                     "material-presentation-shader-graph",
-                                                     errors ) );
+                                                           "material-presentation-shader-graph",
+                                                           errors ) );
 
     sInitialized = true;
   }
@@ -294,16 +260,14 @@ namespace Tac
       if( !material->mRenderEnabled )
         continue;
 
-      const Render::VertexDeclarations vtxDecls{};
-
-      const ModelAssetManager::Params meshParams
-      {
-        .mPath        { model->mModelPath.c_str() },
-        .mModelIndex  { model->mModelIndex },
-        .mOptVtxDecls { vtxDecls },
-      };
-
-      TAC_CALL( const Mesh * mesh{ ModelAssetManager::GetMesh( meshParams, errors ) } );
+      TAC_CALL( const Mesh * mesh{
+        ModelAssetManager::GetMesh(
+          ModelAssetManager::Params
+          {
+            .mPath        { model->mModelPath.c_str() },
+            .mModelIndex  { model->mModelIndex },
+          },
+          errors ) } );
       if( !mesh )
         return;
 
@@ -312,48 +276,51 @@ namespace Tac
       TAC_CALL( Render::RenderMaterial* renderMaterial{
         Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );
 
-      const ConstBufData_ShaderGraph constBufData_ShaderGraph{
-        ConstBufData_ShaderGraph::Get( entity, model ,material, renderMaterial ) };
-      TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_ShaderGraph,
-                                                   constBufData_ShaderGraph,
-                                                   errors ) );
 
-      const ConstBufData_Material constBufData_Material{
-        GetMaterialParams( model ,material ) };
+      const ConstBufData_Material constBufData_Material{ GetMaterialParams( model ,material ) };
       TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_Material,
                                                    constBufData_Material,
                                                    errors ) );
 
 
-      // $$$ gross
-      if( !renderMaterial->mAreShaderVarsSet )
-      {
-        renderMaterial->mShaderVar_PerFrame->SetResource( sConstBufHandle_PerFrame );
-        renderMaterial->mShaderVar_Material->SetResource( sConstBufHandle_Material );
-        renderMaterial->mShaderVar_ShaderGraph->SetResource( sConstBufHandle_ShaderGraph );
-
-        mesh->mGPUInputLayoutBuffer;
-
-        TAC_ASSERT_UNIMPLEMENTED;
-
-        //renderMaterial->mShaderVar_Buffers->SetBufferAtIndex( ... );
-        renderMaterial->mAreShaderVarsSet = true;
-      }
 
       renderContext->SetPipeline( renderMaterial->mMeshPipeline );
       renderContext->CommitShaderVariables();
 
+      // [ ] Q: Do uhh, do all the submeshes share the same material?
+      //        
+      //        in unity3d, you can only use multiple materials if
+      //        a meshrenderer has multiple submeshes
+
       const int nSubMeshes{ mesh->mSubMeshes.size() };
-      for( const SubMesh& subMesh : mesh->mSubMeshes )
+      for( int iSubMesh{}; iSubMesh < nSubMeshes; ++iSubMesh )
       {
+        const SubMesh& subMesh { mesh->mSubMeshes[ iSubMesh ] };
         const Render::DrawArgs drawArgs
         {
           .mVertexCount { subMesh.mVertexCount },
           .mIndexCount  { subMesh.mIndexCount },
         };
 
+        const ConstBufData_ShaderGraph constBufData_ShaderGraph{
+          ConstBufData_ShaderGraph::Get(
+            ConstBufData_ShaderGraph::Params
+            {
+              .mEntity         { entity },
+              .mModel          { model },
+              .mMesh           { mesh },
+              .mSubMesh        { &subMesh },
+              .mMaterial       { material },
+              .mRenderMaterial { renderMaterial },
+            } ) };
+        TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_ShaderGraph,
+                                                     constBufData_ShaderGraph,
+                                                     errors ) );
+
         renderContext->DebugMarker( subMesh.mName );
-        renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
+        // | we bindless now
+        // v
+        //renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
         renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
         renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
         renderContext->Draw( drawArgs );

@@ -188,9 +188,9 @@ namespace Tac
   {
     const ModelAssetManager::Params meshParams
     {
-      .mPath {model->mModelPath},
-      .mModelIndex {model->mModelIndex},
-      .mOptVtxDecls {m3DVertexFormatDecls},
+      .mPath        { model->mModelPath },
+      .mModelIndex  { model->mModelIndex },
+      .mOptVtxDecls { m3DVertexFormatDecls },
     };
     return ModelAssetManager::GetMesh( meshParams, errors );
   }

@@ -17,16 +17,16 @@ namespace Tac::Render
   {
     void Uninit();
 
-    AssetPathString               mShaderGraphPath       {};
-    ShaderGraph                   mShaderGraph           {};
-    HashValue                     mMaterialShaderHash    {};
-    Render::ProgramHandle         m3DShader              {};
-    Render::PipelineHandle        mMeshPipeline          {};
-    Render::IShaderVar*           mShaderVar_PerFrame    {};
-    Render::IShaderVar*           mShaderVar_Material    {};
-    Render::IShaderVar*           mShaderVar_ShaderGraph {};
-    Render::IShaderVar*           mShaderVar_Buffers     {};
-    bool                          mAreShaderVarsSet      {};
+    AssetPathString               mShaderGraphPath            {};
+    ShaderGraph                   mShaderGraph                {};
+    HashValue                     mMaterialShaderHash         {};
+    Render::ProgramHandle         m3DShader                   {};
+    Render::PipelineHandle        mMeshPipeline               {};
+
+    Render::IShaderVar*           mShaderVar_cbuf_PerFrame    {};
+    Render::IShaderVar*           mShaderVar_cbuf_Material    {};
+    Render::IShaderVar*           mShaderVar_cbuf_ShaderGraph {};
+    Render::IShaderVar*           mShaderVar_Buffers          {};
   };
 
   // The instance data of RenderMaterial.

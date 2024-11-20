@@ -23,6 +23,10 @@ namespace Tac
                                Render::TextureHandle depth,
                                Errors& );
     static void        DebugImGui();
+
+    static Render::BufferHandle sConstBufHandle_PerFrame;
+    static Render::BufferHandle sConstBufHandle_Material;
+    static Render::BufferHandle sConstBufHandle_ShaderGraph;
   };
 }
 

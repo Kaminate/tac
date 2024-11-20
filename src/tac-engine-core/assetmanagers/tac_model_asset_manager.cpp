@@ -21,6 +21,7 @@
 namespace Tac
 {
   static Map< HashValue, Mesh* >   sMeshMap;
+  static Render::IBindlessArray*   sModelBindlessArray;
 
   static HashValue HashVertexDeclaration( const Render::VertexDeclaration& vertexDeclaration )
   {
@@ -63,6 +64,22 @@ namespace Tac
     return hashedValue;
   }
 
+  static void BindlessModelArrayInit()
+  {
+    const Render::IBindlessArray::Params bindlessArrayParams
+    {
+      .mHandleType { Render::HandleType::kBuffer },
+      .mBinding    { Render::Binding::ShaderResource },
+    };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    sModelBindlessArray = renderDevice->CreateBindlessArray( bindlessArrayParams );
+  }
+
+  static void FileFormatLoadersInit()
+  {
+    WavefrontObj::Init();
+    GltfLoaderInit();
+  }
 
   // -----------------------------------------------------------------------------------------------
   
@@ -90,10 +107,15 @@ namespace Tac
     return mesh;
   }
 
+  Render::IBindlessArray* ModelAssetManager::GetBindlessArray()
+  {
+    return sModelBindlessArray;
+  }
+
   void  ModelAssetManager::Init()
   {
-    WavefrontObj::Init();
-    GltfLoaderInit();
+    FileFormatLoadersInit();
+    BindlessModelArrayInit();
   }
 
   void  ModelAssetManager::Uninit()

@@ -400,8 +400,8 @@ namespace Tac
   }
 
   void ShadowPresentation::DebugImGui()
-{
-}
+  {
+  }
 
 } // namespace Tac
 #endif

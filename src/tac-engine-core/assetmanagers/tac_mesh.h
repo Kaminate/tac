@@ -30,10 +30,10 @@ namespace Tac
     MeshRaycastResult          SubMeshModelSpaceRaycast( MeshRay ) const;
     void                       ClearBuffers();
 
-    Render::PrimitiveTopology  mPrimitiveTopology    { Render::PrimitiveTopology::Unknown };
-
-    Render::BufferHandle       mVertexBuffer         {};
-    Render::BufferHandle       mIndexBuffer          {};
+    Render::PrimitiveTopology       mPrimitiveTopology   { Render::PrimitiveTopology::Unknown };
+    Render::BufferHandle            mVertexBuffer        {};
+    Render::BufferHandle            mIndexBuffer         {};
+    Render::IBindlessArray::Binding mVertexBufferBinding {};
 
     SubMeshTriangles           mTris                 {};
     int                        mIndexCount           {};
@@ -45,10 +45,11 @@ namespace Tac
   {
     MeshRaycastResult          MeshModelSpaceRaycast( MeshRay ) const;
 
-    Vector< SubMesh >          mSubMeshes            {};
-    Render::VertexDeclarations mVertexDecls          {};
-    Render::GPUInputLayout     mGPUInputLayout       {};
-    Render::BufferHandle       mGPUInputLayoutBuffer {};
+    Vector< SubMesh >               mSubMeshes             {};
+    Render::VertexDeclarations      mVertexDecls           {};
+    Render::GPUInputLayout          mGPUInputLayout        {};
+    Render::BufferHandle            mGPUInputLayoutBuffer  {};
+    Render::IBindlessArray::Binding mGPUInputLayoutBinding {};
   };
 
 } // namespace Tac

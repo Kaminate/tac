@@ -324,17 +324,24 @@ namespace Tac
         const cgltf_primitive_type supportedType { GetGltfFromTopology( topology ) };
         TAC_ASSERT( parsedPrim->type == supportedType );
 
+        Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };
+        TAC_CALL( const Render::IBindlessArray::Binding vtxBufBinding{
+          bindlessArray->Bind( vertexBuffer, errors ) } );
+
         const SubMesh subMesh
         {
           .mPrimitiveTopology    { topology },
           .mVertexBuffer         { vertexBuffer },
           .mIndexBuffer          { indexBuffer },
+          .mVertexBufferBinding  { vtxBufBinding },
           .mTris                 { tris },
           .mIndexCount           { indexCount },
           .mVertexCount          { vertexCount },
           .mName                 { StringView( bufferName ) },
         };
+
         submeshes.push_back( subMesh );
+
       }
     }
   }
@@ -356,12 +363,17 @@ namespace Tac
     TAC_CALL_RET( const Render::BufferHandle gpuInputLayoutBuffer{
       ConvertInputLayoutBuffer( gpuInputLayout, errors ) } );
 
+    Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };
+    TAC_CALL_RET( const Render::IBindlessArray::Binding gpuInputLayoutBinding{
+      bindlessArray->Bind( gpuInputLayoutBuffer, errors ) } );
+
     return Mesh
     {
-      .mSubMeshes            { submeshes },
-      .mVertexDecls          { vtxDecls },
-      .mGPUInputLayout       { gpuInputLayout },
-      .mGPUInputLayoutBuffer { gpuInputLayoutBuffer },
+      .mSubMeshes             { submeshes },
+      .mVertexDecls           { vtxDecls },
+      .mGPUInputLayout        { gpuInputLayout },
+      .mGPUInputLayoutBuffer  { gpuInputLayoutBuffer },
+      .mGPUInputLayoutBinding { gpuInputLayoutBinding },
     };
   }
 

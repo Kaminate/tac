@@ -1,6 +1,8 @@
 #include "tac_render_material.h" // self-inc
 
 #include "tac_render_material_cache.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-ecs/presentation/material/tac_material_presentation.h"
 
 namespace Tac::Render
 {
@@ -47,10 +49,9 @@ namespace Tac::Render
     // subpath within Tac::Render::ProgramAttribs::mDir (no ext)
     const Vector< String > inputs
     {
-      "MaterialTypes",
-      "MaterialPreVertexShader",
+      "preMaterialShader",
       shaderGraph.mMaterialShader,
-      "Material",
+      "postMaterialShader",
     };
 
     const String name{ [ & ]() { // remove folder from path
@@ -147,17 +148,31 @@ namespace Tac::Render
     Render::IShaderVar* svBuffers{
       renderDevice->GetShaderVariable( meshPipeline, "sBuffers" ) };
 
+
+    TAC_ASSERT(MaterialPresentation::sConstBufHandle_PerFrame.IsValid());
+    svPerFrame->SetResource( MaterialPresentation::sConstBufHandle_PerFrame );
+
+    TAC_ASSERT(MaterialPresentation::sConstBufHandle_Material.IsValid());
+    svMaterial->SetResource( MaterialPresentation::sConstBufHandle_Material );
+
+    TAC_ASSERT(MaterialPresentation::sConstBufHandle_ShaderGraph.IsValid());
+    svShaderGraph->SetResource( MaterialPresentation::sConstBufHandle_ShaderGraph );
+
+    Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };
+    TAC_ASSERT( bindlessArray );
+    svBuffers->SetBindlessArray( bindlessArray );
+
     const RenderMaterial renderMaterial
     {
-      .mShaderGraphPath       { material->mShaderGraph },
-      .mShaderGraph           { shaderGraph },
-      .mMaterialShaderHash    { hashValue },
-      .m3DShader              { program },
-      .mMeshPipeline          { meshPipeline },
-      .mShaderVar_PerFrame    { svPerFrame },
-      .mShaderVar_Material    { svMaterial },
-      .mShaderVar_ShaderGraph { svShaderGraph },
-      .mShaderVar_Buffers     { svBuffers },
+      .mShaderGraphPath            { material->mShaderGraph },
+      .mShaderGraph                { shaderGraph },
+      .mMaterialShaderHash         { hashValue },
+      .m3DShader                   { program },
+      .mMeshPipeline               { meshPipeline },
+      .mShaderVar_cbuf_PerFrame    { svPerFrame },
+      .mShaderVar_cbuf_Material    { svMaterial },
+      .mShaderVar_cbuf_ShaderGraph { svShaderGraph },
+      .mShaderVar_Buffers          { svBuffers },
     };
 
     return &( sRenderMaterialCache.mRenderMaterials.emplace_back() = renderMaterial );
