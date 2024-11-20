@@ -21,7 +21,7 @@ namespace Tac::Render
     BindlessArray( IBindlessArray::Params );
     Binding                Bind( ResourceHandle, Errors& ) override;
     void                   Unbind( Binding ) override;
-    void                   Resize( int );
+    void                   Resize( int, Errors& );
     void                   SetFenceSignal( FenceSignal );
     //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const override;
     void                   Commit( CommitParams );
@@ -29,6 +29,7 @@ namespace Tac::Render
   private:
 
     void                   CheckType( ResourceHandle );
+    void                   CopyDescriptor( IHandle, Binding, Errors& );
 
     Vector< IHandle >      mHandles          {};
     Vector< Binding >      mUnusedBindings   {};

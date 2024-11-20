@@ -74,7 +74,7 @@ namespace Tac::Render
     mFenceSignal = fenceSignal;
   }
 
-  void                          BindlessArray::Resize( const int newSize )
+  void                          BindlessArray::Resize( const int newSize, Errors& errors )
   {
     const int oldSize{ mHandles.size() };
 
@@ -95,6 +95,7 @@ namespace Tac::Render
     DX12DescriptorAllocator* regionMgr        { heap.GetRegionMgr() };
 
 
+#if 0
     DX12DescriptorRegion newRegion{ regionMgr->Alloc( newSize ) };
 
     if( mDescriptorRegion.IsValid() )
@@ -108,6 +109,23 @@ namespace Tac::Render
 
 
     mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
+#else
+
+
+    if( mDescriptorRegion.IsValid() )
+      mDescriptorRegion.Free( mFenceSignal );
+
+    mDescriptorRegion = regionMgr->Alloc( newSize );
+    for( int i{}; i < mHandles.size(); ++i )
+    {
+      const Binding binding( i );
+      IHandle handle{ mHandles[ i ] };
+      if( handle.IsValid() )
+      {
+        TAC_CALL( CopyDescriptor(handle, binding, errors ) );
+      }
+    }
+#endif
   }
 
   IBindlessArray::Binding       BindlessArray::Bind( ResourceHandle h, Errors& errors )
@@ -118,12 +136,22 @@ namespace Tac::Render
     {
       const int oldSize{ mHandles.size() };
       const int newSize{ ( int )( ( oldSize + 2 ) * 1.5 ) };
-      Resize( newSize );
+      TAC_CALL_RET( Resize( newSize, errors ) );
     }
 
     const Binding binding{ mUnusedBindings.back() };
     mUnusedBindings.pop_back();
     mHandles[ binding.GetIndex() ] = h;
+
+    TAC_CALL_RET( CopyDescriptor( h, binding, errors ) );
+
+    return binding;
+  }
+
+  void                          BindlessArray::CopyDescriptor( IHandle h,
+                                                               Binding binding,
+                                                               Errors& errors )
+  {
 
     DX12Renderer&   renderer   { DX12Renderer::sRenderer };
     DX12TextureMgr* textureMgr { &renderer.mTexMgr };
@@ -172,13 +200,13 @@ namespace Tac::Render
     {
       DX12ContextManager* contextManager{ &renderer.mContextManager };
 
-      TAC_CALL_RET( DX12Context* context{ contextManager->GetContext( errors ) } );
+      TAC_CALL( DX12Context* context{ contextManager->GetContext( errors ) } );
       context->SetSynchronous();
       IContext::Scope contextScope{ context };
 
       ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
       transitionHelper.ResourceBarrier( commandList );
-      TAC_CALL_RET( context->Execute( errors ) );
+      TAC_CALL( context->Execute( errors ) );
     }
 
     TAC_ASSERT( cpuDescriptor.IsValid() );
@@ -187,8 +215,6 @@ namespace Tac::Render
     const D3D12_CPU_DESCRIPTOR_HANDLE dst{ mDescriptorRegion.GetCPUHandle( binding.GetIndex() ) };
     const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
     device->CopyDescriptorsSimple( 1, dst, src, heapType );
-
-    return binding;
   }
 
   void                          BindlessArray::Unbind( Binding binding )
