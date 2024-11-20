@@ -4,6 +4,8 @@ endif()
 
 add_library( TacWin32 )
 
+set_target_properties( TacWin32 PROPERTIES FOLDER "Engine/Desktop App" )
+
 add_subdirectory( desktopwindow )
 add_subdirectory( input )
 add_subdirectory( net )

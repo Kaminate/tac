@@ -5,6 +5,8 @@ add_library( TacECS
   "tac_space_types.h"
 )
 
+set_target_properties( TacECS PROPERTIES FOLDER "Engine" )
+
 add_subdirectory( component )
 add_subdirectory( entity )
 add_subdirectory( system )

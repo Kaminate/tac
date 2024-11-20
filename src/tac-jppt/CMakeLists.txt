@@ -13,6 +13,8 @@ add_executable( TacJPPT WIN32
   "tac_jppt_cornell_box.h"
 )
 
+set_target_properties( TacJPPT PROPERTIES FOLDER "Programs" )
+
 target_link_libraries( TacJPPT
   TacEngineCore
   TacECS

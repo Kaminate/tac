@@ -75,7 +75,7 @@ endforeach()
 
 get_property( all_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS )
 foreach( targetname ${all_targets} )
-  set_target_properties( ${targetname} PROPERTIES FOLDER "D3D12 Tutorial" )
+  set_target_properties( ${targetname} PROPERTIES FOLDER "Programs/D3D12 Tutorial" )
 endforeach()
 
 # -------------------------------------------------------------------------------------------------

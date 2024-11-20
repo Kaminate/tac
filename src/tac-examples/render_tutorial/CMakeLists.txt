@@ -18,7 +18,7 @@ foreach( targetname ${targetnames} )
     tac_render_tutorial.h
   )
 
-  set_target_properties( ${targetname} PROPERTIES FOLDER "Examples" )
+  set_target_properties( ${targetname} PROPERTIES FOLDER "Programs/Render Tutorial" )
 
   target_link_libraries( ${targetname}
     TacStdLib

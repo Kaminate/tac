@@ -1,4 +1,5 @@
 add_library( TacStdLib )
+set_target_properties( TacStdLib PROPERTIES FOLDER "Engine/Core" )
 
 target_sources( TacStdLib PRIVATE
   tac_std_lib.natvis

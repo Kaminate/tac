@@ -1,4 +1,5 @@
 add_library( TacDX )
+set_target_properties( TacDX PROPERTIES FOLDER "Engine/Desktop App" )
 target_include_directories( TacDX PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
 add_subdirectory( dxc )

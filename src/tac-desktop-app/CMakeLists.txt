@@ -59,6 +59,8 @@ add_subdirectory( sdl )
 
 # add_library( TacDesktopApp OBJECT )
 add_library( TacDesktopApp )
+set_target_properties( TacDesktopApp PROPERTIES FOLDER "Engine/Desktop App" )
+
 add_subdirectory( desktop_app )
 add_subdirectory( desktop_window )
 add_subdirectory( desktop_event )

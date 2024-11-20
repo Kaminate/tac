@@ -2,6 +2,7 @@
 
 # Create a library named TacEngineCore
 add_library( TacRHI )
+set_target_properties( TacRHI PROPERTIES FOLDER "Engine/Core" )
 
 if( MSVC )
   target_sources( TacRHI PRIVATE

@@ -9,6 +9,8 @@ add_library( TacWin32Main OBJECT
 
 )
 
+set_target_properties( TacWin32Main PROPERTIES FOLDER "Engine/Desktop App" )
+
 target_include_directories( TacWin32Main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
 target_link_libraries( TacWin32Main TacEngineCore )

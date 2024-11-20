@@ -2,6 +2,8 @@
 # Create a library named TacEngineCore
 add_library( TacEngineCore )
 
+set_target_properties( TacEngineCore PROPERTIES FOLDER "Engine/Core" )
+
 target_sources( TacEngineCore PRIVATE
   tac_engine_core.natvis
   tac_engine_core.natstepfilter

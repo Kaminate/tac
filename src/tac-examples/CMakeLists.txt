@@ -28,7 +28,7 @@ add_subdirectory( imgui )
 
 target_include_directories( TacExamples PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
-set_target_properties( TacExamples PROPERTIES FOLDER "Examples" )
+set_target_properties( TacExamples PROPERTIES FOLDER "Programs" )
 
 target_link_libraries( TacExamples
   PUBLIC

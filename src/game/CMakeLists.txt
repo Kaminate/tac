@@ -8,6 +8,7 @@ add_executable( TacGravestory WIN32
 )
 
 #target_precompile_headers( TacGravestory PRIVATE "${CMAKE_SOURCE_DIR}/src/common/tac_precompiled_header.h")
+set_target_properties( TacGravestory PROPERTIES FOLDER "Programs" )
 
 target_link_libraries( TacGravestory
   TacEngineCore

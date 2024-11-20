@@ -14,7 +14,7 @@ function( tac_target )
     add_executable( ${TAC_TARGET_NAME})
   endif()
 
-  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES FOLDER "Level Editor" )
+  set_target_properties( ${TAC_TARGET_NAME} PROPERTIES FOLDER "Programs" )
 
   target_include_directories( ${TAC_TARGET_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
