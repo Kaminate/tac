@@ -1,21 +1,21 @@
 #include "tac_texture_asset_manager.h" // self-inc
 
-//#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-std-lib/tac_ints.h"
-#include "tac-std-lib/containers/tac_map.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/string/tac_string_identifier.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/math/tac_math.h"
 #include "tac-engine-core/job/tac_job_queue.h"
+#include "tac-engine-core/settings/tac_settings_root.h"
 #include "tac-engine-core/thirdparty/stb_image.h"
 #include "tac-engine-core/thirdparty/stb_image_write.h"
-#include "tac-engine-core/settings/tac_settings_root.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/containers/tac_map.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string_identifier.h"
+#include "tac-std-lib/string/tac_string_util.h"
+#include "tac-std-lib/tac_ints.h"
 
 namespace Tac
 {
@@ -43,7 +43,7 @@ namespace Tac
   struct AsyncSubresourceData
   {
     const Texel* GetTexel( int x, int y ) const;
-    Texel*       GetTexel( int x, int y );
+    dynmc Texel* GetTexel( int x, int y ) dynmc;
     int          GetTexelIndex( int x, int y ) const;
 
     int              mPitch {};
@@ -55,15 +55,17 @@ namespace Tac
     return ( const Texel* )&mBytes[ GetTexelIndex( x, y ) ];
   };
 
-  Texel* AsyncSubresourceData::GetTexel( int x, int y )
+  dynmc Texel* AsyncSubresourceData::GetTexel( int x, int y ) dynmc
   {
-    return ( Texel* )&mBytes[ GetTexelIndex( x, y ) ];
+    return ( dynmc Texel* )&mBytes[ GetTexelIndex( x, y ) ];
   };
 
-  int AsyncSubresourceData::GetTexelIndex( int x, int y ) const
+  int          AsyncSubresourceData::GetTexelIndex( int x, int y ) const
   {
     return x * sBPP + y * mPitch ;
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   struct TextureLoadJob : public Job
   {
@@ -108,30 +110,30 @@ namespace Tac
     FileSys::Path                  mFilepath;
   };
 
-
   // -----------------------------------------------------------------------------------------------
-
-  static Map< StringID, TextureLoadJob* >       mLoadingTextures;
-
-  static Render::IBindlessArray*          sBindlessArray;
 
   struct LoadedTexture
   {
-    Render::TextureHandle                 mTextureHandle;
+    Render::TextureHandle           mTextureHandle;
     Render::IBindlessArray::Binding mBinding;
   };
 
   using LoadedTextureMap = Map< StringID, LoadedTexture >;
-  static LoadedTextureMap mLoadedTextures;
+  using LoadingTextureMap = Map< StringID, TextureLoadJob* >;
 
+  // -----------------------------------------------------------------------------------------------
+
+  static LoadingTextureMap       mLoadingTextures;
+  static Render::IBindlessArray* sBindlessArray;
+  static LoadedTextureMap        mLoadedTextures;
+
+  // -----------------------------------------------------------------------------------------------
 
   TextureLoadJob::TextureLoadJob( Params params )
   {
     mFilepath = params.mFilepath;
     mIsCubemap = FileSys::IsDirectory( mFilepath );
   }
-
-  // -----------------------------------------------------------------------------------------------
 
   Render::TextureHandle TextureLoadJob::CreateTexture( Errors& errors )
   {
@@ -208,9 +210,7 @@ namespace Tac
     return renderDevice->CreateTexture( commandData, errors );
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  void TextureLoadJob::Execute( Errors& errors )
+  void                  TextureLoadJob::Execute( Errors& errors )
   {
     if( mIsCubemap )
       ExecuteTexCubemapJob( errors );
@@ -218,7 +218,7 @@ namespace Tac
       ExecuteTexSingleJob( errors );
   }
 
-  int TextureLoadJob::CalculateMipCount( int w, int h, SettingsNode settingsNode )
+  int                   TextureLoadJob::CalculateMipCount( int w, int h, SettingsNode settingsNode )
   {
     int n{ 1 };
     const bool genMips{ settingsNode.GetChild( "gen mips" ).GetValueWithFallback( true ) };
@@ -238,7 +238,7 @@ namespace Tac
     return n;
   }
 
-  void TextureLoadJob::ExecuteTexSingleJob( Errors& errors )
+  void                  TextureLoadJob::ExecuteTexSingleJob( Errors& errors )
   {
     TAC_CALL( const String memory{ FileSys::LoadFilePath( mFilepath, errors ) } );
 
@@ -329,7 +329,7 @@ namespace Tac
 
 #if TAC_TEST_MIPS_BY_SAVING_TO_DISC()
   // verify correctness of GenerateMip()
-  void TextureLoadJob::TestMipsBySavingToDisk()
+  void                  TextureLoadJob::TestMipsBySavingToDisk()
   {
     const int nSubRsc{ mSubresources.size() };
     for( int iSubRsc{}; iSubRsc < nSubRsc; ++iSubRsc )
@@ -353,7 +353,7 @@ namespace Tac
 #endif
 
 #if TAC_TEST_MIPS_BY_ASSIGNING_A_COLOR_PER_MIP()
-  void TextureLoadJob::TestMipsByAssigningAColorPerMip()
+  void                  TextureLoadJob::TestMipsByAssigningAColorPerMip()
   {
 
     const Texel colors[ 20 ]
@@ -400,7 +400,7 @@ namespace Tac
   }
 #endif
 
-  void TextureLoadJob::GenerateMip( int currMip )
+  void                  TextureLoadJob::GenerateMip( int currMip )
   {
     const int prevMip{ currMip - 1 };
     const int prevW{ mImage.mWidth >> prevMip };
@@ -458,7 +458,7 @@ namespace Tac
     }
   }
 
-  void TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
+  void                  TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
   {
 
     TAC_CALL( Vector< FileSys::Path > files{
@@ -554,18 +554,18 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static LoadedTexture* FindLoadedTexture( const StringID& key )
+  static LoadedTexture*  FindLoadedTexture( const StringID& key )
   {
     LoadedTextureMap::Iterator it { mLoadedTextures.Find( key ) };
     return it ? &it.GetValue() : nullptr;
   }
 
-  static TextureLoadJob*       FindLoadingTexture( const StringID& key )
+  static TextureLoadJob* FindLoadingTexture( const StringID& key )
   {
     return mLoadingTextures.FindVal( key ).GetValueOr( {} );
   }
 
-  static void                  UpdateTextureLoadJob( const AssetPathStringView& key,
+  static void            UpdateTextureLoadJob( const AssetPathStringView& key,
                                                    TextureLoadJob* asyncTexture,
                                                    Errors& errors )
   {
@@ -602,10 +602,8 @@ namespace Tac
     }
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  static void LoadTextureAux( TextureLoadJob::Params params,
-                                Errors& errors )
+  static void            LoadTextureAux( TextureLoadJob::Params params,
+                                         Errors& errors )
   {
     if( params.mFilepath.empty() )
       return;
@@ -623,7 +621,10 @@ namespace Tac
     JobQueuePush( asyncTexture );
   }
 
-  Render::TextureHandle TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
+  // -----------------------------------------------------------------------------------------------
+
+  Render::TextureHandle
+    TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
                                                          Errors& errors )
   {
     if( LoadedTexture* loadedTexture{ FindLoadedTexture( textureFilepath ) };
@@ -649,7 +650,8 @@ namespace Tac
     return {};
   }
 
-  Render::IBindlessArray* TextureAssetManager::GetBindlessArray()
+  Render::IBindlessArray*
+    TextureAssetManager::GetBindlessArray()
   {
     return sBindlessArray;
   }

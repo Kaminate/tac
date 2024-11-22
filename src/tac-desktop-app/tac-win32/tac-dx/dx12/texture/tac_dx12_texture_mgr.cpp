@@ -221,7 +221,7 @@ namespace Tac::Render
     DX12ContextManager* mContextManager{ &DX12Renderer::sRenderer.mContextManager};
     const bool hasImageBytes{ !params.mSubresources.empty() };
     const D3D12_RESOURCE_DESC textureResourceDesc{ GetImageResourceDesc( params ) };
-    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice};
+    ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
 
     const D3D12_HEAP_TYPE heapType{ params.mUsage == Usage::Staging
         ? D3D12_HEAP_TYPE_UPLOAD

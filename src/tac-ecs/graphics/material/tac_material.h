@@ -33,14 +33,19 @@ namespace Tac
     bool            mIsGlTF_PBR_SpecularGlossiness {};
     v4              mColor                         {};
     v3              mEmissive                      {};
+    AssetPathString mTextureDiffuse                {};
+    AssetPathString mTextureSpecular               {};
+    AssetPathString mTextureGlossiness             {};
+    AssetPathString mTextureMetallic               {};
+    AssetPathString mTextureRoughness              {};
 
     // this could be used if we were to support arbitrary data
-    Vector< Data >  mData           {};
+    Vector< Data >  mData                          {};
 
     AssetPathString mShaderGraph;
 
     // Whether entities with this material component should render or not
-    bool            mRenderEnabled  { true };
+    bool            mRenderEnabled                 { true };
   };
 
   TAC_META_DECL( Material );

@@ -8,6 +8,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 
 #if TAC_MATERIAL_PRESENTATION_ENABLED()
 
@@ -25,11 +26,11 @@ namespace Tac
 
     static_assert( Flag::kCount < 32 );
 
-    bool IsSet( Flag f ) const { return mFlags & ( 1 << f ); }
-    void Set( Flag f )         { mFlags |= ( 1 << f ); }
-    void Set( Flag f, bool b ) { if( b ) Set( f ); else Clear( f ); }
-    void Clear()               { mFlags = 0; }
-    void Clear( Flag f )       { mFlags &= ~( 1 << f ); }
+    bool IsSet( Flag f ) const         { return mFlags & ( 1 << f ); }
+    void Set( Flag f )                 { mFlags |= ( 1 << f ); }
+    void Set( Flag f, bool b )         { if( b ) Set( f ); else Clear( f ); }
+    void Clear()                       { mFlags = 0; }
+    void Clear( Flag f )               { mFlags &= ~( 1 << f ); }
 
     u32 mFlags {};
   };
@@ -106,17 +107,27 @@ namespace Tac
     };
   }
 
-  static ConstBufData_Material GetMaterialParams( const Model* model,
-                                                  const Material* material )// <-- todo: use 
+  static ConstBufData_Material GetMaterialParams( const Material* material, Errors& errors )
   {
-    TAC_ASSERT_UNIMPLEMENTED;
+    MaterialFlags flags;
+    flags.Set( MaterialFlags::kIsGLTF_PBR_MetallicRoughness,
+               material->mIsGlTF_PBR_MetallicRoughness );
+    flags.Set( MaterialFlags::kIsGLTF_PBR_SpecularGlossiness,
+               material->mIsGlTF_PBR_SpecularGlossiness );
+
+    TAC_CALL_RET( Render::IBindlessArray::Binding diffuse{
+      TextureAssetManager::GetBindlessIndex( material->mTextureDiffuse, errors ) } );
+
+    TAC_CALL_RET( Render::IBindlessArray::Binding specular{
+      TextureAssetManager::GetBindlessIndex( material->mTextureSpecular, errors ) } );
+
     return ConstBufData_Material
     {
-      .mColor              {},
-      .mEmissive           {},
-      .mFlags              {},
-      .mDiffuseTextureIdx  {},
-      .mSpecularTextureIdx {},
+      .mColor              { material->mColor },
+      .mEmissive           { material->mEmissive, 1},
+      .mFlags              { flags },
+      .mDiffuseTextureIdx  { ( u32 )diffuse.GetIndex() },
+      .mSpecularTextureIdx { ( u32 )specular.GetIndex()},
     };
   }
 
@@ -280,7 +291,7 @@ namespace Tac
         Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );
 
 
-      const ConstBufData_Material constBufData_Material{ GetMaterialParams( model ,material ) };
+      const ConstBufData_Material constBufData_Material{ GetMaterialParams( material ) };
       TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_Material,
                                                    constBufData_Material,
                                                    errors ) );
