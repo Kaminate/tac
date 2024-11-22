@@ -7,11 +7,11 @@ namespace Tac
   struct Mutex
   {
     ctor Mutex();
-    ctor Mutex(const Mutex&) = delete;
-    ctor Mutex(Mutex&&) = delete;
+    ctor Mutex( const Mutex& ) = delete;
+    ctor Mutex( Mutex&& ) = delete;
     dtor ~Mutex();
-    void operator = (const Mutex&) = delete;
-    void operator = (Mutex&&) = delete;
+    void operator = ( const Mutex& ) = delete;
+    void operator = ( Mutex&& ) = delete;
     void lock();
     void unlock();
 
@@ -21,7 +21,7 @@ namespace Tac
 
   struct LockGuard
   {
-    LockGuard(Mutex&);
+    LockGuard( Mutex& );
     ~LockGuard();
     Mutex& mMutex;
   };

@@ -262,8 +262,8 @@ namespace Tac
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetPosOnlyVtxDecls() };
     const ModelAssetManager::Params meshParams
     {
-      .mPath{"assets/editor/arrow.gltf"},
-      .mOptVtxDecls{m3DvertexFormatDecls},
+      .mPath        { "assets/editor/arrow.gltf" },
+      .mOptVtxDecls { m3DvertexFormatDecls },
     };
     TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParams, errors ) );
   }
@@ -321,8 +321,8 @@ namespace Tac
     const float x{ ( float )windowPos.x };
     const float y{ ( float )windowPos.y };
     const v2 screenspaceCursorPos { keyboardApi.GetMousePosScreenspace() };
-    float xNDC { ( ( screenspaceCursorPos.x - x ) / w ) };
-    float yNDC { ( ( screenspaceCursorPos.y - y ) / h ) };
+    dynmc float xNDC { ( ( screenspaceCursorPos.x - x ) / w ) };
+    dynmc float yNDC { ( ( screenspaceCursorPos.y - y ) / h ) };
     yNDC = 1 - yNDC;
     xNDC = xNDC * 2 - 1;
     yNDC = yNDC * 2 - 1;
@@ -333,10 +333,10 @@ namespace Tac
     const float sY { cotTheta };
 
     const m4 viewInv{ m4::ViewInv( camera->mPos,
-                                    camera->mForwards,
-                                    camera->mRight,
-                                    camera->mUp ) };
-    const v3 viewSpaceMousePosNearPlane 
+                                   camera->mForwards,
+                                   camera->mRight,
+                                   camera->mUp ) };
+    const v3 viewSpaceMousePosNearPlane
     {
       xNDC / sX,
       yNDC / sY,

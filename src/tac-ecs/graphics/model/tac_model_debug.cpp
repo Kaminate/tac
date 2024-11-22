@@ -1,3 +1,5 @@
+#include "tac_model_debug.h" // self-inc
+
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/shell/tac_shell.h"
@@ -260,15 +262,19 @@ namespace Tac
   //      f = Saturate( f );
   //}
 
-  void ModelDebugImgui( Model* model )
-  {
-    ModelDebugImguiMesh( model );
-    ModelDebugImguiChangeModel( model );
-    ModelDebugImguiChangeTexture( model );
-    //ModelDebugImguiColor( model );
-  }
-
-  //void ModelDebugImgui( Component* component ) { ModelDebugImgui( ( Model* )component ); }
-
 }
+
+void Tac::ModelDebugImgui( Model* model )
+{
+  ModelDebugImguiMesh( model );
+  ModelDebugImguiChangeModel( model );
+  ModelDebugImguiChangeTexture( model );
+  //ModelDebugImguiColor( model );
+}
+
+void Tac::ModelDebugImgui( Component* component )
+{
+  ModelDebugImgui( ( Model* )component );
+}
+
 

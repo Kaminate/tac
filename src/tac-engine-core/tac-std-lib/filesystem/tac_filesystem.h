@@ -106,7 +106,7 @@ namespace Tac::FileSys
   struct Time
   {
     Time();
-    Time(const Time&);
+    Time( const Time& );
     Time( Time&& ) noexcept;
     ~Time();
     void operator = ( const Time& );

@@ -9,9 +9,13 @@ namespace Tac::Render
     GPUInputLayout() = default;
     GPUInputLayout( const VertexDeclarations& );
 
-    u8      mElementCounts[ 16 ] {};
-    u8      mGraphicsTypes[ 16 ] {};
-    u8      mByteOfffsets[ 16 ]  {};
-    u32     mStride              {};
+    static constexpr int N{ 16 };
+    using uint = u32;
+
+    uint     mGraphicsTypes[ N ] {};
+    uint     mElementCounts[ N ] {};
+    uint     mByteOffsets[ N ]   {};
+    uint     mStride             {};
   };
+
 } // namespace Tac

@@ -121,7 +121,7 @@ namespace Tac
       if( mTCount == mTCapacity )
         reserve( int( mTCount * 1.5f ) + 1 );
 
-      T* dst{&mTs[ mTCount++ ]};
+      T* dst{ &mTs[ mTCount++ ] };
       new( dst )T( t ); // placement new
     }
 

@@ -1,8 +1,5 @@
 // Material.hlsl (begin)
 
-#include "MaterialTypes.hlsl"
-#include "InputLayout.hlsli"
-
 typedef VS_OUTPUT PS_INPUT;
 
 struct PS_OUTPUT

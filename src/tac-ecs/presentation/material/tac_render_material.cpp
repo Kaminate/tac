@@ -49,9 +49,9 @@ namespace Tac::Render
     // subpath within Tac::Render::ProgramAttribs::mDir (no ext)
     const Vector< String > inputs
     {
-      "preMaterialShader",
+      "material/preMaterialShader",
       shaderGraph.mMaterialShader,
-      "postMaterialShader",
+      "material/postMaterialShader",
     };
 
     const String name{ [ & ]() { // remove folder from path

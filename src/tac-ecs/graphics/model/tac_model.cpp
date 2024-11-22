@@ -3,6 +3,7 @@
 #include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/tac_graphics.h"
+#include "tac-ecs/graphics/model/tac_model_debug.h"
 #include "tac-engine-core/asset/tac_asset_hash_cache.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
@@ -61,29 +62,6 @@ namespace Tac
 	}
 #endif
 
-
-	const Model*                   Model::GetModel( const Entity* entity )
-	{
-		return ( Model* )entity->GetComponent( sEntry );
-	}
-
-	Model*                         Model::GetModel( Entity* entity )
-	{
-		return ( Model* )entity->GetComponent( sEntry );
-	}
-
-	const ComponentInfo*  Model::GetEntry() const
-	{
-    return sEntry;
-	}
-
-	void ModelDebugImgui( Model* );
-
-  static void DebugImguiFn( Component* component )
-  {
-    ModelDebugImgui( (Model*) component );
-  }
-
 #if 0
   struct AssetPathNetWriter : public NetVarWriter
   {
@@ -112,7 +90,26 @@ namespace Tac
   static AssetPathNetReader sAssetPathNetReader;
 #endif
 
-	void Model::RegisterComponent()
+
+
+  // -----------------------------------------------------------------------------------------------
+
+	const Model*          Model::GetModel( const Entity* entity )
+	{
+		return ( Model* )entity->GetComponent( sEntry );
+	}
+
+	dynmc Model*          Model::GetModel( dynmc Entity* entity )
+	{
+		return ( Model* )entity->GetComponent( sEntry );
+	}
+
+	const ComponentInfo*  Model::GetEntry() const
+	{
+    return sEntry;
+	}
+
+	void                  Model::RegisterComponent()
 	{
     //const NetVar netColor
     //{
@@ -159,7 +156,7 @@ namespace Tac
       .mName               { "Model" },
       .mCreateFn           { CreateModelComponent },
       .mDestroyFn          { DestroyModelComponent },
-      .mDebugImguiFn       { DebugImguiFn },
+      .mDebugImguiFn       { ModelDebugImgui },
       .mNetVarRegistration { netVarRegistration },
       .mMetaType           { metaType },
       //.mSaveFn       { SaveModelComponent },

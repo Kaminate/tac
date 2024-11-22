@@ -23,21 +23,15 @@ enum class GraphicsType
   kReal
 };
 
-struct FormatElement
-{
-};
-
-struct InputLayoutElement
-{
-  uint mType           : 8;
-  uint mByteOffset     : 8;
-  uint mComponentCount : 8;
-  uint                 : 8;
-};
-
 struct InputLayout
 {
-  InputLayoutElement mElements[ ( uint )Attribute::Count ];
+  GraphicsType GetGraphicsType( Attribute a ) { return (GraphicsType)mGraphicsTypes[ ( uint )a ]; }
+  uint         GetElementCount( Attribute a ) { return mElementCounts[ ( uint )a ]; }
+  uint         GetByteOffset( Attribute a )   { return mByteOffsets[ ( uint )a ]; }
+
+  uint mGraphicsTypes[ 16 ];
+  uint mElementCounts[ 16 ];
+  uint mByteOffsets[ 16 ];
   uint mStride;
 };
 

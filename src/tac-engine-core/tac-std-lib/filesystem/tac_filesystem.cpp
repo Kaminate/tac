@@ -172,9 +172,9 @@ namespace Tac::FileSys
     return tacTime;
   }
 
-  void Time::SwapWith( Time&&other) noexcept
+  void Time::SwapWith( Time&& other ) noexcept
   {
-    TAC_ASSERT( mImpl );
+    // mImpl may be null during Vector< Time >::Resize, we move from old to new vector
     Swap( mImpl, other.mImpl );
   }
 
@@ -186,7 +186,6 @@ namespace Tac::FileSys
 
   Time::~Time()
   {
-    TAC_ASSERT( mImpl );
     TAC_DELETE( std::filesystem::file_time_type* )mImpl;
   }
 

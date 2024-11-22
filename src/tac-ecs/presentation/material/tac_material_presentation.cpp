@@ -35,6 +35,9 @@ namespace Tac
   };
 
   // comment please
+  //
+  // uhh it looks like this is data that is sent to every shader irregardless of material or
+  // shader graph. so its just always available data
   struct ConstBufData_PerFrame
   {
     m4 mWorldToClip    {};

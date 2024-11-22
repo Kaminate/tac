@@ -16,6 +16,7 @@
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/tac_ints.h"
+#include "tac-std-lib/mutex/tac_mutex.h"
 
 
 namespace Tac
@@ -356,6 +357,10 @@ namespace Tac
   static Mesh                 LoadMeshFromGltf( ModelAssetManager::Params params,
                                                 Errors& errors )
   {
+// temp temp temp
+    static Mutex m;
+    TAC_SCOPE_GUARD( LockGuard, m );
+// temp temp temp
 
     const AssetPathStringView& path{ params.mPath };
     const int specifiedMeshIndex{ params.mModelIndex };

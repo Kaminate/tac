@@ -22,6 +22,8 @@ TAC_DEFINE_BITFIELD_END;
 struct ShaderGraphParams
 {
   matrix mWorld;
+  uint   mVertexBufferIndex;
+  uint   mInputLayoutIndex;
 };
 
 struct PerFrameParams

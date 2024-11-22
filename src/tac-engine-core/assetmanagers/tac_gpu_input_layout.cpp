@@ -1,19 +1,22 @@
 #include "tac_gpu_input_layout.h"
 
-
 namespace Tac::Render
 {
+  static_assert( GPUInputLayout::N >= ( int )Attribute::Count );
+  static_assert( sizeof( GPUInputLayout ) == 16 * 3 * 4 + 4 );
+
   GPUInputLayout::GPUInputLayout( const VertexDeclarations& decls )
   {
     for( const VertexDeclaration& decl : decls )
     {
       const int i{ ( int )decl.mAttribute };
 
-      mElementCounts[ i ] = ( u8 )decl.mFormat.mElementCount;
-      mGraphicsTypes[ i ] = ( u8 )decl.mFormat.mPerElementDataType;
-      mByteOfffsets[ i ] = ( u8 )decl.mAlignedByteOffset;
+      TAC_ASSERT( i < N );
+      mElementCounts[ i ] = ( uint )decl.mFormat.mElementCount;
+      mGraphicsTypes[ i ] = ( uint )decl.mFormat.mPerElementDataType;
+      mByteOffsets[ i ] = ( uint )decl.mAlignedByteOffset;
     }
 
-    mStride = decls.CalculateStride();
+    mStride = ( uint )decls.CalculateStride();
   }
 } // namespace Tac
