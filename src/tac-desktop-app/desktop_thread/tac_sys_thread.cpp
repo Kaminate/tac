@@ -50,10 +50,10 @@ namespace Tac
   {
     switch( imguiCursor )
     {
-    case ImGuiMouseCursor::kNone: return PlatformMouseCursor::kNone;
-    case ImGuiMouseCursor::kArrow: return PlatformMouseCursor::kArrow;
-    case ImGuiMouseCursor::kResizeNS: return PlatformMouseCursor::kResizeNS;
-    case ImGuiMouseCursor::kResizeEW: return PlatformMouseCursor::kResizeEW;
+    case ImGuiMouseCursor::kNone:        return PlatformMouseCursor::kNone;
+    case ImGuiMouseCursor::kArrow:       return PlatformMouseCursor::kArrow;
+    case ImGuiMouseCursor::kResizeNS:    return PlatformMouseCursor::kResizeNS;
+    case ImGuiMouseCursor::kResizeEW:    return PlatformMouseCursor::kResizeEW;
     case ImGuiMouseCursor::kResizeNE_SW: return PlatformMouseCursor::kResizeNE_SW;
     case ImGuiMouseCursor::kResizeNW_SE: return PlatformMouseCursor::kResizeNW_SE;
     default: TAC_ASSERT_INVALID_CASE( imguiCursor ) ; return {};
@@ -127,7 +127,7 @@ namespace Tac
         const Timepoint prevTime { pair.mNewState->mTimepoint };
         const Timepoint currTime { Timepoint::Now() };
 
-        float t { ( currTime - prevTime ) / dt };
+        dynmc float t { ( currTime - prevTime ) / dt };
 
         // if currTime is inbetween pair.mOldState->mTimestamp and pair.mNewState->mTimestamp,
         // then we should instead of picking the two most recent simulation states, should pick

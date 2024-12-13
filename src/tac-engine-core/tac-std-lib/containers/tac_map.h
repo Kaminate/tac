@@ -5,6 +5,7 @@
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/containers/tac_optional.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
 {
@@ -32,12 +33,11 @@ struct Tac::Map
 
   struct ConstIterator
   {
+    bool        operator ==( const ConstIterator& ) const = default;
     void        operator ++();
     const Pair& operator *() const            { return mCur->mPair; }
     operator    bool() const                  { return mCur && mCur->mOccupied; }
     const TVal& GetValue() const              { return mCur->mPair.mSecond; }
-
-    bool  operator ==( const ConstIterator& ) const = default;
 
     const Node* mCur       {};
     int         mRemaining {};
@@ -45,12 +45,11 @@ struct Tac::Map
 
   struct Iterator
   {
+    bool        operator ==( const Iterator& ) const = default;
     void        operator ++();
     Pair&       operator *() const            { return mCur->mPair; }
     operator    bool() const                  { return mCur && mCur->mOccupied; }
     dynmc TVal& GetValue() const              { return mCur->mPair.mSecond; }
-
-    bool  operator ==( const Iterator& ) const = default;
 
     Node* mCur       {};
     int   mRemaining {};
@@ -82,18 +81,16 @@ struct Tac::Map
   void             operator = ( const Map& m ) { assign( m ); }
 
 private:
-  Node*            OccupyNode( TKey key );
-  Node*            FindNode( TKey key )       { return &mNodes[ FindNodeIndex( key ) ]; }
+  dynmc Node*      OccupyNode( TKey key ) dynmc;
+  dynmc Node*      FindNode( TKey key ) dynmc { return &mNodes[ FindNodeIndex( key ) ]; }
   const Node*      FindNode( TKey key ) const { return &mNodes[ FindNodeIndex( key ) ]; }
   int              FindNodeIndex( TKey ) const;
-  void             assign( const Map& other );
+  void             assign( const Map& );
 
   int              mSize     {};
   int              mCapacity {};
   Node*            mNodes    {};
 };
-
-
 
 template< typename TKey, typename TVal >
 Tac::Map< TKey, TVal >::ConstIterator Tac::Map< TKey, TVal >::begin() const
@@ -107,8 +104,6 @@ Tac::Map< TKey, TVal >::ConstIterator Tac::Map< TKey, TVal >::begin() const
 
   return iter;
 }
-
-
 
 template< typename TKey, typename TVal >
 Tac::Map< TKey, TVal >::Iterator Tac::Map< TKey, TVal >::begin()
@@ -152,7 +147,7 @@ void Tac::Map< TKey, TVal >::erase( TKey key )
 }
 
 template< typename TKey, typename TVal >
-Tac::Map<TKey, TVal>::Node* Tac::Map<TKey, TVal>::OccupyNode( TKey key )
+dynmc Tac::Map<TKey, TVal>::Node* Tac::Map<TKey, TVal>::OccupyNode( TKey key ) dynmc
 {
   // We want to ensure that the array is at most half full, to better prevent collisiosn
   if( mSize + 1 > mCapacity / 2 )
@@ -246,7 +241,7 @@ Tac::Map< TKey, TVal >::Iterator Tac::Map< TKey, TVal >::Find( TKey key )
 template< typename TKey, typename TVal >
 Tac::Map< TKey, TVal >::ConstIterator    Tac::Map< TKey, TVal >::Find( TKey key ) const
 {
-  Node* node { FindNode( key ) };
+  const Node* node { FindNode( key ) };
   return node->mOccupied ? ConstIterator{ .mCur { node } } : ConstIterator{};
 }
 
@@ -288,9 +283,4 @@ void Tac::Map<TKey, TVal>::ConstIterator::operator ++()
 
   mRemaining--;
 }
-
-
-
-
-
 

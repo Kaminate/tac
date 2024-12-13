@@ -7,13 +7,11 @@
 #include "tac-engine-core/thirdparty/stb_image_write.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/tac_ints.h"
 
@@ -112,13 +110,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+
   struct LoadedTexture
   {
     Render::TextureHandle           mTextureHandle;
     Render::IBindlessArray::Binding mBinding;
   };
 
-  using LoadedTextureMap = Map< StringID, LoadedTexture >;
+  struct LoadedTextureMap : public Map< StringID, LoadedTexture >
+  {
+    const LoadedTexture*            FindLoadedTexture( AssetPathStringView ) const;
+    Render::TextureHandle           FindTextureHandle( AssetPathStringView ) const;
+    Render::IBindlessArray::Binding FindBindlessIndex( AssetPathStringView ) const;
+    Render::IBindlessArray*         GetBindlessArray() const;
+  };
+
   using LoadingTextureMap = Map< StringID, TextureLoadJob* >;
 
   // -----------------------------------------------------------------------------------------------
@@ -554,27 +560,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static LoadedTexture*  FindLoadedTexture( const StringID& key )
-  {
-    LoadedTextureMap::Iterator it { mLoadedTextures.Find( key ) };
-    return it ? &it.GetValue() : nullptr;
-  }
-
   static TextureLoadJob* FindLoadingTexture( const StringID& key )
   {
     return mLoadingTextures.FindVal( key ).GetValueOr( {} );
   }
 
   static void            UpdateTextureLoadJob( const AssetPathStringView& key,
-                                                   TextureLoadJob* asyncTexture,
-                                                   Errors& errors )
+                                               TextureLoadJob* asyncTexture,
+                                               Errors& errors )
   {
-    const JobState status { asyncTexture->GetStatus() };
-    const StringID id ( key );
+    const JobState status{ asyncTexture->GetStatus() };
+    const StringID id( key );
     if( status == JobState::ThreadFinished )
     {
       TAC_RAISE_ERROR_IF( asyncTexture->mErrors, asyncTexture->mErrors.ToString() );
-      TAC_CALL( const Render::TextureHandle texture { asyncTexture->CreateTexture( errors )  } );
+      TAC_CALL( const Render::TextureHandle texture{ asyncTexture->CreateTexture( errors ) } );
       mLoadingTextures.erase( id );
       TAC_DELETE asyncTexture;
 
@@ -586,7 +586,7 @@ namespace Tac
           .mHandleType { Render::HandleType::kTexture },
           .mBinding    { Render::Binding::ShaderResource },
         };
-        sBindlessArray = renderDevice->CreateBindlessArray(bindlessArrayParams);
+        sBindlessArray = renderDevice->CreateBindlessArray( bindlessArrayParams );
         TAC_ASSERT( sBindlessArray );
       }
 
@@ -627,9 +627,9 @@ namespace Tac
     TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
                                                          Errors& errors )
   {
-    if( LoadedTexture* loadedTexture{ FindLoadedTexture( textureFilepath ) };
-        loadedTexture && loadedTexture->mTextureHandle.IsValid() )
-      return loadedTexture->mTextureHandle;
+    if( Render::TextureHandle texture{ mLoadedTextures.FindTextureHandle( textureFilepath ) };
+        texture.IsValid() )
+      return texture;
 
     const TextureLoadJob::Params params{ .mFilepath  { textureFilepath }, };
     LoadTextureAux( params, errors );
@@ -640,10 +640,10 @@ namespace Tac
     TextureAssetManager::GetBindlessIndex( const AssetPathStringView textureFilepath,
                                            Errors& errors )
   {
-
-    if( LoadedTexture* loadedTexture{ FindLoadedTexture( textureFilepath ) };
-        loadedTexture && loadedTexture->mBinding.IsValid() )
-      return loadedTexture->mBinding;
+    if( Render::IBindlessArray::Binding binding{
+      mLoadedTextures.FindBindlessIndex( textureFilepath ) };
+      binding.IsValid() )
+      return binding;
 
     const TextureLoadJob::Params params { .mFilepath  { textureFilepath }, };
     LoadTextureAux( params, errors );
@@ -655,4 +655,34 @@ namespace Tac
   {
     return sBindlessArray;
   }
+
+  // -----------------------------------------------------------------------------------------------
+   
+  const LoadedTexture*            LoadedTextureMap::FindLoadedTexture( AssetPathStringView asset ) const 
+  {
+    if( auto it{ Find( asset ) } )
+      return &it.GetValue();
+    return {};
+  }
+
+  Render::TextureHandle           LoadedTextureMap::FindTextureHandle( AssetPathStringView asset )const 
+  {
+    if( auto it{ Find( asset ) } )
+      return it.GetValue().mTextureHandle;
+    return {};
+  }
+
+  Render::IBindlessArray::Binding LoadedTextureMap::FindBindlessIndex( AssetPathStringView asset )const
+  {
+    if( auto it{ Find( asset ) } )
+      return it.GetValue().mBinding;
+    return {};
+  }
+
+  Render::IBindlessArray*         LoadedTextureMap::GetBindlessArray()const
+  {
+    return sBindlessArray;
+  }
+
+  // -----------------------------------------------------------------------------------------------
 } // namespace Tac
