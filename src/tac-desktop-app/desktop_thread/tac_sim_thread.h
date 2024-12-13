@@ -7,6 +7,8 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 
+#if !TAC_SINGLE_THREADED()
+
 namespace Tac
 {
   struct SimThread
@@ -22,5 +24,5 @@ namespace Tac
     SimKeyboardApi    sKeyboardApi      {};
     SettingsRoot*     mSettingsRoot     {};
   };
-
 }
+#endif

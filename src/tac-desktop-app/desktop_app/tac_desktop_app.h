@@ -13,6 +13,9 @@ namespace Tac
     static void         Update( Errors& );
     static void         DebugImGui( Errors& );
     static Errors&      GetMainErrors();
+  private:
+    static void         UpdateSimulation(Errors&);
+    static void         Render(Errors&);
   };
 
 } // namespace Tac

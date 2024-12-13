@@ -23,6 +23,8 @@
   #include <thread>
 #endif
 
+#if !TAC_SINGLE_THREADED()
+
 namespace Tac
 {
   static SimKeyboardApiBackend   sKeyboardBackendSimApi;
@@ -134,3 +136,4 @@ namespace Tac
   }
 
 } // namespace Tac
+#endif

@@ -12,6 +12,8 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h" // ImGuiSimFrameDraws
 
+#define TAC_SINGLE_THREADED() 1
+
 namespace Tac
 {
   struct App

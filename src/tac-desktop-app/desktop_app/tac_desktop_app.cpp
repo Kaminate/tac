@@ -52,11 +52,17 @@ namespace Tac
 {
   static DesktopEventHandler           sDesktopEventHandler;
 
-  static SysKeyboardApiBackend         sKeyboardBackend;
-  static SysWindowApiBackend           sWindowBackend;
+  static SysKeyboardApiBackend         sSysKeyboardBackend;
+  static SimKeyboardApiBackend         sSimKeyboardBackend;
+  static SysWindowApiBackend           sSysWindowBackend;
+  static SimWindowApiBackend           sSimWindowBackend;
 
+#if TAC_SINGLE_THREADED()
+  static Errors                        sAppErrors( Errors::kDebugBreaks );
+#else
   static Errors                        sSysErrors( Errors::kDebugBreaks );
-  static Errors                        SSimErrors( Errors::kDebugBreaks );
+  static Errors                        sSimErrors( Errors::kDebugBreaks );
+#endif
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
 
   static App*                          sApp;
@@ -70,6 +76,10 @@ namespace Tac
 
   static SettingsRoot                  sSettingsRoot;
   static const bool                    sVerbose;
+
+  static ThreadAllocator               sAppThreadAllocator;
+
+
 
   // -----------------------------------------------------------------------------------------------
 
@@ -123,6 +133,20 @@ namespace Tac
     ImGuiText( text );
 #endif
   }
+  
+  static PlatformMouseCursor ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor )
+  {
+    switch( imguiCursor )
+    {
+    case ImGuiMouseCursor::kNone:        return PlatformMouseCursor::kNone;
+    case ImGuiMouseCursor::kArrow:       return PlatformMouseCursor::kArrow;
+    case ImGuiMouseCursor::kResizeNS:    return PlatformMouseCursor::kResizeNS;
+    case ImGuiMouseCursor::kResizeEW:    return PlatformMouseCursor::kResizeEW;
+    case ImGuiMouseCursor::kResizeNE_SW: return PlatformMouseCursor::kResizeNE_SW;
+    case ImGuiMouseCursor::kResizeNW_SE: return PlatformMouseCursor::kResizeNW_SE;
+    default: TAC_ASSERT_INVALID_CASE( imguiCursor ) ; return {};
+    }
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -131,6 +155,11 @@ namespace Tac
     TAC_ASSERT( PlatformFns::GetInstance() );
 
     sApp = App::Create();
+
+    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::App );
+
+    sAppThreadAllocator.Init( 1024 * 1024 * 10 ); // 10MB
+    FrameMemorySetThreadAllocator( &sAppThreadAllocator );
 
     sShellAppName = sApp->GetAppName();
     TAC_ASSERT( !sShellAppName.empty() );
@@ -169,10 +198,18 @@ namespace Tac
 
     if( sVerbose )
       LogApi::LogMessagePrintLine( "DesktopApp::Init" );
+
+    TAC_CALL( ShellInit( errors ) );
+
+#if TAC_FONT_ENABLED()
+    TAC_CALL( FontApi::Init( errors ) );
+#endif
   }
 
   void                DesktopApp::Run( Errors& errors )
   {
+#if TAC_SINGLE_THREADED()
+#else
     SimThread sSimThread
     {
       .mApp              { sApp },
@@ -191,6 +228,8 @@ namespace Tac
       .mWindowApi        { sSysWindowApi },
       .mKeyboardApi      { sSysKeyboardApi },
     };
+#endif
+
 
     const Render::RenderApi::InitParams renderApiInitParams
     {
@@ -207,15 +246,18 @@ namespace Tac
     };
     TAC_CALL( ImGuiInit( imguiInitParams, errors ) );
 
-    sDesktopEventHandler.mKeyboardBackend = &sKeyboardBackend;
-    sDesktopEventHandler.mWindowBackend = &sWindowBackend;
+    sDesktopEventHandler.mKeyboardBackend = &sSysKeyboardBackend;
+    sDesktopEventHandler.mWindowBackend = &sSysWindowBackend;
     DesktopEventApi::Init( &sDesktopEventHandler );
 
     // this is kinda hacky
     DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sys );
 
+#if TAC_SINGLE_THREADED()
+#else
     TAC_CALL( sSysThread.Init( errors ) );
     TAC_CALL( sSimThread.Init( errors ) );
+#endif
 
     // todo: this is ugly, fix it
     sApp->mSettingsNode = sSettingsRoot.GetRootNode();
@@ -228,8 +270,40 @@ namespace Tac
     TAC_CALL( sApp->Init( initParams, errors ) );
 
 
-    std::thread logicThread( &SimThread::Update, sSimThread, std::ref( SSimErrors ) );
+#if TAC_SINGLE_THREADED()
 
+    while( OS::OSAppIsRunning() )
+    {
+
+      PlatformFns* platform { PlatformFns::GetInstance() };
+
+      // Win32FrameBegin polls wndproc
+      TAC_CALL( platform->PlatformFrameBegin( errors ) );
+
+      // Apply queued wndproc to saved keyboard/window state
+      TAC_CALL( DesktopEventApi::Apply( errors ) );
+
+      TAC_CALL( DesktopApp::Update( errors ) );
+      TAC_CALL( platform->PlatformFrameEnd( errors ) );
+
+      TAC_CALL( sSysWindowBackend.Sync( errors ) );
+
+
+
+      TAC_CALL( Network::NetApi::Update( errors ) );
+      TAC_CALL( sSettingsRoot.Tick( errors ) );
+      TAC_CALL( UpdateSimulation( errors ) );
+      TAC_CALL( Render( errors ) );
+
+      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
+    }
+
+    sApp->Uninit( errors );
+    TAC_DELETE sApp;
+    sApp = nullptr;
+
+#else
+    std::thread logicThread( &SimThread::Update, sSimThread, std::ref( SSimErrors ) );
     sSysThread.mApp = sApp;
     sSysThread.mErrors = &sSysErrors;
     sSysThread.Update( sSysErrors );
@@ -237,14 +311,22 @@ namespace Tac
 
     sSysThread.Uninit();
     sSimThread.Uninit();
+#endif
+
     ImGuiUninit();
 
     DesktopAppErrorReport errorReport;
+#if TAC_SINGLE_THREADED()
+    errorReport.Add( "App Thread", &sAppErrors );
+#else
     errorReport.Add( "Sys Thread", &sSysErrors );
     errorReport.Add( "Sim Thread", &SSimErrors );
+#endif
     errorReport.Add( "Main Function", &gMainFunctionErrors );
     errorReport.Report();
   }
+
+
 
   void                DesktopApp::Update( Errors& errors )
   {
@@ -252,9 +334,172 @@ namespace Tac
     DesktopAppUpdateResize();
   }
 
-  void                DesktopApp::DebugImGui(Errors& errors)
+  void                DesktopApp::UpdateSimulation(Errors&errors)
   {
-    if( !ImGuiCollapsingHeader("DesktopAppDebugImGui"))
+    if( !Timestep::Update() )
+      return;
+
+    // update at the end so that frameindex 0 has timestep 0
+
+    TAC_PROFILE_BLOCK;
+    ProfileSetGameFrame();
+
+    LogApi::LogFlush();
+
+    // imo, the best time to pump the message queue would be right before simulation update
+    // because it reduces input-->sim latency.
+    // (ignore input-->render latency because of interp?)
+    // So maybe wndproc should be moved here from the platform thread, and Render::SubmitFrame
+    // and Render::RenderFrame should be rearranged
+    TAC_PROFILE_BLOCK_NAMED( "frame" );
+
+    sSimWindowBackend.Sync();
+    sSimKeyboardBackend.Sync();
+
+    PlatformFns* platform{ PlatformFns::GetInstance() };
+
+    const BeginFrameData data
+    {
+      .mElapsedSeconds      { Timestep::GetElapsedTime() },
+      .mMouseHoveredWindow  { platform->PlatformGetMouseHoveredWindow() },
+    };
+    ImGuiBeginFrame( data );
+
+    Controller::UpdateJoysticks();
+
+    // designated initializers throw c4700 for some reason
+    App::UpdateParams updateParams;
+    updateParams.mWindowApi = sSimWindowApi;
+    updateParams.mKeyboardApi = sSimKeyboardApi;
+
+    TAC_CALL( sApp->Update( updateParams, errors ) );
+
+    TAC_CALL( ImGuiEndFrame( errors ) );
+
+    App::IState* gameState{ sApp->GetGameState() };
+    if( !gameState )
+      gameState = TAC_NEW App::IState;
+
+    gameState->mFrameIndex = Timestep::GetElapsedFrames();
+    gameState->mTimestamp = Timestep::GetElapsedTime();
+    gameState->mTimepoint = Timestep::GetLastTick();
+    gameState->mImGuiSimFrame = ImGuiGetSimFrame();
+
+    sGameStateManager.Enqueue( gameState );
+  }
+
+  void                DesktopApp::Render( Errors& errors )
+  {
+      TAC_PROFILE_BLOCK;
+
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      TAC_CALL( renderDevice->Update( errors ) );
+
+      // Interpolate between game states and render
+      //
+      // Explanation:
+      //   Suppose we have game states A, B, and C, except C doesn't exist yet, because C is in
+      //   the future. If the current time is 25% of the way from B to C, we render (25% A + 75% B).
+      //   This introduces some latency at the expense of misprediction (the alternative is 
+      //   predicting 125% B)
+
+      GameStateManager::Pair pair{ sGameStateManager.Dequeue() };
+      if( !pair.IsValid() )
+        return;
+
+      const TimestampDifference dt{ pair.mNewState->mTimestamp - pair.mOldState->mTimestamp };
+      TAC_ASSERT( dt.mSeconds != 0 );
+
+      const Timepoint prevTime{ pair.mNewState->mTimepoint };
+      const Timepoint currTime{ Timepoint::Now() };
+
+      dynmc float t{ ( currTime - prevTime ) / dt };
+
+      // if currTime is inbetween pair.mOldState->mTimestamp and pair.mNewState->mTimestamp,
+      // then we should instead of picking the two most recent simulation states, should pick
+      // a pair thats one frame less recent
+      TAC_ASSERT( t >= 0 );
+
+      if( sVerbose )
+        OS::OSDebugPrintLine( String() + "t before clamping: " + ToString( t ) );
+
+      t = Min( t, 1.0f );
+
+      const Timestamp interpolatedTimestamp{ Lerp( pair.mOldState->mTimestamp.mSeconds,
+                                                   pair.mNewState->mTimestamp.mSeconds,
+                                                   t ) };
+
+      TAC_CALL( FontApi::UpdateGPU( errors ) );
+
+      ImGuiSimFrame* imguiSimFrame{ &pair.mNewState->mImGuiSimFrame };
+
+      TAC_CALL( ImGuiPlatformRenderFrameBegin( imguiSimFrame, sSysWindowApi, errors ) );
+
+      const App::RenderParams renderParams
+      {
+        .mWindowApi   { sSysWindowApi },
+        .mKeyboardApi { sSysKeyboardApi },
+        .mOldState    { pair.mOldState }, // A
+        .mNewState    { pair.mNewState }, // B
+        .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
+        .mTimestamp   { interpolatedTimestamp },
+      };
+      TAC_CALL( sApp->Render( renderParams, errors ) );
+
+      //const ImGuiSysDrawParams imguiDrawParams
+      //{
+      //  .mSimFrameDraws { &pair.mNewState->mImGuiDraws },
+      //  .mWindowApi     { windowApi },
+      //  .mTimestamp     { interpolatedTimestamp },
+      //};
+
+      TAC_CALL( ImGuiPlatformRender( imguiSimFrame, sSysWindowApi, errors ) );
+
+      static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
+      const PlatformMouseCursor newCursor{
+        ImGuiToPlatformMouseCursor( imguiSimFrame->mCursor ) };
+      if( oldCursor != newCursor )
+      {
+        oldCursor = newCursor;
+
+        PlatformFns* platform{ PlatformFns::GetInstance() };
+        platform->PlatformSetMouseCursor( newCursor );
+        if( sVerbose )
+          OS::OSDebugPrintLine( "set mouse cursor : " + ToString( ( int )newCursor ) );
+      }
+
+      for( const ImGuiSimFrame::WindowSizeData& sizeData : imguiSimFrame->mWindowSizeDatas )
+      {
+        if( sizeData.mRequestedPosition.HasValue() )
+        {
+          const v2i windowPos{ sSysWindowApi.GetPos( sizeData.mWindowHandle ) };
+          const v2i windowPosRequest{ sizeData.mRequestedPosition.GetValue() };
+          if( windowPos != windowPosRequest )
+            sSysWindowApi.SetPos( sizeData.mWindowHandle, windowPosRequest );
+        }
+
+        if( sizeData.mRequestedSize.HasValue() )
+        {
+          const v2i windowSize{ sSysWindowApi.GetSize( sizeData.mWindowHandle ) };
+          const v2i windowSizeRequest{ sizeData.mRequestedSize.GetValue() };
+          if( windowSize != windowSizeRequest )
+            sSysWindowApi.SetSize( sizeData.mWindowHandle, windowSizeRequest );
+        }
+      }
+
+      const App::PresentParams presentParams
+      {
+        .mWindowApi { sSysWindowApi },
+      };
+      TAC_CALL( sApp->Present( presentParams, errors ) );
+
+      TAC_CALL( ImGuiPlatformPresent( imguiSimFrame, sSysWindowApi, errors ) );
+      //Render::FrameEnd();
+  }
+
+  void                DesktopApp::DebugImGui( Errors& errors )
+  {
+    if( !ImGuiCollapsingHeader( "DesktopAppDebugImGui" ) )
       return;
 
     TAC_IMGUI_INDENT_BLOCK;
@@ -265,7 +510,7 @@ namespace Tac
     platform->PlatformImGui( errors );
   }
 
-  Errors& DesktopApp::GetMainErrors() { return gMainFunctionErrors; }
+  Errors&             DesktopApp::GetMainErrors() { return gMainFunctionErrors; }
 
 } // namespace Tac
 

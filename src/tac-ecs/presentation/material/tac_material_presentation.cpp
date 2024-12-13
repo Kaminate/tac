@@ -127,7 +127,7 @@ namespace Tac
       .mEmissive           { material->mEmissive, 1},
       .mFlags              { flags },
       .mDiffuseTextureIdx  { ( u32 )diffuse.GetIndex() },
-      .mSpecularTextureIdx { ( u32 )specular.GetIndex()},
+      .mSpecularTextureIdx { ( u32 )specular.GetIndex() },
     };
   }
 
@@ -291,7 +291,8 @@ namespace Tac
         Render::RenderMaterialApi::GetRenderMaterial( material, errors ) } );
 
 
-      const ConstBufData_Material constBufData_Material{ GetMaterialParams( material ) };
+      TAC_CALL( const ConstBufData_Material constBufData_Material{
+        GetMaterialParams( material, errors ) } );
       TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_Material,
                                                    constBufData_Material,
                                                    errors ) );

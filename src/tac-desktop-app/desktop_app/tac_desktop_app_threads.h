@@ -8,11 +8,13 @@ namespace Tac
     {
       Unknown,
       Sys,
-      Sim
+      Sim,
+      App
     };
     static void SetType( ThreadType );
     static bool IsType( ThreadType );
     static bool IsSysThread();
     static bool IsSimThread();
+    static bool IsAppThread();
   };
 } // namespace Tac

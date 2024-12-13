@@ -13,9 +13,10 @@
 
 #pragma once
 
+#if !TAC_SINGLE_THREADED()
+
 namespace Tac
 {
-
   struct SysThread
   {
     void Init( Errors& );
@@ -29,3 +30,5 @@ namespace Tac
     SysKeyboardApi    mKeyboardApi      {};
   };
 }
+#endif
+

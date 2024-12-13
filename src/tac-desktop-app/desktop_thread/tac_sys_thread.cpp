@@ -28,6 +28,7 @@ import std;
 #include <thread>
 #endif
 
+#if !TAC_SINGLE_THREADED()
 
 namespace Tac
 {
@@ -214,3 +215,6 @@ namespace Tac
 
   }
 } //namespace Tac
+
+#endif
+

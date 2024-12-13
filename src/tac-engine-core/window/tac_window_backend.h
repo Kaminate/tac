@@ -17,12 +17,6 @@ namespace Tac
 {
   inline const int kDesktopWindowCapacity = 100;
 
-// TODO:
-//        i think Tac::WindowBackend should be deleted,
-//                Tac::WindowBackend::SysApi should be Tac::SysWindowApiBackend, and
-//                Tac::WindowBackend::SimApi should be Tac::SimWindowApiBackend,
-
-
   // +------------------------------------------------------------+
   // |                          TODO                              |
   // +------------------------------------------------------------+
