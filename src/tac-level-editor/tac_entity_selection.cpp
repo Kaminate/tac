@@ -5,7 +5,9 @@
 #include "tac-level-editor/tac_level_editor_game_window.h" // CreationGameWindow
 #include "tac-level-editor/tac_level_editor_prefab.h" // PrefabRemoveEntityRecursively
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 // TODO: remove dependency on these end
 
 #include "tac-ecs/entity/tac_entity.h"
@@ -79,11 +81,11 @@ namespace Tac
     return false;
   }
 
-  int                 SelectedEntities::size() const { return mSelectedEntities.size(); }
+  int                 SelectedEntities::size() const        { return mSelectedEntities.size(); }
 
-  Entity** SelectedEntities::begin() { return mSelectedEntities.begin(); }
+  Entity**            SelectedEntities::begin()             { return mSelectedEntities.begin(); }
 
-  Entity** SelectedEntities::end() { return mSelectedEntities.end(); }
+  Entity**            SelectedEntities::end()               { return mSelectedEntities.end(); }
 
   void                SelectedEntities::Select( Entity* e ) { mSelectedEntities = { e }; }
 
@@ -100,7 +102,6 @@ namespace Tac
 
   void                SelectedEntities::DeleteEntitiesCheck()
   {
-    SimKeyboardApi:: keyboardApi{};
     if( AppKeyboardApi::JustPressed( Key::Delete ) )
       DeleteEntities();
   }

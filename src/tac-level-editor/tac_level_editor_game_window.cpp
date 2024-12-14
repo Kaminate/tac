@@ -1,7 +1,6 @@
 #include "tac_level_editor_game_window.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/ghost/tac_ghost.h"
 #include "tac-ecs/graphics/light/tac_light.h"
@@ -11,7 +10,6 @@
 #include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
 #include "tac-ecs/world/tac_world.h"
-
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
@@ -20,27 +18,24 @@
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-level-editor/tac_level_editor.h"
-#include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-level-editor/tac_level_editor_main_window.h"
+#include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-level-editor/tac_level_editor_property_window.h"
-
 #include "tac-rhi/render3/tac_render_api.h"
-
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/math/tac_vector2.h"
-#include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/os/tac_os.h"
-
-//#include <cmath>
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac
 {
@@ -128,7 +123,7 @@ namespace Tac
       { Key::E, camera->mUp},
     };
     for( const PanKeyDir& keyDir : keyDirs )
-      if( SimKeyboardApi::().IsPressed( keyDir.key ) )
+      if( AppKeyboardApi::IsPressed( keyDir.key ) )
         combinedDir += keyDir.dir;
     if( combinedDir == v3( 0, 0, 0 ) )
       return;
@@ -156,7 +151,7 @@ namespace Tac
 
     v3 camOrbitSphericalOffset  {};
     for( const OrbitKeyDir& keyDir : keyDirs )
-      if( SimKeyboardApi::().IsPressed( keyDir.key ) )
+      if( AppKeyboardApi::IsPressed( keyDir.key ) )
         camOrbitSphericalOffset += keyDir.spherical;
     if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
       return;
@@ -339,7 +334,7 @@ namespace Tac
     if( !AppWindowApi::IsHovered( mWindowHandle ) )
       return;
 
-    SimKeyboardApi:: keyboardApi{};
+    
 
     const Camera oldCamera { *camera };
 

@@ -14,6 +14,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
@@ -210,7 +211,7 @@ namespace Tac
     if( AppKeyboardApi::IsPressed( Key::Escape ) )
       OS::OSAppStopRunning();
 
-    TAC_CALL( ExampleDemoWindow( updateParams, errors ) );
+    TAC_CALL( ExampleDemoWindow( errors ) );
 
     TAC_CALL( ExampleSelectorWindow( errors ) );
   }
@@ -240,7 +241,7 @@ namespace Tac
       ExamplesRenderCallback( renderParams, errors );
     }
 
-    void Present( PresentParams presentParams, Errors& errors ) override
+    void Present( Errors& errors ) override
     {
       //const SysWindowApi windowApi{ presentParams.mWindowApi };
       //const WindowHandle handles[]{ sNavWindow, sDemoWindow };

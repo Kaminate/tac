@@ -218,7 +218,7 @@ namespace Tac
 
   void CreationMousePicking::MousePickingSelection( const Camera* camera )
   {
-    SimKeyboardApi:: keyboardApi{};
+    
     if( !AppKeyboardApi::JustPressed( Key::MouseLeft ) )
       return;
 
@@ -314,7 +314,7 @@ namespace Tac
     const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
     const v2i windowPos{ AppWindowApi::GetPos( mWindowHandle ) };
 
-    SimKeyboardApi:: keyboardApi{};
+    
 
     const float w{ ( float )windowSize.x };
     const float h{ ( float )windowSize.y };

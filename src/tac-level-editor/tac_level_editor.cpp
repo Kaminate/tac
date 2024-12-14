@@ -1,53 +1,41 @@
 #include "tac_level_editor.h" // self-inc
 
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-ecs/component/tac_component_registry.h"
+#include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/ghost/tac_ghost.h"
+#include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/tac_space.h"
+#include "tac-ecs/terrain/tac_terrain.h"
+#include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/color/tac_color_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-
-#include "tac-rhi/render3/tac_render_api.h"
-
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/dataprocess/tac_json.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/math/tac_math.h"
-//#include "tac-std-lib/meta/tac_meta_composite.h"
-//#include "tac-std-lib/meta/tac_meta_fn.h"
-//#include "tac-std-lib/meta/tac_meta_fn_sig.h"
-//#include "tac-std-lib/meta/tac_meta_var.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string_util.h"
-
-// level_editor
 #include "tac-level-editor/tac_level_editor_asset_view.h"
 #include "tac-level-editor/tac_level_editor_game_window.h"
-#include "tac-level-editor/tac_level_editor_shader_graph_window.h"
+#include "tac-level-editor/tac_level_editor_icon_renderer.h"
 #include "tac-level-editor/tac_level_editor_main_window.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-level-editor/tac_level_editor_profile_window.h"
 #include "tac-level-editor/tac_level_editor_property_window.h"
+#include "tac-level-editor/tac_level_editor_shader_graph_window.h"
 #include "tac-level-editor/tac_level_editor_system_window.h"
-
-// shell
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-
-// space
-#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/component/tac_component_registry.h"
-#include "tac-ecs/ghost/tac_ghost.h"
-#include "tac-ecs/tac_space.h"
-#include "tac-ecs/world/tac_world.h"
-#include "tac-ecs/terrain/tac_terrain.h"
-
-#include "tac-level-editor/tac_level_editor_icon_renderer.h"
 #include "tac-level-editor/tac_level_editor_widget_renderer.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string_util.h"
 
 Tac::Creation Tac::gCreation;
 
@@ -77,17 +65,15 @@ namespace Tac
 
   static void   CheckSavePrefab(World* world)
   {
-    SimKeyboardApi:: keyboardApi;
-
     const bool triggered{
-      keyboardApi.JustPressed( Key::S ) &&
-      keyboardApi.IsPressed( Key::Modifier ) };
+      AppKeyboardApi::JustPressed( Key::S ) &&
+      AppKeyboardApi::IsPressed( Key::Modifier ) };
 
     if( !triggered )
       return;
 
     Errors saveErrors;
-    bool saved = PrefabSave( world, saveErrors );
+    bool saved { PrefabSave( world, saveErrors ) };
 
     const TimestampDifference errorDurationSecs{ 60.0f };
     const TimestampDifference successDurationSecs{ 5.0f };
@@ -104,6 +90,7 @@ namespace Tac
 
   static void CloseAppWhenAllWindowsClosed()
   {
+    static bool hasAnyWindowShown;
     const bool isAnyWindowShown{
       CreationSystemWindow::sShowWindow ||
       CreationMainWindow::sShowWindow ||
@@ -111,7 +98,6 @@ namespace Tac
       CreationGameWindow::sShowWindow ||
       CreationShaderGraphWindow::sShowWindow ||
       CreationPropertyWindow::sShowWindow };
-    static bool hasAnyWindowShown;
     hasAnyWindowShown |= isAnyWindowShown;
     if( hasAnyWindowShown && !isAnyWindowShown )
       OS::OSAppStopRunning();
@@ -237,7 +223,7 @@ namespace Tac
     TAC_CALL( CreationMainWindow::Update( world, errors ) );
     TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
     TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
-    TAC_CALL( CreationProfileWindow::Update( SimKeyboardApi::(), errors ) );
+    TAC_CALL( CreationProfileWindow::Update(  errors ) );
 
     world->Step( TAC_DELTA_FRAME_SECONDS );
 

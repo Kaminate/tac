@@ -22,7 +22,7 @@ namespace Tac
 
   const char* CreationProfileWindow::gProfileWindowName { "ProfileWindow" };
   bool        CreationProfileWindow::sShowWindow{};
-  void        CreationProfileWindow::Update( , Errors& errors )
+  void        CreationProfileWindow::Update( Errors& errors )
   {
     if( !sShowWindow )
       return;
@@ -33,7 +33,7 @@ namespace Tac
       TAC_PROFILE_BLOCK;
       if( ImGuiButton( "Close Window" ) )
         sShowWindow = false;
-      ImGuiProfileWidget( keyboardApi );
+      ImGuiProfileWidget();
       ImGuiEnd();
     }
   }
