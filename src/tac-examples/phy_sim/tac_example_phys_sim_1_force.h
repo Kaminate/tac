@@ -24,7 +24,7 @@ namespace Tac
 
     ExamplePhysSim1Force();
     ~ExamplePhysSim1Force() override;
-    void Update( UpdateParams, Errors& ) override;
+    void Update( Errors& ) override;
     void Render() override;
 
     Entity* mEntity         {};

@@ -20,7 +20,7 @@ namespace Tac
       return s;
   }
 
-  void ExampleImgui::Update(UpdateParams,  Errors& errors )
+  void ExampleImgui::Update( Errors& errors )
   {
     ImGuiText( "r   g   b   a" );
     for( int i{}; i < ( int )ImGuiCol::Count; ++i )

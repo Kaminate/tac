@@ -172,60 +172,6 @@ namespace Tac
     if( !sEnabled )
       return;
 
-#if 0
-    if( true ) // deleteme
-    {
-      const float aspect = ( float )viewSize.x / ( float )viewSize.y;
-      const m4 proj{ camera->Proj( aspect ) };
-      const m4 invProj{ camera->ProjInv( aspect ) };
-
-      v4 pos_n_vs( 0, 0, -camera->mNearPlane, 1 );
-      v4 pos_n_cs = proj * pos_n_vs;
-      Prettifyv4( pos_n_cs );
-
-      v4 pos_n_ns = pos_n_cs / pos_n_cs.w;
-      Prettifyv4( pos_n_ns );
-
-      v4 pos_f_vs( 0, 0, -camera->mFarPlane, 1 );
-      v4 pos_f_cs = proj * pos_f_vs;
-      Prettifyv4( pos_f_cs );
-
-      v4 pos_f_ns = pos_f_cs / pos_f_cs.w;
-      Prettifyv4( pos_f_ns );
-
-      // ------------------------
-
-      const float theta = camera->mFovyrad / 2;
-
-      const float nearPlane_tr_w_vs = 1;
-      const float nearPlane_tr_z_vs = -camera->mNearPlane;
-      const float nearPlane_tr_y_vs = camera->mNearPlane * Tan( theta );
-      const float nearPlane_tr_x_vs = nearPlane_tr_y_vs * aspect;
-      v4 pos_nearPlane_tr_vs( nearPlane_tr_x_vs,
-                              nearPlane_tr_y_vs,
-                              nearPlane_tr_z_vs,
-                              nearPlane_tr_w_vs );
-      Prettifyv4( pos_nearPlane_tr_vs );
-
-      v4 pos_nearPlane_tr_cs = proj * pos_nearPlane_tr_vs;
-      Prettifyv4( pos_nearPlane_tr_cs );
-
-      // ( 1, 1, 0, 1 )
-      v4 pos_nearPlane_tr_ns = pos_nearPlane_tr_cs / pos_nearPlane_tr_cs.w;
-      Prettifyv4( pos_nearPlane_tr_ns );
-
-      v4 pos_nearPlane_tr_vs2_incomplete = invProj * v4( 1, 1, 0, 1 );
-      v4 pos_nearPlane_tr_vs2_complete
-        = pos_nearPlane_tr_vs2_incomplete
-        / pos_nearPlane_tr_vs2_incomplete.w;
-
-      float dist = Distance(pos_nearPlane_tr_vs2_complete.xyz(), pos_nearPlane_tr_vs.xyz());
-      PrettifyFloat( dist);
-
-      ++asdf;
-    }
-#endif
-
     const Render::Targets renderTargets
     {
       .mColors { dstColorTex },

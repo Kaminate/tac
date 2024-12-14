@@ -2,6 +2,7 @@
 
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 
 #if TAC_SHOULD_IMPORT_STD()
@@ -177,6 +178,56 @@ namespace Tac
   {
     return sSimCurr.mMousePosScreenspace - sGameLogicPrev.mMousePosScreenspace;
   }
+
+  // -----------------------------------------------------------------------------------------------
+
+  
+  bool                AppKeyboardApi::IsPressed( Key key )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  bool                AppKeyboardApi::IsDepressed( Key key )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  bool                AppKeyboardApi::JustPressed( Key key )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  bool                AppKeyboardApi::JustDepressed( Key key )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  float               AppKeyboardApi::HeldSeconds( Key key )
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  Span< Codepoint >   AppKeyboardApi::GetCodepoints()
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  float               AppKeyboardApi::GetMouseWheelDelta()
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  v2i                 AppKeyboardApi::GetMousePosScreenspace()
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+  v2i                 AppKeyboardApi::GetMousePosDelta()
+  {
+    TAC_ASSERT_UNIMPLEMENTED;
+    return {};
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   void SysKeyboardApi::TestTest() {} // no-op

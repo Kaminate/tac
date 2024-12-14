@@ -37,41 +37,22 @@ namespace Tac
       bool   mDisableRenderer            {};
     };
 
-    struct InitParams
-    {
-      SysWindowApi   mWindowApi   {};
-      SysKeyboardApi mKeyboardApi {};
-    };
-
-    struct UpdateParams
-    {
-      SimWindowApi   mWindowApi   {};
-      SimKeyboardApi mKeyboardApi {};
-    };
-
     struct RenderParams
     {
-      SysWindowApi   mWindowApi   {};
-      SysKeyboardApi mKeyboardApi {};
       IState*        mOldState    {};
       IState*        mNewState    {};
       float          mT           {}; // [ 0, 1 ]
       Timestamp      mTimestamp   {}; // = Lerp( old timestamp, new timestamp, t )
     };
 
-    struct PresentParams
-    {
-      SysWindowApi   mWindowApi   {};
-    };
-
     App( const Config& config ) : mConfig( config ) {}
-    virtual ~App() {};
+    virtual ~App() = default;
 
-    virtual void    Init( InitParams, Errors& )       {};
-    virtual void    Update( UpdateParams, Errors& )   {};
-    virtual void    Render( RenderParams, Errors& )   {};
-    virtual void    Present( PresentParams, Errors& ) {};
-    virtual void    Uninit( Errors& )                 {};
+    virtual void    Init( Errors& ){};
+    virtual void    Update( Errors& ){};
+    virtual void    Render( RenderParams, Errors& ){};
+    virtual void    Present( Errors& ){};
+    virtual void    Uninit( Errors& ){};
 
     virtual IState* GetGameState();
     bool            IsRenderEnabled() const;
@@ -83,7 +64,7 @@ namespace Tac
     SettingsNode    mSettingsNode{};
 
   protected:
-    Config          mConfig;
+    Config          mConfig{};
   };
 } // namespace Tac
 

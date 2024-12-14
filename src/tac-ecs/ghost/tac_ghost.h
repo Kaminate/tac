@@ -38,13 +38,11 @@ namespace Tac
   {
     User( StringView name,
           Ghost*,
-          SimKeyboardApi,
           Errors& );
     void                   Update( Errors& );
     void                   DebugImgui();
     Player*                mPlayer               {};
     Ghost*                 mGhost                {};
-    SimKeyboardApi         mKeyboardApi          {};
     String                 mName                 {};
     bool                   mHasControllerIndex   {};
     Controller::ControllerIndex mControllerIndex { Controller::TAC_CONTROLLER_COUNT_MAX };
@@ -75,7 +73,6 @@ namespace Tac
     bool            CanDrawImgui();
     bool            IsPartyFull();
     Vector< User* > mUsers                      {};
-    SimKeyboardApi  mKeyboardApi                {};
     ServerData*     mServerData                 {};
     ClientData*     mClientData                 {};
     ScriptRoot*     mScriptRoot                 {};
@@ -92,11 +89,10 @@ namespace Tac
     float           mImguiImagePosRelTopLeftX   {};
     float           mImguiImagePosRelTopLeftY   {};
     bool            mShouldPopulateWorldInitial {};
-
-    SettingsNode    mSettingsNode;
+    SettingsNode    mSettingsNode               {};
   };
 
-  const String scriptMsgNameUserConnect = "user connect";
+  const String scriptMsgNameUserConnect { "user connect" };
 
-}
+} // namespace Tac
 

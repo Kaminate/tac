@@ -2,14 +2,13 @@
 
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/error/tac_assert.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
-#include "tac-std-lib/error/tac_assert.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 
 namespace Tac::Render
 {
-
-
   static void MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
                                   D3D12_MESSAGE_SEVERITY Severity,
                                   D3D12_MESSAGE_ID ID,
@@ -22,7 +21,7 @@ namespace Tac::Render
     OS::OSDebugBreak();
   }
 
-  // ----
+  // -----------------------------------------------------------------------------------------------
 
   void DX12ExampleDebugLayer::Init( Errors& errors )
   {
@@ -37,7 +36,6 @@ namespace Tac::Render
 
     if( PCom< ID3D12Debug3 > debug3{ mDebug.QueryInterface<ID3D12Debug3>() } )
     {
-
       // ( this should already be enabled by default )
       debug3->SetEnableSynchronizedCommandQueueValidation( TRUE );
 
@@ -53,38 +51,31 @@ namespace Tac::Render
       // - Shader accesses of resources in incompatible state.
       // - Use of uninitialized or incompatible Samplers in a shader.
       debug3->SetEnableGPUBasedValidation( TRUE );
-
     }
-
   }
 
   bool DX12ExampleDebugLayer::IsEnabled() const { return mDebugLayerEnabled; }
 
-
-  // ---
+  // -----------------------------------------------------------------------------------------------
 
   void DX12ExampleDevice::Init( const DX12ExampleDebugLayer& debugLayer, Errors& errors )
   {
     TAC_ASSERT( !kIsDebugMode || debugLayer.IsEnabled() );
 
     auto adapter{ ( IDXGIAdapter* )Tac::Render::DXGIGetBestAdapter() };
-    TAC_DX12_CALL( D3D12CreateDevice(
-      adapter,
-      D3D_FEATURE_LEVEL_12_1,
-      mDevice.iid(),
-      mDevice.ppv() ) );
+    TAC_DX12_CALL( D3D12CreateDevice( adapter,
+                                      D3D_FEATURE_LEVEL_12_1,
+                                      mDevice.iid(),
+                                      mDevice.ppv() ) );
 
     ID3D12Device* pDevice{ mDevice.Get() };
     DX12SetName( pDevice, "Device" );
-
     if constexpr( kIsDebugMode )
     {
       mDevice.QueryInterface( mDebugDevice );
       TAC_ASSERT( mDebugDevice );
     }
-
   }
-
 
   void DX12ExampleInfoQueue::Init( const DX12ExampleDebugLayer& debugLayer,
                                    ID3D12Device* device,
@@ -105,12 +96,12 @@ namespace Tac::Render
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 = mInfoQueue.QueryInterface<ID3D12InfoQueue1>() )
+    if( auto infoQueue1{ mInfoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
     {
       const D3D12MessageFunc CallbackFunc{ MyD3D12MessageFunc };
       const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags{ D3D12_MESSAGE_CALLBACK_FLAG_NONE };
       void* pContext{ this };
-      DWORD pCallbackCookie{  };
+      DWORD pCallbackCookie{};
 
       TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
         CallbackFunc,
@@ -133,14 +124,11 @@ namespace Tac
                        sizeof( opt5 ) ) );
     return opt5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
   }
-
 }
 
-Tac::WindowHandle Tac::DX12ExampleCreateWindow( const SysWindowApi windowApi,
-                                                StringView name,
-                                                Errors& errors )
+Tac::WindowHandle Tac::DX12ExampleCreateWindow( StringView name, Errors& errors )
 {
-  const Monitor monitor = OS::OSGetPrimaryMonitor();
+  const Monitor monitor{ OS::OSGetPrimaryMonitor() };
   const v2i windowSize{ monitor.mSize / 2 };
   const v2i windowPos{ ( monitor.mSize - windowSize ) / 2 };
   const WindowCreateParams windowCreateParams
@@ -149,9 +137,7 @@ Tac::WindowHandle Tac::DX12ExampleCreateWindow( const SysWindowApi windowApi,
     .mPos  { windowPos },
     .mSize { windowSize },
   };
-
-  const WindowHandle h{ windowApi.CreateWindow( windowCreateParams, errors ) };
-
+  const WindowHandle h{ AppWindowApi::CreateWindow( windowCreateParams, errors ) };
   return h;
 }
 

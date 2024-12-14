@@ -1,4 +1,5 @@
 #include "tac_dx12_tutorial_5_const_buf.h" // self-inc
+
 #include "tac_dx12_tutorial_shader_compile.h"
 #include "tac_dx12_tutorial_2_dxc.h"
 #include "tac_dx12_tutorial.h"
@@ -7,8 +8,11 @@
 #include "tac_dx12_tutorial_checkerboard.h"
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_forward_list.h"
@@ -18,7 +22,6 @@
 #include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix4.h"
@@ -26,7 +29,6 @@
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -759,16 +761,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloConstBuf::DX12CreateSwapChain(const SysWindowApi windowApi, Errors& errors )
+  void DX12AppHelloConstBuf::DX12CreateSwapChain( Errors& errors )
   {
     if( m_swapChainValid )
       return;
 
-    auto hwnd { ( HWND )windowApi.GetNWH( hDesktopWindow ) };
+    auto hwnd { ( HWND )AppWindowApi::GetNativeWindowHandle( hDesktopWindow ) };
     if( !hwnd )
       return;
 
-    const v2i size { windowApi.GetSize( hDesktopWindow ) };
+    const v2i size { AppWindowApi::GetSize( hDesktopWindow ) };
 
     ID3D12CommandQueue* commandQueue { mCommandQueue.GetCommandQueue() };
     TAC_ASSERT( commandQueue );
@@ -1162,7 +1164,7 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    TAC_CALL(CheckSwapEffect(m_swapChainDesc.SwapEffect,errors));
+    TAC_CALL(CheckSwapEffect(m_swapChainDesc.SwapEffect, errors));
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -1187,11 +1189,11 @@ namespace Tac
 
   DX12AppHelloConstBuf::DX12AppHelloConstBuf( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloConstBuf::Init( InitParams initParams, Errors& errors )
+  void DX12AppHelloConstBuf::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    windowApi.SetSwapChainAutoCreate( false );
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Const Buf", errors ) );
+
+    AppWindowApi::SetSwapChainAutoCreate( false );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow("DX12 Const Buf", errors ) );
   }
 
   void DX12AppHelloConstBuf::PreSwapChainInit( Errors& errors)
@@ -1234,18 +1236,18 @@ namespace Tac
     mUploadAllocator.Init( &mUploadPageManager );
   }
 
-  void DX12AppHelloConstBuf::Update( UpdateParams updateParams, Errors& errors )
+  void DX12AppHelloConstBuf::Update( Errors& errors )
   {
   }
 
   void DX12AppHelloConstBuf::Render( RenderParams renderParams, Errors&  errors )
   {
-    const SysWindowApi windowApi{ renderParams.mWindowApi };
-    if( !windowApi.IsShown( hDesktopWindow ) )
+
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
+    TAC_CALL( DX12CreateSwapChain(errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
     TAC_CALL( CreateVertexBuffer( errors ) );
     TAC_CALL( CreateTexture( errors ) );

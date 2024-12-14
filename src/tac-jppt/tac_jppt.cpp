@@ -2,14 +2,9 @@
 
 
 #include "tac-rhi/render3/tac_render_api.h"
-//#include "tac-engine-core/window/tac_window_handle.h"
-//#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/os/tac_os.h"
-//#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-//#include "tac-ecs/ghost/tac_ghost.h"
-//#include "tac-ecs/tac_space.h"
-
 #include "tac_jppt_BVH.h"
 #include "tac_jppt_cornell_box.h"
 
@@ -63,7 +58,7 @@ namespace Tac
     TAC_CALL( sTexture = renderDevice->CreateTexture( createTextureParams, errors ) );
   }
 
-  void    JPPTApp::Init( InitParams initParams, Errors& errors)
+  void    JPPTApp::Init( Errors& errors)
   {
     const Monitor monitor{ OS::OSGetPrimaryMonitor() };
     sWindowSize = v2i( ( int )( monitor.mSize.x * 0.8f ),
@@ -97,7 +92,7 @@ namespace Tac
     outputTexture->SetResource( sTexture );
   }
 
-  void    JPPTApp::Update( UpdateParams updateParams, Errors& )
+  void    JPPTApp::Update( Errors& )
   {
     ImGuiSetNextWindowDisableBG();
     ImGuiSetNextWindowPosition( sWindowPos );
@@ -117,13 +112,12 @@ namespace Tac
       return;
 
     const WindowHandle windowHandle{ ImGuiGetWindowHandle(sWindowName)};
-    const SysWindowApi windowApi{ renderParams.mWindowApi};
-    const bool shown{ windowApi.IsShown( windowHandle ) };
+    const bool shown{ AppWindowApi::IsShown( windowHandle ) };
     if( !shown )
       return;
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::SwapChainHandle swapChain{ windowApi.GetSwapChainHandle( windowHandle ) };
+    const Render::SwapChainHandle swapChain{ AppWindowApi::GetSwapChainHandle( windowHandle ) };
     const Render::TextureHandle swapChainColor{
       renderDevice->GetSwapChainCurrentColor( swapChain ) };
     //const Render::TextureHandle swapChainDepth{
@@ -155,7 +149,7 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
-  void    JPPTApp::Present( PresentParams, Errors& )
+  void    JPPTApp::Present(  Errors& )
   {
   }
 

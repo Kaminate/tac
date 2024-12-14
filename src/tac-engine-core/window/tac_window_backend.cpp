@@ -1,6 +1,7 @@
 #include "tac_window_backend.h" // self-inc
 #include "tac_sim_window_api.h"
 #include "tac_sys_window_api.h"
+#include "tac_app_window_api.h"
 
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -43,8 +44,10 @@ namespace Tac
   static std::mutex   sWindowStateMutex;
   static WindowStates sSimCurr;
   static WindowHandle sSimHovered;
+  static WindowHandle sAppHovered;
   static WindowHandle sSysHovered;
   static WindowStates sSysCurr;
+  static WindowStates sAppCurr;
   static bool         sModificationAllowed;
   static NWHArray     sSysNative;
   static FBArray      sFramebuffers;
@@ -455,6 +458,156 @@ namespace Tac
 #endif
   }
 
-}
+  // -----------------------------------------------------------------------------------------------
+
+  bool                    AppWindowApi::IsShown( WindowHandle h)
+  {
+    return h.IsValid() ? sAppCurr[ h.GetIndex() ].mShown : false;
+  }
+
+  bool                    AppWindowApi::IsHovered( WindowHandle h )
+  {
+    return h.IsValid() ? sAppHovered == h : false;
+  }
+
+  v2i                     AppWindowApi::GetPos( WindowHandle h )
+  {
+    TAC_ASSERT( h.IsValid() );
+    return sSysCurr[ h.GetIndex() ].mPos;
+  }
+
+  void                    AppWindowApi::SetPos( WindowHandle h, v2i pos)
+  {
+    TAC_ASSERT( h.IsValid() );
+    sSysCurr[ h.GetIndex() ].mPos = pos;
+
+    PlatformFns* platform{ PlatformFns::GetInstance() };
+    platform->PlatformSetWindowPos( h, pos );
+  }
+
+  v2i                     AppWindowApi::GetSize( WindowHandle h)
+  {
+    TAC_ASSERT( h.IsValid() );
+    return sSysCurr[ h.GetIndex() ].mSize;
+  }
+
+  void                    AppWindowApi::SetSize( WindowHandle h, v2i size )
+  {
+    TAC_ASSERT( h.IsValid() );
+    sSysCurr[ h.GetIndex() ].mSize = size;
+    
+    PlatformFns* platform{ PlatformFns::GetInstance() };
+    platform->PlatformSetWindowSize( h, size );
+  }
+
+  StringView              AppWindowApi::GetName( WindowHandle h)
+  {
+    TAC_ASSERT( h.IsValid() );
+    return sSysCurr[ h.GetIndex() ].mName;
+  }
+
+  const void*             AppWindowApi::GetNativeWindowHandle( WindowHandle h)
+  {
+    TAC_ASSERT( h.IsValid() );
+    return sSysNative[ h.GetIndex() ];
+  }
+
+  WindowHandle            AppWindowApi::CreateWindow( WindowCreateParams windowCreateParams,
+                                                      Errors& errors )
+  {
+    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
+
+    const WindowHandle h{ AllocWindowHandle() };
+    const PlatformSpawnWindowParams platformParams
+    {
+      .mHandle { h },
+      .mName   { windowCreateParams.mName },
+      .mPos    { windowCreateParams.mPos },
+      .mSize   { windowCreateParams.mSize },
+    };
+
+    PlatformFns* platform { PlatformFns::GetInstance() };
+    TAC_CALL_RET( platform->PlatformSpawnWindow( platformParams, errors ) );
+    return h;
+  }
+
+  void                    AppWindowApi::DestroyWindow( WindowHandle h)
+  {
+    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
+    PlatformFns* platform { PlatformFns::GetInstance() };
+    platform->PlatformDespawnWindow( h );
+    FreeWindowHandle( h );
+  }
+
+  Render::SwapChainHandle AppWindowApi::GetSwapChainHandle( WindowHandle h)
+  {
+    return sFramebuffers[ h.GetIndex() ];
+  }
+
+  void                    AppWindowApi::SetSwapChainAutoCreate( bool autoCreate)
+  {
+    SysWindowApiBackend::mCreatesSwapChain = autoCreate;
+  }
+
+  void                    AppWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt )
+  {
+    sSwapChainColorFormat = texFmt;
+  }
+
+  void                    AppWindowApi::SetSwapChainDepthFormat( Render::TexFmt texFmt )
+  {
+    sSwapChainDepthFormat = texFmt;
+  }
+
+  Render::TexFmt          AppWindowApi::GetSwapChainColorFormat()
+  {
+    return sSwapChainColorFormat;
+  }
+
+  Render::TexFmt          AppWindowApi::GetSwapChainDepthFormat()
+  {
+    return sSwapChainDepthFormat;
+  }
+
+  void                    AppWindowApi::DesktopWindowDebugImgui()
+  {
+#if 0
+    if( !ImGuiCollapsingHeader( "DesktopWindowDebugImgui" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    int stateCount {};
+    for( int iWindow {}; iWindow < kDesktopWindowCapacity; ++iWindow )
+    {
+      const DesktopWindowState* state = &sDesktopWindowStates[ iWindow ];
+      if( !state->mNativeWindowHandle )
+        continue;
+
+      String handleStr = ToString( iWindow );
+      while( handleStr.size() < 2 )
+        handleStr += ' ';
+
+      String nameStr = state->mName;
+
+      String str;
+      str += "Window: " + handleStr + ", ";
+      str += "Name: " + nameStr + ", ";
+      str += "Pos(" + ToString( state->mX ) + ", " + ToString( state->mY ) + "), ";
+      str += "Size( " + ToString( state->mWidth ) + ", " + ToString( state->mHeight ) + "), ";
+      str += "Native: " + ToString( ( void* )state->mNativeWindowHandle );
+
+      ImGuiText( str );
+      stateCount++;
+    }
+
+    if( !stateCount )
+      ImGuiText( " No desktop window states (how are you reading this)" );
+#endif
+
+  }
+
+
+} // namespace Tac
 
 

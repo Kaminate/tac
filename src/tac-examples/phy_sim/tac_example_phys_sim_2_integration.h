@@ -18,7 +18,7 @@ namespace Tac
   {
     ExamplePhysSim2Integration();
     ~ExamplePhysSim2Integration() override;
-    void Update( UpdateParams, Errors& ) override;
+    void Update( Errors& ) override;
     void UI();
     void TrackPositions();
     void DrawPositions();

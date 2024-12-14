@@ -9,6 +9,6 @@ namespace Tac
   {
     ExamplePhysSim7Friction();
     ~ExamplePhysSim7Friction() override;
-    void Update( UpdateParams, Errors& ) override;
+    void Update( Errors& ) override;
   };
 }

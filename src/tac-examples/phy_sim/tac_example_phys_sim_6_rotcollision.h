@@ -44,7 +44,7 @@ namespace Tac
     ExamplePhysSim6RotCollision();
     ~ExamplePhysSim6RotCollision() override;
 
-    void Update( UpdateParams, Errors& ) override;
+    void Update( Errors& ) override;
     void Draw( const ExamplePhys6SimObj& );
     void Render();
     void RenderBoundingSpheres();

@@ -34,8 +34,8 @@ namespace Tac
 
   static m4 GetProj( WindowHandle viewHandle, const Camera* camera )
   {
-    SysWindowApi windowApi;
-    const v2i windowSize{ windowApi.GetSize( viewHandle ) };
+    
+    const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
     const float aspectRatio{ ( float )windowSize.x / ( float )windowSize.y };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };

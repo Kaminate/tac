@@ -1,10 +1,12 @@
-#include "tac_render_tutorial.h"
+#include "tac_render_tutorial_2_triangle.h" // self-inc
+
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 
 namespace Tac
@@ -44,49 +46,23 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  struct HelloTriangle : public App
-  {
-    HelloTriangle( App::Config );
-
-  protected:
-    void Init( InitParams, Errors& ) override;
-    void Render( RenderParams, Errors& ) override;
-
-  private:
-    void InitWindow( InitParams, Errors& );
-    void InitVertexBuffer( Errors& );
-    void InitShader( Errors& );
-    void InitRootSig( Errors& );
-
-    WindowHandle           mWindowHandle;
-    Render::BufferHandle   mVtxBuf;
-    Render::ProgramHandle  mShaderBindless;
-    Render::ProgramHandle  mShaderInputLayout;
-    Render::PipelineHandle mPipelineBindless;
-    Render::PipelineHandle mPipelineInputLayout;
-    Render::TexFmt         mColorFormat;
-    Render::TexFmt         mDepthFormat;
-    bool                   mBindless{ true };
-  };
-
   HelloTriangle::HelloTriangle( App::Config cfg ) : App{ cfg } {}
 
-  void HelloTriangle::Init( InitParams initParams, Errors& errors )
+  void HelloTriangle::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    mColorFormat = windowApi.GetSwapChainColorFormat();
-    mDepthFormat = windowApi.GetSwapChainDepthFormat();
 
-    InitWindow( initParams, errors );
+    mColorFormat = AppWindowApi::GetSwapChainColorFormat();
+    mDepthFormat = AppWindowApi::GetSwapChainDepthFormat();
+
+    InitWindow(  errors );
     InitVertexBuffer( errors );
     InitShader( errors );
     InitRootSig( errors );
   }
 
-  void HelloTriangle::InitWindow( InitParams initParams, Errors& errors )
+  void HelloTriangle::InitWindow( Errors& errors )
   {
-      TAC_CALL( mWindowHandle = RenderTutorialCreateWindow(
-        initParams.mWindowApi, mConfig.mName, errors ) );
+      TAC_CALL( mWindowHandle = RenderTutorialCreateWindow( mConfig.mName, errors ) );
   }
 
   void HelloTriangle::InitShader( Errors& errors )
@@ -163,9 +139,9 @@ namespace Tac
     // Test bindless vs not bindless by flipping it every frame
     mBindless = !mBindless;
 
-    const SysWindowApi windowApi{ sysRenderParams.mWindowApi };
-    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
-    Render::SwapChainHandle swapChain { windowApi.GetSwapChainHandle( mWindowHandle ) };
+    
+    const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
+    Render::SwapChainHandle swapChain { AppWindowApi::GetSwapChainHandle( mWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };

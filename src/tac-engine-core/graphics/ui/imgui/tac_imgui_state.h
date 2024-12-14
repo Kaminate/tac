@@ -204,11 +204,8 @@ namespace Tac
     static ImGuiPersistantPlatformData Instance;
 
     void                       Init( Errors& );
-    void                       UpdateAndRender( ImGuiSimFrame*,
-                                                SysWindowApi,
-                                                Errors& );
-    void                       UpdateAndRenderWindow( SysWindowApi,
-                                                      ImGuiSimWindowDraws*,
+    void                       UpdateAndRender( ImGuiSimFrame*, Errors& );
+    void                       UpdateAndRenderWindow( ImGuiSimWindowDraws*,
                                                       ImGuiPersistantViewport*,
                                                       Errors& );
     ImGuiPersistantViewport*   GetPersistantWindowData( WindowHandle );
@@ -277,19 +274,7 @@ namespace Tac
     WindowHandle                      mMouseHoveredWindow   {};
     bool                              mScrollBarEnabled     { true };
     int                               mMaxGpuFrameCount     {};
-
-    // Ok so here's a problem:
-    //
-    //   Almost all imgui functions operate on the simulation thread and thus should have access to
-    //   mSimWindowApi/mSimKeyboardApi.
-    //
-    //   However ImGuiPlatformRender runs on the system thread and should not have access to these.
-    // 
-    // Possible solution... split off ImGuiGlobals access from ImGuiPlatformRender render?
-    SimWindowApi                      mSimWindowApi         {};
-    SimKeyboardApi                    mSimKeyboardApi       {};
     SettingsNode                      mSettingsNode         {};
-
     ImGuiID                           mHoveredID            {};
     ImGuiID                           mActiveID             {};
     ImGuiWindow*                      mActiveIDWindow       {};

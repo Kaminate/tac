@@ -77,7 +77,7 @@ namespace Tac
 
   static void   CheckSavePrefab(World* world)
   {
-    SimKeyboardApi keyboardApi;
+    SimKeyboardApi:: keyboardApi;
 
     const bool triggered{
       keyboardApi.JustPressed( Key::S ) &&
@@ -123,7 +123,7 @@ namespace Tac
   {
     LevelEditorApp( const Config& cfg ) : App( cfg ) {}
 
-    void Init( App::InitParams initParams, Errors& errors ) override
+    void Init( Errors& errors ) override
     {
       SpaceInit();
       gCreation.Init( mSettingsNode, errors );
@@ -136,11 +136,11 @@ namespace Tac
       return state;
     }
 
-    void Update( App::UpdateParams, Errors& errors ) override
+    void Update( Errors& errors ) override
     {
       World* world{ gCreation.mSimState.mWorld };
       Camera* camera{ gCreation.mSimState.mEditorCamera };
-      gCreation.Update( world, camera,errors );
+      gCreation.Update( world, camera, errors );
     }
 
     void Render( App::RenderParams renderParams, Errors& errors ) override
@@ -237,7 +237,7 @@ namespace Tac
     TAC_CALL( CreationMainWindow::Update( world, errors ) );
     TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
     TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
-    TAC_CALL( CreationProfileWindow::Update( SimKeyboardApi(), errors ) );
+    TAC_CALL( CreationProfileWindow::Update( SimKeyboardApi::(), errors ) );
 
     world->Step( TAC_DELTA_FRAME_SECONDS );
 

@@ -30,8 +30,8 @@ namespace Tac
 
     DX12AppHelloBundle( const Config& );
 
-    void Init( InitParams, Errors& ) override;
-    void Update( UpdateParams, Errors& ) override;
+    void Init(  Errors& ) override;
+    void Update( Errors& ) override;
     void Render( RenderParams, Errors& ) override;
     void Uninit( Errors& ) override;
 
@@ -63,7 +63,7 @@ namespace Tac
     
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( const SysWindowApi, Errors& );
+    void DX12CreateSwapChain( Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;

@@ -1,21 +1,22 @@
-#include "tac-engine-core/profile/tac_profile.h"
+#include "tac_profile.h" // self-inc
 
+#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile_backend.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-std-lib/containers/tac_map.h"
-#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/dataprocess/tac_hash.h"
-#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {
   static float             sMilisecondsToDisplay { 20.0f };
-  static Timepoint         sPauseSec;
-  static ProfileFrame      sProfiledFunctions;
+  static Timepoint         sPauseSec             {};
+  static ProfileFrame      sProfiledFunctions    {};
 
   // Totally unused, but keeping it because its the only place where ImGuiRegisterWindowResource is used
   // It would be gotten like this:
@@ -115,8 +116,7 @@ namespace Tac
     int              mDepth;
   };
 
-  static void ImGuiProfileWidgetCamera( SimKeyboardApi sKeyboardApi,
-                                        const v2 cameraViewportPos,
+  static void ImGuiProfileWidgetCamera( const v2 cameraViewportPos,
                                         const v2 cameraViewportSize )
   {
     const float fontSize { ImGuiGetFontSize() };
@@ -212,7 +212,7 @@ namespace Tac
           const float boxDeltaMsec { ( float )( boxDeltaSeconds * 1000 ) };
 
 
-          ImGuiSetNextWindowPosition( sKeyboardApi.GetMousePosScreenspace() );
+          ImGuiSetNextWindowPosition( AppKeyboardApi::GetMousePosScreenspace() );
           ImGuiSetNextWindowSize( textSize + v2( 1, 1 ) * 50.0f );
           ImGuiBegin( "hovered" );
           ImGuiText( profileFunction->mName );
@@ -249,14 +249,14 @@ namespace Tac
 
         //if( mouseMovement )
         {
-          if( sKeyboardApi.IsPressed( Key::MouseLeft ) )
+          if( AppKeyboardApi::IsPressed( Key::MouseLeft ) )
           {
-            const float movePixels { (float)sKeyboardApi.GetMousePosDelta().x };
+            const float movePixels { (float)AppKeyboardApi::GetMousePosDelta().x };
             const float movePercent { movePixels / cameraViewportSize.x };
             const float moveSeconds { movePercent * ( sMilisecondsToDisplay / 1000 ) };
             sPauseSec -= moveSeconds;
           }
-          sMilisecondsToDisplay -= sKeyboardApi.GetMouseWheelDelta() * 0.4f;
+          sMilisecondsToDisplay -= AppKeyboardApi::GetMouseWheelDelta() * 0.4f;
         }
       }
     }
@@ -315,7 +315,7 @@ namespace Tac
   }
 }
 
-void Tac::ImGuiProfileWidget( SimKeyboardApi keyboardApi )
+void Tac::ImGuiProfileWidget()
 {
   const float fontSize { ImGuiGetFontSize() };
   ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
@@ -324,8 +324,9 @@ void Tac::ImGuiProfileWidget( SimKeyboardApi keyboardApi )
   const int   fps { GetFPS() };
   const float fpsT{ Saturate( ( float )fps / 400.0f ) }; // 1 = fast, 0 = slow
   const v2    fpsBoxMin { imguiWindow->mViewportSpaceCurrCursor + v2( 80.0f, 7.0f ) };
-  const v2    fpsBoxMax{ fpsBoxMin + v2( ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
-                                          2.0f ) };
+  const v2    fpsBoxMax{
+    fpsBoxMin + v2( ( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - fpsBoxMin.x ) * fpsT,
+                    2.0f ) };
   const v4    fastColor( 0, 1, 0, 1 );
   const v4    slowColor( 1, 0, 0, 1 );
   const v4    fpsColor { Lerp( slowColor, fastColor, fpsT ) };
@@ -372,7 +373,7 @@ void Tac::ImGuiProfileWidget( SimKeyboardApi keyboardApi )
   if( profileDrawGrid )
   {
     ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
-    ImGuiProfileWidgetCamera( keyboardApi, cameraViewportPos, cameraViewportSize );
+    ImGuiProfileWidgetCamera(  cameraViewportPos, cameraViewportSize );
   }
 }
 

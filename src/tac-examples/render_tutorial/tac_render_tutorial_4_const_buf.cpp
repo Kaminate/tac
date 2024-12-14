@@ -1,4 +1,4 @@
-#include "tac_render_tutorial_4_const_buf.h"
+#include "tac_render_tutorial_4_const_buf.h" // self-inc
 
 #include "tac_render_tutorial.h"
 #include "tac-std-lib/math/tac_vector3.h"
@@ -7,6 +7,7 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 
@@ -63,13 +64,12 @@ namespace Tac
 
   HelloConstBuf::HelloConstBuf( App::Config cfg ) : App{ cfg } {}
 
-  void HelloConstBuf::Init( InitParams initParams, Errors& errors )
+  void HelloConstBuf::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    mColorFormat = windowApi.GetSwapChainColorFormat();
-    mDepthFormat = windowApi.GetSwapChainDepthFormat();
-    TAC_CALL( mWindowHandle = RenderTutorialCreateWindow(
-      initParams.mWindowApi, mConfig.mName, errors ) );
+
+    mColorFormat = AppWindowApi::GetSwapChainColorFormat();
+    mDepthFormat = AppWindowApi::GetSwapChainDepthFormat();
+    TAC_CALL( mWindowHandle = RenderTutorialCreateWindow( mConfig.mName, errors ) );
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
@@ -133,13 +133,13 @@ namespace Tac
 
   void HelloConstBuf::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi windowApi{ renderParams.mWindowApi };
-    if( !windowApi.IsShown( mWindowHandle ) )
+
+    if( !AppWindowApi::IsShown( mWindowHandle ) )
       return;
 
-    const v2i windowSize{ windowApi.GetSize( mWindowHandle ) };
+    const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
 
-    Render::SwapChainHandle swapChain { windowApi.GetSwapChainHandle( mWindowHandle ) };
+    Render::SwapChainHandle swapChain { AppWindowApi::GetSwapChainHandle( mWindowHandle ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };

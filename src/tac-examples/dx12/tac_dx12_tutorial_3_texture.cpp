@@ -1,4 +1,5 @@
 #include "tac_dx12_tutorial_3_texture.h" // self-inc
+
 #include "tac_dx12_tutorial_shader_compile.h"
 #include "tac_dx12_tutorial_shader_compile.h"
 #include "tac_dx12_tutorial_2_dxc.h"
@@ -7,25 +8,25 @@
 #include "tac_dx12_tutorial_input_layout_builder.h"
 #include "tac_dx12_tutorial_checkerboard.h"
 
-//#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-#include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/dataprocess/tac_text_parser.h"
-#include "tac-std-lib/containers/tac_span.h"
-#include "tac-engine-core/asset/tac_asset.h"
-//#include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/math/tac_vector3.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
-#include "tac-engine-core/window/tac_window_backend.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/shell/tac_shell.h"
+
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-engine-core/asset/tac_asset.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
+#include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -836,16 +837,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloTexture::DX12CreateSwapChain( const SysWindowApi windowApi, Errors& errors )
+  void DX12AppHelloTexture::DX12CreateSwapChain(  Errors& errors )
   {
     if( m_swapChain )
       return;
 
-    const HWND hwnd { ( HWND )windowApi.GetNWH( hDesktopWindow ) };
+    const HWND hwnd { ( HWND )AppWindowApi::GetNativeWindowHandle( hDesktopWindow ) };
     if( !hwnd )
       return;
 
-    const v2i size { windowApi.GetSize( hDesktopWindow ) };
+    const v2i size { AppWindowApi::GetSize( hDesktopWindow ) };
 
     TAC_ASSERT( m_commandQueue );
 
@@ -1219,13 +1220,11 @@ namespace Tac
 
   DX12AppHelloTexture::DX12AppHelloTexture( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloTexture::Init( InitParams params, Errors& errors )
+  void DX12AppHelloTexture::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ params.mWindowApi };
-    windowApi.SetSwapChainAutoCreate( false );
+    AppWindowApi::SetSwapChainAutoCreate( false );
 
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow(
-      params.mWindowApi, "DX12 Texture", errors ) );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( "DX12 Texture", errors ) );
   }
 
   void DX12AppHelloTexture::PreSwapChainInit( Errors& errors)
@@ -1254,12 +1253,12 @@ namespace Tac
 
   void DX12AppHelloTexture::Render( RenderParams renderParams , Errors& errors )
   {
-    const SysWindowApi windowApi { renderParams.mWindowApi };
-    if( !windowApi.IsShown( hDesktopWindow ) )
+
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
+    TAC_CALL( DX12CreateSwapChain(errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
     TAC_CALL( CreateBuffer( errors ) );
     TAC_CALL( CreateTexture( errors ) );
@@ -1271,7 +1270,7 @@ namespace Tac
     TAC_CALL( WaitForPreviousFrame( errors ) );
   }
 
-  void DX12AppHelloTexture::Update( UpdateParams params, Errors& errors )
+  void DX12AppHelloTexture::Update(  Errors& errors )
   {
   }
 

@@ -13,7 +13,7 @@
 
 namespace Tac
 {
-  void ExampleMeta::Update( UpdateParams, Errors& errors )
+  void ExampleMeta::Update(  Errors& errors )
   {
     mShouldRunTests |=  ImGuiButton( "Run Unit Tests" );
     if( mShouldRunTests )
@@ -24,7 +24,6 @@ namespace Tac
 
     for( MetaFn* fn : MetaFn::Range() )
     {
-
       std::stringstream ss;
       ss
         << fn->RetType()->GetName()

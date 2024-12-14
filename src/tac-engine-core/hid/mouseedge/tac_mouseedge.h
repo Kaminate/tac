@@ -1,11 +1,13 @@
 #pragma once
 
-#include "tac-std-lib/math/tac_vector2i.h"
-#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-std-lib/math/tac_vector2i.h"
 
 namespace Tac
 {
@@ -27,8 +29,6 @@ namespace Tac
     struct Input
     {
       WindowHandle mWindowHandle;
-      const SimWindowApi mWindowApi;
-      const SimKeyboardApi mKeyboardApi;
     };
 
     struct Output
@@ -37,18 +37,15 @@ namespace Tac
     };
 
 
-    void UpdateSim( Input input,  Input )
+    void UpdateSim( Input input )
     {
       const WindowHandle windowHandle{ input.mWindowHandle };
-      const SimWindowApi windowApi{ input.mWindowApi };
-      const SimKeyboardApi keyboardApi{ input.mKeyboardApi };
-
-      const v2i windowSize{ windowApi.GetSize( windowHandle ) };
-      const v2i windowPos{ windowApi.GetPos( windowHandle ) };
-      const v2 mousePos{ keyboardApi.GetMousePosScreenspace() };
+      const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+      const v2i windowPos{ AppWindowApi::GetPos( windowHandle ) };
+      const v2 mousePos{ AppKeyboardApi::GetMousePosScreenspace() };
     }
 
-    void UpdateSys( SysWindowApi, SysKeyboardApi, Input );
+    void UpdateSys(  Input );
   };
 
   /*

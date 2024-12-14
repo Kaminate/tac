@@ -9,7 +9,7 @@ namespace Tac
   struct ExamplePhysSim3Torque : public Example
   {
     ExamplePhysSim3Torque();
-    void Update( UpdateParams, Errors& ) override;
+    void Update( Errors& ) override;
     void Integrate();
     v3 GetDragForce();
     v3 GetDragTorque();

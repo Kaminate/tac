@@ -24,8 +24,8 @@ namespace Tac
   {
     DX12AppHelloTriangle( const Config& );
 
-    void Init( InitParams, Errors& ) override;
-    void Update( UpdateParams, Errors& ) override;
+    void Init( Errors& ) override;
+    void Update( Errors& ) override;
     void Render( RenderParams, Errors& ) override;
     void Uninit( Errors& ) override;
 

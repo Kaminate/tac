@@ -190,7 +190,7 @@ namespace Tac
   }
 
 
-  void ExamplePhysSim2Integration::Update( UpdateParams, Errors& )
+  void ExamplePhysSim2Integration::Update( Errors& )
   {
     UI();
 

@@ -9,5 +9,5 @@ namespace Tac
   void     SetNextExample( int );
   void     ExampleStateMachineUnint();
   int      GetCurrExampleIndex();
-  void     ExampleStateMachineUpdate( Example::UpdateParams, Errors& );
+  void     ExampleStateMachineUpdate( Example::Errors& );
 } // namespace Tac

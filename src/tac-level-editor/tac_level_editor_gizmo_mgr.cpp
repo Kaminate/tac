@@ -59,8 +59,8 @@ namespace Tac
       return;
     }
 
-    SimKeyboardApi keyboardApi;
-    if( !keyboardApi.IsPressed( Key::MouseLeft ) )
+    SimKeyboardApi:: keyboardApi;
+    if( !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
       mSelectedGizmo = false;
       return;

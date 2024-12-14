@@ -1,10 +1,11 @@
 #include "tac_render_tutorial.h" // self-inc
 
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
-Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi windowApi,
+Tac::WindowHandle Tac::RenderTutorialCreateWindow( 
                                                    StringView name,
                                                    Errors& errors )
 {
@@ -18,7 +19,7 @@ Tac::WindowHandle Tac::RenderTutorialCreateWindow( const SysWindowApi windowApi,
     .mSize { windowSize },
   };
   TAC_CALL_RET( const WindowHandle windowHandle{
-    windowApi.CreateWindow( windowCreateParams, errors ) } );
+    AppWindowApi::CreateWindow( windowCreateParams, errors ) } );
 
 
   return windowHandle;

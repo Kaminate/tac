@@ -159,7 +159,7 @@ namespace Tac
       obj.Recompute();
   }
 
-  void ExamplePhysSim5LinCollision::Update( UpdateParams, Errors& )
+  void ExamplePhysSim5LinCollision::Update( Errors& )
   {
     mPlayer.BeginFrame();
     mObstacle.BeginFrame();

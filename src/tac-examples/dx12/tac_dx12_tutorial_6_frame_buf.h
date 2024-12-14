@@ -19,10 +19,10 @@ namespace Tac
   using namespace Render;
 
   // maximum number of frames submitted to the gpu at one time
-  const int MAX_GPU_FRAME_COUNT = 2;
+  const int MAX_GPU_FRAME_COUNT { 2 };
 
   // number of textures in the swap chain
-  const int SWAP_CHAIN_BUFFER_COUNT = 3;
+  const int SWAP_CHAIN_BUFFER_COUNT { 3 };
 
   using Viewports = FixedVector<
     D3D12_VIEWPORT,
@@ -43,14 +43,14 @@ namespace Tac
 
     struct State : public IState
     {
-      float mTranslateX = 0;
+      float mTranslateX {};
     };
 
 
     DX12AppHelloFrameBuf( const Config& );
 
-    void     Init( InitParams, Errors& ) override;
-    void     Update( UpdateParams, Errors& ) override;
+    void     Init(  Errors& ) override;
+    void     Update( Errors& ) override;
     void     Uninit( Errors& ) override;
     void     Render( RenderParams, Errors& ) override;
     IState*  GetGameState() override;
@@ -78,7 +78,7 @@ namespace Tac
     void RenderEnd( Errors& );
 
     // Helper functions for Update()
-    void DX12CreateSwapChain( const SysWindowApi, Errors& );
+    void DX12CreateSwapChain( Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView( ID3D12GraphicsCommandList* );
     D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
@@ -112,7 +112,7 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    WindowHandle                hDesktopWindow{};
+    WindowHandle                       hDesktopWindow{};
 
     // ---------------------------------------------------------------------------------------------
 
@@ -199,16 +199,16 @@ namespace Tac
     int                                m_backbufferIndex{};
 
     // total number of frames sent to the gpu
-    u64                                mSentGPUFrameCount = 0;
+    u64                                mSentGPUFrameCount {};
 
     // index of the next gpu frame to be in-flight ( see also MAX_GPU_FRAME_COUNT )
-    u64                                m_gpuFlightFrameIndex = 0;
+    u64                                m_gpuFlightFrameIndex {};
 
 
-    DX12ExampleCommandQueue                   mCommandQueue;
-    DX12ExampleCommandAllocatorPool           mCommandAllocatorPool;
-    DX12ExampleContextManager                 mContextManager;
-    DX12ExampleGPUUploadPageManager               mUploadPageManager;
+    DX12ExampleCommandQueue            mCommandQueue;
+    DX12ExampleCommandAllocatorPool    mCommandAllocatorPool;
+    DX12ExampleContextManager          mContextManager;
+    DX12ExampleGPUUploadPageManager    mUploadPageManager;
 
     State                              mState;
 

@@ -7,6 +7,7 @@
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
@@ -952,12 +953,11 @@ namespace Tac
 
   DX12AppHelloTriangle::DX12AppHelloTriangle( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloTriangle::Init( InitParams initParams, Errors& errors )
+  void DX12AppHelloTriangle::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    windowApi.SetSwapChainAutoCreate( false );
+    AppWindowApi::SetSwapChainAutoCreate( false );
 
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Window", errors ) );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow("DX12 Window", errors ) );
 
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
@@ -997,26 +997,23 @@ namespace Tac
 
   void DX12AppHelloTriangle::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi windowApi{ renderParams.mWindowApi };
-
-    if( !windowApi.GetNWH( hDesktopWindow ) )
+    const auto hwnd{ ( HWND )AppWindowApi::GetNativeWindowHandle( hDesktopWindow ) };
+    if( !hwnd )
       return;
 
     if( !m_swapChain )
     {
-      const auto hwnd{ ( HWND )windowApi.GetNWH( hDesktopWindow ) };
-      const v2i size{ windowApi.GetSize( hDesktopWindow ) };
+      const v2i size{ AppWindowApi::GetSize( hDesktopWindow ) };
       TAC_CALL( DX12CreateSwapChain( hwnd, size, errors ) );
       TAC_CALL( PostSwapChainInit( errors ) );
     }
     
-    if( !windowApi.IsShown( hDesktopWindow ) )
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
-    double t = Lerp(
-    renderParams.mOldState->mTimestamp.mSeconds, 
-    renderParams.mNewState->mTimestamp.mSeconds, 
-    renderParams.mT );
-    mT = (float)Sin( t ) * .5f + .5f;
+    const double t { Lerp( renderParams.mOldState->mTimestamp.mSeconds, 
+                           renderParams.mNewState->mTimestamp.mSeconds, 
+                           renderParams.mT ) };
+    mT = ( float )Sin( t ) * .5f + .5f;
 
     // Record all the commands we need to render the scene into the command list.
     TAC_CALL( PopulateCommandList( errors ) );
@@ -1028,7 +1025,7 @@ namespace Tac
     TAC_CALL( WaitForPreviousFrame( errors ) );
   }
 
-  void DX12AppHelloTriangle::Update( UpdateParams updateParams, Errors& errors )
+  void DX12AppHelloTriangle::Update( Errors& errors )
   {
   }
 

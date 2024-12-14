@@ -16,7 +16,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim7Friction::Update( UpdateParams, Errors& )
+  void ExamplePhysSim7Friction::Update( Errors& )
   {
     ImGuiText( "TODO" );
   

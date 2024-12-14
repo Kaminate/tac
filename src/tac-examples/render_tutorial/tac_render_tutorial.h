@@ -5,7 +5,7 @@
 
 namespace Tac
 {
-  WindowHandle RenderTutorialCreateWindow( SysWindowApi, StringView, Errors& );
+  WindowHandle RenderTutorialCreateWindow( StringView, Errors& );
 
   struct NDCSpacePosition3
   {

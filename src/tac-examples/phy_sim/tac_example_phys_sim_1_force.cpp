@@ -33,7 +33,7 @@ namespace Tac
     mSpringConstant = 100;
   }
 
-  void ExamplePhysSim1Force::Update( UpdateParams updateParams, Errors& errors )
+  void ExamplePhysSim1Force::Update( Errors& errors )
   {
     const v3 springForce { mSpringConstant * -mBall.mPos };
     const v3 gravityForce { 9.8f * -mCamera->mUp * mBall.mMass };

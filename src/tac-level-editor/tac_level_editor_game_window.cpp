@@ -128,7 +128,7 @@ namespace Tac
       { Key::E, camera->mUp},
     };
     for( const PanKeyDir& keyDir : keyDirs )
-      if( SimKeyboardApi().IsPressed( keyDir.key ) )
+      if( SimKeyboardApi::().IsPressed( keyDir.key ) )
         combinedDir += keyDir.dir;
     if( combinedDir == v3( 0, 0, 0 ) )
       return;
@@ -156,7 +156,7 @@ namespace Tac
 
     v3 camOrbitSphericalOffset  {};
     for( const OrbitKeyDir& keyDir : keyDirs )
-      if( SimKeyboardApi().IsPressed( keyDir.key ) )
+      if( SimKeyboardApi::().IsPressed( keyDir.key ) )
         camOrbitSphericalOffset += keyDir.spherical;
     if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
       return;
@@ -333,18 +333,18 @@ namespace Tac
 
   static void CameraUpdateControls( Camera* camera )
   {
-    SimWindowApi windowApi{};
+    
 
     WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
-    if( !windowApi.IsHovered( mWindowHandle ) )
+    if( !AppWindowApi::IsHovered( mWindowHandle ) )
       return;
 
-    SimKeyboardApi keyboardApi{};
+    SimKeyboardApi:: keyboardApi{};
 
     const Camera oldCamera { *camera };
 
-    const v2 mouseDeltaPos { keyboardApi.GetMousePosDelta() };
-    if( keyboardApi.IsPressed( Key::MouseRight ) &&
+    const v2 mouseDeltaPos { AppKeyboardApi::GetMousePosDelta() };
+    if( AppKeyboardApi::IsPressed( Key::MouseRight ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float pixelsPerDeg { 400.0f / 90.0f };
@@ -373,7 +373,7 @@ namespace Tac
       camera->mUp.Normalize();
     }
 
-    if( keyboardApi.IsPressed( Key::MouseMiddle ) &&
+    if( AppKeyboardApi::IsPressed( Key::MouseMiddle ) &&
         mouseDeltaPos != v2( 0, 0 ) )
     {
       const float unitsPerPixel { 5.0f / 100.0f };
@@ -381,7 +381,7 @@ namespace Tac
       camera->mPos += camera->mUp * mouseDeltaPos.y * unitsPerPixel;
     }
 
-    const float mouseDeltaScroll { keyboardApi.GetMouseWheelDelta() };
+    const float mouseDeltaScroll { AppKeyboardApi::GetMouseWheelDelta() };
     if( mouseDeltaScroll )
     {
       float unitsPerTick { 1.0f };
@@ -416,12 +416,11 @@ namespace Tac
 
   void CreationGameWindow::Render( World* world, Camera* camera, Errors& errors )
   {
-    SysWindowApi windowApi{};
-    WindowHandle windowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
-    if( !windowApi.IsShown( windowHandle ) )
+    const WindowHandle windowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
+    if( !AppWindowApi::IsShown( windowHandle ) )
       return;
 
-    const v2i windowSize{ windowApi.GetSize( windowHandle ) };
+    const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     TAC_CALL( Render::IContext::Scope renderScope{
@@ -430,7 +429,7 @@ namespace Tac
     Render::IContext* renderContext{ renderScope.GetContext() };
 
     const Render::SwapChainHandle swapChainHandle{
-      windowApi.GetSwapChainHandle( windowHandle ) };
+      AppWindowApi::GetSwapChainHandle( windowHandle ) };
 
     const Render::TextureHandle rtColor{
       renderDevice->GetSwapChainCurrentColor( swapChainHandle ) };
@@ -580,8 +579,8 @@ namespace Tac
 
     const v2 origCursorPos{ ImGuiGetCursorPos() };
 
-    SimWindowApi windowApi;
-    const v2i windowSize{ windowApi.GetSize( windowHandle ) };
+    ;
+    const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
     const m4 proj{ GetProjMtx( camera, windowSize ) };
     const m4 view{ camera->View() };
 

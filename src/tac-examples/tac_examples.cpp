@@ -1,30 +1,29 @@
 #include "tac_examples.h"
 
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/presentation/game/tac_game_presentation.h"
-#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
 #include "tac-ecs/world/tac_world.h"
-
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-examples/tac_examples_registry.h"
+#include "tac-examples/tac_examples_state_machine.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/os/tac_os.h"
-
-#include "tac-examples/tac_examples_registry.h"
-#include "tac-examples/tac_examples_state_machine.h"
-
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 
 namespace Tac
 {
@@ -57,11 +56,9 @@ namespace Tac
   static WindowHandle sNavWindow;
   static WindowHandle sDemoWindow;
   static SettingsNode sSettingsNode;
-  static SimKeyboardApi sKeyboardApi;
-  static SimWindowApi sWindowApi;
   static Debug3DDrawBuffers sDebug3DDrawBuffers;
 
-  static void   ExamplesInitCallback( App::InitParams initParams, Errors& errors )
+  static void   ExamplesInitCallback( Errors& errors )
   {
     // nav
     const int x { 50 };
@@ -145,7 +142,7 @@ namespace Tac
       SetNextExample( iSelected );
   }
 
-  static void ExampleDemoWindow( App::UpdateParams appUpdateParams, Errors& errors )
+  static void ExampleDemoWindow( Errors& errors )
   {
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowDisableBG();
@@ -158,11 +155,7 @@ namespace Tac
 
     const int iOld{ GetCurrExampleIndex() };
 
-    Example::UpdateParams exampleUpdateParams{};
-    exampleUpdateParams.mKeyboardApi = appUpdateParams.mKeyboardApi;
-    exampleUpdateParams.mWindowApi = appUpdateParams.mWindowApi;
-
-    TAC_CALL( ExampleStateMachineUpdate( exampleUpdateParams, errors ) );
+    TAC_CALL( ExampleStateMachineUpdate( errors ) );
     const int iNew { GetCurrExampleIndex() };
     if( iOld != iNew )
     {
@@ -172,18 +165,18 @@ namespace Tac
 
   static void ExamplesRenderCallback( App::RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi windowApi{ renderParams.mWindowApi };
-    if( !sDemoWindow.IsValid() || !windowApi.IsShown( sDemoWindow ) )
+
+    if( !sDemoWindow.IsValid() || !AppWindowApi::IsShown( sDemoWindow ) )
       return;
 
-    const v2i windowSize{ windowApi.GetSize( sDemoWindow ) };
+    const v2i windowSize{ AppWindowApi::GetSize( sDemoWindow ) };
 
 
     ExampleState* state{ ( ExampleState* )renderParams.mNewState };
     if( !state )
       return;
 
-    const Render::SwapChainHandle swapChain{ windowApi.GetSwapChainHandle( sDemoWindow ) };
+    const Render::SwapChainHandle swapChain{ AppWindowApi::GetSwapChainHandle( sDemoWindow ) };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::TextureHandle backbufferColor{
       renderDevice->GetSwapChainCurrentColor( swapChain ) };
@@ -212,19 +205,10 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
-  static void ExamplesUpdateCallback( App::UpdateParams updateParams, Errors& errors )
+  static void ExamplesUpdateCallback( Errors& errors )
   {
-    sKeyboardApi = updateParams.mKeyboardApi;
-    sWindowApi = updateParams.mWindowApi;
-
-    if( sKeyboardApi.IsPressed( Key::Escape ) )
+    if( AppKeyboardApi::IsPressed( Key::Escape ) )
       OS::OSAppStopRunning();
-
-    //if( !sWindowApi->IsShown(sDemoWindow ) )
-    //  return;
-
-    //if( !sWindowApi->IsShown(sNavWindow ) )
-    //  return;
 
     TAC_CALL( ExampleDemoWindow( updateParams, errors ) );
 
@@ -235,7 +219,7 @@ namespace Tac
   struct ExamplesApp : public App
   {
     ExamplesApp( const Config& config ) : App( config ) {}
-    void Init( InitParams initParams, Errors& errors ) override
+    void Init( Errors& errors ) override
     {
       sSettingsNode = mSettingsNode;
       SpaceInit();
@@ -243,12 +227,12 @@ namespace Tac
       TAC_CALL( GamePresentationInit( errors ) );
       TAC_CALL( ShadowPresentation::Init( errors ) );
       //TAC_CALL( VoxelGIPresentationInit( errors ) );
-      ExamplesInitCallback( initParams, errors );
+      ExamplesInitCallback( errors );
     }
 
-    void Update( UpdateParams updateParams, Errors& errors ) override
+    void Update( Errors& errors ) override
     {
-      ExamplesUpdateCallback( updateParams, errors );
+      ExamplesUpdateCallback( errors );
     }
 
     void Render( RenderParams renderParams, Errors& errors ) override
@@ -262,9 +246,9 @@ namespace Tac
       //const WindowHandle handles[]{ sNavWindow, sDemoWindow };
       //for( WindowHandle handle : handles )
       //{
-      //  if( windowApi.IsShown( handle ) )
+      //  if( AppWindowApi::IsShown( handle ) )
       //  {
-      //    const Render::SwapChainHandle swapChain{ windowApi.GetSwapChainHandle( handle ) };
+      //    const Render::SwapChainHandle swapChain{ AppWindowApi::GetSwapChainHandle( handle ) };
       //    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       //    TAC_CALL( renderDevice->Present( swapChain, errors ) );
       //  }
@@ -298,10 +282,10 @@ namespace Tac
   v3 Example::GetWorldspaceKeyboardDir()
   {
     v3 force{};
-    force += sKeyboardApi.IsPressed( Key::W ) ? mCamera->mUp : v3{};
-    force += sKeyboardApi.IsPressed( Key::A ) ? -mCamera->mRight : v3{};
-    force += sKeyboardApi.IsPressed( Key::S ) ? -mCamera->mUp : v3{};
-    force += sKeyboardApi.IsPressed( Key::D ) ? mCamera->mRight : v3{};
+    force += AppKeyboardApi::IsPressed( Key::W ) ? mCamera->mUp : v3{};
+    force += AppKeyboardApi::IsPressed( Key::A ) ? -mCamera->mRight : v3{};
+    force += AppKeyboardApi::IsPressed( Key::S ) ? -mCamera->mUp : v3{};
+    force += AppKeyboardApi::IsPressed( Key::D ) ? mCamera->mRight : v3{};
     const float q { force.Quadrance() };
     if( q )
       force /= Sqrt( q );

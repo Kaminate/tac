@@ -5,12 +5,11 @@
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-//#include "tac-engine-core/window/tac_window_backend.h"
-
 #include "tac-rhi/render3/tac_render_api.h" // CreateContext
-
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -123,8 +122,6 @@ namespace Tac
     if( !scrollBarEnabled )
       return;
 
-    SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
-
     const bool stuffBelowScreen { mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y };
     const bool stuffAboveScreen{ ( bool )mScroll };
     if( !stuffBelowScreen && !stuffAboveScreen )
@@ -162,8 +159,8 @@ namespace Tac
     // scroll with middle mouse
     if( !GetActiveID().IsValid()
         && IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) )
-        && keyboardApi.GetMouseWheelDelta() )
-      mScroll = Clamp( mScroll - keyboardApi.GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
+        && AppKeyboardApi::GetMouseWheelDelta() )
+      mScroll = Clamp( mScroll - AppKeyboardApi::GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
 
     const float scrollbarForegroundMiniX{ 3 + scrollbarBackgroundMini.x };
     const float scrollbarForegroundMiniY{ 3
@@ -190,10 +187,10 @@ namespace Tac
     {
       SetHoveredID( id );
 
-      if( keyboardApi.JustPressed( Key::MouseLeft ) )
+      if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
       {
         SetActiveID( id, this );
-        mScrollMousePosScreenspaceInitial = keyboardApi.GetMousePosScreenspace();
+        mScrollMousePosScreenspaceInitial = AppKeyboardApi::GetMousePosScreenspace();
       }
     }
 
@@ -223,14 +220,14 @@ namespace Tac
     if(active)
     {
       const float mouseDY{
-        keyboardApi.GetMousePosScreenspace().y
+        AppKeyboardApi::GetMousePosScreenspace().y
        - mScrollMousePosScreenspaceInitial.y };
-      mScrollMousePosScreenspaceInitial.y = (float)keyboardApi.GetMousePosScreenspace().y;
+      mScrollMousePosScreenspaceInitial.y = (float)AppKeyboardApi::GetMousePosScreenspace().y;
       const float scrollDY{ mouseDY * ( contentVisibleHeight / scrollbarHeight ) };
       mScroll = Clamp( mScroll + scrollDY , scrollMin, scrollMax );
 
 
-      if( !keyboardApi.IsPressed( Key::MouseLeft ) )
+      if( !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
       {
         ClearActiveID();
       }
@@ -271,7 +268,6 @@ namespace Tac
   {
     dynmc ImGuiGlobals& globals { ImGuiGlobals::Instance };
 
-    const SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
     const UIStyle& style{ ImGuiGetStyle() };
     const float windowPadding{ style.windowPadding };
 
@@ -315,14 +311,12 @@ namespace Tac
   void                          ImGuiWindow::UpdateMoveControls()
   {
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
-    if( keyboardApi.IsPressed( Key::MouseLeft ) )
+    if( AppKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
-      mDesktopWindow->mRequestedPosition
-        = GetMousePosViewport()
-        - globals.mActiveIDClickPos_VS
-        + mViewportSpacePos
-        + GetWindowPosScreenspace();
+      mDesktopWindow->mRequestedPosition = GetMousePosViewport()
+                                         - globals.mActiveIDClickPos_VS
+                                         + mViewportSpacePos
+                                         + GetWindowPosScreenspace();
       globals.mSettingsDirty = true;
     }
     else
@@ -335,9 +329,8 @@ namespace Tac
   void                          ImGuiWindow::BeginMoveControls()
   {
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
 
-    if( !keyboardApi.JustPressed( Key::MouseLeft ) )
+    if( !AppKeyboardApi::JustPressed( Key::MouseLeft ) )
       return;
 
     if( !IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) ) )
@@ -370,20 +363,15 @@ namespace Tac
     const ImGuiID id{ GetID( "##RESIZE" ) };
     const UIStyle style{ globals.mUIStyle };
     const float windowPadding { style.windowPadding };
-    const SimWindowApi windowApi{ globals.mSimWindowApi };
-    const SimKeyboardApi keyboardApi{ globals.mSimKeyboardApi };
-    const v2i viewportPos_SS{ windowApi.GetPos( mDesktopWindow->mWindowHandle ) };
+    const v2i viewportPos_SS{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
     const v2 mousePos_VS{ GetMousePosViewport() };
     const ImGuiRect origWindowRect_VS{ ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
-
-    ImGuiRect targetWindowRect_VS{ origWindowRect_VS };
-
+    dynmc ImGuiRect targetWindowRect_VS{ origWindowRect_VS };
     const int E { 1 << 0 };
     const int S { 1 << 1 };
     const int W { 1 << 2 };
     const int N { 1 << 3 };
-    int hoverMask {};
-
+    dynmc int hoverMask {};
     const bool anyEdgeActive{ globals.mActiveID == id };
 
     for( int iSide{}; iSide < 4; ++iSide )
@@ -413,7 +401,7 @@ namespace Tac
           const v4 red{ 1, 0, 0, 1 };
           const v4 green{ 0, 1, 0, 1 };
           const v4 yellow{ 1, 1, 0, 1 };
-          v4 color { red };
+          dynmc v4 color { red };
 
 #if TAC_IMGUI_RESIZE_DEBUG()
           if( hovered )
@@ -451,14 +439,14 @@ namespace Tac
         }
     }
 
-    if( anyEdgeActive && !keyboardApi.IsPressed( Key::MouseLeft ) )
+    if( anyEdgeActive && !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
       ClearActiveID();
     }
 
     if( !globals.mActiveID.IsValid() &&
         hoverMask &&
-        keyboardApi.JustPressed( Key::MouseLeft ) )
+        AppKeyboardApi::JustPressed( Key::MouseLeft ) )
     {
       globals.mActiveIDClickPos_VS = mousePos_VS;
       globals.mActiveIDWindowSize = mSize;
@@ -566,17 +554,14 @@ namespace Tac
   v2           ImGuiWindow::GetWindowPosScreenspace()
   {
     ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    SimWindowApi windowApi { ImGuiGlobals::Instance.mSimWindowApi };
-    const v2 viewportPosScreenspace { windowApi.GetPos( mDesktopWindow->mWindowHandle ) };
+     
+    const v2 viewportPosScreenspace { AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
     return viewportPosScreenspace + mViewportSpacePos;
   }
 
   v2           ImGuiWindow::GetMousePosViewport()
   {
-    ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    SimWindowApi windowApi { globals.mSimWindowApi };
-    SimKeyboardApi keyboardApi { globals.mSimKeyboardApi };
-    const v2 mousePos_SS { keyboardApi.GetMousePosScreenspace() };
+    const v2 mousePos_SS { AppKeyboardApi::GetMousePosScreenspace() };
     const v2 windowPos_SS{ GetWindowPosScreenspace() };
     return mousePos_SS - windowPos_SS;
   }
@@ -802,15 +787,14 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( SysWindowApi windowApi,
-                                                           ImGuiSimWindowDraws* simDraws,
+  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiSimWindowDraws* simDraws,
                                                            ImGuiPersistantViewport* sysDraws,
                                                            Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     const WindowHandle hDesktopWindow { sysDraws->mWindowHandle };
-    if( !windowApi.IsShown( hDesktopWindow ) )
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
     const int n { ImGuiGlobals::Instance.mMaxGpuFrameCount };
@@ -827,7 +811,7 @@ namespace Tac
     // combine draw data
     simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
 
-    const Render::SwapChainHandle fb { windowApi.GetSwapChainHandle( hDesktopWindow ) };
+    const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( hDesktopWindow ) };
     const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
     const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
 
@@ -836,7 +820,7 @@ namespace Tac
     const String renderGroupStr{ String()
       + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
 
-    const v2i windowSize { windowApi.GetSize( hDesktopWindow ) };
+    const v2i windowSize { AppWindowApi::GetSize( hDesktopWindow ) };
 
     const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
     const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };
@@ -1099,16 +1083,12 @@ namespace Tac
     
 
   void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSimFrame* simFrame,
-                                                     SysWindowApi windowApi,
                                                      Errors& errors )
   {
     for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )
     {
       ImGuiPersistantViewport* viewportDraw { GetPersistantWindowData( simDraw.mHandle ) };
-      UpdateAndRenderWindow( windowApi,
-                             &simDraw,
-                             viewportDraw,
-                             errors );
+      UpdateAndRenderWindow( &simDraw, viewportDraw, errors );
     }
   }
 

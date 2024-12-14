@@ -10,7 +10,7 @@ namespace Tac
 {
   struct CreationProfileWindow
   {
-    static void                   Update( SimKeyboardApi, Errors& );
+    static void                   Update( SimKeyboardApi::, Errors& );
     static bool                   sShowWindow;
     static const char*            gProfileWindowName;
   };

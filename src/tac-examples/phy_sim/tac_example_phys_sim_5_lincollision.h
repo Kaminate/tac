@@ -38,7 +38,7 @@ namespace Tac
   struct ExamplePhysSim5LinCollision : public Example
   {
     ExamplePhysSim5LinCollision();
-    void Update( UpdateParams, Errors& ) override;
+    void Update( Errors& ) override;
     void DrawObject( const ExamplePhys5SimObj& );
 
     ExamplePhys5SimObj mPlayer;

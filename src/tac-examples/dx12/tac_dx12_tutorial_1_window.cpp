@@ -1,16 +1,15 @@
 #include "tac_dx12_tutorial_1_window.h" // self-inc
 #include "tac_dx12_tutorial.h"
 
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/os/tac_os.h"
-
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-//#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-win32/tac_win32.h"
 
 
@@ -182,17 +181,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloWindow::DX12CreateSwapChain( const SysWindowApi windowApi,
-                                                Errors& errors )
+  void DX12AppHelloWindow::DX12CreateSwapChain( Errors& errors )
   {
     if( m_swapChainValid )
       return;
 
-    auto hwnd { ( HWND )windowApi.GetNWH( hDesktopWindow ) };
+    auto hwnd { ( HWND )AppWindowApi::GetNativeWindowHandle( hDesktopWindow ) };
     if( !hwnd )
       return;
 
-    const v2i size { windowApi.GetSize( hDesktopWindow ) };
+    const v2i size { AppWindowApi::GetSize( hDesktopWindow ) };
 
     TAC_ASSERT( m_commandQueue );
 
@@ -437,11 +435,10 @@ namespace Tac
 
   DX12AppHelloWindow::DX12AppHelloWindow( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloWindow::Init( InitParams initParams, Errors& errors )
+  void DX12AppHelloWindow::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    windowApi.SetSwapChainAutoCreate( false );
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Window", errors ) );
+    AppWindowApi::SetSwapChainAutoCreate( false );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow("DX12 Window", errors ) );
 
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( EnableDebug( errors ) );
@@ -454,19 +451,19 @@ namespace Tac
     TAC_CALL( CreateFence( errors ) );
   }
 
-  void DX12AppHelloWindow::Update( UpdateParams updateParams, Errors& errors )
+  void DX12AppHelloWindow::Update( Errors& errors )
   {
   }
 
   void DX12AppHelloWindow::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi windowApi { renderParams.mWindowApi };
-    if( !windowApi.IsShown( hDesktopWindow ) )
+
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
     if( !m_swapChain )
     {
-      TAC_CALL( DX12CreateSwapChain( renderParams.mWindowApi, errors ) );
+      TAC_CALL( DX12CreateSwapChain( errors ) );
       TAC_CALL( CreateRenderTargetViews( errors ) );
     }
 

@@ -1,16 +1,16 @@
 #include "tac_example_fluid.h" // self-inc
 
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h" // C4100
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h" // C4100
 
-//#include <cmath>
-//#include <iostream>
 
 // maybe broken up into
 // fluid_cpu,
@@ -360,24 +360,23 @@ namespace Tac
 
     }
 
-    void MouseDrag( const SimKeyboardApi keyboardApi,
-                    const SimWindowApi windowApi )
+    void MouseDrag(  )
     {
       const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
-      if( !windowApi.IsShown( windowHandle ) )
+      if( !AppWindowApi::IsShown( windowHandle ) )
         return;
 
-      if( !windowApi.IsHovered( windowHandle ) )
+      if( !AppWindowApi::IsHovered( windowHandle ) )
         return;
 
-      const v2i windowSize{ windowApi.GetSize( windowHandle ) };
-      const v2i windowPos{ windowApi.GetPos( windowHandle ) };
+      const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+      const v2i windowPos{ AppWindowApi::GetPos( windowHandle ) };
 
       const v2 desktopWindowPos( ( float )windowPos.x, ( float )windowPos.y );
 
-      const v2 screenspaceMousePos{ keyboardApi.GetMousePosScreenspace() };
-      const v2 mouseDeltaPos{ keyboardApi.GetMousePosDelta() };
-      const float mouseWheelDelta{ keyboardApi.GetMouseWheelDelta() };
+      const v2 screenspaceMousePos{ AppKeyboardApi::GetMousePosScreenspace() };
+      const v2 mouseDeltaPos{ AppKeyboardApi::GetMousePosDelta() };
+      const float mouseWheelDelta{ AppKeyboardApi::GetMouseWheelDelta() };
 
       const ImGuiRect canvasRectScreenspace {
         ImGuiRect::FromPosSize( desktopWindowPos + canvas_pos, canvas_size ) };
@@ -389,7 +388,7 @@ namespace Tac
         viewHalfDims.x -= mouseWheelDelta * 0.3f;
       }
 
-      if( keyboardApi.IsPressed( Key::MouseMiddle ) )
+      if( AppKeyboardApi::IsPressed( Key::MouseMiddle ) )
       {
         viewCenter -= v2( mouseDeltaPos.x / px_per_unit_x,
                           -mouseDeltaPos.y / px_per_unit_y );
@@ -399,11 +398,8 @@ namespace Tac
 
   static EquationGrapher sEquationGrapher;
 
-  void ExampleFluid::Update( UpdateParams updateParams, Errors& errors )
+  void ExampleFluid::Update( Errors& errors )
   {
-    const SimKeyboardApi keyboardApi{ updateParams.mKeyboardApi };
-    const SimWindowApi windowApi{ updateParams.mWindowApi };
-
     struct FnDraw
     {
       FnDraw() = default;
@@ -454,7 +450,7 @@ namespace Tac
     //sEquationGrapher.DrawFn( sGraphEqFx, 1.0f, v4( 1, 0, 0, 1 ), drawData );
     //sEquationGrapher.DrawFn( sGraphEqGx, 1.0f, v4( 0, 1, 0, 1 ), drawData );
     //sEquationGrapher.DrawFn( []( float x ){ return x; }, 0.5f, v4( 0, 0, 0, 1 ), drawData );
-    sEquationGrapher.MouseDrag( keyboardApi, windowApi );
+    sEquationGrapher.MouseDrag();
 
     for( const String& text : texts )
     {
@@ -467,13 +463,13 @@ namespace Tac
     {
       const bool nextAvailable = iStep < stepCount - 1;
       const bool prevAvailable = iStep > 0;
-      if( prevAvailable && ( ImGuiButton( "Prev" ) || keyboardApi.JustPressed( Key::LeftArrow ) ) )
+      if( prevAvailable && ( ImGuiButton( "Prev" ) || AppKeyboardApi::JustPressed( Key::LeftArrow ) ) )
         iStepNext = iStep - 1;
 
       if( nextAvailable && prevAvailable )
         ImGuiSameLine();
 
-      if( nextAvailable && ( ImGuiButton( "Next" ) || keyboardApi.JustPressed( Key::RightArrow ) ) )
+      if( nextAvailable && ( ImGuiButton( "Next" ) || AppKeyboardApi::JustPressed( Key::RightArrow ) ) )
         iStepNext = iStep + 1;
     }
 

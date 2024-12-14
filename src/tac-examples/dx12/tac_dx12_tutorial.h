@@ -5,7 +5,6 @@
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
 
 #include <d3d12.h> // D3D12...
 
@@ -13,7 +12,7 @@ namespace Tac { struct Errors; }
 
 namespace Tac
 {
-  WindowHandle DX12ExampleCreateWindow( const SysWindowApi, StringView, Errors& );
+  WindowHandle DX12ExampleCreateWindow( const StringView, Errors& );
 }
 
 namespace Tac::Render

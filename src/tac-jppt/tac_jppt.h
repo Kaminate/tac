@@ -8,10 +8,10 @@ namespace Tac
   {
     JPPTApp( Config );
 
-    void    Init( InitParams, Errors& )       override;
-    void    Update( UpdateParams, Errors& )   override;
+    void    Init(  Errors& )       override;
+    void    Update(  Errors& )   override;
     void    Render( RenderParams, Errors& )   override;
-    void    Present( PresentParams, Errors& ) override;
+    void    Present(  Errors& ) override;
     void    Uninit( Errors& )                 override;
 
   private:

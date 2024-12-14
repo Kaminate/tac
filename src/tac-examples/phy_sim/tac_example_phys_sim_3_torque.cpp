@@ -62,7 +62,7 @@ namespace Tac
     return drag;
   }
 
-  void ExamplePhysSim3Torque::Update( UpdateParams, Errors& )
+  void ExamplePhysSim3Torque::Update( Errors& )
   {
     ImGuiText( "WASD to apply force" );
     ImGuiCheckbox( "Draw drag force", &drawDragForce );

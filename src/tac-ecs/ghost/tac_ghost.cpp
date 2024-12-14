@@ -10,23 +10,18 @@
 #include "tac-ecs/script/tac_script.h"
 #include "tac-ecs/scripts/tac_script_game_client.h"
 #include "tac-ecs/world/tac_world.h"
-
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/i18n/tac_localization.h"
-//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-
-//#include "tac-rhi/render3/tac_render_api.h"
-
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-//#include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
 
@@ -37,10 +32,8 @@ namespace Tac
 
   User::User( StringView name,
               Ghost* ghost,
-              SimKeyboardApi keyboardApi,
               Errors& errors )
   {
-    mKeyboardApi = keyboardApi;
     mName = name;
     mGhost = ghost;
     ServerData* serverData { mGhost->mServerData };
@@ -72,16 +65,16 @@ namespace Tac
       return;
 
     //auto serverData = mGhost->mServerData;
-    v2 inputDirection  { 0, 0 };
-    if( mKeyboardApi.IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
-    if( mKeyboardApi.IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
-    if( mKeyboardApi.IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
-    if( mKeyboardApi.IsPressed( Key::LeftArrow ) ) inputDirection += { -1, 0 };
+    v2 inputDirection{};
+    if( AppKeyboardApi::IsPressed( Key::RightArrow ) ) inputDirection += { 1, 0 };
+    if( AppKeyboardApi::IsPressed( Key::UpArrow ) ) inputDirection += { 0, 1 };
+    if( AppKeyboardApi::IsPressed( Key::DownArrow ) ) inputDirection += { 0, -1 };
+    if( AppKeyboardApi::IsPressed( Key::LeftArrow ) ) inputDirection += { -1, 0 };
     if( inputDirection.Length() )
       inputDirection.Normalize();
 
     mPlayer->mInputDirection = inputDirection;
-    mPlayer->mIsSpaceJustDown = mKeyboardApi.JustPressed( Key::Spacebar );
+    mPlayer->mIsSpaceJustDown = AppKeyboardApi::JustPressed( Key::Spacebar );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -168,7 +161,7 @@ namespace Tac
                           Errors& errors )
   {
     Ghost* ghost { this };
-    auto* user { TAC_NEW User( name, ghost, mKeyboardApi, errors ) };
+    auto* user { TAC_NEW User( name, ghost, errors ) };
     mUsers.push_back( user );
 
     const ScriptMsg scriptMsg

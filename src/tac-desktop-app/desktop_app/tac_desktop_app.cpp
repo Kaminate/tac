@@ -1,10 +1,10 @@
 #include "tac_desktop_app.h" // self-inc
 
-
 #include "tac-desktop-app/desktop_app/tac_desktop_app_error_report.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app_renderers.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/desktop_app/tac_render_state.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event_handler.h"
 #include "tac-desktop-app/desktop_thread/tac_sim_thread.h"
@@ -28,10 +28,11 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/asset/tac_asset_hash_cache.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
-#include "tac-engine-core/asset/tac_asset_hash_cache.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
@@ -69,10 +70,6 @@ namespace Tac
 
   static GameStateManager              sGameStateManager;
   static DesktopApp                    sDesktopApp;
-  static SimKeyboardApi                sSimKeyboardApi{};
-  static SysKeyboardApi                sSysKeyboardApi{};
-  static SimWindowApi                  sSimWindowApi{};
-  static SysWindowApi                  sSysWindowApi{};
 
   static SettingsRoot                  sSettingsRoot;
   static const bool                    sVerbose;
@@ -83,34 +80,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-#if 0
-  static WindowHandle ImGuiSimCreateWindow( const ImGuiCreateWindowParams& imguiParams )
-  {
-    DesktopApp* desktopApp = DesktopApp::GetInstance();
-
-    // todo: ... mixing v2 and v2i bad
-    const v2 imPos { imguiParams.mPos };
-    const v2 imSize { imguiParams.mSize };
-    const v2i simPos { v2i( ( int )imPos.x, ( int )imPos.y ) };
-    const v2i simSize { v2i( ( int )imSize.x, ( int )imSize.y ) };
-
-    //const WindowApi::CreateParams desktopParams
-    const SimWindowApi::CreateParams platformParams
-    {
-      .mName { "<unnamed>" },
-      .mPos { simPos },
-      .mSize { simSize },
-    };
-    //return desktopApp->CreateWindow( desktopParams );
-
-    return SimWindowApi::CreateWindow( platformParams );
-  }
-
-  static void ImGuiSimDestroyWindow( WindowHandle handle )
-  {
-    WindowApi::DestroyWindow( handle );
-  }
-#endif
 
 
   static void         DesktopAppDebugImGuiHoveredWindow()
@@ -208,15 +177,17 @@ namespace Tac
 
   void                DesktopApp::Run( Errors& errors )
   {
+    PlatformFns* platform{ PlatformFns::GetInstance() };
+
 #if TAC_SINGLE_THREADED()
 #else
     SimThread sSimThread
     {
       .mApp              { sApp },
-      .mErrors           { &SSimErrors },
+      .mErrors           { &sSimErrors },
       .sGameStateManager { &sGameStateManager },
       .sWindowApi        { sSimWindowApi },
-      .sKeyboardApi      { sSimKeyboardApi },
+      .sKeyboardApi      { sSimKeyboardApi},
       .mSettingsRoot     { &sSettingsRoot },
     };
 
@@ -226,7 +197,7 @@ namespace Tac
       .mErrors           { &sSysErrors },
       .mGameStateManager { &sGameStateManager },
       .mWindowApi        { sSysWindowApi },
-      .mKeyboardApi      { sSysKeyboardApi },
+      .AppKeyboardApi::      { sSysKeyboardApi },
     };
 #endif
 
@@ -240,8 +211,6 @@ namespace Tac
     const ImGuiInitParams imguiInitParams
     {
       .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
-      .mSimWindowApi     { sSimWindowApi },
-      .mSimKeyboardApi   { sSimKeyboardApi },
       .mSettingsNode     { sSettingsRoot.GetRootNode() },
     };
     TAC_CALL( ImGuiInit( imguiInitParams, errors ) );
@@ -262,12 +231,7 @@ namespace Tac
     // todo: this is ugly, fix it
     sApp->mSettingsNode = sSettingsRoot.GetRootNode();
 
-    // designated initializer here throws c4700
-    App::InitParams initParams;
-    initParams.mWindowApi = sSysWindowApi;
-    initParams.mKeyboardApi = sSysKeyboardApi;
-
-    TAC_CALL( sApp->Init( initParams, errors ) );
+    TAC_CALL( sApp->Init( errors ) );
 
 
 #if TAC_SINGLE_THREADED()
@@ -275,7 +239,6 @@ namespace Tac
     while( OS::OSAppIsRunning() )
     {
 
-      PlatformFns* platform { PlatformFns::GetInstance() };
 
       // Win32FrameBegin polls wndproc
       TAC_CALL( platform->PlatformFrameBegin( errors ) );
@@ -287,9 +250,6 @@ namespace Tac
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 
       TAC_CALL( sSysWindowBackend.Sync( errors ) );
-
-
-
       TAC_CALL( Network::NetApi::Update( errors ) );
       TAC_CALL( sSettingsRoot.Tick( errors ) );
       TAC_CALL( UpdateSimulation( errors ) );
@@ -367,12 +327,7 @@ namespace Tac
 
     Controller::UpdateJoysticks();
 
-    // designated initializers throw c4700 for some reason
-    App::UpdateParams updateParams;
-    updateParams.mWindowApi = sSimWindowApi;
-    updateParams.mKeyboardApi = sSimKeyboardApi;
-
-    TAC_CALL( sApp->Update( updateParams, errors ) );
+    TAC_CALL( sApp->Update( errors ) );
 
     TAC_CALL( ImGuiEndFrame( errors ) );
 
@@ -433,12 +388,10 @@ namespace Tac
 
       ImGuiSimFrame* imguiSimFrame{ &pair.mNewState->mImGuiSimFrame };
 
-      TAC_CALL( ImGuiPlatformRenderFrameBegin( imguiSimFrame, sSysWindowApi, errors ) );
+      TAC_CALL( ImGuiPlatformRenderFrameBegin( imguiSimFrame, errors ) );
 
       const App::RenderParams renderParams
       {
-        .mWindowApi   { sSysWindowApi },
-        .mKeyboardApi { sSysKeyboardApi },
         .mOldState    { pair.mOldState }, // A
         .mNewState    { pair.mNewState }, // B
         .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
@@ -453,7 +406,7 @@ namespace Tac
       //  .mTimestamp     { interpolatedTimestamp },
       //};
 
-      TAC_CALL( ImGuiPlatformRender( imguiSimFrame, sSysWindowApi, errors ) );
+      TAC_CALL( ImGuiPlatformRender( imguiSimFrame, errors ) );
 
       static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
       const PlatformMouseCursor newCursor{
@@ -472,28 +425,24 @@ namespace Tac
       {
         if( sizeData.mRequestedPosition.HasValue() )
         {
-          const v2i windowPos{ sSysWindowApi.GetPos( sizeData.mWindowHandle ) };
+          const v2i windowPos{ AppWindowApi::GetPos( sizeData.mWindowHandle ) };
           const v2i windowPosRequest{ sizeData.mRequestedPosition.GetValue() };
           if( windowPos != windowPosRequest )
-            sSysWindowApi.SetPos( sizeData.mWindowHandle, windowPosRequest );
+            AppWindowApi::SetPos( sizeData.mWindowHandle, windowPosRequest );
         }
 
         if( sizeData.mRequestedSize.HasValue() )
         {
-          const v2i windowSize{ sSysWindowApi.GetSize( sizeData.mWindowHandle ) };
+          const v2i windowSize{ AppWindowApi::GetSize( sizeData.mWindowHandle ) };
           const v2i windowSizeRequest{ sizeData.mRequestedSize.GetValue() };
           if( windowSize != windowSizeRequest )
-            sSysWindowApi.SetSize( sizeData.mWindowHandle, windowSizeRequest );
+            AppWindowApi::SetSize( sizeData.mWindowHandle, windowSizeRequest );
         }
       }
 
-      const App::PresentParams presentParams
-      {
-        .mWindowApi { sSysWindowApi },
-      };
-      TAC_CALL( sApp->Present( presentParams, errors ) );
+      TAC_CALL( sApp->Present( errors ) );
 
-      TAC_CALL( ImGuiPlatformPresent( imguiSimFrame, sSysWindowApi, errors ) );
+      TAC_CALL( ImGuiPlatformPresent( imguiSimFrame, errors ) );
       //Render::FrameEnd();
   }
 

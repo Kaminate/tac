@@ -11,16 +11,10 @@ namespace Tac
 {
   struct Example
   {
-    struct UpdateParams
-    {
-      SimKeyboardApi mKeyboardApi;
-      SimWindowApi   mWindowApi;
-    };
-
     Example();
     virtual ~Example();
     virtual void Init()                          { if( mInitFn ) mInitFn(); }
-    virtual void Update( UpdateParams, Errors& ) { if( mUpdateFn ) mUpdateFn(); }
+    virtual void Update( Errors& )               { if( mUpdateFn ) mUpdateFn(); }
     virtual void Render()                        { if( mRenderFn ) mRenderFn(); }
     virtual void Uninit()                        { if( mUninitFn ) mUninitFn(); }
     v3           GetWorldspaceKeyboardDir();

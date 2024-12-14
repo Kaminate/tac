@@ -7,31 +7,28 @@
 #include "tac_dx12_tutorial_checkerboard.h"
 #include "tac_dx12_tutorial.h"
 
-#include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/error/tac_assert.h"
-#include "tac-std-lib/dataprocess/tac_text_parser.h"
-#include "tac-std-lib/containers/tac_span.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/math/tac_matrix4.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/math/tac_vector3.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-
-#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
-
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-
-#include "tac-dx/dx12/tac_dx12_helper.h"
-#include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_matrix4.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-win32/tac_win32.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
@@ -681,18 +678,18 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloFrameBuf::DX12CreateSwapChain(  const SysWindowApi windowApi, Errors& errors )
+  void DX12AppHelloFrameBuf::DX12CreateSwapChain( Errors& errors )
   {
     TAC_ASSERT( !m_swapChainValid );
 
-    const auto hwnd { ( HWND ) windowApi.GetNWH( hDesktopWindow ) };
+    const auto hwnd { ( HWND ) AppWindowApi::GetNativeWindowHandle( hDesktopWindow ) };
     if( !hwnd )
       return;
 
     ID3D12CommandQueue* commandQueue { mCommandQueue.GetCommandQueue() };
     TAC_ASSERT( commandQueue );
 
-    const v2i size { windowApi.GetSize( hDesktopWindow ) };
+    const v2i size { AppWindowApi::GetSize( hDesktopWindow ) };
     const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
@@ -1021,12 +1018,11 @@ namespace Tac
 
   DX12AppHelloFrameBuf::DX12AppHelloFrameBuf( const Config& cfg ) : App( cfg ) {}
 
-  void         DX12AppHelloFrameBuf::Init( InitParams initParams, Errors& errors )
+  void         DX12AppHelloFrameBuf::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    windowApi.SetSwapChainAutoCreate( false );
+    AppWindowApi::SetSwapChainAutoCreate( false );
 
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Frame Buf", errors ) );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( "DX12 Frame Buf", errors ) );
   }
 
   void         DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)
@@ -1067,9 +1063,9 @@ namespace Tac
     mUploadPageManager.Init( m_device.Get(), &mCommandQueue );
   }
 
-  void         DX12AppHelloFrameBuf::Update( UpdateParams updateParams, Errors& errors )
+  void         DX12AppHelloFrameBuf::Update(  Errors& errors )
   {
-    if( !updateParams.mWindowApi.IsShown( hDesktopWindow ) )
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
     const double t { Timestep::GetElapsedTime().mSeconds };
@@ -1116,8 +1112,6 @@ namespace Tac
    
   void         DX12AppHelloFrameBuf::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi windowApi { renderParams.mWindowApi };
-
     const State* oldState { ( State* )renderParams.mOldState };
     const State* newState { ( State* )renderParams.mNewState };
     const float t { renderParams.mT };
@@ -1129,14 +1123,14 @@ namespace Tac
     {
       once = true;
       TAC_CALL( PreSwapChainInit( errors ) );
-      TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
+      TAC_CALL( DX12CreateSwapChain( errors ) );
       TAC_CALL( CreateRenderTargetViews( errors ) );
       TAC_CALL( CreateBuffer( errors ) );
       TAC_CALL( CreateTexture( errors ) );
       RecordBundle();
     }
 
-    if( !windowApi.IsShown( hDesktopWindow ) )
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( RenderBegin( errors ) );

@@ -6,6 +6,7 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 
 #if TAC_IS_ICON_RENDERER_ENABLED()
@@ -89,8 +90,8 @@ namespace Tac
 
   static m4 GetProj( WindowHandle viewHandle, const Camera* camera )
   {
-    SysWindowApi windowApi;
-    const v2i windowSize{ windowApi.GetSize( viewHandle ) };
+    
+    const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
     const float aspectRatio{ ( float )windowSize.x / ( float )windowSize.y };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
@@ -225,12 +226,12 @@ namespace Tac
       Vector< const Light* > mLights;
     } lightVisitor;
 
-    SysWindowApi windowApi;
+    
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     const Graphics* graphics { Graphics::From( world ) };
-    const v2i windowSize{ windowApi.GetSize( viewHandle ) };
-    Render::SwapChainHandle swapChain { windowApi.GetSwapChainHandle( viewHandle ) };
+    const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
+    Render::SwapChainHandle swapChain { AppWindowApi::GetSwapChainHandle( viewHandle ) };
     Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
     Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };
     const Render::Targets renderTargets

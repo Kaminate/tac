@@ -1,35 +1,32 @@
 #include "tac_dx12_tutorial_4_bundle.h" // self-inc
 
-#include "tac_dx12_tutorial_shader_compile.h"
+#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"
+#include "tac-engine-core/asset/tac_asset.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-win32/tac_win32.h"
 #include "tac_dx12_tutorial.h"
 #include "tac_dx12_tutorial_2_dxc.h"
-#include "tac_dx12_tutorial_root_sig_builder.h"
-#include "tac_dx12_tutorial_input_layout_builder.h"
 #include "tac_dx12_tutorial_checkerboard.h"
-
-//#include "src/shell/windows/renderer/dx11/shader/tac_dx11_shader_preprocess.h"
-#include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/dataprocess/tac_text_parser.h"
-#include "tac-std-lib/containers/tac_span.h"
-#include "tac-engine-core/asset/tac_asset.h"
-//#include "tac-std-lib/memory/tac_frame_memory.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/math/tac_vector3.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-//#include "src/shell/tac_desktop_window_settings_tracker.h"
-#include "tac-dx/dx12/tac_dx12_helper.h"
-#include "tac-win32/tac_win32.h"
+#include "tac_dx12_tutorial_input_layout_builder.h"
+#include "tac_dx12_tutorial_root_sig_builder.h"
+#include "tac_dx12_tutorial_shader_compile.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
-static const UINT myParamIndex = 0;
+static const UINT myParamIndex { 0 };
 
 
 namespace Tac
@@ -103,12 +100,12 @@ namespace Tac
     TAC_ASSERT( m_debugLayerEnabled );
 
     m_device.QueryInterface( m_infoQueue );
-    TAC_ASSERT(m_infoQueue);
+    TAC_ASSERT( m_infoQueue );
 
     // Make the application debug break when bad things happen
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
@@ -832,17 +829,16 @@ namespace Tac
 
   // Helper functions for App::Update
 
-  void DX12AppHelloBundle::DX12CreateSwapChain( const SysWindowApi windowApi,
-                                                Errors& errors )
+  void DX12AppHelloBundle::DX12CreateSwapChain( Errors& errors )
   {
     if( m_swapChainValid )
       return;
 
-    auto hwnd { ( HWND )windowApi.GetNWH( hDesktopWindow ) };
+    auto hwnd { ( HWND )AppWindowApi::GetNativeWindowHandle( hDesktopWindow ) };
     if( !hwnd )
       return;
 
-    const v2i size { windowApi.GetSize( hDesktopWindow ) };
+    const v2i size { AppWindowApi::GetSize( hDesktopWindow ) };
 
 
     TAC_ASSERT( m_commandQueue );
@@ -1263,11 +1259,11 @@ namespace Tac
 
   DX12AppHelloBundle::DX12AppHelloBundle( const Config& cfg ) : App( cfg ) {}
 
-  void DX12AppHelloBundle::Init( InitParams initParams, Errors& errors )
+  void DX12AppHelloBundle::Init( Errors& errors )
   {
-    const SysWindowApi windowApi{ initParams.mWindowApi };
-    windowApi.SetSwapChainAutoCreate( false );
-    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( windowApi, "DX12 Bundle", errors ) );
+
+    AppWindowApi::SetSwapChainAutoCreate( false );
+    TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow("DX12 Bundle", errors ) );
   }
 
   void DX12AppHelloBundle::PreSwapChainInit( Errors& errors)
@@ -1296,18 +1292,17 @@ namespace Tac
     TAC_CALL( CreateSampler( errors ) );
   }
 
-  void DX12AppHelloBundle::Update( UpdateParams updateParams, Errors& errors )
+  void DX12AppHelloBundle::Update( Errors& errors )
   {
   }
 
   void DX12AppHelloBundle::Render( RenderParams renderParams, Errors& errors )
   {
-    const SysWindowApi windowApi { renderParams.mWindowApi };
-    if( !windowApi.IsShown( hDesktopWindow ) )
+    if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
     TAC_CALL( PreSwapChainInit( errors ) );
-    TAC_CALL( DX12CreateSwapChain( windowApi, errors ) );
+    TAC_CALL( DX12CreateSwapChain( errors ) );
     TAC_CALL( CreateRenderTargetViews( errors ) );
     TAC_CALL( CreateVertexBuffer( errors ) );
     TAC_CALL( CreateTexture( errors ) );

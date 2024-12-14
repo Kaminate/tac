@@ -100,8 +100,8 @@ namespace Tac
 
   void                SelectedEntities::DeleteEntitiesCheck()
   {
-    SimKeyboardApi keyboardApi{};
-    if( keyboardApi.JustPressed( Key::Delete ) )
+    SimKeyboardApi:: keyboardApi{};
+    if( AppKeyboardApi::JustPressed( Key::Delete ) )
       DeleteEntities();
   }
 } // namespace Tac

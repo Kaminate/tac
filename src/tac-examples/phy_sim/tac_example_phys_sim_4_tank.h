@@ -9,6 +9,6 @@ namespace Tac
   {
     ExamplePhysSim4Tank();
     ~ExamplePhysSim4Tank() override;
-    void Update( UpdateParams, Errors& ) override;
+    void Update( Errors& ) override;
   };
 }

@@ -29,8 +29,6 @@ namespace Tac
     HashValue mValue{};
   };
 
-  struct SysWindowApi;
-
   struct ImGuiDesktopWindow
   {
     virtual ~ImGuiDesktopWindow() = default;
@@ -145,8 +143,6 @@ namespace Tac
   struct ImGuiInitParams
   {
     int                mMaxGpuFrameCount {};
-    SimWindowApi       mSimWindowApi     {};
-    SimKeyboardApi     mSimKeyboardApi   {};
     SettingsNode       mSettingsNode     {};
     //ImGuiSetWindowPos  mSetWindowPos{};
     //ImGuiSetWindowSize mSetWindowSize{};
@@ -241,9 +237,9 @@ namespace Tac
   struct ImGuiSimFrame;
   ImGuiSimFrame ImGuiGetSimFrame();
 
-  void ImGuiPlatformRenderFrameBegin( ImGuiSimFrame*, SysWindowApi, Errors& );
-  void ImGuiPlatformRender( ImGuiSimFrame*, SysWindowApi, Errors& );
-  void ImGuiPlatformPresent( ImGuiSimFrame*, SysWindowApi, Errors& );
+  void ImGuiPlatformRenderFrameBegin( ImGuiSimFrame*, Errors& );
+  void ImGuiPlatformRender( ImGuiSimFrame*, Errors& );
+  void ImGuiPlatformPresent( ImGuiSimFrame*, Errors& );
 
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \

@@ -33,7 +33,7 @@ namespace Tac
     return sExampleIndexCurr;
   }
 
-  void ExampleStateMachineUpdate( Example::UpdateParams updateParams, Errors& errors )
+  void ExampleStateMachineUpdate( Errors& errors )
   {
     if( ExampleIndexValid( sExampleIndexNext ) && sExampleIndexNext != sExampleIndexCurr )
     {
@@ -49,7 +49,7 @@ namespace Tac
     if( sCurrExample )
     {
       sCurrExample->mWorld->mDebug3DDrawData->Clear();
-      TAC_CALL( sCurrExample->Update( updateParams, errors ) );
+      TAC_CALL( sCurrExample->Update( errors ) );
     }
   }
 

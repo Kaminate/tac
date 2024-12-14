@@ -9,10 +9,8 @@ namespace Tac
     HelloConstBuf( App::Config );
 
   protected:
-    void Init( InitParams, Errors& ) override;
+    void Init(  Errors& ) override;
     void Render( RenderParams, Errors& ) override;
-
-  private:
 
     WindowHandle                    mWindowHandle          {};
     Render::BufferHandle            mVtxBuf                {};

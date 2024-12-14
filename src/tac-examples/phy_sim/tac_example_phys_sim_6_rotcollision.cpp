@@ -415,7 +415,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim6RotCollision::Update( UpdateParams, Errors& )
+  void ExamplePhysSim6RotCollision::Update( Errors& )
   {
     m2UnitTest();
 

@@ -13,7 +13,7 @@ namespace Tac
   bool ProfileGetIsRuning();
 
   //   API to draw the profile visualization
-  void ImGuiProfileWidget( SimKeyboardApi );
+  void ImGuiProfileWidget();
 
   struct ProfileBlock
   {
