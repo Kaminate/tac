@@ -179,10 +179,10 @@ namespace Tac::Render
     mMaxBoundIndex = Max( mMaxBoundIndex, i );
   }
 
-  void                   PipelineDynamicArray::SetFence( FenceSignal fenceSignal )
-  {
-    mDescriptorRegion.Free( fenceSignal );
-  }
+  //void                   PipelineDynamicArray::SetFence( FenceSignal fenceSignal )
+  //{
+  //  mDescriptorRegion.Free( fenceSignal );
+  //}
 
   void                   PipelineDynamicArray::CheckType( ResourceHandle h )
   {
@@ -213,40 +213,37 @@ namespace Tac::Render
 
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
 
-    DX12TransitionHelper transitionHelper;
+    dynmc DX12TransitionHelper transitionHelper;
     const Span< DX12Descriptor > cpuDescriptors{ GetDescriptors( &transitionHelper ) };
     transitionHelper.ResourceBarrier( commandList );
 
-#if 0
-    dynmc DX12DescriptorCache& descriptorCache{ ( *descriptorCaches )[ heapType ] };
-    const DX12DescriptorRegion* gpuDescriptor{
-      descriptorCache.GetGPUDescriptorForCPUDescriptors( cpuDescriptors ) };
-#else
-    DX12DescriptorHeap& heap{ renderer.mDescriptorHeapMgr.mGPUHeaps[ heapType ] };
-    DX12DescriptorAllocator* descriptorAllocator{ heap.GetRegionMgr() };
+    dynmc DX12DescriptorHeap& heap{ renderer.mDescriptorHeapMgr.mGPUHeaps[ heapType ] };
+    dynmc DX12DescriptorAllocator* descriptorAllocator{ heap.GetRegionMgr() };
     const int nDescriptors{ cpuDescriptors.size() };
-    mDescriptorRegion = ( DX12DescriptorRegion&& )descriptorAllocator->Alloc( nDescriptors );
-    DX12DescriptorRegion* gpuDescriptor{ &mDescriptorRegion };
-#endif
+    DX12DescriptorRegion descriptorRegion {
+      ( DX12DescriptorRegion&& )descriptorAllocator->Alloc( nDescriptors ) };
+    DX12DescriptorRegion* gpuDescriptor{ &descriptorRegion };
 
     for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )
     {
-      DX12Descriptor cpuDescriptor { cpuDescriptors[ iDescriptor ] };
-      DX12DescriptorHeap* srcHeap{ cpuDescriptor.mOwner };
-      TAC_ASSERT( srcHeap );
-      TAC_ASSERT( srcHeap->GetType() == heapType );
+      const DX12Descriptor cpuDescriptor { cpuDescriptors[ iDescriptor ] };
+      const DX12DescriptorHeap* srcHeap{ cpuDescriptor.mOwner };
       const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };
       const D3D12_CPU_DESCRIPTOR_HANDLE dst{ gpuDescriptor->GetCPUHandle( iDescriptor ) };
+      TAC_ASSERT( srcHeap );
+      TAC_ASSERT( srcHeap->GetType() == heapType );
       TAC_ASSERT( src.ptr );
       TAC_ASSERT( dst.ptr );
       device->CopyDescriptorsSimple( 1, dst, src, heapType );
-
-      const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
-      if( isCompute )
-        commandList->SetComputeRootDescriptorTable( rootParameterIndex, gpuHandle );
-      else
-        commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
     }
+
+    const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ gpuDescriptor->GetGPUHandle() };
+    if( isCompute )
+      commandList->SetComputeRootDescriptorTable( rootParameterIndex, gpuHandle );
+    else
+      commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
+
+    commitParams.mDescriptorCache->AddDescriptorRegion( move( descriptorRegion ) );
   }
 
   // -----------------------------------------------------------------------------------------------

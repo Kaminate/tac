@@ -42,15 +42,6 @@ namespace Tac::Render
     if( !pipeline )
       return;
 
-#if 0
-    const int iResource{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV };
-    const int iSampler{ ( int )D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER };
-    DX12DescriptorHeap& heap_Resource{ ( *descriptorHeaps )[ iResource ] };
-    DX12DescriptorHeap& heap_Sampler{ ( *descriptorHeaps )[ iSampler ] };
-    mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Resource.GetRegionMgr() ); // ugly
-    mState.mDescriptorCaches[ iResource ].SetRegionManager( heap_Sampler.GetRegionMgr() ); // ugly
-#endif
-
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
 
     heapMgr.Bind( commandList );
@@ -62,19 +53,12 @@ namespace Tac::Render
       const CommitParams commitParams
       {
           .mCommandList        { commandList },
-  #if 0
-          .mDescriptorCaches   { &mState.mDescriptorCaches },
-  #endif
+          .mDescriptorCache    { &mState.mDescriptorCache },
           .mIsCompute          { mState.mIsCompute },
           .mRootParameterIndex { binding.mRootParameterIndex },
       };
       binding.Commit( commitParams );
     }
-#if 0
-
-    for( const DX12Pipeline::Variable& var : pipeline->mShaderVariables )
-      var.Commit( commitParams );
-#endif
   }
 
   void DX12Context::UpdateTexture( TextureHandle h,
@@ -125,16 +109,13 @@ namespace Tac::Render
       TAC_CALL( commandQueue->WaitForFence( fenceSignal, errors ) );
     }
 
-#if 0
-    for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
-      mState.mDescriptorCaches[ i ].SetFence( fenceSignal );
-#else
+    mState.mDescriptorCache.SetFence( fenceSignal );
+
     DX12PipelineMgr* pipelineMgr{ &renderer->mPipelineMgr };
     TAC_ASSERT( pipelineMgr );
     if( DX12Pipeline* pipeline{ pipelineMgr->FindPipeline( mState.mPipeline ) } )
       for( RootParameterBinding& binding : pipeline->mPipelineBindCache )
         binding.SetFence( fenceSignal );
-#endif
 
     commandAllocatorPool->Retire( mCommandAllocator, fenceSignal );
     mCommandAllocator = {};
@@ -181,9 +162,13 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* dxCommandList { GetCommandList() };
     TAC_DX12_CALL( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
+#if 0
     // [ ] Q: why not mState = {}; ?
     State empty;
     Swap( mState, empty );
+#else
+    mState = {};
+#endif
   }
 
   void DX12Context::SetSynchronous()
@@ -196,11 +181,11 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* cmd { GetCommandList() };
     const D3D12_VIEWPORT vp
     {
-      .TopLeftX {  },
-      .TopLeftY {  },
+      .TopLeftX {},
+      .TopLeftY {},
       .Width    { ( FLOAT )size.x },
       .Height   { ( FLOAT )size.y },
-      .MinDepth {  },
+      .MinDepth {},
       .MaxDepth { 1 },
     };
     cmd->RSSetViewports( 1, &vp );
@@ -279,8 +264,8 @@ namespace Tac::Render
       // Assume the the shader has depth write enabled
       const DX12TransitionHelper::Params transitionParams
       {
-        .mResource    { &depthTexture->mResource },
-        .mStateAfter  { D3D12_RESOURCE_STATE_DEPTH_WRITE },
+        .mResource   { &depthTexture->mResource },
+        .mStateAfter { D3D12_RESOURCE_STATE_DEPTH_WRITE },
       };
       transitionHelper.Append( transitionParams );
     }
@@ -336,8 +321,8 @@ namespace Tac::Render
     const D3D12_CPU_DESCRIPTOR_HANDLE RTV{ texture->mRTV->GetCPUHandle() };
     const DX12TransitionHelper::Params transitionParams
     {
-      .mResource    { &texture->mResource },
-      .mStateAfter  { D3D12_RESOURCE_STATE_RENDER_TARGET },
+      .mResource   { &texture->mResource },
+      .mStateAfter { D3D12_RESOURCE_STATE_RENDER_TARGET },
     };
 
     DX12TransitionHelper transitionHelper;
@@ -483,16 +468,9 @@ namespace Tac::Render
   {
     DX12ContextManager* contextManager{ &DX12Renderer::sRenderer.mContextManager };
     TAC_ASSERT( contextManager );
-
     TAC_ASSERT( !mState.mRetired );
     TAC_ASSERT( mState.mExecuted ); // this should be a warning instead
     mState.mRetired = true;
-
-#if 0
-    for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; ++i )
-      mState.mDescriptorCaches[ i ].Clear();
-#endif
-
     contextManager->RetireContext( this );
   }
 

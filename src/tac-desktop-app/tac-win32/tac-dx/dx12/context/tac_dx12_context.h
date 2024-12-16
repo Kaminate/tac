@@ -80,9 +80,7 @@ namespace Tac::Render
       bool                  mExecuted             {};
       int                   mEventCount           {};
       bool                  mRetired              {};
-#if 0
-      DX12DescriptorCaches  mDescriptorCaches     {};
-#endif
+      DX12DescriptorCache   mDescriptorCache      {};
     };
 
     State mState{};

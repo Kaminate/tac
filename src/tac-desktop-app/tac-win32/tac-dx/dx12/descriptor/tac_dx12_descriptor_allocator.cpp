@@ -56,6 +56,9 @@ namespace Tac::Render
 
   void DX12DescriptorRegion::SwapWith( DX12DescriptorRegion&& other )
   {
+    TAC_ASSERT( !DX12Descriptor::IsValid() );
+    TAC_ASSERT( !mRegionManager );
+    TAC_ASSERT( mRegionIndex == DX12DescriptorAllocator::RegionIndex::kNull );
     Swap( ( DX12Descriptor& )( *this ), ( DX12Descriptor& )other );
     Swap( mRegionIndex, other.mRegionIndex );
     Swap( mRegionManager, other.mRegionManager );
@@ -74,6 +77,11 @@ namespace Tac::Render
 
     if( regionDesc->mState == DX12DescriptorAllocator::RegionDesc::kAllocated )
     {
+      // What is this code path doing?
+      //   Freeing a descriptor region that was not used in a draw call?
+      //
+      // Should there be a warning?
+
       mRegionManager->Free( regionDesc );
     }
   }
@@ -94,7 +102,7 @@ namespace Tac::Render
     mRegionManager->DebugTitleBegin( dbgTitle );
 #endif
 
-    DX12DescriptorAllocator::RegionDesc* regionDesc{
+    dynmc DX12DescriptorAllocator::RegionDesc* regionDesc{
       mRegionManager->GetRegionAtIndex( mRegionIndex ) };
 
     TAC_ASSERT( regionDesc->mState == DX12DescriptorAllocator::RegionDesc::kAllocated );
@@ -125,6 +133,10 @@ namespace Tac::Render
 #endif
 
     mRegionManager = nullptr;
+
+    mOwner = {};
+    mIndex = {};
+    mCount = {};
   }
 
   // -----------------------------------------------------------------------------------------------

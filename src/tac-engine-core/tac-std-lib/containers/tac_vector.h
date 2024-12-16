@@ -102,37 +102,30 @@ namespace Tac
     void     clear()
     {
       for( int i{}; i < mTCount; ++i )
-      {
         mTs[ i ].~T();
-      }
 
       mTCount = 0;
     }
 
     void     push_back( T&& t )
     {
-      if( mTCount == mTCapacity )
-        reserve( int( mTCount * 1.5f ) + 1 );
-
-      mTs[ mTCount++ ] = move( t );
+      reserve();
+      T* dst{ &mTs[ mTCount++ ] };
+      TAC_NEW( dst )T( move( t ) ); // placement new using T(T&&)
     }
 
     void     push_back( const T& t )
     {
-      if( mTCount == mTCapacity )
-        reserve( int( mTCount * 1.5f ) + 1 );
-
+      reserve();
       T* dst{ &mTs[ mTCount++ ] };
-      new( dst )T( t ); // placement new
+      TAC_NEW( dst )T( t ); // placement new using T(const T&)
     }
 
     template< class ... Args >
     T&       emplace_back( Args&& ... args )
     {
-      if( mTCount == mTCapacity )
-        reserve( int( mTCount * 1.5f ) + 1 );
-
-      new( &mTs[ mTCount++ ] )T( forward< Args>( args )... );
+      reserve();
+      TAC_NEW( &mTs[ mTCount++ ] )T( forward< Args>( args )... );
       return back();
     }
 
@@ -180,6 +173,12 @@ namespace Tac
       mTCount = newSize;
     }
 
+    void reserve()
+    {
+      if( mTCount == mTCapacity )
+        reserve( int( mTCount * 1.5f ) + 1 );
+    }
+
     void     reserve( int capacity )
     {
       if( capacity <= mTCapacity )
@@ -187,7 +186,7 @@ namespace Tac
 
       T* newTs{ ( T* )Allocate( sizeof( T ) * capacity ) };
       for( int i{}; i < mTCount; ++i )
-        newTs[ i ] = Tac::move( mTs[ i ] );
+        TAC_NEW ( &newTs[ i ] )T( Tac::move( mTs[ i ] ) );
 
       Deallocate( mTs );
       mTs = newTs;

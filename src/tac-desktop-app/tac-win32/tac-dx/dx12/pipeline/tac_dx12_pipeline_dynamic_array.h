@@ -20,7 +20,7 @@ namespace Tac::Render
   {
     Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const; // override;
     void                   BindAtIndex( ResourceHandle, int );
-    void                   SetFence( FenceSignal );
+    //void                   SetFence( FenceSignal );
     void                   Commit( CommitParams );
 
   // private:
@@ -31,7 +31,7 @@ namespace Tac::Render
     D3D12ProgramBindType   mProgramBindType      {};
 
     // Temporary per draw call, allocated during Commit(), and freed during SetFence()
-    DX12DescriptorRegion   mDescriptorRegion     {};
+    //DX12DescriptorRegion   mDescriptorRegion     {};
 
     int                    mMaxBoundIndex        { -1 };
   };

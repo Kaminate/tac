@@ -90,4 +90,4 @@ namespace Tac
       fnName + " failed with return value " + ToString( ( unsigned long long ) hr ) );
   }
 
-} // namespace TacWin32FrameBegin polls wndproc
+} // namespace Tac

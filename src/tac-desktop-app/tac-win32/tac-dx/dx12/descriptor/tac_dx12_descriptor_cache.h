@@ -8,23 +8,13 @@
 
 namespace Tac::Render
 {
-#if 0
   struct DX12DescriptorCache
   {
-    void                  SetRegionManager( DX12DescriptorAllocator* );
     void                  SetFence( FenceSignal );
-    void                  Clear();
-    DX12DescriptorRegion* GetGPUDescriptorForCPUDescriptors( Span< DX12Descriptor > );
-
+    //void                  Clear();
+    void                  AddDescriptorRegion( DX12DescriptorRegion&& );
   private:
-    DX12DescriptorRegion* Lookup( DX12Descriptor );
-
-    Vector< DX12Descriptor >        mCPUDescs     {};
-    Vector< int >                   mGPUIndexes   {};
     Vector< DX12DescriptorRegion >  mGPUDescs     {};
-    DX12DescriptorAllocator*        mGpuRegionMgr {};
   };
 
-  using DX12DescriptorCaches = DX12DescriptorCache[ D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES ];
-#endif
 } // namespace Tac::Render

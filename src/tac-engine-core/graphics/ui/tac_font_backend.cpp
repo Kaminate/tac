@@ -535,6 +535,8 @@ namespace Tac
     TAC_CALL( Render::IContext::Scope renderContext{
       renderDevice->CreateRenderContext( errors ) } );
 
+    renderContext->SetSynchronous(); // needed or not???
+
     TAC_CALL( renderContext->UpdateTexture( mTextureId, updateTextureParams, errors ) );
     TAC_CALL( renderContext->Execute( errors ) );
   }

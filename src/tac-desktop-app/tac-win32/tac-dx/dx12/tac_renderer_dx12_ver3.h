@@ -34,24 +34,14 @@ namespace Tac::Render
   // todo: move to some shared render aux file
   struct DeletionQueue
   {
-    void Push( SwapChainHandle );
-    void Push( PipelineHandle );
-    void Push( ProgramHandle );
-    void Push( BufferHandle );
-    void Push( TextureHandle );
-    void Push( SamplerHandle );
+    void Push( ResourceHandle );
     void Update();
 
   private:
     struct Entry
     {
-      SwapChainHandle mSwapChainHandle;
-      PipelineHandle  mPipelineHandle;
-      ProgramHandle   mProgramHandle;
-      BufferHandle    mBufferHandle;
-      TextureHandle   mTextureHandle;
-      SamplerHandle   mSamplerHandle;
-      u64             mFrame;
+      ResourceHandle mResourceHandle;
+      u64            mFrame;
     };
 
     FifoQueue< Entry > mEntries;

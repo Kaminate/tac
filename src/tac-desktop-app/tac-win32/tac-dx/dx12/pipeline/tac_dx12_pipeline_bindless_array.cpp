@@ -111,7 +111,6 @@ namespace Tac::Render
     mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
 #else
 
-
     if( mDescriptorRegion.IsValid() )
       mDescriptorRegion.Free( mFenceSignal );
 

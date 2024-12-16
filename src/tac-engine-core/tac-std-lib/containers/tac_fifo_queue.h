@@ -68,15 +68,15 @@ namespace Tac
     void     push( T&& t )
     {
       reserve();
-      const int i{ ( mStartIndex + mTCount++ ) % mTCapacity };
-      mTs[ i ] = ( T&& )t;
+      T* dst{ &mTs[ ( mStartIndex + mTCount++ ) % mTCapacity ] };
+      TAC_NEW( dst )T( move( t ) ); // placement new using T(T&&)
     }
 
     void     push( const T& t )
     {
       reserve();
-      const int i{ ( mStartIndex + mTCount++ ) % mTCapacity };
-      new ( &mTs[ i ] ) T( t );
+      T* dst{ &mTs[ ( mStartIndex + mTCount++ ) % mTCapacity ] };
+      TAC_NEW( dst )T( t ); // placement new using T(const T&)
     }
 
     void reserve( int capacity )
@@ -85,10 +85,10 @@ namespace Tac
         return;
 
       T* newTs{ ( T* )Tac::Allocate( sizeof( T ) * capacity ) };
-      for( int i{}; i < mTCount; ++i )
+      for( int iDst{}; iDst < mTCount; ++iDst )
       {
-        const int j { ( mStartIndex + mTCount ) % mTCapacity };
-        newTs[ i ] = Tac::move( mTs[ j ] );
+        const int iSrc { ( mStartIndex + iDst ) % mTCapacity };
+        TAC_NEW ( &newTs[ iDst ] )T ( move( mTs[ iSrc ] ) );
       }
 
       Tac::Deallocate( mTs );
@@ -106,7 +106,7 @@ namespace Tac
     T&       emplace( Args&& ... args )
     {
       reserve();
-      new( &mTs[ mTCount++ ] )T( forward< Args >( args )... );
+      TAC_NEW( &mTs[ mTCount++ ] )T( forward< Args >( args )... );
       return back();
     }
 

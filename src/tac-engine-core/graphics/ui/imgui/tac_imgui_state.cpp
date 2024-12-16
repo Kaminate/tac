@@ -862,7 +862,6 @@ namespace Tac
 
         element.mShaderImage->SetResource( texture );
 
-
         UpdatePerObject( renderContext, uidrawCall, errors );
         renderContext->CommitShaderVariables();
 

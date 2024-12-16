@@ -14,57 +14,12 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void DeletionQueue::Push( SwapChainHandle h)
+  void DeletionQueue::Push( ResourceHandle h )
   {
     const DeletionQueue::Entry entry
     {
-      .mSwapChainHandle { h },
-      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
-    };
-    mEntries.push( entry );
-  }
-  void DeletionQueue::Push( PipelineHandle h)
-  {
-    const DeletionQueue::Entry entry
-    {
-      .mPipelineHandle { h },
-      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
-    };
-    mEntries.push( entry );
-  }
-  void DeletionQueue::Push( ProgramHandle h)
-  {
-    const DeletionQueue::Entry entry
-    {
-      .mProgramHandle { h },
-      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
-    };
-    mEntries.push( entry );
-  }
-  void DeletionQueue::Push( BufferHandle h)
-  {
-    const DeletionQueue::Entry entry
-    {
-      .mBufferHandle { h },
-      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
-    };
-    mEntries.push( entry );
-  }
-  void DeletionQueue::Push( TextureHandle h)
-  {
-    const DeletionQueue::Entry entry
-    {
-      .mTextureHandle { h },
-      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
-    };
-    mEntries.push( entry );
-  }
-  void DeletionQueue::Push( SamplerHandle h)
-  {
-    const DeletionQueue::Entry entry
-    {
-      .mSamplerHandle { h },
-      .mFrame        { DX12Renderer::sRenderer.mRenderFrame },
+      .mResourceHandle { h },
+      .mFrame          { DX12Renderer::sRenderer.mRenderFrame },
     };
     mEntries.push( entry );
   }
@@ -74,12 +29,12 @@ namespace Tac::Render
     const int maxGPUFrameCount{ RenderApi::GetMaxGPUFrameCount() };
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
 
-    DX12SwapChainMgr& swapChainMgr{ renderer.mSwapChainMgr };
-    DX12BufferMgr& bufMgr{ renderer.mBufMgr };
-    DX12TextureMgr& texMgr{ renderer.mTexMgr };
-    DX12ProgramMgr& programMgr{ renderer.mProgramMgr };
-    DX12PipelineMgr& pipelineMgr{ renderer.mPipelineMgr };
-    DX12SamplerMgr& samplerMgr{ renderer.mSamplerMgr };
+    DX12SwapChainMgr& swapChainMgr { renderer.mSwapChainMgr };
+    DX12BufferMgr&    bufMgr       { renderer.mBufMgr };
+    DX12TextureMgr&   texMgr       { renderer.mTexMgr };
+    DX12ProgramMgr&   programMgr   { renderer.mProgramMgr };
+    DX12PipelineMgr&  pipelineMgr  { renderer.mPipelineMgr };
+    DX12SamplerMgr&   samplerMgr   { renderer.mSamplerMgr };
 
     for( ;; )
     {
@@ -90,12 +45,23 @@ namespace Tac::Render
       if( entry.mFrame + maxGPUFrameCount < renderer.mRenderFrame )
         break;
 
-      pipelineMgr.DestroyPipeline( entry.mPipelineHandle );
-      swapChainMgr.DestroySwapChain( entry.mSwapChainHandle );
-      bufMgr.DestroyBuffer( entry.mBufferHandle );
-      texMgr.DestroyTexture( entry.mTextureHandle );
-      programMgr.DestroyProgram( entry.mProgramHandle );
-      samplerMgr.DestroySampler( entry.mSamplerHandle );
+      if( entry.mResourceHandle.IsPipeline() )
+        pipelineMgr.DestroyPipeline( entry.mResourceHandle.GetPipelineHandle() );
+
+      if( entry.mResourceHandle.IsSwapChain() )
+        swapChainMgr.DestroySwapChain( entry.mResourceHandle.GetSwapChainHandle() );
+
+      if( entry.mResourceHandle.IsBuffer() )
+        bufMgr.DestroyBuffer( entry.mResourceHandle.GetBufferHandle() );
+
+      if( entry.mResourceHandle.IsTexture() )
+        texMgr.DestroyTexture( entry.mResourceHandle.GetTextureHandle() );
+
+      if( entry.mResourceHandle.IsProgram() )
+        programMgr.DestroyProgram( entry.mResourceHandle.GetProgramHandle() );
+
+      if( entry.mResourceHandle.IsSampler() )
+        samplerMgr.DestroySampler( entry.mResourceHandle.GetSamplerHandle() );
 
       mEntries.pop();
     }

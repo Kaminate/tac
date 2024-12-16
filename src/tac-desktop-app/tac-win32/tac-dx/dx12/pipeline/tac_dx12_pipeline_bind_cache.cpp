@@ -10,9 +10,18 @@ namespace Tac::Render
 
   void           RootParameterBinding::SetFence( FenceSignal fenceSignal )
   {
-    if( mType == Type::kDynamicArray )
+    // | commented out because now its part of dx12descriptorcache
+    // |
+    // v
+    //if( mType == Type::kDynamicArray )
+    //{
+    //  mPipelineDynamicArray.SetFence( fenceSignal );
+    //}
+    if( mType == Type::kBindlessArray )
     {
-      mPipelineDynamicArray.SetFence( fenceSignal );
+      // todo: cleanup
+      BindlessArray* bindlessArray = ( BindlessArray* )mBindlessArray;
+      bindlessArray->SetFenceSignal( fenceSignal );
     }
   }
 
