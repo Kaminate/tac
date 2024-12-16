@@ -36,14 +36,17 @@ namespace Tac
 
   void               Errors::Raise( StringView msg, StackFrame sf )
   {
-    mMessage += "Error: ";
     mMessage += msg;
     mFrames.push_back( sf );
 
     if( kIsDebugMode && !mBroken && mFlags & Flags::kDebugBreaks )
     {
-      const String errStr = ToString();
+      const String errStr{ ToString() };
+      OS::OSDebugPrintLine( String( 100, '-' ) );
+      OS::OSDebugPrintLine( String( 47, ' ' ) + "ERROR!" );
+      OS::OSDebugPrintLine( String( 100, '-' ) );
       OS::OSDebugPrintLine( errStr );
+      OS::OSDebugPrintLine( String( 100, '-' ) );
       OS::OSDebugBreak();
       mBroken = true;
     }

@@ -13,7 +13,7 @@
 // d3d12 must be included before dxcapi
 //#include <d3d12.h> // D3D12_SHADER_BYTECODE
 //#include <dxcapi.h> // IDxcUtils, IDxcCompiler3, DxcCreateInstance, 
-#pragma comment (lib, "dxcompiler.lib" )
+#pragma comment( lib, "dxcompiler.lib" )
 
 namespace Tac::Render
 {
@@ -294,7 +294,7 @@ namespace Tac::Render
     TAC_RAISE_ERROR_IF( !pResults->HasOutput( DXC_OUT_ERRORS ),
                         "Shader compilation failed, no error blob" );
 
-    PCom<IDxcBlobUtf8> pErrors;
+    PCom< IDxcBlobUtf8 > pErrors;
     TAC_RAISE_ERROR_IF( FAILED( pResults->GetOutput(
       DXC_OUT_ERRORS,
       pErrors.iid(),
@@ -302,10 +302,35 @@ namespace Tac::Render
       nullptr ) ),
       "Shader compilation failed and error blob retrieval failed" );
 
-    StringView errorBlobStr( pErrors->GetStringPointer(),
-                             ( int )pErrors->GetStringLength() );
+    dynmc String errorStr( pErrors->GetStringPointer(), ( int )pErrors->GetStringLength() );
+    const StringView kUnknownHLSLVersionErrorSubstring{ "Unknown HLSL version" };
+    const StringView kWindowsSDKSubstring{ "Windows Kits" };
+    if( errorStr.contains(kUnknownHLSLVersionErrorSubstring ) )
+    {
+#if defined(TAC_DXIL_DLL_PATH) && defined(TAC_DXCOMPILER_DLL_PATH)
+      const StringView paths[]{ TAC_DXIL_DLL_PATH, TAC_DXCOMPILER_DLL_PATH };
+      for( StringView path : paths )
+      {
+        if( path.contains( kWindowsSDKSubstring) )
+        {
+          const String dxcGithub{ "https://github.com/microsoft/DirectXShaderCompiler" };
+          const String dxcCmakeLists{ "tac-dx/CmakeLists.txt" };
+          errorStr +=
+            "\n" "An outdated DirectX Shader Compiler (dxc) from the Windows SDK is being used!"
+            "\n" "dxil.dll:       " + StringView( TAC_DXIL_DLL_PATH ) +
+            "\n" "dxcompiler.dll: " + StringView( TAC_DXCOMPILER_DLL_PATH ) +
+            "\n" "Try the following:"
+            "\n" "  1) Clearing TAC_DXIL_DLL_PATH and TAC_DXCOMPILER_DLL_PATH from CMakeCache.txt"
+            "\n" "  2) Downloading dxc binaries from github:" + dxcGithub +
+            "\n" "See also " + dxcCmakeLists;
+          break;
+        }
+      }
 
-    TAC_RAISE_ERROR( String() + "Shader compilation failed: " + errorBlobStr );
+#endif
+    }
+
+    TAC_RAISE_ERROR( "Shader compilation failed: " + errorStr );
   }
 
 

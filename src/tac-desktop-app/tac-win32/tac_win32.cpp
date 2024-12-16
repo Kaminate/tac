@@ -46,15 +46,16 @@ namespace Tac
       FORMAT_MESSAGE_ALLOCATE_BUFFER |
       FORMAT_MESSAGE_FROM_SYSTEM |
       FORMAT_MESSAGE_IGNORE_INSERTS };
-    const DWORD bufLen = FormatMessage( flags,
+    const DWORD bufLen { FormatMessage( flags,
                                         NULL,
                                         winErrorValue,
                                         MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
                                         ( LPTSTR )&lpMsgBuf,
                                         0,
-                                        NULL );
+                                        NULL ) };
     if( !bufLen )
       return "FormatMessage() failed";
+
     const String result( ( LPCSTR )lpMsgBuf, bufLen );
     LocalFree( lpMsgBuf );
     return result;
@@ -76,15 +77,11 @@ namespace Tac
   {
     // todo: replace with std::breakpoint_if_debugging (C++26)
     if constexpr( kIsDebugMode )
-    {
       if( ::IsDebuggerPresent() )
-      {
         // If the process is not being debugged, the function uses the search logic of a standard
         // exception handler. In most cases, this causes the calling process to terminate because
         // of an unhandled breakpoint exception.
         ::DebugBreak();
-      }
-    }
   }
 
   void HrCallAux( const HRESULT hr, const char* fnName, Errors& errors )

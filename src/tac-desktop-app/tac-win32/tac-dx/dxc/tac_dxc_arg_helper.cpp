@@ -38,7 +38,7 @@ namespace Tac::Render
 
   DXCArgHelper::DXCArgHelper( Params setup )
   {
-    TAC_ASSERT(!setup.mFilename.empty());
+    TAC_ASSERT( !setup.mFilename.empty() );
 
     const HRESULT hr{ setup.mUtils->BuildArguments(
       ToWStr( setup.mFilename ).data(),
@@ -79,21 +79,21 @@ namespace Tac::Render
 
   void DXCArgHelper::AddArgs( StringView arg0, StringView arg1 )
   {
-    AddArg(arg0);
-    AddArg(arg1);
+    AddArg( arg0 );
+    AddArg( arg1 );
   }
 
   void DXCArgHelper::AddArg( StringView arg )
   {
-    dynmc Array args  { arg.data() };
-    const HRESULT hr { mArgs->AddArgumentsUTF8( args.data(), args.size() ) };
+    dynmc Array args{ arg.data() };
+    const HRESULT hr{ mArgs->AddArgumentsUTF8( args.data(), args.size() ) };
     TAC_ASSERT( SUCCEEDED( hr ) );
   }
 
   void DXCArgHelper::SetFilename( StringView s )
   {
-    const FileSys::Path fsPath { s };
-    auto ext { fsPath.extension() };
+    const FileSys::Path fsPath{ s };
+    auto ext{ fsPath.extension() };
     TAC_ASSERT( fsPath.has_extension() && ext == ".hlsl" );
     TAC_ASSERT( !fsPath.has_parent_path() );
     TAC_ASSERT( fsPath.has_stem() );
@@ -102,7 +102,7 @@ namespace Tac::Render
     mFilename = s;
     mStem = fsPath.stem().u8string();
     TAC_ASSERT( IsAscii( mStem ) );
-    TAC_ASSERT(!mStem.empty());
+    TAC_ASSERT( !mStem.empty() );
   }
 
   void DXCArgHelper::SetHLSLVersion( StringView ver )
@@ -112,14 +112,14 @@ namespace Tac::Render
 
   void DXCArgHelper::SaveReflection()
   {
-    TAC_ASSERT(!mStem.empty());
+    TAC_ASSERT( !mStem.empty() );
     AddArgs( "-Fre", mStem + ".refl" );
   }
 
-  void DXCArgHelper::SaveBytecode()  
+  void DXCArgHelper::SaveBytecode()
   {
-    TAC_ASSERT(!mStem.empty());
-    AddArgs( "-Fo", mStem + ".dxo");
+    TAC_ASSERT( !mStem.empty() );
+    AddArgs( "-Fo", mStem + ".dxo" );
   } // assert path ends in .dxo (it is a dxil file)
 
   // https://devblogs.microsoft.com/pix/using-automatic-shader-pdb-resolution-in-pix/
@@ -127,12 +127,12 @@ namespace Tac::Render
   void DXCArgHelper::SaveDebug( const FileSys::Path& pdbDir )
   {
     TAC_ASSERT( FileSys::IsDirectory( pdbDir ) );
-    String dir { pdbDir.u8string() };
+    String dir{ pdbDir.u8string() };
     if( !dir.ends_with( "/" ) ||
         !dir.ends_with( "\\" ) )
       dir += '\\'; // ensure trailing slash
 
-    AddArgs( "-Fd",  dir  ); // not quoted
+    AddArgs( "-Fd", dir ); // not quoted
   }
 
 
