@@ -31,11 +31,14 @@ namespace Tac
     Count
   };
 
+  using CodepointString = Vector< Codepoint >;
 
+  // shouldnt this just be using codepointview = Span< const Codepoint> ?
   struct CodepointView
   {
     CodepointView() = default;
     CodepointView( const Codepoint*, int );
+    CodepointView( const CodepointString& );
     Codepoint        operator[]( int ) const;
     const Codepoint* data() const;
     const Codepoint* begin() const;
@@ -46,7 +49,6 @@ namespace Tac
     int              mCodepointCount {};
   };
 
-  using CodepointString = Vector< Codepoint >;
 
   bool operator == ( CodepointView, CodepointView );
   bool operator != ( CodepointView, CodepointView );

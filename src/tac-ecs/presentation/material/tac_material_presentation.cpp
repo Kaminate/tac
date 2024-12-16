@@ -124,7 +124,7 @@ namespace Tac
     return ConstBufData_Material
     {
       .mColor              { material->mColor },
-      .mEmissive           { material->mEmissive, 1},
+      .mEmissive           { material->mEmissive, 1 },
       .mFlags              { flags },
       .mDiffuseTextureIdx  { ( u32 )diffuse.GetIndex() },
       .mSpecularTextureIdx { ( u32 )specular.GetIndex() },
@@ -300,7 +300,6 @@ namespace Tac
 
 
       renderContext->SetPipeline( renderMaterial->mMeshPipeline );
-      renderContext->CommitShaderVariables();
 
       // [ ] Q: Do uhh, do all the submeshes share the same material?
       //        
@@ -331,6 +330,8 @@ namespace Tac
         TAC_CALL( renderContext->UpdateBufferSimple( sConstBufHandle_ShaderGraph,
                                                      constBufData_ShaderGraph,
                                                      errors ) );
+
+        renderContext->CommitShaderVariables();
 
         renderContext->DebugMarker( subMesh.mName );
         // | we bindless now

@@ -19,6 +19,7 @@ PRIVATE
   tac_ring_buffer.cpp
   tac_list.cpp
   tac_forward_list.cpp
+  tac_fifo_queue.cpp
   tac_set.cpp
   tac_map.cpp
 )

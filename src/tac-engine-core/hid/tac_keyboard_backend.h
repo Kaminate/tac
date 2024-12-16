@@ -11,50 +11,14 @@
 
 namespace Tac
 {
-
-#if 0
-  using KeyStates = Array< KeyState, ( int )Key::Count >;
-  using KeyTimes = Array< Timepoint, ( int )Key::Count >;
-  using KeyToggles = Array< int, ( int )Key::Count >;
-
-  struct KeyboardMouseState
-  {
-    float     mMouseWheel;
-    v2        mMousePosScreenspace;
-    KeyStates mKeyStates;
-    KeyTimes  mKeyTimes;
-    Timepoint mTime;
-  };
-
-  struct KeyboardDelta
-  {
-    KeyToggles          mToggles;
-    Vector< Codepoint > mCodepointDelta;
-  };
-
-  extern KeyboardMouseState sGameLogicPrev;
-  extern KeyboardMouseState sGameLogicCurr;
-  extern KeyboardDelta      sGameLogicDelta;
-
-  // ... api wise, this could return a structure that holds
-  // the lock, and has member functions that update state..
-#endif
-  
-
-  struct SysKeyboardApiBackend
+  struct AppKeyboardApiBackend
   {
     enum class KeyState { Up = 0, Down = 1 };
 
-    void ApplyBegin();
-    void SetKeyState( Key, KeyState );
-    void SetCodepoint( Codepoint );
-    void SetMousePos( v2 screenspace );
-    void AddMouseWheelDelta( float );
-    void ApplyEnd();
+    static void SetKeyState( Key, KeyState );
+    static void SetCodepoint( Codepoint );
+    static void SetMousePos( v2 screenspace );
+    static void AddMouseWheelDelta( float );
+    static void Sync();
   };
-
-  struct SimKeyboardApiBackend
-  {
-    void Sync();
-  };
-}
+} // namespace Tac

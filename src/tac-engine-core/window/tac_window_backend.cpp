@@ -20,74 +20,35 @@
 
 namespace Tac
 {
-  bool SysWindowApiBackend::mCreatesSwapChain { true };
-
   struct WindowState
   {
-    String mName;
-    v2i    mPos;
-    v2i    mSize;
-    bool   mShown;
+    String                  mName                {};
+    v2i                     mPos                 {};
+    v2i                     mSize                {};
+    bool                    mShown               {};
+    Render::SwapChainHandle mSwapChainHandle     {};
+    const void*             mNativeWindowHandle  {};
   };
 
   using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
-  using NWHArray = Array< const void*, kDesktopWindowCapacity >; // Native Window Handles (HWND)
-  using FBArray = Array< Render::SwapChainHandle, kDesktopWindowCapacity >; // Window Framebuffers
 
-  // sWindowStateMutex:
-  //   Locked by the platform thread inbetween calls to
-  //   ApplyBegin/ApplyEnd() to update the sPlatformCurr WindowStates.
-  //   (it also updates sPlatformNative and sFramebuffers)
-  //
-  //   Locked by the simulation thread in GameLogicUpdate()
-  //   to copy sGameLogicCurr to sPlatformCurr
-  static std::mutex   sWindowStateMutex;
-  static WindowStates sSimCurr;
-  static WindowHandle sSimHovered;
-  static WindowHandle sAppHovered;
-  static WindowHandle sSysHovered;
-  static WindowStates sSysCurr;
-  static WindowStates sAppCurr;
-  static bool         sModificationAllowed;
-  static NWHArray     sSysNative;
-  static FBArray      sFramebuffers;
-
-  static Render::TexFmt sSwapChainColorFormat { Render::TexFmt::kRGBA16F };
-  static Render::TexFmt sSwapChainDepthFormat { Render::TexFmt::kD24S8 };
-
-  // Contains data for a window to be created as requested by game logic simulation
-  struct SimWindowCreate
-  {
-    WindowHandle mHandle;
-    String       mName; // String (not stringview) for storage
-    v2i          mPos;
-    v2i          mSize;
-  };
-
-  // sRequestMutex:
-  //   Locked by the simulation thread in GameLogicCreateWindow/GameLogicDestroyWindow()
-  //   to update sCreateRequests/sDestroyRequests/sHandleCounter/sFreeHandles
-  //
-  //   Locked by the platform thread in PlatformApplyRequests() to handle the requests
-  //   Locked by the platform thread in SysWindowApi::CreateWindow()
-  static std::mutex                sRequestMutex;
-  static Vector< SimWindowCreate > sCreateRequests;
-  static Vector< WindowHandle >    sDestroyRequests;
-  static int                       sHandleCounter;
-  static Vector< int >             sFreeHandles;
+  static int                       sHandleCounter        {};
+  static Vector< int >             sFreeHandles          {};
+  static Render::TexFmt            sSwapChainColorFormat { Render::TexFmt::kRGBA16F };
+  static Render::TexFmt            sSwapChainDepthFormat { Render::TexFmt::kD24S8 };
+  static WindowHandle              sAppHovered           {};
+  static WindowStates              sAppCurr              {};
+  static bool                      mCreatesSwapChain     { true };
 
   // -----------------------------------------------------------------------------------------------
 
   static void         FreeWindowHandle( WindowHandle h )
   {
-    // sRequestMutex must be locked
     sFreeHandles.push_back( h.GetIndex() );
   }
 
   static WindowHandle AllocWindowHandle()
   {
-    // sRequestMutex must be locked
-
     int i;
     if( sFreeHandles.empty() )
     {
@@ -104,32 +65,14 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  // Platform thread functions:
-
-  void SysWindowApiBackend::ApplyBegin()
-  {
-    sWindowStateMutex.lock();
-    sModificationAllowed = true;
-  }
-
-  void SysWindowApiBackend::SetWindowCreated( WindowHandle h,
+  void AppWindowApiBackend::SetWindowCreated( WindowHandle h,
                                  const void* nwh,
                                  StringView name,
                                  v2i pos,
                                  v2i size,
                                  Errors& errors )
   {
-    TAC_ASSERT( sModificationAllowed );
-    const int i { h.GetIndex() };
-    sSysCurr[ i ] = WindowState
-    {
-      .mName  { name },
-      .mPos   { pos },
-      .mSize  { size },
-      .mShown {},
-    };
-    sSysNative[ i ] = nwh;
-
+    Render::SwapChainHandle swapChainHandle;
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -140,322 +83,66 @@ namespace Tac
         .mColorFmt { sSwapChainColorFormat },
         .mDepthFmt { sSwapChainDepthFormat },
       };
-      sFramebuffers[ i ] = renderDevice->CreateSwapChain( params, errors );
+      swapChainHandle = renderDevice->CreateSwapChain( params, errors );
     }
+
+    sAppCurr[ h.GetIndex() ] = WindowState
+    {
+      .mName               { name },
+      .mPos                { pos },
+      .mSize               { size },
+      .mShown              {},
+      .mSwapChainHandle    { swapChainHandle },
+      .mNativeWindowHandle { nwh },
+    };
   }
 
-  void SysWindowApiBackend::SetWindowDestroyed( WindowHandle h )
+  void AppWindowApiBackend::SetWindowDestroyed( WindowHandle h )
   {
-    TAC_ASSERT( sModificationAllowed );
-    const int i { h.GetIndex() };
-    sSysCurr[ i ] = {};
-    sSysNative[ i ] = {};
-
+    WindowState& windowState{ sAppCurr[ h.GetIndex() ] };
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      renderDevice->DestroySwapChain( sFramebuffers[ i ] );
-      sFramebuffers[ i ] = {};
+      renderDevice->DestroySwapChain( windowState.mSwapChainHandle );
     }
+
+    windowState = {};
   }
 
-  void SysWindowApiBackend::SetWindowIsVisible( WindowHandle h, bool shown )
+  void AppWindowApiBackend::SetWindowIsVisible( WindowHandle h, bool shown )
   {
-    TAC_ASSERT( sModificationAllowed );
-    sSysCurr[ h.GetIndex() ].mShown = shown;
+    sAppCurr[ h.GetIndex() ].mShown = shown;
   }
 
-  void SysWindowApiBackend::SetWindowSize( WindowHandle h, v2i size, Errors& errors )
+  void AppWindowApiBackend::SetWindowSize( WindowHandle h, v2i size, Errors& errors )
   {
-    TAC_ASSERT( sModificationAllowed );
-    const int i { h.GetIndex() };
-    sSysCurr[ i ].mSize = size;
+    WindowState& windowState{ sAppCurr[ h.GetIndex() ] };
+    windowState.mSize = size;
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      const Render::SwapChainHandle swapChain{ sFramebuffers[ i ] };
-      TAC_CALL( renderDevice->ResizeSwapChain( swapChain, size, errors ) );
+      TAC_CALL( renderDevice->ResizeSwapChain( windowState.mSwapChainHandle, size, errors ) );
     }
   }
 
-  void SysWindowApiBackend::SetWindowPos( WindowHandle h, v2i pos )
+  void AppWindowApiBackend::SetWindowPos( WindowHandle h, v2i pos )
   {
-    TAC_ASSERT( sModificationAllowed );
-    sSysCurr[ h.GetIndex() ].mPos = pos;
+    sAppCurr[ h.GetIndex() ].mPos = pos;
   }
 
-  void SysWindowApiBackend::SetWindowHovered( WindowHandle h )
+  void AppWindowApiBackend::SetWindowHovered( WindowHandle h )
   {
-    TAC_ASSERT( sModificationAllowed );
-    sSysHovered = h;
+    sAppHovered = h;
   }
 
-  v2i  SysWindowApiBackend::GetWindowPos( WindowHandle h )
+  v2i  AppWindowApiBackend::GetWindowPos( WindowHandle h )
   {
-    TAC_ASSERT( sModificationAllowed );
-    return sSysCurr[ h.GetIndex() ].mPos;
+    return sAppCurr[ h.GetIndex() ].mPos;
   }
 
-  void SysWindowApiBackend::ApplyEnd()
+  void AppWindowApiBackend::SetCreatesSwapChain( bool createsSwapChain )
   {
-    sModificationAllowed = false;
-    sWindowStateMutex.unlock();
-  }
-
-  void SysWindowApiBackend::Sync( Errors& errors )
-  {
-    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
-
-    // We don't need to lock sWindowStateMutex to protect sPlatformNative, 
-    // but we do need to lock sWindowStateMutex to protect sPlatformCurr.
-    TAC_SCOPE_GUARD( std::lock_guard, sWindowStateMutex );
-
-    PlatformFns* platform { PlatformFns::GetInstance() };
-
-    for( const SimWindowCreate& simParams : sCreateRequests )
-    {
-      const PlatformSpawnWindowParams platformParams
-      {
-        .mHandle { simParams.mHandle },
-        .mName   { simParams.mName },
-        .mPos    { simParams.mPos },
-        .mSize   { simParams.mSize },
-      };
-      TAC_CALL( platform->PlatformSpawnWindow( platformParams, errors ) );
-    }
-
-    for( WindowHandle h : sDestroyRequests )
-    {
-#if 0 // this is handled by SysWindowApiBackend::SetWindowDestroyed
-      if( mCreatesSwapChain )
-      {
-        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-        const Render::SwapChainHandle swapChain{ sFramebuffers[ h.GetIndex() ] };
-        renderDevice->DestroySwapChain( swapChain );
-        sFramebuffers[ h.GetIndex() ] = {};
-      }
-#endif
-
-      const int i { h.GetIndex() };
-      sSysCurr[ i ] = {};
-      sSysNative[ i ] = {};
-      platform->PlatformDespawnWindow( h );
-      FreeWindowHandle( h );
-    }
-
-    sCreateRequests = {};
-    sDestroyRequests = {};
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  // Sim thread functions:
-
-  void SimWindowApiBackend::Sync()
-  {
-    sWindowStateMutex.lock();
-    sSimCurr = sSysCurr;
-    sSimHovered = sSysHovered;
-    sWindowStateMutex.unlock();
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-
-  // -----------------------------------------------------------------------------------------------
-
-  WindowHandle SimWindowApi::CreateWindow( WindowCreateParams params ) const
-  {
-    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
-
-    const WindowHandle h{ AllocWindowHandle() };
-    const SimWindowCreate request
-    {
-      .mHandle { h },
-      .mName   { params.mName },
-      .mPos    { params.mPos },
-      .mSize   { params.mSize },
-    };
-    sCreateRequests.push_back( request );
-
-    return h;
-  }
-
-  void         SimWindowApi::DestroyWindow( WindowHandle h ) const
-  {
-    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
-    sDestroyRequests.push_back( h );
-  }
-
-  bool         SimWindowApi::IsShown( WindowHandle h ) const
-  {
-    return h.IsValid() ? sSimCurr[ h.GetIndex() ].mShown : false;
-  }
-
-  bool         SimWindowApi::IsHovered( WindowHandle h ) const
-  {
-    return h.IsValid() ? sSimHovered == h : false;
-  }
-
-  v2i          SimWindowApi::GetPos( WindowHandle h ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    return sSimCurr[ h.GetIndex() ].mPos;
-  }
-
-  v2i          SimWindowApi::GetSize( WindowHandle h ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    return sSimCurr[ h.GetIndex() ].mSize;
-  }
-
-  StringView   SimWindowApi::GetName( WindowHandle h ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    return sSimCurr[ h.GetIndex() ].mName;
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  bool             SysWindowApi::IsShown( WindowHandle h ) const
-  {
-    return h.IsValid() ? sSysCurr[ h.GetIndex() ].mShown : false;
-  }
-
-  v2i              SysWindowApi::GetPos( WindowHandle h ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    return sSysCurr[ h.GetIndex() ].mPos;
-  }
-
-  v2i              SysWindowApi::GetSize( WindowHandle h ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    return sSysCurr[ h.GetIndex() ].mSize;
-  }
-
-  // not sure this SetPos and SetSize functions should be here, or what the difference between it
-  // and PlatformSetWindowPos/Size are....
-  // because like
-  //
-  // windowproc will send WindowResizeEvent, which sets sSysCurr[].mSize
-  // windowproc will send WindowMoveEvent, will set sSysCurr[].mPos
-  // 
-  void             SysWindowApi::SetPos( WindowHandle h, v2i pos ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    sSysCurr[ h.GetIndex() ].mPos = pos;
-
-    PlatformFns* platform{ PlatformFns::GetInstance() };
-    platform->PlatformSetWindowPos( h, pos );
-  }
-
-  void             SysWindowApi::SetSize( WindowHandle h, v2i size ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    sSysCurr[ h.GetIndex() ].mSize = size;
-    
-    PlatformFns* platform{ PlatformFns::GetInstance() };
-    platform->PlatformSetWindowSize( h, size );
-  }
-
-  StringView       SysWindowApi::GetName( WindowHandle h ) const
-  {
-    TAC_ASSERT( h.IsValid() );
-    return sSysCurr[ h.GetIndex() ].mName;
-  }
-
-  const void*      SysWindowApi::GetNWH( WindowHandle h ) const // native window handle
-  {
-    TAC_ASSERT( h.IsValid() );
-    return sSysNative[ h.GetIndex() ];
-  }
-
-  WindowHandle     SysWindowApi::CreateWindow( WindowCreateParams params, Errors& errors ) const
-  {
-    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
-
-    const WindowHandle h{ AllocWindowHandle() };
-    const PlatformSpawnWindowParams platformParams
-    {
-      .mHandle { h },
-      .mName   { params.mName },
-      .mPos    { params.mPos },
-      .mSize   { params.mSize },
-    };
-
-    PlatformFns* platform { PlatformFns::GetInstance() };
-    TAC_CALL_RET( platform->PlatformSpawnWindow( platformParams, errors ) );
-    return h;
-  }
-
-  void             SysWindowApi::DestroyWindow( WindowHandle h ) const
-  {
-    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
-    PlatformFns* platform { PlatformFns::GetInstance() };
-    platform->PlatformDespawnWindow( h );
-    FreeWindowHandle( h );
-  }
-
-  void             SysWindowApi::SetSwapChainAutoCreate( bool autoCreate ) const
-  {
-    SysWindowApiBackend::mCreatesSwapChain = autoCreate;
-  }
-
-  void             SysWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt ) const
-  {
-    sSwapChainColorFormat = texFmt;
-  }
-
-  void             SysWindowApi::SetSwapChainDepthFormat( Render::TexFmt texFmt ) const
-  {
-    sSwapChainDepthFormat = texFmt;
-  }
-
-  Render::TexFmt   SysWindowApi::GetSwapChainColorFormat() const { return sSwapChainColorFormat; }
-
-  Render::TexFmt   SysWindowApi::GetSwapChainDepthFormat() const { return sSwapChainDepthFormat; }
-
-  Render::SwapChainHandle SysWindowApi::GetSwapChainHandle( WindowHandle h ) const
-  {
-    return sFramebuffers[ h.GetIndex() ];
-  }
-
-  void             SysWindowApi::DesktopWindowDebugImgui()
-  {
-#if 0
-    if( !ImGuiCollapsingHeader( "DesktopWindowDebugImgui" ) )
-      return;
-
-    TAC_IMGUI_INDENT_BLOCK;
-
-    int stateCount {};
-    for( int iWindow {}; iWindow < kDesktopWindowCapacity; ++iWindow )
-    {
-      const DesktopWindowState* state = &sDesktopWindowStates[ iWindow ];
-      if( !state->mNativeWindowHandle )
-        continue;
-
-      String handleStr = ToString( iWindow );
-      while( handleStr.size() < 2 )
-        handleStr += ' ';
-
-      String nameStr = state->mName;
-
-      String str;
-      str += "Window: " + handleStr + ", ";
-      str += "Name: " + nameStr + ", ";
-      str += "Pos(" + ToString( state->mX ) + ", " + ToString( state->mY ) + "), ";
-      str += "Size( " + ToString( state->mWidth ) + ", " + ToString( state->mHeight ) + "), ";
-      str += "Native: " + ToString( ( void* )state->mNativeWindowHandle );
-
-      ImGuiText( str );
-      stateCount++;
-    }
-
-    if( !stateCount )
-      ImGuiText( " No desktop window states (how are you reading this)" );
-#endif
+    mCreatesSwapChain = createsSwapChain;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -473,13 +160,13 @@ namespace Tac
   v2i                     AppWindowApi::GetPos( WindowHandle h )
   {
     TAC_ASSERT( h.IsValid() );
-    return sSysCurr[ h.GetIndex() ].mPos;
+    return sAppCurr[ h.GetIndex() ].mPos;
   }
 
   void                    AppWindowApi::SetPos( WindowHandle h, v2i pos)
   {
     TAC_ASSERT( h.IsValid() );
-    sSysCurr[ h.GetIndex() ].mPos = pos;
+    sAppCurr[ h.GetIndex() ].mPos = pos;
 
     PlatformFns* platform{ PlatformFns::GetInstance() };
     platform->PlatformSetWindowPos( h, pos );
@@ -488,13 +175,13 @@ namespace Tac
   v2i                     AppWindowApi::GetSize( WindowHandle h)
   {
     TAC_ASSERT( h.IsValid() );
-    return sSysCurr[ h.GetIndex() ].mSize;
+    return sAppCurr[ h.GetIndex() ].mSize;
   }
 
   void                    AppWindowApi::SetSize( WindowHandle h, v2i size )
   {
     TAC_ASSERT( h.IsValid() );
-    sSysCurr[ h.GetIndex() ].mSize = size;
+    sAppCurr[ h.GetIndex() ].mSize = size;
     
     PlatformFns* platform{ PlatformFns::GetInstance() };
     platform->PlatformSetWindowSize( h, size );
@@ -503,20 +190,18 @@ namespace Tac
   StringView              AppWindowApi::GetName( WindowHandle h)
   {
     TAC_ASSERT( h.IsValid() );
-    return sSysCurr[ h.GetIndex() ].mName;
+    return sAppCurr[ h.GetIndex() ].mName;
   }
 
   const void*             AppWindowApi::GetNativeWindowHandle( WindowHandle h)
   {
     TAC_ASSERT( h.IsValid() );
-    return sSysNative[ h.GetIndex() ];
+    return sAppCurr[ h.GetIndex() ].mNativeWindowHandle;
   }
 
   WindowHandle            AppWindowApi::CreateWindow( WindowCreateParams windowCreateParams,
                                                       Errors& errors )
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
-
     const WindowHandle h{ AllocWindowHandle() };
     const PlatformSpawnWindowParams platformParams
     {
@@ -533,20 +218,19 @@ namespace Tac
 
   void                    AppWindowApi::DestroyWindow( WindowHandle h)
   {
-    TAC_SCOPE_GUARD( std::lock_guard, sRequestMutex );
     PlatformFns* platform { PlatformFns::GetInstance() };
     platform->PlatformDespawnWindow( h );
     FreeWindowHandle( h );
   }
 
-  Render::SwapChainHandle AppWindowApi::GetSwapChainHandle( WindowHandle h)
+  Render::SwapChainHandle AppWindowApi::GetSwapChainHandle( WindowHandle h )
   {
-    return sFramebuffers[ h.GetIndex() ];
+    return sAppCurr[ h.GetIndex() ].mSwapChainHandle;
   }
 
   void                    AppWindowApi::SetSwapChainAutoCreate( bool autoCreate)
   {
-    SysWindowApiBackend::mCreatesSwapChain = autoCreate;
+    AppWindowApiBackend::SetCreatesSwapChain( autoCreate );
   }
 
   void                    AppWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt )
@@ -559,15 +243,9 @@ namespace Tac
     sSwapChainDepthFormat = texFmt;
   }
 
-  Render::TexFmt          AppWindowApi::GetSwapChainColorFormat()
-  {
-    return sSwapChainColorFormat;
-  }
+  Render::TexFmt          AppWindowApi::GetSwapChainColorFormat() { return sSwapChainColorFormat; }
 
-  Render::TexFmt          AppWindowApi::GetSwapChainDepthFormat()
-  {
-    return sSwapChainDepthFormat;
-  }
+  Render::TexFmt          AppWindowApi::GetSwapChainDepthFormat() { return sSwapChainDepthFormat; }
 
   void                    AppWindowApi::DesktopWindowDebugImgui()
   {

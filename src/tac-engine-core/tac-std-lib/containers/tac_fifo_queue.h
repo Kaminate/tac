@@ -24,61 +24,107 @@ namespace Tac
 
     FifoQueue( FifoQueue&& q )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      swap( q );
     }
 
     FifoQueue( const FifoQueue& v )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      reserve( v.mTCount );
+      for( T& t : v )
+        push( t );
     }
 
     ~FifoQueue()
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      clear();
+      Deallocate( mTs );
+      mTs = {};
+      mTCapacity = {};
     }
 
     void     operator =( FifoQueue< T >&& v )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      swap( v );
     }
 
     void     operator =( const FifoQueue< T >& v )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      reserve( v.mTCount );
+      for( T& t : v )
+        push( t );
     }
 
     void     clear()
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      for( int i{ mStartIndex };
+           i != ( mStartIndex + mTCount );
+           i = ( i + 1 ) % mTCapacity )
+        mTs[ i ].~T();
+
+      mTCount = 0;
+      mStartIndex = 0;
     }
 
     void     push( T&& t )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      reserve();
+      const int i{ ( mStartIndex + mTCount++ ) % mTCapacity };
+      mTs[ i ] = ( T&& )t;
     }
 
     void     push( const T& t )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      reserve();
+      const int i{ ( mStartIndex + mTCount++ ) % mTCapacity };
+      new ( &mTs[ i ] ) T( t );
+    }
+
+    void reserve( int capacity )
+    {
+      if( capacity <= mTCapacity )
+        return;
+
+      T* newTs{ ( T* )Tac::Allocate( sizeof( T ) * capacity ) };
+      for( int i{}; i < mTCount; ++i )
+      {
+        const int j { ( mStartIndex + mTCount ) % mTCapacity };
+        newTs[ i ] = Tac::move( mTs[ j ] );
+      }
+
+      Tac::Deallocate( mTs );
+      mTs = newTs;
+      mTCapacity = capacity;
+    }
+
+    void     reserve()
+    {
+      if( mTCount == mTCapacity )
+        reserve( int( mTCount * 1.5f ) + 1 );
     }
 
     template< class ... Args >
     T&       emplace( Args&& ... args )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      reserve();
+      new( &mTs[ mTCount++ ] )T( forward< Args >( args )... );
       return back();
     }
 
     void     pop()                
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      TAC_ASSERT( mTCount );
+      mTs[ mStartIndex + mTCount - 1 ].~T();
+      mTCount--;
     }
     bool     empty() const              { return !mTCount; }
     int      size() const               { return mTCount; }
 
     void     swap( FifoQueue<T>& other )
     {
-      TAC_ASSERT_UNIMPLEMENTED;
+      Swap( mTs, other.mTs );
+      Swap( mTCount, other.mTCount );
+      Swap( mTCapacity, other.mTCapacity );
+      Swap( mStartIndex, other.mStartIndex );
     }
 
     dynmc T* begin() dynmc              { return mTs; };
@@ -101,15 +147,20 @@ namespace Tac
   template< typename T >
   bool operator == ( const FifoQueue<T>& a, const FifoQueue<T>& b )
   {
-    TAC_ASSERT_UNIMPLEMENTED;
-    return {};
+    if( a.size() != b.size() ) { return false; }
+    const int n{ a.size() };
+    for( int i{}; i < n; ++i )
+      if( a[i] != b[i] )
+        return false;
+    return true;
   }
 
   template< typename T >
   bool operator != ( const FifoQueue<T>& a, const FifoQueue<T>& b )
   {
-    TAC_ASSERT_UNIMPLEMENTED;
-    return {};
+    return !( a == b );
   }
+
+  void FifoQueueUnitTest();
 
 } // namespace Tac

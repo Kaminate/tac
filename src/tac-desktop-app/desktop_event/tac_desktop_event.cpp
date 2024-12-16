@@ -45,7 +45,7 @@ namespace Tac
 
   private:
     RingBuffer mQueue;
-    Mutex      mMutex;
+    //Mutex      mMutex;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -60,8 +60,6 @@ namespace Tac
                                          const void* dataBytes,
                                          const int dataByteCount )
   {
-    TAC_ASSERT( DesktopAppThreads::IsSysThread() );
-    TAC_SCOPE_GUARD( LockGuard, mMutex );
     // Tac::WindowProc still spews out events while a popupbox is open
     if( mQueue.capacity() - mQueue.size() < ( int )sizeof( DesktopEventType ) + dataByteCount )
       return;
@@ -72,25 +70,22 @@ namespace Tac
 
   bool DesktopEventQueueImpl::Empty()
   {
-    TAC_SCOPE_GUARD( LockGuard, mMutex );
+    //TAC_SCOPE_GUARD( LockGuard, mMutex );
     return mQueue.Empty();
   }
 
   bool DesktopEventQueueImpl::QueuePop( void* dataBytes, int dataByteCount )
   {
-    TAC_SCOPE_GUARD( LockGuard, mMutex );
+    //TAC_SCOPE_GUARD( LockGuard, mMutex );
     return mQueue.Pop( dataBytes, dataByteCount );
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  static DesktopEventQueueImpl  sEventQueue;
-
-
+  static DesktopEventQueueImpl     sEventQueue;
   static DesktopEventApi::Handler* sHandler;
 
   // -----------------------------------------------------------------------------------------------
-
 
   void DesktopEventApi::Init( Handler* handler )
   {
@@ -98,22 +93,20 @@ namespace Tac
     sHandler = handler;
   }
 
-  void DesktopEventApi::Queue( const WindowActivationEvent& data ) { sEventQueue.QueuePush( DesktopEventType::WindowActivation,   &data, sizeof( WindowActivationEvent ) ); }
-  void DesktopEventApi::Queue( const WindowCreateEvent& data )     { sEventQueue.QueuePush( DesktopEventType::WindowCreate,       &data, sizeof( WindowCreateEvent ) ); }
-  void DesktopEventApi::Queue( const WindowDestroyEvent& data )    { sEventQueue.QueuePush( DesktopEventType::WindowDestroy,      &data, sizeof( WindowDestroyEvent ) ); }
-  void DesktopEventApi::Queue( const CursorUnobscuredEvent& data ) { sEventQueue.QueuePush( DesktopEventType::CursorUnobscured,   &data, sizeof( CursorUnobscuredEvent ) ); }
-  void DesktopEventApi::Queue( const KeyInputEvent& data )         { sEventQueue.QueuePush( DesktopEventType::KeyInput,           &data, sizeof( KeyInputEvent ) ); }
-  void DesktopEventApi::Queue( const KeyStateEvent& data )         { sEventQueue.QueuePush( DesktopEventType::KeyState,           &data, sizeof( KeyStateEvent ) ); }
-  void DesktopEventApi::Queue( const MouseMoveEvent& data )        { sEventQueue.QueuePush( DesktopEventType::MouseMove,          &data, sizeof( MouseMoveEvent ) ); }
-  void DesktopEventApi::Queue( const MouseWheelEvent& data )       { sEventQueue.QueuePush( DesktopEventType::MouseWheel,         &data, sizeof( MouseWheelEvent ) ); }
-  void DesktopEventApi::Queue( const WindowMoveEvent& data )       { sEventQueue.QueuePush( DesktopEventType::WindowMove,         &data, sizeof( WindowMoveEvent ) ); }
-  void DesktopEventApi::Queue( const WindowResizeEvent& data )     { sEventQueue.QueuePush( DesktopEventType::WindowResize,       &data, sizeof( WindowResizeEvent ) ); }
-  void DesktopEventApi::Queue( const WindowVisibleEvent& data )    { sEventQueue.QueuePush( DesktopEventType::WindowVisible,      &data, sizeof( WindowVisibleEvent ) ); }
+  void DesktopEventApi::Queue( const WindowActivationEvent& data ) { sEventQueue.QueuePush( DesktopEventType::WindowActivation, &data, sizeof( WindowActivationEvent ) ); }
+  void DesktopEventApi::Queue( const WindowCreateEvent& data )     { sEventQueue.QueuePush( DesktopEventType::WindowCreate,     &data, sizeof( WindowCreateEvent ) ); }
+  void DesktopEventApi::Queue( const WindowDestroyEvent& data )    { sEventQueue.QueuePush( DesktopEventType::WindowDestroy,    &data, sizeof( WindowDestroyEvent ) ); }
+  void DesktopEventApi::Queue( const CursorUnobscuredEvent& data ) { sEventQueue.QueuePush( DesktopEventType::CursorUnobscured, &data, sizeof( CursorUnobscuredEvent ) ); }
+  void DesktopEventApi::Queue( const KeyInputEvent& data )         { sEventQueue.QueuePush( DesktopEventType::KeyInput,         &data, sizeof( KeyInputEvent ) ); }
+  void DesktopEventApi::Queue( const KeyStateEvent& data )         { sEventQueue.QueuePush( DesktopEventType::KeyState,         &data, sizeof( KeyStateEvent ) ); }
+  void DesktopEventApi::Queue( const MouseMoveEvent& data )        { sEventQueue.QueuePush( DesktopEventType::MouseMove,        &data, sizeof( MouseMoveEvent ) ); }
+  void DesktopEventApi::Queue( const MouseWheelEvent& data )       { sEventQueue.QueuePush( DesktopEventType::MouseWheel,       &data, sizeof( MouseWheelEvent ) ); }
+  void DesktopEventApi::Queue( const WindowMoveEvent& data )       { sEventQueue.QueuePush( DesktopEventType::WindowMove,       &data, sizeof( WindowMoveEvent ) ); }
+  void DesktopEventApi::Queue( const WindowResizeEvent& data )     { sEventQueue.QueuePush( DesktopEventType::WindowResize,     &data, sizeof( WindowResizeEvent ) ); }
+  void DesktopEventApi::Queue( const WindowVisibleEvent& data )    { sEventQueue.QueuePush( DesktopEventType::WindowVisible,    &data, sizeof( WindowVisibleEvent ) ); }
 
   void DesktopEventApi::Apply( Errors& errors )
   {
-    TAC_ASSERT( DesktopAppThreads::IsSysThread() );
-    sHandler->HandleBegin();
     while( !sEventQueue.Empty() )
     {
       const auto desktopEventType { sEventQueue.QueuePop< DesktopEventType >() };
@@ -133,7 +126,6 @@ namespace Tac
       default: TAC_ASSERT_INVALID_CASE( desktopEventType ); return;
       }
     }
-    sHandler->HandleEnd();
   }
 
-}
+} // namespace Tac

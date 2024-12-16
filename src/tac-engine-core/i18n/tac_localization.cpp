@@ -66,6 +66,7 @@ namespace Tac
     LanguageMap          mCodepoints;
   };
 
+  static Vector< LocalizedString > mLocalizedStrings;
 
   static void             LoadLanguageMapEntry( LanguageMap* languageMap, ParseData& parseData )
   {
@@ -102,8 +103,6 @@ namespace Tac
     return true;
   }
 
-  static Vector< LocalizedString > mLocalizedStrings;
-
   static LocalizedString* FindLocalizedString( StringView reference )
   {
     for( LocalizedString& str : mLocalizedStrings )
@@ -111,7 +110,6 @@ namespace Tac
         return &str;
     return nullptr;
   }
-
 
   const String Languages[ ( int )Language::Count ] =
   {
@@ -123,7 +121,6 @@ namespace Tac
     "Russian",
     "Spanish",
   };
-
 
   bool IsAsciiCharacter( Codepoint codepoint )
   {
@@ -230,6 +227,12 @@ namespace Tac
   {
     mCodepoints = codepoints;
     mCodepointCount = codepointCount;
+  }
+
+  CodepointView::CodepointView( const CodepointString& codepointString )
+  {
+    mCodepoints = codepointString.data();
+    mCodepointCount = codepointString.size();
   }
 
   const Codepoint* CodepointView::data() const

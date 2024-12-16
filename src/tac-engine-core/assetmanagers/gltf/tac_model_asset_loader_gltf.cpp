@@ -221,7 +221,7 @@ namespace Tac
                                "unsupported index buffer type " +
                                ToString( ( int )indices->component_type ) );
 
-    const int indexBufferByteCount{ ( int )indices->count * ( int )sizeof( u16 ) };
+    const int indexBufferByteCount{ ( int )indices->count * Render::GetTexFmtSize( fmt ) };
     const Render::CreateBufferParams createBufferParams
     {
       .mByteCount    { indexBufferByteCount },

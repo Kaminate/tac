@@ -640,6 +640,9 @@ namespace Tac
     TextureAssetManager::GetBindlessIndex( const AssetPathStringView textureFilepath,
                                            Errors& errors )
   {
+    if( textureFilepath.empty() )
+      return {};
+
     if( Render::IBindlessArray::Binding binding{
       mLoadedTextures.FindBindlessIndex( textureFilepath ) };
       binding.IsValid() )
@@ -660,23 +663,20 @@ namespace Tac
    
   const LoadedTexture*            LoadedTextureMap::FindLoadedTexture( AssetPathStringView asset ) const 
   {
-    if( auto it{ Find( asset ) } )
-      return &it.GetValue();
-    return {};
+    auto it{ Find( asset ) };
+    return it ? &it.GetValue() : nullptr;
   }
 
-  Render::TextureHandle           LoadedTextureMap::FindTextureHandle( AssetPathStringView asset )const 
+  Render::TextureHandle           LoadedTextureMap::FindTextureHandle( AssetPathStringView asset ) const
   {
-    if( auto it{ Find( asset ) } )
-      return it.GetValue().mTextureHandle;
-    return {};
+    auto it{ Find( asset ) };
+    return it ? it.GetValue().mTextureHandle : Render::TextureHandle{};
   }
 
-  Render::IBindlessArray::Binding LoadedTextureMap::FindBindlessIndex( AssetPathStringView asset )const
+  Render::IBindlessArray::Binding LoadedTextureMap::FindBindlessIndex( AssetPathStringView asset ) const
   {
-    if( auto it{ Find( asset ) } )
-      return it.GetValue().mBinding;
-    return {};
+    auto it{ Find( asset ) };
+    return it ? it.GetValue().mBinding : Render::IBindlessArray::Binding{};
   }
 
   Render::IBindlessArray*         LoadedTextureMap::GetBindlessArray()const

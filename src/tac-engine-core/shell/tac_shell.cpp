@@ -50,15 +50,15 @@ void                         Tac::ShellInit( Errors& errors )
 
   ModelAssetManager::Init();
 
-  TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ));
+  TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ) );
 
   TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );
   TAC_CALL( Render::DefaultCBufferPerObject::Init( errors ) );
   TAC_CALL( Render::CBufferLights::Init( errors ) );
 
-  TAC_CALL( UI2DCommonDataInit( errors ));
+  TAC_CALL( UI2DCommonDataInit( errors ) );
 
-  TAC_CALL( Debug3DCommonDataInit( errors ));
+  TAC_CALL( Debug3DCommonDataInit( errors ) );
 }
 
 

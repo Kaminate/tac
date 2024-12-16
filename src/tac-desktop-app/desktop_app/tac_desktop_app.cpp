@@ -53,11 +53,6 @@ namespace Tac
 {
   static DesktopEventHandler           sDesktopEventHandler;
 
-  static SysKeyboardApiBackend         sSysKeyboardBackend;
-  static SimKeyboardApiBackend         sSimKeyboardBackend;
-  static SysWindowApiBackend           sSysWindowBackend;
-  static SimWindowApiBackend           sSimWindowBackend;
-
 #if TAC_SINGLE_THREADED()
   static Errors                        sAppErrors( Errors::kDebugBreaks );
 #else
@@ -168,11 +163,31 @@ namespace Tac
     if( sVerbose )
       LogApi::LogMessagePrintLine( "DesktopApp::Init" );
 
+    const Render::RenderApi::InitParams renderApiInitParams
+    {
+      .mShaderOutputPath { sShellPrefPath },
+    };
+    TAC_CALL( Render::RenderApi::Init( renderApiInitParams, errors ) );
+
     TAC_CALL( ShellInit( errors ) );
 
 #if TAC_FONT_ENABLED()
     TAC_CALL( FontApi::Init( errors ) );
 #endif
+
+    const ImGuiInitParams imguiInitParams
+    {
+      .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
+      .mSettingsNode     { sSettingsRoot.GetRootNode() },
+    };
+    TAC_CALL( ImGuiInit( imguiInitParams, errors ) );
+
+    DesktopEventApi::Init( &sDesktopEventHandler );
+
+    // todo: this is ugly, fix it
+    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
+
+    TAC_CALL( sApp->Init( errors ) );
   }
 
   void                DesktopApp::Run( Errors& errors )
@@ -202,36 +217,12 @@ namespace Tac
 #endif
 
 
-    const Render::RenderApi::InitParams renderApiInitParams
-    {
-      .mShaderOutputPath { sShellPrefPath },
-    };
-    TAC_CALL( Render::RenderApi::Init( renderApiInitParams, errors ) );
-
-    const ImGuiInitParams imguiInitParams
-    {
-      .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
-      .mSettingsNode     { sSettingsRoot.GetRootNode() },
-    };
-    TAC_CALL( ImGuiInit( imguiInitParams, errors ) );
-
-    sDesktopEventHandler.mKeyboardBackend = &sSysKeyboardBackend;
-    sDesktopEventHandler.mWindowBackend = &sSysWindowBackend;
-    DesktopEventApi::Init( &sDesktopEventHandler );
-
-    // this is kinda hacky
-    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::Sys );
-
 #if TAC_SINGLE_THREADED()
 #else
     TAC_CALL( sSysThread.Init( errors ) );
     TAC_CALL( sSimThread.Init( errors ) );
 #endif
 
-    // todo: this is ugly, fix it
-    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
-
-    TAC_CALL( sApp->Init( errors ) );
 
 
 #if TAC_SINGLE_THREADED()
@@ -249,7 +240,8 @@ namespace Tac
       TAC_CALL( DesktopApp::Update( errors ) );
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 
-      TAC_CALL( sSysWindowBackend.Sync( errors ) );
+      AppKeyboardApiBackend::Sync();
+
       TAC_CALL( Network::NetApi::Update( errors ) );
       TAC_CALL( sSettingsRoot.Tick( errors ) );
       TAC_CALL( UpdateSimulation( errors ) );
@@ -286,8 +278,6 @@ namespace Tac
     errorReport.Report();
   }
 
-
-
   void                DesktopApp::Update( Errors& errors )
   {
     DesktopAppUpdateMove();
@@ -306,15 +296,8 @@ namespace Tac
 
     LogApi::LogFlush();
 
-    // imo, the best time to pump the message queue would be right before simulation update
-    // because it reduces input-->sim latency.
-    // (ignore input-->render latency because of interp?)
-    // So maybe wndproc should be moved here from the platform thread, and Render::SubmitFrame
-    // and Render::RenderFrame should be rearranged
     TAC_PROFILE_BLOCK_NAMED( "frame" );
 
-    sSimWindowBackend.Sync();
-    sSimKeyboardBackend.Sync();
 
     PlatformFns* platform{ PlatformFns::GetInstance() };
 

@@ -65,6 +65,7 @@ namespace Tac
       clear();
       Deallocate( mTs );
       mTs = {};
+      mTCapacity = {};
     }
 
     void     operator =( Vector< T >&& v )
@@ -135,7 +136,12 @@ namespace Tac
       return back();
     }
 
-    void     pop_back()                 { TAC_ASSERT( mTCount ); mTCount--; }
+    void     pop_back()
+    {
+      TAC_ASSERT( mTCount );
+      mTs[ mTCount - 1 ].~T();
+      mTCount--;
+    }
     bool     empty() const              { return !mTCount; }
     int      size() const               { return mTCount; }
 

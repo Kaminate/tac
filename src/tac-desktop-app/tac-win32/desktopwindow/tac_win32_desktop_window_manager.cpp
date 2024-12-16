@@ -250,24 +250,20 @@ namespace Tac
     // and to the application whose window is being deactivated.
     case WM_ACTIVATEAPP:
     {
+      const DesktopEventApi::WindowActivationEvent::State state{ wParam == TRUE
+        ? DesktopEventApi::WindowActivationEvent::Activated
+        : DesktopEventApi::WindowActivationEvent::Deactivated };
+
       const DesktopEventApi::WindowActivationEvent data
       {
         .mWindowHandle { windowHandle },
-        .mState        { wParam == TRUE ? 1 : 0 },
+        .mState        { state },
       };
       DesktopEventApi::Queue( data );
 
-      if( wParam == TRUE )
-      {
-        if( verboseActivate )
-          OS::OSDebugPrintLine( "The window is being activated" );
-      }
-      else
-      {
-        if( verboseActivate )
-          OS::OSDebugPrintLine( "The window is being deactivated" );
+      if( verboseActivate && wParam ) { OS::OSDebugPrintLine( "Window activate!" ); }
+      if( verboseActivate && !wParam ) { OS::OSDebugPrintLine( "Window deactivate!" ); }
 
-      }
     } break;
 
     case WM_CAPTURECHANGED:

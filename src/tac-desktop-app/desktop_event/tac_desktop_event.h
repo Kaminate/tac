@@ -17,19 +17,19 @@ namespace Tac::DesktopEventApi
 
   struct WindowVisibleEvent
   {
-    WindowHandle     mWindowHandle;
-    bool             mVisible;
+    WindowHandle     mWindowHandle {};
+    bool             mVisible      {};
   };
   
   struct WindowCreateEvent
   {
-    WindowHandle     mWindowHandle;
-    ShortFixedString mName;
-    const void*      mNativeWindowHandle;
-    int              mX;
-    int              mY;
-    int              mW;
-    int              mH;
+    WindowHandle     mWindowHandle       {};
+    ShortFixedString mName               {};
+    const void*      mNativeWindowHandle {};
+    int              mX                  {};
+    int              mY                  {};
+    int              mW                  {};
+    int              mH                  {};
   };
 
   struct WindowDestroyEvent
@@ -44,55 +44,55 @@ namespace Tac::DesktopEventApi
 
   struct WindowResizeEvent
   {
-    WindowHandle mWindowHandle;
-    int          mWidth {  };
-    int          mHeight {  };
+    WindowHandle mWindowHandle {};
+    int          mWidth        {};
+    int          mHeight       {};
   };
 
   struct KeyStateEvent
   {
-    Key  mKey { Key::Count };
-    bool mDown { };
+    Key  mKey  { Key::Count };
+    bool mDown {};
   };
 
   struct KeyInputEvent
   {
-    Codepoint mCodepoint {  };
+    Codepoint mCodepoint {};
   };
 
   struct WindowActivationEvent
   {
+    enum State { Deactivated, Activated };
     WindowHandle mWindowHandle;
-    int          mState; // 0: deactivated, 1: activated
+    State        mState;
   };
 
   struct MouseWheelEvent
   {
-    float mDelta {  };
+    float mDelta {};
   };
 
   struct MouseMoveEvent
   {
     // Window that the mouse moved over (?)
-    WindowHandle mWindowHandle;
+    WindowHandle        mWindowHandle {};
 
     // Position of the mouse relative to the top left corner of the window
-    int                 mX {  };
-    int                 mY {  };
+    int                 mX            {};
+    int                 mY            {};
   };
 
   struct WindowMoveEvent
   {
-    WindowHandle mWindowHandle;
-    int                 mX {  };
-    int                 mY {  };
+    WindowHandle mWindowHandle {};
+    int          mX            {};
+    int          mY            {};
   };
 
   // -----------------------------------------------------------------------------------------------
 
   struct Handler
   {
-    virtual void HandleBegin() {};
     virtual void Handle( const CursorUnobscuredEvent& ) {};
     virtual void Handle( const KeyInputEvent& ) {};
     virtual void Handle( const KeyStateEvent& ) {};
@@ -104,7 +104,6 @@ namespace Tac::DesktopEventApi
     virtual void Handle( const WindowResizeEvent&, Errors& ) {};
     virtual void Handle( const WindowVisibleEvent& ) {};
     virtual void Handle( const WindowActivationEvent& ) {};
-    virtual void HandleEnd() {};
   };
 
   void Init( Handler* );

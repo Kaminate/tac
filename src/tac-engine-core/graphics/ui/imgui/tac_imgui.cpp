@@ -286,7 +286,7 @@ void Tac::TextInputDataUpdateKeys( TextInputData* inputData,
     if( AppKeyboardApi::JustPressed( keyMap.mKey ) )
       inputData->OnKeyPressed( keyMap.mTextInputKey );
 
-  const Span< Codepoint > codepoints{ AppKeyboardApi::GetCodepoints() };
+  const CodepointView codepoints{ AppKeyboardApi::GetCodepoints() };
   for( Codepoint codepoint : codepoints )
     inputData->OnCodepoint( codepoint );
 

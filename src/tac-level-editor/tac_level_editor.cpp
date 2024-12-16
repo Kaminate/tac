@@ -63,7 +63,7 @@ namespace Tac
     return desiredEntityName;
   }
 
-  static void   CheckSavePrefab(World* world)
+  static void   CheckSavePrefab( World* world )
   {
     const bool triggered{
       AppKeyboardApi::JustPressed( Key::S ) &&
@@ -73,7 +73,7 @@ namespace Tac
       return;
 
     Errors saveErrors;
-    bool saved { PrefabSave( world, saveErrors ) };
+    bool saved{ PrefabSave( world, saveErrors ) };
 
     const TimestampDifference errorDurationSecs{ 60.0f };
     const TimestampDifference successDurationSecs{ 5.0f };
