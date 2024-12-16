@@ -11,7 +11,6 @@
 
 namespace Tac::Render
 {
-
   static std::wstring ToWStr( StringView s )
   {
     std::wstring result;
@@ -93,7 +92,7 @@ namespace Tac::Render
   void DXCArgHelper::SetFilename( StringView s )
   {
     const FileSys::Path fsPath{ s };
-    auto ext{ fsPath.extension() };
+    const FileSys::Path ext{ fsPath.extension() };
     TAC_ASSERT( fsPath.has_extension() && ext == ".hlsl" );
     TAC_ASSERT( !fsPath.has_parent_path() );
     TAC_ASSERT( fsPath.has_stem() );
@@ -127,12 +126,18 @@ namespace Tac::Render
   void DXCArgHelper::SaveDebug( const FileSys::Path& pdbDir )
   {
     TAC_ASSERT( FileSys::IsDirectory( pdbDir ) );
-    String dir{ pdbDir.u8string() };
+    dynmc String dir{ pdbDir.u8string() };
     if( !dir.ends_with( "/" ) ||
         !dir.ends_with( "\\" ) )
       dir += '\\'; // ensure trailing slash
 
     AddArgs( "-Fd", dir ); // not quoted
+
+    // | test: trying to see if GPU-BASED VALIDATION (GPV) errors will 
+    // | find shader code, ie: Shader Code: <couldn't find file location in debug info>
+    // | (didnt work)
+    // v
+    //AddArgs( "-I", dir ); // Add directory to include search path
   }
 
 
