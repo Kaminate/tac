@@ -13,6 +13,7 @@
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
@@ -271,7 +272,8 @@ namespace Tac
     const UIStyle& style{ ImGuiGetStyle() };
     const float windowPadding{ style.windowPadding };
 
-    mDrawData->PushDebugGroup( "BeginFrame(" + mName + ")" ); // popped in ImGuiWindow::EndFrame
+    // Push a debug group to be popped in ImGuiWindow::EndFrame
+    mDrawData->PushDebugGroup( ShortFixedString::Concat( "BeginFrame(" , mName , ")" ) );
 
     mWindowID = Hash( mName );
     mIDStack = { mWindowID };
@@ -761,13 +763,19 @@ namespace Tac
           && !window->mParent )
       {
         // Yoink
+        const int nVtxs{ window->mDrawData->mVtxs.size() };
+        const int nIdxs{ window->mDrawData->mIdxs.size() };
+        const int nDraws{ window->mDrawData->mDrawCall2Ds.size() };
 
         window->mDrawData->mDebugGroupStack.AssertNodeHeights();
 
         drawData.push_back( window->mDrawData );
-        vertexCount += window->mDrawData->mVtxs.size();
-        indexCount += window->mDrawData->mIdxs.size();
+        vertexCount += nVtxs;
+        indexCount += nIdxs;
         window->mDrawData = TAC_NEW UI2DDrawData;
+        window->mDrawData->mVtxs.reserve( nVtxs );
+        window->mDrawData->mIdxs.reserve( nIdxs );
+        window->mDrawData->mDrawCall2Ds.reserve( nDraws );
 
         // The yoinking of the parent draw data invalidates the children draw datas
         for( ImGuiWindow* child : ImGuiGlobals::Instance.mAllWindows )

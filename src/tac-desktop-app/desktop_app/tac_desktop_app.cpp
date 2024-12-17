@@ -382,18 +382,10 @@ namespace Tac
       };
       TAC_CALL( sApp->Render( renderParams, errors ) );
 
-      //const ImGuiSysDrawParams imguiDrawParams
-      //{
-      //  .mSimFrameDraws { &pair.mNewState->mImGuiDraws },
-      //  .mWindowApi     { windowApi },
-      //  .mTimestamp     { interpolatedTimestamp },
-      //};
-
       TAC_CALL( ImGuiPlatformRender( imguiSimFrame, errors ) );
 
       static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
-      const PlatformMouseCursor newCursor{
-        ImGuiToPlatformMouseCursor( imguiSimFrame->mCursor ) };
+      const PlatformMouseCursor newCursor{ ImGuiToPlatformMouseCursor( imguiSimFrame->mCursor ) };
       if( oldCursor != newCursor )
       {
         oldCursor = newCursor;

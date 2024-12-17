@@ -1481,9 +1481,7 @@ void Tac::ImGuiPlatformRender( ImGuiSimFrame* simFrame,  Errors& errors )
   ImGuiPersistantPlatformData::Instance.UpdateAndRender( simFrame, errors );
 }
 
-void Tac::ImGuiPlatformRenderFrameBegin( ImGuiSimFrame* simFrame,
-                                         
-                                         Errors& errors )
+void Tac::ImGuiPlatformRenderFrameBegin( ImGuiSimFrame* simFrame, Errors& errors )
 {
 
   for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )

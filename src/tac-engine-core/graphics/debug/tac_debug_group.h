@@ -8,6 +8,7 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_span.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac::Render::DebugGroup
@@ -22,7 +23,8 @@ namespace Tac::Render::DebugGroup
 
   struct Node
   {
-    String    mName   {};
+    ShortFixedString mName {};
+    //String    mName   {};
 
     // number of nodes below this node ( tree grows upwards)
     // roots have a height of 0

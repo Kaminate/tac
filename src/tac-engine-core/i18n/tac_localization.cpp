@@ -298,9 +298,9 @@ Tac::Language        Tac::GetLanguage( StringView str )
 
 Tac::CodepointString Tac::UTF8ToCodepointString( StringView stringView )
 {
-  Vector< Codepoint > codepoints;
+  CodepointString codepoints;
   Converter converter( stringView );
-  while( Codepoint codepoint = converter.Extract() )
+  while( Codepoint codepoint { converter.Extract() } )
     codepoints.push_back( codepoint );
   return codepoints;
 }

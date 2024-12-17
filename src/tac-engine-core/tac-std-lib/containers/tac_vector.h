@@ -111,21 +111,21 @@ namespace Tac
     {
       reserve();
       T* dst{ &mTs[ mTCount++ ] };
-      TAC_NEW( dst )T( move( t ) ); // placement new using T(T&&)
+      TAC_PLACEMENT_NEW( dst )T( move( t ) );
     }
 
     void     push_back( const T& t )
     {
       reserve();
       T* dst{ &mTs[ mTCount++ ] };
-      TAC_NEW( dst )T( t ); // placement new using T(const T&)
+      TAC_PLACEMENT_NEW( dst )T( t );
     }
 
     template< class ... Args >
     T&       emplace_back( Args&& ... args )
     {
       reserve();
-      TAC_NEW( &mTs[ mTCount++ ] )T( forward< Args>( args )... );
+      TAC_PLACEMENT_NEW( &mTs[ mTCount++ ] )T( forward< Args>( args )... );
       return back();
     }
 

@@ -43,16 +43,7 @@ void* Tac::Allocate( const std::size_t sz )
 void* Tac::Allocate( const std::size_t sz, const StackFrame stackFrame )
 {
   TAC_UNUSED_PARAMETER( stackFrame );
-  void* result { std::malloc( sz ) };
-  std::memset( result, 0, sz );
-
-  // track dynamic memory allocations
-  //if( Timestep::GetElapsedTime() > 2)
-  {
-    ++memAllocCounter;
-    ++memCount;
-  }
-  return result;
+  return Tac::Allocate( sz );
 }
 
 void  Tac::Deallocate( void* ptr )

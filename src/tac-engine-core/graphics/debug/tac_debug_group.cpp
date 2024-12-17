@@ -60,8 +60,7 @@ namespace Tac::Render::DebugGroup
       }
     }
 
-  void        Stack::IterateElement( Iterator& it,
-                                     const NodeIndex info ) const
+  void        Stack::IterateElement( Iterator& it, const NodeIndex info ) const
   {
     const Node* node { FindNode( info ) };
     if( !node )

@@ -55,6 +55,7 @@ void operator delete( void*, Tac::Happy ) noexcept;
 
 
 #define TAC_NEW ( Tac::SetNewStackFrame( TAC_STACK_FRAME ), false ) ? nullptr : new
+#define TAC_PLACEMENT_NEW new
 #define TAC_DELETE delete
 
 

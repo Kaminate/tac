@@ -357,11 +357,6 @@ namespace Tac
   static Mesh                 LoadMeshFromGltf( ModelAssetManager::Params params,
                                                 Errors& errors )
   {
-// temp temp temp
-    static Mutex m;
-    TAC_SCOPE_GUARD( LockGuard, m );
-// temp temp temp
-
     const AssetPathStringView& path{ params.mPath };
     const int specifiedMeshIndex{ params.mModelIndex };
     dynmc Render::VertexDeclarations vtxDecls{ params.mOptVtxDecls };
