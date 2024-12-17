@@ -329,7 +329,7 @@ namespace Tac
 
   void         String::append( const char* str, int len )
   {
-    int newLen { mLen + len };
+    const int newLen { mLen + len };
     reserve( newLen );
     MemCpy( mStr + mLen, str, len );
     mStr[ mLen = newLen ] = '\0';

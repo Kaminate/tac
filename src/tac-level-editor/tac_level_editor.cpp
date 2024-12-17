@@ -43,6 +43,12 @@ namespace Tac
 {
   struct CreationAppState : public App::IState
   {
+    IState* Clone() override
+    {
+      CreationAppState* state{ TAC_NEW CreationAppState };
+      state->mSimState.mWorld = mSimState.mWorld;
+      return state;
+    }
     CreationSimState mSimState;
   };
 
@@ -142,6 +148,8 @@ namespace Tac
       gCreation.mSysState.Uninit();
       gCreation.Uninit( errors );
     }
+
+    CreationAppState mState;
   };
 
   App* App::Create()

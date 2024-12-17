@@ -59,6 +59,7 @@ namespace Tac
   bool            IsAsciiCharacter( Codepoint );
 
   CodepointString UTF8ToCodepointString( StringView );
+  CodepointView   UTF8ToCodepointView( StringView );
   StringView      CodepointsToUTF8( CodepointView );
 
   CodepointView   LocalizationGetString( Language, StringView );

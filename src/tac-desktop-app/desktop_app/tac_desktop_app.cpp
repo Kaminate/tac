@@ -63,7 +63,10 @@ namespace Tac
 
   static App*                          sApp;
 
-  static GameStateManager              sGameStateManager;
+  //static GameStateManager              sGameStateManager;
+  static App::IState*                  sPrevState;
+  static App::IState*                  sCurrState;
+
   static DesktopApp                    sDesktopApp;
 
   static SettingsRoot                  sSettingsRoot;
@@ -314,16 +317,17 @@ namespace Tac
 
     TAC_CALL( ImGuiEndFrame( errors ) );
 
-    App::IState* gameState{ sApp->GetGameState() };
-    if( !gameState )
-      gameState = TAC_NEW App::IState;
 
-    gameState->mFrameIndex = Timestep::GetElapsedFrames();
-    gameState->mTimestamp = Timestep::GetElapsedTime();
-    gameState->mTimepoint = Timestep::GetLastTick();
-    gameState->mImGuiSimFrame = ImGuiGetSimFrame();
+    TAC_DELETE sPrevState;
+    sPrevState = sCurrState->Clone();
 
-    sGameStateManager.Enqueue( gameState );
+    sCurrState = sApp->GetGameState();
+    sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
+    sCurrState->mTimestamp = Timestep::GetElapsedTime();
+    sCurrState->mTimepoint = Timestep::GetLastTick();
+    sCurrState->mImGuiSimFrame = ImGuiGetSimFrame();
+
+    //sGameStateManager.Enqueue( gameState );
   }
 
   void                DesktopApp::Render( Errors& errors )
@@ -341,17 +345,16 @@ namespace Tac
       //   This introduces some latency at the expense of misprediction (the alternative is 
       //   predicting 125% B)
 
-      GameStateManager::Pair pair{ sGameStateManager.Dequeue() };
-      if( !pair.IsValid() )
+      if( !sCurrState && !sPrevState )
         return;
 
-      const TimestampDifference dt{ pair.mNewState->mTimestamp - pair.mOldState->mTimestamp };
-      TAC_ASSERT( dt.mSeconds != 0 );
+      TAC_ASSERT( sCurrState->mTimestamp != sPrevState->mTimestamp );
 
-      const Timepoint prevTime{ pair.mNewState->mTimepoint };
-      const Timepoint currTime{ Timepoint::Now() };
+      const Timepoint now{ Timepoint::Now() };
 
-      dynmc float t{ ( currTime - prevTime ) / dt };
+      dynmc float t{
+        ( now - sPrevState->mTimepoint ) /
+        ( sCurrState->mTimestamp - sPrevState->mTimestamp ) };
 
       // if currTime is inbetween pair.mOldState->mTimestamp and pair.mNewState->mTimestamp,
       // then we should instead of picking the two most recent simulation states, should pick
@@ -363,20 +366,20 @@ namespace Tac
 
       t = Min( t, 1.0f );
 
-      const Timestamp interpolatedTimestamp{ Lerp( pair.mOldState->mTimestamp.mSeconds,
-                                                   pair.mNewState->mTimestamp.mSeconds,
+      const Timestamp interpolatedTimestamp{ Lerp( sPrevState->mTimestamp.mSeconds,
+                                                   sCurrState->mTimestamp.mSeconds,
                                                    t ) };
 
       TAC_CALL( FontApi::UpdateGPU( errors ) );
 
-      ImGuiSimFrame* imguiSimFrame{ &pair.mNewState->mImGuiSimFrame };
+      ImGuiSimFrame* imguiSimFrame{ &sCurrState->mImGuiSimFrame };
 
       TAC_CALL( ImGuiPlatformRenderFrameBegin( imguiSimFrame, errors ) );
 
       const App::RenderParams renderParams
       {
-        .mOldState    { pair.mOldState }, // A
-        .mNewState    { pair.mNewState }, // B
+        .mOldState    { sPrevState }, // A
+        .mNewState    { sCurrState }, // B
         .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
         .mTimestamp   { interpolatedTimestamp },
       };

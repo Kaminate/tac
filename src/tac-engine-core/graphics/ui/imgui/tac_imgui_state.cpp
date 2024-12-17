@@ -276,7 +276,11 @@ namespace Tac
     mDrawData->PushDebugGroup( ShortFixedString::Concat( "BeginFrame(" , mName , ")" ) );
 
     mWindowID = Hash( mName );
-    mIDStack = { mWindowID };
+
+    // clear() and push_back() because mIDStack = { mWindowID } allocates memory
+    mIDStack.clear();
+    mIDStack.push_back( mWindowID );
+
     mMoveID = GetID( "#MOVE" );
 
     mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
@@ -825,8 +829,8 @@ namespace Tac
 
     const Element& element{ GetElement( fbFmt, errors ) };
 
-    const String renderGroupStr{ String()
-      + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
+    const ShortFixedString renderGroupStr{ ShortFixedString::Concat(
+      __FUNCTION__ , "(" , Tac::ToString( hDesktopWindow.GetIndex() ) , ")" ) };
 
     const v2i windowSize { AppWindowApi::GetSize( hDesktopWindow ) };
 

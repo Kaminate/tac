@@ -580,8 +580,7 @@ namespace Tac
     if( utf8.empty() )
       return;
 
-    const CodepointString codepointString{ UTF8ToCodepointString( utf8 ) };
-    const CodepointView codepoints{ codepointString.data(), codepointString.size() };
+    const CodepointView codepoints{ UTF8ToCodepointView( utf8 ) };
 
     Language defaultLanguage { Language::English };
     const FontDims* fontFile { FontApi::GetLanguageFontDims( defaultLanguage ) };
@@ -766,8 +765,7 @@ namespace Tac
 
   v2 CalculateTextSize( const StringView& text, const float fontSize )
   {
-    const CodepointString codepointString{ UTF8ToCodepointString( text ) };
-    const CodepointView codepoints{ codepointString.data(), codepointString.size() };
+    const CodepointView codepoints{ UTF8ToCodepointView( text ) };
     return CalculateTextSize( codepoints, fontSize );
   }
 

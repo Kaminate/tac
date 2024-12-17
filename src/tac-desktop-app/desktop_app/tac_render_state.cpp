@@ -1,3 +1,4 @@
+#if 0
 #include "tac_render_state.h" // self-inc
 
 #include "tac-std-lib/error/tac_assert.h"
@@ -131,3 +132,4 @@ namespace Tac
     TAC_ASSERT( n2 >= 0 && n2 <= 2 );
   };
 } // namespace Tac
+#endif

@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 #include "tac-std-lib/containers/tac_list.h"
@@ -9,8 +10,8 @@ namespace Tac
   {
     struct Element
     {
-      App::IState* mState;
-      int mUsedCounter = 0;
+      App::IState* mState       {};
+      int          mUsedCounter {};
     };
 
     struct Pair
@@ -18,11 +19,11 @@ namespace Tac
       ~Pair();
       bool IsValid() const { return mOldState && mNewState; }
 
-      App::IState* mOldState;
-      int*         mOldUsedCounter;
+      App::IState* mOldState       {};
+      int*         mOldUsedCounter {};
 
-      App::IState* mNewState;
-      int*         mNewUsedCounter;
+      App::IState* mNewState       {};
+      int*         mNewUsedCounter {};
     };
 
 
@@ -35,3 +36,4 @@ namespace Tac
     List< Element > mElements;
   };
 } // namespace Tac
+#endif

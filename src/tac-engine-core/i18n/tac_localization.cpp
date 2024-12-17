@@ -305,6 +305,18 @@ Tac::CodepointString Tac::UTF8ToCodepointString( StringView stringView )
   return codepoints;
 }
 
+Tac::CodepointView   Tac::UTF8ToCodepointView( StringView stringView )
+{
+  Codepoint* codepoints{
+    ( Codepoint* )FrameMemoryAllocate( sizeof( Codepoint ) * stringView.size() ) };
+  int n{};
+  Converter converter( stringView );
+  while( Codepoint codepoint{ converter.Extract() } )
+    codepoints[ n++ ] = codepoint;
+
+  return CodepointView( codepoints, n );
+}
+
 Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
 {
   auto str { ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) ) };

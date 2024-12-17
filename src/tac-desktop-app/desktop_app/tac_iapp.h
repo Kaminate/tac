@@ -21,6 +21,7 @@ namespace Tac
     struct IState
     {
       virtual ~IState() = default;
+      virtual IState* Clone() = 0;
 
       FrameIndex         mFrameIndex          {};
       Timestamp          mTimestamp           {};
@@ -54,7 +55,7 @@ namespace Tac
     virtual void    Present( Errors& ){};
     virtual void    Uninit( Errors& ){};
 
-    virtual IState* GetGameState();
+    virtual IState* GetGameState() { return nullptr; }
     bool            IsRenderEnabled() const;
     StringView      GetAppName() const;
     StringView      GetStudioName() const;

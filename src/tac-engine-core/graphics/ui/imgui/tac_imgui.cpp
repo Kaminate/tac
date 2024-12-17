@@ -789,7 +789,7 @@ void Tac::ImGuiText( const StringView& utf8 )
     .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
   };
 
-  drawData->PushDebugGroup( "ImGuiText(" + utf8 + ")" );
+  drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiText(", utf8, ")" ) );
   drawData->AddText( text, &clipRect );
   drawData->PopDebugGroup();
 }
@@ -822,7 +822,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   TextInputData* textInputData{ window->mTextInputData };
 
   UI2DDrawData* drawData{ window->mDrawData };
-  drawData->PushDebugGroup( "ImGuiInputText(" + label + ")" );
+  drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiInputText(" , label , ")" ) );
   TAC_ON_DESTRUCT( drawData->PopDebugGroup() );
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
@@ -926,7 +926,7 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
     return false;
 
   UI2DDrawData* drawData{ window->mDrawData };
-  drawData->PushDebugGroup( "ImGuiSelectable(" + str + ")" );
+  drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiSelectable(", str, ")" ) );
   TAC_ON_DESTRUCT( drawData->PopDebugGroup() );
 
   const ImGuiRect clipRectViewport{ window->Clip( origRect ) };
@@ -1052,7 +1052,7 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
 
 
   UI2DDrawData* drawData{ window->mDrawData };
-  drawData->PushDebugGroup( String() + "Button(" + str + ")" );
+  drawData->PushDebugGroup( ShortFixedString::Concat( "Button(", str, ")" ) );
   drawData->AddBox( box, &clipRect );
   drawData->AddText( text, &clipRect );
   drawData->PopDebugGroup();
@@ -1109,7 +1109,7 @@ bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
 
 
   UI2DDrawData* drawData{ window->mDrawData };
-  drawData->PushDebugGroup( "Checkbox("+ str +")" );
+  drawData->PushDebugGroup( ShortFixedString::Concat( "Checkbox(", str ,")" ) );
   drawData->AddBox( box, &clipRect );
 
   if( *value )
@@ -1201,7 +1201,7 @@ void Tac::ImGuiImage( const int hTex, const v2& size, const v4& color )
   };
 
   UI2DDrawData* drawData{ window->mDrawData };
-  drawData->PushDebugGroup( "ImGuiImage("+ ToString( hTex ) +")");
+  drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiImage(", ToString( hTex ), ")" ) );
   drawData->AddBox( box );
   drawData->PopDebugGroup();
 }
@@ -1262,7 +1262,7 @@ bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags fl
   };
 
   UI2DDrawData* drawData{ window->mDrawData };
-  drawData->PushDebugGroup( "ImGuiCollapsingHeader("+ name +")");
+  drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiCollapsingHeader(", name, ")" ) );
   drawData->AddBox( box, &clipRect );
   ImGuiSetCursorPos( pos + v2( buttonPadding, 0 ) );
   ImGuiText( isOpen ? "v" : ">" );
@@ -1499,8 +1499,8 @@ void Tac::ImGuiPlatformRenderFrameBegin( ImGuiSimFrame* simFrame, Errors& errors
 
     const Render::SwapChainHandle fb{ AppWindowApi::GetSwapChainHandle( hDesktopWindow ) };
 
-    const String renderGroupStr{ String()
-      + __FUNCTION__ + "(" + Tac::ToString( hDesktopWindow.GetIndex() ) + ")" };
+    const ShortFixedString renderGroupStr{ ShortFixedString::Concat(
+      __FUNCTION__ , "(" , Tac::ToString( hDesktopWindow.GetIndex() ) , ")" ) };
 
     {
       TAC_RENDER_GROUP_BLOCK( renderContext, renderGroupStr );
