@@ -318,6 +318,12 @@ namespace Tac
     TAC_CALL( ImGuiEndFrame( errors ) );
 
 
+    // ---------------------------------------------------------------//
+    //                            TODO                                //
+    // ---------------------------------------------------------------//
+    //   instead of deleting states and making copies, use operator = //
+    //   the goal here is to reduce dynamic memory allocation         //
+    // ---------------------------------------------------------------//
     TAC_DELETE sPrevState;
     sPrevState = sCurrState;
 
@@ -325,9 +331,6 @@ namespace Tac
     sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
     sCurrState->mTimestamp = Timestep::GetElapsedTime();
     sCurrState->mTimepoint = Timestep::GetLastTick();
-    //sCurrState->mImGuiSimFrame = ImGuiGetSimFrame();
-
-    //sGameStateManager.Enqueue( gameState );
   }
 
   void                DesktopApp::Render( Errors& errors )
