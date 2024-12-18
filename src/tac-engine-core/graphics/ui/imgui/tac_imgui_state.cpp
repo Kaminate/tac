@@ -272,6 +272,9 @@ namespace Tac
     const UIStyle& style{ ImGuiGetStyle() };
     const float windowPadding{ style.windowPadding };
 
+    if( !mParent )
+      mDrawData->clear();
+
     // Push a debug group to be popped in ImGuiWindow::EndFrame
     mDrawData->PushDebugGroup( ShortFixedString::Concat( "BeginFrame(" , mName , ")" ) );
 
@@ -654,7 +657,7 @@ namespace Tac
         mDst->mByteCount = srcTotByteCount;
       }
 
-      const int drawCount{ mDraws->mDrawData.size() };
+      const int drawCount{ mDraws.size() };
       Render::UpdateBufferParams* updateBufferParams{
         ( Render::UpdateBufferParams* )FrameMemoryAllocate(
           drawCount * sizeof( Render::UpdateBufferParams ) ) };
@@ -662,9 +665,8 @@ namespace Tac
       Span< const Render::UpdateBufferParams > updates( updateBufferParams, drawCount );
 
       int byteOffset {};
-      for( SmartPtr< UI2DDrawData >& drawData : mDraws->mDrawData )
+      for( const UI2DDrawData* pDrawData : mDraws )
       {
-        const UI2DDrawData* pDrawData { drawData.Get() };
         const int srcByteCount { mGetDrawElementCount( pDrawData ) * mSizeOfElem };
 
         *updateBufferParams++ = Render::UpdateBufferParams
@@ -686,13 +688,14 @@ namespace Tac
     GetDrawElementBytes   mGetDrawElementBytes;
     GetDrawElementCount   mGetDrawElementCount;
     StringView            mBufName;
-    ImGuiSimWindowDraws*  mDraws;
+    ImGuiDrawDatas&       mDraws; 
     Render::TexFmt        mTexFmt  { Render::TexFmt::kUnknown };
     Render::Binding       mBinding { Render::Binding::None };
   };
 
   // -----------------------------------------------------------------------------------------------
 
+#if 0
   void ImGuiSimWindowDraws::CopyIdxBuffer( Render::IContext* renderContext,
                                            ImGuiRenderBuffers* renderBuffers,
                                            Errors& errors )
@@ -747,9 +750,11 @@ namespace Tac
     CopyIdxBuffer( renderContext, renderBuffers, errors );
   }
    
+#endif
 
   // -----------------------------------------------------------------------------------------------
 
+#if 0
   ImGuiSimWindowDraws ImGuiDesktopWindowImpl::GetSimWindowDraws()
   {
     Vector< SmartPtr< UI2DDrawData > > drawData;
@@ -797,9 +802,11 @@ namespace Tac
     };
   }
 
+#endif
+
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiSimWindowDraws* simDraws,
+  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiDesktopWindowImpl* desktopWindow, // ImGuiSimWindowDraws* simDraws,
                                                            ImGuiPersistantViewport* sysDraws,
                                                            Errors& errors )
   {
@@ -821,7 +828,45 @@ namespace Tac
     Render::IContext* renderContext { renderContextScope.GetContext() };
 
     // combine draw data
-    simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
+    //simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
+    {
+      const int vertexCount{ desktopWindow->mDrawData.VertexCount() };
+      const int indexCount{ desktopWindow->mDrawData.IndexCount() };
+
+
+      auto getVtxBytes { []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
+      auto getVtxCount { []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
+      const CopyHelper vtxCopyHelper
+      {
+        .mDst                 { &renderBuffers.mVB },
+        .mSizeOfElem          { sizeof( UI2DVertex ) },
+        .mSrcTotElemCount     { vertexCount },
+        .mGetDrawElementBytes { getVtxBytes },
+        .mGetDrawElementCount { getVtxCount },
+        .mBufName             { "imgui_vtx_buf" },
+        .mDraws               { desktopWindow->mDrawData },
+        .mBinding             { Render::Binding::VertexBuffer },
+      };
+
+      auto getIdxBytes { []( const UI2DDrawData* dd ) { return ( void* )dd->mIdxs.data(); } };
+      auto getIdxCount { []( const UI2DDrawData* dd ) { return dd->mIdxs.size(); } };
+
+      const CopyHelper idxCopyHelper
+      {
+        .mDst                 { &renderBuffers.mIB },
+        .mSizeOfElem          { sizeof( UI2DIndex ) },
+        .mSrcTotElemCount     { indexCount },
+        .mGetDrawElementBytes { getIdxBytes },
+        .mGetDrawElementCount { getIdxCount },
+        .mBufName             { "imgui_idx_buf" },
+        .mDraws               { desktopWindow->mDrawData },
+        .mTexFmt              { Render::TexFmt::kR16_uint },
+        .mBinding             { Render::Binding::IndexBuffer },
+      };
+
+      TAC_CALL( vtxCopyHelper.Copy( renderContext, errors ) );
+      TAC_CALL( idxCopyHelper.Copy( renderContext, errors ) );
+    }
 
     const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( hDesktopWindow ) };
     const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
@@ -854,15 +899,18 @@ namespace Tac
     renderContext->DebugEventBegin( renderGroupStr );
     renderContext->DebugMarker( "hello hello" );
 
-    for( const SmartPtr< UI2DDrawData >& drawData : simDraws->mDrawData )
+    for( UI2DDrawData* drawData : desktopWindow->mDrawData ) //  simDraws->mDrawData )
     {
-      const Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
+      Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
       debugGroupStack.AssertNodeHeights();
 
 
+      // making static to reduce std::vector allcoations
+      static Render::DebugGroup::Iterator debugGroupIterator;
+      debugGroupIterator.Reset( renderContext );
+        //debugGroupStack.IterateBegin( renderContext ) };
 
-      Render::DebugGroup::Iterator debugGroupIterator{
-        debugGroupStack.IterateBegin( renderContext ) };
+      TAC_ASSERT( debugGroupStack.GetInfo() == Render::DebugGroup::NullNodeIndex );
 
       for( const UI2DDrawCall& uidrawCall : drawData->mDrawCall2Ds )
       {
@@ -886,10 +934,30 @@ namespace Tac
       }
 
       debugGroupStack.IterateEnd( debugGroupIterator );
+
+    //for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+    //  window->mDrawData->mDebugGroupStack.clear();
     }
+
 
     renderContext->DebugEventEnd();
     TAC_CALL( renderContext->Execute( errors ) );
+  }
+
+  int ImGuiDrawDatas::VertexCount() const
+  {
+    int n{};
+    for( const UI2DDrawData* drawData : *this )
+      n += drawData->mVtxs.size();
+    return n;
+  }
+
+  int ImGuiDrawDatas::IndexCount() const
+  {
+    int n{};
+    for( const UI2DDrawData* drawData : *this )
+      n += drawData->mIdxs.size();
+    return n;
   }
 
   void ImGuiPersistantPlatformData::Init1x1White( Errors& errors )
@@ -1093,14 +1161,37 @@ namespace Tac
 
     
 
-  void ImGuiPersistantPlatformData::UpdateAndRender( ImGuiSimFrame* simFrame,
+  void ImGuiPersistantPlatformData::UpdateAndRender( // ImGuiSimFrame* simFrame,
                                                      Errors& errors )
   {
-    for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )
+    ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+    
+    for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
     {
-      ImGuiPersistantViewport* viewportDraw { GetPersistantWindowData( simDraw.mHandle ) };
-      UpdateAndRenderWindow( &simDraw, viewportDraw, errors );
+      desktopWindow->mDrawData.clear();
+
+      // Grab all imgui windows that use this viewport window
+      for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+      {
+        // All windows of the same viewport share the same draw data
+        if( window->mDesktopWindow                == desktopWindow               
+        // if( window->mDesktopWindow->mWindowHandle == desktopWindow->mWindowHandle
+            && !window->mParent )
+        {
+          desktopWindow->mDrawData.push_back( window->mDrawData );
+
+          window->mDrawData->mDebugGroupStack.AssertNodeHeights();
+        }
+
+      }
     }
+
+    for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
+    {
+        ImGuiPersistantViewport* viewportDraw{ GetPersistantWindowData( desktopWindow->mWindowHandle ) };
+        UpdateAndRenderWindow( desktopWindow, viewportDraw, errors );
+    }
+
   }
 
   ImGuiPersistantViewport* ImGuiPersistantPlatformData::GetPersistantWindowData( WindowHandle h )

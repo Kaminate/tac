@@ -234,13 +234,16 @@ namespace Tac
   void ImGuiSetIsScrollbarEnabled( bool );
   
 
-  struct ImGuiSimFrame;
-  ImGuiSimFrame ImGuiGetSimFrame();
+  //struct ImGuiSimFrame;
+  //ImGuiSimFrame ImGuiGetSimFrame();
 
-  void ImGuiPlatformRenderFrameBegin( ImGuiSimFrame*, Errors& );
-  void ImGuiPlatformRender( ImGuiSimFrame*, Errors& );
-  void ImGuiPlatformPresent( ImGuiSimFrame*, Errors& );
+  //void ImGuiPlatformRenderFrameBegin( ImGuiSimFrame*, Errors& );
+  //void ImGuiPlatformRender( ImGuiSimFrame*, Errors& );
+  //void ImGuiPlatformPresent( ImGuiSimFrame*, Errors& );
 
+  void ImGuiPlatformRenderFrameBegin( Errors& );
+  void ImGuiPlatformRender( Errors& );
+  void ImGuiPlatformPresent( Errors& );
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \
                                           TAC_ON_DESTRUCT( ImGuiUnindent() );

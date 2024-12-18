@@ -195,8 +195,8 @@ namespace Tac
     static AssetPathString savedPrefabPath;
     static Camera savedCamera;
 
-    const AssetPathString loadedPrefab { PrefabGetLoaded() };
-    if( loadedPrefab != savedPrefabPath )
+    const AssetPathStringView loadedPrefab { PrefabGetLoaded() };
+    if( ( StringView )loadedPrefab != ( StringView )savedPrefabPath )
     {
       savedPrefabPath = loadedPrefab;
       savedCamera = *camera;
@@ -539,6 +539,11 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
+    // =-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-=
+    //ImGuiText( "A" );
+    //return;
+    // =-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-=
+
     const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
 
     if( mSoul )
@@ -573,8 +578,6 @@ namespace Tac
 
 
     const v2 origCursorPos{ ImGuiGetCursorPos() };
-
-    ;
     const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
     const m4 proj{ GetProjMtx( camera, windowSize ) };
     const m4 view{ camera->View() };

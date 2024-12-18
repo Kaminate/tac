@@ -13,6 +13,13 @@ namespace Tac::Render::DebugGroup
     TAC_ASSERT( mFinished );
   }
 
+  void Iterator::Reset( Render::IContext* context )
+  {
+    mRenderContext = context;
+    mNodeStack.clear();
+    mFinished = false;
+  }
+
   bool        Iterator::Contains( const Node* node ) const
   {
     // search back to front
@@ -47,18 +54,27 @@ namespace Tac::Render::DebugGroup
     return Iterator( context );
   }
 
-    void           Stack::AssertNodeHeights() const
-    {
+  void           Stack::AssertNodeHeights() const
+  {
 
-      for( const Render::DebugGroup::Node& node : mNodes )
-      {
-        ++asdf;
-        TAC_ASSERT( node.mHeight < 100 );
-        ++asdf;
-        TAC_ASSERT( node.mHeight >= 0 );
-        ++asdf;
-      }
+    for( const Render::DebugGroup::Node& node : mNodes )
+    {
+      ++asdf;
+      TAC_ASSERT( node.mHeight < 100 );
+      ++asdf;
+      TAC_ASSERT( node.mHeight >= 0 );
+      ++asdf;
     }
+  }
+
+  bool           Stack::empty() const { return mNodes.empty(); }
+
+  void           Stack::clear() { mNodes.clear(); mCurNodeIdx = NullNodeIndex; }
+  
+  Span< const Node > Stack::GetNodes() const
+  {
+    return Span< const Node >( mNodes.data(), mNodes.size() );
+  }
 
   void        Stack::IterateElement( Iterator& it, const NodeIndex info ) const
   {

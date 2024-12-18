@@ -155,6 +155,7 @@ namespace Tac
     ImGuiRenderBuffer mIB;
   };
 
+#if 0
   struct ImGuiSimWindowDraws
   {
     void CopyBuffers( Render::IContext*, ImGuiRenderBuffers*, Errors& );
@@ -172,7 +173,9 @@ namespace Tac
     void CopyIdxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );
     void CopyVtxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );
   };
+#endif
 
+#if 0
   // generated once per game logic update frame,
   // passed to the imgui platform frame
   struct ImGuiSimFrame
@@ -186,17 +189,29 @@ namespace Tac
 
     Vector< ImGuiSimWindowDraws > mWindowDraws;
     Vector< WindowSizeData >      mWindowSizeDatas;
-    //Vector< WindowHandle >        mOwnedWindows;
     ImGuiMouseCursor              mCursor{ ImGuiMouseCursor::kNone };
   };
+#endif
 
   struct ImGuiPersistantViewport
   {
     WindowHandle                 mWindowHandle  {};
-    int                          mFrameIndex    {};
-    Vector< ImGuiRenderBuffers > mRenderBuffers {};
+    int                          mFrameIndex{};
+    Vector< ImGuiRenderBuffers > mRenderBuffers{};
   };
 
+  struct ImGuiDrawDatas : public Vector< UI2DDrawData* >
+  {
+    int VertexCount() const;
+    int IndexCount() const;
+  };
+
+  struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
+  {
+    
+    //ImGuiSimWindowDraws GetSimWindowDraws();
+    ImGuiDrawDatas mDrawData;
+  };
 
 
   struct ImGuiPersistantPlatformData
@@ -204,8 +219,9 @@ namespace Tac
     static ImGuiPersistantPlatformData Instance;
 
     void                       Init( Errors& );
-    void                       UpdateAndRender( ImGuiSimFrame*, Errors& );
-    void                       UpdateAndRenderWindow( ImGuiSimWindowDraws*,
+    void                       UpdateAndRender( // ImGuiSimFrame*,
+                                                Errors& );
+    void                       UpdateAndRenderWindow( ImGuiDesktopWindowImpl* , // ImGuiSimWindowDraws*,
                                                       ImGuiPersistantViewport*,
                                                       Errors& );
     ImGuiPersistantViewport*   GetPersistantWindowData( WindowHandle );
@@ -245,11 +261,6 @@ namespace Tac
     Render::BufferHandle              mPerFrame;
   };
 
-  struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
-  {
-    ImGuiDesktopWindowImpl() = default;
-    ImGuiSimWindowDraws GetSimWindowDraws();
-  };
 
   void    SetActiveID( ImGuiID, ImGuiWindow* );
   void    SetHoveredID( ImGuiID );

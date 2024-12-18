@@ -21,12 +21,11 @@ namespace Tac
     struct IState
     {
       virtual ~IState() = default;
-      virtual IState* Clone() = 0;
 
       FrameIndex         mFrameIndex          {};
       Timestamp          mTimestamp           {};
       Timepoint          mTimepoint           {};
-      ImGuiSimFrame      mImGuiSimFrame       {};
+      //ImGuiSimFrame      mImGuiSimFrame       {};
     };
 
     struct Config

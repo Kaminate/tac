@@ -456,6 +456,19 @@ namespace Tac
     mDebugGroupStack.Pop();
   }
 
+  bool                   UI2DDrawData::empty() const
+  {
+    return mDrawCall2Ds.empty();
+  }
+
+  void                   UI2DDrawData::clear()
+  {
+    mVtxs.clear();
+    mIdxs.clear();
+    mDrawCall2Ds.clear();
+    mDebugGroupStack.clear();
+  }
+
   void UI2DDrawData::AddDrawCall( const UI2DDrawCall& drawCall, const StackFrame& stackFrame )
   {
     UI2DDrawCall modified { drawCall };

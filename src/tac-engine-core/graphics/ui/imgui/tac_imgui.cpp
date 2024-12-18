@@ -1433,6 +1433,7 @@ void Tac::ImGuiSetIsScrollbarEnabled( bool b )
 }
 
 
+/*
 Tac::ImGuiSimFrame Tac::ImGuiGetSimFrame()
 {
   Vector< ImGuiSimWindowDraws > allWindowDraws;
@@ -1447,13 +1448,10 @@ Tac::ImGuiSimFrame Tac::ImGuiGetSimFrame()
     allWindowDraws.push_back( curWindowDraws );
   }
 
-  //for( ImGuiWindow* window : globals.mAllWindows )
   for( ImGuiDesktopWindowImpl* window : globals.mDesktopWindows )
   {
-    //if( window->mWindowHandleOwned )
     if( window->mRequestedPosition.HasValue() || window->mRequestedSize.HasValue() )
     {
-      //const WindowHandle windowHandle{ window->mDesktopWindow->mWindowHandle };
       const WindowHandle windowHandle{ window->mWindowHandle };
 
       const v2i windowPosScreenspace{ AppWindowApi::GetPos( windowHandle ) };
@@ -1475,21 +1473,25 @@ Tac::ImGuiSimFrame Tac::ImGuiGetSimFrame()
     .mCursor          { globals.mMouseCursor },
   };
 }
+*/
 
-void Tac::ImGuiPlatformRender( ImGuiSimFrame* simFrame,  Errors& errors )
+void Tac::ImGuiPlatformRender( //ImGuiSimFrame* simFrame,
+                               Errors& errors )
 {
-  ImGuiPersistantPlatformData::Instance.UpdateAndRender( simFrame, errors );
+  ImGuiPersistantPlatformData::Instance.UpdateAndRender( // simFrame,
+                                                         errors );
 }
 
-void Tac::ImGuiPlatformRenderFrameBegin( ImGuiSimFrame* simFrame, Errors& errors )
+void Tac::ImGuiPlatformRenderFrameBegin( // ImGuiSimFrame* simFrame,
+                                         Errors& errors )
 {
-
-  for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )
+  Vector< ImGuiDesktopWindowImpl* >& desktopWindows{ ImGuiGlobals::Instance.mDesktopWindows };
+  for( ImGuiDesktopWindowImpl* desktopWindow : desktopWindows ) //for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )
   {
-
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    const WindowHandle hDesktopWindow{ simDraw.mHandle };
+    //const WindowHandle hDesktopWindow{ simDraw.mHandle };
+    const WindowHandle hDesktopWindow{ desktopWindow->mWindowHandle };
     if( !AppWindowApi::IsShown( hDesktopWindow ) )
       continue;
 
@@ -1514,14 +1516,17 @@ void Tac::ImGuiPlatformRenderFrameBegin( ImGuiSimFrame* simFrame, Errors& errors
   }
 }
 
-void Tac::ImGuiPlatformPresent( ImGuiSimFrame* simFrame,  Errors& errors )
+void Tac::ImGuiPlatformPresent( // ImGuiSimFrame* simFrame,
+                                Errors& errors )
 {
-  for( const ImGuiSimWindowDraws& windowDraw : simFrame->mWindowDraws )
-
+  Vector< ImGuiDesktopWindowImpl* >& desktopWindows{ ImGuiGlobals::Instance.mDesktopWindows };
+  for( ImGuiDesktopWindowImpl* desktopWindow : desktopWindows ) 
+  //for( const ImGuiSimWindowDraws& windowDraw : simFrame->mWindowDraws )
   //ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   //for( ImGuiWindow* window : globals.mAllWindows )
   {
-    const WindowHandle windowHandle{ windowDraw.mHandle };
+    //const WindowHandle windowHandle{ windowDraw.mHandle };
+    const WindowHandle windowHandle{ desktopWindow->mWindowHandle };
 
     //if( !window->mWindowHandleOwned )
     //  continue;

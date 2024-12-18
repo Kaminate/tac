@@ -96,13 +96,13 @@ namespace Tac
 
     void                   AddDrawCall( const UI2DDrawCall&, const StackFrame& );
     void                   PushDebugGroup( const StringView& );
-    //void                   PushDebugGroup( const StringView& prefix, const StringView& suffix );
     void                   PopDebugGroup();
-    bool                   empty() const { return mDrawCall2Ds.empty(); }
+    bool                   empty() const;
+    void                   clear();
 
-    Vector< UI2DVertex >   mVtxs;
-    Vector< UI2DIndex >    mIdxs;
-    Vector< UI2DDrawCall > mDrawCall2Ds;
+    Vector< UI2DVertex >      mVtxs;
+    Vector< UI2DIndex >       mIdxs;
+    Vector< UI2DDrawCall >    mDrawCall2Ds;
     Render::DebugGroup::Stack mDebugGroupStack;
   };
 

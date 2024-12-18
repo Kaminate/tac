@@ -39,7 +39,9 @@ namespace Tac::Render::DebugGroup
   {
     friend struct Stack;
     ~Iterator();
-    Iterator( Render::IContext* );
+    Iterator( Render::IContext* = nullptr );
+
+    void Reset( Render::IContext* );
 
   private:
 
@@ -65,17 +67,15 @@ namespace Tac::Render::DebugGroup
     void           IterateElement( Iterator&, NodeIndex ) const;
     void           IterateEnd( Iterator& ) const;
     void           AssertNodeHeights() const;
-    
-    Span< const Node > GetNodes() const
-    {
-      return Span< const Node >( mNodes.data(), mNodes.size() );
-    }
+    bool           empty() const;
+    void           clear();
+    Span< const Node > GetNodes() const;
 
   private:
     Node*          FindNode( NodeIndex );
     const Node*    FindNode( NodeIndex ) const;
 
-    Vector< Node > mNodes; // all nodes of a tree, layed out linearly (flattened?)
+    Vector< Node > mNodes      {}; // all nodes of a tree, layed out linearly (flattened?)
     NodeIndex      mCurNodeIdx { NullNodeIndex };
   };
 

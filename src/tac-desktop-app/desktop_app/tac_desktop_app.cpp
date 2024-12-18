@@ -319,13 +319,13 @@ namespace Tac
 
 
     TAC_DELETE sPrevState;
-    sPrevState = sCurrState->Clone();
+    sPrevState = sCurrState;
 
     sCurrState = sApp->GetGameState();
     sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
     sCurrState->mTimestamp = Timestep::GetElapsedTime();
     sCurrState->mTimepoint = Timestep::GetLastTick();
-    sCurrState->mImGuiSimFrame = ImGuiGetSimFrame();
+    //sCurrState->mImGuiSimFrame = ImGuiGetSimFrame();
 
     //sGameStateManager.Enqueue( gameState );
   }
@@ -345,7 +345,7 @@ namespace Tac
       //   This introduces some latency at the expense of misprediction (the alternative is 
       //   predicting 125% B)
 
-      if( !sCurrState && !sPrevState )
+      if( !sCurrState || !sPrevState )
         return;
 
       TAC_ASSERT( sCurrState->mTimestamp != sPrevState->mTimestamp );
@@ -372,9 +372,10 @@ namespace Tac
 
       TAC_CALL( FontApi::UpdateGPU( errors ) );
 
-      ImGuiSimFrame* imguiSimFrame{ &sCurrState->mImGuiSimFrame };
+      //ImGuiSimFrame* imguiSimFrame{ &sCurrState->mImGuiSimFrame };
 
-      TAC_CALL( ImGuiPlatformRenderFrameBegin( imguiSimFrame, errors ) );
+      TAC_CALL( ImGuiPlatformRenderFrameBegin( // imguiSimFrame,
+                                               errors ) );
 
       const App::RenderParams renderParams
       {
@@ -385,10 +386,11 @@ namespace Tac
       };
       TAC_CALL( sApp->Render( renderParams, errors ) );
 
-      TAC_CALL( ImGuiPlatformRender( imguiSimFrame, errors ) );
+      TAC_CALL( ImGuiPlatformRender( // imguiSimFrame, 
+                                     errors ) );
 
       static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
-      const PlatformMouseCursor newCursor{ ImGuiToPlatformMouseCursor( imguiSimFrame->mCursor ) };
+      const PlatformMouseCursor newCursor{ ImGuiToPlatformMouseCursor( ImGuiGlobals::Instance.mMouseCursor ) }; // imguiSimFrame->mCursor ) };
       if( oldCursor != newCursor )
       {
         oldCursor = newCursor;
@@ -399,28 +401,33 @@ namespace Tac
           OS::OSDebugPrintLine( "set mouse cursor : " + ToString( ( int )newCursor ) );
       }
 
-      for( const ImGuiSimFrame::WindowSizeData& sizeData : imguiSimFrame->mWindowSizeDatas )
+      for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::Instance.mDesktopWindows )
+      //for( const ImGuiSimFrame::WindowSizeData& sizeData : imguiSimFrame->mWindowSizeDatas )
       {
-        if( sizeData.mRequestedPosition.HasValue() )
+        const WindowHandle windowHandle{desktopWindow->mWindowHandle};
+
+        if( desktopWindow->mRequestedPosition.HasValue() )
+        //if( sizeData.mRequestedPosition.HasValue() )
         {
-          const v2i windowPos{ AppWindowApi::GetPos( sizeData.mWindowHandle ) };
-          const v2i windowPosRequest{ sizeData.mRequestedPosition.GetValue() };
+          const v2i windowPos{ AppWindowApi::GetPos( windowHandle ) };
+          const v2i windowPosRequest{ desktopWindow->mRequestedPosition.GetValue() };
           if( windowPos != windowPosRequest )
-            AppWindowApi::SetPos( sizeData.mWindowHandle, windowPosRequest );
+            AppWindowApi::SetPos( windowHandle, windowPosRequest );
         }
 
-        if( sizeData.mRequestedSize.HasValue() )
+        if( desktopWindow->mRequestedSize.HasValue() )
         {
-          const v2i windowSize{ AppWindowApi::GetSize( sizeData.mWindowHandle ) };
-          const v2i windowSizeRequest{ sizeData.mRequestedSize.GetValue() };
+          const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+          const v2i windowSizeRequest{ desktopWindow->mRequestedSize.GetValue() };
           if( windowSize != windowSizeRequest )
-            AppWindowApi::SetSize( sizeData.mWindowHandle, windowSizeRequest );
+            AppWindowApi::SetSize( windowHandle, windowSizeRequest );
         }
       }
 
       TAC_CALL( sApp->Present( errors ) );
 
-      TAC_CALL( ImGuiPlatformPresent( imguiSimFrame, errors ) );
+      TAC_CALL( ImGuiPlatformPresent( // imguiSimFrame,
+                                      errors ) );
       //Render::FrameEnd();
   }
 

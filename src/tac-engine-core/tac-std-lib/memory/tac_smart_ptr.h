@@ -65,7 +65,7 @@ namespace Tac
     {
       if( mRefCounter )
       {
-        int& n = *mRefCounter;
+        int& n { *mRefCounter };
         --n;
         if( !n )
         {
