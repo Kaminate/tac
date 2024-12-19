@@ -15,19 +15,19 @@ namespace Tac::Render
   SwapChainHandle   DX12SwapChainMgr::CreateSwapChain(  SwapChainParams params,
                                             Errors& errors )
   {
-    DX12TextureMgr* mTextureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     const void* nwh { params.mNWH };
     const v2i size { params.mSize };
 
     //ID3D12Device* device { mDevice };
 
-    const DXGI_FORMAT fmt{ TexFmtToDxgiFormat( params.mColorFmt ) };
+    const DXGI_FORMAT fmt{ DXGIFormatFromTexFmt( params.mColorFmt ) };
     
     const DXGISwapChainWrapper::Params dxgiSwapChainParams
     {
       .mHwnd        { ( HWND )nwh },
-      .mDevice      { ( IUnknown* )mCommandQueue->GetCommandQueue() },
+      .mDevice      { ( IUnknown* )commandQueue->GetCommandQueue() },
       .mBufferCount { TAC_SWAP_CHAIN_BUF_COUNT },
       .mWidth       { size.x },
       .mHeight      { size.y },
@@ -70,10 +70,10 @@ namespace Tac::Render
   DX12SwapChainImages DX12SwapChainMgr::CreateColorTextures( DXGISwapChainWrapper swapChain,
                                                              Errors& errors )
   {
-    DX12TextureMgr* mTextureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
-    DX12SwapChainImages swapChainImages;
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
 
+    DX12SwapChainImages swapChainImages;
     for( UINT iSwapChainBuf {}; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
     {
       //const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
@@ -81,14 +81,13 @@ namespace Tac::Render
       //const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { rtv.GetCPUHandle() };
 
       PCom< ID3D12Resource > renderTarget;
-      TAC_DX12_CALL_RET( {}, swapChain->GetBuffer(
-        iSwapChainBuf,
-        renderTarget.iid(),
-        renderTarget.ppv() ) );
+      TAC_DX12_CALL_RET( {}, swapChain->GetBuffer( iSwapChainBuf,
+                                                   renderTarget.iid(),
+                                                   renderTarget.ppv() ) );
       ID3D12Resource* resource{ renderTarget.Get() };
 
       const TextureHandle textureHandle { AllocTextureHandle() };
-      TAC_CALL_RET( mTextureMgr->CreateRenderTargetColor(
+      TAC_CALL_RET( textureMgr->CreateRenderTargetColor(
         textureHandle, renderTarget, errors ) );
 
       swapChainImages.push_back( textureHandle );
@@ -101,8 +100,8 @@ namespace Tac::Render
                                                         TexFmt fmt,
                                                         Errors& errors )
   {
-    DX12TextureMgr* mTextureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     if( fmt == TexFmt::kUnknown )
       return {};
 
@@ -122,26 +121,21 @@ namespace Tac::Render
       .mCpuAccess    { CPUAccess::None },
     };
 
-    return mTextureMgr->CreateTexture( depthParams, errors );
+    return textureMgr->CreateTexture( depthParams, errors );
   }
 
   void   DX12SwapChainMgr::ResizeSwapChain( const SwapChainHandle h,
                                             const v2i size,
                                             Errors& errors )
   {
-    DX12TextureMgr* mTextureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     DX12SwapChain& swapChain { mSwapChains[ h.GetIndex() ] };
     if( swapChain.mSize == size )
       return;
 
     DX12SwapChainImages     mSwapChainImages; // Color backbuffer
     TextureHandle           mSwapChainDepth; // Depth backbuffer
-
-    // Using the render device to destroy the texture instead of the texture manager
-    // because the texturemanager doesn't free the handle...
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
 
     // Before resizing a swap chain, all resources must be cleared. Thus we
     // 1) wait for the command queue to be idle
@@ -157,15 +151,12 @@ namespace Tac::Render
     This can result in application instability.
     [ EXECUTION ERROR #921: OBJECT_DELETED_WHILE_STILL_IN_USE]
     */
-    TAC_CALL( mCommandQueue->WaitForIdle( errors ) );
-
-    // okay, this is happening on the sim thread, and it shouldnt
-    //TAC_ASSERT_UNIMPLEMENTED;
+    TAC_CALL( commandQueue->WaitForIdle( errors ) );
 
     for( const TextureHandle swapChainColor : swapChain.mRTColors )
-      renderDevice->DestroyTexture( swapChainColor );
+      textureMgr->DestroyTexture( swapChainColor );
 
-    renderDevice->DestroyTexture( swapChain.mRTDepth );
+    textureMgr->DestroyTexture( swapChain.mRTDepth );
 
     TAC_CALL( swapChain.mDXGISwapChain.Resize( size, errors ) );
 

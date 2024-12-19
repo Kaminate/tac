@@ -104,9 +104,9 @@ namespace Tac::Render
 #endif
 
 
+#if TAC_TEMPORARILY_DISABLED()
 void Tac::DesktopInitRendering( struct Errors& errors )
 {
-#if TAC_TEMPORARILY_DISABLED()
   Render::RegisterRenderers();
 
   const Render::RendererFactory factory { Render::GetFactory() };
@@ -115,7 +115,7 @@ void Tac::DesktopInitRendering( struct Errors& errors )
   Render::Renderer::Instance = factory();
 
   Render::Init( errors );
-#endif
 }
+#endif
 
 

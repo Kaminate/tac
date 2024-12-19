@@ -52,7 +52,7 @@ namespace Tac::Render
       {
         .SemanticName         { GetSemanticName( vtxDecl->mAttribute ) },
         .SemanticIndex        {},
-        .Format               { GetDXGIFormatTexture( vtxDecl->mFormat ) },
+        .Format               { DXGIFormatFromVertexAttributeFormat( vtxDecl->mFormat ) },
         .InputSlot            {}, // which vertex buffer index this data comes from
         .AlignedByteOffset    { ( UINT )vtxDecl->mAlignedByteOffset },
         .InputSlotClass       { D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA },

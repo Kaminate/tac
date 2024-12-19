@@ -20,9 +20,7 @@ namespace Tac
   using namespace Render;
 
   // A graphics root signature defines what resources are bound to the graphics pipeline.
-
   // A pipeline state object maintains the state of all currently set shaders as well as certain fixed function state objects (such as the input assembler, tesselator, rasterizer and output merger).
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -46,10 +44,6 @@ namespace Tac
     TAC_ASSERT( ! m_device );
     dx12debug->EnableDebugLayer();
     m_dbgLayerEnabled = true;
-
-
-
-
   }
 
   void DX12AppHelloWindow::CreateInfoQueue( Errors& )
@@ -121,7 +115,7 @@ namespace Tac
     // one allocation for every descriptor.
     const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
       .NumDescriptors { bufferCount },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
@@ -197,7 +191,7 @@ namespace Tac
     const DXGISwapChainWrapper::Params scInfo
     {
       .mHwnd        { hwnd },
-      .mDevice      { (IUnknown*)m_commandQueue }, // swap chain can force flush the queue
+      .mDevice      { ( IUnknown* )m_commandQueue }, // swap chain can force flush the queue
       .mBufferCount { bufferCount },
       .mWidth       { size.x },
       .mHeight      { size.y },
@@ -223,8 +217,8 @@ namespace Tac
     // Create a RTV for each frame.
     for( UINT i{}; i < bufferCount; i++ )
     {
-      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRenderTargetDescriptorHandle( i );
-      PCom< ID3D12Resource >& renderTarget = m_renderTargets[ i ];
+      const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle{ GetRenderTargetDescriptorHandle( i ) };
+      PCom< ID3D12Resource >& renderTarget{ m_renderTargets[ i ] };
       TAC_DX12_CALL( m_swapChain->GetBuffer( i, renderTarget.iid(), renderTarget.ppv() ) );
       m_device->CreateRenderTargetView( ( ID3D12Resource* )renderTarget, nullptr, rtvHandle );
 
@@ -356,7 +350,7 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
+    TAC_CALL( DXGICheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 

@@ -1,3 +1,4 @@
+#if 0
 #pragma once
 
 namespace Tac
@@ -18,3 +19,4 @@ namespace Tac
     static bool IsAppThread();
   };
 } // namespace Tac
+#endif

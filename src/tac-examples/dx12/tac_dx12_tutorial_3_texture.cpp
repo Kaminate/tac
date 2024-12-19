@@ -1137,7 +1137,7 @@ namespace Tac
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
 
-    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
+    TAC_CALL( DXGICheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
 
     const DXGI_PRESENT_PARAMETERS params{};

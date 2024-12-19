@@ -604,8 +604,8 @@ namespace Tac
     };
     TAC_CALL( DX12ExampleProgramCompiler compiler( compilerParams, errors ) );
 
-    DX12ExampleProgramCompiler::Result compileResult = TAC_CALL( compiler.Compile( shaderAssetPath, errors ) );
-
+    TAC_CALL( DX12ExampleProgramCompiler::Result compileResult{
+      compiler.Compile( shaderAssetPath, errors ) } );
 
     const VertexDeclaration posDecl
     {
@@ -902,15 +902,15 @@ namespace Tac
 
       // vtx buffers
       {
-        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor =
-          GetSRVGpuDescHandle( SRVIndexes::TriangleVertexBuffer );
+        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor {
+          GetSRVGpuDescHandle( SRVIndexes::TriangleVertexBuffer ) };
         m_commandList->SetGraphicsRootDescriptorTable( 1, BaseDescriptor );
       }
 
       // textures
       {
-        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor =
-          GetSRVGpuDescHandle( SRVIndexes::TriangleTexture );
+        const D3D12_GPU_DESCRIPTOR_HANDLE BaseDescriptor {
+          GetSRVGpuDescHandle( SRVIndexes::TriangleTexture ) };
 
         m_commandList->SetGraphicsRootDescriptorTable( 2, BaseDescriptor );
       }
@@ -926,7 +926,9 @@ namespace Tac
           u32          mTexture;
         };
 
-        const m4 transform { m4::Translate( v3( translateX, translateY, 0 ) ) * m4::Scale( v3( scale ) ) };
+        const m4 transform{
+          m4::Translate( v3( translateX, translateY, 0 ) ) *
+          m4::Scale( v3( scale ) ) };
         const MyCBufType cbuf
         {
           .mWorld        { transform },
@@ -938,7 +940,7 @@ namespace Tac
         // https://learn.microsoft.com/en-us/windows/win32/direct3d12/uploading-resources
         // maybe
 
-        const int byteCount{ RoundUpToNearestMultiple(
+        constexpr int byteCount{ RoundUpToNearestMultiple(
           sizeof( MyCBufType ),
           D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
 
@@ -967,7 +969,7 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::ClearRenderTargetView( ID3D12GraphicsCommandList* m_commandList )
   {
-    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = GetRTVCpuDescHandle( m_backbufferIndex );
+    const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRTVCpuDescHandle( m_backbufferIndex ) };
 
     const v4 clearColor { v4{ 91, 128, 193, 255.0f } / 255.0f };
     m_commandList->ClearRenderTargetView( rtvHandle, clearColor.data(), 0, nullptr );
@@ -997,7 +999,7 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
+    TAC_CALL( DXGICheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -1005,8 +1007,8 @@ namespace Tac
     //   0   - Cancel the remaining time on the previously presented frame
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
-    const UINT SyncInterval { 1 };
-    const UINT PresentFlags {};
+    const UINT SyncInterval{ 1 };
+    const UINT PresentFlags{};
 
     // I think this technically adds a frame onto the present queue
     TAC_DX12_CALL( m_swapChain->Present1( SyncInterval, PresentFlags, &params ) );

@@ -1164,7 +1164,7 @@ namespace Tac
     //        I think the swap chain flushes the command queue before rendering,
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
-    TAC_CALL(CheckSwapEffect(m_swapChainDesc.SwapEffect, errors));
+    TAC_CALL( DXGICheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 
@@ -1191,7 +1191,6 @@ namespace Tac
 
   void DX12AppHelloConstBuf::Init( Errors& errors )
   {
-
     AppWindowApi::SetSwapChainAutoCreate( false );
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow("DX12 Const Buf", errors ) );
   }
@@ -1212,10 +1211,8 @@ namespace Tac
     DX12ExampleDevice deviceInitializer;
     TAC_CALL( deviceInitializer.Init( debugLayer, errors ) );
 
-    m_device = deviceInitializer.mDevice
-      .QueryInterface< ID3D12Device5 >();
-    m_debugDevice = deviceInitializer.mDebugDevice
-      .QueryInterface< ID3D12DebugDevice2 >();
+    m_device = deviceInitializer.mDevice.QueryInterface< ID3D12Device5 >();
+    m_debugDevice = deviceInitializer.mDebugDevice.QueryInterface< ID3D12DebugDevice2 >();
 
     DX12ExampleInfoQueue infoQueue;
     TAC_CALL( infoQueue.Init( debugLayer, m_device.Get(), errors ) );
@@ -1253,8 +1250,8 @@ namespace Tac
     TAC_CALL( CreateTexture( errors ) );
     TAC_CALL( PopulateCommandList( errors ) );
 
-    const FenceSignal signalValue =
-      TAC_CALL( mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) );
+    TAC_CALL( const FenceSignal signalValue{
+      mCommandQueue.ExecuteCommandList( m_commandList.Get(), errors ) } );
 
     mUploadAllocator.FreeAll( signalValue );
 

@@ -545,8 +545,9 @@ namespace Tac
           ? ( D3D12_INPUT_LAYOUT_DESC )inputLayout
           : D3D12_INPUT_LAYOUT_DESC{} };
 
-    const DXGI_FORMAT rtvDXVIFmt{ TexFmtToDxgiFormat( mRTVFmt ) };
+    const DXGI_FORMAT rtvDXVIFmt{ DXGIFormatFromTexFmt( mRTVFmt ) };
 
+    const DXGI_SAMPLE_DESC SampleDesc{ .Count{ 1 } };
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )m_rootSignature },
@@ -560,7 +561,7 @@ namespace Tac
       .PrimitiveTopologyType { D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE },
       .NumRenderTargets      { 1 },
       .RTVFormats            { rtvDXVIFmt },
-      .SampleDesc            { .Count { 1 } },
+      .SampleDesc            { SampleDesc },
     };
     TAC_CALL( m_device->CreateGraphicsPipelineState(
               &psoDesc,
@@ -587,7 +588,7 @@ namespace Tac
       .mBufferCount { bufferCount },
       .mWidth       { size.x },
       .mHeight      { size.y },
-      .mFmt         { TexFmtToDxgiFormat( mRTVFmt ) },
+      .mFmt         { DXGIFormatFromTexFmt( mRTVFmt ) },
     };
     TAC_CALL( m_swapChain.Init( scInfo, errors ));
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
@@ -679,7 +680,7 @@ namespace Tac
     const D3D12_RESOURCE_BARRIER barrier
     {
       .Type       { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION },
-      .Transition { Transition      },
+      .Transition { Transition },
     };
 
     m_renderTargetStates[ iRT ] = targetState;
@@ -694,9 +695,9 @@ namespace Tac
     // ID3D12CommandList::ResourceBarrier
     // - Notifies the driver that it needs to synchronize multiple accesses to resources.
     //
-    const Array barriers  { barrier };
-    const UINT rtN { ( UINT )barriers.size() };
-    const D3D12_RESOURCE_BARRIER* rts { barriers.data() };
+    const Array barriers{ barrier };
+    const UINT rtN{ ( UINT )barriers.size() };
+    const D3D12_RESOURCE_BARRIER* rts{ barriers.data() };
     m_commandList->ResourceBarrier( rtN, rts );
   }
 
@@ -874,7 +875,7 @@ namespace Tac
     //        so the frame being presented is the one that we just called ExecuteCommandLists() on
 
 
-    TAC_CALL( CheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
+    TAC_CALL( DXGICheckSwapEffect( m_swapChainDesc.SwapEffect, errors ) );
 
     const DXGI_PRESENT_PARAMETERS params{};
 

@@ -27,7 +27,7 @@ namespace Tac::Render
   static DXGI_FORMAT GetSRVFormat( CreateBufferParams params )
   {
     if( params.mGpuBufferMode == GpuBufferMode::kStructured )
-      return TexFmtToDxgiFormat( params.mGpuBufferFmt );
+      return DXGIFormatFromTexFmt( params.mGpuBufferFmt );
 
     if( params.mGpuBufferMode == GpuBufferMode::kByteAddress )
       return DXGI_FORMAT_R32_TYPELESS;

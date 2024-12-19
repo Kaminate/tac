@@ -14,23 +14,24 @@
 namespace Tac::Render
 {
 
-  // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
-  //   bad: DXGI_SWAP_EFFECT_DISCARD
-  //   bad: DXGI_SWAP_EFFECT_SEQUENTIAL
-  //   good: DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
-  //   good: DXGI_SWAP_EFFECT_FLIP_DISCARD
-  static const DXGI_SWAP_EFFECT SwapEffect { DXGI_SWAP_EFFECT_FLIP_DISCARD };
 
   struct DXGIImpl
   {
     void Init( Errors& );
 
-    PCom< IDXGIFactory4 > mFactory;
-    DXGI_ADAPTER_DESC3    mAdapterDesc{};
-    PCom< IDXGIAdapter4 > mAdapter;
+    PCom< IDXGIFactory4 > mFactory     {};
+    DXGI_ADAPTER_DESC3    mAdapterDesc {};
+    PCom< IDXGIAdapter4 > mAdapter     {};
   };
 
-  static const DXGI_SWAP_CHAIN_FLAG sSwapChainFlags{ DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH };
+  // https://learn.microsoft.com/en-us/windows/win32/direct3ddxgi/for-best-performance--use-dxgi-flip-model
+  //   bad: DXGI_SWAP_EFFECT_DISCARD
+  //   bad: DXGI_SWAP_EFFECT_SEQUENTIAL
+  //   good: DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+  //   good: DXGI_SWAP_EFFECT_FLIP_DISCARD
+  static const DXGI_SWAP_EFFECT     kSwapEffect     { DXGI_SWAP_EFFECT_FLIP_DISCARD };
+
+  static const DXGI_SWAP_CHAIN_FLAG kSwapChainFlags { DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH };
 
   static DXGIImpl sImpl;
 
@@ -133,13 +134,13 @@ namespace Tac::Render
 
   static PCom< IDXGIAdapter1 > GetBestAdapter( IDXGIFactory1* factory, Errors& errors )
   {
-    PCom<IDXGIAdapter1> bestAdapter;
+    PCom< IDXGIAdapter1 > bestAdapter;
     DXGI_ADAPTER_DESC1 bestdesc{};
 
-    UINT iAdapter {};
+    UINT iAdapter{};
     for( ;; )
     {
-      PCom<IDXGIAdapter1> currAdapter;
+      PCom< IDXGIAdapter1 > currAdapter;
       if( S_OK != factory->EnumAdapters1( iAdapter++, currAdapter.CreateAddress() ) )
           break;
 
@@ -171,8 +172,8 @@ namespace Tac::Render
       .SampleDesc  { SampleDesc },
       .BufferUsage { DXGI_USAGE_RENDER_TARGET_OUTPUT },
       .BufferCount { ( UINT )info.mBufferCount },
-      .SwapEffect  { SwapEffect },
-      .Flags       { sSwapChainFlags },
+      .SwapEffect  { kSwapEffect },
+      .Flags       { kSwapChainFlags },
     };
 
     const DXGI_RATIONAL RefreshRate
@@ -204,10 +205,10 @@ namespace Tac::Render
       const String dxgiErrStr { TryInferDXGIErrorStr( createSwapChainHR ) };
       const String win32ErrStr { Win32ErrorStringFromDWORD( dwError ) };
       TAC_RAISE_ERROR_RETURN( {},
-                                String()
-                                + "CreateSwapChainForHwnd failed, "
-                                + dxgiErrStr
-                                + win32ErrStr );
+                              String()
+                              + "CreateSwapChainForHwnd failed, "
+                              + dxgiErrStr
+                              + win32ErrStr );
     }
 
     return swapChain1.QueryInterface< IDXGISwapChain4 >();
@@ -220,8 +221,8 @@ namespace Tac::Render
 
   struct FormatPair
   {
-    VertexAttributeFormat mFormat;
-    DXGI_FORMAT           mFormatDXGI;
+    VertexAttributeFormat mFormat     {};
+    DXGI_FORMAT           mFormatDXGI { DXGI_FORMAT_UNKNOWN };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -247,20 +248,24 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void             DXGISwapChainWrapper::Init( Params params, Errors& errors )
+  void             DXGISwapChainWrapper::Init( const Params params, Errors& errors )
   {
      mDXGISwapChain = DXGICreateSwapChain( params, errors );
      mParams = params;
   }
 
-  void             DXGISwapChainWrapper::Resize( v2i size , Errors& errors )
+  void             DXGISwapChainWrapper::Resize( const v2i size, Errors& errors )
   {
     IDXGISwapChain4* swapChain{ GetIDXGISwapChain() };
+
+    // Note:
+    //   A swap chain's color/depth textures must be completely freed (ie: not defer freed)
+    //   before ResizeBuffers can be called 
     TAC_DXGI_CALL( swapChain->ResizeBuffers( mParams.mBufferCount,
                                              ( UINT )size.x,
                                              ( UINT )size.y,
-                                             DXGI_FORMAT_UNKNOWN,
-                                             sSwapChainFlags ) );
+                                             DXGI_FORMAT_UNKNOWN, // preserve existing format
+                                             kSwapChainFlags ) );
   }
 
   IDXGISwapChain4* DXGISwapChainWrapper::GetIDXGISwapChain()
@@ -294,10 +299,11 @@ namespace Tac
     TAC_ASSERT( mFactory );
     DXGISetObjectName( ( IDXGIFactory4* )mFactory, "my-dxgi-factory" );
 
-    TAC_CALL( auto bestAdapter{ GetBestAdapter( ( IDXGIFactory1* )mFactory, errors ) } );
+    TAC_CALL( PCom< IDXGIAdapter1 > bestAdapter{
+      GetBestAdapter( ( IDXGIFactory1* )mFactory, errors ) } );
 
-    mAdapter = bestAdapter.QueryInterface<IDXGIAdapter4>();
-    TAC_ASSERT(mAdapter);
+    mAdapter = bestAdapter.QueryInterface< IDXGIAdapter4 >();
+    TAC_ASSERT( mAdapter );
     TAC_DXGI_CALL( mAdapter->GetDesc3( &mAdapterDesc ) );
     DXGISetObjectName( ( IDXGIAdapter* )mAdapter, "my-dxgi-adaptor" );
   }
@@ -347,9 +353,7 @@ namespace Tac
 
   void Render::DXGIInit( Errors& errors ) { sImpl.Init( errors ); }
 
-
-
-  void Render::DXGIUninit() { sImpl = {}; }
+  void Render::DXGIUninit()               { sImpl = {}; }
 
 #if 0
   DXGI_FORMAT      Render::DXGIGetSwapChainFormat()
@@ -371,7 +375,7 @@ namespace Tac
 
 
 
-  DXGI_FORMAT Render::TexFmtToDxgiFormat( TexFmt fmt )
+  DXGI_FORMAT Render::DXGIFormatFromTexFmt( TexFmt fmt )
   {
     switch( fmt )
     {
@@ -401,7 +405,7 @@ namespace Tac
 
 
 
-  DXGI_FORMAT Render::GetDXGIFormatTexture( const VertexAttributeFormat textureFormat )
+  DXGI_FORMAT Render::DXGIFormatFromVertexAttributeFormat( const VertexAttributeFormat textureFormat )
   {
     TAC_ASSERT_MSG( textureFormat.mPerElementByteCount != 16,
                     "You're making a depth buffer, right?"
@@ -436,13 +440,13 @@ namespace Tac
     TAC_ASSERT( hr == S_OK );
   }
 
-  String Render::DXGIGetObjectName(IDXGIObject* obj)
+  String Render::DXGIGetObjectName( IDXGIObject* obj )
   {
     TAC_ASSERT( obj );
-    const int kBufSize { 256 };
+    const int kBufSize{ 256 };
     char buf[ kBufSize ]{};
-    UINT size = kBufSize;
-    const HRESULT getHr = obj->GetPrivateData( WKPDID_D3DDebugObjectName, &size, buf );
+    dynmc UINT size{ kBufSize };
+    const HRESULT getHr{ obj->GetPrivateData( WKPDID_D3DDebugObjectName, &size, buf ) };
     TAC_ASSERT( SUCCEEDED( getHr ) || getHr == DXGI_ERROR_NOT_FOUND );
     return buf;
   }
@@ -452,25 +456,23 @@ namespace Tac
   // Appends the failed function call error message to Errors
   String Render::DXGICallAux( const char* fnCallWithArgs, HRESULT res )
   {
-    String inferredErrorMessage { TryInferDXGIErrorStr( res ) };
-    String str{ String()
+    return String()
       + fnCallWithArgs + " returned 0x" + Tac::Itoa( ( int )res )
-      + "(" + inferredErrorMessage + ")" };
-    return str;
+      + "(" + TryInferDXGIErrorStr( res ) + ")";
+
   }
 
-  PCom<IDXGIAdapter4> Render::DXGIGetBestAdapter()
+  PCom< IDXGIAdapter4 > Render::DXGIGetBestAdapter()
   {
     TAC_ASSERT( sImpl.mAdapter );
     return sImpl.mAdapter;
   }
 
-  void Render::CheckSwapEffect( const DXGI_SWAP_EFFECT cur, Errors& errors )
+  void Render::DXGICheckSwapEffect( const DXGI_SWAP_EFFECT cur, Errors& errors )
   {
-    const DXGI_SWAP_EFFECT tgt = SwapEffect;
-    TAC_RAISE_ERROR_IF( cur != tgt, String() +
+    TAC_RAISE_ERROR_IF( cur != kSwapEffect, String() +
                         "The swap chain effect is " + FormattedSwapEffect( cur ) + " "
-                        "when it was expected to be " + FormattedSwapEffect( tgt ) );
+                        "when it was expected to be " + FormattedSwapEffect( kSwapEffect ) );
   }
 
 } // namespace Tac

@@ -1,47 +1,24 @@
 #include "tac_desktop_app.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app_error_report.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app_renderers.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app_threads.h"
 #include "tac-desktop-app/desktop_app/tac_render_state.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
-#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event_handler.h"
-#include "tac-desktop-app/desktop_thread/tac_sim_thread.h"
-#include "tac-desktop-app/desktop_thread/tac_sys_thread.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_move.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_resize.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
-#include "tac-engine-core/hid/tac_keyboard_backend.h"
-#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
-#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings_root.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
-#include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-#include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/asset/tac_asset_hash_cache.h"
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/containers/tac_fixed_vector.h"
-#include "tac-std-lib/containers/tac_frame_vector.h"
-#include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/math/tac_math.h" // Max
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/string/tac_string_view.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -123,8 +100,6 @@ namespace Tac
 
     sApp = App::Create();
 
-    DesktopAppThreads::SetType( DesktopAppThreads::ThreadType::App );
-
     sAppThreadAllocator.Init( 1024 * 1024 * 10 ); // 10MB
     FrameMemorySetThreadAllocator( &sAppThreadAllocator );
 
@@ -157,11 +132,6 @@ namespace Tac
     TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
 
     TAC_CALL( AssetHashCache::Init( errors ) );
-
-    if( sApp->IsRenderEnabled() )
-    {
-      TAC_CALL( DesktopInitRendering( errors ) );
-    }
 
     if( sVerbose )
       LogApi::LogMessagePrintLine( "DesktopApp::Init" );
@@ -243,7 +213,6 @@ namespace Tac
       TAC_CALL( DesktopApp::Update( errors ) );
       TAC_CALL( platform->PlatformFrameEnd( errors ) );
 
-      AppKeyboardApiBackend::Sync();
 
       TAC_CALL( Network::NetApi::Update( errors ) );
       TAC_CALL( sSettingsRoot.Tick( errors ) );
@@ -317,6 +286,8 @@ namespace Tac
 
     TAC_CALL( ImGuiEndFrame( errors ) );
 
+    AppKeyboardApiBackend::Sync();
+
 
     // ---------------------------------------------------------------//
     //                            TODO                                //
@@ -331,6 +302,7 @@ namespace Tac
     sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
     sCurrState->mTimestamp = Timestep::GetElapsedTime();
     sCurrState->mTimepoint = Timestep::GetLastTick();
+
   }
 
   void                DesktopApp::Render( Errors& errors )

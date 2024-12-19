@@ -1,3 +1,4 @@
+#if 0
 #include "tac_desktop_app_threads.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -17,3 +18,4 @@ namespace Tac
   bool DesktopAppThreads::IsSimThread() { return IsType( ThreadType::Sim ); }
   bool DesktopAppThreads::IsAppThread() { return IsType( ThreadType::Sim ); }
 } // namespace Tac
+#endif

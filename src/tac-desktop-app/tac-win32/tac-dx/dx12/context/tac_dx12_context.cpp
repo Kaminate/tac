@@ -343,7 +343,7 @@ namespace Tac::Render
 
     if( DX12Buffer* buffer{ bufferMgr->FindBuffer( h ) } )
     {
-      const DXGI_FORMAT Format{ TexFmtToDxgiFormat( buffer->mCreateParams.mGpuBufferFmt ) };
+      const DXGI_FORMAT Format{ DXGIFormatFromTexFmt( buffer->mCreateParams.mGpuBufferFmt ) };
       const D3D12_INDEX_BUFFER_VIEW indexBufferView
       {
         .BufferLocation { buffer->mGPUVirtualAddr },

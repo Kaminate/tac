@@ -21,7 +21,7 @@ namespace Tac::Render
 
   DX12BuiltInputLayout::DX12BuiltInputLayout( const VertexDeclarations& vtxDecls )
   {
-    const int n { vtxDecls.size() };
+    const int n{ vtxDecls.size() };
     mElementDescs.resize( n );
     for( int i{}; i < n; ++i )
     {
@@ -29,7 +29,7 @@ namespace Tac::Render
       mElementDescs[ i ] = D3D12_INPUT_ELEMENT_DESC
       {
         .SemanticName      { GetSemanticName( decl.mAttribute ) },
-        .Format            { GetDXGIFormatTexture( decl.mFormat ) },
+        .Format            { DXGIFormatFromVertexAttributeFormat( decl.mFormat ) },
         .AlignedByteOffset { ( UINT )decl.mAlignedByteOffset },
       };
     }

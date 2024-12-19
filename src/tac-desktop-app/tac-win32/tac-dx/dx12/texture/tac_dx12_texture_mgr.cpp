@@ -37,18 +37,14 @@ namespace Tac::Render
   static D3D12_RESOURCE_DESC  GetImageResourceDesc( CreateTextureParams params )
   {
     TAC_ASSERT( params.mMipCount );
-
     const Image& image{ params.mImage };
-    const DXGI_FORMAT dxgiFmt{ TexFmtToDxgiFormat(  image.mFormat ) };
-
+    const DXGI_FORMAT dxgiFmt{ DXGIFormatFromTexFmt( image.mFormat ) };
     const DXGI_SAMPLE_DESC SampleDesc
     {
       .Count   { 1 },
       .Quality {},
     };
-
     const D3D12_RESOURCE_FLAGS Flags{ GetResourceFlags( params.mBinding ) };
-
     const D3D12_RESOURCE_DESC textureResourceDesc
     {
       .Dimension        { D3D12_RESOURCE_DIMENSION_TEXTURE2D },
@@ -91,7 +87,7 @@ namespace Tac::Render
         SetClearValue(
           D3D12_CLEAR_VALUE
           {
-            .Format       { TexFmtToDxgiFormat( params.mImage.mFormat ) },
+            .Format       { DXGIFormatFromTexFmt( params.mImage.mFormat ) },
             .DepthStencil { .Depth { 1 } },
           } );
 
@@ -99,7 +95,7 @@ namespace Tac::Render
         SetClearValue(
           D3D12_CLEAR_VALUE
           {
-            .Format { TexFmtToDxgiFormat( params.mImage.mFormat ) },
+            .Format { DXGIFormatFromTexFmt( params.mImage.mFormat ) },
             .Color  { 0, 0, 0, 1 },
           } );
     }
@@ -349,7 +345,7 @@ namespace Tac::Render
       transitionHelper.ResourceBarrier( commandList );
     }
 
-    const DXGI_FORMAT srcFmt{ TexFmtToDxgiFormat( updateTextureParams.mSrcImage.mFormat ) };
+    const DXGI_FORMAT srcFmt{ DXGIFormatFromTexFmt( updateTextureParams.mSrcImage.mFormat ) };
 
     const UploadCalculator uploadCalculator( updateTextureParams );
 
@@ -474,30 +470,30 @@ namespace Tac::Render
 
   void          DX12TextureMgr::DestroyTexture( TextureHandle h )
   {
-    if( h.IsValid() )
+    if( !h.IsValid() )
+      return;
+    
+    FreeHandle( h );
+    DX12Texture& texture{ mTextures[ h.GetIndex() ] };
+
+    Optional< DX12Descriptor > optDescs[]
     {
-      FreeHandle( h );
-      DX12Texture& texture{ mTextures[ h.GetIndex() ] };
+      texture.mRTV,
+      texture.mDSV,
+      texture.mUAV,
+      texture.mSRV,
+    };
 
-      Optional< DX12Descriptor > optDescs[]
+    for( Optional< DX12Descriptor > optDesc : optDescs )
+    {
+      if( optDesc.HasValue() )
       {
-        texture.mRTV,
-        texture.mDSV,
-        texture.mUAV,
-        texture.mSRV,
-      };
-
-      for( Optional< DX12Descriptor > optDesc : optDescs )
-      {
-        if( optDesc.HasValue() )
-        {
-          DX12Descriptor desc{ optDesc.GetValue() };
-          desc.mOwner->Free( desc );
-        }
+        DX12Descriptor desc{ optDesc.GetValue() };
+        desc.mOwner->Free( desc );
       }
-
-      texture = {};
     }
+
+    texture = {};
   }
 
   DX12Texture*  DX12TextureMgr::FindTexture( TextureHandle h )

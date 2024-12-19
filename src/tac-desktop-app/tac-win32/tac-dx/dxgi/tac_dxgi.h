@@ -9,9 +9,15 @@
 
 namespace Tac::Render
 {
-
-  void             DXGIInit( Errors& );
-  void             DXGIUninit();
+  void                  DXGIInit( Errors& );
+  void                  DXGIUninit();
+  DXGI_FORMAT           DXGIFormatFromTexFmt( TexFmt );
+  DXGI_FORMAT           DXGIFormatFromVertexAttributeFormat( VertexAttributeFormat ); // todo: rename
+  void                  DXGISetObjectName( IDXGIObject*, const StringView& );
+  String                DXGIGetObjectName( IDXGIObject* );
+  String                DXGICallAux( const char*, HRESULT );
+  PCom< IDXGIAdapter4 > DXGIGetBestAdapter();
+  void                  DXGICheckSwapEffect( DXGI_SWAP_EFFECT, Errors& );
 
   struct DXGISwapChainWrapper
   {
@@ -27,27 +33,16 @@ namespace Tac::Render
 
     void             Init( Params, Errors& );
     void             Resize( v2i, Errors& );
-    operator bool();
     IDXGISwapChain4* GetIDXGISwapChain();
     IDXGISwapChain4* operator ->();
+
+    operator bool();
 
   private:
     PCom< IDXGISwapChain4 > mDXGISwapChain;
     Params                  mParams;
   };
 
-  DXGI_FORMAT      TexFmtToDxgiFormat( TexFmt );
-  DXGI_FORMAT      GetDXGIFormatTexture( VertexAttributeFormat ); // todo: rename
-
-  void             DXGISetObjectName( IDXGIObject*, const StringView& );
-  String           DXGIGetObjectName( IDXGIObject* );
-
-  String           DXGICallAux( const char*, HRESULT );
-
-  //               represents a display subsystem (GPU, VRAM, etc)
-  PCom< IDXGIAdapter4 >    DXGIGetBestAdapter();
-
-  void CheckSwapEffect( DXGI_SWAP_EFFECT, Errors& );
 
 } // namespace Tac::Render
 
@@ -62,6 +57,6 @@ namespace Tac::Render
 {                                                                                                  \
   const HRESULT hr { call };                                                                       \
   const bool failed { FAILED( hr ) };                                                              \
-  TAC_RAISE_ERROR_IF_RETURN( ret, failed, Tac::Render::DXGICallAux( #call, hr ) );               \
+  TAC_RAISE_ERROR_IF_RETURN( ret, failed, Tac::Render::DXGICallAux( #call, hr ) );                 \
 }
 

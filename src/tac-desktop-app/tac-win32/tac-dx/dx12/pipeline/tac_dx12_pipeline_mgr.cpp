@@ -143,7 +143,7 @@ namespace Tac::Render
     TAC_CALL( PCom< ID3D12RootSignature > rootSig{ rootSigBuilder.Build( errors ) } );
 
     const DXGI_SAMPLE_DESC SampleDesc{ .Count { 1 } };
-    const DXGI_FORMAT DSVFormat{ TexFmtToDxgiFormat( params.mDSVDepthFmt ) };
+    const DXGI_FORMAT DSVFormat{ DXGIFormatFromTexFmt( params.mDSVDepthFmt ) };
     
     const DX12InputLayout inputLayout( params.mVtxDecls, program );
 
@@ -187,7 +187,7 @@ namespace Tac::Render
 
       const int n{ params.mRTVColorFmts.size() };
       for( int i{}; i < n; ++i )
-        psoDesc.RTVFormats[ i ] = TexFmtToDxgiFormat( params.mRTVColorFmts[ i ] );
+        psoDesc.RTVFormats[ i ] = DXGIFormatFromTexFmt( params.mRTVColorFmts[ i ] );
 
       TAC_CALL( device->CreateGraphicsPipelineState( &psoDesc, pso.iid(), pso.ppv() ) );
     }
