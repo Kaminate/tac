@@ -99,11 +99,11 @@ namespace Tac
         }
         else if ( AppKeyboardApi::IsPressed( Key::MouseLeft ) )
         {
-          WindowHandle windowHandle = window->GetWindowHandle();
-          const v2 desktopWindowPos = AppWindowApi::GetPos( windowHandle );
-          const v2 viewportSpaceMousePos = screenspaceMousePos - desktopWindowPos;
+          WindowHandle windowHandle { window->GetWindowHandle() };
+          const v2 desktopWindowPos { AppWindowApi::GetPos( windowHandle ) };
+          const v2 viewportSpaceMousePos { screenspaceMousePos - desktopWindowPos };
 
-          float moveCursorDir = 0;
+          float moveCursorDir {};
           moveCursorDir = viewportSpaceMousePos.x > clipRect.mMaxi.x ? -1 : moveCursorDir;
           moveCursorDir = viewportSpaceMousePos.x < clipRect.mMini.x ? 1 : moveCursorDir;
           if( moveCursorDir )

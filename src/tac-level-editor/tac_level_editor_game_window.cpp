@@ -249,7 +249,7 @@ namespace Tac
       ImGuiDragFloat( "cam near", &camera->mNearPlane );
     }
 
-    float deg = RadiansToDegrees( camera->mFovyrad );
+    float deg { RadiansToDegrees( camera->mFovyrad ) };
     if( ImGuiDragFloat( "entire y fov(deg)", &deg ) )
       camera->mFovyrad = DegreesToRadians( deg );
 

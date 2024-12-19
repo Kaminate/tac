@@ -128,8 +128,8 @@ float       Tac::Atof( const StringView& s )
 
 int         Tac::Atoi( const StringView& s )
 {
-  int res = 0;
-  int pow = 1;
+  int res {};
+  int pow { 1 };
   for( int i {}; i < s.size(); ++i, pow *= 10 )
     res += ( s[ s.size() - i - 1 ] - '0' ) * pow;
   return res;

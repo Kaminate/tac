@@ -125,7 +125,7 @@ namespace Tac
     const v3 p { entity->mWorldPosition };
     drawData->DebugDraw3DArrow( p, p + camera.mForwards * 10.0f );
 
-    const v3 axes[] = { camera.mRight,camera.mUp,-camera.mForwards };
+    const v3 axes[]  { camera.mRight,camera.mUp,-camera.mForwards };
     for( int i{}; i < 3; ++i )
       drawData->DebugDraw3DLine( p, p + axes[ i ] * 5.0f, v4( float( 0 == i ),
                                  float( 1 == i ),
@@ -140,7 +140,7 @@ void Tac::LightDebugImgui( Light* light )
 {
   LightDebug3DDraw( light );
 
-  const int oldShadowMapResolution = light->mShadowResolution;
+  const int oldShadowMapResolution { light->mShadowResolution };
   LightDebugImguiType( light );
   ImGuiCheckbox( "Casts shadows", &light->mCastsShadows );
   LightDebugImguiShadowResolution( light );

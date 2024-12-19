@@ -25,9 +25,9 @@ namespace Tac
 
   LogWindow::LogWindow()
   {
-    int megabytes = 100;
-    int kilobytes = 1024 * megabytes;
-    int bytes = 1024 * kilobytes;
+    int megabytes { 100 };
+    int kilobytes { 1024 * megabytes };
+    int bytes { 1024 * kilobytes };
     Resize( bytes );
   }
   LogWindow::~LogWindow()
@@ -38,8 +38,8 @@ namespace Tac
   void      LogWindow::Pop()
   {
     TAC_ASSERT( mStringCount );
-    LogNumber stringByteCount = ReadStringLength( mBeginIndex );
-    int freedByteCount = sizeof( LogNumber ) + stringByteCount;
+    LogNumber stringByteCount { ReadStringLength( mBeginIndex ) };
+    int freedByteCount { sizeof( LogNumber ) + stringByteCount };
     mBeginIndex = ( mBeginIndex + freedByteCount ) % mByteCount;
     mBytesUsed -= freedByteCount;
     mStringCount--;
@@ -47,16 +47,16 @@ namespace Tac
 
   void      LogWindow::Push( const StringView& stringView )
   {
-    const char* stringData = stringView.data();
+    const char* stringData { stringView.data() };
     if( mByteCount < ( int )sizeof( LogNumber ) )
       return;
-    LogNumber stringLenMax = mByteCount - sizeof( LogNumber );
-    auto stringLenOld = ( LogNumber )stringView.size();
-    LogNumber stringLen = Min( stringLenOld, stringLenMax );
-    LogNumber requiredByteCount = stringLen + sizeof( LogNumber );
+    LogNumber stringLenMax { mByteCount - sizeof( LogNumber ) };
+    auto stringLenOld { ( LogNumber )stringView.size() };
+    LogNumber stringLen { Min( stringLenOld, stringLenMax ) };
+    LogNumber requiredByteCount { stringLen + sizeof( LogNumber ) };
     for( ;; )
     {
-      LogNumber remainingByteCount = mByteCount - mBytesUsed;
+      LogNumber remainingByteCount { mByteCount - mBytesUsed };
       if( remainingByteCount >= requiredByteCount )
         break;
       Pop();
@@ -69,14 +69,14 @@ namespace Tac
 
   String    LogWindow::VisualizeLog()
   {
-    int maxVisBytes = 1000;
+    int maxVisBytes { 1000 };
     if( mByteCount > maxVisBytes )
       return "Log too big to vis, max: " + ToString( maxVisBytes );
-    char* bytes = mBytes;
+    char* bytes { mBytes };
     String result;
-    for( int iByte = 0; iByte < mByteCount; ++iByte )
+    for( int iByte {}; iByte < mByteCount; ++iByte )
     {
-      char c = bytes[ iByte ];
+      char c { bytes[ iByte ] };
       if( !c )
         c = 'x';
       result += c;
@@ -189,11 +189,11 @@ namespace Tac
 
   void      LogWindow::Write( void* src, int bytes )
   {
-    char* dst = ( char* )mBytes + ( mBeginIndex + mBytesUsed ) % mByteCount;
+    char* dst { ( char* )mBytes + ( mBeginIndex + mBytesUsed ) % mByteCount };
     mBytesUsed += bytes;
 
-    char* dstEnd = ( char* )dst + bytes;
-    char* logEnd = mBytes + mByteCount;
+    char* dstEnd { ( char* )dst + bytes };
+    char* logEnd { mBytes + mByteCount };
     if( dstEnd > logEnd )
     {
       auto overshoot = ( LogNumber )( dstEnd - logEnd );
@@ -208,13 +208,12 @@ namespace Tac
 
   void      LogWindow::Read( char* dst, int beginIndex, int bytes )
   {
-    char* srcBegin = mBytes + beginIndex;
-    char* srcEnd = srcBegin + bytes;
-
-    char* bufferEnd = mBytes + mByteCount;
+    char* srcBegin { mBytes + beginIndex };
+    char* srcEnd { srcBegin + bytes };
+    char* bufferEnd { mBytes + mByteCount };
     if( srcEnd > bufferEnd )
     {
-      auto overshootBytes = ( LogNumber )( srcEnd - bufferEnd );
+      auto overshootBytes { ( LogNumber )( srcEnd - bufferEnd ) };
       bytes -= overshootBytes;
       MemCpy( dst, srcBegin, bytes );
       dst += bytes;

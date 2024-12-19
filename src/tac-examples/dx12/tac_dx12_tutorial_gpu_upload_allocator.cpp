@@ -17,11 +17,11 @@ namespace Tac::Render
     // so normally, when allocating a page, you first check if a retired page can be reused,
     // but large pages are just deleted when they are no longer used.
 
-    DX12ExampleGPUUploadPage* pageToAllocateFrom = nullptr;
+    DX12ExampleGPUUploadPage* pageToAllocateFrom {};
     if( byteCount > DX12ExampleGPUUploadPage::kDefaultByteCount )
     {
-      DX12ExampleGPUUploadPage requested =
-        TAC_CALL_RET( mPageManager->RequestPage( byteCount, errors ) );
+      TAC_CALL_RET( DX12ExampleGPUUploadPage requested{
+        mPageManager->RequestPage( byteCount, errors ) } );
       mLargePages.push_back( requested );
       pageToAllocateFrom = &mLargePages.back();
     }
@@ -29,7 +29,7 @@ namespace Tac::Render
     // see if the allocation will fit in the current page
     if( !pageToAllocateFrom && !mActivePages.empty() )
     {
-      DX12ExampleGPUUploadPage* curPage = &mActivePages.back();
+      DX12ExampleGPUUploadPage* curPage { &mActivePages.back() };
 
       // if the allocation doesn't fit this page will be retired
       mCurPageUsedByteCount = RoundUpToNearestMultiple( mCurPageUsedByteCount, byteCount );
@@ -42,32 +42,33 @@ namespace Tac::Render
 
     if( !pageToAllocateFrom )
     {
-        DX12ExampleGPUUploadPage requested =
-          TAC_CALL_RET( mPageManager->RequestPage( DX12ExampleGPUUploadPage::kDefaultByteCount, errors ) );
-        mActivePages.push_back( requested );
+      TAC_CALL_RET( DX12ExampleGPUUploadPage requested{
+        mPageManager->RequestPage( DX12ExampleGPUUploadPage::kDefaultByteCount, errors ) } );
 
-        TAC_ASSERT_MSG( mActivePages.size() < 100, "why do you have so many pages bro" );
+      mActivePages.push_back( requested );
 
-        mCurPageUsedByteCount = 0;
-        pageToAllocateFrom = &mActivePages.back();
+      TAC_ASSERT_MSG( mActivePages.size() < 100, "why do you have so many pages bro" );
+
+      mCurPageUsedByteCount = 0;
+      pageToAllocateFrom = &mActivePages.back();
     }
 
     TAC_ASSERT( pageToAllocateFrom );
 
-    const u64 offset = mCurPageUsedByteCount;
+    const u64 offset { (u64)mCurPageUsedByteCount };
     mCurPageUsedByteCount += byteCount;
 
-    D3D12_GPU_VIRTUAL_ADDRESS const gpuAddr = pageToAllocateFrom->mGPUAddr + offset;
-    void* const cpuAddr = ( u8* )pageToAllocateFrom->mCPUAddr + offset;
+    D3D12_GPU_VIRTUAL_ADDRESS const gpuAddr { pageToAllocateFrom->mGPUAddr + offset };
+    void* const cpuAddr { ( u8* )pageToAllocateFrom->mCPUAddr + offset };
 
 
     return DynAlloc
     {
-      .mResource = pageToAllocateFrom->mBuffer.Get(),
-      .mResourceOffest = offset,
-      .mGPUAddr = gpuAddr,
-      .mCPUAddr = cpuAddr,
-      .mByteCount = byteCount,
+      .mResource       { pageToAllocateFrom->mBuffer.Get() },
+      .mResourceOffest { offset },
+      .mGPUAddr        { gpuAddr },
+      .mCPUAddr        { cpuAddr },
+      .mByteCount      { byteCount },
     };
   }
 
@@ -95,17 +96,17 @@ namespace Tac::Render
 
   void DX12ExampleGPUUploadPageManager::UnretirePages()
   {
-    int n = mRetiredPages.size();
+    int n { mRetiredPages.size() };
     if( !n )
       return;
 
     int i{};
     while( i < n )
     {
-      RetiredPage& currPage = mRetiredPages[ i ];
-      RetiredPage& backPage = mRetiredPages[ n - 1 ];
+      RetiredPage& currPage { mRetiredPages[ i ] };
+      RetiredPage& backPage { mRetiredPages[ n - 1 ] };
 
-      const FenceSignal fenceValue = currPage.mFence;
+      const FenceSignal fenceValue { currPage.mFence };
       if( mCommandQueue->IsFenceComplete( fenceValue ) )
       {
         if( currPage.mPage.mByteCount <= DX12ExampleGPUUploadPage::kDefaultByteCount )
@@ -155,25 +156,27 @@ namespace Tac::Render
 
     const D3D12_HEAP_PROPERTIES HeapProps
     {
-      .Type = D3D12_HEAP_TYPE_UPLOAD,
-      .CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-      .MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-      .CreationNodeMask = 1,
-      .VisibleNodeMask = 1,
+      .Type                 { D3D12_HEAP_TYPE_UPLOAD },
+      .CPUPageProperty      { D3D12_CPU_PAGE_PROPERTY_UNKNOWN },
+      .MemoryPoolPreference { D3D12_MEMORY_POOL_UNKNOWN },
+      .CreationNodeMask     { 1 },
+      .VisibleNodeMask      { 1 },
     };
+
+    const DXGI_SAMPLE_DESC SampleDesc { .Count { 1 } };
 
     const D3D12_RESOURCE_DESC ResourceDesc
     {
-      .Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-      .Alignment = 0,
-      .Width = ( UINT64 )byteCount,
-      .Height = 1,
-      .DepthOrArraySize = 1,
-      .MipLevels = 1,
-      .Format = DXGI_FORMAT_UNKNOWN,
-      .SampleDesc = DXGI_SAMPLE_DESC{.Count = 1, .Quality = 0 },
-      .Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-      .Flags = D3D12_RESOURCE_FLAG_NONE,
+      .Dimension        { D3D12_RESOURCE_DIMENSION_BUFFER },
+      .Alignment        { 0 },
+      .Width            { ( UINT64 )byteCount },
+      .Height           { 1 },
+      .DepthOrArraySize { 1 },
+      .MipLevels        { 1 },
+      .Format           { DXGI_FORMAT_UNKNOWN },
+      .SampleDesc       { SampleDesc },
+      .Layout           { D3D12_TEXTURE_LAYOUT_ROW_MAJOR },
+      .Flags            { D3D12_RESOURCE_FLAG_NONE },
     };
 
     const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
@@ -200,17 +203,17 @@ namespace Tac::Render
 
     return DX12ExampleGPUUploadPage
     {
-      .mBuffer = buffer,
-      .mGPUAddr = buffer->GetGPUVirtualAddress(),
-      .mCPUAddr = cpuAddr,
-      .mByteCount = byteCount,
+      .mBuffer    { buffer },
+      .mGPUAddr   { buffer->GetGPUVirtualAddress() },
+      .mCPUAddr   { cpuAddr },
+      .mByteCount { byteCount },
     };
 
   }
 
   void          DX12ExampleGPUUploadPageManager::RetirePage( DX12ExampleGPUUploadPage page, FenceSignal signal )
   {
-    RetiredPage retired{ .mPage = page, .mFence = signal };
+    RetiredPage retired{ .mPage { page }, .mFence { signal } };
     mRetiredPages.push_back( retired );
   }
 

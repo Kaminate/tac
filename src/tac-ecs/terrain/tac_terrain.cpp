@@ -184,7 +184,7 @@ namespace Tac
         const int heightmapY { ( int )( zPercent * ( mTestHeightmapHeight - 1 ) ) };
         const u8 heightmapValue { mTestHeightmapImageMemory[ heightmapX + heightmapY * mTestHeightmapWidth ] };
 
-        float heightmapPercent = heightmapValue / 255.0f;
+        float heightmapPercent { heightmapValue / 255.0f };
         heightmapPercent *= heightmapPercent;
         heightmapPercent = Pow( heightmapPercent, mPower );
 

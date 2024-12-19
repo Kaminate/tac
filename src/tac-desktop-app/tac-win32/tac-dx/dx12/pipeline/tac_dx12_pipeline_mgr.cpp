@@ -248,7 +248,7 @@ namespace Tac::Render
       if( !pipeline.IsValid() )
         continue;
 
-      bool programChanged = false;
+      bool programChanged{};
       for( ProgramHandle changedProgram : changedPrograms )
         if( pipeline.mPipelineParams.mProgram.GetIndex() == changedProgram.GetIndex() )
           programChanged = true;

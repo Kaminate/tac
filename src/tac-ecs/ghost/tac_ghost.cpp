@@ -322,7 +322,7 @@ namespace Tac
     {
       ImGui::Indent();
       TAC_ON_DESTRUCT( ImGui::Unindent() );
-      for( int iUser = 0; iUser < mUsers.size(); ++iUser )
+      for( int iUser {}; iUser < mUsers.size(); ++iUser )
       {
         auto user = mUsers[ iUser ];
         const String userHeader = String() + "User: " + ToString( iUser ) + ": " user->mName;
@@ -344,17 +344,17 @@ namespace Tac
   void Ghost::Draw( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
-    //World* world = mServerData->mWorld;
-    //Graphics* graphics = Graphics::Get( world );
+    //World* world { mServerData->mWorld };
+    //Graphics* graphics { Graphics::Get( world ) };
 
     //Renderer::Instance->DebugBegin( "Draw world" );
     //TAC_ON_DESTRUCT( Renderer::Instance->DebugEnd() );
-    //Texture* fboTexture = mDrawTexture;
-    //DepthBuffer* fboDepth = mDrawDepthBuffer;
-    //Texture* fboTexture = mRenderView->mFramebuffer;
-    //DepthBuffer* fboDepth = mRenderView->mFramebufferDepth;
+    //Texture* fboTexture { mDrawTexture };
+    //DepthBuffer* fboDepth { mDrawDepthBuffer };
+    //Texture* fboTexture { mRenderView->mFramebuffer };
+    //DepthBuffer* fboDepth { mRenderView->mFramebufferDepth };
 
-    //const float aspect = fboTexture->GetAspect();
+    //const float aspect { fboTexture->GetAspect() };
     //Renderer::Instance->ClearColor( fboTexture, mClearColor );
     //Renderer::Instance->ClearDepthStencil( fboDepth, true, 1.0f, false, 0 );
     //Renderer::Instance->SetRenderTarget( fboTexture, fboDepth );
@@ -380,14 +380,14 @@ namespace Tac
     v3 camU( 0, 1, 0 );
     float farPlane { 10000.0f };
     float nearPlane { 0.1f };
-    //float fovYRad = 100.0f * ( 3.14f / 180.0f );
-    //const Render::InProj inProj = { .mNear = nearPlane, .mFar = farPlane };
-    //const Render::OutProj outProj = Render::GetPerspectiveProjectionAB( inProj );
-    //const float projA = outProj.mA;
-    //const float projB = outProj.mB;
+    //float fovYRad { 100.0f * ( 3.14f / 180.0f ) };
+    //const Render::InProj inProj  { .mNear = nearPlane, .mFar = farPlane };
+    //const Render::OutProj outProj { Render::GetPerspectiveProjectionAB( inProj ) };
+    //const float projA { outProj.mA };
+    //const float projB { outProj.mB };
 
     const m4 world_to_view { m4::View( camPos, camViewDir, camR, camU ) };
-    //auto view_to_clip = M4ProjPerspective( projA, projB, fovYRad, aspect );
+    //auto view_to_clip { M4ProjPerspective( projA, projB, fovYRad, aspect ) };
 
     //InvalidCodePath;
     //Renderer::Instance->SetBlendState( nullptr );
@@ -449,20 +449,20 @@ namespace Tac
     //World* world = mServerData->mWorld;
     //Physics* physics = Physics::GetSystem( world );
 
-    //FileSys::Path levelpath = "mylevel.txt";
+    //FileSys::Path levelpath { "mylevel.txt" };
     //Errors errors;
-    //String mem = FileToString( levelpath, errors );
+    //String mem { FileToString( levelpath, errors ) };
     //if( mem.empty() )
     //{
-    //  const String errorMsg = "failed to open " + levelpath.u8string();
+    //  const String errorMsg { "failed to open " + levelpath.u8string() };
     //  mLevelLoadErrors.Append( errorMsg );
     //  mLevelLoadErrors.Append( TAC_STACK_FRAME );
     //  return;
     //}
 
-    //auto meta = Meta::GetInstance();
-    //auto terrain = new Terrain();
-    //auto metaTerrain = meta->GetType( Stringify( Terrain ) );
+    //auto meta { Meta::GetInstance() };
+    //auto terrain { new Terrain() };
+    //auto metaTerrain { meta->GetType( Stringify( Terrain ) ) };
     //meta->Load( ifs, metaTerrain, terrain, mLevelLoadErrors );
     //if( mLevelLoaderrors )
     //  return;

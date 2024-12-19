@@ -14,12 +14,12 @@ namespace Tac
 #if UseQuat()
     TmpQuat::TmpQuat(const m3& rotation)
     {
-      float trace = rotation.Trace();
+      float trace { rotation.Trace() };
       if( trace > 0.0f )
       {
-        float s = Sqrt( trace + 1.0f );
+        float s { Sqrt( trace + 1.0f ) };
         w = s * 0.5f;
-        float recip = 0.5f / s;
+        float recip { 0.5f / s };
         x = ( rotation( 2, 1 ) - rotation( 1, 2 ) ) * recip;
         y = ( rotation( 0, 2 ) - rotation( 2, 0 ) ) * recip;
         z = ( rotation( 1, 0 ) - rotation( 0, 1 ) ) * recip;
@@ -31,11 +31,11 @@ namespace Tac
           i = 1;
         if( rotation( 2, 2 ) > rotation( i, i ) )
           i = 2;
-        unsigned int j = ( i + 1 ) % 3;
-        unsigned int k = ( j + 1 ) % 3;
-        float s = Sqrt( rotation( i, i ) - rotation( j, j ) - rotation( k, k ) + 1.0f );
+        unsigned int j { ( i + 1 ) % 3 };
+        unsigned int k { ( j + 1 ) % 3 };
+        float s { Sqrt( rotation( i, i ) - rotation( j, j ) - rotation( k, k ) + 1.0f ) };
         ( *this )[ i ] = 0.5f * s;
-        float recip = 0.5f / s;
+        float recip { 0.5f / s };
         w = ( rotation( k, j ) - rotation( j, k ) ) * recip;
         ( *this )[ j ] = ( rotation( j, i ) + rotation( i, j ) ) * recip;
         ( *this )[ k ] = ( rotation( k, i ) + rotation( i, k ) ) * recip;
@@ -51,7 +51,7 @@ namespace Tac
     }
     void TmpQuat::Normalize()
     {
-      float lengthsq = w * w + x * x + y * y + z * z;
+      float lengthsq { w * w + x * x + y * y + z * z };
 
       if( Abs(lengthsq) < 0.001f)
       {
@@ -59,7 +59,7 @@ namespace Tac
       }
       else
       {
-        float factor = 1.0f / Sqrt( lengthsq );
+        float factor { 1.0f / Sqrt( lengthsq ) };
         w *= factor;
         x *= factor;
         y *= factor;
@@ -427,8 +427,8 @@ namespace Tac
 
   void m3::operator+= ( const m3& m )
   {
-    float* dst = this->data();
-    const float* src = m.data();
+    float* dst { this->data() };
+    const float* src { m.data() };
     for( int i{}; i < 3 * 3; ++i )
     {
       dst[ i ] += src[ i ];
@@ -437,7 +437,7 @@ namespace Tac
 
   m3 operator* (float f, const m3& m)
   {
-    m3 result = m;
+    m3 result { m };
     result *=f;
     return result;
   }
@@ -446,7 +446,7 @@ namespace Tac
   static void m3UnitTestInverse(m3 m, m3 mInvExpected)
   {
     m3 mInv;
-    bool invExists = m.Invert(&mInv);
+    bool invExists { m.Invert(&mInv) };
     TAC_ASSERT( invExists );
     AssertAboutEqual( mInv, mInvExpected );
   }

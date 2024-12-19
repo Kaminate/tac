@@ -13,7 +13,7 @@ namespace Tac
   struct Errors;
   using JsonNumber = double;
 
-	const bool JsonParseDebug = false;
+  const bool JsonParseDebug {};
 
 	enum class JsonType
 	{
@@ -27,8 +27,8 @@ namespace Tac
 
 	struct Indentation
 	{
-		int    spacesPerTab = 2;
-		bool   convertTabsToSpaces = true;
+    int    spacesPerTab        { 2 };
+    bool   convertTabsToSpaces { true };
 	};
 
 	// The function names Stringify and Parse mimic the built-in javascript api

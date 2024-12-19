@@ -50,15 +50,15 @@ namespace Tac::gpupt
   void BVH::Subdivide( u32 iNode )
   {
     BVHNode& node{ mBVHNodes[ iNode ] };
-    int iAxis = -1;
-    float splitPosition = 0;
-    float splitCost = FindBestSplitPlane( node, iAxis, splitPosition );
-    float noSplitCost = CalculateNodeCost( node );
+    int iAxis { -1 };
+    float splitPosition {};
+    float splitCost { FindBestSplitPlane( node, iAxis, splitPosition ) };
+    float noSplitCost { CalculateNodeCost( node ) };
     if( splitCost > noSplitCost )
       return;
 
-    u32 i = node.mFirstTriangleIndex;
-    u32 j = node.mFirstTriangleIndex + node.mTriangleCount - 1;
+    u32 i { node.mFirstTriangleIndex };
+    u32 j { node.mFirstTriangleIndex + node.mTriangleCount - 1 };
     while( i <= j )
     {
       if( mMesh->mTriangles[ mTriangleIndices[ i ] ].mCentroid[ iAxis ] < splitPosition )
@@ -116,13 +116,13 @@ namespace Tac::gpupt
 
   float BVH::FindBestSplitPlane( const BVHNode& Node, int& bestAxis, float& bestSplitPosition )
   {
-    const int BINS = 8;
-    float BestCost = 1e30f;
-    for( int CurrentAxis = 0; CurrentAxis < 3; CurrentAxis++ )
+    const int BINS { 8 };
+    float BestCost { 1e30f };
+    for( int CurrentAxis {}; CurrentAxis < 3; CurrentAxis++ )
     {
-      float BoundsMin = 1e30f;
-      float BoundsMax = -1e30f;
-      for( u32 i = 0; i < Node.mTriangleCount; i++ )
+      float BoundsMin { 1e30f };
+      float BoundsMax { -1e30f };
+      for( u32 i {}; i < Node.mTriangleCount; i++ )
       {
         BVHTriangle& triangle = mMesh->mTriangles[ mTriangleIndices[ Node.mFirstTriangleIndex + i ] ];
         BoundsMin = Min( BoundsMin, triangle.mCentroid[ CurrentAxis ] );
@@ -132,11 +132,11 @@ namespace Tac::gpupt
 
 
       Bin bins[ BINS ];
-      float Scale = BINS / ( BoundsMax - BoundsMin );
-      for( u32 i = 0; i < Node.mTriangleCount; i++ )
+      float Scale { BINS / ( BoundsMax - BoundsMin ) };
+      for( u32 i {}; i < Node.mTriangleCount; i++ )
       {
-        BVHTriangle& triangle = mMesh->mTriangles[ mTriangleIndices[ Node.mFirstTriangleIndex + i ] ];
-        int BinIndex = Min( BINS - 1, ( int )( ( triangle.mCentroid[ CurrentAxis ] - BoundsMin ) * Scale ) );
+        BVHTriangle& triangle { mMesh->mTriangles[ mTriangleIndices[ Node.mFirstTriangleIndex + i ] ] };
+        int BinIndex { Min( BINS - 1, ( int )( ( triangle.mCentroid[ CurrentAxis ] - BoundsMin ) * Scale ) ) };
         bins[ BinIndex ].mTriangleCount++;
         bins[ BinIndex ].mBounds.Grow( triangle.mV0 );
         bins[ BinIndex ].mBounds.Grow( triangle.mV1 );
@@ -146,8 +146,10 @@ namespace Tac::gpupt
       float LeftArea[ BINS - 1 ], RightArea[ BINS - 1 ];
       int LeftCount[ BINS - 1 ], RightCount[ BINS - 1 ];
 
-      AABB32 LeftBox, RightBox;
-      int LeftSum = 0, RightSum = 0;
+      AABB32 LeftBox{};
+      AABB32 RightBox{};
+      int LeftSum {};
+      int RightSum {};
 
       for( int i = 0; i < BINS - 1; i++ )
       {
@@ -167,7 +169,7 @@ namespace Tac::gpupt
       Scale = ( BoundsMax - BoundsMin ) / BINS;
       for( int i = 0; i < BINS - 1; i++ )
       {
-        float PlaneCost = LeftCount[ i ] * LeftArea[ i ] + RightCount[ i ] * RightArea[ i ];
+        float PlaneCost { LeftCount[ i ] * LeftArea[ i ] + RightCount[ i ] * RightArea[ i ] };
         if( PlaneCost < BestCost )
         {
           bestAxis = CurrentAxis;
@@ -366,9 +368,9 @@ namespace Tac::gpupt
   // Note that FindBestMatch( A ) does not necessarily equal FindBestMatch( B )
   int TLAS::FindBestMatch(int* List, int N, int A)
   {
-      float Smallest = inf;
-      int BestB = -1;
-      for(int B=0; B< N; B++)
+      float Smallest { inf };
+      int BestB { -1 };
+      for(int B{}; B< N; B++)
       {
           if(B != A)
           {

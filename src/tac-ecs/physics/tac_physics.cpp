@@ -335,7 +335,7 @@ namespace Tac
     {
       ImGui::Indent();
       OnDestruct( ImGui::Unindent() );
-      int iTerrain = 0;
+      int iTerrain {};
       for( Terrain* terrain : mTerrains )
       {
         ImGui::PushID( terrain );
@@ -345,12 +345,12 @@ namespace Tac
 
         if( ImGui::Button( "Add OBB" ) )
         {
-          TerrainOBB obb = {};
+          TerrainOBB obb  {};
           terrain->mTerrainOBBs.push_back( obb );
         }
         ImGui::Indent();
         OnDestruct( ImGui::Unindent() );
-        for( int iOBB = 0; iOBB < ( int )terrain->mTerrainOBBs.size(); ++iOBB )
+        for( int iOBB {}; iOBB < ( int )terrain->mTerrainOBBs.size(); ++iOBB )
         {
           TerrainOBB& obb = terrain->mTerrainOBBs[ iOBB ];
           ImGui::PushID( &obb );

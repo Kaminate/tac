@@ -44,8 +44,8 @@ namespace Tac
   float x0, y0, x1, y1; // rect bounds
   int imax, jmax; // lattice bounds
   float deltaT; // time step ( positive )
-  float deltaX = ( x1 - x0 ) / imax; // cell x-dimension
-  float deltaY = ( y1 - y0 ) / jmax; // cell x-dimension
+  float deltaX { ( x1 - x0 ) / imax }; // cell x-dimension
+  float deltaY { ( y1 - y0 ) / jmax }; // cell x-dimension
 
   // initial values
   float RhoT0( float x, float y );
@@ -58,14 +58,14 @@ namespace Tac
 
   // locals
   float kappa; // density viscosity constant ( positive )
-  float lambdaX = ( kappa * deltaT ) / ( deltaX * deltaX );
-  float lambdaY = ( kappa * deltaT ) / ( deltaY * deltaY );
-  BoundaryType type;
-  float* x; // lattice cell center x
-  float* y; // lattice cell center y
-  float* rhoOld; // density, old time
-  float* rhoNew; // density, new time
-  float t = 0;
+  float lambdaX { ( kappa * deltaT ) / ( deltaX * deltaX ) };
+  float lambdaY { ( kappa * deltaT ) / ( deltaY * deltaY ) };
+  BoundaryType type{};
+  float* x{}; // lattice cell center x
+  float* y{}; // lattice cell center y
+  float* rhoOld{}; // density, old time
+  float* rhoNew{}; // density, new time
+  float t {};
 
   void SetBoundaryFunctions( BoundaryType t )
   {
@@ -88,10 +88,10 @@ namespace Tac
 
   void InitializeExplicit( float* x, float* y, Fn2D initT0, float** sOld )
   {
-    for( int i = 0; i < imax; ++i )
+    for( int i {}; i < imax; ++i )
     {
       x[ i ] = x0 + deltaX * i;
-      for( int j = 0; j < jmax; ++j )
+      for( int j {}; j < jmax; ++j )
       {
         y[ j ] = y0 + deltaY * j;
         sOld[ j + i * imax ] = initT0( x[ i ], y[ j ] );

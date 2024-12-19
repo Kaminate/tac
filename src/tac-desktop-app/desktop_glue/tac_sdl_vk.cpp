@@ -57,7 +57,7 @@ namespace Tac
     TAC_RAISE_ERROR_IF_RETURN( gotNames != SDL_TRUE, "SDL_Vulkan_GetInstanceExtensions failed to get names", errors, {} );
 
     Vector< String > result( count );
-    for( unsigned int i = 0; i < count; ++i )
+    for( unsigned int i {}; i < count; ++i )
       result[ i ] = names[ i ];
 
     SDL_DestroyWindow( window );

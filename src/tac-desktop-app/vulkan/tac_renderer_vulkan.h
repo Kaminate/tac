@@ -202,9 +202,9 @@ namespace Tac::Render
     AssetPathStringView GetShaderPath(  const ShaderNameStringView& ) const override;
     AssetPathStringView GetShaderDir() const override;
 
-    FramebufferVk              mFramebuffers[ kMaxFramebuffers ] = {};
-    FramebufferHandle          mWindows[ kMaxFramebuffers ];
-    int                        mWindowCount = 0;
+    FramebufferVk              mFramebuffers[ kMaxFramebuffers ]  {};
+    FramebufferHandle          mWindows[ kMaxFramebuffers ]       {};
+    int                        mWindowCount                       {};
   };
 
 } // namespace Tac::Render

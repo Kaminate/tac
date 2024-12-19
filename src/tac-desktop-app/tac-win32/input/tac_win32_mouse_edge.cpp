@@ -95,7 +95,7 @@ namespace Tac
     if( !cursorType )
       return "Default";
     static char result[ 10 ]  {};
-    int iResult = 0;
+    int iResult {};
     if( cursorType & CursorDirN ) result[ iResult++ ] = 'N';
     if( cursorType & CursorDirW ) result[ iResult++ ] = 'W';
     if( cursorType & CursorDirS ) result[ iResult++ ] = 'S';

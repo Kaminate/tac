@@ -22,10 +22,10 @@ namespace Tac
   private:
     void   reserve( int );
 
-    int    mCapacity = 0;
-    int    mSize = 0;
-    int*   mDense = nullptr;
-    int*   mSparse = nullptr;
+    int    mCapacity {};
+    int    mSize     {};
+    int*   mDense    {};
+    int*   mSparse   {};
   };
 
   void UnitTestIdCollection();

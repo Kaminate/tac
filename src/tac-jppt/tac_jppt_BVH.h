@@ -49,42 +49,37 @@ namespace Tac::gpupt
 
   struct Bin
   {
-      AABB32 mBounds;
-      u32    mTriangleCount = 0;
+      AABB32 mBounds        {};
+      u32    mTriangleCount {};
   };
 
   struct BVHTriangle
   {
-    v3    mV0;
-    float mPad0;
-
-    v3    mV1;
-    float mPad1;
-
-    v3    mV2;
-    float mPad2;
-
-    v3    mCentroid;
-    float mPad3;
+    v3    mV0       {};
+    float mPad0     {};
+    v3    mV1       {};
+    float mPad1     {};
+    v3    mV2       {};
+    float mPad2     {};
+    v3    mCentroid {};
+    float mPad3     {};
   };
 
   static_assert_gpu_padded( BVHTriangle );
 
   struct VertexExtraData
   {
-    v3    mNormal;
-    float mPad0;
-
-    v2    mUV;
-    v2    mPad1;
-
-    v4    mColor;
-    v4    mTangent;
+    v3    mNormal  {};
+    float mPad0    {};
+    v2    mUV      {};
+    v2    mPad1    {};
+    v4    mColor   {};
+    v4    mTangent {};
   };
 
   struct BVHTriangleExtraData
   {
-    VertexExtraData mVertexExtraDatas[ 3 ];
+    VertexExtraData mVertexExtraDatas[ 3 ] {};
   };
 
   static_assert_gpu_padded( BVHTriangleExtraData );

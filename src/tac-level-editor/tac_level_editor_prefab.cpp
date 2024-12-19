@@ -284,7 +284,7 @@ void                Tac::PrefabLoad( SettingsNode settingsNode,
 
 bool                Tac::PrefabSave( World* world, Errors& errors )
 {
-  bool result = false;
+  bool result {};
   for( Entity* entity : world->mEntities )
     result |= PrefabSaveEntity( entity, errors );
 

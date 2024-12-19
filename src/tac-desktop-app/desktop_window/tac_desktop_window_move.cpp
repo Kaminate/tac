@@ -8,8 +8,8 @@ namespace Tac
 #if 0
   struct RequestMove
   {
-    bool              mRequested = false;
-    DesktopWindowRect mRect = {};
+    bool              mRequested {};
+    DesktopWindowRect mRect      {};
   };
 
   static RequestMove                   sRequestMove[ kDesktopWindowCapacity ];

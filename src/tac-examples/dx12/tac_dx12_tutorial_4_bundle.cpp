@@ -147,7 +147,7 @@ namespace Tac
 
   void DX12AppHelloBundle::InitDescriptorSizes()
   {
-    for( int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    for( int i {}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
       m_descriptorSizes[ i ]
       = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
   }

@@ -153,7 +153,7 @@ namespace Tac
       const int i{ windowHandle.GetIndex() };
       sHWNDs[ i ] = hwnd;
       sWindowUnderConstruction = {};
-      auto windowInfo = ( const CREATESTRUCT* )lParam;
+      auto windowInfo { ( const CREATESTRUCT* )lParam };
       TAC_ASSERT( windowInfo->cx && windowInfo->cy );
       TAC_ASSERT( windowInfo->lpszName );
       const DesktopEventApi::WindowCreateEvent data

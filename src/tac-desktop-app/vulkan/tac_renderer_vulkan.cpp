@@ -184,10 +184,10 @@ namespace Tac::Render
   void RendererVulkan::RemoveDepthState( DepthStateHandle, Errors& ) {};
   void RendererVulkan::RemoveFramebuffer( FramebufferHandle framebufferHandle, Errors& errors )
   {
-    for( int i = 0; i < mWindowCount; ++i )
+    for( int i {}; i < mWindowCount; ++i )
       if( mWindows[ i ] == framebufferHandle )
         mWindows[ i ] = mWindows[ --mWindowCount ];
-    FramebufferVk* framebuffer = &mFramebuffers[ ( int )framebufferHandle ];
+    FramebufferVk* framebuffer { &mFramebuffers[ ( int )framebufferHandle ] };
 
     vkDestroySwapchainKHR( _device,  framebuffer->_swapchain, nullptr );
     for( VkImageView view : framebuffer->_swapchainImageViews )

@@ -268,7 +268,7 @@ namespace Tac
                                      &requiredByteCount );
 
     // for each subresource
-    for( int iSubRes = 0; iSubRes < nSubRes; ++iSubRes )
+    for( int iSubRes {}; iSubRes < nSubRes; ++iSubRes )
     {
 
       TAC_ASSERT( totalBytes >= requiredByteCount );
@@ -310,7 +310,7 @@ namespace Tac
     }
 
 
-    for( int iSubRes = 0; iSubRes < nSubRes; ++iSubRes )
+    for( int iSubRes {}; iSubRes < nSubRes; ++iSubRes )
     {
       const D3D12_TEXTURE_COPY_LOCATION Dst
       {

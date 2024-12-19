@@ -34,11 +34,11 @@ namespace Tac
     PCom<ID3D12Debug> dx12debug;
     TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
 
-    auto dx12debug5 { dx12debug.QueryInterface< ID3D12Debug5>() };
-    auto dx12debug4 { dx12debug.QueryInterface< ID3D12Debug4>() };
-    auto dx12debug3 { dx12debug.QueryInterface< ID3D12Debug3>() };
-    auto dx12debug2 { dx12debug.QueryInterface< ID3D12Debug2>() };
-    auto dx12debug1 { dx12debug.QueryInterface< ID3D12Debug1>() };
+    auto dx12debug5 { dx12debug.QueryInterface< ID3D12Debug5 >() };
+    auto dx12debug4 { dx12debug.QueryInterface< ID3D12Debug4 >() };
+    auto dx12debug3 { dx12debug.QueryInterface< ID3D12Debug3 >() };
+    auto dx12debug2 { dx12debug.QueryInterface< ID3D12Debug2 >() };
+    auto dx12debug1 { dx12debug.QueryInterface< ID3D12Debug1 >() };
 
     // EnableDebugLayer must be called before the device is created
     TAC_ASSERT( ! m_device );

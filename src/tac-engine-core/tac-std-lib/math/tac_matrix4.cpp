@@ -151,17 +151,17 @@ namespace Tac
 
   m4           m4::Transform( const v3& scale, const m3& rot, const v3& translate )
   {
-    float m00 = scale[ 0 ] * rot( 0, 0 );
-    float m01 = scale[ 1 ] * rot( 0, 1 );
-    float m02 = scale[ 2 ] * rot( 0, 2 );
+    float m00 { scale[ 0 ] * rot( 0, 0 ) };
+    float m01 { scale[ 1 ] * rot( 0, 1 ) };
+    float m02 { scale[ 2 ] * rot( 0, 2 ) };
 
-    float m10 = scale[ 0 ] * rot( 1, 0 );
-    float m11 = scale[ 1 ] * rot( 1, 1 );
-    float m12 = scale[ 2 ] * rot( 1, 2 );
+    float m10 { scale[ 0 ] * rot( 1, 0 ) };
+    float m11 { scale[ 1 ] * rot( 1, 1 ) };
+    float m12 { scale[ 2 ] * rot( 1, 2 ) };
 
-    float m20 = scale[ 0 ] * rot( 2, 0 );
-    float m21 = scale[ 1 ] * rot( 2, 1 );
-    float m22 = scale[ 2 ] * rot( 2, 2 );
+    float m20 { scale[ 0 ] * rot( 2, 0 ) };
+    float m21 { scale[ 1 ] * rot( 2, 1 ) };
+    float m22 { scale[ 2 ] * rot( 2, 2 ) };
 
     return m4( m00, m01, m02, translate[ 0 ],
                m10, m11, m12, translate[ 1 ],
@@ -489,10 +489,10 @@ namespace Tac
   m4           m4::ProjPerspectiveInv( ProjectionMatrixParams params )
   {
     // http://allenchou.net/2014/02/game-math-how-to-eyeball-the-inverse-of-a-matrix/
-    const float theta = params.mFOVYRadians / 2.0f;
-    const float cotTheta = 1.0f / Tan( theta );
-    const float sX = cotTheta / params.mAspectRatio; // maps x to -1, 1
-    const float sY = cotTheta; // maps y to -1, 1
+    const float theta { params.mFOVYRadians / 2.0f };
+    const float cotTheta { 1.0f / Tan( theta ) };
+    const float sX { cotTheta / params.mAspectRatio }; // maps x to -1, 1
+    const float sY { cotTheta }; // maps y to -1, 1
     const AB ab( params );
     const float A { ab.mA};
     const float B { ab.mB };
@@ -505,10 +505,10 @@ namespace Tac
   m4           m4::ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
   {
     // http://allenchou.net/2014/02/game-math-how-to-eyeball-the-inverse-of-a-matrix/
-    const float theta = mFieldOfViewYRad / 2.0f;
-    const float cotTheta = 1.0f / Tan( theta );
-    const float sX = cotTheta / mAspectRatio; // maps x to -1, 1
-    const float sY = cotTheta; // maps y to -1, 1
+    const float theta { mFieldOfViewYRad / 2.0f };
+    const float cotTheta { 1.0f / Tan( theta ) };
+    const float sX { cotTheta / mAspectRatio }; // maps x to -1, 1
+    const float sY { cotTheta }; // maps y to -1, 1
     return { 1.0f / sX, 0, 0, 0,
              0, 1.0f / sY, 0, 0,
              0, 0, 0, -1,
@@ -521,7 +521,7 @@ namespace Tac
     for( int i{}; i < 4; ++i )
     {
       float sum {};
-      for( int j = 0; j < 4; ++j )
+      for( int j {}; j < 4; ++j )
       {
         sum += m( i, j ) * v[ j ];
       }

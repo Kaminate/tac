@@ -55,10 +55,9 @@ namespace Tac::Keyboard
     void               EndFrame();
 
 
-    KeyboardInputFrame mCurr;
-    KeyboardInputFrame mPrev;
-
-    Codepoint          mWMCharPressedHax = 0;
+    KeyboardInputFrame mCurr             {};
+    KeyboardInputFrame mPrev             {};
+    Codepoint          mWMCharPressedHax {};
 
   };
 
@@ -181,20 +180,20 @@ namespace Tac::Keyboard
   String    KeyboardInputFrame::GetPressedKeyDescriptions()
   {
     Vector< String > keyNames;
-    for( int i = 0; i < ( int )Key::Count; ++i )
+    for( int i {}; i < ( int )Key::Count; ++i )
     {
       const Key key = ( Key )i;
       if( !IsKeyDown( key ) )
         continue;
 
-      const String keyName = ToString( key );
+      const String keyName { ToString( key ) };
       keyNames.push_back( keyName );
     }
 
-    const String keysDownText = "Keys Down: " + (
+    const String keysDownText { "Keys Down: " + (
       keyNames.empty()
       ? String( "none" )
-      : Join( keyNames, ", " ) );
+      : Join( keyNames, ", " ) ) };
     return keysDownText;
   }
 
@@ -267,9 +266,9 @@ namespace Tac::Mouse
   {
     bool    IsDown( Button ) const;
 
-    bool    mCurrDown[ ( int )Button::Count ] = {};
-    v2      mScreenspaceCursorPos = {};
-    int     mMouseScroll = 0;
+    bool    mCurrDown[ ( int )Button::Count ] {};
+    v2      mScreenspaceCursorPos             {};
+    int     mMouseScroll                      {};
   };
 
   struct MouseInput
@@ -281,12 +280,12 @@ namespace Tac::Mouse
     bool      ButtonJustDown( Button );
     bool      ButtonIsDown( Button );
     bool      ButtonWasDown( Button );
-    void      ButtonSetIsDown( Button , bool );
+    void      ButtonSetIsDown( Button, bool );
 
-    MouseInputFrame mCurr;
-    MouseInputFrame mPrev;
-    v2              mMouseDeltaPos = {};
-    int             mMouseDeltaScroll = 0;
+    MouseInputFrame mCurr             {};
+    MouseInputFrame mPrev             {};
+    v2              mMouseDeltaPos    {};
+    int             mMouseDeltaScroll {};
   };
 
   // -----------------------------------------------------------------------------------------------

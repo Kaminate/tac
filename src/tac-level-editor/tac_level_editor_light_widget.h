@@ -4,6 +4,6 @@ namespace Tac
 {
   struct LightWidget
   {
-    static inline constexpr float sSize = 6; 
+    static inline constexpr float sSize { 6 }; 
   };
 }

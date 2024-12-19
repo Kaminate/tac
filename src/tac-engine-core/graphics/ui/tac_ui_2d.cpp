@@ -42,9 +42,9 @@ namespace Tac
   static m4 OrthographicUIMatrix2( const float w, const float h )
   {
     // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
-    const float sx = 2.0f / w;
-    const float sy = 2.0f / h;
-    const m4 projectionPieces[] =
+    const float sx { 2.0f / w };
+    const float sy { 2.0f / h };
+    const m4 projectionPieces[]
     {
       // orient to bottom left
       m4( 1, 0, 0, 0,

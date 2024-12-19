@@ -202,11 +202,11 @@ namespace Tac
   Filesystem::Path            SDLOSGetApplicationDataPath( Errors& errors ) 
   {
     //ExecutableStartupInfo info = ExecutableStartupInfo::Init();
-    ExecutableStartupInfo info = ExecutableStartupInfo::sInstance;
-    String org = info.mStudioName;
-    String app = info.mAppName;
+    ExecutableStartupInfo info { ExecutableStartupInfo::sInstance };
+    String org { info.mStudioName };
+    String app { info.mAppName };
     TAC_ASSERT( !org.empty() && !app.empty() );
-    Filesystem::Path path = SDL_GetPrefPath( org, app );
+    Filesystem::Path path { SDL_GetPrefPath( org, app ) };
     return path;
   }
 
@@ -219,7 +219,7 @@ namespace Tac
   {
     if( entry.is_regular_file() )
     {
-      String subDirPath = entry.path().string().c_str();
+      String subDirPath { entry.path().string().c_str() };
       files.push_back( subDirPath );
     }
   }
@@ -229,10 +229,10 @@ namespace Tac
                                          OSGetFilesInDirectoryFlags flags,
                                          Errors& ) 
   {
-    std::filesystem::path dirpath = dir.c_str();
+    std::filesystem::path dirpath { dir.c_str() };
     std::filesystem::recursive_directory_iterator itRecurse( dirpath );
     std::filesystem::directory_iterator itNonRecurse( dirpath );
-    const bool recurse = ( int )flags & ( int )OSGetFilesInDirectoryFlags::Recursive;
+    const bool recurse { ( int )flags & ( int )OSGetFilesInDirectoryFlags::Recursive };
     if( recurse )
     {
       for( const std::filesystem::directory_entry& entry : itRecurse )
@@ -251,12 +251,12 @@ namespace Tac
 
   void            SDLOSGetDirectoriesInDirectory( Vector< String >& dirs, StringView dir, Errors& ) 
   {
-    std::filesystem::path dirpath = dir.c_str();
+    std::filesystem::path dirpath { dir.c_str() };
     for( const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator( dirpath ) )
     {
       if( entry.is_directory() )
       {
-        String subDirPath = entry.path().string().c_str();
+        String subDirPath { entry.path().string().c_str() };
         dirs.push_back( subDirPath );
       }
     }
@@ -275,16 +275,16 @@ namespace Tac
 
   void            SDLOSGetPrimaryMonitor( int* w, int* h ) 
   {
-    int maxArea = 0;
-    int maxAreaW = 0;
-    int maxAreaH = 0;
-    for( int iDisplay = 0; iDisplay < SDL_GetNumVideoDisplays(); ++iDisplay )
+    int maxArea {};
+    int maxAreaW {};
+    int maxAreaH {};
+    for( int iDisplay {}; iDisplay < SDL_GetNumVideoDisplays(); ++iDisplay )
     {
       SDL_DisplayMode mode;
-      int displayResult = SDL_GetCurrentDisplayMode( iDisplay, &mode );
+      int displayResult { SDL_GetCurrentDisplayMode( iDisplay, &mode ) };
       if( displayResult )
         continue; // todo use SDL_GetError()
-      int area = mode.w * mode.h;
+      int area { mode.w * mode.h };
       if( area <= maxArea )
         continue;
       maxArea = area;
@@ -328,8 +328,8 @@ namespace Tac
 
   SemaphoreHandle SDLOSSemaphoreCreate() 
   {
-    const int i = sSDLSemaphoreIds.Alloc();
-    SDL_sem* sem = SDL_CreateSemaphore( 0 );
+    const int i { sSDLSemaphoreIds.Alloc() };
+    SDL_sem* sem { SDL_CreateSemaphore( 0 ) };
     sSDLSemaphores[ i ] = sem;
     TAC_ASSERT( sem );
     return i;
@@ -337,13 +337,13 @@ namespace Tac
 
   void            SDLOSSemaphoreDecrementWait( SemaphoreHandle semaphoreHandle ) 
   {
-    SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
+    SDL_sem* semaphore { sSDLSemaphores[ ( int )semaphoreHandle ] };
     SDL_SemPost( semaphore );
   }
 
   void            SDLOSSemaphoreIncrementPost( SemaphoreHandle semaphoreHandle ) 
   {
-    SDL_sem* semaphore = sSDLSemaphores[ ( int )semaphoreHandle ];
+    SDL_sem* semaphore { sSDLSemaphores[ ( int )semaphoreHandle ] };
     SDL_SemPost( semaphore );
   }
 

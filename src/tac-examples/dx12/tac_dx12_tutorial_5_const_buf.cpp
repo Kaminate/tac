@@ -55,9 +55,11 @@ namespace Tac
 
   void DX12AppHelloConstBuf::InitDescriptorSizes()
   {
-    for( int i = 0; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
-      m_descriptorSizes[ i ]
-      = m_device->GetDescriptorHandleIncrementSize( ( D3D12_DESCRIPTOR_HEAP_TYPE )i );
+    for( int i{}; i < D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES; i++ )
+    {
+      const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ ( D3D12_DESCRIPTOR_HEAP_TYPE )i };
+      m_descriptorSizes[ i ] = m_device->GetDescriptorHandleIncrementSize( heapType );
+    }
   }
 
   void DX12AppHelloConstBuf::CreateRTVDescriptorHeap( Errors& errors )

@@ -48,7 +48,7 @@ namespace Tac
 
   static void       LoadLightComponent( Json& lightJson, Component* component )
   {
-    auto light = ( Light* )component;
+    auto light { ( Light* )component };
 
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ) )
       light->mSpotHalfFOVRadians = ( float )lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].mNumber;

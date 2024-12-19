@@ -41,12 +41,12 @@ namespace Tac::Render
     struct Element
     {
       PCom< ID3D12CommandAllocator > mCmdAllocator;
-      FenceSignal mSignalValue;
+      FenceSignal                    mSignalValue;
     };
 
-    PCom< ID3D12Device5 > m_device; // device4 has createcommandlist1 method
-    RingVector< Element > mElements;
-    DX12ExampleCommandQueue* mCommandQueue = nullptr;
+    PCom< ID3D12Device5 >    m_device; // device4 has createcommandlist1 method
+    RingVector< Element >    mElements;
+    DX12ExampleCommandQueue* mCommandQueue {};
   };
 
 } // namespace Tac

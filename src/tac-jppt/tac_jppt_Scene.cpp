@@ -19,7 +19,7 @@ namespace Tac::gpupt
     const int nVerts{ mPositions.size() };
     const int nTris{ mTriangles.size() };
     mNormals.resize( nVerts );
-    for( int j = 0; j < nTris; j++ )
+    for( int j {}; j < nTris; j++ )
     {
       const v3i tri { mTriangles[ j ] };
       const v3 v0 { mPositions[ tri.x ] };
@@ -270,7 +270,7 @@ namespace Tac::gpupt
     scene->mInstanceNames.push_back( "TallBox" );
 
     // Checkup
-    for( int i = 0; i < scene->mShapes.size(); i++ )
+    for( int i {}; i < scene->mShapes.size(); i++ )
     {
       Shape& shape{ scene->mShapes[ i ] };
       const int nVerts{ shape.mPositions.size() };

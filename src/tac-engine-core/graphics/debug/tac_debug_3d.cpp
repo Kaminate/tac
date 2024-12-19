@@ -571,7 +571,7 @@ namespace Tac
                                          const v3& maxiColor )
   {
 
-    for( int a0 = 0; a0 < 3; ++a0 )
+    for( int a0 {}; a0 < 3; ++a0 )
     {
       v3 v0;
       v3 v0Color;

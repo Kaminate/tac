@@ -336,7 +336,7 @@ void Tac::ClosestPointTwoLineSegments( const v3& p1, // line 1 begin
   }
   else if( e <= EPSILON )
   {
-    float c = Dot( d1, r );
+    float c { Dot( d1, r ) };
     t = 0;
     s = Saturate( -c / a );
   }

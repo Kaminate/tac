@@ -46,7 +46,7 @@ namespace Tac::Controller
   }
   ControllerIndex Controller::FindControllerIndex()
   {
-    for( ControllerIndex iController = 0; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
+    for( ControllerIndex iController {}; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
       if( mInput->mControllers[ iController ] == this )
         return iController;
     TAC_ASSERT_INVALID_CODE_PATH;
