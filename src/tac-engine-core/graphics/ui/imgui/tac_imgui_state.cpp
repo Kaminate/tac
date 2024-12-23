@@ -820,7 +820,8 @@ namespace Tac
     if( sysDraws->mRenderBuffers.size() < n )
       sysDraws->mRenderBuffers.resize( n );
 
-    ImGuiRenderBuffers& renderBuffers { sysDraws->mRenderBuffers[ sysDraws->mFrameIndex ] };
+    const int iRenderBuffer{ sysDraws->mFrameIndex };
+    ImGuiRenderBuffers& renderBuffers { sysDraws->mRenderBuffers[ iRenderBuffer ] };
     ( ++sysDraws->mFrameIndex ) %= n;
 
     TAC_CALL( Render::IContext::Scope renderContextScope{
@@ -833,6 +834,8 @@ namespace Tac
       const int vertexCount{ desktopWindow->mDrawData.VertexCount() };
       const int indexCount{ desktopWindow->mDrawData.IndexCount() };
 
+      const String vtxBufName{ String( "imgui_vtx_buf " ) + ToString( iRenderBuffer ) };
+      const String idxBufName{ String( "imgui_idx_buf " ) + ToString( iRenderBuffer ) };
 
       auto getVtxBytes { []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
       auto getVtxCount { []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
@@ -843,7 +846,7 @@ namespace Tac
         .mSrcTotElemCount     { vertexCount },
         .mGetDrawElementBytes { getVtxBytes },
         .mGetDrawElementCount { getVtxCount },
-        .mBufName             { "imgui_vtx_buf" },
+        .mBufName             { vtxBufName },
         .mDraws               { desktopWindow->mDrawData },
         .mBinding             { Render::Binding::VertexBuffer },
       };
@@ -858,7 +861,7 @@ namespace Tac
         .mSrcTotElemCount     { indexCount },
         .mGetDrawElementBytes { getIdxBytes },
         .mGetDrawElementCount { getIdxCount },
-        .mBufName             { "imgui_idx_buf" },
+        .mBufName             { idxBufName },
         .mDraws               { desktopWindow->mDrawData },
         .mTexFmt              { Render::TexFmt::kR16_uint },
         .mBinding             { Render::Binding::IndexBuffer },

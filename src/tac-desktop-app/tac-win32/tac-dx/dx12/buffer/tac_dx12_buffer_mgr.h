@@ -39,6 +39,6 @@ namespace Tac::Render
                                           DX12Resource*,
                                           ID3D12GraphicsCommandList* );
 
-    DX12Buffers         mBuffers                      {};
+    DX12Buffers mBuffers{};
   };
 } // namespace Tac::Render

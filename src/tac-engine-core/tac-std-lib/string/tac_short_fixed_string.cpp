@@ -6,58 +6,62 @@ namespace Tac
 {
   ShortFixedString::ShortFixedString( const char* s )        { assign( s ); }
   ShortFixedString::ShortFixedString( const char* s, int n ) { assign( StringView( s, n ) ); }
-  ShortFixedString::ShortFixedString( const StringView& sv ) { assign( sv ); }
+  ShortFixedString::ShortFixedString( StringView sv ) { assign( sv ); }
 
-  ShortFixedString ShortFixedString::Concat( const StringView& sv0,
-                                             const StringView& sv1,
-                                             const StringView& sv2,
-                                             const StringView& sv3,
-                                             const StringView& sv4 )
+
+  ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1, Arg s2, Arg s3, Arg s4, Arg s5 )
   {
     ShortFixedString result;
-    result += sv0;
-    result += sv1;
-    result += sv2;
-    result += sv3;
-    result += sv4;
+    result += s0;
+    result += s1;
+    result += s2;
+    result += s3;
+    result += s4;
+    result += s5;
     return result;
   }
 
-  ShortFixedString ShortFixedString::Concat( const StringView& sv0,
-                                             const StringView& sv1,
-                                             const StringView& sv2,
-                                             const StringView& sv3 )
+  ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1, Arg s2, Arg s3, Arg s4 )
   {
     ShortFixedString result;
-    result += sv0;
-    result += sv1;
-    result += sv2;
-    result += sv3;
+    result += s0;
+    result += s1;
+    result += s2;
+    result += s3;
+    result += s4;
     return result;
   }
 
-  ShortFixedString ShortFixedString::Concat( const StringView& sv0,
-                                             const StringView& sv1,
-                                             const StringView& sv2 )
+  ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1, Arg s2, Arg s3)
   {
     ShortFixedString result;
-    result += sv0;
-    result += sv1;
-    result += sv2;
+    result += s0;
+    result += s1;
+    result += s2;
+    result += s3;
     return result;
   }
 
-  ShortFixedString ShortFixedString::Concat( const StringView& sv0,
-                                             const StringView& sv1 )
+  ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1, Arg s2)
   {
     ShortFixedString result;
-    result += sv0;
-    result += sv1;
+    result += s0;
+    result += s1;
+    result += s2;
+    return result;
+  }
+
+  ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1)
+  {
+    ShortFixedString result;
+    result += s0;
+    result += s1;
     return result;
   }
 
   //operator const char* ( ) const;
 
+  bool        ShortFixedString::empty() const                  { return !mSize; }
   int         ShortFixedString::size() const                   { return mSize; }
   int         ShortFixedString::capacity() const               { return N; }
   const char* ShortFixedString::data() const                   { return mBuf; }
@@ -73,10 +77,10 @@ namespace Tac
   const char* ShortFixedString::begin() const                  { return mBuf; }
   char*       ShortFixedString::end()                          { return mBuf + mSize;}
   const char* ShortFixedString::end() const                    { return mBuf + mSize;}
-  char& ShortFixedString::operator []( int i )                 { return mBuf[ i ]; }
-  char ShortFixedString::operator []( int i ) const            { return mBuf[ i ]; }
-  void ShortFixedString::operator += ( char c )                { *this += StringView( &c, 1 ); }
-  void ShortFixedString::operator += ( const StringView& sv )  { FixedStringAppend( GetFSD(), sv ); }
+  dynmc char& ShortFixedString::operator []( int i ) dynmc     { return mBuf[ i ]; }
+  const char& ShortFixedString::operator []( int i ) const     { return mBuf[ i ]; }
+  ShortFixedString& ShortFixedString::operator += ( char c )                { *this += StringView( &c, 1 ); return *this; }
+  ShortFixedString& ShortFixedString::operator += ( const StringView& sv )  { FixedStringAppend( GetFSD(), sv ); return *this; }
 
   ShortFixedString::operator StringView() const               { return StringView( mBuf, mSize ); }
 

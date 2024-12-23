@@ -173,7 +173,8 @@ namespace Tac
     return vertexBuffer;
   }
 
-  static Render::BufferHandle ConvertInputLayoutBuffer( const Render::GPUInputLayout& il, Errors& errors )
+  static Render::BufferHandle ConvertInputLayoutBuffer( const Render::GPUInputLayout& il,
+                                                        Errors& errors )
   {
     const Render::CreateBufferParams createBufferParams
     {
@@ -315,14 +316,20 @@ namespace Tac
           bufferName += ToString( iPrim );
         }
 
+        ShortFixedString vtxBufName{ bufferName };
+        vtxBufName += " vtxs";
+
+        ShortFixedString idxBufName{ bufferName };
+        idxBufName += " idxs";
+
         const int vertexCount{ ( int )parsedPrim->attributes[ 0 ].data->count };
         const int indexCount{ ( int )parsedPrim->indices->count };
 
         TAC_CALL( const Render::BufferHandle indexBuffer{
-          ConvertToIndexBuffer( parsedPrim, bufferName, errors ) } );
+          ConvertToIndexBuffer( parsedPrim, vtxBufName, errors ) } );
 
         TAC_CALL( const Render::BufferHandle vertexBuffer{
-          ConvertToVertexBuffer( vtxDecls, parsedPrim, bufferName, errors ) } );
+          ConvertToVertexBuffer( vtxDecls, parsedPrim, idxBufName, errors ) } );
 
 
         SubMeshTriangles tris;

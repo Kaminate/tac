@@ -50,6 +50,7 @@ namespace Tac::Render
   struct DX12Renderer
   {
     void                       Init( Errors& );
+    void                       Update( Errors& );
 
     static DX12Renderer        sRenderer;
 
@@ -70,7 +71,7 @@ namespace Tac::Render
     DX12SamplerMgr             mSamplerMgr;
     DX12DescriptorHeapMgr      mDescriptorHeapMgr;
 
-    ID3D12Device*              mDevice     {};
+    ID3D12Device*              mDevice{};
     u64                        mRenderFrame{};
     DeletionQueue              mDeletionQueue;
   };

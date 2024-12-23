@@ -1,4 +1,6 @@
 #include "tac_dx12_helper.h" // self-inc
+#include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 
 #include <D3d9.h> // D3DERR_INVALIDCALL
 
@@ -69,38 +71,65 @@ namespace Tac
   //  return buf;
   //}
 
-  String Render::DX12CallAux( const char* fn, const HRESULT hr )
+  String     Render::DX12CallAux( const char* fn, const HRESULT hr )
   {
     const String hrStr { DX12_HRESULT_ToString( hr ) };
     return String() + fn + " failed with " + hrStr;
   }
 
-  void Render::DX12SetName( ID3D12Object* obj, StringView sv )
+  StringView Render::DX12GetName( ID3D12Object* obj )
   {
-    obj->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )sv.size(), sv.data() );
+    if( !obj )
+      return "";
+
+    ShortFixedString s;
+    UINT dataSize{ ( UINT )s.capacity() };
+    const HRESULT hr{ obj->GetPrivateData( WKPDID_D3DDebugObjectName, &dataSize, &s.front() ) };
+    if( hr != S_OK )
+      return "";
+
+    return StringView( s.data(), ( int )dataSize );
   }
 
-  void Render::DX12SetName( ID3D12Object* obj, DX12Name name )
+  void       Render::DX12SetName( ID3D12Object* obj, StringView sv )
   {
-    if( !name.mName.empty() )
-    {
-      DX12SetName( obj, name.mName );
-      return;
-    }
+    const HRESULT hr{
+      obj->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )sv.size(), sv.data() ) };
+    if( hr != S_OK )
+      ++asdf;
 
-    if( name.mStackFrame.IsValid() )
-    {
-      DX12SetName( obj, String()
-                   + name.mStackFrame.GetFile()
-                   + ":"
-                   + Tac::ToString( name.mStackFrame.GetLine() ) );
-      return;
-    }
 
-    TAC_ASSERT( !name.mResourceType.empty() );
-    TAC_ASSERT( name.mResourceIndex != -1 );
-    DX12SetName( obj, String() +
-                 name.mResourceType + " " + Tac::ToString( name.mResourceIndex ) );
   }
 
-} // namespace Tac::Render
+  void Render::DX12NameHelper::NameObject( ID3D12Object* obj ) const
+  {
+    ShortFixedString str;
+    if( !mName.empty() )
+    {
+      str += mName;
+    }
+
+    if( mStackFrame.IsValid() )
+    {
+      if( !str.empty())
+        str += ", ";
+      str += mStackFrame.GetFile();
+      str += " ";
+      str += Tac::ToString( mStackFrame.GetLine() );
+    }
+
+    if( mHandle.IsValid() )
+    {
+      if( !str.empty() )
+        str += ", ";
+      str += HandleTypeToString( mHandle.mHandleType );
+      str += " ";
+      str += Tac::ToString( mHandle.GetIndex() );
+    }
+
+    TAC_ASSERT( !str.empty() );
+
+    DX12SetName( obj, str );
+  }
+
+} // namespace Tac

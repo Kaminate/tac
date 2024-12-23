@@ -296,15 +296,12 @@ namespace Tac::Render
     const TextureHandle h{ AllocTextureHandle() };
     const int iTexture{ h.GetIndex() };
 
-    const DX12Name name
+    DX12NameHelper
     {
       .mName          { params.mOptionalName },
       .mStackFrame    { params.mStackFrame },
-      .mResourceType  { "Texture" },
-      .mResourceIndex { iTexture },
-    };
-    DX12SetName( dx12Resource, name );
-
+      .mHandle        { h },
+    }.NameObject( dx12Resource );
 
     mTextures[ iTexture ] = DX12Texture
     {

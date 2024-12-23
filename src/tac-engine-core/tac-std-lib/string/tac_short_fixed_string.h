@@ -20,28 +20,30 @@ namespace Tac
     ShortFixedString() = default;
     ShortFixedString( const char* );
     ShortFixedString( const char* , int );
-    ShortFixedString( const StringView& );
+    ShortFixedString( StringView );
 
-    static ShortFixedString Concat( const StringView& ,
-                                    const StringView& ,
-                                    const StringView& ,
-                                    const StringView& ,
-                                    const StringView& );
+    using Arg = StringView;
 
-    static ShortFixedString Concat( const StringView& ,
-                                    const StringView& ,
-                                    const StringView& ,
-                                    const StringView& );
+#if 0
+    // I would like to force Args to be of type StringView...
+    template< typename ... Args>
+    static ShortFixedString Concat( Args ... args )
+    {
+      ShortFixedString result;
+      ( result += ... += args ); // c++17 binary left fold expression
+      return result;
+    }
+#endif
 
-    static ShortFixedString Concat( const StringView& ,
-                                    const StringView& ,
-                                    const StringView& );
-
-    static ShortFixedString Concat( const StringView& ,
-                                    const StringView& );
+    static ShortFixedString Concat( Arg, Arg, Arg, Arg, Arg, Arg );
+    static ShortFixedString Concat( Arg, Arg, Arg, Arg, Arg );
+    static ShortFixedString Concat( Arg, Arg, Arg, Arg );
+    static ShortFixedString Concat( Arg, Arg, Arg );
+    static ShortFixedString Concat( Arg, Arg );
 
     //operator const char* ( ) const;
 
+    bool        empty() const;
     int         size() const;
     int         capacity() const;
     const char* data() const;
@@ -57,10 +59,10 @@ namespace Tac
     const char* begin() const;
     char*       end();
     const char* end() const;
-    char& operator []( int );
-    char operator []( int ) const;
-    void operator += ( char );
-    void operator += ( const StringView& );
+    dynmc char& operator []( int ) dynmc;
+    const char& operator []( int ) const;
+    ShortFixedString& operator += ( char );
+    ShortFixedString& operator += ( const StringView& );
 
     operator StringView() const;
 

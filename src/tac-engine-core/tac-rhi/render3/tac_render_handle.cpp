@@ -10,6 +10,21 @@ namespace Tac::Render
   int IHandle::GetIndex() const { return mIndex; }
   bool IHandle::IsValid() const { return mIndex != -1; }
 
+
+  // -----------------------------------------------------------------------------------------------
+  const char* HandleTypeToString( HandleType t )
+  {
+    switch(t)
+    {
+    case HandleType::kBuffer:    return "Buffer";
+    case HandleType::kSwapChain: return "SwapChain";
+    case HandleType::kPipeline:  return "Pipeline";
+    case HandleType::kProgram:   return "Program";
+    case HandleType::kTexture:   return "Texture";
+    case HandleType::kSampler:   return "Sampler";
+    default: TAC_ASSERT_INVALID_CASE( t ); return "?";
+    }
+  }
   // -----------------------------------------------------------------------------------------------
 
   ResourceHandle::ResourceHandle( HandleType t, IHandle h ) : IHandle( h ), mHandleType{ t } {}

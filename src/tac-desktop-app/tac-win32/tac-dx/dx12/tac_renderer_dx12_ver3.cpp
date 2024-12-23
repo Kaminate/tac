@@ -90,6 +90,13 @@ namespace Tac::Render
     TAC_CALL( mContextManager.Init( errors ) );
   }
 
+  void DX12Renderer::Update( Errors& errors )
+  {
+    mDeletionQueue.Update();
+    mProgramMgr.HotReload( errors );
+    mRenderFrame++;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   void              DX12Device::Init( Errors& errors )
@@ -99,8 +106,7 @@ namespace Tac::Render
 
   void              DX12Device::Update( Errors& errors )
   {
-    DX12Renderer::sRenderer.mProgramMgr.HotReload( errors );
-    DX12Renderer::sRenderer.mRenderFrame++;
+    TAC_CALL( DX12Renderer::sRenderer.Update( errors ) );
   }
 
   IDevice::Info     DX12Device::GetInfo() const

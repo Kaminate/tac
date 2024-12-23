@@ -193,14 +193,13 @@ namespace Tac::Render
     }
 
     ID3D12PipelineState* pPS{ pso.Get() };
-    const DX12Name name
+
+    DX12NameHelper
     {
       .mName          { params.mName },
       .mStackFrame    { params.mStackFrame },
-      .mResourceType  { "PSO" },
-      .mResourceIndex { h.GetIndex() },
-    };
-    DX12SetName( pPS, name );
+      .mHandle        { h },
+    }.NameObject( pPS );
 
     const PipelineBindCache pipelineBindCache( program->mProgramBindDescs );
     const DX12Pipeline::Variables shaderVariables( h, pipelineBindCache.size() );

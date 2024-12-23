@@ -152,7 +152,7 @@ namespace Tac
       .mByteCount     { sizeof( Debug3DConstBuf ) },
       .mUsage         { Render::Usage::Dynamic },
       .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  {},
+      .mOptionalName  { "3DDebug" },
     };
   }
 

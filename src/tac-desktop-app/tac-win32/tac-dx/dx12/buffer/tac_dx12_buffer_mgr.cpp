@@ -8,8 +8,12 @@
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
 
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
+
 namespace Tac::Render
 {
+  static constexpr bool kLogBufferLifetimes{ kIsDebugMode && true };
 
   static D3D12_RESOURCE_FLAGS GetResourceFlags( Binding binding )
   {
@@ -33,6 +37,32 @@ namespace Tac::Render
       return DXGI_FORMAT_R32_TYPELESS;
 
     return DXGI_FORMAT_UNKNOWN;
+  }
+
+  static void LogBufferAux( StringView action, BufferHandle h, dynmc DX12Buffer* buffer )
+  {
+    if( !kLogBufferLifetimes )
+      return;
+
+    StringView name;
+    if( name.empty() && !buffer->mCreateName.empty() ) { name = buffer->mCreateName; }
+    if( name.empty() && buffer->mResource )            { name = DX12GetName( buffer->mResource ); }
+    if( name.empty() )                                 { name = ToString( h.GetIndex() ); }
+
+    LogApi::LogMessagePrint( action );
+    LogApi::LogMessagePrint( " " );
+    LogApi::LogMessagePrint( name );
+    LogApi::LogMessagePrint( " (render frame " );
+    LogApi::LogMessagePrint( ToString( DX12Renderer::sRenderer.mRenderFrame ) );
+    LogApi::LogMessagePrint( ")\n" );
+  }
+  static void LogBufferDestruction( BufferHandle h, dynmc DX12Buffer* buffer )
+  {
+    LogBufferAux( "[Destroying Buffer]", h, buffer );
+  }
+  static void LogBufferCreation( BufferHandle h, dynmc DX12Buffer* buffer )
+  {
+    LogBufferAux( "[Creating Buffer]", h , buffer);
   }
 
 
@@ -136,6 +166,8 @@ namespace Tac::Render
         buffer.mCreateName = params.mOptionalName;
         buffer.mCreateParams.mOptionalName = buffer.mCreateName;
       }
+
+      LogBufferCreation( h, &mBuffers[ h.GetIndex() ] );
 
       return h;
     }
@@ -254,14 +286,12 @@ namespace Tac::Render
     const BufferHandle h{ AllocBufferHandle() };
     const int i { h.GetIndex() };
 
-    const DX12Name name
+    DX12NameHelper
     {
       .mName          { params.mOptionalName },
       .mStackFrame    { params.mStackFrame },
-      .mResourceType  { "Buffer" },
-      .mResourceIndex { i },
-    };
-    DX12SetName( resource, name );
+      .mHandle        { h },
+    }.NameObject( resource );
 
     // Transition to the intended usage for context root signature binding
     TransitionBuffer( params.mBinding,
@@ -282,6 +312,8 @@ namespace Tac::Render
       .mMappedCPUAddr  { mappedCPUAddr },
       .mCreateParams   { params },
     };
+
+    LogBufferCreation( h, &mBuffers[ i ] );
 
     return h;
   }
@@ -400,6 +432,7 @@ namespace Tac::Render
   {
     if( h.IsValid() )
     {
+      LogBufferDestruction( h, &mBuffers[ h.GetIndex() ] );
       FreeHandle( h );
       mBuffers[ h.GetIndex() ] = {};
     }

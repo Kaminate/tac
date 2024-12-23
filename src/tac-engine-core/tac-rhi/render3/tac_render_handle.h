@@ -26,6 +26,8 @@ namespace Tac::Render
     kSampler,
   };
 
+  const char* HandleTypeToString( HandleType );
+
   struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = kInvalidIndex ) : IHandle{ i } {} };
   struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = kInvalidIndex ) : IHandle{ i } {} };
   struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };

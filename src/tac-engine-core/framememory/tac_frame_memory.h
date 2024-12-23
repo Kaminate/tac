@@ -18,7 +18,6 @@ namespace Tac
     char* mBytes    {};
   };
 
-
   void        FrameMemoryInitThreadAllocator( int byteCount );
   void        FrameMemorySetThreadAllocator( ThreadAllocator* );
   void*       FrameMemoryAllocate( int );
