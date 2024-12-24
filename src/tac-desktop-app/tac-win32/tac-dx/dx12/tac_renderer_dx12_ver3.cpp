@@ -6,6 +6,8 @@
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
+#include <vector>
+
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
@@ -16,6 +18,9 @@ namespace Tac::Render
 
   void DeletionQueue::Push( ResourceHandle h )
   {
+    if( !h.IsValid() )
+      return;
+
     const DeletionQueue::Entry entry
     {
       .mResourceHandle { h },
@@ -45,23 +50,30 @@ namespace Tac::Render
       if( entry.mFrame + maxGPUFrameCount < renderer.mRenderFrame )
         break;
 
-      if( entry.mResourceHandle.IsPipeline() )
-        pipelineMgr.DestroyPipeline( entry.mResourceHandle.GetPipelineHandle() );
+      const HandleType handleType{ entry.mResourceHandle.GetHandleType() };
 
-      if( entry.mResourceHandle.IsSwapChain() )
-        swapChainMgr.DestroySwapChain( entry.mResourceHandle.GetSwapChainHandle() );
-
-      if( entry.mResourceHandle.IsBuffer() )
-        bufMgr.DestroyBuffer( entry.mResourceHandle.GetBufferHandle() );
-
-      if( entry.mResourceHandle.IsTexture() )
-        texMgr.DestroyTexture( entry.mResourceHandle.GetTextureHandle() );
-
-      if( entry.mResourceHandle.IsProgram() )
-        programMgr.DestroyProgram( entry.mResourceHandle.GetProgramHandle() );
-
-      if( entry.mResourceHandle.IsSampler() )
-        samplerMgr.DestroySampler( entry.mResourceHandle.GetSamplerHandle() );
+      switch( handleType )
+      {
+      case HandleType::kPipeline:
+        pipelineMgr.DestroyPipeline( entry.mResourceHandle );
+        break;
+      case HandleType::kSwapChain:
+        swapChainMgr.DestroySwapChain( entry.mResourceHandle );
+        break;
+      case HandleType::kBuffer:
+        bufMgr.DestroyBuffer( entry.mResourceHandle );
+        break;
+      case HandleType::kTexture:
+        texMgr.DestroyTexture( entry.mResourceHandle );
+        break;
+      case HandleType::kProgram:
+        programMgr.DestroyProgram( entry.mResourceHandle );
+        break;
+      case HandleType::kSampler:
+        samplerMgr.DestroySampler( entry.mResourceHandle );
+        break;
+      default: TAC_ASSERT_INVALID_CASE( handleType ); break;
+      }
 
       mEntries.pop();
     }

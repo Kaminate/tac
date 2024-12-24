@@ -244,6 +244,7 @@ namespace Tac::Render
     DebugTitleBegin( dbgTitle );
 #endif
 
+
     RegionIndex iAlloc{ -1 };
     RegionDesc* allocRegion{};
 
@@ -436,7 +437,9 @@ namespace Tac::Render
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
       DebugTitleBegin( "PumpFreeQueue" );
 #endif
+
     
+
     int iiRegion{};
     int n{ mPendingFreeNodes.size() };
     while( iiRegion < n )

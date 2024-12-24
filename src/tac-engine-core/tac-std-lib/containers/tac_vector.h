@@ -147,7 +147,7 @@ namespace Tac
       {
         for( int i{ oldSize }; i < newSize; ++i )
         {
-          new( &mTs[ i ] )T();
+          TAC_PLACEMENT_NEW( &mTs[ i ] )T();
         }
       }
 

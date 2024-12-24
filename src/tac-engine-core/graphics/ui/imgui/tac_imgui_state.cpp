@@ -834,8 +834,19 @@ namespace Tac
       const int vertexCount{ desktopWindow->mDrawData.VertexCount() };
       const int indexCount{ desktopWindow->mDrawData.IndexCount() };
 
-      const String vtxBufName{ String( "imgui_vtx_buf " ) + ToString( iRenderBuffer ) };
-      const String idxBufName{ String( "imgui_idx_buf " ) + ToString( iRenderBuffer ) };
+      const String vtxBufName
+      {
+        String( "imgui_vtx_buf " ) +
+        "(frame " + ToString( iRenderBuffer ) + ")" +
+        "(window " + ToString( desktopWindow->mWindowHandle.GetIndex() ) + ")"
+      };
+
+      const String idxBufName
+      {
+        String( "imgui_idx_buf " ) +
+        "(frame " + ToString( iRenderBuffer ) + ")" +
+        "(window " + ToString( desktopWindow->mWindowHandle.GetIndex() ) + ")"
+      };
 
       auto getVtxBytes { []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
       auto getVtxCount { []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
@@ -1191,7 +1202,8 @@ namespace Tac
 
     for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
     {
-        ImGuiPersistantViewport* viewportDraw{ GetPersistantWindowData( desktopWindow->mWindowHandle ) };
+        ImGuiPersistantViewport* viewportDraw{
+          GetPersistantWindowData( desktopWindow->mWindowHandle ) };
         UpdateAndRenderWindow( desktopWindow, viewportDraw, errors );
     }
 

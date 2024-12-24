@@ -88,7 +88,7 @@ namespace Tac
     if( hr != S_OK )
       return "";
 
-    return StringView( s.data(), ( int )dataSize );
+    return FrameMemoryCopy( StringView( s.data(), ( int )dataSize ) );
   }
 
   void       Render::DX12SetName( ID3D12Object* obj, StringView sv )
@@ -122,7 +122,7 @@ namespace Tac
     {
       if( !str.empty() )
         str += ", ";
-      str += HandleTypeToString( mHandle.mHandleType );
+      str += HandleTypeToString( mHandle.GetHandleType() );
       str += " ";
       str += Tac::ToString( mHandle.GetIndex() );
     }

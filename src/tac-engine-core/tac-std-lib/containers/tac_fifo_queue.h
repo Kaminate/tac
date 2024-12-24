@@ -42,6 +42,32 @@ namespace Tac
       mTCapacity = {};
     }
 
+
+    // Note: mOffset prevents begin() == end() when count == capacity
+    struct ConstIterator
+    {
+      int        GetIndex()    { return ( mFifoQueue->mStartIndex + mOffset ) % mFifoQueue->mTCapacity; }
+
+      const T&   operator *()  { return mFifoQueue->mTs[ GetIndex() ]; }
+      void       operator ++() { mOffset++; }
+      bool       operator ==( const ConstIterator& ) const = default;
+
+      FifoQueue* mFifoQueue    {};
+      int        mOffset       {};
+    };
+
+    struct Iterator
+    {
+      int        GetIndex()    { return ( mFifoQueue->mStartIndex + mOffset ) % mFifoQueue->mTCapacity; }
+
+      dynmc T&   operator *()  { return mFifoQueue->mTs[ GetIndex() ]; }
+      void       operator ++() { mOffset++; }
+      bool       operator ==( const Iterator& ) const = default;
+
+      FifoQueue* mFifoQueue    {};
+      int        mOffset       {};
+    };
+
     void     operator =( FifoQueue< T >&& v )
     {
       swap( v );
@@ -56,10 +82,15 @@ namespace Tac
 
     void     clear()
     {
-      for( int i{ mStartIndex };
-           i != ( mStartIndex + mTCount );
-           i = ( i + 1 ) % mTCapacity )
-        mTs[ i ].~T();
+      Iterator i = begin();
+      Iterator e = end();
+      for( ; i != e; ++i )
+      {
+        T& t = *i;
+        t.~T();
+      }
+      //for( T& t : *this )
+      //  t.~T();
 
       mTCount = 0;
       mStartIndex = 0;
@@ -68,15 +99,15 @@ namespace Tac
     void     push( T&& t )
     {
       reserve();
-      T* dst{ &mTs[ ( mStartIndex + mTCount++ ) % mTCapacity ] };
-      TAC_PLACEMENT_NEW( dst )T( move( t ) );
+      mTCount++;
+      TAC_PLACEMENT_NEW( &back() )T( move( t ) );
     }
 
     void     push( const T& t )
     {
       reserve();
-      T* dst{ &mTs[ ( mStartIndex + mTCount++ ) % mTCapacity ] };
-      TAC_PLACEMENT_NEW( dst )T( t );
+      mTCount++;
+      TAC_PLACEMENT_NEW( &back() )T( t );
     }
 
     void reserve( int capacity )
@@ -85,10 +116,10 @@ namespace Tac
         return;
 
       T* newTs{ ( T* )Tac::Allocate( sizeof( T ) * capacity ) };
-      for( int iDst{}; iDst < mTCount; ++iDst )
+      T* newT{ newTs };
+      for( T& t : *this )
       {
-        const int iSrc { ( mStartIndex + iDst ) % mTCapacity };
-        new ( &newTs[ iDst ] )T ( move( mTs[ iSrc ] ) );
+        TAC_PLACEMENT_NEW( newT++ )T( move( t ) );
       }
 
       Tac::Deallocate( mTs );
@@ -106,15 +137,18 @@ namespace Tac
     T&       emplace( Args&& ... args )
     {
       reserve();
-      TAC_PLACEMENT_NEW( &mTs[ mTCount++ ] )T( forward< Args >( args )... );
+      mTCount++;
+      TAC_PLACEMENT_NEW( &back() )T( forward< Args >( args )... );
       return back();
     }
 
     void     pop()                
     {
       TAC_ASSERT( mTCount );
-      mTs[ mStartIndex + mTCount - 1 ].~T();
+      T& t{ front() };
+      t.~T();
       mTCount--;
+      mStartIndex = ( mStartIndex + 1 ) % mTCapacity;
     }
     bool     empty() const              { return !mTCount; }
     int      size() const               { return mTCount; }
@@ -127,16 +161,26 @@ namespace Tac
       Swap( mStartIndex, other.mStartIndex );
     }
 
-    dynmc T* begin() dynmc              { return mTs; };
-    const T* begin() const              { return mTs; };
-    dynmc T* end() dynmc                { return mTs + mTCount; };
-    const T* end() const                { return mTs + mTCount; };
-    dynmc T& front() dynmc              { TAC_ASSERT( mTCount ); return *mTs; }
-    const T& front() const              { TAC_ASSERT( mTCount ); return *mTs; }
-    dynmc T& back() dynmc               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
-    const T& back() const               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
+    Iterator      begin() dynmc         { return Iterator     { .mFifoQueue{ this }, .mOffset{} }; }
+    ConstIterator begin() const         { return ConstIterator{ .mFifoQueue{ this }, .mOffset{} }; }
+    Iterator      end() dynmc           { return Iterator     { .mFifoQueue{ this }, .mOffset{ mTCount } }; }
+    ConstIterator end() const           { return ConstIterator{ .mFifoQueue{ this }, .mOffset{ mTCount } }; }
+
+    // first element in the queue / the next element to be popped
+    dynmc T& front() dynmc              { TAC_ASSERT( mTCount ); return mTs[ mStartIndex ]; }
+    const T& front() const              { TAC_ASSERT( mTCount ); return mTs[ mStartIndex ]; }
+
+    // last element in the queue / the most recently pushed element
+    dynmc T& back() dynmc               { TAC_ASSERT( mTCount ); return mTs[ ( mStartIndex + mTCount - 1 ) % mTCapacity ]; }
+    const T& back() const               { TAC_ASSERT( mTCount ); return mTs[ ( mStartIndex + mTCount - 1 ) % mTCapacity ]; }
+
     dynmc T* data() dynmc               { return mTs; }
     const T* data() const               { return mTs; }
+
+  private:
+
+    friend struct Iterator;
+    friend struct ConstIterator;
 
     T*       mTs         {};
     int      mTCount     {};

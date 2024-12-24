@@ -217,6 +217,16 @@ namespace Tac
       TAC_CALL( Network::NetApi::Update( errors ) );
       TAC_CALL( sSettingsRoot.Tick( errors ) );
       TAC_CALL( UpdateSimulation( errors ) );
+
+#if TAC_DELETE_ME()
+      static bool tempSlept;
+      if( !tempSlept ) // temp temp temp
+      {
+        std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
+        tempSlept = true;
+      }
+#endif
+
       TAC_CALL( Render( errors ) );
 
       std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage

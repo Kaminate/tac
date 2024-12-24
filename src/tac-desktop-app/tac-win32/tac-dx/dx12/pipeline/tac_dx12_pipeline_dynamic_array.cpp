@@ -189,11 +189,12 @@ namespace Tac::Render
     if constexpr ( !kIsDebugMode )
       return;
 
-    const D3D12ProgramBindType type{ mProgramBindType };
-    TAC_ASSERT( type.IsValid() );
-    TAC_ASSERT( !type.IsBuffer() || h.IsBuffer() );
-    TAC_ASSERT( !type.IsTexture() || h.IsTexture() );
-    TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
+    const D3D12ProgramBindType bindType{ mProgramBindType };
+    const HandleType handleType{h.GetHandleType()};
+    TAC_ASSERT( bindType.IsValid() );
+    TAC_ASSERT( !bindType.IsBuffer() || ( handleType == HandleType::kBuffer ) );
+    TAC_ASSERT( !bindType.IsTexture() || ( handleType == HandleType::kTexture ) );
+    TAC_ASSERT( !bindType.IsSampler() || ( handleType == HandleType::kSampler ) );
   }
 
   void                   PipelineDynamicArray::Commit( CommitParams commitParams )

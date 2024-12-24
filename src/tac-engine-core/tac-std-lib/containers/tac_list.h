@@ -29,21 +29,28 @@ public:
 
   struct ConstIterator
   {
-    operator    bool()        { return mNode; }
-    bool        operator == ( const ConstIterator& ) const = default;
-    const T&    operator *()  { return mNode->mT; }
-    void        operator ++() { mNode = mNode->mNext; }
-    void        operator --() { mNode = mNode->mPrev; }
+    operator      bool()        { return mNode; }
+    bool          operator == ( const ConstIterator& ) const = default;
+    const T&      operator *()  { return mNode->mT; }
+    dynmc T*      operator ->() { return &mNode->mT; }
+    void          operator ++() { mNode = mNode->mNext; }
+    void          operator --() { mNode = mNode->mPrev; } // pre-dec
+    ConstIterator operator --(int) // post-dec
+    {
+      ConstIterator it { *this };
+      mNode = mNode->mPrev;
+      return it;
+    } 
 
-    const Node* mNode {};
+    const Node*   mNode {};
   };
 
   struct Iterator
   {
     operator    bool()        { return mNode; }
     bool        operator == ( const Iterator& ) const = default;
-    T&          operator *()  { return mNode->mT; }
-    T*          operator ->() { return &mNode->mT; }
+    dynmc T&    operator *()  { return mNode->mT; }
+    dynmc T*    operator ->() { return &mNode->mT; }
     void        operator ++() { mNode = mNode->mNext; }
     void        operator --() { mNode = mNode->mPrev; } // pre-dec
     Iterator    operator --(int) // post-dec
@@ -53,7 +60,7 @@ public:
       return it;
     } 
 
-    Node*       mNode {};
+    dynmc Node* mNode {};
   };
 
   List() = default;

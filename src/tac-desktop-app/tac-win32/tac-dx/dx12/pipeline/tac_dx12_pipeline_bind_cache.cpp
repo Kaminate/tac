@@ -54,7 +54,7 @@ namespace Tac::Render
 
       const bool isCompute{ commitParams.mIsCompute };
 
-      const BufferHandle bufferHandle{ mResourceHandle.GetBufferHandle() };
+      const BufferHandle bufferHandle{ mResourceHandle };
 
       DX12Renderer& renderer{ DX12Renderer::sRenderer };
       DX12BufferMgr* bufferMgr{ &renderer.mBufMgr };

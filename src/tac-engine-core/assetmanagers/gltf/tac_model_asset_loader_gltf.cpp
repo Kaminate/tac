@@ -39,10 +39,10 @@ namespace Tac
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->buffer->size };
 
-    SubMeshTriangle tri  {};
-    int iVert {};
+    SubMeshTriangle tri{};
+    int iVert{};
 
-    for( cgltf_size ii {}; ii < parsedPrim->indices->count; ++ii )
+    for( cgltf_size ii{}; ii < parsedPrim->indices->count; ++ii )
     {
       cgltf_size i{ cgltf_accessor_read_index( parsedPrim->indices, ii ) };
 
@@ -114,19 +114,19 @@ namespace Tac
       if( !gltfVertAttribute )
         continue;
 
-      const cgltf_accessor* gltfVertAttributeData { gltfVertAttribute->data };
-      const Render::VertexAttributeFormat srcFormat { FillDataType( gltfVertAttributeData ) };
+      const cgltf_accessor* gltfVertAttributeData{ gltfVertAttribute->data };
+      const Render::VertexAttributeFormat srcFormat{ FillDataType( gltfVertAttributeData ) };
       TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
-      char* dstVtx { dstVtxBytes.data() };
+      char* dstVtx{ dstVtxBytes.data() };
       char* srcVtx{ ( char* )gltfVertAttributeData->buffer_view->buffer->data +
-        gltfVertAttributeData->offset +
-        gltfVertAttributeData->buffer_view->offset };
-      const int elementCount { Min( dstFormat.mElementCount, srcFormat.mElementCount ) };
+                    gltfVertAttributeData->offset +
+                    gltfVertAttributeData->buffer_view->offset };
+      const int elementCount{ Min( dstFormat.mElementCount, srcFormat.mElementCount ) };
       for( int iVert{}; iVert < vertexCount; ++iVert )
       {
-        char* srcElement { srcVtx };
-        char* dstElement { dstVtx + vertexDeclaration.mAlignedByteOffset };
-        for( int iElement {}; iElement < elementCount; ++iElement )
+        char* srcElement{ srcVtx };
+        char* dstElement{ dstVtx + vertexDeclaration.mAlignedByteOffset };
+        for( int iElement{}; iElement < elementCount; ++iElement )
         {
           if( srcFormat.mPerElementDataType == dstFormat.mPerElementDataType &&
               srcFormat.mPerElementByteCount == dstFormat.mPerElementByteCount )
@@ -168,7 +168,7 @@ namespace Tac
       .mStackFrame    { TAC_STACK_FRAME },
     };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::BufferHandle vertexBuffer {
+    const Render::BufferHandle vertexBuffer{
       renderDevice->CreateBuffer( createBufferParams, errors ) };
     return vertexBuffer;
   }
@@ -282,20 +282,20 @@ namespace Tac
                                                  Errors& errors )
   {
     LoadedGltfData loadedData;
-    TAC_CALL( loadedData.Load( path, errors ));
+    TAC_CALL( loadedData.Load( path, errors ) );
 
-    cgltf_data* parsedData { loadedData.parsedData };
+    cgltf_data* parsedData{ loadedData.parsedData };
 
-    const int meshCount { ( int )parsedData->meshes_count };
+    const int meshCount{ ( int )parsedData->meshes_count };
     TAC_ASSERT_INDEX( specifiedMeshIndex, meshCount ); // like what r u trying to load bro
 
-    for( int iMesh {}; iMesh < meshCount; ++iMesh )
+    for( int iMesh{}; iMesh < meshCount; ++iMesh )
     {
-      cgltf_mesh* parsedMesh { &parsedData->meshes[ iMesh ] };
+      cgltf_mesh* parsedMesh{ &parsedData->meshes[ iMesh ] };
       if( iMesh != specifiedMeshIndex )
         continue;
 
-      const int primitiveCount { ( int )parsedMesh->primitives_count };
+      const int primitiveCount{ ( int )parsedMesh->primitives_count };
       for( int iPrim{}; iPrim < primitiveCount; ++iPrim )
       {
         cgltf_primitive* parsedPrim{ &parsedMesh->primitives[ iPrim ] };
@@ -307,7 +307,10 @@ namespace Tac
 
         TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
 
-        ShortFixedString bufferName{ path.GetFilename() };
+        String bufferName;
+        bufferName += '\"';
+        bufferName += path.GetFilename();
+        bufferName += '\"';
         if( !( meshCount == 1 && primitiveCount == 1 ) )
         {
           bufferName += ":";
@@ -316,10 +319,10 @@ namespace Tac
           bufferName += ToString( iPrim );
         }
 
-        ShortFixedString vtxBufName{ bufferName };
+        String vtxBufName{ bufferName };
         vtxBufName += " vtxs";
 
-        ShortFixedString idxBufName{ bufferName };
+        String idxBufName{ bufferName };
         idxBufName += " idxs";
 
         const int vertexCount{ ( int )parsedPrim->attributes[ 0 ].data->count };
@@ -335,8 +338,8 @@ namespace Tac
         SubMeshTriangles tris;
         GetTris( parsedPrim, tris );
 
-        const Render::PrimitiveTopology topology { Render::PrimitiveTopology::TriangleList };
-        const cgltf_primitive_type supportedType { GetGltfFromTopology( topology ) };
+        const Render::PrimitiveTopology topology{ Render::PrimitiveTopology::TriangleList };
+        const cgltf_primitive_type supportedType{ GetGltfFromTopology( topology ) };
         TAC_ASSERT( parsedPrim->type == supportedType );
 
         Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };

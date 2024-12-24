@@ -84,16 +84,12 @@ namespace Tac
     const Entity* entity { model->mEntity };
     TAC_CALL_RET( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
     if( !mesh )
-    {
       return {};
-    }
 
     bool transformInvExists;
     const m4 transformInv { m4::Inverse( entity->mWorldTransform, &transformInvExists ) };
     if( !transformInvExists )
-    {
       return {};
-    }
 
     const v3 modelSpaceMouseRayPos3 { ( transformInv * v4( ray.mPos, 1 ) ).xyz() };
     const v3 modelSpaceMouseRayDir3 { Normalize( ( transformInv * v4( ray.mDir, 0 ) ).xyz() ) };
@@ -133,11 +129,9 @@ namespace Tac
     }
 
     if( const Light * light{ Light::GetLight( entity ) } )
-    {
-      const RaycastResult raycastResult{MousePickingEntityLight( ray, light) };
-      if( raycastResult.mHit )
+      if( const RaycastResult raycastResult{ MousePickingEntityLight( ray, light ) };
+          raycastResult.mHit )
         return raycastResult;
-    }
 
     return {};
   }
@@ -150,13 +144,10 @@ namespace Tac
       return;
 
     const v3 selectionGizmoOrigin { mGizmoMgr->mGizmoOrigin };
-
-    const m4 invArrowRots[]  {
-      m4::RotRadZ( 3.14f / 2.0f ),
-      m4::Identity(),
-      m4::RotRadX( -3.14f / 2.0f ), };
-
-    for( int i {}; i < 3; ++i )
+    const m4 invArrowRots[]{ m4::RotRadZ( 3.14f / 2.0f ),
+                             m4::Identity(),
+                             m4::RotRadX( -3.14f / 2.0f ), };
+    for( int i{}; i < 3; ++i )
     {
       // 1/3: inverse transform
       v3 modelSpaceRayPos3 { camera->mPos - selectionGizmoOrigin };
@@ -274,17 +265,14 @@ namespace Tac
 
   bool CreationMousePicking::IsTranslationWidgetPicked( int i )
   {
-    const bool picked{
-      pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
-      pickData.arrowAxis == i };
+    const bool picked{ pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
+                       pickData.arrowAxis == i };
     return picked;
   }
 
   void CreationMousePicking::Update( const World* world, const Camera* camera, Errors& errors )
   {
     pickData = {};
-
-    
 
     if( !mWindowHovered )
       return;
@@ -313,9 +301,6 @@ namespace Tac
 
     const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
     const v2i windowPos{ AppWindowApi::GetPos( mWindowHandle ) };
-
-    
-
     const float w{ ( float )windowSize.x };
     const float h{ ( float )windowSize.y };
     const float x{ ( float )windowPos.x };
@@ -331,18 +316,13 @@ namespace Tac
     const float cotTheta { 1.0f / Tan( theta ) };
     const float sX { cotTheta / aspect };
     const float sY { cotTheta };
-
     const m4 viewInv{ m4::ViewInv( camera->mPos,
                                    camera->mForwards,
                                    camera->mRight,
                                    camera->mUp ) };
-    const v3 viewSpaceMousePosNearPlane
-    {
-      xNDC / sX,
-      yNDC / sY,
-      -1,
-    };
-
+    const v3 viewSpaceMousePosNearPlane{ xNDC / sX,
+                                         yNDC / sY,
+                                         -1 };
     const v3 viewSpaceMouseDir { Normalize( viewSpaceMousePosNearPlane ) };
     const v4 viewSpaceMouseDir4 { v4( viewSpaceMouseDir, 0 ) };
     const v4 worldSpaceMouseDir4 { viewInv * viewSpaceMouseDir4 };

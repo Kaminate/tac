@@ -48,28 +48,25 @@ namespace Tac::Render
     if constexpr ( !kIsDebugMode )
       return;
 
-    const D3D12ProgramBindType type{ mProgramBindType };
-    TAC_ASSERT( type.IsValid() );
-    TAC_ASSERT( !type.IsBuffer() || h.IsBuffer() );
-    TAC_ASSERT( !type.IsTexture() || h.IsTexture() );
-    TAC_ASSERT( !type.IsSampler() || h.IsSampler() );
+    const D3D12ProgramBindType bindType{ mProgramBindType };
+    const HandleType handleType{ h.GetHandleType() };
+    TAC_ASSERT( bindType.IsValid() );
+    TAC_ASSERT( h.IsValid() );
+    TAC_ASSERT( !bindType.IsBuffer() || ( handleType == HandleType::kBuffer ) );
+    TAC_ASSERT( !bindType.IsTexture() || ( handleType == HandleType::kTexture ) );
+    TAC_ASSERT( !bindType.IsSampler() || ( handleType == HandleType::kSampler ) );
   }
 
-  void                          BindlessArray::Commit( CommitParams commitParams )
+  void                          BindlessArray::Commit( const CommitParams commitParams )
   {
-    ID3D12GraphicsCommandList* commandList{ commitParams.mCommandList };
-    const bool isCompute{ commitParams.mIsCompute };
-    const UINT rootParameterIndex{ commitParams.mRootParameterIndex };
-
-    const D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle{ mDescriptorRegion.GetGPUHandle() };
-
-    if( isCompute )
-      commandList->SetComputeRootDescriptorTable( rootParameterIndex, gpuHandle );
-    else
-      commandList->SetGraphicsRootDescriptorTable( rootParameterIndex, gpuHandle );
+    ( commitParams.mCommandList->*(
+      commitParams.mIsCompute
+      ? &ID3D12GraphicsCommandList::SetComputeRootDescriptorTable
+      : &ID3D12GraphicsCommandList::SetGraphicsRootDescriptorTable ) )
+      ( commitParams.mRootParameterIndex, mDescriptorRegion.GetGPUHandle() );
   }
 
-  void                          BindlessArray::SetFenceSignal( FenceSignal fenceSignal )
+  void                          BindlessArray::SetFenceSignal( const FenceSignal fenceSignal )
   {
     mFenceSignal = fenceSignal;
   }

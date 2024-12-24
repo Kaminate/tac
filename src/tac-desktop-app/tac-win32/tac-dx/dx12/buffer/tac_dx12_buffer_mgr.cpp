@@ -44,25 +44,38 @@ namespace Tac::Render
     if( !kLogBufferLifetimes )
       return;
 
-    StringView name;
-    if( name.empty() && !buffer->mCreateName.empty() ) { name = buffer->mCreateName; }
-    if( name.empty() && buffer->mResource )            { name = DX12GetName( buffer->mResource ); }
-    if( name.empty() )                                 { name = ToString( h.GetIndex() ); }
+    const auto name{ [ & ]() ->StringView {
+      if( !buffer->mCreateName.empty() )
+        return buffer->mCreateName;
+
+      if( buffer->mResource )
+        return DX12GetName( buffer->mResource );
+
+      return "<unknown>";
+    }( ) };
+
+
+    const ShortFixedString renderFrameStr{ ShortFixedString::Concat(
+      "(render frame: ", ToString( DX12Renderer::sRenderer.mRenderFrame ), ")" ) };
+
+    const ShortFixedString handleStr{
+      ShortFixedString::Concat( "(handle: ", ToString( h.GetIndex() ), ")" ) };
 
     LogApi::LogMessagePrint( action );
     LogApi::LogMessagePrint( " " );
     LogApi::LogMessagePrint( name );
-    LogApi::LogMessagePrint( " (render frame " );
-    LogApi::LogMessagePrint( ToString( DX12Renderer::sRenderer.mRenderFrame ) );
-    LogApi::LogMessagePrint( ")\n" );
+    LogApi::LogMessagePrint( " " );
+    LogApi::LogMessagePrint( handleStr );
+    LogApi::LogMessagePrint( renderFrameStr );
+    LogApi::LogMessagePrint( "\n" );
   }
   static void LogBufferDestruction( BufferHandle h, dynmc DX12Buffer* buffer )
   {
-    LogBufferAux( "[Destroying Buffer]", h, buffer );
+    LogBufferAux( "[destroying_buffer]", h, buffer );
   }
   static void LogBufferCreation( BufferHandle h, dynmc DX12Buffer* buffer )
   {
-    LogBufferAux( "[Creating Buffer]", h , buffer);
+    LogBufferAux( "[creating_buffer]", h , buffer);
   }
 
 
