@@ -35,6 +35,8 @@ namespace Tac
     }
 #endif
 
+    static ShortFixedString Concat( Arg, Arg, Arg, Arg, Arg, Arg, Arg, Arg );
+    static ShortFixedString Concat( Arg, Arg, Arg, Arg, Arg, Arg, Arg );
     static ShortFixedString Concat( Arg, Arg, Arg, Arg, Arg, Arg );
     static ShortFixedString Concat( Arg, Arg, Arg, Arg, Arg );
     static ShortFixedString Concat( Arg, Arg, Arg, Arg );

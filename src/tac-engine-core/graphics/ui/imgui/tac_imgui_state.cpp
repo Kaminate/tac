@@ -834,22 +834,20 @@ namespace Tac
       const int vertexCount{ desktopWindow->mDrawData.VertexCount() };
       const int indexCount{ desktopWindow->mDrawData.IndexCount() };
 
-      const String vtxBufName
-      {
-        String( "imgui_vtx_buf " ) +
-        "(frame " + ToString( iRenderBuffer ) + ")" +
-        "(window " + ToString( desktopWindow->mWindowHandle.GetIndex() ) + ")"
-      };
+      const ShortFixedString vtxBufName{ ShortFixedString::Concat(
+        "imgui_vtx_buf " ,
+        "(frame ", ToString( iRenderBuffer ), ")" ,
+        "(window ", ToString( desktopWindow->mWindowHandle.GetIndex() ), ")"
+      ) };
 
-      const String idxBufName
-      {
-        String( "imgui_idx_buf " ) +
-        "(frame " + ToString( iRenderBuffer ) + ")" +
-        "(window " + ToString( desktopWindow->mWindowHandle.GetIndex() ) + ")"
-      };
+      const ShortFixedString idxBufName{ ShortFixedString::Concat(
+        String( "imgui_idx_buf " ) ,
+        "(frame ", ToString( iRenderBuffer ), ")" ,
+        "(window ", ToString( desktopWindow->mWindowHandle.GetIndex() ), ")"
+      ) };
 
-      auto getVtxBytes { []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
-      auto getVtxCount { []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
+      auto getVtxBytes{ []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
+      auto getVtxCount{ []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
       const CopyHelper vtxCopyHelper
       {
         .mDst                 { &renderBuffers.mVB },

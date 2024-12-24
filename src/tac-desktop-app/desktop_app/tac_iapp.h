@@ -3,6 +3,7 @@
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h" // FrameIndex
 #include "tac-engine-core/shell/tac_shell_timestamp.h" // Timestamp
 #include "tac-engine-core/shell/tac_shell_timer.h" // Timepoint
@@ -45,6 +46,7 @@ namespace Tac
       Timestamp      mTimestamp   {}; // = Lerp( old timestamp, new timestamp, t )
     };
 
+
     App( const Config& config ) : mConfig( config ) {}
     virtual ~App() = default;
 
@@ -54,7 +56,11 @@ namespace Tac
     virtual void    Present( Errors& ){};
     virtual void    Uninit( Errors& ){};
 
-    virtual IState* GetGameState() { return nullptr; }
+    using State = SmartPtr< IState >;
+
+    virtual State   GameState_Create()          { return {}; }
+    virtual void    GameState_Update( IState* ) {}
+
     bool            IsRenderEnabled() const;
     StringView      GetAppName() const;
     StringView      GetStudioName() const;

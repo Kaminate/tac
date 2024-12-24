@@ -115,11 +115,14 @@ namespace Tac
       gCreation.Init( mSettingsNode, errors );
     }
 
-    IState* GetGameState() override
+    State GameState_Create() override
     {
-      CreationAppState* state{ TAC_NEW CreationAppState };
-      state->mSimState.CopyFrom( gCreation.mSimState );
-      return state;
+      return TAC_NEW CreationAppState;
+    }
+
+    void  GameState_Update( IState* state ) override
+    {
+      ( ( CreationAppState* )state )->mSimState.CopyFrom( gCreation.mSimState );
     }
 
     void Update( Errors& errors ) override

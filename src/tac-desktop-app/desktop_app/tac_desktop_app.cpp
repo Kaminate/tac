@@ -41,8 +41,8 @@ namespace Tac
   static App*                          sApp;
 
   //static GameStateManager              sGameStateManager;
-  static App::IState*                  sPrevState;
-  static App::IState*                  sCurrState;
+  static App::State                    sPrevState;
+  static App::State                    sCurrState;
 
   static DesktopApp                    sDesktopApp;
 
@@ -161,6 +161,9 @@ namespace Tac
     sApp->mSettingsNode = sSettingsRoot.GetRootNode();
 
     TAC_CALL( sApp->Init( errors ) );
+
+    sCurrState = sApp->GameState_Create();
+    sPrevState = sApp->GameState_Create();
   }
 
   void                DesktopApp::Run( Errors& errors )
@@ -298,24 +301,15 @@ namespace Tac
 
     AppKeyboardApiBackend::Sync();
 
+    Swap( sPrevState, sCurrState );
 
-    // ---------------------------------------------------------------//
-    //                            TODO                                //
-    // ---------------------------------------------------------------//
-    //   instead of deleting states and making copies, use operator = //
-    //   the goal here is to reduce dynamic memory allocation         //
-    // ---------------------------------------------------------------//
-    TAC_DELETE sPrevState;
-    sPrevState = sCurrState;
-
-    sCurrState = sApp->GetGameState();
+    sApp->GameState_Update( sCurrState );
     sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
     sCurrState->mTimestamp = Timestep::GetElapsedTime();
     sCurrState->mTimepoint = Timestep::GetLastTick();
-
   }
 
-  void                DesktopApp::Render( Errors& errors )
+  void               DesktopApp::Render( Errors& errors )
   {
       TAC_PROFILE_BLOCK;
 

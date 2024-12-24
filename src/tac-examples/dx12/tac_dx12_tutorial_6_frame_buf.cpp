@@ -1084,11 +1084,14 @@ namespace Tac
     DXGIUninit();
   }
 
-  App::IState* DX12AppHelloFrameBuf::GetGameState()
+  App::State   DX12AppHelloFrameBuf::GameState_Create()
   {
-    State* state { TAC_NEW State };
-    *state = mState;
-    return state;
+    return TAC_NEW State;
+  }
+
+  void         DX12AppHelloFrameBuf::GameState_Update( IState* state )
+  {
+    *( ( State* )state ) = mState;
   }
 
   void         DX12AppHelloFrameBuf::RenderBegin( Errors& errors )

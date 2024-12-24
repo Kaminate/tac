@@ -256,16 +256,18 @@ namespace Tac
       //}
     }
 
-    App::IState* GetGameState() override
+    State GameState_Create() override
     {
-      Example * ex{ GetCurrExample() };
-      if( !ex )
-        return {};
+      return TAC_NEW ExampleState;
+    }
 
-      ExampleState* state{ TAC_NEW ExampleState };
-      state->mWorld.DeepCopy( *ex->mWorld );
-      state->mCamera = *ex->mCamera;
-      return state;
+    void GameState_Update( IState* state ) override
+    {
+      if( Example * ex{ GetCurrExample() } )
+      {
+        ( ( ExampleState* )state )->mCamera = *ex->mCamera;
+        ( ( ExampleState* )state )->mWorld.DeepCopy( *ex->mWorld );
+      }
     }
 
     void Uninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }

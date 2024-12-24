@@ -305,7 +305,7 @@ namespace Tac
     mDebug3DDrawData->CopyFrom( *world.mDebug3DDrawData );
   }
 
-  dynmc System* World::GetSystem( const SystemInfo* systemInfo )
+  dynmc System* World::GetSystem( const SystemInfo* systemInfo ) dynmc
   {
     return mSystems[ systemInfo->GetIndex() ];
   }

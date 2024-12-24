@@ -8,7 +8,7 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/memory/tac_smart_ptr.h"
+//#include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"
 #include "tac-rhi/render3/tac_render_handle.h"

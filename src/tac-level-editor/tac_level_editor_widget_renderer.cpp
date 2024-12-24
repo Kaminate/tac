@@ -171,8 +171,8 @@ namespace Tac
 
     const ModelAssetManager::Params meshParms
     {
-      .mPath       { "assets/editor/arrow.gltf" },
-      .mOptVtxDecls{ m3DvertexFormatDecls },
+      .mPath        { "assets/editor/arrow.gltf" },
+      .mOptVtxDecls { m3DvertexFormatDecls },
     };
 
     TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParms, errors ) );
@@ -204,14 +204,14 @@ namespace Tac
     const m4 proj { GetProj( viewHandle, camera ) };
     const PerFrame perFrame
     {
-      .mView{ view },
-      .mProj{ proj },
+      .mView { view },
+      .mProj { proj },
     };
 
     const Render::UpdateBufferParams update
     {
-      .mSrcBytes{ &perFrame },
-      .mSrcByteCount{ sizeof( PerFrame ) },
+      .mSrcBytes     { &perFrame },
+      .mSrcByteCount { sizeof( PerFrame ) },
     };
 
     renderContext->UpdateBuffer( mBufferPerFrame, update, errors );
@@ -230,8 +230,8 @@ namespace Tac
 
     const Render::UpdateBufferParams update
     {
-      .mSrcBytes{ &perObj },
-      .mSrcByteCount{ sizeof( PerObj ) },
+      .mSrcBytes     { &perObj },
+      .mSrcByteCount { sizeof( PerObj ) },
     };
 
     renderContext->UpdateBuffer( mBufferPerObj, update, errors );
@@ -239,22 +239,16 @@ namespace Tac
 
   v4 WidgetRenderer::GetAxisColor( int i )
   {
-    const v3 axises[ 3 ]
-    {
-      v3( 1, 0, 0 ),
-      v3( 0, 1, 0 ),
-      v3( 0, 0, 1 ),
-    };
-
+    const v3 axises[ 3 ]{ v3( 1, 0, 0 ),
+                          v3( 0, 1, 0 ),
+                          v3( 0, 0, 1 ), };
     const v3 axis{ axises[ i ] };
-
-    v4 color{ axis, 1 };
-
+    dynmc v4 color{ axis, 1 };
     const bool isWidgetHovered{ mMousePicking->IsTranslationWidgetPicked( i ) };
     const bool isWidgetActive{ mGizmoMgr->IsTranslationWidgetActive( i ) };
-    if(  isWidgetHovered || isWidgetActive  )
+    if( isWidgetHovered || isWidgetActive )
     {
-      float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
+      dynmc float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
       t *= t;
       color = Lerp( v4( 1, 1, 1, 1 ), color, t );
     }
@@ -264,20 +258,13 @@ namespace Tac
 
   m4 WidgetRenderer::GetAxisWorld( int i )
   {
-    const m4 rots[]{
-      m4::RotRadZ( -3.14f / 2.0f ),
-      m4::Identity(),
-      m4::RotRadX( 3.14f / 2.0f ), };
-
+    const m4 rots[]{ m4::RotRadZ( -3.14f / 2.0f ),
+                     m4::Identity(),
+                     m4::RotRadX( 3.14f / 2.0f ), };
     const v3 selectionGizmoOrigin{ mGizmoMgr->mGizmoOrigin };
-
-    const m4 world
-    {
-      m4::Translate( selectionGizmoOrigin ) *
-      rots[ i ] *
-      m4::Scale( v3( 1, 1, 1 ) * mGizmoMgr-> mArrowLen )
-    };
-
+    const m4 world{ m4::Translate( selectionGizmoOrigin ) *
+                    rots[ i ] *
+                    m4::Scale( v3( 1, 1, 1 ) * mGizmoMgr-> mArrowLen ) };
     return world;
   }
 

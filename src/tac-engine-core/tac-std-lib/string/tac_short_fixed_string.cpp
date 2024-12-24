@@ -8,6 +8,32 @@ namespace Tac
   ShortFixedString::ShortFixedString( const char* s, int n ) { assign( StringView( s, n ) ); }
   ShortFixedString::ShortFixedString( StringView sv ) { assign( sv ); }
 
+  ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1, Arg s2, Arg s3, Arg s4, Arg s5, Arg s6, Arg s7 )
+  {
+    ShortFixedString result;
+    result += s0;
+    result += s1;
+    result += s2;
+    result += s3;
+    result += s4;
+    result += s5;
+    result += s6;
+    result += s7;
+    return result;
+  }
+
+  ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1, Arg s2, Arg s3, Arg s4, Arg s5, Arg s6 )
+  {
+    ShortFixedString result;
+    result += s0;
+    result += s1;
+    result += s2;
+    result += s3;
+    result += s4;
+    result += s5;
+    result += s6;
+    return result;
+  }
 
   ShortFixedString ShortFixedString::Concat( Arg s0, Arg s1, Arg s2, Arg s3, Arg s4, Arg s5 )
   {

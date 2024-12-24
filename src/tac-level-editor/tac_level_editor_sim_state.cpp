@@ -23,9 +23,9 @@ namespace Tac
 
   void CreationSimState::CopyFrom( CreationSimState& other )
   {
-    Clear();
-    mWorld = TAC_NEW World;
-    mEditorCamera = TAC_NEW Camera;
+    if( !mWorld ) { mWorld = TAC_NEW World; }
+    if( !mEditorCamera ) { mEditorCamera = TAC_NEW Camera; }
+
     mWorld->DeepCopy( *other.mWorld );
     *mEditorCamera = *other.mEditorCamera;
   }

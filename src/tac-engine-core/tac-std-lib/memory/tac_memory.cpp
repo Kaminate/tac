@@ -21,6 +21,7 @@ namespace Tac
   static int memCount;
 }
 
+// Generally speaking, there should be no dynmaic allocations per frame
 void* Tac::Allocate( const std::size_t sz )
 {
   void* result{ std::malloc( sz ) };

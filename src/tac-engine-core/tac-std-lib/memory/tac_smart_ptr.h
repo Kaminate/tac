@@ -2,6 +2,7 @@
 
 #include "tac-std-lib/memory/tac_memory.h" // TAC_NEW/DELETE
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h" // Swap
 
 namespace Tac
 {
@@ -9,7 +10,8 @@ namespace Tac
   struct SmartPtr
   {
     SmartPtr() = default;
-    SmartPtr( T* t ) : mT{ t } {}
+    SmartPtr( T* t ) : mT{ t }           {}
+    SmartPtr( SmartPtr&& s )             { SwapWith( ( SmartPtr&& )s ); }
 
     SmartPtr( const SmartPtr& s )
     {
@@ -22,27 +24,24 @@ namespace Tac
     }
 
     template< class ... Args >
-    SmartPtr( Args ... args ) : mT{ TAC_NEW T{args...} } {}
+    SmartPtr( Args ... args ) : mT{ TAC_NEW T{ args... } } {}
 
     template< typename U >
     SmartPtr( U* u ) : mT{ static_cast< T* >( u ) } {}
 
-    ~SmartPtr()              { Decrement(); }
+    ~SmartPtr()                          { Decrement(); }
 
-
-    void clear()
+    void     clear()
     {
       Decrement();
       mT = nullptr;
       mRefCounter = nullptr;
     }
-
-    T* Get()                 { return mT; }
-    operator T* ()           { return mT; }
-
-    void operator = ( T* t ) { mT = t; }
-
-    void operator = ( const SmartPtr& s )
+    T*       Get()                       { return mT; }
+    operator T* ()                       { return mT; }
+    void     operator = ( T* t )         { mT = t; }
+    void     operator = ( SmartPtr&& s ) { SwapWith( ( SmartPtr&& )s ); }
+    void     operator = ( const SmartPtr& s )
     {
       if( !s )
         return;
@@ -52,12 +51,17 @@ namespace Tac
       mRefCounter = s.mRefCounter;
       mT = s.mT;
     }
-
-    T*       operator ->()       { return mT; }
-    const T* operator ->() const { return mT; }
-    operator bool() const        { return mT; }
+    T*       operator ->()               { return mT; }
+    const T* operator ->() const         { return mT; }
+    operator bool() const                { return mT; }
 
   private:
+
+    void SwapWith( SmartPtr&& other )
+    {
+      Swap( mRefCounter, other.mRefCounter );
+      Swap( mT, other.mT );
+    }
 
     // Feels wrong... Decrement/Increment() are const, mRefCounter/mT are mutable
 

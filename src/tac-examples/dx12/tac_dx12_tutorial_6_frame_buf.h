@@ -53,7 +53,9 @@ namespace Tac
     void     Update( Errors& ) override;
     void     Uninit( Errors& ) override;
     void     Render( RenderParams, Errors& ) override;
-    IState*  GetGameState() override;
+
+    App::State GameState_Create() override;
+    void       GameState_Update( IState* ) override;
 
   private:
 
@@ -96,7 +98,11 @@ namespace Tac
     D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
                                                      D3D12_DESCRIPTOR_HEAP_TYPE,
                                                      int ) const;
-    void PopulateCommandList( DX12ExampleContextScope&, float translateX, float translateY, float scale, Errors& );
+    void PopulateCommandList( DX12ExampleContextScope&,
+                              float translateX,
+                              float translateY,
+                              float scale,
+                              Errors& );
     void ResourceBarrier( ID3D12GraphicsCommandList*, const D3D12_RESOURCE_BARRIER& );
 
     struct TransitionParams

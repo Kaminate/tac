@@ -12,7 +12,7 @@ namespace Tac { struct m4; struct Debug3DDrawData; }
 namespace Tac
 {
 
-  static const int sPlayerCountMax = 4;
+  static constexpr int sPlayerCountMax{ 4 };
 
   typedef List< Entity* >::Iterator EntityIterator;
 
@@ -21,7 +21,7 @@ namespace Tac
     World();
     ~World();
 
-    dynmc System* GetSystem( const SystemInfo* );
+    dynmc System* GetSystem( const SystemInfo* ) dynmc;
     const System* GetSystem( const SystemInfo* ) const;
     void          DeepCopy( const World& );
     void          Step( float seconds );
@@ -31,19 +31,19 @@ namespace Tac
     void          ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, Entity* );
 
     //            Entity api
-    Entity* SpawnEntity( EntityUUID );
-    void    KillEntity( EntityUUID );
-    void    KillEntity( Entity* );
-    void    KillEntity( EntityIterator );
-    Entity* FindEntity( PlayerUUID );
-    Entity* FindEntity( EntityUUID );
-    Entity* FindEntity( StringView );
+    Entity*       SpawnEntity( EntityUUID );
+    void          KillEntity( EntityUUID );
+    void          KillEntity( Entity* );
+    void          KillEntity( EntityIterator );
+    Entity*       FindEntity( PlayerUUID );
+    Entity*       FindEntity( EntityUUID );
+    Entity*       FindEntity( StringView ); // returns first matching Entity::mName
 
     //            Player api
-    Player* SpawnPlayer( PlayerUUID );
-    void    KillPlayer( PlayerUUID );
-    Player* FindPlayer( PlayerUUID );
-    Player* FindPlayer( EntityUUID );
+    Player*       SpawnPlayer( PlayerUUID );
+    void          KillPlayer( PlayerUUID );
+    Player*       FindPlayer( PlayerUUID );
+    Player*       FindPlayer( EntityUUID );
 
     Timestamp            mElapsedSecs;
     bool                 mDebugDrawEntityOrigins { true };
