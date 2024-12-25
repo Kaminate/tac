@@ -324,7 +324,7 @@ namespace Tac
       //   This introduces some latency at the expense of misprediction (the alternative is 
       //   predicting 125% B)
 
-      if( !sCurrState || !sPrevState )
+      if( !sCurrState || !sPrevState || !sCurrState->mFrameIndex )
         return;
 
       TAC_ASSERT( sCurrState->mTimestamp != sPrevState->mTimestamp );
