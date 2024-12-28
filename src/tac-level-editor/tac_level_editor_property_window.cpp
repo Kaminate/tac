@@ -99,7 +99,7 @@ namespace Tac
 
     if( entity->mParent )
     {
-      ImGuiText( "Parent: " + entity->mParent->mName );
+      ImGuiText( ShortFixedString::Concat( "Parent: ", entity->mParent->mName ) );
       ImGuiSameLine();
       if( ImGuiButton( "Unparent" ) )
         entity->Unparent();

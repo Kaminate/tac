@@ -181,7 +181,7 @@ namespace Tac
   {
     for( auto& pair : mObjectChildrenMap )
     {
-      Json* json = pair.mSecond;
+      Json* json { pair.second };
       TAC_DELETE json;
     }
 
@@ -291,8 +291,8 @@ namespace Tac
 
   Json*  Json::FindChild( StringView key ) const
   {
-    Optional< Json* > child { mObjectChildrenMap.FindVal( key ) };
-    return child.GetValueOr( nullptr );
+    auto it{ mObjectChildrenMap.find( key ) };
+    return it == mObjectChildrenMap.end() ? nullptr : ( *it ).second;
   }
 
   Json&  Json::GetChild( StringView key )

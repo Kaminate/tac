@@ -90,8 +90,11 @@ namespace Tac
 
     const HashValue hashedValue{ GetModelHash( params ) };
 
-    if( Optional< Mesh* > mesh{ sMeshMap.FindVal( hashedValue ) } )
-      return *mesh;
+    if( auto it { sMeshMap.find( hashedValue ) }; it != sMeshMap.end() )
+    {
+      auto& [_, mesh] { *it};
+      return mesh;
+    }
 
     const StringView pathExt{ params.mPath.GetFileExtension() };
     const MeshLoadFunction meshLoadFunction { ModelLoadFunctionFind( pathExt ) };
@@ -120,9 +123,8 @@ namespace Tac
 
   void  ModelAssetManager::Uninit()
   {
-    for( auto pair : sMeshMap )
+    for( auto& [_, mesh ] : sMeshMap )
     {
-      Mesh* mesh{ pair.mSecond };
       for( SubMesh& submesh : mesh->mSubMeshes )
       {
         submesh.ClearBuffers();

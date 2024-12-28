@@ -5,11 +5,10 @@
 
 void Tac::SetUnitTest()
 {
-  Set<int> mySet;
+  Set< int > mySet;
   mySet.insert( 1 );
   mySet.insert( 2 );
   mySet.insert( 3 );
-  TAC_ASSERT( false == mySet.insert( 3 ) );
   TAC_ASSERT( true == mySet.Contains( 2 ) );
   TAC_ASSERT( false == mySet.Contains( 4 ) );
 

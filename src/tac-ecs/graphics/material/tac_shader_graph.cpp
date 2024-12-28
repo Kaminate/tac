@@ -32,7 +32,9 @@ namespace Tac
     const MaterialInput materialInputs{
       MaterialInput::JsonLoad( materialInputsJson ) };
 
-    const String materialShader{ materialShaderJson ? materialShaderJson->mString : "" };
+    const StringView materialShader{ materialShaderJson
+      ? ( StringView )materialShaderJson->mString
+      : StringView{} };
 
     return ShaderGraph
     {

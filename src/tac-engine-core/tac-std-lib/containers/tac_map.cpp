@@ -8,9 +8,9 @@ void Tac::MapUnitTest()
 {
   Map< int, String > myMap;
 
-  myMap[0] = "zero";
-  myMap[1] = "one";
-  myMap[2] = "two";
+  myMap[ 0 ] = "zero";
+  myMap[ 1 ] = "one";
+  myMap[ 2 ] = "two";
 
   {
     Map< int, String > mapA;
@@ -34,15 +34,15 @@ void Tac::MapUnitTest()
     OS::OSDebugPrintLine(str); 
   }
 
-  if( auto it { myMap.Find( 0 ) }; it )
+  if( auto it { myMap.Find( 0 ) }; it != myMap.end() )
   {
-    const String s { it.GetValue() };
+    const String& s{ ( *it ).second };
     OS::OSDebugPrintLine( s );
   }
 
-  if( auto it { myMap.Find( 3 ) }; it != myMap.end() )
+  if( auto it{ myMap.Find( 3 ) }; it != myMap.end() )
   {
-    String s { it.GetValue() };
+    const String& s{ ( *it ).second };
     OS::OSDebugPrintLine( s );
   }
 

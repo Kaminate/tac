@@ -45,12 +45,7 @@ namespace Tac
     {
       const AssetPathStringView assetPath{ ModifyPathRelative( path, errors ) };
       const AssetHash assetHash{ assetPath };
-
-      //auto it { sAssetHashCacheMap.Find( assetHash.mHashValue ) };
-      auto it { sAssetHashCacheMap.Find( assetHash) };
-      TAC_ASSERT( !it );
-
-      //sAssetHashCacheMap[ assetHash.mHashValue ] = assetPath;
+      TAC_ASSERT( !sAssetHashCacheMap.contains(assetHash) );
       sAssetHashCacheMap[ assetHash ] = assetPath;
     }
 

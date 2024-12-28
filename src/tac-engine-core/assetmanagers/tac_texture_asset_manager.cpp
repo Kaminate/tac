@@ -562,7 +562,11 @@ namespace Tac
 
   static TextureLoadJob* FindLoadingTexture( const StringID& key )
   {
-    return mLoadingTextures.FindVal( key ).GetValueOr( {} );
+    auto it{ mLoadingTextures.find( key ) };
+    if( it == mLoadingTextures.end() )
+      return nullptr;
+    auto& [_, job] { *it};
+    return job;
   }
 
   static void            UpdateTextureLoadJob( const AssetPathStringView& key,
@@ -664,19 +668,28 @@ namespace Tac
   const LoadedTexture*            LoadedTextureMap::FindLoadedTexture( AssetPathStringView asset ) const 
   {
     auto it{ Find( asset ) };
-    return it ? &it.GetValue() : nullptr;
+    if( it == end() )
+      return nullptr;
+    auto& [_, texture] { *it};
+    return &texture;
   }
 
   Render::TextureHandle           LoadedTextureMap::FindTextureHandle( AssetPathStringView asset ) const
   {
     auto it{ Find( asset ) };
-    return it ? it.GetValue().mTextureHandle : Render::TextureHandle{};
+    if( it == end() )
+      return {};
+    auto& [_, texture] { *it};
+    return texture.mTextureHandle;
   }
 
   Render::IBindlessArray::Binding LoadedTextureMap::FindBindlessIndex( AssetPathStringView asset ) const
   {
     auto it{ Find( asset ) };
-    return it ? it.GetValue().mBinding : Render::IBindlessArray::Binding{};
+    if( it == end() )
+      return {};
+    auto& [_, texture] { *it};
+    return texture.mBinding;
   }
 
   Render::IBindlessArray*         LoadedTextureMap::GetBindlessArray()const

@@ -345,12 +345,12 @@ namespace Tac
     entity->mStatic = jsonStatic ? jsonStatic->mBoolean : entity->mStatic;
 
     // I think these should have its own mComponents json node
-    for( auto& pair : prefabJson.mObjectChildrenMap )
+    for( auto& [key, componentJson] : prefabJson.mObjectChildrenMap )
     {
-      const StringView key { pair.mFirst };
-      Json* componentJson { pair.mSecond };
+      //const StringView key { pair.mFirst };
+      //Json* componentJson { pair.mSecond };
 
-      ComponentInfo* componentInfo { ComponentInfo::Find( key ) };
+      ComponentInfo* componentInfo { ComponentInfo::Find( key.c_str() ) };
       if( !componentInfo )
         continue; // This key-value pair is not a component
 
@@ -362,10 +362,11 @@ namespace Tac
     }
 
 
-    if( Optional< Json* > childrenJson{ prefabJson.mObjectChildrenMap.FindVal( "mChildren" ) };
-        childrenJson )
+    if( auto childrenJson{ prefabJson.mObjectChildrenMap.find( "mChildren" ) };
+        childrenJson != prefabJson.mObjectChildrenMap.end() )
     {
-      for( Json* childJson : ( *childrenJson )->mArrayElements )
+      auto& [_, arrayElements] { ( *childrenJson ) };
+      for( Json* childJson : arrayElements->mArrayElements )
       {
         Entity* childEntity { mWorld->SpawnEntity( NullEntityUUID ) };
         childEntity->Load( *childJson );

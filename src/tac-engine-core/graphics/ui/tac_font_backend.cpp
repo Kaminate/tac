@@ -345,27 +345,21 @@ namespace Tac
     //FontFile* fontFile = languageStuff->mFontStylePaths[ fontStyle ];
     FontFile* fontFile { mDefaultFonts[ defaultLanguage ] };
 
-    if( Optional< FontAtlasCell* > cell{ fontFile->mCells.FindVal( codepoint ) };
+    if( FontAtlasCell* cell{ fontFile->TryFindFontAtlasCell( codepoint ) };
         cell && !FORCE_DRAW_EVERY_TIME )
-      return cell.GetValue();
+      return cell;
 
     const int glyphIndex { stbtt_FindGlyphIndex( &fontFile->mFontInfo, codepoint ) };
     if( !glyphIndex )
       return nullptr;
 
+    fontFile->DebugGlyph( glyphIndex );
+
     const GlyphMetrics glyphMetrics{ fontFile->GetGlyphMetrics( glyphIndex ) };
     TAC_ASSERT( glyphMetrics.mSDFWidth <= FontCellPxWidth );
     TAC_ASSERT( glyphMetrics.mSDFHeight <= FontCellPxHeight );
 
-
-    fontFile->DebugGlyph( glyphIndex );
-
-    FontAtlasCell* cell{ FORCE_DRAW_EVERY_TIME
-      ? *fontFile->mCells.FindVal( codepoint )
-      : GetCell() };
-
-    // cant use cell = FontAtlasCell{ .foo = bar, ... } because FontAtlasCell has other bookkeeping
-
+    FontAtlasCell* cell{ GetCell() };
     cell->mCodepoint = codepoint;
     cell->mCodepointAscii = codepoint < 128 ? ( char )codepoint : '?';
     cell->mOwner = fontFile;
@@ -374,7 +368,6 @@ namespace Tac
     cell->mNeedsGPUCopy = true;
 
     fontFile->mCells[ codepoint ] = cell;
-
 
     return cell;
   }
@@ -396,25 +389,21 @@ namespace Tac
   FontAtlasCell*        FontAtlas::GetCell()
   {
     if( mCellCount < mCellCapacity )
-    {
       return &mCells[ mCellCount++ ];
-    }
-    else
+
+    FontAtlasCell* oldest{};
+    for( int i{}; i < mCellCapacity; ++i )
     {
-      FontAtlasCell* oldest{};
-      for( int i{}; i < mCellCapacity; ++i )
-      {
-        FontAtlasCell* cell{ &mCells[ i ] };
-        if( !oldest || !cell->mOwner || cell->mReadTime < oldest->mReadTime )
-          oldest = cell;
-      }
-
-      if( FontFile * owner{ oldest->mOwner } )
-        owner->mCells.erase( oldest->mCodepoint );
-
-      oldest->mOwner = nullptr;
-      return oldest;
+      FontAtlasCell* cell{ &mCells[ i ] };
+      if( !oldest || !cell->mOwner || cell->mReadTime < oldest->mReadTime )
+        oldest = cell;
     }
+
+    if( FontFile * owner{ oldest->mOwner } )
+      owner->mCells.erase( oldest->mCodepoint );
+
+    oldest->mOwner = nullptr;
+    return oldest;
   }
 
 
@@ -653,10 +642,12 @@ namespace Tac
 
   const FontDims*       FontAtlas::GetLanguageFontDims( Language language )
   {
-    if( Optional< FontFile* > fontFile{ mDefaultFonts.FindVal( language ) }  )
-      return &( ( *fontFile )->mFontDims );
+    auto it{ mDefaultFonts.find( language )};
+    if( it == mDefaultFonts.end() )
+      return {};
 
-    return nullptr;
+    auto& [_, fontFile] {*it};
+    return &fontFile->mFontDims;
   }
 
   Render::TextureHandle FontAtlas::GetTextureHandle()

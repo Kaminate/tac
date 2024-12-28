@@ -24,9 +24,17 @@ namespace Tac
 
     FontFile( const AssetPathStringView&, Errors& );
 
-    GlyphBytes   GetGlyphBytes( int glyphIndex ) const;
-    GlyphMetrics GetGlyphMetrics( int glyphIndex ) const;
-    void         DebugGlyph( int glyphIndex );
+    GlyphBytes     GetGlyphBytes( int glyphIndex ) const;
+    GlyphMetrics   GetGlyphMetrics( int glyphIndex ) const;
+    void           DebugGlyph( int glyphIndex );
+    FontAtlasCell* TryFindFontAtlasCell( Codepoint codepoint ) const
+    {
+      auto it{ mCells.find( codepoint ) };
+      if( it == mCells.end() )
+        return nullptr;
+      auto& [_, cell] {*it};
+      return cell;
+    }
     
     AssetPathString  mAssetPath  {};
     CellMap          mCells      {};

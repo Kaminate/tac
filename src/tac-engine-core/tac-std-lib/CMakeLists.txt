@@ -6,6 +6,7 @@ target_sources( TacStdLib PRIVATE
   tac_std_lib.natstepfilter
   # tac_std_lib.h
   tac_ints.h
+  tac_type_traits.h
   tac_std_lib_pch.h
 )
 

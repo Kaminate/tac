@@ -11,10 +11,12 @@ namespace Tac
   {
     AssetHash() = default;
     AssetHash( AssetPathStringView );
-    bool operator == ( const AssetHash& ) const = default;
 
     HashValue mHashValue{};
   };
+
+  inline bool operator == ( const AssetHash& a, const AssetHash& b ) { return a.mHashValue == b.mHashValue; }
+  inline bool operator <  ( const AssetHash& a, const AssetHash& b ) { return a.mHashValue < b.mHashValue; }
 
   struct AssetHashCache
   {

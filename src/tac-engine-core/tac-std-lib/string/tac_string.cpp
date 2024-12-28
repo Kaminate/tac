@@ -253,14 +253,14 @@ namespace Tac
 
   int          String::find_last_of( const char* c ) const
   {
-    int cLen { StrLen( c ) };
-    int iFound { npos };
-    for( int i {}; i < mLen; ++i )
+    int cLen{ StrLen( c ) };
+    int iFound{ npos };
+    for( int i{}; i < mLen; ++i )
     {
-      char myStrChar { mStr[ i ] };
-      for( int j {}; j < cLen; ++j )
+      char myStrChar{ mStr[ i ] };
+      for( int j{}; j < cLen; ++j )
       {
-        char queryChar { c[ j ] };
+        char queryChar{ c[ j ] };
         if( myStrChar == queryChar )
         {
           iFound = i;
@@ -283,10 +283,9 @@ namespace Tac
   bool         String::contains( char c ) const                   { return npos != find( c ); }
   String       String::substr( int pos, int len ) const
   {
-    int remainingLen = mLen - pos;
-    int resultLen = len == npos ? remainingLen : Min( remainingLen, len );
-    String result( mStr + pos, resultLen );
-    return result;
+    const int remainingLen{ mLen - pos };
+    const int resultLen{ len == npos ? remainingLen : Min( remainingLen, len ) };
+    return String( mStr + pos, resultLen );
   }
   void         String::operator = ( const char* str )        { assign( StringView( str ) ); }
   void         String::operator = ( const String& str )      { assign( str.c_str(), str.size() ); }

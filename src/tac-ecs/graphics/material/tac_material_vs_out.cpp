@@ -34,9 +34,10 @@ namespace Tac
       for( Json* varJson : json->mArrayElements )
       {
         const String typeStr{ varJson->GetChild( "type" ).mString };
+        const MetaType* metaType{ FindMetaType( typeStr ) };
 
         MaterialVSOut::Variable var;
-        var.mMetaType = FindMetaType( typeStr );
+        var.mMetaType = metaType;
         var.mName = varJson->GetChild( "name" ).mString;
         var.mSemantic = varJson->GetChild( "semantic" ).mString;
 

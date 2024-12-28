@@ -355,15 +355,14 @@ Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
 
 Tac::CodepointView   Tac::LocalizationGetString( Language language, StringView reference )
 {
-  LocalizedString* str { FindLocalizedString( reference ) };
+  LocalizedString* str{ FindLocalizedString( reference ) };
   if( !str )
     return {};
 
+  auto it{ str->mCodepoints.Find( language ) };
+  TAC_ASSERT( it != str->mCodepoints.end() );
 
-  auto it { str->mCodepoints.Find(language) };
-  TAC_ASSERT( it );
-
-  const LocalizedStringStuff& localizedStringStuff = (*it).mSecond;
+  auto& [_, localizedStringStuff] {*it};
   return localizedStringStuff.GetCodepointView();
 }
 

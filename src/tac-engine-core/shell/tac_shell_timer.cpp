@@ -31,13 +31,13 @@ namespace Tac
     mTimeSinceEpoch -= ( Timepoint::NanosecondDuration )( d.mSeconds * 1e9 );
   }
 
-  Timepoint::Timepoint( NanosecondDuration ns ) { mTimeSinceEpoch = ns; }
+  Timepoint::Timepoint( NanosecondDuration ns )                   { mTimeSinceEpoch = ns; }
   Timepoint::NanosecondDuration Timepoint::TimeSinceEpoch() const { return mTimeSinceEpoch; }
 
   TimestampDifference operator - ( const Timepoint& a, const Timepoint& b )
   {
-    const Timepoint::NanosecondDuration ns { a.TimeSinceEpoch() - b.TimeSinceEpoch() };
-    const double seconds { ns / 1e9 };
+    const Timepoint::NanosecondDuration ns{ a.TimeSinceEpoch() - b.TimeSinceEpoch() };
+    const double seconds{ ns / 1e9 };
     return TimestampDifference{ ( float )seconds };
   }
 

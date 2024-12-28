@@ -28,12 +28,14 @@ namespace Tac
 
 	static Component* CreateModelComponent( World* world )
 	{
-		return Graphics::From( world )->CreateModelComponent();
+    Graphics* graphics{ Graphics::From( world ) };
+		return graphics->CreateModelComponent();
 	}
 
 	static void       DestroyModelComponent( World* world, Component* component )
 	{
-		Graphics::From( world )->DestroyModelComponent( ( Model* )component );
+    Graphics* graphics{ Graphics::From( world ) };
+    graphics->DestroyModelComponent( ( Model* )component );
 	}
 
 #if 0
@@ -147,9 +149,14 @@ namespace Tac
 
     const MetaCompositeType* metaType{ ( MetaCompositeType* )&GetMetaType< Model >() };
 
-    NetVarRegistration netVarRegistration;
-    netVarRegistration.mMetaType = metaType;
-    netVarRegistration.mNetMembers.SetAll();
+    NetMembers netMembers{};
+    netMembers.SetAll();
+
+    const NetVarRegistration netVarRegistration
+    {
+      .mNetMembers { netMembers },
+      .mMetaType   { metaType },
+    };
 
     * ( sEntry = ComponentInfo::Register() ) = ComponentInfo
     {

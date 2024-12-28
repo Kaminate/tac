@@ -11,17 +11,13 @@
 //#include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"
+#include "tac-std-lib/tac_type_traits.h"
 #include "tac-rhi/render3/tac_render_handle.h"
 
 // i dont like how the compiler shows it as IHandle<3> instead of like IHandle<kTexture>
 // also you cant fwd decalre
 #define TAC_IS_IHANDLE_TEMPLATE() 0
 
-namespace Tac {
-  template< typename T > struct IsPointer     { static constexpr bool value{}; };
-  template< typename T > struct IsPointer<T*> { static constexpr bool value{ true }; };
-  template< typename T > constexpr bool kIsPointer = IsPointer<T>::value;
-}
 
 namespace Tac::FileSys{ struct Path; }
 namespace Tac::Render

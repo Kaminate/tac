@@ -7,6 +7,29 @@
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
+#define TAC_MAP_STL() 1
+
+#if TAC_MAP_STL()
+
+#if TAC_SHOULD_IMPORT_STD()
+import std;
+#else
+#include <map>
+#endif
+
+namespace Tac
+{
+  template< typename TKey, typename TVal >
+  struct Map : public std::map< TKey, TVal >
+  {
+    std::map<TKey, TVal>::iterator       Find( const TKey& key ) dynmc { return std::map<TKey, TVal>::find( key ); }
+    std::map<TKey, TVal>::const_iterator Find( const TKey& key ) const { return std::map<TKey, TVal>::find( key ); }
+  };
+  void MapUnitTest();
+}
+#else
+
+
 namespace Tac
 {
   template< typename TKey, typename TVal >
@@ -284,3 +307,4 @@ void Tac::Map<TKey, TVal>::ConstIterator::operator ++()
   mRemaining--;
 }
 
+#endif
