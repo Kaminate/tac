@@ -23,19 +23,13 @@ namespace Tac
   ShaderGraph ShaderGraph::JsonLoad( const Json& json )
   {
     const Json* materialShaderJson{ json.FindChild( sJsonKeyMaterialShader ) };
-    const Json* inputLayoutJson{ json.FindChild( sJsonKeyMaterialVSOut ) };
+    const Json* inputLayoutJson   { json.FindChild( sJsonKeyMaterialVSOut ) };
     const Json* materialInputsJson{ json.FindChild( sJsonKeyMaterialInputs ) };
-
-    const MaterialVSOut materialVSOut{
-      MaterialVSOut::FromJson( inputLayoutJson ) };
-
-    const MaterialInput materialInputs{
-      MaterialInput::JsonLoad( materialInputsJson ) };
-
+    const MaterialVSOut materialVSOut{ MaterialVSOut::FromJson( inputLayoutJson ) };
+    const MaterialInput materialInputs{ MaterialInput::JsonLoad( materialInputsJson ) };
     const StringView materialShader{ materialShaderJson
-      ? ( StringView )materialShaderJson->mString
+      ? StringView( materialShaderJson->mString )
       : StringView{} };
-
     return ShaderGraph
     {
       .mMaterialVSOut       { materialVSOut },
@@ -49,10 +43,8 @@ namespace Tac
                                    Errors& errors )
   {
     TAC_ASSERT( !path.empty() );
-
     const Json json{ ShaderGraph::JsonSave( sg ) };
     const String string{ json.Stringify() };
-
     TAC_CALL( SaveToFile( path, string.data(), string.size(), errors ) );
   }
 
