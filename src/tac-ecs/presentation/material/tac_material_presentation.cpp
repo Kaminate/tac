@@ -70,14 +70,17 @@ namespace Tac
     u32           mSpecularTextureIdx {};
   };
 
-  Render::BufferHandle          MaterialPresentation::sConstBufHandle_PerFrame    {};
-  Render::BufferHandle          MaterialPresentation::sConstBufHandle_Material    {};
-  Render::BufferHandle          MaterialPresentation::sConstBufHandle_ShaderGraph {};
+  // -----------------------------------------------------------------------------------------------
 
-  static bool                          sEnabled                    { true };
-  static bool                          sInitialized                {};
+  Render::BufferHandle MaterialPresentation::sConstBufHandle_PerFrame    {};
+  Render::BufferHandle MaterialPresentation::sConstBufHandle_Material    {};
+  Render::BufferHandle MaterialPresentation::sConstBufHandle_ShaderGraph {};
+  static bool          sEnabled                                          { true };
+  static bool          sInitialized                                      {};
 
-  static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
+  // -----------------------------------------------------------------------------------------------
+
+  static m4                    GetProjMtx( const Camera* camera, const v2i viewSize )
   {
     const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -95,8 +98,7 @@ namespace Tac
     return proj;
   }
 
-  static ConstBufData_PerFrame GetPerFrameParams( const Camera* camera,
-                                         const v2i viewSize )
+  static ConstBufData_PerFrame GetPerFrameParams( const Camera* camera, const v2i viewSize )
   {
     const m4 view{ camera->View() };
     const m4 proj{ GetProjMtx( camera, viewSize ) };
@@ -131,59 +133,7 @@ namespace Tac
     };
   }
 
-  ConstBufData_ShaderGraph ConstBufData_ShaderGraph::Get( const Params& params )
-  {
-    struct Handle
-    {
-      static void WorldMatrix( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
-      {
-        shaderGraph->mWorld = params.mEntity->mWorldTransform;
-      }
-
-      static void VertexBuffer( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
-      {
-        TAC_ASSERT( params.mSubMesh->mVertexBufferBinding.IsValid() );
-        shaderGraph->mVertexBufferIndex = ( u32 )params.mSubMesh->mVertexBufferBinding.GetIndex();
-      }
-
-      static void InputLayout( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
-      {
-        TAC_ASSERT( params.mMesh->mGPUInputLayoutBinding.IsValid() );
-        shaderGraph->mInputLayoutIndex = ( u32 )params.mMesh->mGPUInputLayoutBinding.GetIndex();
-      }
-    };
-
-    using HandleFn = void ( * )( const Params&, dynmc ConstBufData_ShaderGraph* );
-
-    HandleFn mHandlers[ ( int )MaterialInput::Type::kCount ]{};
-    mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle::VertexBuffer;
-    mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle::WorldMatrix;
-    mHandlers[ ( int )MaterialInput::Type::kInputLayout ] = Handle::InputLayout;
-    for( HandleFn handler : mHandlers )
-    {
-      TAC_ASSERT( handler );
-    }
-
-    ConstBufData_ShaderGraph shaderGraph{};
-
-    const MaterialInput& materialInput{ params.mRenderMaterial->mShaderGraph.mMaterialInputs };
-    const int n{ ( int )MaterialInput::Type::kCount };
-    for( int i{}; i < n; ++i )
-    {
-      const MaterialInput::Type type{ ( MaterialInput::Type )i };
-      if( materialInput.IsSet( type ) )
-      {
-        const HandleFn handler{ mHandlers[ i ] };
-        handler( params, &shaderGraph );
-      }
-    }
-
-    return shaderGraph;
-
-  }
-
-
-  static Render::BufferHandle CreateDynCBuf( int byteCount, const char* name, Errors& errors )
+  static Render::BufferHandle  CreateDynCBuf( int byteCount, const char* name, Errors& errors )
   {
     const Render::CreateBufferParams params
     {
@@ -352,6 +302,57 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-}
+  ConstBufData_ShaderGraph ConstBufData_ShaderGraph::Get( const Params& params )
+  {
+    struct Handle
+    {
+      static void WorldMatrix( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
+      {
+        shaderGraph->mWorld = params.mEntity->mWorldTransform;
+      }
 
-#endif
+      static void VertexBuffer( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
+      {
+        TAC_ASSERT( params.mSubMesh->mVertexBufferBinding.IsValid() );
+        shaderGraph->mVertexBufferIndex = ( u32 )params.mSubMesh->mVertexBufferBinding.GetIndex();
+      }
+
+      static void InputLayout( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
+      {
+        TAC_ASSERT( params.mMesh->mGPUInputLayoutBinding.IsValid() );
+        shaderGraph->mInputLayoutIndex = ( u32 )params.mMesh->mGPUInputLayoutBinding.GetIndex();
+      }
+    };
+
+    using HandleFn = void ( * )( const Params&, dynmc ConstBufData_ShaderGraph* );
+
+    HandleFn mHandlers[ ( int )MaterialInput::Type::kCount ]{};
+    mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle::VertexBuffer;
+    mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle::WorldMatrix;
+    mHandlers[ ( int )MaterialInput::Type::kInputLayout ] = Handle::InputLayout;
+    for( HandleFn handler : mHandlers )
+    {
+      TAC_ASSERT( handler );
+    }
+
+    ConstBufData_ShaderGraph shaderGraph{};
+
+    const MaterialInput& materialInput{ params.mRenderMaterial->mShaderGraph.mMaterialInputs };
+    const int n{ ( int )MaterialInput::Type::kCount };
+    for( int i{}; i < n; ++i )
+    {
+      const MaterialInput::Type type{ ( MaterialInput::Type )i };
+      if( materialInput.IsSet( type ) )
+      {
+        const HandleFn handler{ mHandlers[ i ] };
+        handler( params, &shaderGraph );
+      }
+    }
+
+    return shaderGraph;
+
+  }
+
+} // namespace Tac
+
+#endif // TAC_MATERIAL_PRESENTATION_ENABLED

@@ -32,9 +32,9 @@ namespace Tac
       : StringView{} };
     return ShaderGraph
     {
-      .mMaterialVSOut       { materialVSOut },
-      .mMaterialInputs      { materialInputs },
-      .mMaterialShader      { materialShader },
+      .mMaterialVSOut  { materialVSOut },
+      .mMaterialInputs { materialInputs },
+      .mMaterialShader { materialShader },
     };
   }
 
