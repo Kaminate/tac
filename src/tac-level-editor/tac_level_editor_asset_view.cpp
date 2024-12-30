@@ -90,35 +90,23 @@ namespace Tac
     return HasExt( path, exts );
   }
 
-  static FileSys::Paths GetImagePaths()
+  static bool IsOther( const FileSys::Path& path )
   {
-    FileSys::Paths imagePaths;
-    for( const FileSys::Path& path : sAssetViewFiles )
-      if( IsImage( path ) )
-        imagePaths.push_back( path );
-
-    return imagePaths;
+    return !IsImage(path) && !IsModel(path);
   }
 
-  static FileSys::Paths GetModelPaths()
+  static FileSys::Paths GetPathsUsingFn( bool ( *fn )( const FileSys::Path& ) )
   {
-    FileSys::Paths modelPaths;
+    FileSys::Paths paths;
     for( const FileSys::Path& path : sAssetViewFiles )
-      if( IsModel( path ) )
-        modelPaths.push_back( path );
-
-    return modelPaths;
+      if( fn( path ) )
+        paths.push_back( path );
+    return paths;
   }
 
-  static FileSys::Paths GetOtherPaths()
-  {
-    FileSys::Paths otherPaths;
-    for( const FileSys::Path& path : sAssetViewFiles )
-      if( !IsImage( path ) && !IsModel( path ) )
-        otherPaths.push_back( path );
-
-    return otherPaths;
-  }
+  static FileSys::Paths GetImagePaths() { return GetPathsUsingFn( IsImage ); }
+  static FileSys::Paths GetModelPaths() { return GetPathsUsingFn( IsModel ); }
+  static FileSys::Paths GetOtherPaths() { return GetPathsUsingFn( IsOther ); }
 
   static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
   {
@@ -139,11 +127,11 @@ namespace Tac
       mLocal[ i ] = local[ i ];
     mLocal.Transpose();
 
-    v3 c0 = { mLocal.m00, mLocal.m10, mLocal.m20 };
-    v3 c1 = { mLocal.m01, mLocal.m11, mLocal.m21 };
-    v3 c2 = { mLocal.m02, mLocal.m12, mLocal.m22 };
-    v3 c3 = { mLocal.m03, mLocal.m13, mLocal.m23 };
-    v3 scale = { Length( c0 ), Length( c1 ), Length( c2 ) };
+    v3 c0 { mLocal.m00, mLocal.m10, mLocal.m20 };
+    v3 c1 { mLocal.m01, mLocal.m11, mLocal.m21 };
+    v3 c2 { mLocal.m02, mLocal.m12, mLocal.m22 };
+    v3 c3 { mLocal.m03, mLocal.m13, mLocal.m23 };
+    const v3 scale { Length( c0 ), Length( c1 ), Length( c2 ) };
     c0 /= scale.x;
     c1 /= scale.y;
     c2 /= scale.z;
@@ -195,28 +183,22 @@ namespace Tac
     }
 
     const v3 eulerRads { xPsi, yTheta, zPhi };
-    const RelativeSpace relativeSpace
+    return RelativeSpace
     {
-      .mPosition = c3,
-      .mEulerRads = eulerRads,
-      .mScale = scale,
+      .mPosition  { c3 },
+      .mEulerRads { eulerRads },
+      .mScale     { scale },
     };
-    return relativeSpace;
   }
 
-  static void PopulateFolderContents()
+  static void PopulateFolderContents(Errors& errors)
   {
-    sAssetViewFiles = FileSys::IterateFiles( sAssetViewFolderCur,
-                                                FileSys::IterateType::Default,
-                                                sAssetViewErrors );
-    if( sAssetViewErrors )
-      return;
-
-    sAssetViewFolders = FileSys::IterateDirectories( sAssetViewFolderCur,
+    TAC_CALL( sAssetViewFiles = FileSys::IterateFiles( sAssetViewFolderCur,
+                                             FileSys::IterateType::Default,
+                                             errors ) );
+    TAC_CALL( sAssetViewFolders = FileSys::IterateDirectories( sAssetViewFolderCur,
                                                      FileSys::IterateType::Default,
-                                                     sAssetViewErrors );
-    if( sAssetViewErrors )
-      return;
+                                                     errors ) );
   }
 
 
@@ -558,7 +540,7 @@ namespace Tac
 
   static void UIFilesImages( Errors& errors )
   {
-    FileSys::Paths paths{ GetImagePaths() };
+    const FileSys::Paths paths{ GetImagePaths() };
 
     int shownImageCount {};
     bool goSameLine {};
@@ -636,7 +618,7 @@ namespace Tac
     if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
     {
       sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
-      PopulateFolderContents();
+      PopulateFolderContents( sAssetViewErrors );
     }
     ImGuiEnd();
   }
@@ -650,7 +632,6 @@ namespace Tac
     for( const FileSys::Path& path : paths )
     {
       TAC_CALL( AssetPathString assetPath{ ModifyPathRelative( path, errors ) } );
-
       AssetViewImportedModel* loadedModel{ GetLoadedModel( assetPath ) };
       if( !loadedModel )
       {
@@ -658,15 +639,11 @@ namespace Tac
       }
 
       AttemptLoadEntity( loadedModel, assetPath, errors );
-
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       TAC_CALL( Render::IContext::Scope renderContextScope{
         renderDevice->CreateRenderContext( errors ) } );
-
       Render::IContext* renderContext{ renderContextScope.GetContext() };
-      
       RenderImportedModel( renderContext, loadedModel, errors );
-
       TAC_CALL( renderContext->Execute( errors ) );
     }
   }

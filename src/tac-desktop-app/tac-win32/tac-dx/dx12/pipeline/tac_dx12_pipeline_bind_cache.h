@@ -29,6 +29,11 @@ namespace Tac::Render
     void                   SetFence( FenceSignal );
 
     void                   Commit( CommitParams );
+  private:
+    void                   CommitAsDescriptorTable( CommitParams );
+    void                   CommitAsResource( CommitParams );
+  public:
+
 
     // Resources can be bound in an array, or as a handle, depending
     // on the resource type

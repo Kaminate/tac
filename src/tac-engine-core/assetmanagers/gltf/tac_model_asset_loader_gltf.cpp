@@ -22,14 +22,24 @@
 namespace Tac
 {
 
-  static void                 GetTris( const cgltf_primitive* parsedPrim,
-                                       SubMeshTriangles& tris )
+  Render::VertexAttributeFormat GLTFTypeToTacVertexAttributeFormat(cgltf_type gltfType)
+  {
+    switch( gltfType )
+    {
+      case cgltf_type_vec2: return Render::VertexAttributeFormat::GetVector2();
+      case cgltf_type_vec3: return Render::VertexAttributeFormat::GetVector3();
+      default: TAC_ASSERT_INVALID_CASE( gltfType ); return {};
+    }
+  }
+
+  static SubMeshTriangles GetTris( const cgltf_primitive* parsedPrim )
   {
     const cgltf_attribute* posAttribute {
       FindAttributeOfType( parsedPrim, cgltf_attribute_type_position ) };
     if( !posAttribute )
-      return;
+      return {};
 
+    SubMeshTriangles tris;
     const char* srcVtx{ ( char* )
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->offset +
@@ -58,6 +68,7 @@ namespace Tac
         tris.push_back( tri );
       }
     }
+    return tris;
   }
 
   struct LoadedGltfData
@@ -66,7 +77,7 @@ namespace Tac
     {
       TAC_CALL( mFileBytes = LoadAssetPath( path, errors ) );
 
-      const cgltf_options options  {};
+      const cgltf_options options{};
 
       TAC_GLTF_CALL( cgltf_parse, &options, mFileBytes.data(), mFileBytes.size(), &parsedData );
 
@@ -77,7 +88,6 @@ namespace Tac
                                                                   StringView( "/" ) ) };
 
       TAC_GLTF_CALL( cgltf_load_buffers, &options, parsedData, basePath.data() );
-
     }
 
     ~LoadedGltfData()
@@ -251,17 +261,8 @@ namespace Tac
         const cgltf_type gltfType{ attribute.data->type };
         const cgltf_attribute_type gltfAttribType{ attribute.type };
         const Render::Attribute tacAttribType{ GLTFToTacAttribute( gltfAttribType ) };
-
-        Render::VertexAttributeFormat tacVAF{};
-        if( gltfType == cgltf_type_vec2 )
-          tacVAF = Render::VertexAttributeFormat::GetVector2();
-        else if ( gltfType == cgltf_type_vec3 )
-          tacVAF = Render::VertexAttributeFormat::GetVector3();
-        else
-        {
-          TAC_ASSERT_UNIMPLEMENTED;
-        }
-
+        const Render::VertexAttributeFormat tacVAF{
+          GLTFTypeToTacVertexAttributeFormat( gltfType ) };
         const Render::VertexDeclaration vtxDecl
         {
           .mAttribute         { tacAttribType },
@@ -269,20 +270,19 @@ namespace Tac
           .mAlignedByteOffset { mRunningStride },
         };
         push_back( vtxDecl );
-
         mRunningStride += vtxDecl.mFormat.CalculateTotalByteCount();
       }
     }
   };
 
-  static void                 PopulateSubmeshes( Vector< SubMesh >& submeshes,
-                                                 const AssetPathStringView& path,
-                                                 const int specifiedMeshIndex,
-                                                 dynmc Render::VertexDeclarations& vtxDecls,
-                                                 Errors& errors )
+  static Vector< SubMesh > PopulateSubmeshes( const AssetPathStringView& path,
+                                              const int specifiedMeshIndex,
+                                              dynmc Render::VertexDeclarations& vtxDecls, // in/out
+                                              Errors& errors )
   {
+    Vector< SubMesh > submeshes;
     LoadedGltfData loadedData;
-    TAC_CALL( loadedData.Load( path, errors ) );
+    TAC_CALL_RET( loadedData.Load( path, errors ) );
 
     cgltf_data* parsedData{ loadedData.parsedData };
 
@@ -304,48 +304,36 @@ namespace Tac
 
         if( vtxDecls.empty() )
           vtxDecls = GLTFVtxDecl( parsedPrim );
-
         TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
-
-        String bufferName;
-        bufferName += '\"';
-        bufferName += path.GetFilename();
-        bufferName += '\"';
-        if( !( meshCount == 1 && primitiveCount == 1 ) )
-        {
-          bufferName += ":";
-          bufferName += ToString( iMesh );
-          bufferName += ":";
-          bufferName += ToString( iPrim );
-        }
-
-        String vtxBufName{ bufferName };
-        vtxBufName += " vtxs";
-
-        String idxBufName{ bufferName };
-        idxBufName += " idxs";
-
+        const String bufferNamePrefix{[&](){
+          String bufferName;
+          bufferName += '\"';
+          bufferName += path.GetFilename();
+          bufferName += '\"';
+          if( !( meshCount == 1 && primitiveCount == 1 ) )
+          {
+            bufferName += ":";
+            bufferName += ToString( iMesh );
+            bufferName += ":";
+            bufferName += ToString( iPrim );
+          }
+          return bufferName;
+        }()};
+        const String vtxBufName{ bufferNamePrefix + " vtxs"};
+        const String idxBufName{ bufferNamePrefix + " idxs"};
         const int vertexCount{ ( int )parsedPrim->attributes[ 0 ].data->count };
         const int indexCount{ ( int )parsedPrim->indices->count };
-
-        TAC_CALL( const Render::BufferHandle indexBuffer{
+        TAC_CALL_RET( const Render::BufferHandle indexBuffer{
           ConvertToIndexBuffer( parsedPrim, vtxBufName, errors ) } );
-
-        TAC_CALL( const Render::BufferHandle vertexBuffer{
+        TAC_CALL_RET( const Render::BufferHandle vertexBuffer{
           ConvertToVertexBuffer( vtxDecls, parsedPrim, idxBufName, errors ) } );
-
-
-        SubMeshTriangles tris;
-        GetTris( parsedPrim, tris );
-
+        const SubMeshTriangles tris{GetTris( parsedPrim)};
         const Render::PrimitiveTopology topology{ Render::PrimitiveTopology::TriangleList };
         const cgltf_primitive_type supportedType{ GetGltfFromTopology( topology ) };
         TAC_ASSERT( parsedPrim->type == supportedType );
-
         Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };
-        TAC_CALL( const Render::IBindlessArray::Binding vtxBufBinding{
+        TAC_CALL_RET( const Render::IBindlessArray::Binding vtxBufBinding{
           bindlessArray->Bind( vertexBuffer, errors ) } );
-
         const SubMesh subMesh
         {
           .mPrimitiveTopology    { topology },
@@ -355,13 +343,13 @@ namespace Tac
           .mTris                 { tris },
           .mIndexCount           { indexCount },
           .mVertexCount          { vertexCount },
-          .mName                 { StringView( bufferName ) },
+          .mName                 { StringView( bufferNamePrefix ) },
         };
-
         submeshes.push_back( subMesh );
+      } // for each primitive
+    } // for each mesh
 
-      }
-    }
+    return submeshes;
   }
 
   static Mesh                 LoadMeshFromGltf( ModelAssetManager::Params params,
@@ -370,20 +358,14 @@ namespace Tac
     const AssetPathStringView& path{ params.mPath };
     const int specifiedMeshIndex{ params.mModelIndex };
     dynmc Render::VertexDeclarations vtxDecls{ params.mOptVtxDecls };
-
-    Vector< SubMesh > submeshes;
-
-    TAC_CALL_RET( PopulateSubmeshes( submeshes, path, specifiedMeshIndex, vtxDecls, errors ) );
-
+    TAC_CALL_RET( const Vector< SubMesh > submeshes{
+      PopulateSubmeshes( path, specifiedMeshIndex, vtxDecls, errors ) } );
     const Render::GPUInputLayout gpuInputLayout( vtxDecls );
-
     TAC_CALL_RET( const Render::BufferHandle gpuInputLayoutBuffer{
       ConvertInputLayoutBuffer( gpuInputLayout, errors ) } );
-
     Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };
     TAC_CALL_RET( const Render::IBindlessArray::Binding gpuInputLayoutBinding{
       bindlessArray->Bind( gpuInputLayoutBuffer, errors ) } );
-
     return Mesh
     {
       .mSubMeshes             { submeshes },
@@ -394,13 +376,9 @@ namespace Tac
     };
   }
 
-
-
   void                        GltfLoaderInit()
   {
     ModelLoadFunctionRegister( LoadMeshFromGltf, ".gltf" );
     ModelLoadFunctionRegister( LoadMeshFromGltf, ".glb" );
   }
-
-
 } // namespace Tac

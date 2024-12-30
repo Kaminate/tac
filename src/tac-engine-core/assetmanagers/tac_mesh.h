@@ -27,18 +27,17 @@ namespace Tac
 
   struct SubMesh
   {
-    MeshRaycastResult          SubMeshModelSpaceRaycast( MeshRay ) const;
-    void                       ClearBuffers();
+    MeshRaycastResult               SubMeshModelSpaceRaycast( MeshRay ) const;
+    void                            ClearBuffers();
 
     Render::PrimitiveTopology       mPrimitiveTopology   { Render::PrimitiveTopology::Unknown };
     Render::BufferHandle            mVertexBuffer        {};
     Render::BufferHandle            mIndexBuffer         {};
     Render::IBindlessArray::Binding mVertexBufferBinding {};
-
-    SubMeshTriangles           mTris                 {};
-    int                        mIndexCount           {};
-    int                        mVertexCount          {};
-    String                     mName                 {};
+    SubMeshTriangles                mTris                {};
+    int                             mIndexCount          {};
+    int                             mVertexCount         {};
+    String                          mName                {};
   };
 
   struct Mesh
