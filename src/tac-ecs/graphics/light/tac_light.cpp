@@ -17,12 +17,12 @@ namespace Tac
   static ComponentInfo* sComponentInfo;
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( Light );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mSpotHalfFOVRadians );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mType );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mShadowResolution );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mOverrideClipPlanes );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mFarPlaneOverride );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Light, mNearPlaneOverride );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mSpotHalfFOVRadians );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mType );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mShadowResolution );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mOverrideClipPlanes );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mFarPlaneOverride );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mNearPlaneOverride );
   TAC_META_REGISTER_COMPOSITE_END( Light );
 
   static Component* CreateLightComponent( World* world )

@@ -130,8 +130,8 @@ namespace Tac
   };
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( MetaCompositeTestStruct );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( MetaCompositeTestStruct, foo );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( MetaCompositeTestStruct, bar );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( foo );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( bar );
   TAC_META_REGISTER_COMPOSITE_END( MetaCompositeTestStruct );
 
   void MetaCompositeUnitTest()

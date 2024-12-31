@@ -263,7 +263,6 @@ namespace Tac
       };
       metaType->Copy( copyParams );
 
-      TAC_ASSERT_UNIMPLEMENTED; // TODO: test if the copy worked (in watch window)
 
       //Json entityJson;
       //entry->mSaveFn( entityJson, prefabComponent );

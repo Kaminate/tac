@@ -9,7 +9,7 @@ namespace Tac
   struct EntityDiffAPI
   {
     static void Write( WorldsToDiff, WriteStream* );
-    static void Read( World* , ReadStream* , Errors& );
+    static void Read( World*, ReadStream*, Errors& );
   };
 
 } // namespace Tac

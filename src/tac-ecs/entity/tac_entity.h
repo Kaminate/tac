@@ -29,12 +29,12 @@ namespace Tac
   {
     ~Entity();
 
-    void              RemoveAllComponents();
-    Component*        GetComponent( const ComponentInfo* );
+    dynmc Component*  GetComponent( const ComponentInfo* ) dynmc;
     const Component*  GetComponent( const ComponentInfo* ) const;
-    bool              HasComponent( const ComponentInfo* );
+    bool              HasComponent( const ComponentInfo* ) const;
     Component*        AddNewComponent( const ComponentInfo* );
     void              RemoveComponent( const ComponentInfo* );
+    void              RemoveAllComponents();
 
     void              DeepCopy( const Entity& );
     void              DebugImgui();
@@ -71,7 +71,6 @@ namespace Tac
     String            mName               {};
   };
 
-  struct EntitiesToDiff{ Entity* mOldEntity; Entity* mNewEntity; };
 
 
 } // namespace Tac

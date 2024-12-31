@@ -21,12 +21,12 @@ namespace Tac
   static ComponentInfo* sRegistry;
 
   TAC_META_REGISTER_COMPOSITE_BEGIN( Terrain );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mSideVertexCount );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mSideLength );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mUpwardsHeight );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mHeightmapTexturePath );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mGroundTexturePath );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Terrain, mNoiseTexturePath );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mSideVertexCount );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mSideLength );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mUpwardsHeight );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mHeightmapTexturePath );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mGroundTexturePath );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mNoiseTexturePath );
   TAC_META_REGISTER_COMPOSITE_END( Terrain );
 
 

@@ -142,7 +142,7 @@ namespace Tac
     return component;
   }
 
-  Component*       Entity::GetComponent( const ComponentInfo* entry )
+  dynmc Component* Entity::GetComponent( const ComponentInfo* entry ) dynmc
   {
     for( Component* component : mComponents )
       if( component->GetEntry() == entry )
@@ -158,7 +158,7 @@ namespace Tac
     return nullptr;
   }
 
-  bool             Entity::HasComponent( const ComponentInfo* entry )
+  bool             Entity::HasComponent( const ComponentInfo* entry ) const
   {
     return GetComponent( entry ) != nullptr;
   }

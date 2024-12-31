@@ -284,11 +284,16 @@ namespace Tac
                             pbr_metallic_roughness->base_color_factor[ 1 ],
                             pbr_metallic_roughness->base_color_factor[ 2 ],
                             pbr_metallic_roughness->base_color_factor[ 3 ] );
-
-            Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
+            Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
             ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
             ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
+            ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
+            ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
             ecsMaterial->mColor = color;
+          }
+          else
+          {
+            TAC_ASSERT_UNIMPLEMENTED;
           }
         }
 

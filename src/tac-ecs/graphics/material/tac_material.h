@@ -11,26 +11,29 @@ namespace Tac
 {
   struct Material : public Component
   {
-    static dynmc Material*        GetMaterial( dynmc Entity* );
-    static const Material*        GetMaterial( const Entity* );
     const ComponentInfo*          GetEntry() const override;
 
+    static dynmc Material*        GetMaterial( dynmc Entity* );
+    static const Material*        GetMaterial( const Entity* );
     static void                   RegisterComponent();
     static void                   DebugImgui( Material* );
 
-    // ...
-
+    // this `Data` struct could just be a `Json`
     struct Data
     {
       String mKey   {};
       Json   mValue {};
     };
 
-
     // Collection of data of various material shaders.
     // The actual material shader picks which data to use
     bool            mIsGlTF_PBR_MetallicRoughness  {};
     bool            mIsGlTF_PBR_SpecularGlossiness {};
+    float           mPBR_Factor_Metallic           {};
+    float           mPBR_Factor_Roughness          {};
+    v3              mPBR_Factor_Diffuse            {};
+    v3              mPBR_Factor_Specular           {};
+    float           mPBR_Factor_Glossiness         {};
     v4              mColor                         {};
     v3              mEmissive                      {};
     AssetPathString mTextureDiffuse                {};

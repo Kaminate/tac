@@ -16,12 +16,22 @@
 namespace Tac
 {
   TAC_META_REGISTER_COMPOSITE_BEGIN( Material );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mIsGlTF_PBR_MetallicRoughness );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mIsGlTF_PBR_SpecularGlossiness );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mColor );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mEmissive );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mShaderGraph );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( Material, mRenderEnabled );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mIsGlTF_PBR_MetallicRoughness );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mIsGlTF_PBR_SpecularGlossiness );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mPBR_Factor_Metallic );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mPBR_Factor_Roughness );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mPBR_Factor_Diffuse );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mPBR_Factor_Specular );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mPBR_Factor_Glossiness );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mColor );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mEmissive );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mTextureDiffuse );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mTextureSpecular );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mTextureGlossiness );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mTextureMetallic );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mTextureRoughness );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mShaderGraph );
+  TAC_META_REGISTER_COMPOSITE_MEMBER( mRenderEnabled );
   TAC_META_REGISTER_COMPOSITE_END( Material );
 
 
@@ -36,7 +46,6 @@ namespace Tac
   {
     Graphics::From( world )->DestroyMaterialComponent( ( Material* )component );
   }
-
 
 #if 0
   static void       SaveMaterialComponent( Json& json, Component* component )
@@ -135,10 +144,7 @@ namespace Tac
     return ( Material* )entity->GetComponent( sComponentInfo );
   }
 
-  const ComponentInfo*             Material::GetEntry() const
-  {
-    return sComponentInfo;
-  }
+  const ComponentInfo*             Material::GetEntry() const { return sComponentInfo; }
 
   void                             Material::RegisterComponent()
   {
