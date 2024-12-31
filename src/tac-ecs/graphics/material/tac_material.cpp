@@ -89,6 +89,31 @@ namespace Tac
   }
 #endif
 
+  struct AssetPathUIHelper
+  {
+    AssetPathUIHelper( StringView name ) : mName{ name } {}
+    void DebugImgui( AssetPathString& assetPathString )
+    {
+      Errors& errors{ mErrors };
+      const StringView name{ mName };
+      const StringView displayStr{ assetPathString.empty() ? ( StringView )"<none>"
+                                                           : ( StringView )assetPathString };
+      ImGuiText( ShortFixedString::Concat( name, ": ", displayStr ) );
+      if( ImGuiButton( ShortFixedString::Concat( "Select ", name ) ) )
+      {
+        errors.clear();
+        if( const AssetPathString path{ AssetOpenDialog( errors ) }; !errors && !path.empty() )
+          assetPathString = path;
+      }
+
+      if( errors )
+        ImGuiText( errors.ToString() );
+    }
+
+    StringView mName;
+    Errors     mErrors;
+  };
+
   struct BindingsUI
   {
     void RefreshBindings( Material* material, Errors& errors )
@@ -116,17 +141,25 @@ namespace Tac
         mBindings = renderDevice->GetProgramBindings_TEST( programHandle );
         renderDevice->DestroyProgram( programHandle );
       }
+
 #endif
     }
 
-    void UI( Material* material, Errors& errors )
+    void UI( Material* material )
     {
+      Errors& errors{ mErrors };
       if( ImGuiButton( "Refresh bindings" ) )
+      {
+        errors.clear();
         RefreshBindings( material, errors );
+      }
 
       ImGuiText( "Bindings: " + ( mBindings.empty() ? "<none>" : mBindings ) );
+      if( errors )
+        ImGuiText( errors.ToString() );
     }
 
+    Errors mErrors;
     String mBindings;
   };
 
@@ -167,27 +200,40 @@ namespace Tac
 
   void                             Material::DebugImgui( Material* material )
   {
-    static Errors errors;
+    static AssetPathUIHelper shaderGraphUI( "Shader Graph" );
+    static AssetPathUIHelper pbrMetallicTextureUI( "pbr metallic texture" );
+    static AssetPathUIHelper pbrDiffuseTextureUI( "pbr diffuse texture" );
+    static AssetPathUIHelper pbrSpecularTextureUI( "pbr specular texture" );
+    static AssetPathUIHelper pbrGlossinessTextureUI( "pbr glossiness texture" );
 
     ImGuiCheckbox( "Enabled", &material->mRenderEnabled );
-    ImGuiText( "Shader Graph: " + ( material->mShaderGraph.empty()
-                                    ? ( StringView )"<none>"
-                                    : ( StringView )material->mShaderGraph ) );
 
-    if( ImGuiButton( "Select Shader Graph" ) )
-    {
-      errors.clear();
-      if( const AssetPathString path{ AssetOpenDialog( errors ) }; !errors && !path.empty() )
-        material->mShaderGraph = path;
-    }
+    shaderGraphUI.DebugImgui( material->mShaderGraph );
 
-    if( errors )
-      ImGuiText( errors.ToString() );
-
-    sBindingsUI.UI( material, errors );
+    sBindingsUI.UI( material );
 
     ImGuiCheckbox( "gltf pbr mr", &material->mIsGlTF_PBR_MetallicRoughness );
     ImGuiCheckbox( "gltf pbr sg", &material->mIsGlTF_PBR_SpecularGlossiness );
+
+    if( material->mIsGlTF_PBR_MetallicRoughness )
+    {
+      ImGuiDragFloat( "gltf pbr metallic factor", &material->mPBR_Factor_Metallic );
+      ImGuiDragFloat( "gltf pbr roughness factor", &material->mPBR_Factor_Roughness );
+      pbrMetallicTextureUI.DebugImgui( material->mTextureMetallic );
+      ImGuiText( "gltf pbr metallic texture: " + material->mTextureMetallic );
+      ImGuiText( "gltf pbr roughness texture: " + material->mTextureRoughness );
+    }
+
+    if( material->mIsGlTF_PBR_SpecularGlossiness )
+    {
+      ImGuiDragFloat3( "gltf pbr diffuse factor", material->mPBR_Factor_Diffuse.data() );
+      ImGuiDragFloat3( "gltf pbr specular factor", material->mPBR_Factor_Specular.data() );
+      ImGuiDragFloat( "gltf pbr glossiness factor", &material->mPBR_Factor_Glossiness );
+      pbrDiffuseTextureUI.DebugImgui( material->mTextureDiffuse );
+      pbrSpecularTextureUI.DebugImgui( material->mTextureSpecular );
+      pbrGlossinessTextureUI.DebugImgui( material->mTextureGlossiness );
+    }
+
     ImGuiDragFloat4( "color", material->mColor.data() );
     ImGuiDragFloat3( "emissive", material->mEmissive.data() );
   }
