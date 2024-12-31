@@ -98,6 +98,77 @@ namespace Tac
       OS::OSAppStopRunning();
   }
 
+  struct ShowWindowHelper
+  {
+  public:
+
+    static ShowWindowHelper& GetInstance()
+    {
+      static ShowWindowHelper sInstance;
+      return sInstance;
+    }
+
+    void Load( SettingsNode settingsNode )
+    {
+      for( Data& data : mDatas )
+      {
+        Load( settingsNode, data.mWindowName, *data.mShow );
+      }
+    }
+
+    void Save( SettingsNode settingsNode )
+    {
+      for( Data& data : mDatas )
+      {
+        Save( settingsNode, data.mWindowName, *data.mShow );
+      }
+    }
+
+
+  private:
+    struct Data
+    {
+      StringView mWindowName;
+      bool*      mShow;
+    };
+
+    ShowWindowHelper()
+    {
+      AddData( "main", &CreationMainWindow::sShowWindow );
+      AddData( "property", &CreationPropertyWindow::sShowWindow );
+      AddData( "game", &CreationGameWindow::sShowWindow );
+      AddData( "asset", &CreationAssetView::sShowWindow );
+    }
+
+    void             Load(  SettingsNode settingsNode, StringView windowName, bool& show )
+    {
+      const ShortFixedString path{ MakePath( windowName ) };
+      show = settingsNode.GetChild( path ).GetValueWithFallback( true );
+    }
+
+    void             Save(  SettingsNode settingsNode, StringView windowName, bool& show )
+    {
+      const ShortFixedString path{ MakePath( windowName ) };
+      settingsNode.GetChild( path ).SetValue( show );
+    }
+
+    void             AddData( StringView windowName, bool* show )
+    {
+      Data data;
+      data.mWindowName = windowName;
+      data.mShow = show;
+      mDatas.push_back( data );
+    }
+
+    ShortFixedString MakePath( StringView name )
+    {
+      return ShortFixedString::Concat( "show window.", name );
+    }
+
+    Vector< Data > mDatas;
+  };
+
+
   //===-------------- App -------------===//
 
   struct LevelEditorApp : public App
@@ -159,12 +230,7 @@ namespace Tac
   {
     mSettingsNode = settingsNode;
 
-    CreationMainWindow::sShowWindow =
-      settingsNode.GetChild( "show main window" ).GetValueWithFallback( true );
-    CreationPropertyWindow::sShowWindow =
-      settingsNode.GetChild( "show property window" ).GetValueWithFallback( true );
-    CreationGameWindow::sShowWindow =
-      settingsNode.GetChild( "show game window" ).GetValueWithFallback( true );
+    ShowWindowHelper::GetInstance().Load( settingsNode );
 
     //CreationPropertyWindow::sShowWindow = true;
 
@@ -192,6 +258,7 @@ namespace Tac
 
   void                Creation::Uninit( Errors& errors )
   {
+    ShowWindowHelper::GetInstance().Save( mSettingsNode );
     sIconRenderer.Uninit();
     sWidgetRenderer.Uninit();
     mSimState.Uninit();

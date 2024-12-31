@@ -200,28 +200,33 @@ namespace Tac
 
   void                             Material::DebugImgui( Material* material )
   {
-    static AssetPathUIHelper shaderGraphUI( "Shader Graph" );
-    static AssetPathUIHelper pbrMetallicTextureUI( "pbr metallic texture" );
-    static AssetPathUIHelper pbrDiffuseTextureUI( "pbr diffuse texture" );
-    static AssetPathUIHelper pbrSpecularTextureUI( "pbr specular texture" );
-    static AssetPathUIHelper pbrGlossinessTextureUI( "pbr glossiness texture" );
+    static AssetPathUIHelper ui_shaderGraph( "Shader Graph" );
+    static AssetPathUIHelper ui_pbrTexture_Metallic( "pbr metallic texture" );
+    static AssetPathUIHelper ui_pbrTexture_Roughness( "pbr roughness texture" );
+    static AssetPathUIHelper ui_pbrTexture_Diffuse( "pbr diffuse texture" );
+    static AssetPathUIHelper ui_pbrTexture_Specular( "pbr specular texture" );
+    static AssetPathUIHelper ui_pbrTexture_Glossiness( "pbr glossiness texture" );
 
     ImGuiCheckbox( "Enabled", &material->mRenderEnabled );
 
-    shaderGraphUI.DebugImgui( material->mShaderGraph );
+    ui_shaderGraph.DebugImgui( material->mShaderGraph );
 
     sBindingsUI.UI( material );
 
-    ImGuiCheckbox( "gltf pbr mr", &material->mIsGlTF_PBR_MetallicRoughness );
-    ImGuiCheckbox( "gltf pbr sg", &material->mIsGlTF_PBR_SpecularGlossiness );
+    if( ImGuiCheckbox( "gltf pbr mr", &material->mIsGlTF_PBR_MetallicRoughness )
+        && material->mIsGlTF_PBR_MetallicRoughness )
+      material->mIsGlTF_PBR_SpecularGlossiness = false;
+
+    if( ImGuiCheckbox( "gltf pbr sg", &material->mIsGlTF_PBR_SpecularGlossiness )
+        && material->mIsGlTF_PBR_SpecularGlossiness )
+      material->mIsGlTF_PBR_MetallicRoughness = false;
 
     if( material->mIsGlTF_PBR_MetallicRoughness )
     {
       ImGuiDragFloat( "gltf pbr metallic factor", &material->mPBR_Factor_Metallic );
       ImGuiDragFloat( "gltf pbr roughness factor", &material->mPBR_Factor_Roughness );
-      pbrMetallicTextureUI.DebugImgui( material->mTextureMetallic );
-      ImGuiText( "gltf pbr metallic texture: " + material->mTextureMetallic );
-      ImGuiText( "gltf pbr roughness texture: " + material->mTextureRoughness );
+      ui_pbrTexture_Metallic.DebugImgui( material->mTextureMetallic );
+      ui_pbrTexture_Roughness.DebugImgui( material->mTextureRoughness );
     }
 
     if( material->mIsGlTF_PBR_SpecularGlossiness )
@@ -229,9 +234,9 @@ namespace Tac
       ImGuiDragFloat3( "gltf pbr diffuse factor", material->mPBR_Factor_Diffuse.data() );
       ImGuiDragFloat3( "gltf pbr specular factor", material->mPBR_Factor_Specular.data() );
       ImGuiDragFloat( "gltf pbr glossiness factor", &material->mPBR_Factor_Glossiness );
-      pbrDiffuseTextureUI.DebugImgui( material->mTextureDiffuse );
-      pbrSpecularTextureUI.DebugImgui( material->mTextureSpecular );
-      pbrGlossinessTextureUI.DebugImgui( material->mTextureGlossiness );
+      ui_pbrTexture_Diffuse.DebugImgui( material->mTextureDiffuse );
+      ui_pbrTexture_Specular.DebugImgui( material->mTextureSpecular );
+      ui_pbrTexture_Glossiness.DebugImgui( material->mTextureGlossiness );
     }
 
     ImGuiDragFloat4( "color", material->mColor.data() );

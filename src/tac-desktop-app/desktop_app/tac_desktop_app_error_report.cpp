@@ -21,6 +21,8 @@ namespace Tac
     {
       const char* name{ mNames[i]};
       const Errors* errors{ mErrorPointers[i]};
+      if( errors->empty() )
+        return {};
 
       String errorStr;
       errorStr += "Errors in ";
@@ -46,7 +48,10 @@ namespace Tac
       const int n{ mNames.size() };
       for( int i{}; i < n; ++i )
       {
-        result += FormatErrorString( i );
+        String formattedError{ FormatErrorString( i ) };
+        if( formattedError.empty() )
+          continue;
+        result += formattedError;
         result += "\n";
       }
 
