@@ -23,6 +23,8 @@
 
 namespace Tac::Network
 {
+  // -----------------------------------------------------------------------------------------------
+
   struct SocketWinsock : public Socket
   {
     ~SocketWinsock();
@@ -58,15 +60,20 @@ namespace Tac::Network
     TimestampDifference        mKeepaliveIntervalSeconds { 30.0f };
   };
 
+  // -----------------------------------------------------------------------------------------------
+
   static NetWinsock sNetWinsock;
 
-  void NetWinsockInit(Errors& errors)
+  // -----------------------------------------------------------------------------------------------
+
+  void NetWinsockInit( Errors& errors )
   {
     sNetWinsock.Init( errors );
   }
 
+  // -----------------------------------------------------------------------------------------------
 
-  static int GetWinsockAddressFamily( AddressFamily addressFamily )
+  static int    GetWinsockAddressFamily( AddressFamily addressFamily )
   {
     switch( addressFamily )
     {
@@ -76,7 +83,7 @@ namespace Tac::Network
     }
   }
 
-  static int GetWinsockSocketType( SocketType socketType )
+  static int    GetWinsockSocketType( SocketType socketType )
   {
     switch( socketType )
     {
@@ -98,6 +105,8 @@ namespace Tac::Network
     const int errorCode = WSAGetLastError();
     return GetWSAErrorString( errorCode );
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   SocketWinsock::~SocketWinsock()
   {
@@ -265,7 +274,16 @@ namespace Tac::Network
     mTCPIsConnected = true;
   }
 
-  void NetWinsock::Init( Errors& errors )
+  // -----------------------------------------------------------------------------------------------
+
+  NetWinsock::~NetWinsock()
+  {
+    for( SocketWinsock* netWinsocket : mSocketWinsocks )
+      closesocket( netWinsocket->mSocket );
+    WSACleanup();
+  }
+
+  void              NetWinsock::Init( Errors& errors )
   {
     const WORD wsaVersion { MAKEWORD( 2, 2 ) };
     WSAData wsaData;
@@ -278,17 +296,10 @@ namespace Tac::Network
     mPrintReceivedMessages = true;
   }
 
-  NetWinsock::~NetWinsock()
-  {
-    for( SocketWinsock* netWinsocket : mSocketWinsocks )
-      closesocket( netWinsocket->mSocket );
-    WSACleanup();
-  }
-
-  Socket* NetWinsock::CreateSocket( StringView name,
-                                    AddressFamily addressFamily,
-                                    SocketType socketType,
-                                    Errors& errors )
+  Socket*           NetWinsock::CreateSocket( StringView name,
+                                              AddressFamily addressFamily,
+                                              SocketType socketType,
+                                              Errors& errors )
   {
     const int winsockSocketType { GetWinsockSocketType( socketType ) };
     const int winsockAddressFamily { GetWinsockAddressFamily( addressFamily ) };
@@ -323,7 +334,7 @@ namespace Tac::Network
     return result;
   }
 
-  void NetWinsock::DebugImgui()
+  void              NetWinsock::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "Network" ) )
     //  return;
@@ -339,7 +350,7 @@ namespace Tac::Network
     //}
   }
 
-  void NetWinsock::Update( Errors& errors )
+  void              NetWinsock::Update( Errors& errors )
   {
     bool shouldSendKeepalive { Timestep::GetElapsedTime() > mKeepaliveNextSeconds };
     if( shouldSendKeepalive )
@@ -414,6 +425,8 @@ namespace Tac::Network
       TAC_DELETE socketWinsock;
     }
   }
+
+  // -----------------------------------------------------------------------------------------------
 
 } // namespace Tac::Network
 

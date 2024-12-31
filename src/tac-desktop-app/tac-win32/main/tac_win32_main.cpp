@@ -30,7 +30,7 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   TAC_CALL_RET( Render::AllowPIXDebuggerAttachment( errors ) );
   Render::RenderApi::SetRenderDevice( &sDX12Device );
   TAC_CALL_RET( sDX12Device.Init( errors ) );
-  TAC_CALL_RET( Controller::XInputInit( errors ) );
+  TAC_CALL_RET( XInputInit( errors ) );
   Win32MouseEdgeInit();
   PlatformFns::SetInstance( &sWin32PlatformFns );
   TAC_CALL_RET( DesktopApp::Init( errors ) );

@@ -130,7 +130,8 @@ namespace Tac
     //_HANDLE_ERROR( errors );
 
     const String serverTypeGameClient { TAC_STRINGIFY( ScriptGameClient ) };
-    const String serverType { settingsNode.GetChild( "server type" ).GetValueWithFallback( serverTypeGameClient ) };
+    const String serverType {
+      settingsNode.GetChild( "server type" ).GetValueWithFallback( serverTypeGameClient ) };
 
     ScriptThread* child {};
     if( serverType == serverTypeGameClient )
@@ -143,7 +144,7 @@ namespace Tac
     if( mShouldPopulateWorldInitial )
       PopulateWorldInitial();
 
-    const char* playerNames[] = {
+    const char* playerNames[] {
       "Server",
       //"Client",
     };
@@ -161,7 +162,7 @@ namespace Tac
                           Errors& errors )
   {
     Ghost* ghost { this };
-    auto* user { TAC_NEW User( name, ghost, errors ) };
+    User* user { TAC_NEW User( name, ghost, errors ) };
     mUsers.push_back( user );
 
     const ScriptMsg scriptMsg
@@ -233,25 +234,25 @@ namespace Tac
     if( IsPartyFull() )
       return;
 
-    Vector< Controller::ControllerIndex > claimedControllerIndexes;
+    Vector< ControllerIndex > claimedControllerIndexes;
     for( User* user : mUsers )
       if( user->mHasControllerIndex )
         claimedControllerIndexes.push_back( user->mControllerIndex );
 
-    TAC_ASSERT( ( int )claimedControllerIndexes.size() < Controller::TAC_CONTROLLER_COUNT_MAX );
+    TAC_ASSERT( ( int )claimedControllerIndexes.size() < TAC_CONTROLLER_COUNT_MAX );
 
-    for( Controller::ControllerIndex controllerIndex = 0;
-         controllerIndex < Controller::TAC_CONTROLLER_COUNT_MAX;
+    for( ControllerIndex controllerIndex{};
+         controllerIndex < TAC_CONTROLLER_COUNT_MAX;
          ++controllerIndex )
     {
       if( Contains( claimedControllerIndexes, controllerIndex ) )
         continue;
 
-      Controller::Controller* controller { Controller::GetController( controllerIndex ) };
+      Controller* controller { ControllerApi::GetController( controllerIndex ) };
       if( !controller )
         continue;
 
-      if( !Controller::IsButtonJustPressed( Controller::ControllerButton::Start, controller ) )
+      if( !ControllerApi::IsButtonJustPressed( ControllerButton::Start, controller ) )
         continue;
 
       const String playerName { String() + "Player " + ToString( mUsers.size() ) };

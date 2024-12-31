@@ -46,11 +46,10 @@ namespace Tac
     CreationSimState mSimState;
   };
 
-
   static String CreationGetNewEntityName( World* world )
   {
-    String desiredEntityName { "Entity" };
-    int parenNumber { 1 };
+    dynmc String desiredEntityName { "Entity" };
+    dynmc int parenNumber { 1 };
     for( ;; )
     {
       if( !world->FindEntity( desiredEntityName ) )
@@ -65,30 +64,26 @@ namespace Tac
 
   static void   CheckSavePrefab( World* world )
   {
-    const bool triggered{
-      AppKeyboardApi::JustPressed( Key::S ) &&
-      AppKeyboardApi::IsPressed( Key::Modifier ) };
-
-    if( !triggered )
+    if( const bool triggered{
+          AppKeyboardApi::JustPressed( Key::S ) &&
+          AppKeyboardApi::IsPressed( Key::Modifier ) };
+          !triggered )
       return;
 
-    Errors saveErrors;
-    bool saved{ PrefabSave( world, saveErrors ) };
-
+    dynmc Errors saveErrors;
+    const bool saved{ PrefabSave( world, saveErrors ) };
     const TimestampDifference errorDurationSecs{ 60.0f };
     const TimestampDifference successDurationSecs{ 5.0f };
-    String msg;
-    if( saveErrors )
-      msg = saveErrors.ToString();
-    else if( saved )
-      msg = "Saved Prefabs!";
-    else
-      msg = "Didn't save prefabs";
+    const String msg{ [ & ]() ->String {
+      if( saveErrors ) { return saveErrors.ToString(); }
+      if( saved ) { return "Saved Prefabs!"; }
+      return "Didn't save prefabs";
+    }( ) };
     const TimestampDifference duration{ saveErrors ? errorDurationSecs : successDurationSecs };
     CreationGameWindow::SetStatusMessage( msg, duration );
   }
 
-  static void CloseAppWhenAllWindowsClosed()
+  static void   CloseAppWhenAllWindowsClosed()
   {
     static bool hasAnyWindowShown;
     const bool isAnyWindowShown{
@@ -238,7 +233,6 @@ namespace Tac
     CloseAppWhenAllWindowsClosed();
   }
 
-
   RelativeSpace       Creation::GetEditorCameraVisibleRelativeSpace( const Camera* camera )
   {
     return RelativeSpace
@@ -259,15 +253,15 @@ namespace Tac
 
     for( Component* prefabComponent : prefabEntity->mComponents )
     {
-      const ComponentInfo* entry { prefabComponent->GetEntry() };
-      Component* copyComponent { copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
-
+      const ComponentInfo* entry{ prefabComponent->GetEntry() };
+      const MetaType* metaType{ entry->mMetaType };
+      dynmc Component* copyComponent{ copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
       const MetaType::CopyParams copyParams
       {
-        .mDst{ copyComponent },
-        .mSrc{ prefabComponent },
+        .mDst { copyComponent },
+        .mSrc { prefabComponent },
       };
-      entry->mMetaType->Copy( copyParams );
+      metaType->Copy( copyParams );
 
       TAC_ASSERT_UNIMPLEMENTED; // TODO: test if the copy worked (in watch window)
 
@@ -278,12 +272,10 @@ namespace Tac
 
     for( Entity* prefabChildEntity : prefabEntity->mChildren )
     {
-      Entity* copyChildEntity{
-        InstantiateAsCopy(
-          world,
-          camera,
-          prefabChildEntity,
-          prefabChildEntity->mRelativeSpace ) };
+      Entity* copyChildEntity{ InstantiateAsCopy( world,
+                                                  camera,
+                                                  prefabChildEntity,
+                                                  prefabChildEntity->mRelativeSpace ) };
       copyEntity->AddChild( copyChildEntity );
     }
 

@@ -363,7 +363,7 @@ namespace Tac
 
     Render::IShaderVar* shaderPerObj{ renderDevice->GetShaderVariable( sPipeline, "sPerObj" ) };
     shaderPerObj->SetResource( sCBufPerObj );
-  sInitialized = true;
+    sInitialized = true;
   }
 
   void ShadowPresentation::Uninit()

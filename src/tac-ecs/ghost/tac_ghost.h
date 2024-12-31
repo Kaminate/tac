@@ -28,7 +28,6 @@ namespace Tac
   struct IndexBuffer;
   struct VertexBuffer;
   //struct Controller;
-  struct NewI;
 
   //
   // A user stores data for a person interactiong with this application.
@@ -36,16 +35,14 @@ namespace Tac
   //
   struct User
   {
-    User( StringView name,
-          Ghost*,
-          Errors& );
+    User( StringView name, Ghost*, Errors& );
     void                   Update( Errors& );
     void                   DebugImgui();
     Player*                mPlayer               {};
     Ghost*                 mGhost                {};
     String                 mName                 {};
     bool                   mHasControllerIndex   {};
-    Controller::ControllerIndex mControllerIndex { Controller::TAC_CONTROLLER_COUNT_MAX };
+    ControllerIndex        mControllerIndex      { TAC_CONTROLLER_COUNT_MAX };
   };
 
 

@@ -13,14 +13,14 @@ namespace Tac
   {
     struct CastParams
     {
-      void*           mDst     {};
+      dynmc void*     mDst     {};
       const void*     mSrc     {};
       const MetaType* mSrcType {};
     };
 
     struct CopyParams
     {
-      void*       mDst {};
+      dynmc void* mDst {};
       const void* mSrc {};
     };
 

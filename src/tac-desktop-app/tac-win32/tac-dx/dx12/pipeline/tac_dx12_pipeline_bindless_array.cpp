@@ -159,7 +159,6 @@ namespace Tac::Render
     const int iHandle{ h.GetIndex() };
 
     DX12Descriptor cpuDescriptor;
-
     DX12TransitionHelper transitionHelper;
 
     switch( classification )
@@ -176,7 +175,7 @@ namespace Tac::Render
       };
       transitionHelper.Append( transitionParams );
       cpuDescriptor = texture->mSRV.GetValue();
-    }
+    } break;
 
     case D3D12ProgramBindType::kBufferSRV:
     {
@@ -189,24 +188,22 @@ namespace Tac::Render
       };
       transitionHelper.Append( transitionParams );
       cpuDescriptor = buffer->mSRV.GetValue();
-    }
+    } break;
+    default: TAC_ASSERT_INVALID_CASE( classification ); break;
     }
 
     if( !transitionHelper.empty() )
     {
       DX12ContextManager* contextManager{ &renderer.mContextManager };
-
       TAC_CALL( DX12Context* context{ contextManager->GetContext( errors ) } );
       context->SetSynchronous();
       IContext::Scope contextScope{ context };
-
       ID3D12GraphicsCommandList* commandList { context->GetCommandList() };
       transitionHelper.ResourceBarrier( commandList );
       TAC_CALL( context->Execute( errors ) );
     }
 
     TAC_ASSERT( cpuDescriptor.IsValid() );
-
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
     const D3D12_CPU_DESCRIPTOR_HANDLE dst{ mDescriptorRegion.GetCPUHandle( binding.GetIndex() ) };
     const D3D12_CPU_DESCRIPTOR_HANDLE src{ cpuDescriptor.GetCPUHandle() };

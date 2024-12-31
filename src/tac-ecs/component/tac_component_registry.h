@@ -56,36 +56,27 @@ namespace Tac
       ComponentInfo* end();
     };
 
-    static ComponentInfo*  Register();
-    static ComponentInfo*  Find( const char* );
+    static ComponentInfo*   Register();
+    static ComponentInfo*   Find( const char* );
 
-    int                    GetIndex() const;
+    int                     GetIndex() const;
 
-    //                     Used for
-    //                     - debugging network bits
-    //                     - prefab serialization
-    const char*            mName         {};
+    //                      Used for debugging network bits and - prefab serialization
+    const char*             mName               {};
 
-    //                     Used to create components at runtime
-    //                     ( from prefabs, or hardcode, or in editor, or whenever )
-    //                     Component* ( *mCreateFn )( World* ) = nullptr;
-    ComponentCreateFn       mCreateFn     {};
-    ComponentDestroyFn      mDestroyFn    {};
-    ComponentDebugImguiFn   mDebugImguiFn {};
+    //                      Used to create components at runtime
+    //                      ( from prefabs, or hardcode, or in editor, or whenever )
+    ComponentCreateFn       mCreateFn           {};
+    ComponentDestroyFn      mDestroyFn          {};
+    ComponentDebugImguiFn   mDebugImguiFn       {};
+    ComponentSettingsSaveFn mSettingsSaveFn     {};
+    ComponentSettingsLoadFn mSettingsLoadFn     {};
+    NetVarRegistration      mNetVarRegistration {};
+    const MetaType*         mMetaType           {};
+
     //ComponentSaveFn         mSaveFn       {};
     //ComponentLoadFn         mLoadFn       {};
-    ComponentSettingsSaveFn mSettingsSaveFn       {};
-    ComponentSettingsLoadFn mSettingsLoadFn       {};
-
-
-    //                     Used for serializing components over the network
-    //NetVars                mNetVars;
-
-    NetVarRegistration       mNetVarRegistration {};
-    //const MetaCompositeType* mMetaType           {};
-    const MetaType* mMetaType           {};
-
-    //ComponentSettings      mComponentSettings;
+    //ComponentSettings       mComponentSettings;
   };
 
 
@@ -108,5 +99,5 @@ namespace Tac
   //int                     ComponentRegistry_GetComponentCount();
   //ComponentInfo* ComponentRegistry_GetComponentAtIndex( int );
 
-}
+} // namespace Tac
 

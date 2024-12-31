@@ -293,7 +293,7 @@ namespace Tac
     };
     ImGuiBeginFrame( data );
 
-    Controller::UpdateJoysticks();
+    ControllerApi::UpdateJoysticks();
 
     TAC_CALL( sApp->Update( errors ) );
 

@@ -3,11 +3,11 @@
 
 #pragma once
 
-namespace Tac::Controller
+namespace Tac
 {
   struct Controller;
-  typedef int ControllerIndex;
-  const ControllerIndex TAC_CONTROLLER_COUNT_MAX = 4;
+  using ControllerIndex = int;
+  const ControllerIndex TAC_CONTROLLER_COUNT_MAX{ 4 };
 
   enum class ControllerButton
   {
@@ -20,10 +20,12 @@ namespace Tac::Controller
     Count
   };
 
-  const char* ToString( ControllerButton );
-  void        UpdateJoysticks();
-  Controller* GetController( ControllerIndex );
-  bool        IsButtonJustPressed( ControllerButton, Controller* );
-
-} // namespace Tac::Controller
+  struct ControllerApi
+  {
+    static const char* ButtonToString( ControllerButton );
+    static void        UpdateJoysticks();
+    static Controller* GetController( ControllerIndex );
+    static bool        IsButtonJustPressed( ControllerButton, Controller* );
+  };
+} // namespace Tac
 

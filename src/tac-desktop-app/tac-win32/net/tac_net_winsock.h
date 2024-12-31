@@ -2,11 +2,10 @@
 
 #pragma once
 
-namespace Tac { struct Errors; }
+#include "tac-std-lib/error/tac_error_handling.h"
+
 namespace Tac::Network
 {
-
   void NetWinsockInit( Errors& );
-
 }
 

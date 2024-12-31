@@ -6,19 +6,46 @@
 
 namespace Tac
 {
-  Controller::ControllerBitfield Controller::ToBitfield( ControllerButton button )
+  ControllerBitfield::ControllerBitfield( ControllerButton button )
+    : mBitfield{ ( u16 )( 1 << ( u16 )button ) }
   {
-    return 1 << ( ControllerBitfield )button;
   }
-}
 
-namespace Tac::Controller
-{
+  bool ControllerBitfield::IsSet( ControllerButton button ) const
+  {
+    return mBitfield & ( 1 << ( u16 )button );
+  }
+
+  void ControllerBitfield::Set( ControllerButton button )
+  {
+    mBitfield |= ( 1 << ( u16 )button );
+  }
+
+  void ControllerBitfield::Set( ControllerButton button, bool b)
+  {
+    if( b )
+      Set( button );
+    else
+      Clear( button );
+  }
+
+  void ControllerBitfield::Clear( ControllerButton button )
+  {
+    mBitfield &= ~( 1 << ( u16 )button );
+  }
+
+  void ControllerBitfield::Clear()
+  {
+    mBitfield = 0;
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
   bool ControllerState::IsButtonDown( ControllerButton controllerButton )
   {
-    return mButtons & ToBitfield( controllerButton );
+    return mButtons.IsSet( controllerButton );
   }
+
   void ControllerState::DebugImgui()
   {
     //ImGui::DragFloat2( "Left stick", mLeftStick.data() );
@@ -52,38 +79,38 @@ namespace Tac::Controller
     TAC_ASSERT_INVALID_CODE_PATH;
     return TAC_CONTROLLER_COUNT_MAX;
   }
-  bool Controller::IsButtonDown( ControllerButton controllerButton )
+  bool            Controller::IsButtonDown( ControllerButton controllerButton )
   {
     return mControllerStateCurr.IsButtonDown( controllerButton );
   }
-  bool Controller::IsButtonChanged( ControllerButton controllerButton )
+  bool            Controller::IsButtonChanged( ControllerButton controllerButton )
   {
     return mControllerStateCurr.IsButtonDown( controllerButton ) !=
       mControllerStatePrev.IsButtonDown( controllerButton );
   }
-  bool Controller::IsButtonJustPressed( ControllerButton controllerButton )
+  bool            Controller::IsButtonJustPressed( ControllerButton controllerButton )
   {
     return mControllerStateCurr.IsButtonDown( controllerButton ) &&
       IsButtonChanged( controllerButton );
   }
-  bool Controller::IsButtonJustReleased( ControllerButton controllerButton )
+  bool            Controller::IsButtonJustReleased( ControllerButton controllerButton )
   {
     return !mControllerStateCurr.IsButtonDown( controllerButton ) &&
       IsButtonChanged( controllerButton );
   }
-  void Controller::DebugImgui()
+  void            Controller::DebugImgui()
   {
     //ImGui::Text( mName );
     //mControllerStateCurr.DebugImgui();
     //DebugImguiInner();
   }
-  void Controller::DebugImguiInner()
+  void            Controller::DebugImguiInner()
   {
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  ControllerInput* ControllerInput::Instance = nullptr;
+  ControllerInput* ControllerInput::Instance{};
   ControllerInput::ControllerInput()
   {
     mDebugging = true;
@@ -98,7 +125,7 @@ namespace Tac::Controller
     }
 
   }
-  void ControllerInput::DebugImgui()
+  void            ControllerInput::DebugImgui()
   {
     //ImGui::Checkbox( "Input", &mDebugging );
     //if( !mDebugging )
@@ -146,20 +173,20 @@ namespace Tac::Controller
     //  ImGui::End();
     //}
   }
-  void ControllerInput::Update()
+  void            ControllerInput::Update()
   {
     for( Controller* controller : mControllers )
       if( controller )
         controller->mControllerStatePrev = controller->mControllerStateCurr;
     UpdateInner();
   }
-  void ControllerInput::DebugImguiInner()
+  void            ControllerInput::DebugImguiInner()
   {
   }
-  void ControllerInput::UpdateInner()
+  void            ControllerInput::UpdateInner()
   {
   }
-  bool ControllerInput::CanAddController()
+  bool            ControllerInput::CanAddController()
   {
     const ControllerIndex n{ GetConnectedControllerCount() };
     return n < TAC_CONTROLLER_COUNT_MAX;
@@ -185,10 +212,10 @@ namespace Tac::Controller
     TAC_ASSERT_INVALID_CODE_PATH;
     return TAC_CONTROLLER_COUNT_MAX;
   }
-  Controller* ControllerInput::GetController( ControllerIndex ci )
+  Controller*     ControllerInput::GetController( ControllerIndex ci )
   {
     return mControllers[ ci ];
   }
 
-} // namespace Tac::Controller
+} // namespace Tac
 

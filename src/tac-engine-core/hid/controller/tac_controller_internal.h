@@ -10,21 +10,30 @@
 #include "tac_controller_input.h"
 
 
-namespace Tac::Controller
+namespace Tac
 {
-
   struct ControllerInput;
   struct ControllerState;
   struct Controller;
 
-  using ControllerBitfield = u16;
+  struct ControllerBitfield
+  {
+    ControllerBitfield() = default;
+    ControllerBitfield( ControllerButton );
+    bool IsSet( ControllerButton ) const;
+    void Set( ControllerButton );
+    void Set( ControllerButton, bool );
+    void Clear( ControllerButton );
+    void Clear();
 
-  ControllerBitfield ToBitfield( ControllerButton );
+    // should this be an int? how would it affect serialization?
+    u16 mBitfield{};
+  };
 
   struct ControllerState
   {
-    bool                   IsButtonDown( ControllerButton );
-    void                   DebugImgui();
+    bool                    IsButtonDown( ControllerButton );
+    void                    DebugImgui();
 
     // x = [ 0, 1 ], y = [ 0, 1 ]
     v2                      mLeftStick    {};
@@ -76,4 +85,4 @@ namespace Tac::Controller
     int                     mIndexOverride                            {};
   };
 
-} // namespace Tac::Controller
+} // namespace Tac

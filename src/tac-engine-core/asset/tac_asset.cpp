@@ -149,56 +149,56 @@ namespace Tac
     Validate( s );
   }
 
+} // namespace Tac
+
+// -------------------------------------------------------------------------------------------------
+
+bool                  Tac::Exists( const AssetPathStringView& assetPath )
+{
+  const FileSys::Path fsPath( assetPath );
+  return Exists( fsPath );
 }
 
-  // -----------------------------------------------------------------------------------------------
+void                  Tac::SaveToFile( const AssetPathStringView& assetPath,
+                                       const void* bytes,
+                                       int byteCount,
+                                       Errors& errors)
+{
+  const FileSys::Path fsPath( assetPath );
+  FileSys::SaveToFile( fsPath, bytes, byteCount, errors );
+}
 
-  bool                  Tac::Exists( const AssetPathStringView& assetPath )
+Tac::String           Tac::LoadAssetPath( const AssetPathStringView& assetPath,
+                                          Errors& errors )
+{
+  const FileSys::Path fsPath( assetPath );
+  return FileSys::LoadFilePath( fsPath, errors );
+}
+
+Tac::AssetPathStrings Tac::IterateAssetsInDir( const AssetPathStringView& dir,
+                                             AssetIterateType type,
+                                             Errors& errors )
+{
+  const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
+
+  TAC_CALL_RET( const FileSys::Paths paths{
+    FileSys::IterateFiles( dir, fsIterate, errors ) } );
+
+  AssetPathStrings result;
+  for( const FileSys::Path& path : paths )
   {
-    const FileSys::Path fsPath( assetPath );
-    return Exists( fsPath );
+    String s { path.u8string() };
+    s.replace("\\", "/");
+    const int i { s.find( "assets/" ) };
+    TAC_ASSERT( i != s.npos );
+    s = s.substr( i );
+
+    const AssetPathString assetPath( s );
+
+    //const AssetPathStringView assetPath = ModifyPathRelative( path, errors );
+    result.push_back( assetPath );
   }
 
-  void                  Tac::SaveToFile( const AssetPathStringView& assetPath,
-                                         const void* bytes,
-                                         int byteCount,
-                                         Errors& errors)
-  {
-    const FileSys::Path fsPath( assetPath );
-    FileSys::SaveToFile( fsPath, bytes, byteCount, errors );
-  }
-
-  Tac::String           Tac::LoadAssetPath( const AssetPathStringView& assetPath,
-                                            Errors& errors )
-  {
-    const FileSys::Path fsPath( assetPath );
-    return FileSys::LoadFilePath( fsPath, errors );
-  }
-
-  Tac::AssetPathStrings Tac::IterateAssetsInDir( const AssetPathStringView& dir,
-                                               AssetIterateType type,
-                                               Errors& errors )
-  {
-    const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
-
-    TAC_CALL_RET( const FileSys::Paths paths{
-      FileSys::IterateFiles( dir, fsIterate, errors ) } );
-
-    AssetPathStrings result;
-    for( const FileSys::Path& path : paths )
-    {
-      String s { path.u8string() };
-      s.replace("\\", "/");
-      const int i { s.find( "assets/" ) };
-      TAC_ASSERT( i != s.npos );
-      s = s.substr( i );
-
-      const AssetPathString assetPath( s );
-
-      //const AssetPathStringView assetPath = ModifyPathRelative( path, errors );
-      result.push_back( assetPath );
-    }
-
-    return result;
-  }
-  // -----------------------------------------------------------------------------------------------
+  return result;
+}
+// -----------------------------------------------------------------------------------------------

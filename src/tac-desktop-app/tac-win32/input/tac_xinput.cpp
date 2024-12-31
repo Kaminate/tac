@@ -18,7 +18,7 @@
 #pragma comment( lib, "Dinput8.lib" )
 
 
-namespace Tac::Controller
+namespace Tac
 {
 
   struct DirectInputPerController : public Controller
@@ -270,4 +270,4 @@ namespace Tac::Controller
     xInput->Init( errors );
   }
 
-} // namespace Tac::Controller
+} // namespace Tac

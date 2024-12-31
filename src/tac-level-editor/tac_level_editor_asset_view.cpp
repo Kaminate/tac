@@ -239,7 +239,6 @@ namespace Tac
 
       loadedModel->mPrefab = entityRoot;
 
-
       const int nNodes{ ( int )gltfData->nodes_count };
 
       Vector< Entity* > entityNodes( nNodes );
@@ -249,8 +248,7 @@ namespace Tac
       for( int i{}; i < nNodes; ++i )
       {
         const cgltf_node& gltfNode{ gltfData->nodes[ i ] };
-        const cgltf_mesh* gltfMesh{gltfNode.mesh};
-
+        const cgltf_mesh* gltfMesh{ gltfNode.mesh };
         const String name
         {
           [ & ]() -> String
@@ -282,14 +280,13 @@ namespace Tac
           {
             const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
               &gltfMaterial->pbr_metallic_roughness };
-
             const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
                             pbr_metallic_roughness->base_color_factor[ 1 ],
                             pbr_metallic_roughness->base_color_factor[ 2 ],
                             pbr_metallic_roughness->base_color_factor[ 3 ] );
 
             Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
-            ecsMaterial->mShaderGraph = "shader-graphs/gltf_pbr.sg";
+            ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
             ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
             ecsMaterial->mColor = color;
           }
