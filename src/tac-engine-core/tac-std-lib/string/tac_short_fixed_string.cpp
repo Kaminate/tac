@@ -4,6 +4,36 @@
 
 namespace Tac
 {
+
+  static void FixedStringAppend( const ShortFixedString::Data& data, const StringView& sv )
+  {
+    const int oldSize { *data.mSize };
+    const int maxSize { data.mCapacity - 1 };
+    if( oldSize == maxSize )
+      return;
+
+    dynmc int n{ sv.size() };
+    if( oldSize + n > maxSize )
+      n = maxSize - oldSize;
+
+    const char* src { sv.data() };
+    MemCpy( data.mBuf + oldSize, src, n );
+    const StringView dots{ "..." };
+    if( n != sv.size() )
+      MemCpy( data.mBuf + maxSize - dots.size(), dots, dots.size() );
+
+    const int newSize{ *data.mSize + n };
+    *data.mSize = newSize;
+    data.mBuf[ newSize ] = '\0';
+  }
+
+  static void FixedStringAssign( const ShortFixedString::Data& data, const StringView& sv )
+  {
+    *data.mSize = 0;
+    FixedStringAppend( data, sv );
+  }
+
+
   ShortFixedString::ShortFixedString( const char* s )        { assign( s ); }
   ShortFixedString::ShortFixedString( const char* s, int n ) { assign( StringView( s, n ) ); }
   ShortFixedString::ShortFixedString( StringView sv ) { assign( sv ); }
@@ -91,22 +121,19 @@ namespace Tac
   int         ShortFixedString::size() const                   { return mSize; }
   int         ShortFixedString::capacity() const               { return N; }
   const char* ShortFixedString::data() const                   { return mBuf; }
-
-  //void assign( const char* s )        { assign( StringView( s ) ); }
-  //void assign( const char* s, int n ) { FixedStringAssign( GetFSD(), StringView( s, n ); }
-  void        ShortFixedString::assign( const StringView& sv ) { FixedStringAssign( GetFSD(), sv ); }
-  char&       ShortFixedString::front()                        { return mBuf[ 0 ]; }
-  char        ShortFixedString::front() const                  { return mBuf[ 0 ]; }
-  char&       ShortFixedString::back()                         { return mBuf[ mSize - 1 ]; }
-  char        ShortFixedString::back() const                   { return mBuf[ mSize - 1 ]; }
-  char*       ShortFixedString::begin()                        { return mBuf; }
+  void        ShortFixedString::assign( const StringView& sv ) { FixedStringAssign( GetData(), sv ); }
+  dynmc char& ShortFixedString::front() dynmc                  { return mBuf[ 0 ]; }
+  const char& ShortFixedString::front() const                  { return mBuf[ 0 ]; }
+  dynmc char& ShortFixedString::back() dynmc                   { return mBuf[ mSize - 1 ]; }
+  const char& ShortFixedString::back() const                   { return mBuf[ mSize - 1 ]; }
+  dynmc char* ShortFixedString::begin() dynmc                  { return mBuf; }
   const char* ShortFixedString::begin() const                  { return mBuf; }
-  char*       ShortFixedString::end()                          { return mBuf + mSize;}
+  dynmc char* ShortFixedString::end()  dynmc                   { return mBuf + mSize;}
   const char* ShortFixedString::end() const                    { return mBuf + mSize;}
   dynmc char& ShortFixedString::operator []( int i ) dynmc     { return mBuf[ i ]; }
   const char& ShortFixedString::operator []( int i ) const     { return mBuf[ i ]; }
-  ShortFixedString& ShortFixedString::operator += ( char c )                { *this += StringView( &c, 1 ); return *this; }
-  ShortFixedString& ShortFixedString::operator += ( const StringView& sv )  { FixedStringAppend( GetFSD(), sv ); return *this; }
+  ShortFixedString& ShortFixedString::operator += ( char c )                { FixedStringAppend( GetData(), StringView( &c, 1 ) ); return *this; }
+  ShortFixedString& ShortFixedString::operator += ( const StringView& sv )  { FixedStringAppend( GetData(), sv ); return *this; }
 
   ShortFixedString::operator StringView() const               { return StringView( mBuf, mSize ); }
 
@@ -114,12 +141,12 @@ namespace Tac
   // into the const char* in TAC_ASSERT HandleAssert
   //ShortFixedString::operator const char*() const               { return mBuf; }
 
-  FixedStringData ShortFixedString::GetFSD()
+  ShortFixedString::Data ShortFixedString::GetData()
   {
-    return FixedStringData
+    return Data
     {
-      .mBuf { mBuf },
-      .mSize { &mSize },
+      .mBuf      { mBuf },
+      .mSize     { &mSize },
       .mCapacity { N },
     };
   }
@@ -127,25 +154,4 @@ namespace Tac
 } // namespace Tac
 
 
-
-void Tac::FixedStringAssign( const FixedStringData& data, const StringView& sv )
-{
-  *data.mSize = 0;
-  FixedStringAppend( data, sv );
-}
-
-void Tac::FixedStringAppend( const FixedStringData& data, const StringView& sv )
-{
-  const int n { sv.size() };
-  const int oldSize { *data.mSize };
-  const int newSize { oldSize + n };
-
-  TAC_ASSERT( newSize < data.mCapacity );
-
-  const char* src { sv.data() };
-  MemCpy( data.mBuf + oldSize, src, n );
-
-  *data.mSize = newSize;
-  data.mBuf[ newSize ] = '\0';
-}
 

@@ -39,16 +39,17 @@ namespace Tac
     }
 
     bool                      mAttemptedToLoadEntity {};
-    EntityUUIDCounter         mEntityUUIDCounter;
-    World                     mWorld;
-    Entity*                   mPrefab{};
-    Render::TextureHandle     mTextureHandleColor;
-    Render::TextureHandle     mTextureHandleDepth;
-    Camera                    mCamera;
-    AssetPathString           mAssetPath;
-    Debug3DDrawBuffers        mDebug3DDrawBuffers;
+    EntityUUIDCounter         mEntityUUIDCounter     {};
+    World                     mWorld                 {};
+    Entity*                   mPrefab                {};
+    Render::TextureHandle     mTextureHandleColor    {};
+    Render::TextureHandle     mTextureHandleDepth    {};
+    Camera                    mCamera                {};
+    AssetPathString           mAssetPath             {};
+    Debug3DDrawBuffers        mDebug3DDrawBuffers    {};
   };
 
+  // -----------------------------------------------------------------------------------------------
 
   using LoadedModels = Vector< AssetViewImportedModel* >;
 
@@ -60,6 +61,8 @@ namespace Tac
   static LoadedModels              sLoadedModels;
   static const int                 w { 256 };
   static const int                 h { 256 };
+
+  // -----------------------------------------------------------------------------------------------
 
   static String LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
 
@@ -191,14 +194,14 @@ namespace Tac
     };
   }
 
-  static void PopulateFolderContents(Errors& errors)
+  static void PopulateFolderContents( Errors& errors )
   {
     TAC_CALL( sAssetViewFiles = FileSys::IterateFiles( sAssetViewFolderCur,
-                                             FileSys::IterateType::Default,
-                                             errors ) );
+                                                       FileSys::IterateType::Default,
+                                                       errors ) );
     TAC_CALL( sAssetViewFolders = FileSys::IterateDirectories( sAssetViewFolderCur,
-                                                     FileSys::IterateType::Default,
-                                                     errors ) );
+                                                               FileSys::IterateType::Default,
+                                                               errors ) );
   }
 
 
@@ -290,6 +293,17 @@ namespace Tac
             ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
             ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
             ecsMaterial->mColor = color;
+
+            if( pbr_metallic_roughness->base_color_texture.texture )
+            {
+              TAC_ASSERT_UNIMPLEMENTED;
+            }
+
+            if( pbr_metallic_roughness->metallic_roughness_texture.texture )
+            {
+              TAC_ASSERT_UNIMPLEMENTED;
+            }
+
           }
           else
           {
@@ -571,7 +585,7 @@ namespace Tac
     }
   }
 
-  static void UIFiles(World*world, Camera*camera, Errors& errors )
+  static void UIFiles( World* world, Camera* camera, Errors& errors )
   {
     if( sAssetViewFiles.empty() )
       ImGuiText( "no files :(" );
@@ -581,6 +595,7 @@ namespace Tac
     TAC_CALL( UIFilesOther( errors ) );
   }
 
+  // -----------------------------------------------------------------------------------------------
 
   bool CreationAssetView::sShowWindow{};
 
