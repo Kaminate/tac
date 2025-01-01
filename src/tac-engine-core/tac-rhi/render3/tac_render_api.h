@@ -14,6 +14,7 @@
 #include "tac-std-lib/tac_type_traits.h"
 #include "tac-rhi/render3/tac_render_handle.h"
 
+
 // i dont like how the compiler shows it as IHandle<3> instead of like IHandle<kTexture>
 // also you cant fwd decalre
 #define TAC_IS_IHANDLE_TEMPLATE() 0
@@ -565,3 +566,4 @@ namespace Tac::Render
 }
 
 #define TAC_RENDER_GROUP_BLOCK( ctx, str ) ctx->DebugEventBegin( str ); TAC_ON_DESTRUCT( ctx->DebugEventEnd() )
+

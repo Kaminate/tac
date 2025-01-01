@@ -51,6 +51,7 @@ namespace Tac
 
   static ThreadAllocator               sAppThreadAllocator;
 
+  static Timestamp                     sRenderDelay( 0.0 );
 
 
   // -----------------------------------------------------------------------------------------------
@@ -363,12 +364,11 @@ namespace Tac
         .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
         .mTimestamp   { interpolatedTimestamp },
       };
-      // TEMP TEMP TEMP
-      if( sCurrState->mTimestamp.mSeconds > 10 )
-      {
-      TAC_CALL( sApp->Render( renderParams, errors ) );
 
-      TAC_CALL( ImGuiPlatformRender( errors ) );
+      if( sCurrState->mTimestamp.mSeconds > sRenderDelay )
+      {
+        TAC_CALL( sApp->Render( renderParams, errors ) );
+        TAC_CALL( ImGuiPlatformRender( errors ) );
       }
 
       static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
@@ -386,7 +386,7 @@ namespace Tac
       for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::Instance.mDesktopWindows )
       //for( const ImGuiSimFrame::WindowSizeData& sizeData : imguiSimFrame->mWindowSizeDatas )
       {
-        const WindowHandle windowHandle{desktopWindow->mWindowHandle};
+        const WindowHandle windowHandle{ desktopWindow->mWindowHandle };
 
         if( desktopWindow->mRequestedPosition.HasValue() )
         //if( sizeData.mRequestedPosition.HasValue() )
@@ -406,10 +406,13 @@ namespace Tac
         }
       }
 
-      TAC_CALL( sApp->Present( errors ) );
+      if( sCurrState->mTimestamp.mSeconds > sRenderDelay )
+      {
+        TAC_CALL( sApp->Present( errors ) );
 
-      TAC_CALL( ImGuiPlatformPresent( // imguiSimFrame,
-                                      errors ) );
+        TAC_CALL( ImGuiPlatformPresent( // imguiSimFrame,
+                                        errors ) );
+      }
       //Render::FrameEnd();
   }
 

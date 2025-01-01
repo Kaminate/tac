@@ -197,7 +197,8 @@ namespace Tac
       .mDepth  { dstDepthTex },
     };
 
-    TAC_RENDER_GROUP_BLOCK( renderContext, __func__ );
+    TAC_RENDER_GROUP_BLOCK( renderContext, "materialpresentation::render" );
+
     renderContext->SetViewport( viewSize );
     renderContext->SetScissor( viewSize );
     renderContext->SetRenderTargets( renderTargets );

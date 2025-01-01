@@ -31,14 +31,14 @@ namespace Tac
 
 #if TAC_TEMPORARILY_DISABLED()
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    sSamplerState = Render::CreateSamplerState( { .mFilter = Render::Filter::Point }, TAC_STACK_FRAME );
+    sSamplerState = Render::CreateSamplerState( { .mFilter { Render::Filter::Point } }, TAC_STACK_FRAME );
 
     Render::CreateBufferParams createBufferParams
     {
-      .mByteCount = sizeof( CBufferDepthViz ),
-      .mAccess = Render::Usage::Dynamic,
-      .mOptionalName =  "CBufferVizf",
-      .mStackFrame = TAC_STACK_FRAME,
+      .mByteCount    { sizeof( CBufferDepthViz ) },
+      .mAccess       { Render::Usage::Dynamic },
+      .mOptionalName {  "CBufferVizf" },
+      .mStackFrame   { TAC_STACK_FRAME },
     };
     sConstantBuffer = TAC_CALL( renderDevice->CreateBuffer( createBufferParams, errors ) );
 
@@ -46,7 +46,7 @@ namespace Tac
 
     Render::ProgramParams programParams
     {
-      .mFileStem =  "DepthBufferVisualizer",
+      .mFileStem { "DepthBufferVisualizer" },
     };
     sShaderProgram = renderDevice->CreateProgram( programParams, errors );
 #endif
@@ -61,42 +61,42 @@ Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender(
 {
 
 #if TAC_TEMPORARILY_DISABLED()
-  renderContext->DebugEventBegin( __func__ );
+  renderContext->DebugEventBegin( "depth_buffer_viz" );
 
-  const Render::OutProj outProj = Render::GetPerspectiveProjectionAB(inProj);
+  const Render::OutProj outProj{ Render::GetPerspectiveProjectionAB( inProj ) };
 
-  const CBufferDepthViz cbuf =
+  const CBufferDepthViz cbuf
   {
-    .projA = outProj.mA,
-    .projB = outProj.mB,
-    .f = inProj.mFar,
-    .n = inProj.mNear,
+    .projA { outProj.mA },
+    .projB { outProj.mB },
+    .f     { inProj.mFar },
+    .n     { inProj.mNear },
   };
 
   DepthBufferVisuzliationInit( errors );
 
-  const Render::Format format =
+  const Render::Format format
   {
-        .mElementCount = 4,
-        .mPerElementByteCount = 1,
-        .mPerElementDataType = Render::GraphicsType::unorm
+        .mElementCount        { 4 },
+        .mPerElementByteCount { 1 },
+        .mPerElementDataType  { Render::GraphicsType::unorm },
   };
-  const Render::Image image = 
+  const Render::Image image
   {
-      .mWidth = w,
-      .mHeight = h,
-      .mFormat = format,
+      .mWidth  { w },
+      .mHeight { h },
+      .mFormat { format },
   };
   const Render::CreateTextureParams CreateTextureParams
   {
-    .mImage = image,
-    .mBinding = Render::Binding::RenderTarget | Render::Binding::ShaderResource,
+    .mImage   { image },
+    .mBinding { Render::Binding::RenderTarget | Render::Binding::ShaderResource },
   };
 
-  Render::TextureHandle outTex = Render::CreateTexture( CreateTextureParams, TAC_STACK_FRAME );
-  Render::ViewHandle viewHandle = Render::CreateView();
-  Render::FramebufferHandle framebufferHandle =
-    Render::CreateFramebufferForRenderToTexture( { outTex }, TAC_STACK_FRAME );
+  Render::TextureHandle outTex { Render::CreateTexture( CreateTextureParams, TAC_STACK_FRAME ) };
+  Render::ViewHandle viewHandle { Render::CreateView() };
+  Render::FramebufferHandle framebufferHandle {
+    Render::CreateFramebufferForRenderToTexture( { outTex }, TAC_STACK_FRAME ) };
   Render::SetShader( sShaderProgram );
   Render::SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
   Render::SetViewFramebuffer( viewHandle, framebufferHandle );
@@ -110,7 +110,7 @@ Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender(
   Render::Submit( viewHandle, TAC_STACK_FRAME );
   Render::DestroyView( viewHandle );
   Render::DestroyFramebuffer( framebufferHandle, TAC_STACK_FRAME );
-  renderContext->DebugEventEnd( __func__ );
+  renderContext->DebugEventEnd();
   return outTex;
 #else
   return {};

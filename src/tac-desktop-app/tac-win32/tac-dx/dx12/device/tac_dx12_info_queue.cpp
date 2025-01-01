@@ -67,4 +67,4 @@ namespace Tac::Render
                                                           &pCallbackCookie ) );
     }
   }
-}
+} // namespace Tac::Render
