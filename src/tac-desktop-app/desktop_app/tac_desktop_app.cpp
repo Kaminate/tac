@@ -363,10 +363,13 @@ namespace Tac
         .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
         .mTimestamp   { interpolatedTimestamp },
       };
+      // TEMP TEMP TEMP
+      if( sCurrState->mTimestamp.mSeconds > 10 )
+      {
       TAC_CALL( sApp->Render( renderParams, errors ) );
 
-      TAC_CALL( ImGuiPlatformRender( // imguiSimFrame, 
-                                     errors ) );
+      TAC_CALL( ImGuiPlatformRender( errors ) );
+      }
 
       static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
       const PlatformMouseCursor newCursor{ ImGuiToPlatformMouseCursor( ImGuiGlobals::Instance.mMouseCursor ) }; // imguiSimFrame->mCursor ) };

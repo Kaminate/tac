@@ -59,7 +59,7 @@ namespace Tac::FileSys
     return Path( p.u8string().c_str() );
   }
 
-  static String FormatFileError( const Path& path, const char* operation )
+  static String                FormatFileError( const Path& path, const char* operation )
   {
     String errMsg; 
     errMsg += "Failed to open path (";
@@ -70,7 +70,7 @@ namespace Tac::FileSys
   }
 
   template< typename T >
-  static Paths IterateFilesHelperHelper( const T& iter, IterateFn isValid )
+  static Paths                 IterateFilesHelperHelper( const T& iter, IterateFn isValid )
   {
     Paths paths;
     for( const std::filesystem::directory_entry& entry : iter )
@@ -79,10 +79,10 @@ namespace Tac::FileSys
     return paths;
   }
 
-  static Paths IterateFilesHelper( const Path& dir,
-                                               IterateType type,
-                                               IterateFn isValid,
-                                               [[maybe_unused]] Errors& errors )
+  static Paths                 IterateFilesHelper( const Path& dir,
+                                                   IterateType type,
+                                                   IterateFn isValid,
+                                                   [[maybe_unused]] Errors& errors )
   {
     const std::filesystem::path stdPath{ StdPath( dir ) };
     if( type == IterateType::Default )

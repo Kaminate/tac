@@ -149,13 +149,13 @@ namespace Tac::Render
       renderDevice->GetShaderVariable( meshPipeline, "sBuffers" ) };
 
 
-    TAC_ASSERT(MaterialPresentation::sConstBufHandle_PerFrame.IsValid());
+    TAC_ASSERT( MaterialPresentation::sConstBufHandle_PerFrame.IsValid() );
     svPerFrame->SetResource( MaterialPresentation::sConstBufHandle_PerFrame );
 
-    TAC_ASSERT(MaterialPresentation::sConstBufHandle_Material.IsValid());
+    TAC_ASSERT( MaterialPresentation::sConstBufHandle_Material.IsValid() );
     svMaterial->SetResource( MaterialPresentation::sConstBufHandle_Material );
 
-    TAC_ASSERT(MaterialPresentation::sConstBufHandle_ShaderGraph.IsValid());
+    TAC_ASSERT( MaterialPresentation::sConstBufHandle_ShaderGraph.IsValid() );
     svShaderGraph->SetResource( MaterialPresentation::sConstBufHandle_ShaderGraph );
 
     Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };

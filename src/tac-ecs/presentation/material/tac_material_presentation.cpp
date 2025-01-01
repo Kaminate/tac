@@ -259,6 +259,20 @@ namespace Tac
       const int nSubMeshes{ mesh->mSubMeshes.size() };
       for( int iSubMesh{}; iSubMesh < nSubMeshes; ++iSubMesh )
       {
+        const ShortFixedString subMeshEventName{ [&](){
+          if( !kIsDebugMode || nSubMeshes == 1 )
+            return ShortFixedString{};
+          return ShortFixedString::Concat( model->mEntity->mName,
+                                           "(submesh ",
+                                           ToString( iSubMesh ),
+                                           " of ",
+                                           ToString( nSubMeshes ),
+                                           ")" );
+          }() };
+
+        if( !subMeshEventName.empty() )
+          renderContext->DebugEventBegin( subMeshEventName );
+
         const SubMesh& subMesh { mesh->mSubMeshes[ iSubMesh ] };
         const Render::DrawArgs drawArgs
         {
@@ -290,6 +304,9 @@ namespace Tac
         renderContext->SetIndexBuffer( subMesh.mIndexBuffer );
         renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
         renderContext->Draw( drawArgs );
+
+        if( !subMeshEventName.empty() )
+          renderContext->DebugEventEnd();
       }
     }
 

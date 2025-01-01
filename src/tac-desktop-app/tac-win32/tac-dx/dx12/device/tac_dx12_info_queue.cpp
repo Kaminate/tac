@@ -46,27 +46,25 @@ namespace Tac::Render
     TAC_ASSERT( debugLayer.IsEnabled() );
 
     device->QueryInterface( m_infoQueue.iid(), m_infoQueue.ppv() );
-    TAC_ASSERT(m_infoQueue);
+    TAC_ASSERT( m_infoQueue );
 
     // Make the application debug break when bad things happen
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL(m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
+    if( PCom< ID3D12InfoQueue1 > infoQueue1{ m_infoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
     {
-      const D3D12MessageFunc CallbackFunc { MyD3D12MessageFunc };
+      const D3D12MessageFunc             CallbackFunc        { MyD3D12MessageFunc };
       const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
-      void* pContext { this };
-      DWORD pCallbackCookie {};
-
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
-                     CallbackFunc,
-                     CallbackFilterFlags,
-                     pContext,
-                     &pCallbackCookie ) );
+      void*                              pContext            { this };
+      DWORD                              pCallbackCookie     {};
+      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback( CallbackFunc,
+                                                          CallbackFilterFlags,
+                                                          pContext,
+                                                          &pCallbackCookie ) );
     }
   }
 }

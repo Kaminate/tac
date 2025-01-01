@@ -237,6 +237,10 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
   MeshPresentation::DebugImGui();
 #endif
 
+#if TAC_MATERIAL_PRESENTATION_ENABLED()
+  MaterialPresentation::DebugImGui();
+#endif
+
 #if TAC_SHADOW_PRESENTATION_ENABLED()
   ShadowPresentation::DebugImGui();
 #endif
