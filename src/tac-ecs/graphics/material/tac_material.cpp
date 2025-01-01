@@ -163,7 +163,6 @@ namespace Tac
     String mBindings;
   };
 
-  static BindingsUI sBindingsUI;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -206,6 +205,7 @@ namespace Tac
     static AssetPathUIHelper ui_pbrTexture_Diffuse( "pbr diffuse texture" );
     static AssetPathUIHelper ui_pbrTexture_Specular( "pbr specular texture" );
     static AssetPathUIHelper ui_pbrTexture_Glossiness( "pbr glossiness texture" );
+    static BindingsUI sBindingsUI;
 
     ImGuiCheckbox( "Enabled", &material->mRenderEnabled );
 
