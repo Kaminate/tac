@@ -1,0 +1,124 @@
+{
+  "mActive": true,
+  "mChildren":
+  [
+    {
+      "mActive": true,
+      "mChildren":
+      [
+        {
+          "Material":
+          {
+            "mColor":
+            {
+              "w": 1,
+              "x": 0.8,
+              "y": 0,
+              "z": 0
+            },
+            "mEmissive":
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "mIsGlTF_PBR_MetallicRoughness": true,
+            "mIsGlTF_PBR_SpecularGlossiness": false,
+            "mPBR_Factor_Diffuse":
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "mPBR_Factor_Glossiness": 0,
+            "mPBR_Factor_Metallic": 0,
+            "mPBR_Factor_Roughness": 1,
+            "mPBR_Factor_Specular":
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "mRenderEnabled": true,
+            "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+            "mTextureDiffuse": "",
+            "mTextureGlossiness": "",
+            "mTextureMetallic": "",
+            "mTextureRoughness": "",
+            "mTextureSpecular": ""
+          },
+          "Model":
+          {
+            "mIsStatic": false,
+            "mModelIndex": 0,
+            "mModelPath": "assets/glTF-sample/Box/Box.gltf"
+          },
+          "mActive": true,
+          "mEntityUUID": 3,
+          "mEulerRads":
+          {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "mName": "Mesh",
+          "mPosition":
+          {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "mScale":
+          {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "mStatic": false
+        }
+      ],
+      "mEntityUUID": 2,
+      "mEulerRads":
+      {
+        "x": -1.57,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "node 0",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    }
+  ],
+  "mEntityUUID": 1,
+  "mEulerRads":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mName": "Box.gltf",
+  "mPosition":
+  {
+    "x": 0,
+    "y": 1,
+    "z": 0
+  },
+  "mScale":
+  {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "mStatic": false
+}

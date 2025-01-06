@@ -218,7 +218,10 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::BufferHandle& mRenderVtxBuf{ buffer->mVtxBuf };
 
-    if( !mRenderVtxBuf.IsValid() || requiredByteCount > buffer->mVtxBufByteCapacity )
+    const bool canReuseBuffer{
+      mRenderVtxBuf.IsValid() && requiredByteCount <= buffer->mVtxBufByteCapacity };
+    const bool needCreateBuffer{ requiredByteCount > 0 && !canReuseBuffer };
+    if( needCreateBuffer )
     {
       renderDevice->DestroyBuffer( mRenderVtxBuf );
       const Render::CreateBufferParams vtxBufCreate
@@ -237,13 +240,16 @@ namespace Tac
 
     buffer->mVtxCount = requiredVtxCount;
 
-    const Render::UpdateBufferParams vtxBufUpdate
+    if( buffer->mVtxCount )
     {
-      .mSrcBytes     { vtxs.data() },
-      .mSrcByteCount { requiredByteCount },
-    };
+      const Render::UpdateBufferParams vtxBufUpdate
+      {
+        .mSrcBytes     { vtxs.data() },
+        .mSrcByteCount { requiredByteCount },
+      };
 
-    TAC_CALL_RET( renderContext->UpdateBuffer( mRenderVtxBuf, vtxBufUpdate, errors ) );
+      TAC_CALL_RET( renderContext->UpdateBuffer( mRenderVtxBuf, vtxBufUpdate, errors ) );
+    }
     
     return buffer;
   }
