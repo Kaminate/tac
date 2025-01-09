@@ -4,6 +4,14 @@
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-std-lib/os/tac_os.h"
 
+#if 0
+extern "C" // https://devblogs.microsoft.com/directx/gettingstarted-dx12agility
+{
+  __declspec( dllexport ) extern const UINT  D3D12SDKVersion { 614 };
+  __declspec( dllexport ) extern const char* D3D12SDKPath    { ".\\D3D12\\" };
+}
+#endif
+
 namespace Tac::Render
 {
   static const char* D3D12_MESSAGE_SEVERITY_ToString( D3D12_MESSAGE_SEVERITY Severity )
@@ -11,11 +19,11 @@ namespace Tac::Render
     switch( Severity )
     {
     case D3D12_MESSAGE_SEVERITY_CORRUPTION: return "Corruption";
-    case D3D12_MESSAGE_SEVERITY_ERROR: return "Error";
-    case D3D12_MESSAGE_SEVERITY_WARNING: return "Warning";
-    case D3D12_MESSAGE_SEVERITY_INFO: return "Info";
-    case D3D12_MESSAGE_SEVERITY_MESSAGE: return "Message";
-    default: return "???";
+    case D3D12_MESSAGE_SEVERITY_ERROR:      return "Error";
+    case D3D12_MESSAGE_SEVERITY_WARNING:    return "Warning";
+    case D3D12_MESSAGE_SEVERITY_INFO:       return "Info";
+    case D3D12_MESSAGE_SEVERITY_MESSAGE:    return "Message";
+    default:                                return "???";
     }
   }
 
@@ -45,17 +53,17 @@ namespace Tac::Render
 
     TAC_ASSERT( debugLayer.IsEnabled() );
 
-    device->QueryInterface( m_infoQueue.iid(), m_infoQueue.ppv() );
-    TAC_ASSERT( m_infoQueue );
+    device->QueryInterface( mInfoQueue.iid(), mInfoQueue.ppv() );
+    TAC_ASSERT( mInfoQueue );
 
     // Make the application debug break when bad things happen
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+    TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+    TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR,      TRUE ) );
+    TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING,    TRUE ) );
 
     // First available in Windows 10 Release Preview build 20236,
     // But as of 2023-12-11 not available on my machine :(
-    if( PCom< ID3D12InfoQueue1 > infoQueue1{ m_infoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
+    if( PCom< ID3D12InfoQueue1 > infoQueue1{ mInfoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
     {
       const D3D12MessageFunc             CallbackFunc        { MyD3D12MessageFunc };
       const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
@@ -65,6 +73,10 @@ namespace Tac::Render
                                                           CallbackFilterFlags,
                                                           pContext,
                                                           &pCallbackCookie ) );
+    }
+    else if( kIsDebugMode )
+    {
+      OS::OSDebugPrintLine( "ID3D12InfoQueue1 unavailable, sorry! (it is Windows 11 only)" );
     }
   }
 } // namespace Tac::Render

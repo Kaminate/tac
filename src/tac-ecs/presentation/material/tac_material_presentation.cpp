@@ -123,6 +123,23 @@ namespace Tac
     TAC_CALL_RET( Render::IBindlessArray::Binding specular{
       TextureAssetManager::GetBindlessIndex( material->mTextureSpecular, errors ) } );
 
+    /*
+    bool            material->mIsGlTF_PBR_MetallicRoughness  {};
+    bool            material->mIsGlTF_PBR_SpecularGlossiness {};
+    float           material->mPBR_Factor_Metallic           {};
+    float           material->mPBR_Factor_Roughness          {};
+    v3              material->mPBR_Factor_Diffuse            {};
+    v3              material->mPBR_Factor_Specular           {};
+    float           material->mPBR_Factor_Glossiness         {};
+    v4              material->mColor                         {};
+    v3              material->mEmissive                      {};
+    AssetPathString material->mTextureDiffuse                {};
+    AssetPathString material->mTextureSpecular               {};
+    AssetPathString material->mTextureGlossiness             {};
+    AssetPathString material->mTextureMetallic               {};
+    AssetPathString material->mTextureRoughness              {};
+    */
+
     return ConstBufData_Material
     {
       .mColor              { material->mColor },
@@ -324,6 +341,8 @@ namespace Tac
   {
     struct Handle
     {
+      //static void Noop( const Params& , dynmc ConstBufData_ShaderGraph* ) {  }// Do nothing
+
       static void WorldMatrix( const Params& params, dynmc ConstBufData_ShaderGraph* shaderGraph )
       {
         shaderGraph->mWorld = params.mEntity->mWorldTransform;
@@ -344,25 +363,21 @@ namespace Tac
 
     using HandleFn = void ( * )( const Params&, dynmc ConstBufData_ShaderGraph* );
 
-    HandleFn mHandlers[ ( int )MaterialInput::Type::kCount ]{};
+    HandleFn mHandlers[ sizeof( MaterialInput::UnderlyingType ) * 8 ]{};
+    //mHandlers[ ( int )MaterialInput::Type::kUnknown ] = Handle::Noop;
     mHandlers[ ( int )MaterialInput::Type::kVertexBuffer ] = Handle::VertexBuffer;
     mHandlers[ ( int )MaterialInput::Type::kWorldMatrix ] = Handle::WorldMatrix;
     mHandlers[ ( int )MaterialInput::Type::kInputLayout ] = Handle::InputLayout;
-    for( HandleFn handler : mHandlers )
-    {
-      TAC_ASSERT( handler );
-    }
 
     ConstBufData_ShaderGraph shaderGraph{};
 
     const MaterialInput& materialInput{ params.mRenderMaterial->mShaderGraph.mMaterialInputs };
-    const int n{ ( int )MaterialInput::Type::kCount };
-    for( int i{}; i < n; ++i )
+    for( const MaterialInput::Type type : MaterialInput::TypeIterator() )
     {
-      const MaterialInput::Type type{ ( MaterialInput::Type )i };
       if( materialInput.IsSet( type ) )
       {
-        const HandleFn handler{ mHandlers[ i ] };
+        const HandleFn handler{ mHandlers[ ( int )type ] };
+        TAC_ASSERT( handler );
         handler( params, &shaderGraph );
       }
     }

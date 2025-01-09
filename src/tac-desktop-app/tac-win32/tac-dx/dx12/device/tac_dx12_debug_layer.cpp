@@ -5,18 +5,19 @@
 
 namespace Tac::Render
 {
+  bool DX12DebugLayer::IsEnabled() const { return mDebugLayerEnabled; }
   void DX12DebugLayer::Init( Errors& errors )
   {
     if constexpr( !kIsDebugMode )
       return;
 
-    TAC_DX12_CALL( D3D12GetDebugInterface( m_debug.iid(), m_debug.ppv() ) );
+    TAC_DX12_CALL( D3D12GetDebugInterface( mDebug.iid(), mDebug.ppv() ) );
 
     // EnableDebugLayer must be called before the device is created
-    m_debug->EnableDebugLayer();
-    m_debugLayerEnabled = true;
+    mDebug->EnableDebugLayer();
+    mDebugLayerEnabled = true;
 
-    if( PCom< ID3D12Debug3 > debug3{ m_debug.QueryInterface< ID3D12Debug3 >() } )
+    if( PCom< ID3D12Debug3 > debug3{ mDebug.QueryInterface< ID3D12Debug3 >() } )
     {
 
       // ( this should already be enabled by default )
@@ -37,7 +38,7 @@ namespace Tac::Render
 
     }
 
-    if( PCom< ID3D12Debug5 > debug5{ m_debug.QueryInterface< ID3D12Debug5 >() } )
+    if( PCom< ID3D12Debug5 > debug5{ mDebug.QueryInterface< ID3D12Debug5 >() } )
     {
       debug5->SetEnableAutoName( TRUE );
     }

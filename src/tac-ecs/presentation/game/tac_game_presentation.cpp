@@ -148,33 +148,33 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
 
 #if TAC_MESH_PRESENTATION_ENABLED()
   TAC_CALL( MeshPresentation::Render( renderContext,
-                                    world,
-                                    camera,
-                                    viewSize,
-                                    dstColorTex,
-                                    dstDepthTex,
-                                    errors ) );
+                                      world,
+                                      camera,
+                                      viewSize,
+                                      dstColorTex,
+                                      dstDepthTex,
+                                      errors ) );
 #endif
 
 #if TAC_MATERIAL_PRESENTATION_ENABLED()
   TAC_CALL( MaterialPresentation::Render( renderContext,
-                                    world,
-                                    camera,
-                                    viewSize,
-                                    dstColorTex,
-                                    dstDepthTex,
-                                    errors ) );
+                                          world,
+                                          camera,
+                                          viewSize,
+                                          dstColorTex,
+                                          dstDepthTex,
+                                          errors ) );
 #endif
 
 
 #if 0
 #if TAC_TERRAIN_PRESENTATION_ENABLED()
   TAC_CALL( TerrainPresentation::Render( renderContext,
-                                       world,
-                                       camera,
-                                       viewSize,
-                                       dstColorTex,
-                                       errors ) );
+                                         world,
+                                         camera,
+                                         viewSize,
+                                         dstColorTex,
+                                         errors ) );
 #endif
 #endif
 

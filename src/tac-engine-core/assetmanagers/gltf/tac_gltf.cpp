@@ -71,7 +71,7 @@ namespace Tac
       case cgltf_attribute_type_color: return Render::Attribute::Color;
       case cgltf_attribute_type_joints: return Render::Attribute::BoneIndex;
       case cgltf_attribute_type_weights: return Render::Attribute::BoneWeight;
-      default: TAC_ASSERT_INVALID_CASE( attributeType ); return Render::Attribute::Count;
+      default: TAC_ASSERT_INVALID_CASE( attributeType ); return Render::Attribute::Unknown;
     }
   }
 

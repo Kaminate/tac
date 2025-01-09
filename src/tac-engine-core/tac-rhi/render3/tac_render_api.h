@@ -100,8 +100,10 @@ namespace Tac::Render
     LessOrEqual,
   };
 
-  enum class Attribute // Used to hardcode shader semantics/indexes
+  // Must mirror the enum in inputlayout.hlsl
+  enum class Attribute : u32 // Used to hardcode shader semantics/indexes
   {
+    Unknown = 0,
     Position,
     Normal,
     Texcoord,
@@ -109,9 +111,9 @@ namespace Tac::Render
     BoneIndex,
     BoneWeight,
     Coeffs,
-    Count
   };
 
+  // Must mirror the enum in inputlayout.hlsl
   enum class GraphicsType
   {
     unknown,
@@ -148,7 +150,7 @@ namespace Tac::Render
 
   struct VertexDeclaration
   {
-    Attribute             mAttribute         { Attribute::Count };
+    Attribute             mAttribute         { Attribute::Unknown };
     VertexAttributeFormat mFormat            {};
 
     //                    Offset of the variable from the vertex buffer

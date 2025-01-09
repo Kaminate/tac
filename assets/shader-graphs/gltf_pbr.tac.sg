@@ -1,12 +1,17 @@
 {
+  "material_inputs":
+  [
+    "world_matrix",
+    "vertex_buffer",
+    "input_layout"
+  ],
+  "material_shader": "materials/glTFpbr",
   "material_vs_out":
   [
     {
-      "type": "v4",
+      "name": "mPos_clipspace",
       "semantic": "SV_POSITION",
-      "name": "mPos_clipspace"
-    }
-  ],
-  "material_shader": "materials/glTFpbr",
-  "material_inputs": null
+      "type": "v4"
+    },
+  ]
 }

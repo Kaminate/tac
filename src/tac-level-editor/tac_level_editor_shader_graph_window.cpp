@@ -269,10 +269,8 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    const int n{ ( int )MaterialInput::Type::kCount };
-    for( int i{}; i < n; ++i )
+    for( const MaterialInput::Type miType : MaterialInput::TypeIterator() )
     {
-      const MaterialInput::Type miType{ ( MaterialInput::Type )i };
       if( mi.IsSet( miType ) )
       {
         ImGuiText( MaterialInput::Type_to_String( miType ) );
@@ -282,9 +280,8 @@ namespace Tac
       }
     }
 
-    for( int i{}; i < n; ++i )
+    for( const MaterialInput::Type miType : MaterialInput::TypeIterator() )
     {
-      const MaterialInput::Type miType{ ( MaterialInput::Type )i };
       if( !mi.IsSet( miType ) )
       {
         if( ImGuiButton( "Add " + MaterialInput::Type_to_String( miType ) ) )
