@@ -24,7 +24,6 @@ namespace Tac
   {
   }
 
-
   void    JPPTApp::CreateTexture( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -66,7 +65,7 @@ namespace Tac
     sWindowPos = ( monitor.mSize - sWindowSize ) / 2;
 
     TAC_CALL( CreateTexture( errors ) );
-    //TAC_CALL( CreatePipeline( errors ) );
+    TAC_CALL( CreatePipeline( errors ) );
 
     TAC_CALL( sScene = gpupt::Scene::CreateCornellBox( errors ) );
     TAC_CALL( sSceneBVH = gpupt::SceneBVH::CreateBVH( sScene, errors ) );
@@ -108,8 +107,8 @@ namespace Tac
 
   void    JPPTApp::Render( RenderParams renderParams, Errors& errors )
   {
-    if( true )
-      return;
+    //if( true )
+    //  return;
 
     const WindowHandle windowHandle{ ImGuiGetWindowHandle(sWindowName)};
     const bool shown{ AppWindowApi::IsShown( windowHandle ) };
@@ -155,6 +154,17 @@ namespace Tac
 
   void    JPPTApp::Uninit( Errors& )
   {
+  }
+
+  App::State JPPTApp::GameState_Create()
+  {
+    return TAC_NEW JPPTState;
+  }
+
+  void    JPPTApp::GameState_Update( IState* iState )
+  {
+    JPPTState* jpptState{ ( JPPTState* )iState };
+    TAC_UNUSED_PARAMETER( jpptState );
   }
 
   App* App::Create()
