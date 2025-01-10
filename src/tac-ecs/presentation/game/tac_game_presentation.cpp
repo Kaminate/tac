@@ -15,6 +15,7 @@
 #include "tac-ecs/presentation/terrain/tac_terrain_presentation.h"
 #include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
 #include "tac-ecs/presentation/infinitegrid/tac_infinite_grid_presentation.h"
+#include "tac-ecs/presentation/jpptpresentation/tac_jppt_presentation.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
@@ -58,6 +59,10 @@ void Tac::GamePresentationInit( Errors& errors )
   TAC_CALL( MaterialPresentation::Init( errors ) );
 #endif
 
+#if TAC_JPPT_PRESENTATION_ENABLED()
+  TAC_CALL( JPPTPresentation::Init( errors ) );
+#endif
+
 #if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
   TAC_CALL( InfiniteGrid::Init( errors ) );
 #endif
@@ -88,8 +93,12 @@ void Tac::GamePresentationUninit()
     MeshPresentation::Uninit();
 #endif
 
+#if TAC_JPPT_PRESENTATION_ENABLED()
+    JPPTPresentation::Uninit();
+#endif
+
 #if TAC_MATERIAL_PRESENTATION_ENABLED()
-   MaterialPresentation::Uninit();
+    MaterialPresentation::Uninit();
 #endif
 
 #if TAC_SKYBOX_PRESENTATION_ENABLED()
@@ -202,10 +211,20 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
 #endif
 
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
-  RadiosityBakePresentation::Render( renderContext,
-                                     world,
-                                     camera,
-                                     errors );
+  TAC_CALL( RadiosityBakePresentation::Render( renderContext,
+                                               world,
+                                               camera,
+                                               errors ) );
+#endif
+
+#if TAC_JPPT_PRESENTATION_ENABLED()
+  TAC_CALL( JPPTPresentation::Render( renderContext,
+                                      world,
+                                      camera,
+                                      viewSize,
+                                      dstColorTex,
+                                      dstDepthTex,
+                                      errors ) );
 #endif
 
   if( mRenderEnabledDebug3D )
@@ -259,6 +278,10 @@ void Tac::GamePresentationDebugImGui( Graphics* graphics )
 
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
   RadiosityBakePresentation::DebugImGui();
+#endif
+
+#if TAC_JPPT_PRESENTATION_ENABLED()
+  JPPTPresentation::DebugImGui();
 #endif
 }
 

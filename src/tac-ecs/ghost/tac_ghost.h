@@ -38,6 +38,7 @@ namespace Tac
     User( StringView name, Ghost*, Errors& );
     void                   Update( Errors& );
     void                   DebugImgui();
+
     Player*                mPlayer               {};
     Ghost*                 mGhost                {};
     String                 mName                 {};
@@ -69,6 +70,7 @@ namespace Tac
     void            AddMorePlayers( Errors& );
     bool            CanDrawImgui();
     bool            IsPartyFull();
+
     Vector< User* > mUsers                      {};
     ServerData*     mServerData                 {};
     ClientData*     mClientData                 {};

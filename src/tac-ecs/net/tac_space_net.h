@@ -8,7 +8,7 @@
 
 namespace Tac
 {
-  const Endianness GameEndianness = Endianness::Little;
+  const Endianness GameEndianness { Endianness::Little };
   enum class NetMsgType : u8
   {
     Text,
@@ -30,16 +30,17 @@ namespace Tac
 
   struct DelayedNetMsg
   {
-    Timestamp      mDelayedTillSecs;
-    Vector< char > mData;
+    Timestamp      mDelayedTillSecs {};
+    Vector< char > mData            {};
   };
 
   struct LagTest
   {
     void                       SaveMessage( const Vector< char >& data, Timestamp elapsedSecs );
     bool                       TryPopSavedMessage( Vector< char >& data, Timestamp elapsedSecs );
-    int                        mLagSimulationMS = 0;
-    List< DelayedNetMsg >      mSavedNetworkMessages;
+
+    int                        mLagSimulationMS      {};
+    List< DelayedNetMsg >      mSavedNetworkMessages {};
   };
 
   struct SnapshotBuffer
@@ -47,9 +48,10 @@ namespace Tac
     ~SnapshotBuffer();
     void                AddSnapshot( const World* );
     World*              FindSnapshot( Timestamp elapsedGameSecs );
-    List< World* >      mSnapshots;
+
+    List< World* >      mSnapshots   {};
     const int           maxSnapshots { 32 };
   };
 
-}
+} // namespace Tac 
 

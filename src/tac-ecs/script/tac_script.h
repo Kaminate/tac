@@ -21,8 +21,8 @@ namespace Tac
 
   struct ScriptMsg
   {
-    String mType;
-    void* mData {};
+    String mType {};
+    void*  mData {};
   };
 
   typedef void ScriptCallbackFunction( ScriptCallbackData*, const ScriptMsg* );
@@ -43,7 +43,8 @@ namespace Tac
     void                            SetNextKeyDelay( float seconds );
     void                            OnMsg( const ScriptMsg* );
     void                            AddScriptCallback( void* userData, ScriptCallbackFunction* );
-    void                            RunForever() { mRunForever = true; };
+    void                            RunForever();
+
     ScriptRoot*                     mScriptRoot     {};
     int                             mLine           {};
     bool                            mIsSleeping     {};

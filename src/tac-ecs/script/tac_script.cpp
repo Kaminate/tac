@@ -46,6 +46,8 @@ namespace Tac
     mMsgCallbacks.insert( scriptCallbackData );
   }
 
+  void ScriptThread::RunForever() { mRunForever = true; }
+
   void ScriptThread::OnMsg( const ScriptMsg* scriptMsg )
   {
     Vector< ScriptCallbackData* > toDelete;

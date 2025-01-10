@@ -1,4 +1,5 @@
-#include "tac-ecs/net/tac_space_net.h"
+#include "tac_space_net.h" // self-inc
+
 #include "tac-ecs/world/tac_world.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
@@ -14,14 +15,13 @@ namespace Tac
 
   NetMsgType ReadNetMsgHeader( ReadStream* reader,  Errors& errors )
   {
-    TAC_CALL_RET( const u8 t { reader->Read< u8 >( errors ) } );
-    TAC_CALL_RET( const u8 a { reader->Read< u8 >( errors ) } );
-    TAC_CALL_RET( const u8 c { reader->Read< u8 >( errors ) } );
+    TAC_CALL_RET( const u8 t{ reader->Read< u8 >( errors ) } );
+    TAC_CALL_RET( const u8 a{ reader->Read< u8 >( errors ) } );
+    TAC_CALL_RET( const u8 c{ reader->Read< u8 >( errors ) } );
     TAC_RAISE_ERROR_IF_RETURN( {}, t != 't', "net msg header mismatch" );
     TAC_RAISE_ERROR_IF_RETURN( {}, a != 'a', "net msg header mismatch" );
     TAC_RAISE_ERROR_IF_RETURN( {}, c != 'c', "net msg header mismatch" );
-
-    return reader->Read<NetMsgType>( errors );
+    return reader->Read< NetMsgType >( errors );
   }
 
   //NetBitDiff GetNetVarfield( const void* oldData,
@@ -66,7 +66,7 @@ namespace Tac
 
   void SnapshotBuffer::AddSnapshot( const World* world )
   {
-    World* snapshot {};
+    World* snapshot{};
     if( mSnapshots.size() == maxSnapshots )
     {
       snapshot = mSnapshots.front();
