@@ -6,13 +6,19 @@ namespace Tac
 {
   struct JPPTApp : App
   {
+    struct JPPTState : IState
+    {
+    };
+
     JPPTApp( Config );
 
-    void    Init(  Errors& )       override;
-    void    Update(  Errors& )   override;
-    void    Render( RenderParams, Errors& )   override;
-    void    Present(  Errors& ) override;
-    void    Uninit( Errors& )                 override;
+    void    Init( Errors& ) override;
+    void    Update( Errors& ) override;
+    void    Render( RenderParams, Errors& ) override;
+    void    Present( Errors& ) override;
+    void    Uninit( Errors& ) override;
+    State   GameState_Create() override;
+    void    GameState_Update( IState* ) override;
 
   private:
     void    CreateTexture( Errors& );

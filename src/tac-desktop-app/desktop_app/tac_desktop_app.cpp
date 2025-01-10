@@ -305,9 +305,12 @@ namespace Tac
     Swap( sPrevState, sCurrState );
 
     sApp->GameState_Update( sCurrState );
-    sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
-    sCurrState->mTimestamp = Timestep::GetElapsedTime();
-    sCurrState->mTimepoint = Timestep::GetLastTick();
+    if( sCurrState )
+    {
+      sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
+      sCurrState->mTimestamp = Timestep::GetElapsedTime();
+      sCurrState->mTimepoint = Timestep::GetLastTick();
+    }
   }
 
   void               DesktopApp::Render( Errors& errors )
