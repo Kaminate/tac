@@ -109,20 +109,20 @@ namespace Tac
   }
 
 
-  static SubMeshTriangles   WavefrontObjGetSubMeshTriangles( const WavefrontObj& wavefrontObj )
+  static MeshRaycast   WavefrontObjGetMeshRaycast( const WavefrontObj& wavefrontObj )
   {
-    SubMeshTriangles subMeshTriangles;
+    MeshRaycast subMeshTriangles;
 
     for( const WavefrontObj::Face& face : wavefrontObj.mFaces )
     {
-      SubMeshTriangle subMeshTriangle  {};
+      MeshRaycast::SubMeshTriangle subMeshTriangle {};
       for( int iTriVert {}; iTriVert < 3; ++iTriVert )
       {
         const WavefrontObj::Vertex& tri { face.mVertexes[ iTriVert ] };
         subMeshTriangle[ iTriVert ] = wavefrontObj.mPositions[ tri.miPosition ];
       }
 
-      subMeshTriangles.push_back( subMeshTriangle );
+      subMeshTriangles.mTris.push_back( subMeshTriangle );
     }
 
     return subMeshTriangles;
@@ -140,7 +140,7 @@ namespace Tac
     Vector< char > dstIdxBytes;
     Vector< char > vertexBytes( stride );
 
-    const SubMeshTriangles subMeshTriangles{ WavefrontObjGetSubMeshTriangles( wavefrontObj ) };
+    const MeshRaycast meshRaycast{ WavefrontObjGetMeshRaycast( wavefrontObj ) };
 
     for( const WavefrontObj::Face& face : wavefrontObj.mFaces )
     {
@@ -210,13 +210,12 @@ namespace Tac
     TAC_CALL_RET( const Render::BufferHandle vertexBuffer{
        renderDevice->CreateBuffer( vertexBufferParams, errors ) } );
 
-      const int vtxCount{ wavefrontObj.mFaces.size() * 3 };
+    const int vtxCount{ wavefrontObj.mFaces.size() * 3 };
 
     const SubMesh subMesh
     {
       .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
       .mVertexBuffer      { vertexBuffer },
-      .mTris              { subMeshTriangles },
       .mVertexCount       { vtxCount },
       .mName              { name },
     };
@@ -225,6 +224,7 @@ namespace Tac
     {
       .mSubMeshes   { subMesh },
       .mVertexDecls { vertexDeclarations },
+      .mMeshRaycast { meshRaycast },
     };
   }
 

@@ -244,13 +244,15 @@ namespace Tac
       if( ImGuiSelectable( str, selected ) )
         iSelectedSubmesh = iSubMesh;
     }
+
     if( ( unsigned )iSelectedSubmesh < ( unsigned )mesh->mSubMeshes.size() )
     {
       const SubMesh& subMesh { mesh->mSubMeshes[ iSelectedSubmesh ] };
 
       ImGuiIndent();
       ImGuiText( subMesh.mName );
-      ImGuiText( ShortFixedString::Concat( "tri count: ", ToString( subMesh.mTris.size() ) ) );
+      ImGuiText( ShortFixedString::Concat( "vtx count: ", ToString( subMesh.mVertexCount ) ) );
+      ImGuiText( ShortFixedString::Concat( "idx count: ", ToString( subMesh.mIndexCount ) ) );
       ImGuiUnindent();
     }
   }

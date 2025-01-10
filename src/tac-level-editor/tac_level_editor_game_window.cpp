@@ -539,10 +539,6 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
-    // =-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-=
-    //ImGuiText( "A" );
-    //return;
-    // =-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-==-=-=-=-=-=-=
 
     const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
 
@@ -592,62 +588,56 @@ namespace Tac
         Errors getmeshErrors;
         const ModelAssetManager::Params meshParams
         {
-          .mPath{model->mModelPath},
-          .mModelIndex{model->mModelIndex},
-          .mOptVtxDecls{m3DVertexFormatDecls},
+          .mPath        { model->mModelPath },
+          .mModelIndex  { model->mModelIndex },
+          .mOptVtxDecls { m3DVertexFormatDecls },
         };
         Mesh* mesh{ ModelAssetManager::GetMesh( meshParams, getmeshErrors ) };
         if( !mesh )
           return;
 
-        for( SubMesh& subMesh : mesh->mSubMeshes )
+        for( const MeshRaycast::SubMeshTriangle& subMeshTri : mesh->mMeshRaycast.mTris )
         {
-          for( SubMeshTriangle& subMeshTri : subMesh.mTris )
+          const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
+          const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
+          const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
+          const v3 wsTrivs[ 3 ]{ wsTriv0, wsTriv1,wsTriv2 };
+
+          const v3 color{ 1, 0, 0 };
+          drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
+
+          for( int i{}; i < 3; ++i )
           {
-            const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
-            const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
-            const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
-            const v3 wsTrivs[ 3 ]{ wsTriv0, wsTriv1,wsTriv2 };
+            const v4 wsTriV{ wsTrivs[ i ], 1.0f };
+            const float radius{ 0.01f * Distance( wsTriV.xyz(), camera->mPos ) };
 
-            const v3 color{ 1, 0, 0 };
-            drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
-
-            for( int i{}; i < 3; ++i )
+            if( RaySphere( camera->mPos, wsMouseDir, wsTriV.xyz(), radius ) > 0 )
             {
-              const v4 wsTriV{ wsTrivs[ i ], 1.0f };
-              const float radius{ 0.01f * Distance( wsTriV.xyz(), camera->mPos ) };
+              drawData->DebugDraw3DCircle( wsTriV.xyz(), camera->mForwards, radius );
 
-              if( RaySphere( camera->mPos, wsMouseDir, wsTriV.xyz(), radius ) > 0 )
-              {
-                drawData->DebugDraw3DCircle( wsTriV.xyz(), camera->mForwards, radius );
+              const v4 vsTriV{ view * wsTriV };
+              const v4 csTriV{ proj * vsTriV };
+              const v4 ndcTriV{ csTriV / csTriV.w };
+              const v2 ssTriV( ( 0 + ( ndcTriV.x * 0.5f + 0.5f ) ) * windowSize.x,
+                               ( 1 - ( ndcTriV.y * 0.5f + 0.5f ) ) * windowSize.y );
 
-                const v4 vsTriV{ view * wsTriV };
-                const v4 csTriV{ proj * vsTriV };
-                const v4 ndcTriV{ csTriV / csTriV.w };
-                const v2 ssTriV
-                {
-                   ( 0 + ( ndcTriV.x * 0.5f + 0.5f ) ) * windowSize.x,
-                   ( 1 - ( ndcTriV.y * 0.5f + 0.5f ) ) * windowSize.y,
-                };
-
-                ImGuiSetCursorPos( ssTriV );
-                ImGuiText( String()
-                           + "v" + ToString( i ) + ": ("
-                           + ToString( subMeshTri[ i ].x ) + ", "
-                           + ToString( subMeshTri[ i ].y ) + ", "
-                           + ToString( subMeshTri[ i ].z ) + " )" );
-              }
-
+              ImGuiSetCursorPos( ssTriV );
+              ImGuiText( String()
+                         + "v" + ToString( i ) + ": ("
+                         + ToString( subMeshTri[ i ].x ) + ", "
+                         + ToString( subMeshTri[ i ].y ) + ", "
+                         + ToString( subMeshTri[ i ].z ) + " )" );
             }
+
           }
         }
 
       }
-      m4      view;
-      m4      proj;
-      v2i     windowSize;
-      Camera* camera;
-      v3      wsMouseDir;
+      m4      view       {};
+      m4      proj       {};
+      v2i     windowSize {};
+      Camera* camera     {};
+      v3      wsMouseDir {};
     } sVisitor;
     sVisitor.proj = proj;
     sVisitor.view = view;

@@ -1,7 +1,6 @@
 #include "tac_model_asset_loader_gltf.h" // self-inc
 
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
-#include "tac-engine-core/assetmanagers/gltf/tac_model_load_synchronous.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager_backend.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
@@ -32,14 +31,14 @@ namespace Tac
     }
   }
 
-  static SubMeshTriangles GetTris( const cgltf_primitive* parsedPrim )
+  static MeshRaycast GetMeshRaycast( const cgltf_primitive* parsedPrim )
   {
     const cgltf_attribute* posAttribute {
       FindAttributeOfType( parsedPrim, cgltf_attribute_type_position ) };
     if( !posAttribute )
       return {};
 
-    SubMeshTriangles tris;
+    MeshRaycast tris;
     const char* srcVtx{ ( char* )
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->offset +
@@ -49,7 +48,7 @@ namespace Tac
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->buffer->size };
 
-    SubMeshTriangle tri{};
+    MeshRaycast::SubMeshTriangle tri{};
     int iVert{};
 
     for( cgltf_size ii{}; ii < parsedPrim->indices->count; ++ii )
@@ -65,7 +64,7 @@ namespace Tac
       if( iVert == 3 )
       {
         iVert = 0;
-        tris.push_back( tri );
+        tris.mTris.push_back( tri );
       }
     }
     return tris;
@@ -278,6 +277,7 @@ namespace Tac
   static Vector< SubMesh > PopulateSubmeshes( const AssetPathStringView& path,
                                               const int specifiedMeshIndex,
                                               dynmc Render::VertexDeclarations& vtxDecls, // in/out
+                                              dynmc MeshRaycast& meshRaycast, // appended to
                                               Errors& errors )
   {
     Vector< SubMesh > submeshes;
@@ -327,7 +327,11 @@ namespace Tac
           ConvertToIndexBuffer( parsedPrim, vtxBufName, errors ) } );
         TAC_CALL_RET( const Render::BufferHandle vertexBuffer{
           ConvertToVertexBuffer( vtxDecls, parsedPrim, idxBufName, errors ) } );
-        const SubMeshTriangles tris{GetTris( parsedPrim)};
+
+        const MeshRaycast subMeshRaycast{ GetMeshRaycast( parsedPrim ) };
+        for( const MeshRaycast::SubMeshTriangle& tri : subMeshRaycast.mTris )
+          meshRaycast.mTris.push_back( tri );
+
         const Render::PrimitiveTopology topology{ Render::PrimitiveTopology::TriangleList };
         const cgltf_primitive_type supportedType{ GetGltfFromTopology( topology ) };
         TAC_ASSERT( parsedPrim->type == supportedType );
@@ -340,7 +344,6 @@ namespace Tac
           .mVertexBuffer         { vertexBuffer },
           .mIndexBuffer          { indexBuffer },
           .mVertexBufferBinding  { vtxBufBinding },
-          .mTris                 { tris },
           .mIndexCount           { indexCount },
           .mVertexCount          { vertexCount },
           .mName                 { StringView( bufferNamePrefix ) },
@@ -358,8 +361,9 @@ namespace Tac
     const AssetPathStringView& path{ params.mPath };
     const int specifiedMeshIndex{ params.mModelIndex };
     dynmc Render::VertexDeclarations vtxDecls{ params.mOptVtxDecls };
+    dynmc MeshRaycast meshRaycast;
     TAC_CALL_RET( const Vector< SubMesh > submeshes{
-      PopulateSubmeshes( path, specifiedMeshIndex, vtxDecls, errors ) } );
+      PopulateSubmeshes( path, specifiedMeshIndex, vtxDecls, meshRaycast, errors ) } );
     const Render::GPUInputLayout gpuInputLayout( vtxDecls );
     TAC_CALL_RET( const Render::BufferHandle gpuInputLayoutBuffer{
       ConvertInputLayoutBuffer( gpuInputLayout, errors ) } );
@@ -370,9 +374,10 @@ namespace Tac
     {
       .mSubMeshes             { submeshes },
       .mVertexDecls           { vtxDecls },
-      .mGPUInputLayout        { gpuInputLayout },
+      //.mGPUInputLayout        { gpuInputLayout },
       .mGPUInputLayoutBuffer  { gpuInputLayoutBuffer },
       .mGPUInputLayoutBinding { gpuInputLayoutBinding },
+      .mMeshRaycast           { meshRaycast },
     };
   }
 

@@ -66,11 +66,12 @@ namespace Tac
     switch( attributeType )
     {
       case cgltf_attribute_type_position: return Render::Attribute::Position;
-      case cgltf_attribute_type_normal: return Render::Attribute::Normal;
+      case cgltf_attribute_type_normal:   return Render::Attribute::Normal;
       case cgltf_attribute_type_texcoord: return Render::Attribute::Texcoord;
-      case cgltf_attribute_type_color: return Render::Attribute::Color;
-      case cgltf_attribute_type_joints: return Render::Attribute::BoneIndex;
-      case cgltf_attribute_type_weights: return Render::Attribute::BoneWeight;
+      case cgltf_attribute_type_color:    return Render::Attribute::Color;
+      case cgltf_attribute_type_joints:   return Render::Attribute::BoneIndex;
+      case cgltf_attribute_type_weights:  return Render::Attribute::BoneWeight;
+
       default: TAC_ASSERT_INVALID_CASE( attributeType ); return Render::Attribute::Unknown;
     }
   }
@@ -79,12 +80,13 @@ namespace Tac
   {
     switch( attributeType )
     {
-      case Render::Attribute::Position: return cgltf_attribute_type_position;
-      case Render::Attribute::Normal: return cgltf_attribute_type_normal;
-      case Render::Attribute::Texcoord: return cgltf_attribute_type_texcoord;
-      case Render::Attribute::Color: return cgltf_attribute_type_color;
-      case Render::Attribute::BoneIndex: return cgltf_attribute_type_joints;
+      case Render::Attribute::Position:   return cgltf_attribute_type_position;
+      case Render::Attribute::Normal:     return cgltf_attribute_type_normal;
+      case Render::Attribute::Texcoord:   return cgltf_attribute_type_texcoord;
+      case Render::Attribute::Color:      return cgltf_attribute_type_color;
+      case Render::Attribute::BoneIndex:  return cgltf_attribute_type_joints;
       case Render::Attribute::BoneWeight: return cgltf_attribute_type_weights;
+
       default: TAC_ASSERT_INVALID_CASE( attributeType ); return cgltf_attribute_type_invalid;
     }
   }

@@ -32,7 +32,6 @@ namespace Tac::gpupt
     }
   }
 
-
   void Shape::CalculateTangents()
   {
     // https://learnopengl.com/Advanced-Lighting/Normal-Mapping

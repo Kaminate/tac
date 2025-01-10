@@ -94,13 +94,13 @@ namespace Tac
     const v3 modelSpaceMouseRayPos3 { ( transformInv * v4( ray.mPos, 1 ) ).xyz() };
     const v3 modelSpaceMouseRayDir3 { Normalize( ( transformInv * v4( ray.mDir, 0 ) ).xyz() ) };
 
-    const MeshRay meshRay
+    const MeshRaycast::Ray meshRay
     {
       .mPos{ modelSpaceMouseRayPos3 },
       .mDir{ modelSpaceMouseRayDir3 },
     };
 
-    const MeshRaycastResult meshRaycastResult { mesh->MeshModelSpaceRaycast( meshRay ) };
+    const MeshRaycast::Result meshRaycastResult { mesh->mMeshRaycast.Raycast( meshRay ) };
     if ( !meshRaycastResult.mHit )
       return {};
 
@@ -165,13 +165,13 @@ namespace Tac
       // 3/3: inverse scale
       modelSpaceRayPos3 /= mGizmoMgr-> mArrowLen;
 
-      const MeshRay meshRay
+      const MeshRaycast::Ray meshRay
       { 
         .mPos{ modelSpaceRayPos3 },
         .mDir{ modelSpaceRayDir3 },
       };
 
-      const MeshRaycastResult meshRaycastResult{ mArrow->MeshModelSpaceRaycast( meshRay ) };
+      const MeshRaycast::Result meshRaycastResult{ mArrow->mMeshRaycast.Raycast( meshRay ) };
       if( !meshRaycastResult.mHit  )
         continue;
 

@@ -29,9 +29,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-
-
-  MeshRaycastResult SubMesh::SubMeshModelSpaceRaycast( MeshRay meshRay ) const
+  MeshRaycast::Result MeshRaycast::Raycast( Ray meshRay ) const
   {
     bool submeshHit {};
     float submeshDist {};
@@ -55,7 +53,7 @@ namespace Tac
       submeshHit = true;
     }
 
-    return MeshRaycastResult
+    return Result
     {
       .mHit { submeshHit },
       .mT   { submeshDist },
@@ -74,13 +72,14 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  MeshRaycastResult Mesh::MeshModelSpaceRaycast( MeshRay meshRay ) const
+#if 0
+  MeshRaycast::Result Mesh::MeshModelSpaceRaycast( MeshRaycast::Ray meshRay ) const
   {
-    MeshRaycastResult raycastResult{};
+    MeshRaycast::Result raycastResult{};
 
     for( const SubMesh& subMesh : mSubMeshes )
     {
-      const MeshRaycastResult submeshRaycastResult { subMesh.SubMeshModelSpaceRaycast( meshRay ) };
+      const MeshRaycast::Result submeshRaycastResult { subMesh.mMeshRaycast.Raycast( meshRay ) };
       if( !submeshRaycastResult.mHit )
         continue;
 
@@ -92,5 +91,6 @@ namespace Tac
 
     return raycastResult;
   }
+#endif
 
 } // namespace Tac
