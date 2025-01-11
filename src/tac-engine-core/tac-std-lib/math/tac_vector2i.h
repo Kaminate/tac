@@ -11,7 +11,7 @@ namespace Tac
     int*       end();
     int*       data();
     const int* data() const;
-    operator v2() const;
+    operator   v2() const;
     int& operator[]( int );
     int  operator[]( int ) const;
     void operator -= ( const v2i& );

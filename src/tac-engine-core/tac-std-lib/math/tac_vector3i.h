@@ -14,7 +14,7 @@ namespace Tac
     int*       end();
     int*       data();
     const int* data() const;
-    v2i&        xy();
+    v2i&       xy();
     int&       operator[]( int );
     int        operator[]( int ) const;
     void       operator -= ( const v3i& );
@@ -24,9 +24,10 @@ namespace Tac
     v3i        operator - () const;
     v3i        operator + ( const v3i& ) const;
     v3i        operator - ( const v3i& ) const;
-    int        x;
-    int        y;
-    int        z;
+
+    int x {};
+    int y {};
+    int z {};
   };
 
 } // namespace Tac

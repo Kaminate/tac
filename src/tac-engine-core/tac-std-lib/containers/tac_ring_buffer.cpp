@@ -1,6 +1,7 @@
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/tac_ints.h"
 
 namespace Tac
 {

@@ -186,7 +186,7 @@ namespace Tac
 
       T* newTs{ ( T* )Allocate( sizeof( T ) * capacity ) };
       for( int i{}; i < mTCount; ++i )
-        TAC_NEW ( &newTs[ i ] )T( Tac::move( mTs[ i ] ) );
+        TAC_PLACEMENT_NEW ( &newTs[ i ] )T( Tac::move( mTs[ i ] ) );
 
       Deallocate( mTs );
       mTs = newTs;

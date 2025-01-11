@@ -42,7 +42,7 @@ namespace Tac
     TAC_DELETE mDebug3DDrawData ;
   }
 
-  Entity* World::SpawnEntity( EntityUUID entityUUID )
+  Entity*       World::SpawnEntity( EntityUUID entityUUID )
   {
     Entity* entity { TAC_NEW Entity };
     entity->mEntityUUID = entityUUID;
@@ -51,13 +51,13 @@ namespace Tac
     return entity;
   }
 
-  Entity* World::FindEntity( PlayerUUID playerUUID )
+  Entity*       World::FindEntity( PlayerUUID playerUUID )
   {
     Player* player { FindPlayer( playerUUID ) };
     return player ? FindEntity( player->mEntityUUID ) : nullptr;
   }
 
-  Entity* World::FindEntity( EntityUUID entityUUID )
+  Entity*       World::FindEntity( EntityUUID entityUUID )
   {
     for( Entity* entity : mEntities )
       if( entity->mEntityUUID == entityUUID )
@@ -65,7 +65,7 @@ namespace Tac
     return nullptr;
   }
 
-  Entity* World::FindEntity( StringView name )
+  Entity*       World::FindEntity( StringView name )
   {
     for( Entity* entity : mEntities )
       if( ( StringView )entity->mName == name )
@@ -73,7 +73,7 @@ namespace Tac
     return nullptr;
   }
 
-  void               World::KillEntity( EntityIterator it )
+  void          World::KillEntity( EntityIterator it )
   {
     TAC_ASSERT( it != mEntities.end() );
     Entity* entity { *it };
@@ -124,13 +124,13 @@ namespace Tac
     }
   }
 
-  void               World::KillEntity( Entity* entity )
+  void          World::KillEntity( Entity* entity )
   {
     auto it { Find( mEntities.begin(), mEntities.end(), entity ) };
     KillEntity( it );
   }
 
-  void               World::KillEntity( EntityUUID entityUUID )
+  void          World::KillEntity( EntityUUID entityUUID )
   {
     auto it{ FindIf( mEntities.begin(),
                       mEntities.end(),
@@ -138,7 +138,7 @@ namespace Tac
     KillEntity( it );
   }
 
-  Player* World::SpawnPlayer( PlayerUUID playerUUID )
+  Player*       World::SpawnPlayer( PlayerUUID playerUUID )
   {
     auto player { TAC_NEW Player() };
     player->mPlayerUUID = playerUUID;
@@ -147,7 +147,7 @@ namespace Tac
     return player;
   }
 
-  Player* World::FindPlayer( PlayerUUID playerUUID )
+  Player*       World::FindPlayer( PlayerUUID playerUUID )
   {
     for( Player* player : mPlayers )
       if( player->mPlayerUUID == playerUUID )
@@ -155,7 +155,7 @@ namespace Tac
     return nullptr;
   }
 
-  Player* World::FindPlayer( EntityUUID entityUUID )
+  Player*       World::FindPlayer( EntityUUID entityUUID )
   {
     for( Player* player : mPlayers )
       if( player->mEntityUUID == entityUUID )
@@ -163,7 +163,7 @@ namespace Tac
     return nullptr;
   }
 
-  void               World::KillPlayer( PlayerUUID playerUUID )
+  void          World::KillPlayer( PlayerUUID playerUUID )
   {
     auto it{ FindIf( mPlayers.begin(),
                       mPlayers.end(),
@@ -175,7 +175,7 @@ namespace Tac
     mPlayers.erase( it );
   }
 
-  void               World::ApplyInput( Player* player, float seconds )
+  void          World::ApplyInput( Player* player, float seconds )
   {
     TAC_UNUSED_PARAMETER( seconds );
     Entity* entity { FindEntity( player->mEntityUUID ) };
@@ -202,7 +202,7 @@ namespace Tac
     //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
   }
 
-  void               World::ComputeTransformsRecursively( const m4& parentTransform,
+  void          World::ComputeTransformsRecursively( const m4& parentTransform,
                                                           Entity* entity )
   {
     m4 localTransform{ m4::Transform( entity->mRelativeSpace.mScale,
@@ -229,7 +229,7 @@ namespace Tac
     }
   }
 
-  void               World::ComputeTransformsRecursively()
+  void          World::ComputeTransformsRecursively()
   {
     const m4 identity { m4::Identity() };
     for( Entity* entity : mEntities )
@@ -237,7 +237,7 @@ namespace Tac
         ComputeTransformsRecursively( identity, entity );
   }
 
-  void               World::Step( float seconds )
+  void          World::Step( float seconds )
   {
     TAC_PROFILE_BLOCK;
 
@@ -275,7 +275,7 @@ namespace Tac
 #endif
   }
 
-  void               World::DeepCopy( const World& world )
+  void          World::DeepCopy( const World& world )
   {
     for( Player* player : mPlayers )
       TAC_DELETE player;
@@ -315,7 +315,7 @@ namespace Tac
     return mSystems[ systemInfo->GetIndex() ];
   }
 
-  void               World::DebugImgui()
+  void          World::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "World" ) )
     //  return;

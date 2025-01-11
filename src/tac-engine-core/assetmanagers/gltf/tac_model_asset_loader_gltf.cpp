@@ -319,8 +319,8 @@ namespace Tac
           }
           return bufferName;
         }()};
-        const String vtxBufName{ bufferNamePrefix + " vtxs"};
-        const String idxBufName{ bufferNamePrefix + " idxs"};
+        const String vtxBufName{ bufferNamePrefix + " vtxs" };
+        const String idxBufName{ bufferNamePrefix + " idxs" };
         const int vertexCount{ ( int )parsedPrim->attributes[ 0 ].data->count };
         const int indexCount{ ( int )parsedPrim->indices->count };
         TAC_CALL_RET( const Render::BufferHandle indexBuffer{
@@ -358,12 +358,10 @@ namespace Tac
   static Mesh                 LoadMeshFromGltf( ModelAssetManager::Params params,
                                                 Errors& errors )
   {
-    const AssetPathStringView& path{ params.mPath };
-    const int specifiedMeshIndex{ params.mModelIndex };
     dynmc Render::VertexDeclarations vtxDecls{ params.mOptVtxDecls };
     dynmc MeshRaycast meshRaycast;
     TAC_CALL_RET( const Vector< SubMesh > submeshes{
-      PopulateSubmeshes( path, specifiedMeshIndex, vtxDecls, meshRaycast, errors ) } );
+      PopulateSubmeshes( params.mPath, params.mModelIndex, vtxDecls, meshRaycast, errors ) } );
     const Render::GPUInputLayout gpuInputLayout( vtxDecls );
     TAC_CALL_RET( const Render::BufferHandle gpuInputLayoutBuffer{
       ConvertInputLayoutBuffer( gpuInputLayout, errors ) } );
@@ -374,7 +372,6 @@ namespace Tac
     {
       .mSubMeshes             { submeshes },
       .mVertexDecls           { vtxDecls },
-      //.mGPUInputLayout        { gpuInputLayout },
       .mGPUInputLayoutBuffer  { gpuInputLayoutBuffer },
       .mGPUInputLayoutBinding { gpuInputLayoutBinding },
       .mMeshRaycast           { meshRaycast },

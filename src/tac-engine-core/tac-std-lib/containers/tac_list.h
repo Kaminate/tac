@@ -155,7 +155,7 @@ void       Tac::List<T>::clear()
   Node* node { mDummy.mNext };
   while( node != &mDummy )
   {
-    Node* next { node->mNext };
+    Node* next{ node->mNext };
     TAC_DELETE node;
     node = next;
   }

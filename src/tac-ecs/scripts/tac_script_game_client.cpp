@@ -198,7 +198,7 @@ namespace Tac
 		Json& args = json[ "args" ];
 		args.mType = JsonType::Array;
 
-		Json* arg0 { TAC_NEW( kHappyGrl ) Json };
+		Json* arg0 { TAC_NEW Json };
 		arg0->SetString( s );
 		args.mArrayElements.push_back( arg0 );
 
@@ -212,7 +212,7 @@ namespace Tac
 			return;
 		Json json;
 		json[ "name" ] = "clear console";
-		String toSend { json.Stringify() };
+		const String toSend { json.Stringify() };
 		mSocket->Send( ( void* )toSend.data(), ( int )toSend.size(), errors );
 	}
 	void ScriptMatchmaker::Log( StringView text )
@@ -316,11 +316,13 @@ namespace Tac
     }
 
 		TAC_TIMELINE_KEYFRAME;
+
 		Network::HTTPRequest httpRequest;
-		Vector<u8> websocketKey { Network::GenerateSecWebsocketKey() };
+    Vector< u8 > websocketKey{ Network::GenerateSecWebsocketKey() };
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
-          OS::OSDebugPrintLine(httpRequest.ToString());
+      OS::OSDebugPrintLine( httpRequest.ToString() );
+
 		TAC_CALL( mSocket->Send( httpRequest, errors ) );
 		mPretendWebsocketHandshakeDone = true;
 		mSocket->mRequiresWebsocketFrame = true;
@@ -331,9 +333,12 @@ namespace Tac
 
 
 		TAC_TIMELINE_KEYFRAME;
+
 		if( mShouldSpamServer )
 			PokeServer( errors );
+
     RunForever();
+
 		TAC_TIMELINE_END;
 	}
 	void ScriptMatchmaker::DebugImgui( Errors& errors )
@@ -840,7 +845,11 @@ namespace Tac
 				timelineAction->mPlayedBegin = true;
 			}
 
-			float percent { ( float )( ( time - timelineAction->mTimeBegin ) / ( timelineAction->mTimeEnd - timelineAction->mTimeBegin ) ) };
+      float percent
+      {
+        ( float )( ( time - timelineAction->mTimeBegin )
+        / ( timelineAction->mTimeEnd - timelineAction->mTimeBegin ) )
+      };
 			percent = Saturate( percent );
 			timelineAction->Update( percent );
 

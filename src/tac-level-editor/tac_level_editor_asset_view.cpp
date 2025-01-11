@@ -203,129 +203,131 @@ namespace Tac
                                                                errors ) );
   }
 
-
-  static void AttemptLoadEntity( AssetViewImportedModel* loadedModel,
-                                 const AssetPathStringView& path,
-                                 Errors& errors )
+  struct AssetImporter
   {
-    if( loadedModel->mAttemptedToLoadEntity )
-      return;
-
-#if 0
-    if( path.ends_with( ".obj" ) )
+    static void AttemptLoadEntity( AssetViewImportedModel* loadedModel,
+                                   const AssetPathStringView& path,
+                                   Errors& errors )
     {
-      TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
-
-      ++asdf;
-      // todo: async
-      TAC_CALL( const String fileStr{ FileSys::LoadFilePath( path, errors ) } );
-      const void* fileBytes{ fileStr.data() };
-      const int fileByteCount{ fileStr.size() };
-      const WavefrontObj wavefrontObj{ WavefrontObj::Load( fileBytes, fileByteCount ) };
-
-
-
-    }
-    else
-#endif
-    {
-
-      const cgltf_data* gltfData{ TryGetGLTFData( path ) };
-      if( !gltfData )
+      if( loadedModel->mAttemptedToLoadEntity )
         return;
 
-      TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
-
-      Entity* entityRoot{ loadedModel->SpawnEntity() };
-      entityRoot->mName = path.GetFilename();
-
-      loadedModel->mPrefab = entityRoot;
-
-      const int nNodes{ ( int )gltfData->nodes_count };
-
-      Vector< Entity* > entityNodes( nNodes );
-      for( int i{}; i < nNodes; ++i )
-        entityNodes[ i ] = loadedModel->SpawnEntity();
-
-      for( int i{}; i < nNodes; ++i )
+  #if 0
+      if( path.ends_with( ".obj" ) )
       {
-        const cgltf_node& gltfNode{ gltfData->nodes[ i ] };
-        const cgltf_mesh* gltfMesh{ gltfNode.mesh };
-        const String name
-        {
-          [ & ]() -> String
-          {
-            if( gltfNode.name )
-              return gltfNode.name;
+        TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
 
-            if( gltfMesh && gltfMesh->name )
-                return gltfMesh->name;
+        ++asdf;
+        // todo: async
+        TAC_CALL( const String fileStr{ FileSys::LoadFilePath( path, errors ) } );
+        const void* fileBytes{ fileStr.data() };
+        const int fileByteCount{ fileStr.size() };
+        const WavefrontObj wavefrontObj{ WavefrontObj::Load( fileBytes, fileByteCount ) };
 
-            return String() + "node " + ToString( i );
-          }()
-        };
 
-        Entity* entity{ entityNodes[ i ] };
-        entity->mName = name;
-        entity->mRelativeSpace = DecomposeGLTFTransform( &gltfNode );
 
-        if( gltfMesh )
-        {
-          Model* model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
-          model->mModelPath = path;
-          model->mModelIndex = ( int )( gltfMesh - gltfData->meshes );
-
-          TAC_ASSERT( gltfMesh->primitives_count == 1 );
-          const cgltf_primitive* gltfPrimitive{ &gltfMesh->primitives[ 0 ] };
-          const cgltf_material* gltfMaterial{ gltfPrimitive->material };
-          if( gltfMaterial->has_pbr_metallic_roughness )
-          {
-            const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
-              &gltfMaterial->pbr_metallic_roughness };
-            const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
-                            pbr_metallic_roughness->base_color_factor[ 1 ],
-                            pbr_metallic_roughness->base_color_factor[ 2 ],
-                            pbr_metallic_roughness->base_color_factor[ 3 ] );
-            Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
-            ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
-            ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
-            ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
-            ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
-            ecsMaterial->mColor = color;
-
-            if( pbr_metallic_roughness->base_color_texture.texture )
-            {
-              TAC_ASSERT_UNIMPLEMENTED;
-            }
-
-            if( pbr_metallic_roughness->metallic_roughness_texture.texture )
-            {
-              TAC_ASSERT_UNIMPLEMENTED;
-            }
-
-          }
-          else
-          {
-            TAC_ASSERT_UNIMPLEMENTED;
-          }
-        }
-
-        const int nChildren{ ( int )gltfNode.children_count };
-        for( int iChild{}; iChild < nChildren; ++iChild )
-        {
-          const cgltf_node* gltfChild{ gltfNode.children[ iChild ] };
-          Entity* ecsChild{ entityNodes[ gltfChild - gltfData->nodes ] };
-          // shouldnt this be recursive
-          entity->AddChild( ecsChild );
-        }
-
-        if( !gltfNode.parent )
-          entityRoot->AddChild( entity );
       }
-    }
+      else
+  #endif
+      {
 
-    loadedModel->mWorld.ComputeTransformsRecursively();
-  }
+        const cgltf_data* gltfData{ TryGetGLTFData( path ) };
+        if( !gltfData )
+          return;
+
+        TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
+
+        Entity* entityRoot{ loadedModel->SpawnEntity() };
+        entityRoot->mName = path.GetFilename();
+
+        loadedModel->mPrefab = entityRoot;
+
+        const int nNodes{ ( int )gltfData->nodes_count };
+
+        Vector< Entity* > entityNodes( nNodes );
+        for( int i{}; i < nNodes; ++i )
+          entityNodes[ i ] = loadedModel->SpawnEntity();
+
+        for( int i{}; i < nNodes; ++i )
+        {
+          const cgltf_node& gltfNode{ gltfData->nodes[ i ] };
+          const cgltf_mesh* gltfMesh{ gltfNode.mesh };
+          const String name
+          {
+            [ & ]() -> String
+            {
+              if( gltfNode.name )
+                return gltfNode.name;
+
+              if( gltfMesh && gltfMesh->name )
+                  return gltfMesh->name;
+
+              return String() + "node " + ToString( i );
+            }()
+          };
+
+          Entity* entity{ entityNodes[ i ] };
+          entity->mName = name;
+          entity->mRelativeSpace = DecomposeGLTFTransform( &gltfNode );
+
+          if( gltfMesh )
+          {
+            Model* model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
+            model->mModelPath = path;
+            model->mModelIndex = ( int )( gltfMesh - gltfData->meshes );
+
+            TAC_ASSERT( gltfMesh->primitives_count == 1 );
+            const cgltf_primitive* gltfPrimitive{ &gltfMesh->primitives[ 0 ] };
+            const cgltf_material* gltfMaterial{ gltfPrimitive->material };
+            if( gltfMaterial->has_pbr_metallic_roughness )
+            {
+              const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
+                &gltfMaterial->pbr_metallic_roughness };
+              const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
+                              pbr_metallic_roughness->base_color_factor[ 1 ],
+                              pbr_metallic_roughness->base_color_factor[ 2 ],
+                              pbr_metallic_roughness->base_color_factor[ 3 ] );
+              Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
+              ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
+              ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
+              ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
+              ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
+              ecsMaterial->mColor = color;
+
+              if( pbr_metallic_roughness->base_color_texture.texture )
+              {
+                TAC_ASSERT_UNIMPLEMENTED;
+              }
+
+              if( pbr_metallic_roughness->metallic_roughness_texture.texture )
+              {
+                TAC_ASSERT_UNIMPLEMENTED;
+              }
+
+            }
+            else
+            {
+              TAC_ASSERT_UNIMPLEMENTED;
+            }
+          }
+
+          const int nChildren{ ( int )gltfNode.children_count };
+          for( int iChild{}; iChild < nChildren; ++iChild )
+          {
+            const cgltf_node* gltfChild{ gltfNode.children[ iChild ] };
+            Entity* ecsChild{ entityNodes[ gltfChild - gltfData->nodes ] };
+            // shouldnt this be recursive
+            entity->AddChild( ecsChild );
+          }
+
+          if( !gltfNode.parent )
+            entityRoot->AddChild( entity );
+        }
+      }
+
+      loadedModel->mWorld.ComputeTransformsRecursively();
+    }
+  };
 
 
   static Render::CreateTextureParams GetTexColorParams()
@@ -654,7 +656,7 @@ namespace Tac
         TAC_CALL( loadedModel = CreateLoadedModel( assetPath, errors ) );
       }
 
-      AttemptLoadEntity( loadedModel, assetPath, errors );
+      AssetImporter::AttemptLoadEntity( loadedModel, assetPath, errors );
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       TAC_CALL( Render::IContext::Scope renderContextScope{
         renderDevice->CreateRenderContext( errors ) } );

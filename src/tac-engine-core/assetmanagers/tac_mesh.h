@@ -36,6 +36,7 @@ namespace Tac
     SubMeshTriangles mTris {};
   };
 
+
   struct SubMesh
   {
     void                            ClearBuffers();
