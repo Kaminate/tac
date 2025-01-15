@@ -2,6 +2,27 @@
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
+Tac::Render::VertexAttributeFormat Tac::GLTFTypeToTacVertexAttributeFormat(cgltf_type gltfType)
+{
+  switch( gltfType )
+  {
+    case cgltf_type_vec2: return Render::VertexAttributeFormat::GetVector2();
+    case cgltf_type_vec3: return Render::VertexAttributeFormat::GetVector3();
+    default: TAC_ASSERT_INVALID_CASE( gltfType ); return {};
+  }
+}
+
+Tac::Render::TexFmt Tac::ConvertIndexFormat( cgltf_component_type gltfType )
+{
+  switch( gltfType )
+  {
+  //case cgltf_component_type_r_8u: return Render::TexFmt::kR8_uint;
+  case cgltf_component_type_r_16u: return Render::TexFmt::kR16_uint;
+  case cgltf_component_type_r_32u: return Render::TexFmt::kR32_uint;
+  default: TAC_ASSERT_INVALID_CASE( gltfType ); return Render::TexFmt::kUnknown;
+  }
+}
+
 namespace Tac
 {
 
@@ -133,13 +154,24 @@ namespace Tac
                                                   const cgltf_attribute_type type )
   {
     for( int iAttrib {}; iAttrib < ( int )parsedPrim->attributes_count; ++iAttrib )
-    {
-      cgltf_attribute* gltfVertAttributeCurr { &parsedPrim->attributes[ iAttrib ] };
-      if( gltfVertAttributeCurr->type == type )
+      if( cgltf_attribute* gltfVertAttributeCurr { &parsedPrim->attributes[ iAttrib ] };
+          gltfVertAttributeCurr->type == type )
         return gltfVertAttributeCurr;
-    }
     return nullptr;
   }
 
+  const MetaType*               FindMetaType_from_cgltf_component_type( cgltf_component_type type )
+  {
+    switch( type )
+    {
+    case cgltf_component_type_r_8: return &GetMetaType< i8 >();
+    case cgltf_component_type_r_8u: return &GetMetaType< u8 >();
+    case cgltf_component_type_r_16: return &GetMetaType< i16 >();
+    case cgltf_component_type_r_16u:return  &GetMetaType< u16 >();
+    case cgltf_component_type_r_32u: return &GetMetaType< u32 >();
+    case cgltf_component_type_r_32f: return &GetMetaType< r32 >();
+    default: TAC_ASSERT_INVALID_CASE( type ); return nullptr;
+    }
+  }
 
 } // namespace Tac

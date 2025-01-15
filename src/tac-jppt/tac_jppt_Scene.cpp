@@ -132,6 +132,13 @@ namespace Tac::gpupt
       mTangents[ i ] = v4( Normalize( t - n * Dot( n, t ) ), 1 );
       mTangents[ i ].w = Dot( Cross( n, t ), tan1[ i ] ) < 0.0f ? -1.0f : 1.0f;
     }
+
+    // This vec4 Tangent is sent to the shader instead of v3 Tangent and v3 Bitangent.
+    // The Bitangent is later reconstructed using the w coordinate:
+    // +------------------------------------------------------------------------------+
+    // | vec3 Bitangent = normalize(cross(Isect.Normal, vec3(Tangent)) * Tangent.w)); |
+    // +------------------------------------------------------------------------------+
+    // https://github.com/jacquespillet/gpupt_blog/blob/Part_4/resources/PathTraceCode.cpp#L697
   }
 
   Scene* Scene::CreateCornellBox(Errors& errors)

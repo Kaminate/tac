@@ -50,6 +50,24 @@ namespace Tac
     String                          mName                {};
   };
 
+  struct JPPTCPUMeshData
+  {
+    // data for jppt
+    // not including vtx colors because they are
+    // 1) hardcoded into https://github.com/jacquespillet/gpupt_blog/blob/Part_2/src/Scene.cpp
+    // 2) removed in     https://github.com/jacquespillet/gpupt_blog/blob/Part_3/src/Scene.cpp
+    //    (they are moved into TLASInstancesBuffer[InstanceIndex].MaterialIndex;
+
+    // Topology assumed to be triangle list
+    using IndexType = int;
+    Vector< v3 >  mPositions;
+    Vector< v2 >  mTexCoords;
+    Vector< v3 >  mNormals;
+    Vector< v3 >  mTangents;
+    Vector< v3 >  mBitangents;
+    Vector< IndexType > mIndexes;
+  };
+
   struct Mesh
   {
     Vector< SubMesh >               mSubMeshes             {};
@@ -57,6 +75,7 @@ namespace Tac
     Render::BufferHandle            mGPUInputLayoutBuffer  {};
     Render::IBindlessArray::Binding mGPUInputLayoutBinding {};
     MeshRaycast                     mMeshRaycast           {};
+    JPPTCPUMeshData                 mJPPTCPUMeshData       {};
   };
 
 } // namespace Tac

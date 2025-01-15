@@ -102,6 +102,11 @@ namespace Tac
 
   template < class T > constexpr T&& forward( remove_reference_t< T >& t ) noexcept { return static_cast< T&& >( t ); }
   template < class T > constexpr T&& forward( remove_reference_t< T >&& t ) noexcept { return static_cast< T&& >( t ); }
+
+  struct true_type  { static const bool value { true }; };
+  struct false_type { static const bool value { false }; };
+  template< typename T, typename U > struct is_same : public false_type {};
+  template< typename T >             struct is_same< T, T > : public true_type {};
 }
 
 // -------------------------------------------------------------------------------------------------

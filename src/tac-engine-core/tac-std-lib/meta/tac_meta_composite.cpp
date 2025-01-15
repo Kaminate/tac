@@ -54,12 +54,24 @@ namespace Tac
     return 0;
   }
 
-  void              MetaCompositeType::Cast( CastParams ) const
+  void              MetaCompositeType::Cast( const CastParams castParams ) const
   {
+    if( castParams.mSrcType == this )
+    {
+      const CopyParams copyParams
+      {
+        .mDst { castParams.mDst },
+        .mSrc { castParams.mSrc },
+      };
+      Copy( copyParams );
+      return;
+    }
+    
     TAC_ASSERT_INVALID_CODE_PATH;
   }
 
-  const MetaMember& MetaCompositeType::GetMember( int i ) const {
+  const MetaMember& MetaCompositeType::GetMember( int i ) const
+  {
     return mMetaVars[ i ];
   }
 

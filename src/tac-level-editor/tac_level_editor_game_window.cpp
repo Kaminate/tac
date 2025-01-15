@@ -40,6 +40,7 @@
 namespace Tac
 {
   static bool                          drawGrid                  {};
+  static bool                          sDrawRaycast              { true };
   static float                         sWASDCameraPanSpeed       { 10 };
   static float                         sWASDCameraOrbitSpeed     { 0.1f };
   static bool                          sWASDCameraOrbitSnap      {};
@@ -293,6 +294,7 @@ namespace Tac
     ImGuiCheckbox( "Draw grid", &drawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
     ImGuiCheckbox( "draw gizmos", &mGizmoMgr->mGizmosEnabled );
+    ImGuiCheckbox( "Draw raycast", &sDrawRaycast );
 
     if( mSoul )
     {
@@ -526,6 +528,76 @@ namespace Tac
     return proj;
   }
 
+  static void DebugRaycast( Camera* camera, Entity* entity, Debug3DDrawData* drawData )
+  {
+    Model* model{ Model::GetModel( entity ) };
+    if( !model )
+      return;
+
+    Errors getmeshErrors;
+    const ModelAssetManager::Params meshParams
+    {
+      .mPath        { model->mModelPath },
+      .mModelIndex  { model->mModelIndex },
+      .mOptVtxDecls { m3DVertexFormatDecls },
+    };
+    Mesh* mesh{ ModelAssetManager::GetMesh( meshParams, getmeshErrors ) };
+    if( !mesh )
+      return;
+
+    const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
+    const v3 wsMouseDir{ mMousePicking->GetWorldspaceMouseDir() };
+    const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+    const m4 proj{ GetProjMtx( camera, windowSize ) };
+    const m4 view{ camera->View() };
+
+    for( const MeshRaycast::SubMeshTriangle& subMeshTri : mesh->mMeshRaycast.mTris )
+    {
+      const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
+      const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
+      const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
+      const v3 wsTrivs[ 3 ]{ wsTriv0, wsTriv1,wsTriv2 };
+
+      const v3 color{ 1, 0, 0 };
+      drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
+
+      for( int i{}; i < 3; ++i )
+      {
+        const v4 wsTriV{ wsTrivs[ i ], 1.0f };
+        const float radius{ 0.01f * Distance( wsTriV.xyz(), camera->mPos ) };
+
+        if( RaySphere( camera->mPos, wsMouseDir, wsTriV.xyz(), radius ) > 0 )
+        {
+          drawData->DebugDraw3DCircle( wsTriV.xyz(), camera->mForwards, radius );
+
+          const v4 vsTriV{ view * wsTriV };
+          const v4 csTriV{ proj * vsTriV };
+          const v4 ndcTriV{ csTriV / csTriV.w };
+          const v2 ssTriV( ( 0 + ( ndcTriV.x * 0.5f + 0.5f ) ) * windowSize.x,
+                           ( 1 - ( ndcTriV.y * 0.5f + 0.5f ) ) * windowSize.y );
+
+          ImGuiSetCursorPos( ssTriV );
+          ImGuiText( String()
+                     + "v" + ToString( i ) + ": ("
+                     + ToString( subMeshTri[ i ].x ) + ", "
+                     + ToString( subMeshTri[ i ].y ) + ", "
+                     + ToString( subMeshTri[ i ].z ) + " )" );
+        }
+
+      }
+    }
+  }
+
+  static void DebugRaycast( Camera* camera, World* world )
+  {
+    if( !sDrawRaycast )
+      return;
+
+    Debug3DDrawData* drawData{ world->mDebug3DDrawData };
+    for( Entity* entity : world->mEntities )
+      DebugRaycast( camera, entity, drawData );
+  }
+
   void CreationGameWindow::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
@@ -574,79 +646,8 @@ namespace Tac
 
 
     const v2 origCursorPos{ ImGuiGetCursorPos() };
-    const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
-    const m4 proj{ GetProjMtx( camera, windowSize ) };
-    const m4 view{ camera->View() };
 
-    struct : public ModelVisitor
-    {
-      void operator()( Model* model ) override
-      {
-        Debug3DDrawData* drawData{ model->mEntity->mWorld->mDebug3DDrawData };
-
-
-        Errors getmeshErrors;
-        const ModelAssetManager::Params meshParams
-        {
-          .mPath        { model->mModelPath },
-          .mModelIndex  { model->mModelIndex },
-          .mOptVtxDecls { m3DVertexFormatDecls },
-        };
-        Mesh* mesh{ ModelAssetManager::GetMesh( meshParams, getmeshErrors ) };
-        if( !mesh )
-          return;
-
-        for( const MeshRaycast::SubMeshTriangle& subMeshTri : mesh->mMeshRaycast.mTris )
-        {
-          const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
-          const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
-          const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
-          const v3 wsTrivs[ 3 ]{ wsTriv0, wsTriv1,wsTriv2 };
-
-          const v3 color{ 1, 0, 0 };
-          drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
-
-          for( int i{}; i < 3; ++i )
-          {
-            const v4 wsTriV{ wsTrivs[ i ], 1.0f };
-            const float radius{ 0.01f * Distance( wsTriV.xyz(), camera->mPos ) };
-
-            if( RaySphere( camera->mPos, wsMouseDir, wsTriV.xyz(), radius ) > 0 )
-            {
-              drawData->DebugDraw3DCircle( wsTriV.xyz(), camera->mForwards, radius );
-
-              const v4 vsTriV{ view * wsTriV };
-              const v4 csTriV{ proj * vsTriV };
-              const v4 ndcTriV{ csTriV / csTriV.w };
-              const v2 ssTriV( ( 0 + ( ndcTriV.x * 0.5f + 0.5f ) ) * windowSize.x,
-                               ( 1 - ( ndcTriV.y * 0.5f + 0.5f ) ) * windowSize.y );
-
-              ImGuiSetCursorPos( ssTriV );
-              ImGuiText( String()
-                         + "v" + ToString( i ) + ": ("
-                         + ToString( subMeshTri[ i ].x ) + ", "
-                         + ToString( subMeshTri[ i ].y ) + ", "
-                         + ToString( subMeshTri[ i ].z ) + " )" );
-            }
-
-          }
-        }
-
-      }
-      m4      view       {};
-      m4      proj       {};
-      v2i     windowSize {};
-      Camera* camera     {};
-      v3      wsMouseDir {};
-    } sVisitor;
-    sVisitor.proj = proj;
-    sVisitor.view = view;
-    sVisitor.windowSize = windowSize;
-    sVisitor.camera = camera;
-    sVisitor.wsMouseDir = wsMouseDir;
-
-    Graphics* graphics{ Graphics::From( world ) };
-    graphics->VisitModels( &sVisitor );
+    DebugRaycast( camera, world );
 
     ImGuiSetCursorPos( origCursorPos );
 

@@ -1,9 +1,12 @@
 #include "tac_jppt_presentation.h" // self-inc
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 #include "tac-ecs/presentation/jpptpresentation/tac_jppt_BVH.h"
+#include "tac-ecs/entity/tac_entity.h"
 
 
 #if TAC_JPPT_PRESENTATION_ENABLED()
@@ -17,6 +20,12 @@ namespace Tac
   static SceneBVH*            sSceneBvh;
   static const World*         sWorld;
   static const Camera*        sCamera;
+  static bool                 sVisualizePositions;
+  static bool                 sVisualizeNormals;
+  static float                sVisualizeNormalLength{ 1.0f };
+  static bool                 sVisualizeFrame;
+  static int                  sVisualizeFrameIndex;
+  static Errors               getMeshErrors;
 
   struct JPPTCamera
   {
@@ -39,6 +48,168 @@ namespace Tac
   //  v2 mTexCoord;
   //  v4 mColor;
   //};
+
+  static void VisualizeNormal( Entity* entity )
+  {
+    if( !sVisualizeNormals )
+      return;
+
+    if( getMeshErrors )
+      return;
+
+    Model* model{ ( Model* )entity->GetComponent( Model().GetEntry() ) };
+    if( !model )
+      return;
+
+    const ModelAssetManager::Params getMeshParams
+    {
+      .mPath        { model->mModelPath },
+      .mModelIndex  { model->mModelIndex },
+    };
+    Mesh* mesh { ModelAssetManager::GetMesh( getMeshParams, getMeshErrors ) };
+    if( !mesh )
+      return;
+
+    if( getMeshErrors )
+      return;
+
+    const m4 world{ model->mEntity->mWorldTransform };
+
+    for( int i : mesh->mJPPTCPUMeshData.mIndexes )
+    {
+      const v3 p_model{ mesh->mJPPTCPUMeshData.mPositions[ i ] };
+      const v3 p_world{ ( world * v4( p_model, 1.0f ) ).xyz() };
+      const v3 n_model{ mesh->mJPPTCPUMeshData.mNormals[ i ] };
+      const v3 n_world{ ( world * v4( n_model, 0.0f ) ).xyz() };
+
+      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
+                                                 p_world + n_world * sVisualizeNormalLength,
+                                                 v4( 0, 0, 1, 1 ) );
+    }
+  }
+
+  static void VisualizeFrame( Entity* entity )
+  {
+    if( !sVisualizeFrame )
+      return;
+
+    if( getMeshErrors )
+      return;
+
+    Model* model{ ( Model* )entity->GetComponent( Model().GetEntry() ) };
+    if( !model )
+      return;
+
+    const ModelAssetManager::Params getMeshParams
+    {
+      .mPath        { model->mModelPath },
+      .mModelIndex  { model->mModelIndex },
+    };
+    Mesh* mesh { ModelAssetManager::GetMesh( getMeshParams, getMeshErrors ) };
+    if( !mesh )
+      return;
+
+    if( getMeshErrors )
+      return;
+
+    const m4 world{ model->mEntity->mWorldTransform };
+
+    const JPPTCPUMeshData& jpptCPUMeshData{ mesh->mJPPTCPUMeshData };
+
+    const int ii{ sVisualizeFrameIndex };
+    if( ii < 0 || ii >= jpptCPUMeshData.mIndexes.size() )
+      return;
+
+    const int i{ jpptCPUMeshData.mIndexes[ ii ] };
+    const bool validPos{ i >= 0 && i < jpptCPUMeshData.mPositions.size() };
+    if( !validPos )
+      return;
+
+    const v3 p_model{ jpptCPUMeshData.mPositions[ i ] };
+    const v3 p_world{ ( world * v4( p_model, 1 ) ).xyz() };
+
+    if( const bool validNor{ i >= 0 && i < jpptCPUMeshData.mNormals.size() } )
+    {
+      const v3 n_model{ jpptCPUMeshData.mNormals[ i ] };
+      const v3 n_world{ ( world * v4( n_model, 0 ) ).xyz() };
+
+      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
+                                                 p_world + n_world * sVisualizeNormalLength,
+                                                 v4( 0, 0, 1, 1 ) );
+    }
+
+    if( const bool validTan{ i >= 0 && i < jpptCPUMeshData.mTangents.size() })
+    {
+      const v3 t_model{ jpptCPUMeshData.mTangents[ i ] };
+      const v3 t_world{ ( world * v4( t_model, 0 ) ).xyz() };
+
+      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
+                                                 p_world + t_world * sVisualizeNormalLength,
+                                                 v4( 1, 0, 0, 1 ) );
+    }
+
+    if( const bool validBit{ i >= 0 && i < jpptCPUMeshData.mBitangents.size() } )
+    {
+      const v3 b_model{ jpptCPUMeshData.mBitangents[ i ] };
+      const v3 b_world{ ( world * v4( b_model, 0 ) ).xyz() };
+      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
+                                                 p_world + b_world * sVisualizeNormalLength,
+                                                 v4( 0, 1, 0, 1 ) );
+    }
+  }
+  static void VisualizePosition( Entity* entity )
+  {
+    if( !sVisualizePositions )
+      return;
+
+    if( getMeshErrors )
+      return;
+
+    Model* model{ ( Model* )entity->GetComponent( Model().GetEntry() ) };
+    if( !model )
+      return;
+
+    const ModelAssetManager::Params getMeshParams
+    {
+      .mPath        { model->mModelPath },
+      .mModelIndex  { model->mModelIndex },
+    };
+    Mesh* mesh { ModelAssetManager::GetMesh( getMeshParams, getMeshErrors ) };
+    if( !mesh )
+      return;
+
+    if( getMeshErrors )
+      return;
+
+    const m4 world{ model->mEntity->mWorldTransform };
+
+    for( int ii{}; ii <  mesh->mJPPTCPUMeshData.mIndexes.size(); ii += 3 )
+    {
+      const int i0{ mesh->mJPPTCPUMeshData.mIndexes[ ii + 0 ] };
+      const int i1{ mesh->mJPPTCPUMeshData.mIndexes[ ii + 1 ] };
+      const int i2{ mesh->mJPPTCPUMeshData.mIndexes[ ii + 2 ] };
+      const v3 p0_model{ mesh->mJPPTCPUMeshData.mPositions[ i0 ] };
+      const v3 p1_model{ mesh->mJPPTCPUMeshData.mPositions[ i1 ] };
+      const v3 p2_model{ mesh->mJPPTCPUMeshData.mPositions[ i2 ] };
+
+      const v3 p0_world{ ( world * v4( p0_model, 1.0f ) ).xyz() };
+      const v3 p1_world{ ( world * v4( p1_model, 1.0f ) ).xyz() };
+      const v3 p2_world{ ( world * v4( p2_model, 1.0f ) ).xyz() };
+
+
+      sWorld->mDebug3DDrawData->DebugDraw3DTriangle( p0_world, p1_world, p2_world );
+    }
+  }
+
+  static void Visualize()
+  {
+    for( Entity* entity : sWorld->mEntities )
+    {
+      VisualizePosition( entity );
+      VisualizeNormal( entity );
+      VisualizeFrame( entity );
+    }
+  }
 
   void             JPPTPresentation::Init( Errors& errors )
   {
@@ -84,6 +255,8 @@ namespace Tac
 
     sWorld = world;
     sCamera = camera;
+
+    Visualize();
   }
 
   void             JPPTPresentation::DebugImGui()
@@ -99,10 +272,27 @@ namespace Tac
     if( ImGuiButton( "Create Scene BVH" ) )
       sSceneBvh = SceneBVH::CreateBVH( sWorld, createBVHErrors );
 
-    if( createBVHErrors )
+
+    if( getMeshErrors )
     {
-      ImGuiText( createBVHErrors.ToString() );
+      ImGuiText( "Get mesh errors: " + getMeshErrors.ToString() );
+      if( ImGuiButton( "Clear get mesh errors" ) )
+        getMeshErrors = {};
     }
+    ImGuiCheckbox( "Visualize Positions", &sVisualizePositions );
+    if( ImGuiCheckbox( "Visualize Normals", &sVisualizeNormals ) && sVisualizeNormals )
+      sVisualizeFrame = false;
+    if( sVisualizeNormals )
+      ImGuiDragFloat( "Normal Length", &sVisualizeNormalLength );
+
+    if( ImGuiCheckbox( "Visualize Frame", &sVisualizeFrame ) && sVisualizeFrame )
+      sVisualizeNormals = false;
+
+    if( sVisualizeFrame )
+      ImGuiDragInt( "Visualize Frame Index", &sVisualizeFrameIndex );
+
+    if( createBVHErrors )
+      ImGuiText( createBVHErrors.ToString() );
   }
 
   // -----------------------------------------------------------------------------------------------

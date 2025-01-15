@@ -11,10 +11,6 @@
 
 namespace Tac
 {
-  struct true_type { static const bool value = true; };
-  struct false_type { static const bool value = true; };
-  template< typename T, typename U > struct is_same : public false_type {};
-  template< typename T >             struct is_same< T, T > : public true_type {};
 
   static_assert( is_same< std::chrono::nanoseconds::rep, Timepoint::NanosecondDuration >::value );
 

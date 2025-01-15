@@ -3,6 +3,7 @@
 //#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/meta/tac_meta.h"
 
 #if _MSC_VER
 #pragma warning( disable : 26451 )
@@ -23,6 +24,7 @@ namespace Tac
   cgltf_attribute_type          GetGltfFromAttribute( Render::Attribute );
   cgltf_primitive_type          GetGltfFromTopology( Render::PrimitiveTopology );
   Render::Attribute             GLTFToTacAttribute( cgltf_attribute_type );
+  Render::TexFmt                ConvertIndexFormat( cgltf_component_type );
 
   const char*                   GetcgltfErrorAsString( cgltf_result );
   const char*                   GltfFmtErrMsg( cgltf_result, const char*, const char* );
@@ -30,17 +32,20 @@ namespace Tac
   Render::VertexAttributeFormat FillDataType( const cgltf_accessor* );
   const cgltf_attribute*        FindAttributeOfType( const cgltf_primitive*,
                                                      cgltf_attribute_type );
-  
+
+  const MetaType*               FindMetaType_from_cgltf_component_type( cgltf_component_type );
+
+  Render::VertexAttributeFormat GLTFTypeToTacVertexAttributeFormat( cgltf_type );
 
 } // namespace Tac
 
-#define TAC_GLTF_CALL( fn, ... ) {                     \
-  const cgltf_result fnResult = fn( __VA_ARGS__ );             \
+#define TAC_GLTF_CALL( fn, ... ) {                             \
+  const cgltf_result fnResult{ fn( __VA_ARGS__ ) };            \
   if( fnResult != cgltf_result_success )                       \
   {                                                            \
-      const char* msg = Tac::GltfFmtErrMsg( fnResult,          \
+      const char* msg{ Tac::GltfFmtErrMsg( fnResult,           \
                                             #fn,               \
-                                            #__VA_ARGS__ );    \
-      TAC_RAISE_ERROR( msg );                          \
+                                            #__VA_ARGS__ ) };  \
+      TAC_RAISE_ERROR( msg );                                  \
   }                                                            \
 }

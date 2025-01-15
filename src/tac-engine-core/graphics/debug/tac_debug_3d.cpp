@@ -304,7 +304,7 @@ namespace Tac
     const DefaultVertexColor v0
     {
        .mPosition { p0 },
-       .mColor    {color0} ,
+       .mColor    { color0 },
     };
     const DefaultVertexColor v1
     {
