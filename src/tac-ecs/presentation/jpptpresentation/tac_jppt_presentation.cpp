@@ -270,7 +270,15 @@ namespace Tac
 
     static Errors createBVHErrors;
     if( ImGuiButton( "Create Scene BVH" ) )
+    {
+      TAC_DELETE sSceneBvh;
       sSceneBvh = SceneBVH::CreateBVH( sWorld, createBVHErrors );
+    }
+
+    if( sSceneBvh )
+    {
+      sSceneBvh->DebugImguiSceneBVH( sWorld->mDebug3DDrawData );
+    }
 
 
     if( getMeshErrors )

@@ -2,10 +2,14 @@
 
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-std-lib/os/tac_os.h"
+#include "tac-ecs/entity/tac_entity.h"
 
 namespace Tac
 {
+  static int iSelectedBVHNode{ -1 };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -34,6 +38,7 @@ namespace Tac
     return mTriangleCount;
   }
 
+
   // -----------------------------------------------------------------------------------------------
 
   void  BVH::Build()
@@ -45,13 +50,13 @@ namespace Tac
     mBVHNodes.resize( nTris * 2 );
     mTriangleIndices.resize( nTris );
     for( int i{}; i < nTris; ++i )
-      mTriangleIndices[i]=i;
+      mTriangleIndices[ i ] = i;
 
     mNodesUsed = 1;
     mBVHNodes[ 0 ] = BVHNode
     {
-      .mFirstTriangleIndex = 0,
-      .mTriangleCount = ( u32 )nTris,
+      .mFirstTriangleIndex { 0 },
+      .mTriangleCount      { ( u32 )nTris },
     };
     UpdateNodeBounds( 0 );
     Subdivide( 0 );
@@ -63,16 +68,16 @@ namespace Tac
 
   void  BVH::Subdivide( u32 iNode )
   {
-    BVHNode& node{ mBVHNodes[ iNode ] };
-    int iAxis { -1 };
-    float splitPosition {};
-    float splitCost { FindBestSplitPlane( node, iAxis, splitPosition ) };
-    float noSplitCost { CalculateNodeCost( node ) };
+    dynmc BVHNode& node{ mBVHNodes[ iNode ] };
+    dynmc int iAxis { -1 };
+    dynmc float splitPosition {};
+    const float splitCost { FindBestSplitPlane( node, iAxis, splitPosition ) };
+    const float noSplitCost { CalculateNodeCost( node ) };
     if( splitCost > noSplitCost )
       return;
 
-    u32 i { node.mFirstTriangleIndex };
-    u32 j { node.mFirstTriangleIndex + node.mTriangleCount - 1 };
+    dynmc u32 i { node.mFirstTriangleIndex };
+    dynmc u32 j { node.mFirstTriangleIndex + node.mTriangleCount - 1 };
     while( i <= j )
     {
       if( mMesh->mTriangles[ mTriangleIndices[ i ] ].mCentroid[ iAxis ] < splitPosition )
@@ -86,23 +91,23 @@ namespace Tac
       }
     }
 
-    u32 leftTriangleCount = i - node.mFirstTriangleIndex;
+    const u32 leftTriangleCount { i - node.mFirstTriangleIndex };
     if( !leftTriangleCount || leftTriangleCount == node.mTriangleCount )
       return;
 
-    int iLChild = mNodesUsed++;
-    int iRChild = mNodesUsed++;
+    const u32 iLChild { mNodesUsed++ };
+    const u32 iRChild { mNodesUsed++ };
+    TAC_ASSERT( iRChild == iLChild + 1 );
     mBVHNodes[ iLChild ] = BVHNode
     {
-      .mFirstTriangleIndex{ node.mFirstTriangleIndex },
-      .mTriangleCount{ leftTriangleCount },
+      .mFirstTriangleIndex { node.mFirstTriangleIndex },
+      .mTriangleCount      { leftTriangleCount },
     };
     mBVHNodes[ iRChild ] = BVHNode
     {
-      .mFirstTriangleIndex{ i },
-      .mTriangleCount{ node.mTriangleCount - leftTriangleCount },
+      .mFirstTriangleIndex { i },
+      .mTriangleCount      { node.mTriangleCount - leftTriangleCount },
     };
-
     node.mLeftChild = iLChild;
     node.mTriangleCount = 0;
     UpdateNodeBounds( iLChild );
@@ -114,8 +119,8 @@ namespace Tac
   void  BVH::UpdateNodeBounds( u32 iNode )
   {
     BVHNode& node{ mBVHNodes[ iNode ] };
-    TAC_ASSERT( node.mAABB.mMin == AABB32().mMin );
-    TAC_ASSERT( node.mAABB.mMax == AABB32().mMax );
+    TAC_ASSERT( node.mAABB.mMin == v3( inf ) );
+    TAC_ASSERT( node.mAABB.mMax == v3( -inf ) );
     for( u32 iiTri{ node.mFirstTriangleIndex };
          iiTri < node.mFirstTriangleIndex + node.mTriangleCount;
          iiTri++ )
@@ -238,88 +243,132 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  void BVHMesh::DebugImguiBVHNode( Debug3DDrawData* drawData, const BVHNode& bvhNode ) const
+  {
+      const v3 aabbColor{ v3( 0xed, 0x71 , 0x16 ) / 255.0f };
+      const v3 triColor{ v3( 0xec, 0x97 , 0x06 ) / 255.0f };
+      drawData->DebugDraw3DAABB( bvhNode.mAABB.mMin, bvhNode.mAABB.mMax, aabbColor );
+
+      if( bvhNode.IsLeaf() )
+      {
+
+          for( u32 iiTri{bvhNode.mFirstTriangleIndex};
+               iiTri < bvhNode.mFirstTriangleIndex + bvhNode.mTriangleCount;
+               iiTri++ )
+          {
+              const u32 iTri{ mBVH.mTriangleIndices[ iiTri ] };
+              const BVHTriangle& bvhTri{ mTriangles[ iTri ] };
+              drawData->DebugDraw3DTriangle( bvhTri.mV0, bvhTri.mV1, bvhTri.mV2, triColor );
+          }
+      }
+      else
+      {
+          if( ImGuiButton( "Select L child: " + ToString( bvhNode.mLeftChild ) ) )
+              iSelectedBVHNode = ( int )bvhNode.mLeftChild;
+          if( ImGuiButton( "Select R child: " + ToString( bvhNode.mLeftChild + 1 ) ) )
+              iSelectedBVHNode = ( int )( bvhNode.mLeftChild + 1 );
+      }
+  }
+
+  void BVHMesh::DebugImguiBVHMesh(Debug3DDrawData* drawData) const
+  {
+    const BVH& bvh{ mBVH };
+    const Vector< BVHNode >& bvhNodes{ bvh.mBVHNodes };
+    const u32 nNodes{ bvh.mNodesUsed };
+    ImGuiText( "BVH Node Count : " + ToString( nNodes ) );
+    ImGuiText( "Selected BVH Node: " + ToString( iSelectedBVHNode ) );
+    if( nNodes && ImGuiButton( "Select root BVH Node" ) )
+      iSelectedBVHNode = 0;
+
+    if( iSelectedBVHNode >= 0 && iSelectedBVHNode < ( int )nNodes )
+      DebugImguiBVHNode( drawData, bvhNodes[ iSelectedBVHNode ] );
+  }
 
   void BVHMesh::SetShape( const Model* shape )
   {
-    const Render::VertexDeclaration posDecl
-    {
-      .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { 0 },
-    };
-
-    const Render::VertexDeclaration norDecl
-    {
-      .mAttribute         { Render::Attribute::Normal },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { 12 },
-    };
-
-#if 0
-
     Mesh* mesh{};
     while( !mesh )
     {
       Errors errors;
-      mesh = ModelAssetManager::GetMesh( params, errors );
+      const ModelAssetManager::Params getMeshParams
+      {
+        .mPath       { shape->mModelPath },
+        .mModelIndex { shape->mModelIndex },
+      };
+      mesh = ModelAssetManager::GetMesh( getMeshParams, errors );
       TAC_ASSERT( !errors );
       OS::OSThreadSleepMsec( 1 );
     }
 
-    const int nTris{shape.mTriangles.size()};
+    JPPTCPUMeshData& jpptCPUMeshData{ mesh->mJPPTCPUMeshData };
+    const int nTris{ jpptCPUMeshData.mIndexes.size() / 3 };
+    Vector< v3i > tris( nTris );
+    for( int iTri{}; iTri < nTris; ++iTri )
+    {
+      const int i0{ jpptCPUMeshData.mIndexes[ iTri * 3 + 0 ] };
+      const int i1{ jpptCPUMeshData.mIndexes[ iTri * 3 + 1 ] };
+      const int i2{ jpptCPUMeshData.mIndexes[ iTri * 3 + 2 ] };
+      tris[ iTri ] = v3i( i0, i1, i2 );
+    }
+
+    const Vector< v3 >& positions{ jpptCPUMeshData.mPositions };
+    const Vector< v3 >& normals{ jpptCPUMeshData.mNormals };
+    const Vector< v2 >& uvs{ jpptCPUMeshData.mTexCoords };
+
     mTriangles.resize( nTris );
     mTrianglesExtraData.resize( nTris );
-    for( int j = 0; j < nTris; j++ )
+
+    const m4 world{ shape->mEntity->mWorldTransform };
+    for( int j {}; j < nTris; j++ )
     {
-      const v3i tri{shape.mTriangles[ j ]};
+      const v3i tri{ tris[ j ] };
       const int i0{ tri[ 0 ] };
       const int i1{ tri[ 1 ] };
       const int i2{ tri[ 2 ] };
-
+      const v3 p0{ ( world * v4( positions[ i0 ], 1 ) ).xyz() };
+      const v3 p1{ ( world * v4( positions[ i1 ], 1 ) ).xyz() };
+      const v3 p2{ ( world * v4( positions[ i2 ], 1 ) ).xyz() };
+      const v3 centroid{ ( p0 + p1 + p2 ) / 3.0f };
       mTriangles[ j ] = BVHTriangle
       {
-        .mV0 { shape.mPositions[ i0 ] },
-        .mV1 { shape.mPositions[ i1 ] },
-        .mV2 { shape.mPositions[ i2 ] },
-        .mCentroid
+        .mV0       { p0 },
+        .mV1       { p1 },
+        .mV2       { p2 },
+        .mCentroid { centroid },
+      };
+
+      auto GetVertexExtraData{ [ & ]( int i )
+      {
+        v3 normal{};
+        if( i < normals.size() )
+          normal = ( world * v4( normals[ i ], 0 ) ).xyz();
+
+        v2 uv{};
+        if( i < uvs.size() )
+          uv = uvs[ i ];
+
+        v4 color{};
+        v4 tangent{};
+
+        const VertexExtraData vExtra
         {
-          ( shape.mPositions[ i0 ] + shape.mPositions[ i1 ] + shape.mPositions[ i2 ] ) / 3.0f
-        },
-      };
+          .mNormal  { normal },
+          .mUV      { uv },
+          .mColor   { color },
+          .mTangent { tangent },
+        };
 
+        return vExtra;
+      } };
    
-      const VertexExtraData v0Extra
-      {
-        .mNormal  { shape.mNormals[ i0 ] },
-        .mUV      { shape.mTexCoords[ i0 ] },
-        .mColor   { shape.mColors[ i0 ] },
-        .mTangent { shape.mTangents[ i0 ] },
-      };
-
-      const VertexExtraData v1Extra
-      {
-        .mNormal  { shape.mNormals[ i1 ] },
-        .mUV      { shape.mTexCoords[ i1 ] },
-        .mColor   { shape.mColors[ i1 ] },
-        .mTangent { shape.mTangents[ i1 ] },
-      };
-
-      const VertexExtraData v2Extra
-      {
-        .mNormal  { shape.mNormals[ i2 ] },
-        .mUV      { shape.mTexCoords[ i2 ] },
-        .mColor   { shape.mColors[ i2 ] },
-        .mTangent { shape.mTangents[ i2 ] },
-      };
-
+      const VertexExtraData v0Extra{ GetVertexExtraData( i0 ) };
+      const VertexExtraData v1Extra{ GetVertexExtraData( i1 ) };
+      const VertexExtraData v2Extra{ GetVertexExtraData( i2 ) };
       mTrianglesExtraData[ j ] = BVHTriangleExtraData
       {
         .mVertexExtraDatas { v0Extra, v1Extra, v2Extra },
       };
     }
-
-
-#endif
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -440,7 +489,7 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   // ???
-  SceneBVH*            SceneBVH::CreateBVH( const World* world, Errors& errors)
+  SceneBVH*            SceneBVH::CreateBVH( const World* world, Errors& errors )
   {
     SceneBVH* sceneBVH{ TAC_NEW SceneBVH };
 
@@ -608,6 +657,40 @@ namespace Tac
                                               sizeof( TLASNode ),
                                               "mTLASNodeBuffer",
                                               errors ) );
+  }
+
+  void                 SceneBVH::DebugImguiSceneBVH( Debug3DDrawData*  drawData) const
+  {
+    if( !ImGuiCollapsingHeader( "SceneBVH" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    if( ImGuiCollapsingHeader( "Vector<BVHMesh>" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      const Vector< BVHMesh >& meshes{ mMeshes };
+      const int nMeshes{ meshes.size() };
+      if( nMeshes )
+      {
+        static int iMesh{ 0 };
+
+        ImGuiText( "Select mesh: " );
+        for( int i{}; i < nMeshes; ++i )
+        {
+          ImGuiSameLine();
+
+
+          if( ImGuiButton( ToString( i ) + ( i == iMesh ? "*" : "" ) ) )
+            iMesh = i;
+        }
+
+        ImGuiText( "Selected mesh: " + ToString( iMesh ) );
+
+        if( iMesh >= 0 && iMesh < nMeshes )
+          meshes[ iMesh ].DebugImguiBVHMesh(drawData);
+      }
+    }
   }
 
   void                 SceneBVH::CreateBuffers( Errors& errors )

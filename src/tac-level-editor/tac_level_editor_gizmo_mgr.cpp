@@ -64,16 +64,16 @@ namespace Tac
       return;
     }
 
-
-    const v3 origin{ mGizmoOrigin };
-    float gizmoMouseDist;
-    float secondDist;
-    ClosestPointTwoRays( camera->mPos,
-                         worldSpaceMouseDir,
-                         origin,
-                         mTranslationGizmoDir,
-                         &gizmoMouseDist,
-                         &secondDist );
+    const ClosestPointTwoRays::Input input
+    {
+      .mRay0Pos { camera->mPos },
+      .mRay0Dir { worldSpaceMouseDir },
+      .mRay1Pos { mGizmoOrigin },
+      .mRay1Dir { mTranslationGizmoDir },
+    };
+    const ClosestPointTwoRays::Output output{ ClosestPointTwoRays::Solve( input ) };
+    const float gizmoMouseDist{ output.mRay0T };
+    const float secondDist{ output.mRay1T };
 
     const v3 translate {
       mTranslationGizmoDir

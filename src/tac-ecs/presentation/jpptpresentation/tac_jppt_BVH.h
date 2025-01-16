@@ -76,7 +76,7 @@ namespace Tac
     v3    mNormal  {};
     TAC_PAD_BYTES( 4 );
     v2    mUV      {};
-    v2    mPad1    {};
+    TAC_PAD_BYTES( 8 );
     v4    mColor   {};
     v4    mTangent {};
   };
@@ -95,8 +95,8 @@ namespace Tac
     AABB32 mAABB;
     union
     {
-      u32  mLeftChild;
-      u32  mFirstTriangleIndex; // this is actually a index index
+      u32  mLeftChild; // index into BVH::mBVHNodes
+      u32  mFirstTriangleIndex; // this is actually a index into BVH::mTriangleIndices
     };
     u32  mTriangleCount;
     TAC_PAD_BYTES( 8 );
@@ -126,6 +126,8 @@ namespace Tac
   struct BVHMesh
   {
     void SetShape( const Model* );
+    void DebugImguiBVHMesh(Debug3DDrawData* ) const;
+    void DebugImguiBVHNode(Debug3DDrawData*, const BVHNode&) const;
 
     BVH                            mBVH                {};
     Vector< BVHTriangle >          mTriangles          {};
@@ -162,13 +164,13 @@ namespace Tac
                        const m4& transformInv,
                        AABB32 );
 
-    m4     mInverseTransform;
-    m4     mTransform;
-    m4     mNormalTransform; // ???
-    AABB32 mBounds;
-    u32    mMeshIndex; // ??? used by the shader, indexes into SceneBVH::mIndexDataBuffer 
-    u32    mIndex{}; // ??? index into SceneBVH::mInstances;
-    v2     mPad;
+    m4     mInverseTransform {};
+    m4     mTransform        {};
+    m4     mNormalTransform  {}; // ???
+    AABB32 mBounds           {};
+    u32    mMeshIndex        {}; // ??? used by the shader, indexes into SceneBVH::mIndexDataBuffer 
+    u32    mIndex            {}; // ??? index into SceneBVH::mInstances;
+    TAC_PAD_BYTES( 8 )       {};
   };
 
   static_assert_gpu_padded( BVHInstance );
@@ -202,6 +204,8 @@ namespace Tac
 
     static SceneBVH*            CreateBVH( const World*, Errors& );
     static Render::BufferHandle CreateBuffer( int, const void*, int, const char*, Errors& );
+
+    void DebugImguiSceneBVH( Debug3DDrawData* ) const;
 
 
     // ----------------------------------------------------------------------------------------

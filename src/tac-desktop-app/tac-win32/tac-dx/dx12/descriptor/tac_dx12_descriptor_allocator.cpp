@@ -444,8 +444,8 @@ namespace Tac::Render
     int n{ mPendingFreeNodes.size() };
     while( iiRegion < n )
     {
-      RegionIndex iRegion{ mPendingFreeNodes[ iiRegion ] };
-      RegionDesc* desc{ GetRegionAtIndex( iRegion ) };
+      const RegionIndex iRegion{ mPendingFreeNodes[ iiRegion ] };
+      dynmc RegionDesc* desc{ GetRegionAtIndex( iRegion ) };
       if( mCommandQueue->IsFenceComplete( desc->mFence ) )
       {
         // Change node from pending free to free

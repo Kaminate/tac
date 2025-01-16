@@ -103,13 +103,20 @@ namespace Tac
                                       float sphereRadius );
   v3                       ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p );
 
-  void                     ClosestPointTwoLineSegments( const v3& p1, // line 1 begin
-                                                        const v3& q1, // line 1 end
-                                                        const v3& p2, // line 2 begin
-                                                        const v3& q2, // line 2 end
-                                                        v3* c1, // closest point on line 1
-                                                        v3* c2 ); // closest point on line 2
+  struct ClosestPointLineSegments
+  {
+    struct Input  { v3 mLine1Begin; v3 mLine1End; v3 mLine2Begin; v3 mLine2End; };
+    struct Output { v3 mClosestPointOnLine1; v3 mClosestPointOnLine2; };
+    static Output Solve( Input );
+  };
   
+  struct ClosestPointTwoRays
+  {
+    struct Input  { v3 mRay0Pos; v3 mRay0Dir; v3 mRay1Pos; v3 mRay1Dir; };
+    struct Output { float mRay0T; float mRay1T; };
+    static Output Solve( Input );
+  };
+
   // ------------
   // Arithmetic
   // ------------
@@ -131,11 +138,5 @@ namespace Tac
   bool                     IsNan( float );
   bool                     IsInf( float );
 
-  void ClosestPointTwoRays( v3 ray0Pos,
-                            v3 ray0Dir,
-                            v3 ray1Pos,
-                            v3 ray1Dir,
-                            float* ray0T,
-                            float* ray1T );
-}
+} // namespace Tac
 

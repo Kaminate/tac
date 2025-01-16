@@ -52,6 +52,7 @@ namespace Tac
   static ThreadAllocator               sAppThreadAllocator;
 
   static Timestamp                     sRenderDelay( 0.0 );
+  static int                           sNumRenderFramesSincePrevSimFrame{};
 
 
   // -----------------------------------------------------------------------------------------------
@@ -311,6 +312,8 @@ namespace Tac
       sCurrState->mTimestamp = Timestep::GetElapsedTime();
       sCurrState->mTimepoint = Timestep::GetLastTick();
     }
+
+    sNumRenderFramesSincePrevSimFrame = 0;
   }
 
   void               DesktopApp::Render( Errors& errors )
@@ -417,6 +420,8 @@ namespace Tac
                                         errors ) );
       }
       //Render::FrameEnd();
+
+      sNumRenderFramesSincePrevSimFrame++;
   }
 
   void                DesktopApp::DebugImGui( Errors& errors )
