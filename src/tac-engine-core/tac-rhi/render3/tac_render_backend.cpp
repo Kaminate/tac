@@ -3,15 +3,11 @@
 #include "tac-rhi/identifier/tac_id_collection.h"
 #include "tac-std-lib/mutex/tac_mutex.h"
 
-namespace Tac::Render
-{
-}
-
 namespace Tac
 {
   struct IdMgr
   {
-    int Alloc();
+    int  Alloc();
     void Free( int );
 
   private:
@@ -33,24 +29,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static IdMgr sIdMgrBuffer;
-  static IdMgr sIdMgrPipeline;
-  static IdMgr sIdMgrProgram;
-  static IdMgr sIdMgrSampler;
-  static IdMgr sIdMgrSwapChain;
-  static IdMgr sIdMgrTexture;
+  static IdMgr sIdMgrs[ ( int )Render::HandleType::kCount ];
 
-  Render::BufferHandle    Render::AllocBufferHandle()     { return BufferHandle( sIdMgrBuffer.Alloc() ); }
-  Render::PipelineHandle  Render::AllocPipelineHandle()   { return PipelineHandle( sIdMgrPipeline.Alloc() ); }
-  Render::ProgramHandle   Render::AllocProgramHandle()    { return ProgramHandle( sIdMgrProgram.Alloc() ); }
-  Render::SamplerHandle   Render::AllocSamplerHandle()    { return SamplerHandle( sIdMgrSampler.Alloc() ); }
-  Render::SwapChainHandle Render::AllocSwapChainHandle()  { return SwapChainHandle( sIdMgrSwapChain.Alloc() ); }
-  Render::TextureHandle   Render::AllocTextureHandle()    { return TextureHandle( sIdMgrTexture.Alloc() ); }
+  Render::BufferHandle    Render::AllocBufferHandle()    { return sIdMgrs[ ( int )Render::HandleType::kBuffer ].Alloc(); }
+  Render::PipelineHandle  Render::AllocPipelineHandle()  { return sIdMgrs[ ( int )Render::HandleType::kPipeline ].Alloc(); }
+  Render::ProgramHandle   Render::AllocProgramHandle()   { return sIdMgrs[ ( int )Render::HandleType::kProgram ].Alloc(); }
+  Render::SamplerHandle   Render::AllocSamplerHandle()   { return sIdMgrs[ ( int )Render::HandleType::kSampler ].Alloc(); }
+  Render::SwapChainHandle Render::AllocSwapChainHandle() { return sIdMgrs[ ( int )Render::HandleType::kSwapChain ].Alloc(); }
+  Render::TextureHandle   Render::AllocTextureHandle()   { return sIdMgrs[ ( int )Render::HandleType::kTexture ].Alloc(); }
+  void                    Render::FreeHandle( ResourceHandle h ) 
+  {
+    if( !h.IsValid() )
+      return;
 
-  void            Render::FreeHandle( BufferHandle h )    { sIdMgrBuffer.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( PipelineHandle h )  { sIdMgrPipeline.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( ProgramHandle h )   { sIdMgrProgram.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( SamplerHandle h )   { sIdMgrTexture.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( SwapChainHandle h ) { sIdMgrSwapChain.Free( h.GetIndex() ); }
-  void            Render::FreeHandle( TextureHandle h )   { sIdMgrTexture.Free( h.GetIndex() ); }
-}
+    const HandleType type{ h.GetHandleType() };
+    const int i{ h.GetIndex() };
+    sIdMgrs[ ( int )type ].Free( i );
+  }
+} // namespace Tac

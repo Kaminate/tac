@@ -1,6 +1,8 @@
 #pragma once
 
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 
 namespace Tac
 {

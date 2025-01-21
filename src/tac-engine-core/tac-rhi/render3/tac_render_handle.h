@@ -24,6 +24,7 @@ namespace Tac::Render
     kBuffer,
     kTexture,
     kSampler,
+    kCount,
   };
 
   const char* HandleTypeToString( HandleType );

@@ -498,17 +498,14 @@ namespace Tac
       // Creates both a resource and an implicit heap,
       // such that the heap is big enough to contain the entire resource,
       // and the resource is mapped to the heap.
-      TAC_CALL( m_device->CreateCommittedResource(
-        &defaultHeapProps,
-        D3D12_HEAP_FLAG_NONE,
-        &resourceDesc,
-        defaultHeapState,
-        nullptr,
-        m_vertexBuffer.iid(),
-        m_vertexBuffer.ppv() ) );
-
+      TAC_CALL( m_device->CreateCommittedResource( &defaultHeapProps,
+                                                   D3D12_HEAP_FLAG_NONE,
+                                                   &resourceDesc,
+                                                   defaultHeapState,
+                                                   nullptr,
+                                                   m_vertexBuffer.iid(),
+                                                   m_vertexBuffer.ppv() ) );
       DX12SetName( m_vertexBuffer.Get(), "vtxbuf" );
-
     }
 
 
@@ -595,7 +592,7 @@ namespace Tac
 
   void DX12AppHelloFrameBuf::CreatePipelineState( Errors& errors )
   {
-    const AssetPathStringView shaderAssetPath = "assets/hlsl/DX12HelloFrameBuf.hlsl";
+    const AssetPathStringView shaderAssetPath { "assets/hlsl/DX12HelloFrameBuf.hlsl" };
 
     const DX12ExampleProgramCompiler::Params compilerParams
     {
@@ -1141,8 +1138,8 @@ namespace Tac
     TAC_CALL( RenderBegin( errors ) );
 
     {
-      DX12ExampleContextScope context = TAC_CALL( mContextManager.GetContext( errors ) );
-      ID3D12GraphicsCommandList* m_commandList = context.GetCommandList();
+      TAC_CALL( DX12ExampleContextScope context { mContextManager.GetContext( errors )  });
+      ID3D12GraphicsCommandList* m_commandList { context.GetCommandList() };
 
       // The associated pipeline state (IA, OM, RS, ... )
       // that the command list will modify, all leading to a draw call?
@@ -1152,7 +1149,7 @@ namespace Tac
       // Indicate that the back buffer will be used as a render target.
       TransitionRenderTarget( m_commandList, m_backbufferIndex, D3D12_RESOURCE_STATE_RENDER_TARGET );
 
-      const Array rtCpuHDescs = { GetRTVCpuDescHandle( m_backbufferIndex ) };
+      const Array rtCpuHDescs  { GetRTVCpuDescHandle( m_backbufferIndex ) };
 
       m_commandList->OMSetRenderTargets( ( UINT )rtCpuHDescs.size(),
                                          rtCpuHDescs.data(),

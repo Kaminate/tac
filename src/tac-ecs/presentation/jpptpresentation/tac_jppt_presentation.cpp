@@ -18,8 +18,9 @@ namespace Tac
   static bool                 sEnabled;
   static Render::BufferHandle sCameraGPUBuffer;
   static SceneBVH*            sSceneBvh;
-  static const World*         sWorld;
-  static const Camera*        sCamera;
+  static SceneBVHDebug        sSceneBvhDebug;
+  static bool                 sShouldCreateSceneBVH;
+  static Errors               createBVHErrors;
   static bool                 sVisualizePositions;
   static bool                 sVisualizeNormals;
   static float                sVisualizeNormalLength{ 1.0f };
@@ -61,6 +62,8 @@ namespace Tac
     if( !model )
       return;
 
+    Debug3DDrawData* drawData{ entity->mWorld->mDebug3DDrawData };
+
     const ModelAssetManager::Params getMeshParams
     {
       .mPath        { model->mModelPath },
@@ -75,16 +78,16 @@ namespace Tac
 
     const m4 world{ model->mEntity->mWorldTransform };
 
-    for( int i : mesh->mJPPTCPUMeshData.mIndexes )
+    for( const int i : mesh->mJPPTCPUMeshData.mIndexes )
     {
       const v3 p_model{ mesh->mJPPTCPUMeshData.mPositions[ i ] };
       const v3 p_world{ ( world * v4( p_model, 1.0f ) ).xyz() };
       const v3 n_model{ mesh->mJPPTCPUMeshData.mNormals[ i ] };
       const v3 n_world{ ( world * v4( n_model, 0.0f ) ).xyz() };
 
-      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
-                                                 p_world + n_world * sVisualizeNormalLength,
-                                                 v4( 0, 0, 1, 1 ) );
+      drawData->DebugDraw3DLine( p_world,
+                                 p_world + n_world * sVisualizeNormalLength,
+                                 v4( 0, 0, 1, 1 ) );
     }
   }
 
@@ -95,6 +98,8 @@ namespace Tac
 
     if( getMeshErrors )
       return;
+
+    Debug3DDrawData* drawData{ entity->mWorld->mDebug3DDrawData };
 
     Model* model{ ( Model* )entity->GetComponent( Model().GetEntry() ) };
     if( !model )
@@ -112,7 +117,7 @@ namespace Tac
     if( getMeshErrors )
       return;
 
-    const m4 world{ model->mEntity->mWorldTransform };
+    const m4 worldMatrix{ model->mEntity->mWorldTransform };
 
     const JPPTCPUMeshData& jpptCPUMeshData{ mesh->mJPPTCPUMeshData };
 
@@ -126,14 +131,14 @@ namespace Tac
       return;
 
     const v3 p_model{ jpptCPUMeshData.mPositions[ i ] };
-    const v3 p_world{ ( world * v4( p_model, 1 ) ).xyz() };
+    const v3 p_world{ ( worldMatrix * v4( p_model, 1 ) ).xyz() };
 
     if( const bool validNor{ i >= 0 && i < jpptCPUMeshData.mNormals.size() } )
     {
       const v3 n_model{ jpptCPUMeshData.mNormals[ i ] };
-      const v3 n_world{ ( world * v4( n_model, 0 ) ).xyz() };
+      const v3 n_world{ ( worldMatrix * v4( n_model, 0 ) ).xyz() };
 
-      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
+      drawData->DebugDraw3DLine( p_world,
                                                  p_world + n_world * sVisualizeNormalLength,
                                                  v4( 0, 0, 1, 1 ) );
     }
@@ -141,9 +146,9 @@ namespace Tac
     if( const bool validTan{ i >= 0 && i < jpptCPUMeshData.mTangents.size() })
     {
       const v3 t_model{ jpptCPUMeshData.mTangents[ i ] };
-      const v3 t_world{ ( world * v4( t_model, 0 ) ).xyz() };
+      const v3 t_world{ ( worldMatrix * v4( t_model, 0 ) ).xyz() };
 
-      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
+      drawData->DebugDraw3DLine( p_world,
                                                  p_world + t_world * sVisualizeNormalLength,
                                                  v4( 1, 0, 0, 1 ) );
     }
@@ -151,12 +156,13 @@ namespace Tac
     if( const bool validBit{ i >= 0 && i < jpptCPUMeshData.mBitangents.size() } )
     {
       const v3 b_model{ jpptCPUMeshData.mBitangents[ i ] };
-      const v3 b_world{ ( world * v4( b_model, 0 ) ).xyz() };
-      sWorld->mDebug3DDrawData->DebugDraw3DLine( p_world,
-                                                 p_world + b_world * sVisualizeNormalLength,
-                                                 v4( 0, 1, 0, 1 ) );
+      const v3 b_world{ ( worldMatrix * v4( b_model, 0 ) ).xyz() };
+      drawData->DebugDraw3DLine( p_world,
+                                 p_world + b_world * sVisualizeNormalLength,
+                                 v4( 0, 1, 0, 1 ) );
     }
   }
+
   static void VisualizePosition( Entity* entity )
   {
     if( !sVisualizePositions )
@@ -181,7 +187,7 @@ namespace Tac
     if( getMeshErrors )
       return;
 
-    const m4 world{ model->mEntity->mWorldTransform };
+    const m4 worldMatrix{ model->mEntity->mWorldTransform };
 
     for( int ii{}; ii <  mesh->mJPPTCPUMeshData.mIndexes.size(); ii += 3 )
     {
@@ -192,18 +198,18 @@ namespace Tac
       const v3 p1_model{ mesh->mJPPTCPUMeshData.mPositions[ i1 ] };
       const v3 p2_model{ mesh->mJPPTCPUMeshData.mPositions[ i2 ] };
 
-      const v3 p0_world{ ( world * v4( p0_model, 1.0f ) ).xyz() };
-      const v3 p1_world{ ( world * v4( p1_model, 1.0f ) ).xyz() };
-      const v3 p2_world{ ( world * v4( p2_model, 1.0f ) ).xyz() };
+      const v3 p0_world{ ( worldMatrix * v4( p0_model, 1.0f ) ).xyz() };
+      const v3 p1_world{ ( worldMatrix * v4( p1_model, 1.0f ) ).xyz() };
+      const v3 p2_world{ ( worldMatrix * v4( p2_model, 1.0f ) ).xyz() };
 
 
-      sWorld->mDebug3DDrawData->DebugDraw3DTriangle( p0_world, p1_world, p2_world );
+      entity->mWorld->mDebug3DDrawData->DebugDraw3DTriangle( p0_world, p1_world, p2_world );
     }
   }
 
-  static void Visualize()
+  static void Visualize( const World* world )
   {
-    for( Entity* entity : sWorld->mEntities )
+    for( Entity* entity : world->mEntities )
     {
       VisualizePosition( entity );
       VisualizeNormal( entity );
@@ -253,10 +259,14 @@ namespace Tac
     if( !sEnabled )
       return;
 
-    sWorld = world;
-    sCamera = camera;
+    if( sShouldCreateSceneBVH )
+    {
+      TAC_DELETE sSceneBvh;
+      sSceneBvh = SceneBVH::CreateBVH( world, createBVHErrors );
+    }
 
-    Visualize();
+    Visualize( world );
+    sSceneBvhDebug.DebugVisualizeSceneBVH( world->mDebug3DDrawData, sSceneBvh );
   }
 
   void             JPPTPresentation::DebugImGui()
@@ -268,18 +278,12 @@ namespace Tac
     if( !sEnabled )
       return;
 
-    static Errors createBVHErrors;
     if( ImGuiButton( "Create Scene BVH" ) )
     {
-      TAC_DELETE sSceneBvh;
-      sSceneBvh = SceneBVH::CreateBVH( sWorld, createBVHErrors );
+      sShouldCreateSceneBVH = true;
     }
 
-    if( sSceneBvh )
-    {
-      sSceneBvh->DebugImguiSceneBVH( sWorld->mDebug3DDrawData );
-    }
-
+    sSceneBvhDebug.DebugImguiSceneBVH( sSceneBvh );
 
     if( getMeshErrors )
     {
@@ -290,7 +294,7 @@ namespace Tac
     ImGuiCheckbox( "Visualize Positions", &sVisualizePositions );
     if( ImGuiCheckbox( "Visualize Normals", &sVisualizeNormals ) && sVisualizeNormals )
       sVisualizeFrame = false;
-    if( sVisualizeNormals )
+    if( sVisualizeNormals || sVisualizeFrame )
       ImGuiDragFloat( "Normal Length", &sVisualizeNormalLength );
 
     if( ImGuiCheckbox( "Visualize Frame", &sVisualizeFrame ) && sVisualizeFrame )

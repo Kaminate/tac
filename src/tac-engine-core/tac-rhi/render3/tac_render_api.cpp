@@ -30,6 +30,7 @@ namespace Tac::Render
   static int              sMaxGPUFrameCount; 
   static FileSys::Path    sShaderOutputPath; 
   static IDevice*         sDevice;
+  static u64              sCurrentRenderFrameIndex;
 
    // -----------------------------------------------------------------------------------------------
 
@@ -80,6 +81,17 @@ namespace Tac::Render
   FileSys::Path    RenderApi::GetShaderOutputPath()              { return sShaderOutputPath; }
   IDevice*         RenderApi::GetRenderDevice()                  { return sDevice; }
   void             RenderApi::SetRenderDevice( IDevice* device ) { sDevice = device; }
+  void             RenderApi::BeginRenderFrame( Errors& errors )
+  {
+    TAC_CALL( sDevice->BeginRenderFrame( errors ) );
+  }
+  void             RenderApi::EndRenderFrame( Errors& errors )
+  {
+    TAC_CALL( sDevice->EndRenderFrame( errors ) );
+    sCurrentRenderFrameIndex++;
+  }
+  u64              RenderApi::GetCurrentRenderFrameIndex()       { return sCurrentRenderFrameIndex; }
+
 
   // -----------------------------------------------------------------------------------------------
 

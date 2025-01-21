@@ -1,17 +1,18 @@
 #pragma once
 
-#include "tac-std-lib/containers/tac_list.h"
+//#include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h" // FrameIndex
 #include "tac-engine-core/shell/tac_shell_timestamp.h" // Timestamp
 #include "tac-engine-core/shell/tac_shell_timer.h" // Timepoint
-#include "tac-engine-core/window/tac_sys_window_api.h"
-#include "tac-engine-core/window/tac_sim_window_api.h"
-#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
-#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h" // ImGuiSimFrameDraws
+//#include "tac-engine-core/window/tac_sys_window_api.h"
+//#include "tac-engine-core/window/tac_sim_window_api.h"
+//#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+//#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+//#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h" // ImGuiSimFrameDraws
+#include "tac-engine-core/settings/tac_settings_node.h" // SettingsNode
 
 #define TAC_SINGLE_THREADED() 1
 
@@ -46,6 +47,7 @@ namespace Tac
       Timestamp      mTimestamp   {}; // = Lerp( old timestamp, new timestamp, t )
     };
 
+    using State = SmartPtr< IState >;
 
     App( const Config& config ) : mConfig( config ) {}
     virtual ~App() = default;
@@ -55,8 +57,6 @@ namespace Tac
     virtual void    Render( RenderParams, Errors& ){};
     virtual void    Present( Errors& ){};
     virtual void    Uninit( Errors& ){};
-
-    using State = SmartPtr< IState >;
 
     virtual State   GameState_Create()          { return {}; }
     virtual void    GameState_Update( IState* ) {}

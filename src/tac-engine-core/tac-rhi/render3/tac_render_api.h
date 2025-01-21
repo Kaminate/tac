@@ -497,6 +497,7 @@ namespace Tac::Render
   {
     struct InitParams
     {
+      //                    aka "frames in-flight"
       int                   mMaxGPUFrameCount { 2 };
 
       //                    fwd decl to avoid filesys header inc 
@@ -509,6 +510,9 @@ namespace Tac::Render
     static FileSys::Path    GetShaderOutputPath();
     static IDevice*         GetRenderDevice();
     static void             SetRenderDevice( IDevice* );
+    static void             BeginRenderFrame( Errors& );
+    static void             EndRenderFrame( Errors& );
+    static u64              GetCurrentRenderFrameIndex();
   };
 
   struct NDCAttribs
@@ -532,8 +536,9 @@ namespace Tac::Render
       ProgramAttribs mProgramAttribs;
     };
 
-    virtual void            Init( Errors& )                                  {};
-    virtual void            Update( Errors& )                                {};
+    virtual void            Init( Errors& )                                  {}
+    virtual void            BeginRenderFrame( Errors& )                      {}
+    virtual void            EndRenderFrame( Errors& )                        {}
 
     virtual Info            GetInfo() const                                  { return {}; }
 
@@ -542,7 +547,7 @@ namespace Tac::Render
     virtual void            DestroyPipeline( PipelineHandle )                {}
 
     virtual ProgramHandle   CreateProgram( ProgramParams, Errors& )          {}
-    virtual String          GetProgramBindings_TEST( ProgramHandle )         = 0;
+    virtual String          GetProgramBindings_TEST( ProgramHandle )         { return {}; }
     virtual void            DestroyProgram( ProgramHandle )                  {}
 
     virtual SamplerHandle   CreateSampler( CreateSamplerParams )             {}

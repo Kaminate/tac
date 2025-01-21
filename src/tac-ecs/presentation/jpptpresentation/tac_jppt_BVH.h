@@ -126,8 +126,6 @@ namespace Tac
   struct BVHMesh
   {
     void SetShape( const Model* );
-    void DebugImguiBVHMesh(Debug3DDrawData* ) const;
-    void DebugImguiBVHNode(Debug3DDrawData*, const BVHNode&) const;
 
     BVH                            mBVH                {};
     Vector< BVHTriangle >          mTriangles          {};
@@ -200,12 +198,10 @@ namespace Tac
 
   struct SceneBVH
   {
-    void CreateBuffers( Errors& );
+    void                        CreateBuffers( Errors& );
 
     static SceneBVH*            CreateBVH( const World*, Errors& );
     static Render::BufferHandle CreateBuffer( int, const void*, int, const char*, Errors& );
-
-    void DebugImguiSceneBVH( Debug3DDrawData* ) const;
 
 
     // ----------------------------------------------------------------------------------------
@@ -238,6 +234,28 @@ namespace Tac
     Render::BufferHandle mAllBVHNodesBuffer;         // cpu --> mAllBVHNodes
     Render::BufferHandle mTLASInstancesBuffer;       // cpu --> mTLAS.mBLAS / mInstances?
     Render::BufferHandle mTLASNodeBuffer;            // cpu --> mTLAS.mNodes
+  };
+
+  struct SceneBVHDebug
+  {
+    void DebugImguiSceneBVH( SceneBVH* );
+    void DebugVisualizeSceneBVH( Debug3DDrawData*, SceneBVH* );
+
+  private:
+    const BVHMesh* FindSelectedMesh( SceneBVH* );
+    const BVHNode* FindSelectedNode( const BVHMesh* );
+
+    void DebugImguiSceneBVHMeshes( SceneBVH* );
+    void DebugImguiSceneBVHMesh( const BVHMesh* );
+    void DebugImguiSceneBVHNode( const BVHNode* );
+
+    void DebugVisualizeSceneBVHMesh( Debug3DDrawData*, const BVHMesh* );
+    void DebugVisualizeSceneBVHNode( Debug3DDrawData*, 
+                                     const BVHMesh*,
+                                     const BVHNode* );
+
+    int iMesh            { -1 };
+    int iSelectedBVHNode { -1 };
   };
 
 } // namespace Tac

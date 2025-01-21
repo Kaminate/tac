@@ -9,7 +9,6 @@
 
 namespace Tac
 {
-  static int iSelectedBVHNode{ -1 };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -243,46 +242,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void BVHMesh::DebugImguiBVHNode( Debug3DDrawData* drawData, const BVHNode& bvhNode ) const
-  {
-      const v3 aabbColor{ v3( 0xed, 0x71 , 0x16 ) / 255.0f };
-      const v3 triColor{ v3( 0xec, 0x97 , 0x06 ) / 255.0f };
-      drawData->DebugDraw3DAABB( bvhNode.mAABB.mMin, bvhNode.mAABB.mMax, aabbColor );
-
-      if( bvhNode.IsLeaf() )
-      {
-
-          for( u32 iiTri{bvhNode.mFirstTriangleIndex};
-               iiTri < bvhNode.mFirstTriangleIndex + bvhNode.mTriangleCount;
-               iiTri++ )
-          {
-              const u32 iTri{ mBVH.mTriangleIndices[ iiTri ] };
-              const BVHTriangle& bvhTri{ mTriangles[ iTri ] };
-              drawData->DebugDraw3DTriangle( bvhTri.mV0, bvhTri.mV1, bvhTri.mV2, triColor );
-          }
-      }
-      else
-      {
-          if( ImGuiButton( "Select L child: " + ToString( bvhNode.mLeftChild ) ) )
-              iSelectedBVHNode = ( int )bvhNode.mLeftChild;
-          if( ImGuiButton( "Select R child: " + ToString( bvhNode.mLeftChild + 1 ) ) )
-              iSelectedBVHNode = ( int )( bvhNode.mLeftChild + 1 );
-      }
-  }
-
-  void BVHMesh::DebugImguiBVHMesh(Debug3DDrawData* drawData) const
-  {
-    const BVH& bvh{ mBVH };
-    const Vector< BVHNode >& bvhNodes{ bvh.mBVHNodes };
-    const u32 nNodes{ bvh.mNodesUsed };
-    ImGuiText( "BVH Node Count : " + ToString( nNodes ) );
-    ImGuiText( "Selected BVH Node: " + ToString( iSelectedBVHNode ) );
-    if( nNodes && ImGuiButton( "Select root BVH Node" ) )
-      iSelectedBVHNode = 0;
-
-    if( iSelectedBVHNode >= 0 && iSelectedBVHNode < ( int )nNodes )
-      DebugImguiBVHNode( drawData, bvhNodes[ iSelectedBVHNode ] );
-  }
 
   void BVHMesh::SetShape( const Model* shape )
   {
@@ -659,39 +618,6 @@ namespace Tac
                                               errors ) );
   }
 
-  void                 SceneBVH::DebugImguiSceneBVH( Debug3DDrawData*  drawData) const
-  {
-    if( !ImGuiCollapsingHeader( "SceneBVH" ) )
-      return;
-
-    TAC_IMGUI_INDENT_BLOCK;
-
-    if( ImGuiCollapsingHeader( "Vector<BVHMesh>" ) )
-    {
-      TAC_IMGUI_INDENT_BLOCK;
-      const Vector< BVHMesh >& meshes{ mMeshes };
-      const int nMeshes{ meshes.size() };
-      if( nMeshes )
-      {
-        static int iMesh{ 0 };
-
-        ImGuiText( "Select mesh: " );
-        for( int i{}; i < nMeshes; ++i )
-        {
-          ImGuiSameLine();
-
-
-          if( ImGuiButton( ToString( i ) + ( i == iMesh ? "*" : "" ) ) )
-            iMesh = i;
-        }
-
-        ImGuiText( "Selected mesh: " + ToString( iMesh ) );
-
-        if( iMesh >= 0 && iMesh < nMeshes )
-          meshes[ iMesh ].DebugImguiBVHMesh(drawData);
-      }
-    }
-  }
 
   void                 SceneBVH::CreateBuffers( Errors& errors )
   {
@@ -725,6 +651,164 @@ namespace Tac
     };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     return renderDevice->CreateBuffer( bufParams, errors );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  void                 SceneBVHDebug::DebugVisualizeSceneBVHMesh( Debug3DDrawData* drawData,
+                                                                  const BVHMesh* bvhMesh )
+  {
+    const BVHNode* bvhNode{ FindSelectedNode( bvhMesh ) };
+    DebugVisualizeSceneBVHNode( drawData, bvhMesh, bvhNode );
+  }
+
+  void                 SceneBVHDebug::DebugVisualizeSceneBVH( Debug3DDrawData* drawData,
+                                                              SceneBVH* sceneBVH )
+  {
+    if( !sceneBVH )
+      return;
+
+    const BVHMesh* mesh{ FindSelectedMesh( sceneBVH ) };
+    DebugVisualizeSceneBVHMesh(  drawData, mesh );
+  }
+
+  void                 SceneBVHDebug::DebugImguiSceneBVH( SceneBVH* sceneBVH )
+  {
+    if( !sceneBVH )
+      return;
+
+    if( !ImGuiCollapsingHeader( "SceneBVH" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+    DebugImguiSceneBVHMeshes( sceneBVH );
+  }
+
+
+  const BVHNode* SceneBVHDebug::FindSelectedNode( const BVHMesh* bvhMesh )
+  {
+    if( !bvhMesh )
+      return nullptr;
+
+    const BVH& bvh{ bvhMesh->mBVH };
+    const Vector< BVHNode >& bvhNodes{ bvh.mBVHNodes };
+    const u32 nNodes{ bvh.mNodesUsed };
+    const bool isNodeSelected{ iSelectedBVHNode >= 0 && iSelectedBVHNode < ( int )nNodes };
+    if( !isNodeSelected )
+      return nullptr;
+
+    const BVHNode* bvhNode{ &bvhNodes[ iSelectedBVHNode ] };
+    return bvhNode;
+  }
+
+  const BVHMesh* SceneBVHDebug::FindSelectedMesh( SceneBVH* sceneBVH )
+  {
+    const Vector< BVHMesh >& meshes{ sceneBVH->mMeshes };
+    const int nMeshes{ meshes.size() };
+    const bool isMeshSelected{ iMesh >= 0 && iMesh < nMeshes };
+    if( !isMeshSelected )
+      return nullptr;
+
+    const BVHMesh& mesh{ meshes[ iMesh ] };
+    return &mesh;
+  }
+
+  void SceneBVHDebug::DebugImguiSceneBVHMeshes( SceneBVH* sceneBVH)
+  {
+    if( !ImGuiCollapsingHeader( "Vector<BVHMesh>" ) )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
+    const Vector< BVHMesh >& meshes{ sceneBVH->mMeshes };
+    const int nMeshes{ meshes.size() };
+    if( !nMeshes )
+      return;
+
+    ImGuiText( "Select mesh: " );
+    for( int i{}; i < nMeshes; ++i )
+    {
+      ImGuiSameLine();
+
+      if( ImGuiButton( ToString( i ) + ( i == iMesh ? "*" : "" ) ) )
+        iMesh = i;
+    }
+
+    ImGuiText( "Selected mesh: " + ToString( iMesh ) );
+
+    const bool isMeshSelected{ iMesh >= 0 && iMesh < nMeshes };
+    if( !isMeshSelected )
+      return;
+
+    const BVHMesh* mesh{ FindSelectedMesh( sceneBVH ) };
+    DebugImguiSceneBVHMesh( mesh );
+  }
+
+  void SceneBVHDebug::DebugImguiSceneBVHMesh( const BVHMesh* bvhMesh )
+  {
+    if( !bvhMesh )
+      return;
+
+    const BVH& bvh{ bvhMesh->mBVH };
+    const Vector< BVHNode >& bvhNodes{ bvh.mBVHNodes };
+    const u32 nNodes{ bvh.mNodesUsed };
+    ImGuiText( "BVH Node Count : " + ToString( nNodes ) );
+    ImGuiText( "Selected BVH Node: " + ToString( iSelectedBVHNode ) );
+    if( nNodes && ImGuiButton( "Select root BVH Node" ) )
+      iSelectedBVHNode = 0;
+
+    if( nNodes )
+    {
+      ImGuiText( "Select Node" );
+      for( int i{}; i < ( int )nNodes; ++i )
+      {
+        ImGuiSameLine();
+        if( ImGuiButton( ToString( i ) ) )
+          iSelectedBVHNode = i;
+      }
+    }
+
+    const BVHNode* bvhNode{ FindSelectedNode( bvhMesh ) };
+    DebugImguiSceneBVHNode( bvhNode );
+  }
+
+  void SceneBVHDebug::DebugVisualizeSceneBVHNode( Debug3DDrawData* drawData,
+                                                  const BVHMesh* bvhMesh,
+                                                  const BVHNode* pbvhNode )
+  {
+    if( !bvhMesh || !pbvhNode )
+      return;
+
+    const BVH& bvh{ bvhMesh->mBVH };
+
+    const BVHNode& bvhNode{ *pbvhNode };
+    const v3 aabbColor{ v3( 0xed, 0x71 , 0x16 ) / 255.0f };
+    const v3 triColor{ v3( 0xec, 0x97 , 0x06 ) / 255.0f };
+    drawData->DebugDraw3DAABB( bvhNode.mAABB.mMin, bvhNode.mAABB.mMax, aabbColor );
+
+    if( bvhNode.IsLeaf() )
+    {
+      for( u32 iiTri{ bvhNode.mFirstTriangleIndex };
+           iiTri < bvhNode.mFirstTriangleIndex + bvhNode.mTriangleCount;
+           iiTri++ )
+      {
+        const u32 iTri{ bvh.mTriangleIndices[ iiTri ] };
+        const BVHTriangle& bvhTri{ bvhMesh->mTriangles[ iTri ] };
+        drawData->DebugDraw3DTriangle( bvhTri.mV0, bvhTri.mV1, bvhTri.mV2, triColor );
+      }
+    }
+  }
+
+  void SceneBVHDebug::DebugImguiSceneBVHNode( const BVHNode* pbvhNode )
+  {
+    if(!pbvhNode)
+      return;
+    const BVHNode& bvhNode{ *pbvhNode };
+    if( !bvhNode.IsLeaf() )
+    {
+      if( ImGuiButton( "Select L child: " + ToString( bvhNode.mLeftChild ) ) )
+        iSelectedBVHNode = ( int )bvhNode.mLeftChild;
+      if( ImGuiButton( "Select R child: " + ToString( bvhNode.mLeftChild + 1 ) ) )
+        iSelectedBVHNode = ( int )( bvhNode.mLeftChild + 1 );
+    }
   }
 
 } // namespace Tac

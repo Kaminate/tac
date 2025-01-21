@@ -9,6 +9,7 @@
 #include "tac-ecs/tac_space.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/platform/tac_platform.h"
@@ -320,8 +321,10 @@ namespace Tac
   {
       TAC_PROFILE_BLOCK;
 
+      Render::RenderApi::BeginRenderFrame( errors );
+      TAC_ON_DESTRUCT( Render::RenderApi::EndRenderFrame( errors ) );
+
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      TAC_CALL( renderDevice->Update( errors ) );
 
       // Interpolate between game states and render
       //

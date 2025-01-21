@@ -2,6 +2,7 @@
 
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-win32/event/tac_win32_event.h"
 
@@ -99,7 +100,7 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    static const int                   bufferCount = 2;
+    static const int                   bufferCount { 2 };
 
     WindowHandle                       hDesktopWindow{};
 
@@ -110,7 +111,7 @@ namespace Tac
     PCom< ID3D12Device5 >              m_device;
 
     PCom< ID3D12Debug3 >               m_debug;
-    bool                               m_debugLayerEnabled = false;
+    bool                               m_debugLayerEnabled {};
     PCom<ID3D12DebugDevice2>           m_debugDevice;
 
     // samplers
@@ -154,7 +155,7 @@ namespace Tac
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
     D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
-    bool                               m_renderTargetInitialized = false;
+    bool                               m_renderTargetInitialized { };
     // Note: the official imgui dx12 main just keeps an array of D3D12_CPU_DESCRIPTOR_HANDLE for
     //       their render targets, like so:
     //       D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[ NUM_BACK_BUFFERS ] = {};
@@ -186,7 +187,7 @@ namespace Tac
     PCom<ID3D12Resource>               m_vertexBuffer;
     //D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
     UINT                               m_vertexBufferByteCount{};
-    bool                               m_vertexBufferCopied = false;
+    bool                               m_vertexBufferCopied {};
 
     D3D12_VIEWPORT                     m_viewport{};
     D3D12_RECT                         m_scissorRect{};

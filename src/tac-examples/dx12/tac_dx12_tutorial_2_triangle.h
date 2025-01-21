@@ -4,6 +4,7 @@
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-win32/event/tac_win32_event.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
+#include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
 
 #include <d3d12.h> // D3D12...
 
@@ -76,10 +77,10 @@ namespace Tac
 
     // ---------------------------------------------------------------------------------------------
 
-    static const int                   bufferCount = 2;
+    static const int                   bufferCount { 2 };
 
     WindowHandle                       hDesktopWindow;
-    float                              mT;
+    float                              mT {};
 
     // ---------------------------------------------------------------------------------------------
 
@@ -88,7 +89,7 @@ namespace Tac
     PCom< ID3D12Device5 >              m_device;
 
     PCom< ID3D12Debug3 >               m_debug;
-    bool                               m_debugLayerEnabled = false;
+    bool                               m_debugLayerEnabled {};
     PCom<ID3D12DebugDevice2>           m_debugDevice;
 
     // rtvs
@@ -148,7 +149,7 @@ namespace Tac
     PCom<ID3D12Resource>               m_vertexBuffer;
     D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
     UINT                               m_vertexBufferSize;
-    bool                               m_vertexBufferCopied = false;
+    bool                               m_vertexBufferCopied {};
 
     D3D12_VIEWPORT                     m_viewport;
     D3D12_RECT                         m_scissorRect;

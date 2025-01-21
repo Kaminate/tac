@@ -13,7 +13,7 @@
 
 namespace Tac::Render
 {
-  const int TAC_SWAP_CHAIN_BUF_COUNT = 3;
+  const int TAC_SWAP_CHAIN_BUF_COUNT { 3 };
 
 #if 0
   struct DX12SwapChainImage

@@ -623,10 +623,12 @@ namespace Tac
       int a2 { ( a0 + 2 ) % 3 };
       for( float a1Val : { mini[ a1 ], maxi[ a1 ] } )
       {
-        v0[ a1 ] = v1[ a1 ] = a1Val;
+        v0[ a1 ] = a1Val;
+        v1[ a1 ] = a1Val;
         for( float a2Val : { mini[ a2 ], maxi[ a2 ] } )
         {
-          v0[ a2 ] = v1[ a2 ] = a2Val;
+          v0[ a2 ] = a2Val;
+          v1[ a2 ] = a2Val;
           DebugDraw3DLine( v0, v1, color );
         }
       }

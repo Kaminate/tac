@@ -21,10 +21,11 @@ namespace Tac::Render
     if( !h.IsValid() )
       return;
 
+    const u64 currentRenderFrameIndex{ RenderApi::GetCurrentRenderFrameIndex() };
     const DeletionQueue::Entry entry
     {
-      .mResourceHandle { h },
-      .mFrame          { DX12Renderer::sRenderer.mRenderFrame },
+      .mResourceHandle   { h },
+      .mRenderFrameIndex { currentRenderFrameIndex },
     };
     mEntries.push( entry );
   }
@@ -32,6 +33,7 @@ namespace Tac::Render
   void DeletionQueue::Update()
   {
     const int maxGPUFrameCount{ RenderApi::GetMaxGPUFrameCount() };
+    const u64 currentRenderFrameIndex{ RenderApi::GetCurrentRenderFrameIndex() };
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
 
     DX12SwapChainMgr& swapChainMgr { renderer.mSwapChainMgr };
@@ -47,7 +49,7 @@ namespace Tac::Render
         break;
 
       const Entry& entry{ mEntries.front() };
-      if( entry.mFrame + maxGPUFrameCount < renderer.mRenderFrame )
+      if( entry.mRenderFrameIndex + maxGPUFrameCount < currentRenderFrameIndex )
         break;
 
       const HandleType handleType{ entry.mResourceHandle.GetHandleType() };
@@ -55,24 +57,33 @@ namespace Tac::Render
       switch( handleType )
       {
       case HandleType::kPipeline:
+      {
         pipelineMgr.DestroyPipeline( entry.mResourceHandle );
-        break;
+      } break;
       case HandleType::kSwapChain:
+      {
         swapChainMgr.DestroySwapChain( entry.mResourceHandle );
-        break;
+      } break;
       case HandleType::kBuffer:
+      {
         bufMgr.DestroyBuffer( entry.mResourceHandle );
-        break;
+      } break;
       case HandleType::kTexture:
+      {
         texMgr.DestroyTexture( entry.mResourceHandle );
-        break;
+      } break;
       case HandleType::kProgram:
+      {
         programMgr.DestroyProgram( entry.mResourceHandle );
-        break;
+      } break;
       case HandleType::kSampler:
+      {
         samplerMgr.DestroySampler( entry.mResourceHandle );
-        break;
-      default: TAC_ASSERT_INVALID_CASE( handleType ); break;
+      } break;
+      default:
+      {
+        TAC_ASSERT_INVALID_CASE( handleType ); 
+      } break;
       }
 
       mEntries.pop();
@@ -81,44 +92,62 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
+  void                       FrameBufferer::BeginRenderFrame( Errors& errors )
+  {
+    DX12CommandQueue& mCommandQueue{ DX12Renderer::sRenderer.mCommandQueue };
+    const int maxGPUFrameCount{ RenderApi::GetMaxGPUFrameCount() };
+    const u64 currentRenderFrameIndex{ RenderApi::GetCurrentRenderFrameIndex() };
+    if( mFrameBufferingFenceValues.size() < maxGPUFrameCount )
+      mFrameBufferingFenceValues.resize( maxGPUFrameCount, 0 );
+    const FenceSignal signalValue{
+      mFrameBufferingFenceValues[ currentRenderFrameIndex % maxGPUFrameCount ] };
+    TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
+  }
+
+  void                       FrameBufferer::EndRenderFrame( Errors& errors )
+  {
+    DX12CommandQueue& mCommandQueue{ DX12Renderer::sRenderer.mCommandQueue };
+    const int maxGPUFrameCount{ RenderApi::GetMaxGPUFrameCount() };
+    const u64 currentRenderFrameIndex{ RenderApi::GetCurrentRenderFrameIndex() };
+    if( mFrameBufferingFenceValues.size() < maxGPUFrameCount )
+      mFrameBufferingFenceValues.resize( maxGPUFrameCount, 0 );
+    TAC_CALL( const FenceSignal signalValue{ mCommandQueue.IncrementFence( errors ) } );
+    mFrameBufferingFenceValues[ currentRenderFrameIndex % maxGPUFrameCount ] = signalValue;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
   void DX12Renderer::Init( Errors& errors )
   {
     TAC_CALL( DXGIInit( errors ) );
-
     TAC_CALL( mDebugLayer.Init( errors ) );
-
     TAC_CALL( mDeviceInitializer.Init( mDebugLayer, errors ) );
-
     mDevice = mDeviceInitializer.mDevice.Get();
-
     TAC_CALL( mInfoQueue.Init( mDebugLayer, mDevice, errors ) );
-
     TAC_CALL( mDescriptorHeapMgr.Init( errors ) );
-
     TAC_CALL( mProgramMgr.Init( errors ) );
-
     TAC_CALL( mCommandQueue.Create( mDevice, errors ) );
-
     TAC_CALL( mContextManager.Init( errors ) );
   }
 
-  void DX12Renderer::Update( Errors& errors )
+  void DX12Renderer::BeginRenderFrame( Errors& errors )
+  {
+    TAC_CALL( mFrameBufferer.BeginRenderFrame( errors ) );
+  }
+
+  void DX12Renderer::EndRenderFrame( Errors& errors )
   {
     mDeletionQueue.Update();
-    mProgramMgr.HotReload( errors );
-    mRenderFrame++;
+    TAC_CALL( mProgramMgr.HotReload( errors ) );
+    TAC_CALL( mFrameBufferer.EndRenderFrame( errors ) );
   }
+
 
   // -----------------------------------------------------------------------------------------------
 
   void              DX12Device::Init( Errors& errors )
   {
     DX12Renderer::sRenderer.Init( errors );
-  }
-
-  void              DX12Device::Update( Errors& errors )
-  {
-    TAC_CALL( DX12Renderer::sRenderer.Update( errors ) );
   }
 
   IDevice::Info     DX12Device::GetInfo() const
@@ -142,8 +171,7 @@ namespace Tac::Render
     };
   }
 
-  PipelineHandle    DX12Device::CreatePipeline( PipelineParams params,
-                                                Errors& errors )
+  PipelineHandle    DX12Device::CreatePipeline( PipelineParams params, Errors& errors )
   {
     return DX12Renderer::sRenderer.mPipelineMgr.CreatePipeline( params, errors );
   }
@@ -187,6 +215,16 @@ namespace Tac::Render
   void              DX12Device::DestroySampler( SamplerHandle h )
   {
     DX12Renderer::sRenderer.mDeletionQueue.Push( h );
+  }
+
+  void              DX12Device::BeginRenderFrame( Errors& errors )
+  {
+    DX12Renderer::sRenderer.BeginRenderFrame( errors );
+  }
+
+  void              DX12Device::EndRenderFrame( Errors& errors )
+  {
+    DX12Renderer::sRenderer.EndRenderFrame( errors );
   }
 
   SwapChainHandle   DX12Device::CreateSwapChain( SwapChainParams params, Errors& errors )
@@ -249,7 +287,8 @@ namespace Tac::Render
 
     const DXGI_PRESENT_PARAMETERS params{};
 
-    // For the flip model (DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL), values are:
+    // For the flip model (DXGI_SWAP_EFFECT_FLIP_DISCARD/DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL),
+    // values are:
     //   0   - Cancel the remaining time on the previously presented frame
     //         and discard this frame if a newer frame is queued.
     //   1-4 - Synchronize presentation for at least n vertical blanks.
@@ -260,8 +299,7 @@ namespace Tac::Render
     TAC_DX12_CALL( swapChain4->Present1( SyncInterval, PresentFlags, &params ) );
   }
 
-  BufferHandle      DX12Device::CreateBuffer( CreateBufferParams params,
-                                              Errors& errors )
+  BufferHandle      DX12Device::CreateBuffer( CreateBufferParams params, Errors& errors )
   {
     return DX12Renderer::sRenderer.mBufMgr.CreateBuffer( params, errors );
   }

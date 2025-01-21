@@ -56,7 +56,7 @@ namespace Tac::Render
 
 
     const ShortFixedString renderFrameStr{ ShortFixedString::Concat(
-      "(render frame: ", ToString( DX12Renderer::sRenderer.mRenderFrame ), ")" ) };
+      "(render frame: ", ToString( RenderApi::GetCurrentRenderFrameIndex() ), ")" ) };
 
     const ShortFixedString handleStr{
       ShortFixedString::Concat( "(handle: ", ToString( h.GetIndex() ), ")" ) };

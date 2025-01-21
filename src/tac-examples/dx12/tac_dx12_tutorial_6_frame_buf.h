@@ -3,14 +3,13 @@
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
-
 #include "tac-std-lib/containers/tac_ring_vector.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 
 #include "tac_dx12_tutorial_command_queue.h"
 #include "tac_dx12_tutorial_command_allocator_pool.h"
 #include "tac_dx12_tutorial_context_manager.h"
 #include "tac_dx12_tutorial_gpu_upload_allocator.h"
-
 
 #include <d3d12.h> // D3D12...
 
@@ -19,7 +18,7 @@ namespace Tac
   using namespace Render;
 
   // maximum number of frames submitted to the gpu at one time
-  const int MAX_GPU_FRAME_COUNT { 2 };
+  const int MAX_GPU_FRAME_COUNT     { 2 };
 
   // number of textures in the swap chain
   const int SWAP_CHAIN_BUFFER_COUNT { 3 };
@@ -107,9 +106,9 @@ namespace Tac
 
     struct TransitionParams
     {
-       ID3D12Resource*        mResource;
-       D3D12_RESOURCE_STATES* mCurrentState;
-       D3D12_RESOURCE_STATES  mTargetState;
+      ID3D12Resource*        mResource     {};
+      D3D12_RESOURCE_STATES* mCurrentState {};
+      D3D12_RESOURCE_STATES  mTargetState  {};
     };
     void TransitionResource( ID3D12GraphicsCommandList*, TransitionParams );
 
@@ -129,7 +128,7 @@ namespace Tac
     PCom< ID3D12Device5 >              m_device;
 
     PCom< ID3D12Debug3 >               m_debug;
-    bool                               m_debugLayerEnabled = false;
+    bool                               m_debugLayerEnabled {};
     PCom<ID3D12DebugDevice>            m_debugDevice0;
     PCom<ID3D12DebugDevice2>           m_debugDevice;
 
@@ -155,7 +154,7 @@ namespace Tac
     PCom< ID3D12Resource >             m_renderTargets[ SWAP_CHAIN_BUFFER_COUNT ];
     D3D12_RESOURCE_STATES              m_renderTargetStates[ SWAP_CHAIN_BUFFER_COUNT ]{};
     D3D12_RESOURCE_DESC                m_renderTargetDescs[ SWAP_CHAIN_BUFFER_COUNT ]{};
-    bool                               m_renderTargetInitialized = false;
+    bool                               m_renderTargetInitialized {};
 
     PCom< ID3D12InfoQueue >            m_infoQueue;
 

@@ -2,6 +2,7 @@
 
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
 #include "tac-dx/dxgi/tac_dxgi.h"
 
 #include "tac-win32/event/tac_win32_event.h"

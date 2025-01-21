@@ -4,6 +4,7 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-win32/event/tac_win32_event.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 
 #include <d3d12.h> // D3D12...
 
