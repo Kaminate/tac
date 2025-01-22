@@ -263,6 +263,7 @@ namespace Tac
     {
       TAC_DELETE sSceneBvh;
       sSceneBvh = SceneBVH::CreateBVH( world, createBVHErrors );
+      sShouldCreateSceneBVH = false;
     }
 
     Visualize( world );

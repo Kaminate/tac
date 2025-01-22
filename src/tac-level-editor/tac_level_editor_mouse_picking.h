@@ -20,6 +20,8 @@ namespace Tac
     bool                          IsTranslationWidgetPicked( int );
     v3                            GetWorldspaceMouseDir() const;
 
+    bool                          sDrawRaycast              { true };
+
   private:
 
     void                          MousePickingEntities( const World*, const Camera*, Errors& );

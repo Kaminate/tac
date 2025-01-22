@@ -37,7 +37,6 @@ namespace Tac
     return mTriangleCount;
   }
 
-
   // -----------------------------------------------------------------------------------------------
 
   void  BVH::Build()
@@ -56,6 +55,8 @@ namespace Tac
     {
       .mFirstTriangleIndex { 0 },
       .mTriangleCount      { ( u32 )nTris },
+      .mDepth              { 0 },
+      .mParent             { ( u32 )-1 },
     };
     UpdateNodeBounds( 0 );
     Subdivide( 0 );
@@ -94,6 +95,7 @@ namespace Tac
     if( !leftTriangleCount || leftTriangleCount == node.mTriangleCount )
       return;
 
+    const u32 childDepth { node.mDepth + 1 };
     const u32 iLChild { mNodesUsed++ };
     const u32 iRChild { mNodesUsed++ };
     TAC_ASSERT( iRChild == iLChild + 1 );
@@ -101,11 +103,15 @@ namespace Tac
     {
       .mFirstTriangleIndex { node.mFirstTriangleIndex },
       .mTriangleCount      { leftTriangleCount },
+      .mDepth              { childDepth },
+      .mParent             { iNode },
     };
     mBVHNodes[ iRChild ] = BVHNode
     {
       .mFirstTriangleIndex { i },
       .mTriangleCount      { node.mTriangleCount - leftTriangleCount },
+      .mDepth              { childDepth },
+      .mParent             { iNode },
     };
     node.mLeftChild = iLChild;
     node.mTriangleCount = 0;
@@ -113,6 +119,7 @@ namespace Tac
     UpdateNodeBounds( iRChild );
     Subdivide( iLChild );
     Subdivide( iRChild );
+    mMaxDepth = Max( mMaxDepth, childDepth );
   }
 
   void  BVH::UpdateNodeBounds( u32 iNode )
@@ -135,18 +142,21 @@ namespace Tac
   float BVH::FindBestSplitPlane( const BVHNode& Node, int& bestAxis, float& bestSplitPosition )
   {
     const int BINS { 8 };
-    float BestCost { 1e30f };
+    dynmc float BestCost { 1e30f };
     for( int CurrentAxis {}; CurrentAxis < 3; CurrentAxis++ )
     {
-      float BoundsMin { 1e30f };
-      float BoundsMax { -1e30f };
+      dynmc float BoundsMin { 1e30f };
+      dynmc float BoundsMax { -1e30f };
       for( u32 i {}; i < Node.mTriangleCount; i++ )
       {
-        BVHTriangle& triangle = mMesh->mTriangles[ mTriangleIndices[ Node.mFirstTriangleIndex + i ] ];
+        const u32 iiTriangle{ Node.mFirstTriangleIndex + i };
+        const u32 iTriangle{ mTriangleIndices[ iiTriangle ] };
+        const BVHTriangle& triangle{ mMesh->mTriangles[ iTriangle ] };
         BoundsMin = Min( BoundsMin, triangle.mCentroid[ CurrentAxis ] );
         BoundsMax = Max( BoundsMax, triangle.mCentroid[ CurrentAxis ] );
       }
-      if( BoundsMin == BoundsMax ) continue;
+      if( BoundsMin == BoundsMax )
+        continue;
 
 
       Bin bins[ BINS ];
@@ -655,15 +665,55 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void                 SceneBVHDebug::DebugVisualizeSceneBVHMesh( Debug3DDrawData* drawData,
-                                                                  const BVHMesh* bvhMesh )
+  void           SceneBVHDebug::DebugVisualizeSceneBVHMesh( Debug3DDrawData* drawData,
+                                                            const BVHMesh* bvhMesh )
   {
-    const BVHNode* bvhNode{ FindSelectedNode( bvhMesh ) };
-    DebugVisualizeSceneBVHNode( drawData, bvhMesh, bvhNode );
+    if( !bvhMesh )
+      return;
+
+    Vector< const BVHNode* > nodes;
+
+    if( const BVHNode* selectedbvhNode{ FindSelectedNode( bvhMesh ) }; selectedbvhNode )
+      nodes.push_back( selectedbvhNode );
+    else if( bvhMesh->mBVH.mNodesUsed )
+      nodes.push_back( &bvhMesh->mBVH.mBVHNodes[0] );
+
+    const BVH& bvh{ bvhMesh->mBVH };
+    const u32 maxDepth{ bvh.mMaxDepth };
+    while( !nodes.empty() )
+    {
+      const BVHNode* node{ nodes.back() };
+      nodes.pop_back();
+
+      const v3 color { Lerp( v3( 0.8f ), v3( 0.2f ), node->mDepth / ( maxDepth + 0.0001f ) ) };
+      const v3 pad( .0f );
+      drawData->DebugDraw3DAABB( node->mAABB.mMin - pad, node->mAABB.mMax + pad, color );
+
+      if( node->IsLeaf() )
+      {
+        const BVHNode& bvhNode{ *node };
+        for( u32 iiTri{ bvhNode.mFirstTriangleIndex };
+             iiTri < bvhNode.mFirstTriangleIndex + bvhNode.mTriangleCount;
+             iiTri++ )
+        {
+          const u32 iTri{ bvh.mTriangleIndices[ iiTri ] };
+          const BVHTriangle& bvhTri{ bvhMesh->mTriangles[ iTri ] };
+          const v3 triColor{ v3( 0xec, 0x97 , 0x06 ) / 255.0f };
+          drawData->DebugDraw3DTriangle( bvhTri.mV0, bvhTri.mV1, bvhTri.mV2, triColor );
+        }
+      }
+      else
+      {
+        const BVHNode* lChild{ &bvhMesh->mBVH.mBVHNodes[ node->mLeftChild ] };
+        const BVHNode* rChild{ &bvhMesh->mBVH.mBVHNodes[ node->mLeftChild + 1 ] };
+        nodes.push_back( lChild );
+        nodes.push_back( rChild );
+      }
+    }
   }
 
-  void                 SceneBVHDebug::DebugVisualizeSceneBVH( Debug3DDrawData* drawData,
-                                                              SceneBVH* sceneBVH )
+  void           SceneBVHDebug::DebugVisualizeSceneBVH( Debug3DDrawData* drawData,
+                                                        SceneBVH* sceneBVH )
   {
     if( !sceneBVH )
       return;
@@ -672,7 +722,7 @@ namespace Tac
     DebugVisualizeSceneBVHMesh(  drawData, mesh );
   }
 
-  void                 SceneBVHDebug::DebugImguiSceneBVH( SceneBVH* sceneBVH )
+  void           SceneBVHDebug::DebugImguiSceneBVH( SceneBVH* sceneBVH )
   {
     if( !sceneBVH )
       return;
@@ -713,7 +763,7 @@ namespace Tac
     return &mesh;
   }
 
-  void SceneBVHDebug::DebugImguiSceneBVHMeshes( SceneBVH* sceneBVH)
+  void           SceneBVHDebug::DebugImguiSceneBVHMeshes( SceneBVH* sceneBVH)
   {
     if( !ImGuiCollapsingHeader( "Vector<BVHMesh>" ) )
       return;
@@ -742,7 +792,7 @@ namespace Tac
     DebugImguiSceneBVHMesh( mesh );
   }
 
-  void SceneBVHDebug::DebugImguiSceneBVHMesh( const BVHMesh* bvhMesh )
+  void           SceneBVHDebug::DebugImguiSceneBVHMesh( const BVHMesh* bvhMesh )
   {
     if( !bvhMesh )
       return;
@@ -752,8 +802,8 @@ namespace Tac
     const u32 nNodes{ bvh.mNodesUsed };
     ImGuiText( "BVH Node Count : " + ToString( nNodes ) );
     ImGuiText( "Selected BVH Node: " + ToString( iSelectedBVHNode ) );
-    if( nNodes && ImGuiButton( "Select root BVH Node" ) )
-      iSelectedBVHNode = 0;
+    if( nNodes && ImGuiButton( "Unselect BVH Node" ) )
+      iSelectedBVHNode = -1;
 
     if( nNodes )
     {
@@ -770,34 +820,8 @@ namespace Tac
     DebugImguiSceneBVHNode( bvhNode );
   }
 
-  void SceneBVHDebug::DebugVisualizeSceneBVHNode( Debug3DDrawData* drawData,
-                                                  const BVHMesh* bvhMesh,
-                                                  const BVHNode* pbvhNode )
-  {
-    if( !bvhMesh || !pbvhNode )
-      return;
 
-    const BVH& bvh{ bvhMesh->mBVH };
-
-    const BVHNode& bvhNode{ *pbvhNode };
-    const v3 aabbColor{ v3( 0xed, 0x71 , 0x16 ) / 255.0f };
-    const v3 triColor{ v3( 0xec, 0x97 , 0x06 ) / 255.0f };
-    drawData->DebugDraw3DAABB( bvhNode.mAABB.mMin, bvhNode.mAABB.mMax, aabbColor );
-
-    if( bvhNode.IsLeaf() )
-    {
-      for( u32 iiTri{ bvhNode.mFirstTriangleIndex };
-           iiTri < bvhNode.mFirstTriangleIndex + bvhNode.mTriangleCount;
-           iiTri++ )
-      {
-        const u32 iTri{ bvh.mTriangleIndices[ iiTri ] };
-        const BVHTriangle& bvhTri{ bvhMesh->mTriangles[ iTri ] };
-        drawData->DebugDraw3DTriangle( bvhTri.mV0, bvhTri.mV1, bvhTri.mV2, triColor );
-      }
-    }
-  }
-
-  void SceneBVHDebug::DebugImguiSceneBVHNode( const BVHNode* pbvhNode )
+  void           SceneBVHDebug::DebugImguiSceneBVHNode( const BVHNode* pbvhNode )
   {
     if(!pbvhNode)
       return;

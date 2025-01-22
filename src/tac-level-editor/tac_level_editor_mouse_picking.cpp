@@ -6,6 +6,7 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-engine-core/graphics/color/tac_color_util.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-ecs/presentation/game/tac_game_presentation.h"
 #include "tac-ecs/presentation/mesh/tac_mesh_presentation.h"
@@ -118,6 +119,82 @@ namespace Tac
     };
   }
 
+  static void MousePickingEntityDebug( Ray ray,
+                                       const World* world,
+                                       Errors& errors )
+  {
+    Debug3DDrawData* drawData{ world->mDebug3DDrawData };
+
+    MeshRaycast::SubMeshTriangle closestTri{};
+    MeshRaycast::Result closestResult{};
+    const MeshRaycast::Ray meshRay
+    {
+      .mPos{ ray.mPos },
+      .mDir{ ray.mDir },
+    };
+
+    for( Entity* entity : world->mEntities )
+    {
+      Model* model{ Model::GetModel( entity ) };
+      if( !model )
+        continue;
+
+      TAC_CALL( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
+      if( !mesh )
+        continue;
+
+      for( const MeshRaycast::SubMeshTriangle& subMeshTri : mesh->mMeshRaycast.mTris )
+      {
+        const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
+        const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
+        const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
+
+
+        const MeshRaycast::SubMeshTriangle meshTri
+        {
+          wsTriv0,
+          wsTriv1,
+          wsTriv2,
+        };
+
+        if( const MeshRaycast::Result meshResult{ MeshRaycast::RaycastTri( meshRay, meshTri ) };
+            meshResult.mHit && ( !closestResult.mHit || meshResult.mT < closestResult.mT ) )
+        {
+          closestResult = meshResult;
+          closestTri = meshTri;
+        }
+
+        const v3 color{ 1, 0, 0 };
+        drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
+
+      }
+
+    }
+
+    if( closestResult.mHit )
+    {
+
+      const v3 triColor{ 0, 1, 0 };
+      v3 v0{ closestTri[ 0 ] };
+      v3 v1{ closestTri[ 1 ] };
+      v3 v2{ closestTri[ 2 ] };
+      const v3 centroid{ ( v0 + v1 + v2 ) / 3 };
+      v0 += ( centroid - v0 ) * 0.01f;
+      v1 += ( centroid - v1 ) * 0.01f;
+      v2 += ( centroid - v2 ) * 0.01f;
+      for( float t {}; t < 1; t += 0.1f )
+      {
+        drawData->DebugDraw3DTriangle( v0 + ( centroid - v0 ) * t,
+                                       v1 + ( centroid - v1 ) * t,
+                                       v2 + ( centroid - v2 ) * t,
+                                       v3( 1 - t, 0, 0 ) );
+      }
+      //float radius = 0.3f / Distance( centroid, ray.mPos );
+      //drawData->DebugDraw3DSphere( v0,radius, triColor );
+
+    }
+  }
+
   static RaycastResult MousePickingEntity( Ray ray, const Entity* entity, Errors& errors )
   {
     if( const Model * model{ Model::GetModel( entity ) } )
@@ -205,6 +282,13 @@ namespace Tac
       pickData.closest = entity;
       pickData.pickedObject = PickedObject::Entity;
     }
+
+    if( sDrawRaycast)
+    {
+      TAC_CALL( MousePickingEntityDebug( ray, world, errors ) );
+    }
+
+
   }
 
   void CreationMousePicking::MousePickingSelection( const Camera* camera )

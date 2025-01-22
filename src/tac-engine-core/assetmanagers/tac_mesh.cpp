@@ -29,35 +29,30 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  MeshRaycast::Result MeshRaycast::RaycastTri( Ray meshRay, const SubMeshTriangle& tri )
+  {
+    float triDist{};
+    const bool triHit{ RaycastTriangle( tri[ 0 ],
+                                        tri[ 1 ],
+                                        tri[ 2 ],
+                                        meshRay.mPos,
+                                        meshRay.mDir,
+                                        triDist ) };
+
+    return Result{ .mHit { triHit }, .mT{ triDist } };
+  }
+
   MeshRaycast::Result MeshRaycast::Raycast( Ray meshRay ) const
   {
-    bool submeshHit {};
-    float submeshDist {};
-    const int triCount { ( int )mTris.size() };
-    for( int iTri {}; iTri < triCount; ++iTri )
-    {
-      const SubMeshTriangle& tri{ mTris[ iTri ] };
-      float triDist{};
-      const bool triHit{ RaycastTriangle( tri[ 0 ],
-                                          tri[ 1 ],
-                                          tri[ 2 ],
-                                          meshRay.mPos,
-                                          meshRay.mDir,
-                                          triDist ) };
-      if ( !triHit )
-        continue;
-      if ( submeshHit && triDist > submeshDist )
-        continue;
+    MeshRaycast::Result meshResult;
 
-      submeshDist = triDist;
-      submeshHit = true;
-    }
+    const int triCount{ ( int )mTris.size() };
+    for( int iTri{}; iTri < triCount; ++iTri )
+      if( const MeshRaycast::Result triResult{ RaycastTri( meshRay, mTris[ iTri ] ) };
+          triResult.mHit && ( !meshResult.mT || triResult.mT < meshResult.mT ) )
+        meshResult = triResult;
 
-    return Result
-    {
-      .mHit { submeshHit },
-      .mT   { submeshDist },
-    };
+    return meshResult;
   }
 
 

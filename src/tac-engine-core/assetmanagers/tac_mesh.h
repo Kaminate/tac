@@ -32,6 +32,7 @@ namespace Tac
     using SubMeshTriangles = Vector< SubMeshTriangle >;
 
     Result Raycast( Ray ) const;
+    static Result RaycastTri( Ray, const SubMeshTriangle& );
 
     SubMeshTriangles mTris {};
   };

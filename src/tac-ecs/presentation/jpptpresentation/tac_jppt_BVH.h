@@ -96,12 +96,15 @@ namespace Tac
     union
     {
       u32  mLeftChild; // index into BVH::mBVHNodes
-      u32  mFirstTriangleIndex; // this is actually a index into BVH::mTriangleIndices
+      u32  mFirstTriangleIndex{}; // this is actually a index into BVH::mTriangleIndices
     };
-    u32  mTriangleCount;
-    TAC_PAD_BYTES( 8 );
+    u32  mTriangleCount{};
+    u32  mDepth{}; 
+    u32  mParent{}; 
   };
 
+
+  static_assert( sizeof( BVHNode ) == 48 );
   static_assert_gpu_padded( BVHNode );
 
   struct BVH;
@@ -118,9 +121,10 @@ namespace Tac
     float CalculateNodeCost( const BVHNode& );
 
     BVHMesh*          mMesh            {};
-    Vector< u32 >     mTriangleIndices {};
+    Vector< u32 >     mTriangleIndices {}; // Indexes into BVHMesh::mTriangles
     Vector< BVHNode > mBVHNodes        {};
     u32               mNodesUsed       {};
+    u32               mMaxDepth        {};
   };
 
   struct BVHMesh
@@ -250,9 +254,6 @@ namespace Tac
     void DebugImguiSceneBVHNode( const BVHNode* );
 
     void DebugVisualizeSceneBVHMesh( Debug3DDrawData*, const BVHMesh* );
-    void DebugVisualizeSceneBVHNode( Debug3DDrawData*, 
-                                     const BVHMesh*,
-                                     const BVHNode* );
 
     int iMesh            { -1 };
     int iSelectedBVHNode { -1 };
