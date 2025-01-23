@@ -332,11 +332,157 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
-  static void RenderSceneCPU( Errors& errors )
+  /*
+    uvec2 GlobalID = GLOBAL_ID();
+    if (GlobalID.x < Width && GlobalID.y < Height) {
+
+        vec2 UV = vec2(GLOBAL_ID()) / vec2(ImageSize);
+        ray Ray = GetRay(UV);
+
+FN_DECL ray GetRay(vec2 ImageUV)
+{
+    camera Camera = Cameras[0];
+
+    // Point on the film
+    vec3 Q = vec3(
+        (0.5f - ImageUV.x),
+        (ImageUV.y - 0.5f),
+        1
+    );
+    vec3 RayDirection = -normalize(Q);
+    vec3 PointOnLens = vec3 (0,0,0);
+
+    //Transform the ray direction and origin
+    ray Ray = MakeRay(
+        TransformPoint(Camera.Frame, PointOnLens),
+        TransformDirection(Camera.Frame, RayDirection),
+        vec3(0)
+    );
+    return Ray;
+}
+*/
+
+  struct JPPTCPURaytrace
+  {
+    void Run( const Camera* camera )
+    {
+      mPixels.resize( mWidth * mHeight );
+
+      const float aspect{ ( float )mWidth / ( float )mHeight };
+      const float halfFovYRad{ camera->mFovyrad / 2.0f };
+      const float halfNearPlaneHeight { camera->mNearPlane * Tan( halfFovYRad ) };
+      const float halfNearPlaneWidth { aspect * halfNearPlaneHeight };
+
+      for( int iRow{}; iRow < mHeight; ++iRow )
+      {
+        for( int iCol{}; iCol < mWidth; ++iCol )
+        {
+          // directx style uvs
+          const float u { ( iCol + 0.5f ) / mWidth };
+          const float v { ( iRow + 0.5f ) / mHeight };
+
+          const int iPixel{ iCol + iRow * mWidth };
+
+          const float ndcX{ ( 0 + u ) * 2 - 1 };
+          const float ndcY{ ( 1 - v ) * 2 - 1 };
+
+          const v3 pointOnFilm_worldspace{
+            camera->mForwards * camera->mNearPlane +
+            camera->mRight * halfNearPlaneWidth +
+            camera->mUp * halfNearPlaneHeight };
+
+          const TLAS& tlas{ sSceneBvh->mTLAS };
+
+          mPixels[ iPixel ] = PixelRGBA8Unorm::SetColor4( v4( u, v, 0, 1 ) );
+        }
+      }
+    }
+
+    struct PixelRGBA8Unorm
+    {
+      static PixelRGBA8Unorm SetColor4( v4 rgba )
+      {
+        return PixelRGBA8Unorm
+        {
+          .r{ ( u8 )( Saturate( rgba.x ) * 255.0f ) },
+          .g{ ( u8 )( Saturate( rgba.y ) * 255.0f ) },
+          .b{ ( u8 )( Saturate( rgba.z ) * 255.0f ) },
+          .a{ ( u8 )( Saturate( rgba.w ) * 255.0f ) },
+        };
+      }
+
+      static PixelRGBA8Unorm SetColor3( v3 rgb )
+      {
+        return PixelRGBA8Unorm
+        {
+          .r{ ( u8 )( Saturate( rgb.x ) * 255.0f ) },
+          .g{ ( u8 )( Saturate( rgb.y ) * 255.0f ) },
+          .b{ ( u8 )( Saturate( rgb.z ) * 255.0f ) },
+          .a{ 255 },
+        };
+      }
+      u8 r{};
+      u8 g{};
+      u8 b{};
+      u8 a{};
+    };
+
+    Vector< PixelRGBA8Unorm > mPixels;
+    int mWidth {};
+    int mHeight {};
+  };
+
+  static void RenderSceneCPU( Errors& errors, const Camera* camera )
   {
     if( !sShouldRenderSceneBVHCPU )
       return;
     sShouldRenderSceneBVHCPU = false;
+
+    const WindowHandle windowHandle{ ImGuiGetWindowHandle( sWindowName ) };
+    TAC_ASSERT( windowHandle.IsValid() );
+    const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyTexture( sTexture );
+
+    sTextureW = windowSize.x;
+    sTextureH = windowSize.y;
+
+    const Render::Image image
+    {
+      .mWidth   { sTextureW },
+      .mHeight  { sTextureH },
+      .mDepth   { 1 },
+      .mFormat  { Render::TexFmt::kRGBA8_unorm },
+    };
+
+    const Render::Binding binding
+    {
+      Render::Binding::ShaderResource
+    };
+
+    JPPTCPURaytrace cpuRaytrace;
+    cpuRaytrace.mWidth = sTextureW;
+    cpuRaytrace.mHeight = sTextureH;
+    cpuRaytrace.Run( camera );
+
+    const Render::CreateTextureParams::Subresource subresource
+    {
+      .mBytes{ cpuRaytrace.mPixels.data() },
+      .mPitch{ 4 * sTextureW },
+    };
+
+    const Render::CreateTextureParams createTextureParams
+    {
+      .mImage                  { image },
+      .mMipCount               { 1 },
+      .mSubresources           { &subresource },
+      .mBinding                { binding },
+      .mUsage                  { Render::Usage::Default },
+      .mCpuAccess              { Render::CPUAccess::None },
+      .mOptionalName           { "JPPT" }
+    };
+    TAC_CALL( sTexture = renderDevice->CreateTexture( createTextureParams, errors ) );
   }
 
   void             JPPTPresentation::Init( Errors& errors )
@@ -389,7 +535,7 @@ namespace Tac
       sShouldCreateSceneBVH = false;
     }
 
-    TAC_CALL( RenderSceneCPU( errors ) );
+    TAC_CALL( RenderSceneCPU( errors, camera ) );
     TAC_CALL( RenderSceneGPU( errors ) );
 
 

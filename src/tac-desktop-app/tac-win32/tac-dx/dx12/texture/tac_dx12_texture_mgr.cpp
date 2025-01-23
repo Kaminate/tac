@@ -109,8 +109,8 @@ namespace Tac::Render
       mClearValuePointer = &mClearValue;
     }
 
-    D3D12_CLEAR_VALUE mClearValue;
-    bool              mHasValue{};
+    D3D12_CLEAR_VALUE mClearValue {};
+    bool              mHasValue   {};
   };
 
   // -----------------------------------------------------------------------------------------------
