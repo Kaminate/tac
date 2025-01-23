@@ -22,8 +22,8 @@ namespace Tac
   struct ImGuiID
   {
     ImGuiID( HashValue value = 0 ) : mValue( value ) {}
-    bool IsValid() const { return mValue; }
-    operator HashValue() { return mValue; }
+    bool        IsValid() const { return mValue; }
+    operator    HashValue() { return mValue; }
     friend auto operator <=> ( const ImGuiID&, const ImGuiID& ) = default;
 
     HashValue mValue{};
@@ -86,9 +86,6 @@ namespace Tac
     kCount,
   };
 
-  ImGuiMouseCursor ImGuiGetMouseCursor();
-  const char* ImGuiGetColName( ImGuiCol );
-
   enum ImGuiNodeFlags
   {
     ImGuiNodeFlags_None        = 0,
@@ -101,8 +98,6 @@ namespace Tac
     kAlways,
     kFirstUse
   };
-
-  //TAC_ENUM_CLASS_BIT_OPS( ImGuiNodeFlags );
 
   struct UIStyle
   {
@@ -119,131 +114,109 @@ namespace Tac
     v4    colors[ ( int )ImGuiCol::Count ]  {};
   };
 
-  float     ImGuiGetFontSize();
-  const v2& ImGuiGetItemSpacing();
-  float     ImGuiGetButtonPadding();
-
   struct BeginFrameData
   {
     Timestamp    mElapsedSeconds;
     WindowHandle mMouseHoveredWindow;
   };
 
-  //struct ImGuiCreateWindowParams
-  //{
-  //  v2 mPos;
-  //  v2 mSize;
-  //};
-
-  //using ImGuiSetWindowPos = void( * )( WindowHandle, v2i );
-  //using ImGuiSetWindowSize = void( * )( WindowHandle, v2i );
-  //using ImGuiCreateWindow = WindowHandle( * )( const ImGuiCreateWindowParams& );
-  //using ImGuiDestroyWindow = void ( * )( WindowHandle );
-
   struct ImGuiInitParams
   {
     int                mMaxGpuFrameCount {};
     SettingsNode       mSettingsNode     {};
-    //ImGuiSetWindowPos  mSetWindowPos{};
-    //ImGuiSetWindowSize mSetWindowSize{};
-    //ImGuiCreateWindow  mCreateWindow{};
-    //ImGuiDestroyWindow mDestroyWindow{};
   };
 
-  //   ImGui System Functions
-  void ImGuiInit( const ImGuiInitParams&, Errors& );
-  void ImGuiUninit();
-  void ImGuiSaveWindowSettings( WindowHandle );
-  void ImGuiDebugDraw();
-  // called by the main thread
+  ImGuiMouseCursor ImGuiGetMouseCursor();
+  const char*      ImGuiGetColName( ImGuiCol );
+  float            ImGuiGetFontSize();
+  const v2&        ImGuiGetItemSpacing();
+  float            ImGuiGetButtonPadding();
 
-  //   ImGuiBegin functions
-  bool ImGuiBegin( const StringView& );
-  void ImGuiBeginMenuBar();
-  void ImGuiBeginChild( const StringView& name, const v2& size );
-  void ImGuiBeginGroup();
-  void ImGuiBeginFrame( const BeginFrameData& );
+  //               ImGui System Functions
+  void             ImGuiInit( const ImGuiInitParams&, Errors& );
+  void             ImGuiUninit();
+  void             ImGuiSaveWindowSettings( WindowHandle );
+  void             ImGuiDebugDraw();
 
-  //   ImGuiEnd functions
-  void ImGuiEnd();
-  void ImGuiEndMenuBar();
-  void ImGuiEndChild();
-  void ImGuiEndGroup();
-  void ImGuiEndFrame( Errors& );
+  //               ImGuiBegin functions
+  bool             ImGuiBegin( const StringView& );
+  void             ImGuiBeginMenuBar();
+  void             ImGuiBeginChild( const StringView& name, const v2& size );
+  void             ImGuiBeginGroup();
+  void             ImGuiBeginFrame( const BeginFrameData& );
 
-  void ImGuiPushFontSize( float );
-  void ImGuiPopFontSize();
+  //               ImGuiEnd functions
+  void             ImGuiEnd();
+  void             ImGuiEndMenuBar();
+  void             ImGuiEndChild();
+  void             ImGuiEndGroup();
+  void             ImGuiEndFrame( Errors& );
 
-  void ImGuiIndent();
-  void ImGuiUnindent();
+  void             ImGuiPushFontSize( float );
+  void             ImGuiPopFontSize();
 
-	WindowHandle ImGuiGetWindowHandle();
-	WindowHandle ImGuiGetWindowHandle( StringView );
-  ImGuiRect    ImGuiGetContentRect();
+  void             ImGuiIndent();
+  void             ImGuiUnindent();
 
-  //   ImGuiSetNextWindow...
-	void ImGuiSetNextWindowMoveResize();
-	void ImGuiSetNextWindowPosition( v2, ImGuiCondition = ImGuiCondition::kNone );
-	void ImGuiSetNextWindowStretch();
-	void ImGuiSetNextWindowHandle( const WindowHandle& );
-  void ImGuiSetNextWindowSize( v2, ImGuiCondition = ImGuiCondition::kNone );
-  void ImGuiSetNextWindowDisableBG();
+	WindowHandle     ImGuiGetWindowHandle();
+	WindowHandle     ImGuiGetWindowHandle( StringView );
+  ImGuiRect        ImGuiGetContentRect();
 
-  ImGuiID GetID( StringView );
-  void    PushID( StringView );
-  void    PopID();
+  //               ImGuiSetNextWindow...
+	void             ImGuiSetNextWindowMoveResize();
+	void             ImGuiSetNextWindowPosition( v2, ImGuiCondition = ImGuiCondition::kNone );
+	void             ImGuiSetNextWindowStretch();
+	void             ImGuiSetNextWindowHandle( const WindowHandle& );
+  void             ImGuiSetNextWindowSize( v2, ImGuiCondition = ImGuiCondition::kNone );
+  void             ImGuiSetNextWindowDisableBG();
 
-  //   ImGuiText
-  void ImGuiText( const StringView& );
-  bool ImGuiInputText( const StringView& label, String& text );
+  ImGuiID          GetID( StringView );
+  void             PushID( StringView );
+  void             PopID();
+
+  //               ImGuiText
+  void             ImGuiText( const StringView& );
+  bool             ImGuiInputText( const StringView& label, String& text );
 
 
-  //   ImGuiButton
-  bool ImGuiButton( const StringView&, v2 size = { 0, 0 } );
-  bool ImGuiInvisibleButton( const StringView&, v2 size = { 0, 0 } );
+  //               ImGuiButton
+  bool             ImGuiButton( const StringView&, v2 size = { 0, 0 } );
+  bool             ImGuiInvisibleButton( const StringView&, v2 size = { 0, 0 }             );
 
-  bool ImGuiSelectable( const StringView& , bool );
-  bool ImGuiCheckbox( const StringView& , bool* );
-  void ImGuiImage( int hTex, const v2& size, const v4& color = { 1, 1, 1, 1 } );
-  bool ImGuiCollapsingHeader( const StringView&, ImGuiNodeFlags = ImGuiNodeFlags_None );
-  void ImGuiSameLine();
+  bool             ImGuiSelectable( const StringView& , bool );
+  bool             ImGuiCheckbox( const StringView& , bool* );
+  void             ImGuiImage( int hTex, const v2& size, const v4& color = { 1, 1, 1, 1 } );
+  bool             ImGuiCollapsingHeader( const StringView&, ImGuiNodeFlags = ImGuiNodeFlags_None );
+  void             ImGuiSameLine();
 
-  //   ImGuiDragFloat
-  bool ImGuiDragFloat( const StringView&, float* );
-  bool ImGuiDragFloat2( const StringView&, float* );
-  bool ImGuiDragFloat3( const StringView&, float* );
-  bool ImGuiDragFloat4( const StringView&, float* );
+  //               ImGuiDragFloat
+  bool             ImGuiDragFloat( const StringView&, float* );
+  bool             ImGuiDragFloat2( const StringView&, float* );
+  bool             ImGuiDragFloat3( const StringView&, float* );
+  bool             ImGuiDragFloat4( const StringView&, float* );
+            
+  //               ImGuiDragInt
+  bool             ImGuiDragInt( const StringView&, int* );
+  bool             ImGuiDragInt2( const StringView&, int* );
+  bool             ImGuiDragInt3( const StringView&, int* );
+  bool             ImGuiDragInt4( const StringView&, int* );
 
-  //   ImGuiDragInt
-  bool ImGuiDragInt( const StringView&, int* );
-  bool ImGuiDragInt2( const StringView&, int* );
-  bool ImGuiDragInt3( const StringView&, int* );
-  bool ImGuiDragInt4( const StringView&, int* );
+  v2               ImGuiGetCursorPos();
+  void             ImGuiSetCursorPos( v2 local );
 
-  v2   ImGuiGetCursorPos();
-  void ImGuiSetCursorPos( v2 local );
+  UIStyle&         ImGuiGetStyle();
+  const v4&        ImGuiGetColor( ImGuiCol );
 
-  UIStyle&  ImGuiGetStyle();
-  const v4& ImGuiGetColor( ImGuiCol );
+  void             ImGuiSetColor( ImGuiCol, v4 );
+  void             ImGuiDefaultColors();
+  void             ImGuiDebugColors();
 
-  void      ImGuiSetColor( ImGuiCol, v4 );
-  void      ImGuiDefaultColors();
-  void      ImGuiDebugColors();
-
-  UI2DDrawData* ImGuiGetDrawData();
-  void ImGuiSetIsScrollbarEnabled( bool );
+  UI2DDrawData*    ImGuiGetDrawData();
+  void             ImGuiSetIsScrollbarEnabled( bool );
   
-
-  //struct ImGuiSimFrame;
-  //ImGuiSimFrame ImGuiGetSimFrame();
-
-  //void ImGuiPlatformRenderFrameBegin( ImGuiSimFrame*, Errors& );
-  //void ImGuiPlatformRender( ImGuiSimFrame*, Errors& );
-  //void ImGuiPlatformPresent( ImGuiSimFrame*, Errors& );
-
-  void ImGuiPlatformRenderFrameBegin( Errors& );
-  void ImGuiPlatformRender( Errors& );
-  void ImGuiPlatformPresent( Errors& );
+  void             ImGuiPlatformRenderFrameBegin( Errors& );
+  void             ImGuiPlatformRender( Errors& );
+  void             ImGuiPlatformPresent( Errors& );
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \
                                           TAC_ON_DESTRUCT( ImGuiUnindent() );

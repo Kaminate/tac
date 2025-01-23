@@ -521,6 +521,7 @@ void Tac::ImGuiSetNextWindowDisableBG()             { gNextWindow.mEnableBG = fa
 // [ ] Q: imgui.begin should always be followed by a imgui.end,
 //        regardless of the imgui.begin return value.
 //        why is that?
+//        ^ is this even true, i see several if(!imguibegin(...))return
 bool Tac::ImGuiBegin( const StringView& name )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };

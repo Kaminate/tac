@@ -1,5 +1,7 @@
 #pragma pack_matrix( row_major )
 
+/*
+
 struct Ray
 {
   float3 Origin;
@@ -414,6 +416,7 @@ Ray GetRay( float2 ImageUV)
 
 
 
+*/
 
 
 
@@ -445,6 +448,7 @@ void CSMain( uint3 id : SV_DispatchThreadID )
   
   // -----------------------------------------------------------------------------------------------
 
+  /*
   Ray ray = GetRay(uv);
 
   SceneIntersection Isect;
@@ -459,4 +463,5 @@ void CSMain( uint3 id : SV_DispatchThreadID )
                     ExtraData.Colour0 * (1 - Isect.U - Isect.V);
     sOutputTexture[id.xy] = Colour;
   }
+  */
 }

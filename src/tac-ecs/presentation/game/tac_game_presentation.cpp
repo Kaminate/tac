@@ -246,7 +246,7 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
 
 void Tac::GamePresentationDebugImGui( Graphics* graphics )
 {
-  if( !ImGuiCollapsingHeader( "Game Presentation" ) )
+  if( !ImGuiCollapsingHeader( "Game Presentation", ImGuiNodeFlags_DefaultOpen ) )
     return;
 
   TAC_IMGUI_INDENT_BLOCK;

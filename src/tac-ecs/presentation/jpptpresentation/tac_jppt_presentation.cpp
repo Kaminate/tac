@@ -1,6 +1,7 @@
 #include "tac_jppt_presentation.h" // self-inc
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-rhi/render3/tac_render_api.h"
@@ -20,13 +21,22 @@ namespace Tac
   static SceneBVH*            sSceneBvh;
   static SceneBVHDebug        sSceneBvhDebug;
   static bool                 sShouldCreateSceneBVH;
+  static bool                 sShouldRenderSceneBVHCPU;
+  static bool                 sShouldRenderSceneBVHGPU;
   static Errors               createBVHErrors;
   static bool                 sVisualizePositions;
   static bool                 sVisualizeNormals;
   static float                sVisualizeNormalLength{ 1.0f };
   static bool                 sVisualizeFrame;
   static int                  sVisualizeFrameIndex;
+  static const char*          sWindowName{ "JPPT" };
   static Errors               getMeshErrors;
+
+  static int                      sTextureW;
+  static int                      sTextureH;
+  static Render::TextureHandle    sTexture;
+  static Render::ProgramHandle    sProgram;
+  static Render::PipelineHandle   sPipeline;
 
   struct JPPTCamera
   {
@@ -217,6 +227,118 @@ namespace Tac
     }
   }
 
+  static void CreateTexture( Errors& errors )
+  {
+    const WindowHandle windowHandle{ ImGuiGetWindowHandle( sWindowName ) };
+    TAC_ASSERT( windowHandle.IsValid() );
+    const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyTexture( sTexture );
+
+    // kRGBA8_unorm_srgb cannot be used with typed uav
+    const Render::TexFmt fmt{ Render::TexFmt::kRGBA8_unorm };
+
+    sTextureW = windowSize.x;
+    sTextureH = windowSize.y;
+
+    const Render::Image image
+    {
+      .mWidth   { sTextureW },
+      .mHeight  { sTextureH },
+      .mDepth   { 1 },
+      .mFormat  { fmt },
+    };
+
+    const Render::Binding binding
+    {
+      Render::Binding::ShaderResource | // ImGuiImage input 
+      Render::Binding::UnorderedAccess // compute shader output 
+    };
+
+    const Render::CreateTextureParams createTextureParams
+    {
+      .mImage                  { image },
+      .mMipCount               { 1 },
+      .mBinding                { binding },
+      .mUsage                  { Render::Usage::Default },
+      .mCpuAccess              { Render::CPUAccess::None },
+      .mOptionalName           { "JPPT" }
+    };
+    TAC_CALL( sTexture = renderDevice->CreateTexture( createTextureParams, errors ) );
+  }
+
+  static void CreatePipeline( Errors& errors )
+  {
+    if( sPipeline.IsValid() )
+      return;
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams
+    {
+      .mInputs{ "jppt" },
+    };
+
+    TAC_CALL( sProgram = renderDevice->CreateProgram( programParams, errors ) );
+    const Render::PipelineParams pipelineParams
+    {
+      .mProgram{ sProgram },
+    };
+    TAC_CALL( sPipeline = renderDevice->CreatePipeline( pipelineParams, errors ) );
+
+    Render::IShaderVar* outputTexture {
+      renderDevice->GetShaderVariable( sPipeline, "sOutputTexture" ) };
+    outputTexture->SetResource( sTexture );
+  }
+
+  static void RenderSceneGPU( Errors& errors )
+  {
+    if( !sShouldRenderSceneBVHGPU )
+      return;
+    sShouldRenderSceneBVHGPU = false;
+    TAC_CALL( CreateTexture( errors ) );
+    TAC_CALL( CreatePipeline( errors ) );
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    //const Render::SwapChainHandle swapChain{ AppWindowApi::GetSwapChainHandle( windowHandle ) };
+    //const Render::TextureHandle swapChainColor{
+      //renderDevice->GetSwapChainCurrentColor( swapChain ) };
+    //const Render::TextureHandle swapChainDepth{
+    //  renderDevice->GetSwapChainDepth( swapChain ) };
+    TAC_CALL( Render::IContext::Scope renderContextScope{
+      renderDevice->CreateRenderContext( errors ) } );
+
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+    //const Render::Targets renderTargets
+    //{
+    //  .mColors { swapChainColor },
+    //  .mDepth  { swapChainDepth },
+    //};
+
+    //const float t{ ( float )Sin( renderParams.mTimestamp.mSeconds * 2.0 ) * 0.5f + 0.5f };
+
+    const v3i threadGroupCounts( RoundUpToNearestMultiple( sTextureW, 8 ),
+                                 RoundUpToNearestMultiple( sTextureH, 8 ),
+                                 1 );
+
+    //renderContext->SetRenderTargets( renderTargets );
+    //renderContext->ClearColor( swapChainColor, v4( t, 0, 1, 1 ) );
+
+    renderContext->SetPipeline( sPipeline );
+    renderContext->CommitShaderVariables();
+    renderContext->Dispatch( threadGroupCounts );
+    renderContext->SetSynchronous(); // imgui happens after
+
+    TAC_CALL( renderContext->Execute( errors ) );
+  }
+
+  static void RenderSceneCPU( Errors& errors )
+  {
+    if( !sShouldRenderSceneBVHCPU )
+      return;
+    sShouldRenderSceneBVHCPU = false;
+  }
+
   void             JPPTPresentation::Init( Errors& errors )
   {
     if( sInitialized )
@@ -259,6 +381,7 @@ namespace Tac
     if( !sEnabled )
       return;
 
+
     if( sShouldCreateSceneBVH )
     {
       TAC_DELETE sSceneBvh;
@@ -266,23 +389,50 @@ namespace Tac
       sShouldCreateSceneBVH = false;
     }
 
+    TAC_CALL( RenderSceneCPU( errors ) );
+    TAC_CALL( RenderSceneGPU( errors ) );
+
+
+
     Visualize( world );
     sSceneBvhDebug.DebugVisualizeSceneBVH( world->mDebug3DDrawData, sSceneBvh );
   }
 
   void             JPPTPresentation::DebugImGui()
   {
-    if( !ImGuiCollapsingHeader( "JPPT" ) )
-      return;
-    TAC_IMGUI_INDENT_BLOCK;
     ImGuiCheckbox( "JPPT Presentation Enabled", &sEnabled );
     if( !sEnabled )
       return;
 
-    if( ImGuiButton( "Create Scene BVH" ) )
+    ImGuiSetNextWindowDisableBG();
+    if( !ImGuiBegin( sWindowName ) )
+      return;
+
+    TAC_ON_DESTRUCT( ImGuiEnd() );
+
+    if( sTexture.IsValid() )
     {
-      sShouldCreateSceneBVH = true;
+      const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
+      const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+      const v2 cursorPos{ ImGuiGetCursorPos() };
+      ImGuiSetCursorPos( {} );
+      ImGuiImage( sTexture.GetIndex(), windowSize );
+      ImGuiSetCursorPos( cursorPos );
     }
+
+    if( sSceneBvh )
+    {
+      if( ImGuiButton( "Destroy Scene BVH" ) )
+      {
+        TAC_DELETE sSceneBvh;
+        sSceneBvh = nullptr;
+      }
+
+      sShouldRenderSceneBVHCPU |= ImGuiButton( "Render Scene (CPU)" );
+      sShouldRenderSceneBVHGPU |= ImGuiButton( "Render Scene (GPU)" );
+    }
+    else
+      sShouldCreateSceneBVH |= ImGuiButton( "Create Scene BVH" );
 
     sSceneBvhDebug.DebugImguiSceneBVH( sSceneBvh );
 

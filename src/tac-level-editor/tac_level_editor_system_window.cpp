@@ -44,7 +44,7 @@ namespace Tac
       return;
 
 
-    if( ImGuiCollapsingHeader( "Select System" ) )
+    if( ImGuiCollapsingHeader( "Select System", ImGuiNodeFlags_DefaultOpen ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       for( const SystemInfo& systemRegistryEntry : SystemInfo::Iterate() )
@@ -68,7 +68,7 @@ namespace Tac
       const ShortFixedString headerStr{
         ShortFixedString::Concat( sSystemInfo->mName, " Debug" ) };
 
-      if( ImGuiCollapsingHeader( headerStr ) )
+      if( ImGuiCollapsingHeader( headerStr, ImGuiNodeFlags_DefaultOpen ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
         System* system{ world->GetSystem( sSystemInfo ) };
