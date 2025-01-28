@@ -14,8 +14,12 @@
 #pragma warning( disable : 6308 )
 #endif
 
+// -------------------------------------------------------------------------------------------------
+
 #define CGLTF_IMPLEMENTATION
 #include "tac-engine-core/thirdparty/cgltf.h"
+
+// -------------------------------------------------------------------------------------------------
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -25,4 +29,12 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+
+// -------------------------------------------------------------------------------------------------
+
+#define TINYBVH_IMPLEMENTATION
+#define NO_DOUBLE_PRECISION_SUPPORT
+#include "tiny_bvh.h"
+
+// -------------------------------------------------------------------------------------------------
 

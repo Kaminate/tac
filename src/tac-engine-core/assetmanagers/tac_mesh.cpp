@@ -3,43 +3,28 @@
 
 namespace Tac
 {
-  static bool RaycastTriangle( const v3& p0,
-                               const v3& p1,
-                               const v3& p2,
-                               const v3& rayPos,
-                               const v3& normalizedRayDir,
-                               float & dist )
-  {
-    v3 edge2 { p2 - p0 };
-    v3 edge1{ p1 - p0 };
-    v3 b { rayPos - p0 };
-    v3 p { Cross( normalizedRayDir, edge2 ) };
-    v3 q { Cross( b, edge1 ) };
-    float pdotv1 { Dot( p, edge1 ) };
-    float t { Dot( q, edge2 ) / pdotv1 };
-    float u { Dot( p, b ) / pdotv1 };
-    float v { Dot( q, normalizedRayDir ) / pdotv1 };
-    if( t > 0 && u >= 0 && v >= 0 && u + v <= 1 )
-    {
-      dist = t;
-      return true;
-    }
-    return false;
-  }
 
   // -----------------------------------------------------------------------------------------------
 
   MeshRaycast::Result MeshRaycast::RaycastTri( Ray meshRay, const SubMeshTriangle& tri )
   {
-    float triDist{};
-    const bool triHit{ RaycastTriangle( tri[ 0 ],
-                                        tri[ 1 ],
-                                        tri[ 2 ],
-                                        meshRay.mPos,
-                                        meshRay.mDir,
-                                        triDist ) };
+    const RayTriangle::Ray rayTriangleRay
+    {
+      .mOrigin{ meshRay.mPos },
+      .mDirection{ meshRay.mDir },
+    };
 
-    return Result{ .mHit { triHit }, .mT{ triDist } };
+    const RayTriangle::Triangle rayTriangleTriangle
+    {
+      .mP0{ tri[ 0 ] },
+      .mP1{ tri[ 1 ] },
+      .mP2{ tri[ 2 ] },
+    };
+
+    const RayTriangle::Output rayTriangleOutput{
+      RayTriangle::Solve( rayTriangleRay, rayTriangleTriangle ) };
+
+    return Result{ .mHit{ rayTriangleOutput.mValid }, .mT{ rayTriangleOutput.mT } };
   }
 
   MeshRaycast::Result MeshRaycast::Raycast( Ray meshRay ) const

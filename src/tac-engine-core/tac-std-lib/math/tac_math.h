@@ -49,10 +49,10 @@ namespace Tac
   // Rounding
   // --------
   float                    Round( float );
-  constexpr int                      RoundUpToNearestMultiple( int numToRound, int multiple )
-{
-  return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
-}
+  constexpr int            RoundUpToNearestMultiple( int numToRound, int multiple )
+  {
+    return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
+  }
   float                    Floor( float );
   double                   Floor( double );
   v2                       Floor( const v2& );
@@ -102,6 +102,24 @@ namespace Tac
                                       const v3& spherePos,
                                       float sphereRadius );
   v3                       ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p );
+
+  struct RayTriangle
+  {
+    struct Ray{ v3 mOrigin; v3 mDirection; };
+    struct Triangle{ v3 mP0; v3 mP1; v3 mP2; };
+
+    struct Output
+    {
+      v3 GetIntersectionPoint( const Triangle& ) const;
+
+      float mT     {};
+      float mU     {};
+      float mV     {};
+      bool  mValid {};
+    };
+
+    static Output Solve( const Ray&, const Triangle& );
+  };
 
   struct ClosestPointLineSegments
   {

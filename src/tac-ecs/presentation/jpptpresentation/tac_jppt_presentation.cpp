@@ -393,7 +393,17 @@ FN_DECL ray GetRay(vec2 ImageUV)
 
           const TLAS& tlas{ sSceneBvh->mTLAS };
 
+          const BVHRay bvhRay_worldspace
+          {
+            .mOrigin    { camera->mPos },
+            .mDirection { pointOnFilm_worldspace - camera->mPos },
+          };
+
+          const SceneIntersection sceneIntersection{
+            sSceneBvh->IntersectTLAS( bvhRay_worldspace ) };
+
           mPixels[ iPixel ] = PixelRGBA8Unorm::SetColor4( v4( u, v, 0, 1 ) );
+          mPixels[ iPixel ].r += ( u8 )( ( sceneIntersection.mDistance / 100.0f ) * 255.0f );
         }
       }
     }

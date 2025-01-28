@@ -13,10 +13,10 @@ namespace Tac
     m4    Proj( float aspectRatio ) const;
     m4    ProjInv( float aspectRatio ) const;
 
-    v3    mPos       { 0,0,5 };
-    v3    mForwards  { 0,0,-1};
-    v3    mRight     { 1,0,0 };
-    v3    mUp        { 0,1,0 };
+    v3    mPos       { 0,0,5 }; // worldspace
+    v3    mForwards  { 0,0,-1}; // worldspace
+    v3    mRight     { 1,0,0 }; // worldspace
+    v3    mUp        { 0,1,0 }; // worldspace
     float mFarPlane  { 10000.0f };
     float mNearPlane { 0.1f };
 

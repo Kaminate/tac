@@ -30,11 +30,57 @@ namespace Tac
     mMax = Max( mMax, p );
   }
 
+
+  // -----------------------------------------------------------------------------------------------
+
+  bool TLASNode::IsLeaf() const { return !mLeftRight; }
+  u32 TLASNode::GetLChild() const
+  {
+    TAC_ASSERT( !IsLeaf() );
+    return 0x1111 & ( mLeftRight >> 16 );
+  }
+
+  u32 TLASNode::GetRChild() const
+  {
+    TAC_ASSERT( !IsLeaf() );
+    return 0x1111 & mLeftRight;
+  }
+
+  static float RayAABBIntersection( const BVHRay Ray, const AABB32 aabb )
+  {
+    v3 AABBMin{ aabb.mMin };
+    v3 AABBMax{ aabb.mMax };
+    float tx1 = ( AABBMin.x - Ray.mOrigin.x ) * Ray.mDirectionInv.x;
+    float tx2 = ( AABBMax.x - Ray.mOrigin.x ) * Ray.mDirectionInv.x;
+    float tmin = Min( tx1, tx2 );
+    float tmax = Max( tx1, tx2 );
+    float ty1 = ( AABBMin.y - Ray.mOrigin.y ) * Ray.mDirectionInv.y;
+    float ty2 = ( AABBMax.y - Ray.mOrigin.y ) * Ray.mDirectionInv.y;
+    tmin = Max( tmin, Min( ty1, ty2 ) );
+    tmax = Min( tmax, Max( ty1, ty2 ) );
+    float tz1 = ( AABBMin.z - Ray.mOrigin.z ) * Ray.mDirectionInv.z;
+    float tz2 = ( AABBMax.z - Ray.mOrigin.z ) * Ray.mDirectionInv.z;
+    tmin = Max( tmin, Min( tz1, tz2 ) );
+    tmax = Min( tmax, Max( tz1, tz2 ) );
+    return ( ( tmax <= 0 ) || ( tmax < tmin ) ) ? inf : tmin;
+  }
   // -----------------------------------------------------------------------------------------------
 
   bool BVHNode::IsLeaf() const
   {
     return mTriangleCount;
+  }
+
+  u32 BVHNode::GetLChild() const
+  {
+    TAC_ASSERT( !IsLeaf() );
+    return mLeftChild;
+  }
+
+  u32 BVHNode::GetRChild() const
+  {
+    TAC_ASSERT( !IsLeaf() );
+    return mLeftChild + 1;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -344,15 +390,15 @@ namespace Tac
 
   void BVHInstance::SetTransform( const m4& transform,
                                   const m4& transformInv,
-                                  const AABB32 aabb)
+                                  const AABB32 aabb_modelspace)
   {
     mTransform = transform;
     mInverseTransform = transformInv;
     mNormalTransform = m4::Transpose( transformInv );
     mBounds = {};
 
-    const v3 mini{ aabb.mMin};
-    const v3 maxi{ aabb.mMax };
+    const v3 mini{ aabb_modelspace.mMin};
+    const v3 maxi{ aabb_modelspace.mMax };
     for( int i{}; i < 8; ++i )
     {
       const v3 p{ ( transform * v4( i & 1 ? maxi.x : mini.x,
@@ -463,7 +509,7 @@ namespace Tac
     SceneBVH* sceneBVH{ TAC_NEW SceneBVH };
 
     Vector< const Model* > models;
-    for( Entity* entity : world->mEntities )
+    for( const Entity* entity : world->mEntities )
       if( const Model * model{ Model::GetModel( entity ) } )
         models.push_back( model );
 
@@ -471,34 +517,33 @@ namespace Tac
     sceneBVH->mMeshes.resize( nModels );
     for( int iModel{}; iModel < nModels; ++iModel )
     {
-      BVHMesh& bvhMesh{ sceneBVH->mMeshes[ iModel ] };
+      const int iBVHMesh{ iModel };
+      BVHMesh& bvhMesh{ sceneBVH->mMeshes[ iBVHMesh ] };
       const Model* model{ models[ iModel ] };
       bvhMesh.SetShape( model );
       bvhMesh.mBVH.mMesh = &bvhMesh;
       bvhMesh.mBVH.Build();
+
+      dynmc bool worldTransformInvExists{};
+      const m4 worldTransform{ model->mEntity->mWorldTransform };
+      const m4 worldTransformInv{ m4::Inverse( worldTransform, &worldTransformInvExists ) };
+      TAC_ASSERT( worldTransformInvExists );
+
+      const AABB32 bounds_modelspace{ bvhMesh.mBVH.mBVHNodes[ 0 ].mAABB };
+
+      BVHInstance bvhInstance;
+      bvhInstance.SetTransform( worldTransform, worldTransformInv, bounds_modelspace );
+      bvhInstance.mMeshIndex = ( u32 )iBVHMesh;
+      bvhInstance.mIndex = ( u32 )sceneBVH->mInstances.size();
+
+      sceneBVH->mInstances.push_back( bvhInstance );
     }
-    
+
+    sceneBVH->mTLAS.mBLAS = Span< BVHInstance >( sceneBVH->mInstances.data(),
+                                                 sceneBVH->mInstances.size() );
+    sceneBVH->mTLAS.Build();
+
     /*
-    //Build the array of instances
-    const int nInstances{Scene->mInstances.size()};
-    Result->mInstances.resize( nInstances );
-    for( int i = 0; i < nInstances; i++ )
-    {
-      const Instance& instance{ Scene->mInstances[ i ] };
-      const m4 transform{ instance.GetModelMatrix() };
-      const m4 transformInv{ instance.GetModelMatrixInv() };
-      const AABB32 aabb{ Result->mMeshes[ instance.mShape ].mBVH.mBVHNodes[ 0 ].mAABB };
-
-      BVHInstance& bvhInstance{Result->mInstances[ i ]};
-      bvhInstance.mMeshIndex = instance.mShape;
-      bvhInstance.mIndex = i;
-      bvhInstance.SetTransform( transform, transformInv, aabb );
-    }
-
-    // Build the top level data structure
-    Result->mTLAS.mBLAS = Span<BVHInstance>( Result->mInstances.data(),
-                                             Result->mInstances.size() );
-    Result->mTLAS.Build();
 
     //Build big buffers with all the shape datas inside
     int TotalTriangleCount = 0;
@@ -643,6 +688,134 @@ namespace Tac
     TAC_CALL( CreateTLASNodeBuffer(errors));
   }
 
+  void                 SceneBVH::IntersectBLAS( BVHRay ray_worldspace,
+                                                u32 iInstance,
+                                                SceneIntersection* result ) const
+  {
+    const BVHInstance& bvhInstance{ mInstances[ iInstance ] };
+
+
+    const v3 origin_modelspace{
+      ( bvhInstance.mInverseTransform * v4( ray_worldspace.mOrigin, 1 ) ).xyz() };
+    const v3 direction_modelspace{
+      ( bvhInstance.mInverseTransform * v4( ray_worldspace.mDirection, 0 ) ).xyz() };
+    const v3 directionInv_modelspace{ 1 / direction_modelspace.x,
+                                      1 / direction_modelspace.y,
+                                      1 / direction_modelspace.z };
+
+    const BVHRay ray_modelspace
+    {
+      .mOrigin       { origin_modelspace },
+      .mDirection    { direction_modelspace },
+      .mDirectionInv { directionInv_modelspace },
+    };
+
+    const BVHMesh& bvhMesh{ mMeshes[ bvhInstance.mMeshIndex ] };
+    const BVH& bvh{ bvhMesh.mBVH };
+
+    FixedVector< u32, 64 > bvhNodeIndexes;
+
+    bvhNodeIndexes.push_back( 0 );
+    while( !bvhNodeIndexes.empty() )
+    {
+      const u32 bvhNodeIndex{ bvhNodeIndexes.back() };
+      bvhNodeIndexes.pop_back();
+
+      const BVHNode& bvhNode{ bvh.mBVHNodes[ bvhNodeIndex ] };
+
+      const float dist { RayAABBIntersection( ray_modelspace, bvhNode.mAABB ) };
+      if( dist >= result->mDistance )
+        continue;
+
+      if( bvhNode.IsLeaf() )
+      {
+        for( u32 iiTri{ bvhNode.mFirstTriangleIndex };
+             iiTri < bvhNode.mFirstTriangleIndex + bvhNode.mTriangleCount;
+             iiTri++ )
+        {
+          const u32 iTri{ bvh.mTriangleIndices[ iiTri ] };
+          const BVHTriangle& tri{ bvhMesh.mTriangles[ iTri ] };
+
+          const RayTriangle::Ray isectRay
+          {
+            .mOrigin    { ray_modelspace.mOrigin },
+            .mDirection { ray_modelspace.mDirection },
+          };
+
+          const RayTriangle::Triangle isectTri
+          {
+            .mP0{ tri.mV0 },
+            .mP1{ tri.mV1 },
+            .mP2{ tri.mV2 },
+          };
+
+          const RayTriangle::Output isectOut{ RayTriangle::Solve( isectRay, isectTri ) };
+          if( isectOut.mValid && isectOut.mT < result->mDistance )
+          {
+
+            *result = SceneIntersection
+            {
+              .mDistance       { isectOut.mT },
+              .mInstanceIndex  { iInstance },
+              .mPrimitiveIndex { iTri },
+              .mU              { isectOut.mU },
+              .mV              { isectOut.mV },
+            };
+          }
+        }
+      }
+      else
+      {
+        bvhNodeIndexes.push_back( bvhNode.GetLChild() );
+        bvhNodeIndexes.push_back( bvhNode.GetRChild() );
+      }
+    }
+    bvhMesh.mBVH;
+  }
+
+  SceneIntersection    SceneBVH::IntersectTLAS( BVHRay ray_worldspace ) const
+  {
+    if( !mTLAS.mNodesUsed )
+      return {};
+    const v3 unitDir{ Normalize( ray_worldspace.mDirection ) };
+    const v3 unitDirInv{ 1 / unitDir.x, 1 / unitDir.y, 1 / unitDir.z };
+
+    SceneIntersection result;
+    
+    FixedVector< u32, 64 > iTLASNodes{ 0 };
+    while( !iTLASNodes.empty() )
+    {
+      const u32 iTLASNode{ iTLASNodes.back() };
+      iTLASNodes.pop_back();
+
+      const TLASNode& tlasNode{ mTLAS.mNodes[ iTLASNode ] };
+
+      const AABB32 tlasNodeAABB_worldspace
+      {
+        .mMin{ tlasNode.mAABBMin },
+        .mMax{ tlasNode.mAABBMax },
+      };
+
+      const float dist{ RayAABBIntersection( ray_worldspace, tlasNodeAABB_worldspace ) };
+      if( dist >= result.mDistance )
+        continue;
+
+      if( tlasNode.IsLeaf() )
+      {
+        IntersectBLAS( ray_worldspace,  tlasNode.mBLAS, &result );
+      }
+      else
+      {
+        const u32 iLChild{ tlasNode.GetLChild() };
+        const u32 iRChild{ tlasNode.GetRChild() };
+        iTLASNodes.push_back( iLChild );
+        iTLASNodes.push_back( iRChild );
+      }
+    }
+
+    return result;
+  }
+
   Render::BufferHandle SceneBVH::CreateBuffer( int numElements,
                                                const void* bytes,
                                                int stride,
@@ -704,8 +877,8 @@ namespace Tac
       }
       else
       {
-        const BVHNode* lChild{ &bvhMesh->mBVH.mBVHNodes[ node->mLeftChild ] };
-        const BVHNode* rChild{ &bvhMesh->mBVH.mBVHNodes[ node->mLeftChild + 1 ] };
+        const BVHNode* lChild{ &bvhMesh->mBVH.mBVHNodes[ node->GetLChild() ] };
+        const BVHNode* rChild{ &bvhMesh->mBVH.mBVHNodes[ node->GetRChild() ] };
         nodes.push_back( lChild );
         nodes.push_back( rChild );
       }
@@ -828,10 +1001,10 @@ namespace Tac
     const BVHNode& bvhNode{ *pbvhNode };
     if( !bvhNode.IsLeaf() )
     {
-      if( ImGuiButton( "Select L child: " + ToString( bvhNode.mLeftChild ) ) )
-        iSelectedBVHNode = ( int )bvhNode.mLeftChild;
-      if( ImGuiButton( "Select R child: " + ToString( bvhNode.mLeftChild + 1 ) ) )
-        iSelectedBVHNode = ( int )( bvhNode.mLeftChild + 1 );
+      if( ImGuiButton( "Select L child: " + ToString( bvhNode.GetLChild() ) ) )
+        iSelectedBVHNode = ( int )bvhNode.GetLChild();
+      if( ImGuiButton( "Select R child: " + ToString( bvhNode.GetRChild() ) ) )
+        iSelectedBVHNode = ( int )( bvhNode.GetRChild() );
     }
   }
 

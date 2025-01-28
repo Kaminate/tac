@@ -91,8 +91,10 @@ namespace Tac
   struct BVHNode
   {
     bool IsLeaf() const;
+    u32 GetLChild() const;
+    u32 GetRChild() const;
 
-    AABB32 mAABB;
+    AABB32 mAABB; // modelspace?
     union
     {
       u32  mLeftChild; // index into BVH::mBVHNodes
@@ -138,9 +140,11 @@ namespace Tac
 
   struct TLASNode
   {
-    bool IsLeaf() const { return !mLeftRight; }
+    bool IsLeaf() const;
+    u32 GetLChild() const;
+    u32 GetRChild() const;
 
-    v3  mAABBMin;
+    v3  mAABBMin; // worldspace?
 
     // this is (left + right << 16)
     // could maybe instead use u16 left, u16 right?
@@ -164,12 +168,12 @@ namespace Tac
     // why sends a vector*? why not const?
     void SetTransform( const m4& transform,
                        const m4& transformInv,
-                       AABB32 );
+                       AABB32 bounds_modelspace);
 
     m4     mInverseTransform {};
     m4     mTransform        {};
-    m4     mNormalTransform  {}; // ???
-    AABB32 mBounds           {};
+    m4     mNormalTransform  {}; // ??? unused?
+    AABB32 mBounds           {}; // worldspace
     u32    mMeshIndex        {}; // ??? used by the shader, indexes into SceneBVH::mIndexDataBuffer 
     u32    mIndex            {}; // ??? index into SceneBVH::mInstances;
     TAC_PAD_BYTES( 8 )       {};
@@ -200,12 +204,35 @@ namespace Tac
     u32 mTriangleCount;
   };
 
+  struct SceneIntersection
+  {
+    bool  IsValid() const { return mDistance < inf; }
+
+    float mDistance       { inf };
+    u32   mInstanceIndex  {};
+    u32   mPrimitiveIndex {};
+    float mU              {};
+    float mV              {};
+  };
+
+  struct BVHRay
+  {
+    v3 mOrigin;
+    v3 mDirection;
+    v3 mDirectionInv;
+  };
+
   struct SceneBVH
   {
     void                        CreateBuffers( Errors& );
+    SceneIntersection           IntersectTLAS( BVHRay ray_worldspace ) const;
+    void                        IntersectBLAS( BVHRay ray_worldspace,
+                                               u32 iInstance,
+                                               SceneIntersection* ) const;
 
     static SceneBVH*            CreateBVH( const World*, Errors& );
     static Render::BufferHandle CreateBuffer( int, const void*, int, const char*, Errors& );
+
 
 
     // ----------------------------------------------------------------------------------------

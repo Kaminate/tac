@@ -401,5 +401,46 @@ namespace Tac
       .mRay1T { e },
     };
   }
+
+  v3 RayTriangle::Output::GetIntersectionPoint( const Triangle& tri ) const
+  {
+    const v3& A{ tri.mP0 };
+    const v3& B{ tri.mP1 };
+    const v3& C{ tri.mP2 };
+    const float u { mU };
+    const float v { mV };
+    const float w { 1.0f - u - v };
+    return A * w + B * u + C * v;
+  }
+
+  RayTriangle::Output RayTriangle::Solve( const Ray& ray, const Triangle& triangle )
+  {
+    // Moller-Trumbore algorithm - "Fast, Minimum Storage Ray/Triangle Intersection" (1977)
+    const v3& p0{ triangle.mP0 };
+    const v3& p1{ triangle.mP1 };
+    const v3& p2{ triangle.mP2 };
+    const v3& rayPos{ ray.mOrigin };
+    const v3& rayDir{ ray.mDirection };
+
+    const v3 edge2{ p2 - p0 };
+    const v3 edge1{ p1 - p0 };
+    const v3 b{ rayPos - p0 };
+    const v3 p{ Cross( rayDir, edge2 ) };
+    const v3 q{ Cross( b, edge1 ) };
+    const float pdotv1{ Dot( p, edge1 ) };
+    const float t{ Dot( q, edge2 ) / pdotv1 };
+    const float u{ Dot( p, b ) / pdotv1 };
+    const float v{ Dot( q, rayDir ) / pdotv1 };
+    if( t < 0 || u < 0 || v < 0 || u + v > 1 )
+      return {};
+
+    return RayTriangle::Output
+    {
+      .mT{ t },
+      .mU{ u },
+      .mV{ v },
+      .mValid{ true },
+    };
+  }
 } // namespace Tac
 
