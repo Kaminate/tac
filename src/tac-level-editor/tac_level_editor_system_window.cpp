@@ -20,6 +20,7 @@ namespace Tac
   static const SystemInfo*          sSystemInfo{};
   static const char*                nSysPath{ "SystemWindow.nSys" };
   static bool                       sInitialized;
+  static const StringView           sDefaultSystem{ "Graphics" };
 
   static void Initialize( SettingsNode mSettingsNode )
   {
@@ -49,7 +50,8 @@ namespace Tac
       TAC_IMGUI_INDENT_BLOCK;
       for( const SystemInfo& systemRegistryEntry : SystemInfo::Iterate() )
       {
-        if( ImGuiButton( systemRegistryEntry.mName ) )
+        if( ImGuiButton( systemRegistryEntry.mName )
+            || ( !sSystemInfo && ( StringView )systemRegistryEntry.mName == sDefaultSystem ) )
         {
           sSystemInfo = &systemRegistryEntry;
           mSettingsNode.GetChild( nSysPath ).SetValue( systemRegistryEntry.mName );

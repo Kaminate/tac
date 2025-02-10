@@ -1,16 +1,12 @@
 #pragma once
 
 #include "tac-std-lib/tac_ints.h"
+#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-win32/event/tac_win32_event.h" // Win32Event
 #include "tac_dx12_fence.h"
 
 #include <d3d12.h> // ID3D12...
-
-namespace Tac
-{
-  struct Errors;
-}
 
 namespace Tac::Render
 {
@@ -49,6 +45,7 @@ namespace Tac::Render
     // set on fence completion, then immediately waited on
     Win32Event                         m_fenceEvent;
 
+    //                                 Maybe rename to last known completed fence value
     UINT64                             mLastCompletedFenceValue {};
     UINT64                             mNextFenceValue          { 1 };
 
@@ -70,4 +67,4 @@ namespace Tac::Render
     // tldr: A command queue can submit command lists
     PCom< ID3D12CommandQueue >         m_commandQueue;
   };
-}
+} // namespace Tac::Render

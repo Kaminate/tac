@@ -48,6 +48,7 @@ namespace Tac
 
   static float RayAABBIntersection( const BVHRay Ray, const AABB32 aabb )
   {
+    TAC_ASSERT(Ray.mDirectionInv != v3{} );
     v3 AABBMin{ aabb.mMin };
     v3 AABBMax{ aabb.mMax };
     float tx1 = ( AABBMin.x - Ray.mOrigin.x ) * Ray.mDirectionInv.x;
@@ -419,9 +420,9 @@ namespace Tac
     //
     // Initially populated by leaf nodes
     // As parents are created, two nodes become 1 node
-    Vector<int> NodeIndex( mBLAS.size() );
+    Vector< int > NodeIndex( mBLAS.size() );
 
-    int NodeIndices = ( int )mBLAS.size();
+    int NodeIndices { ( int )mBLAS.size() };
     mNodesUsed = 1;
 
     // mNodes[ 0 ] is reserved for the root node.
@@ -429,7 +430,7 @@ namespace Tac
     //
     // the next mNodes[1] to mNodes[1+ mBlas.size()] nodes map to mBlas
 
-    for( u32 i = 0; i < ( u32 )mBLAS.size(); i++ )
+    for( u32 i {}; i < ( u32 )mBLAS.size(); i++ )
     {
       NodeIndex[ i ] = mNodesUsed;
       mNodes[ mNodesUsed ].mAABBMin = mBLAS[ i ].mBounds.mMin;
@@ -777,8 +778,11 @@ namespace Tac
   {
     if( !mTLAS.mNodesUsed )
       return {};
+
     const v3 unitDir{ Normalize( ray_worldspace.mDirection ) };
-    const v3 unitDirInv{ 1 / unitDir.x, 1 / unitDir.y, 1 / unitDir.z };
+    const v3 dirInv{ 1 / unitDir.x, 1 / unitDir.y, 1 / unitDir.z }; // not a 
+    ray_worldspace.mDirection = unitDir;
+    ray_worldspace.mDirectionInv = dirInv;
 
     SceneIntersection result;
     

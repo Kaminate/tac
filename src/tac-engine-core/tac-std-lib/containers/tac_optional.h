@@ -10,6 +10,7 @@ namespace Tac
   {
     Optional() = default;
     Optional( T t )                     : mT( t ), mExist( true ) {}
+    // this should maybe return a constref
     T    GetValue() const               { TAC_ASSERT( mExist ); return mT; }
     T    GetValueOr( T t ) const        { return mExist ? mT : t; }
     bool HasValue() const               { return mExist; }

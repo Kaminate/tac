@@ -63,11 +63,6 @@ namespace Tac::Render
     TAC_DX12_CALL( m_fence->SetEventOnCompletion( val, ( HANDLE )m_fenceEvent ) );
     WaitForSingleObject( ( HANDLE )m_fenceEvent, INFINITE );
     mLastCompletedFenceValue = val;
-
-
-    // I think these 2 lines can be deleted
-    const UINT64 completedValue { m_fence->GetCompletedValue() };
-    TAC_ASSERT( mLastCompletedFenceValue >= completedValue ); // not just ==, > can happen
   }
 
   //void DX12CommandQueue::UpdateLastCompletedFenceValue(u64 val)
