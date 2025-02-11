@@ -45,4 +45,4 @@ namespace Tac
   TimestampDifference Timestep::GetAccumulatedTime() { return sAccumulator; }
   Timepoint           Timestep::GetLastTick()        { return sTimer.GetLastTick(); }
 
-}
+} // namespace Tac

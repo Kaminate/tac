@@ -3,6 +3,7 @@
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
 #include "tac-dx/dxgi/tac_dxgi.h" // DXGICreateSwapChain
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -28,6 +29,15 @@ namespace Tac::Render
       .mRenderFrameIndex { currentRenderFrameIndex },
     };
     mEntries.push( entry );
+
+    if( mVerbose )
+    {
+      LogApi::LogMessagePrintLine(
+        String()
+        + "Render frame " + ToString( currentRenderFrameIndex ) + ", "
+        + "Queuing " + HandleTypeToString( h.GetHandleType() )
+        + " #" + ToString( h.GetIndex() ) + " for deletion" );
+    }
   }
 
   void DeletionQueue::Update()
@@ -49,10 +59,25 @@ namespace Tac::Render
         break;
 
       const Entry& entry{ mEntries.front() };
-      if( entry.mRenderFrameIndex + maxGPUFrameCount < currentRenderFrameIndex )
+      const u64 deleteRenderFrameIndex { entry.mRenderFrameIndex + maxGPUFrameCount };
+
+      const FrameIndex simulationFrameIndex { Timestep::GetElapsedFrames() };
+      const bool canDelete{ currentRenderFrameIndex > deleteRenderFrameIndex &&
+       simulationFrameIndex > entry.mSimulationFrameIndex
+      };
+      if( !canDelete )
         break;
 
       const HandleType handleType{ entry.mResourceHandle.GetHandleType() };
+
+      if( mVerbose )
+      {
+        LogApi::LogMessagePrintLine(
+          String()
+          + "Render frame " + ToString( currentRenderFrameIndex ) + ", "
+          + "deleting " + HandleTypeToString( handleType )
+          + " #" + ToString( entry.mResourceHandle.GetIndex() ) );
+      }
 
       switch( handleType )
       {
@@ -119,6 +144,7 @@ namespace Tac::Render
 
   void DX12Renderer::Init( Errors& errors )
   {
+    mDeletionQueue.mVerbose = kIsDebugMode && true;
     TAC_CALL( DXGIInit( errors ) );
     TAC_CALL( mDebugLayer.Init( errors ) );
     TAC_CALL( mDeviceInitializer.Init( mDebugLayer, errors ) );

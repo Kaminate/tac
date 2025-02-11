@@ -4,6 +4,7 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_fifo_queue.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-dx/dx12/buffer/tac_dx12_buffer_mgr.h"
@@ -39,10 +40,13 @@ namespace Tac::Render
     struct Entry
     {
       ResourceHandle mResourceHandle;
-      u64            mRenderFrameIndex;
+      u64            mRenderFrameIndex     { RenderApi::GetCurrentRenderFrameIndex() };
+      FrameIndex     mSimulationFrameIndex { Timestep::GetElapsedFrames() };
     };
 
     FifoQueue< Entry > mEntries;
+  public:
+    bool               mVerbose {};
   };
 
   struct FrameBufferer
