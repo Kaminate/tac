@@ -4,6 +4,7 @@
 #include "tac-std-lib/tac_ints.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
@@ -21,11 +22,12 @@ namespace Tac
     float Area() const;
     void  Grow( const AABB32& );
     void  Grow( v3 );
+    v3    Center() const { return ( mMin + mMax ) / 2; }
 
-    v3    mMin{ inf };
-    TAC_PAD_BYTES( 4 );
-    v3    mMax{ -inf };
-    TAC_PAD_BYTES( 4 );
+    v3    mMin         { inf };
+    TAC_PAD_BYTES( 4 ) {};
+    v3    mMax         { -inf };
+    TAC_PAD_BYTES( 4 ) {};
   };
 
   static_assert( sizeof( AABB32 ) == 32 );
@@ -59,31 +61,45 @@ namespace Tac
 
   struct BVHTriangle
   {
-    v3    mV0       {};
-    TAC_PAD_BYTES( 4 );
-    v3    mV1       {};
-    TAC_PAD_BYTES( 4 );
-    v3    mV2       {};
-    TAC_PAD_BYTES( 4 );
-    v3    mCentroid {};
-    TAC_PAD_BYTES( 4 );
+    v3    mV0          {};
+    TAC_PAD_BYTES( 4 ) {};
+    v3    mV1          {};
+    TAC_PAD_BYTES( 4 ) {};
+    v3    mV2          {};
+    TAC_PAD_BYTES( 4 ) {};
+    v3    mCentroid    {};
+    TAC_PAD_BYTES( 4 ) {};
+
+    struct Index32{ u32 mIndex{}; };
   };
 
   static_assert_gpu_padded( BVHTriangle );
 
+  struct BVHTriangles : public Vector< BVHTriangle >
+  {
+    dynmc BVHTriangle& GetTriangle( BVHTriangle::Index32 i ) dynmc { return (*this)[ i.mIndex ]; }
+    const BVHTriangle& GetTriangle( BVHTriangle::Index32 i ) const { return (*this)[ i.mIndex ]; }
+  };
+
   struct VertexExtraData
   {
-    v3    mNormal  {};
-    TAC_PAD_BYTES( 4 );
-    v2    mUV      {};
-    TAC_PAD_BYTES( 8 );
-    v4    mColor   {};
-    v4    mTangent {};
+    v3    mNormal      {};
+    TAC_PAD_BYTES( 4 ) {};
+    v2    mUV          {};
+    TAC_PAD_BYTES( 8 ) {};
+    v4    mColor       {};
+    v4    mTangent     {};
   };
 
   struct BVHTriangleExtraData
   {
     VertexExtraData mVertexExtraDatas[ 3 ] {};
+  };
+
+  struct BVHTriangleExtraDatas : Vector< BVHTriangleExtraData >
+  {
+    dynmc BVHTriangleExtraData& GetTriangleExtraData( BVHTriangle::Index32 i ) dynmc { return (*this)[ i.mIndex ]; }
+    const BVHTriangleExtraData& GetTriangleExtraData( BVHTriangle::Index32 i ) const { return (*this)[ i.mIndex ]; }
   };
 
   static_assert_gpu_padded( BVHTriangleExtraData );
@@ -134,8 +150,16 @@ namespace Tac
     void SetShape( const Model* );
 
     BVH                            mBVH                {};
-    Vector< BVHTriangle >          mTriangles          {};
-    Vector< BVHTriangleExtraData > mTrianglesExtraData {};
+    BVHTriangles                   mTriangles          {};
+    BVHTriangleExtraDatas          mTrianglesExtraData {};
+  };
+
+  struct BVHMeshes : public Vector< BVHMesh >
+  {
+    struct Index32 { u32 mIndex{}; };
+
+    dynmc BVHMesh& GetMesh( Index32 i ) dynmc { return ( *this )[ i.mIndex ]; }
+    const BVHMesh& GetMesh( Index32 i ) const { return ( *this )[ i.mIndex ]; }
   };
 
   struct TLASNode
@@ -143,6 +167,7 @@ namespace Tac
     bool IsLeaf() const;
     u32 GetLChild() const;
     u32 GetRChild() const;
+    AABB32 GetAABB() const;
 
     v3  mAABBMin; // worldspace?
 
@@ -150,12 +175,12 @@ namespace Tac
     // could maybe instead use u16 left, u16 right?
     // https://github.com/microsoft/DirectXShaderCompiler/wiki/16-Bit-Scalar-Types
     //   supported since Shader Model 6.2  
-    u32 mLeftRight;
+    u32 mLeftRight{};
     v3  mAABBMax;
 
     // an index into SceneBVH::mTLASInstancesBuffer, which is basically
     // Vector<BVHInstance> SceneBVH::mInstances
-    u32 mBLAS;
+    u32 mBLAS{};
   };
 
   static_assert_gpu_padded( TLASNode );
@@ -170,20 +195,32 @@ namespace Tac
                        const m4& transformInv,
                        AABB32 bounds_modelspace);
 
-    m4     mInverseTransform {};
-    m4     mTransform        {};
-    m4     mNormalTransform  {}; // ??? unused?
-    AABB32 mBounds           {}; // worldspace
-    u32    mMeshIndex        {}; // ??? used by the shader, indexes into SceneBVH::mIndexDataBuffer 
-    u32    mIndex            {}; // ??? index into SceneBVH::mInstances;
-    TAC_PAD_BYTES( 8 )       {};
+    m4                 mInverseTransform {};
+    m4                 mTransform        {};
+    m4                 mNormalTransform  {}; // ??? unused?
+    AABB32             mBounds           {}; // worldspace
+    BVHMeshes::Index32 mMeshIndex        {};
+    u32                mIndex            {}; // ??? index into SceneBVH::mInstances;
+    //TAC_PAD_BYTES( 8 )                   {};
+    Material* mMaterial{};
   };
 
-  static_assert_gpu_padded( BVHInstance );
+  //static_assert_gpu_padded( BVHInstance );
+
+  struct BVHInstances : public Vector< BVHInstance >
+  {
+    struct Index32{ u32 mIndex{}; };
+
+    const BVHInstance& GetInstance( Index32 i ) const { return ( *this )[ i.mIndex ]; }
+    dynmc BVHInstance& GetInstance( Index32 i ) dynmc { return ( *this )[ i.mIndex ]; }
+  };
+
 
   struct TLAS
   {
     void Build();
+    const TLASNode& Root() const;
+    dynmc TLASNode& Root() dynmc;
 
   private:
     int FindBestMatch( int* List, int N, int A );
@@ -208,11 +245,11 @@ namespace Tac
   {
     bool  IsValid() const { return mDistance < inf; }
 
-    float mDistance       { inf };
-    u32   mInstanceIndex  {};
-    u32   mPrimitiveIndex {};
-    float mU              {};
-    float mV              {};
+    float                 mDistance       { inf };
+    BVHInstances::Index32 mInstanceIndex  {};
+    BVHTriangle::Index32  mPrimitiveIndex {};
+    float                 mU              {};
+    float                 mV              {};
   };
 
   struct BVHRay
@@ -224,7 +261,6 @@ namespace Tac
 
   struct SceneBVH
   {
-    void                        CreateBuffers( Errors& );
     SceneIntersection           IntersectTLAS( BVHRay ray_worldspace ) const;
     void                        IntersectBLAS( BVHRay ray_worldspace,
                                                u32 iInstance,
@@ -236,6 +272,8 @@ namespace Tac
 
 
     // ----------------------------------------------------------------------------------------
+#if 0
+    void                        CreateBuffers( Errors& );
     void CreateAllTrianglesBuffer( Errors& );
     void CreateAllTrianglesExBuffer( Errors& );
     void CreateAllBVHNodesBuffer( Errors& );
@@ -243,25 +281,14 @@ namespace Tac
     void CreateIndexDataBuffer( Errors& );
     void CreateTLASInstancesBuffer( Errors& );
     void CreateTLASNodeBuffer( Errors& );
+#endif
     // --------------------------------------------------------------------------
 
-
-
-
-
     TLAS                           mTLAS;
-    Vector< BVHMesh >              mMeshes;
-    Vector< BVHInstance >          mInstances;
-    Vector< BVHIndexData >         mIndexData;          // gpu --> mIndexDataBuffer
-    Vector< BVHTriangle >          mAllTriangles;       // gpu --> mAllTrianglesBuffer
-    Vector< BVHTriangleExtraData > mAllTrianglesEx;     // gpu --> mAllTrianglesExBuffer
-    Vector< u32 >                  mAllTriangleIndices; // gpu --> mAllTriangleIndicesBuffer
+    BVHMeshes                      mMeshes;
+    BVHInstances                   mInstances;
     Vector< BVHNode >              mAllBVHNodes;        // gpu --> mAllBVHNodesBuffer
 
-    Render::BufferHandle mIndexDataBuffer;           // cpu --> mIndexData
-    Render::BufferHandle mAllTrianglesBuffer;        // cpu --> mAllTriangles
-    Render::BufferHandle mAllTrianglesExBuffer;      // cpu --> mAllTrianglesEx
-    Render::BufferHandle mAllTriangleIndicesBuffer;  // cpu --> mAllTriangleIndices
     Render::BufferHandle mAllBVHNodesBuffer;         // cpu --> mAllBVHNodes
     Render::BufferHandle mTLASInstancesBuffer;       // cpu --> mTLAS.mBLAS / mInstances?
     Render::BufferHandle mTLASNodeBuffer;            // cpu --> mTLAS.mNodes

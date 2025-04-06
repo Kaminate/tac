@@ -93,10 +93,10 @@ namespace Tac::Render
     v4       mWorldSpacePosition;
     v4       mWorldSpaceUnitDirection;
     v4       mColorRadiance;
-    u32      mFlags;
-    float    mProjA;
-    float    mProjB;
-    TAC_PAD_BYTES( 4 );
+    u32      mFlags    {};
+    float    mProjA    {};
+    float    mProjB    {};
+    TAC_PAD_BYTES( 4 ) {};
   };
 
   struct CBufferLights

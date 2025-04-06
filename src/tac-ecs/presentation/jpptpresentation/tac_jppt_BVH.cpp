@@ -46,6 +46,8 @@ namespace Tac
     return 0x1111 & mLeftRight;
   }
 
+  AABB32 TLASNode::GetAABB() const { return AABB32{ .mMin{ mAABBMin }, .mMax{ mAABBMax }, }; }
+
   static float RayAABBIntersection( const BVHRay Ray, const AABB32 aabb )
   {
     TAC_ASSERT(Ray.mDirectionInv != v3{} );
@@ -476,6 +478,9 @@ namespace Tac
     mNodes[ 0 ] = mNodes[ NodeIndex[ A ] ];
   }
 
+  const TLASNode& TLAS::Root() const { TAC_ASSERT( mNodesUsed ); return mNodes[0]; }
+  dynmc TLASNode& TLAS::Root() dynmc { TAC_ASSERT( mNodesUsed ); return mNodes[0]; }
+
   // Given iiNode A, finds iiNode B which has the smallest combined bounding box with A.
   // Note that FindBestMatch( A ) does not necessarily equal FindBestMatch( B )
   int  TLAS::FindBestMatch(int* List, int N, int A)
@@ -534,8 +539,9 @@ namespace Tac
 
       BVHInstance bvhInstance;
       bvhInstance.SetTransform( worldTransform, worldTransformInv, bounds_modelspace );
-      bvhInstance.mMeshIndex = ( u32 )iBVHMesh;
+      bvhInstance.mMeshIndex = BVHMeshes::Index32{ ( u32 )iBVHMesh };
       bvhInstance.mIndex = ( u32 )sceneBVH->mInstances.size();
+      bvhInstance.mMaterial = Material::GetMaterial( model->mEntity );
 
       sceneBVH->mInstances.push_back( bvhInstance );
     }
@@ -607,6 +613,8 @@ namespace Tac
 
     return sceneBVH;
   }
+
+#if 0
 
   void                 SceneBVH::CreateAllTrianglesBuffer( Errors& errors )
   {
@@ -689,6 +697,8 @@ namespace Tac
     TAC_CALL( CreateTLASNodeBuffer(errors));
   }
 
+#endif
+
   void                 SceneBVH::IntersectBLAS( BVHRay ray_worldspace,
                                                 u32 iInstance,
                                                 SceneIntersection* result ) const
@@ -711,7 +721,7 @@ namespace Tac
       .mDirectionInv { directionInv_modelspace },
     };
 
-    const BVHMesh& bvhMesh{ mMeshes[ bvhInstance.mMeshIndex ] };
+    const BVHMesh& bvhMesh{ mMeshes.GetMesh( bvhInstance.mMeshIndex ) };
     const BVH& bvh{ bvhMesh.mBVH };
 
     FixedVector< u32, 64 > bvhNodeIndexes;

@@ -91,7 +91,7 @@ namespace Tac
 
   v3        HexToRGB( u32 hexColor ) // 0xRRGGBB
   {
-    const Endianness endianness = GetEndianness();
+    const Endianness endianness{ GetEndianness() };
     switch( endianness )
     {
       case Endianness::Big: return HexToRGBAux( hexColor, 1, 2, 3 );

@@ -11,6 +11,15 @@ namespace Tac
 
   static void BakeRadiosity()
   {
+    // first i need to subdivide each mesh
+    // maybe i can do that by having a maximum triangle side length
+    // and sort all triangles by the length of their longest side.
+    // then to subdivide, i add vertex in the middle of that longest side 
+    // ^ wrong bitch, go into blender, right click, subdivide
+
+
+
+
   }
 
   // -----------------------------------------------------------------------------------------------

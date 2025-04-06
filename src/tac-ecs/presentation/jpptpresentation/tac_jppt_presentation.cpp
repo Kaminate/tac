@@ -4,6 +4,7 @@
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-engine-core/graphics/color/tac_color_util.h"
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
@@ -24,6 +25,7 @@ namespace Tac
   static bool                 sShouldCreateSceneBVH;
   static bool                 sShouldRenderSceneBVHCPU;
   static bool                 sShouldRenderSceneBVHGPU;
+  static bool                 sVisualizeDistance;
   static Errors               createBVHErrors;
   static bool                 sVisualizePositions;
   static bool                 sVisualizeModelSpace;
@@ -540,6 +542,112 @@ FN_DECL ray GetRay(vec2 ImageUV)
 
   struct JPPTCPURaytrace
   {
+    v3 GetRadiance( v3 cameraPos_worldspace, v3 pointOnFilm_worldspace )
+    {
+      v3 prevColor{};
+
+      int nSamples = 1;
+      for( int iSample = 0; iSample < nSamples; ++iSample )
+      {
+        int nMaxBounces = 3;
+
+        v3 radiance( 0 );
+        v3 weight( 1 ); // is this related to "importance" / "potential function"?
+
+        dynmc BVHRay bvhRay
+        {
+          .mOrigin    { cameraPos_worldspace },
+          .mDirection { pointOnFilm_worldspace - cameraPos_worldspace },
+        };
+
+        for( int iBounce {}; iBounce < nMaxBounces; ++iBounce )
+        {
+          const TLAS& tlas{ sSceneBvh->mTLAS };
+
+
+          const SceneIntersection sceneIntersection{
+            sSceneBvh->IntersectTLAS( bvhRay ) };
+
+          if( !sceneIntersection.IsValid() )
+          {
+            const v3 skyBlue{ HexToRGB( 0x87ceeb ) };
+            radiance = v3( weight.x * skyBlue.x,
+                           weight.y * skyBlue.y,
+                           weight.z * skyBlue.z );
+            break;
+          }
+
+          // debug code to visualize distance
+          if( sVisualizeDistance && iBounce == 0 )
+          {
+            const AABB32 aabb{ tlas.Root().GetAABB() };
+            const float maxDist{
+              Distance( cameraPos_worldspace, aabb.Center() ) +
+              Length( aabb.mMax - aabb.mMin ) };
+
+            radiance = v3( Clamp( sceneIntersection.mDistance / maxDist, .0f, 1.f ) );
+            break;
+          }
+
+          const BVHInstance& bvhInstance{
+            sSceneBvh->mInstances.GetInstance( sceneIntersection.mInstanceIndex ) };
+
+          const BVHMesh& bvhMesh{ 
+            sSceneBvh->mMeshes.GetMesh( bvhInstance.mMeshIndex ) };
+
+          const BVHTriangle& Tri{
+            bvhMesh.mTriangles.GetTriangle( sceneIntersection.mPrimitiveIndex ) };
+
+          const BVHTriangleExtraData& bvhTriExtra{
+            bvhMesh.mTrianglesExtraData.GetTriangleExtraData(
+              sceneIntersection.mPrimitiveIndex ) };
+
+          const v3 v0{ Tri.mV0 };
+          const v3 v1{ Tri.mV1 };
+          const v3 v2{ Tri.mV2 };
+
+          const v3 n0{ bvhTriExtra.mVertexExtraDatas[ 0 ].mNormal };
+          const v3 n1{ bvhTriExtra.mVertexExtraDatas[ 1 ].mNormal };
+          const v3 n2{ bvhTriExtra.mVertexExtraDatas[ 2 ].mNormal };
+
+          const float u{ sceneIntersection.mU };
+          const float v{ sceneIntersection.mV };
+          const float w{ 1 - u - v };
+
+          const v3 pos_modelspace{ v1 * u + v2 * v + v0 * w };
+          const v3 pos_worldspace{
+            ( bvhInstance.mTransform * v4( pos_modelspace, 1 ) ).xyz() };
+
+          const v3 nor_modelspace{ n1 * u + n2 * v + n0 * w };
+          const v3 nor_worldspace{
+            Normalize( ( bvhInstance.mNormalTransform * v4( nor_modelspace, 0 ) ).xyz() ) };
+
+          const v3 color{ bvhInstance.mMaterial->mColor.xyz() };
+          weight[ 0 ] *= color[ 0 ];
+          weight[ 1 ] *= color[ 1 ];
+          weight[ 2 ] *= color[ 2 ];
+
+          TAC_ASSERT_UNIMPLEMENTED;
+          v3 incoming;
+
+          bvhRay = BVHRay
+          {
+            .mOrigin    { pos_worldspace },
+            .mDirection { incoming },
+          };
+
+          // when would this happen?
+          if( weight == v3() )
+            break;
+        }
+
+        const float sampleWeight{ 1.f / ( 1.f + iSample ) };
+        prevColor = Lerp( prevColor, radiance, sampleWeight );
+      }
+
+      return prevColor;
+    }
+
     void Run( const Camera* worldCamera, Debug3DDrawData* drawData )
     {
       Camera cam1{ *worldCamera };
@@ -584,32 +692,9 @@ FN_DECL ray GetRay(vec2 ImageUV)
             nearPlaneX_worldspace * ndcX +
             nearPlaneY_worldspace * ndcY };
 
-          const TLAS& tlas{ sSceneBvh->mTLAS };
+          v3 radiance{ GetRadiance( camera->mPos, pointOnFilm_worldspace ) };
 
-          const BVHRay bvhRay
-          {
-            .mOrigin    { camera->mPos },
-            .mDirection { pointOnFilm_worldspace - camera->mPos },
-          };
-
-          const SceneIntersection sceneIntersection{
-            sSceneBvh->IntersectTLAS( bvhRay ) };
-
-
-          //mPixels[ iPixel ] = PixelRGBA8Unorm::SetColor4( v4( u, v, 0, 1 ) );
-
-          PixelRGBA8Unorm color;
-
-          if( sceneIntersection.IsValid() )
-          {
-            float t = Clamp(sceneIntersection.mDistance / 20.0f, .0f, 1.f );
-            color.r = ( u8 )( t * 255.0f );
-          }
-          else
-          {
-          }
-
-          mPixels[ iPixel ] = color;
+          mPixels[ iPixel ] = PixelRGBA8Unorm::SetColor3( radiance );
         }
       }
     }
