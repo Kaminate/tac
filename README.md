@@ -26,6 +26,15 @@ or
 git clone --recurse-submodules https://github.com/Kaminate/tac.git
 ```
 
+## Install DXC Shader Compiler (optional)
+
+Download the latest dxc zip file from https://github.com/microsoft/DirectXShaderCompiler/releases and unzip it to `C:/Program Files (x86)/DXC/bin/" (see [tac-dx/CMakeLists.txt](./src/tac-desktop-app/tac-win32/tac-dx/CMakeLists.txt)).
+You should have these two files.
+- C:/Program Files (x86)/DXC/bin/x64/dxil.dll
+- C:/Program Files (x86)/DXC/bin/x64/dxcompiler.dll
+(D:/ also works)
+If you don't install dxc, then it will fallback to a (possibly) older version in the windows sdk.
+
 
 ## Building ( Windows Visual Studio 2022 )
 
