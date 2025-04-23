@@ -34,8 +34,8 @@ namespace Tac
     v3              mPBR_Factor_Diffuse            {};
     v3              mPBR_Factor_Specular           {};
     float           mPBR_Factor_Glossiness         {};
-    v4              mColor                         {};
-    v3              mEmissive                      {};
+    v4              mColor                         {}; // units?
+    v3              mEmissive                      {}; // units?
     AssetPathString mTextureDiffuse                {};
     AssetPathString mTextureSpecular               {};
     AssetPathString mTextureGlossiness             {};

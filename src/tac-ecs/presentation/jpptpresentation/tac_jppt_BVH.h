@@ -202,7 +202,7 @@ namespace Tac
     BVHMeshes::Index32 mMeshIndex        {};
     u32                mIndex            {}; // ??? index into SceneBVH::mInstances;
     //TAC_PAD_BYTES( 8 )                   {};
-    Material* mMaterial{};
+    Material*          mMaterial         {};
   };
 
   //static_assert_gpu_padded( BVHInstance );

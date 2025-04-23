@@ -26,7 +26,7 @@ namespace Tac::Render
 
   private:
 
-    using DX12Buffers = Array< DX12Buffer, 100 >;
+    using DX12Buffers = Array< DX12Buffer, 1024 >;
 
     struct DescriptorBindings
     {

@@ -51,6 +51,7 @@ namespace Tac
     String                          mName                {};
   };
 
+  // also used for tac_radiosity_bake_presentation.cpp
   struct JPPTCPUMeshData
   {
     // data for jppt
@@ -61,11 +62,11 @@ namespace Tac
 
     // Topology assumed to be triangle list
     using IndexType = int;
-    Vector< v3 >  mPositions;
-    Vector< v2 >  mTexCoords;
-    Vector< v3 >  mNormals;
-    Vector< v3 >  mTangents;
-    Vector< v3 >  mBitangents;
+    Vector< v3 >        mPositions;
+    Vector< v2 >        mTexCoords;
+    Vector< v3 >        mNormals;
+    Vector< v3 >        mTangents;
+    Vector< v3 >        mBitangents;
     Vector< IndexType > mIndexes;
   };
 

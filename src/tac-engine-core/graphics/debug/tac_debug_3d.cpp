@@ -22,8 +22,7 @@ namespace Tac
 
   struct Debug3DConstBuf
   {
-    m4 mView;
-    m4 mProj;
+    m4 mWorldToClip;
   };
 
   static struct Debug3DCommonData
@@ -32,7 +31,7 @@ namespace Tac
     void                          Uninit();
 
     Render::BlendState            GetAlphaBlendState() const;
-    Render::DepthState            GetDepthLess() const;
+    Render::DepthState            GetDepthState() const;
     Render::RasterizerState       GetRasterizerStateNoCull() const;
     Render::VertexDeclarations    GetVertexColorFormat() const;
     Render::ProgramParams         GetProgramParams() const;
@@ -93,13 +92,14 @@ namespace Tac
     };
   }
 
-  Render::DepthState            Debug3DCommonData::GetDepthLess() const
+  Render::DepthState            Debug3DCommonData::GetDepthState() const
   {
     return Render::DepthState
     {
       .mDepthTest  { true },
       .mDepthWrite { true },
-      .mDepthFunc  { Render::DepthFunc::Less },
+      //.mDepthFunc  { Render::DepthFunc::Less },
+      .mDepthFunc  { Render::DepthFunc::LessOrEqual },
     };
   }
 
@@ -159,7 +159,7 @@ namespace Tac
   Render::PipelineParams        Debug3DCommonData::GetPipelineParams() const
   {
     const Render::RasterizerState rasterizerState{ GetRasterizerStateNoCull() };
-    const Render::DepthState depthStateData{ GetDepthLess() };
+    const Render::DepthState depthStateData{ GetDepthState() };
     const Render::VertexDeclarations decls{ GetVertexColorFormat() };
     const Render::BlendState alphaBlendStateData{ GetAlphaBlendState() };
     return Render::PipelineParams
@@ -685,10 +685,12 @@ namespace Tac
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
+    const m4 view{ camera->View() };
+    const m4 proj{ Debug3DGetProj( camera, viewSize ) };
+
     const Debug3DConstBuf constBufData
     {
-      .mView { camera->View() },
-      .mProj { Debug3DGetProj( camera, viewSize ) },
+      .mWorldToClip { proj * view },
     };
 
     const Render::UpdateBufferParams updateConstBuf

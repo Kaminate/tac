@@ -119,8 +119,10 @@ namespace Tac
     };
   }
 
-  static void MousePickingEntityDebug( Ray ray,
+  static void MousePickingEntityDebug( SelectedEntities* selectedEntities,
+                                       Ray ray,
                                        const World* world,
+                                       const Camera* camera,
                                        Errors& errors )
   {
     Debug3DDrawData* drawData{ world->mDebug3DDrawData };
@@ -135,6 +137,11 @@ namespace Tac
 
     for( Entity* entity : world->mEntities )
     {
+      bool isPicked = pickData.pickedObject == PickedObject::Entity && pickData.closest == entity ; 
+      bool isSelected = selectedEntities->IsSelected(entity);
+      if( !(isPicked || isSelected))
+        continue;
+
       Model* model{ Model::GetModel( entity ) };
       if( !model )
         continue;
@@ -148,7 +155,6 @@ namespace Tac
         const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
         const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
         const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
-
 
         const MeshRaycast::SubMeshTriangle meshTri
         {
@@ -164,8 +170,16 @@ namespace Tac
           closestTri = meshTri;
         }
 
+        // TODO(N8):
+        //
+        // Using debug draw to draw triangle wireframe is an abuse of debug draw.
+        // Debug draw uses lines primitives, which rasterizes differently from triangle primitives,
+        // leading to z-fighting.
+        // 
+        // Instead, I should use a real mesh triangle wireframe for picked/selected objects,
+        // and use debug draw for just 
         const v3 color{ 1, 0, 0 };
-        drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2 , color );
+        drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2, color );
 
       }
 
@@ -178,16 +192,23 @@ namespace Tac
       v3 v0{ closestTri[ 0 ] };
       v3 v1{ closestTri[ 1 ] };
       v3 v2{ closestTri[ 2 ] };
+
+      v3 zfighting = 0.001f * Normalize( Cross( v1 - v0, v2 - v0 ) );
+      v0 += zfighting;
+      v1 += zfighting;
+      v2 += zfighting;
+
       const v3 centroid{ ( v0 + v1 + v2 ) / 3 };
       v0 += ( centroid - v0 ) * 0.01f;
       v1 += ( centroid - v1 ) * 0.01f;
       v2 += ( centroid - v2 ) * 0.01f;
       for( float t {}; t < 1; t += 0.1f )
       {
+        v3 color = v3( 1 - t, 0, 0 );
         drawData->DebugDraw3DTriangle( v0 + ( centroid - v0 ) * t,
                                        v1 + ( centroid - v1 ) * t,
                                        v2 + ( centroid - v2 ) * t,
-                                       v3( 1 - t, 0, 0 ) );
+                                       color );
       }
       //float radius = 0.3f / Distance( centroid, ray.mPos );
       //drawData->DebugDraw3DSphere( v0,radius, triColor );
@@ -217,7 +238,7 @@ namespace Tac
 
   void CreationMousePicking::MousePickingGizmos( const Camera* camera )
   {
-    if( mSelectedEntities->empty() || !mGizmoMgr->mGizmosEnabled )
+    if( mSelectedEntities->empty() || !mGizmoMgr->mGizmosEnabled || !mWindowHovered )
       return;
 
     const v3 selectionGizmoOrigin { mGizmoMgr->mGizmoOrigin };
@@ -272,29 +293,29 @@ namespace Tac
       .mDir{ mWorldSpaceMouseDir },
     };
 
-    for( Entity* entity : world->mEntities )
+    if(mWindowHovered)
     {
-      TAC_CALL( const RaycastResult raycastResult{ MousePickingEntity( ray, entity, errors ) } );
-      if( !raycastResult.mHit || !pickData.IsNewClosest( raycastResult.mT ) )
-        continue;
+      for( Entity* entity : world->mEntities )
+      {
+        TAC_CALL( const RaycastResult raycastResult{ MousePickingEntity( ray, entity, errors ) } );
+        if( !raycastResult.mHit || !pickData.IsNewClosest( raycastResult.mT ) )
+          continue;
 
-      pickData.closestDist = raycastResult.mT;
-      pickData.closest = entity;
-      pickData.pickedObject = PickedObject::Entity;
+        pickData.closestDist = raycastResult.mT;
+        pickData.closest = entity;
+        pickData.pickedObject = PickedObject::Entity;
+      }
     }
 
     if( sDrawRaycast)
     {
-      TAC_CALL( MousePickingEntityDebug( ray, world, errors ) );
+      TAC_CALL( MousePickingEntityDebug( mSelectedEntities, ray, world, camera, errors ) );
     }
-
-
   }
 
   void CreationMousePicking::MousePickingSelection( const Camera* camera )
   {
-    
-    if( !AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+    if( !AppKeyboardApi::JustPressed( Key::MouseLeft ) || !mWindowHovered )
       return;
 
     const v3 worldSpaceHitPoint { camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
@@ -358,8 +379,6 @@ namespace Tac
   {
     pickData = {};
 
-    if( !mWindowHovered )
-      return;
 
     TAC_CALL( MousePickingEntities( world, camera, errors ) );
 
@@ -380,8 +399,6 @@ namespace Tac
   void CreationMousePicking::BeginFrame( WindowHandle mWindowHandle, Camera* camera )
   {
     mWindowHovered = AppWindowApi::IsHovered( mWindowHandle );
-    if( !mWindowHovered )
-      return;
 
     const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
     const v2i windowPos{ AppWindowApi::GetPos( mWindowHandle ) };

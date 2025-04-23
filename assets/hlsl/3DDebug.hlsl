@@ -1,7 +1,6 @@
 struct Debug3DCBufType
 {
-  row_major matrix mView;
-  row_major matrix mProj;
+  row_major matrix mWorldToClip; // (Proj * View)
 };
 
 struct VS_INPUT
@@ -22,11 +21,7 @@ Debug3DConstBuf constBuf : register(b0);
 
 VS_OUTPUT VS( VS_INPUT input )
 {
-  matrix View = constBuf.mView;
-  matrix Proj = constBuf.mProj;
-
-  float4 viewSpacePosition = mul( View, float4( input.Position, 1 ) );
-  float4 clipSpacePosition = mul( Proj, viewSpacePosition );
+  float4 clipSpacePosition = mul( constBuf.mWorldToClip, float4( input.Position, 1 ) );
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mClipSpacePosition = clipSpacePosition;
