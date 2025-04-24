@@ -37,6 +37,14 @@ namespace Tac
       return mWorld.SpawnEntity( entityUUID );
     }
 
+    void ImportObjectIntoScene(World* world, Camera* camera)
+    {
+      Entity* prefab{ mPrefab };
+      const RelativeSpace relativeSpace{
+        gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
+      gCreation.InstantiateAsCopy( world, camera, prefab, relativeSpace );
+    }
+
     bool                      mAttemptedToLoadEntity {};
     EntityUUIDCounter         mEntityUUIDCounter     {};
     World                     mWorld                 {};
@@ -287,12 +295,21 @@ namespace Tac
                               pbr_metallic_roughness->base_color_factor[ 1 ],
                               pbr_metallic_roughness->base_color_factor[ 2 ],
                               pbr_metallic_roughness->base_color_factor[ 3 ] );
+
+              const v3 emissive = v3( gltfMaterial->emissive_factor[ 0 ],
+                                      gltfMaterial->emissive_factor[ 1 ],
+                                      gltfMaterial->emissive_factor[ 2 ] ) *
+                ( gltfMaterial->has_emissive_strength
+                  ? gltfMaterial->emissive_strength.emissive_strength
+                  : 1 );
+
               Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
               ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
               ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
               ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
               ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
               ecsMaterial->mColor = color;
+              ecsMaterial->mEmissive = emissive;
 
               if( pbr_metallic_roughness->base_color_texture.texture )
               {
@@ -523,16 +540,7 @@ namespace Tac
       //}
 
       if( ImGuiButton( "Import object into scene" ) )
-      {
-        Vector< Entity* > entities;
-        for( Entity* entity : loadedModel->mWorld.mEntities )
-          entities.push_back( entity );
-
-        Entity* prefab{ loadedModel->mPrefab };
-        const RelativeSpace relativeSpace{
-          gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
-        gCreation.InstantiateAsCopy( world, camera, prefab, relativeSpace );
-      }
+        loadedModel->ImportObjectIntoScene( world, camera );
       ImGuiEndGroup();
     }
     else if( loadedModel->mAttemptedToLoadEntity )

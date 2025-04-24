@@ -116,6 +116,7 @@ namespace Tac
   {
     if(sRequestBake)
     {
+      sRequestBake = false;
       sPreBakeScene = {};
       sPreBakeScene.Init(world);
     }
