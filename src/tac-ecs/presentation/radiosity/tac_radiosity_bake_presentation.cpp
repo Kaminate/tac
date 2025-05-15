@@ -8,6 +8,12 @@
 
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
 
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <limits>
+#endif
+
 namespace Tac
 {
   static bool sInitialized;
@@ -16,16 +22,65 @@ namespace Tac
 
   struct PreBakeScene
   {
-    struct Instance
+    struct PatchPower
     {
-      const Entity*   mEntity {};
-      const Mesh*     mMesh   {};
-      const Model*    mModel  {};
-      const Material* mMaterial {};
-      const Light*    mLight  {};
+      using Vtxs = Array< v3, 3 >;
+
+      Vtxs mTriVerts             {}; // worldspace
+      v3   mTotalPower           {};
+      v3   mCurrentReceivedPower {};
+      v3   mCurrentUnshotPower   {};
     };
 
-    Mesh* GetMesh(const Model* model)
+    struct Instance
+    {
+      using PatchPowers = Vector< PatchPower >;
+
+      const Entity*   mEntity      {};
+      const Model*    mModel       {};
+      const Mesh*     mMesh        {};
+      const Material* mMaterial    {};
+      PatchPowers     mPatchPowers {};
+    };
+
+    struct RaycastResult
+    {
+      PatchPower*     mHitPatch         {};
+      const Material* mHitPatchMaterial {};
+    };
+
+    RaycastResult Raycast(PatchPower* fromPatch, RayTriangle::Ray ray ) // worldspace
+    {
+      RaycastResult result;
+      result.mHitPatch;
+      result.mHitPatchMaterial;
+      dynmc float minT { std::numeric_limits<float>::max()};
+
+      for(Instance& instance : mInstances)
+      {
+        for( PatchPower& patchPower : instance.mPatchPowers )
+        {
+          if( &patchPower == fromPatch )
+            continue;
+
+          const RayTriangle::Triangle triangle
+          {
+            .mP0 { patchPower.mTriVerts[0] },
+            .mP1 { patchPower.mTriVerts[1] },
+            .mP2 { patchPower.mTriVerts[2] },
+          };
+          const RayTriangle::Output raycastResult { RayTriangle::Solve( ray, triangle )};
+          if( !raycastResult.mValid || raycastResult.mT >= minT )
+            continue;
+
+          result.mHitPatch = &patchPower;
+          result.mHitPatchMaterial = instance.mMaterial;
+          minT = raycastResult.mT;
+        }
+      }
+    }
+
+    const Mesh* GetMesh(const Model* model)
     {
       Mesh* mesh{};
       while( !mesh )
@@ -48,26 +103,84 @@ namespace Tac
       Vector< const Model* > models;
       for( const Entity* entity : world->mEntities )
       {
-        const Model * model = Model::GetModel( entity );
+        const Model * model { Model::GetModel( entity ) };
         if(!model)
           continue;
 
-        Mesh* mesh = GetMesh(model);
+        const Mesh* mesh { GetMesh(model) };
+        const Material* material { Material::GetMaterial(entity)};
+        const JPPTCPUMeshData& jpptCPUMeshData{ mesh->mJPPTCPUMeshData };
 
-        JPPTCPUMeshData& jpptCPUMeshData{ mesh->mJPPTCPUMeshData };
-
-        dynmc bool worldTransformInvExists{};
+        //dynmc bool worldTransformInvExists{};
         const m4 worldTransform{ model->mEntity->mWorldTransform };
-        const m4 worldTransformInv{ m4::Inverse( worldTransform, &worldTransformInvExists ) };
-        TAC_ASSERT( worldTransformInvExists );
+        //const m4 worldTransformInv{ m4::Inverse( worldTransform, &worldTransformInvExists ) };
+        //TAC_ASSERT( worldTransformInvExists );
 
-        Instance instance;
-        instance.mEntity = entity;
-        instance.mModel = model;
-        instance.mMesh = mesh;
-        instance.mLight = nullptr;
-        instance.mMaterial = Material::GetMaterial(entity);
+        const Instance::PatchPowers patchPowers{ [ & ]()
+        {
+          dynmc Instance::PatchPowers patchPowers;
+          dynmc int iTriVert{};
+          dynmc PatchPower::Vtxs triVerts{};
+          for( const v3& vert : jpptCPUMeshData.mPositions )
+          {
+            triVerts[ iTriVert ] = (worldTransform * v4(vert, 1)).xyz();
+            if( iTriVert == 2 )
+            {
+              const PatchPower patchPower
+              {
+                .mTriVerts           { triVerts },
+                .mTotalPower         { material->mEmissive },
+                .mCurrentUnshotPower { material->mEmissive },
+              };
+              patchPowers.push_back( patchPower );
+            }
+            ( ++iTriVert ) %= 3;
+          }
+          return patchPowers;
+          }( ) };
+
+        Instance instance
+        {
+          .mEntity      { entity },
+          .mModel       { model },
+          .mMesh        { mesh },
+          .mMaterial    { material },
+          .mPatchPowers { patchPowers },
+        };
         mInstances.push_back(instance);
+      }
+    }
+
+    v3 ComputeTotalUnshotPower()
+    {
+      v3 totalUnshotPower;
+      for( Instance& instance : mInstances )
+        for( PatchPower& patchPower : instance.mPatchPowers )
+          totalUnshotPower += patchPower.mCurrentUnshotPower;
+      return totalUnshotPower;
+    }
+
+    void Bake()
+    {
+      float minPowerLimit{ 0.01f };
+      int maxIterations{ 100 };
+
+      for( int iter{}; iter < maxIterations; ++iter )
+      {
+        const v3 totalUnshotPower{ ComputeTotalUnshotPower() };
+
+        if( totalUnshotPower.Length() < minPowerLimit )
+          break;
+
+        TAC_NO_OP;
+
+        for( Instance& instance : mInstances)
+        {
+          for( PatchPower& patchPower : instance.mPatchPowers)
+          {
+            //float q_i = patchPower.mCurrentUnshotPower / totalUnshotPower;
+          }
+        }
       }
     }
 

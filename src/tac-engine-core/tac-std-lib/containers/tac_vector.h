@@ -13,16 +13,12 @@
 
 namespace Tac
 {
-
-  // How come ~T() is never called?
-  // Seems like a mega bug
-
   template< typename T >
   struct Vector
   {
     Vector() = default;
 
-    Vector( Vector&& v )
+    Vector( Vector&& v ) noexcept
     {
       mTs = v.mTs;
       mTCount = v.mTCount;
@@ -68,7 +64,7 @@ namespace Tac
       mTCapacity = {};
     }
 
-    void     operator =( Vector< T >&& v )
+    void     operator =( Vector< T >&& v ) noexcept
     {
       const int n{ v.size() };
       resize( n );

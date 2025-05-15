@@ -9,12 +9,12 @@ namespace Tac
   struct Component
   {
     virtual ~Component() = default;
-    virtual void                          PreReadDifferences() {};
-    virtual void                          PostReadDifferences() {};
-    virtual const ComponentInfo*          GetEntry() const = 0;
-    void                                  CopyFrom( const Component* );
+    virtual void PreReadDifferences() {};
+    virtual void PostReadDifferences() {};
+    virtual auto GetEntry() const -> const ComponentInfo* = 0;
+    void         CopyFrom( const Component* );
 
-    Entity*                               mEntity {};
+    Entity* mEntity {};
   };
 
 

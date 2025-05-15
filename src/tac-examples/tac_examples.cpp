@@ -9,12 +9,11 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
-#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
 #include "tac-engine-core/window/tac_sys_window_api.h"
@@ -83,7 +82,7 @@ namespace Tac
 
     SetNextExample( settingExampleIndex );
 
-    TAC_CALL( GamePresentationInit( errors ));
+    TAC_CALL( GamePresentation::Init( errors ));
   }
 
   static void   ExamplesUninitCallback( Errors& errors )
@@ -164,7 +163,7 @@ namespace Tac
     }
   }
 
-  static void ExamplesRenderCallback( App::RenderParams renderParams, Errors& errors )
+  static void ExamplesRenderCallback( App::RenderParams appRenderParams, Errors& errors )
   {
 
     if( !sDemoWindow.IsValid() || !AppWindowApi::IsShown( sDemoWindow ) )
@@ -173,7 +172,7 @@ namespace Tac
     const v2i windowSize{ AppWindowApi::GetSize( sDemoWindow ) };
 
 
-    ExampleState* state{ ( ExampleState* )renderParams.mNewState };
+    ExampleState* state{ ( ExampleState* )appRenderParams.mNewState };
     if( !state )
       return;
 
@@ -193,15 +192,18 @@ namespace Tac
     renderContext->ClearColor( backbufferColor, v4( 0, 0, 0, 1 ) );
     renderContext->ClearDepth( backbufferDepth, 1.0f );
 
+    const GamePresentation::RenderParams gamePresentationRenderParams
+    {
+      .mContext            { renderContext },
+      .mWorld              { &state->mWorld },
+      .mCamera             { &state->mCamera },
+      .mViewSize           { windowSize },
+      .mColor              { backbufferColor },
+      .mDepth              { backbufferDepth },
+      .mBuffers            { &sDebug3DDrawBuffers },
+    };
 
-    TAC_CALL( GamePresentationRender( renderContext,
-                                      &state->mWorld,
-                                      &state->mCamera,
-                                      windowSize,
-                                      backbufferColor,
-                                      backbufferDepth,
-                                      &sDebug3DDrawBuffers,
-                                      errors ) );
+    TAC_CALL( GamePresentation::Render( gamePresentationRenderParams, errors ) );
 
     TAC_CALL( renderContext->Execute( errors ) );
   }
@@ -225,7 +227,7 @@ namespace Tac
       sSettingsNode = mSettingsNode;
       SpaceInit();
       TAC_CALL( SkyboxPresentation::Init( errors ) );
-      TAC_CALL( GamePresentationInit( errors ) );
+      TAC_CALL( GamePresentation::Init( errors ) );
       TAC_CALL( ShadowPresentation::Init( errors ) );
       //TAC_CALL( VoxelGIPresentationInit( errors ) );
       ExamplesInitCallback( errors );

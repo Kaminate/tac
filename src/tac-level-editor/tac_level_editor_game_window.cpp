@@ -444,14 +444,18 @@ namespace Tac
     renderContext->SetScissor( windowSize );
     renderContext->SetRenderTargets( renderTargets );
 
-    GamePresentationRender( renderContext,
-                            world,
-                            camera,
-                            windowSize,
-                            rtColor,
-                            rtDepth,
-                            &mWorldBuffers,
-                            errors );
+    const GamePresentation::RenderParams renderParams
+    {
+      .mContext            { renderContext },
+      .mWorld              { world },
+      .mCamera             { camera },
+      .mViewSize           { windowSize },
+      .mColor              { rtColor },
+      .mDepth              { rtDepth },
+      .mBuffers            { &mWorldBuffers },
+      .mIsLevelEditorWorld { true },
+    };
+    GamePresentation::Render( renderParams, errors );
 
 #if 1
 

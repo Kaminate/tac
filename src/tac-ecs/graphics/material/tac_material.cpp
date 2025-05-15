@@ -166,19 +166,19 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  dynmc Material*                  Material::GetMaterial( dynmc Entity* entity )
+  auto Material::GetMaterial( dynmc Entity* entity ) -> dynmc Material*
   {
     return ( Material* )entity->GetComponent( sComponentInfo );
   }
 
-  const Material*                  Material::GetMaterial( const Entity* entity )
+  auto Material::GetMaterial( const Entity* entity ) -> const Material*
   {
     return ( Material* )entity->GetComponent( sComponentInfo );
   }
 
-  const ComponentInfo*             Material::GetEntry() const { return sComponentInfo; }
+  auto Material::GetEntry() const -> const ComponentInfo* { return sComponentInfo; }
 
-  void                             Material::RegisterComponent()
+  void Material::RegisterComponent()
   {
     const MetaCompositeType* metaType{ ( MetaCompositeType* )&GetMetaType< Material >() };
 
@@ -197,7 +197,7 @@ namespace Tac
     };
   }
 
-  void                             Material::DebugImgui( Material* material )
+  void Material::DebugImgui( Material* material )
   {
     static AssetPathUIHelper ui_shaderGraph( "Shader Graph" );
     static AssetPathUIHelper ui_pbrTexture_Metallic( "pbr metallic texture" );

@@ -452,7 +452,7 @@ namespace Tac
 
     while( gltfAttribData < gltfAttribEndData )
     {
-      T jpptT;
+      T jpptT {};
       const MetaType::CastParams castParams
       {
         .mDst     { &jpptT },

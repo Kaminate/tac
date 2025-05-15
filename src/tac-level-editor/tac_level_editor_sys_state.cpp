@@ -14,17 +14,12 @@ namespace Tac
   {
     mIconRenderer = iconRenderer;
     mWidgetRenderer = widgetRenderer;
-
-    TAC_CALL( GamePresentationInit( errors ) );
-
-
+    TAC_CALL( GamePresentation::Init( errors ) );
   }
   
   void CreationSysState:: Uninit()
   {
-    GamePresentationUninit();
-
-
+    GamePresentation::Uninit();
   }
 
 } // namespace Tac

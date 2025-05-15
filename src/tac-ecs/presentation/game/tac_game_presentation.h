@@ -15,18 +15,25 @@
 
 namespace Tac
 {
+  struct GamePresentation
+  {
+    struct RenderParams
+    {
+      Render::IContext*     mContext            {};
+      const World*          mWorld              {};
+      const Camera*         mCamera             {};
+      v2i                   mViewSize           {};
+      Render::TextureHandle mColor              {};
+      Render::TextureHandle mDepth              {};
+      Debug3DDrawBuffers*   mBuffers            {};
+      bool                  mIsLevelEditorWorld {};
+    };
 
-  void                          GamePresentationInit( Errors& );
-  void                          GamePresentationUninit();
-  void                          GamePresentationRender( Render::IContext*,
-                                                        const World*, // why is this non const?
-                                                        const Camera*,
-                                                        v2i viewSize,
-                                                        Render::TextureHandle color,
-                                                        Render::TextureHandle depth,
-                                                        Debug3DDrawBuffers*,
-                                                        Errors& );
-  void                          GamePresentationDebugImGui( Graphics* );
+    static void Init( Errors& );
+    static void Uninit();
+    static void Render(RenderParams, Errors& );
+    static void DebugImGui( Graphics* );
+  };
 }
 
 #endif

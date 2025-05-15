@@ -45,9 +45,9 @@ namespace Tac
     void                  Copy( CopyParams ) const override;
 
   protected:
-    Vector< MetaMember >  mMetaVars;
-    const char*           mName;
-    int                   mSize;
+    Vector< MetaMember >  mMetaVars {};
+    const char*           mName     {};
+    int                   mSize     {};
   };
 
 #define TAC_REQUIRE_SEMICOLON           void missing_semicolon()

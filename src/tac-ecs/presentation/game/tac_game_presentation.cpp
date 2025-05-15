@@ -46,7 +46,7 @@ namespace Tac
   static bool                          sInitialized;
 }
 
-void Tac::GamePresentationInit( Errors& errors )
+void Tac::GamePresentation::Init( Errors& errors )
 {
   if( sInitialized )
     return;
@@ -84,7 +84,7 @@ void Tac::GamePresentationInit( Errors& errors )
   sInitialized = true;
 }
 
-void Tac::GamePresentationUninit()
+void Tac::GamePresentation::Uninit()
 {
   if( sInitialized )
   {
@@ -131,22 +131,23 @@ void Tac::GamePresentationUninit()
 }
 
 
-void Tac::GamePresentationRender( Render::IContext* renderContext,
-                                         const World* world,
-                                         const Camera* camera,
-                                         const v2i viewSize,
-                                         const Render::TextureHandle dstColorTex,
-                                         const Render::TextureHandle dstDepthTex,
-                                         Debug3DDrawBuffers* debug3DDrawBuffers,
-                                         Errors& errors )
+void Tac::GamePresentation::Render( RenderParams renderParams, Errors& errors )
 {
+  Render::IContext* renderContext { renderParams.mContext };
+  const World* world { renderParams.mWorld };
+  const Camera* camera { renderParams.mCamera };
+  const v2i viewSize { renderParams.mViewSize };
+  const Render::TextureHandle dstColorTex { renderParams.mColor };
+  const Render::TextureHandle dstDepthTex { renderParams.mDepth };
+  Debug3DDrawBuffers* debug3DDrawBuffers { renderParams.mBuffers };
+
   const Render::Targets renderTargets
   {
     .mColors { dstColorTex },
     .mDepth  { dstDepthTex },
   };
 
-  renderContext->DebugEventBegin( "GamePresentationRender" );
+  renderContext->DebugEventBegin( "GamePresentation::Render" );
   renderContext->SetViewport( viewSize );
   renderContext->SetScissor( viewSize );
   renderContext->SetRenderTargets( renderTargets );
@@ -210,22 +211,25 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
                                   errors ) );
 #endif
 
+  if( renderParams.mIsLevelEditorWorld )
+  {
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
-  TAC_CALL( RadiosityBakePresentation::Render( renderContext,
-                                               world,
-                                               camera,
-                                               errors ) );
+    TAC_CALL( RadiosityBakePresentation::Render( renderContext,
+                                                 world,
+                                                 camera,
+                                                 errors ) );
 #endif
 
 #if TAC_JPPT_PRESENTATION_ENABLED()
-  TAC_CALL( JPPTPresentation::Render( renderContext,
-                                      world,
-                                      camera,
-                                      viewSize,
-                                      dstColorTex,
-                                      dstDepthTex,
-                                      errors ) );
+    TAC_CALL( JPPTPresentation::Render( renderContext,
+                                        world,
+                                        camera,
+                                        viewSize,
+                                        dstColorTex,
+                                        dstDepthTex,
+                                        errors ) );
 #endif
+  }
 
   if( mRenderEnabledDebug3D )
   {
@@ -244,7 +248,7 @@ void Tac::GamePresentationRender( Render::IContext* renderContext,
   renderContext->DebugEventEnd();
 }
 
-void Tac::GamePresentationDebugImGui( Graphics* graphics )
+void Tac::GamePresentation::DebugImGui( Graphics* graphics )
 {
   if( !ImGuiCollapsingHeader( "Game Presentation", ImGuiNodeFlags_DefaultOpen ) )
     return;

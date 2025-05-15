@@ -11,12 +11,12 @@ namespace Tac
 {
   struct Material : public Component
   {
-    const ComponentInfo*          GetEntry() const override;
+    const ComponentInfo* GetEntry() const override;
 
-    static dynmc Material*        GetMaterial( dynmc Entity* );
-    static const Material*        GetMaterial( const Entity* );
-    static void                   RegisterComponent();
-    static void                   DebugImgui( Material* );
+    static auto GetMaterial( dynmc Entity* ) -> dynmc Material*;
+    static auto GetMaterial( const Entity* ) -> const Material*;
+    static void RegisterComponent();
+    static void DebugImgui( Material* );
 
     // this `Data` struct could just be a `Json`
     struct Data

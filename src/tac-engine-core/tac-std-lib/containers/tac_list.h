@@ -26,7 +26,6 @@ private:
 
 public:
 
-
   struct ConstIterator
   {
     operator      bool()        { return mNode; }
@@ -160,6 +159,7 @@ void       Tac::List<T>::clear()
     node = next;
   }
 
+  mSize = 0;
   mDummy.mNext = &mDummy;
   mDummy.mPrev = &mDummy;
 }

@@ -37,7 +37,7 @@ namespace Tac
       return mWorld.SpawnEntity( entityUUID );
     }
 
-    void ImportObjectIntoScene(World* world, Camera* camera)
+    void ImportObjectIntoScene(World* world, Camera* camera) const
     {
       Entity* prefab{ mPrefab };
       const RelativeSpace relativeSpace{
@@ -132,7 +132,7 @@ namespace Tac
     cgltf_float local[ 16 ];
     cgltf_node_transform_local( node, local );
 
-    m4 mLocal;
+    m4 mLocal {};
     for( int i {}; i < 16; ++i )
       mLocal[ i ] = local[ i ];
     mLocal.Transpose();
@@ -429,14 +429,18 @@ namespace Tac
     renderContext->SetRenderTargets( renderTargets );
     renderContext->SetViewport( viewSize );
     renderContext->SetScissor( viewSize );
-    GamePresentationRender( renderContext,
-                            &loadedModel->mWorld,
-                            &loadedModel->mCamera,
-                            viewSize,
-                            loadedModel->mTextureHandleColor,
-                            loadedModel->mTextureHandleDepth,
-                            &loadedModel->mDebug3DDrawBuffers,
-                            errors );
+
+    const GamePresentation::RenderParams renderParams
+    {
+      .mContext  { renderContext },
+      .mWorld    { &loadedModel->mWorld },
+      .mCamera   { &loadedModel->mCamera },
+      .mViewSize { viewSize },
+      .mColor    { loadedModel->mTextureHandleColor },
+      .mDepth    { loadedModel->mTextureHandleDepth },
+      .mBuffers  { &loadedModel->mDebug3DDrawBuffers },
+    };
+    GamePresentation::Render( renderParams, errors );
   }
 
   static void UIFoldersUpToCurr()

@@ -19,7 +19,7 @@ void Tac::GraphicsDebugImgui( System* system )
   Graphics* graphics { ( Graphics* )system };
 
 #if TAC_GAME_PRESENTATION_ENABLED()
-  GamePresentationDebugImGui( graphics );
+  GamePresentation::DebugImGui( graphics );
 #endif
 
 #if TAC_VOXEL_GI_PRESENTATION_ENABLED()
