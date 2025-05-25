@@ -36,6 +36,85 @@ namespace Tac
     float           mPBR_Factor_Glossiness         {};
     v4              mColor                         {}; // units?
     v3              mEmissive                      {}; // units?
+
+    struct LightEmissionRuntime
+    {
+      // Diffuse area light
+
+      struct RGB
+      {
+        float r;
+        float g;
+        float b;
+      };
+
+      struct RGBColorSpace
+      {
+
+      };
+
+#if 0
+      // used in DiffuseAreaLight::L if its an texture mapped
+      struct RGBIlluminantSpectrum
+      {
+        RGBIlluminantSpectrum() = default;
+        RGBIlluminantSpectrum(RGBColorSpace cs, RGB rgb) = default;
+        ... mValues
+          mScale; // scales the rgb when computing a sigmoid, reusused later?
+        ;
+      };
+#endif
+
+      struct SampledWavelengths // spectrum.h
+      {
+        float mLambdas[4];
+        float mPDFs[4];
+      };
+
+      struct SampledSpectrum // spectrum.h
+      {
+        float mValues[4];
+      };
+
+      static constexpr float Lambda_min = 360;
+      static constexpr float Lambda_max = 830;
+
+      struct DenselySampledSpectrum
+      {
+        float mValues[ (int)Lambda_max - (int)Lambda_min + 1] {};
+      };
+
+      // radiant flux / radiant exitance (watts), symbol Phi
+      SampledSpectrum Phi( SampledWavelengths lambda )
+      {
+        // E(p) = \frac{d\Phi(p)}{dA}
+        //
+        // (4.1)
+        // \Phi = \int_A E(p) dA
+        //
+        // \Phi = A * E()
+        // \Phi = A * \int L(\omega) cos(\theta) d\omega
+        // \Phi = A * mSpectrum * \int cos(\theta) d\omega
+        // \Phi = A * mSpectrum * \pi
+
+        return SampledSpectrum{ 3.14f * mArea * mSpectrum.mValues };
+      }
+
+
+      DenselySampledSpectrum mSpectrum {};
+      float       mArea     {};
+    };
+
+    struct LightEmissionFileSpecification
+    {
+      // radiometric  | unit | sym |      | photometric   | unit
+      // -------------+------+-----+      +---------------+-----
+      // Radiant flux | watt | phi |      | Luminous flux | lumen
+
+      // Example 1ft x 4ft panel light on amazon.com has 4000 lumens
+      float mLumens = 0;
+    };
+
     AssetPathString mTextureDiffuse                {};
     AssetPathString mTextureSpecular               {};
     AssetPathString mTextureGlossiness             {};
