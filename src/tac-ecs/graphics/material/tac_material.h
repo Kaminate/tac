@@ -34,86 +34,24 @@ namespace Tac
     v3              mPBR_Factor_Diffuse            {};
     v3              mPBR_Factor_Specular           {};
     float           mPBR_Factor_Glossiness         {};
-    v4              mColor                         {}; // units?
-    v3              mEmissive                      {}; // units?
 
-    struct LightEmissionRuntime
+    // units? probably albedo, as a spectrum of reflectance values in some rgb color space.
+    v4              mColor                         {};
+
+    // If this material is emissive, then it acts as diffuse area light.
+    // The emissive member variable reprements output radiance
+    // as a spectrum of light using linear (non-encoded)
+    // coefficients of the scRGB color space.
+    v3              mEmissive                      {};
+
+
+    struct EmissionParams
     {
-      // Diffuse area light
-
-      struct RGB
-      {
-        float r;
-        float g;
-        float b;
-      };
-
-      struct RGBColorSpace
-      {
-
-      };
-
-#if 0
-      // used in DiffuseAreaLight::L if its an texture mapped
-      struct RGBIlluminantSpectrum
-      {
-        RGBIlluminantSpectrum() = default;
-        RGBIlluminantSpectrum(RGBColorSpace cs, RGB rgb) = default;
-        ... mValues
-          mScale; // scales the rgb when computing a sigmoid, reusused later?
-        ;
-      };
-#endif
-
-      struct SampledWavelengths // spectrum.h
-      {
-        float mLambdas[4];
-        float mPDFs[4];
-      };
-
-      struct SampledSpectrum // spectrum.h
-      {
-        float mValues[4];
-      };
-
-      static constexpr float Lambda_min = 360;
-      static constexpr float Lambda_max = 830;
-
-      struct DenselySampledSpectrum
-      {
-        float mValues[ (int)Lambda_max - (int)Lambda_min + 1] {};
-      };
-
-      // radiant flux / radiant exitance (watts), symbol Phi
-      SampledSpectrum Phi( SampledWavelengths lambda )
-      {
-        // E(p) = \frac{d\Phi(p)}{dA}
-        //
-        // (4.1)
-        // \Phi = \int_A E(p) dA
-        //
-        // \Phi = A * E()
-        // \Phi = A * \int L(\omega) cos(\theta) d\omega
-        // \Phi = A * mSpectrum * \int cos(\theta) d\omega
-        // \Phi = A * mSpectrum * \pi
-
-        return SampledSpectrum{ 3.14f * mArea * mSpectrum.mValues };
-      }
-
-
-      DenselySampledSpectrum mSpectrum {};
-      float       mArea     {};
+      float mIlluminanceInLumens {};
+      float mTemperatureInKelvin {};
     };
 
-    struct LightEmissionFileSpecification
-    {
-      // radiometric  | unit | sym |      | photometric   | unit
-      // -------------+------+-----+      +---------------+-----
-      // Radiant flux | watt | phi |      | Luminous flux | lumen
-
-      // Example 1ft x 4ft panel light on amazon.com has 4000 lumens
-      float mLumens = 0;
-    };
+    void SetEmission( EmissionParams params );
 
     AssetPathString mTextureDiffuse                {};
     AssetPathString mTextureSpecular               {};
@@ -124,7 +62,7 @@ namespace Tac
     // this could be used if we were to support arbitrary data
     Vector< Data >  mData                          {};
 
-    AssetPathString mShaderGraph;
+    AssetPathString mShaderGraph                   {};
 
     // Whether entities with this material component should render or not
     bool            mRenderEnabled                 { true };

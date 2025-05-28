@@ -2,8 +2,10 @@
 
 #include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/entity/tac_entity.h"
+#include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/color/tac_color.h"
 #include "tac-engine-core/shell/tac_shell.h" // AssetOpenDialog
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
@@ -12,6 +14,8 @@
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string_meta.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 
 namespace Tac
 {
@@ -99,6 +103,7 @@ namespace Tac
       const StringView displayStr{ assetPathString.empty() ? ( StringView )"<none>"
                                                            : ( StringView )assetPathString };
       ImGuiText( ShortFixedString::Concat( name, ": ", displayStr ) );
+      ImGuiSameLine();
       if( ImGuiButton( ShortFixedString::Concat( "Select ", name ) ) )
       {
         errors.clear();
@@ -148,13 +153,14 @@ namespace Tac
     void UI( Material* material )
     {
       Errors& errors{ mErrors };
+
+      ImGuiText( "Bindings: " + ( mBindings.empty() ? "<none>" : mBindings ) );
+      ImGuiSameLine();
       if( ImGuiButton( "Refresh bindings" ) )
       {
         errors.clear();
         RefreshBindings( material, errors );
       }
-
-      ImGuiText( "Bindings: " + ( mBindings.empty() ? "<none>" : mBindings ) );
       if( errors )
         ImGuiText( errors.ToString() );
     }
@@ -196,6 +202,110 @@ namespace Tac
       .mMetaType           { metaType },
     };
   }
+
+
+  struct PhotometricEmissionEditor
+  {
+    static Material* sMaterial;
+    static float     sIlluminanceInLumens;
+    static float     sTemperatureInKelvin;
+    static Errors    sErrors;
+    static v3        sRadiance;
+    static float     sArea;
+
+    static float ComputeArea( Errors& errors )
+    {
+      TAC_RAISE_ERROR_IF_RETURN( {}, !sMaterial, "No material" );
+      Entity* entity { sMaterial->mEntity };
+      TAC_RAISE_ERROR_IF_RETURN( {}, !entity, "No entity" );
+      Model* model { Model::GetModel(entity) };
+      TAC_RAISE_ERROR_IF_RETURN( {}, !model, "No model" );
+      TAC_CALL_RET( const Mesh * mesh{
+        ModelAssetManager::GetMesh(
+          ModelAssetManager::Params
+          {
+            .mPath        { model->mModelPath.c_str() },
+            .mModelIndex  { model->mModelIndex },
+          }, errors ) } );
+      TAC_RAISE_ERROR_IF_RETURN( {}, !mesh, "No mesh" );
+
+      float runningArea {};
+      const int nTris { mesh->mJPPTCPUMeshData.mIndexes.size() / 3 };
+      for( int iTri {}; iTri < nTris; ++iTri )
+      {
+        const JPPTCPUMeshData::IndexType i0 { mesh->mJPPTCPUMeshData.mIndexes[ iTri * 3 + 0 ] };
+        const JPPTCPUMeshData::IndexType i1 { mesh->mJPPTCPUMeshData.mIndexes[ iTri * 3 + 1 ] };
+        const JPPTCPUMeshData::IndexType i2 { mesh->mJPPTCPUMeshData.mIndexes[ iTri * 3 + 2 ] };
+        const v3 p0 { mesh->mJPPTCPUMeshData.mPositions[ i0 ] };
+        const v3 p1 { mesh->mJPPTCPUMeshData.mPositions[ i1 ] };
+        const v3 p2 { mesh->mJPPTCPUMeshData.mPositions[ i2 ] };
+        const float triArea { .5f * Cross( p1 - p0, p2 - p0 ).Length() };
+        runningArea += Abs( triArea );
+      }
+
+      return runningArea;
+    }
+    
+    static v3 ComputeRadiance( Errors& errors )
+    {
+      errors.clear();
+
+      sArea = TAC_CALL_RET( ComputeArea( errors ) );
+
+      Blackbody::Params blackbodyParams
+      {
+        .mLamba{},
+        .mTemperature{},
+      };
+      DenseSpectrum ds{ Blackbody::ToSpectrum( 
+      (void)ds;
+
+      sIlluminanceInLumens;
+      sTemperatureInKelvin;
+
+      return {};
+    }
+
+    static void DebugImgui()
+    {
+      if(!sMaterial)
+        return;
+
+      if( !ImGuiBegin( "Photometric emission editor" ) )
+        return;
+
+      TAC_ON_DESTRUCT( ImGuiEnd());
+
+      if( sErrors )
+      {
+        ImGuiText( "Errors: " + sErrors.ToString() );
+        if( ImGuiButton( "Clear" ))
+          sErrors = {};
+      }
+
+      bool dirty{};
+      dirty |= ImGuiDragFloat( "Illuminance (lm)", &sIlluminanceInLumens );
+      dirty |= ImGuiDragFloat( "Temperature (K)", &sTemperatureInKelvin );
+      if( dirty || ImGuiButton( "Compute Radiance" ) )
+      {
+        sRadiance = ComputeRadiance( sErrors );
+        if( !sErrors )
+        {
+          sMaterial->mEmissive = sRadiance;
+        }
+      }
+
+      if( ImGuiDragFloat3( "Radiance", sRadiance.data() ) )
+          sMaterial->mEmissive = sRadiance;
+    }
+  };
+
+  Material* PhotometricEmissionEditor::sMaterial{};
+  float     PhotometricEmissionEditor::sIlluminanceInLumens{ 4000 };
+  float     PhotometricEmissionEditor::sTemperatureInKelvin{ 4000 };
+  Errors    PhotometricEmissionEditor::sErrors;
+  v3        PhotometricEmissionEditor::sRadiance;
+  float     PhotometricEmissionEditor::sArea;
 
   void Material::DebugImgui( Material* material )
   {
@@ -241,6 +351,10 @@ namespace Tac
 
     ImGuiDragFloat4( "color", material->mColor.data() );
     ImGuiDragFloat3( "emissive", material->mEmissive.data() );
+    if( ImGuiButton( "Photometric emission editor" ) )
+      PhotometricEmissionEditor::sMaterial = material;
+
+    PhotometricEmissionEditor::DebugImgui();
   }
 
 
