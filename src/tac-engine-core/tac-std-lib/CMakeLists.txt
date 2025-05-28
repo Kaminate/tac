@@ -23,7 +23,8 @@ add_subdirectory( os )
 add_subdirectory( preprocess )
 add_subdirectory( string )
 
-# -------------------------------------------
+# -------------------------------------------------------------------------------------------------
+
 # Create visual studio project filters
 if( MSVC )
   file( GLOB_RECURSE source_list RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" *.cpp *.h *.natvis)
@@ -33,9 +34,12 @@ if( MSVC )
       source_group("${native_parent}" FILES "${source}")
   endforeach()  
 endif()
-# -------------------------------------------
+
+# -------------------------------------------------------------------------------------------------
 
 target_include_directories( TacStdLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
+
+# -------------------------------------------------------------------------------------------------
 
 # This does weird things where sometimes after rebuilding ( without cleaning ) the program will immediately exit
 # without hitting main
@@ -44,4 +48,7 @@ target_include_directories( TacStdLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 # cmake precompiles them into cmake_pch.cxx and force includes them (/FI MSVC) into each of the target (TacStdLib)
 # source files.
 target_precompile_headers( TacStdLib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tac_std_lib_pch.h )
+
+# -------------------------------------------------------------------------------------------------
+
 

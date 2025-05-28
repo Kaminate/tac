@@ -144,3 +144,19 @@ endif()
 
 # --------------------------------------------------------------------------------------------------
 
+# Create a cpp.hint file so that intellisense doesnt give warning VCR001
+# when using the 'dynmc' macro in tac_preprocessor.h
+#
+# https://learn.microsoft.com/en-us/cpp/build/reference/hint-files
+configure_file( ${CMAKE_SOURCE_DIR}/src/original_hint_file.h # src
+                ${CMAKE_BINARY_DIR}/cpp.hint )               # dst
+set_directory_properties( PROPERTIES VS_SOLUTION_ITEMS ${CMAKE_BINARY_DIR}/cpp.hint )
+
+# Obviously this didn't work, but there's a workaround
+# https://developercommunity.visualstudio.com/t/msvc-nagging-about-adding-macros-to-hint-file-afte/284851
+#   Michal Witanowski 2018
+#     Go to Options > Text Editor > C/C++ > View 
+#     and switch "Macros in Skipped Browsking Regions" to "None".
+
+# --------------------------------------------------------------------------------------------------
+

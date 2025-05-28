@@ -136,6 +136,9 @@ namespace Tac
 //     dynmc char* src{ ... };
 //     const char* dst{ ... };
 //     MemCpy( dst, src, n );
+// note:
+//     cpp.hint *should* suppress warning VCR001, but there is a workaround in Visual Studio:
+//     Options > Text Editor > C/C++ > View -> set "Macros in Skipped Browsking Regions" to "None"
 #define dynmc 
 
 // -------------------------------------------------------------------------------------------------
