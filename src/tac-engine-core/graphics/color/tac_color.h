@@ -1,13 +1,22 @@
 #pragma once
 
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+
 namespace Tac
 {
-  constexpr int kLambdaMinInclusiveNanometers{ 360 };
-  constexpr int kLambdaMaxInclusiveNanometers{ 830 };
+
+  struct XYZ;
 
   struct DenseSpectrum
   {
-    float mValues[ kLambdaMaxInclusiveNanometers - kLambdaMinInclusiveNanometers + 1 ]{};
+    XYZ ToXYZ() const;
+    static float InnerProduct(const DenseSpectrum&, const DenseSpectrum& );
+
+    // Inclusive range, wavelength measured in nanometers
+    static constexpr int kLambdaMin{ 360 };
+    static constexpr int kLambdaMax{ 830 };
+    static constexpr int kSampleCount = kLambdaMax - kLambdaMin + 1;
+    float mValues[ kSampleCount ]{};
   };
 
   // CIE 1931 color space
@@ -20,6 +29,7 @@ namespace Tac
     static const DenseSpectrum X;
     static const DenseSpectrum Y;
     static const DenseSpectrum Z;
+    static constexpr float YIntegral = 106.856895f;
   };
 
   struct Blackbody

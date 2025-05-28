@@ -7,8 +7,8 @@ namespace Tac
 {
   Blackbody::Blackbody( Params p )
   {
-    const float lambda { p.mLamba };
-    const float T { p.mTemperature };
+    const float lambda { p.mLambaWavelengthNanometers };
+    const float T { p.mTemperatureInKelvin };
     const float c { 299792458.f };
     const float h { 6.62606957e-34f };
     const float kb { 1.3806488e-23f };
@@ -25,10 +25,25 @@ namespace Tac
   DenseSpectrum Blackbody::TemperatureToSpectrum(float temperatureInKelvin)
   {
     DenseSpectrum denseSpectrum;
-    for( int lambda = kLambdaMinInclusive; lambda <= kLambdaMaxInclusive; lambda++ )
-      denseSpectrum.mValues[ lambda - kLambdaMinInclusive ] = Blackbody(p);
+    for( int i{}; i < DenseSpectrum::kSampleCount; ++i)
+    {
+      const Blackbody::Params params
+      {
+        .mLambaWavelengthNanometers { ( float )( i + DenseSpectrum::kLambdaMin ) },
+        .mTemperatureInKelvin       { temperatureInKelvin },
+      };
+      denseSpectrum.mValues[ i ] = Blackbody( params );
+    }
     return denseSpectrum;
   }
+
+  float DenseSpectrum::InnerProduct(const DenseSpectrum& f, const DenseSpectrum& g)
+  {
+    float integral{};
+    for( int i{}; i < kSampleCount; ++i)
+        integral += f.mValues[i] * g.mValues[i];
+    return integral;
+}
 
   const DenseSpectrum XYZ::X
   {
@@ -184,6 +199,15 @@ namespace Tac
     0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f,
     0.00000f
   };
+
+  XYZ DenseSpectrum::ToXYZ() const
+  {
+    constexpr float scale{ 1 / XYZ::YIntegral };
+    const float x{ scale * InnerProduct( XYZ::X, *this ) };
+    const float y{ scale * InnerProduct( XYZ::Y, *this ) };
+    const float z{ scale * InnerProduct( XYZ::Z, *this ) };
+    return { x, y, z };
+  }
 
 } // namespace Tac
 

@@ -252,16 +252,13 @@ namespace Tac
 
       sArea = TAC_CALL_RET( ComputeArea( errors ) );
 
-      Blackbody::Params blackbodyParams
-      {
-        .mLamba{},
-        .mTemperature{},
-      };
-      DenseSpectrum ds{ Blackbody::ToSpectrum( 
-      (void)ds;
+      const DenseSpectrum ds{ Blackbody::TemperatureToSpectrum( sTemperatureInKelvin ) };
+      TAC_UNUSED_PARAMETER(ds);
+
+      const XYZ xyz { ds.ToXYZ() };
+      TAC_UNUSED_PARAMETER(xyz);
 
       sIlluminanceInLumens;
-      sTemperatureInKelvin;
 
       return {};
     }
