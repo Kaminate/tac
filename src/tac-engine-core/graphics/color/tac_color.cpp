@@ -1,18 +1,20 @@
 #include "tac_color.h" // self-inc
 
 #include "tac-std-lib/math/tac_math.h" // Pow, Exp
+#include "tac-std-lib/math/tac_matrix3.h"
 
 
 namespace Tac
 {
   Blackbody::Blackbody( Params p )
   {
+    // Planck's law
     const float lambda { p.mLambaWavelengthNanometers };
     const float T { p.mTemperatureInKelvin };
-    const float c { 299792458.f };
-    const float h { 6.62606957e-34f };
-    const float kb { 1.3806488e-23f };
-    const float l { lambda * 1e-9f };
+    const float c { 299792458.f }; // speed of light
+    const float h { 6.62606957e-34f }; // planck constant
+    const float kb { 1.3806488e-23f }; // boltzmann constant
+    const float l { lambda * 1e-9f }; // convert nm to m
     const float Le
     {
                           ( 2 * h * c * c )
@@ -45,7 +47,7 @@ namespace Tac
     return integral;
 }
 
-  const DenseSpectrum XYZ::X
+  const DenseSpectrum AbsoluteXYZ::X
   {
     0.00012f, 0.00014f, 0.00016f, 0.00018f, 0.00020f, 0.00023f, 0.00026f, 0.00029f, 0.00032f, 0.00036f,
     0.00041f, 0.00046f, 0.00051f, 0.00058f, 0.00065f, 0.00074f, 0.00084f, 0.00096f, 0.00109f, 0.00123f,
@@ -97,7 +99,7 @@ namespace Tac
     0.00000f
   };
 
-  const DenseSpectrum XYZ::Y
+  const DenseSpectrum AbsoluteXYZ::Y
   {
     0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00001f,
     0.00001f, 0.00001f, 0.00001f, 0.00001f, 0.00001f, 0.00002f, 0.00002f, 0.00002f, 0.00003f, 0.00003f,
@@ -148,7 +150,7 @@ namespace Tac
     0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f, 0.00000f,
     0.00000f };
 
-  const DenseSpectrum XYZ::Z
+  const DenseSpectrum AbsoluteXYZ::Z
   {
     0.00060f, 0.00068f, 0.00076f, 0.00086f, 0.00096f, 0.00108f, 0.00122f, 0.00137f, 0.00154f, 0.00173f,
     0.00194f, 0.00217f, 0.00243f, 0.00273f, 0.00307f, 0.00348f, 0.00397f, 0.00454f, 0.00515f, 0.00580f,
@@ -200,13 +202,24 @@ namespace Tac
     0.00000f
   };
 
-  XYZ DenseSpectrum::ToXYZ() const
+  AbsoluteXYZ DenseSpectrum::ToAbsoluteXYZ() const
   {
-    constexpr float scale{ 1 / XYZ::YIntegral };
-    const float x{ scale * InnerProduct( XYZ::X, *this ) };
-    const float y{ scale * InnerProduct( XYZ::Y, *this ) };
-    const float z{ scale * InnerProduct( XYZ::Z, *this ) };
+    constexpr float scale{ 1 / AbsoluteXYZ::YIntegral };
+    const float x{ scale * InnerProduct( AbsoluteXYZ::X, *this ) };
+    const float y{ scale * InnerProduct( AbsoluteXYZ::Y, *this ) };
+    const float z{ scale * InnerProduct( AbsoluteXYZ::Z, *this ) };
     return { x, y, z };
+  }
+
+  Linear_scRGB Linear_scRGB::FromAbsoluteXYZ(AbsoluteXYZ xyz)
+  {
+    const v3 v{ xyz.x, xyz.y, xyz.z };
+    const m3 xyz_to_scRGB{ // Updated IEC standard as of 2003
+      3.2406255f, -1.5372080f, -.4986286f,
+      -.9689307f, 1.8757561f, .0415175f,
+      .0557101f, -.2040211f, 1.0569959f };
+    const v3 rgb{ xyz_to_scRGB * v };
+    return { rgb.x, rgb.y, rgb.z };
   }
 
 } // namespace Tac

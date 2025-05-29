@@ -11,6 +11,7 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math_meta.h"
 #include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/math/tac_math_unit_test_helper.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string_meta.h"
@@ -245,20 +246,51 @@ namespace Tac
 
       return runningArea;
     }
+
+    static v3 ComputeRadianceUsingStandardIlluminantA()
+    {
+      DenseSpectrum ds;
+      for( int i{}; i < DenseSpectrum::kSampleCount; ++i )
+      {
+        const float lambda = ( float )( DenseSpectrum::kLambdaMin + i );
+        const float L = 100.0f
+          * Pow( 560.0f / lambda, 5.0f )
+          * ( Exp( ( 1.435e7f / ( 2848 * 560 ) ) ) - 1 )
+          / // -------------------------------------------
+          ( Exp( ( 1.435e7f / ( 2848 * lambda ) ) ) - 1 );
+        ds.mValues[ i ] = L;
+      }
+
+      const AbsoluteXYZ xyz{ ds.ToAbsoluteXYZ() };
+
+      // https://en.wikipedia.org/wiki/Standard_illuminant
+      // Color temperature 2856K
+      const RelativeXYZ xyzExpected{ 109.85f, 100.0f, 35.58f };
+      //AssertAboutEqual( xyz.data(), xyzExpected.data(), 3, 1.0f );
+
+      // https://stackoverflow.com/questions/41702390/relation-of-luminance-in-rgb-xyz-color-and-physical-luminance
+      // XYZ colors are normalized such that the white point (such as the D65 or D50 white point)
+      // has Y = 1 (or Y = 100).
+      //
+      return {};
+    }
     
-    static v3 ComputeRadiance( Errors& errors )
+    static v3 ComputeRadianceUsingBlackbody( Errors& errors )
     {
       errors.clear();
 
       sArea = TAC_CALL_RET( ComputeArea( errors ) );
 
       const DenseSpectrum ds{ Blackbody::TemperatureToSpectrum( sTemperatureInKelvin ) };
-      TAC_UNUSED_PARAMETER(ds);
+      TAC_UNUSED_PARAMETER( ds );
 
-      const XYZ xyz { ds.ToXYZ() };
-      TAC_UNUSED_PARAMETER(xyz);
+      const AbsoluteXYZ xyz{ ds.ToAbsoluteXYZ() };
+      TAC_UNUSED_PARAMETER( xyz );
+
+      Linear_scRGB rgb{ Linear_scRGB::FromAbsoluteXYZ( xyz ) };
 
       sIlluminanceInLumens;
+
 
       return {};
     }
@@ -283,13 +315,19 @@ namespace Tac
       bool dirty{};
       dirty |= ImGuiDragFloat( "Illuminance (lm)", &sIlluminanceInLumens );
       dirty |= ImGuiDragFloat( "Temperature (K)", &sTemperatureInKelvin );
-      if( dirty || ImGuiButton( "Compute Radiance" ) )
+      if( dirty || ImGuiButton( "Compute Radiance using Blackbody" ) )
       {
-        sRadiance = ComputeRadiance( sErrors );
+        sRadiance = ComputeRadianceUsingBlackbody( sErrors );
         if( !sErrors )
         {
           sMaterial->mEmissive = sRadiance;
         }
+      }
+
+      if( ImGuiButton( "Compute Radiance using Std Illum A" ) )
+      {
+        sRadiance = ComputeRadianceUsingStandardIlluminantA();
+        sMaterial->mEmissive = sRadiance;
       }
 
       if( ImGuiDragFloat3( "Radiance", sRadiance.data() ) )
@@ -299,7 +337,7 @@ namespace Tac
 
   Material* PhotometricEmissionEditor::sMaterial{};
   float     PhotometricEmissionEditor::sIlluminanceInLumens{ 4000 };
-  float     PhotometricEmissionEditor::sTemperatureInKelvin{ 4000 };
+  float     PhotometricEmissionEditor::sTemperatureInKelvin{ 2856 };
   Errors    PhotometricEmissionEditor::sErrors;
   v3        PhotometricEmissionEditor::sRadiance;
   float     PhotometricEmissionEditor::sArea;

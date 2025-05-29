@@ -94,12 +94,7 @@ namespace Tac
              m.m10 * v.x + m.m11 * v.y, };
   }
 
-  void AssertAboutEqual( const m2& a, const m2& b )
-  {
-    AssertAboutEqual(a.data(), b.data(), 2 * 2 );
-  }
-
-  void m2UnitTestInverse( m2 m, m2 minvexpected)
+  static void m2UnitTestInverse( m2 m, m2 minvexpected)
   {
     m2 minvfound{};
     bool b;
@@ -107,7 +102,7 @@ namespace Tac
     AssertAboutEqual(minvfound, minvexpected);
   }
 
-  void m2UnitTestInverse()
+  static void m2UnitTestInverse()
   {
     m2 m{ 3, 3.2f,
           3.5f, 3.6f };
@@ -116,9 +111,9 @@ namespace Tac
 
     m2UnitTestInverse(m, minv);
   }
+}
 
-  void m2UnitTest()
-  {
-    m2UnitTestInverse();
-  }
+void Tac::m2UnitTest()
+{
+  m2UnitTestInverse();
 }
