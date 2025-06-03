@@ -23,7 +23,7 @@ namespace Tac
 
   //                  Elements in this array are added/removed by wndproc
   static HWND         sHWNDs[ kDesktopWindowCapacity ] {};
-  static HWND         mParentHWND                      {};
+  static HWND         sParentHWND                      {};
   static WindowHandle sWindowUnderConstruction         {};
   static bool         sMouseInWindow                   {};
 
@@ -100,10 +100,9 @@ namespace Tac
 
     // [ ] Q: wtf is sWindowUnderConstruction???
     const WindowHandle windowHandleFound { Win32WindowManagerFindWindow( hwnd ) };
-    const WindowHandle windowHandle
-    { windowHandleFound.IsValid()
-    ? windowHandleFound
-    : sWindowUnderConstruction };
+    const WindowHandle windowHandle{ windowHandleFound.IsValid()
+      ? windowHandleFound
+      : sWindowUnderConstruction };
     if( !windowHandle.IsValid() )
     {
       switch( uMsg )
@@ -562,26 +561,15 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
 
   sWindowUnderConstruction = windowHandle;
 
-  static HWND parentHWND {};
-
-  if( parentHWND )
-  {
-    WindowHandle hParent { Win32WindowManagerFindWindow( parentHWND ) };
-    TAC_ASSERT_MSG( hParent.IsValid(), "The parent was deleted!" );
-  }
-
-  const HINSTANCE hinst { Win32GetStartupInstance() };
+  const HINSTANCE hinst{ Win32GetStartupInstance() };
   const HWND hwnd{ CreateWindowA( classname,
-                                   name,
-                                   windowStyle,
-                                   x,
-                                   y,
-                                   w,
-                                   h,
-                                   parentHWND,
-                                   nullptr,
-                                   hinst,
-                                   nullptr ) };
+                                  name,
+                                  windowStyle,
+                                  x, y, w, h,
+                                  sParentHWND,
+                                  nullptr,
+                                  hinst,
+                                  nullptr ) };
 
 
   if( !hwnd )
@@ -602,18 +590,11 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
     TAC_RAISE_ERROR( msg );
   }
 
-  if( !parentHWND )
-  {
-    //parentHWND = hwnd;
-  }
 
   // Sets the keyboard focus to the specified window
   SetFocus( hwnd );
 
-  //if( !mShouldWindowHaveBorder )
-  // {
   SetWindowLong( hwnd, GWL_STYLE, 0 );
-  // }
 
   // Brings the thread that created the specified window into the foreground and activates the window.
   // Keyboard input is directed to the window, and various visual cues are changed for the user.
@@ -622,6 +603,6 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
   SetForegroundWindow( hwnd );
 
   ShowWindow( hwnd, Win32GetStartupCmdShow() );
-  mParentHWND = mParentHWND ? mParentHWND : hwnd; // combine windows into one tab group
+  sParentHWND = sParentHWND ? sParentHWND : hwnd; // combine windows into one tab group
 }
 

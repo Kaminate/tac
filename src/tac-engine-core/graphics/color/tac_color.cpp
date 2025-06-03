@@ -6,11 +6,11 @@
 
 namespace Tac
 {
-  Blackbody::Blackbody( Params p )
+  Blackbody::Blackbody( Wavelength wavelength, Temperature temperature )
   {
     // Planck's law
-    const float lambda { p.mLambaWavelengthNanometers };
-    const float T { p.mTemperatureInKelvin };
+    const float lambda { wavelength.mNanometers };
+    const float T { temperature.mKelvins };
     const float c { 299792458.f }; // speed of light
     const float h { 6.62606957e-34f }; // planck constant
     const float kb { 1.3806488e-23f }; // boltzmann constant
@@ -24,17 +24,13 @@ namespace Tac
     mRadiance = Le;
   };
 
-  DenseSpectrum Blackbody::TemperatureToSpectrum(float temperatureInKelvin)
+  DenseSpectrum Blackbody::TemperatureToSpectrum( Temperature temperature )
   {
     DenseSpectrum denseSpectrum;
     for( int i{}; i < DenseSpectrum::kSampleCount; ++i)
     {
-      const Blackbody::Params params
-      {
-        .mLambaWavelengthNanometers { ( float )( i + DenseSpectrum::kLambdaMin ) },
-        .mTemperatureInKelvin       { temperatureInKelvin },
-      };
-      denseSpectrum.mValues[ i ] = Blackbody( params );
+      const Wavelength wavelength{ .mNanometers { ( float )( i + DenseSpectrum::kLambdaMin ) } };
+      denseSpectrum.mValues[ i ] = Blackbody( wavelength, temperature );
     }
     return denseSpectrum;
   }
@@ -214,10 +210,9 @@ namespace Tac
   Linear_scRGB Linear_scRGB::FromAbsoluteXYZ(AbsoluteXYZ xyz)
   {
     const v3 v{ xyz.x, xyz.y, xyz.z };
-    const m3 xyz_to_scRGB{ // Updated IEC standard as of 2003
-      3.2406255f, -1.5372080f, -.4986286f,
-      -.9689307f, 1.8757561f, .0415175f,
-      .0557101f, -.2040211f, 1.0569959f };
+    const m3 xyz_to_scRGB( 3.2406255f, -1.5372080f, -.4986286f,
+                           -.9689307f, 1.8757561f, .0415175f,
+                           .0557101f, -.2040211f, 1.0569959f );
     const v3 rgb{ xyz_to_scRGB * v };
     return { rgb.x, rgb.y, rgb.z };
   }

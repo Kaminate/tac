@@ -36,6 +36,7 @@ namespace Tac
     v4           GetColumn( int );
     void         SetRow( int, const v4& );
     void         SetColumn( int, const v4& );
+    float        Determinant() const;
 
     static m4    FromRows( const v4&, const v4&, const v4&, const v4& );
     static m4    FromColumns( const v4&, const v4&, const v4&, const v4& );

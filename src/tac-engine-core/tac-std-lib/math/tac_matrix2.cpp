@@ -20,7 +20,7 @@ namespace Tac
     : m00( mm00 ), m01( mm01 )
     , m10( mm10 ), m11( mm11 ) {}
 
-  float m2::determinant() const
+  float m2::Determinant() const
   {
     return m00 * m11 - m01 * m10;
   }
@@ -66,7 +66,7 @@ namespace Tac
   }
   void m2::Invert(bool* valid, m2* m) const
   {
-    const float d { determinant() };
+    const float d { Determinant() };
     if( !( *valid = d != 0 ) )
       return;
 

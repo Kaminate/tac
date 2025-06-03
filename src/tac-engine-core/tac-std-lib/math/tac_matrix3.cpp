@@ -124,7 +124,7 @@ namespace Tac
     , m10( mm10 ), m11( mm11 ), m12( mm12 )
     , m20( mm20 ), m21( mm21 ), m22( mm22 ) {}
 
-  float m3::determinant() const
+  float m3::Determinant() const
   {
     return
       m00 * ( m11 * m22 - m12 * m21 ) +
@@ -185,11 +185,6 @@ namespace Tac
     return result;
   }
 
-  float determinant( const m3& m )
-  {
-    return m.determinant();
-  }
-
   float           m3::Trace() const
   {
     return m00 + m11 + m22;
@@ -219,41 +214,41 @@ namespace Tac
 
   bool m3::Invert(m3* m) const
   {
-    float d { determinant() };
+    float d { Determinant() };
     if( d == 0 )
       return false;
-    m3 a { adjugate() };
+    m3 a { Adjugate() };
     *m = ( 1 / d ) * a;
     return true;
   }
 
-  m3           m3::adjugate() const
+  m3           m3::Adjugate() const
   {
-    m3 result { cofactor() };
+    m3 result { Cofactor() };
     result.Transpose();
     return result;
   }
 
-  m3           m3::cofactor() const
+  m3           m3::Cofactor() const
   {
       float c00 = m2( m11, m12,
-                      m21, m22 ).determinant();
+                      m21, m22 ).Determinant();
       float c01 = m2( m10, m12,
-                      m20, m22 ).determinant();
+                      m20, m22 ).Determinant();
       float c02 = m2( m10, m11,
-                      m20, m21 ).determinant();
+                      m20, m21 ).Determinant();
       float c10 = m2( m01, m02,
-                      m21, m22 ).determinant();
+                      m21, m22 ).Determinant();
       float c11 = m2( m00, m02,
-                      m20, m22 ).determinant();
+                      m20, m22 ).Determinant();
       float c12 = m2( m00, m01,
-                      m20, m21 ).determinant();
+                      m20, m21 ).Determinant();
       float c20 = m2( m01, m02,
-                      m11, m12 ).determinant();
+                      m11, m12 ).Determinant();
       float c21 = m2( m00, m02,
-                      m10, m12 ).determinant();
+                      m10, m12 ).Determinant();
       float c22 = m2( m00, m01,
-                      m10, m11 ).determinant();
+                      m10, m11 ).Determinant();
       return { c00, -c01, c02,
                -c10, c11, -c12,
                c20, -c21, c22 };

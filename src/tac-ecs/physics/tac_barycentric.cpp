@@ -41,20 +41,20 @@ namespace Tac
     const v3 d    { p - tet0 };
 
     const m3 denominatorMatrix { m3::FromColumns( a, b, c ) };
-    const float denominator { denominatorMatrix.determinant() };
+    const float denominator { denominatorMatrix.Determinant() };
     const bool fucked { Abs( denominator ) < 0.001f };
     if( fucked )
       return {};
 
     const float invDenominator { 1.0f / denominator };
     const m3 xNumeratorMatrix  { m3::FromColumns( d, b, c ) };
-    const float xNumerator     { xNumeratorMatrix.determinant() };
+    const float xNumerator     { xNumeratorMatrix.Determinant() };
     const float x              { xNumerator * invDenominator };
     const m3 yNumeratorMatrix  { m3::FromColumns( a, d, c ) };
-    const float yNumerator     { yNumeratorMatrix.determinant() };
+    const float yNumerator     { yNumeratorMatrix.Determinant() };
     const float y              { yNumerator * invDenominator };
     const m3 zNumeratorMatrix  { m3::FromColumns( a, b, d ) };
-    const float zNumerator     { zNumeratorMatrix.determinant() };
+    const float zNumerator     { zNumeratorMatrix.Determinant() };
     const float z              { zNumerator * invDenominator };
 
     return BarycentricTetOutput

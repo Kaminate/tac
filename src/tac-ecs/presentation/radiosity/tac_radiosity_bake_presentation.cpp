@@ -20,16 +20,42 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  // Okay bro, heres the deal.
+  //
+  // I feel like using proper radiometric/photometric values suddenly makes things way complicated.
+  // Like, for example, what radiance value should a light source emit?
+  // In https://www.youtube.com/watch?v=B0sM7ZU0Nwo mirrors edge talk, they use a sun value
+  // of 100000 lux. But then they have problems getting the correct white value.
+  // Then theres exposure, tone mapping, etc.
+  //
+  // Instead, I think we should just go for it with SDR before even thinking about attempting HDR,
+  // and use a light value of (1, 1, 1) in magical lighting units instead of some sort of physicaly
+  // based W/(m^2sr) spectral radiance scRGB
+  //
+  // see also
+  // https://seenaburns.com/dynamic-range/
+  // http://www.gdcvault.com/play/1012351/Uncharted-2-HDR
+  // http://filmicgames.com/archives/75
+  // https://www.youtube.com/watch?v=B0sM7ZU0Nwo
+  // https://bartwronski.com/2016/09/01/dynamic-range-and-evs/
+  // https://placeholderart.wordpress.com/2014/11/21/implementing-a-physically-based-camera-manual-exposure/
+  //  ^ this guy works at vicarious visions
+  // https://knarkowicz.wordpress.com/2016/01/09/automatic-exposure/
+
+  // -----------------------------------------------------------------------------------------------
+
   struct PreBakeScene
   {
     struct PatchPower
     {
       using Vtxs = Array< v3, 3 >;
 
-      Vtxs mTriVerts             {}; // worldspace
-      v3   mTotalPower           {};
-      v3   mCurrentReceivedPower {};
-      v3   mCurrentUnshotPower   {};
+      Vtxs  mTriVerts             {}; // worldspace
+      v3    mTotalPower           {};
+      v3    mCurrentReceivedPower {};
+      v3    mCurrentUnshotPower   {};
+      v3    mUnitNormal           {};
+      float mArea                 {};
     };
 
     struct Instance
@@ -100,21 +126,16 @@ namespace Tac
 
     void Init(const World* world)
     {
-      Vector< const Model* > models;
       for( const Entity* entity : world->mEntities )
       {
-        const Model * model { Model::GetModel( entity ) };
-        if(!model)
+        const Model* model{ Model::GetModel( entity ) };
+        if( !model )
           continue;
 
-        const Mesh* mesh { GetMesh(model) };
-        const Material* material { Material::GetMaterial(entity)};
+        const Mesh* mesh{ GetMesh( model ) };
+        const Material* material{ Material::GetMaterial( entity ) };
         const JPPTCPUMeshData& jpptCPUMeshData{ mesh->mJPPTCPUMeshData };
-
-        //dynmc bool worldTransformInvExists{};
         const m4 worldTransform{ model->mEntity->mWorldTransform };
-        //const m4 worldTransformInv{ m4::Inverse( worldTransform, &worldTransformInvExists ) };
-        //TAC_ASSERT( worldTransformInvExists );
 
         const Instance::PatchPowers patchPowers{ [ & ]()
         {
@@ -123,14 +144,23 @@ namespace Tac
           dynmc PatchPower::Vtxs triVerts{};
           for( const v3& vert : jpptCPUMeshData.mPositions )
           {
-            triVerts[ iTriVert ] = (worldTransform * v4(vert, 1)).xyz();
+            triVerts[ iTriVert ] = ( worldTransform * v4( vert, 1 ) ).xyz();
             if( iTriVert == 2 )
             {
+              const v3 e1{ triVerts[ 1 ] - triVerts[ 0 ] };
+              const v3 e2{ triVerts[ 2 ] - triVerts[ 0 ] };
+              const v3 normal = Cross( e1, e2 );
+              const float normalLen = normal.Length();
+              const float area{ normalLen / 2 };
+              const v3 radiance{ material->mEmissive };
+              const v3 power{ radiance * area * 3.14f };
               const PatchPower patchPower
               {
                 .mTriVerts           { triVerts },
-                .mTotalPower         { material->mEmissive },
-                .mCurrentUnshotPower { material->mEmissive },
+                .mTotalPower         { power },
+                .mCurrentUnshotPower { power },
+                .mUnitNormal         { normal / normalLen },
+                .mArea               { area },
               };
               patchPowers.push_back( patchPower );
             }
@@ -151,25 +181,28 @@ namespace Tac
       }
     }
 
-    v3 ComputeTotalUnshotPower()
+    float ComputeTotalUnshotPower()
     {
-      v3 totalUnshotPower;
+      float total{};
       for( Instance& instance : mInstances )
         for( PatchPower& patchPower : instance.mPatchPowers )
-          totalUnshotPower += patchPower.mCurrentUnshotPower;
-      return totalUnshotPower;
+          total += ( patchPower.mCurrentUnshotPower.x +
+                     patchPower.mCurrentUnshotPower.y +
+                     patchPower.mCurrentUnshotPower.z ) / 3;
+      return total;
     }
 
     void Bake()
     {
       float minPowerLimit{ 0.01f };
       int maxIterations{ 100 };
+      int samplesPerIteration = 1000;
 
       for( int iter{}; iter < maxIterations; ++iter )
       {
-        const v3 totalUnshotPower{ ComputeTotalUnshotPower() };
+        const float totalUnshotPower{ ComputeTotalUnshotPower() };
 
-        if( totalUnshotPower.Length() < minPowerLimit )
+        if( totalUnshotPower < minPowerLimit )
           break;
 
         TAC_NO_OP;
@@ -178,7 +211,32 @@ namespace Tac
         {
           for( PatchPower& patchPower : instance.mPatchPowers)
           {
-            //float q_i = patchPower.mCurrentUnshotPower / totalUnshotPower;
+            const float currentUnshotPower{ ( patchPower.mCurrentUnshotPower.x +
+                                              patchPower.mCurrentUnshotPower.y +
+                                              patchPower.mCurrentUnshotPower.z ) / 3 };
+            const float q_i{ currentUnshotPower / totalUnshotPower };
+            const int N_i{ ( int )( q_i * samplesPerIteration ) };
+            for( int iSample{}; iSample < N_i; ++iSample)
+            {
+              //          1
+              // p(x) = -----
+              //         A_i
+              const v3 samplePoint{ RandomPointInTriangle( patchPower.mTriVerts[ 0 ],
+                                                           patchPower.mTriVerts[ 1 ],
+                                                           patchPower.mTriVerts[ 2 ] ) };
+
+              //              cos(theta)
+              //   p(omega) = ----------
+              //                  pi
+              const v3 sampleDir{ SampleCosineWeightedHemisphere( patchPower.mUnitNormal ) };
+
+              //                  1     cos(theta)
+              //   p(x,omega) = ----- * ----------
+              //                 A_i        pi
+
+
+
+            }
           }
         }
       }
@@ -232,6 +290,7 @@ namespace Tac
       sRequestBake = false;
       sPreBakeScene = {};
       sPreBakeScene.Init(world);
+      sPreBakeScene.Bake();
     }
   }
 
@@ -256,4 +315,4 @@ namespace Tac
   }
 }
 
-#endif
+#endif // TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()

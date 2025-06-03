@@ -134,5 +134,7 @@ namespace Tac
     Vector< DefaultVertexColor > mDebugDrawVerts           {};
   };
 
+  static void SampleCosineWeightedHemisphereDebugImGui();
+
 } // namespace Tac
 

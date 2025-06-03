@@ -16,67 +16,21 @@
 // Interpolation
 // -------------
 
-Tac::v2                       Tac::Min( const v2& a, const v2& b )
+namespace Tac
 {
-  return v2( Min( a.x, b.x ),
-             Min( a.y, b.y ) );
+  static std::mt19937 sRNG;
 }
 
-Tac::v2                       Tac::Max( const v2& a, const v2& b )
-{
-  return v2( Max( a.x, b.x ),
-             Max( a.y, b.y ) );
-}
+auto Tac::Min( const v2& a, const v2& b ) -> Tac::v2    { return { Min( a.x, b.x ), Min( a.y, b.y ) }; }
+auto Tac::Max( const v2& a, const v2& b ) -> Tac::v2    { return { Max( a.x, b.x ), Max( a.y, b.y ) }; }
+auto Tac::Min( const v2i& a, const v2i& b ) -> Tac::v2i { return { Min( a.x, b.x ), Min( a.y, b.y ) }; }
+auto Tac::Max( const v2i& a, const v2i& b ) -> Tac::v2i { return { Max( a.x, b.x ), Max( a.y, b.y ) }; }
+auto Tac::Min( const v3& a, const v3& b ) -> Tac::v3    { return { Min( a.x, b.x ), Min( a.y, b.y ), Min( a.z, b.z ) }; }
+auto Tac::Max( const v3& a, const v3& b ) -> Tac::v3    { return { Max( a.x, b.x ), Max( a.y, b.y ), Max( a.z, b.z ) }; }
+auto Tac::Min( const v3i& a, const v3i& b ) -> Tac::v3i { return { Min( a.x, b.x ), Min( a.y, b.y ), Min( a.z, b.z ) }; }
+auto Tac::Max( const v3i& a, const v3i& b ) -> Tac::v3i { return { Max( a.x, b.x ), Max( a.y, b.y ), Max( a.z, b.z ) }; }
 
-Tac::v2i                      Tac::Min( const v2i& a, const v2i& b )
-{
-  return v2i( Min( a.x, b.x ),
-              Min( a.y, b.y ) );
-}
-
-Tac::v2i                      Tac::Max( const v2i& a, const v2i& b )
-{
-  return v2i( Max( a.x, b.x ),
-              Max( a.y, b.y ) );
-}
-
-Tac::v3                       Tac::Min( const v3& a, const v3& b )
-{
-  return v3( Min( a.x, b.x ),
-             Min( a.y, b.y ),
-             Min( a.z, b.z ) );
-}
-
-Tac::v3                       Tac::Max( const v3& a, const v3& b )
-{
-  return v3( Max( a.x, b.x ),
-             Max( a.y, b.y ),
-             Max( a.z, b.z ) );
-}
-
-Tac::v3i                      Tac::Min( const v3i& a, const v3i& b )
-{
-  return v3i( Min( a.x, b.x ),
-              Min( a.y, b.y ),
-              Min( a.z, b.z ) );
-}
-
-Tac::v3i                      Tac::Max( const v3i& a, const v3i& b )
-{
-  return v3i( Max( a.x, b.x ),
-              Max( a.y, b.y ),
-              Max( a.z, b.z ) );
-}
-
-
-float Tac::EaseInOutQuart( float t )
-{
-  if( t < 0.5f )
-    return 8 * t * t * t * t;
-  t -= 1;
-  return 1 - 8 * t * t * t * t;
-}
-
+auto Tac::EaseInOutQuart( float t ) -> float { return t < 0.5f ? ( 8 * t * t * t * t ) : ( 1 - 8 * ( t - 1 ) * ( t - 1 ) * ( t - 1 ) * ( t - 1 ) ); }
 
 void Tac::Spring( float* posCurrent,
                   float* velCurrent,
@@ -100,12 +54,12 @@ void Tac::Spring( float* posCurrent,
 
 
 
-float Tac::Saturate( const float value )
+auto Tac::Saturate( const float value ) -> float
 {
   return Clamp( value, 0.0f, 1.0f );
 }
 
-float Tac::Clamp( float x, float xMin, float xMax )
+auto Tac::Clamp( float x, float xMin, float xMax ) -> float
 {
   if( x < xMin )
     return xMin;
@@ -120,21 +74,21 @@ float Tac::Clamp( float x, float xMin, float xMax )
 // Trigonometry
 // ------------
 
-float  Tac::Sin( float f )               { return std::sinf( f ); }
-double Tac::Sin( double d )              { return std::sin( d );  }
-float  Tac::Cos( float f )               { return std::cosf( f ); }
-double Tac::Cos( double d )              { return std::cos( d );  }
-float  Tac::Tan( float f )               { return std::tanf( f ); }
-double Tac::Tan( double d )              { return std::tan( d );  }
-float  Tac::Atan2( float y, float x )    { return std::atan2( y, x ); }
-float  Tac::Asin( float f )              { return std::asinf( f ); }
-float  Tac::Acos( float f )              { return std::acosf( f ); }
+auto Tac::Sin( float f ) -> float               { return std::sinf( f ); }
+auto Tac::Sin( double d ) -> double              { return std::sin( d );  }
+auto Tac::Cos( float f ) -> float               { return std::cosf( f ); }
+auto Tac::Cos( double d ) -> double              { return std::cos( d );  }
+auto Tac::Tan( float f ) -> float               { return std::tanf( f ); }
+auto Tac::Tan( double d ) -> double              { return std::tan( d );  }
+auto Tac::Atan2( float y, float x ) -> float    { return std::atan2( y, x ); }
+auto Tac::Asin( float f ) -> float              { return std::asinf( f ); }
+auto Tac::Acos( float f ) -> float              { return std::acosf( f ); }
 
 // --------
 // Rounding
 // --------
 
-float Tac::Round( float f )              { return std::roundf( f ); }
+auto Tac::Round( float f ) -> float              { return std::roundf( f ); }
 
 // Example:
 //   RoundUpToNearestMultiple( 10, 5 ) = 10
@@ -144,74 +98,69 @@ float Tac::Round( float f )              { return std::roundf( f ); }
 //  return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
 //}
 
-float    Tac::Floor( float f )           { return std::floor( f ); }
-double   Tac::Floor( double d )          { return std::floor( d ); }
-Tac::v2  Tac::Floor( const v2& v )       { return v2( Floor( v.x ), Floor( v.y ) ); }
-Tac::v3  Tac::Floor( const v3& v )       { return v3( Floor( v.x ), Floor( v.y ), Floor( v.z ) ); }
-float    Tac::Ceil( float f )            { return std::ceil( f ); }
-Tac::v2  Tac::Ceil( const v2& v )        { return v2( Ceil( v.x ), Ceil( v.y ) ); }
-Tac::v3  Tac::Ceil( const v3& v )        { return v3( Ceil( v.x ), Ceil( v.y ), Ceil( v.z ) ); }
-float    Tac::Fmod( float x, float y )   { return std::fmodf( x, y ); }
-double   Tac::Fmod( double x, double y ) { return std::fmod( x, y ); }
+auto Tac::Floor( float f ) -> float           { return std::floor( f ); }
+auto Tac::Floor( double d ) -> double          { return std::floor( d ); }
+auto Tac::Floor( const v2& v ) -> Tac::v2       { return v2( Floor( v.x ), Floor( v.y ) ); }
+auto Tac::Floor( const v3& v ) -> Tac::v3       { return v3( Floor( v.x ), Floor( v.y ), Floor( v.z ) ); }
+auto Tac::Ceil( float f ) -> float            { return std::ceil( f ); }
+auto Tac::Ceil( const v2& v ) -> Tac::v2        { return v2( Ceil( v.x ), Ceil( v.y ) ); }
+auto Tac::Ceil( const v3& v ) -> Tac::v3        { return v3( Ceil( v.x ), Ceil( v.y ), Ceil( v.z ) ); }
+auto Tac::Fmod( float x, float y ) -> float   { return std::fmodf( x, y ); }
+auto Tac::Fmod( double x, double y ) -> double { return std::fmod( x, y ); }
 
 // ----------
 // Randomness
 // ----------
 
 
-static std::mt19937 mersenneTwister;
+auto Tac::RandomFloat0To1() -> float                      { return ( float )sRNG() / sRNG.max(); }
+auto Tac::RandomIndex( int n ) -> int                     { return sRNG() % n; }
+auto Tac::RandomFloatMinus1To1() -> float                 { return ( RandomFloat0To1() * 2.0f ) - 1.0f; }
+auto Tac::RandomFloatBetween( float a, float b ) -> float { return Lerp( a, b, RandomFloat0To1() ); }
 
-float Tac::RandomFloat0To1()
+auto Tac::RandomPointInTriangle( v3 p0, v3 p1, v3 p2 ) -> Tac::v3
 {
-  return ( float )mersenneTwister() / mersenneTwister.max();
+  float u{ RandomFloat0To1() };
+  float v{ RandomFloat0To1() };
+  if( u + v > 1 ) { u = 1 - u; v = 1 - v; }
+  return p0 + u * ( p1 - p0 ) + v * ( p2 - p0 );
 }
 
-int Tac::RandomIndex( int n )
+
+namespace Tac
 {
-  return mersenneTwister() % n;
-}
+  auto SphericalCoordinate::ToCartesian() const -> v3
+  {
+    return v3( mRadius * Cos( mPhi ) * Sin( mTheta ),
+               mRadius * Cos( mTheta ),
+               mRadius * Sin( mPhi ) * Sin( mTheta ) );
+  }
 
-float Tac::RandomFloatMinus1To1()
-{
-  return ( RandomFloat0To1() * 2.0f ) - 1.0f;
-}
-
-float Tac::RandomFloatBetween( float a, float b )
-{
-  return Lerp( a, b, RandomFloat0To1() );
-}
-// ---------------------
-// Spherical Coordinates
-// ---------------------
-
-Tac::v3 Tac::CartesianToSpherical( const v3& v ) { return CartesianToSpherical( v.x, v.y, v.z ); }
-
-Tac::v3 Tac::SphericalToCartesian( const float r, const float t, const float p ) // radius, theta, phi
-{
-  const float x { r * Cos( p ) * Sin( t ) };
-  const float y { r * Cos( t ) };
-  const float z { r * Sin( p ) * Sin( t ) };
-  return v3( x, y, z );
-}
-
-Tac::v3 Tac::SphericalToCartesian( const v3& v ) { return SphericalToCartesian( v.x, v.y, v.z ); }
-
-Tac::v3 Tac::CartesianToSpherical( const float x, const float y, const float z )
-{
-  const float q { x * x + y * y + z * z };
-  if( q < 0.01f )
-    return {};
-  const float r { Sqrt( q ) };
-  const float t { Acos( y / r ) };
-  const float p { Atan2( z, x ) };
-  return v3( r, t, p );
+  auto SphericalCoordinate::FromCartesian(v3 v) -> SphericalCoordinate
+  {
+    const float x = v.x;
+    const float y = v.y;
+    const float z = v.z;
+    const float q { x * x + y * y + z * z };
+    if( q < 0.01f )
+      return {};
+    const float r { Sqrt( q ) };
+    const float t { Acos( y / r ) };
+    const float p { Atan2( z, x ) };
+    return SphericalCoordinate
+    {
+      .mRadius { r },
+      .mTheta  { t },
+      .mPhi    { p },
+    };
+  }
 }
 
 // ------------
 // Intersection
 // ------------
 
-float Tac::RaySphere( const v3& rayPos, const v3& rayDir, const v3& spherePos, float sphereRadius )
+auto Tac::RaySphere( const v3& rayPos, const v3& rayDir, const v3& spherePos, float sphereRadius ) -> float
 {
   const v3 dp { rayPos - spherePos };
   const float c { Dot( dp, dp ) - Square( sphereRadius ) };
@@ -231,7 +180,7 @@ float Tac::RaySphere( const v3& rayPos, const v3& rayDir, const v3& spherePos, f
   return -1;
 }
 
-Tac::v3 Tac::ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p )
+auto Tac::ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p ) -> Tac::v3
 {
   const v3 to1 { p1 - p0 };
   const v3 toP { p - p0 };
@@ -250,36 +199,29 @@ Tac::v3 Tac::ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p )
   return p0 + to1 * t;
 }
 
-
-
-// ------------
-// Arithmetic
-// ------------
-
-float Tac::Fract( float f )
+auto Tac::Fract( float f ) -> float
 {
   float integralpart;
   float fractionalpart { std::modf( f, &integralpart ) };
   return fractionalpart;
 }
 
-Tac::v2 Tac::Abs( const v2& v )         { return { Abs( v.x ), Abs( v.y ) }; }
-Tac::v3 Tac::Abs( const v3& v )         { return { Abs( v.x ), Abs( v.y ), Abs( v.z ) }; }
-float Tac::Pow( float base, float exp ) { return std::pow( base, exp ); }
-float Tac::Sqrt( float f )              { return std::sqrtf( f ); }
-float Tac::Exp( float f )               { return std::exp( f ); }
+auto Tac::Abs( const v2& v ) -> Tac::v2         { return { Abs( v.x ), Abs( v.y ) }; }
+auto Tac::Abs( const v3& v ) -> Tac::v3         { return { Abs( v.x ), Abs( v.y ), Abs( v.z ) }; }
+auto Tac::Pow( float base, float exp ) -> float { return std::pow( base, exp ); }
+auto Tac::Sqrt( float f ) -> float              { return std::sqrtf( f ); }
+auto Tac::Exp( float f ) -> float               { return std::exp( f ); }
 
 // -----------------
 // Misc?? / Unsorted
 // -----------------
 
-bool                     Tac::IsNan( float f ) { return std::isnan( f ); }
-bool                     Tac::IsInf( float f ) { return std::isinf( f ); }
+auto Tac::IsNan( float f ) -> bool              { return std::isnan( f ); }
+auto Tac::IsInf( float f ) -> bool              { return std::isinf( f ); }
 
 namespace Tac
 {
-
-  ClosestPointLineSegments::Output ClosestPointLineSegments::Solve( Input input)
+  auto ClosestPointLineSegments::Solve( Input input) -> ClosestPointLineSegments::Output
   {
     const v3 p1{input.mLine1Begin};
     const v3 q1{input.mLine1End};
@@ -339,7 +281,7 @@ namespace Tac
     };
   }
 
-  ClosestPointTwoRays::Output ClosestPointTwoRays::Solve( Input input )
+  auto ClosestPointTwoRays::Solve( Input input ) -> ClosestPointTwoRays::Output
   {
     // http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
     //
@@ -402,7 +344,7 @@ namespace Tac
     };
   }
 
-  v3 RayTriangle::Output::GetIntersectionPoint( const Triangle& tri ) const
+  auto RayTriangle::Output::GetIntersectionPoint( const Triangle& tri ) const -> v3
   {
     const v3& A{ tri.mP0 };
     const v3& B{ tri.mP1 };
@@ -413,7 +355,7 @@ namespace Tac
     return A * w + B * u + C * v;
   }
 
-  RayTriangle::Output RayTriangle::Solve( const Ray& ray, const Triangle& triangle )
+  auto RayTriangle::Solve( const Ray& ray, const Triangle& triangle ) -> RayTriangle::Output
   {
     // Moller-Trumbore algorithm - "Fast, Minimum Storage Ray/Triangle Intersection" (1977)
     const v3& p0{ triangle.mP0 };
@@ -443,4 +385,120 @@ namespace Tac
     };
   }
 } // namespace Tac
+
+auto Tac::SampleCosineWeightedHemisphere() -> Tac::SphericalCoordinate
+{
+  // Starting off, a pdf must be normalized
+  //   \int_{H^2} p(\omega) d\omega = 1
+  //
+  // We would like p(omega) \propto \cos(\theta), or in other words, p(\omega) = c * \cos(\theta)
+  //   \int_{H^2} c * cos(\theta) d\omega = 1
+  // 
+  // solving for c...
+  //   \int_0^{2\pi} \int_0^{\frac{\pi}{2}} c * \cos(\theta) \sin(\theta) d\theta d\phi = 1
+  //   ...
+  //   c = 1/pi
+  //
+  // plugging c into p(omega) we get
+  //              cos(theta)
+  //   p(omega) = ----------
+  //                  pi
+  //
+  //
+  // from (magic??? change of variables from spherical to cartesian??? ),
+  // we know that p(theta,phi) = sin(theta)p(omega)
+  //
+  //                   sin(theta) cos(theta)
+  //   p(theta, phi) = ---------------------
+  //                            pi
+  //
+  // Next get the marginal density function for theta by "integrating out" phi
+  //   p(theta) = \int_0^{2\pi} p(theta, phi) dphi
+  //            = ...
+  //            = 2 sin(theta) cos(theta)
+  //
+  // Next get the conditional density function for phi
+  //                  pdf(theta, phi)          1
+  //   p(phi|theta) = --------------- = ... = ---
+  //                    pdf(theta)            2pi
+  //
+  // p(theta,phi) = p(theta) p(phi|theta)
+  //
+  // The d/dx CDF = pdf, so integrate each pdf to get the CDFs
+  //   P(x) = \int_0^\x p(x^\prime) dx^\prime
+  //
+  //   P(theta) = \int_0^\theta p(theta^\prime) d\theta^\prime
+  //            = \int_0^\theta 2 sin(theta) cos( theta) d\theta^\prime
+  //            = ...
+  //            = \sin^2(\theta)
+  //
+  //   P(phi|theta) = \int_0^\phi p(phi^\prime) d\phi^\prime
+  //                = \int_0^\phi \frac{1}{2\pi} d\phi^\prime
+  //                = ...
+  //                = \frac{\phi}{2\pi}
+  //
+  // The CDF is sampled with uniform random number \xi \in [0,1] using the inversion method
+  //
+  //           1                                  1              +----+
+  //           |                                  |              | p4 |
+  //           |                                  |         +----+----+
+  //           |                                  |         | p3 | p3 |
+  //     pdf(X)|                            CDF(X)|         |    |    |
+  //           |                                  |         |    |    |
+  //           |                                  |    +----+----+----+
+  //           |         +----+                   |    | p2 | p2 | p2 |
+  //           |    +----+ p3 |                   |    |    |    |    |
+  //           +----+ p2 |    +----+              +----+----+----+----+
+  //           | p1 |    |    | p4 |              | p1 | p1 | p1 | p1 |
+  //           0----+----+----+----+              0----+----+----+----+
+  //                     X                                  X
+  //
+  // If we assign canonical uniform random variable \xi has value CDF(X_i) with probability p(X_i)
+  // If we let CDF(X_i) = \xi, then by inverting the CDF we can solve for X_i given \xi
+  //
+  //   P(theta) = \xi                   P(P^{-1}(\theta)) = \theta
+  //   theta = P^{-1}(\xi)          sin^2(P^{-1}(\theta)) = \theta
+  //           |                      sin(P^{-1}(\theta)) = \sqrt(\theta)
+  //           |                          P^{-1}(\theta)) = \sin^-1(\sqrt(\theta))
+  //           |                          |
+  //           +--------------------------+
+  //           |
+  //           v
+  //   theta = sin^-1(\sqrt(\xi))
+  //
+  // Do the same for phi
+  //
+  //   ...
+  //   \phi = 2 pi \xi_{\phi}
+  //
+
+  float xi_theta = RandomFloat0To1();
+  float xi_phi = RandomFloat0To1();
+  float theta = Asin( Sqrt( xi_theta ) );
+  float phi = 2 * 3.14f * xi_phi;
+
+  return SphericalCoordinate
+  {
+    .mTheta { theta },
+    .mPhi   { phi },
+  };
+  
+  // https://ameye.dev/notes/sampling-the-hemisphere/
+  // https://agraphicsguynotes.com/posts/sample_microfacet_brdf/
+  // https://pbr-book.org/4ed/Monte_Carlo_Integration/Sampling_Using_the_Inversion_Method
+  // https://pbr-book.org/4ed/Sampling_Algorithms/Sampling_Multidimensional_Functions
+}
+
+auto Tac::SampleCosineWeightedHemisphere(v3 n) -> v3
+{
+  auto spherical = SampleCosineWeightedHemisphere();
+  v3 tan0;
+  v3 tan1;
+  GetFrameRH(n, tan0, tan1);
+  v3 cartesian = spherical.ToCartesian();
+  return
+    cartesian.x * tan0 +
+    cartesian.y * n +
+    cartesian.z * tan1;
+}
 

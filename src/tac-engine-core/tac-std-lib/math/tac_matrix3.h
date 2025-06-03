@@ -39,7 +39,7 @@ namespace Tac
         float mm20, float mm21, float mm22 );
     float*       data();
     const float* data() const;
-    float        determinant() const;
+    float        Determinant() const;
     float&       operator()( int iRow, int iCol );
     float        operator()( int iRow, int iCol ) const;
     float&       operator[]( int );
@@ -50,10 +50,10 @@ namespace Tac
     bool         Invert( m3* ) const;
 
     // return the transpose of the cofactor matrix
-    m3           adjugate() const;
+    m3           Adjugate() const;
 
     // returns a matrix where each element is the deteriminant of...
-    m3           cofactor() const;
+    m3           Cofactor() const;
     void         Transpose();
     void         OrthoNormalize();
     static m3    Transpose( const m3& );

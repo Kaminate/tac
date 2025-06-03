@@ -14,12 +14,12 @@ namespace Tac
         float mm10, float mm11 );
     float*       data();
     const float* data() const;
-    float        determinant() const;
     float&       operator()( int iRow, int iCol );
     float        operator()( int iRow, int iCol ) const;
     float&       operator[]( int );
     float        operator[]( int ) const;
     m2&          operator*= (float);
+    float        Determinant() const;
     void         Transpose();
     void         Invert(bool*, m2*) const;
     static m2    Identity();

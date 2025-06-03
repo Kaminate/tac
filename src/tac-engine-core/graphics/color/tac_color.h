@@ -6,7 +6,6 @@ namespace Tac
 {
 
   struct AbsoluteXYZ;
-  struct RelativeXYZ;
 
   struct DenseSpectrum
   {
@@ -36,6 +35,7 @@ namespace Tac
 
   // The three components are divided by the luminance of a given white point.
   // The white point has a luminance factor of 1
+  template< int N >
   struct RelativeXYZ
   {
     float x{};
@@ -44,11 +44,15 @@ namespace Tac
     const float* data() const { return &x; }
   };
 
+  using RelativeXYZ1 = RelativeXYZ< 1 >;
+  using RelativeXYZ100 = RelativeXYZ< 100 >;
+
   struct Blackbody
   {
-    struct Params { float mLambaWavelengthNanometers; float mTemperatureInKelvin; };
-    Blackbody( Params );
-    static DenseSpectrum TemperatureToSpectrum(float temperatureInKelvin);
+    struct Wavelength{ float mNanometers; };
+    struct Temperature{ float mKelvins; };
+    Blackbody( Wavelength, Temperature );
+    static DenseSpectrum TemperatureToSpectrum( Temperature );
     operator float() { return mRadiance; }
     float mRadiance{};
   };

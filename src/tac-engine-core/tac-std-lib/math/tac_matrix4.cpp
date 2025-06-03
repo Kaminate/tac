@@ -102,6 +102,22 @@ namespace Tac
       this->operator()( i, c ) = v[ i ];
   }
 
+  float        m4::Determinant() const
+  {
+    const float det00{ m3( m11, m12, m13,
+                           m21, m22, m23,
+                           m31, m32, m33 ).Determinant() };
+    const float det01{ m3( m10, m12, m13,
+                           m20, m22, m23,
+                           m30, m32, m33 ).Determinant() };
+    const float det02{ m3( m10, m11, m13,
+                           m20, m21, m23,
+                           m30, m31, m33 ).Determinant() };
+    const float det03{ m3( m10, m11, m12,
+                           m20, m21, m22,
+                           m30, m31, m32 ).Determinant() };
+    return det00 - det01 + det02 - det03;
+  }
 
   m4           m4::FromRows( const v4& r0, const v4& r1, const v4& r2, const v4& r3 )
   {

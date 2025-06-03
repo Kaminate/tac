@@ -57,12 +57,9 @@ namespace Tac
   double                   Floor( double );
   v2                       Floor( const v2& );
   v3                       Floor( const v3& );
-  //double                   Floor(int);
   float                    Ceil( float );
   v2                       Ceil( const v2& );
   v3                       Ceil( const v3& );
-  //double                   Ceil(int);
-
   float                    Fmod( float, float );
   double                   Fmod( double, double );
 
@@ -74,6 +71,7 @@ namespace Tac
   float                    RandomFloatMinus1To1();
   float                    RandomFloatBetween( float, float );
   int                      RandomIndex( int n ); // [ 0, n )
+  v3                       RandomPointInTriangle( v3, v3, v3 );
 
   // ---------------------
   // Angles
@@ -82,15 +80,27 @@ namespace Tac
   template< typename T > T DegreesToRadians( T d ) { return d * ( 3.14f / 180.0f ); }
   template< typename T > T RadiansToDegrees( T r ) { return r * ( 180.0f / 3.14f ); }
 
-  // ---------------------
-  // Spherical Coordinates
-  // ---------------------
+  //            y        (x,y,z)
+  //            ^           +
+  //            |          /|
+  //            |<theta>__/ |
+  //            |    __/    |
+  //            | __/       |
+  //            |/          |
+  //            +------^----|---+---> x
+  //           / \___ phi   |  /
+  //          /      \_v_   | /
+  //         /        r  \__|/
+  //        z               +        
+  struct SphericalCoordinate
+  {
+    v3          ToCartesian() const;
+    static auto FromCartesian( v3 ) -> SphericalCoordinate;
 
-  //                       theta [0, pi]. if theta = 0, cartesian = { 0, 1, 0 }
-  v3                       SphericalToCartesian( float radius, float theta, float phi );
-  v3                       SphericalToCartesian( const v3& );
-  v3                       CartesianToSpherical( float, float, float );
-  v3                       CartesianToSpherical( const v3& );
+    float mRadius { 1 };
+    float mTheta  {}; // [0, pi]
+    float mPhi    {}; // [0, 2pi]
+  };
 
   // ------------
   // Intersection
@@ -155,6 +165,9 @@ namespace Tac
 
   bool                     IsNan( float );
   bool                     IsInf( float );
+
+  SphericalCoordinate      SampleCosineWeightedHemisphere();
+  v3                       SampleCosineWeightedHemisphere(v3 n);
 
 } // namespace Tac
 

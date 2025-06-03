@@ -20,6 +20,13 @@
 
 namespace Tac
 {
+  using Temperature = Blackbody::Temperature; 
+
+  struct LuminousFlux { float mLumens; };
+  struct Luminance    { float mNits; };
+  struct RadiantFlux  { float mWatts; };
+  struct Radiance     { float mWattsPerSquareMeterPerSteradian; };
+
   TAC_META_REGISTER_COMPOSITE_BEGIN( Material );
   TAC_META_REGISTER_COMPOSITE_MEMBER( mIsGlTF_PBR_MetallicRoughness );
   TAC_META_REGISTER_COMPOSITE_MEMBER( mIsGlTF_PBR_SpecularGlossiness );
@@ -207,12 +214,15 @@ namespace Tac
 
   struct PhotometricEmissionEditor
   {
-    static Material* sMaterial;
-    static float     sIlluminanceInLumens;
-    static float     sTemperatureInKelvin;
-    static Errors    sErrors;
-    static v3        sRadiance;
-    static float     sArea;
+    static Material*    sMaterial;
+    static Material*    sMaterialPrev;
+    static LuminousFlux sLuminousFlux;
+    static Temperature  sTemperature;
+    static Errors       sErrors;
+    static v3           sRadiance;
+    static float        sCalculatedArea; // m^2
+    static bool         sUseOverrideArea;
+    static float        sOverrideArea;
 
     static float ComputeArea( Errors& errors )
     {
@@ -230,24 +240,31 @@ namespace Tac
           }, errors ) } );
       TAC_RAISE_ERROR_IF_RETURN( {}, !mesh, "No mesh" );
 
-      float runningArea {};
+      float runningArea_Worldspace {};
       const int nTris { mesh->mJPPTCPUMeshData.mIndexes.size() / 3 };
+
+      Vector< v3 > positions_Worldspace;
+      for( const v3& posLocal : mesh->mJPPTCPUMeshData.mPositions )
+        positions_Worldspace.push_back( ( entity->mWorldTransform * v4( posLocal, 1 ) ).xyz() );
+
       for( int iTri {}; iTri < nTris; ++iTri )
       {
         const JPPTCPUMeshData::IndexType i0 { mesh->mJPPTCPUMeshData.mIndexes[ iTri * 3 + 0 ] };
         const JPPTCPUMeshData::IndexType i1 { mesh->mJPPTCPUMeshData.mIndexes[ iTri * 3 + 1 ] };
         const JPPTCPUMeshData::IndexType i2 { mesh->mJPPTCPUMeshData.mIndexes[ iTri * 3 + 2 ] };
-        const v3 p0 { mesh->mJPPTCPUMeshData.mPositions[ i0 ] };
-        const v3 p1 { mesh->mJPPTCPUMeshData.mPositions[ i1 ] };
-        const v3 p2 { mesh->mJPPTCPUMeshData.mPositions[ i2 ] };
-        const float triArea { .5f * Cross( p1 - p0, p2 - p0 ).Length() };
-        runningArea += Abs( triArea );
+        const v3 p0{ positions_Worldspace[ i0 ] };
+        const v3 p1{ positions_Worldspace[ i1 ] };
+        const v3 p2{ positions_Worldspace[ i2 ] };
+        const v3 e1{ p1 - p0 };
+        const v3 e2{ p2 - p0 };
+        const float triAreaWorldspace { .5f * Cross( e1, e2 ).Length() };
+        runningArea_Worldspace += triAreaWorldspace;
       }
 
-      return runningArea;
+      return runningArea_Worldspace;
     }
 
-    static v3 ComputeRadianceUsingStandardIlluminantA()
+    static v3 ComputeRadiance_IlluminantA_Spectrum()
     {
       DenseSpectrum ds;
       for( int i{}; i < DenseSpectrum::kSampleCount; ++i )
@@ -265,23 +282,82 @@ namespace Tac
 
       // https://en.wikipedia.org/wiki/Standard_illuminant
       // Color temperature 2856K
-      const RelativeXYZ xyzExpected{ 109.85f, 100.0f, 35.58f };
+      const RelativeXYZ100 xyzExpected{ 109.85f, 100.0f, 35.58f };
       //AssertAboutEqual( xyz.data(), xyzExpected.data(), 3, 1.0f );
 
       // https://stackoverflow.com/questions/41702390/relation-of-luminance-in-rgb-xyz-color-and-physical-luminance
       // XYZ colors are normalized such that the white point (such as the D65 or D50 white point)
       // has Y = 1 (or Y = 100).
-      //
       return {};
     }
-    
-    static v3 ComputeRadianceUsingBlackbody( Errors& errors )
+
+    // area (m^2)
+    // luminous flux (lm)
+    static v3 ComputeRadiance_IlluminantA_RelativeXYZ_v3()
     {
-      errors.clear();
+      float area = 0.07f; // m^2
+      float luminousFlux = 4000; // lm
+      float luminance = luminousFlux / ( area * 3.14f ); // nits
+      float luminousEfficacy = 15; // lm/W
+      v3 stdIllumA{ 109.85f, 100, 35.58f };
+      v3 photometricXYZ = stdIllumA / stdIllumA.y * luminance;
+      v3 radiometricXYZ = stdIllumA * luminousEfficacy;
+      m3 xyz_to_scRGB( 3.2406255f, -1.5372080f, -.4986286f,
+                       -.9689307f, 1.8757561f, .0415175f,
+                       .0557101f, -.2040211f, 1.0569959f );
+      v3 radiance = xyz_to_scRGB * radiometricXYZ;
+      return radiance;
+    }
 
-      sArea = TAC_CALL_RET( ComputeArea( errors ) );
+    static v3 ComputeRadiance_IlluminantA_RelativeXYZ()
+    {
+      //               d^2 luminous flux
+      // luminance = ---------------------
+      //             dArea dOmega cos(theta)
+      //
+      // luminous flux = \int_A \int_Omega luminance cos(theta) dOmega dA
+      // luminous flux = luminance (\int_A dA)(\int_Omega cos(theta) dOmega)
+      // luminous flux = luminance (    A    )(           pi               )
+      // luminance = luminous flux / ( A * pi )
 
-      const DenseSpectrum ds{ Blackbody::TemperatureToSpectrum( sTemperatureInKelvin ) };
+      const float A{ GetArea() };
+      const Luminance luminance{ .mNits = sLuminousFlux.mLumens / ( A * 3.14f ) };
+
+
+      // https://en.wikipedia.org/wiki/Standard_illuminant
+      // Color temperature 2856K
+      const RelativeXYZ100 illuminantA{ 109.85f, 100.0f, 35.58f };
+      
+      // https://en.wikipedia.org/wiki/Luminous_efficacy
+      struct
+      {
+        float mLumensPerWatt = 15; // typical of tungsten light bulb
+      } luminousEfficacy;
+
+      // Converting from nits (lm/(m^2*sr))
+      const AbsoluteXYZ luminousXYZ
+      {
+        .x{ luminance.mNits * luminousEfficacy.mLumensPerWatt * ( illuminantA.x / illuminantA.y ) },
+        .y{ luminance.mNits * luminousEfficacy.mLumensPerWatt * ( illuminantA.y / illuminantA.y ) },
+        .z{ luminance.mNits * luminousEfficacy.mLumensPerWatt * ( illuminantA.z / illuminantA.y ) },
+      };
+
+      // Converting to radiance (W/(m^2*sr))
+      const AbsoluteXYZ radiometricXYZ
+      {
+        .x{ luminousXYZ.x * luminousEfficacy.mLumensPerWatt },
+        .y{ luminousXYZ.y * luminousEfficacy.mLumensPerWatt },
+        .z{ luminousXYZ.z * luminousEfficacy.mLumensPerWatt },
+      };
+
+      const Linear_scRGB rgb{ Linear_scRGB::FromAbsoluteXYZ( radiometricXYZ ) };
+      return { rgb.r, rgb.g, rgb.b };
+
+    }
+    
+    static v3 ComputeRadiance_Blackbody()
+    {
+      const DenseSpectrum ds{ Blackbody::TemperatureToSpectrum( sTemperature ) };
       TAC_UNUSED_PARAMETER( ds );
 
       const AbsoluteXYZ xyz{ ds.ToAbsoluteXYZ() };
@@ -289,10 +365,14 @@ namespace Tac
 
       Linear_scRGB rgb{ Linear_scRGB::FromAbsoluteXYZ( xyz ) };
 
-      sIlluminanceInLumens;
-
+      sLuminousFlux;
 
       return {};
+    }
+
+    static float GetArea()
+    {
+      return sUseOverrideArea ? sOverrideArea : sCalculatedArea;
     }
 
     static void DebugImgui()
@@ -305,6 +385,15 @@ namespace Tac
 
       TAC_ON_DESTRUCT( ImGuiEnd());
 
+      if( sMaterial != sMaterialPrev )
+      {
+        sErrors = {};
+        sMaterialPrev = sMaterial;
+        sLuminousFlux.mLumens = 4000;
+        sTemperature.mKelvins = 2856;
+        sCalculatedArea = ComputeArea( sErrors );
+      }
+
       if( sErrors )
       {
         ImGuiText( "Errors: " + sErrors.ToString() );
@@ -312,35 +401,54 @@ namespace Tac
           sErrors = {};
       }
 
-      bool dirty{};
-      dirty |= ImGuiDragFloat( "Illuminance (lm)", &sIlluminanceInLumens );
-      dirty |= ImGuiDragFloat( "Temperature (K)", &sTemperatureInKelvin );
-      if( dirty || ImGuiButton( "Compute Radiance using Blackbody" ) )
-      {
-        sRadiance = ComputeRadianceUsingBlackbody( sErrors );
-        if( !sErrors )
-        {
-          sMaterial->mEmissive = sRadiance;
-        }
-      }
+      static bool computeRadiance_Blackbody;
+      static bool computeRadiance_StdIllumARadiance;
+      static bool computeRadiance_StdIllumAXYZ{ true };
 
-      if( ImGuiButton( "Compute Radiance using Std Illum A" ) )
+      static bool overrideArea;
+
+      bool dirty{};
+      dirty |= ImGuiDragFloat( "Luminous Flux (lm)", &sLuminousFlux.mLumens );
+      dirty |= ImGuiDragFloat( "Temperature (K)", &sTemperature.mKelvins );
+      dirty |= ImGuiCheckbox( "Method: Blackbody", &computeRadiance_Blackbody );
+      dirty |= ImGuiCheckbox( "Method: Illum A Radiance", &computeRadiance_StdIllumARadiance );
+      dirty |= ImGuiCheckbox( "Method: Illum A XYZ", &computeRadiance_StdIllumAXYZ );
+      dirty |= ImGuiCheckbox( "Override Area", &sUseOverrideArea );
+      if(sUseOverrideArea)
+        ImGuiText( "Area (overridden): " + ToString( sOverrideArea ) );
+      else
+        ImGuiText( "Area (calculated): " + ToString( sCalculatedArea ) );
+
+      dirty |= ImGuiDragFloat( "Override Area", &sOverrideArea );
+      ImGuiText( "Calculated Area (worldspace): " + ToString( sCalculatedArea ) );
+      ImGuiDragFloat3( "Radiance: ", sMaterial->mEmissive.data() );
+
+      if( ImGuiButton("Test") )
+        ComputeRadiance_IlluminantA_RelativeXYZ_v3();
+
+      if( dirty )
       {
-        sRadiance = ComputeRadianceUsingStandardIlluminantA();
+        if( computeRadiance_Blackbody )
+          sRadiance = ComputeRadiance_Blackbody();
+        else if( computeRadiance_StdIllumARadiance )
+          sRadiance = ComputeRadiance_IlluminantA_Spectrum();
+        else if (computeRadiance_StdIllumAXYZ)
+          sRadiance = ComputeRadiance_IlluminantA_RelativeXYZ();
+
         sMaterial->mEmissive = sRadiance;
       }
-
-      if( ImGuiDragFloat3( "Radiance", sRadiance.data() ) )
-          sMaterial->mEmissive = sRadiance;
     }
   };
 
-  Material* PhotometricEmissionEditor::sMaterial{};
-  float     PhotometricEmissionEditor::sIlluminanceInLumens{ 4000 };
-  float     PhotometricEmissionEditor::sTemperatureInKelvin{ 2856 };
-  Errors    PhotometricEmissionEditor::sErrors;
-  v3        PhotometricEmissionEditor::sRadiance;
-  float     PhotometricEmissionEditor::sArea;
+  Material*    PhotometricEmissionEditor::sMaterial{};
+  Material*    PhotometricEmissionEditor::sMaterialPrev{};
+  LuminousFlux PhotometricEmissionEditor::sLuminousFlux{ 4000 };
+  Temperature  PhotometricEmissionEditor::sTemperature{ 2856 };
+  Errors       PhotometricEmissionEditor::sErrors;
+  v3           PhotometricEmissionEditor::sRadiance;
+  float        PhotometricEmissionEditor::sCalculatedArea;
+  float        PhotometricEmissionEditor::sOverrideArea{0.07f};
+  bool         PhotometricEmissionEditor::sUseOverrideArea;
 
   void Material::DebugImgui( Material* material )
   {

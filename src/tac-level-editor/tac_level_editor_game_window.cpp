@@ -52,6 +52,37 @@ namespace Tac
   static GizmoMgr*                     mGizmoMgr                 {};
   static CreationMousePicking*         mMousePicking             {};
 
+  // TODO: find a home for this fn, maybe in tacexamples idk
+  static void SampleCosineWeightedHemisphereTest( Debug3DDrawData* drawData )
+  {
+    if( !ImGuiCollapsingHeader( "Sample Cosine Weighted Hemisphere Test", ImGuiNodeFlags_DefaultOpen ) )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
+
+    static float radius = 10;
+    static Vector<v3> points;
+    static int nPoints = 500;
+
+    bool dirty = false;
+    dirty |= ImGuiDragInt( "num points", &nPoints );
+    dirty |= ImGuiButton( "reconfigure" );
+    ImGuiDragFloat( "radius", &radius);
+    if( dirty )
+    {
+      points.clear();
+      for( int i = 0; i < nPoints; ++i )
+      {
+        SphericalCoordinate coord = SampleCosineWeightedHemisphere();
+        v3 point = coord.ToCartesian();
+        points.push_back(point);
+      }
+    }
+
+    drawData->DebugDraw3DHemisphere( v3( 0, 0, 0 ), v3( 0, 1, 0 ), radius );
+    for( v3 point : points )
+      drawData->DebugDraw3DSphere( point * radius, 0.05f );
+  }
+
   bool CreationGameWindow::sShowWindow{};
 
   //static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
@@ -136,31 +167,39 @@ namespace Tac
 
     struct OrbitKeyDir
     {
-      Key key;
-      v3            spherical;
+      Key   key;
+      float mThetaOffset;
+      float mPhiOffset;
     };
     
     OrbitKeyDir keyDirs[]
     {
-      { Key::W, v3( 0, -1, 0 ) },
-      { Key::A, v3( 0,  0, 1 ) },
-      { Key::S, v3( 0, 1, 0 ) },
-      { Key::D, v3( 0, 0, -1 ) }
+      OrbitKeyDir{.key{ Key::W }, .mThetaOffset{-1} },
+      OrbitKeyDir{.key{ Key::A }, .mPhiOffset{1}},
+      OrbitKeyDir{.key{ Key::S }, .mThetaOffset{1}},
+      OrbitKeyDir{.key{ Key::D }, .mPhiOffset{-1}},
     };
 
 
-    v3 camOrbitSphericalOffset  {};
+    float thetaOffset{};
+    float phiOffset{};
     for( const OrbitKeyDir& keyDir : keyDirs )
+    {
       if( AppKeyboardApi::IsPressed( keyDir.key ) )
-        camOrbitSphericalOffset += keyDir.spherical;
-    if( camOrbitSphericalOffset == v3( 0, 0, 0 ) )
+      {
+        thetaOffset += keyDir.mThetaOffset;
+        phiOffset += keyDir.mPhiOffset;
+      }
+    }
+    if( !thetaOffset && !phiOffset )
       return;
 
-    v3 camOrbitSpherical { CartesianToSpherical( camera->mPos - orbitCenter ) };
-    camOrbitSpherical += camOrbitSphericalOffset * sWASDCameraOrbitSpeed;
-    camOrbitSpherical.y = Clamp( camOrbitSpherical.y, vertLimit, 3.14f - vertLimit );
+    auto camOrbitSpherical{ SphericalCoordinate::FromCartesian( camera->mPos - orbitCenter ) };
+    camOrbitSpherical.mTheta += thetaOffset * sWASDCameraOrbitSpeed;
+    camOrbitSpherical.mPhi += phiOffset * sWASDCameraOrbitSpeed;
+    camOrbitSpherical.mTheta = Clamp( camOrbitSpherical.mTheta, vertLimit, 3.14f - vertLimit );
 
-    camera->mPos = orbitCenter + SphericalToCartesian( camOrbitSpherical );
+    camera->mPos = orbitCenter + camOrbitSpherical.ToCartesian();
 
     if( sWASDCameraOrbitSnap )
     {
@@ -168,12 +207,12 @@ namespace Tac
     }
     else
     {
-      v3 dirCart { camera->mForwards };
-      v3 dirSphe { CartesianToSpherical( dirCart ) };
-      dirSphe.y += -camOrbitSphericalOffset.y * sWASDCameraOrbitSpeed;
-      dirSphe.z += camOrbitSphericalOffset.z * sWASDCameraOrbitSpeed;
-      dirSphe.y = Clamp( dirSphe.y, vertLimit, 3.14f - vertLimit );
-      v3 newForwards { SphericalToCartesian( dirSphe ) };
+      const v3 dirCart { camera->mForwards };
+      SphericalCoordinate dirSphe { SphericalCoordinate::FromCartesian( dirCart ) };
+      dirSphe.mPhi += phiOffset * sWASDCameraOrbitSpeed;
+      dirSphe.mTheta += -thetaOffset * sWASDCameraOrbitSpeed;
+      dirSphe.mTheta = Clamp( dirSphe.mTheta, vertLimit, 3.14f - vertLimit );
+      const v3 newForwards { dirSphe.ToCartesian() };
       camera->SetForwards( newForwards );
     }
   }
@@ -264,7 +303,7 @@ namespace Tac
       camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
   }
 
-  static void ImGuiOverlay( Camera* camera, Errors& errors )
+  static void ImGuiOverlay( World* world, Camera* camera, Errors& errors )
   {
     static bool mHideUI {};
     if( mHideUI )
@@ -287,14 +326,11 @@ namespace Tac
       CreationPropertyWindow::sShowWindow = false;
     }
 
-
-    
-
     ImGuiCheckbox( "Draw grid", &drawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
     ImGuiCheckbox( "draw gizmos", &mGizmoMgr->mGizmosEnabled );
-
     ImGuiCheckbox( "Draw raycast", &mMousePicking->sDrawRaycast );
+
 
     if( mSoul )
     {
@@ -585,7 +621,7 @@ namespace Tac
 
     ImGuiSetCursorPos( origCursorPos );
 
-    TAC_CALL( ImGuiOverlay( camera, errors ) );
+    TAC_CALL( ImGuiOverlay( world, camera, errors ) );
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView msg,
