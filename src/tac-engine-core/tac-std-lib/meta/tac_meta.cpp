@@ -75,12 +75,11 @@ namespace Tac
   static MetaBool sMetaBool;
   TAC_META_IMPL_INSTANCE( bool, sMetaBool );
 
-
   static const MetaIntegralType< i8 >  sMeta_i8( "i8" );
-  static const MetaIntegralType< i16 > sMeta_i16("16");
-  static const MetaIntegralType< i32 > sMeta_i32("32");
-  static const MetaIntegralType< i64 > sMeta_i64("64");
-  TAC_META_IMPL_INSTANCE( i8,  sMeta_i8 );
+  static const MetaIntegralType< i16 > sMeta_i16( "16" );
+  static const MetaIntegralType< i32 > sMeta_i32( "32" );
+  static const MetaIntegralType< i64 > sMeta_i64( "64" );
+  TAC_META_IMPL_INSTANCE( i8, sMeta_i8 );
   TAC_META_IMPL_INSTANCE( i16, sMeta_i16 );
   TAC_META_IMPL_INSTANCE( i32, sMeta_i32 );
   TAC_META_IMPL_INSTANCE( i64, sMeta_i64 );
@@ -90,9 +89,9 @@ namespace Tac
   static const MetaIntegralType< u32 > sMeta_u32( "u32" );
   static const MetaIntegralType< u64 > sMeta_u64( "u64" );
   TAC_META_IMPL_INSTANCE( u8,  sMeta_u8 );
-  TAC_META_IMPL_INSTANCE( u16, sMeta_u8 );
-  TAC_META_IMPL_INSTANCE( u32, sMeta_u8 );
-  TAC_META_IMPL_INSTANCE( u64, sMeta_u8 );
+  TAC_META_IMPL_INSTANCE( u16, sMeta_u16 );
+  TAC_META_IMPL_INSTANCE( u32, sMeta_u32 );
+  TAC_META_IMPL_INSTANCE( u64, sMeta_u64 );
 
   // -----------------------------------------------------------------------------------------------
 
