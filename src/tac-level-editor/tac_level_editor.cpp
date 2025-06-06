@@ -284,10 +284,12 @@ namespace Tac
 
     world->mDebug3DDrawData->Clear();
 
+    // Update the main window first so it becomes the parent window (maybe)
+    TAC_CALL( CreationMainWindow::Update( world, errors ) );
+
     CreationSystemWindow::Update( world, mSettingsNode );
     TAC_CALL( CreationAssetView::Update( world, camera, errors ) );
     TAC_CALL( CreationShaderGraphWindow::Update(  errors ) );
-    TAC_CALL( CreationMainWindow::Update( world, errors ) );
     TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
     TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
     TAC_CALL( CreationProfileWindow::Update(  errors ) );

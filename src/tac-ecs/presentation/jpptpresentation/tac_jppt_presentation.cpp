@@ -28,6 +28,7 @@ namespace Tac
   static bool                 sVisualizeDistance;
   static Errors               createBVHErrors;
   static bool                 sVisualizePositions;
+  static int                  sVisualizeSpeficicTriangle = -1;
   static bool                 sVisualizeModelSpace;
   static bool                 sVisualizeNormals;
   static float                sVisualizeNormalLength{ 1.0f };
@@ -379,6 +380,12 @@ namespace Tac
 
     for( int ii{}; ii <  mesh->mJPPTCPUMeshData.mIndexes.size(); ii += 3 )
     {
+      if( sVisualizeSpeficicTriangle >= 0 )
+        if( int iTri = ii / 3;
+            iTri != sVisualizeSpeficicTriangle )
+          continue;
+
+
       const int i0{ mesh->mJPPTCPUMeshData.mIndexes[ ii + 0 ] };
       const int i1{ mesh->mJPPTCPUMeshData.mIndexes[ ii + 1 ] };
       const int i2{ mesh->mJPPTCPUMeshData.mIndexes[ ii + 2 ] };
@@ -909,6 +916,8 @@ FN_DECL ray GetRay(vec2 ImageUV)
                      &sVisualizeModelSpace );
 
       ImGuiCheckbox( "Visualize Positions", &sVisualizePositions );
+      ImGuiDragInt( "Visualize specific position", &sVisualizeSpeficicTriangle );
+
       if( ImGuiCheckbox( "Visualize Normals", &sVisualizeNormals ) && sVisualizeNormals )
         sVisualizeFrame = false;
       if( sVisualizeNormals || sVisualizeFrame )

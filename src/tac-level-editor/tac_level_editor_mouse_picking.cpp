@@ -10,6 +10,7 @@
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-ecs/presentation/game/tac_game_presentation.h"
 #include "tac-ecs/presentation/mesh/tac_mesh_presentation.h"
+#include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 
 
@@ -142,6 +143,10 @@ namespace Tac
       if( !(isPicked || isSelected))
         continue;
 
+      if( Material * material{ Material::GetMaterial( entity ) } )
+        if( !material->mRenderEnabled )
+          continue;
+
       Model* model{ Model::GetModel( entity ) };
       if( !model )
         continue;
@@ -218,6 +223,10 @@ namespace Tac
 
   static RaycastResult MousePickingEntity( Ray ray, const Entity* entity, Errors& errors )
   {
+    if( const Material * material{ Material::GetMaterial( entity ) } )
+      if( !material->mRenderEnabled )
+        return {};
+
     if( const Model * model{ Model::GetModel( entity ) } )
     {
       TAC_CALL_RET( const RaycastResult raycastResult{

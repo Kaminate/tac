@@ -4,6 +4,7 @@
 #include "tac-std-lib/math/tac_vector2i.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector3i.h"
+#include "tac-std-lib/os/tac_os.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std; // cstdlib, algorithm, cmath
@@ -370,6 +371,9 @@ namespace Tac
     const v3 p{ Cross( rayDir, edge2 ) };
     const v3 q{ Cross( b, edge1 ) };
     const float pdotv1{ Dot( p, edge1 ) };
+    if( pdotv1 == 0 ) // either the triangle is degenerate, or the ray and triangle are parallel
+      return {}; 
+
     const float t{ Dot( q, edge2 ) / pdotv1 };
     const float u{ Dot( p, b ) / pdotv1 };
     const float v{ Dot( q, rayDir ) / pdotv1 };
