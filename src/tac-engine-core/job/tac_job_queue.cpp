@@ -54,12 +54,6 @@ namespace Tac
     }
   }
 
-  Job::Job()
-  {
-    mAsyncLoadStatus = JobState::JustBeenCreated;
-    mAbortRequested = false;
-  }
-
   void Job::Abort()
   {
     //mStatusMutex.lock();

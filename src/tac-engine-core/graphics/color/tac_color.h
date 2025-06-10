@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/math/tac_vector3.h"
 
 namespace Tac
 {
@@ -57,11 +58,44 @@ namespace Tac
     float mRadiance{};
   };
 
+  // -----------------------------------------------------------------------------------------------
+
+  struct Linear_sRGB;
+  struct Linear_scRGB;
+  struct Encoded_sRGB;
+  struct Encoded_scRGB;
+
+  struct Linear_sRGB
+  {
+    Linear_sRGB();
+    Linear_sRGB( const Encoded_sRGB& );
+    Linear_sRGB( float, float, float );
+    float r {};
+    float g {};
+    float b {};
+  };
+
+  // [0,1]
+  struct Encoded_sRGB
+  {
+    Encoded_sRGB() = default;
+    Encoded_sRGB( const Linear_sRGB& );
+    float r {};
+    float g {};
+    float b {};
+  };
+
+  // -----------------------------------------------------------------------------------------------
+
   // In sRGB, the white point's luminance is 80 cd/m^2
   // D65/2 white point
   struct Linear_scRGB
   {
-    static Linear_scRGB FromAbsoluteXYZ(AbsoluteXYZ);
+    Linear_scRGB() = default;
+    Linear_scRGB( v3 );
+    Linear_scRGB( float, float, float );
+    Linear_scRGB( float );
+    Linear_scRGB( const AbsoluteXYZ& );
     float r {};
     float g {};
     float b {};
@@ -69,6 +103,20 @@ namespace Tac
 
   struct Encoded_scRGB
   {
+    float r {};
+    float g {};
+    float b {};
   };
+
+  // -----------------------------------------------------------------------------------------------
+
+  struct sRGBHelpers
+  {
+    // transfer "gamma" functions
+    static float EncodedToLinear( float );
+    static float LinearToEncoded( float );
+  };
+
+
 }
 

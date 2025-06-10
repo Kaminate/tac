@@ -23,46 +23,6 @@
 namespace Tac
 {
 
-
-  static MeshRaycast GetMeshRaycast( const cgltf_primitive* parsedPrim )
-  {
-    const cgltf_attribute* posAttribute {
-      FindAttributeOfType( parsedPrim, cgltf_attribute_type_position ) };
-    if( !posAttribute )
-      return {};
-
-    MeshRaycast tris;
-    const char* srcVtx{ ( char* )
-      posAttribute->data->buffer_view->buffer->data +
-      posAttribute->data->buffer_view->offset +
-      posAttribute->data->offset };
-
-    const char* endVtx{ ( char* )
-      posAttribute->data->buffer_view->buffer->data +
-      posAttribute->data->buffer_view->buffer->size };
-
-    MeshRaycast::SubMeshTriangle tri{};
-    int iVert{};
-
-    for( cgltf_size ii{}; ii < parsedPrim->indices->count; ++ii )
-    {
-      cgltf_size i{ cgltf_accessor_read_index( parsedPrim->indices, ii ) };
-
-      const v3* vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };
-
-      TAC_ASSERT( ( void* )vert >= ( void* )srcVtx );
-      TAC_ASSERT( ( void* )vert < ( void* )endVtx );
-
-      tri[ iVert++ ] = *vert;
-      if( iVert == 3 )
-      {
-        iVert = 0;
-        tris.mTris.push_back( tri );
-      }
-    }
-    return tris;
-  }
-
   struct LoadedGltfData
   {
     void Load( const AssetPathStringView& path, Errors& errors )
@@ -91,11 +51,69 @@ namespace Tac
     String      mFileBytes {};
     cgltf_data* parsedData {};
   };
-  
-  static Render::BufferHandle ConvertToVertexBuffer( const Render::VertexDeclarations& decls,
-                                                     const cgltf_primitive* parsedPrim,
-                                                     const StringView& bufferName,
-                                                     Errors& errors )
+
+  static auto GetMeshRaycast( const cgltf_primitive* parsedPrim ) -> MeshRaycast
+  {
+    const cgltf_attribute* posAttribute {
+      glTF_FindAttribute( parsedPrim, cgltf_attribute_type_position ) };
+    if( !posAttribute )
+      return {};
+
+    MeshRaycast tris;
+    const char* srcVtx{ ( char* )
+      posAttribute->data->buffer_view->buffer->data +
+      posAttribute->data->buffer_view->offset +
+      posAttribute->data->offset };
+
+    const char* endVtx{ ( char* )
+      posAttribute->data->buffer_view->buffer->data +
+      posAttribute->data->buffer_view->buffer->size };
+
+    MeshRaycast::SubMeshTriangle tri{};
+    int iVert{};
+
+    const auto AppendVertex
+    {
+      [ & ]( int i )
+      {
+        const v3* vert { ( v3* )( srcVtx + posAttribute->data->stride * i ) };
+
+        TAC_ASSERT( ( void* )vert >= ( void* )srcVtx );
+        TAC_ASSERT( ( void* )vert < ( void* )endVtx );
+
+        tri[ iVert++ ] = *vert;
+        if( iVert == 3 )
+        {
+          iVert = 0;
+          tris.mTris.push_back( tri );
+        }
+      }
+    };
+
+    if( parsedPrim->indices )
+    {
+      for( cgltf_size ii{}; ii < parsedPrim->indices->count; ++ii )
+      {
+        const cgltf_size i{ cgltf_accessor_read_index( parsedPrim->indices, ii ) };
+        AppendVertex( (int)i );
+      }
+    }
+    else
+    {
+      for( int i {}; i < posAttribute->data->count; ++i )
+      {
+        AppendVertex( i );
+      }
+    }
+
+    return tris;
+  }
+
+
+  static auto ConvertToVertexBuffer( const Render::VertexDeclarations& decls,
+                                     const cgltf_primitive* parsedPrim,
+                                     const StringView& bufferName,
+                                     Errors& errors ) -> Render::BufferHandle
   {
     const int dstVtxStride{ decls.CalculateStride() };
     TAC_ASSERT( dstVtxStride );
@@ -110,14 +128,14 @@ namespace Tac
       const Render::VertexDeclaration& vertexDeclaration { decls[ iVertexDeclaration ] };
       const Render::VertexAttributeFormat& dstFormat { vertexDeclaration.mFormat };
       const cgltf_attribute_type gltfVertAttributeType {
-        GetGltfFromAttribute( vertexDeclaration.mAttribute ) };
+        glTF_AttributeFromTac( vertexDeclaration.mAttribute ) };
       const cgltf_attribute* gltfVertAttribute {
-        FindAttributeOfType( parsedPrim, gltfVertAttributeType ) };
+        glTF_FindAttribute( parsedPrim, gltfVertAttributeType ) };
       if( !gltfVertAttribute )
         continue;
 
       const cgltf_accessor* gltfVertAttributeData{ gltfVertAttribute->data };
-      const Render::VertexAttributeFormat srcFormat{ FillDataType( gltfVertAttributeData ) };
+      const Render::VertexAttributeFormat srcFormat{ glTF_AccessorToTac( gltfVertAttributeData ) };
       TAC_ASSERT( vertexCount == ( int )gltfVertAttributeData->count );
       char* dstVtx{ dstVtxBytes.data() };
       char* srcVtx{ ( char* )gltfVertAttributeData->buffer_view->buffer->data +
@@ -175,8 +193,8 @@ namespace Tac
     return vertexBuffer;
   }
 
-  static Render::BufferHandle ConvertInputLayoutBuffer( const Render::GPUInputLayout& il,
-                                                        Errors& errors )
+  static auto ConvertInputLayoutBuffer( const Render::GPUInputLayout& il,
+                                                        Errors& errors ) -> Render::BufferHandle
   {
     const Render::CreateBufferParams createBufferParams
     {
@@ -195,9 +213,9 @@ namespace Tac
 
 
 
-  static Render::BufferHandle ConvertToIndexBuffer( const cgltf_primitive* parsedPrim,
-                                                    const StringView& bufferName,
-                                                    Errors& errors )
+  static auto ConvertToIndexBuffer( const cgltf_primitive* parsedPrim,
+                                    const StringView& bufferName,
+                                    Errors& errors ) -> Render::BufferHandle
   {
     TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
 
@@ -208,7 +226,7 @@ namespace Tac
 
     TAC_ASSERT( indices->type == cgltf_type_scalar );
 
-    const Render::TexFmt fmt{ ConvertIndexFormat( indices->component_type ) };
+    const Render::TexFmt fmt{ glTF_ComponentToTac( indices->component_type ) };
     TAC_RAISE_ERROR_IF_RETURN( {},
                                fmt == Render::TexFmt::kUnknown,
                                "unsupported index buffer type " +
@@ -242,9 +260,9 @@ namespace Tac
         const cgltf_attribute& attribute{ prim->attributes[i] };
         const cgltf_type gltfType{ attribute.data->type };
         const cgltf_attribute_type gltfAttribType{ attribute.type };
-        const Render::Attribute tacAttribType{ GLTFToTacAttribute( gltfAttribType ) };
+        const Render::Attribute tacAttribType{ glTF_AttributeToTac( gltfAttribType ) };
         const Render::VertexAttributeFormat tacVAF{
-          GLTFTypeToTacVertexAttributeFormat( gltfType ) };
+          glTF_TypeToTac( gltfType ) };
         const Render::VertexDeclaration vtxDecl
         {
           .mAttribute         { tacAttribType },
@@ -420,23 +438,25 @@ namespace Tac
   }
 
   template< typename T >
-  static void AppendCPUMeshAttribute( Vector< T >& jpptTs,
+  static void AppendCPUMeshAttribute( dynmc Vector< T >& jpptTs,
                                       const cgltf_primitive* parsedPrim,
-                                      Render::Attribute attrib )
+                                      const Render::Attribute attrib )
   {
-    const cgltf_attribute_type gltfAttributeType{ GetGltfFromAttribute( attrib ) };
-    const cgltf_attribute* gltfAttribute{ FindAttributeOfType( parsedPrim, gltfAttributeType ) };
+    const cgltf_attribute_type gltfAttributeType{ glTF_AttributeFromTac( attrib ) };
+    const cgltf_attribute* gltfAttribute{ glTF_FindAttribute( parsedPrim, gltfAttributeType ) };
     if( !gltfAttribute )
       return;
 
     const int nOldJPPTTs{ jpptTs.size() };
     jpptTs.resize( nOldJPPTTs + (int)gltfAttribute->data->count );
     T* pJpptT{ jpptTs.data() + nOldJPPTTs };
-    const char* gltfAttribData{
+    const char* gltfAttribData
+    {
       gltfAttribute->data->offset +
       gltfAttribute->data->buffer_view->offset +
       ( const char* )gltfAttribute->data->buffer_view->buffer->data
     };
+    TAC_ASSERT(gltfAttribData);
 
     const char* gltfAttribEndData{
       gltfAttribData +
@@ -469,52 +489,61 @@ namespace Tac
   static void AppendCPUMeshData( dynmc JPPTCPUMeshData& jpptCPUMeshData,
                                  const cgltf_primitive* parsedPrim )
   {
-    const int primIndexCount{ ( int )parsedPrim->indices->count };
-    const int oldIndexCount{ jpptCPUMeshData.mIndexes.size() };
-    jpptCPUMeshData.mIndexes.resize( oldIndexCount + primIndexCount );
-
-    const MetaType* gltfIndexMetaType{
-      FindMetaType_from_cgltf_component_type( parsedPrim->indices->component_type ) };
-    TAC_ASSERT( gltfIndexMetaType );
-
-    const MetaType* jpptIndexMetaType{ &GetMetaType< JPPTCPUMeshData::IndexType >() };
-    TAC_ASSERT( jpptIndexMetaType );
-
-    TAC_ASSERT( parsedPrim->type == cgltf_primitive_type_triangles ); // triangle list
-    TAC_ASSERT( primIndexCount % 3 == 0 );
-    TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
-
-    for( int ii{}; ii < primIndexCount; ++ii )
-    {
-      char* gltfIndex{
-        parsedPrim->indices->offset + // offset into buffer view
-        parsedPrim->indices->buffer_view->offset + // offset into buffer
-        ( parsedPrim->indices->stride * ii ) + // stride (using accessor stride, not buffer view stride)
-        ( char* )parsedPrim->indices->buffer_view->buffer->data }; // buffer start
-
-      JPPTCPUMeshData::IndexType jpptIndex;
-      const MetaType::CastParams castParams
-      {
-        .mDst     { &jpptIndex },
-        .mSrc     { gltfIndex },
-        .mSrcType { gltfIndexMetaType },
-      };
-      jpptIndexMetaType->Cast( castParams );
-
-      jpptCPUMeshData.mIndexes[ ii + oldIndexCount ] = oldIndexCount + jpptIndex;
-    }
-
     AppendCPUMeshAttribute( jpptCPUMeshData.mPositions, parsedPrim, Render::Attribute::Position );
     AppendCPUMeshAttribute( jpptCPUMeshData.mTexCoords, parsedPrim, Render::Attribute::Texcoord );
     AppendCPUMeshAttribute( jpptCPUMeshData.mNormals, parsedPrim, Render::Attribute::Normal );
+
+    if( parsedPrim->indices )
+    {
+      const int primIndexCount{ ( int )parsedPrim->indices->count };
+      const int oldIndexCount{ jpptCPUMeshData.mIndexes.size() };
+      jpptCPUMeshData.mIndexes.resize( oldIndexCount + primIndexCount );
+
+      const MetaType* gltfIndexMetaType{ glTF_GetComponentMetaType( parsedPrim->indices->component_type ) };
+      TAC_ASSERT( gltfIndexMetaType );
+
+      const MetaType* jpptIndexMetaType{ &GetMetaType< JPPTCPUMeshData::IndexType >() };
+      TAC_ASSERT( jpptIndexMetaType );
+
+      TAC_ASSERT( parsedPrim->type == cgltf_primitive_type_triangles ); // triangle list
+      TAC_ASSERT( primIndexCount % 3 == 0 );
+      TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
+
+      for( int ii{}; ii < primIndexCount; ++ii )
+      {
+        char* gltfIndex{
+          parsedPrim->indices->offset + // offset into buffer view
+          parsedPrim->indices->buffer_view->offset + // offset into buffer
+          ( parsedPrim->indices->stride * ii ) + // stride (using accessor stride, not buffer view stride)
+          ( char* )parsedPrim->indices->buffer_view->buffer->data }; // buffer start
+
+        JPPTCPUMeshData::IndexType jpptIndex;
+        const MetaType::CastParams castParams
+        {
+          .mDst     { &jpptIndex },
+          .mSrc     { gltfIndex },
+          .mSrcType { gltfIndexMetaType },
+        };
+        jpptIndexMetaType->Cast( castParams );
+
+        jpptCPUMeshData.mIndexes[ ii + oldIndexCount ] = oldIndexCount + jpptIndex;
+      }
+    }
+    else
+    {
+      TAC_ASSERT( jpptCPUMeshData.mPositions.size() % 3 == 0 );
+      const int oldIndexCount{ jpptCPUMeshData.mIndexes.size() };
+      for( int i{}; i < jpptCPUMeshData.mPositions.size(); ++i )
+        jpptCPUMeshData.mIndexes.push_back( oldIndexCount + i );
+    }
   }
 
-  static Vector< SubMesh > PopulateSubmeshes( const AssetPathStringView& path,
-                                              const int specifiedMeshIndex,
-                                              dynmc Render::VertexDeclarations& vtxDecls, // in/out
-                                              dynmc MeshRaycast& meshRaycast, // appended to
-                                              dynmc JPPTCPUMeshData& jpptCPUMeshData, // append to
-                                              Errors& errors )
+  static auto PopulateSubmeshes( const AssetPathStringView& path,
+                                 const int specifiedMeshIndex,
+                                 dynmc Render::VertexDeclarations& vtxDecls, // in/out
+                                 dynmc MeshRaycast& meshRaycast, // appended to
+                                 dynmc JPPTCPUMeshData& jpptCPUMeshData, // append to
+                                 Errors& errors ) -> Vector< SubMesh >
   {
     Vector< SubMesh > submeshes;
     LoadedGltfData loadedData;
@@ -538,7 +567,6 @@ namespace Tac
 
       if( vtxDecls.empty() )
         vtxDecls = GLTFVtxDecl( parsedPrim );
-      TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
       const String bufferNamePrefix{[&](){
         String bufferName;
         bufferName += '\"';
@@ -553,21 +581,29 @@ namespace Tac
         }
         return bufferName;
       }()};
-      const String vtxBufName{ bufferNamePrefix + " vtxs" };
-      const String idxBufName{ bufferNamePrefix + " idxs" };
       const int vertexCount{ ( int )parsedPrim->attributes[ 0 ].data->count };
-      const int indexCount{ ( int )parsedPrim->indices->count };
-      TAC_CALL_RET( const Render::BufferHandle indexBuffer{
-        ConvertToIndexBuffer( parsedPrim, vtxBufName, errors ) } );
+
+      dynmc int indexCount{ };
+      dynmc Render::BufferHandle indexBuffer;
+
+      if( parsedPrim->indices )
+      {
+        TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );
+        const String idxBufName{ bufferNamePrefix + " idxs" };
+        TAC_CALL_RET( indexBuffer = ConvertToIndexBuffer( parsedPrim, idxBufName, errors ) );
+        indexCount = ( int )parsedPrim->indices->count;
+      }
+
+      const String vtxBufName{ bufferNamePrefix + " vtxs" };
       TAC_CALL_RET( const Render::BufferHandle vertexBuffer{
-        ConvertToVertexBuffer( vtxDecls, parsedPrim, idxBufName, errors ) } );
+        ConvertToVertexBuffer( vtxDecls, parsedPrim, vtxBufName, errors ) } );
 
       const MeshRaycast subMeshRaycast{ GetMeshRaycast( parsedPrim ) };
       for( const MeshRaycast::SubMeshTriangle& tri : subMeshRaycast.mTris )
         meshRaycast.mTris.push_back( tri );
 
       const Render::PrimitiveTopology topology{ Render::PrimitiveTopology::TriangleList };
-      const cgltf_primitive_type supportedType{ GetGltfFromTopology( topology ) };
+      const cgltf_primitive_type supportedType{ glTF_PrimitiveFromTac( topology ) };
       TAC_ASSERT( parsedPrim->type == supportedType );
       Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };
       TAC_CALL_RET( const Render::IBindlessArray::Binding vtxBufBinding{
@@ -591,7 +627,7 @@ namespace Tac
     return submeshes;
   }
 
-  static Mesh                 LoadMeshFromGltf( ModelAssetManager::Params params,
+  static Mesh LoadMeshFromGltf( ModelAssetManager::Params params,
                                                 Errors& errors )
   {
     dynmc Render::VertexDeclarations vtxDecls{ params.mOptVtxDecls };
@@ -621,9 +657,10 @@ namespace Tac
     };
   }
 
-  void                        GltfLoaderInit()
-  {
-    ModelLoadFunctionRegister( LoadMeshFromGltf, ".gltf" );
-    ModelLoadFunctionRegister( LoadMeshFromGltf, ".glb" );
-  }
 } // namespace Tac
+
+void Tac::GltfLoaderInit()
+{
+  ModelLoadFunctionRegister( LoadMeshFromGltf, ".gltf" );
+  ModelLoadFunctionRegister( LoadMeshFromGltf, ".glb" );
+}

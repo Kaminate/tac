@@ -350,7 +350,7 @@ namespace Tac
         .z{ luminousXYZ.z * luminousEfficacy.mLumensPerWatt },
       };
 
-      const Linear_scRGB rgb{ Linear_scRGB::FromAbsoluteXYZ( radiometricXYZ ) };
+      const Linear_scRGB rgb( radiometricXYZ );
       return { rgb.r, rgb.g, rgb.b };
 
     }
@@ -363,7 +363,7 @@ namespace Tac
       const AbsoluteXYZ xyz{ ds.ToAbsoluteXYZ() };
       TAC_UNUSED_PARAMETER( xyz );
 
-      Linear_scRGB rgb{ Linear_scRGB::FromAbsoluteXYZ( xyz ) };
+      Linear_scRGB rgb( xyz );
 
       sLuminousFlux;
 

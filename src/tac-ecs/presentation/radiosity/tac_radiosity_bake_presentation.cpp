@@ -20,9 +20,9 @@
 
 namespace Tac
 {
-  static bool         sInitialized;
-  static PreBakeScene sPreBakeScene;
-  static bool         sRequestBake;
+  static bool          sInitialized;
+  static PreBakeScene* sPreBakeScene;
+  static bool          sRequestBake;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -64,39 +64,44 @@ namespace Tac
     if( sRequestBake )
     {
       sRequestBake = false;
-      sPreBakeScene = {};
-      sPreBakeScene.Init( world );
-      sPreBakeScene.Bake();
+      TAC_DELETE sPreBakeScene;
+      sPreBakeScene = TAC_NEW PreBakeScene;
+      sPreBakeScene->Init( world );
+      JobQueuePush( sPreBakeScene );
     }
 
-    for(auto& inst : sPreBakeScene.mInstances)
+    if( sPreBakeScene )
     {
-      for( auto& patch : inst.mPatchPowers )
+      for( const auto& inst : sPreBakeScene->mInstances )
       {
-        v3 p0{patch.mTriVerts[0]};
-        v3 p1{patch.mTriVerts[1]};
-        v3 p2{patch.mTriVerts[2]};
+        for( const auto& patch : inst.mPatchPowers )
+        {
+          const v3 p0{ patch.mTriVerts[ 0 ] };
+          const v3 p1{ patch.mTriVerts[ 1 ] };
+          const v3 p2{ patch.mTriVerts[ 2 ] };
+          const v3 color{ patch.mTotalPower / patch.mArea / 3.14f };
 
-        v3 color = patch.mTotalPower / patch.mArea / 3.14f;
-
-        world->mDebug3DDrawData->DebugDraw3DTriangle( p0, p1, p2, color );
+          world->mDebug3DDrawData->DebugDraw3DTriangle( p0, p1, p2, color );
+        }
       }
-    }
 
-    if(sPreBakeScene.mDebugLine)
-    {
-      v3 srcPos = sPreBakeScene.mDebugSrcPos;
-      v3 dstPos = sPreBakeScene.mDebugDstPos;
-      auto srcPatch = sPreBakeScene.mDebugSrcPatch;
-      auto dstPatch = sPreBakeScene.mDebugDstPatch;
-      world->mDebug3DDrawData->DebugDraw3DArrow( srcPos, dstPos );
-      world->mDebug3DDrawData->DebugDraw3DLine( srcPos, dstPos );
-      world->mDebug3DDrawData->DebugDraw3DTriangle( srcPatch->mTriVerts[0], 
-                                                    srcPatch->mTriVerts[ 1 ],
-                                                    srcPatch->mTriVerts[ 2 ], v3( 0, 1, 0 ) );
-      world->mDebug3DDrawData->DebugDraw3DTriangle( dstPatch->mTriVerts[0], 
-                                                    dstPatch->mTriVerts[ 1 ],
-                                                    dstPatch->mTriVerts[ 2 ], v3( 1, 0, 0 ) );
+      if( sPreBakeScene->mDebugLine )
+      {
+        const v3 srcPos{ sPreBakeScene->mDebugSrcPos };
+        const v3 dstPos{ sPreBakeScene->mDebugDstPos };
+        const auto srcPatch{ sPreBakeScene->mDebugSrcPatch };
+        const auto dstPatch{ sPreBakeScene->mDebugDstPatch };
+        world->mDebug3DDrawData->DebugDraw3DArrow( srcPos, dstPos );
+        world->mDebug3DDrawData->DebugDraw3DLine( srcPos, dstPos );
+        world->mDebug3DDrawData->DebugDraw3DTriangle( srcPatch->mTriVerts[ 0 ],
+                                                      srcPatch->mTriVerts[ 1 ],
+                                                      srcPatch->mTriVerts[ 2 ],
+                                                      v3( 0, 1, 0 ) );
+        world->mDebug3DDrawData->DebugDraw3DTriangle( dstPatch->mTriVerts[ 0 ],
+                                                      dstPatch->mTriVerts[ 1 ],
+                                                      dstPatch->mTriVerts[ 2 ],
+                                                      v3( 1, 0, 0 ) );
+      }
     }
   }
 
@@ -117,7 +122,44 @@ namespace Tac
     TAC_IMGUI_INDENT_BLOCK;
 #endif
 
-    sRequestBake |= ImGuiButton( "Bake Radiosity" );
+    if( !sPreBakeScene || sPreBakeScene->GetStatus() == JobState::ThreadFinished )
+    {
+      sRequestBake |= ImGuiButton( "Bake Radiosity" );
+    }
+
+    if( sPreBakeScene )
+    {
+      if( sPreBakeScene->GetStatus() == JobState::ThreadRunning )
+      {
+        ImGuiText( "Baking" + String( "...", ( int )Timestep::GetElapsedTime() % 4 ) );
+      }
+
+      if( sPreBakeScene->GetStatus() == JobState::ThreadFinished )
+      {
+        static Errors saveErrors;
+        static bool saved;
+        if( ImGuiButton( "Save to file" ))
+        {
+          saveErrors = {};
+          sPreBakeScene->SaveToFile( saveErrors );
+          if( !saveErrors )
+            saved = true;
+        }
+
+        if( saved )
+        {
+          ImGuiSameLine();
+          ImGuiText( "Saved!" );
+        }
+
+
+        if( saveErrors )
+          ImGuiText( saveErrors.ToString() );
+      }
+    }
+
+
+
   }
 }
 

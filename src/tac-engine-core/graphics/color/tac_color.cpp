@@ -207,14 +207,61 @@ namespace Tac
     return { x, y, z };
   }
 
-  Linear_scRGB Linear_scRGB::FromAbsoluteXYZ(AbsoluteXYZ xyz)
+  // -----------------------------------------------------------------------------------------------
+
+  Linear_scRGB::Linear_scRGB( v3 v ) : r{ v.x }, g{ v.y }, b{ v.z } {}
+  Linear_scRGB::Linear_scRGB( float red, float green, float blue ) : r{ red }, g{ green }, b{ blue } {}
+  Linear_scRGB::Linear_scRGB( float val ) : r{ val }, g{ val }, b{ val } {}
+
+  Linear_scRGB::Linear_scRGB( const AbsoluteXYZ& xyz )
   {
     const v3 v{ xyz.x, xyz.y, xyz.z };
     const m3 xyz_to_scRGB( 3.2406255f, -1.5372080f, -.4986286f,
                            -.9689307f, 1.8757561f, .0415175f,
                            .0557101f, -.2040211f, 1.0569959f );
     const v3 rgb{ xyz_to_scRGB * v };
-    return { rgb.x, rgb.y, rgb.z };
+    r = rgb.x;
+    g = rgb.y;
+    b = rgb.z;
+  }
+
+
+  // -----------------------------------------------------------------------------------------------
+
+  Linear_sRGB::Linear_sRGB( const Encoded_sRGB& encoded_sRGB)
+  {
+    r = sRGBHelpers::EncodedToLinear( encoded_sRGB.r );
+    g = sRGBHelpers::EncodedToLinear( encoded_sRGB.g );
+    b = sRGBHelpers::EncodedToLinear( encoded_sRGB.b );
+  }
+
+  Linear_sRGB::Linear_sRGB( float rr, float gg, float bb) : r{ rr }, g{ gg }, b{ bb }{}
+
+  // -----------------------------------------------------------------------------------------------
+
+  Encoded_sRGB::Encoded_sRGB( const Linear_sRGB& linear_sRGB )
+  {
+    r = sRGBHelpers::LinearToEncoded( linear_sRGB.r );
+    g = sRGBHelpers::LinearToEncoded( linear_sRGB.g );
+    b = sRGBHelpers::LinearToEncoded( linear_sRGB.b );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+  float sRGBHelpers::EncodedToLinear( float r )
+  {
+    // Often approximated as r^2.2
+    return r <= 0.04045f
+      ? r / 12.92f
+      : Pow( ( r + 0.055f ) / 1.055f, 2.4f );
+  }
+
+  float sRGBHelpers::LinearToEncoded( float r )
+  {
+    // Often approximated as r^(1/2.2)
+    return r <= 0.0031308f
+      ? r * 12.92f
+      : ( 1.055f ) * Pow( r, 1.0f / 2.4f ) - 0.055f;
   }
 
 } // namespace Tac
