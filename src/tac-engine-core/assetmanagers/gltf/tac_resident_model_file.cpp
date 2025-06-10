@@ -5,6 +5,7 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
@@ -13,6 +14,7 @@ namespace Tac
 {
   struct LoadJob : public Job
   {
+    void             ExecuteAux( Errors& );
     void             Execute( Errors& ) override;
     void             Clear();
 
@@ -23,9 +25,8 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void   LoadJob::Execute(Errors& errors)
+  void LoadJob::ExecuteAux( Errors& errors )
   {
-
     TAC_CALL( bytes = LoadFilePath( mPath, errors ) );
 
     const cgltf_options options  {};
@@ -37,9 +38,26 @@ namespace Tac
 
     TAC_GLTF_CALL( cgltf_validate, mParsedData );
 
+
   }
 
-  void   LoadJob::Clear()
+  void LoadJob::Execute( Errors& errors )
+  {
+    for(;;)
+    {
+      ExecuteAux( errors );
+      if( !errors )
+        break;
+
+      if( kIsDebugMode )
+      {
+        OS::OSDebugBreak();
+        errors.clear();
+      }
+    }
+  }
+
+  void LoadJob::Clear()
   {
     bytes.clear();
     mPath.clear();
@@ -118,6 +136,7 @@ namespace Tac
     const Timestamp currUpdateSeconds { Timestep::GetElapsedTime() };
     if( lastUpdateSeconds == currUpdateSeconds )
       return;
+
     lastUpdateSeconds = currUpdateSeconds;
 
     const TimestampDifference persistSeconds { 1.0f };
@@ -133,6 +152,8 @@ namespace Tac
 
       if( loadingStuff.mJob.mErrors )
       {
+        if constexpr( kIsDebugMode )
+          OS::OSDebugBreak();
         loadingStuff.Clear();
         continue;
       }

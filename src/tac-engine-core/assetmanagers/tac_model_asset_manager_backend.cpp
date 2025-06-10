@@ -43,11 +43,11 @@ Tac::MeshLoadFunction Tac::ModelLoadFunctionFind( MeshFileExt ext )
 {
   ValidateExt( ext );
 
-  const HashValue hashedValue { ModelExtensionHash( ext ) };
-  auto it{  functionMap.find( hashedValue ) };
+  const HashValue hashedValue{ ModelExtensionHash( ext ) };
+  auto it{ functionMap.find( hashedValue ) };
   if( it == functionMap.end() )
     return nullptr;
-  auto&[_,fn]{*it};
+  auto& [_, fn]{*it};
   return fn;
 }
 

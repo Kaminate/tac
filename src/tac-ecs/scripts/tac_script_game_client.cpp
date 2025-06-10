@@ -12,7 +12,7 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/thirdparty/stb_image.h"
+#include "tac-engine-core/thirdparty/stb/stb_image.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/ghost/tac_ghost.h"
 #include "tac-ecs/net/tac_server.h"
@@ -23,9 +23,8 @@ namespace Tac
 
 
 	const String defaultHostname { "tac.nate.rocks" };
-	const u16 defaultPort { 8081 };
-
-	const v4 colorText { v4( 202, 234, 241, 255 ) / 255.0f };
+	const u16    defaultPort     { 8081 };
+	const v4     colorText       { v4( 202, 234, 241, 255 ) / 255.0f };
 
 	//ScriptFader::ScriptFader()
 	//{

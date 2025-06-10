@@ -46,7 +46,9 @@ namespace Tac::OS
       LogApi::LogMessagePrintLine( str, LogApi::kError );
       OSDebugPopupBox( str );
       OSDebugBreak();
-      std::exit( -1 );
+      if constexpr( !kIsDebugMode )
+        std::exit( -1 );
+      // TODO: c++26 <debugging> std::is_debugger_present
     }
 
     void        OSDebugPrint( const StringView& s )

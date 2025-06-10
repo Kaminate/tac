@@ -1,7 +1,7 @@
 #include "tac_font_backend.h" // self-inc
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/thirdparty/stb_truetype.h"
+#include "tac-engine-core/thirdparty/stb/stb_truetype.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_map.h"
@@ -22,7 +22,6 @@
 
 namespace Tac
 {
-
   static_assert( FontCellInnerSDFPadding, "cant get anything to render w/o padding" );
   
   static const bool          sVerbose;
@@ -102,7 +101,7 @@ namespace Tac
     };
   }
 
-  GlyphBytes       FontFile::GetGlyphBytes( int glyphIndex ) const
+  auto FontFile::GetGlyphBytes( int glyphIndex ) const -> GlyphBytes
   {
     // return value      --  a 2D array of bytes 0..255, width*height in size
     int w;
@@ -125,7 +124,7 @@ namespace Tac
     };
   }
 
-  GlyphMetrics     FontFile::GetGlyphMetrics( int glyphIndex ) const
+  auto FontFile::GetGlyphMetrics( int glyphIndex ) const -> GlyphMetrics
   {
 
     // offset from the current horizontal position to the next horizontal position
@@ -205,7 +204,7 @@ namespace Tac
     };
   }
 
-  void             FontFile::DebugGlyph( int glyphIndex )
+  void FontFile::DebugGlyph( int glyphIndex )
   {
 #if TAC_DEBUGGING_ATLAS()
     static bool written;
@@ -228,9 +227,9 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  FontAtlas             FontAtlas::Instance;
+  FontAtlas FontAtlas::Instance;
 
-  void                  FontAtlas::Load( Errors& errors )
+  void FontAtlas::Load( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
@@ -329,14 +328,13 @@ namespace Tac
     mTextureId = TAC_CALL( renderDevice->CreateTexture( cmdData, errors ) );
   }
 
-  void                  FontAtlas::Uninit()
+  void FontAtlas::Uninit()
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     renderDevice->DestroyTexture( mTextureId );
   }
 
-  FontAtlasCell*        FontAtlas::GetCharacter( Language defaultLanguage,
-                                                 Codepoint codepoint )
+  auto FontAtlas::GetCharacter( Language defaultLanguage, Codepoint codepoint ) -> FontAtlasCell*
   {
     // For an example, see https://github.com/nothings/stb/blob/master/tests/sdf/sdf_test.c
 
@@ -372,7 +370,7 @@ namespace Tac
     return cell;
   }
 
-  FontCellPos           FontAtlas::CellIndexToPos( int cellIndex )
+  auto FontAtlas::CellIndexToPos( int cellIndex ) -> FontCellPos
   {
     const int cellRow{ cellIndex / mCellRowCount };
     const int cellColumn{ cellIndex % mCellRowCount };
@@ -386,7 +384,7 @@ namespace Tac
     };
   }
 
-  FontAtlasCell*        FontAtlas::GetCell()
+  auto FontAtlas::GetCell() -> FontAtlasCell*
   {
     if( mCellCount < mCellCapacity )
       return &mCells[ mCellCount++ ];
@@ -406,10 +404,7 @@ namespace Tac
     return oldest;
   }
 
-
-  void                  FontAtlas::FillAtlasRegion( void* initialAtlasMemory,
-                                                    const TexelRegion& region,
-                                                    u8 val )
+  void FontAtlas::FillAtlasRegion( void* initialAtlasMemory, const TexelRegion& region, u8 val )
   {
     auto mem{ ( u8* )initialAtlasMemory };
     u8* memRegionTL{ mem + ( std::ptrdiff_t )( region.mBeginColumn + region.mBeginRow * mPxStride ) };
@@ -417,9 +412,7 @@ namespace Tac
       MemSet( memRegionTL + ( std::ptrdiff_t )( i * mPxStride ), val, region.mWidth );
   }
 
-  void                  FontAtlas::InitAtlasCheckerboard( void* initialAtlasMemory,
-                                                          u8 val0,
-                                                          u8 val1 )
+  void FontAtlas::InitAtlasCheckerboard( void* initialAtlasMemory, u8 val0, u8 val1 )
   {
     static_assert( BilinearFilteringPadding > 0 );
     const u8 bilinearFilterPaddingValue{};
@@ -463,9 +456,9 @@ namespace Tac
         if( r == 6 && c == 8 )
           ++asdf;
 
-        const u8 val { vals[ checkerboard ] };
-        const int beginRow { r * ( FontCellPxHeight + BilinearFilteringPadding ) };
-        const int beginColumn { c * ( FontCellPxWidth + BilinearFilteringPadding ) };
+        const u8 val{ vals[ checkerboard ] };
+        const int beginRow{ r * ( FontCellPxHeight + BilinearFilteringPadding ) };
+        const int beginColumn{ c * ( FontCellPxWidth + BilinearFilteringPadding ) };
         const TexelRegion region
         {
           .mBeginRow    { beginRow },
@@ -479,7 +472,7 @@ namespace Tac
     }
   }
 
-  void                  FontAtlas::UploadCellGPU( FontAtlasCell* cell, Errors& errors )
+  void FontAtlas::UploadCellGPU( FontAtlasCell* cell, Errors& errors )
   {
     if( !cell->mNeedsGPUCopy )
       return;
@@ -530,14 +523,14 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
-  void                  FontAtlas::UpdateGPU(Errors& errors)
+  void FontAtlas::UpdateGPU(Errors& errors)
   {
     for( int i{}; i < mCellCount; ++i )
       if( FontAtlasCell* cell{ &mCells[ i ] }; cell->mNeedsGPUCopy )
         UploadCellGPU( cell , errors );
   }
 
-  void                  FontAtlas::DebugImgui()
+  void FontAtlas::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "Font Stuff" ) )
     //  return;
@@ -601,18 +594,14 @@ namespace Tac
     //}
   }
 
-  float                 FontAtlas::GetSDFOnEdgeValue() const
-  {
-    return onedge_value / 255.0f;
-  }
+  auto FontAtlas::GetSDFOnEdgeValue() const -> float { return onedge_value / 255.0f; }
 
-  float                 FontAtlas::GetSDFPixelDistScale() const
+  auto FontAtlas::GetSDFPixelDistScale() const -> float
   {
     return pixel_dist_scale / 255.0f;
   }
 
-  FontCellUVs           FontAtlas::ComputeTexCoords( const FontCellPos& mFontCellPos,
-                                                     const GlyphMetrics& mGlyphMetrics )
+  auto FontAtlas::ComputeTexCoords( const FontCellPos& cellPos, const GlyphMetrics& metrics ) -> FontCellUVs
   {
     // OGL vs DX Texture Coord Space
     //
@@ -623,16 +612,14 @@ namespace Tac
     // (0,0)               (1,1)
 
     FontAtlas& fontAtlas{ FontAtlas::Instance };
-
     const v2 fontAtlasSize( ( float )fontAtlas.mPxWidth,
                             ( float )fontAtlas.mPxHeight );
-    const v2 sdfSize( ( float )mGlyphMetrics.mSDFWidth,
-                      ( float )mGlyphMetrics.mSDFHeight );
-
-    const v2 minDXTexCoord{ mFontCellPos.mPxColumn / fontAtlasSize.x,
-                            mFontCellPos.mPxRow / fontAtlasSize.y };
-    const v2 maxDXTexCoord{ minDXTexCoord + v2( sdfSize.x / fontAtlasSize.x,
-                                                sdfSize.y / fontAtlasSize.y ) };
+    const v2 sdfSize( ( float )metrics.mSDFWidth,
+                      ( float )metrics.mSDFHeight );
+    const v2 minDXTexCoord( cellPos.mPxColumn / fontAtlasSize.x,
+                            cellPos.mPxRow / fontAtlasSize.y );
+    const v2 maxDXTexCoord( minDXTexCoord + v2( sdfSize.x / fontAtlasSize.x,
+                                                sdfSize.y / fontAtlasSize.y ) );
     return FontCellUVs
     {
       .mMinDXTexCoord { minDXTexCoord },
@@ -640,7 +627,7 @@ namespace Tac
     };
   }
 
-  const FontDims*       FontAtlas::GetLanguageFontDims( Language language )
+  auto FontAtlas::GetLanguageFontDims( Language language ) -> const FontDims*
   {
     auto it{ mDefaultFonts.find( language )};
     if( it == mDefaultFonts.end() )
@@ -650,7 +637,7 @@ namespace Tac
     return &fontFile->mFontDims;
   }
 
-  Render::TextureHandle FontAtlas::GetTextureHandle()
+  auto FontAtlas::GetTextureHandle() const -> Render::TextureHandle
   {
     return mTextureId;
   }

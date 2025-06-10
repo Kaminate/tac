@@ -33,7 +33,7 @@ namespace Tac::OS
 
   struct SaveParams
   {
-    FileSys::Path* mSuggestedFilename;
+    FileSys::Path* mSuggestedFilename {}; // eww wtf is this
   };
 
   extern FileSys::Path( *OSSaveDialog )( const SaveParams&, Errors& );

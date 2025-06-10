@@ -79,8 +79,8 @@ namespace Tac
 
     void   clear();
     bool   empty() const;
-    const char*  c_str() const;
-    const char*  data() const;
+    auto   c_str() const -> const char*;
+    auto   data() const -> const char*;
     int    size() const;
     void   erase( int pos, int len = npos );
     void   push_back( char );

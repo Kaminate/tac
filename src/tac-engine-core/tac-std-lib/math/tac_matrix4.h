@@ -7,6 +7,7 @@ namespace Tac
   struct v4;
   struct m3;
 
+  // Row-major order
   struct m4
   {
     float

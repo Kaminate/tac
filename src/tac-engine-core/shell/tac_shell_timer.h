@@ -11,7 +11,7 @@ namespace Tac
 
     Timepoint() = default;
     Timepoint( NanosecondDuration );
-    NanosecondDuration TimeSinceEpoch() const;
+    auto TimeSinceEpoch() const -> NanosecondDuration;
     void operator -= ( TimestampDifference );
 
     static Timepoint Now();
@@ -20,19 +20,18 @@ namespace Tac
     NanosecondDuration mTimeSinceEpoch {};
   };
 
-  TimestampDifference operator - (const Timepoint&, const Timepoint&);
-  
+  TimestampDifference operator - ( const Timepoint&, const Timepoint& );
+
   struct Timer
   {
-
-    void                Start();
-    TimestampDifference Tick();
-    bool                IsRunning() const;
-    Timepoint           GetLastTick() const;
+    void Start();
+    auto Tick() -> TimestampDifference;
+    bool IsRunning() const;
+    auto GetLastTick() const -> Timepoint;
 
   private:
-    Timepoint           mLastTick{};
-    bool                mStarted {};
+    Timepoint mLastTick {};
+    bool      mStarted  {};
   };
 
 } // namespace Tac

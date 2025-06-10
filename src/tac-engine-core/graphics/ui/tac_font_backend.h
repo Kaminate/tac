@@ -7,7 +7,7 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/thirdparty/stb_truetype.h"
+#include "tac-engine-core/thirdparty/stb/stb_truetype.h"
 
 namespace Tac
 {
@@ -57,24 +57,23 @@ namespace Tac
     static FontAtlas Instance;
     FontAtlas() = default;
 
-    void                            Load( Errors& );
-    void                            Uninit();
-    void                            UpdateGPU( Errors& );
-    void                            DebugImgui();
-
-    FontAtlasCell*                  GetCharacter( Language, Codepoint );
-    FontAtlasCell*                  GetCell();
-    float                           GetSDFOnEdgeValue() const;
-    float                           GetSDFPixelDistScale() const;
-    const FontDims*                 GetLanguageFontDims( Language );
-    Render::TextureHandle           GetTextureHandle();
+    void Load( Errors& );
+    void Uninit();
+    void UpdateGPU( Errors& );
+    void DebugImgui();
+    auto GetCharacter( Language, Codepoint ) -> FontAtlasCell*;
+    auto GetCell() -> FontAtlasCell*;
+    auto GetSDFOnEdgeValue() const -> float;
+    auto GetSDFPixelDistScale() const -> float;
+    auto GetLanguageFontDims( Language ) -> const FontDims*;
+    auto GetTextureHandle() const -> Render::TextureHandle;
 
   private:
-    void                            InitAtlasCheckerboard( void*, u8, u8 );
-    void                            FillAtlasRegion( void*, const TexelRegion&, u8 ); // inclusive
-    FontCellUVs                     ComputeTexCoords( const FontCellPos&, const GlyphMetrics& );
-    FontCellPos                     CellIndexToPos( int );
-    void                            UploadCellGPU( FontAtlasCell*, Errors& );
+    void InitAtlasCheckerboard( void*, u8, u8 );
+    void FillAtlasRegion( void*, const TexelRegion&, u8 ); // inclusive
+    auto ComputeTexCoords( const FontCellPos&, const GlyphMetrics& ) -> FontCellUVs;
+    auto CellIndexToPos( int ) -> FontCellPos;
+    void UploadCellGPU( FontAtlasCell*, Errors& );
 
     Render::TextureHandle           mTextureId            {};
     int                             mPxStride             {};

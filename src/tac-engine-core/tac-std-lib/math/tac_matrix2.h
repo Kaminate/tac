@@ -3,6 +3,8 @@
 namespace Tac
 {
   struct v2;
+
+  // Row-major order
   struct m2
   {
     float

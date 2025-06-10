@@ -82,7 +82,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
   
-  Mesh* ModelAssetManager::GetMesh( Params params, Errors& errors )
+  auto ModelAssetManager::GetMesh( Params params, Errors& errors ) -> Mesh*
   {
     if ( params.mPath.empty() )
       return nullptr;
@@ -109,18 +109,15 @@ namespace Tac
     return mesh;
   }
 
-  Render::IBindlessArray* ModelAssetManager::GetBindlessArray()
-  {
-    return sModelBindlessArray;
-  }
+  auto ModelAssetManager::GetBindlessArray() -> Render::IBindlessArray* { return sModelBindlessArray; }
 
-  void  ModelAssetManager::Init()
+  void ModelAssetManager::Init()
   {
     FileFormatLoadersInit();
     BindlessModelArrayInit();
   }
 
-  void  ModelAssetManager::Uninit()
+  void ModelAssetManager::Uninit()
   {
     for( auto& [_, mesh ] : sMeshMap )
     {

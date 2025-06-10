@@ -55,10 +55,7 @@ void Tac::Spring( float* posCurrent,
 
 
 
-auto Tac::Saturate( const float value ) -> float
-{
-  return Clamp( value, 0.0f, 1.0f );
-}
+auto Tac::Saturate( const float value ) -> float { return Clamp( value, 0.0f, 1.0f ); }
 
 auto Tac::Clamp( float x, float xMin, float xMax ) -> float
 {

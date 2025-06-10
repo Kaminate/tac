@@ -1,7 +1,7 @@
 #include "tac_terrain.h" // self-inc
 
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-engine-core/thirdparty/stb_image.h"
+#include "tac-engine-core/thirdparty/stb/stb_image.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"

@@ -2,7 +2,7 @@
 #include "tac_font_backend.h"
 
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/thirdparty/stb_truetype.h"
+#include "tac-engine-core/thirdparty/stb/stb_truetype.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_map.h"

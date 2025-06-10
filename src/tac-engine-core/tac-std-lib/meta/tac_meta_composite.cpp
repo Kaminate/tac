@@ -126,8 +126,8 @@ namespace Tac
       const void* srcMember{ ( const char* )copyParams.mSrc + metaMember.mOffset };
       const CopyParams memberCopyParams
       {
-        .mDst{dstMember},
-        .mSrc{srcMember},
+        .mDst { dstMember },
+        .mSrc { srcMember },
       };
       metaMember.mMetaType->Copy( memberCopyParams );
     }

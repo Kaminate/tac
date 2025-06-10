@@ -22,6 +22,7 @@ namespace Tac
   };
 #endif
 
+  // Row-major order
   struct m3
   {
     float
