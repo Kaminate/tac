@@ -116,7 +116,9 @@ namespace Tac
       {
         errors.clear();
         if( const AssetPathString path{ AssetOpenDialog( errors ) }; !errors && !path.empty() )
+        {
           assetPathString = path;
+        }
       }
 
       if( errors )

@@ -51,7 +51,7 @@ namespace Tac::Render
     {
       "material/preMaterialShader",
       shaderGraph.mMaterialShader,
-      "material/postMaterialShader",
+      // "material/postMaterialShader",
     };
 
     const String name{ [ & ]() { // remove folder from path

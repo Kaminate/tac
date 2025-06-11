@@ -1,0 +1,17 @@
+{
+  "material_inputs":
+  [
+    "world_matrix",
+    "vertex_buffer",
+    "input_layout"
+  ],
+  "material_shader": "materials/bakedRadiosity",
+  "material_vs_out":
+  [
+    {
+      "name": "mPos_clipspace",
+      "semantic": "SV_POSITION",
+      "type": "v4"
+    },
+  ]
+}

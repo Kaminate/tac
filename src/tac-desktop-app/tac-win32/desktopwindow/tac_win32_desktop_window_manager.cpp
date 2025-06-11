@@ -603,6 +603,9 @@ void                Tac::Win32WindowManagerSpawnWindow( const PlatformSpawnWindo
   SetForegroundWindow( hwnd );
 
   ShowWindow( hwnd, Win32GetStartupCmdShow() );
-  sParentHWND = sParentHWND ? sParentHWND : hwnd; // combine windows into one tab group
+  if (false)
+  {
+    sParentHWND = sParentHWND ? sParentHWND : hwnd; // combine windows into one tab group
+  }
 }
 

@@ -1,0 +1,587 @@
+{
+  "mActive": true,
+  "mChildren":
+  [
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mEmissive":
+        {
+          "x": 16,
+          "y": 16,
+          "z": 16
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 0,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 2,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "light",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.485,
+          "y": 0.462,
+          "z": 0.416
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 1,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 3,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "tallBox",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.485,
+          "y": 0.462,
+          "z": 0.416
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/bakedRadiosity.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 2,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 4,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "shortBox",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.356,
+          "y": 0.004,
+          "z": 0.004
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 3,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 5,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "leftWall",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.017,
+          "y": 0.171,
+          "z": 0.008
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 4,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 6,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "rightWall",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.485,
+          "y": 0.462,
+          "z": 0.416
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 5,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 7,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "backWall",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.485,
+          "y": 0.462,
+          "z": 0.416
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 6,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 8,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "ceiling",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.485,
+          "y": 0.462,
+          "z": 0.416
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 0,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 7,
+        "mModelPath": "assets/deleteme/asdf.glb"
+      },
+      "mActive": true,
+      "mEntityUUID": 9,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "floor",
+      "mPosition":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": false
+    }
+  ],
+  "mEntityUUID": 1,
+  "mEulerRads":
+  {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "mName": "asdf.glb",
+  "mPosition":
+  {
+    "x": 0,
+    "y": 1,
+    "z": 0
+  },
+  "mScale":
+  {
+    "x": 1,
+    "y": 1,
+    "z": 1
+  },
+  "mStatic": false
+}

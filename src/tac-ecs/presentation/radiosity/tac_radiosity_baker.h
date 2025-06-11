@@ -37,13 +37,13 @@ namespace Tac
 
     struct Instance
     {
-
       int VertexCount() const { return mPatchPowers.size() * 3; }
 
       const Entity*   mEntity      {};
       const Model*    mModel       {};
       const Mesh*     mMesh        {};
       const Material* mMaterial    {};
+
       PatchPowers     mPatchPowers {};
     };
 

@@ -236,11 +236,11 @@ namespace Tac
       mInstances.push_back(
         Instance
         {
-          .mEntity      {entity},
+          .mEntity      { entity },
           //const Model*    mModel       {};
           //const Mesh*     mMesh        {};
           .mMaterial    { material },
-          .mPatchPowers {patchPowers},
+          .mPatchPowers { patchPowers },
         } );
     }
 
