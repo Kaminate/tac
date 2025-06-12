@@ -56,10 +56,10 @@ namespace Tac
 #endif
   }
 
-  void RadiosityBakePresentation::Render( Render::IContext* renderContext,
+  void RadiosityBakePresentation::Render( Render::IContext* ,
                                           const World* world,
-                                          const Camera* camera,
-                                          Errors& errors )
+                                          const Camera* ,
+                                          Errors& )
   {
     if( sRequestBake )
     {
@@ -131,7 +131,12 @@ namespace Tac
     {
       if( sPreBakeScene->GetStatus() == JobState::ThreadRunning )
       {
-        ImGuiText( "Baking" + String( "...", ( int )Timestep::GetElapsedTime() % 4 ) );
+        ;
+
+        ImGuiText( "Baking" + String( "...", ( int )Timestep::GetElapsedTime() % 4 )
+                   + " ("
+                   + FormatFrameTime( sPreBakeScene->mElapsed.mSeconds ) 
+                   + ")" );
       }
 
       if( sPreBakeScene->GetStatus() == JobState::ThreadFinished )

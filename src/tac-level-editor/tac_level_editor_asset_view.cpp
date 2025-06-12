@@ -473,7 +473,7 @@ namespace Tac
     for( int i {}; i < n; ++i )
     {
       const FileSys::Path& path { sAssetViewFolders[ i ] };
-      const int iPath { i };
+      //const int iPath { i };
 
       const AssetPathString assetPath{ ModifyPathRelative( path, errors ) };
 

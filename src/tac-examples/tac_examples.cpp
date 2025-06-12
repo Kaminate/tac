@@ -61,14 +61,14 @@ namespace Tac
   static void   ExamplesInitCallback( Errors& errors )
   {
     // nav
-    const int x { 50 };
-    const int y { 50 };
-    const int w { 400 };
-    const int h { 200 };
-    const int spacing { 50 };
+    //const int x { 50 };
+    //const int y { 50 };
+    //const int w { 400 };
+    //const int h { 200 };
+    //const int spacing { 50 };
 
     // demo
-    const int size { 600 };
+    //const int size { 600 };
 
     //sNavWindow = CreateTrackedWindow( "Example.Nav", x, y, w, h );
     //sDemoWindow = CreateTrackedWindow( "Example.Demo", x + w + spacing, y, size, size  );
@@ -85,13 +85,13 @@ namespace Tac
     TAC_CALL( GamePresentation::Init( errors ));
   }
 
-  static void   ExamplesUninitCallback( Errors& errors )
+  static void   ExamplesUninitCallback( Errors& )
   {
     ExampleStateMachineUnint();
   }
 
 
-  static void ExampleSelectorWindow( Errors& errors )
+  static void ExampleSelectorWindow( Errors& )
   {
     ImGuiSetNextWindowStretch();
     static bool showWindow { true };
@@ -243,7 +243,7 @@ namespace Tac
       ExamplesRenderCallback( renderParams, errors );
     }
 
-    void Present( Errors& errors ) override
+    void Present( Errors& ) override
     {
       //const SysWindowApi windowApi{ presentParams.mWindowApi };
       //const WindowHandle handles[]{ sNavWindow, sDemoWindow };

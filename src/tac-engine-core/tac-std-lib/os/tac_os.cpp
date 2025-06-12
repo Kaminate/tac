@@ -46,8 +46,13 @@ namespace Tac::OS
       LogApi::LogMessagePrintLine( str, LogApi::kError );
       OSDebugPopupBox( str );
       OSDebugBreak();
-      if constexpr( !kIsDebugMode )
+      if constexpr( kIsDebugMode )
+      {
+      }
+      else
+      {
         std::exit( -1 );
+      }
       // TODO: c++26 <debugging> std::is_debugger_present
     }
 
@@ -62,17 +67,17 @@ namespace Tac::OS
 
     void        OSDebugPrintLine( const StringView& s )
     {
-      if constexpr( !kIsDebugMode )
-        return;
-
-      const char* szstr { s.c_str() };
-      std::cout << szstr << std::endl;
-      LogApi::LogMessagePrintLine( s );
-      const bool good { std::cout.good() };
-      if( !good )
+      if constexpr( kIsDebugMode )
       {
-        // this should never happen hopefully
-        OSDebugBreak();
+        const char* szstr{ s.c_str() };
+        std::cout << szstr << std::endl;
+        LogApi::LogMessagePrintLine( s );
+        const bool good{ std::cout.good() };
+        if( !good )
+        {
+          // this should never happen hopefully
+          OSDebugBreak();
+        }
       }
     }
 

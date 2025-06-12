@@ -22,7 +22,7 @@ namespace Tac
 
   const char* CreationProfileWindow::gProfileWindowName { "ProfileWindow" };
   bool        CreationProfileWindow::sShowWindow{};
-  void        CreationProfileWindow::Update( Errors& errors )
+  void        CreationProfileWindow::Update( Errors& )
   {
     if( !sShowWindow )
       return;

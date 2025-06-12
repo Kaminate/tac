@@ -9,7 +9,7 @@
 namespace Tac
 {
 
-  void                GizmoMgr::Init( SelectedEntities* selectedEntities, Errors& errors )
+  void                GizmoMgr::Init( SelectedEntities* selectedEntities, Errors& )
   {
     mSelectedEntities = selectedEntities;
   }
@@ -46,7 +46,7 @@ namespace Tac
 
   void                GizmoMgr::Update( const v3 worldSpaceMouseDir,
                                         const Camera* camera,
-                                        Errors& errors )
+                                        Errors& )
   {
     if( !mSelectedEntities->empty() )
     {
@@ -72,7 +72,7 @@ namespace Tac
       .mRay1Dir { mTranslationGizmoDir },
     };
     const ClosestPointTwoRays::Output output{ ClosestPointTwoRays::Solve( input ) };
-    const float gizmoMouseDist{ output.mRay0T };
+    //const float gizmoMouseDist{ output.mRay0T };
     const float secondDist{ output.mRay1T };
 
     const v3 translate {
@@ -85,7 +85,7 @@ namespace Tac
     }
   }
 
-  void                GizmoMgr::Render( Errors& errors )
+  void                GizmoMgr::Render( Errors& )
   {
   }
 

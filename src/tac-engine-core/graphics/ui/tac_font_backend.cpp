@@ -168,8 +168,8 @@ namespace Tac
     // TLx = cursorX + xOff * relativeScale
     // TLy = cursorY + yOff * relativeScale
 
-    int sdfxoff {};
-    int sdfyoff {};
+    //int sdfxoff {};
+    //int sdfyoff {};
 
     const float scale{ mFontDims.mScale };
     int ix0;
@@ -222,6 +222,8 @@ namespace Tac
     const int write_result{ stbi_write_bmp( "deleteme.bmp", w, h, 1, glyphBytes.mBytes ) };
     TAC_ASSERT( write_result );
     written = true;
+#else
+    TAC_UNUSED_PARAMETER( glyphIndex );
 #endif
   }
 
@@ -448,7 +450,7 @@ namespace Tac
     for( int r{}; r < mCellRowCount; ++r )
     {
       int checkerboard{ r % 2 };
-      int pxCol{};
+      //int pxCol{};
       for( int c{}; c < mCellColCount; ++c )
       {
         checkerboard = 1 - checkerboard;

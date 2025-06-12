@@ -31,7 +31,7 @@ namespace Tac
 
   void                  FontApi::Uninit()
   {
-    FontAtlas& fontAtlas{ FontAtlas::Instance };
+    //FontAtlas& fontAtlas{ FontAtlas::Instance };
     FontAtlas::Instance.Uninit();
   }
 

@@ -45,16 +45,17 @@ namespace Tac::Render
 
   void                          BindlessArray::CheckType( ResourceHandle h )
   {
-    if constexpr ( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    const D3D12ProgramBindType bindType{ mProgramBindType };
-    const HandleType handleType{ h.GetHandleType() };
-    TAC_ASSERT( bindType.IsValid() );
-    TAC_ASSERT( h.IsValid() );
-    TAC_ASSERT( !bindType.IsBuffer() || ( handleType == HandleType::kBuffer ) );
-    TAC_ASSERT( !bindType.IsTexture() || ( handleType == HandleType::kTexture ) );
-    TAC_ASSERT( !bindType.IsSampler() || ( handleType == HandleType::kSampler ) );
+      const D3D12ProgramBindType bindType{ mProgramBindType };
+      const HandleType handleType{ h.GetHandleType() };
+      TAC_ASSERT( bindType.IsValid() );
+      TAC_ASSERT( h.IsValid() );
+      TAC_ASSERT( !bindType.IsBuffer() || ( handleType == HandleType::kBuffer ) );
+      TAC_ASSERT( !bindType.IsTexture() || ( handleType == HandleType::kTexture ) );
+      TAC_ASSERT( !bindType.IsSampler() || ( handleType == HandleType::kSampler ) );
+    }
   }
 
   void                          BindlessArray::Commit( const CommitParams commitParams )

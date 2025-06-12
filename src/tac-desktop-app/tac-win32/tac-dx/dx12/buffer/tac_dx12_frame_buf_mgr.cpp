@@ -15,7 +15,7 @@ namespace Tac::Render
   SwapChainHandle   DX12SwapChainMgr::CreateSwapChain(  SwapChainParams params,
                                             Errors& errors )
   {
-    DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
+    //DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
     DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     const void* nwh { params.mNWH };
     const v2i size { params.mSize };
@@ -69,7 +69,7 @@ namespace Tac::Render
                                                              Errors& errors )
   {
     DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    //DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
 
     DX12SwapChainImages swapChainImages;
     for( UINT iSwapChainBuf {}; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
@@ -82,7 +82,7 @@ namespace Tac::Render
       TAC_DX12_CALL_RET( {}, swapChain->GetBuffer( iSwapChainBuf,
                                                    renderTarget.iid(),
                                                    renderTarget.ppv() ) );
-      ID3D12Resource* resource{ renderTarget.Get() };
+      //ID3D12Resource* resource{ renderTarget.Get() };
 
       const TextureHandle textureHandle { AllocTextureHandle() };
       TAC_CALL_RET( textureMgr->CreateRenderTargetColor(
@@ -99,7 +99,7 @@ namespace Tac::Render
                                                         Errors& errors )
   {
     DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    //DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     if( fmt == TexFmt::kUnknown )
       return {};
 
@@ -180,7 +180,7 @@ namespace Tac::Render
   {
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     DX12TextureMgr* mTextureMgr{ &renderer.mTexMgr };
-    DX12CommandQueue* mCommandQueue{ &renderer.mCommandQueue };
+    //DX12CommandQueue* mCommandQueue{ &renderer.mCommandQueue };
     const int iHandle{ h.GetIndex() };
     for( int i{}; i < swapChainImages.size(); ++i )
     {
@@ -201,7 +201,7 @@ namespace Tac::Render
   void   DX12SwapChainMgr::DestroySwapChain( SwapChainHandle h )
   {
     DX12TextureMgr* mTextureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
+    //DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     if( h.IsValid() )
     {
       FreeHandle( h );

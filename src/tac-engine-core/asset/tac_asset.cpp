@@ -12,18 +12,18 @@ namespace Tac
 {
 
   struct MetaAssetPathString : public MetaType
-  {
+                                                                                                    {
     const char* GetName() const override                                                            { return "AssetPathString"; }
     int         GetSizeOf() const override                                                          { return sizeof( AssetPathString ); }
-    String      ToString( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; return {}; }
-    float       ToNumber( const void* v ) const override                                            { TAC_ASSERT_UNIMPLEMENTED; return {}; }
-    void        Cast( CastParams castParams ) const  override                                       { TAC_ASSERT_UNIMPLEMENTED; }
+    String      ToString( const void* ) const override                                              { TAC_ASSERT_UNIMPLEMENTED; return {}; }
+    float       ToNumber( const void* ) const override                                              { TAC_ASSERT_UNIMPLEMENTED; return {}; }
+    void        Cast( CastParams ) const  override                                                  { TAC_ASSERT_UNIMPLEMENTED; }
 
     void        JsonSerialize( Json* json, const void* v ) const override                           { json->SetString( ToRef( v ) ); }
     void        JsonDeserialize( const Json* json, void* v ) const override                         { ToRef( v ) = json->mString; }
 
-    void        Read( ReadStream* readStream, dynmc void* v ) const override                        { TAC_ASSERT_UNIMPLEMENTED; }
-    void        Write( WriteStream* writeStream, const void* v ) const override                     { TAC_ASSERT_UNIMPLEMENTED; }
+    void        Read( ReadStream* , dynmc void* ) const override                                    { TAC_ASSERT_UNIMPLEMENTED; }
+    void        Write( WriteStream* , const void* ) const override                                  { TAC_ASSERT_UNIMPLEMENTED; }
 
     bool        Equals( const void* a, const void* b ) const override                               { return ToRef( a ) == ToRef( b ); }
     void        Copy( CopyParams copyParams ) const override                                        { ToRef( copyParams.mDst ) = ToRef( copyParams.mSrc ); }
@@ -39,6 +39,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+#if TAC_IS_DEBUG_MODE()
   static bool IsValid( const char c )
   {
     return IsAlpha( c )
@@ -67,20 +68,20 @@ namespace Tac
 
     return true;
   }
+#endif
 
   static void Validate( const StringView& s )
   {
-    if( !kIsDebugMode || IsValid( s ) )
-      return;
-
-    const char quote { '\"' };
-
-    String msg { "Invalid Asset path " };
-    msg += quote;
-    msg += s;
-    msg += quote;
-
-    TAC_ASSERT_CRITICAL( msg );
+#if TAC_IS_DEBUG_MODE()
+      if( !IsValid( s ) )
+      {
+        const char quote{ '\"' };
+        String msg{ String() + "Invalid Asset path " + quote + s + quote };
+        TAC_ASSERT_CRITICAL( msg );
+      }
+#else
+    TAC_UNUSED_PARAMETER( s );
+#endif
   }
 
   static FileSys::IterateType AssetToFSIterateType( AssetIterateType t )

@@ -244,7 +244,6 @@ namespace Tac
         } );
     }
 
-
     const int nAttribs{3};
 
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
@@ -303,14 +302,14 @@ namespace Tac
     } managedBuffers;
 #endif
 
-    int i{};
-    for( Instance& inst : mInstances )
+    for( int iInst{}; iInst < mInstances.size(); ++iInst )
     {
+      Instance& inst = mInstances[ iInst ];
       char* name{ inst.mEntity->mName.begin() };
 
-      cgltf_attribute*   cglTF_mesh_attributes   { &attribs[ i * nAttribs ] };
-      cgltf_buffer_view* cglTF_mesh_buffer_views { &bufferViews[ i * nAttribs ] };
-      cgltf_accessor*    cglTF_mesh_accessors    { &accessors[ i * nAttribs ] };
+      cgltf_attribute*   cglTF_mesh_attributes   { &attribs[ iInst * nAttribs ] };
+      cgltf_buffer_view* cglTF_mesh_buffer_views { &bufferViews[ iInst * nAttribs ] };
+      cgltf_accessor*    cglTF_mesh_accessors    { &accessors[ iInst * nAttribs ] };
       //cgltf_buffer*      cglTF_mesh_buffers      { &buffers[ i * nAttribs ] };
 
       cgltf_attribute*   cglTF_running_attribute   { cglTF_mesh_attributes};
@@ -318,36 +317,91 @@ namespace Tac
       cgltf_accessor*    cglTF_running_accessor    { cglTF_mesh_accessors };
       //cgltf_buffer*      cglTF_running_buffer      { cglTF_mesh_buffers};
 
-      const auto GetAttribute_Pos{ []( const PatchPower& patchPower, int i ) -> v3 { return patchPower.mTriVerts[ i ]; } };
-      const auto GetAttribute_Nor{ []( const PatchPower& patchPower, int i ) -> v3 { return patchPower.mTriNormals[ i ]; } };
-      const auto GetAttribute_Col{ []( const PatchPower& patchPower, int i ) -> v3 {
-        if( patchPower.mArea <= 0 )
-          return {};
-
-        Linear_scRGB lin_scRGB( patchPower.mTotalPower / patchPower.mArea / 3.14f );
-
-        // assumptions are being made here
-        Linear_sRGB lin_sRGB( Saturate( lin_scRGB.r ),
-                              Saturate( lin_scRGB.g ),
-                              Saturate( lin_scRGB.b ) );
-
-        Encoded_sRGB encoded_sRGB( lin_sRGB );
-
-        // glTF COLOR_0 expects [0,1] (encoded sRGB?)
-        return v3( encoded_sRGB.r, encoded_sRGB.g, encoded_sRGB.b );
-        } };
-
       const int iStartVertex{ iRunningVertex };
-      for( const PatchPower& patchPower : inst.mPatchPowers )
+
+      for( int iPatch{}; iPatch < inst.mPatchPowers.size(); ++iPatch )
       {
-        for( int i {}; i < 3; ++i )
+        const PatchPower& patchPower = inst.mPatchPowers[ iPatch ];
+        for( int iVtx {}; iVtx < 3; ++iVtx )
         {
+          v3 position{ patchPower.mTriVerts[ iVtx ] };
+          v3 normal{ patchPower.mTriNormals[ iVtx ] };
+          v3 color{};
+          if( patchPower.mArea > 0 )
+          {
+            struct Adjacency
+            {
+              Adjacency() = default;
+              Adjacency(const PatchPower& patchPower)
+              {
+                radiance = patchPower.mTotalPower / patchPower.mArea / 3.14f;
+                area = patchPower.mArea;
+              }
+
+              v3 radiance{};
+              float area{};
+              //float weight{};
+            };
+
+            Vector< Adjacency > adjacencies;
+            adjacencies.push_back ( Adjacency ( patchPower ) );
+
+            v3 runningPower = patchPower.mTotalPower;
+            for( int jPatch{}; jPatch < inst.mPatchPowers.size(); ++jPatch )
+            {
+              if( iPatch == jPatch )
+                continue;
+
+              PatchPower& jPatchPower = inst.mPatchPowers[ jPatch ];
+              float angleRad = Acos(Dot(patchPower.mUnitNormal, jPatchPower.mUnitNormal));
+              float angleDeg = angleRad * 180.0f / 3.14f;
+              if( angleDeg > 10 )
+                continue;
+
+              bool isAdj = false;
+              for( v3& jPos : jPatchPower.mTriVerts )
+                isAdj |= Distance ( jPos, position ) < 0.01f;
+              if( !isAdj )
+                continue;
+
+              if( jPatchPower.mArea <= 0 )
+                continue;
+
+              adjacencies.push_back( jPatchPower );
+            }
+
+
+            float totalArea = 0;
+            for( Adjacency& adj : adjacencies )
+              totalArea += adj.area;
+
+            //                    sum( w_i * x_i )
+            // weighted average = ----------------
+            //                       sum( w_i )
+
+            v3 weightedAverageRadiance{};
+            for( Adjacency& adj : adjacencies )
+              weightedAverageRadiance += ( adj.radiance * adj.area ) / totalArea;
+
+            Linear_scRGB lin_scRGB( weightedAverageRadiance );
+
+            // assumptions are being made here
+            Linear_sRGB lin_sRGB(Saturate(lin_scRGB.r),
+                                 Saturate(lin_scRGB.g),
+                                 Saturate(lin_scRGB.b));
+
+            Encoded_sRGB encoded_sRGB(lin_sRGB);
+
+            // glTF COLOR_0 expects [0,1] (encoded sRGB?)
+            color = v3(encoded_sRGB.r, encoded_sRGB.g, encoded_sRGB.b);
+          }
+
           Vertex& vtx{ vertexes[ iRunningVertex++ ] };
           vtx = Vertex
           {
-            .mPosition { GetAttribute_Pos( patchPower, i ) },
-            .mNormal   { GetAttribute_Nor( patchPower, i ) },
-            .mColor    { GetAttribute_Col( patchPower, i ) },
+            .mPosition { position },
+            .mNormal   { normal },
+            .mColor    { color },
           };
           TAC_NO_OP;
           ++asdf;
@@ -361,33 +415,6 @@ namespace Tac
                dynmc char* glTF_attribName,
                cgltf_attribute_type glTF_attribType )
         {
-#if 0
-          ManagedBuffers::ManagedBuffer* managedBuffer{ managedBuffers.AllocBuffer() };
-          for( const PatchPower& patchPower : inst.mPatchPowers )
-          {
-            for( int i{}; i < 3; ++i )
-            {
-              const v3 attrib_v3 { fn( patchPower, i ) };
-              managedBuffer->push_back( attrib_v3 );
-            }
-          }
-
-          const cgltf_size bufferSize{ ( cgltf_size )managedBuffer->GetByteCount() };
-          cgltf_buffer& posBuffer { *cglTF_running_buffer++ };
-          posBuffer = cgltf_buffer
-          {
-            .size { bufferSize },
-            .data { managedBuffer->data() },
-          };
-
-          cgltf_buffer_view& posBufferView { *cglTF_running_buffer_view++};
-          posBufferView = cgltf_buffer_view
-          {
-            .buffer { &posBuffer },
-            .size   { bufferSize },
-            .type   { cgltf_buffer_view_type_vertices},
-          };
-#else
           cgltf_buffer_view& posBufferView { *cglTF_running_buffer_view++};
           posBufferView = cgltf_buffer_view
           {
@@ -397,7 +424,6 @@ namespace Tac
             .stride { ( cgltf_size )sizeof( Vertex ) }, // determined by accessor my ass
             .type   { cgltf_buffer_view_type_vertices },
           };
-#endif
 
           cgltf_accessor& accessor_pos { *cglTF_running_accessor++ };
           accessor_pos = cgltf_accessor
@@ -438,7 +464,7 @@ namespace Tac
       };
 
       const v3 emissive{ inst.mMaterial->mEmissive };
-      cgltf_material& material{ materials[ i ] };
+      cgltf_material& material{ materials[ iInst ] };
       material = cgltf_material
       {
         .name                       { name },
@@ -448,7 +474,7 @@ namespace Tac
         .unlit                      { true },
       };
 
-      cgltf_primitive& prim{ primitives[ i ] };
+      cgltf_primitive& prim{ primitives[ iInst ] };
       prim = cgltf_primitive
       {
         .type             { cgltf_primitive_type_triangles },
@@ -457,7 +483,7 @@ namespace Tac
         .attributes_count { nAttribs },
       };
 
-      cgltf_mesh& mesh{ meshes[ i ] };
+      cgltf_mesh& mesh{ meshes[ iInst ] };
       mesh = cgltf_mesh 
       {
         .name             { name },
@@ -466,7 +492,7 @@ namespace Tac
       };
 
       //const m4 m{ inst.mEntity->mWorldTransform };
-      cgltf_node& node{ nodes[ i ] };
+      cgltf_node& node{ nodes[ iInst ] };
       node = cgltf_node 
       {
         .name       { name },
@@ -484,8 +510,6 @@ namespace Tac
           //m.m03, m.m13, m.m23, m.m33,
         },
       };
-
-      ++i;
     }
 
     cgltf_data data
@@ -563,11 +587,10 @@ namespace Tac
   {
     float minPowerLimit{ 0.01f };
     int maxJacobiIterations{ 100 };
-    int samplesPerIteration { 1000 };
+    int samplesPerIteration { 100000 };
 
     Timer timer{};
     timer.Start();
-    TimestampDifference timeAccum{};
 
     for( int iJacobi{}; iJacobi < maxJacobiIterations; ++iJacobi )
     {
@@ -576,21 +599,7 @@ namespace Tac
       if( totalUnshotPower < minPowerLimit )
         break;
 
-
-#if 0
-      timeAccum += timer.Tick();
-      if( timeAccum > 1 )
-      {
-        timeAccum = {};
-        static Errors saveErrors;
-        saveErrors.clear();
-        SaveToFile(saveErrors);
-        if( saveErrors)
-        {
-          OS::OSDebugBreak();
-        }
-      }
-#endif
+      mElapsed += timer.Tick();
 
       for( Instance& instance : mInstances)
       {

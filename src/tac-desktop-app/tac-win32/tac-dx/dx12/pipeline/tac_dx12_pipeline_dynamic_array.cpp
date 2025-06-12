@@ -19,6 +19,7 @@ namespace Tac::Render
     return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
   }
 
+#if 0
   static D3D12ProgramBindType::Classification GetClassification( IBindlessArray::Params params )
   {
     const bool isShaderResource{ ( params.mBinding & Binding::ShaderResource ) != Binding::None };
@@ -33,6 +34,7 @@ namespace Tac::Render
 
     return D3D12ProgramBindType::Classification::kUnknown;
   }
+#endif
 
 
   // -----------------------------------------------------------------------------------------------
@@ -186,15 +188,15 @@ namespace Tac::Render
 
   void                   PipelineDynamicArray::CheckType( ResourceHandle h )
   {
-    if constexpr ( !kIsDebugMode )
-      return;
-
-    const D3D12ProgramBindType bindType{ mProgramBindType };
-    const HandleType handleType{h.GetHandleType()};
-    TAC_ASSERT( bindType.IsValid() );
-    TAC_ASSERT( !bindType.IsBuffer() || ( handleType == HandleType::kBuffer ) );
-    TAC_ASSERT( !bindType.IsTexture() || ( handleType == HandleType::kTexture ) );
-    TAC_ASSERT( !bindType.IsSampler() || ( handleType == HandleType::kSampler ) );
+    if constexpr( kIsDebugMode )
+    {
+      const D3D12ProgramBindType bindType{ mProgramBindType };
+      const HandleType handleType{ h.GetHandleType() };
+      TAC_ASSERT( bindType.IsValid() );
+      TAC_ASSERT( !bindType.IsBuffer() || ( handleType == HandleType::kBuffer ) );
+      TAC_ASSERT( !bindType.IsTexture() || ( handleType == HandleType::kTexture ) );
+      TAC_ASSERT( !bindType.IsSampler() || ( handleType == HandleType::kSampler ) );
+    }
   }
 
   void                   PipelineDynamicArray::Commit( CommitParams commitParams )
@@ -207,9 +209,9 @@ namespace Tac::Render
     const UINT rootParameterIndex{ commitParams.mRootParameterIndex };
 
     DX12Renderer&   renderer   { DX12Renderer::sRenderer };
-    DX12TextureMgr* textureMgr { &renderer.mTexMgr };
-    DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
-    DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
+    //DX12TextureMgr* textureMgr { &renderer.mTexMgr };
+    //DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
+    //DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
     ID3D12Device*   device     { renderer.mDevice };
 
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };

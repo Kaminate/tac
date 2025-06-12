@@ -396,12 +396,16 @@ namespace Tac::Render
     DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
     DX12Texture* texture{ textureMgr->FindTexture( h ) };
     TAC_ASSERT( texture );
+    if( !texture )
+      return;
+
     TAC_ASSERT( texture->mDSV.HasValue() );
     ID3D12GraphicsCommandList* commandList { GetCommandList() };
     
     const D3D12_CPU_DESCRIPTOR_HANDLE DSV { texture->mDSV.GetValue().GetCPUHandle() };
     const D3D12_CLEAR_FLAGS ClearFlags { D3D12_CLEAR_FLAG_DEPTH };
-    const FLOAT Depth { 1.0f };
+    const FLOAT Depth { value };
+    TAC_ASSERT( value == 1 );
 
     const DX12TransitionHelper::Params transitionParams
     {

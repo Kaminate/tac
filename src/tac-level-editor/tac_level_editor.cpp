@@ -256,7 +256,7 @@ namespace Tac
                           errors ) );
   }
 
-  void                Creation::Uninit( Errors& errors )
+  void                Creation::Uninit( Errors& )
   {
     ShowWindowHelper::GetInstance().Save( mSettingsNode );
     sIconRenderer.Uninit();

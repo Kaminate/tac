@@ -211,7 +211,7 @@ namespace Tac
   }
 
   static void UpdatePerObjectCBuf( const Model* model,
-                                   const Mesh* mesh,
+                                   const Mesh* ,
                                    Render::IContext* renderContext,
                                    Errors& errors )
   {
@@ -237,6 +237,7 @@ namespace Tac
                                           const Render::TextureHandle viewId,
                                           Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( viewId );
     TAC_CALL( const Mesh* mesh{ LoadModel( model, errors ) } );
     if( !mesh )
       return;
@@ -251,7 +252,7 @@ namespace Tac
       for( int i{}; i < nLights; ++i )
       {
         const Light* light{ lights[ i ] };
-        const int shaderLightIndex{ ( int )cBufferLights.lightCount };
+        //const int shaderLightIndex{ ( int )cBufferLights.lightCount };
         if( cBufferLights.TryAddLight( LightToShaderLight( light ) ) )
         {
           shadowMaps.push_back( light->mShadowMapDepth );

@@ -85,31 +85,32 @@ namespace Tac::Render
 
   void AllowPIXDebuggerAttachment( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
-    // This may happen if the application is launched through the PIX UI. 
-    if( OS::OSGetLoadedDLL( pixDllName ) )
-      return;
-
-    const FileSys::Path path { TryFindPIXDllPath( errors ) };
-    const String path8 { path.u8string() };
-    if( path8.empty() )
+    if constexpr( kIsDebugMode )
     {
-      OS::OSDebugPrintLine( String() + "Warning: Could not find PIX dll " + pixDllName
-                            + ". Is it installed? "
-                            "PIX will not be able to attach to the running process." );
-      return;
-    }
 
-    void* lib { OS::OSLoadDLL( path.u8string() ) };
-    if( !lib )
-    {
-      OS::OSDebugPrintLine( String() +
-                            "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
-    }
+      // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
+      // This may happen if the application is launched through the PIX UI. 
+      if( OS::OSGetLoadedDLL( pixDllName ) )
+        return;
 
+      const FileSys::Path path{ TryFindPIXDllPath( errors ) };
+      const String path8{ path.u8string() };
+      if( path8.empty() )
+      {
+        OS::OSDebugPrintLine( String() + "Warning: Could not find PIX dll " + pixDllName
+                              + ". Is it installed? "
+                              "PIX will not be able to attach to the running process." );
+        return;
+      }
+
+      void* lib{ OS::OSLoadDLL( path.u8string() ) };
+      if( !lib )
+      {
+        OS::OSDebugPrintLine( String() +
+                              "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
+      }
+
+    }
   }
 
 } // namespace Tac::Render

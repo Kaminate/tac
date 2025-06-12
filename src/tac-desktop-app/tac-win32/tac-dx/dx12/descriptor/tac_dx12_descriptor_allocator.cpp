@@ -217,6 +217,8 @@ namespace Tac::Render
       OS::OSDebugPrint( title );
       OS::OSDebugPrintLine( " begin" );
     }
+#else
+    TAC_UNUSED_PARAMETER( title );
 #endif
   }
 
@@ -230,6 +232,8 @@ namespace Tac::Render
       OS::OSDebugPrintLine( " end" );
       OS::OSDebugPrintLine( str );
     }
+#else
+    TAC_UNUSED_PARAMETER( title );
 #endif
   }
 

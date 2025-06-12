@@ -46,16 +46,21 @@ namespace Tac
     AssetPathStringView   mSkyboxDir;
   };
 
-  static void RenderSkybox( Render::IContext* renderContext,
-                            const World* world,
-                            const Camera* camera,
+#if 0
+  static void RenderSkybox( Render::IContext* ,
+                            const World* ,
+                            const Camera* ,
                             const v2i viewSize,
                             const Render::TextureHandle viewId,
                             Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( viewSize );
+    TAC_UNUSED_PARAMETER( viewId );
+    TAC_UNUSED_PARAMETER( errors );
 
 
   }
+#endif
 
   static Skybox* GetSkybox( const World* world )
   {
@@ -72,7 +77,7 @@ namespace Tac
     return mySkyboxVisitor.mSkybox;
   }
 
-  // ---------------
+  // -----------------------------------------------------------------------------------------------
 
   void SkyboxPresentation::Uninit()
   {
@@ -169,6 +174,7 @@ namespace Tac
                                       const Render::TextureHandle viewId,
                                       Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( viewId );
     if( !mRenderEnabledSkybox )
       return;
 

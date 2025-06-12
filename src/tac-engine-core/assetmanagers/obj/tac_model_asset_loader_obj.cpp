@@ -272,7 +272,7 @@ namespace Tac
   {
 
     const AssetPathStringView assetPath{ params.mPath };
-    const int iModel{ params.mModelIndex };
+    //const int iModel{ params.mModelIndex };
     dynmc Render::VertexDeclarations vertexDeclarations{ params.mOptVtxDecls };
 
     const StringView name { assetPath.GetFilename() };

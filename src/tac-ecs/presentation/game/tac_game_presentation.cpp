@@ -250,6 +250,7 @@ void Tac::GamePresentation::Render( RenderParams renderParams, Errors& errors )
 
 void Tac::GamePresentation::DebugImGui( Graphics* graphics )
 {
+  TAC_UNUSED_PARAMETER( graphics );
   if( !ImGuiCollapsingHeader( "Game Presentation", ImGuiNodeFlags_DefaultOpen ) )
     return;
 

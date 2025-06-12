@@ -398,7 +398,7 @@ namespace Tac
 
   static EquationGrapher sEquationGrapher;
 
-  void ExampleFluid::Update( Errors& errors )
+  void ExampleFluid::Update( Errors& )
   {
     struct FnDraw
     {

@@ -23,7 +23,7 @@ namespace Tac
 
   void ProfileFunction::DeepCopy( const ProfileFunction* profileFunction )
   {
-    ProfileFunction* profileFunctionCopy { this };
+    //ProfileFunction* profileFunctionCopy { this };
     ProfileFunction* firstChildCopy {};
     ProfileFunction* prevChildCopy {};
     for( const ProfileFunction* child { profileFunction->mChildren };

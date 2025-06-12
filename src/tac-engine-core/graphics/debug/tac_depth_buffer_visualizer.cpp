@@ -49,6 +49,8 @@ namespace Tac
       .mFileStem { "DepthBufferVisualizer" },
     };
     sShaderProgram = renderDevice->CreateProgram( programParams, errors );
+#else
+    TAC_UNUSED_PARAMETER( errors );
 #endif
   }
 }
@@ -60,8 +62,11 @@ Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender(
   Errors& errors )
 {
 
+  DepthBufferVisuzliationInit( errors );
 #if TAC_TEMPORARILY_DISABLED()
   renderContext->DebugEventBegin( "depth_buffer_viz" );
+
+
 
   const Render::OutProj outProj{ Render::GetPerspectiveProjectionAB( inProj ) };
 
@@ -72,8 +77,6 @@ Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender(
     .f     { inProj.mFar },
     .n     { inProj.mNear },
   };
-
-  DepthBufferVisuzliationInit( errors );
 
   const Render::Format format
   {
@@ -113,6 +116,10 @@ Tac::Render::TextureHandle Tac::DepthBufferLinearVisualizationRender(
   renderContext->DebugEventEnd();
   return outTex;
 #else
+  TAC_UNUSED_PARAMETER( w );
+  TAC_UNUSED_PARAMETER( h );
+  TAC_UNUSED_PARAMETER( errors );
+  TAC_UNUSED_PARAMETER( depthTexture );
   return {};
 #endif
 }

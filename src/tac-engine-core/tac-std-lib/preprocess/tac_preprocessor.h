@@ -127,6 +127,8 @@ namespace Tac
 #pragma warning( disable: 28251 ) // inconsistant annotation for new
 #pragma warning( disable: 33011 ) // unchecked upper bound array enum index
 #endif // #if defined( _MSC_VER )
+#else
+#pragma warning( disable: 4201 ) // nameless struct/union
 #endif // #if TAC_IS_DEBUG_MODE()
 
 // -------------------------------------------------------------------------------------------------

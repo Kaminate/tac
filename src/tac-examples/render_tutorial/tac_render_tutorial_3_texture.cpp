@@ -119,7 +119,7 @@ namespace Tac
   }
 
 
-  void HelloTexture::Render( RenderParams sysRenderParams, Errors& errors )
+  void HelloTexture::Render( RenderParams , Errors& errors )
   {
     
     if( !AppWindowApi::IsShown( mWindowHandle ) )

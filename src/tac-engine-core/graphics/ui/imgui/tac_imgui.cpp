@@ -104,7 +104,7 @@ namespace Tac
 
   static const v4& GetFrameColor( const bool hovered )
   {
-    ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+    //ImGuiGlobals& globals{ ImGuiGlobals::Instance };
     const bool active{ hovered && AppKeyboardApi::IsPressed( Key::MouseLeft ) };
     const v4& boxColor{ ImGuiGetColor( active
                                        ? ImGuiCol::FrameBGActive : hovered
@@ -268,7 +268,7 @@ void Tac::TextInputDataUpdateKeys( TextInputData* inputData,
                                    const v2& mousePos,
                                    const v2& textPos )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  //ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   struct KeyMap
   {
     Key mKey;
@@ -489,11 +489,13 @@ Tac::ImGuiRect           Tac::ImGuiGetContentRect()
 void Tac::ImGuiSetNextWindowMoveResize()            { gNextWindow.mMoveResize = true; }
 void Tac::ImGuiSetNextWindowPosition( v2 position, ImGuiCondition cond )
 {
+  TAC_UNUSED_PARAMETER( cond );
   gNextWindow.mPosition = position;
   gNextWindow.mPositionValid = true;
 }
 void Tac::ImGuiSetNextWindowSize( v2 size, ImGuiCondition cond ) 
 {
+  TAC_UNUSED_PARAMETER( cond );
   gNextWindow.mSize = size;
   gNextWindow.mSizeValid = true;
 }
@@ -1368,6 +1370,7 @@ void Tac::ImGuiBeginFrame( const BeginFrameData& data )
 
 void Tac::ImGuiEndFrame( Errors& errors )
 {
+  TAC_UNUSED_PARAMETER( errors );
   TAC_PROFILE_BLOCK;
 
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };

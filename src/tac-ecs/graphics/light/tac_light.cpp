@@ -35,6 +35,7 @@ namespace Tac
     Graphics::From( world )->DestroyLightComponent( ( Light* )component );
   }
 
+#if 0
   static void       SaveLightComponent( Json& lightJson, Component* component )
   {
     auto light { ( Light* )component };
@@ -68,6 +69,7 @@ namespace Tac
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mNearPlaneOverride ) ) )
       light->mNearPlaneOverride = ( float )lightJson[ TAC_MEMBER_NAME( Light, mNearPlaneOverride ) ].mNumber;
   }
+#endif
 
 
   Light*                        Light::GetLight( Entity* entity )

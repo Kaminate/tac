@@ -32,7 +32,7 @@ namespace Tac
 
   User::User( StringView name,
               Ghost* ghost,
-              Errors& errors )
+              Errors& )
   {
     mName = name;
     mGhost = ghost;
@@ -379,8 +379,8 @@ namespace Tac
     v3 camViewDir( 0, 0, -1 );
     v3 camR( 1, 0, 0 );
     v3 camU( 0, 1, 0 );
-    float farPlane { 10000.0f };
-    float nearPlane { 0.1f };
+    //float farPlane { 10000.0f };
+    //float nearPlane { 0.1f };
     //float fovYRad { 100.0f * ( 3.14f / 180.0f ) };
     //const Render::InProj inProj  { .mNear = nearPlane, .mFar = farPlane };
     //const Render::OutProj outProj { Render::GetPerspectiveProjectionAB( inProj ) };

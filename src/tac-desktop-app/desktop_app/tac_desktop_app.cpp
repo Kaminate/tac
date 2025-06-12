@@ -62,8 +62,8 @@ namespace Tac
 
   static void         DesktopAppDebugImGuiHoveredWindow()
   {
-    PlatformFns* platform { PlatformFns::GetInstance() };
 #if 0
+    PlatformFns* platform { PlatformFns::GetInstance() };
     const WindowHandle hoveredHandle { platform->PlatformGetMouseHoveredWindow() };
     const DesktopWindowState* hovered { hoveredHandle.GetDesktopWindowState() };
     if( !hovered )
@@ -266,7 +266,7 @@ namespace Tac
     errorReport.Report();
   }
 
-  void                DesktopApp::Update( Errors& errors )
+  void                DesktopApp::Update( Errors& )
   {
     DesktopAppUpdateMove();
     DesktopAppUpdateResize();
@@ -324,7 +324,7 @@ namespace Tac
       Render::RenderApi::BeginRenderFrame( errors );
       TAC_ON_DESTRUCT( Render::RenderApi::EndRenderFrame( errors ) );
 
-      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
       // Interpolate between game states and render
       //

@@ -298,6 +298,7 @@ namespace Tac
                              const Render::TextureHandle viewId, 
                              Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( viewId );
     if( !mRenderEnabledTerrain )
       return;
 

@@ -115,7 +115,7 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  void DX12AppHelloFrameBuf::CreateBufferSRV( Errors& errors )
+  void DX12AppHelloFrameBuf::CreateBufferSRV( Errors& )
   {
     TAC_ASSERT( m_vertexBuffer );
 
@@ -146,7 +146,7 @@ namespace Tac
                                         DestDescriptor );
   }
 
-  void DX12AppHelloFrameBuf::CreateSampler( Errors& errors )
+  void DX12AppHelloFrameBuf::CreateSampler( Errors& )
   {
     const D3D12_SAMPLER_DESC Desc
     {
@@ -1062,7 +1062,7 @@ namespace Tac
     mUploadPageManager.Init( m_device.Get(), &mCommandQueue );
   }
 
-  void         DX12AppHelloFrameBuf::Update(  Errors& errors )
+  void         DX12AppHelloFrameBuf::Update(  Errors& )
   {
     if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;

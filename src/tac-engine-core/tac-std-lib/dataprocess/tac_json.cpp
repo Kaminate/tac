@@ -313,7 +313,6 @@ namespace Tac
   {
     mType = JsonType::Array;
 
-    const int n{ mArrayElements.size() };
     while( mArrayElements.size() <= i )
       AddChild();
 

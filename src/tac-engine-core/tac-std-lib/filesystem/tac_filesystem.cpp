@@ -39,10 +39,10 @@ namespace Tac::FileSys
     return StdPath( s.c_str() );
   }
 
-  static std::filesystem::path StdPath( const StringView& sv )
-  {
-    return StdPath( sv.c_str() );
-  }
+  //static std::filesystem::path StdPath( const StringView& sv )
+  //{
+  //  return StdPath( sv.c_str() );
+  //}
 
   static std::filesystem::path StdPath( const Path *path )
   {
@@ -162,7 +162,7 @@ namespace Tac::FileSys
 
   static const std::filesystem::file_time_type& StdTime( const Time& time ) { return *( std::filesystem::file_time_type* )time.mImpl; }
   static dynmc std::filesystem::file_time_type& StdTime( dynmc Time& time ) { return *( std::filesystem::file_time_type* )time.mImpl; }
-  static const std::filesystem::file_time_type& StdTime( const Time* time ) { return *( std::filesystem::file_time_type* )time->mImpl; }
+  //static const std::filesystem::file_time_type& StdTime( const Time* time ) { return *( std::filesystem::file_time_type* )time->mImpl; }
   static dynmc std::filesystem::file_time_type& StdTime( dynmc Time* time ) { return *( std::filesystem::file_time_type* )time->mImpl; }
 
   static Time TacTime( std::filesystem::file_time_type stdTime )
@@ -274,6 +274,7 @@ namespace Tac
   FileSys::Time  FileSys::GetFileLastModifiedTime( const FileSys::Path& path,
                                                          Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     const std::filesystem::path stdPath{ StdPath( path ) };
     const std::filesystem::file_time_type stdTime{ std::filesystem::last_write_time( stdPath ) };
     return TacTime( stdTime );

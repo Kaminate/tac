@@ -394,7 +394,7 @@ namespace Tac::Render
                                     Errors& errors )
   {
     DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
-    ID3D12Resource* resource{ buffer.mResource.Get() };
+    //ID3D12Resource* resource{ buffer.mResource.Get() };
 
     if( buffer.mCreateParams.mUsage == Usage::Default )
     {

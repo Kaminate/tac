@@ -157,6 +157,9 @@ namespace Tac
         renderDevice->DestroyProgram( programHandle );
       }
 
+#else
+      TAC_UNUSED_PARAMETER( material );
+      TAC_UNUSED_PARAMETER( errors );
 #endif
     }
 

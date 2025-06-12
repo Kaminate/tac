@@ -70,6 +70,7 @@ namespace Tac
     bool        mDebugLine     {};
     Instances   mInstances     {};
     World*      mWorld         {};
+    TimestampDifference mElapsed {};
   };
 } // namespace Tac
 

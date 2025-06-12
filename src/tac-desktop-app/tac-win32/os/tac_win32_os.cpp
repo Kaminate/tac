@@ -100,6 +100,7 @@ namespace Tac
     TAC_RAISE_ERROR( extErrInfoStr );
   }
 
+#if 0
   static bool IsDirectorySeparator( char c )
   {
     return c == '/' || c == '\\';
@@ -125,6 +126,7 @@ namespace Tac
 
     return true;
   }
+#endif
 
 
   static void Win32OSDebugPopupBox( const StringView& s )

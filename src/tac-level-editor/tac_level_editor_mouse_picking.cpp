@@ -123,7 +123,7 @@ namespace Tac
   static void MousePickingEntityDebug( SelectedEntities* selectedEntities,
                                        Ray ray,
                                        const World* world,
-                                       const Camera* camera,
+                                       const Camera* ,
                                        Errors& errors )
   {
     Debug3DDrawData* drawData{ world->mDebug3DDrawData };

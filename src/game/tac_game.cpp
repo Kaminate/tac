@@ -42,7 +42,7 @@ namespace Tac
     TAC_CALL( ghost->Init( sSettingsNode,  errors ));
   }
 
-  static void GameCallbackUpdate( Errors& errors )
+  static void GameCallbackUpdate( Errors& )
   {
 
   }

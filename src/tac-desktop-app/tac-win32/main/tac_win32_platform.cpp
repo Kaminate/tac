@@ -12,6 +12,7 @@ namespace Tac
 
   void Win32PlatformFns::PlatformImGui( Errors& errors ) const
   {
+    TAC_UNUSED_PARAMETER( errors );
     if( !ImGuiCollapsingHeader( "Win32PlatformFns::PlatformImGui" ) )
       return;
 
@@ -27,6 +28,7 @@ namespace Tac
 
   void Win32PlatformFns::PlatformFrameEnd( Errors& errors ) const
   {
+    TAC_UNUSED_PARAMETER( errors );
     Win32MouseEdgeUpdate();
 
     const DesktopEventApi::CursorUnobscuredEvent data{ Win32MouseEdgeGetCursorHovered() };

@@ -27,7 +27,7 @@ namespace Tac
 
   static void       DestroySkyboxComponent( World* world, Component* component )
   {
-    Graphics* graphics{ Graphics::From( world ) };
+    //Graphics* graphics{ Graphics::From( world ) };
     Graphics::From( world )->DestroySkyboxComponent( ( Skybox* )component );
   }
 

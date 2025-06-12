@@ -147,7 +147,7 @@ namespace Tac
                                        nearPlaneY_worldspace * ndcY };
       const v3 rayUnitDir_worldspace{ Normalize( pointOnFilm_worldspace - camera->mPos ) };
 
-      const TLAS& tlas{ sSceneBvh->mTLAS };
+      //const TLAS& tlas{ sSceneBvh->mTLAS };
 
       const BVHRay bvhRay
       {
@@ -655,7 +655,7 @@ FN_DECL ray GetRay(vec2 ImageUV)
       return prevColor;
     }
 
-    void Run( const Camera* worldCamera, Debug3DDrawData* drawData )
+    void Run( const Camera* worldCamera, Debug3DDrawData* )
     {
       Camera cam1{ *worldCamera };
       if( sCPURayDebug.mCamera.HasValue() )
@@ -823,7 +823,7 @@ FN_DECL ray GetRay(vec2 ImageUV)
     }
   }
 
-  void             JPPTPresentation::Render( Render::IContext* renderContext,
+  void             JPPTPresentation::Render( Render::IContext* ,
                                              const World* world,
                                              const Camera* camera,
                                              const v2i viewSize,
@@ -831,6 +831,8 @@ FN_DECL ray GetRay(vec2 ImageUV)
                                              const Render::TextureHandle dstDepthTex,
                                              Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( dstDepthTex );
+    TAC_UNUSED_PARAMETER( dstColorTex );
     TAC_ASSERT( sInitialized );
     if( !sEnabled )
       return;

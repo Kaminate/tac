@@ -267,7 +267,7 @@ namespace Tac
 
   void         ImGuiWindow::BeginFrame()
   {
-    dynmc ImGuiGlobals& globals { ImGuiGlobals::Instance };
+    //dynmc ImGuiGlobals& globals { ImGuiGlobals::Instance };
 
     const UIStyle& style{ ImGuiGetStyle() };
     const float windowPadding{ style.windowPadding };
@@ -562,15 +562,15 @@ namespace Tac
 
   v2           ImGuiWindow::GetWindowPosScreenspace()
   {
-    ImGuiGlobals& globals { ImGuiGlobals::Instance };
+    //ImGuiGlobals& globals { ImGuiGlobals::Instance };
      
-    const v2 viewportPosScreenspace { AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
+    const v2 viewportPosScreenspace{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
     return viewportPosScreenspace + mViewportSpacePos;
   }
 
   v2           ImGuiWindow::GetMousePosViewport()
   {
-    const v2 mousePos_SS { AppKeyboardApi::GetMousePosScreenspace() };
+    const v2 mousePos_SS{ AppKeyboardApi::GetMousePosScreenspace() };
     const v2 windowPos_SS{ GetWindowPosScreenspace() };
     return mousePos_SS - windowPos_SS;
   }

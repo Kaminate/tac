@@ -153,9 +153,9 @@ namespace Tac
     };
   }
 
-  static ShadowPerObj   GetPerObj()
-  {
-  }
+  //static ShadowPerObj   GetPerObj()
+  //{
+  //}
 
   static void UpdatePerFrameConstantBuffer( Render::IContext* renderContext,
                                             const Light* light,

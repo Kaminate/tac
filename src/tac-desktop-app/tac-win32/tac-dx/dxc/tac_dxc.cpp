@@ -94,9 +94,6 @@ namespace Tac::Render
       return;
 
 
-    if constexpr( not kIsDebugMode )
-      return;
-
 
     if( S_OK != pdbUtils->Load( pPDB ) )
       return;
@@ -280,7 +277,12 @@ namespace Tac::Render
     TAC_CALL( SaveBlobToFile( pPDB, pdbPath, errors ) );
 
     if( sVerbose )
-      PrintCompilerInfo( pdbUtils, pPDB.Get() );
+    {
+      if constexpr( kIsDebugMode )
+      {
+        PrintCompilerInfo( pdbUtils, pPDB.Get() );
+      }
+    }
   }
 
   static void CheckCompileSuccess( IDxcResult* pResults, Errors& errors )
@@ -382,10 +384,12 @@ namespace Tac::Render
                           pResults.iid(),
                           pResults.ppv() ) };
 
+      TAC_ASSERT( SUCCEEDED( hr ) );
+
       const UINT32 n { pResults->GetNumOutputs() };
       for( UINT32 i {}; i < n; ++i )
       {
-        DXC_OUT_KIND kind { pResults->GetOutputByIndex( i ) };
+        //DXC_OUT_KIND kind { pResults->GetOutputByIndex( i ) };
         ++asdf;
       }
       ++asdf;

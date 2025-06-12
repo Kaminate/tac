@@ -1,14 +1,11 @@
 #include "tac_dx12_tutorial_3_texture.h" // self-inc
 
 #include "tac_dx12_tutorial_shader_compile.h"
-#include "tac_dx12_tutorial_shader_compile.h"
 #include "tac_dx12_tutorial_2_dxc.h"
 #include "tac_dx12_tutorial.h"
 #include "tac_dx12_tutorial_root_sig_builder.h"
 #include "tac_dx12_tutorial_input_layout_builder.h"
 #include "tac_dx12_tutorial_checkerboard.h"
-
-
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/asset/tac_asset.h"
@@ -75,35 +72,36 @@ namespace Tac
 
   void DX12AppHelloTexture::EnableDebug( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
+      PCom<ID3D12Debug> dx12debug;
+      TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
 
-    dx12debug.QueryInterface( m_debug );
+      dx12debug.QueryInterface( m_debug );
 
-    // EnableDebugLayer must be called before the device is created
-    TAC_ASSERT( !mDevice );
-    m_debug->EnableDebugLayer();
+      // EnableDebugLayer must be called before the device is created
+      TAC_ASSERT( !mDevice );
+      m_debug->EnableDebugLayer();
 
-    // ( this should already be enabled by default )
-    m_debug->SetEnableSynchronizedCommandQueueValidation( TRUE );
+      // ( this should already be enabled by default )
+      m_debug->SetEnableSynchronizedCommandQueueValidation( TRUE );
 
-    // https://learn.microsoft.com
-    // GPU-based validation can be enabled only prior to creating a device. Disabled by default.
-    //
-    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-d3d12-debug-layer-gpu-based-validation
-    // GPU-based validation helps to identify the following errors:
-    // - Use of uninitialized or incompatible descriptors in a shader.
-    // - Use of descriptors referencing deleted Resources in a shader.
-    // - Validation of promoted resource states and resource state decay.
-    // - Indexing beyond the end of the descriptor heap in a shader.
-    // - Shader accesses of resources in incompatible state.
-    // - Use of uninitialized or incompatible Samplers in a shader.
-    m_debug->SetEnableGPUBasedValidation( TRUE );
+      // https://learn.microsoft.com
+      // GPU-based validation can be enabled only prior to creating a device. Disabled by default.
+      //
+      // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-d3d12-debug-layer-gpu-based-validation
+      // GPU-based validation helps to identify the following errors:
+      // - Use of uninitialized or incompatible descriptors in a shader.
+      // - Use of descriptors referencing deleted Resources in a shader.
+      // - Validation of promoted resource states and resource state decay.
+      // - Indexing beyond the end of the descriptor heap in a shader.
+      // - Shader accesses of resources in incompatible state.
+      // - Use of uninitialized or incompatible Samplers in a shader.
+      m_debug->SetEnableGPUBasedValidation( TRUE );
 
-    m_debugLayerEnabled = true;
+      m_debugLayerEnabled = true;
+    }
   }
 
   void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
@@ -112,38 +110,44 @@ namespace Tac
                             LPCSTR pDescription,
                             void* pContext )
   {
+    TAC_UNUSED_PARAMETER( Category );
+    TAC_UNUSED_PARAMETER( Severity );
+    TAC_UNUSED_PARAMETER( ID );
+    TAC_UNUSED_PARAMETER( pDescription );
+    TAC_UNUSED_PARAMETER( pContext );
     OS::OSDebugBreak();
   }
 
   void DX12AppHelloTexture::CreateInfoQueue( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    TAC_ASSERT( m_debugLayerEnabled );
-
-    mDevice.QueryInterface( m_infoQueue );
-    TAC_ASSERT( m_infoQueue );
-
-    // Make the application debug break when bad things happen
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
-
-    // First available in Windows 10 Release Preview build 20236,
-    // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 { m_infoQueue.QueryInterface< ID3D12InfoQueue1 >()  })
+    if constexpr( kIsDebugMode )
     {
-      const D3D12MessageFunc CallbackFunc{ MyD3D12MessageFunc };
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags{ D3D12_MESSAGE_CALLBACK_FLAG_NONE };
-      void* pContext{ this };
-      DWORD pCallbackCookie{};
 
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
-                     CallbackFunc,
-                     CallbackFilterFlags,
-                     pContext,
-                     &pCallbackCookie ) );
+      TAC_ASSERT( m_debugLayerEnabled );
+
+      mDevice.QueryInterface( m_infoQueue );
+      TAC_ASSERT( m_infoQueue );
+
+      // Make the application debug break when bad things happen
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+
+      // First available in Windows 10 Release Preview build 20236,
+      // But as of 2023-12-11 not available on my machine :(
+      if( auto infoQueue1{ m_infoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
+      {
+        const D3D12MessageFunc CallbackFunc{ MyD3D12MessageFunc };
+        const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags{ D3D12_MESSAGE_CALLBACK_FLAG_NONE };
+        void* pContext{ this };
+        DWORD pCallbackCookie{};
+
+        TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
+          CallbackFunc,
+          CallbackFilterFlags,
+          pContext,
+          &pCallbackCookie ) );
+      }
     }
   }
 
@@ -252,7 +256,7 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  void DX12AppHelloTexture::CreateBufferSRV( Errors& errors )
+  void DX12AppHelloTexture::CreateBufferSRV( Errors& )
   {
     TAC_ASSERT( m_vertexBuffer );
 
@@ -283,7 +287,7 @@ namespace Tac
                                         DestDescriptor );
   }
 
-  void DX12AppHelloTexture::CreateSampler( Errors& errors )
+  void DX12AppHelloTexture::CreateSampler( Errors& )
   {
     const D3D12_SAMPLER_DESC Desc
     {
@@ -1251,7 +1255,7 @@ namespace Tac
     TAC_CALL( CreateSampler( errors ) );
   }
 
-  void DX12AppHelloTexture::Render( RenderParams renderParams , Errors& errors )
+  void DX12AppHelloTexture::Render( RenderParams , Errors& errors )
   {
 
     if( !AppWindowApi::IsShown( hDesktopWindow ) )
@@ -1270,7 +1274,7 @@ namespace Tac
     TAC_CALL( WaitForPreviousFrame( errors ) );
   }
 
-  void DX12AppHelloTexture::Update(  Errors& errors )
+  void DX12AppHelloTexture::Update(  Errors& )
   {
   }
 

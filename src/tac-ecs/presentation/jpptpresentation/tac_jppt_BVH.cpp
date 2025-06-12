@@ -512,6 +512,7 @@ namespace Tac
   // ???
   SceneBVH*            SceneBVH::CreateBVH( const World* world, Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     SceneBVH* sceneBVH{ TAC_NEW SceneBVH };
 
     Vector< const Model* > models;
@@ -985,7 +986,7 @@ namespace Tac
       return;
 
     const BVH& bvh{ bvhMesh->mBVH };
-    const Vector< BVHNode >& bvhNodes{ bvh.mBVHNodes };
+    //const Vector< BVHNode >& bvhNodes{ bvh.mBVHNodes };
     const u32 nNodes{ bvh.mNodesUsed };
     ImGuiText( "BVH Node Count : " + ToString( nNodes ) );
     ImGuiText( "Selected BVH Node: " + ToString( iSelectedBVHNode ) );

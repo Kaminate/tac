@@ -39,16 +39,19 @@ namespace Tac
     mMessage += msg;
     mFrames.push_back( sf );
 
-    if( kIsDebugMode && !mBroken && mFlags & Flags::kDebugBreaks )
+    if constexpr( kIsDebugMode )
     {
-      const String errStr{ ToString() };
-      OS::OSDebugPrintLine( String( 100, '-' ) );
-      OS::OSDebugPrintLine( String( 47, ' ' ) + "ERROR!" );
-      OS::OSDebugPrintLine( String( 100, '-' ) );
-      OS::OSDebugPrintLine( errStr );
-      OS::OSDebugPrintLine( String( 100, '-' ) );
-      OS::OSDebugBreak();
-      mBroken = true;
+      if( !mBroken && ( mFlags & Flags::kDebugBreaks ) )
+      {
+        const String errStr{ ToString() };
+        OS::OSDebugPrintLine( String( 100, '-' ) );
+        OS::OSDebugPrintLine( String( 47, ' ' ) + "ERROR!" );
+        OS::OSDebugPrintLine( String( 100, '-' ) );
+        OS::OSDebugPrintLine( errStr );
+        OS::OSDebugPrintLine( String( 100, '-' ) );
+        OS::OSDebugBreak();
+        mBroken = true;
+      }
     }
   }
 

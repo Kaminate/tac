@@ -19,37 +19,40 @@ namespace Tac::Render
 
   void DXGIDebugWrapper::Init()
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    const UINT flags {};
-    DXGIGetDebugInterface1( flags, mDbg.iid(), mDbg.ppv() );
+      const UINT flags{};
+      DXGIGetDebugInterface1( flags, mDbg.iid(), mDbg.ppv() );
+    }
   }
 
   void DXGIDebugWrapper::Report()
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    if( !mDbg )
-      return;
+      if( !mDbg )
+        return;
 
 #if 0
-    TAC_SCOPE_GUARD( ScopedSeverityBreak );
+      TAC_SCOPE_GUARD( ScopedSeverityBreak );
 #endif
 
-    mDbg->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
+      mDbg->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
+    }
   }
 
 
   void DXGIReportLiveObjects()
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    DXGIDebugWrapper wrapper;
-    wrapper.Init();
-    wrapper.Report();
+      DXGIDebugWrapper wrapper;
+      wrapper.Init();
+      wrapper.Report();
+    }
 
   }
 } // namespace Tac::Render

@@ -54,18 +54,15 @@ namespace Tac
 
   void DX12AppHelloTriangle::EnableDebug( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
-
-    dx12debug.QueryInterface( m_debug );
-
-    // EnableDebugLayer must be called before the device is created
-    TAC_ASSERT( !m_device );
-    m_debug->EnableDebugLayer();
-    m_debugLayerEnabled = true;
+    if constexpr( kIsDebugMode )
+    {
+      PCom< ID3D12Debug > dx12debug;
+      TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
+      dx12debug.QueryInterface( m_debug );
+      TAC_ASSERT( !m_device ); // EnableDebugLayer must be called before the device is created
+      m_debug->EnableDebugLayer();
+      m_debugLayerEnabled = true;
+    }
   }
 
   void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
@@ -74,38 +71,44 @@ namespace Tac
                             LPCSTR pDescription,
                             void* pContext )
   {
+    TAC_UNUSED_PARAMETER( Category );
+    TAC_UNUSED_PARAMETER( Severity );
+    TAC_UNUSED_PARAMETER( ID );
+    TAC_UNUSED_PARAMETER( pDescription );
+    TAC_UNUSED_PARAMETER( pContext );
     OS::OSDebugBreak();
   }
 
   void DX12AppHelloTriangle::CreateInfoQueue( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    TAC_ASSERT( m_debugLayerEnabled );
-
-    m_device.QueryInterface( m_infoQueue );
-    TAC_ASSERT( m_infoQueue );
-
-    // Make the application debug break when bad things happen
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
-
-    // First available in Windows 10 Release Preview build 20236,
-    // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1{ m_infoQueue.QueryInterface<ID3D12InfoQueue1>() } )
+    if constexpr( kIsDebugMode )
     {
-      const D3D12MessageFunc CallbackFunc { MyD3D12MessageFunc };
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
-      void* pContext { this };
-      DWORD pCallbackCookie {};
 
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
-                     CallbackFunc,
-                     CallbackFilterFlags,
-                     pContext,
-                     &pCallbackCookie ) );
+      TAC_ASSERT( m_debugLayerEnabled );
+
+      m_device.QueryInterface( m_infoQueue );
+      TAC_ASSERT( m_infoQueue );
+
+      // Make the application debug break when bad things happen
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+
+      // First available in Windows 10 Release Preview build 20236,
+      // But as of 2023-12-11 not available on my machine :(
+      if( auto infoQueue1{ m_infoQueue.QueryInterface<ID3D12InfoQueue1>() } )
+      {
+        const D3D12MessageFunc CallbackFunc{ MyD3D12MessageFunc };
+        const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags{ D3D12_MESSAGE_CALLBACK_FLAG_NONE };
+        void* pContext{ this };
+        DWORD pCallbackCookie{};
+
+        TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
+          CallbackFunc,
+          CallbackFilterFlags,
+          pContext,
+          &pCallbackCookie ) );
+      }
     }
   }
 
@@ -199,7 +202,7 @@ namespace Tac
 
   // This is used to create a hlsl ByteAddressBuffer in DX12HelloTriangleBindless.hlsl
   // It is passed to the shader via the descriptor heap
-  void DX12AppHelloTriangle::CreateSRV( Errors& errors )
+  void DX12AppHelloTriangle::CreateSRV( Errors& )
   {
     TAC_ASSERT( m_vertexBuffer );
 
@@ -1026,7 +1029,7 @@ namespace Tac
     TAC_CALL( WaitForPreviousFrame( errors ) );
   }
 
-  void DX12AppHelloTriangle::Update( Errors& errors )
+  void DX12AppHelloTriangle::Update( Errors& )
   {
   }
 

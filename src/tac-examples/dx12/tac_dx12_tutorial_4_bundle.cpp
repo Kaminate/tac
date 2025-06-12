@@ -52,35 +52,36 @@ namespace Tac
 
   void DX12AppHelloBundle::EnableDebug( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
+      PCom<ID3D12Debug> dx12debug;
+      TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
 
-    dx12debug.QueryInterface( m_debug );
+      dx12debug.QueryInterface( m_debug );
 
-    // EnableDebugLayer must be called before the device is created
-    TAC_ASSERT( !m_device );
-    m_debug->EnableDebugLayer();
+      // EnableDebugLayer must be called before the device is created
+      TAC_ASSERT( !m_device );
+      m_debug->EnableDebugLayer();
 
-    // ( this should already be enabled by default )
-    m_debug->SetEnableSynchronizedCommandQueueValidation( TRUE );
+      // ( this should already be enabled by default )
+      m_debug->SetEnableSynchronizedCommandQueueValidation( TRUE );
 
-    // https://learn.microsoft.com
-    // GPU-based validation can be enabled only prior to creating a device. Disabled by default.
-    //
-    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-d3d12-debug-layer-gpu-based-validation
-    // GPU-based validation helps to identify the following errors:
-    // - Use of uninitialized or incompatible descriptors in a shader.
-    // - Use of descriptors referencing deleted Resources in a shader.
-    // - Validation of promoted resource states and resource state decay.
-    // - Indexing beyond the end of the descriptor heap in a shader.
-    // - Shader accesses of resources in incompatible state.
-    // - Use of uninitialized or incompatible Samplers in a shader.
-    m_debug->SetEnableGPUBasedValidation( TRUE );
+      // https://learn.microsoft.com
+      // GPU-based validation can be enabled only prior to creating a device. Disabled by default.
+      //
+      // https://learn.microsoft.com/en-us/windows/win32/direct3d12/using-d3d12-debug-layer-gpu-based-validation
+      // GPU-based validation helps to identify the following errors:
+      // - Use of uninitialized or incompatible descriptors in a shader.
+      // - Use of descriptors referencing deleted Resources in a shader.
+      // - Validation of promoted resource states and resource state decay.
+      // - Indexing beyond the end of the descriptor heap in a shader.
+      // - Shader accesses of resources in incompatible state.
+      // - Use of uninitialized or incompatible Samplers in a shader.
+      m_debug->SetEnableGPUBasedValidation( TRUE );
 
-    m_debugLayerEnabled = true;
+      m_debugLayerEnabled = true;
+    }
   }
 
   void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
@@ -89,44 +90,48 @@ namespace Tac
                             LPCSTR pDescription,
                             void* pContext )
   {
+    TAC_UNUSED_PARAMETER( Category );
+    TAC_UNUSED_PARAMETER( Severity );
+    TAC_UNUSED_PARAMETER( ID );
+    TAC_UNUSED_PARAMETER( pDescription );
+    TAC_UNUSED_PARAMETER( pContext );
     OS::OSDebugBreak();
   }
 
   void DX12AppHelloBundle::CreateInfoQueue( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    TAC_ASSERT( m_debugLayerEnabled );
-
-    m_device.QueryInterface( m_infoQueue );
-    TAC_ASSERT( m_infoQueue );
-
-    // Make the application debug break when bad things happen
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
-    TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
-
-    // First available in Windows 10 Release Preview build 20236,
-    // But as of 2023-12-11 not available on my machine :(
-    if( auto infoQueue1 = m_infoQueue.QueryInterface<ID3D12InfoQueue1>() )
+    if constexpr( kIsDebugMode )
     {
-      const D3D12MessageFunc CallbackFunc = MyD3D12MessageFunc;
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
-      void* pContext = this;
-      DWORD pCallbackCookie = 0;
+      TAC_ASSERT( m_debugLayerEnabled );
+      m_device.QueryInterface( m_infoQueue );
+      TAC_ASSERT( m_infoQueue );
 
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
-                     CallbackFunc,
-                     CallbackFilterFlags,
-                     pContext,
-                     &pCallbackCookie ) );
+      // Make the application debug break when bad things happen
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+      TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+
+      // First available in Windows 10 Release Preview build 20236,
+      // But as of 2023-12-11 not available on my machine :(
+      if( auto infoQueue1{ m_infoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
+      {
+        const D3D12MessageFunc CallbackFunc{ MyD3D12MessageFunc };
+        const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags = D3D12_MESSAGE_CALLBACK_FLAG_NONE;
+        void* pContext{ this };
+        DWORD pCallbackCookie{};
+
+        TAC_DX12_CALL( infoQueue1->RegisterMessageCallback(
+          CallbackFunc,
+          CallbackFilterFlags,
+          pContext,
+          &pCallbackCookie ) );
+      }
     }
   }
 
   void DX12AppHelloBundle::CreateDevice( Errors& errors )
   {
-    auto adapter = ( IDXGIAdapter* )DXGIGetBestAdapter();
+    auto adapter{ ( IDXGIAdapter* )DXGIGetBestAdapter() };
     PCom< ID3D12Device > device;
     TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,
@@ -165,7 +170,7 @@ namespace Tac
       // [ ] A: 
 
       // This command queue manages direct command lists (direct = for graphics rendering)
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+      .Type { D3D12_COMMAND_LIST_TYPE_DIRECT },
     };
 
     TAC_DX12_CALL( m_device->CreateCommandQueue(
@@ -183,10 +188,10 @@ namespace Tac
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/descriptor-heaps
     // A descriptor heap is a collection of contiguous allocations of descriptors,
     // one allocation for every descriptor.
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = bufferCount,
+       .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_RTV },
+       .NumDescriptors { bufferCount },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -198,11 +203,11 @@ namespace Tac
 
   void DX12AppHelloBundle::CreateSamplerDescriptorHeap( Errors& errors )
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-      .NumDescriptors = ( UINT )1,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER },
+      .NumDescriptors { ( UINT )1 },
+      .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -215,11 +220,11 @@ namespace Tac
 
   void DX12AppHelloBundle::CreateSRVDescriptorHeap( Errors& errors )
   {
-    const D3D12_DESCRIPTOR_HEAP_DESC desc =
+    const D3D12_DESCRIPTOR_HEAP_DESC desc
     {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-      .NumDescriptors = ( UINT )SRVIndexes::Count,
-      .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+      .Type           { D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV },
+      .NumDescriptors { ( UINT )SRVIndexes::Count },
+      .Flags          { D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE },
     };
     TAC_DX12_CALL( m_device->CreateDescriptorHeap(
                    &desc,
@@ -229,48 +234,50 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  void DX12AppHelloBundle::CreateVertexBufferSRV( Errors& errors )
+  void DX12AppHelloBundle::CreateVertexBufferSRV( Errors& )
   {
     TAC_ASSERT( m_vertexBuffer );
 
     // srv --> byteaddressbuffer
     // uav --> rwbyteaddressbuffer
 
+    const D3D12_BUFFER_SRV Buffer
+    {
+      .FirstElement { 0 },
+      .NumElements  { m_vertexBufferByteCount / 4 },
+      .Flags        { D3D12_BUFFER_SRV_FLAG_RAW }, // for byteaddressbuffer
+    };
+
     const D3D12_SHADER_RESOURCE_VIEW_DESC Desc
     {
-      .Format = DXGI_FORMAT_R32_TYPELESS, // for byteaddressbuffer
-      .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-      .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING, // swizzling?
-      .Buffer = D3D12_BUFFER_SRV
-      {
-        .FirstElement = 0,
-        .NumElements = m_vertexBufferByteCount / 4,
-        .Flags = D3D12_BUFFER_SRV_FLAG_RAW, // for byteaddressbuffer
-      },
+      .Format                  { DXGI_FORMAT_R32_TYPELESS }, // for byteaddressbuffer
+      .ViewDimension           { D3D12_SRV_DIMENSION_BUFFER },
+      .Shader4ComponentMapping { D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING }, // swizzling?
+      .Buffer                  { Buffer },
     };
 
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
-      GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer );
-    
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{
+      GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer ) };
+
     m_device->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
                                         &Desc,
                                         DestDescriptor );
   }
 
-  void DX12AppHelloBundle::CreateSampler( Errors& errors )
+  void DX12AppHelloBundle::CreateSampler( Errors& )
   {
     const D3D12_SAMPLER_DESC Desc
     {
-      .Filter = D3D12_FILTER_MIN_MAG_MIP_POINT,
-      .AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-      .ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER,
-      .MinLOD = 0,
-      .MaxLOD = D3D12_FLOAT32_MAX,
+      .Filter         { D3D12_FILTER_MIN_MAG_MIP_POINT },
+      .AddressU       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressV       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .AddressW       { D3D12_TEXTURE_ADDRESS_MODE_WRAP },
+      .ComparisonFunc { D3D12_COMPARISON_FUNC_NEVER },
+      .MinLOD         { 0 },
+      .MaxLOD         { D3D12_FLOAT32_MAX },
     };
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor = GetSamplerCpuDescHandle( 0 );
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ GetSamplerCpuDescHandle( 0 ) };
     m_device->CreateSampler( &Desc, DestDescriptor );
   }
 
@@ -308,7 +315,7 @@ namespace Tac
 
     m_textureDesc = resourceDesc;
 
-    const D3D12_HEAP_PROPERTIES defaultHeapProps { .Type = D3D12_HEAP_TYPE_DEFAULT, };
+    const D3D12_HEAP_PROPERTIES defaultHeapProps{ .Type { D3D12_HEAP_TYPE_DEFAULT }, };
 
     TAC_CALL( m_device->CreateCommittedResource(
       &defaultHeapProps,
@@ -325,7 +332,7 @@ namespace Tac
     m_device->GetCopyableFootprints(
       &resourceDesc, 0, 1, 0, nullptr, nullptr, nullptr, &totalBytes );
 
-    const D3D12_HEAP_PROPERTIES uploadHeapProps { .Type = D3D12_HEAP_TYPE_UPLOAD, };
+    const D3D12_HEAP_PROPERTIES uploadHeapProps{ .Type { D3D12_HEAP_TYPE_UPLOAD }, };
 
     const D3D12_RESOURCE_DESC uploadBufferResourceDesc
     {
@@ -352,11 +359,11 @@ namespace Tac
     // from the upload heap to the Texture2D.
     const Vector<UINT8> texture = Checkerboard::GenerateCheckerboardTextureData();
 
-    const D3D12_SUBRESOURCE_DATA textureData =
+    const D3D12_SUBRESOURCE_DATA textureData
     {
-      .pData = texture.data(),
-      .RowPitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth,
-      .SlicePitch = Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight,
+      .pData      { texture.data() },
+      .RowPitch   { Checkerboard::TexturePixelSize * Checkerboard::TextureWidth },
+      .SlicePitch { Checkerboard::TexturePixelSize * Checkerboard::TextureWidth * Checkerboard::TextureHeight },
     };
 
     // --- update subresource begin ---
@@ -390,8 +397,8 @@ namespace Tac
 
       const D3D12_MEMCPY_DEST DestData 
       {
-        .pData { (char*)mappedData + layout.Offset },
-        .RowPitch { layout.Footprint.RowPitch },
+        .pData      { (char*)mappedData + layout.Offset },
+        .RowPitch   { layout.Footprint.RowPitch },
         .SlicePitch { SIZE_T( layout.Footprint.RowPitch ) * SIZE_T( rowCount ) },
       };
 
@@ -1292,11 +1299,11 @@ namespace Tac
     TAC_CALL( CreateSampler( errors ) );
   }
 
-  void DX12AppHelloBundle::Update( Errors& errors )
+  void DX12AppHelloBundle::Update( Errors& )
   {
   }
 
-  void DX12AppHelloBundle::Render( RenderParams renderParams, Errors& errors )
+  void DX12AppHelloBundle::Render( RenderParams , Errors& errors )
   {
     if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;

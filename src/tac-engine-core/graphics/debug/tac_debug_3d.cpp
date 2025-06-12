@@ -268,22 +268,22 @@ namespace Tac
                                          const v3& color0,
                                          const v3& color1 )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    const DefaultVertexColor v0
+    if constexpr( kIsDebugMode )
     {
-       .mPosition { p0 },
-       .mColor    { v4( color0, 1.0f ) } ,
-    };
-    const DefaultVertexColor v1
-    {
-       .mPosition { p1 },
-       .mColor    { v4( color1, 1.0f ) },
-    };
+      const DefaultVertexColor v0
+      {
+         .mPosition { p0 },
+         .mColor    { v4( color0, 1.0f ) } ,
+      };
+      const DefaultVertexColor v1
+      {
+         .mPosition { p1 },
+         .mColor    { v4( color1, 1.0f ) },
+      };
 
-    mDebugDrawVerts.push_back( v0 );
-    mDebugDrawVerts.push_back( v1 );
+      mDebugDrawVerts.push_back( v0 );
+      mDebugDrawVerts.push_back( v1 );
+    }
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -298,22 +298,22 @@ namespace Tac
                                          const v4& color0,
                                          const v4& color1 )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    const DefaultVertexColor v0
+    if constexpr( kIsDebugMode )
     {
-       .mPosition { p0 },
-       .mColor    { color0 },
-    };
-    const DefaultVertexColor v1
-    {
-       .mPosition { p1 },
-       .mColor    { color1},
-    };
+      const DefaultVertexColor v0
+      {
+         .mPosition { p0 },
+         .mColor    { color0 },
+      };
+      const DefaultVertexColor v1
+      {
+         .mPosition { p1 },
+         .mColor    { color1},
+      };
 
-    mDebugDrawVerts.push_back( v0 );
-    mDebugDrawVerts.push_back( v1 );
+      mDebugDrawVerts.push_back( v0 );
+      mDebugDrawVerts.push_back( v1 );
+    }
   }
 
   void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
@@ -683,7 +683,7 @@ namespace Tac
     if( !mVtxCount )
       return;
 
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     const m4 view{ camera->View() };
     const m4 proj{ Debug3DGetProj( camera, viewSize ) };

@@ -70,6 +70,7 @@ namespace Tac::Render
 
   void             RenderApi::Init( InitParams params, Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
     sShaderOutputPath = params.mShaderOutputPath;
   }

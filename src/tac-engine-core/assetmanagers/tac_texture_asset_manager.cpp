@@ -409,8 +409,8 @@ namespace Tac
   void                  TextureLoadJob::GenerateMip( int currMip )
   {
     const int prevMip{ currMip - 1 };
-    const int prevW{ mImage.mWidth >> prevMip };
-    const int prevH{ mImage.mHeight >> prevMip };
+    //const int prevW{ mImage.mWidth >> prevMip };
+    //const int prevH{ mImage.mHeight >> prevMip };
     const AsyncSubresourceData& prevData{ mSubresources[ prevMip ] };
 
     const int currW{ mImage.mWidth >> currMip };

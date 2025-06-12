@@ -34,6 +34,10 @@ namespace Tac::Render
                                   LPCSTR pDescription,
                                   void* pContext )
   {
+    TAC_UNUSED_PARAMETER( Category );
+    TAC_UNUSED_PARAMETER( Severity );
+    TAC_UNUSED_PARAMETER( ID );
+    TAC_UNUSED_PARAMETER( pContext );
     if( pDescription )
       OS::OSDebugPrintLine(
         String()
@@ -48,35 +52,36 @@ namespace Tac::Render
                             ID3D12Device* device,
                             Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
-
-    TAC_ASSERT( debugLayer.IsEnabled() );
-
-    device->QueryInterface( mInfoQueue.iid(), mInfoQueue.ppv() );
-    TAC_ASSERT( mInfoQueue );
-
-    // Make the application debug break when bad things happen
-    TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
-    TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR,      TRUE ) );
-    TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING,    TRUE ) );
-
-    // First available in Windows 10 Release Preview build 20236,
-    // But as of 2023-12-11 not available on my machine :(
-    if( PCom< ID3D12InfoQueue1 > infoQueue1{ mInfoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
+    if constexpr( kIsDebugMode )
     {
-      const D3D12MessageFunc             CallbackFunc        { MyD3D12MessageFunc };
-      const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags { D3D12_MESSAGE_CALLBACK_FLAG_NONE };
-      void*                              pContext            { this };
-      DWORD                              pCallbackCookie     {};
-      TAC_DX12_CALL( infoQueue1->RegisterMessageCallback( CallbackFunc,
-                                                          CallbackFilterFlags,
-                                                          pContext,
-                                                          &pCallbackCookie ) );
-    }
-    else if( kIsDebugMode )
-    {
-      OS::OSDebugPrintLine( "ID3D12InfoQueue1 unavailable, sorry! (it is Windows 11 only)" );
+
+      TAC_ASSERT( debugLayer.IsEnabled() );
+
+      device->QueryInterface( mInfoQueue.iid(), mInfoQueue.ppv() );
+      TAC_ASSERT( mInfoQueue );
+
+      // Make the application debug break when bad things happen
+      TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
+      TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
+      TAC_DX12_CALL( mInfoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
+
+      // First available in Windows 10 Release Preview build 20236,
+      // But as of 2023-12-11 not available on my machine :(
+      if( PCom< ID3D12InfoQueue1 > infoQueue1{ mInfoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
+      {
+        const D3D12MessageFunc             CallbackFunc{ MyD3D12MessageFunc };
+        const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags{ D3D12_MESSAGE_CALLBACK_FLAG_NONE };
+        void* pContext{ this };
+        DWORD                              pCallbackCookie{};
+        TAC_DX12_CALL( infoQueue1->RegisterMessageCallback( CallbackFunc,
+                                                            CallbackFilterFlags,
+                                                            pContext,
+                                                            &pCallbackCookie ) );
+      }
+      else if( kIsDebugMode )
+      {
+        OS::OSDebugPrintLine( "ID3D12InfoQueue1 unavailable, sorry! (it is Windows 11 only)" );
+      }
     }
   }
 } // namespace Tac::Render

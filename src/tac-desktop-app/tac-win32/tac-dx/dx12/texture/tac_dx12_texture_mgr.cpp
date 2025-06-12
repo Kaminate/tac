@@ -428,6 +428,7 @@ namespace Tac::Render
                                                          PCom<ID3D12Resource> resource,
                                                          Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     ID3D12Device* device{ renderer.mDevice };
     DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };

@@ -11,7 +11,7 @@ namespace Tac::Render
       return {};
 
     const StringView autoSemantic { "TAC_AUTO_SEMANTIC" };
-    const int iAutoSemantic { line.find( autoSemantic ) };
+    //const int iAutoSemantic { line.find( autoSemantic ) };
 
     int i { line.find( ":" ) };
     TAC_ASSERT( i != String::npos );

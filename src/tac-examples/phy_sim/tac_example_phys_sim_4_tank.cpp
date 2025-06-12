@@ -15,7 +15,7 @@ namespace Tac
 
   }
 
-  void ExamplePhysSim4Tank::Update( Errors& errors )
+  void ExamplePhysSim4Tank::Update( Errors& )
   {
   
   }

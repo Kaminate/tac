@@ -41,8 +41,9 @@ namespace Tac
 {
   static bool                          drawGrid                  {};
   static float                         sWASDCameraPanSpeed       { 10 };
-  static float                         sWASDCameraOrbitSpeed     { 0.1f };
-  static bool                          sWASDCameraOrbitSnap      {};
+  static float                         sWASDCameraOrbitSpeed     { 5 };
+  static bool                          sWASDCameraOrbitSnap      { false };
+  static float                         sWASDCameraNoSnapScale    { .01f };
   static StringView                    sImguiWindowName          { "Level Editor Game Window" };
   static Soul*                         mSoul                     {};
   static Debug3DDrawBuffers            mWorldBuffers             {};
@@ -53,6 +54,7 @@ namespace Tac
   static CreationMousePicking*         mMousePicking             {};
 
   // TODO: find a home for this fn, maybe in tacexamples idk
+#if 0
   static void SampleCosineWeightedHemisphereTest( Debug3DDrawData* drawData )
   {
     if( !ImGuiCollapsingHeader( "Sample Cosine Weighted Hemisphere Test", ImGuiNodeFlags_DefaultOpen ) )
@@ -82,6 +84,7 @@ namespace Tac
     for( v3 point : points )
       drawData->DebugDraw3DSphere( point * radius, 0.05f );
   }
+#endif
 
   bool CreationGameWindow::sShowWindow{};
 
@@ -191,12 +194,31 @@ namespace Tac
         phiOffset += keyDir.mPhiOffset;
       }
     }
-    if( !thetaOffset && !phiOffset )
+
+    static float sThetaVel{};
+    static float sPhiVel{};
+    if( !thetaOffset && !phiOffset && !sThetaVel && !sPhiVel)
       return;
 
     auto camOrbitSpherical{ SphericalCoordinate::FromCartesian( camera->mPos - orbitCenter ) };
-    camOrbitSpherical.mTheta += thetaOffset * sWASDCameraOrbitSpeed;
-    camOrbitSpherical.mPhi += phiOffset * sWASDCameraOrbitSpeed;
+    //if( thetaOffset && !phiOffset )
+    //  sPhiVel = 0;
+    //if( phiOffset && !thetaOffset )
+    //  sThetaVel = 0;
+    if( thetaOffset )
+      sThetaVel = thetaOffset * sWASDCameraOrbitSpeed;
+    if( phiOffset )
+      sPhiVel = phiOffset * sWASDCameraOrbitSpeed;
+
+    // damping
+    sThetaVel *= .5f;
+    sPhiVel *= .5f;
+
+    
+    const SphericalCoordinate prevSpherical = camOrbitSpherical;
+    
+    camOrbitSpherical.mTheta += sThetaVel * TAC_DELTA_FRAME_SECONDS;
+    camOrbitSpherical.mPhi += sPhiVel * TAC_DELTA_FRAME_SECONDS;
     camOrbitSpherical.mTheta = Clamp( camOrbitSpherical.mTheta, vertLimit, 3.14f - vertLimit );
 
     camera->mPos = orbitCenter + camOrbitSpherical.ToCartesian();
@@ -207,12 +229,12 @@ namespace Tac
     }
     else
     {
-      const v3 dirCart { camera->mForwards };
-      SphericalCoordinate dirSphe { SphericalCoordinate::FromCartesian( dirCart ) };
-      dirSphe.mPhi += phiOffset * sWASDCameraOrbitSpeed;
-      dirSphe.mTheta += -thetaOffset * sWASDCameraOrbitSpeed;
+      const v3 dirCart{ camera->mForwards };
+      SphericalCoordinate dirSphe{ SphericalCoordinate::FromCartesian( dirCart ) };
+      dirSphe.mPhi += sPhiVel * sWASDCameraOrbitSpeed * sWASDCameraNoSnapScale;
+      dirSphe.mTheta += -sThetaVel * sWASDCameraOrbitSpeed * sWASDCameraNoSnapScale;
       dirSphe.mTheta = Clamp( dirSphe.mTheta, vertLimit, 3.14f - vertLimit );
-      const v3 newForwards { dirSphe.ToCartesian() };
+      const v3 newForwards{ dirSphe.ToCartesian() };
       camera->SetForwards( newForwards );
     }
   }
@@ -303,7 +325,7 @@ namespace Tac
       camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
   }
 
-  static void ImGuiOverlay( World* world, Camera* camera, Errors& errors )
+  static void ImGuiOverlay( World* , Camera* camera, Errors& errors )
   {
     static bool mHideUI {};
     if( mHideUI )
@@ -550,6 +572,7 @@ namespace Tac
     m3DVertexFormatDecls.push_back( norDecl );
   }
 
+#if 0
   static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
   {
     const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
@@ -567,6 +590,7 @@ namespace Tac
     const m4 proj{ m4::ProjPerspective( projParams ) };
     return proj;
   }
+#endif
 
 
 

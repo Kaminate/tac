@@ -134,7 +134,7 @@ namespace Tac
     mPipelineInputLayout = renderDevice->CreatePipeline( paramsInputLayout, errors );
   }
 
-  void HelloTriangle::Render( RenderParams sysRenderParams, Errors& errors )
+  void HelloTriangle::Render( RenderParams , Errors& errors )
   {
     // Test bindless vs not bindless by flipping it every frame
     mBindless = !mBindless;

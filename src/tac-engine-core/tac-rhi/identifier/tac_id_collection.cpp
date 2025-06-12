@@ -85,11 +85,13 @@ namespace Tac
     TAC_ASSERT( id0 == 0 );
 
     const int id1 = ids.Alloc();
-    TAC_ASSERT( id0 == 1 );
+    TAC_ASSERT( id1 == 1 );
 
     const int id2 = ids.Alloc();
-    TAC_ASSERT( id0 == 2 );
+    TAC_ASSERT( id2 == 2 );
 
     ids.Free( id0 );
+    ids.Free( id2 );
+    ids.Free( id1 );
   }
-}
+} // namespace Tac

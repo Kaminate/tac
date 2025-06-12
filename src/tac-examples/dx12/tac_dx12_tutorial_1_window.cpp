@@ -28,39 +28,41 @@ namespace Tac
 
   void DX12AppHelloWindow::EnableDebug( Errors& errors )
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    PCom<ID3D12Debug> dx12debug;
-    TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
+      PCom<ID3D12Debug> dx12debug;
+      TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
 
-    auto dx12debug5 { dx12debug.QueryInterface< ID3D12Debug5 >() };
-    auto dx12debug4 { dx12debug.QueryInterface< ID3D12Debug4 >() };
-    auto dx12debug3 { dx12debug.QueryInterface< ID3D12Debug3 >() };
-    auto dx12debug2 { dx12debug.QueryInterface< ID3D12Debug2 >() };
-    auto dx12debug1 { dx12debug.QueryInterface< ID3D12Debug1 >() };
+      auto dx12debug5{ dx12debug.QueryInterface< ID3D12Debug5 >() };
+      auto dx12debug4{ dx12debug.QueryInterface< ID3D12Debug4 >() };
+      auto dx12debug3{ dx12debug.QueryInterface< ID3D12Debug3 >() };
+      auto dx12debug2{ dx12debug.QueryInterface< ID3D12Debug2 >() };
+      auto dx12debug1{ dx12debug.QueryInterface< ID3D12Debug1 >() };
 
-    // EnableDebugLayer must be called before the device is created
-    TAC_ASSERT( ! m_device );
-    dx12debug->EnableDebugLayer();
-    m_dbgLayerEnabled = true;
+      // EnableDebugLayer must be called before the device is created
+      TAC_ASSERT( !m_device );
+      dx12debug->EnableDebugLayer();
+      m_dbgLayerEnabled = true;
+    }
   }
 
   void DX12AppHelloWindow::CreateInfoQueue( Errors& )
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
 
-    TAC_ASSERT( m_dbgLayerEnabled );
+      TAC_ASSERT( m_dbgLayerEnabled );
 
-    m_infoQueue = m_device.QueryInterface<ID3D12InfoQueue>( );
+      m_infoQueue = m_device.QueryInterface<ID3D12InfoQueue>();
 
-    TAC_ASSERT(m_infoQueue);
+      TAC_ASSERT( m_infoQueue );
 
-    // Make the application debug break when bad things happen
-    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
-    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE );
-    m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE );
+      // Make the application debug break when bad things happen
+      m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE );
+      m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE );
+      m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE );
+    }
   }
 
   void DX12AppHelloWindow::CreateDevice( Errors& errors )
@@ -92,7 +94,7 @@ namespace Tac
       // [ ] Q: differnece between createcommandQueue and createCOmmandList?
       //        why does createCommandQUeue have a D3D12_COMMAND_LIST_TYPE_...?
       // [ ] A: 
-      .Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
+      .Type { D3D12_COMMAND_LIST_TYPE_DIRECT },
     };
 
 
@@ -445,11 +447,11 @@ namespace Tac
     TAC_CALL( CreateFence( errors ) );
   }
 
-  void DX12AppHelloWindow::Update( Errors& errors )
+  void DX12AppHelloWindow::Update( Errors& )
   {
   }
 
-  void DX12AppHelloWindow::Render( RenderParams renderParams, Errors& errors )
+  void DX12AppHelloWindow::Render( RenderParams , Errors& errors )
   {
 
     if( !AppWindowApi::IsShown( hDesktopWindow ) )

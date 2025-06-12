@@ -15,6 +15,7 @@ namespace Tac
 {
   void ExampleMeta::Update(  Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( errors );
     mShouldRunTests |=  ImGuiButton( "Run Unit Tests" );
     if( mShouldRunTests )
     {

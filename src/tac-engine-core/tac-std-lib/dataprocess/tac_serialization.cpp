@@ -166,6 +166,9 @@ namespace Tac
 
   void        ReadStream::ReadBytes( void* dst, int n, Errors& errors )
   {
+    TAC_UNUSED_PARAMETER( dst );
+    TAC_UNUSED_PARAMETER( n );
+    TAC_UNUSED_PARAMETER( errors );
     TAC_ASSERT_UNIMPLEMENTED;
   }
 

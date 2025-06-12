@@ -116,7 +116,7 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  void DX12AppHelloConstBuf::CreateVertexBufferSRV( Errors& errors )
+  void DX12AppHelloConstBuf::CreateVertexBufferSRV( Errors& )
   {
     TAC_ASSERT( m_vertexBuffer );
 
@@ -138,15 +138,15 @@ namespace Tac
       .Buffer                  { Buffer },
     };
 
-    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor =
-      GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer );
+    const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{
+      GetSRVCpuDescHandle( SRVIndexes::TriangleVertexBuffer ) };
     
     m_device->CreateShaderResourceView( ( ID3D12Resource* )m_vertexBuffer,
                                         &Desc,
                                         DestDescriptor );
   }
 
-  void DX12AppHelloConstBuf::CreateSampler( Errors& errors )
+  void DX12AppHelloConstBuf::CreateSampler( Errors& )
   {
     const D3D12_SAMPLER_DESC Desc
     {
@@ -1235,11 +1235,11 @@ namespace Tac
     mUploadAllocator.Init( &mUploadPageManager );
   }
 
-  void DX12AppHelloConstBuf::Update( Errors& errors )
+  void DX12AppHelloConstBuf::Update( Errors& )
   {
   }
 
-  void DX12AppHelloConstBuf::Render( RenderParams renderParams, Errors&  errors )
+  void DX12AppHelloConstBuf::Render( RenderParams , Errors&  errors )
   {
 
     if( !AppWindowApi::IsShown( hDesktopWindow ) )

@@ -16,7 +16,7 @@ namespace Tac
   }
 
 
-  void ExampleText::Update( Errors& errors )
+  void ExampleText::Update( Errors& )
   {
     float fontSize { 10.0f };
     for( int i{}; i < 6; ++i, fontSize *= 2 )

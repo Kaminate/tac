@@ -144,7 +144,7 @@ Tac::String Tac::ToString( const double val )
 {
   const bool isNegative{ val < 0 };
   const double absVal{ Abs( val ) };
-  const double epsilon{ 0.0001 };
+  //const double epsilon{ 0.0001 };
   const double fractionalVal{ absVal - ( u64 )absVal };
   const int places{ 1000 };
 

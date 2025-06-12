@@ -4,7 +4,7 @@ namespace Tac
 {
 
   
-  void CreationSimState::Init( Errors& errors )
+  void CreationSimState::Init( Errors& )
   {
     mWorld = TAC_NEW World;
     mEditorCamera = TAC_NEW Camera

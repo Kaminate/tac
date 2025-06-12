@@ -149,18 +149,6 @@ namespace Tac
 
   }
 
-#if !TAC_DELETE_ME()
-  static void PrettifyFloat( float& f )
-  {
-    if( Abs( f ) < 0.001f )
-      f = 0;
-  }
-  static void Prettifyv4( v4& v )
-  {
-    for( float& f : v )
-      PrettifyFloat( f );
-  }
-#endif
 
   void InfiniteGrid::Render( Render::IContext* renderContext,
                              const Camera* camera,

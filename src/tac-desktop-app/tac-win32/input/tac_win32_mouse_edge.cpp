@@ -73,6 +73,7 @@ namespace Tac
   static HWND         sMouseHoveredHwnd;
   static WindowHandle sMouseHoveredDesktopWindow;
 
+#if 0
   static HCURSOR GetCursor( CursorDir cursorDir )
   {
     // switch by the integral type cuz of the bit-twiddling
@@ -114,6 +115,7 @@ namespace Tac
     mCursorLock = cursorDir;
   }
 
+#endif
   static HWND GetMouseHoveredHWND()
   {
     POINT cursorPos;

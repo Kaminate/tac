@@ -39,29 +39,6 @@ namespace Tac
 #endif
   } gUI2DCommonData;
 
-  static m4 OrthographicUIMatrix2( const float w, const float h )
-  {
-    // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
-    const float sx { 2.0f / w };
-    const float sy { 2.0f / h };
-    const m4 projectionPieces[]
-    {
-      // orient to bottom left
-      m4( 1, 0, 0, 0,
-          0, -1, 0, ( float )h,
-          0, 0, 1, 0,
-          0, 0, 0, 1 ),
-      // convert to ndc
-      m4( sx, 0, 0, -1,
-          0, sy, 0, -1,
-          0, 0, 1, 0,
-          0, 0, 0, 1 )
-    };
-    m4 projection { m4::Identity() };
-    for( const m4& projectionPiece : projectionPieces )
-      projection = projectionPiece * projection;
-    return projection;
-  }
 
   // Converts from UI space to NDC space
   m4 OrthographicUIMatrix( const float w, const float h )
@@ -91,6 +68,31 @@ namespace Tac
       0, 0, 1, 0,
       0, 0, 0, 1
     };
+  }
+
+#if TAC_IS_DEBUG_MODE()
+
+  static m4 OrthographicUIMatrix2( const float w, const float h ) {
+    // mRenderView->mViewportRect.mViewportPixelWidthIncreasingRight?
+    const float sx { 2.0f / w };
+    const float sy { 2.0f / h };
+    const m4 projectionPieces[]
+    {
+      // orient to bottom left
+      m4( 1, 0, 0, 0,
+          0, -1, 0, ( float )h,
+          0, 0, 1, 0,
+          0, 0, 0, 1 ),
+      // convert to ndc
+      m4( sx, 0, 0, -1,
+          0, sy, 0, -1,
+          0, 0, 1, 0,
+          0, 0, 0, 1 )
+    };
+    m4 projection { m4::Identity() };
+    for( const m4& projectionPiece : projectionPieces )
+      projection = projectionPiece * projection;
+    return projection;
   }
 
   static void OrthographicUIMatrixUnitTest( const m4 m, const v2 in, const v2 out )
@@ -137,6 +139,7 @@ namespace Tac
       AssertAboutEqual( test2prime, test2primeexpected );
     }
   }
+#endif
 
 #if 0
   static void UpdateDrawInterface( UI2DDrawData* drawData,
@@ -312,6 +315,8 @@ namespace Tac
     };
     mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
     Render::SetRenderObjectDebugName( mSamplerState  , "2d-samp" );
+#else
+    TAC_UNUSED_PARAMETER( errors );
 #endif
   }
 
@@ -430,9 +435,9 @@ namespace Tac
 
   void UI2DDrawData::DrawToTexture2( Render::IContext*,
                                      Render::TextureHandle,
-                                     UI2DDrawGpuInterface* gpuBuffers,
-                                     Span< UI2DDrawData > drawDatas,
-                                     Errors& errors )
+                                     UI2DDrawGpuInterface* ,
+                                     Span< UI2DDrawData > ,
+                                     Errors& )
   {
       //UpdateDrawInterface( this, &gDrawInterface, errors );
   }
@@ -603,8 +608,8 @@ namespace Tac
 
     // do i really need to floor everything? does alignment on pixel grid matter?
     const float ascentPx{ ( float )( int )( fontFile->mUnscaledAscent * fontSizeScale ) };
-    const float descentPx{ ( float )( int )( fontFile->mUnscaledDescent * fontSizeScale ) };
-    const float linegapPx{ ( float )( int )( fontFile->mUnscaledLinegap * fontSizeScale ) };
+    //const float descentPx{ ( float )( int )( fontFile->mUnscaledDescent * fontSizeScale ) };
+    //const float linegapPx{ ( float )( int )( fontFile->mUnscaledLinegap * fontSizeScale ) };
     const float unscaledLineSpacing
     {
       fontFile->mUnscaledAscent -

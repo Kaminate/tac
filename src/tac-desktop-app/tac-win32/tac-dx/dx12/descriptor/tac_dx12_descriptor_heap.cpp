@@ -118,6 +118,9 @@ namespace Tac::Render
 
   DX12Descriptor              DX12DescriptorHeap::Allocate( int n )
   {
+    // v just added, otherwise get warning about uninitialized parameter n
+    TAC_ASSERT( n == 1 );
+
     const int index{ AllocateIndex() };
     return DX12Descriptor
     {
@@ -190,8 +193,8 @@ namespace Tac::Render
 
   void DX12DescriptorHeapMgr::InitCPUHeaps( Errors& errors )
   {
-    DX12Renderer& renderer{ DX12Renderer::sRenderer };
-    ID3D12Device* device{ renderer.mDevice };
+    //DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    //ID3D12Device* device{ renderer.mDevice };
 
     TAC_CALL( InitCPUHeap( D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
                            kMaxCPUDescriptorsRTV,
@@ -217,8 +220,8 @@ namespace Tac::Render
 
   void DX12DescriptorHeapMgr::InitGPUHeaps( Errors& errors )
   {
-    DX12Renderer& renderer{ DX12Renderer::sRenderer };
-    ID3D12Device* device{ renderer.mDevice };
+    //DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    //ID3D12Device* device{ renderer.mDevice };
     TAC_CALL( InitGPUHeap( D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
                            kMaxGPUDescriptorsCBV_SRV_UAV,
                            "gpu_resources",

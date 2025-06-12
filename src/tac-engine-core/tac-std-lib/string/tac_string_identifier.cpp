@@ -15,14 +15,14 @@ namespace Tac
 
   static void DebugSetStringLookup( StringID stringID, const StringView& stringView )
   {
-    if constexpr( !kIsDebugMode )
-      return;
+    if constexpr( kIsDebugMode )
+    {
+      String& lookupEntry = gStringLookup[ stringID % kMaxStringDictionaryEntries ];
+      if( !lookupEntry.empty() )
+        return;
 
-    String& lookupEntry = gStringLookup[ stringID % kMaxStringDictionaryEntries ];
-    if( !lookupEntry.empty() )
-      return;
-
-    lookupEntry = stringView;
+      lookupEntry = stringView;
+    }
   }
 
   // -----------------------------------------------------------------------------------------------

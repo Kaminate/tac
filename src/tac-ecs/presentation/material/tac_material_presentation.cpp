@@ -277,16 +277,22 @@ namespace Tac
       const int nSubMeshes{ mesh->mSubMeshes.size() };
       for( int iSubMesh{}; iSubMesh < nSubMeshes; ++iSubMesh )
       {
-        const ShortFixedString subMeshEventName{ [&](){
-          if( !kIsDebugMode || nSubMeshes == 1 )
-            return ShortFixedString{};
-          return ShortFixedString::Concat( model->mEntity->mName,
-                                           "(submesh ",
-                                           ToString( iSubMesh ),
-                                           " of ",
-                                           ToString( nSubMeshes ),
-                                           ")" );
-          }() };
+        const ShortFixedString subMeshEventName
+        {
+          [&]()
+          {
+
+            //if( !kIsDebugMode || nSubMeshes == 1 )
+            //  return ShortFixedString{};
+
+            return ShortFixedString::Concat( model->mEntity->mName,
+                                             "(submesh ",
+                                             ToString( iSubMesh ),
+                                             " of ",
+                                             ToString( nSubMeshes ),
+                                             ")" );
+          }()
+        };
 
         if( !subMeshEventName.empty() )
           renderContext->DebugEventBegin( subMeshEventName );
