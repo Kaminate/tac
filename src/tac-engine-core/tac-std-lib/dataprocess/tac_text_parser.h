@@ -20,31 +20,31 @@ namespace Tac
     ParseData( const char*, const char* );
 
     // Eat functions
-    const char*       EatByte();
-    const char*       EatBytes( int );
+    auto EatByte() -> const char*;
+    auto EatBytes( int ) -> const char*;
 
     // returns a string up until the next newline, then eats the newline
-    StringView        EatRestOfLine();
-    bool              EatNewLine();
-    bool              EatWhitespace();
-    bool              EatUntilCharIsNext( char );
-    bool              EatUntilCharIsPrev( char );
+    auto EatRestOfLine() -> StringView;
+    bool EatNewLine();
+    bool EatWhitespace();
+    bool EatUntilCharIsNext( char );
+    bool EatUntilCharIsPrev( char );
 
     // Does not eat prepended whitespace
-    bool              EatStringExpected( const StringView& );
-    float             EatFloat( Errors& );
-    Optional< float > EatFloat();
-    StringView        EatWord();
+    bool EatStringExpected( const StringView& );
+    auto EatFloat( Errors& ) -> float;
+    auto EatFloat() -> Optional< float >;
+    auto EatWord() -> StringView;
 
     // Peek functions return 0/false/nullptr if there is no space remaining
-    const char*       PeekByte() const;
-    const char*       PeekBytes( int ) const;
-    char              PeekByteUnchecked() const;
-    int               PeekWhitespace() const;
-    int               PeekNewline() const;
-    bool              PeekStringExpected( const StringView& ) const;
-    const char*       GetPos() const;
-    int               GetRemainingByteCount() const;
+    auto PeekByte() const -> const char*;
+    auto PeekBytes( int ) const -> const char*;
+    auto PeekByteUnchecked() const -> char;
+    auto PeekWhitespace() const -> int;
+    auto PeekNewline() const -> int;
+    auto PeekStringExpected( const StringView& ) const -> bool;
+    auto GetPos() const -> const char*;
+    auto GetRemainingByteCount() const -> int;
 
     operator bool() const;
 

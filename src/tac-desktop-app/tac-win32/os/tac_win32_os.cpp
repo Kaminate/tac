@@ -50,20 +50,20 @@ namespace Tac
     HANDLE mNativeHandle;
   };
 
-  static Monitor Win32OSGetPrimaryMonitor()
+  static auto Win32OSGetPrimaryMonitor() -> Monitor
   {
     const int w { GetSystemMetrics( SM_CXSCREEN ) };
     const int h { GetSystemMetrics( SM_CYSCREEN ) };
     return Monitor{ .mSize { w, h } };
   }
 
-  static FileSys::Path Win32OSOpenDialog( Errors& errors )
+  static auto Win32OSOpenDialog( Errors& errors ) -> FileSys::Path
   {
     FileDialogHelper helper( FileDialogHelper::kOpen );
     return helper.Run( errors );
   }
 
-  static FileSys::Path Win32OSSaveDialog( const OS::SaveParams&, Errors& errors )
+  static auto Win32OSSaveDialog( const OS::SaveParams&, Errors& errors ) -> FileSys::Path
   {
     FileDialogHelper helper( FileDialogHelper::kSave );
     return helper.Run( errors );
@@ -74,13 +74,13 @@ namespace Tac
     TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString() );
   }
 
-  static void* Win32OSGetLoadedDLL( const StringView& name )
+  static auto Win32OSGetLoadedDLL( const StringView& name ) -> void*
   {
     HMODULE moduleHandle { GetModuleHandleA( name.c_str() ) };
     return moduleHandle;
   }
 
-  static void* Win32OSLoadDLL( const StringView& path )
+  static auto Win32OSLoadDLL( const StringView& path ) -> void*
   {
     HMODULE lib { LoadLibraryA( path.c_str() ) };
     return lib;
@@ -128,7 +128,6 @@ namespace Tac
   }
 #endif
 
-
   static void Win32OSDebugPopupBox( const StringView& s )
   {
     if constexpr( kIsDebugMode )
@@ -137,7 +136,7 @@ namespace Tac
     }
   }
 
-  static FileSys::Path GetRoamingAppDataPathUTF8( Errors& errors )
+  static auto GetRoamingAppDataPathUTF8( Errors& errors ) -> FileSys::Path
   {
     PWSTR outPath {};
     const HRESULT hr {
@@ -147,38 +146,38 @@ namespace Tac
     return std::filesystem::path( outPath ).u8string().c_str();
   }
 
-  static FileSys::Path Win32OSGetApplicationDataPath( Errors& errors )
+  static auto Win32OSGetApplicationDataPath( Errors& errors ) -> FileSys::Path
   {
     TAC_CALL_RET( FileSys::Path path{ GetRoamingAppDataPathUTF8( errors ) } );
     TAC_ASSERT( FileSys::Exists( path ) );
 
-    path /= sShellStudioName;
+    path /= Shell::sShellStudioName;
     FileSys::CreateDirectory2( path );
     TAC_ASSERT( FileSys::Exists( path ) );
 
-    
-    path /= sShellAppName;
+    path /= Shell::sShellAppName;
     FileSys::CreateDirectory2( path );
     TAC_ASSERT( FileSys::Exists( path ) );
 
     return path;
   }
 
-  static OS::ISemaphore* Win32OSSemaphoreCreate() { return TAC_NEW Win32Semaphore; }
+  static auto Win32OSSemaphoreCreate() -> OS::ISemaphore* { return TAC_NEW Win32Semaphore; }
 
-  void             Win32OSInit()
-  {
-    OS::OSSemaphoreCreate = Win32OSSemaphoreCreate;
-    OS::OSDebugBreak = Win32DebugBreak;
-    OS::OSDebugPopupBox = Win32OSDebugPopupBox;
-    OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;
-    OS::OSSaveDialog = Win32OSSaveDialog;
-    OS::OSOpenDialog = Win32OSOpenDialog;
-    OS::OSGetPrimaryMonitor = Win32OSGetPrimaryMonitor;
-    OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
-    OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;
-    OS::OSLoadDLL = Win32OSLoadDLL;
-    OS::OSOpenPath = Win32OSOpenPath;
-  }
+} // namespace Tac
+
+void Tac::Win32OSInit()
+{
+  OS::OSSemaphoreCreate = Win32OSSemaphoreCreate;
+  OS::OSDebugBreak = Win32DebugBreak;
+  OS::OSDebugPopupBox = Win32OSDebugPopupBox;
+  OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;
+  OS::OSSaveDialog = Win32OSSaveDialog;
+  OS::OSOpenDialog = Win32OSOpenDialog;
+  OS::OSGetPrimaryMonitor = Win32OSGetPrimaryMonitor;
+  OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
+  OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;
+  OS::OSLoadDLL = Win32OSLoadDLL;
+  OS::OSOpenPath = Win32OSOpenPath;
 }
 

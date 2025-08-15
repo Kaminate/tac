@@ -27,7 +27,7 @@ namespace Tac
   //  return sJobQueueThreads.size();
   //}
 
-  static Job* GetJob()
+  static auto GetJob() -> Job*
   {
     TAC_SCOPE_GUARD( std::lock_guard, sJobQueueMutex );
     return sJobQueueUnstarted.empty() ? nullptr : sJobQueueUnstarted.Pop();
@@ -82,16 +82,16 @@ namespace Tac
     mAbortRequested = false;
   }
 
-  JobState Job::GetStatus() const
+  auto Job::GetStatus() const -> JobState
   {
     //mStatusMutex.lock();
     const JobState JobState{ mAsyncLoadStatus };
     //mStatusMutex.unlock();
     return JobState;
   }
-}
+} // namespace Tac
 
-void Tac::JobQueuePush( Job* job )
+void Tac::Job::JobQueuePush( Job* job )
 {
   job->SetState( JobState::ThreadQueued );
   job->mErrors.clear();
@@ -100,7 +100,7 @@ void Tac::JobQueuePush( Job* job )
   sJobQueueMutex.unlock();
 }
 
-void Tac::JobQueueInit()
+void Tac::Job::JobQueueInit()
 {
   const int threadCount{ Max( ( int )std::thread::hardware_concurrency(), kMinThreadCount ) };
   sJobQueueThreads.resize( threadCount );

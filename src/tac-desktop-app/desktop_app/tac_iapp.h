@@ -52,20 +52,20 @@ namespace Tac
     App( const Config& config ) : mConfig( config ) {}
     virtual ~App() = default;
 
-    virtual void    Init( Errors& ){};
-    virtual void    Update( Errors& ){};
-    virtual void    Render( RenderParams, Errors& ){};
-    virtual void    Present( Errors& ){};
-    virtual void    Uninit( Errors& ){};
+    virtual void Init( Errors& ){};
+    virtual void Update( Errors& ){};
+    virtual void Render( RenderParams, Errors& ){};
+    virtual void Present( Errors& ){};
+    virtual void Uninit( Errors& ){};
 
-    virtual State   GameState_Create()          { return {}; }
-    virtual void    GameState_Update( IState* ) {}
+    virtual auto GameState_Create() -> State { return {}; }
+    virtual void GameState_Update( IState* ) {}
 
-    bool            IsRenderEnabled() const;
-    StringView      GetAppName() const;
-    StringView      GetStudioName() const;
+    bool IsRenderEnabled() const;
+    auto GetAppName() const -> StringView;
+    auto GetStudioName() const -> StringView;
 
-    static App*     Create();
+    static auto Create() -> App*;
 
     SettingsNode    mSettingsNode{};
 

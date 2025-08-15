@@ -37,6 +37,13 @@ namespace Tac
       Count,
     };
 
+    struct TransitionParams
+    {
+       ID3D12Resource*        mResource;
+       D3D12_RESOURCE_STATES* mCurrentState;
+       D3D12_RESOURCE_STATES  mTargetState;
+    };
+
     DX12AppHelloConstBuf( const Config& );
 
     void Init( Errors& ) override;
@@ -70,32 +77,21 @@ namespace Tac
     void DX12CreateSwapChain( Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
-    D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetRTVGpuDescHandle( int ) const;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGpuDescHandle( int ) const;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSamplerCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerGpuDescHandle( int ) const;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
-                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
-                                                     int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
-                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
-                                                     int ) const;
+    auto GetRTVCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetRTVGpuDescHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
+    auto GetSRVCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetSRVGpuDescHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
+    auto GetSamplerCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetSamplerGpuDescHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
+    auto OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
+                              D3D12_DESCRIPTOR_HEAP_TYPE,
+                              int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
+                              D3D12_DESCRIPTOR_HEAP_TYPE,
+                              int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
     void PopulateCommandList( Errors& );
     void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
-
-    struct TransitionParams
-    {
-       ID3D12Resource*        mResource;
-       D3D12_RESOURCE_STATES* mCurrentState;
-       D3D12_RESOURCE_STATES  mTargetState;
-    };
     void TransitionResource( TransitionParams );
-
     void TransitionRenderTarget( int, D3D12_RESOURCE_STATES );
     void SwapChainPresent( Errors& );
 

@@ -25,29 +25,27 @@ namespace Tac
     Language     mLanguage { Language::English };
   };
 
+  struct AssetSaveDialogParams { String mSuggestedFilename; };
+
   //
   // The shell acts as the interface between platform-specific applications
   // and the ghost
   //
-  void                    ShellInit( Errors& );
-  void                    ShellUninit();
-
-  extern String           sShellAppName;
-  extern String           sShellStudioName;
-  extern FileSys::Path    sShellPrefPath;
-  extern FileSys::Path    sShellInitialWorkingDir;
+  struct Shell
+  {
+    static void Init( Errors& );
+    static void Uninit();
+    static String           sShellAppName;
+    static String           sShellStudioName;
+    static FileSys::Path    sShellPrefPath;
+    static FileSys::Path    sShellInitialWorkingDir;
+  };
 
   //                      Converts a filesystem path to an asset path
   //
   //                      Try not to use this function, instead prefer using a function that
   //                      returns AssetPaths instead of FileSys::Path's
-  AssetPathStringView     ModifyPathRelative( const FileSys::Path&, Errors& );
-
-  struct AssetSaveDialogParams
-  {
-    String mSuggestedFilename;
-  };
-
-  AssetPathStringView     AssetOpenDialog( Errors& );
-  AssetPathStringView     AssetSaveDialog( const AssetSaveDialogParams&, Errors& );
-}
+  auto ModifyPathRelative( const FileSys::Path&, Errors& ) -> AssetPathStringView;
+  auto AssetOpenDialog( Errors& ) -> AssetPathStringView;
+  auto AssetSaveDialog( const AssetSaveDialogParams&, Errors& ) -> AssetPathStringView;
+} // namespace Tac

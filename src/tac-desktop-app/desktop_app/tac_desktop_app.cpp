@@ -106,17 +106,17 @@ namespace Tac
     sAppThreadAllocator.Init( 1024 * 1024 * 10 ); // 10MB
     FrameMemorySetThreadAllocator( &sAppThreadAllocator );
 
-    sShellAppName = sApp->GetAppName();
-    TAC_ASSERT( !sShellAppName.empty() );
+    Shell::sShellAppName = sApp->GetAppName();
+    TAC_ASSERT( !Shell::sShellAppName.empty() );
 
-    sShellStudioName = sApp->GetStudioName();
-    TAC_ASSERT( !sShellStudioName.empty() );
+    Shell::sShellStudioName = sApp->GetStudioName();
+    TAC_ASSERT( !Shell::sShellStudioName.empty() );
 
-    sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
-    TAC_ASSERT( !sShellPrefPath.empty() );
+    Shell::sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
+    TAC_ASSERT( !Shell::sShellPrefPath.empty() );
 
-    sShellInitialWorkingDir = FileSys::GetCurrentWorkingDirectory();
-    TAC_ASSERT( !sShellInitialWorkingDir.empty() );
+    Shell::sShellInitialWorkingDir = FileSys::GetCurrentWorkingDirectory();
+    TAC_ASSERT( !Shell::sShellInitialWorkingDir.empty() );
 
     // for macos standalone_sdl_vk_1_tri, appDataPath =
     //
@@ -125,13 +125,13 @@ namespace Tac
     // for win32 project standalone_win_vk_1_tri, appDataPath =
     //
     //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    TAC_RAISE_ERROR_IF( !FileSys::Exists( sShellPrefPath ), String()
-                        + "app data path " + sShellPrefPath.u8string() + " doesnt exist" );
+    TAC_RAISE_ERROR_IF( !FileSys::Exists( Shell::sShellPrefPath ), String()
+                        + "app data path " + Shell::sShellPrefPath.u8string() + " doesnt exist" );
 
-    const FileSys::Path logPath{ sShellPrefPath / ( sShellAppName + ".tac.log" ) };
+    const FileSys::Path logPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.log" ) };
     LogApi::LogSetPath( logPath );
 
-    const FileSys::Path settingsPath{ sShellPrefPath / ( sShellAppName + ".tac.cfg" ) };
+    const FileSys::Path settingsPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.cfg" ) };
     TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
 
     TAC_CALL( AssetHashCache::Init( errors ) );
@@ -141,11 +141,11 @@ namespace Tac
 
     const Render::RenderApi::InitParams renderApiInitParams
     {
-      .mShaderOutputPath { sShellPrefPath },
+      .mShaderOutputPath { Shell::sShellPrefPath },
     };
     TAC_CALL( Render::RenderApi::Init( renderApiInitParams, errors ) );
 
-    TAC_CALL( ShellInit( errors ) );
+    TAC_CALL( Shell::Init( errors ) );
 
 #if TAC_FONT_ENABLED()
     TAC_CALL( FontApi::Init( errors ) );

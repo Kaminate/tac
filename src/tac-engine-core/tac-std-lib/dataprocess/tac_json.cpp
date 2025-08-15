@@ -8,11 +8,7 @@
 
 namespace Tac
 {
-  static String DoubleQuote( StringView s )
-  {
-    String quote = String( 1, '\"' );
-    return quote + String( s ) + quote;
-  }
+  static auto Quote( StringView s ) -> String { return String("\"") + String( s ) + String("\""); }
 
   static void ParseObject( Json* json, ParseData* parseData, Errors& errors );
 
@@ -150,11 +146,11 @@ namespace Tac
     }
   }
 
-  static String Tab( const Indentation* indentation, int tabCount )
+  static auto Tab( const Indentation* indentation, int tabCount ) -> String
   {
     const Indentation defaultIndentation;
     indentation = indentation ? indentation : &defaultIndentation;
-    String tab { indentation->convertTabsToSpaces ? String( indentation->spacesPerTab, ' ' ) : String( "\t" ) };
+    String tab { indentation->mConvertTabsToSpaces ? String( indentation->mSpacesPerTab, ' ' ) : String( "\t" ) };
     String result;
     for( int i{}; i < tabCount; ++i )
       result += tab;
@@ -167,17 +163,17 @@ namespace Tac
   Json::Json( StringView v )                  { SetString( v ); }
   Json::Json( JsonNumber v )                  { SetNumber( v ); }
   Json::Json( bool v )                        { SetBool( v ); }
-  Json::Json(){ SetNull(); }
+  Json::Json()                                { SetNull(); }
   Json::Json( Json&& json ) noexcept          { TakeOver( move( json ) ); };
   Json::~Json()                               { Clear(); }
   Json::operator String()                     { return mString; }
   Json::operator JsonNumber()                 { return mNumber; }
   Json::operator bool()                       { return mBoolean; }
-  void   Json::SetNull()                      { mType = JsonType::Null; }
-  void   Json::SetNumber( JsonNumber number ) { mType = JsonType::Number; mNumber = number; }
-  void   Json::SetString( StringView str )    { mType = JsonType::String; mString = str; }
-  void   Json::SetBool( bool b )              { mType = JsonType::Bool; mBoolean = b; }
-  void   Json::Clear()
+  void Json::SetNull()                        { mType = JsonType::Null; }
+  void Json::SetNumber( JsonNumber number )   { mType = JsonType::Number; mNumber = number; }
+  void Json::SetString( StringView str )      { mType = JsonType::String; mString = str; }
+  void Json::SetBool( bool b )                { mType = JsonType::Bool; mBoolean = b; }
+  void Json::Clear()
   {
     for( auto& pair : mObjectChildrenMap )
     {
@@ -191,16 +187,16 @@ namespace Tac
       TAC_DELETE element;
     mArrayElements.clear();
   }
-  String Json::Stringify( const Indentation* indentation, int tabCount ) const
+  auto Json::Stringify( const Indentation* indentation, int tabCount ) const -> String
   {
     int iChild {};
     String result;
-    auto GetSeparator = [&]( int childCount ) { return iChild++ != childCount - 1 ? "," : ""; };
+    const auto GetSeparator{ [ & ]( int childCount ) { return iChild++ != childCount - 1 ? "," : ""; } };
     switch( mType )
     {
       case JsonType::String:
       {
-        result = DoubleQuote( mString );
+        result = Quote( mString );
       } break;
       case JsonType::Number:
       {
@@ -224,7 +220,7 @@ namespace Tac
         for( auto [childKey, childValue ] : mObjectChildrenMap )
         {
 
-          result += Tab( indentation, tabCount ) + DoubleQuote( childKey ) + ":";
+          result += Tab( indentation, tabCount ) + Quote( childKey ) + ":";
           result += ( childValue->mType == JsonType::Array ||
                       childValue->mType == JsonType::Object ) ? "\n" : " ";
           result += childValue->Stringify( indentation, tabCount );
@@ -253,8 +249,7 @@ namespace Tac
     }
     return result;
   }
-
-  void   Json::TakeOver( Json&& json ) noexcept
+  void Json::TakeOver( Json&& json ) noexcept
   {
     mObjectChildrenMap = json.mObjectChildrenMap;
 		mString = json.mString;
@@ -268,8 +263,7 @@ namespace Tac
     json.mType = JsonType::Null;
   };
 
-
-  [[nodiscard]] Json   Json::Parse( const char* bytes, int byteCount, Errors& errors )
+  [[nodiscard]] Json Json::Parse( const char* bytes, int byteCount, Errors& errors )
   {
     ParseData parseData( bytes, byteCount );
 
@@ -279,7 +273,7 @@ namespace Tac
     return json;
   }
 
-  [[nodiscard]] Json   Json::Parse( StringView s, Errors& errors )
+  [[nodiscard]] Json Json::Parse( StringView s, Errors& errors )
   {
     ParseData parseData( s.data(), s.size() );
 
@@ -309,7 +303,7 @@ namespace Tac
   }
   Json&  Json::operator[]( StringView key )    { return GetChild( key ); }
   Json&  Json::operator[]( const char* key )   { return GetChild( key ); }
-  Json&  Json::operator[]( [[maybe_unused]] int i )
+  Json&  Json::operator[]( int i )
   {
     mType = JsonType::Array;
 
@@ -369,6 +363,4 @@ namespace Tac
       AddChild()->DeepCopy( child );
   }
 
-
-
-}
+} // namespace Tac

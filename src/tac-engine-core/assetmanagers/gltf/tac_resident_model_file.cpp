@@ -210,7 +210,7 @@ namespace Tac
     loadingStuff->mPath = assetPath;
     loadingStuff->mAssetPathID = id;
     loadingStuff->mJob.mPath = assetPath;
-    JobQueuePush( &loadingStuff->mJob );
+    Job::JobQueuePush( &loadingStuff->mJob );
 
     return nullptr;
   }

@@ -11,7 +11,7 @@ namespace Tac
   {
     SmartPtr() = default;
     SmartPtr( T* t ) : mT{ t }           {}
-    SmartPtr( SmartPtr&& s )             { SwapWith( ( SmartPtr&& )s ); }
+    SmartPtr( SmartPtr&& s ) noexcept             { SwapWith( ( SmartPtr&& )s ); }
 
     SmartPtr( const SmartPtr& s )
     {

@@ -484,7 +484,7 @@ namespace Tac
 
     DX12ExampleProgramCompiler::Params programCompilerParams
     {
-      .mOutputDir { sShellPrefPath },
+      .mOutputDir { Shell::sShellPrefPath },
       .mDevice    { device },
     };
 

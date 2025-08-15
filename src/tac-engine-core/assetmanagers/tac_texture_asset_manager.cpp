@@ -622,7 +622,7 @@ namespace Tac
     TextureLoadJob* asyncTexture{ TAC_NEW TextureLoadJob( params ) };
 
     mLoadingTextures[ id ] = asyncTexture;
-    JobQueuePush( asyncTexture );
+    Job::JobQueuePush( asyncTexture );
   }
 
   // -----------------------------------------------------------------------------------------------

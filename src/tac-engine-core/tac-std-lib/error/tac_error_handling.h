@@ -23,13 +23,13 @@ namespace Tac
 
     operator bool() const;
 
-    bool       empty() const;
-    void       clear();
-    void       Raise( StringView, StackFrame );
-    void       Propagate( StackFrame );
-    auto       GetFrames() const -> Span< const StackFrame >;
-    StringView GetMessage() const;
-    String     ToString() const;
+    bool empty() const;
+    void clear();
+    void Raise( StringView, StackFrame );
+    void Propagate( StackFrame );
+    auto GetFrames() const -> Span< const StackFrame >;
+    auto GetMessage() const -> StringView;
+    auto ToString() const -> String;
 
   private:
 

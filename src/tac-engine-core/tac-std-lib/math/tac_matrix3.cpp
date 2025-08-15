@@ -457,8 +457,25 @@ namespace Tac
     m3UnitTestInverse( m, minvExpected );
   }
 
+  static void m3UnitTestMultiply()
+  {
+    m3 a{ 1, 2, 3,
+          4, 5, 6,
+          7, 8, 9 };
+    m3 b{ 11, 22, 33,
+          44, 55, 66,
+          77, 88, 99 };
+    m3 c = a * b;
+    m3 cExpected{ 330, 396, 462,
+                  726, 891, 1056,
+                  1122, 1386, 1650 };
+    AssertAboutEqual( c, cExpected );
+  }
+
   void m3UnitTest()
   {
     m3UnitTestInverse();
+
+    m3UnitTestMultiply();
   }
 }

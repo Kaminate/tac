@@ -54,9 +54,9 @@ namespace Tac
 
     void Add( const char* );
 
-    void       Read( ReadStream*, dynmc void*, Errors& ) const;
-    void       Write( WriteStream*, const void*, NetVarDiff ) const;
-    NetVarDiff Diff( DiffParams ) const;
+    void Read( ReadStream*, dynmc void*, Errors& ) const;
+    void Write( WriteStream*, const void*, NetVarDiff ) const;
+    auto Diff( DiffParams ) const -> NetVarDiff;
 
     NetMembers               mNetMembers {};
     const MetaCompositeType* mMetaType   {};
@@ -83,14 +83,14 @@ namespace Tac
     void Write( Span< const T > ts )                                                                { WriteBytes( ts.data(), ts.size() * sizeof( T ) ); }
 
     template< typename T >
-    void  Write( const T& t )                                                                       { WriteBytes( &t, sizeof( T ) ); }
+    void Write( const T& t )                                                                       { WriteBytes( &t, sizeof( T ) ); }
 
     //template< typename T >
     //void  Write( const T* ts, int n )                                                             { WriteBytes( &ts, sizeof( T ) ); }
 
-    void  WriteBytes( const void*, int );
-    void* Data()                                                                                    { return mBytes.data(); }
-    int   Size() const                                                                              { return mBytes.size(); }
+    void WriteBytes( const void*, int );
+    auto Data() -> void*                                                                           { return mBytes.data(); } 
+    int  Size() const                                                                              { return mBytes.size(); }
 
   private:
 
@@ -109,12 +109,11 @@ namespace Tac
 
     NetEndianConverter( Params );
 
-    [[nodiscard]] u8    Convert( u8 );
-    [[nodiscard]] u16   Convert( u16 );
-    [[nodiscard]] u32   Convert( u32 );
-    [[nodiscard]] u64   Convert( u64 );
-    [[nodiscard]] float Convert( float );
-
+    [[nodiscard]] auto Convert( u8 ) -> u8;
+    [[nodiscard]] auto Convert( u16 ) -> u16;
+    [[nodiscard]] auto Convert( u32 ) -> u32;
+    [[nodiscard]] auto Convert( u64 ) -> u64;
+    [[nodiscard]] auto Convert( float ) -> float;
 
   private:
     void Convert( void*, int );

@@ -33,15 +33,14 @@ namespace Tac
     auto GetStatus() const->JobState;
     void Clear();
 
+    static void JobQueueInit();
+    static void JobQueuePush( Job* );
+
     //                      Errors which occurred while running the job, passed to Execute()
     Errors                  mErrors          {};
     std::atomic< JobState > mAsyncLoadStatus { JobState::JustBeenCreated };
     std::atomic< bool >     mAbortRequested  { false };
   };
-
-  void JobQueueInit();
-  void JobQueuePush( Job* );
-
 
 } // namespace Tac
 

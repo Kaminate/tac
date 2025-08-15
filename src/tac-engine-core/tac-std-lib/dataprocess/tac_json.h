@@ -27,8 +27,8 @@ namespace Tac
 
 	struct Indentation
 	{
-    int    spacesPerTab        { 2 };
-    bool   convertTabsToSpaces { true };
+    int    mSpacesPerTab        { 2 };
+    bool   mConvertTabsToSpaces { true };
 	};
 
 	// The function names Stringify and Parse mimic the built-in javascript api
@@ -50,35 +50,35 @@ namespace Tac
 		static [[nodiscard]] Json Parse( const char* bytes, int byteCount, Errors& );
 
 		// Setters
-		void                      Clear();
-		void                      DeepCopy( const Json* );
-		void                      TakeOver( Json&& ) noexcept;
-		void                      SetNull();
-		void                      SetNumber( JsonNumber );
-		void                      SetBool( bool );
-		void                      SetString( StringView );
-		Json&                     operator = ( const Json& );
-		Json&                     operator = ( const Json* );
-		Json&                     operator = ( StringView );
-		Json&                     operator = ( JsonNumber );
-		Json&                     operator = ( int );
-		Json&                     operator = ( bool );
-		Json&                     operator = ( Json&& ) noexcept;
+		void Clear();
+		void DeepCopy( const Json* );
+		void TakeOver( Json&& ) noexcept;
+		void SetNull();
+		void SetNumber( JsonNumber );
+		void SetBool( bool );
+		void SetString( StringView );
+		auto operator = ( const Json& ) -> Json&;
+		auto operator = ( const Json* ) -> Json&;
+		auto operator = ( StringView ) -> Json&;
+		auto operator = ( JsonNumber ) -> Json&;
+		auto operator = ( int ) -> Json&;
+		auto operator = ( bool ) -> Json&;
+		auto operator = ( Json&& ) noexcept -> Json&;
 
 		// Getters
-		Json*                     AddChild();
-    void                      AddChild( const Json& );
+		auto AddChild() -> Json*;
+    void AddChild( const Json& );
 
     // could just use getchild(key) everywhere, but that makes the api stupid/inconsistant when
     // you can use addchild for arrays but not objects
-		Json*                     AddChild( StringView );
-		Json&                     GetChild( StringView );
-		Json*                     FindChild( StringView ) const;
-		bool                      HasChild( StringView );
-		String                    Stringify( const Indentation* = nullptr, int tabCount = 0 ) const;
-		Json&                     operator[]( StringView );
-		Json&                     operator[]( const char* );
-		Json&                     operator[]( int );
+		auto AddChild( StringView ) -> Json*;
+		auto GetChild( StringView ) -> Json&;
+		auto FindChild( StringView ) const -> Json*;
+		auto HasChild( StringView ) -> bool;
+		auto Stringify( const Indentation* = nullptr, int tabCount = 0 ) const -> String;
+		auto operator[]( StringView ) -> Json&;
+		auto operator[]( const char* ) -> Json&;
+		auto operator[]( int ) -> Json&;
 		operator String();
 		operator JsonNumber();
 		operator bool();

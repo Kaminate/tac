@@ -8,14 +8,14 @@ namespace Tac
 {
   struct DesktopApp
   {
-    static void         Init( Errors& );
-    static void         Run( Errors& );
-    static void         Update( Errors& );
-    static void         DebugImGui( Errors& );
-    static Errors&      GetMainErrors();
+    static void Init( Errors& );
+    static void Run( Errors& );
+    static void Update( Errors& );
+    static void DebugImGui( Errors& );
+    static auto GetMainErrors() -> Errors&;
   private:
-    static void         UpdateSimulation(Errors&);
-    static void         Render(Errors&);
+    static void UpdateSimulation(Errors&);
+    static void Render(Errors&);
   };
 
 } // namespace Tac

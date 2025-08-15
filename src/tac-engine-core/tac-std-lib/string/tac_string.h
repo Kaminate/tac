@@ -64,8 +64,8 @@ namespace Tac
     String( int len, char c );
     String( const char* );
     ~String();
-    char operator[]( int ) const;
-    char& operator[]( int );
+    auto operator[]( int ) const -> char;
+    auto operator[]( int ) -> char&;
     void operator = ( const String& );
     void operator = ( const StringView& );
     void operator = ( const char* );
@@ -77,41 +77,40 @@ namespace Tac
    // stl doesnt have this, there is only operator string_view
     //operator const char* () const = delete;
 
-    void   clear();
-    bool   empty() const;
-    auto   c_str() const -> const char*;
-    auto   data() const -> const char*;
-    int    size() const;
-    void   erase( int pos, int len = npos );
-    void   push_back( char );
-    bool   starts_with( StringView ) const;
-    bool   starts_with( char ) const;
-    bool   ends_with( StringView ) const;
-    bool   ends_with( char ) const;
-    void   assign( const char*, int );
-    void   assign( const StringView& );
-    void   append( const char*, int );
-    void   append( const char* );
-    void   append( const String& );
-    void   prepend( const String& );
-    void   reserve( int lenNotIncNull );
-    void   resize( int lenNotIncNull );
-    void   replace( StringView, StringView );
-    void   pop_back();
-    char*  begin() const;
-    char*  end() const;
-    char&  back();
-    char   back() const;
-    char&  front();
-    char   front() const;
-    int    compare( const char* ) const;
-    //     returns npos if not found
-    int    find_last_of( const char* c ) const;
-    int    find( const String& substr ) const;
-    int    find( char ) const;
-    bool   contains( const StringView& ) const;
-    bool   contains( char c ) const;
-    String substr( int pos = 0, int len = npos ) const;
+    void clear();
+    bool empty() const;
+    auto c_str() const -> const char*;
+    auto data() const -> const char*;
+    auto size() const -> int;
+    void erase( int pos, int len = npos );
+    void push_back( char );
+    bool starts_with( StringView ) const;
+    bool starts_with( char ) const;
+    bool ends_with( StringView ) const;
+    bool ends_with( char ) const;
+    void assign( const char*, int );
+    void assign( const StringView& );
+    void append( const char*, int );
+    void append( const char* );
+    void append( const String& );
+    void prepend( const String& );
+    void reserve( int lenNotIncNull );
+    void resize( int lenNotIncNull );
+    void replace( StringView, StringView );
+    void pop_back();
+    auto begin() const -> char*;
+    auto end() const -> char*;
+    auto back() -> char&;
+    auto back() const -> char;
+    auto front() -> char&;
+    auto front() const -> char;
+    auto compare( const char* ) const -> int;
+    auto find_last_of( const char* c ) const -> int; // returns npos if not found
+    auto find( const String& substr ) const -> int;
+    auto find( char ) const -> int;
+    auto contains( const StringView& ) const -> bool;
+    auto contains( char c ) const -> bool;
+    auto substr( int pos = 0, int len = npos ) const -> String;
 
     // This constexpr implicit conversion function, which calls constexpr StringView(),
     // allows for String() == StringView()

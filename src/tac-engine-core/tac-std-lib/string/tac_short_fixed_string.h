@@ -37,29 +37,28 @@ namespace Tac
 
     //operator const char* ( ) const;
 
-    bool        empty() const;
-    int         size() const;
-    int         capacity() const;
-    const char* data() const;
+    bool empty() const;
+    auto size() const -> int;
+    auto capacity() const -> int;
+    auto data() const -> const char*;
 
     //void assign( const char* s )        { assign( StringView( s ) ); }
     //void assign( const char* s, int n ) { FixedStringAssign( GetFSD(), StringView( s, n ); }
-    void        assign( const StringView& );
-    dynmc char& front() dynmc;
-    const char& front() const;
-    dynmc char& back() dynmc;
-    const char& back() const;
-    dynmc char* begin() dynmc;
-    const char* begin() const;
-    dynmc char* end() dynmc;
-    const char* end() const;
-    dynmc char& operator []( int ) dynmc;
-    const char& operator []( int ) const;
-    ShortFixedString& operator += ( char );
-    ShortFixedString& operator += ( const StringView& );
+    void assign( const StringView& );
+    auto front() dynmc -> dynmc char&;
+    auto front() const -> const char&;
+    auto back() dynmc -> dynmc char&;
+    auto back() const -> const char&;
+    auto begin() dynmc -> dynmc char*;
+    auto begin() const -> const char*;
+    auto end() dynmc -> dynmc char*;
+    auto end() const -> const char*;
+    auto operator []( int ) dynmc -> dynmc char&;
+    auto operator []( int ) const -> const char&;
+    auto operator += ( char ) -> ShortFixedString&;
+    auto operator += ( const StringView& ) -> ShortFixedString&;
 
     operator StringView() const;
-
 
     // needed to convert the FixedString result from va()
     // into the const char* in TAC_ASSERT HandleAssert
@@ -79,7 +78,7 @@ namespace Tac
   private:
 
     static const int N { 100 };
-    int mSize          {};
+    int  mSize         {};
     char mBuf[ N ]     { "" };
   };
 

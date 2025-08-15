@@ -21,13 +21,12 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 
+Tac::String        Tac::Shell::sShellAppName;
+Tac::String        Tac::Shell::sShellStudioName;
+Tac::FileSys::Path Tac::Shell::sShellPrefPath; // Path where the app can save files to
+Tac::FileSys::Path Tac::Shell::sShellInitialWorkingDir;
 
-Tac::String        Tac::sShellAppName;
-Tac::String        Tac::sShellStudioName;
-Tac::FileSys::Path Tac::sShellPrefPath; // Path where the app can save files to
-Tac::FileSys::Path Tac::sShellInitialWorkingDir;
-
-void                         Tac::ShellUninit()
+void Tac::Shell::Uninit()
 {
   UI2DCommonDataUninit();
   Debug3DCommonDataUninit();
@@ -44,27 +43,21 @@ void                         Tac::ShellUninit()
   Render::RenderApi::Uninit();
 }
 
-void                         Tac::ShellInit( Errors& errors )
+void Tac::Shell::Init( Errors& errors )
 {
-  JobQueueInit();
-
+  Job::JobQueueInit();
   ModelAssetManager::Init();
-
   TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ) );
-
   TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );
   TAC_CALL( Render::DefaultCBufferPerObject::Init( errors ) );
   TAC_CALL( Render::CBufferLights::Init( errors ) );
-
   TAC_CALL( UI2DCommonDataInit( errors ) );
-
   TAC_CALL( Debug3DCommonDataInit( errors ) );
 }
 
-
-Tac::AssetPathStringView     Tac::ModifyPathRelative( const FileSys::Path& path, Errors& errors )
+auto Tac::ModifyPathRelative( const FileSys::Path& path, Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path& workingDir { sShellInitialWorkingDir };
+  const FileSys::Path& workingDir { Shell::sShellInitialWorkingDir };
   const String workingUTF8 { workingDir.u8string() };
 
   String pathUTF8 { path.u8string() };
@@ -78,29 +71,24 @@ Tac::AssetPathStringView     Tac::ModifyPathRelative( const FileSys::Path& path,
     pathUTF8 = FileSys::StripLeadingSlashes( pathUTF8 );
   }
 
-  for( char& c : pathUTF8 )
-    if( c == '\\' )
-      c = '/';
+  //for( char& c : pathUTF8 )
+  //  if( c == '\\' )
+  //    c = '/';
+  pathUTF8.replace( "\\", "/");
 
   return FrameMemoryCopy( pathUTF8.c_str() );
 }
 
-
-Tac::AssetPathStringView     Tac::AssetOpenDialog( Errors& errors )
+auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path fsPath = TAC_CALL_RET( OS::OSOpenDialog( errors ));
-
+  TAC_CALL_RET( const FileSys::Path fsPath{ OS::OSOpenDialog( errors ) } );
   return ModifyPathRelative( fsPath, errors );
 }
 
-Tac::AssetPathStringView     Tac::AssetSaveDialog( const AssetSaveDialogParams& params,
-                                                   Errors& errors )
+auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors ) -> Tac::AssetPathStringView
 {
   FileSys::Path suggestedFilename { params.mSuggestedFilename };
-  const OS::SaveParams saveParams
-  {
-    .mSuggestedFilename { &suggestedFilename },
-  };
+  const OS::SaveParams saveParams { .mSuggestedFilename { &suggestedFilename }, };
   const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
   return ModifyPathRelative( fsPath, errors );
 }

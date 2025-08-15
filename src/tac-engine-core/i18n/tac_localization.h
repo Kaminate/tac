@@ -39,30 +39,29 @@ namespace Tac
     CodepointView() = default;
     CodepointView( const Codepoint*, int );
     CodepointView( const CodepointString& );
-    Codepoint        operator[]( int ) const;
-    const Codepoint* data() const;
-    const Codepoint* begin() const;
-    const Codepoint* end() const;
-    int              size() const;
-    bool             empty() const;
+    auto operator[]( int ) const -> Codepoint;
+    auto data() const -> const Codepoint*;
+    auto begin() const -> const Codepoint*;
+    auto end() const -> const Codepoint*;
+    auto size() const -> int;
+    auto empty() const -> bool;
     const Codepoint* mCodepoints     {};
     int              mCodepointCount {};
   };
 
-
   bool operator == ( CodepointView, CodepointView );
   bool operator != ( CodepointView, CodepointView );
 
-  StringView      LanguageToStr( Language );
-  Language        GetLanguage( StringView );
-  void            LanguageDebugImgui( StringView name, Language* );
-  bool            IsAsciiCharacter( Codepoint );
+  auto LanguageToStr( Language ) -> StringView;
+  auto GetLanguage( StringView ) -> Language;
+  auto LanguageDebugImgui( StringView name, Language* ) -> void;
+  auto IsAsciiCharacter( Codepoint ) -> bool;
 
-  CodepointString UTF8ToCodepointString( StringView );
-  CodepointView   UTF8ToCodepointView( StringView );
-  StringView      CodepointsToUTF8( CodepointView );
+  auto UTF8ToCodepointString( StringView ) -> CodepointString;
+  auto UTF8ToCodepointView( StringView ) -> CodepointView;
+  auto CodepointsToUTF8( CodepointView ) -> StringView;
 
-  CodepointView   LocalizationGetString( Language, StringView );
-  void            LocalizationLoad( const FileSys::Path&, Errors& );
-  void            LocalizationDebugImgui();
+  auto LocalizationGetString( Language, StringView ) -> CodepointView;
+  auto LocalizationLoad( const FileSys::Path&, Errors& ) -> void;
+  auto LocalizationDebugImgui() -> void;
 } // namespace Tac

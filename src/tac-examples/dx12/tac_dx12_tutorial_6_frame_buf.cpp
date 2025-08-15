@@ -596,7 +596,7 @@ namespace Tac
 
     const DX12ExampleProgramCompiler::Params compilerParams
     {
-      .mOutputDir { sShellPrefPath },
+      .mOutputDir { Shell::sShellPrefPath },
       .mDevice    { ( ID3D12Device* )m_device },
     };
     TAC_CALL( DX12ExampleProgramCompiler compiler( compilerParams, errors ) );

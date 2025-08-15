@@ -33,7 +33,7 @@ namespace Tac::FileSys
     Path filename() const;    // ie: foo/bar/qux.txt --> qux.txt
     Path dirname() const;     // ie: foo/bar/qux.txt --> bar
     
-    String u8string() const;  // convert to utf-8
+    auto u8string() const -> String;  // convert to utf-8
     bool empty() const;
     void clear();
 

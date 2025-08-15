@@ -47,6 +47,9 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  // I think it's time to make a presentation.
+  // Final gather can wait.
+
 
 
   auto PreBakeScene::Raycast( PatchPower* fromPatch, RayTriangle::Ray ray ) -> PreBakeScene::RaycastResult

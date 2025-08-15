@@ -777,13 +777,11 @@ namespace Tac
 
     const DX12ExampleProgramCompiler::Params programInput
     {
-      .mOutputDir { sShellPrefPath },
+      .mOutputDir { Shell::sShellPrefPath },
       .mDevice    { ( ID3D12Device* )m_device },
     };
     TAC_CALL( DX12ExampleProgramCompiler compiler( programInput, errors ) );
-
     TAC_CALL( DX12ExampleProgramCompiler::Result compileResult{ compiler.Compile( shaderAssetPath, errors ) } );
-
     const D3D12_RASTERIZER_DESC RasterizerState
     {
       .FillMode              { D3D12_FILL_MODE_SOLID },
@@ -794,19 +792,15 @@ namespace Tac
       .SlopeScaledDepthBias  { D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS },
       .DepthClipEnable       { true },
     };
-
     const D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc
     {
       .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
     };
-
     const D3D12_BLEND_DESC BlendState
     {
       .RenderTarget { RenderTargetBlendDesc },
     };
-
     const DXGI_SAMPLE_DESC SampleDesc{ .Count{ 1 } };
-
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       // If the root signature doesn't match shader state, it throws an error

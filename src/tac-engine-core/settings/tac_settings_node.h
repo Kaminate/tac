@@ -14,12 +14,12 @@ namespace Tac
   {
     SettingsNode() = default;
     SettingsNode( SettingsRoot*, Json* );
-    SettingsNode         GetChild( StringView );
-    Span< SettingsNode > GetChildrenArray();
-    void                 SetValue( Json );
-    Json&                GetValueWithFallback( Json = {} );
-    Json&                GetValue();
-    bool                 IsValid() const;
+    auto GetChild( StringView ) -> SettingsNode;
+    auto GetChildrenArray() -> Span< SettingsNode >;
+    void SetValue( Json );
+    auto GetValueWithFallback( Json = {} ) -> Json&;
+    auto GetValue() -> Json&;
+    bool IsValid() const;
 
   private:
     SettingsRoot* mRoot{};

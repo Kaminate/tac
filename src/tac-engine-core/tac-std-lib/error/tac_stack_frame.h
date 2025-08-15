@@ -8,11 +8,10 @@ namespace Tac
     StackFrame() = default;
     StackFrame( int, const char*, const char* );
 
-    bool        IsValid() const;
-
-    int         GetLine() const;
-    const char* GetFile() const;
-    const char* GetFunction() const;
+    bool IsValid() const;
+    auto GetLine() const -> int;
+    auto GetFile() const -> const char*;
+    auto GetFunction() const -> const char*;
     
   private:
     int         mLine     {};

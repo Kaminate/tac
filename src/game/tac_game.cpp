@@ -21,21 +21,17 @@ namespace Tac
     SpaceInit();
 
     const Monitor monitor{ OS::OSGetPrimaryMonitor() };
-
-    TAC_ASSERT( !sShellAppName.empty() );
-
+    TAC_ASSERT( !Shell::sShellAppName.empty() );
     const v2i size( ( int )( monitor.mSize.x * 0.8f ),
                     ( int )( monitor.mSize.y * 0.8f ) );
-
     const WindowCreateParams windowCreateParams
     {
-      .mName { sShellAppName },
+      .mName { Shell::sShellAppName },
       .mPos  {},
       .mSize { size },
     };
 
     TAC_CALL( mWindowHandle = AppWindowApi::CreateWindow( windowCreateParams, errors ) );
-
 
     auto ghost { TAC_NEW Ghost };
     //ghost->mRenderView = mDesktopWindow->mRenderView;
@@ -44,7 +40,7 @@ namespace Tac
 
   static void GameCallbackUpdate( Errors& )
   {
-
+    TAC_NO_OP;
   }
 
   struct GameApp : public App
@@ -57,7 +53,7 @@ namespace Tac
     }
     void Update(  Errors& errors ) override
     {
-      GameCallbackUpdate(  errors );
+      GameCallbackUpdate( errors );
     }
   };
 
@@ -65,7 +61,7 @@ namespace Tac
   {
     const App::Config config
     {
-       .mName { "Game"  },
+       .mName { "Game" },
     };
     return TAC_NEW GameApp( config );
   }

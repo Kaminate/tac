@@ -699,7 +699,7 @@ namespace Tac
 
     const DX12ExampleProgramCompiler::Params programParams
     {
-      .mOutputDir { sShellPrefPath },
+      .mOutputDir { Shell::sShellPrefPath },
       .mDevice    { m_device.Get() },
     };
 
@@ -710,10 +710,7 @@ namespace Tac
 
 
     const VertexDeclarations vtxDecls{ GetVertexDeclarations() };
-
     const DX12BuiltInputLayout inputLayout{ vtxDecls };
-
-
     const D3D12_RASTERIZER_DESC RasterizerState
     {
       .FillMode              { D3D12_FILL_MODE_SOLID },
@@ -724,17 +721,14 @@ namespace Tac
       .SlopeScaledDepthBias  { D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS },
       .DepthClipEnable       { true },
     };
-
     const D3D12_RENDER_TARGET_BLEND_DESC RenderTargetBlendDesc
     {
       .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
     };
-
     const D3D12_BLEND_DESC BlendState
     {
       .RenderTarget { RenderTargetBlendDesc },
     };
-
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
       .pRootSignature        { ( ID3D12RootSignature* )m_rootSignature },
@@ -754,9 +748,7 @@ namespace Tac
               &psoDesc,
               mPipelineState.iid(),
               mPipelineState.ppv() ) );
-
     DX12SetName( mPipelineState, "My Pipeline State" );
-
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -1007,10 +999,8 @@ namespace Tac
         // https://learn.microsoft.com/en-us/windows/win32/direct3d12/uploading-resources
         // maybe
 
-        const int byteCount{
-          RoundUpToNearestMultiple(
-            sizeof( MyCBufType ),
-            D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
+        constexpr int byteAlign{ D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT };
+        constexpr int byteCount{ RoundUpToNearestMultiple( sizeof( MyCBufType ), byteAlign ) };
 
         TAC_CALL( DX12ExampleGPUUploadAllocator::DynAlloc allocation{
           mUploadAllocator.Allocate( byteCount, errors ) } );

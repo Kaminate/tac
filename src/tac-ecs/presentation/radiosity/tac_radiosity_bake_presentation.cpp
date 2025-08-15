@@ -56,9 +56,9 @@ namespace Tac
 #endif
   }
 
-  void RadiosityBakePresentation::Render( Render::IContext* ,
+  void RadiosityBakePresentation::Render( Render::IContext*,
                                           const World* world,
-                                          const Camera* ,
+                                          const Camera*,
                                           Errors& )
   {
     if( sRequestBake )
@@ -67,7 +67,7 @@ namespace Tac
       TAC_DELETE sPreBakeScene;
       sPreBakeScene = TAC_NEW PreBakeScene;
       sPreBakeScene->Init( world );
-      JobQueuePush( sPreBakeScene );
+      Job::JobQueuePush( sPreBakeScene );
     }
 
     if( sPreBakeScene )
