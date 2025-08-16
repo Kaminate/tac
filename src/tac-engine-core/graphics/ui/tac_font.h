@@ -10,6 +10,7 @@
 #include "tac-std-lib/math/tac_vector2.h" // v2
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/asset/tac_asset.h"
 
 #define TAC_FONT_ENABLED() 1
 
@@ -21,7 +22,7 @@ namespace Tac
   struct Errors;
 
   //        The height and width in pixels of a cell in the font atlas
-  const int FontCellPxSize           { 64 };
+  const int FontCellPxSize           { 128 }; // 64 };
   const int FontCellPxWidth          { FontCellPxSize };
   const int FontCellPxHeight         { FontCellPxSize };
 
@@ -32,7 +33,7 @@ namespace Tac
   const int BilinearFilteringPadding { 1 };
 
   //        This is the font size for a sdf glyph rendered into a cell
-  const int TextPxHeight             { FontCellPxSize - ( 2 * FontCellInnerSDFPadding ) };
+  const int TextPxHeight             { ( FontCellPxSize / 2 ) - ( 2 * FontCellInnerSDFPadding ) };
 
   struct FontDims
   {
@@ -127,16 +128,19 @@ namespace Tac
 
   struct FontApi
   {
-    static void                  Init( Errors& );
-    static void                  Uninit();
-    static const FontDims*       GetLanguageFontDims( Language );
-    static const FontAtlasCell*  GetFontAtlasCell( Language, Codepoint );
-    static Render::TextureHandle GetAtlasTextureHandle();
-    static float                 GetSDFOnEdgeValue(); // [0,1]
-    static float                 GetSDFPixelDistScale(); // [0,1]
-    static void                  UpdateGPU( Errors& );
+    static void Init( Errors& );
+    static void Uninit();
+    static auto GetLanguageFontDims( Language ) -> const FontDims*;
+    static auto GetFontAtlasCell( Language, Codepoint ) -> const FontAtlasCell*;
+    static auto GetAtlasTextureHandle() -> Render::TextureHandle;
+    static auto GetSDFOnEdgeValue() -> float; // [0,1]
+    static auto GetSDFPixelDistScale() -> float; // [0,1]
+    static void UpdateGPU( Errors& );
+    static void LoadFont( Language, AssetPathStringView, Errors& );
   };
 
 
 } // namespace Tac
 #endif
+
+

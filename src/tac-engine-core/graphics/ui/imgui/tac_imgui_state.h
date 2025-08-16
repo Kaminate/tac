@@ -47,8 +47,6 @@ namespace Tac
 
   struct ImGuiWindow
   {
-    ImGuiWindow();
-    ~ImGuiWindow();
     void                          BeginFrame();
     void                          EndFrame();
 

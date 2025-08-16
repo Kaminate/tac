@@ -107,14 +107,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  ImGuiWindow::ImGuiWindow()
-  {
-  }
-
-  ImGuiWindow::~ImGuiWindow()
-  {
-  }
-
   void         ImGuiWindow::Scrollbar()
   {
     ImGuiGlobals& globals { ImGuiGlobals::Instance };

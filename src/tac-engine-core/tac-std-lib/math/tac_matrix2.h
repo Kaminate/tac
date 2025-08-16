@@ -8,8 +8,8 @@ namespace Tac
   struct m2
   {
     float
-      m00, m01,
-      m10, m11;
+      m00{ 1 }, m01{ 0 },
+      m10{ 0 }, m11{ 1 };
 
     m2() = default;
     m2( float mm00, float mm01,

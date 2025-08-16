@@ -23,54 +23,61 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void                  FontApi::Init( Errors& errors )
+  void FontApi::Init( Errors& errors )
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     fontAtlas.Load( errors );
   }
 
-  void                  FontApi::Uninit()
+  void FontApi::Uninit()
   {
     //FontAtlas& fontAtlas{ FontAtlas::Instance };
     FontAtlas::Instance.Uninit();
   }
 
-  const FontDims*       FontApi::GetLanguageFontDims( Language language )
+  auto FontApi::GetLanguageFontDims( Language language ) -> const FontDims*
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     return fontAtlas.GetLanguageFontDims( language );
   }
 
-  const FontAtlasCell*  FontApi::GetFontAtlasCell( Language language,
-                                                   Codepoint codepoint )
+  auto FontApi::GetFontAtlasCell( Language language, Codepoint codepoint ) -> const FontAtlasCell*
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     return fontAtlas.GetCharacter( language, codepoint );
   }
 
-  Render::TextureHandle FontApi::GetAtlasTextureHandle()
+  auto FontApi::GetAtlasTextureHandle() -> Render::TextureHandle
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     return fontAtlas.GetTextureHandle();
   }
 
-  float                 FontApi::GetSDFOnEdgeValue()
+  auto FontApi::GetSDFOnEdgeValue() -> float
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     return fontAtlas.GetSDFOnEdgeValue();
   }
 
-  float                 FontApi::GetSDFPixelDistScale()
+  auto FontApi::GetSDFPixelDistScale() -> float
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     return fontAtlas.GetSDFPixelDistScale();
   }
 
-  void                  FontApi::UpdateGPU(Errors&errors)
+  void FontApi::UpdateGPU( Errors& errors )
   {
     FontAtlas& fontAtlas{ FontAtlas::Instance };
     return fontAtlas.UpdateGPU(errors);
   }
 
+  void FontApi::LoadFont( Language language, AssetPathStringView assetPath, Errors& errors )
+  {
+    FontAtlas& fontAtlas{ FontAtlas::Instance };
+    TAC_CALL( FontFile* fontFile{ TAC_NEW FontFile( assetPath, errors ) } );
+    fontAtlas.mFontFiles.push_back( fontFile );
+    fontAtlas.mDefaultFonts[ language ] = fontFile;
+  }
+
 }
-#endif
+#endif // #if TAC_FONT_ENABLED()

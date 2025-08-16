@@ -1,0 +1,10 @@
+#ifndef MICROTEX_MICROTEXEXPORT_H
+#define MICROTEX_MICROTEXEXPORT_H
+
+#ifdef _MSC_VER
+#include "vcruntime.h"
+#endif
+
+#define MICROTEX_EXPORT
+
+#endif //MICROTEX_MICROTEXEXPORT_H

@@ -25,6 +25,7 @@ add_subdirectory( phy_sim )
 add_subdirectory( vk )
 add_subdirectory( text )
 add_subdirectory( imgui )
+add_subdirectory( radiosity_math )
 
 target_include_directories( TacExamples PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
@@ -37,6 +38,8 @@ target_link_libraries( TacExamples
   TacECS
   TacWin32
   TacWin32Main
+
+  microtex # for radiosity_math
 )
 
 if( TARGET TacVkRenderer )

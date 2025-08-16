@@ -75,6 +75,7 @@ namespace Tac
     auto CellIndexToPos( int ) -> FontCellPos;
     void UploadCellGPU( FontAtlasCell*, Errors& );
 
+  public: // HACK, REMOVE ME
     Render::TextureHandle           mTextureId            {};
     int                             mPxStride             {};
     int                             mPxWidth              {};
@@ -85,7 +86,7 @@ namespace Tac
     int                             mCellCount            {};
     int                             mCellCapacity         {};
     Vector< FontFile* >             mFontFiles            {};
-    Map< Language, FontFile* >      mDefaultFonts         {};
+    Map< Language, FontFile* >      mDefaultFonts         {}; // this belongs 1 level higher
     bool                            FORCE_DRAW_EVERY_TIME {};
   };
 

@@ -26,9 +26,9 @@ namespace Tac
   struct m3
   {
     float
-      m00, m01, m02,
-      m10, m11, m12,
-      m20, m21, m22;
+      m00{ 1 }, m01{ 0 }, m02{ 0 },
+      m10{ 0 }, m11{ 1 }, m12{ 0 },
+      m20{ 0 }, m21{ 0 }, m22{ 1 };
 
 #if UseQuat()
     m3(TmpQuat);
@@ -61,6 +61,7 @@ namespace Tac
     static m3    FromColumns( const v3&, const v3&, const v3& );
     static m3    FromRows( const v3&, const v3&, const v3& );
     static m3    Identity();
+    static m3    Scale( float, float, float = 1);
     static m3    Scale( const v3& );
     static m3    RotRadEuler( const v3& );
     static m3    RotRadEulerInv( const v3& );
@@ -68,11 +69,14 @@ namespace Tac
     static m3    RotRadY( float );
     static m3    RotRadZ( float );
     static m3    RotRadAngleAxis( float, const v3& );
+    static m3    Translate( float, float );
     static m3    Translate( const v2& );
     static m3    CrossProduct( float, float, float );
     static m3    CrossProduct( const v3& );
     void operator*= ( float );
     void operator+= ( const m3& );
+    bool operator == ( const m3& ) const = default;
+    bool operator != ( const m3& ) const = default;
   };
 
   m3 operator* ( float, const m3& );

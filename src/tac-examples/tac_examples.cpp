@@ -30,8 +30,8 @@ namespace Tac
 
   struct ExampleState : public App::IState
   {
-    World mWorld;
-    Camera mCamera;
+    World  mWorld  {};
+    Camera mCamera {};
   };
 
   Example::Example()
@@ -170,8 +170,6 @@ namespace Tac
       return;
 
     const v2i windowSize{ AppWindowApi::GetSize( sDemoWindow ) };
-
-
     ExampleState* state{ ( ExampleState* )appRenderParams.mNewState };
     if( !state )
       return;
@@ -202,9 +200,7 @@ namespace Tac
       .mDepth              { backbufferDepth },
       .mBuffers            { &sDebug3DDrawBuffers },
     };
-
     TAC_CALL( GamePresentation::Render( gamePresentationRenderParams, errors ) );
-
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
@@ -214,7 +210,6 @@ namespace Tac
       OS::OSAppStopRunning();
 
     TAC_CALL( ExampleDemoWindow( errors ) );
-
     TAC_CALL( ExampleSelectorWindow( errors ) );
   }
 
@@ -277,10 +272,7 @@ namespace Tac
 
   App* App::Create()
   {
-    const App::Config cfg
-    {
-      .mName { "Examples"  },
-    };
+    const App::Config cfg{ .mName { "Examples" } };
     return TAC_NEW ExamplesApp(cfg);
   }
 
@@ -291,8 +283,7 @@ namespace Tac
     force += AppKeyboardApi::IsPressed( Key::A ) ? -mCamera->mRight : v3{};
     force += AppKeyboardApi::IsPressed( Key::S ) ? -mCamera->mUp : v3{};
     force += AppKeyboardApi::IsPressed( Key::D ) ? mCamera->mRight : v3{};
-    const float q { force.Quadrance() };
-    if( q )
+    if( const float q{ force.Quadrance() }; q )
       force /= Sqrt( q );
 
     return force;

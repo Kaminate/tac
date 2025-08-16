@@ -386,6 +386,14 @@ namespace Tac
     };
   }
 
+  m3 m3::Scale( float x, float y, float z )
+  {
+    return {
+      x, 0, 0,
+      0, y, 0,
+      0, 0, z };
+  }
+
   m3 m3::Scale( const v3& scale )
   {
     return {
@@ -394,6 +402,13 @@ namespace Tac
       0, 0, scale[ 2 ] };
   }
 
+  m3 m3::Translate( float x, float y )
+  {
+    return {
+      1, 0, x,
+      0, 1, y,
+      0, 0, 1 };
+  }
   m3 m3::Translate( const v2& v )
   {
     return {

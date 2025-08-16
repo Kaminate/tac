@@ -46,10 +46,7 @@ namespace Tac::OS
       LogApi::LogMessagePrintLine( str, LogApi::kError );
       OSDebugPopupBox( str );
       OSDebugBreak();
-      if constexpr( kIsDebugMode )
-      {
-      }
-      else
+      if constexpr( !kIsDebugMode )
       {
         std::exit( -1 );
       }
