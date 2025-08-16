@@ -4,7 +4,7 @@
 
 namespace Tac
 {
-  struct ExampleRadiosityMath : public Example
+  struct ExampleLaTeXSimple : public Example
   {
     void Update( Errors& ) override;
   };

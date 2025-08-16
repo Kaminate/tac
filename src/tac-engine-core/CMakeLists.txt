@@ -50,7 +50,9 @@ add_subdirectory( window )
 
 target_link_libraries( TacEngineCore
   TacRHI  
-  TacStdLib )
+  TacStdLib
+  microtex
+)
 
 
 # -------------------------------------------

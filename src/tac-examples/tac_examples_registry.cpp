@@ -12,7 +12,8 @@
 #include "tac-examples/phy_sim/tac_example_phys_sim_6_rotcollision.h"
 #include "tac-examples/phy_sim/tac_example_phys_sim_7_friction.h"
 #include "tac-examples/imgui/tac_example_imgui.h"
-#include "tac-examples/radiosity_math/tac_example_radiosity_math.h"
+#include "tac-examples/LaTeX_radiosity/tac_example_LaTeX_radiosity.h"
+#include "tac-examples/LaTeX_simple/tac_example_LaTeX_simple.h"
 
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/containers/tac_vector.h"
@@ -67,7 +68,8 @@ void Tac::ExampleRegistryPopulate()
   ExampleRegistryAdd< ExamplePhysSim7Friction >( "Physics - Sim 7 Friction" );
   ExampleRegistryAdd< ExampleText >( "Text" );
   ExampleRegistryAdd< ExampleImgui >( "ImGui" );
-  ExampleRegistryAdd< ExampleRadiosityMath >( "Radiosity Math" );
+  ExampleRegistryAdd< ExampleLaTeXRadiosity >( "LaTeX Radiosity" );
+  ExampleRegistryAdd< ExampleLaTeXSimple >( "LaTeX Simple" );
 }
 auto Tac::GetExampleIndex( const StringView& name ) -> int
 {

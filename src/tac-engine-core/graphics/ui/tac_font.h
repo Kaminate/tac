@@ -137,6 +137,7 @@ namespace Tac
     static auto GetSDFPixelDistScale() -> float; // [0,1]
     static void UpdateGPU( Errors& );
     static void LoadFont( Language, AssetPathStringView, Errors& );
+    static bool IsFontLoaded( AssetPathStringView );
   };
 
 

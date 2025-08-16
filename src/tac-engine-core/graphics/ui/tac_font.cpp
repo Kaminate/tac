@@ -79,5 +79,14 @@ namespace Tac
     fontAtlas.mDefaultFonts[ language ] = fontFile;
   }
 
+  bool FontApi::IsFontLoaded( AssetPathStringView assetPath )
+  {
+    FontAtlas& fontAtlas{ FontAtlas::Instance };
+    for( FontFile* fontFile : fontAtlas.mFontFiles )
+      if( ( AssetPathStringView )fontFile->mAssetPath == assetPath )
+        return true;
+    return false;
+  }
+
 }
 #endif // #if TAC_FONT_ENABLED()

@@ -44,9 +44,8 @@ namespace Tac
     float _sy = 1;
 
   public:
-    static float sMagic;
-    static float sMagic2;
-    static void UnitTest();
+    static float sMagicTextScale;
+    static float sMagicLineWidth;
 
     void setColor( microtex::color c ) override;
     auto getColor() const -> microtex::color override;

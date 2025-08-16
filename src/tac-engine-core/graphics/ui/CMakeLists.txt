@@ -7,6 +7,8 @@ target_sources( TacEngineCore PRIVATE
   tac_text_edit.h
   tac_ui_2d.cpp
   tac_ui_2d.h
+  tac_microtex.cpp
+  tac_microtex.h
 )
 
 add_subdirectory( imgui )

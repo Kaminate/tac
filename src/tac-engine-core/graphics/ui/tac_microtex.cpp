@@ -25,23 +25,6 @@ namespace Tac
     return { xyzprime.x, xyzprime.y };
   }
 
-  void MicroTeXImGuiGraphics::UnitTest()
-  {
-    m3 a{ 1, 2, 3,
-          4, 5, 6,
-          7, 8, 9 };
-    m3 b{ 11, 22, 33,
-          44, 55, 66,
-          77, 88, 99 };
-    m3 c = a * b;
-    m3 cExpected{ 330, 396, 462,
-                  726, 891, 1056,
-                  1122, 1386, 1650 };
-
-    TAC_ASSERT( c == cExpected );
-  }
-
-
   MicroTeXImGuiFont::MicroTeXImGuiFont( const std::string& file )
   {
     mFile = file;
@@ -148,8 +131,8 @@ namespace Tac
     return len;
   }
 
-  float MicroTeXImGuiGraphics::sMagic{ .9f };
-  float MicroTeXImGuiGraphics::sMagic2{ 0.05f };
+  float MicroTeXImGuiGraphics::sMagicTextScale{ .9f };
+  float MicroTeXImGuiGraphics::sMagicLineWidth{ 0.05f };
 
   static v4 ToImGuiCol32( microtex::color _color )
   {
@@ -190,12 +173,14 @@ namespace Tac
 
     ImGuiPushFontSize( _fontSize * sTransform.m11 );
 
-    float fontSize = ImGuiGetFontSize() * sMagic;
+    float fontSize = ImGuiGetFontSize() * sMagicTextScale;
     sLastGlyphFontSize = fontSize;
 
+    
     pos.y -= fontSize;
     pos += ImGuiGetWindowPos();
-    pos += ImGuiGetWindowContentRegionMin();
+    pos.x -= ImGuiGetWindowContentRegionMin().x; // ???
+    pos.y += ImGuiGetWindowContentRegionMin().y; // ???
 
     auto imCol32 = ToImGuiCol32( _color );
 
@@ -252,20 +237,23 @@ namespace Tac
   }
   void MicroTeXImGuiGraphics::drawLine( float x1, float y1, float x2, float y2 )
   {
-    v2 p0 = Transform( x1, y1 ) + ImGuiGetWindowPos() + ImGuiGetWindowContentRegionMin();
-    v2 p1 = Transform( x2, y2 ) + ImGuiGetWindowPos() + ImGuiGetWindowContentRegionMin();
-    auto drawList = ImGuiGetDrawData(); // ImGui::GetWindowDrawList();
-    auto imCol32 = ToImGuiCol32( _color );
-    float thickness = sLastGlyphFontSize * sMagic2;
-
-    UI2DDrawData::Line line
+    if( auto drawList = ImGuiGetDrawData() )
     {
-      .mP0         {p0},
-      .mP1         {p1},
-      .mLineRadius { thickness },
-      .mColor      { imCol32 },
-    };
-    drawList->AddLine( line );
+      v2 p0 = Transform( x1, y1 ) + ImGuiGetWindowPos();
+      v2 p1 = Transform( x2, y2 ) + ImGuiGetWindowPos();
+      p0.x -= ImGuiGetWindowContentRegionMin().x; // ???
+      p0.y += ImGuiGetWindowContentRegionMin().y; // ???
+      p1.y += ImGuiGetWindowContentRegionMin().y; // ???
+      const float thickness = sLastGlyphFontSize * sMagicLineWidth;
+      const UI2DDrawData::Line line
+      {
+        .mP0         { p0 },
+        .mP1         { p1 },
+        .mLineRadius { thickness },
+        .mColor      { ToImGuiCol32( _color ) },
+      };
+      drawList->AddLine( line );
+    }
   }
   void MicroTeXImGuiGraphics::drawRect( float x, float y, float w, float h )
   {
