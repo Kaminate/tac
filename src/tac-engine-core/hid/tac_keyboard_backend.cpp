@@ -52,6 +52,13 @@ namespace Tac
   void AppKeyboardApiBackend::SetMousePos( v2 screenspace )
   {
     sAppCurr.mMousePosScreenspace = screenspace;
+
+    // prevent frame 1 jump when calling getmouse when calling GetMousePosDelta()
+    if( static bool sInitialized; !sInitialized )
+    {
+      sInitialized = true;
+      sAppPrev.mMousePosScreenspace = screenspace;
+    }
   }
 
   void AppKeyboardApiBackend::AddMouseWheelDelta( float wheelDelta )

@@ -595,7 +595,7 @@ namespace Tac
     const StringView& utf8 { text.mUtf8 };
     const v4& color { text.mColor };
 
-    if( utf8.empty() )
+    if( utf8.empty() || fontSize <= 0 )
       return;
 
     const CodepointView codepoints{ UTF8ToCodepointView( utf8 ) };

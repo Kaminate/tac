@@ -160,7 +160,11 @@ namespace Tac
 
 	auto ImGuiGetWindowHandle() -> WindowHandle;
 	auto ImGuiGetWindowHandle( StringView ) -> WindowHandle;
+  auto ImGuiGetWindowPos() -> v2;
+  auto ImGuiGetWindowContentRegionMin() -> v2;
   auto ImGuiGetContentRect() -> ImGuiRect;
+  auto ImGuiGetDrawData() -> UI2DDrawData*;
+  void ImGuiSetIsScrollbarEnabled( bool );
 
   //   ImGuiSetNextWindow...
 	void ImGuiSetNextWindowMoveResize();
@@ -211,10 +215,6 @@ namespace Tac
   void ImGuiDefaultColors();
   void ImGuiDebugColors();
 
-  auto ImGuiGetDrawData() -> UI2DDrawData*;
-  void ImGuiSetIsScrollbarEnabled( bool );
-  auto ImGuiGetWindowPos() -> v2;
-  auto ImGuiGetWindowContentRegionMin() -> v2;
   
   void ImGuiPlatformRenderFrameBegin( Errors& );
   void ImGuiPlatformRender( Errors& );

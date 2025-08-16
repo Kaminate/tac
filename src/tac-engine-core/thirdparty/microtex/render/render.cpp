@@ -122,6 +122,9 @@ void Render::draw(Graphics2D& g2, int x, int y) {
   auto fixedScale = _data->fixedScale;
   auto box = _data->root;
 
+  if( fixedScale <= 0.01f )
+    return;
+
   g2.setColor(isTransparent(_data->fg) ? black : _data->fg);
   g2.translate(x, y);
   g2.scale(fixedScale, fixedScale);
