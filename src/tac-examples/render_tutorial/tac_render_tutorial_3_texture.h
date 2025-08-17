@@ -23,26 +23,25 @@ namespace Tac
 
   private:
 
-    WindowHandle           mWindowHandle;
-    Render::BufferHandle   mVtxBuf;
-    Render::ProgramHandle  mShader;
-    Render::PipelineHandle mPipeline;
-    Render::TexFmt         mColorFormat;
-    Render::TexFmt         mDepthFormat;
-    Render::SamplerHandle  mSampler;
-    Render::TextureHandle  mTexture;
-
-    Render::IShaderVar*    mShaderVtxBufs{};
-    Render::IShaderVar*    mShaderSamplers{};
-    Render::IShaderVar*    mShaderTextures{};
-    int                    mVtxCount{};
+    WindowHandle           mWindowHandle   {};
+    Render::BufferHandle   mVtxBuf         {};
+    Render::ProgramHandle  mShader         {};
+    Render::PipelineHandle mPipeline       {};
+    Render::TexFmt         mColorFormat    {};
+    Render::TexFmt         mDepthFormat    {};
+    Render::SamplerHandle  mSampler        {};
+    Render::TextureHandle  mTexture        {};
+    Render::IShaderVar*    mShaderVtxBufs  {};
+    Render::IShaderVar*    mShaderSamplers {};
+    Render::IShaderVar*    mShaderTextures {};
+    int                    mVtxCount       {};
 #if 1
-    const char*            mTexPath{ "assets/essential/are_ya_winnin_son.png" };
-    Render::Filter         mFilter{ Render::Filter::Linear };
+    const char*            mTexPath        { "assets/essential/are_ya_winnin_son.png" };
+    Render::Filter         mFilter         { Render::Filter::Linear };
 #else
-    const char*            mTexPath{ "assets/essential/image_loader_test.png" };
-    //const char*            mTexPath{ "assets/essential/1024white.png" };
-    Render::Filter         mFilter{ Render::Filter::Point };
+    const char*            mTexPath        { "assets/essential/image_loader_test.png" };
+    //const char*            mTexPath      { "assets/essential/1024white.png" };
+    Render::Filter         mFilter         { Render::Filter::Point };
 #endif
   };
 

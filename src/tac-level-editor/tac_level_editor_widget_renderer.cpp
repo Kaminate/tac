@@ -32,7 +32,7 @@ namespace Tac
     v4 mColor;
   };
 
-  static m4 GetProj( WindowHandle viewHandle, const Camera* camera )
+  static auto GetProj( WindowHandle viewHandle, const Camera* camera ) -> m4
   {
     
     const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
@@ -51,7 +51,7 @@ namespace Tac
     return m4::ProjPerspective( projParams );
   }
 
-  static Render::CreateBufferParams GetPerObjParams()
+  static auto GetPerObjParams() -> Render::CreateBufferParams
   {
     return Render::CreateBufferParams
     {
@@ -62,7 +62,7 @@ namespace Tac
     };
   }
 
-  static Render::CreateBufferParams GetPerFrameParams()
+  static auto GetPerFrameParams() -> Render::CreateBufferParams
   {
     return Render::CreateBufferParams
     {
@@ -73,7 +73,7 @@ namespace Tac
     };
   }
 
-  static Render::ProgramParams GetProgramParams3DTest()
+  static auto GetProgramParams3DTest() -> Render::ProgramParams
   {
     return Render::ProgramParams
     {
@@ -82,7 +82,7 @@ namespace Tac
     };
   }
 
-  static Render::RasterizerState GetRasterizerState()
+  static auto GetRasterizerState() -> Render::RasterizerState
   {
     return Render::RasterizerState
     {
@@ -93,7 +93,7 @@ namespace Tac
     };
   }
 
-  static Render::BlendState GetBlendState()
+  static auto GetBlendState() -> Render::BlendState
   {
     return Render::BlendState
     {
@@ -106,7 +106,7 @@ namespace Tac
     };
   }
 
-  static Render::DepthState GetDepthState()
+  static auto GetDepthState() -> Render::DepthState
   {
     return Render::DepthState
     {
@@ -116,7 +116,7 @@ namespace Tac
     };
   }
 
-  static Render::VertexDeclarations GetVtxDecls3D()
+  static auto GetVtxDecls3D() -> Render::VertexDeclarations
   {
     const Render::VertexDeclaration posDecl
     {
@@ -140,7 +140,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  Render::PipelineParams WidgetRenderer::GetPipelineParams()
+  auto WidgetRenderer::GetPipelineParams() ->   Render::PipelineParams
   {
     return Render::PipelineParams
     {
@@ -237,7 +237,7 @@ namespace Tac
     renderContext->UpdateBuffer( mBufferPerObj, update, errors );
   }
 
-  v4 WidgetRenderer::GetAxisColor( int i )
+  auto WidgetRenderer::GetAxisColor( int i ) ->   v4
   {
     const v3 axises[ 3 ]{ v3( 1, 0, 0 ),
                           v3( 0, 1, 0 ),
@@ -256,7 +256,7 @@ namespace Tac
     return color;
   }
 
-  m4 WidgetRenderer::GetAxisWorld( int i )
+  auto WidgetRenderer::GetAxisWorld( const int i ) -> m4
   {
     const m4 rots[]{ m4::RotRadZ( -3.14f / 2.0f ),
                      m4::Identity(),
@@ -280,7 +280,6 @@ namespace Tac
       return;
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
-
     renderContext->SetPipeline( m3DPipeline );
     TAC_CALL( UpdatePerFrame( renderContext, viewHandle, camera, errors ) );
 
@@ -288,15 +287,9 @@ namespace Tac
     {
       TAC_CALL( UpdatePerObject( renderContext, i, errors ) );
       renderContext->CommitShaderVariables();
-
-      const Mesh* mesh{ mArrow };
-      for( const SubMesh& subMesh : mesh->mSubMeshes )
+      for( const SubMesh& subMesh : mArrow->mSubMeshes )
       {
-        const Render::DrawArgs drawArgs
-        {
-          .mIndexCount { subMesh.mIndexCount },
-        };
-
+        const Render::DrawArgs drawArgs{ .mIndexCount { subMesh.mIndexCount }, };
         renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
         renderContext->SetVertexBuffer( subMesh.mVertexBuffer );
         renderContext->SetIndexBuffer( subMesh.mIndexBuffer );

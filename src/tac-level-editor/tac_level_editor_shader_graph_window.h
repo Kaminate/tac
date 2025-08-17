@@ -6,7 +6,7 @@ namespace Tac
 {
   struct CreationShaderGraphWindow
   {
-    static void                    Update( Errors& );
-    static bool                    sShowWindow;
+    static void Update( Errors& );
+    static bool sShowWindow;
   };
 }

@@ -17,29 +17,17 @@ namespace Tac
 {
   struct WidgetRenderer
   {
-    void Init( CreationMousePicking*,
-               GizmoMgr*,
-               Errors& );
+    void Init( CreationMousePicking*, GizmoMgr*, Errors& );
     void Uninit();
-
-    void RenderTranslationWidget( Render::IContext*,
-                                  WindowHandle,
-                                  const Camera*,
-                                  Errors& );
+    void RenderTranslationWidget( Render::IContext*, WindowHandle, const Camera*, Errors& );
 
   private:
 
-    void UpdatePerFrame( Render::IContext*,
-                         WindowHandle,
-                         const Camera*,
-                         Errors& );
-
+    void UpdatePerFrame( Render::IContext*, WindowHandle, const Camera*, Errors& );
     void UpdatePerObject( Render::IContext*, int, Errors& );
-
-    v4 GetAxisColor( int );
-    m4 GetAxisWorld( int );
-
-    Render::PipelineParams        GetPipelineParams();
+    auto GetAxisColor( int ) -> v4;
+    auto GetAxisWorld( int ) -> m4;
+    auto GetPipelineParams() -> Render::PipelineParams;
 
     Render::ProgramHandle         m3DShader                 {};
     Render::PipelineHandle        m3DPipeline               {};
@@ -47,12 +35,9 @@ namespace Tac
     Render::BufferHandle          mBufferPerObj             {};
     Render::IShaderVar*           mShaderPerFrame           {};
     Render::IShaderVar*           mShaderPerObj             {};
-
     Mesh*                         mArrow                    {};
-
     CreationMousePicking*         mMousePicking             {};
     GizmoMgr*                     mGizmoMgr                 {};
-
   };
 }
 #endif

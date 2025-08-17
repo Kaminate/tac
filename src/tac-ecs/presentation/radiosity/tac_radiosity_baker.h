@@ -21,8 +21,8 @@ namespace Tac
       using VtxPos = Array< v3, 3 >;
       using VtxNor = Array< v3, 3 >;
 
-      float GetUnshotPower() const;
-      v3    GetUniformRandomSurfacePoint() const;
+      auto    GetUnshotPower() const -> float;
+      auto    GetUniformRandomSurfacePoint() const -> v3;
 
       VtxPos  mTriVerts             {}; // worldspace
       VtxNor  mTriNormals           {}; // worldspace
@@ -60,6 +60,13 @@ namespace Tac
     auto ComputeTotalUnshotPower() -> float;
     void Execute( Errors& )override;
     void SaveToFile( Errors& );
+
+    template<typename Fn>
+    void ForEachPatch( Fn&& fn ) {
+      for( Instance& instance : mInstances )
+        for( PatchPower& patchPower : instance.mPatchPowers )
+          fn( patchPower );
+    }
 
     using Instances = Vector< Instance >;
 

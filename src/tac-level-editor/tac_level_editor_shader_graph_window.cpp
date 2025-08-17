@@ -22,7 +22,7 @@ namespace Tac
       return false;
     }
 
-    static Span< const SVSemantic > GetSemantics()
+    static auto GetSemantics() -> Span< const SVSemantic >
     {
       static Vector< SVSemantic > mSemantics;
       if( mSemantics.empty() )
@@ -36,7 +36,7 @@ namespace Tac
       return Span< const SVSemantic >( mSemantics.data(), mSemantics.size() );
     }
 
-    static const SVSemantic*        Find( StringView semantic )
+    static auto Find( StringView semantic ) -> const SVSemantic*
     {
       for( const SVSemantic& element : GetSemantics() )
         if( ( StringView )element.mSemanticName == semantic )
@@ -45,15 +45,16 @@ namespace Tac
       return nullptr;
     }
 
-    const char*                       mSemanticName;
-    FixedVector< const MetaType*, 4 > mAllowedTypes;
+    using AllowedType = FixedVector< const MetaType*, 4 >;
+
+    const char* mSemanticName{};
+    AllowedType mAllowedTypes{};
   };
 
   // Helper struct to edit a MaterialVSOut::Variable*
   struct MaterialVSOutEditUI
   {
     void EditVariable( MaterialVSOut::Variable* var )
-
     {
       mToEdit = var;
       if( var )
@@ -160,7 +161,6 @@ namespace Tac
     String                   mVariableNameInput {};
     String                   mSemanticNameInput {};
     bool                     mAutoSemantic      {};
-
     MaterialVSOut::Variable* mToEdit            {};
   };
 
@@ -396,15 +396,11 @@ namespace Tac
       return;
 
     sShowWindow |= !ImGuiButton( "Close Window" );
-
     TAC_CALL( ShaderGraphImGui( sShaderGraph, errors ) );
-
     ImGuiText( "Current shader graph: " +
                ( sCurrentFile.empty() ? ( StringView )"none" : ( StringView )sCurrentFile ) );
-
     TAC_CALL( FileSaveImGui( errors ) );
     TAC_CALL( FileLoadImGui( errors ) );
-
     ImGuiEnd();
   }
 

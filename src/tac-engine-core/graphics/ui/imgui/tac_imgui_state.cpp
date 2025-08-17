@@ -632,7 +632,6 @@ namespace Tac
       if( !mDst->mBuffer.IsValid() || mDst->mByteCount < srcTotByteCount )
       {
         renderDevice->DestroyBuffer( mDst->mBuffer );
-
         const Render::CreateBufferParams createBufferParams
         {
           .mByteCount    { srcTotByteCount },
@@ -642,10 +641,7 @@ namespace Tac
           .mGpuBufferFmt { mTexFmt },
           .mOptionalName { mBufName },
         };
-
-
-        TAC_CALL( mDst->mBuffer =
-                  renderDevice->CreateBuffer( createBufferParams, errors ) );
+        TAC_CALL( mDst->mBuffer = renderDevice->CreateBuffer( createBufferParams, errors ) );
         mDst->mByteCount = srcTotByteCount;
       }
 

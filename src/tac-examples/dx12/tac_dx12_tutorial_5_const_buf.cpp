@@ -779,7 +779,7 @@ namespace Tac
       .mFmt         { RTVFormat },
     };
     TAC_CALL( m_swapChain.Init(  scInfo, errors ) );
-    TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
+    m_swapChain->GetDesc1( &m_swapChainDesc );
     m_swapChainValid = true;
   }
 
@@ -788,8 +788,8 @@ namespace Tac
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
     int iOffset ) const
   {
-    const UINT descriptorSize { m_descriptorSizes[heapType] };
-    const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
+    const UINT descriptorSize{ m_descriptorSizes[ heapType ] };
+    const SIZE_T ptr{ heapStart.ptr + iOffset * descriptorSize };
     return D3D12_CPU_DESCRIPTOR_HANDLE{ ptr };
   }
 

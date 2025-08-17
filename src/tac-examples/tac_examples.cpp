@@ -152,9 +152,7 @@ namespace Tac
 
     sDemoWindow = ImGuiGetWindowHandle();
     TAC_ON_DESTRUCT( ImGuiEnd() );
-
     const int iOld{ GetCurrExampleIndex() };
-
     TAC_CALL( ExampleStateMachineUpdate( errors ) );
     const int iNew { GetCurrExampleIndex() };
     if( iOld != iNew )
