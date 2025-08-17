@@ -8,36 +8,37 @@
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 
 #include <microtex/microtex.h>
-//#include <microtex/env/env.h>
 
 namespace Tac
 {
-  static bool              sInitialized          {};
-  static microtex::Render* render                {};
-  static MicroTeXImGuiGraphics    sGraphics2D           {};
-  static const char*       sExample_Integral     { R"_(\int_{\textcolor{red}{a}}^b \frac{x}{\ln(x)} \, \mathrm{d}x)_" };
-  static const char*       sExample_Curr         {};
-  static const char*       sExample_Next         { sExample_Integral };
-  static float             sExampleSizeMultipler { 3 };
-  static v2                sPos                  { 300, 250 };
+  static bool                  sInitialized                 {};
+  static MicroTeXImGuiGraphics sGraphics2D                  {};
 
-  static v2    sCamPos_worldspace    {};
-  static float sCamHeight_worldspace { 10 }; // worldunits
+  // Camera parameters (worldspace)
+  static v2                    sWorldspaceCamPos            {};
+  static float                 sWorldspaceCamHeight         { 10 };
 
-  static v2           sTestEqPos_worldspace    { 0, 0 };
-  static float        sTestEqSize_worldspace   { 2 };
-  static const char*  sTestEqStr               { "y=mx+b" };
+  // Line equation (worldspace)
+  static bool                  sWorldspaceEqEnabled         { true };
+  static v2                    sWorldspaceEqPos             { 0, 0 };
+  static float                 sWorldspaceEqSize            { 2 };
+  static const char*           sWorldspaceEqStr             { "y=mx+b" };
+
+  struct TextBlock
+  {
+    // Radiosity from zero to hero
+  };
 
   static v2 WorldToCamera( v2 p_world )
   {
-    m3 worldToCameraTranslation{ m3::Translate( -sCamPos_worldspace ) };
+    m3 worldToCameraTranslation{ m3::Translate( -sWorldspaceCamPos ) };
     return ( worldToCameraTranslation * v3( p_world, 1.0f ) ).xy();
   }
 
   static v2 CameraToWindow( v2 p_view )
   {
     const ImGuiRect contentRect{ ImGuiGetContentRect() };
-    float px_per_world_unit = contentRect.GetHeight() / sCamHeight_worldspace;
+    float px_per_world_unit = contentRect.GetHeight() / sWorldspaceCamHeight;
     v2 p_window = p_view * px_per_world_unit;
     p_window.y *= -1;
     p_window.x += contentRect.GetWidth() / 2;
@@ -54,17 +55,13 @@ namespace Tac
 
   static void DrawLineWorldspace( v2 p0_world, v2 p1_world, v4 color )
   {
-    v2 p0_window = WorldToWindow( p0_world );
-    v2 p1_window = WorldToWindow( p1_world );
-
-
-    if( auto drawData = ImGuiGetDrawData() )
+    if( auto drawData{ ImGuiGetDrawData() } )
     {
       const UI2DDrawData::Line xline
       {
-        .mP0{ p0_window },
-        .mP1{ p1_window },
-        .mColor{ color },
+        .mP0    { WorldToWindow( p0_world ) },
+        .mP1    { WorldToWindow( p1_world ) },
+        .mColor { color },
       };
       drawData->AddLine( xline );
     }
@@ -72,33 +69,37 @@ namespace Tac
 
   static void CameraControls()
   {
-    sCamHeight_worldspace -= AppKeyboardApi::GetMouseWheelDelta();
-    sCamHeight_worldspace = Max( sCamHeight_worldspace, 1.0f );
-    float px_per_world_unit = ImGuiGetContentRect().GetHeight() / sCamHeight_worldspace;
+    ImGuiText( "Camera Controls:\n"
+               "- Middle mouse to pan\n"
+               "- Scroll wheel to zoom" );
+    sWorldspaceCamHeight *= ( 1.0f - AppKeyboardApi::GetMouseWheelDelta() / 10.0f );
+    sWorldspaceCamHeight = Max( sWorldspaceCamHeight, 0.1f );
     if( AppKeyboardApi::IsPressed( Key::MouseMiddle ) )
     {
       if( v2 px_delta{ AppKeyboardApi::GetMousePosDelta() }; px_delta != v2{} )
       {
-        sCamPos_worldspace.x -= px_delta.x / px_per_world_unit;
-        sCamPos_worldspace.y += px_delta.y / px_per_world_unit;
+        float px_per_world_unit{ ImGuiGetContentRect().GetHeight() / sWorldspaceCamHeight };
+        sWorldspaceCamPos.x -= px_delta.x / px_per_world_unit;
+        sWorldspaceCamPos.y += px_delta.y / px_per_world_unit;
       }
     }
   }
 
-  static void DrawEquation_worldspace( v2 pos_worldspace, float fontSize_worldspace )
+  static void DrawEquation_worldspace( const char* eqStr, v2 pos_worldspace, float fontSize_worldspace )
   {
-    __debugbreak();
-#if 0
-    v2 pos_windowspace = WorldToWindow( pos_worldspace );
-    float fontSize_windowspace = fontSize_worldspace * ??? ;
+    const ImGuiRect contentRect{ ImGuiGetContentRect() };
+    float px_per_world_unit{ contentRect.GetHeight() / sWorldspaceCamHeight };
+    v2 pos_windowspace{ WorldToWindow( pos_worldspace ) };
+    float fontSize_windowspace{ px_per_world_unit * fontSize_worldspace };
     const float width{}; // unlimited
     const float textSize{ fontSize_windowspace };
     const float lineSpace{}; // ???
     const microtex::color _color{ microtex::getColor( "white" ) };
-    auto curRender = microtex::MicroTeX::parse( sExample_Curr, width, textSize, lineSpace, _color );
-    curRender->draw( sGraphics2D, pos_windowspace.x, pos_windowspace.y );
-    delete curRender;
-#endif
+    if( auto curRender{ microtex::MicroTeX::parse( eqStr, width, textSize, lineSpace, _color ) } )
+    {
+      curRender->draw( sGraphics2D, pos_windowspace.x, pos_windowspace.y );
+      delete curRender;
+    }
   }
 
   void ExampleLaTeXRadiosity::Update( Errors& errors )
@@ -118,46 +119,23 @@ namespace Tac
       sInitialized = true;
     }
 
-    sExample_Next = sExample_Integral;
-
-    bool dirty{};
-    dirty |= ImGuiDragFloat( "Size Multiplier", &sExampleSizeMultipler );
-    dirty |= ( sExample_Curr != sExample_Next );
-    sExample_Curr = sExample_Next;
-
-    if( sExample_Curr && dirty )
+    if( ImGuiCollapsingHeader( "Equation (worldspace)" ) )
     {
-      const float width{}; // unlimited
-      const float textSize{ ImGuiGetFontSize() * sExampleSizeMultipler };
-      const float lineSpace{}; // ???
-      const microtex::color _color{ microtex::getColor( "white" ) };
-      render = microtex::MicroTeX::parse( sExample_Curr, width, textSize, lineSpace, _color );
+      TAC_IMGUI_INDENT_BLOCK;
+      ImGuiCheckbox( "Equation enabled", &sWorldspaceEqEnabled );
+      ImGuiDragFloat2( "equation pos (worldspace)", sWorldspaceEqPos.data() );
+      ImGuiDragFloat( "equation size (worldspace)", &sWorldspaceEqSize );
     }
 
-    ImGuiDragFloat2( "equation pos windowspace", sPos.data() );
-    ImGuiDragFloat2( "cam pos (worldspace)", sCamPos_worldspace.data() );
-    ImGuiDragFloat( "cam height (worldspace)", &sCamHeight_worldspace );
+
+    if( ImGuiCollapsingHeader( "Camera" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      ImGuiDragFloat2( "cam pos (worldspace)", sWorldspaceCamPos.data() );
+      ImGuiDragFloat( "cam height (worldspace)", &sWorldspaceCamHeight );
+    }
 
     CameraControls();
-
-    if( render )
-    {
-      render->draw( sGraphics2D, sPos.x, sPos.y );
-      if( auto drawData = ImGuiGetDrawData() )
-      {
-        v2 mini{ sPos * 0.95f };
-        v2 maxi{ sPos + 1.05f * v2( render->getWidth(), render->getHeight() ) }; //  *1.05f };
-        v2 TL{ mini };
-        v2 TR{ maxi.x, mini.y };
-        v2 BL{ mini.x, maxi.y };
-        v2 BR{ maxi };
-        drawData->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ TR } } );
-        drawData->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ BL } } );
-        drawData->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ TR } } );
-        drawData->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ BL } } );
-      }
-    }
-
 
     if( auto drawData = ImGuiGetDrawData() )
     {
@@ -165,9 +143,8 @@ namespace Tac
       DrawLineWorldspace( v2( 0, 0 ), v2( 0, 1 ), v4( 0, 1, 0, 1 ) );
     }
 
-    DrawEquation_worldspace( sTestEqPos_worldspace, sTestEqSize_worldspace );
-
-
+    if( sWorldspaceEqEnabled )
+      DrawEquation_worldspace( sWorldspaceEqStr, sWorldspaceEqPos, sWorldspaceEqSize );
   }
 } // namespace Tac
 

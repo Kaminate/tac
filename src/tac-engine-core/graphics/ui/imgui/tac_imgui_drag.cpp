@@ -183,7 +183,7 @@ namespace Tac
       }
       else
       {
-        auto remove_trailing_zeroes = []( String& s )
+        const auto remove_trailing_zeroes { []( String& s )
         {
           if( !s.contains( '.' ) )
             return;
@@ -191,7 +191,7 @@ namespace Tac
             s.pop_back();
           if( s.back() == '.' )
             s.pop_back();
-        };
+        } };
         remove_trailing_zeroes( valueStr );
       }
     }
@@ -282,9 +282,8 @@ namespace Tac
 
     // TODO: replace with return FormatString( "{:.2}", f );
     //       once visual studio doesnt fuck the syntax highlighting
-    String s { ToString( f ) };
-    const int iDot { s.find( '.' ) };
-    if( iDot != s.npos )
+    String s{ ToString( f ) };
+    if( const int iDot{ s.find( '.' ) }; iDot != s.npos )
     {
       const int numDigitsAfterDecimal { 2 };
       s.resize( Min( s.size(), iDot + numDigitsAfterDecimal + 1 ) );
@@ -298,13 +297,13 @@ namespace Tac
   };
 
   static void DragFloatMouseHandler( float mouseChangeSinceBeginningOfDrag,
-                                     const void* valAtDragStart,
+                                     const void* pValAtDragStart,
                                      void* curVal )
   {
-    const float& valAtDragStartRef { *( const float* )valAtDragStart };
+    const float valAtDragStart { *( const float* )pValAtDragStart };
+    const float offset { ( float )( mouseChangeSinceBeginningOfDrag * 0.01f ) };
     float& curValRef { *( float* )curVal };
-    const float offset { ( float )( mouseChangeSinceBeginningOfDrag * 0.1f ) };
-    curValRef = valAtDragStartRef + offset;
+    curValRef = valAtDragStart + offset;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -317,38 +316,35 @@ namespace Tac
   };
 
   static void DragIntMouseHandler ( float mouseChangeSinceBeginningOfDrag,
-                                       const void* valAtDragStart,
+                                       const void* pValAtDragStart,
                                        void* curVal )
   {
-    const int& valAtDragStartRef { *( const int* )valAtDragStart };
-    int& curValRef { *( int* )curVal };
+    const int valAtDragStart { *( const int* )pValAtDragStart };
     const int offset { ( int )( mouseChangeSinceBeginningOfDrag / 50.0f ) };
-    curValRef = valAtDragStartRef + offset;
+    int& curValRef { *( int* )curVal };
+    curValRef = valAtDragStart + offset;
   };
+} // namespace Tac
 
-
-
+bool Tac::ImGuiDragFloatN( const StringView& str, float* values, int n )
+{
+  return ImGuiDragTypeN( str,
+                         sizeof( float ),
+                         values,
+                         n,
+                         DragFloatGetter,
+                         DragFloatSetter,
+                         DragFloatMouseHandler );
 }
 
-  bool Tac::ImGuiDragFloatN( const StringView& str, float* values, int n )
-  {
-    return ImGuiDragTypeN( str,
-                           sizeof( float ),
-                           values,
-                           n,
-                           DragFloatGetter,
-                           DragFloatSetter,
-                           DragFloatMouseHandler );
-  }
-
-  bool Tac::ImGuiDragIntN( const StringView& str, int* values, int n )
-  {
-    return ImGuiDragTypeN( str,
-                           sizeof( int ),
-                           values,
-                           n,
-                           DragIntGetter,
-                           DragIntSetter,
-                           DragIntMouseHandler );
-  }
+bool Tac::ImGuiDragIntN( const StringView& str, int* values, int n )
+{
+  return ImGuiDragTypeN( str,
+                         sizeof( int ),
+                         values,
+                         n,
+                         DragIntGetter,
+                         DragIntSetter,
+                         DragIntMouseHandler );
+}
 

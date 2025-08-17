@@ -22,7 +22,7 @@
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-
+  //
   // Okay bro, heres the deal.
   //
   // I feel like using proper radiometric/photometric values suddenly makes things way complicated.
@@ -44,13 +44,8 @@ namespace Tac
   // https://placeholderart.wordpress.com/2014/11/21/implementing-a-physically-based-camera-manual-exposure/
   //  ^ this guy works at vicarious visions
   // https://knarkowicz.wordpress.com/2016/01/09/automatic-exposure/
-
+  //
   // -----------------------------------------------------------------------------------------------
-
-  // I think it's time to make a presentation.
-  // Final gather can wait.
-
-
 
   auto PreBakeScene::Raycast( PatchPower* fromPatch, RayTriangle::Ray ray ) -> PreBakeScene::RaycastResult
   {
@@ -201,52 +196,6 @@ namespace Tac
 
   void PreBakeScene::SaveToFile( Errors& errors )
   {
-    // deleteme
-    if( false)
-    {
-      mInstances.clear();
-      mWorld = TAC_NEW World;
-
-      Entity* entity = mWorld->SpawnEntity( EntityUUID( 1 ) );
-
-      Material* material{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
-      material->mIsGlTF_PBR_MetallicRoughness = true;
-      material->mColor = v4( 1, 1, 1, 1 );
-
-      PatchPower::VtxPos vtxPos;//= Array< v3, 3 >;
-      vtxPos[0] = v3( .1f, .2f, .3f );
-      vtxPos[1] = v3( 10, 0, 0 );
-      vtxPos[2] = v3( 0, 10, 0 );
-
-      PatchPower::VtxNor vtxNor; // = Array< v3, 3 >;
-      vtxNor[0] = v3( 0,0,1);
-      vtxNor[1] = v3( 0,0,1);
-      vtxNor[2] = v3( 0,0,1);
-
-      PatchPower     patchPower
-      {
-        .mTriVerts             { vtxPos },
-        .mTriNormals           { vtxNor },
-        //v3      mTotalPower           {},
-        //v3      mCurrentReceivedPower {},
-        //v3      mCurrentUnshotPower   {},
-        //v3      mUnitNormal           {},
-        .mArea                 { 1 }, // avoid div 0
-      };
-      PatchPowers     patchPowers{};
-      patchPowers.push_back( patchPower );
-
-      mInstances.push_back(
-        Instance
-        {
-          .mEntity      { entity },
-          //const Model*    mModel       {};
-          //const Mesh*     mMesh        {};
-          .mMaterial    { material },
-          .mPatchPowers { patchPowers },
-        } );
-    }
-
     const int nAttribs{3};
 
     // https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
@@ -279,31 +228,6 @@ namespace Tac
     dynmc char glTF_attribName_POS[]{ "POSITION" };
     dynmc char glTF_attribName_NOR[]{ "NORMAL" };
     dynmc char glTF_attribName_COL[]{ "COLOR_0" };
-
-#if 0
-    struct ManagedBuffers
-    {
-      struct ManagedBuffer : public Vector< v3 >
-      {
-        int GetByteCount() const { return size() * sizeof( v3 ); }
-      };
-
-      ~ManagedBuffers()
-      {
-        for( ManagedBuffer* b : mBufferVec )
-          TAC_DELETE b;
-      }
-
-      ManagedBuffer* AllocBuffer()
-      {
-        ManagedBuffer* b = TAC_NEW ManagedBuffer;
-        mBufferVec.push_back(b);
-        return b;
-      }
-
-      Vector< ManagedBuffer* > mBufferVec;
-    } managedBuffers;
-#endif
 
     for( int iInst{}; iInst < mInstances.size(); ++iInst )
     {
@@ -598,16 +522,16 @@ namespace Tac
     for( int iJacobi{}; iJacobi < maxJacobiIterations; ++iJacobi )
     {
       const float totalUnshotPower{ ComputeTotalUnshotPower() };
-
       if( totalUnshotPower < minPowerLimit )
         break;
 
       mElapsed += timer.Tick();
 
-      for( Instance& instance : mInstances)
+      for( Instance& instance : mInstances )
       {
-        for( PatchPower& patchPower_src : instance.mPatchPowers)
+        for( PatchPower& patchPower_src : instance.mPatchPowers )
         {
+          // This represents:
           // \Delta P_{src}^{(k)}
           const float unshotPower_src{ patchPower_src.GetUnshotPower() };
 
@@ -618,10 +542,11 @@ namespace Tac
           //           \Delta P_T
           const float q_src{ unshotPower_src / totalUnshotPower };
 
+          // This represents:
           // Number of samples allocated to this light source
           const int N_src{ ( int )( q_src * samplesPerIteration ) };
 
-          for( int sample_src_index{}; sample_src_index < N_src; ++sample_src_index)
+          for( int sample_src_index{}; sample_src_index < N_src; ++sample_src_index )
           {
             //          1
             // p(x) = -----
@@ -690,29 +615,30 @@ namespace Tac
             //                                    cos(theta)
             //                         p(omega) = ----------
             //                                        pi
-
-            // todo: bounce the light around the scene
             const RayTriangle::Ray ray_src_to_dst
             {
               .mOrigin    { samplePoint_src_worldspace },
               .mDirection { sampleDir_src_worldspace },
             };
             const RaycastResult raycastResult{ Raycast( &patchPower_src, ray_src_to_dst ) };
+            // The continue here is for
+            // \delta_{li}
             if( !raycastResult.mHitPatch )
-              continue; // \delta_{li}
+              continue;
 
             PatchPower& patchPower_dst { *raycastResult.mHitPatch };
             const v3 rho_dst { raycastResult.mHitPatchMaterial->mColor.xyz() };
 
             // [ ] Q: should raycastResult.mHitPatchMaterial->mColor.xyz() be converted from encded srgb to linear srgb?
+            // ( 1.0f / samplesPerIteration ) <-- averaging a bunch of samples
+            // totalUnshotPower <-- \Delta P_T^{(k)}
             const v3 sample_i
             {
               rho_dst *
-              ( 1.0f / samplesPerIteration ) * // ??? averaging a bunch of samples ???
-              totalUnshotPower // \Delta P_T^{(k)}
+              ( 1.0f / samplesPerIteration ) * 
+              totalUnshotPower
             }; 
             patchPower_dst.mCurrentReceivedPower += sample_i;
-
 
             /*
                -----------------------------------------------------------------------------
@@ -767,9 +693,9 @@ namespace Tac
                    std::cout << "monte carlo sum: " << S << std::endl;
                  }
             
-            */
-
-            /*
+               -----------------------------------------------------------------------------
+                                               Application
+               -----------------------------------------------------------------------------
                The value we would like to estimate is:
               
                  \Delta P_i^{k+1} = \sum_j \sum_{l \new j } \Delta P_j^{(k)}F_{jl}\rho_l \delta_{li}
@@ -785,19 +711,6 @@ namespace Tac
                but it is important that the samples are chosen with the specified probabilty.
                \frac{\Delta P_j^{(k)}}{\Delta P_T^{(k)}} F_{jl}
             */
-
-
-            if( false )
-            {
-              mDebugLine = true;
-              mDebugSrcPos = ray_src_to_dst.mOrigin;
-              mDebugDstPos = ray_src_to_dst.mOrigin + ray_src_to_dst.mDirection * raycastResult.mT;
-              mDebugSrcPatch = &patchPower_src;
-              mDebugDstPatch = &patchPower_dst;
-              return;
-            }
-
-
           } // for each sample
         } // for each patch
       } // for each instance
@@ -811,11 +724,7 @@ namespace Tac
           patchPower.mCurrentReceivedPower = {};
         }
       }
-
     } // for each jacobi iteration
   } // void PreBakeScene::Bake()
-
-
-
 } // namespace Tac
 
