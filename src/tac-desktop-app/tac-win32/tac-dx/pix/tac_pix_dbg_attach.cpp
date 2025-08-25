@@ -2,26 +2,22 @@
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-//#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
-//#include 	<libloaderapi.h>
+#define TRY_SET_HUD_OPTIONS() false
+
+#if TRY_SET_HUD_OPTIONS()
+#include "tac-win32/tac_win32.h"
+#include "WinPixEventRuntime/pix3.h" // include after tac_win32.h
+using PixSetHUDOptionsSig = HRESULT(WINAPI* )(PIXHUDOptions);
+static PixSetHUDOptionsSig sPixSetHUDOptions;
+#endif
 
 namespace Tac::Render
 {
-  //static String ConvertUnsafe( LPWSTR p )
-  //{
-  //  String s;
-  //  while( *p )
-  //    s += (char)*p++;
-  //  return s;
-  //}
-
   static const FileSys::Path pixInstallPath { "C:/Program Files/Microsoft PIX" };
-  static const char* pixDllName { "WinPixGpuCapturer.dll" };
-
-
+  static const char*         pixDllName     { "WinPixGpuCapturer.dll" };
 
   // Looking at https://devblogs.microsoft.com/pix/download/
   // Pix version numbers seem to usually be XXXX.YY 
@@ -110,6 +106,12 @@ namespace Tac::Render
                               "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
       }
 
+
+#if TRY_SET_HUD_OPTIONS()
+        sPixSetHUDOptions = (PixSetHUDOptionsSig)OS::OSGetProcAddress( lib, "PixSetHUDOptions" );
+        if( sPixSetHUDOptions )
+          sPixSetHUDOptions( PIX_HUD_SHOW_ON_NO_WINDOWS );
+#endif
     }
   }
 

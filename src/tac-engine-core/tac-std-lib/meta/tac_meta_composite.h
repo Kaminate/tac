@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/meta/tac_meta_decl.h"
 #include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/meta/tac_meta_type.h"
@@ -20,15 +20,15 @@ namespace Tac
 #define TAC_META_MEMBER( T, M )                                                                    \
   MetaMember                                                                                       \
   {                                                                                                \
-    .mName    {  #M },                                                                             \
-    .mOffset  { TAC_OFFSET_OF( T, M ) },                                                           \
+    .mName     { #M },                                                                             \
+    .mOffset   { TAC_OFFSET_OF( T, M ) },                                                          \
     .mMetaType { &GetMetaType< decltype( T::M ) >() },                                             \
   }
 
   struct MetaCompositeType : public MetaType
   {
     MetaCompositeType() = default;
-    MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars );
+    //MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars );
     const char*           GetName() const override;
     void                  SetName( const char* );
     void                  SetSize( int );
@@ -81,7 +81,13 @@ namespace Tac
   TAC_META_IMPL( T ); /* Define the GetMetaType() fn */                                            \
   TAC_REQUIRE_SEMICOLON
 
+#define TAC_META_REGISTER_STRUCT_BEGIN( T )  TAC_META_REGISTER_COMPOSITE_BEGIN( T )
+#define TAC_META_REGISTER_STRUCT_MEMBER( M ) TAC_META_REGISTER_COMPOSITE_MEMBER( M )
+#define TAC_META_REGISTER_STRUCT_END( T )    TAC_META_REGISTER_COMPOSITE_END( T )
 
+#define TAC_META_REGISTER_CLASS_BEGIN( T )  TAC_META_REGISTER_COMPOSITE_BEGIN( T )
+#define TAC_META_REGISTER_CLASS_MEMBER( M ) TAC_META_REGISTER_COMPOSITE_MEMBER( M )
+#define TAC_META_REGISTER_CLASS_END( T )    TAC_META_REGISTER_COMPOSITE_END( T )
 
   void MetaCompositeUnitTest();
 

@@ -24,20 +24,17 @@ namespace Tac
       const void* mSrc {};
     };
 
-    virtual const char* GetName() const = 0;
-    virtual int         GetSizeOf() const = 0;
-    virtual String      ToString( const void* ) const = 0;
-    virtual float       ToNumber( const void* ) const = 0;
-    virtual void        Cast( CastParams ) const = 0;
-
-    virtual void        JsonSerialize( dynmc Json*, const void* ) const = 0;
-    virtual void        JsonDeserialize( const Json*, dynmc void* ) const = 0;
-
-    virtual void        Read( ReadStream*, dynmc void* ) const;
-    virtual void        Write( WriteStream*, const void* ) const;
-
-    virtual bool        Equals( const void*, const void* ) const;
-    virtual void        Copy( CopyParams ) const;
+    virtual auto GetName() const -> const char* = 0;
+    virtual auto GetSizeOf() const -> int = 0;
+    virtual auto ToString( const void* ) const -> String = 0;
+    virtual auto ToNumber( const void* ) const -> float= 0;
+    virtual void Cast( CastParams ) const = 0;
+    virtual void JsonSerialize( dynmc Json*, const void* ) const = 0;
+    virtual void JsonDeserialize( const Json*, dynmc void* ) const = 0;
+    virtual void Read( ReadStream*, dynmc void* ) const;
+    virtual void Write( WriteStream*, const void* ) const;
+    virtual bool Equals( const void*, const void* ) const;
+    virtual void Copy( CopyParams ) const;
 
     // others...
     // New
@@ -55,8 +52,5 @@ namespace Tac
     // Alignment
     // Metadata
   };
-
-
-
 } // namespace Tac
 

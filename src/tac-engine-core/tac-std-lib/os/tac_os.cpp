@@ -27,6 +27,7 @@ namespace Tac::OS
     TAC_INIT_PTR( OSSetScreenspaceCursorPos );
     TAC_INIT_PTR( OSGetLoadedDLL );
     TAC_INIT_PTR( OSLoadDLL );
+    TAC_INIT_PTR( OSGetProcAddress );
     TAC_INIT_PTR( OSSemaphoreCreate );
     TAC_INIT_PTR( OSOpenPath );
 

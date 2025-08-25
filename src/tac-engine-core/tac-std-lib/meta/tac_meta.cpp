@@ -4,7 +4,6 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/meta/tac_meta_integral.h"
 
@@ -67,7 +66,7 @@ namespace Tac
     void        Copy( CopyParams cp ) const override                                                { AsBool( cp.mDst ) = AsBool( cp.mSrc ); }
 
   private:
-    const char* mName;
+    const char* mName{};
     const bool&    AsBool( const void* v ) const                                                    { return *( bool* )v; }
     dynmc bool&    AsBool( dynmc void* v ) const                                                    { return *( bool* )v; }
   };

@@ -1,0 +1,31 @@
+{
+  "mFontSize_worldspace_Heading1": 2,
+  "mFontSize_worldspace_NormalText": 1,
+  "mTextBlockDefs":
+  [
+    {
+      "mLaTeX": "\text{The rendering equation}",
+      "mPos_worldspace":
+      {
+        "x": 0.717,
+        "y": 0.837
+      },
+      "mStyle": "kNormalText"
+    },
+    {
+      "mLaTeX": "L(x \rightarrow \Theta) = L_e(x \rightarrow \Theta) + \int_{\Omega_x} f_r(x; \Theta' \leftrightarrow \Theta ) \, L( x \leftarrow \Theta' ) \, \cos( \Theta', N_x ) \, d{\omega_{\Theta}'}",
+      "mPos_worldspace":
+      {
+        "x": 0.818,
+        "y": -1.238
+      },
+      "mStyle": "kNormalText"
+    }
+  ],
+  "mWorldspaceCamHeight": 37.029,
+  "mWorldspaceCamPos":
+  {
+    "x": 12.666,
+    "y": -4.433
+  }
+}

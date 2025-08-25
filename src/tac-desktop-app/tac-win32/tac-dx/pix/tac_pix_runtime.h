@@ -5,8 +5,6 @@
 
 #include <d3d12.h> // ID3D12GraphicsCommandList
 
-struct ID3D12GraphicsCommandList;
-
 namespace Tac::Render
 {
   struct PixRuntimeApi

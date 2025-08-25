@@ -86,6 +86,11 @@ namespace Tac
     return lib;
   }
 
+  static auto Win32OSGetProcAddr( void* dll, const StringView& path ) -> void*
+  {
+    return GetProcAddress( ( HMODULE )dll, path.c_str() );
+  }
+
   static void Win32OSOpenPath( const FileSys::Path& path, Errors& errors )
   {
     String pathStr{ path.u8string() };
@@ -178,6 +183,7 @@ void Tac::Win32OSInit()
   OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
   OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;
   OS::OSLoadDLL = Win32OSLoadDLL;
+  OS::OSGetProcAddress = Win32OSGetProcAddr;
   OS::OSOpenPath = Win32OSOpenPath;
 }
 

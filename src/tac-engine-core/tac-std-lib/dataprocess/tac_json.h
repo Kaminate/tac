@@ -1,9 +1,10 @@
 // This file implements the JavaScript Object Notation,
 // which is a file format for de/serializing data
+//
+// TODO: Add escape sequences: \" \\ \/ \b \f \n \r \t \u
 
 #pragma once
 
-//#include "tac-std-lib/tac_core.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_map.h"

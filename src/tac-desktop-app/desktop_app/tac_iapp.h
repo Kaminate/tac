@@ -49,7 +49,7 @@ namespace Tac
 
     using State = SmartPtr< IState >;
 
-    App( const Config& config ) : mConfig( config ) {}
+    App( const Config& );
     virtual ~App() = default;
 
     virtual void Init( Errors& ){};
@@ -66,6 +66,7 @@ namespace Tac
     auto GetStudioName() const -> StringView;
 
     static auto Create() -> App*;
+    static auto Instance() -> App*;
 
     SettingsNode    mSettingsNode{};
 

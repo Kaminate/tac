@@ -12,12 +12,12 @@ namespace Tac
   //  mOffset( offset ),
   //  mMetaType( metaType ){}
 
-  MetaCompositeType::MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars ) :
-    mName( name ),
-    mSize( size ),
-    mMetaVars( metaVars )
-  {
-  }
+  //MetaCompositeType::MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars ) :
+  //  mName( name ),
+  //  mSize( size ),
+  //  mMetaVars( metaVars )
+  //{
+  //}
 
   void              MetaCompositeType::SetName( const char* name )
   {

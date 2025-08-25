@@ -6,26 +6,34 @@
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/window/tac_sim_window_api.h"
+#include "tac-engine-core/asset/tac_asset.h"
 
 namespace Tac
 {
   struct Example
   {
+    using Callback = void* ( * )( );
+
     Example();
     virtual ~Example();
-    virtual void Init()                          { if( mInitFn ) mInitFn(); }
-    virtual void Update( Errors& )               { if( mUpdateFn ) mUpdateFn(); }
-    virtual void Render()                        { if( mRenderFn ) mRenderFn(); }
-    virtual void Uninit()                        { if( mUninitFn ) mUninitFn(); }
-    v3           GetWorldspaceKeyboardDir();
 
-    void* ( *mInitFn )( ) {};
-    void* ( *mUpdateFn )( ) {};
-    void* ( *mRenderFn )( ) {};
-    void* ( *mUninitFn )( ) {};
-    World*                mWorld       {};
-    Camera*               mCamera      {};
-    const char*           mName        {};
+    // converts "foo.png" from the "FooExample" to "assets/example/FooExample/foo.png"
+    auto GetFileAssetPath( const char* ) -> AssetPathString;
+    void TryCallFn( Callback fn ) { if( fn ) fn(); }
+    auto GetWorldspaceKeyboardDir() -> v3;
+
+    virtual void Init()                          { TryCallFn( mInitFn ); }
+    virtual void Update( Errors& )               { TryCallFn( mUpdateFn ); }
+    virtual void Render()                        { TryCallFn( mRenderFn ); }
+    virtual void Uninit()                        { TryCallFn( mUninitFn ); }
+
+    Callback     mInitFn   {};
+    Callback     mUpdateFn {};
+    Callback     mRenderFn {};
+    Callback     mUninitFn {};
+    World*       mWorld    {};
+    Camera*      mCamera   {};
+    const char*  mName     {};
   };
 
 }

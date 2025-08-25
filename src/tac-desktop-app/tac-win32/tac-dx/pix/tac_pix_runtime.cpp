@@ -30,13 +30,16 @@
   sEndEventOnCommandList   = ( PixEndEventSig )GetProcAddress( module, "PIXEndEventOnCommandList" );
   sSetMarkerOnCommandList  = ( PixSetMarkerSig )GetProcAddress( module, "PIXSetMarkerOnCommandList" );
   ```
+
+  Update 2025-08-24: Seems like setting TAC_IS_COMPILER_BROKEN() to false works with VS2022 17.14.13
 */
 
 #ifndef TAC_PIX_NUGET
 #error pix runtime is not available
 #endif
 
-#define TAC_IS_COMPILER_BROKEN() true
+#define TAC_IS_COMPILER_BROKEN() false
+
 #if TAC_IS_COMPILER_BROKEN()
 using PixBeginEventSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In_ PCSTR );
 using PixEndEventSig = void( WINAPI* )( ID3D12GraphicsCommandList* );
@@ -44,6 +47,7 @@ using PixSetMarkerSig = void( WINAPI* )( ID3D12GraphicsCommandList*, UINT64, _In
 #else
 #include <WinPixEventRuntime/pix3.h>
 #endif
+
 
 namespace Tac::Render
 {
@@ -58,7 +62,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void PixRuntimeApi::Init( Errors& errors )
+  void PixRuntimeApi::Init( Errors& )
   {
       if( sInitialized  )
         return;

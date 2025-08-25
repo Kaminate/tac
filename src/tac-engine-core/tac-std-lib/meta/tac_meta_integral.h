@@ -12,8 +12,10 @@ namespace Tac
   template< typename T >
   struct MetaIntegralType : public MetaType
   {
-    MetaIntegralType( const char* name )                                                            { mName = name; }
+    MetaIntegralType( const char* name )                                                            { SetName( name ); }
+    MetaIntegralType() = default;
     const char* GetName() const override                                                            { return mName; }
+    void        SetName( const char* name )                                                         { mName = name; }
     int         GetSizeOf() const override                                                          { return sizeof( T ); }
     String      ToString( const void* v ) const override                                            { return Tac::ToString( (u64) As_T( v ) ); } // just u64 it here
     float       ToNumber( const void* v ) const override                                            { return ( float )As_T( v ); }
@@ -47,10 +49,9 @@ namespace Tac
     bool        Equals( const void* a, const void* b ) const override                               { return As_T( a ) == As_T( b ); }
     void        Copy( CopyParams copyParams ) const override                                        { As_T( copyParams.mDst ) = As_T( copyParams.mSrc ); }
 
-  private:
-
+  protected:
  
-    const char* mName;
+    const char* mName{};
     const T&    As_T( const void* v ) const                                                         { return *(T*)v; }
     dynmc T&    As_T( dynmc void* v ) const                                                         { return *(T*)v; }
   };

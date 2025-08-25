@@ -62,6 +62,7 @@ namespace Tac::OS
 
   extern void*        ( *OSGetLoadedDLL )( const StringView& name );
   extern void*        ( *OSLoadDLL )( const StringView& path );
+  extern void*        ( *OSGetProcAddress )( void* dll, const StringView& path );
 
   struct ISemaphore
   {

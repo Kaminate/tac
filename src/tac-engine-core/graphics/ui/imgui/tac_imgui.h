@@ -174,6 +174,7 @@ namespace Tac
   void ImGuiSetNextWindowSize( v2, ImGuiCondition = ImGuiCondition::kNone );
   void ImGuiSetNextWindowDisableBG();
 
+  // TODO: prefix with ImGui
   auto GetID( StringView ) -> ImGuiID;
   void PushID( StringView );
   void PopID();

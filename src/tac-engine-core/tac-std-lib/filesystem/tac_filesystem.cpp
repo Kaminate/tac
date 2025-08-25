@@ -349,7 +349,7 @@ namespace Tac
     std::ifstream ifs( stdPath, std::ios_base::binary );
     TAC_RAISE_ERROR_IF_RETURN( {}, !ifs.is_open() , FormatFileError( path, "reading" ) );
     ifs.seekg( 0, std::ifstream::end );
-    std::streampos byteCount = ifs.tellg();
+    const std::streampos byteCount{ ifs.tellg() };
     ifs.seekg( 0, std::ifstream::beg );
     String result;
     result.resize( ( int )byteCount );

@@ -102,12 +102,13 @@ namespace Tac
     if( !ImGuiBegin( "Examples Selector" ) )
       return;
 
+    TAC_ON_DESTRUCT( ImGuiEnd() );
+
     if( ImGuiButton( "Close Window" ) )
       showWindow = false;
 
     sNavWindow = ImGuiGetWindowHandle();
 
-    TAC_ON_DESTRUCT( ImGuiEnd());
 
     int offset {  };
     int iSelected { -1 };
@@ -285,6 +286,16 @@ namespace Tac
       force /= Sqrt( q );
 
     return force;
+  }
+
+  AssetPathString Example::GetFileAssetPath( const char* filename )
+  {
+    AssetPathString result;
+    result += "assets/";
+    result += App::Instance()->GetAppName();
+    result += "/";
+    result += filename;
+    return result;
   }
 
 } // namespace Tac

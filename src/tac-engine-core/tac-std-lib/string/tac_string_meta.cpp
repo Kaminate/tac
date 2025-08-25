@@ -1,11 +1,9 @@
 #include "tac_string_meta.h" // self-inc
-
+#include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/meta/tac_meta.h"
-
 namespace Tac
 {
-
   struct MetaString : public MetaType
   {
     const char* GetName() const override                                                            { return "String"; }

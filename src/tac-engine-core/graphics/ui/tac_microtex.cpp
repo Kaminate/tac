@@ -178,11 +178,11 @@ namespace Tac
 
     
     pos.y -= fontSize;
-    pos += ImGuiGetWindowPos();
+    pos += ImGuiGetWindowPos(); // is this needed? theres UI2DDrawData::Text::mFontSize
     pos.x -= ImGuiGetWindowContentRegionMin().x; // ???
     pos.y += ImGuiGetWindowContentRegionMin().y; // ???
 
-    auto imCol32 = ToImGuiCol32( _color );
+    v4 imCol32{ ToImGuiCol32( _color ) };
 
     UI2DDrawData::Text text
     {
