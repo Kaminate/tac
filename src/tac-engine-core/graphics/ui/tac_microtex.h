@@ -5,25 +5,6 @@
 
 namespace Tac
 {
-  static float sLastGlyphFontSize;
-
-  struct MicroTeXImGuiFont : public microtex::Font
-  {
-    MicroTeXImGuiFont( const std::string& file );
-    bool operator==( const Font& f ) const override;
-    std::string mFile;
-  };
-
-  struct MicroTeXImGuiTextLayout : public microtex::TextLayout
-  {
-    MicroTeXImGuiTextLayout( const std::string& src, microtex::FontStyle style, float size );
-    void getBounds( microtex::Rect& bounds ) override;
-    void draw( microtex::Graphics2D& g2, float x, float y ) override;
-
-    std::wstring _txt;
-    microtex::sptr<MicroTeXImGuiFont> _font;
-    float _fontSize;
-  };
 
   struct MicroTexImGuiPlatformFactory : public microtex::PlatformFactory
   {
@@ -35,13 +16,12 @@ namespace Tac
   {
   private:
 
-    microtex::color _color = microtex::white;
-    microtex::sptr<MicroTeXImGuiFont> _font;
-    microtex::Stroke _stroke{};
-
-    float _fontSize = 0;
-    float _sx = 1;
-    float _sy = 1;
+    microtex::color                _color    { microtex::white };
+    microtex::sptr<microtex::Font> _font     {};
+    microtex::Stroke               _stroke   {};
+    float                          _fontSize { 0 };
+    float                          _sx       { 1 };
+    float                          _sy       { 1 };
 
   public:
     static float sMagicTextScale;

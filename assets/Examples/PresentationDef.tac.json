@@ -10,6 +10,7 @@
         "x": 0.717,
         "y": 0.837
       },
+      "mScaleMultiplier": 1,
       "mStyle": "kNormalText"
     },
     {
@@ -19,13 +20,34 @@
         "x": 0.818,
         "y": -1.238
       },
+      "mScaleMultiplier": 1,
+      "mStyle": "kNormalText"
+    },
+    {
+      "mLaTeX": "assets/Examples/rendering_eq.png",
+      "mPos_worldspace":
+      {
+        "x": 34.007,
+        "y": 0.606
+      },
+      "mScaleMultiplier": 1,
+      "mStyle": "kNormalText"
+    },
+    {
+      "mLaTeX": "assets/Examples/diffuse_rendering_eq.png",
+      "mPos_worldspace":
+      {
+        "x": 34,
+        "y": -9.776
+      },
+      "mScaleMultiplier": 1,
       "mStyle": "kNormalText"
     }
   ],
-  "mWorldspaceCamHeight": 37.029,
+  "mWorldspaceCamHeight": 36.29,
   "mWorldspaceCamPos":
   {
-    "x": 12.666,
-    "y": -4.433
+    "x": 23.126,
+    "y": -6.097
   }
 }

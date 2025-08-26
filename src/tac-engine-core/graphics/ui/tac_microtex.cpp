@@ -17,6 +17,7 @@ namespace Tac
     todo++;
   }
   static m3 sTransform;
+  static float sLastGlyphFontSize;
 
   static v2 Transform( float x, float y )
   {
@@ -24,6 +25,24 @@ namespace Tac
     const v3 xyzprime{ sTransform * xyz };
     return { xyzprime.x, xyzprime.y };
   }
+
+  struct MicroTeXImGuiFont : public microtex::Font
+  {
+    MicroTeXImGuiFont( const std::string& file );
+    bool operator==( const Font& f ) const override;
+    std::string mFile;
+  };
+
+  struct MicroTeXImGuiTextLayout : public microtex::TextLayout
+  {
+    MicroTeXImGuiTextLayout( const std::string& src, microtex::FontStyle style, float size );
+    void getBounds( microtex::Rect& bounds ) override;
+    void draw( microtex::Graphics2D& g2, float x, float y ) override;
+
+    std::wstring _txt;
+    microtex::sptr<MicroTeXImGuiFont> _font;
+    float _fontSize;
+  };
 
   MicroTeXImGuiFont::MicroTeXImGuiFont( const std::string& file )
   {

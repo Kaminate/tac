@@ -6,6 +6,7 @@ namespace Tac
 {
   struct ExampleLaTeXRadiosity : public Example
   {
+    void LazyInit( Errors& );
     void Update( Errors& ) override;
   };
 }

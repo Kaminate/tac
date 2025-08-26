@@ -10,9 +10,10 @@ namespace Tac
 {
   struct TextureAssetManager
   {
-    static Render::TextureHandle           GetTexture( AssetPathStringView, Errors& );
-    static Render::IBindlessArray::Binding GetBindlessIndex( AssetPathStringView, Errors& );
-    static Render::IBindlessArray*         GetBindlessArray();
+    static auto GetTextureSize( AssetPathStringView, Errors& ) -> v3i;
+    static auto GetTexture( AssetPathStringView, Errors& ) -> Render::TextureHandle;
+    static auto GetBindlessIndex( AssetPathStringView, Errors& ) -> Render::IBindlessArray::Binding;
+    static auto GetBindlessArray() -> Render::IBindlessArray*;
   };
 }
 

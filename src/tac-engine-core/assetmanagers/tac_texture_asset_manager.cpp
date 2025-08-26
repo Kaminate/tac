@@ -40,25 +40,25 @@ namespace Tac
 
   struct AsyncSubresourceData
   {
-    const Texel* GetTexel( int x, int y ) const;
-    dynmc Texel* GetTexel( int x, int y ) dynmc;
-    int          GetTexelIndex( int x, int y ) const;
+    auto GetTexel( int x, int y ) const -> const Texel*;
+    auto GetTexel( int x, int y ) dynmc -> dynmc Texel*;
+    auto GetTexelIndex( int x, int y ) const -> int;
 
     int              mPitch {};
     Vector< char >   mBytes {};
   };
 
-  const Texel* AsyncSubresourceData::GetTexel( int x, int y ) const
+  auto AsyncSubresourceData::GetTexel( int x, int y ) const -> const Texel*
   {
     return ( const Texel* )&mBytes[ GetTexelIndex( x, y ) ];
   };
 
-  dynmc Texel* AsyncSubresourceData::GetTexel( int x, int y ) dynmc
+  auto AsyncSubresourceData::GetTexel( int x, int y ) dynmc -> dynmc Texel*
   {
     return ( dynmc Texel* )&mBytes[ GetTexelIndex( x, y ) ];
   };
 
-  int          AsyncSubresourceData::GetTexelIndex( int x, int y ) const
+  auto AsyncSubresourceData::GetTexelIndex( int x, int y ) const -> int
   {
     return x * sBPP + y * mPitch ;
   }
@@ -74,7 +74,8 @@ namespace Tac
     };
 
     TextureLoadJob( Params );
-    Render::TextureHandle CreateTexture( Errors& );
+    auto CreateTexture( Errors& ) -> Render::TextureHandle;
+    auto GetTextureSize() const -> v3i;
 
   protected:
     void Execute( Errors& ) override;
@@ -97,15 +98,15 @@ namespace Tac
 #endif
 
 
-    Vector< AsyncSubresourceData > mSubresources;
-    bool                           mIsCubemap{};
-    bool                           mIs_sRGB{};
-    Render::Image                  mImage;
-    Render::TexFmt                 mTexFmt{ Render::TexFmt::kUnknown };
+    Vector< AsyncSubresourceData > mSubresources {};
+    bool                           mIsCubemap    {};
+    bool                           mIs_sRGB      {};
+    Render::Image                  mImage        {};
+    Render::TexFmt                 mTexFmt       { Render::TexFmt::kUnknown };
 
     //                             for a single texture, this is a file on desk,
     //                             for a cubemap texture, this is a folder containing 6 files
-    FileSys::Path                  mFilepath;
+    FileSys::Path                  mFilepath     {  };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -113,15 +114,14 @@ namespace Tac
 
   struct LoadedTexture
   {
-    Render::TextureHandle           mTextureHandle;
-    Render::IBindlessArray::Binding mBinding;
+    Render::TextureHandle           mTextureHandle {};
+    Render::IBindlessArray::Binding mBinding       {};
+    v3i                             mSize          {};
   };
 
   struct LoadedTextureMap : public Map< StringID, LoadedTexture >
   {
     const LoadedTexture*            FindLoadedTexture( AssetPathStringView ) const;
-    Render::TextureHandle           FindTextureHandle( AssetPathStringView ) const;
-    Render::IBindlessArray::Binding FindBindlessIndex( AssetPathStringView ) const;
     Render::IBindlessArray*         GetBindlessArray() const;
   };
 
@@ -141,12 +141,17 @@ namespace Tac
     mIsCubemap = FileSys::IsDirectory( mFilepath );
   }
 
-  Render::TextureHandle TextureLoadJob::CreateTexture( Errors& errors )
+  auto TextureLoadJob::CreateTexture( Errors& errors ) -> Render::TextureHandle
   {
     return mIsCubemap ? CreateTexCubemap( errors ) : CreateTexSingle( errors );
   }
 
-  Render::TextureHandle TextureLoadJob::CreateTexSingle( Errors& errors )
+  auto TextureLoadJob::GetTextureSize() const -> v3i
+  {
+    return { mImage.mWidth, mImage.mHeight, mImage.mDepth };
+  }
+
+  auto TextureLoadJob::CreateTexSingle( Errors& errors ) -> Render::TextureHandle
   {
     const int n{ mSubresources.size() };
     Vector< Render::CreateTextureParams::Subresource > subresources( n );
@@ -177,7 +182,7 @@ namespace Tac
     return renderDevice->CreateTexture( createTextureParams, errors );
   }
 
-  Render::TextureHandle TextureLoadJob::CreateTexCubemap( Errors& errors )
+  auto TextureLoadJob::CreateTexCubemap( Errors& errors ) -> Render::TextureHandle
   {
     Render::CreateTextureParams::Subresource subresources[ 6 ];
     Render::CreateTextureParams::CubemapFaces cubemapFaces;
@@ -216,7 +221,7 @@ namespace Tac
     return renderDevice->CreateTexture( commandData, errors );
   }
 
-  void                  TextureLoadJob::Execute( Errors& errors )
+  void TextureLoadJob::Execute( Errors& errors )
   {
     if( mIsCubemap )
       ExecuteTexCubemapJob( errors );
@@ -224,7 +229,7 @@ namespace Tac
       ExecuteTexSingleJob( errors );
   }
 
-  int                   TextureLoadJob::CalculateMipCount( int w, int h, SettingsNode settingsNode )
+  auto TextureLoadJob::CalculateMipCount( int w, int h, SettingsNode settingsNode ) -> int
   {
     int n{ 1 };
     const bool genMips{ settingsNode.GetChild( "gen mips" ).GetValueWithFallback( true ) };
@@ -244,7 +249,7 @@ namespace Tac
     return n;
   }
 
-  void                  TextureLoadJob::ExecuteTexSingleJob( Errors& errors )
+  void TextureLoadJob::ExecuteTexSingleJob( Errors& errors )
   {
     TAC_CALL( const String memory{ FileSys::LoadFilePath( mFilepath, errors ) } );
 
@@ -335,7 +340,7 @@ namespace Tac
 
 #if TAC_TEST_MIPS_BY_SAVING_TO_DISC()
   // verify correctness of GenerateMip()
-  void                  TextureLoadJob::TestMipsBySavingToDisk()
+  void TextureLoadJob::TestMipsBySavingToDisk()
   {
     const int nSubRsc{ mSubresources.size() };
     for( int iSubRsc{}; iSubRsc < nSubRsc; ++iSubRsc )
@@ -359,7 +364,7 @@ namespace Tac
 #endif
 
 #if TAC_TEST_MIPS_BY_ASSIGNING_A_COLOR_PER_MIP()
-  void                  TextureLoadJob::TestMipsByAssigningAColorPerMip()
+  void TextureLoadJob::TestMipsByAssigningAColorPerMip()
   {
 
     const Texel colors[ 20 ]
@@ -406,7 +411,7 @@ namespace Tac
   }
 #endif
 
-  void                  TextureLoadJob::GenerateMip( int currMip )
+  void TextureLoadJob::GenerateMip( int currMip )
   {
     const int prevMip{ currMip - 1 };
     //const int prevW{ mImage.mWidth >> prevMip };
@@ -464,7 +469,7 @@ namespace Tac
     }
   }
 
-  void                  TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
+  void TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
   {
 
     TAC_CALL( Vector< FileSys::Path > files{
@@ -560,7 +565,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static TextureLoadJob* FindLoadingTexture( const StringID& key )
+  static auto FindLoadingTexture( const StringID& key ) -> TextureLoadJob*
   {
     auto it{ mLoadingTextures.find( key ) };
     if( it == mLoadingTextures.end() )
@@ -569,9 +574,7 @@ namespace Tac
     return job;
   }
 
-  static void            UpdateTextureLoadJob( const AssetPathStringView& key,
-                                               TextureLoadJob* asyncTexture,
-                                               Errors& errors )
+  static void UpdateTextureLoadJob( const AssetPathStringView& key, TextureLoadJob* asyncTexture, Errors& errors )
   {
     const JobState status{ asyncTexture->GetStatus() };
     const StringID id( key );
@@ -580,7 +583,7 @@ namespace Tac
       TAC_RAISE_ERROR_IF( asyncTexture->mErrors, asyncTexture->mErrors.ToString() );
       TAC_CALL( const Render::TextureHandle texture{ asyncTexture->CreateTexture( errors ) } );
       mLoadingTextures.erase( id );
-      TAC_DELETE asyncTexture;
+      TAC_ON_DESTRUCT( TAC_DELETE asyncTexture );
 
       if( !sBindlessArray )
       {
@@ -601,13 +604,13 @@ namespace Tac
       {
         .mTextureHandle { texture },
         .mBinding       { binding },
+        .mSize          { asyncTexture->GetTextureSize() },
       };
       mLoadedTextures[ id ] = loadedTexture;
     }
   }
 
-  static void            LoadTextureAux( TextureLoadJob::Params params,
-                                         Errors& errors )
+  static void LoadTextureAux( TextureLoadJob::Params params, Errors& errors )
   {
     if( params.mFilepath.empty() )
       return;
@@ -627,28 +630,35 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  Render::TextureHandle
-    TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath,
-                                                         Errors& errors )
+  auto TextureAssetManager::GetTextureSize( AssetPathStringView path, Errors& errors ) -> v3i
   {
-    if( Render::TextureHandle texture{ mLoadedTextures.FindTextureHandle( textureFilepath ) };
-        texture.IsValid() )
-      return texture;
+    if( const LoadedTexture* loadedTexture{ mLoadedTextures.FindLoadedTexture( path ) };
+        loadedTexture && loadedTexture->mTextureHandle.IsValid() )
+      return loadedTexture->mSize;
+
+    const TextureLoadJob::Params params{ .mFilepath  { path }, };
+    LoadTextureAux( params, errors );
+    return {};
+  }
+
+  auto TextureAssetManager::GetTexture( const AssetPathStringView textureFilepath, Errors& errors ) -> Render::TextureHandle
+  {
+    if( const LoadedTexture* loadedTexture{ mLoadedTextures.FindLoadedTexture( textureFilepath ) };
+        loadedTexture && loadedTexture->mTextureHandle.IsValid() )
+      return loadedTexture->mTextureHandle;
 
     const TextureLoadJob::Params params{ .mFilepath  { textureFilepath }, };
     LoadTextureAux( params, errors );
     return {};
   }
 
-  Render::IBindlessArray::Binding
-    TextureAssetManager::GetBindlessIndex( const AssetPathStringView textureFilepath,
-                                           Errors& errors )
+  auto TextureAssetManager::GetBindlessIndex( const AssetPathStringView textureFilepath, Errors& errors ) -> Render::IBindlessArray::Binding
   {
     if( textureFilepath.empty() )
       return {};
 
-    if( Render::IBindlessArray::Binding binding{
-      mLoadedTextures.FindBindlessIndex( textureFilepath ) };
+    if( const Render::IBindlessArray::Binding binding{
+      mLoadedTextures.FindLoadedTexture( textureFilepath )->mBinding };
       binding.IsValid() )
       return binding;
 
@@ -657,15 +667,14 @@ namespace Tac
     return {};
   }
 
-  Render::IBindlessArray*
-    TextureAssetManager::GetBindlessArray()
+  auto TextureAssetManager::GetBindlessArray() -> Render::IBindlessArray*
   {
     return sBindlessArray;
   }
 
   // -----------------------------------------------------------------------------------------------
    
-  const LoadedTexture*            LoadedTextureMap::FindLoadedTexture( AssetPathStringView asset ) const 
+  auto LoadedTextureMap::FindLoadedTexture( AssetPathStringView asset ) const  -> const LoadedTexture*
   {
     auto it{ Find( asset ) };
     if( it == end() )
@@ -674,25 +683,7 @@ namespace Tac
     return &texture;
   }
 
-  Render::TextureHandle           LoadedTextureMap::FindTextureHandle( AssetPathStringView asset ) const
-  {
-    auto it{ Find( asset ) };
-    if( it == end() )
-      return {};
-    auto& [_, texture] { *it};
-    return texture.mTextureHandle;
-  }
-
-  Render::IBindlessArray::Binding LoadedTextureMap::FindBindlessIndex( AssetPathStringView asset ) const
-  {
-    auto it{ Find( asset ) };
-    if( it == end() )
-      return {};
-    auto& [_, texture] { *it};
-    return texture.mBinding;
-  }
-
-  Render::IBindlessArray*         LoadedTextureMap::GetBindlessArray()const
+  auto LoadedTextureMap::GetBindlessArray() const -> Render::IBindlessArray*
   {
     return sBindlessArray;
   }

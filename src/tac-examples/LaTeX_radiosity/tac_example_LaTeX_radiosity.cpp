@@ -1,17 +1,21 @@
 #include "tac_example_LaTeX_radiosity.h" // self-inc
 
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/math/tac_matrix3.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/graphics/ui/tac_microtex.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 
-#include "tac-std-lib/meta/tac_meta_composite.h"
-#include "tac-std-lib/math/tac_math_meta.h"
-#include "tac-std-lib/meta/tac_meta_enum.h"
-#include "tac-std-lib/string/tac_string_meta.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
+#include "tac-engine-core/graphics/ui/tac_microtex.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/containers/tac_vector_meta.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math_meta.h"
+#include "tac-std-lib/math/tac_matrix3.h"
+#include "tac-std-lib/meta/tac_meta_composite.h"
+#include "tac-std-lib/meta/tac_meta_enum.h"
+//#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/string/tac_string_meta.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 
 #include <microtex/microtex.h>
 
@@ -36,13 +40,15 @@ namespace Tac
   {
     kNormalText = 0,
     kHeading1,
+    kCount,
   };
 
   struct TextBlockDef
   {
-    String      mLaTeX          {};
-    v2          mPos_worldspace {};
-    TextStyle   mStyle          {};
+    String      mLaTeX           {};
+    v2          mPos_worldspace  {};
+    TextStyle   mStyle           {};
+    float       mScaleMultiplier { 1 };
   };
 
   struct PresentationDef
@@ -68,6 +74,7 @@ namespace Tac
   TAC_META_REGISTER_STRUCT_BEGIN( TextBlockDef );
   TAC_META_REGISTER_STRUCT_MEMBER( mLaTeX );
   TAC_META_REGISTER_STRUCT_MEMBER( mPos_worldspace );
+  TAC_META_REGISTER_STRUCT_MEMBER( mScaleMultiplier );
   TAC_META_REGISTER_STRUCT_MEMBER( mStyle );
   TAC_META_REGISTER_STRUCT_END( TextBlockDef );
 
@@ -138,24 +145,49 @@ namespace Tac
       }
     }
 
+    static String sStatusMessage;
+    static Timestamp sStatusMessageEndTime;
+
     if( ImGuiCollapsingHeader( "Text Block Def", ImGuiNodeFlags_DefaultOpen ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       if( iSelectedTextBlock >=0 && iSelectedTextBlock < n )
       {
         TextBlockDef& def{ sPresentationDef.mTextBlockDefs[ iSelectedTextBlock ] };
+        const MetaType& metaTextStyle{GetMetaType( def.mStyle )};
         ImGuiInputText( "LaTeX", def.mLaTeX );
         ImGuiDragFloat2( "Position", def.mPos_worldspace.data() );
-        ImGuiText( "Style: " + GetMetaType( def.mStyle ).ToString( &def.mStyle ) );
-        ImGuiSameLine();
-        if( def.mStyle != kHeading1 && ImGuiButton( "Set H1" ) ) { def.mStyle = kHeading1; }
-        if( def.mStyle != kNormalText && ImGuiButton( "Set NormalText" ) ) { def.mStyle = kNormalText; }
+        ImGuiText( "Style: " + metaTextStyle.ToString( &def.mStyle ) );
+        for( TextStyle style{}; style < kCount; style = ( TextStyle )( style + 1 ) )
+        {
+          if( def.mStyle != style )
+          {
+            ImGuiSameLine();
+            if( ImGuiButton(  "Set " + metaTextStyle.ToString( &style )  ) )
+            {
+              def.mStyle = style;
+            }
+          }
+        }
+
+        Errors dlgErr;
+        if( ImGuiButton( "Set Image" ) )
+        {
+          AssetPathStringView asset{ AssetOpenDialog( dlgErr ) };
+          if( dlgErr )
+          {
+            sStatusMessage = dlgErr.ToString();
+            sStatusMessageEndTime = Timestep::GetElapsedTime() + TimestampDifference( 60.0f );
+          }
+          else if( Exists( asset ) )
+          {
+            def.mLaTeX = asset;
+          }
+        }
       }
     }
 
 
-    static String sStatusMessage;
-    static Timestamp sStatusMessageEndTime;
 
     if( ImGuiCollapsingHeader( "Style" ) )
     {
@@ -245,26 +277,23 @@ namespace Tac
 
   }
 
-  static void DrawEquation_worldspace( const char* eqStr, v2 pos_worldspace, float fontSize_worldspace )
+  static void DrawEquation_worldspace( StringView eqStr, v2 pos_worldspace, float fontSize_worldspace )
   {
     const ImGuiRect contentRect{ ImGuiGetContentRect() };
-    float px_per_world_unit{ contentRect.GetHeight() / sWorldspaceCamHeight };
-    v2 pos_windowspace{ WorldToWindow( pos_worldspace ) };
-    float fontSize_windowspace{ px_per_world_unit * fontSize_worldspace };
+    const float px_per_world_unit{ contentRect.GetHeight() / sWorldspaceCamHeight };
+    const v2 pos_windowspace{ WorldToWindow( pos_worldspace ) };
+    const float fontSize_windowspace{ px_per_world_unit * fontSize_worldspace };
     const float width{}; // unlimited
     const float lineSpace{}; // ???
     const microtex::color _color{ microtex::getColor( "white" ) };
-
     const char* fallback{ "<nothing was drawn>" };
     try
     {
       if( microtex::Render* curRender{
-        microtex::MicroTeX::parse( eqStr, width, fontSize_windowspace, lineSpace, _color ) } )
+        microtex::MicroTeX::parse( eqStr.c_str(), width, fontSize_windowspace, lineSpace, _color ) } )
       {
         curRender->draw( sGraphics2D, pos_windowspace.x, pos_windowspace.y );
-        int drawnW = curRender->getWidth();
-        int drawnH = curRender->getHeight();
-        if( drawnW != 0 && drawnH != 0 )
+        if( curRender->getWidth() != 0 && curRender->getHeight() != 0 )
           fallback = nullptr;
 
         delete curRender;
@@ -278,53 +307,90 @@ namespace Tac
 
     if( fallback )
     {
-      if( auto drawList = ImGuiGetDrawData() )
+      if( UI2DDrawData * drawList{ ImGuiGetDrawData() } )
       {
-        //ImGuiPushFontSize( fontSize_windowspace );
-
-        v4 ui2Dcolor{ v4( microtex::color_r( _color ),
-                          microtex::color_g( _color ),
-                          microtex::color_b( _color ),
-                          microtex::color_a( _color ) ) / 255.f };
-
-        UI2DDrawData::Text text
+        const microtex::color r{ microtex::color_r( _color ) };
+        const microtex::color g{ microtex::color_g( _color ) };
+        const microtex::color b{ microtex::color_b( _color ) };
+        const microtex::color a{ microtex::color_a( _color ) };
+        const v4 ui2Dcolor{ v4( r, g, b, a ) / 255.f };
+        const UI2DDrawData::Text text
         {
           .mPos      { pos_windowspace },
           .mFontSize { fontSize_windowspace },
           .mUtf8     { fallback },
           .mColor    { ui2Dcolor },
         };
-
         drawList->AddText( text );
-        //ImGuiPopFontSize();
+
       }
     }
   }
 
-  void ExampleLaTeXRadiosity::Update( Errors& errors )
+  static void DrawTexture_worldspace( StringView assetPath, v2 pos_worldspace, float scale )
   {
-    if( !sInitialized )
+    UI2DDrawData* drawList{ ImGuiGetDrawData() };
+    if( !drawList )
+      return;
+
+    Errors errors;
+    Render::TextureHandle textureHandle{ TextureAssetManager::GetTexture( assetPath, errors ) };
+    TAC_ASSERT( !errors );
+    if( !textureHandle.IsValid() )
+      return;
+
+    v3i textureSize{ TextureAssetManager::GetTextureSize( assetPath, errors ) };
+    TAC_ASSERT( !errors );
+    if( textureSize == v3i{} )
+      return;
+
+    const float px_per_world_unit{ ImGuiGetContentRect().GetHeight() / sWorldspaceCamHeight };
+
+    const float world_unit_per_image_texel = 0.04f;
+
+    v2 pos_mini_windowspace{ WorldToWindow( pos_worldspace ) };
+    v2 pos_maxi_windowspace
     {
-      const char* fontClmPath{ "assets/fonts/firamath/FiraMath-Regular.clm2" };
-      const char* fontOtfPath{ "assets/fonts/firamath/FiraMath-Regular.otf" };
-      const char* fontTtfPath{ "assets/fonts/firamath/FiraMath-Regular.ttf" };
-      if( !FontApi::IsFontLoaded( fontTtfPath ) )
-      {
-        microtex::FontSrcFile fontSrc( fontClmPath, fontOtfPath );
-        microtex::MicroTeX::init( fontSrc );
-        TAC_CALL( FontApi::LoadFont( Language::English, fontTtfPath, errors ) );
-        microtex::PlatformFactory::registerFactory( "", std::make_unique< MicroTexImGuiPlatformFactory >() );
-      }
+      pos_mini_windowspace.x + textureSize.x * world_unit_per_image_texel * scale * px_per_world_unit,
+      pos_mini_windowspace.y + textureSize.y * world_unit_per_image_texel *scale * px_per_world_unit
+    };
 
-      sPresentationDefAssetPath = GetFileAssetPath( "PresentationDef.tac.json" );
+    const UI2DDrawData::Box box
+    {
+      .mMini          { pos_mini_windowspace },
+      .mMaxi          { pos_maxi_windowspace },
+      .mColor         { 1, 1, 1, 1 },
+      .mTextureHandle { textureHandle },
+    };
+    drawList->AddBox( box );
+  }
 
-      TAC_CALL( LoadPresentationDef( errors ) );
-      sWorldspaceCamPos = sPresentationDef.mWorldspaceCamPos;
-      sWorldspaceCamHeight = sPresentationDef.mWorldspaceCamHeight;
+  void ExampleLaTeXRadiosity::LazyInit( Errors& errors )
+  {
+    if( sInitialized )
+      return;
 
-      sInitialized = true;
+    sInitialized = true;
+    const char* fontClmPath{ "assets/fonts/firamath/FiraMath-Regular.clm2" };
+    const char* fontOtfPath{ "assets/fonts/firamath/FiraMath-Regular.otf" };
+    const char* fontTtfPath{ "assets/fonts/firamath/FiraMath-Regular.ttf" };
+    if( !FontApi::IsFontLoaded( fontTtfPath ) )
+    {
+      microtex::FontSrcFile fontSrc( fontClmPath, fontOtfPath );
+      microtex::MicroTeX::init( fontSrc );
+      TAC_CALL( FontApi::LoadFont( Language::English, fontTtfPath, errors ) );
+      microtex::PlatformFactory::registerFactory( "", std::make_unique< MicroTexImGuiPlatformFactory >() );
     }
 
+    sPresentationDefAssetPath = GetFileAssetPath( "PresentationDef.tac.json" );
+    TAC_CALL( LoadPresentationDef( errors ) );
+    sWorldspaceCamPos = sPresentationDef.mWorldspaceCamPos;
+    sWorldspaceCamHeight = sPresentationDef.mWorldspaceCamHeight;
+  }
+
+  void ExampleLaTeXRadiosity::Update( Errors& errors )
+  {
+    TAC_CALL( LazyInit( errors ) );
 
     for( TextBlockDef& def : sPresentationDef.mTextBlockDefs )
     {
@@ -336,7 +402,15 @@ namespace Tac
         default: TAC_ASSERT_INVALID_CASE( def.mStyle ); break;
       }
 
-      DrawEquation_worldspace( def.mLaTeX.data(), def.mPos_worldspace, fontSize_worldspace );
+      if( def.mLaTeX.ends_with( ".png" ) )
+      {
+        TAC_ASSERT( def.mLaTeX.starts_with( GetFileAssetPath( "" ) ) );
+        DrawTexture_worldspace( def.mLaTeX, def.mPos_worldspace, def.mScaleMultiplier );
+      }
+      else
+      {
+        DrawEquation_worldspace( def.mLaTeX, def.mPos_worldspace, def.mScaleMultiplier * fontSize_worldspace );
+      }
     }
 
 
