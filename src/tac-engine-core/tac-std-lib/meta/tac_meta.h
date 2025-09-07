@@ -8,11 +8,10 @@
 
 namespace Tac
 {
+  using ConstCharStar = const char*;
+  TAC_META_DECL( ConstCharStar );
   TAC_META_DECL( float );
   TAC_META_DECL( double );
-
-  TAC_META_DECL( char* );
-
   TAC_META_DECL( bool );
 
   TAC_META_DECL( i8 );
@@ -71,62 +70,6 @@ namespace Tac
 
     T* mNext;
   };
-
-
-//  struct Meta;
-//  struct MetaVar;
-//  struct MetaVarCArray;
-//  struct MetaVarDynArray;
-//  struct MetaType;
-//
-//  struct MetaType
-//  {
-//    StringView mName;
-//    int        mSize = 0;
-//  };
-//
-//
-//  struct MetaVarCArray : public MetaVar
-//  {
-//    int mCArrayCount = 0;
-//  };
-//
-//  struct MetaVarDynArray : public MetaVar
-//  {
-//    std::function< void( void*, int ) > mResizeFunction;
-//    std::function< void*( void* ) >     mDataFunction;
-//  };
-//
-//
-//  template< typename T >
-//  struct MetaPodType : public MetaType
-//  {
-//    //MetaPod mMetaPod = MetaPod::Unknown;
-//  };
-//
-
-
-
-
-
-//
-//  void         MetaInit();
-//  MetaType*    MetaGetTypeByName( StringView );
-//  template< typename T >
-//  MetaType*    MetaGetType();
-//  void         MetaAddType( MetaType* );
-//  void         MetaRegisterType( const char* name, int size );
-//
-//
-//  template< typename T > struct     MetaTypeNameRegistry { static StringView sName; };
-//  template< typename T > StringView MetaGetTypeName() { return MetaTypeNameRegistry< T >::sName; }
-//#define TAC_META_REGISTER_TYPE_NAME( T ) MetaTypeNameRegistry< T >::sName = #T;
-//  //template< typename T > void       MetaRegisterTypeName() 
-//
-//#define TAC_META_REGISTER_TYPE( T )    \
-//   TAC_META_REGISTER_TYPE_NAME( T );   \
-//   MetaRegisterType( #T, sizeof( T ) );
-
 
   void RunMetaUnitTestSuite();
 } // namespace Tac

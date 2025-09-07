@@ -21,7 +21,6 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
                       _In_     int nCmdShow )
 {
   using namespace Tac;
-
   Errors& errors{ DesktopApp::GetMainErrors() };
   TAC_SCOPE_GUARD( LogScope );
   Win32OSInit();
@@ -38,7 +37,6 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   TAC_CALL_RET( Network::NetWinsockInit( errors ) );
   TAC_CALL_RET( DesktopApp::Run( errors ) );
   Render::DXGIReportLiveObjects();
-
   return 0;
 }
 

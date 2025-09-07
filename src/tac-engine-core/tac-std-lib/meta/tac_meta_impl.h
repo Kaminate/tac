@@ -12,6 +12,7 @@ namespace Tac
 #define TAC_META_TYPE_NAME( T )     Meta##T
 
 #define TAC_META_IMPL_INSTANCE( T, sT ) TAC_META_DECL( T ) { return sT; }
+#define TAC_META_IMPL_INSTANCE2( T, MetaT ) TAC_META_DECL( T ) { static const MetaT sMetaType; return sMetaType; }
 
 #define TAC_META_IMPL_TYPE( T, MetaT )                                     \
   static MetaT TAC_META_INSTANCE_NAME( T );                                \

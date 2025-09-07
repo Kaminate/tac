@@ -43,12 +43,17 @@ namespace Tac
     kCount,
   };
 
+  using TextBlockID = i32;
+
   struct TextBlockDef
   {
+    using Children = Vector< TextBlockID >;
+    TextBlockID mID              { -1 };
     String      mLaTeX           {};
     v2          mPos_worldspace  {};
     TextStyle   mStyle           {};
     float       mScaleMultiplier { 1 };
+    Children    mChildren        {};
   };
 
   struct PresentationDef
@@ -60,6 +65,7 @@ namespace Tac
     float         mFontSize_worldspace_Heading1   { 2 };
     v2            mWorldspaceCamPos               {};
     float         mWorldspaceCamHeight            { 10 };
+    TextBlockID   mIDCounter                      {};
   };
 
   static PresentationDef sPresentationDef;
@@ -76,6 +82,8 @@ namespace Tac
   TAC_META_REGISTER_STRUCT_MEMBER( mPos_worldspace );
   TAC_META_REGISTER_STRUCT_MEMBER( mScaleMultiplier );
   TAC_META_REGISTER_STRUCT_MEMBER( mStyle );
+  TAC_META_REGISTER_STRUCT_MEMBER( mID );
+  TAC_META_REGISTER_STRUCT_MEMBER( mChildren );
   TAC_META_REGISTER_STRUCT_END( TextBlockDef );
 
   TAC_META_REGISTER_STRUCT_BEGIN( PresentationDef );
@@ -84,6 +92,7 @@ namespace Tac
   TAC_META_REGISTER_STRUCT_MEMBER( mFontSize_worldspace_Heading1 );
   TAC_META_REGISTER_STRUCT_MEMBER( mWorldspaceCamPos );
   TAC_META_REGISTER_STRUCT_MEMBER( mWorldspaceCamHeight );
+  TAC_META_REGISTER_STRUCT_MEMBER( mIDCounter );
   TAC_META_REGISTER_STRUCT_END( PresentationDef );
 
   static void LoadPresentationDef( Errors& errors )
@@ -94,7 +103,9 @@ namespace Tac
     TAC_CALL( const Json presentationJson{ Json::Parse( presentationJsonStr, errors ) } );
     GetMetaType( sPresentationDef ).JsonDeserialize( &presentationJson, &sPresentationDef );
 
-    
+    for( TextBlockDef& textBlockDef : sPresentationDef.mTextBlockDefs )
+      if( textBlockDef.mID == -1 )
+        textBlockDef.mID = sPresentationDef.mIDCounter++;
   }
 
   static void SavePresentationDef( Errors& errors )
@@ -103,7 +114,6 @@ namespace Tac
     GetMetaType( sPresentationDef ).JsonSerialize( &presentationJson, &sPresentationDef );
     const String presentationJsonStr{ presentationJson.Stringify() };
     SaveToFile( sPresentationDefAssetPath, presentationJsonStr.data(), presentationJsonStr.size(), errors );
-
   }
 
   static void DebugImguiPresentationDef()
@@ -287,14 +297,35 @@ namespace Tac
     const float lineSpace{}; // ???
     const microtex::color _color{ microtex::getColor( "white" ) };
     const char* fallback{ "<nothing was drawn>" };
+    dynmc v2i renderedSizeWindowspace{};
+    const bool drawBorder{ !eqStr.starts_with( "\\text" ) };
     try
     {
       if( microtex::Render* curRender{
         microtex::MicroTeX::parse( eqStr.c_str(), width, fontSize_windowspace, lineSpace, _color ) } )
       {
         curRender->draw( sGraphics2D, pos_windowspace.x, pos_windowspace.y );
-        if( curRender->getWidth() != 0 && curRender->getHeight() != 0 )
+        renderedSizeWindowspace.x = curRender->getWidth();
+        renderedSizeWindowspace.y = curRender->getHeight();
+        if( renderedSizeWindowspace.x && renderedSizeWindowspace.y )
           fallback = nullptr;
+
+        if( UI2DDrawData * drawList{ ImGuiGetDrawData() } )
+        {
+          if( drawBorder )
+          {
+            v2 mini{ pos_windowspace - v2( renderedSizeWindowspace.x * 0.05f, renderedSizeWindowspace.y * 0.25f ) };
+            v2 maxi{ pos_windowspace + v2( renderedSizeWindowspace.x * 1.05f, renderedSizeWindowspace.y * 1.25f ) };
+            v2 TL{ mini };
+            v2 TR{ maxi.x, mini.y };
+            v2 BL{ mini.x, maxi.y };
+            v2 BR{ maxi };
+            drawList->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ TR } } );
+            drawList->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ BL } } );
+            drawList->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ TR } } );
+            drawList->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ BL } } );
+          }
+        }
 
         delete curRender;
       }
@@ -324,6 +355,7 @@ namespace Tac
         drawList->AddText( text );
 
       }
+
     }
   }
 
