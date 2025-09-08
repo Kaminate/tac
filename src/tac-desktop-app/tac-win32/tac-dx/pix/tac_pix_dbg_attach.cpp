@@ -83,6 +83,8 @@ namespace Tac::Render
   {
     if constexpr( kIsDebugMode )
     {
+      if( !OS::CmdLineIsFlagPresent( "allowpixattach" ) )
+        return;
 
       // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
       // This may happen if the application is launched through the PIX UI. 

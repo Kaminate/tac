@@ -44,8 +44,8 @@ namespace Tac
   // y
   struct ImGuiRect
   {
-    static auto FromPosSize( v2  pos, v2  size ) -> ImGuiRect;
-    static auto FromMinMax( v2  mini, v2  maxi ) -> ImGuiRect;
+    static auto FromPosSize( v2 pos, v2 size ) -> ImGuiRect;
+    static auto FromMinMax( v2 mini, v2 maxi ) -> ImGuiRect;
     auto GetWidth() const -> float;
     auto GetHeight() const -> float;
     auto GetSize() const -> v2;
@@ -131,6 +131,7 @@ namespace Tac
   auto ImGuiGetFontSize() -> float;
   auto ImGuiGetItemSpacing() -> const v2&;
   auto ImGuiGetButtonPadding() -> float;
+  bool ImGuiIsRectHovered( ImGuiRect );
 
   //   ImGui System Functions
   void ImGuiInit( const ImGuiInitParams&, Errors& );

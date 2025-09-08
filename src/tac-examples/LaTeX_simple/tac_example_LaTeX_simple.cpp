@@ -87,7 +87,7 @@ namespace Tac
     }
   }
 
-  static void DrawEquation_worldspace( const char* eqStr, v2 pos_worldspace, float fontSize_worldspace )
+  static void UpdateEquation_worldspace( const char* eqStr, v2 pos_worldspace, float fontSize_worldspace )
   {
     const ImGuiRect contentRect{ ImGuiGetContentRect() };
     float px_per_world_unit{ contentRect.GetHeight() / sWorldspaceCamHeight };
@@ -185,7 +185,7 @@ namespace Tac
     }
 
     if( sWorldspaceEqEnabled )
-      DrawEquation_worldspace( sWorldspaceEqStr, sWorldspaceEqPos, sWorldspaceEqSize );
+      UpdateEquation_worldspace( sWorldspaceEqStr, sWorldspaceEqPos, sWorldspaceEqSize );
 
 
   }

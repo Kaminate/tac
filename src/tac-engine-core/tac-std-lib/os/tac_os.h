@@ -41,7 +41,7 @@ namespace Tac::OS
   extern void         ( *OSOpenPath )( const FileSys::Path&, Errors& );
 
 
-  extern Monitor        ( *OSGetPrimaryMonitor )();
+  extern Monitor      ( *OSGetPrimaryMonitor )();
 
 
   // I don't think this function should exist.
@@ -78,5 +78,8 @@ namespace Tac::OS
   //MutexHandle     OSMutexCreate();
   //void            OSMutexLock( MutexHandle );
   //void            OSMutexUnlock( MutexHandle );
+
+  void CmdLineAddFlag( StringView );
+  bool CmdLineIsFlagPresent( StringView );
 
 } // namespace Tac::OS

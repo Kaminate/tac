@@ -1023,6 +1023,13 @@ void Tac::ImGuiSetCursorPos( const v2 local )
   window->mViewportSpaceCurrCursor = local;
 }
 
+bool Tac::ImGuiIsRectHovered( ImGuiRect rect )
+{
+  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  return globals.mMouseHoveredWindow == globals.mCurrentWindow->GetWindowHandle()
+    && globals.mCurrentWindow->IsHovered( rect );
+}
+
 auto Tac::ImGuiGetStyle() -> Tac::UIStyle&
 {
   return ImGuiGlobals::Instance.mUIStyle;

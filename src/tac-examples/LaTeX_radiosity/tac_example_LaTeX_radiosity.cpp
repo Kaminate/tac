@@ -28,12 +28,6 @@ namespace Tac
   static v2                    sWorldspaceCamPos            {};
   static float                 sWorldspaceCamHeight         { 10 };
 
-  // Line equation (y=mx+b, worldspace)
-  static bool                  sWorldspaceEqEnabled         { false };
-  static v2                    sWorldspaceEqPos             { 0, 0 };
-  static float                 sWorldspaceEqSize            { 2 };
-  static const char*           sWorldspaceEqStr             { "y=mx+b" };
-
   static bool                  sDrawOrigin                  {};
 
   enum TextStyle
@@ -54,6 +48,20 @@ namespace Tac
     TextStyle   mStyle           {};
     float       mScaleMultiplier { 1 };
     Children    mChildren        {};
+
+    struct
+    {
+      bool mHovered{};
+      bool mActivated{};
+      float mAlphaCur{};
+      float mAlphaTgt{ 0.2f };
+      float mAlphaVel{};
+      float mHoverAlphaCur{};
+      float mHoverAlphaTgt{};
+      float mHoverAlphaVel{};
+      v2 mPos_windowspace;
+      v2 mSize_windowspace;
+    } mRuntimeData;
   };
 
   struct PresentationDef
@@ -287,45 +295,69 @@ namespace Tac
 
   }
 
-  static void DrawEquation_worldspace( StringView eqStr, v2 pos_worldspace, float fontSize_worldspace )
+  static void DrawBorder(StringView eqStr, v2 pos_windowspace, v2 size_windowspace, float alpha )
   {
+    UI2DDrawData* drawList{ ImGuiGetDrawData() };
+    if( !drawList )
+      return;
+    v2 rectMini_windowspace{ pos_windowspace - v2( size_windowspace.x * 0.05f,
+                                                   size_windowspace.y * 0.25f ) };
+    v2 rectMaxi_windowspace{ pos_windowspace + v2( size_windowspace.x * 1.05f,
+                                                   size_windowspace.y * 1.25f ) };
+    ImGuiRect rect_windowspace{ ImGuiRect::FromMinMax( rectMini_windowspace, rectMaxi_windowspace ) };
+    const bool hovered{ ImGuiIsRectHovered( rect_windowspace ) };
+    if( !hovered )
+      return;
+    
+    v2 TL{ rectMini_windowspace };
+    v2 TR{ rectMaxi_windowspace.x, rectMini_windowspace.y };
+    v2 BL{ rectMini_windowspace.x, rectMaxi_windowspace.y };
+    v2 BR{ rectMaxi_windowspace };
+    const v4 color{ 1, 1, 1, alpha };
+    drawList->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ TR }, .mColor{color} } );
+    drawList->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ BL }, .mColor{color} } );
+    drawList->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ TR }, .mColor{color} } );
+    drawList->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ BL }, .mColor{color} } );
+  }
+
+  static void UpdateEquation_worldspace( TextBlockDef& def)
+  {
+    const StringView eqStr{ def.mLaTeX };
+    const v2 pos_worldspace{ def.mPos_worldspace };
+    dynmc float fontSize_worldspace{ def.mScaleMultiplier };
+    switch( def.mStyle )
+    {
+      case kHeading1: fontSize_worldspace *= sPresentationDef.mFontSize_worldspace_Heading1; break;
+      case kNormalText: fontSize_worldspace *= sPresentationDef.mFontSize_worldspace_NormalText; break;
+      default: TAC_ASSERT_INVALID_CASE( def.mStyle ); break;
+    }
+
     const ImGuiRect contentRect{ ImGuiGetContentRect() };
     const float px_per_world_unit{ contentRect.GetHeight() / sWorldspaceCamHeight };
     const v2 pos_windowspace{ WorldToWindow( pos_worldspace ) };
     const float fontSize_windowspace{ px_per_world_unit * fontSize_worldspace };
     const float width{}; // unlimited
     const float lineSpace{}; // ???
-    const microtex::color _color{ microtex::getColor( "white" ) };
+    //const microtex::color _color{ microtex::getColor( "white" ) };
+
+    const microtex::color _color{ microtex::argb( def.mRuntimeData.mAlphaCur, 1.f, 1.f, 1.f ) };
+
     const char* fallback{ "<nothing was drawn>" };
-    dynmc v2i renderedSizeWindowspace{};
-    const bool drawBorder{ !eqStr.starts_with( "\\text" ) };
+
     try
     {
       if( microtex::Render* curRender{
         microtex::MicroTeX::parse( eqStr.c_str(), width, fontSize_windowspace, lineSpace, _color ) } )
       {
         curRender->draw( sGraphics2D, pos_windowspace.x, pos_windowspace.y );
-        renderedSizeWindowspace.x = curRender->getWidth();
-        renderedSizeWindowspace.y = curRender->getHeight();
-        if( renderedSizeWindowspace.x && renderedSizeWindowspace.y )
+        def.mRuntimeData.mPos_windowspace = pos_windowspace;
+        def.mRuntimeData.mSize_windowspace = v2( curRender->getWidth(), curRender->getHeight() );
+        DrawBorder( eqStr,
+                    def.mRuntimeData.mPos_windowspace,
+                    def.mRuntimeData.mSize_windowspace,
+                    def.mRuntimeData.mHoverAlphaCur );
+        if( curRender->getWidth() && curRender->getHeight() )
           fallback = nullptr;
-
-        if( UI2DDrawData * drawList{ ImGuiGetDrawData() } )
-        {
-          if( drawBorder )
-          {
-            v2 mini{ pos_windowspace - v2( renderedSizeWindowspace.x * 0.05f, renderedSizeWindowspace.y * 0.25f ) };
-            v2 maxi{ pos_windowspace + v2( renderedSizeWindowspace.x * 1.05f, renderedSizeWindowspace.y * 1.25f ) };
-            v2 TL{ mini };
-            v2 TR{ maxi.x, mini.y };
-            v2 BL{ mini.x, maxi.y };
-            v2 BR{ maxi };
-            drawList->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ TR } } );
-            drawList->AddLine( UI2DDrawData::Line{ .mP0{ TL }, .mP1{ BL } } );
-            drawList->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ TR } } );
-            drawList->AddLine( UI2DDrawData::Line{ .mP0{ BR }, .mP1{ BL } } );
-          }
-        }
 
         delete curRender;
       }
@@ -353,19 +385,14 @@ namespace Tac
           .mColor    { ui2Dcolor },
         };
         drawList->AddText( text );
-
       }
-
     }
   }
 
-  static void DrawTexture_worldspace( StringView assetPath, v2 pos_worldspace, float scale )
+  static void UpdateTexture_worldspace( TextBlockDef& def)
   {
-    UI2DDrawData* drawList{ ImGuiGetDrawData() };
-    if( !drawList )
-      return;
-
     Errors errors;
+    const AssetPathStringView assetPath{def.mLaTeX};
     Render::TextureHandle textureHandle{ TextureAssetManager::GetTexture( assetPath, errors ) };
     TAC_ASSERT( !errors );
     if( !textureHandle.IsValid() )
@@ -377,24 +404,29 @@ namespace Tac
       return;
 
     const float px_per_world_unit{ ImGuiGetContentRect().GetHeight() / sWorldspaceCamHeight };
-
-    const float world_unit_per_image_texel = 0.04f;
-
-    v2 pos_mini_windowspace{ WorldToWindow( pos_worldspace ) };
+    const float world_unit_per_image_texel{ 0.04f };
+    const float texels_to_pixels{ world_unit_per_image_texel * def.mScaleMultiplier * px_per_world_unit };
+    v2 pos_mini_windowspace{ WorldToWindow( def.mPos_worldspace ) };
     v2 pos_maxi_windowspace
     {
-      pos_mini_windowspace.x + textureSize.x * world_unit_per_image_texel * scale * px_per_world_unit,
-      pos_mini_windowspace.y + textureSize.y * world_unit_per_image_texel *scale * px_per_world_unit
+      pos_mini_windowspace.x + textureSize.x * texels_to_pixels,
+      pos_mini_windowspace.y + textureSize.y * texels_to_pixels
     };
 
-    const UI2DDrawData::Box box
+    if( UI2DDrawData * drawList{ ImGuiGetDrawData() } )
     {
-      .mMini          { pos_mini_windowspace },
-      .mMaxi          { pos_maxi_windowspace },
-      .mColor         { 1, 1, 1, 1 },
-      .mTextureHandle { textureHandle },
-    };
-    drawList->AddBox( box );
+      const v4 color{def.mRuntimeData.mAlphaCur};
+      const UI2DDrawData::Box box
+      {
+        .mMini          { pos_mini_windowspace },
+        .mMaxi          { pos_maxi_windowspace },
+        .mColor         { color },
+        .mTextureHandle { textureHandle },
+      };
+      drawList->AddBox( box );
+    }
+    def.mRuntimeData.mPos_windowspace = pos_mini_windowspace;
+    def.mRuntimeData.mSize_windowspace = pos_maxi_windowspace - pos_mini_windowspace;
   }
 
   void ExampleLaTeXRadiosity::LazyInit( Errors& errors )
@@ -426,23 +458,50 @@ namespace Tac
 
     for( TextBlockDef& def : sPresentationDef.mTextBlockDefs )
     {
-      float fontSize_worldspace{ 1 };
-      switch( def.mStyle )
-      {
-        case kHeading1: fontSize_worldspace = sPresentationDef.mFontSize_worldspace_Heading1; break;
-        case kNormalText: fontSize_worldspace = sPresentationDef.mFontSize_worldspace_NormalText; break;
-        default: TAC_ASSERT_INVALID_CASE( def.mStyle ); break;
-      }
+      def.mRuntimeData.mPos_windowspace;
+      def.mRuntimeData.mSize_windowspace;
+      
+    }
+
+
+    for( TextBlockDef& def : sPresentationDef.mTextBlockDefs )
+    {
 
       if( def.mLaTeX.ends_with( ".png" ) )
       {
         TAC_ASSERT( def.mLaTeX.starts_with( GetFileAssetPath( "" ) ) );
-        DrawTexture_worldspace( def.mLaTeX, def.mPos_worldspace, def.mScaleMultiplier );
+        UpdateTexture_worldspace( def);
       }
       else
       {
-        DrawEquation_worldspace( def.mLaTeX, def.mPos_worldspace, def.mScaleMultiplier * fontSize_worldspace );
+        UpdateEquation_worldspace( def);
       }
+
+      ImGuiRect rect_windowspace{ ImGuiRect::FromPosSize( def.mRuntimeData.mPos_windowspace,
+                                                          def.mRuntimeData.mSize_windowspace ) };
+      const bool hovered{ ImGuiIsRectHovered( rect_windowspace ) };
+      def.mRuntimeData.mHovered = hovered;
+      if( def.mRuntimeData.mHovered && AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+      {
+        def.mRuntimeData.mActivated = !def.mRuntimeData.mActivated ;
+        if( def.mRuntimeData.mAlphaTgt > 0.9f )
+          def.mRuntimeData.mAlphaTgt = 0.1f;
+        else
+          def.mRuntimeData.mAlphaTgt = 1.0f;
+      }
+
+      def.mRuntimeData.mHoverAlphaTgt = def.mRuntimeData.mHovered ? def.mRuntimeData.mAlphaTgt : 0;
+      Spring( &def.mRuntimeData.mHoverAlphaCur,
+              &def.mRuntimeData.mHoverAlphaVel,
+              def.mRuntimeData.mHoverAlphaTgt,
+              50.0f,
+              1 / 60.0f );
+
+      Spring( &def.mRuntimeData.mAlphaCur,
+              &def.mRuntimeData.mAlphaVel,
+              def.mRuntimeData.mAlphaTgt,
+              80.0f,
+              1 / 60.0f );
     }
 
 
@@ -457,8 +516,6 @@ namespace Tac
       }
     }
 
-    if( sWorldspaceEqEnabled )
-      DrawEquation_worldspace( sWorldspaceEqStr, sWorldspaceEqPos, sWorldspaceEqSize );
 
     if( ImGuiBegin( "Radiosity Demo Controls" ) )
     {
@@ -466,15 +523,6 @@ namespace Tac
                  "- Middle mouse to pan\n"
                  "- Scroll wheel to zoom" );
       ImGuiCheckbox( "Draw Origin", &sDrawOrigin );
-
-      if( ImGuiCollapsingHeader( "Equation (worldspace)" ) )
-      {
-        TAC_IMGUI_INDENT_BLOCK;
-        ImGuiCheckbox( "Equation enabled", &sWorldspaceEqEnabled );
-        ImGuiDragFloat2( "equation pos (worldspace)", sWorldspaceEqPos.data() );
-        ImGuiDragFloat( "equation size (worldspace)", &sWorldspaceEqSize );
-      }
-
 
       if( ImGuiCollapsingHeader( "Camera" ) )
       {

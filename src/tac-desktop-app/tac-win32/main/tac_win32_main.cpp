@@ -2,6 +2,7 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"              // DesktopApp::Init
 #include "tac-std-lib/dataprocess/tac_log.h"                          // LogScope
+#include "tac-std-lib/os/tac_os.h"
 #include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h" // Win32WindowManagerInit
 #include "tac-win32/input/tac_win32_mouse_edge.h"                     // Win32MouseEdgeInit
 #include "tac-win32/input/tac_xinput.h"                               // XInputInit
@@ -11,6 +12,8 @@
 #include "tac-dx/pix/tac_pix_dbg_attach.h"                            // AllowPIXDebuggerAttachment
 #include "tac-win32/main/tac_win32_redirect_stream_buf.h"             // RedirectStreamBuf
 #include "tac-win32/main/tac_win32_platform.h"                        // Win32PlatformFns
+
+#include "tac-std-lib/dataprocess/tac_text_parser.h"
 
 static Tac::Win32PlatformFns   sWin32PlatformFns;
 static Tac::Render::DX12Device sDX12Device;
@@ -25,6 +28,25 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   TAC_SCOPE_GUARD( LogScope );
   Win32OSInit();
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
+
+  if( ParseData parseData( ( const char* )lpCmdLine ); parseData )
+  {
+    for( StringView word{ parseData.EatWord() }; !word.empty(); word = parseData.EatWord() )
+    {
+      if( word.starts_with( "--" ) )
+        OS::CmdLineAddFlag( word.substr( 2 ) );
+      else if( word.starts_with( "-") )
+        OS::CmdLineAddFlag( word.substr( 1 ) );
+    }
+  }
+  //std::stringstream ss( lpCmdLine );
+  //std::string s;
+  //while( ss >> s )
+  //{
+  //  s;
+  //}
+  //ta
+
   RedirectStreamBuf();
   TAC_CALL_RET( Render::AllowPIXDebuggerAttachment( errors ) );
   Render::RenderApi::SetRenderDevice( &sDX12Device );
