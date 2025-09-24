@@ -45,6 +45,7 @@ namespace Tac
     v3              mEmissive                      {};
 
 
+#if 0
     struct EmissionParams
     {
       float mIlluminanceInLumens {};
@@ -52,6 +53,8 @@ namespace Tac
     };
 
     void SetEmission( EmissionParams params );
+#endif
+
 
     AssetPathString mTextureDiffuse                {};
     AssetPathString mTextureSpecular               {};
