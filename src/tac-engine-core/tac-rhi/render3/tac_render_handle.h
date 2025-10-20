@@ -37,7 +37,7 @@ namespace Tac::Render
   struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
 
   // Basically a variant that can hold any type of gpu resource
-  struct ResourceHandle : public IHandle
+  struct ResourceHandle// : public IHandle
   {
     ResourceHandle() = default;
     ResourceHandle( HandleType, IHandle );
@@ -53,10 +53,16 @@ namespace Tac::Render
     operator BufferHandle() const;
     operator TextureHandle() const;
     operator SamplerHandle() const;
-    HandleType GetHandleType() const;
+
+    auto GetHandle() const -> IHandle { return mHandle; }
+    auto GetHandleType() const -> HandleType;
+    bool IsValid() const  { return mHandle.IsValid(); }
+    auto GetIndex() const { return mHandle.GetIndex(); }
+    operator IHandle() const { return mHandle; }
 
   private:
     HandleType mHandleType {};
+    IHandle    mHandle     {};
   };
 
 } // namespace Tac::Render

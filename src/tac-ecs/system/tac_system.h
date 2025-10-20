@@ -19,24 +19,21 @@ namespace Tac
   {
     struct Iterate
     {
-      const SystemInfo* begin() const;
-      const SystemInfo* end() const;
+      auto begin() const -> const SystemInfo*;
+      auto end() const -> const SystemInfo*;
     };
 
     using SystemCreateFn = System* ( * )();
     using SystemImGuiFn = void ( * )( System* );
 
-    static dynmc SystemInfo*  Register();
-    static const SystemInfo*  Find( StringView );
+    static auto Register() -> dynmc SystemInfo*;
+    static auto Find( StringView ) -> const SystemInfo*;
 
-    //                  Index of this system in the registry, also the 
-    //                  index of this system in the world systems array
-    int                 GetIndex() const;
+    auto GetIndex() const -> int; // Indexes the [system registry] and the [world systems array]
 
     const char*         mName       {};
     SystemCreateFn      mCreateFn   {};
     SystemImGuiFn       mDebugImGui {};
-
   };
 
 

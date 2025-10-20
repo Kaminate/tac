@@ -214,7 +214,6 @@ namespace Tac::Render
                                             blobErr.CreateAddress() ) };
 
     TAC_RAISE_ERROR_IF_RETURN(
-      {},
       FAILED( serializeHr ),
       String() +
       "Failed to serialize root signature! "
@@ -224,8 +223,7 @@ namespace Tac::Render
 
 
     PCom< ID3D12RootSignature > rootSignature;
-    TAC_DX12_CALL_RET( {},
-                       mDevice->CreateRootSignature( 0,
+    TAC_DX12_CALL_RET( mDevice->CreateRootSignature( 0,
                        blob->GetBufferPointer(),
                        blob->GetBufferSize(),
                        rootSignature.iid(),

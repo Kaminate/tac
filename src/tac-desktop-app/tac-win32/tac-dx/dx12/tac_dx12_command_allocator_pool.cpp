@@ -28,8 +28,7 @@ namespace Tac::Render
     TAC_ASSERT( device );
 
     // a command allocator manages storage for cmd lists and bundles
-    TAC_DX12_CALL_RET( {},
-                       device->CreateCommandAllocator(
+    TAC_DX12_CALL_RET( device->CreateCommandAllocator(
                        D3D12_COMMAND_LIST_TYPE_DIRECT,
                        allocator.iid(),
                        allocator.ppv() ) );

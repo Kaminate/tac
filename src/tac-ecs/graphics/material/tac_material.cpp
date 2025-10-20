@@ -231,11 +231,11 @@ namespace Tac
 
     static float ComputeArea( Errors& errors )
     {
-      TAC_RAISE_ERROR_IF_RETURN( {}, !sMaterial, "No material" );
+      TAC_RAISE_ERROR_IF_RETURN( !sMaterial, "No material" );
       Entity* entity { sMaterial->mEntity };
-      TAC_RAISE_ERROR_IF_RETURN( {}, !entity, "No entity" );
+      TAC_RAISE_ERROR_IF_RETURN( !entity, "No entity" );
       Model* model { Model::GetModel(entity) };
-      TAC_RAISE_ERROR_IF_RETURN( {}, !model, "No model" );
+      TAC_RAISE_ERROR_IF_RETURN( !model, "No model" );
       TAC_CALL_RET( const Mesh * mesh{
         ModelAssetManager::GetMesh(
           ModelAssetManager::Params
@@ -243,7 +243,7 @@ namespace Tac
             .mPath        { model->mModelPath.c_str() },
             .mModelIndex  { model->mModelIndex },
           }, errors ) } );
-      TAC_RAISE_ERROR_IF_RETURN( {}, !mesh, "No mesh" );
+      TAC_RAISE_ERROR_IF_RETURN( !mesh, "No mesh" );
 
       float runningArea_Worldspace {};
       const int nTris { mesh->mJPPTCPUMeshData.mIndexes.size() / 3 };

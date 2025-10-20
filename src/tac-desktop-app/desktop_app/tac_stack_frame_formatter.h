@@ -7,6 +7,7 @@
 namespace Tac
 {
   
+#if 0 // this is stupid
   struct StackFrameFormatter
   {
     StackFrameFormatter( Span< const StackFrame > );
@@ -24,4 +25,5 @@ namespace Tac
   };
 
 
+#endif
 } // namespace Tac

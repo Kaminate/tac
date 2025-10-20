@@ -21,7 +21,7 @@ namespace Tac::Render
 
   static D3D12ProgramBindType::Classification GetClassification( IBindlessArray::Params params )
   {
-    const bool isShaderResource{ ( params.mBinding & Binding::ShaderResource ) != Binding::None };
+    const bool isShaderResource{ params.mBinding & Binding::ShaderResource };
     const bool isBuffer{ params.mHandleType == HandleType::kBuffer };
     const bool isTexture{ params.mHandleType == HandleType::kTexture };
 
@@ -116,10 +116,10 @@ namespace Tac::Render
     for( int i{}; i < mHandles.size(); ++i )
     {
       const Binding binding( i );
-      IHandle handle{ mHandles[ i ] };
+      const IHandle handle{ mHandles[ i ] };
       if( handle.IsValid() )
       {
-        TAC_CALL( CopyDescriptor(handle, binding, errors ) );
+        TAC_CALL( CopyDescriptor( handle, binding, errors ) );
       }
     }
 #endif

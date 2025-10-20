@@ -1051,7 +1051,8 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::CreateSamplerParams samplerParams
     {
-      .mFilter{ Render::Filter::Linear }
+      .mFilter { Render::Filter::Linear },
+      .mName   { "imgui linear sampler" },
     };
     mSampler = renderDevice->CreateSampler( samplerParams );
   }

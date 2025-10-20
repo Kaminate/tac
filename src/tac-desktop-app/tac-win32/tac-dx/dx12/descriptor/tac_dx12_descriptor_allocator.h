@@ -49,24 +49,20 @@ namespace Tac::Render
         kPendingFree, // Allocated and used in a command queue
       };
 
-      // Either the RegionDesc keeps left/right offsets, or the list must be sorted
       RegionIndex mLeftIndex        { RegionIndex::kNull };
       RegionIndex mRightIndex       { RegionIndex::kNull };
-
       int         mDescriptorIndex  {};
       int         mDescriptorCount  {};
-
       State       mState            { kUnknown };
       FenceSignal mFence            {};
 
       void PosInsertAfter( RegionDesc*, DX12DescriptorAllocator* );
       void PosRemove( DX12DescriptorAllocator* );
 
-      static StringView StateToString( State );
+      static auto StateToString( State ) -> StringView;
     };
 
     void           Free( RegionDesc* );
-    //void           CoalesceFreeBlock( RegionDesc* );
     RegionIndex    GetIndex( RegionDesc* ) const;
     RegionDesc*    GetRegionAtIndex( RegionIndex );
     void           DebugPrint();
@@ -94,22 +90,18 @@ namespace Tac::Render
     DX12DescriptorRegion( DX12Descriptor,
                           DX12DescriptorAllocator*,
                           DX12DescriptorAllocator::RegionIndex mRegionIndex );
-    DX12DescriptorRegion( DX12DescriptorRegion&& );
+    DX12DescriptorRegion( DX12DescriptorRegion&& ) noexcept;
     ~DX12DescriptorRegion();
 
-    void                                     Free( FenceSignal );
-    //DX12DescriptorAllocator::RegionIndex GetRegionIndex() const;
+    void Free( FenceSignal );
 
-    void operator = ( DX12DescriptorRegion&& );
-
-     void operator = ( const DX12DescriptorRegion& ) = delete;
-    //void operator = ( const DX12DescriptorRegion& );
+    void operator = ( DX12DescriptorRegion&& ) noexcept;
+    void operator = ( const DX12DescriptorRegion& ) = delete;
 
   private:
     void SwapWith( DX12DescriptorRegion&& );
     DX12DescriptorAllocator*             mRegionManager {};
-    DX12DescriptorAllocator::RegionIndex mRegionIndex{
-      DX12DescriptorAllocator::RegionIndex::kNull };
+    DX12DescriptorAllocator::RegionIndex mRegionIndex   { DX12DescriptorAllocator::RegionIndex::kNull };
   };
 
 } // namespace Tac::Render

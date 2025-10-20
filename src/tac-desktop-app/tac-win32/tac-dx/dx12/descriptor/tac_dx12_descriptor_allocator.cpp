@@ -36,7 +36,7 @@ namespace Tac::Render
   }
 
 
-  void DX12DescriptorRegion::operator = ( DX12DescriptorRegion&& other )
+  void DX12DescriptorRegion::operator = ( DX12DescriptorRegion&& other ) noexcept
   {
     SwapWith( move( other ) );
   }
@@ -49,7 +49,7 @@ namespace Tac::Render
   //  TAC_ASSERT( other.mRegionIndex == DX12DescriptorAllocator::RegionIndex::kNull );
   //}
 
-  DX12DescriptorRegion::DX12DescriptorRegion( DX12DescriptorRegion&& other )
+  DX12DescriptorRegion::DX12DescriptorRegion( DX12DescriptorRegion&& other ) noexcept
   {
     SwapWith( move( other ) );
   }
@@ -414,7 +414,7 @@ namespace Tac::Render
           mSep = ", ";
         }
 
-        String mSep{ "" };
+        String mSep;
         String mString;
       } properties;
 
@@ -549,10 +549,6 @@ namespace Tac::Render
     DebugTitleEnd( dbgTitle );
 #endif
   }
-
-  //void DX12DescriptorRegionManager::CoalesceFreeBlock( RegionDesc* region )
-  //{
-  //}
 
   void DX12DescriptorAllocator::RemoveFromFreeList( RegionDesc* toRemove )
   {

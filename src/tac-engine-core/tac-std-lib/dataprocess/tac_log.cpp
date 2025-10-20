@@ -356,9 +356,7 @@ namespace Tac
 
 void Tac::MedievalDebugAux( const StackFrame sf )
 {
-  const String msg{ String() + sf.GetFile() + ":"
-                       + ToString( sf.GetLine() )
-                       + " " + sf.GetFunction() };
+  const String msg{ sf.Stringify() };
   LogApi::LogMessagePrintLine( msg, Tac::LogApi::Severity::kError );
 }
 

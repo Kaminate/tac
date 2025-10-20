@@ -40,6 +40,7 @@ namespace Tac
     return Render::CreateSamplerParams
     {
       .mFilter{ Render::Filter::Linear },
+      .mName  { "icon_lin_sampler" },
     };
   }
 

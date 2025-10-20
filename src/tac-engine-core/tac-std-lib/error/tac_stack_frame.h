@@ -1,24 +1,18 @@
 #pragma once
 
+#include "tac-std-lib/string/tac_string.h"
+
 namespace Tac
 {
   // similar to c++20 std::source_location
   struct StackFrame
   {
-    StackFrame() = default;
-    StackFrame( int, const char*, const char* );
-
-    bool IsValid() const;
-    auto GetLine() const -> int;
-    auto GetFile() const -> const char*;
-    auto GetFunction() const -> const char*;
-    
-  private:
-    int         mLine     {};
-    const char* mFile     {};
-    const char* mFunction {};
+    String Stringify() const;
+    operator bool() const { return mFile; }
+    int         mLine {};
+    const char* mFile {};
+    const char* mFn   {};
   };
 }
 
-#define TAC_STACK_FRAME Tac::StackFrame( __LINE__, __FILE__, __func__ )
-
+#define TAC_STACK_FRAME Tac::StackFrame{ .mLine{ __LINE__ }, .mFile{ __FILE__ }, .mFn{ __func__ } }

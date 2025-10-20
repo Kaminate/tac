@@ -194,7 +194,8 @@ namespace Tac
   }
 
   static auto ConvertInputLayoutBuffer( const Render::GPUInputLayout& il,
-                                                        Errors& errors ) -> Render::BufferHandle
+                                        StringView name,
+                                        Errors& errors ) -> Render::BufferHandle
   {
     const Render::CreateBufferParams createBufferParams
     {
@@ -204,7 +205,7 @@ namespace Tac
       .mUsage        { Render::Usage::Static },
       .mBinding      { Render::Binding::ShaderResource },
       .mGpuBufferMode{ Render::GpuBufferMode::kByteAddress },
-      .mOptionalName { "input layout" },
+      .mOptionalName { name },
       .mStackFrame   { TAC_STACK_FRAME },
     };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -227,8 +228,7 @@ namespace Tac
     TAC_ASSERT( indices->type == cgltf_type_scalar );
 
     const Render::TexFmt fmt{ glTF_ComponentToTac( indices->component_type ) };
-    TAC_RAISE_ERROR_IF_RETURN( {},
-                               fmt == Render::TexFmt::kUnknown,
+    TAC_RAISE_ERROR_IF_RETURN( fmt == Render::TexFmt::kUnknown,
                                "unsupported index buffer type " +
                                ToString( ( int )indices->component_type ) );
 
@@ -569,9 +569,7 @@ namespace Tac
         vtxDecls = GLTFVtxDecl( parsedPrim );
       const String bufferNamePrefix{[&](){
         String bufferName;
-        bufferName += '\"';
         bufferName += path.GetFilename();
-        bufferName += '\"';
         if( !( meshCount == 1 && primitiveCount == 1 ) )
         {
           bufferName += ":";
@@ -627,8 +625,7 @@ namespace Tac
     return submeshes;
   }
 
-  static Mesh LoadMeshFromGltf( ModelAssetManager::Params params,
-                                                Errors& errors )
+  static Mesh LoadMeshFromGltf( ModelAssetManager::Params params, Errors& errors )
   {
     dynmc Render::VertexDeclarations vtxDecls{ params.mOptVtxDecls };
     dynmc MeshRaycast meshRaycast;
@@ -640,9 +637,17 @@ namespace Tac
                          meshRaycast,
                          jpptCPUMeshData,
                          errors ) } );
+
+    // 
+    // Hmm... so like ModelAssetManager::Params::mOptVtxDecls may force conversion to a vtxDecls
+    // but, if unspecified then PopulateSubmeshes will detect the file format vertex declaration.
+    //
+    // But if the file format contains MULTIPLE input layouts, then we have a problem because we are
+    // only autodetecting the first.
+    //
     const Render::GPUInputLayout gpuInputLayout( vtxDecls );
     TAC_CALL_RET( const Render::BufferHandle gpuInputLayoutBuffer{
-      ConvertInputLayoutBuffer( gpuInputLayout, errors ) } );
+      ConvertInputLayoutBuffer( gpuInputLayout, params.mPath.GetFilename() + " input layout", errors ) } );
     Render::IBindlessArray* bindlessArray{ ModelAssetManager::GetBindlessArray() };
     TAC_CALL_RET( const Render::IBindlessArray::Binding gpuInputLayoutBinding{
       bindlessArray->Bind( gpuInputLayoutBuffer, errors ) } );

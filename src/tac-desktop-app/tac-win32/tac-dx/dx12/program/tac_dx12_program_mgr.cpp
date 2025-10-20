@@ -69,12 +69,12 @@ namespace Tac::Render
 
   static DXCCompileOutput Compile( ProgramParams programParams, Errors& errors )
   {
-    TAC_RAISE_ERROR_IF_RETURN( {}, programParams.mInputs.empty(), "Missing shader sources" );
+    TAC_RAISE_ERROR_IF_RETURN( programParams.mInputs.empty(), "Missing shader sources" );
 
     if( programParams.mName.empty() && programParams.mInputs.size() == 1 )
       programParams.mName = programParams.mInputs[ 0 ];
 
-    TAC_RAISE_ERROR_IF_RETURN( {}, programParams.mName.empty(), "Missing shader name" );
+    TAC_RAISE_ERROR_IF_RETURN( programParams.mName.empty(), "Missing shader name" );
 
 
 #if 0

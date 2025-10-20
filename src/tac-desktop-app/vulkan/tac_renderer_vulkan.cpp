@@ -37,9 +37,6 @@ namespace Tac::Render
     SetRendererFactory<RendererVulkan>( RendererAPI::Vulkan );
   }
 
-
-  //TAC_RAISE_ERROR_RETURN();
-
   RendererVulkan::~RendererVulkan()
   {
     vkb::destroy_debug_utils_messenger( _instance, _debug_messenger );

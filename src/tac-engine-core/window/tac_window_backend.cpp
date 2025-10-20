@@ -84,6 +84,7 @@ namespace Tac
         .mSize     { size },
         .mColorFmt { sSwapChainColorFormat },
         .mDepthFmt { sSwapChainDepthFormat },
+        .mName     { name },
       };
       swapChainHandle = renderDevice->CreateSwapChain( params, errors );
     }

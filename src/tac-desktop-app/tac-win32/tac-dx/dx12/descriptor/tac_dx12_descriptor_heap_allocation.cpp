@@ -3,12 +3,12 @@
 
 namespace Tac::Render
 {
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12Descriptor::GetCPUHandle( int offset ) const
+  auto DX12Descriptor::GetCPUHandle( int offset ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     return mOwner->IndexCPUDescriptorHandle( mIndex + offset );
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12Descriptor::GetGPUHandle( int offset ) const
+  auto DX12Descriptor::GetGPUHandle( int offset ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     return mOwner->IndexGPUDescriptorHandle( mIndex + offset);
   }

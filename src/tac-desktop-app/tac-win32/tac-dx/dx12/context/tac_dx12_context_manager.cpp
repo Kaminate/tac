@@ -67,7 +67,7 @@ namespace Tac::Render
     // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
     //       CreateCommandList, which creates in a open state.
     PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL_RET( {}, mDevice->CreateCommandList1( 0,
+    TAC_DX12_CALL_RET( mDevice->CreateCommandList1( 0,
                        D3D12_COMMAND_LIST_TYPE_DIRECT,
                        D3D12_COMMAND_LIST_FLAG_NONE,
                        commandList.iid(),

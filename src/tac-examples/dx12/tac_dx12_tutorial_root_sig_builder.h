@@ -20,19 +20,16 @@ namespace Tac::Render
                            D3D12_SHADER_VISIBILITY,
                            D3D12_ROOT_DESCRIPTOR1 );
 
-    void AddConstantBuffer( D3D12_SHADER_VISIBILITY,
-                            D3D12_ROOT_DESCRIPTOR1 );
+    void AddConstantBuffer( D3D12_SHADER_VISIBILITY, D3D12_ROOT_DESCRIPTOR1 );
 
     // Add a descriptor table that associated with a single descriptor range
     // ( This must be called for an unbounded array )
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
-                                 D3D12_DESCRIPTOR_RANGE1 );
+    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY , D3D12_DESCRIPTOR_RANGE1 );
     
 
     // Add a descriptor table associated with several descriptor ranges
     // ( for example, a SRV range, CBV range, and UAV range )
-    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY ,
-                                 Span< D3D12_DESCRIPTOR_RANGE1 > );
+    void AddRootDescriptorTable( D3D12_SHADER_VISIBILITY, Span< D3D12_DESCRIPTOR_RANGE1 > );
     
 
     PCom< ID3D12RootSignature > Build( Errors& errors );

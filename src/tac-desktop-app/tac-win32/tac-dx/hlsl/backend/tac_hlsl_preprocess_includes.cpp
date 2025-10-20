@@ -81,9 +81,7 @@ namespace Tac::Render
         result += TAC_CALL_RET( IncludeFile( hlslPath, errors ) );
     }
 
-    TAC_RAISE_ERROR_IF_RETURN( {},
-                               result.empty(),
-                               "failed to open include file " + includeName );
+    TAC_RAISE_ERROR_IF_RETURN( result.empty(), "failed to open include file " + includeName );
 
     return result;
   }

@@ -4,6 +4,7 @@
 
 namespace Tac
 {
+#if 0
   StackFrameFormatter::StackFrameFormatter( Span< const StackFrame > frames )
   {
     for( const StackFrame& frame : frames )
@@ -45,4 +46,5 @@ namespace Tac
       "Fn: " + sf.GetFunction() + "()" "\n";
   }
 
+#endif
 } // namespace Tac

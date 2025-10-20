@@ -31,7 +31,7 @@ namespace Tac::Render
     const UINT64 signalValue = mNextFenceValue;
 
     // Use this method to set a fence value from the GPU side
-    TAC_DX12_CALL_RET( {}, mCommandQueue->Signal( ( ID3D12Fence* )m_fence, mNextFenceValue ) );
+    TAC_DX12_CALL_RET( mCommandQueue->Signal( ( ID3D12Fence* )m_fence, mNextFenceValue ) );
     mNextFenceValue++;
     return { signalValue };
   }

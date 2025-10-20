@@ -6,9 +6,12 @@
 
 namespace Tac
 {
-  // still needed, even if Binding is not an enum class
-  Render::Binding Render::operator | ( Binding lhs, Binding rhs ) { return Binding{ ( int )lhs | ( int )rhs }; }
-  Render::Binding Render::operator & ( Binding lhs, Binding rhs ) { return Binding{ ( int )lhs & ( int )rhs }; }
+#if 0
+  constexpr Render::BindingMask::operator Binding() const { return mBinding; }
+  constexpr Render::BindingMask::operator bool() const { return mBinding != Binding::None; }
+  constexpr auto Render::operator | ( Binding lhs, Binding rhs ) -> BindingMask { return { ( Binding )( ( int )lhs | ( int )rhs ) }; }
+  constexpr auto Render::operator & ( Binding lhs, Binding rhs ) -> BindingMask { return { ( Binding )( ( int )lhs & ( int )rhs ) }; }
+#endif
 
   int Render::GetTexFmtSize( const TexFmt fmt )
   {

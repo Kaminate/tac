@@ -14,19 +14,19 @@ namespace Tac
 
   ParseData::ParseData( const char* begin, const char* end ) : mStr( begin, end ) { }
 
-  const char*       ParseData::EatByte()
+  auto ParseData::EatByte() -> const char*
   {
     return EatBytes( 1 );
   }
 
-  const char*       ParseData::EatBytes( const int byteCount )
+  auto ParseData::EatBytes( const int byteCount ) -> const char*
   {
     const char* bytes { PeekBytes( byteCount ) };
     mIByte += bytes ? byteCount : 0;
     return bytes;
   }
 
-  StringView        ParseData::EatRestOfLine()
+  auto ParseData::EatRestOfLine() -> StringView
   {
     const char* strBegin { GetPos() };
     do
@@ -44,26 +44,21 @@ namespace Tac
     return StringView( strBegin, GetPos() );
   }
 
-  bool              ParseData::EatNewLine()
+  bool ParseData::EatNewLine()
   {
     const int iByte { mIByte };
     mIByte += PeekNewline();
     return iByte != mIByte;
   }
 
-  bool              ParseData::EatWhitespace()
+  bool ParseData::EatWhitespace()
   {
     const int result { PeekWhitespace() };
     mIByte += result;
     return result > 0;
   }
 
-  static Optional< float > ToFloat( StringView s )
-  {
-    return Atof( s );
-  }
-
-  Optional<float>   ParseData::EatFloat()
+  auto ParseData::EatFloat() -> Optional<float>
   {
     EatWhitespace();
     const char* strBegin { GetPos() };
@@ -77,17 +72,17 @@ namespace Tac
     }
 
     const StringView sv( strBegin, GetPos() );
-    return ToFloat( sv );
+    return Atof( sv );
   }
 
-  float ParseData::EatFloat(Errors& errors)
+  auto ParseData::EatFloat(Errors& errors) -> float
   {
     Optional< float > f { EatFloat() };
-    TAC_RAISE_ERROR_IF_RETURN( {}, !f.HasValue(), "Failed to eat float" );
+    TAC_RAISE_ERROR_IF_RETURN( !f.HasValue(), "Failed to eat float" );
     return f;
   }
 
-  StringView        ParseData::EatWord()
+  auto ParseData::EatWord() -> StringView
   {
     EatWhitespace();
     const char* stringBegin { GetPos() };
@@ -95,7 +90,7 @@ namespace Tac
     return StringView( stringBegin, GetPos() );
   }
 
-  bool              ParseData::EatUntilCharIsNext( const char c )
+  bool ParseData::EatUntilCharIsNext( const char c )
   {
     while( const char* next{ PeekByte() } )
     {
@@ -106,7 +101,7 @@ namespace Tac
     return false;
   }
 
-  bool              ParseData::EatUntilCharIsPrev( const char c )
+  bool ParseData::EatUntilCharIsPrev( const char c )
   {
     while( GetRemainingByteCount() )
     {
@@ -120,24 +115,24 @@ namespace Tac
     return false;
   }
 
-  bool              ParseData::EatStringExpected( const StringView& str )
+  bool ParseData::EatStringExpected( const StringView& str )
   {
     const int iByte { mIByte };
     mIByte += PeekStringExpected( str ) ? str.size() : 0;
     return iByte != mIByte;
   }
 
-  const char*       ParseData::PeekByte() const
+  auto ParseData::PeekByte()  const -> const char*
   {
     return PeekBytes( 1 );
   }
 
-  const char*       ParseData::PeekBytes( const int byteCount ) const
+  auto ParseData::PeekBytes( const int byteCount ) const -> const char*
   {
     return ( byteCount <= GetRemainingByteCount() ) ? GetPos() : nullptr;
   }
 
-  int               ParseData::PeekNewline() const
+  auto ParseData::PeekNewline() const -> int
   {
     if( PeekStringExpected( "\r\n" ) )
       return 2;
@@ -146,7 +141,7 @@ namespace Tac
     return 0;
   }
 
-  char              ParseData::PeekByteUnchecked() const
+  char ParseData::PeekByteUnchecked() const
   {
     return mStr[ mIByte ];
   }
@@ -154,7 +149,7 @@ namespace Tac
   // returns the number of bytes between the current position and the next non-whitespace character
   //
   // this return value is useful to skip over whitespace
-  int               ParseData::PeekWhitespace() const
+  auto ParseData::PeekWhitespace() const -> int
   {
     const char* pos { GetPos() };
     const int   remainingCharCount { GetRemainingByteCount() };
@@ -167,24 +162,20 @@ namespace Tac
     return remainingCharCount;
   }
 
-  bool              ParseData::PeekStringExpected( const StringView& expected ) const
+  bool ParseData::PeekStringExpected( const StringView& expected ) const
   {
     const char* actual { PeekBytes( expected.size() ) };
     const bool result { actual && StringView( actual, expected.size() ) == expected };
     return result;
   }
 
-  const char*       ParseData::GetPos() const
+  auto ParseData::GetPos() const -> const char*
   {
     return mStr.data() + mIByte;
 
   }
 
-  int               ParseData::GetRemainingByteCount() const
-  {
-    //return mByteCount - mIByte;
-    return mStr.size() - mIByte;
-  }
+  auto ParseData::GetRemainingByteCount() const -> int { return mStr.size() - mIByte; }
 
   ParseData::operator bool() const
   {

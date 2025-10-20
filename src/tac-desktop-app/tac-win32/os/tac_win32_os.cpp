@@ -147,7 +147,7 @@ namespace Tac
     const HRESULT hr {
       SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath ) };
     TAC_ON_DESTRUCT( CoTaskMemFree( outPath ) );
-    TAC_RAISE_ERROR_IF_RETURN( {}, hr != S_OK, "Failed to get roaming folder" );
+    TAC_RAISE_ERROR_IF_RETURN( hr != S_OK, "Failed to get roaming folder" );
     return std::filesystem::path( outPath ).u8string().c_str();
   }
 

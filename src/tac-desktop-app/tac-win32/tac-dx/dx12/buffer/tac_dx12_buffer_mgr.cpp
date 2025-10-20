@@ -19,10 +19,10 @@ namespace Tac::Render
   {
     D3D12_RESOURCE_FLAGS ResourceFlags{ D3D12_RESOURCE_FLAG_NONE };
 
-    if( Binding{} == ( binding & Binding::ShaderResource ) )
+    if( binding & Binding::ShaderResource )
       ResourceFlags &= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 
-    if( Binding{} != ( binding & Binding::UnorderedAccess ) )
+    if( binding & Binding::UnorderedAccess )
       ResourceFlags &= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
     return ResourceFlags;
@@ -89,7 +89,7 @@ namespace Tac::Render
     ID3D12Device* mDevice{ renderer.mDevice };
     const Binding binding{ params.mBinding };
 
-    if( Binding{} != ( binding & Binding::VertexBuffer ) )
+    if( binding & Binding::VertexBuffer )
     {
       TAC_ASSERT( params.mStride );
     }
@@ -97,9 +97,9 @@ namespace Tac::Render
     Optional< DX12Descriptor > srv;
     Optional< DX12Descriptor > uav;
 
-    if( Binding{} != ( binding & Binding::ShaderResource ) )
+    if( binding & Binding::ShaderResource )
     {
-      const DX12Descriptor allocation{ heap.Allocate() };
+      const DX12Descriptor allocation{ heap.Allocate( params.mOptionalName + " srv") };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
 
       TAC_ASSERT( params.mGpuBufferMode != GpuBufferMode::kUndefined );
@@ -112,8 +112,7 @@ namespace Tac::Render
       const UINT NumElements{
         params.mGpuBufferMode == GpuBufferMode::kByteAddress
         ? ( UINT )params.mByteCount / 4 // due to DXGI_FORMAT_R32_TYPELESS
-        : ( UINT )params.mByteCount / ( UINT )params.mStride
-      };
+        : ( UINT )params.mByteCount / ( UINT )params.mStride };
 
       const UINT StructureByteStride{
         params.mGpuBufferMode == GpuBufferMode::kStructured
@@ -142,10 +141,9 @@ namespace Tac::Render
       srv = allocation;
     }
 
-
-    if( Binding{} != ( binding & Binding::UnorderedAccess ) )
+    if( binding & Binding::UnorderedAccess )
     {
-      const DX12Descriptor allocation{ heap.Allocate() };
+      const DX12Descriptor allocation{ heap.Allocate( params.mOptionalName + "uav" ) };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
       mDevice->CreateUnorderedAccessView( resource, nullptr, nullptr, DestDescriptor );
       srv = allocation;
@@ -240,7 +238,7 @@ namespace Tac::Render
     ID3D12Device* device{ mDevice };
 
     PCom< ID3D12Resource > committedResource;
-    TAC_DX12_CALL_RET( {}, device->CreateCommittedResource(
+    TAC_DX12_CALL_RET( device->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
       &ResourceDesc,
@@ -342,10 +340,10 @@ namespace Tac::Render
   {
       D3D12_RESOURCE_STATES usageFromBinding{ D3D12_RESOURCE_STATE_COMMON };
 
-      if( Binding{} != ( binding & Binding::ShaderResource ) )
+      if( binding & Binding::ShaderResource )
         usageFromBinding |= D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE;
 
-      if( Binding{} != ( binding & Binding::RenderTarget ) )
+      if( binding & Binding::RenderTarget )
       {
         // (new) How would this be hit? This is the buffer mgr, not the texture mgr
         TAC_ASSERT_INVALID_CODE_PATH;
@@ -354,7 +352,7 @@ namespace Tac::Render
         // D3D12_RESOURCE_STATE_PRESENT ?
       }
 
-      if( Binding{} != ( binding & Binding::DepthStencil ) )
+      if( binding & Binding::DepthStencil )
       {
         // (new) How would this be hit? This is the buffer mgr, not the texture mgr
         TAC_ASSERT_INVALID_CODE_PATH;
@@ -364,16 +362,16 @@ namespace Tac::Render
         // D3D12_RESOURCE_STATE_DEPTH_READ ?
       }
 
-      if( Binding{} != ( binding & Binding::UnorderedAccess ) )
+      if( binding & Binding::UnorderedAccess )
         usageFromBinding |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 
-      if( Binding{} != ( binding & Binding::ConstantBuffer ) )
+      if( binding & Binding::ConstantBuffer )
         usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 
-      if( Binding{} != ( binding & Binding::VertexBuffer ) )
+      if( binding & Binding::VertexBuffer )
         usageFromBinding |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
       
-      if( Binding{} != ( binding & Binding::IndexBuffer ) )
+      if( binding & Binding::IndexBuffer )
         usageFromBinding |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
 
 

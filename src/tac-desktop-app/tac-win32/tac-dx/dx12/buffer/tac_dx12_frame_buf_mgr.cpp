@@ -12,16 +12,11 @@
 namespace Tac::Render
 {
 
-  SwapChainHandle   DX12SwapChainMgr::CreateSwapChain(  SwapChainParams params,
-                                            Errors& errors )
+  auto DX12SwapChainMgr::CreateSwapChain( SwapChainParams params, Errors& errors ) -> SwapChainHandle
   {
-    //DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
     DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     const void* nwh { params.mNWH };
     const v2i size { params.mSize };
-
-    //ID3D12Device* device { mDevice };
-
     const DXGI_FORMAT fmt{ DXGIFormatFromTexFmt( params.mColorFmt ) };
     
     const DXGISwapChainWrapper::Params dxgiSwapChainParams
@@ -39,13 +34,13 @@ namespace Tac::Render
     TAC_CALL_RET( swapChain.Init( dxgiSwapChainParams, errors ) );
 
     DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
-    TAC_DX12_CALL_RET( {}, swapChain->GetDesc1( &swapChainDesc ) );
+    TAC_DX12_CALL_RET( swapChain->GetDesc1( &swapChainDesc ) );
 
     TAC_CALL_RET( const DX12SwapChainImages swapChainImages{
-      CreateColorTextures( swapChain, errors ) } );
+      CreateColorTextures( swapChain, params, errors ) } );
 
     TAC_CALL_RET( const TextureHandle swapChainDepth{
-      CreateDepthTexture( size, params.mDepthFmt, errors ) } );
+      CreateDepthTexture( size, params, errors ) } );
 
     const SwapChainHandle h{ AllocSwapChainHandle() };
     const int iHandle { h.GetIndex() };
@@ -65,41 +60,32 @@ namespace Tac::Render
     return h;
   }
 
-  DX12SwapChainImages DX12SwapChainMgr::CreateColorTextures( DXGISwapChainWrapper swapChain,
-                                                             Errors& errors )
+  auto DX12SwapChainMgr::CreateColorTextures( DXGISwapChainWrapper swapChain,
+                                              SwapChainParams params,
+                                              Errors& errors ) -> DX12SwapChainImages
   {
     DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    //DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
-
     DX12SwapChainImages swapChainImages;
-    for( UINT iSwapChainBuf {}; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
+    for( UINT iSwapChainBuf{}; iSwapChainBuf < TAC_SWAP_CHAIN_BUF_COUNT; iSwapChainBuf++ )
     {
-      //const int iRTVDescriptor { iHandle * TAC_SWAP_CHAIN_BUF_COUNT };
-      //const DX12DescriptorHeapAllocation rtv { mCpuDescriptorHeapRTV->Allocate() };
-      //const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { rtv.GetCPUHandle() };
-
-      PCom< ID3D12Resource > renderTarget;
-      TAC_DX12_CALL_RET( {}, swapChain->GetBuffer( iSwapChainBuf,
-                                                   renderTarget.iid(),
-                                                   renderTarget.ppv() ) );
-      //ID3D12Resource* resource{ renderTarget.Get() };
-
+      PCom< ID3D12Resource > rsc;
+      TAC_DX12_CALL_RET( swapChain->GetBuffer( iSwapChainBuf, rsc.iid(), rsc.ppv() ) );
       const TextureHandle textureHandle { AllocTextureHandle() };
       TAC_CALL_RET( textureMgr->CreateRenderTargetColor(
-        textureHandle, renderTarget, errors ) );
-
+        textureHandle, rsc, params, iSwapChainBuf, errors ) );
       swapChainImages.push_back( textureHandle );
     }
 
     return swapChainImages;
   }
 
-  TextureHandle   DX12SwapChainMgr::CreateDepthTexture( v2i size,
-                                                        TexFmt fmt,
-                                                        Errors& errors )
+  auto DX12SwapChainMgr::CreateDepthTexture( v2i size,
+                                             SwapChainParams params,
+                                             Errors& errors ) -> TextureHandle
   {
+    const TexFmt fmt{ params.mDepthFmt };
+
     DX12TextureMgr* textureMgr{ &DX12Renderer::sRenderer.mTexMgr };
-    //DX12CommandQueue* commandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     if( fmt == TexFmt::kUnknown )
       return {};
 
@@ -110,6 +96,7 @@ namespace Tac::Render
       .mFormat { fmt },
     };
 
+    const String name{ params.mName + " depth" };
     const CreateTextureParams depthParams
     {
       .mImage        { image },
@@ -117,12 +104,13 @@ namespace Tac::Render
       .mBinding      { Binding::DepthStencil },
       .mUsage        { Usage::Default },
       .mCpuAccess    { CPUAccess::None },
+      .mOptionalName { name },
     };
 
     return textureMgr->CreateTexture( depthParams, errors );
   }
 
-  void   DX12SwapChainMgr::ResizeSwapChain( const SwapChainHandle h,
+  void DX12SwapChainMgr::ResizeSwapChain( const SwapChainHandle h,
                                             const v2i size,
                                             Errors& errors )
   {
@@ -163,10 +151,10 @@ namespace Tac::Render
     TAC_DX12_CALL( swapChain.mDXGISwapChain->GetDesc1( &swapChain.mDXGISwapChainDesc ) );
 
     TAC_CALL( const TextureHandle swapChainDepth{
-      CreateDepthTexture( size, swapChain.mSwapChainParams.mDepthFmt, errors ) } );
+      CreateDepthTexture( size, swapChain.mSwapChainParams, errors ) } );
 
     TAC_CALL( DX12SwapChainImages swapChainImages{
-      CreateColorTextures( swapChain.mDXGISwapChain, errors ) } );
+      CreateColorTextures( swapChain.mDXGISwapChain, swapChain.mSwapChainParams, errors ) } );
 
     NameRTTextures( h, swapChainImages, swapChainDepth );
 
@@ -193,12 +181,12 @@ namespace Tac::Render
     mTextureMgr->SetName( swapChainDepth, rtDepthName );
   }
 
-  SwapChainParams DX12SwapChainMgr::GetSwapChainParams( SwapChainHandle h )
+  auto DX12SwapChainMgr::GetSwapChainParams( SwapChainHandle h ) -> SwapChainParams
   {
     return mSwapChains[ h.GetIndex() ].mSwapChainParams;
   }
 
-  void   DX12SwapChainMgr::DestroySwapChain( SwapChainHandle h )
+  void DX12SwapChainMgr::DestroySwapChain( SwapChainHandle h )
   {
     DX12TextureMgr* mTextureMgr{ &DX12Renderer::sRenderer.mTexMgr };
     //DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
@@ -215,12 +203,12 @@ namespace Tac::Render
     }
   }
 
-  DX12SwapChain* DX12SwapChainMgr::FindSwapChain( SwapChainHandle h )
+  auto DX12SwapChainMgr::FindSwapChain( SwapChainHandle h ) -> DX12SwapChain*
   {
     return h.IsValid() ? &mSwapChains[ h.GetIndex() ] : nullptr;
   }
 
-  TextureHandle   DX12SwapChainMgr::GetSwapChainCurrentColor( SwapChainHandle h )
+  auto DX12SwapChainMgr::GetSwapChainCurrentColor( SwapChainHandle h ) -> TextureHandle
   {
     DX12SwapChain* swapChain { FindSwapChain( h ) };
     if( !swapChain )
@@ -231,7 +219,7 @@ namespace Tac::Render
   }
 
 
-  TextureHandle   DX12SwapChainMgr::GetSwapChainDepth( SwapChainHandle h )
+  auto DX12SwapChainMgr::GetSwapChainDepth( SwapChainHandle h ) -> TextureHandle
   {
     DX12SwapChain* swapChain { FindSwapChain( h ) };
     return swapChain ? swapChain->mRTDepth : TextureHandle{};

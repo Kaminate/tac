@@ -7,25 +7,25 @@ namespace Tac
 {
   static FixedVector< SystemInfo, 10 > sSystemInfos;
 
-  dynmc SystemInfo* SystemInfo::Register()
+  auto SystemInfo::Register() -> dynmc SystemInfo*
   {
     const int index{ sSystemInfos.size() };
     sSystemInfos.resize( index + 1 );
     return &sSystemInfos[ index ];
   }
 
-  const SystemInfo* SystemInfo::Find( StringView name )
+  auto SystemInfo::Find( StringView name ) -> const SystemInfo*
   {
     for( const SystemInfo& systemInfo : sSystemInfos )
-      if( systemInfo.mName == name )
+      if( StringView( systemInfo.mName ) == name )
         return &systemInfo;
     return nullptr;
   }
 
-  int               SystemInfo::GetIndex() const { return int( this - sSystemInfos.data() ); }
+  auto SystemInfo::GetIndex() const -> int { return int( this - sSystemInfos.data() ); }
 
-  const SystemInfo* SystemInfo::Iterate::begin() const { return sSystemInfos.begin(); }
+  auto SystemInfo::Iterate::begin() const -> const SystemInfo*{ return sSystemInfos.begin(); }
 
-  const SystemInfo* SystemInfo::Iterate::end() const   { return sSystemInfos.end(); }
+  auto SystemInfo::Iterate::end() const -> const SystemInfo* { return sSystemInfos.end(); }
 
 } // namespace Tac

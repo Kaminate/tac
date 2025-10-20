@@ -360,13 +360,13 @@ namespace Tac::Render
     // https://github.com/microsoft/DirectXShaderCompiler/wiki/Using-dxc.exe-and-dxcompiler.dll
 
     PCom< IDxcCompiler3 > pCompiler;
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() ) );
+    TAC_DX12_CALL_RET( DxcCreateInstance( CLSID_DxcCompiler, pCompiler.iid(), pCompiler.ppv() ) );
 
     PCom< IDxcUtils > pUtils;
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() ) );
+    TAC_DX12_CALL_RET( DxcCreateInstance( CLSID_DxcUtils, pUtils.iid(), pUtils.ppv() ) );
 
     PCom< IDxcPdbUtils > pdbUtils;
-    TAC_DX12_CALL_RET( {}, DxcCreateInstance( CLSID_DxcPdbUtils, pdbUtils.iid(), pdbUtils.ppv() ) );
+    TAC_DX12_CALL_RET( DxcCreateInstance( CLSID_DxcPdbUtils, pdbUtils.iid(), pdbUtils.ppv() ) );
 
     // this shit don't work (try and get the version)
     if( false )
@@ -427,16 +427,15 @@ namespace Tac::Render
 
     ReflectShader( pUtils.Get(), pResults.Get(), reflInfo, mReflectShaderInputs );
     
-    TAC_RAISE_ERROR_IF_RETURN( {}, !pResults->HasOutput( DXC_OUT_OBJECT ), "no shader binary" );
+    TAC_RAISE_ERROR_IF_RETURN( !pResults->HasOutput( DXC_OUT_OBJECT ), "no shader binary" );
     PCom< IDxcBlob > pShader;
     PCom< IDxcBlobUtf16 > pShaderName;
-    TAC_DX12_CALL_RET( {},
-                       pResults->GetOutput(
+    TAC_DX12_CALL_RET( pResults->GetOutput(
                        DXC_OUT_OBJECT,
                        pShader.iid(),
                        pShader.ppv(),
                        pShaderName.CreateAddress() ) );
-    TAC_RAISE_ERROR_IF_RETURN( {}, !pShader, "No shader dxil" );
+    TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil" );
     const String outputShaderName { GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() ) };
     const FileSys::Path dxilShaderPath { input.mOutputDir / outputShaderName };
     TAC_CALL_RET( SaveBlobToFile( pShader, dxilShaderPath, errors ) );
@@ -490,7 +489,7 @@ namespace Tac
     TAC_CALL_RET( PCom< IDxcBlob > psBlob { sPSData.DXCCompileBlob( blobInput, errors ) } );
     TAC_CALL_RET( PCom< IDxcBlob > csBlob { sCSData.DXCCompileBlob( blobInput, errors ) } );
 
-    TAC_RAISE_ERROR_IF_RETURN( {}, !( vsBlob || psBlob || csBlob ),
+    TAC_RAISE_ERROR_IF_RETURN( !( vsBlob || psBlob || csBlob ),
                                String() + "Shader " + fileName + " compiled no blobs" );
 
     return DXCCompileOutput

@@ -18,9 +18,9 @@ namespace Tac
     TAC_CALL_RET( const u8 t{ reader->Read< u8 >( errors ) } );
     TAC_CALL_RET( const u8 a{ reader->Read< u8 >( errors ) } );
     TAC_CALL_RET( const u8 c{ reader->Read< u8 >( errors ) } );
-    TAC_RAISE_ERROR_IF_RETURN( {}, t != 't', "net msg header mismatch" );
-    TAC_RAISE_ERROR_IF_RETURN( {}, a != 'a', "net msg header mismatch" );
-    TAC_RAISE_ERROR_IF_RETURN( {}, c != 'c', "net msg header mismatch" );
+    TAC_RAISE_ERROR_IF_RETURN( t != 't', "net msg header mismatch" );
+    TAC_RAISE_ERROR_IF_RETURN( a != 'a', "net msg header mismatch" );
+    TAC_RAISE_ERROR_IF_RETURN( c != 'c', "net msg header mismatch" );
     return reader->Read< NetMsgType >( errors );
   }
 

@@ -347,7 +347,7 @@ namespace Tac
   {
     const std::filesystem::path stdPath{ StdPath( path ) };
     std::ifstream ifs( stdPath, std::ios_base::binary );
-    TAC_RAISE_ERROR_IF_RETURN( {}, !ifs.is_open() , FormatFileError( path, "reading" ) );
+    TAC_RAISE_ERROR_IF_RETURN( !ifs.is_open() , FormatFileError( path, "reading" ) );
     ifs.seekg( 0, std::ifstream::end );
     const std::streampos byteCount{ ifs.tellg() };
     ifs.seekg( 0, std::ifstream::beg );

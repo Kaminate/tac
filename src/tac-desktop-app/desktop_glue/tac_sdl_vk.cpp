@@ -50,11 +50,11 @@ namespace Tac
 
     unsigned int count;
     const SDL_bool gotCount = SDL_Vulkan_GetInstanceExtensions(window, &count, nullptr );
-    TAC_RAISE_ERROR_IF_RETURN( gotCount != SDL_TRUE, "SDL_Vulkan_GetInstanceExtensions failed to get count", errors, {} );
+    TAC_RAISE_ERROR_IF_RETURN( gotCount != SDL_TRUE, "SDL_Vulkan_GetInstanceExtensions failed to get count", errors );
 
     Vector< const char* > names( count );
     const SDL_bool gotNames = SDL_Vulkan_GetInstanceExtensions(window, &count, names.data() );
-    TAC_RAISE_ERROR_IF_RETURN( gotNames != SDL_TRUE, "SDL_Vulkan_GetInstanceExtensions failed to get names", errors, {} );
+    TAC_RAISE_ERROR_IF_RETURN( gotNames != SDL_TRUE, "SDL_Vulkan_GetInstanceExtensions failed to get names", errors );
 
     Vector< String > result( count );
     for( unsigned int i {}; i < count; ++i )

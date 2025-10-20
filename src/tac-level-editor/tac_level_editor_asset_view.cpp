@@ -287,44 +287,47 @@ namespace Tac
             TAC_ASSERT( gltfMesh->primitives_count == 1 );
             const cgltf_primitive* gltfPrimitive{ &gltfMesh->primitives[ 0 ] };
             const cgltf_material* gltfMaterial{ gltfPrimitive->material };
-            if( gltfMaterial->has_pbr_metallic_roughness )
+            if( gltfMaterial )
             {
-              const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
-                &gltfMaterial->pbr_metallic_roughness };
-              const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
-                              pbr_metallic_roughness->base_color_factor[ 1 ],
-                              pbr_metallic_roughness->base_color_factor[ 2 ],
-                              pbr_metallic_roughness->base_color_factor[ 3 ] );
+              if( gltfMaterial->has_pbr_metallic_roughness )
+              {
+                const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
+                  &gltfMaterial->pbr_metallic_roughness };
+                const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
+                                pbr_metallic_roughness->base_color_factor[ 1 ],
+                                pbr_metallic_roughness->base_color_factor[ 2 ],
+                                pbr_metallic_roughness->base_color_factor[ 3 ] );
 
-              const v3 emissive = v3( gltfMaterial->emissive_factor[ 0 ],
-                                      gltfMaterial->emissive_factor[ 1 ],
-                                      gltfMaterial->emissive_factor[ 2 ] ) *
-                ( gltfMaterial->has_emissive_strength
-                  ? gltfMaterial->emissive_strength.emissive_strength
-                  : 1 );
+                const v3 emissive = v3( gltfMaterial->emissive_factor[ 0 ],
+                                        gltfMaterial->emissive_factor[ 1 ],
+                                        gltfMaterial->emissive_factor[ 2 ] ) *
+                  ( gltfMaterial->has_emissive_strength
+                    ? gltfMaterial->emissive_strength.emissive_strength
+                    : 1 );
 
-              Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
-              ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
-              ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
-              ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
-              ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
-              ecsMaterial->mColor = color;
-              ecsMaterial->mEmissive = emissive;
+                Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
+                ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
+                ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
+                ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
+                ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
+                ecsMaterial->mColor = color;
+                ecsMaterial->mEmissive = emissive;
 
-              if( pbr_metallic_roughness->base_color_texture.texture )
+                if( pbr_metallic_roughness->base_color_texture.texture )
+                {
+                  TAC_ASSERT_UNIMPLEMENTED;
+                }
+
+                if( pbr_metallic_roughness->metallic_roughness_texture.texture )
+                {
+                  TAC_ASSERT_UNIMPLEMENTED;
+                }
+
+              }
+              else
               {
                 TAC_ASSERT_UNIMPLEMENTED;
               }
-
-              if( pbr_metallic_roughness->metallic_roughness_texture.texture )
-              {
-                TAC_ASSERT_UNIMPLEMENTED;
-              }
-
-            }
-            else
-            {
-              TAC_ASSERT_UNIMPLEMENTED;
             }
           }
 
@@ -346,56 +349,42 @@ namespace Tac
     }
   };
 
-
-  static Render::CreateTextureParams GetTexColorParams()
-  {
-    const Render::Image colorImg
-    {
-      .mWidth  { w },
-      .mHeight { h },
-      .mFormat { Render::TexFmt::kRGBA16F }, // kRGBA8_unorm }
-    };
-
-    const Render::CreateTextureParams texSpecColor
-    {
-      .mImage    { colorImg },
-      .mMipCount { 1 },
-      .mBinding  { Render::Binding::ShaderResource | Render::Binding::RenderTarget },
-    };
-    return texSpecColor;
-  }
-
-  static Render::CreateTextureParams GetTexDepthParams()
-  {
-    const Render::Image depthImg
-    {
-      .mWidth  { w },
-      .mHeight { h },
-      .mFormat { Render::TexFmt::kD24S8 }
-    };
-    const Render::CreateTextureParams texSpecDepth
-    {
-      .mImage    { depthImg },
-      .mMipCount { 1 },
-      .mBinding  { Render::Binding::DepthStencil },
-    };
-    return texSpecDepth;
-  }
-
   static AssetViewImportedModel* CreateLoadedModel( const AssetPathStringView& assetPath,
                                                     Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
-    const Render::CreateTextureParams colorParams{ GetTexColorParams() };
+    const String colorParamsName{ "AssetView " + assetPath + " color" };
+    const Render::CreateTextureParams texSpecColor
+    {
+      .mImage        { Render::Image {
+        .mWidth      { w },
+        .mHeight     { h },
+        .mFormat     { Render::TexFmt::kRGBA16F }, } },
+      .mMipCount     { 1 },
+      .mBinding      { Render::Binding::ShaderResource | Render::Binding::RenderTarget },
+      .mOptionalName { colorParamsName },
+    };
+
     TAC_CALL_RET( const Render::TextureHandle textureHandleColor{
-      renderDevice->CreateTexture( colorParams, errors ) } );
+      renderDevice->CreateTexture( texSpecColor, errors ) } );
 
-    const Render::CreateTextureParams depthParams{ GetTexDepthParams() };
+    const String depthParamsName{ "AssetView " + assetPath + " depth" };
+    const Render::CreateTextureParams texSpecDepth
+    {
+      .mImage        { Render::Image{
+        .mWidth      { w },
+        .mHeight     { h },
+        .mFormat     { Render::TexFmt::kD24S8 } } },
+      .mMipCount     { 1 },
+      .mBinding      { Render::Binding::DepthStencil },
+      .mOptionalName { depthParamsName },
+    };
+
     TAC_CALL_RET( const Render::TextureHandle textureHandleDepth{
-      renderDevice->CreateTexture( depthParams, errors ) } );
+      renderDevice->CreateTexture( texSpecDepth, errors ) } );
 
-    AssetViewImportedModel* result{ TAC_NEW AssetViewImportedModel
+    auto result{ TAC_NEW AssetViewImportedModel
     {
        .mTextureHandleColor { textureHandleColor },
        .mTextureHandleDepth { textureHandleDepth },

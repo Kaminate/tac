@@ -127,10 +127,8 @@ namespace Tac
   bool Render::DX12SupportsRayTracing( ID3D12Device* device, Errors& errors )
   {
     D3D12_FEATURE_DATA_D3D12_OPTIONS5 opt5{};
-    TAC_DX12_CALL_RET( false,
-                       device->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS5,
-                       &opt5,
-                       sizeof( opt5 ) ) );
+    TAC_DX12_CALL_RET(
+      device->CheckFeatureSupport( D3D12_FEATURE_D3D12_OPTIONS5, &opt5, sizeof( opt5 ) ) );
     return opt5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0;
   }
 }

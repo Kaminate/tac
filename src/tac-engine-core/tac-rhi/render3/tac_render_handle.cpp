@@ -27,19 +27,19 @@ namespace Tac::Render
   }
   // -----------------------------------------------------------------------------------------------
 
-  ResourceHandle::ResourceHandle( HandleType t, IHandle h ) : IHandle( h ), mHandleType{ t } {}
+  ResourceHandle::ResourceHandle( HandleType t, IHandle h ) : mHandle( h ), mHandleType{ t } {}
   ResourceHandle::ResourceHandle( SwapChainHandle h ) : ResourceHandle( HandleType::kSwapChain, h ) {}
   ResourceHandle::ResourceHandle( PipelineHandle h )  : ResourceHandle( HandleType::kPipeline,  h ) {}
   ResourceHandle::ResourceHandle( ProgramHandle h )   : ResourceHandle( HandleType::kProgram,   h ) {}
   ResourceHandle::ResourceHandle( BufferHandle h )    : ResourceHandle( HandleType::kBuffer,    h ) {}
   ResourceHandle::ResourceHandle( TextureHandle h )   : ResourceHandle( HandleType::kTexture,   h ) {}
   ResourceHandle::ResourceHandle( SamplerHandle h )   : ResourceHandle( HandleType::kSampler,   h ) {}
-  ResourceHandle::operator SwapChainHandle() const { TAC_ASSERT( mHandleType == HandleType::kSwapChain ); return GetIndex(); }
-  ResourceHandle::operator PipelineHandle() const  { TAC_ASSERT( mHandleType == HandleType::kPipeline );  return GetIndex(); }
-  ResourceHandle::operator ProgramHandle() const   { TAC_ASSERT( mHandleType == HandleType::kProgram );   return GetIndex(); }
-  ResourceHandle::operator BufferHandle() const    { TAC_ASSERT( mHandleType == HandleType::kBuffer );    return GetIndex(); }
-  ResourceHandle::operator TextureHandle() const   { TAC_ASSERT( mHandleType == HandleType::kTexture );   return GetIndex(); }
-  ResourceHandle::operator SamplerHandle() const   { TAC_ASSERT( mHandleType == HandleType::kSampler );   return GetIndex(); }
+  ResourceHandle::operator SwapChainHandle() const { TAC_ASSERT( mHandleType == HandleType::kSwapChain ); return mHandle.GetIndex(); }
+  ResourceHandle::operator PipelineHandle() const  { TAC_ASSERT( mHandleType == HandleType::kPipeline );  return mHandle.GetIndex(); }
+  ResourceHandle::operator ProgramHandle() const   { TAC_ASSERT( mHandleType == HandleType::kProgram );   return mHandle.GetIndex(); }
+  ResourceHandle::operator BufferHandle() const    { TAC_ASSERT( mHandleType == HandleType::kBuffer );    return mHandle.GetIndex(); }
+  ResourceHandle::operator TextureHandle() const   { TAC_ASSERT( mHandleType == HandleType::kTexture );   return mHandle.GetIndex(); }
+  ResourceHandle::operator SamplerHandle() const   { TAC_ASSERT( mHandleType == HandleType::kSampler );   return mHandle.GetIndex(); }
   HandleType ResourceHandle::GetHandleType() const { return mHandleType; }
 
  // -----------------------------------------------------------------------------------------------

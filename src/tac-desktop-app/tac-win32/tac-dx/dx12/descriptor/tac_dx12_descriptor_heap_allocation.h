@@ -6,11 +6,11 @@ namespace Tac::Render
 {
   struct DX12DescriptorHeap;
 
-  // Represents an allocation from a descriptor heap, which can hold a CPU descriptor handle
+  // Represents an allocation from a descriptor heap
   struct DX12Descriptor
   {
-    D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle( int = 0 ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetGPUHandle( int = 0 ) const;
+    auto GetCPUHandle( int = 0 ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetGPUHandle( int = 0 ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
     bool IsValid() const;
 
     DX12DescriptorHeap* mOwner {};

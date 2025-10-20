@@ -7,6 +7,7 @@
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
+#include "tac-std-lib/dataprocess/tac_text_parser.h" // ParseData
 
 #include <debugapi.h> // IsDebuggerPresent
 
@@ -27,6 +28,17 @@ void Tac::Win32SetStartupParams( HINSTANCE hInstance,
   ghPrevInstance = hPrevInstance;
   glpCmdLine = lpCmdLine;
   gnCmdShow = nCmdShow;
+
+  if( ParseData parseData( ( const char* )lpCmdLine ); parseData )
+  {
+    for( StringView word{ parseData.EatWord() }; !word.empty(); word = parseData.EatWord() )
+    {
+      if( word.starts_with( "--" ) )
+        OS::CmdLineAddFlag( word.substr( 2 ) );
+      else if( word.starts_with( "-") )
+        OS::CmdLineAddFlag( word.substr( 1 ) );
+    }
+  }
 }
 
 auto Tac::Win32GetStartupInstance() ->HINSTANCE      { return ghInstance; }

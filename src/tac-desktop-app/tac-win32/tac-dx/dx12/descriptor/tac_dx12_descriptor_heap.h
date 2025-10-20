@@ -24,30 +24,28 @@ namespace Tac::Render
       D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc     {};
       StringView                 mName         {};
     };
-    dtor                         ~DX12DescriptorHeap();
-    void                         Init( Params, Errors& );
-    ID3D12DescriptorHeap*        GetID3D12DescriptorHeap();
-    D3D12_DESCRIPTOR_HEAP_TYPE   GetType() const;
-    UINT                         GetDescriptorCount() const;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE  IndexCPUDescriptorHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE  IndexGPUDescriptorHandle( int ) const;
-    UINT                         GetDescriptorSize() const;
-
-    DX12Descriptor               Allocate( int = 1 );
-    void                         Free( DX12Descriptor );
-
-    DX12DescriptorAllocator*     GetRegionMgr();
-    StringView                   GetName();
+    dtor ~DX12DescriptorHeap();
+    void Init( Params, Errors& );
+    auto GetID3D12DescriptorHeap() -> ID3D12DescriptorHeap*;
+    auto GetType() const -> D3D12_DESCRIPTOR_HEAP_TYPE;
+    auto GetDescriptorCount() const -> UINT;
+    auto IndexCPUDescriptorHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto IndexGPUDescriptorHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
+    auto GetDescriptorSize() const -> UINT;
+    auto Allocate( StringView debugName ) -> DX12Descriptor;
+    auto Free( DX12Descriptor ) -> void;
+    auto GetRegionMgr() -> DX12DescriptorAllocator*;
+    auto GetName() -> StringView;
 
   private:
 
-    int                          AllocateIndex();
+    auto AllocateIndex() -> int;
 
     String                       mName           {};
     DX12DescriptorAllocator*     mRegionMgr      {}; // owned
     int                          mUsedIndexCount {};
     Vector< int >                mFreeIndexes    {};
+    Vector< String >             mDebugNames     {};
     PCom< ID3D12DescriptorHeap > mHeap           {};
     D3D12_CPU_DESCRIPTOR_HANDLE  mHeapStartCPU   {};
     D3D12_GPU_DESCRIPTOR_HANDLE  mHeapStartGPU   {};

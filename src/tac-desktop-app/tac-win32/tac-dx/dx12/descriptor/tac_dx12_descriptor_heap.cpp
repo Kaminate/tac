@@ -12,7 +12,7 @@ namespace Tac::Render
 
   static const int kMaxCPUDescriptorsRTV        { 25 };
   static const int kMaxCPUDescriptorsDSV        { 25 };
-  static const int kMaxCPUDescriptorsCBV_SRV_UAV{ 100 };
+  static const int kMaxCPUDescriptorsCBV_SRV_UAV{ 1000 };
   static const int kMaxCPUDescriptorsSampler    { 20 };
 
   static const int kMaxGPUDescriptorsCBV_SRV_UAV{ 1000 };
@@ -20,12 +20,12 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  dtor                        DX12DescriptorHeap::~DX12DescriptorHeap()
+  dtor DX12DescriptorHeap::~DX12DescriptorHeap()
   {
     TAC_DELETE mRegionMgr;
   }
 
-  void                        DX12DescriptorHeap::Init( Params params, Errors& errors )
+  void DX12DescriptorHeap::Init( Params params, Errors& errors )
   {
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     const D3D12_DESCRIPTOR_HEAP_DESC& desc{ params.mHeapDesc };
@@ -62,20 +62,21 @@ namespace Tac::Render
 
     mRegionMgr = TAC_NEW DX12DescriptorAllocator;
     mRegionMgr->Init( regionMgrParams );
+    mDebugNames.resize( desc.NumDescriptors );
   }
 
-  UINT                        DX12DescriptorHeap::GetDescriptorCount() const
+  auto DX12DescriptorHeap::GetDescriptorCount() const -> UINT
   {
     return mDesc.NumDescriptors;
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12DescriptorHeap::IndexCPUDescriptorHandle( int i ) const
+  auto DX12DescriptorHeap::IndexCPUDescriptorHandle( int i ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT_INDEX( i, GetDescriptorCount() );
     return { mHeapStartCPU.ptr + i * mDescriptorSize };
   }
 
-  UINT                        DX12DescriptorHeap::GetDescriptorSize() const
+  auto DX12DescriptorHeap::GetDescriptorSize() const -> UINT
   {
     return mDescriptorSize;
   }
@@ -85,7 +86,7 @@ namespace Tac::Render
   // ::ClearUnorderedAccessViewUint
   // ::SetComputeRootDescriptorTable
   // ::SetGraphicsRootDescriptorTable
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12DescriptorHeap::IndexGPUDescriptorHandle( int i ) const
+  auto DX12DescriptorHeap::IndexGPUDescriptorHandle( int i ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT_INDEX( i, GetDescriptorCount() );
     TAC_ASSERT( mDesc.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE );
@@ -93,17 +94,17 @@ namespace Tac::Render
     return { mHeapStartGPU.ptr + i * mDescriptorSize };
   }
 
-  ID3D12DescriptorHeap*       DX12DescriptorHeap::GetID3D12DescriptorHeap()
+  auto DX12DescriptorHeap::GetID3D12DescriptorHeap()->ID3D12DescriptorHeap*
   {
     return mHeap.Get();
   }
 
-  D3D12_DESCRIPTOR_HEAP_TYPE  DX12DescriptorHeap::GetType() const
+  auto DX12DescriptorHeap::GetType() const -> D3D12_DESCRIPTOR_HEAP_TYPE
   {
     return mDesc.Type;
   }
 
-  int                         DX12DescriptorHeap::AllocateIndex()
+  auto DX12DescriptorHeap::AllocateIndex() -> int
   {
     if( mFreeIndexes.empty() )
     {
@@ -116,12 +117,11 @@ namespace Tac::Render
     return i;
   }
 
-  DX12Descriptor              DX12DescriptorHeap::Allocate( int n )
+  auto DX12DescriptorHeap::Allocate( StringView debugName ) -> DX12Descriptor
   {
-    // v just added, otherwise get warning about uninitialized parameter n
-    TAC_ASSERT( n == 1 );
-
+    TAC_ASSERT( !debugName.empty() && debugName[ 0 ] != ' ' );
     const int index{ AllocateIndex() };
+    mDebugNames[ index ] = debugName;
     return DX12Descriptor
     {
       .mOwner { this },
@@ -130,19 +130,20 @@ namespace Tac::Render
     };
   }
 
-  void                        DX12DescriptorHeap::Free( DX12Descriptor allocation )
+  void DX12DescriptorHeap::Free( DX12Descriptor allocation )
   {
     TAC_ASSERT( allocation.mCount == 1 );
     TAC_ASSERT( allocation.mOwner == this );
     mFreeIndexes.push_back( allocation.mIndex );
+    mDebugNames[ allocation.mIndex ] = {};
   }
 
-  StringView                  DX12DescriptorHeap::GetName()
+  auto DX12DescriptorHeap::GetName() -> StringView
   {
     return mName;
   }
 
-  DX12DescriptorAllocator*    DX12DescriptorHeap::GetRegionMgr()
+  auto DX12DescriptorHeap::GetRegionMgr() -> DX12DescriptorAllocator*
   {
     return mRegionMgr;
   }

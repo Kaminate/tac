@@ -17,7 +17,7 @@ namespace Tac::Render
   {
     SwapChainHandle CreateSwapChain( SwapChainParams, Errors& );
     void            ResizeSwapChain( SwapChainHandle, v2i, Errors& );
-    SwapChainParams GetSwapChainParams( SwapChainHandle );
+    auto            GetSwapChainParams( SwapChainHandle ) -> SwapChainParams;
     void            DestroySwapChain( SwapChainHandle );
     DX12SwapChain*  FindSwapChain( SwapChainHandle );
     TextureHandle   GetSwapChainCurrentColor( SwapChainHandle );
@@ -25,10 +25,10 @@ namespace Tac::Render
 
   private:
     using DX12SwapChains = Array< DX12SwapChain, 100 >;
-    TextureHandle       CreateDepthTexture( v2i, TexFmt , Errors& );
-    DX12SwapChainImages CreateColorTextures( DXGISwapChainWrapper, Errors& );
+    TextureHandle       CreateDepthTexture( v2i, SwapChainParams , Errors& );
+    DX12SwapChainImages CreateColorTextures( DXGISwapChainWrapper, SwapChainParams, Errors& );
     void                NameRTTextures( SwapChainHandle, DX12SwapChainImages, TextureHandle );
 
-    DX12SwapChains      mSwapChains           {};
+    DX12SwapChains      mSwapChains {};
   };
 } // namespace Tac::Render

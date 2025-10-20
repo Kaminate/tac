@@ -64,7 +64,7 @@ namespace Tac::Render
     // Note: CreateCommandList1 creates it the command list in a closed state, as opposed to
     //       CreateCommandList, which creates in a open state.
     PCom< ID3D12CommandList > commandList;
-    TAC_DX12_CALL_RET( {}, mDevice->CreateCommandList1( 0,
+    TAC_DX12_CALL_RET( mDevice->CreateCommandList1( 0,
                        D3D12_COMMAND_LIST_TYPE_DIRECT,
                        D3D12_COMMAND_LIST_FLAG_NONE,
                        commandList.iid(),
@@ -123,7 +123,7 @@ namespace Tac::Render
     //   Indicates to re-use the memory that is associated with the command allocator.
     //   From this call to Reset, the runtime and driver determine that the GPU is no longer
     //   executing any command lists that have recorded commands with the command allocator.
-    TAC_DX12_CALL_RET( {}, dxCommandAllocator->Reset() );
+    TAC_DX12_CALL_RET( dxCommandAllocator->Reset() );
 
 
     // However( when ExecuteCommandList() is called on a particular command 
@@ -138,7 +138,7 @@ namespace Tac::Render
     //   you can re-use command list tracking structures without any allocations
     //   you can call Reset while the command list is still being executed
     //   you can submit a cmd list, reset it, and reuse the allocated memory for another cmd list
-    TAC_DX12_CALL_RET( {}, dxCommandList->Reset( dxCommandAllocator, nullptr ) );
+    TAC_DX12_CALL_RET( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
     DX12ExampleContextScope scope;
     scope.mContext = context;

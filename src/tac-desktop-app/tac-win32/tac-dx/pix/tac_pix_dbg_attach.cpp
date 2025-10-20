@@ -68,11 +68,10 @@ namespace Tac::Render
     if( !bestVer.empty() )
     {
       const String minVer { "2312.08"  };
-      TAC_RAISE_ERROR_IF_RETURN( {},
-                                   bestVer < minVer,
-                                   "Most recent pix version " + bestVer + " "
-                                   "is below min required PIX ver " + minVer + " "
-                                   "please update PIX" );
+      TAC_RAISE_ERROR_IF_RETURN( bestVer < minVer,
+                                 "Most recent pix version " + bestVer + " "
+                                 "is below min required PIX ver " + minVer + " "
+                                 "please update PIX" );
       return pixInstallPath / bestVer / pixDllName;
     }
     

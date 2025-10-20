@@ -220,10 +220,11 @@ namespace Tac::Render
 
   struct SwapChainParams
   {
-    const void* mNWH     {};
-    v2i         mSize    {};
-    TexFmt      mColorFmt{};
-    TexFmt      mDepthFmt{};
+    const void* mNWH      {};
+    v2i         mSize     {};
+    TexFmt      mColorFmt {};
+    TexFmt      mDepthFmt {};
+    String      mName     {};
   };
 
   enum class Usage
@@ -259,8 +260,16 @@ namespace Tac::Render
     IndexBuffer     = 0b01000000, // IA idx buf
   };
 
-  Binding operator | ( Binding, Binding );
-  Binding operator & ( Binding, Binding );
+  struct BindingMask
+  {
+    constexpr operator Binding() const { return mBinding; }
+    constexpr operator bool() const    { return mBinding != Binding::None; }
+    Binding mBinding{};
+  };
+
+  constexpr BindingMask operator | ( Binding lhs, Binding rhs ) { return { ( Binding )( ( int )lhs | ( int )rhs ) }; }
+  constexpr BindingMask operator & ( Binding lhs, Binding rhs ) { return { ( Binding )( ( int )lhs & ( int )rhs ) }; }
+
 
   struct CreateTextureParams
   {

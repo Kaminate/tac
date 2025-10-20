@@ -370,7 +370,7 @@ namespace Tac::Render
     if( !buffer )
       return;
 
-    TAC_ASSERT( Binding{} != ( buffer->mCreateParams.mBinding & Binding::VertexBuffer ) );
+    TAC_ASSERT( buffer->mCreateParams.mBinding & Binding::VertexBuffer );
 
     const UINT StartSlot{};
     const UINT NumViews{ 1 };

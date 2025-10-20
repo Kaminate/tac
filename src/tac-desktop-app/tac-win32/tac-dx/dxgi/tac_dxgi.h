@@ -53,10 +53,10 @@ namespace Tac::Render
   TAC_RAISE_ERROR_IF( failed, Tac::Render::DXGICallAux( #call, hr ) );                             \
 }
 
-#define TAC_DXGI_CALL_RET( ret, call )                                                             \
+#define TAC_DXGI_CALL_RET( call )                                                                  \
 {                                                                                                  \
   const HRESULT hr { call };                                                                       \
   const bool failed { FAILED( hr ) };                                                              \
-  TAC_RAISE_ERROR_IF_RETURN( ret, failed, Tac::Render::DXGICallAux( #call, hr ) );                 \
+  TAC_RAISE_ERROR_IF_RETURN( failed, Tac::Render::DXGICallAux( #call, hr ) );                      \
 }
 

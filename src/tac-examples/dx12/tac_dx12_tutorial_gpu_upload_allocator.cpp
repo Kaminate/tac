@@ -182,7 +182,7 @@ namespace Tac::Render
     const D3D12_RESOURCE_STATES DefaultUsage{ D3D12_RESOURCE_STATE_GENERIC_READ };
 
     PCom< ID3D12Resource > buffer;
-    TAC_DX12_CALL_RET( {}, m_device->CreateCommittedResource(
+    TAC_DX12_CALL_RET( m_device->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
       &ResourceDesc,
@@ -196,7 +196,7 @@ namespace Tac::Render
 
     void* cpuAddr;
 
-    TAC_DX12_CALL_RET( {}, buffer->Map(
+    TAC_DX12_CALL_RET( buffer->Map(
       0, // subrsc idx
       nullptr, // nullptr indicates the whole subrsc may be read by cpu
       &cpuAddr ) );

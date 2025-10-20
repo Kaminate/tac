@@ -45,10 +45,7 @@ namespace Tac
   {
     const String str{ String()
       + "ASSERT FAILED( " + msg + " ) "
-      + "in " + frame.GetFile()
-      + ":" + ToString( frame.GetLine() ) + " "
-      + frame.GetFunction() };
-
+      + "in " + frame.Stringify() };
     OSDebugPrintLine( str );
     LogApi::LogMessagePrintLine( str, LogApi::kError );
     OSDebugPopupBox( str );

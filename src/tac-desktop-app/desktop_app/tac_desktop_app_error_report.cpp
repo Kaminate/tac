@@ -24,13 +24,14 @@ namespace Tac
       if( errors->empty() )
         return {};
 
+      auto stackFrames{ errors->GetFrames() };
       String errorStr;
       errorStr += "Errors in ";
       errorStr += name;
       errorStr += '\n';
       errorStr += errors->GetMessage();
-      errorStr += '\n';
-      errorStr += StackFrameFormatter( errors->GetFrames() ).FormatFrames();
+      for( const StackFrame& sf : stackFrames )
+        errorStr += '\n' + sf.Stringify();
       return errorStr;
     }
 

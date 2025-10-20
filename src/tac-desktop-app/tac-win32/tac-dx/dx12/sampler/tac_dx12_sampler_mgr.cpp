@@ -35,7 +35,7 @@ namespace Tac::Render
     }
   }
 
-  SamplerHandle DX12SamplerMgr::CreateSampler(  CreateSamplerParams params )
+  SamplerHandle DX12SamplerMgr::CreateSampler( CreateSamplerParams params )
   {
     DX12Renderer&          renderer{ DX12Renderer::sRenderer };
     DX12DescriptorHeapMgr& heapMgr { renderer.mDescriptorHeapMgr };
@@ -43,7 +43,6 @@ namespace Tac::Render
     ID3D12Device*          device  { renderer.mDevice };
 
     const D3D12_FILTER dx12filter{ GetFilter( params.mFilter ) };
-
     const D3D12_SAMPLER_DESC Desc
     {
       .Filter         { dx12filter },
@@ -54,19 +53,15 @@ namespace Tac::Render
       .MinLOD         {},
       .MaxLOD         { D3D12_FLOAT32_MAX },
     };
-
-    const DX12Descriptor descriptor{ heap.Allocate() };
+    const DX12Descriptor descriptor{ heap.Allocate( params.mName ) };
     const D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle { descriptor.GetCPUHandle() };
-
-    device->CreateSampler( &Desc, descriptorHandle );
-  
     const SamplerHandle h{ AllocSamplerHandle() };
+    device->CreateSampler( &Desc, descriptorHandle );
     mSamplers[ h.GetIndex() ] = DX12Sampler
     {
       .mDescriptor{ descriptor },
       .mName      { params.mName },
     };
-
     return h;
   }
 } // namespace Tac::Render

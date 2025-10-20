@@ -7,34 +7,28 @@ namespace Tac
 {
   Errors::Errors( Flags flags ) : mFlags( flags ) { }
 
-  String             Errors::ToString() const
+  auto Errors::ToString() const -> String
   {
-    String result = mMessage;
+    String result{ mMessage };
     for( const StackFrame& frame : mFrames )
-    {
-      result += "\n"; 
-      result += String() + frame.GetFile()
-        + ":" + Tac::ToString( frame.GetLine() )
-        + " " + frame.GetFunction();
-    }
-
+      result += "\n" + frame.Stringify();
     return result;
   }
 
-  bool               Errors::empty() const { return mFrames.empty(); }
+  bool Errors::empty() const { return mFrames.empty(); }
 
-  void               Errors::clear()
+  void Errors::clear()
   {
     mMessage.clear();
     mFrames.clear();
     mBroken = false;
   }
 
-  Span< const StackFrame > Errors::GetFrames() const { return Span( mFrames.data(), mFrames.size() ); }
+  auto Errors::GetFrames() const -> Span< const StackFrame > { return Span( mFrames.data(), mFrames.size() ); }
 
-  StringView         Errors::GetMessage() const { return mMessage; }
+  auto Errors::GetMessage() const ->StringView{ return mMessage; }
 
-  void               Errors::Raise( StringView msg, StackFrame sf )
+  void Errors::Raise( StringView msg, StackFrame sf )
   {
     mMessage += msg;
     mFrames.push_back( sf );
@@ -55,8 +49,8 @@ namespace Tac
     }
   }
 
-  void               Errors::Propagate( StackFrame sf ) { mFrames.push_back( sf ); }
+  void Errors::Propagate( StackFrame sf ) { mFrames.push_back( sf ); }
 
-  Errors::operator   bool() const { return !mMessage.empty(); }
+  Errors::operator bool() const { return !mMessage.empty(); }
 
 } // namespace Tac

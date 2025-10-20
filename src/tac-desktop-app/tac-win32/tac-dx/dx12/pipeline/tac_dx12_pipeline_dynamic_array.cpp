@@ -22,7 +22,7 @@ namespace Tac::Render
 #if 0
   static D3D12ProgramBindType::Classification GetClassification( IBindlessArray::Params params )
   {
-    const bool isShaderResource{ ( params.mBinding & Binding::ShaderResource ) != Binding::None };
+    const bool isShaderResource{ params.mBinding & Binding::ShaderResource };
     const bool isBuffer{ params.mHandleType == HandleType::kBuffer };
     const bool isTexture{ params.mHandleType == HandleType::kTexture };
 
@@ -172,12 +172,9 @@ namespace Tac::Render
     CheckType( h );
 
     if( i >= mHandleIndexes.size() )
-    {
       mHandleIndexes.resize( i + 5 ); // magic grow number
-    }
 
-    mHandleIndexes[ i ] = h;
-
+    mHandleIndexes[ i ] = h.GetHandle();
     mMaxBoundIndex = Max( mMaxBoundIndex, i );
   }
 

@@ -145,7 +145,7 @@ namespace Tac::Render
           break;
 
       DXGI_ADAPTER_DESC1 desc{};
-      TAC_DXGI_CALL_RET( {}, currAdapter->GetDesc1( &desc ));
+      TAC_DXGI_CALL_RET( currAdapter->GetDesc1( &desc ));
       if( bestAdapter && desc.DedicatedVideoMemory < bestdesc.DedicatedVideoMemory  )
         continue;
 
@@ -204,8 +204,7 @@ namespace Tac::Render
       const DWORD dwError{ ( DWORD )HRESULT_CODE( createSwapChainHR ) }; // ???
       const String dxgiErrStr { TryInferDXGIErrorStr( createSwapChainHR ) };
       const String win32ErrStr { Win32ErrorStringFromDWORD( dwError ) };
-      TAC_RAISE_ERROR_RETURN( {},
-                              String()
+      TAC_RAISE_ERROR_RETURN( String()
                               + "CreateSwapChainForHwnd failed, "
                               + dxgiErrStr
                               + win32ErrStr );

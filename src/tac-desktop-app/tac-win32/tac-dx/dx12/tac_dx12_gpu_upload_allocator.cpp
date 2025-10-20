@@ -198,7 +198,7 @@ namespace Tac::Render
     ID3D12Device* mDevice{ DX12Renderer::sRenderer.mDevice };
 
     PCom< ID3D12Resource > buffer;
-    TAC_DX12_CALL_RET( {}, mDevice->CreateCommittedResource(
+    TAC_DX12_CALL_RET( mDevice->CreateCommittedResource(
       &HeapProps,
       D3D12_HEAP_FLAG_NONE,
       &ResourceDesc,
@@ -212,7 +212,7 @@ namespace Tac::Render
     void* cpuAddr;
     const UINT subresourceIdx{};
     const D3D12_RANGE* pReadRange{};
-    TAC_DX12_CALL_RET( {}, buffer->Map( subresourceIdx, pReadRange, &cpuAddr ) );
+    TAC_DX12_CALL_RET( buffer->Map( subresourceIdx, pReadRange, &cpuAddr ) );
 
     return DX12UploadPage
     {

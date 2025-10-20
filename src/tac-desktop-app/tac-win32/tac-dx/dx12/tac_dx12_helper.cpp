@@ -6,7 +6,7 @@
 
 namespace Tac
 {
-  const char* Render::DX12_HRESULT_ToString( const HRESULT hr )
+  auto Render::DX12_HRESULT_ToString( const HRESULT hr ) -> const char* 
   {
     switch( hr )
     {
@@ -54,30 +54,19 @@ namespace Tac
     CASE( D3DERR_DRIVERINVALIDCALL );
     CASE( D3DERR_WASSTILLDRAWING );
     CASE( D3DOK_NOAUTOGEN );
+#undef CASE
 
     default: TAC_ASSERT_INVALID_CASE( hr ); return "???";
     }
   }
 
-  //static WCHAR* ToWStr( StringView sv )
-  //{
-  //  const int n = 100;
-  //  TAC_ASSERT( sv.size() < n );
-  //  static WCHAR buf[ n ];
-  //  int i{};
-  //  for( char c : sv )
-  //    buf[ i++ ] = c;
-  //  buf[ i ] = '\0';
-  //  return buf;
-  //}
-
-  String     Render::DX12CallAux( const char* fn, const HRESULT hr )
+  auto Render::DX12CallAux( const char* fn, const HRESULT hr ) -> String     
   {
     const String hrStr { DX12_HRESULT_ToString( hr ) };
     return String() + fn + " failed with " + hrStr;
   }
 
-  StringView Render::DX12GetName( ID3D12Object* obj )
+  auto Render::DX12GetName( ID3D12Object* obj ) -> StringView 
   {
     if( !obj )
       return "";
@@ -91,7 +80,7 @@ namespace Tac
     return FrameMemoryCopy( StringView( s.data(), ( int )dataSize ) );
   }
 
-  void       Render::DX12SetName( ID3D12Object* obj, StringView sv )
+  void Render::DX12SetName( ID3D12Object* obj, StringView sv )
   {
     const HRESULT hr{
       obj->SetPrivateData( WKPDID_D3DDebugObjectName, ( UINT )sv.size(), sv.data() ) };
@@ -103,32 +92,19 @@ namespace Tac
 
   void Render::DX12NameHelper::NameObject( ID3D12Object* obj ) const
   {
-    ShortFixedString str;
-    if( !mName.empty() )
-    {
-      str += mName;
-    }
+    ShortFixedString str{ mName };
 
-    if( mStackFrame.IsValid() )
-    {
-      if( !str.empty())
-        str += ", ";
-      str += mStackFrame.GetFile();
-      str += " ";
-      str += Tac::ToString( mStackFrame.GetLine() );
-    }
+    if( mStackFrame )
+      str += ( str.empty() ? "" : ", " )
+      + mStackFrame.Stringify();
 
     if( mHandle.IsValid() )
-    {
-      if( !str.empty() )
-        str += ", ";
-      str += HandleTypeToString( mHandle.GetHandleType() );
-      str += " ";
-      str += Tac::ToString( mHandle.GetIndex() );
-    }
+      str += ( str.empty() ? "" : ", " )
+      + String( HandleTypeToString( mHandle.GetHandleType() ) )
+      + " "
+      + Tac::ToString( mHandle.GetIndex() );
 
     TAC_ASSERT( !str.empty() );
-
     DX12SetName( obj, str );
   }
 
