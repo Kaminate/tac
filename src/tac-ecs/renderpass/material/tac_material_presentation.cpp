@@ -4,7 +4,7 @@
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/presentation/material/tac_render_material.h"
+#include "tac-ecs/renderpass/material/tac_render_material.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"

@@ -6,9 +6,8 @@
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/graphics/tac_graphics.h"
-#include "tac-ecs/presentation/game/tac_game_presentation.h"
-#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
+#include "tac-ecs/renderpass/game/tac_game_presentation.h"
+#include "tac-ecs/renderpass/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
@@ -531,14 +530,6 @@ namespace Tac
                                           renderContext,
                                           windowHandle,
                                           errors ) );
-#endif
-
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    VoxelGIPresentationRender( gCreation.mWorld,
-                               gCreation.mEditorCamera,
-                               desktopWindowState->mWidth,
-                               desktopWindowState->mHeight,
-                               viewHandle );
 #endif
 
     TAC_CALL( renderContext->Execute( errors ) );

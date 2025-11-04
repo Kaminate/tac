@@ -18,18 +18,6 @@ include_guard()
 include( FetchContent )
 
 # -----------------------------------------------------------------------------
-# Init using a NuGet distribution.
-# -----------------------------------------------------------------------------
-function( init_pix_target_nuget
-          pkg_id
-          pkg_version
-          pkg_hash )
-
-
-endfunction()
-
-
-# -----------------------------------------------------------------------------
 # Main function to add the target.
 # -----------------------------------------------------------------------------
 function( add_pix_target )

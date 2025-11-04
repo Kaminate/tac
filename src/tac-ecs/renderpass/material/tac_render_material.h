@@ -19,7 +19,7 @@ namespace Tac::Render
 
     AssetPathString               mShaderGraphPath            {};
     ShaderGraph                   mShaderGraph                {};
-    HashValue                     mMaterialShaderHash         {};
+    HashValue                     mMaterialShaderPathHash     {};
     Render::ProgramHandle         m3DShader                   {};
     Render::PipelineHandle        mMeshPipeline               {};
 

@@ -3,7 +3,7 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/graphics/material/tac_material.h"
-#include "tac-ecs/presentation/game/tac_game_presentation.h"
+#include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"
 #include "tac-engine-core/assetmanagers/obj/tac_model_asset_loader_obj.h"

@@ -8,8 +8,8 @@
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/color/tac_color_util.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-ecs/presentation/game/tac_game_presentation.h"
-#include "tac-ecs/presentation/mesh/tac_mesh_presentation.h"
+#include "tac-ecs/renderpass/game/tac_game_presentation.h"
+#include "tac-ecs/renderpass/mesh/tac_mesh_presentation.h"
 #include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 

@@ -17,7 +17,7 @@ namespace Tac::Render
     const HashValue hashValue{ Hash( ( StringView )shaderGraph ) };
     for ( RenderMaterial& renderMaterial : mRenderMaterials )
     {
-      if ( renderMaterial.mMaterialShaderHash == hashValue &&
+      if ( renderMaterial.mMaterialShaderPathHash == hashValue &&
         ( AssetPathStringView )renderMaterial.mShaderGraphPath == shaderGraph )
       {
         return &renderMaterial;

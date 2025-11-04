@@ -10,9 +10,8 @@
 #include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/system/tac_system.h"
 #include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/presentation/game/tac_game_presentation.h"
+#include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-ecs/world/tac_world.h"
-#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
 
 void Tac::GraphicsDebugImgui( System* system )
 {
@@ -22,8 +21,5 @@ void Tac::GraphicsDebugImgui( System* system )
   GamePresentation::DebugImGui( graphics );
 #endif
 
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-  VoxelGIDebugImgui();
-#endif
 }
 

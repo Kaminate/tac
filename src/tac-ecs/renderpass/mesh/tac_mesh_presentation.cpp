@@ -22,10 +22,9 @@
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/physics/tac_physics.h"
-#include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/terrain/tac_terrain_presentation.h"
-#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
+#include "tac-ecs/renderpass/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/renderpass/skybox/tac_skybox_presentation.h"
+#include "tac-ecs/renderpass/terrain/tac_terrain_presentation.h"
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
@@ -606,9 +605,6 @@ namespace Tac
     TAC_CALL( SkyboxPresentation::Init( errors ) );
     TAC_CALL( ShadowPresentation::Init( errors ) );
 
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    TAC_CALL( VoxelGIPresentationInit( errors ) );
-#endif
     sInitialized = true;
   }
 
@@ -622,9 +618,6 @@ namespace Tac
       sSamplers.Uninit();
       SkyboxPresentation::Uninit();
       ShadowPresentation::Uninit();
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-      VoxelGIPresentationUninit();
-#endif
       sInitialized = false;
     }
 

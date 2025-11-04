@@ -3,7 +3,7 @@
 //#include "tac-ecs/entity/tac_entity.h"
 //#include "tac-ecs/graphics/material/tac_material.h"
 //#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/presentation/radiosity/tac_radiosity_baker.h"
+#include "tac-ecs/renderpass/radiosity/tac_radiosity_baker.h"
 //#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"

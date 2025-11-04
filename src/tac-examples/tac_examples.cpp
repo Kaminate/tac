@@ -2,10 +2,9 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/presentation/game/tac_game_presentation.h"
-#include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
+#include "tac-ecs/renderpass/game/tac_game_presentation.h"
+#include "tac-ecs/renderpass/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/renderpass/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"

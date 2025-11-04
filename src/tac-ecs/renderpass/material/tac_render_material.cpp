@@ -2,7 +2,7 @@
 
 #include "tac_render_material_cache.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
-#include "tac-ecs/presentation/material/tac_material_presentation.h"
+#include "tac-ecs/renderpass/material/tac_material_presentation.h"
 
 namespace Tac::Render
 {
@@ -166,7 +166,7 @@ namespace Tac::Render
     {
       .mShaderGraphPath            { material->mShaderGraph },
       .mShaderGraph                { shaderGraph },
-      .mMaterialShaderHash         { hashValue },
+      .mMaterialShaderPathHash         { hashValue },
       .m3DShader                   { program },
       .mMeshPipeline               { meshPipeline },
       .mShaderVar_cbuf_PerFrame    { svPerFrame },

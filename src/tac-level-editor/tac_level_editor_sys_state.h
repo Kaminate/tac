@@ -5,17 +5,12 @@
 
 namespace Tac
 {
-
   struct CreationSysState
   {
-    void Init( IconRenderer*,
-               WidgetRenderer*,
-
-               Errors& );
+    void Init( IconRenderer*, WidgetRenderer*, Errors& );
     void Uninit();
 
     IconRenderer*     mIconRenderer             {};
-
     WidgetRenderer*   mWidgetRenderer           {};
   };
 

@@ -8,7 +8,7 @@
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
-#include "tac-ecs/presentation/jpptpresentation/tac_jppt_BVH.h"
+#include "tac-ecs/renderpass/jpptpresentation/tac_jppt_BVH.h"
 #include "tac-ecs/entity/tac_entity.h"
 
 

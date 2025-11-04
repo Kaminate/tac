@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-ecs/presentation/material/tac_render_material.h"
+#include "tac-ecs/renderpass/material/tac_render_material.h"
 
 
 namespace Tac::Render

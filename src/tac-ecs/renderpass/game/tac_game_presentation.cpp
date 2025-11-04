@@ -7,15 +7,14 @@
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/physics/tac_physics.h"
-#include "tac-ecs/presentation/mesh/tac_mesh_presentation.h"
-#include "tac-ecs/presentation/material/tac_material_presentation.h"
-#include "tac-ecs/presentation/radiosity/tac_radiosity_bake_presentation.h"
-#include "tac-ecs/presentation/shadow/tac_shadow_presentation.h"
-#include "tac-ecs/presentation/skybox/tac_skybox_presentation.h"
-#include "tac-ecs/presentation/terrain/tac_terrain_presentation.h"
-#include "tac-ecs/presentation/voxel/tac_voxel_gi_presentation.h"
-#include "tac-ecs/presentation/infinitegrid/tac_infinite_grid_presentation.h"
-#include "tac-ecs/presentation/jpptpresentation/tac_jppt_presentation.h"
+#include "tac-ecs/renderpass/mesh/tac_mesh_presentation.h"
+#include "tac-ecs/renderpass/material/tac_material_presentation.h"
+#include "tac-ecs/renderpass/radiosity/tac_radiosity_bake_presentation.h"
+#include "tac-ecs/renderpass/shadow/tac_shadow_presentation.h"
+#include "tac-ecs/renderpass/skybox/tac_skybox_presentation.h"
+#include "tac-ecs/renderpass/terrain/tac_terrain_presentation.h"
+#include "tac-ecs/renderpass/infinitegrid/tac_infinite_grid_presentation.h"
+#include "tac-ecs/renderpass/jpptpresentation/tac_jppt_presentation.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
@@ -73,10 +72,6 @@ void Tac::GamePresentation::Init( Errors& errors )
 
   TAC_CALL( ShadowPresentation::Init( errors ) );
 
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    TAC_CALL( VoxelGIPresentationInit( errors ) );
-#endif
-
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
     TAC_CALL( RadiosityBakePresentation::Init( errors ) );
 #endif
@@ -111,10 +106,6 @@ void Tac::GamePresentation::Uninit()
 
 #if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
     InfiniteGrid::Uninit();
-#endif
-
-#if TAC_VOXEL_GI_PRESENTATION_ENABLED()
-    VoxelGIPresentationUninit();
 #endif
 
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()

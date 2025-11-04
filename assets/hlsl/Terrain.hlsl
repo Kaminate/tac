@@ -141,36 +141,16 @@ PS_OUTPUT PS( VS_OUTPUT input )
   float3 cola = terrainTexture.SampleGrad( linearSampler, v * offa + input.mTexCoord, dvudx, dvudy ).xyz;
   float3 colb = terrainTexture.SampleGrad( linearSampler, v * offb + input.mTexCoord, dvudx, dvudy ).xyz;
 
-  //float mip = 0.0;
-  //float3 cola = terrainTexture.SampleLevel( linearSampler, v * offa + input.mTexCoord, mip ).xyz;
-  //float3 colb = terrainTexture.SampleLevel( linearSampler, v * offb + input.mTexCoord, mip ).xyz;
-
-  //float3 cola = terrainTexture.Sample( linearSampler, v * offa + input.mTexCoord).xyz;
-  //float3 colb = terrainTexture.Sample( linearSampler, v * offb + input.mTexCoord).xyz;
-
   if( showTiledResult )
   {
     float t = smoothstep( 0.2, 0.8, noiseIndexFract - 0.1 * sum( cola - colb ) );
     finalColor += pow( lerp( cola, colb, t ), 2.2 );
   }
 
-  /*
-  if( showTiledResultOrig )
-  {
-    const float3 sampledsRGB = terrainTexture.Sample(
-      linearSampler,
-      input.mTexCoord ).xyz;
-    const float3 sampledLinear = pow( sampledsRGB, 2.2 );
-    const float3 pixelColor = Color.xyz * sampledLinear.xyz;
-    finalColor.xyz += pixelColor;
-  }
-  */
-
   // uhh this is actually NDC space
   const float2 screenSpacePosition = input.mScreenSpacePosition.xy / input.mScreenSpacePosition.w; // [-1,1]^2
 
   finalColor *= dot( -input.mWorldSpaceNormal, float3( 0, 1, 0) ); // Simple lighting
-
 
   output.mColor = float4( finalColor, 1.0 );
 
