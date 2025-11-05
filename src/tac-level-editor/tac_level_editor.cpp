@@ -37,7 +37,6 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
 
-Tac::Creation Tac::gCreation;
 
 namespace Tac
 {
@@ -178,7 +177,7 @@ namespace Tac
     void Init( Errors& errors ) override
     {
       SpaceInit();
-      gCreation.Init( mSettingsNode, errors );
+      Creation::gCreation.Init( mSettingsNode, errors );
     }
 
     auto GameState_Create() -> State override 
@@ -188,28 +187,29 @@ namespace Tac
 
     void GameState_Update( IState* state ) override
     {
-      ( ( CreationAppState* )state )->mSimState.CopyFrom( gCreation.mSimState );
+      ( ( CreationAppState* )state )->mSimState.CopyFrom( Creation::gCreation.mSimState );
     }
 
     void Update( Errors& errors ) override
     {
-      World* world{ gCreation.mSimState.mWorld };
-      Camera* camera{ gCreation.mSimState.mEditorCamera };
-      gCreation.Update( world, camera, errors );
+      Creation::gCreation.Update(
+        Creation::gCreation.mSimState.mWorld,
+        Creation::gCreation.mSimState.mEditorCamera,
+        errors );
     }
 
     void Render( App::RenderParams renderParams, Errors& errors ) override
     {
       // todo: interpolate between old and new state?
       CreationAppState* state{ ( CreationAppState* )renderParams.mNewState };
-      gCreation.Render( state, errors );
+      Creation::gCreation.Render( state, errors );
     }
 
     void Uninit( Errors& errors ) override
     {
-      gCreation.mSimState.Uninit();
-      gCreation.mSysState.Uninit();
-      gCreation.Uninit( errors );
+      Creation::gCreation.mSimState.Uninit();
+      Creation::gCreation.mSysState.Uninit();
+      Creation::gCreation.Uninit( errors );
     }
 
     CreationAppState mState;
@@ -219,6 +219,8 @@ namespace Tac
 
   //===-------------- Creation -------------===//
 
+  Creation Creation::gCreation;
+
   void Creation::Init( SettingsNode settingsNode, Errors& errors )
   {
     mSettingsNode = settingsNode;
@@ -227,17 +229,17 @@ namespace Tac
 
     //CreationPropertyWindow::sShowWindow = true;
 
-    sIconRenderer.Init( errors );
-    mMousePicking.Init( &mGizmoMgr, errors );
-    sWidgetRenderer.Init( &mMousePicking, &mGizmoMgr,  errors );
+    IconRenderer::sInstance.Init( errors );
+    CreationMousePicking::sInstance.Init( errors );
+    WidgetRenderer::sInstance.Init( errors );
     SelectedEntities::Init( mSettingsNode );
     TAC_CALL( mSimState.Init( errors ) );
-    TAC_CALL( mSysState.Init( &sIconRenderer, &sWidgetRenderer, errors ) );
+    TAC_CALL( mSysState.Init( errors ) );
 
     //CreationSystemWindow::Init();
     //CreationAssetView::Init();
     //CreationMainWindow::Init();
-    CreationGameWindow::Init( &mGizmoMgr, &mMousePicking, mSettingsNode, errors );
+    CreationGameWindow::Init( mSettingsNode, errors );
     //CreationPropertyWindow::Init();
     //CreationProfileWindow::Init();
 
@@ -251,8 +253,8 @@ namespace Tac
   void Creation::Uninit( Errors& )
   {
     ShowWindowHelper::GetInstance().Save( mSettingsNode );
-    sIconRenderer.Uninit();
-    sWidgetRenderer.Uninit();
+    IconRenderer::sInstance.Uninit();
+    WidgetRenderer::sInstance.Uninit();
     mSimState.Uninit();
     mSysState.Uninit();
   }

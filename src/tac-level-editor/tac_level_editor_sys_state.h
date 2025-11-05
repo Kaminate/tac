@@ -7,11 +7,8 @@ namespace Tac
 {
   struct CreationSysState
   {
-    void Init( IconRenderer*, WidgetRenderer*, Errors& );
+    void Init( Errors& );
     void Uninit();
-
-    IconRenderer*     mIconRenderer             {};
-    WidgetRenderer*   mWidgetRenderer           {};
   };
 
 } // namespace Tac

@@ -15,13 +15,14 @@ namespace Tac
   struct CreationMousePicking
   {
     void                          BeginFrame( WindowHandle, Camera* );
-    void                          Init( GizmoMgr*, Errors& );
+    void                          Init( Errors& );
     void                          Update( const World*, const Camera*, Errors& );
     bool                          IsTranslationWidgetPicked( int );
     v3                            GetWorldspaceMouseDir() const;
 
     bool                          sDrawRaycast              { true };
 
+    static CreationMousePicking   sInstance;
   private:
 
     void                          MousePickingEntities( const World*, const Camera*, Errors& );
@@ -30,7 +31,6 @@ namespace Tac
 
     v3                            mViewSpaceUnitMouseDir    {};
     v3                            mWorldSpaceMouseDir       {};
-    GizmoMgr*                     mGizmoMgr                 {};
     Mesh*                         mArrow                    {};
     bool                          mWindowHovered            {};
   };

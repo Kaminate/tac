@@ -4,19 +4,8 @@
 
 namespace Tac
 {
-  void CreationSysState::Init( IconRenderer* iconRenderer,
-                               WidgetRenderer* widgetRenderer,
-                               Errors& errors )
-  {
-    mIconRenderer = iconRenderer;
-    mWidgetRenderer = widgetRenderer;
-    TAC_CALL( GamePresentation::Init( errors ) );
-  }
-  
-  void CreationSysState:: Uninit()
-  {
-    GamePresentation::Uninit();
-  }
+  void CreationSysState::Init( Errors& errors ) { TAC_CALL( GamePresentation::Init( errors ) ); }
+  void CreationSysState:: Uninit() { GamePresentation::Uninit(); }
 
 } // namespace Tac
 

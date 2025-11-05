@@ -32,6 +32,7 @@ namespace Tac
     v4 mColor;
   };
 
+
   static auto GetProj( WindowHandle viewHandle, const Camera* camera ) -> m4
   {
     
@@ -140,6 +141,8 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  WidgetRenderer WidgetRenderer::sInstance;
+
   auto WidgetRenderer::GetPipelineParams() ->   Render::PipelineParams
   {
     return Render::PipelineParams
@@ -156,12 +159,8 @@ namespace Tac
     };
   };
 
-  void WidgetRenderer::Init( CreationMousePicking* mousePicking,
-                             GizmoMgr* gizmoMgr,
-                             Errors& errors )
+  void WidgetRenderer::Init( Errors& errors )
   {
-    mMousePicking = mousePicking;
-    mGizmoMgr = gizmoMgr;
     Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
 
     TAC_CALL( m3DShader = renderDevice->CreateProgram( GetProgramParams3DTest(), errors ) );
@@ -239,13 +238,15 @@ namespace Tac
 
   auto WidgetRenderer::GetAxisColor( int i ) ->   v4
   {
+    auto gizmoMgr{ &GizmoMgr::sInstance };
+    auto mousePicking{ &CreationMousePicking::sInstance };
     const v3 axises[ 3 ]{ v3( 1, 0, 0 ),
                           v3( 0, 1, 0 ),
                           v3( 0, 0, 1 ), };
     const v3 axis{ axises[ i ] };
     dynmc v4 color{ axis, 1 };
-    const bool isWidgetHovered{ mMousePicking->IsTranslationWidgetPicked( i ) };
-    const bool isWidgetActive{ mGizmoMgr->IsTranslationWidgetActive( i ) };
+    const bool isWidgetHovered{ mousePicking->IsTranslationWidgetPicked( i ) };
+    const bool isWidgetActive{ gizmoMgr->IsTranslationWidgetActive( i ) };
     if( isWidgetHovered || isWidgetActive )
     {
       dynmc float t { float( Sin( Timestep::GetElapsedTime() * 6.0 ) ) };
@@ -258,13 +259,14 @@ namespace Tac
 
   auto WidgetRenderer::GetAxisWorld( const int i ) -> m4
   {
+    auto gizmoMgr{ &GizmoMgr::sInstance };
     const m4 rots[]{ m4::RotRadZ( -3.14f / 2.0f ),
                      m4::Identity(),
                      m4::RotRadX( 3.14f / 2.0f ), };
-    const v3 selectionGizmoOrigin{ mGizmoMgr->mGizmoOrigin };
+    const v3 selectionGizmoOrigin{ gizmoMgr->mGizmoOrigin };
     const m4 world{ m4::Translate( selectionGizmoOrigin ) *
                     rots[ i ] *
-                    m4::Scale( v3( 1, 1, 1 ) * mGizmoMgr-> mArrowLen ) };
+                    m4::Scale( v3( 1, 1, 1 ) * gizmoMgr-> mArrowLen ) };
     return world;
   }
 
@@ -273,10 +275,9 @@ namespace Tac
                                                 const Camera* camera,
                                                 Errors& errors )
   {
-    if( !mGizmoMgr->mGizmosEnabled )
-      return;
-
-    if( !mGizmoMgr->mTranslationGizmoVisible )
+    if( auto gizmoMgr{ &GizmoMgr::sInstance };
+        !gizmoMgr->mGizmosEnabled ||
+        !gizmoMgr->mTranslationGizmoVisible )
       return;
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );

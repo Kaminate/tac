@@ -21,6 +21,7 @@ namespace Tac
                        Render::IContext*,
                        WindowHandle,
                        Errors& );
+    static IconRenderer sInstance;
 
   private:
     Render::PipelineParams GetPipelineParams();

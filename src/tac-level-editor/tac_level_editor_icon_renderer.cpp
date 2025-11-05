@@ -135,6 +135,7 @@ namespace Tac
     };
   }
 
+  IconRenderer IconRenderer::sInstance;
 
   void IconRenderer::Init( Errors& errors )
   {

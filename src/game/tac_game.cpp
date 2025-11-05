@@ -38,9 +38,9 @@ namespace Tac
     TAC_CALL( sGhost->Init( sSettingsNode, errors ) );
   }
 
-  static void GameCallbackUpdate( Errors& )
+  static void GameCallbackUpdate( Errors& errors)
   {
-    TAC_NO_OP;
+    TAC_CALL( sGhost->Update( errors) );
   }
 
   struct GameApp : public App

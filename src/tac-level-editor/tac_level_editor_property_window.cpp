@@ -232,7 +232,7 @@ namespace Tac
     }
 
     if( ImGuiButton( "Create Entity" ) )
-      gCreation.CreateEntity( world, camera );
+      Creation::gCreation.CreateEntity( world, camera );
 
     if( ImGuiButton( "Open Prefab" ) )
     {
@@ -242,7 +242,7 @@ namespace Tac
       {
         Camera* prefabLoadCamera{ world->mEntities.size() ? nullptr : camera };
         TAC_CALL( PrefabLoadAtPath( settingsNode,
-                                    &gCreation.mEntityUUIDCounter,
+                                    &Creation::gCreation.mEntityUUIDCounter,
                                     world,
                                     prefabLoadCamera,
                                     prefabAssetPath,

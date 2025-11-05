@@ -38,19 +38,17 @@
 
 namespace Tac
 {
-  static bool                          drawGrid                  {};
+  static bool                          sDrawGrid                  {};
   static float                         sWASDCameraPanSpeed       { 10 };
   static float                         sWASDCameraOrbitSpeed     { 5 };
   static bool                          sWASDCameraOrbitSnap      { false };
   static float                         sWASDCameraNoSnapScale    { .01f };
   static StringView                    sImguiWindowName          { "Level Editor Game Window" };
-  static Soul*                         mSoul                     {};
-  static Debug3DDrawBuffers            mWorldBuffers             {};
-  static String                        mStatusMessage            {};
-  static Timestamp                     mStatusMessageEndTime     {};
-  static SettingsNode                  mSettingsNode             {};
-  static GizmoMgr*                     mGizmoMgr                 {};
-  static CreationMousePicking*         mMousePicking             {};
+  static Soul*                         sSoul                     {};
+  static Debug3DDrawBuffers            sBuffers                  {};
+  static String                        sStatusMessage            {};
+  static Timestamp                     sStatusMessageEndTime     {};
+  static SettingsNode                  sSettingsNode             {};
 
   // TODO: find a home for this fn, maybe in tacexamples idk
 #if 0
@@ -246,7 +244,7 @@ namespace Tac
     }
     else
     {
-      CameraWASDControlsOrbit( camera, mGizmoMgr->mGizmoOrigin );
+      CameraWASDControlsOrbit( camera, GizmoMgr::sInstance.mGizmoOrigin );
     }
   }
 
@@ -276,12 +274,12 @@ namespace Tac
 
   static void PlayGame( Errors& errors )
   {
-    if( mSoul )
+    if( sSoul )
       return;
 
     auto ghost { TAC_NEW Ghost };
-    TAC_CALL( ghost->Init( mSettingsNode, errors ) );
-    mSoul = ghost;
+    TAC_CALL( ghost->Init( sSettingsNode, errors ) );
+    sSoul = ghost;
   }
 
   static void ImGuiCamera( Camera* camera )
@@ -347,18 +345,18 @@ namespace Tac
       CreationPropertyWindow::sShowWindow = false;
     }
 
-    ImGuiCheckbox( "Draw grid", &drawGrid );
+    ImGuiCheckbox( "Draw grid", &sDrawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
-    ImGuiCheckbox( "draw gizmos", &mGizmoMgr->mGizmosEnabled );
-    ImGuiCheckbox( "Draw raycast", &mMousePicking->sDrawRaycast );
+    ImGuiCheckbox( "draw gizmos", &GizmoMgr::sInstance.mGizmosEnabled );
+    ImGuiCheckbox( "Draw raycast", &CreationMousePicking::sInstance.sDrawRaycast );
 
 
-    if( mSoul )
+    if( sSoul )
     {
       if( ImGuiButton( "End simulation" ) )
       {
-        TAC_DELETE mSoul;
-        mSoul = nullptr;
+        TAC_DELETE sSoul;
+        sSoul = nullptr;
       }
     }
     else
@@ -371,9 +369,9 @@ namespace Tac
 
     ImGuiCamera( camera );
 
-    if( Timestep::GetElapsedTime() < mStatusMessageEndTime )
+    if( Timestep::GetElapsedTime() < sStatusMessageEndTime )
     {
-      ImGuiText( mStatusMessage );
+      ImGuiText( sStatusMessage );
     }
 
     ImGuiEndChild();
@@ -454,15 +452,9 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void CreationGameWindow::Init( GizmoMgr* gizmoMgr,
-                                 CreationMousePicking* mousePicking,
-                                 SettingsNode settingsNode,
-                                 Errors& errors )
+  void CreationGameWindow::Init( SettingsNode settingsNode, Errors& errors )
   {
-    mMousePicking = mousePicking;
-    mGizmoMgr = gizmoMgr;
-    mSettingsNode = settingsNode;
-
+    sSettingsNode = settingsNode;
     TAC_CALL( PlayGame( errors ) );
   }
 
@@ -474,53 +466,28 @@ namespace Tac
     if( !AppWindowApi::IsShown( windowHandle ) )
       return;
 
-    const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
-
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL( Render::IContext::Scope renderScope{
-      renderDevice->CreateRenderContext( errors ) } );
-
+    TAC_CALL( Render::IContext::Scope renderScope{ renderDevice->CreateRenderContext( errors ) } );
     Render::IContext* renderContext{ renderScope.GetContext() };
-
-    const Render::SwapChainHandle swapChainHandle{
-      AppWindowApi::GetSwapChainHandle( windowHandle ) };
-
-    const Render::TextureHandle rtColor{
-      renderDevice->GetSwapChainCurrentColor( swapChainHandle ) };
-
-    const Render::TextureHandle rtDepth{
-      renderDevice->GetSwapChainDepth( swapChainHandle ) };
-
-    const Render::Targets renderTargets
-    {
-      .mColors { rtColor },
-      .mDepth  { rtDepth },
-    };
-
-    renderContext->SetViewport( windowSize );
-    renderContext->SetScissor( windowSize );
-    renderContext->SetRenderTargets( renderTargets );
-
-    const GamePresentation::RenderParams renderParams
-    {
-      .mContext            { renderContext },
-      .mWorld              { world },
-      .mCamera             { camera },
-      .mViewSize           { windowSize },
-      .mColor              { rtColor },
-      .mDepth              { rtDepth },
-      .mBuffers            { &mWorldBuffers },
-      .mIsLevelEditorWorld { true },
-    };
-    GamePresentation::Render( renderParams, errors );
+    const Render::SwapChainHandle swapChainHandle{ AppWindowApi::GetSwapChainHandle( windowHandle ) };
+    GamePresentation::Render(
+      GamePresentation::RenderParams
+      {
+        .mContext            { renderContext },
+        .mWorld              { world },
+        .mCamera             { camera },
+        .mViewSize           { AppWindowApi::GetSize( windowHandle )  },
+        .mColor              { renderDevice->GetSwapChainCurrentColor( swapChainHandle )  },
+        .mDepth              { renderDevice->GetSwapChainDepth( swapChainHandle )  },
+        .mBuffers            { &sBuffers },
+        .mIsLevelEditorWorld { true },
+      }, errors );
 
 #if 1
-
-    WidgetRenderer* widgetRenderer{ gCreation.mSysState.mWidgetRenderer };
-    TAC_CALL( widgetRenderer->RenderTranslationWidget( renderContext,
-                                                       windowHandle,
-                                                       camera,
-                                                       errors ) );
+    TAC_CALL( WidgetRenderer::sInstance.RenderTranslationWidget( renderContext,
+                                                                 windowHandle,
+                                                                 camera,
+                                                                 errors ) );
 #endif
 
 #if 0
@@ -601,30 +568,30 @@ namespace Tac
 
     const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
 
-    if( mSoul )
+    if( sSoul )
     {
-      TAC_CALL( mSoul->Update( errors ) );
+      TAC_CALL( sSoul->Update( errors ) );
     }
 
-    mMousePicking->BeginFrame( windowHandle, camera );
-    CameraUpdateSaved( mSettingsNode, gCreation.mSimState.mEditorCamera );
+    CreationMousePicking::sInstance.BeginFrame( windowHandle, camera );
+    CameraUpdateSaved( sSettingsNode, Creation::gCreation.mSimState.mEditorCamera );
     CameraUpdateControls( camera );
-    mGizmoMgr->ComputeArrowLen( camera );
-    TAC_CALL(mMousePicking->Update( world, camera, errors ) );
+    GizmoMgr::sInstance.ComputeArrowLen( camera );
+    TAC_CALL(CreationMousePicking::sInstance.Update( world, camera, errors ) );
     const Ray ray
     {
       .mOrigin    { camera->mPos },
-      .mDirection { mMousePicking->GetWorldspaceMouseDir() },
+      .mDirection { CreationMousePicking::sInstance.GetWorldspaceMouseDir() },
     };
-    TAC_CALL( gCreation.mGizmoMgr.Update( ray, errors ) );
+    TAC_CALL( GizmoMgr::sInstance.Update( ray, errors ) );
 
-    if( drawGrid )
+    if( sDrawGrid )
       world->mDebug3DDrawData->DebugDraw3DGrid();
 
-    if( mGizmoMgr->mGizmosEnabled && mGizmoMgr->mSelectedGizmo )
-      world->mDebug3DDrawData->DebugDraw3DCircle( mGizmoMgr->mGizmoOrigin,
+    if( GizmoMgr::sInstance.mGizmosEnabled && GizmoMgr::sInstance.mSelectedGizmo )
+      world->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
                                                   camera->mForwards,
-                                                  mGizmoMgr->mArrowLen );
+                                                  GizmoMgr::sInstance.mArrowLen );
 
     static bool once;
     if( !once )
@@ -645,8 +612,8 @@ namespace Tac
                                              const TimestampDifference duration )
   {
     const Timestamp curTime { Timestep::GetElapsedTime() };
-    mStatusMessage = msg;
-    mStatusMessageEndTime = curTime + duration;
+    sStatusMessage = msg;
+    sStatusMessageEndTime = curTime + duration;
   }
 
 } // namespace Tac

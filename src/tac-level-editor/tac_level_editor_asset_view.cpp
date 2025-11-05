@@ -39,10 +39,9 @@ namespace Tac
 
     void ImportObjectIntoScene(World* world, Camera* camera) const
     {
-      Entity* prefab{ mPrefab };
       const RelativeSpace relativeSpace{
-        gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
-      gCreation.InstantiateAsCopy( world, camera, prefab, relativeSpace );
+        Creation::gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
+      Creation::gCreation.InstantiateAsCopy( world, camera, mPrefab, relativeSpace );
     }
 
     bool                      mAttemptedToLoadEntity {};

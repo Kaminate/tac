@@ -29,22 +29,13 @@ namespace Tac
     Entity*              CreateEntity(World*,Camera*);
     Entity*              InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& );
 
-    // Gizmos
-    GizmoMgr             mGizmoMgr                {};
-
-
     EntityUUIDCounter    mEntityUUIDCounter       {};
     SettingsNode         mSettingsNode            {};
-    CreationMousePicking mMousePicking            {};
-    IconRenderer         sIconRenderer            {};
-    WidgetRenderer       sWidgetRenderer          {};
     CreationSimState     mSimState                {};
     CreationSysState     mSysState                {};
+    static Creation      gCreation;
   };
 
-  //===-------------- Misc -----------------===//
-
-  extern Creation       gCreation;
 
 } // namespace Tac
 

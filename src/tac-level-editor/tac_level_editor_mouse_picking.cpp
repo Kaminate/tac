@@ -45,6 +45,8 @@ namespace Tac
 
   static PickData pickData;
 
+  CreationMousePicking CreationMousePicking::sInstance;
+
   // -----------------------------------------------------------------------------------------------
 
   // Only need the position for picking
@@ -55,7 +57,6 @@ namespace Tac
       .mAttribute         { Render::Attribute::Position },
       .mFormat            { Render::VertexAttributeFormat::GetVector3() },
     };
-
     Render::VertexDeclarations m3DvertexFormatDecls;
     m3DvertexFormatDecls.push_back( posDecl );
     return m3DvertexFormatDecls;
@@ -226,10 +227,11 @@ namespace Tac
 
   void CreationMousePicking::MousePickingGizmos( const Camera* camera )
   {
-    if( SelectedEntities::empty() || !mGizmoMgr->mGizmosEnabled || !mWindowHovered )
+    GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
+    if( SelectedEntities::empty() || !gizmoMgr->mGizmosEnabled || !mWindowHovered )
       return;
 
-    const v3 selectionGizmoOrigin { mGizmoMgr->mGizmoOrigin };
+    const v3 selectionGizmoOrigin { gizmoMgr->mGizmoOrigin };
     const m4 invArrowRots[]{ m4::RotRadZ( 3.14f / 2.0f ),
                              m4::Identity(),
                              m4::RotRadX( -3.14f / 2.0f ), };
@@ -249,7 +251,7 @@ namespace Tac
       modelSpaceRayDir3 = modelSpaceRayDir4.xyz();
 
       // 3/3: inverse scale
-      modelSpaceRayPos3 /= mGizmoMgr-> mArrowLen;
+      modelSpaceRayPos3 /= gizmoMgr-> mArrowLen;
 
       const Ray meshRay
       { 
@@ -261,7 +263,7 @@ namespace Tac
       if( !meshRaycastResult.mHit  )
         continue;
 
-      const float dist{ meshRaycastResult.mT * mGizmoMgr->mArrowLen };
+      const float dist{ meshRaycastResult.mT * gizmoMgr->mArrowLen };
       if( !pickData.IsNewClosest( dist ) )
         continue;
 
@@ -307,6 +309,7 @@ namespace Tac
       return;
 
     const v3 worldSpaceHitPoint { camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
+    GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
 
     switch( pickData.pickedObject )
     {
@@ -317,10 +320,10 @@ namespace Tac
         v3 arrowDir{};
         arrowDir[ pickData.arrowAxis ] = 1;
 
-        mGizmoMgr->mSelectedGizmo = true;
-        mGizmoMgr->mTranslationGizmoDir = arrowDir;
-        mGizmoMgr->mTranslationGizmoOffset = Dot( arrowDir, worldSpaceHitPoint - gizmoOrigin );
-        mGizmoMgr->mTranslationGizmoAxis = pickData.arrowAxis;
+        gizmoMgr->mSelectedGizmo = true;
+        gizmoMgr->mTranslationGizmoDir = arrowDir;
+        gizmoMgr->mTranslationGizmoOffset = Dot( arrowDir, worldSpaceHitPoint - gizmoOrigin );
+        gizmoMgr->mTranslationGizmoAxis = pickData.arrowAxis;
       } break;
 
       case PickedObject::Entity:
@@ -337,10 +340,8 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::Init( GizmoMgr* gizmoMgr, Errors& errors )
+  void CreationMousePicking::Init( Errors& errors )
   {
-    mGizmoMgr = gizmoMgr;
-
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetPosOnlyVtxDecls() };
     const ModelAssetManager::Params meshParams
     {
@@ -354,29 +355,21 @@ namespace Tac
 
   bool CreationMousePicking::IsTranslationWidgetPicked( int i )
   {
-    const bool picked{ pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
-                       pickData.arrowAxis == i };
-    return picked;
+    return
+      pickData.pickedObject == PickedObject::WidgetTranslationArrow &&
+      pickData.arrowAxis == i;
   }
 
   void CreationMousePicking::Update( const World* world, const Camera* camera, Errors& errors )
   {
     pickData = {};
-
-
     TAC_CALL( MousePickingEntities( world, camera, errors ) );
-
     MousePickingGizmos( camera );
-
     MousePickingSelection( camera );
-
     if( pickData.pickedObject != PickedObject::None )
     {
-      const v3 worldSpaceHitPoint{
-        camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
-
-      Debug3DDrawData* debug3DDrawData{ world->mDebug3DDrawData };
-      debug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+      const v3 worldSpaceHitPoint{ camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
+      world->mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
   }
 

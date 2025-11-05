@@ -23,6 +23,8 @@ namespace Tac
     int                 mTranslationGizmoAxis    {};
     bool                mGizmosEnabled           { true };
     float               mArrowLen                {};
+
+    static GizmoMgr     sInstance;
   };
 
 } // namespace Tac

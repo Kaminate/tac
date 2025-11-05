@@ -8,6 +8,7 @@
 
 namespace Tac
 {
+  GizmoMgr GizmoMgr::sInstance;
 
   bool GizmoMgr::IsTranslationWidgetActive( int i ) const
   {
