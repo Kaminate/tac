@@ -19,8 +19,6 @@ namespace Tac
     v3    mUp        { 0,1,0 }; // worldspace
     float mFarPlane  { 10000.0f };
     float mNearPlane { 0.1f };
-
-    //    Entire vertical fov (not half of it)
-    float mFovyrad   { 60.0f * ( 3.14f / 180.0f ) };
+    float mFovyrad   { 60.0f * ( 3.14f / 180.0f ) }; // Entire vertical fov (not half of it)
   };
 }

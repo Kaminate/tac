@@ -10,22 +10,26 @@ namespace Tac
 {
   struct SelectedEntities
   {
-    void Init( SettingsNode );
-    void                DeleteEntitiesCheck();
-    void                DeleteEntities();
-    void                AddToSelection( Entity* );
-    void                Select( Entity* );
-    bool                IsSelected( Entity* );
-    v3                  ComputeAveragePosition();
-
-    bool                empty() const;
-    int                 size() const;
-    Entity**            begin();
-    Entity**            end();
-    void                clear();
-
-    Vector< Entity* >   mSelectedEntities;
-    SettingsNode        mSettingsNode;
+    struct Iterator
+    {
+      void operator ++();
+      bool operator != ( Iterator& ) const;
+      auto operator* () const -> Entity*;
+      Entity** mBegin {};
+      Entity** mEnd   {};
+      Entity** mCurr  {};
+    };
+    auto begin() -> Iterator;
+    auto end() -> Iterator;
+    static void Init( SettingsNode );
+    static void DeleteEntitiesCheck();
+    static void DeleteEntities();
+    static void AddToSelection( Entity* );
+    static void Select( Entity* );
+    static bool IsSelected( Entity* );
+    static auto ComputeAveragePosition() -> v3;
+    static bool empty();
+    static void clear();
   };
 
 

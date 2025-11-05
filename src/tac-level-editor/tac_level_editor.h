@@ -29,9 +29,6 @@ namespace Tac
     Entity*              CreateEntity(World*,Camera*);
     Entity*              InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& );
 
-    // ...
-    SelectedEntities     mSelectedEntities        {};
-
     // Gizmos
     GizmoMgr             mGizmoMgr                {};
 
@@ -46,11 +43,6 @@ namespace Tac
   };
 
   //===-------------- Misc -----------------===//
-
-  //                    If input path is absolute, it will be converted to be 
-  //                    relative to the working directory
-  //void                  ModifyPathRelative( FileSys::Path& path );
-
 
   extern Creation       gCreation;
 

@@ -120,8 +120,7 @@ namespace Tac
     };
   }
 
-  static void MousePickingEntityDebug( SelectedEntities* selectedEntities,
-                                       Ray ray,
+  static void MousePickingEntityDebug( Ray ray,
                                        const World* world,
                                        const Camera* ,
                                        Errors& errors )
@@ -139,7 +138,7 @@ namespace Tac
     for( Entity* entity : world->mEntities )
     {
       bool isPicked = pickData.pickedObject == PickedObject::Entity && pickData.closest == entity ; 
-      bool isSelected = selectedEntities->IsSelected(entity);
+      bool isSelected = SelectedEntities::IsSelected(entity);
       if( !(isPicked || isSelected))
         continue;
 
@@ -247,7 +246,7 @@ namespace Tac
 
   void CreationMousePicking::MousePickingGizmos( const Camera* camera )
   {
-    if( mSelectedEntities->empty() || !mGizmoMgr->mGizmosEnabled || !mWindowHovered )
+    if( SelectedEntities::empty() || !mGizmoMgr->mGizmosEnabled || !mWindowHovered )
       return;
 
     const v3 selectionGizmoOrigin { mGizmoMgr->mGizmoOrigin };
@@ -318,7 +317,7 @@ namespace Tac
 
     if( sDrawRaycast)
     {
-      TAC_CALL( MousePickingEntityDebug( mSelectedEntities, ray, world, camera, errors ) );
+      TAC_CALL( MousePickingEntityDebug( ray, world, camera, errors ) );
     }
   }
 
@@ -333,7 +332,7 @@ namespace Tac
     {
       case PickedObject::WidgetTranslationArrow:
       {
-        const v3 gizmoOrigin{ mSelectedEntities->ComputeAveragePosition() };
+        const v3 gizmoOrigin{ SelectedEntities::ComputeAveragePosition() };
 
         v3 arrowDir{};
         arrowDir[ pickData.arrowAxis ] = 1;
@@ -348,22 +347,18 @@ namespace Tac
       {
         const v3 entityWorldOrigin {
           ( pickData.closest->mWorldTransform * v4( 0, 0, 0, 1 ) ).xyz() };
-        mSelectedEntities->Select( pickData.closest );
+        SelectedEntities::Select( pickData.closest );
       } break;
 
       case PickedObject::None:
       {
-        mSelectedEntities->clear();
+        SelectedEntities::clear();
       } break;
     }
   }
 
-  void CreationMousePicking::Init( SelectedEntities* selectedEntities,
-                                   GizmoMgr* gizmoMgr,
-                                   Errors& errors )
+  void CreationMousePicking::Init( GizmoMgr* gizmoMgr, Errors& errors )
   {
-
-    mSelectedEntities = selectedEntities;
     mGizmoMgr = gizmoMgr;
 
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetPosOnlyVtxDecls() };

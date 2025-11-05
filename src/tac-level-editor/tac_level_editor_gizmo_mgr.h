@@ -8,12 +8,9 @@
 
 namespace Tac
 {
-
   struct GizmoMgr
   {
-    void                Init( SelectedEntities*, Errors& );
-    void                Uninit();
-    void                Update( v3, const Camera* , Errors& );
+    void                Update( v3, const Camera*, Errors& );
     void                Render( Errors& );
     bool                IsTranslationWidgetActive( int );
     void                ComputeArrowLen( const Camera* );
@@ -24,8 +21,6 @@ namespace Tac
     v3                  mTranslationGizmoDir     {};
     float               mTranslationGizmoOffset  {};
     int                 mTranslationGizmoAxis    {};
-
-    SelectedEntities*   mSelectedEntities        {};
     bool                mGizmosEnabled           { true };
     float               mArrowLen                {};
   };

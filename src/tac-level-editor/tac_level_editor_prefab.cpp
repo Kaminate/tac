@@ -223,7 +223,7 @@ namespace Tac
                        + "select entity of uuid "
                        + ToString( ( UUID )entity->mEntityUUID ) ) )
       {
-        gCreation.mSelectedEntities.Select( entity );
+        SelectedEntities::Select( entity );
       }
     }
   }

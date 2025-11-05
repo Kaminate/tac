@@ -458,14 +458,6 @@ namespace Tac
 
     for( TextBlockDef& def : sPresentationDef.mTextBlockDefs )
     {
-      def.mRuntimeData.mPos_windowspace;
-      def.mRuntimeData.mSize_windowspace;
-      
-    }
-
-
-    for( TextBlockDef& def : sPresentationDef.mTextBlockDefs )
-    {
 
       if( def.mLaTeX.ends_with( ".png" ) )
       {

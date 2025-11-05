@@ -9,15 +9,6 @@
 namespace Tac
 {
 
-  void                GizmoMgr::Init( SelectedEntities* selectedEntities, Errors& )
-  {
-    mSelectedEntities = selectedEntities;
-  }
-
-  void                GizmoMgr::Uninit()
-  {
-  }
-
   bool                GizmoMgr::IsTranslationWidgetActive( int i )
   {
     return mGizmosEnabled && mSelectedGizmo && mTranslationGizmoAxis == i;
@@ -25,7 +16,7 @@ namespace Tac
 
   void GizmoMgr::ComputeArrowLen( const Camera* camera )
   {
-    if( mSelectedEntities->empty() )
+    if( SelectedEntities::empty() )
     {
       mArrowLen = 0;
       return;
@@ -35,7 +26,7 @@ namespace Tac
                              camera->mForwards,
                              camera->mRight,
                              camera->mUp ) };
-    const v3 pos{ mSelectedEntities->ComputeAveragePosition() };
+    const v3 pos{ SelectedEntities::ComputeAveragePosition() };
     const v4 posVS4{ view * v4( pos, 1 ) };
     const float clip_height{ Abs( Tan( camera->mFovyrad / 2.0f )
                                    * posVS4.z
@@ -48,10 +39,10 @@ namespace Tac
                                         const Camera* camera,
                                         Errors& )
   {
-    if( !mSelectedEntities->empty() )
+    if( !SelectedEntities::empty() )
     {
       mTranslationGizmoVisible = true;
-      mGizmoOrigin = mSelectedEntities->ComputeAveragePosition();
+      mGizmoOrigin = SelectedEntities::ComputeAveragePosition();
     }
 
 
@@ -79,7 +70,7 @@ namespace Tac
       mTranslationGizmoDir
       * ( secondDist - mTranslationGizmoOffset ) };
 
-    for( Entity* entity : *mSelectedEntities )
+    for( Entity* entity : SelectedEntities() )
     {
       entity->mRelativeSpace.mPosition += translate;
     }

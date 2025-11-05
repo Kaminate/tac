@@ -235,12 +235,11 @@ namespace Tac
     //CreationPropertyWindow::sShowWindow = true;
 
     sIconRenderer.Init( errors );
-    mMousePicking.Init( &mSelectedEntities, &mGizmoMgr, errors );
+    mMousePicking.Init( &mGizmoMgr, errors );
     sWidgetRenderer.Init( &mMousePicking, &mGizmoMgr,  errors );
-    mSelectedEntities.Init( mSettingsNode );
+    SelectedEntities::Init( mSettingsNode );
     TAC_CALL( mSimState.Init( errors ) );
     TAC_CALL( mSysState.Init( &sIconRenderer, &sWidgetRenderer, errors ) );
-    TAC_CALL( mGizmoMgr.Init( &mSelectedEntities, errors ) );
 
     //CreationSystemWindow::Init();
     //CreationAssetView::Init();
@@ -263,7 +262,6 @@ namespace Tac
     sWidgetRenderer.Uninit();
     mSimState.Uninit();
     mSysState.Uninit();
-    mGizmoMgr.Uninit();
   }
 
   void                Creation::Render( const CreationAppState* renderParams,
@@ -279,26 +277,19 @@ namespace Tac
   void                Creation::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-
     CheckSavePrefab( world );
-
     world->mDebug3DDrawData->Clear();
 
     // Update the main window first so it becomes the parent window (maybe)
     TAC_CALL( CreationMainWindow::Update( world, errors ) );
-
     CreationSystemWindow::Update( world, mSettingsNode );
     TAC_CALL( CreationAssetView::Update( world, camera, errors ) );
     TAC_CALL( CreationShaderGraphWindow::Update(  errors ) );
     TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
     TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
     TAC_CALL( CreationProfileWindow::Update(  errors ) );
-
     world->Step( TAC_DELTA_FRAME_SECONDS );
-
-
-    mSelectedEntities.DeleteEntitiesCheck();
-
+    SelectedEntities::DeleteEntitiesCheck();
     CloseAppWhenAllWindowsClosed();
   }
 
@@ -355,9 +346,7 @@ namespace Tac
     Entity* entity{ world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
     entity->mName = CreationGetNewEntityName( world );
     entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace( camera );
-
-    mSelectedEntities.Select( entity );
-
+    SelectedEntities::Select( entity );
     return entity;
   }
 

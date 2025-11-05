@@ -240,7 +240,7 @@ namespace Tac
 
   static void CameraWASDControls( Camera* camera )
   {
-    if( gCreation.mSelectedEntities.empty() )
+    if( SelectedEntities::empty() )
     {
       CameraWASDControlsPan( camera );
     }
@@ -440,9 +440,9 @@ namespace Tac
     {
       float unitsPerTick { 1.0f };
 
-      if( gCreation.mSelectedEntities.size() )
+      if( !SelectedEntities::empty() )
       {
-        const v3 origin { gCreation.mSelectedEntities.ComputeAveragePosition() };
+        const v3 origin { SelectedEntities::ComputeAveragePosition() };
         unitsPerTick = Distance( origin, camera->mPos ) * 0.1f;
       }
 

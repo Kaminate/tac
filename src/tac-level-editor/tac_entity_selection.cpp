@@ -18,29 +18,53 @@
 
 namespace Tac
 {
+  static Vector< Entity* >   sSelectedEntities;
+  static SettingsNode        sSettingsNode;
 
+  auto SelectedEntities::begin() -> Iterator
+  {
+    return Iterator
+    {
+      .mBegin = sSelectedEntities.data(),
+      .mEnd = sSelectedEntities.data() + sSelectedEntities.size(),
+      .mCurr = sSelectedEntities.data(),
+    };
+  }
 
-
-  //===-------------- SelectedEntities -------------===//
+  auto SelectedEntities::end() -> Iterator
+  {
+    return Iterator
+    {
+      .mBegin = sSelectedEntities.data(),
+      .mEnd = sSelectedEntities.data() + sSelectedEntities.size(),
+      .mCurr = sSelectedEntities.data() + sSelectedEntities.size(),
+    };
+  }
 
   void SelectedEntities::Init( SettingsNode settingsNode)
   {
-    mSettingsNode = settingsNode;
+    sSettingsNode = settingsNode;
   }
 
-  void                SelectedEntities::AddToSelection( Entity* e ) { mSelectedEntities.push_back( e ); }
+  void SelectedEntities::AddToSelection( Entity* e ) { sSelectedEntities.push_back( e ); }
 
-  void                SelectedEntities::DeleteEntities()
+  void SelectedEntities::DeleteEntitiesCheck()
   {
-    SettingsNode settingsNode{ mSettingsNode };
+    if( AppKeyboardApi::JustPressed( Key::Delete ) )
+      DeleteEntities();
+  }
+
+  void SelectedEntities::DeleteEntities()
+  {
+    SettingsNode settingsNode{ sSettingsNode };
     Vector< Entity* > topLevelEntitiesToDelete;
 
-    for( Entity* entity : mSelectedEntities )
+    for( Entity* entity : sSelectedEntities )
     {
       bool isTopLevel { true };
       for( Entity* parent { entity->mParent }; parent; parent = parent->mParent )
       {
-        if( Contains( mSelectedEntities, parent ) )
+        if( Contains( sSelectedEntities, parent ) )
         {
           isTopLevel = false;
           break;
@@ -59,50 +83,39 @@ namespace Tac
       entity->mWorld->KillEntity( entity );
     }
 
-    mSelectedEntities.clear();
+    sSelectedEntities.clear();
   }
 
-  v3 SelectedEntities::ComputeAveragePosition()
+  auto SelectedEntities::ComputeAveragePosition() -> v3
   {
-    const int n{ mSelectedEntities.size() };
+    const int n{ sSelectedEntities.size() };
     TAC_ASSERT( n );
     float scale{ 1.0f / n };
     v3 result{};
     for( int i{}; i < n; ++i )
-      result += scale * mSelectedEntities[i]->mWorldPosition;
+      result += scale * sSelectedEntities[i]->mWorldPosition;
     return result;
   }
 
-  bool                SelectedEntities::IsSelected( Entity* e )
+  bool SelectedEntities::IsSelected( Entity* e )
   {
-    for( Entity* s : mSelectedEntities )
+    for( Entity* s : sSelectedEntities )
       if( s == e )
         return true;
     return false;
   }
 
-  int                 SelectedEntities::size() const        { return mSelectedEntities.size(); }
+  void SelectedEntities::Select( Entity* e ) { sSelectedEntities = { e }; }
 
-  Entity**            SelectedEntities::begin()             { return mSelectedEntities.begin(); }
+  bool SelectedEntities::empty() { return sSelectedEntities.empty(); }
 
-  Entity**            SelectedEntities::end()               { return mSelectedEntities.end(); }
-
-  void                SelectedEntities::Select( Entity* e ) { mSelectedEntities = { e }; }
-
-  bool                SelectedEntities::empty() const
+  void SelectedEntities::clear()
   {
-    return mSelectedEntities.empty();
+    sSelectedEntities.clear();
   }
 
+  void SelectedEntities::Iterator::operator ++() { mCurr++; }
+  bool SelectedEntities::Iterator::operator != ( Iterator& i ) const { return mCurr != i.mCurr; }
+  auto SelectedEntities::Iterator::operator* () const -> Entity*{ return *mCurr; }
 
-  void                SelectedEntities::clear()
-  {
-    mSelectedEntities.clear();
-  }
-
-  void                SelectedEntities::DeleteEntitiesCheck()
-  {
-    if( AppKeyboardApi::JustPressed( Key::Delete ) )
-      DeleteEntities();
-  }
 } // namespace Tac

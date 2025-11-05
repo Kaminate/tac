@@ -115,7 +115,7 @@ namespace Tac
         ImGuiSameLine();
         if( ImGuiButton( "Select" ) )
         {
-          gCreation.mSelectedEntities.Select( child );
+          SelectedEntities::Select( child );
         }
 
         ImGuiSameLine();
@@ -197,9 +197,9 @@ namespace Tac
 
   static void RecursiveEntityHierarchyElement( Entity* entity )
   {
-    const bool previouslySelected { gCreation.mSelectedEntities.IsSelected( entity ) };
+    const bool previouslySelected { SelectedEntities::IsSelected( entity ) };
     if( ImGuiSelectable( entity->mName, previouslySelected ) )
-      gCreation.mSelectedEntities.Select( entity );
+      SelectedEntities::Select( entity );
 
     if( entity->mChildren.empty() )
       return;
@@ -211,7 +211,7 @@ namespace Tac
 
   static void ImGuiSelectedEntities()
   {
-    for( Entity* entity : gCreation.mSelectedEntities )
+    for( Entity* entity : SelectedEntities() )
       EntityImGui( entity );
   }
 
