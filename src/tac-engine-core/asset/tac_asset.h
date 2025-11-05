@@ -23,10 +23,6 @@ namespace Tac
   // Because an asset path can be initialized from a c-string literal (hardcoded)
   // or loaded from a file (data driven), this class inherits from StringView
 
-
-  inline const char     AssetPathSeperator      { '/' };
-  inline const char*    AssetPathRootFolderName { "assets" };
-
   struct AssetPathString : public String
   {
     AssetPathString() = default;

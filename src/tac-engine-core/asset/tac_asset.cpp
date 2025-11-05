@@ -34,9 +34,9 @@ namespace Tac
     const AssetPathString& ToRef( const void* v ) const                                             { return *( AssetPathString* )v; }
   };
 
-  static MetaAssetPathString sMetaAssetPathString;
-  TAC_META_IMPL_INSTANCE( AssetPathString, sMetaAssetPathString );
-
+  static const char          sAssetPathSeperator      { '/' };
+  static const char*         sAssetPathRootFolderName { "assets" };
+  TAC_META_IMPL_INSTANCE2( AssetPathString, MetaAssetPathString );
 
   // -----------------------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ namespace Tac
       || c == '_'
       || c == '-'
       || c == ' '
-      || c == AssetPathSeperator;
+      || c == sAssetPathSeperator;
   }
 
   static bool IsValid( const StringView& s )
@@ -57,14 +57,14 @@ namespace Tac
     if( s.empty() )
       return true;
 
-    if( !s.starts_with( AssetPathRootFolderName ) )
+    if( !s.starts_with( sAssetPathRootFolderName ) )
       return false;
 
     for( char c : s )
       if( !IsValid( c ) )
         return false;
 
-    if( s.back() == AssetPathSeperator )
+    if( s.back() == sAssetPathSeperator )
       return false;
 
     return true;
@@ -107,13 +107,13 @@ namespace Tac
   AssetPathStringView AssetPathStringView::GetDirectory() const
   {
     TAC_ASSERT( IsFile() );
-    return substr( 0, find_last_of( AssetPathSeperator ) );
+    return substr( 0, find_last_of( sAssetPathSeperator ) );
   }
 
   StringView          AssetPathStringView::GetFilename() const
   {
     TAC_ASSERT( IsFile() );
-    return substr( find_last_of( AssetPathSeperator ) + 1 );
+    return substr( find_last_of( sAssetPathSeperator ) + 1 );
   }
 
   StringView          AssetPathStringView::GetFileExtension() const
@@ -127,7 +127,7 @@ namespace Tac
     if( empty() )
       return false;
 
-    const int lastSlash { find_last_of( AssetPathSeperator ) };
+    const int lastSlash { find_last_of( sAssetPathSeperator ) };
     const int lastDot { find_last_of( '.' ) };
     TAC_ASSERT( lastSlash != StringView::npos );
     TAC_ASSERT( lastDot != StringView::npos );
@@ -153,33 +153,30 @@ namespace Tac
 
 } // namespace Tac
 
-// -------------------------------------------------------------------------------------------------
-
-bool                  Tac::Exists( const AssetPathStringView& assetPath )
+bool Tac::Exists( const AssetPathStringView& assetPath )
 {
   const FileSys::Path fsPath( assetPath );
   return Exists( fsPath );
 }
 
-void                  Tac::SaveToFile( const AssetPathStringView& assetPath,
-                                       const void* bytes,
-                                       int byteCount,
-                                       Errors& errors)
+void Tac::SaveToFile( const AssetPathStringView& assetPath,
+                      const void* bytes,
+                      int byteCount,
+                      Errors& errors )
 {
   const FileSys::Path fsPath( assetPath );
   FileSys::SaveToFile( fsPath, bytes, byteCount, errors );
 }
 
-Tac::String           Tac::LoadAssetPath( const AssetPathStringView& assetPath,
-                                          Errors& errors )
+auto Tac::LoadAssetPath( const AssetPathStringView& assetPath, Errors& errors ) -> String
 {
   const FileSys::Path fsPath( assetPath );
   return FileSys::LoadFilePath( fsPath, errors );
 }
 
-Tac::AssetPathStrings Tac::IterateAssetsInDir( const AssetPathStringView& dir,
-                                             AssetIterateType type,
-                                             Errors& errors )
+auto Tac::IterateAssetsInDir( const AssetPathStringView& dir,
+                              AssetIterateType type,
+                              Errors& errors ) -> AssetPathStrings
 {
   const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
 
@@ -206,7 +203,7 @@ Tac::AssetPathStrings Tac::IterateAssetsInDir( const AssetPathStringView& dir,
 
 auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path dir { Shell::sShellInitialWorkingDir / AssetPathRootFolderName };
+  const FileSys::Path dir { Shell::sShellInitialWorkingDir / sAssetPathRootFolderName };
   const OS::OpenParams params{ .mDefaultFolder { &dir }, };
   TAC_CALL_RET( const FileSys::Path fsPath{ OS::OSOpenDialog( params, errors ) } );
   return ModifyPathRelative( fsPath, errors );
@@ -214,7 +211,7 @@ auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
 
 auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path dir { Shell::sShellInitialWorkingDir / AssetPathRootFolderName };
+  const FileSys::Path dir { Shell::sShellInitialWorkingDir / sAssetPathRootFolderName };
   const FileSys::Path suggestedFilename { params.mSuggestedFilename };
   const OS::SaveParams saveParams
   {
@@ -224,4 +221,4 @@ auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors )
   const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
   return ModifyPathRelative( fsPath, errors );
 }
-// -----------------------------------------------------------------------------------------------
+
