@@ -20,11 +20,11 @@ namespace Tac
 
   static ComponentInfo* sEntry;
 
-  TAC_META_REGISTER_COMPOSITE_BEGIN( Model );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mModelPath );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mModelIndex );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mIsStatic );
-  TAC_META_REGISTER_COMPOSITE_END( Model );
+  TAC_META_REGISTER_STRUCT_BEGIN( Model );
+  TAC_META_REGISTER_STRUCT_MEMBER( mModelPath );
+  TAC_META_REGISTER_STRUCT_MEMBER( mModelIndex );
+  TAC_META_REGISTER_STRUCT_MEMBER( mIsStatic );
+  TAC_META_REGISTER_STRUCT_END( Model );
 
 	static Component* CreateModelComponent( World* world )
 	{

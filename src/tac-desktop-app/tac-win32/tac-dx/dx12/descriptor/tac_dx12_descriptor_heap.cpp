@@ -20,7 +20,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  dtor DX12DescriptorHeap::~DX12DescriptorHeap()
+  DX12DescriptorHeap::~DX12DescriptorHeap()
   {
     TAC_DELETE mRegionMgr;
   }

@@ -23,8 +23,8 @@ namespace Tac
 
   TAC_META_DECL( Player );
 
-  void                      PlayerNetVarsRegister();
-  const NetVarRegistration& PlayerNetVarsGet();
+  void PlayerNetVarsRegister();
+  auto PlayerNetVarsGet() -> const NetVarRegistration&;
 
 }
 

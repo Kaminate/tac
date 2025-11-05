@@ -24,39 +24,7 @@ namespace Tac
 #endif
 
 #define TAC_SHOULD_IMPORT_STD() false
-}
 
-// -------------------------------------------------------------------------------------------------
-
-//      indicate that we are purposely doing nothing
-#define TAC_NO_OP 
-#define TAC_NO_OP_RETURN( val ) return val
-
-#define TAC_ARRAY_SIZE( a )                                ( sizeof( a ) / sizeof( a[ 0 ] ) )
-#define TAC_CONCAT_AUX( a, b )                             a##b
-#define TAC_CONCAT( a, b )                                 TAC_CONCAT_AUX( a, b )
-#define TAC_STRINGIFY_AUX( stuff )                         #stuff
-#define TAC_STRINGIFY( stuff )                             TAC_STRINGIFY_AUX( stuff )
-#define TAC_OFFSET_OF( type, member )                      ((int)(size_t)&reinterpret_cast<char const volatile&>((((type*)0)->member)))
-
-// intentionally no {} after, add it yourself
-#define TAC_PAD_BYTES( n )                                 char TAC_CONCAT( mPadding, __COUNTER__ )[ n ]
-
-// replace with c++17 [[maybe_unused]]?
-#define TAC_UNUSED_PARAMETER( param )                      ( void ) param
-
-// -------------------------------------------------------------------------------------------------
-
-// -------------------------------------------------------------------------------------------------
-
-#define TAC_TMP_VAR_NAME                       TAC_CONCAT( tmp , __COUNTER__)
-
-#define TAC_SCOPE_GUARD( Type, ... )           Type TAC_TMP_VAR_NAME { __VA_ARGS__ }
-
-// -------------------------------------------------------------------------------------------------
-
-namespace Tac
-{
   template< typename T>
   struct OnDestructAux
   {
@@ -67,18 +35,28 @@ namespace Tac
   };
 }
 
+// -------------------------------------------------------------------------------------------------
 
+#define TAC_NO_OP                                          // indicate that we are purposely doing nothing
+#define TAC_ARRAY_SIZE( a )                                ( sizeof( a ) / sizeof( a[ 0 ] ) )
+#define TAC_CONCAT_AUX( a, b )                             a##b
+#define TAC_CONCAT( a, b )                                 TAC_CONCAT_AUX( a, b )
+#define TAC_OFFSET_OF( T, m )                              ((int)(size_t)&reinterpret_cast<char const volatile&>((((T*)0)->m)))
+#define TAC_TYPESAFE_STRINGIFY_TYPE( T )                   ( (T*)nullptr, #T )
+#define TAC_TYPESAFE_STRINGIFY_MEMBER( T, m )              ( ( const char* )TAC_OFFSET_OF( T, m ), #m )
+#define TAC_PAD_BYTES( n )                                 char TAC_CONCAT( mPadding, __COUNTER__ )[ n ]
+#define TAC_UNUSED_PARAMETER( param )                      ( void ) param // replace with c++17 [[maybe_unused]]?
+#define TAC_TMP_VAR_NAME                                   TAC_CONCAT( tmp , __COUNTER__)
+#define TAC_SCOPE_GUARD( Type, ... )                       Type TAC_TMP_VAR_NAME { __VA_ARGS__ }
 #define TAC_ON_DESTRUCT_AUX( code, lambda )                auto lambda = [&](){ code; }; TAC_SCOPE_GUARD( Tac::OnDestructAux< decltype( lambda ) >, lambda  )
 #define TAC_ON_DESTRUCT( code )                            TAC_ON_DESTRUCT_AUX( code, TAC_TMP_VAR_NAME )
+#define TAC_TEMPORARILY_DISABLED() 0                       // Show the intent to re-enable it later
+#define TAC_DELETE_ME()                                    0 // if you see this you are free to delete the contents
+#define dynmc                                              // purposely not const
 
-// used this (instead of commenting out) to show the intent to re-enable it later
-#define TAC_TEMPORARILY_DISABLED() 0
-
-#define TAC_DELETE_ME() 0 // if you see this you are free to delete the contents
-
-// Will throw E0135 compile error "structure" has no member "var" if misspelled/renamed
-#define TAC_MEMBER_NAME( structure, var ) ( ( const char* )TAC_OFFSET_OF( structure, var ), TAC_STRINGIFY( var ) )
-
+// for dynmc,
+//     cpp.hint *should* suppress warning VCR001, but there is a workaround in Visual Studio:
+//     Options > Text Editor > C/C++ > View -> set "Macros in Skipped Browsking Regions" to "None"
 
 // -------------------------------------------------------------------------------------------------
 
@@ -130,25 +108,6 @@ namespace Tac
 #else
 #pragma warning( disable: 4201 ) // nameless struct/union
 #endif // #if TAC_IS_DEBUG_MODE()
-
-// -------------------------------------------------------------------------------------------------
-
-// A dynmc variable is a variable that has not been declared const
-// ie:
-//     dynmc char* src{ ... };
-//     const char* dst{ ... };
-//     MemCpy( dst, src, n );
-// note:
-//     cpp.hint *should* suppress warning VCR001, but there is a workaround in Visual Studio:
-//     Options > Text Editor > C/C++ > View -> set "Macros in Skipped Browsking Regions" to "None"
-#define dynmc 
-
-// -------------------------------------------------------------------------------------------------
-
-// insane
-#define ctor // constructor 
-#define dtor // destructor
-#define oper // operator
 
 // -------------------------------------------------------------------------------------------------
 

@@ -4,13 +4,6 @@
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/error/tac_assert.h"
 
-#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_DELETE_ME
-#if !TAC_DELETE_ME()
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/tac_type_traits.h"
-#endif
-
 #define TAC_SET_STL() 1
 
 #if TAC_SET_STL()

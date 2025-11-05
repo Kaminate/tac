@@ -129,7 +129,7 @@ namespace Tac
     //Renderer::Instance->AddDepthBuffer( &mFBODepthBuffer, depthBufferData, errors );
     //_HANDLE_ERROR( errors );
 
-    const String serverTypeGameClient { TAC_STRINGIFY( ScriptGameClient ) };
+    const String serverTypeGameClient { TAC_TYPESAFE_STRINGIFY_TYPE( ScriptGameClient ) };
     const String serverType {
       settingsNode.GetChild( "server type" ).GetValueWithFallback( serverTypeGameClient ) };
 

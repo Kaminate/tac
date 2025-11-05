@@ -29,9 +29,8 @@ namespace Tac
     char           mValueCopy[ 10 ]  {};
   };
 
-  static const ImGuiRscIdx sDragDataID{ ImGuiRegisterWindowResource( TAC_STRINGIFY( DragData ),
-                                                                     nullptr,
-                                                                     sizeof( DragData ) ) };
+  static const ImGuiRscIdx sDragDataID{
+    ImGuiRegisterWindowResource( TAC_TYPESAFE_STRINGIFY_TYPE( DragData ), nullptr, sizeof( DragData ) ) };
 
 
   using Drag_Getter = String( * )( const void* );

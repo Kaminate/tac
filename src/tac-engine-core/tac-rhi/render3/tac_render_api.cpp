@@ -37,15 +37,15 @@ namespace Tac::Render
 
    // -----------------------------------------------------------------------------------------------
 
-  static VertexAttributeFormat FromFloats( int n )
+  static auto FromFloats( int n ) -> VertexAttributeFormat
   {
     return VertexAttributeFormat::FromElements( FormatElement::GetFloat(), n );
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  ctor      IContext::Scope::Scope( IContext* context ) { mContext = context; }
-  dtor      IContext::Scope::~Scope()                   { if( mContext ) mContext->Retire(); }
+  IContext::Scope::Scope( IContext* context )           { mContext = context; }
+  IContext::Scope::~Scope()                             { if( mContext ) mContext->Retire(); }
   IContext* IContext::Scope::GetContext()               { return mContext; }
 #if 0
   /*oper*/      IContext::Scope::operator IContext* ()      { return mContext; }
@@ -54,52 +54,46 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  ctor IBindlessArray::IBindlessArray( Params params )
+  IBindlessArray::IBindlessArray( Params params )
     : mHandleType{ params.mHandleType }
     , mBinding{ params.mBinding }
   {
   }
-  ctor IBindlessArray::Binding::Binding( int index ) : mIndex{ index } {}
-  bool IBindlessArray::Binding::IsValid() const  { return mIndex != Binding{}.mIndex; }
-  int  IBindlessArray::Binding::GetIndex() const { return mIndex; }
+  IBindlessArray::Binding::Binding( int index ) : mIndex{ index } {}
+  bool IBindlessArray::Binding::IsValid() const         { return mIndex != Binding{}.mIndex; }
+  auto IBindlessArray::Binding::GetIndex() const -> int { return mIndex; }
 
   // -----------------------------------------------------------------------------------------------
 
-  //ctor IHandle::IHandle( int i ) : mIndex( i ) {}
-  //int  IHandle::GetIndex() const               { TAC_ASSERT( IsValid() ); return mIndex; }
-  //bool IHandle::IsValid() const                { return mIndex != -1; }
-
-  // -----------------------------------------------------------------------------------------------
-
-  void             RenderApi::Init( InitParams params, Errors& errors )
+  void RenderApi::Init( InitParams params, Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     sMaxGPUFrameCount = params.mMaxGPUFrameCount;
     sShaderOutputPath = params.mShaderOutputPath;
   }
-  void             RenderApi::Uninit()
+  void RenderApi::Uninit()
   {
     // ...
   }
-  int              RenderApi::GetMaxGPUFrameCount()              { return sMaxGPUFrameCount; }
-  FileSys::Path    RenderApi::GetShaderOutputPath()              { return sShaderOutputPath; }
-  IDevice*         RenderApi::GetRenderDevice()                  { return sDevice; }
-  void             RenderApi::SetRenderDevice( IDevice* device ) { sDevice = device; }
-  void             RenderApi::BeginRenderFrame( Errors& errors )
+  auto RenderApi::GetMaxGPUFrameCount() -> int           { return sMaxGPUFrameCount; }
+  auto RenderApi::GetShaderOutputPath() -> FileSys::Path { return sShaderOutputPath; }
+  auto RenderApi::GetRenderDevice() -> IDevice*          { return sDevice; }
+  void RenderApi::SetRenderDevice( IDevice* device )     { sDevice = device; }
+  void RenderApi::BeginRenderFrame( Errors& errors )
   {
     TAC_CALL( sDevice->BeginRenderFrame( errors ) );
   }
-  void             RenderApi::EndRenderFrame( Errors& errors )
+  void RenderApi::EndRenderFrame( Errors& errors )
   {
     TAC_CALL( sDevice->EndRenderFrame( errors ) );
     sCurrentRenderFrameIndex++;
   }
-  u64              RenderApi::GetCurrentRenderFrameIndex()       { return sCurrentRenderFrameIndex; }
+  auto RenderApi::GetCurrentRenderFrameIndex() -> u64    { return sCurrentRenderFrameIndex; }
 
 
   // -----------------------------------------------------------------------------------------------
 
-  FormatElement FormatElement::GetFloat()
+  auto FormatElement::GetFloat() -> FormatElement
   {
     return FormatElement
     {
@@ -110,7 +104,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  VertexAttributeFormat VertexAttributeFormat::FromElements( FormatElement element, int n )
+  auto VertexAttributeFormat::FromElements( FormatElement element, int n ) -> VertexAttributeFormat
   {
     return
     {
@@ -119,18 +113,18 @@ namespace Tac::Render
       .mPerElementDataType  { element.mPerElementDataType },
     };
   }
-  int                   VertexAttributeFormat::CalculateTotalByteCount() const
+  auto VertexAttributeFormat::CalculateTotalByteCount() const-> int 
   {
     return mElementCount * mPerElementByteCount;
   }
-  VertexAttributeFormat VertexAttributeFormat::GetFloat()   { return FromFloats( 1 ); }
-  VertexAttributeFormat VertexAttributeFormat::GetVector2() { return FromFloats( 2 ); }
-  VertexAttributeFormat VertexAttributeFormat::GetVector3() { return FromFloats( 3 ); }
-  VertexAttributeFormat VertexAttributeFormat::GetVector4() { return FromFloats( 4 ); }
+  auto VertexAttributeFormat::GetFloat() -> VertexAttributeFormat   { return FromFloats( 1 ); }
+  auto VertexAttributeFormat::GetVector2() -> VertexAttributeFormat { return FromFloats( 2 ); }
+  auto VertexAttributeFormat::GetVector3() -> VertexAttributeFormat { return FromFloats( 3 ); }
+  auto VertexAttributeFormat::GetVector4() -> VertexAttributeFormat { return FromFloats( 4 ); }
 
   // -----------------------------------------------------------------------------------------------
 
-  int VertexDeclarations::CalculateStride() const
+  auto VertexDeclarations::CalculateStride() const-> int 
   {
     int maxStride {};
     for( const VertexDeclaration& decl : *this )

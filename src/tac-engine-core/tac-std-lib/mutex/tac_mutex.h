@@ -6,10 +6,10 @@ namespace Tac
 {
   struct Mutex
   {
-    ctor Mutex();
-    ctor Mutex( const Mutex& ) = delete;
-    ctor Mutex( Mutex&& ) = delete;
-    dtor ~Mutex();
+    Mutex();
+    Mutex( const Mutex& ) = delete;
+    Mutex( Mutex&& ) = delete;
+    ~Mutex();
     void operator = ( const Mutex& ) = delete;
     void operator = ( Mutex&& ) = delete;
     void lock();

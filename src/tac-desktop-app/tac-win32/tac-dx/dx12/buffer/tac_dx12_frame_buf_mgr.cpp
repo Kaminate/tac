@@ -5,10 +5,6 @@
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 
-#if !TAC_DELETE_ME()
-#include "tac-std-lib/os/tac_os.h"
-#endif
-
 namespace Tac::Render
 {
 

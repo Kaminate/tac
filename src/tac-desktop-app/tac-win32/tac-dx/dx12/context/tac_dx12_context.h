@@ -38,7 +38,7 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* GetCommandList();
     ID3D12CommandAllocator*    GetCommandAllocator();
 
-    ctor DX12Context() = default;
+    DX12Context() = default;
     void Init( Params );
 
     //void SetName( StringView );

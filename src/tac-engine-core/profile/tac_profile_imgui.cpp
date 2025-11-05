@@ -14,9 +14,6 @@
 
 namespace Tac
 {
-  static float             sMilisecondsToDisplay { 20.0f };
-  static Timepoint         sPauseSec             {};
-  static ProfileFrame      sProfiledFunctions    {};
 
   // Totally unused, but keeping it because its the only place where ImGuiRegisterWindowResource is used
   // It would be gotten like this:
@@ -25,17 +22,58 @@ namespace Tac
   //   auto profileWidgetData = ( ImguiProfileWidgetData* )imguiWindow->GetWindowResource( sWidgetID );
   //
 
+  struct IndexedThreadProfileData
+  {
+    const List< ProfileFunction* >* mProfiledFunctionList;
+    int                             mTreeHeight;
+  };
+
+  struct ProfileFunctionDepth
+  {
+    ProfileFunction* mProfileFunction;
+    int              mDepth;
+  };
+
+  struct ProfileThreadManager
+  {
+    auto GetProfileThreadCount() -> int
+    {
+      return ( int )sThreadNumberMap.size();
+    }
+
+    auto GetProfileThreadNumber( const std::thread::id threadId ) -> int
+    {
+      const int n { sThreadNumberMap.size() };
+      for( int i{}; i < n; ++i )
+        if( sThreadNumberMap[ i ] == threadId )
+          return i;
+
+      sThreadNumberMap.push_back( threadId );
+      return n;
+    }
+
+    Vector< std::thread::id > sThreadNumberMap;
+  };
+
   struct ImguiProfileWidgetData
   {
   };
 
+  // -----------------------------------------------------------------------------------------------
+
+  static float                  sMilisecondsToDisplay { 20.0f };
+  static Timepoint              sPauseSec             {};
+  static ProfileFrame           sProfiledFunctions    {};
   static ImguiProfileWidgetData sDefaultWidgetData;
+  static ProfileThreadManager   sProfileThreadManager;
+  static const ImGuiRscIdx      sWidgetID{ ImGuiRegisterWindowResource(
+      TAC_TYPESAFE_STRINGIFY_TYPE( ImguiProfileWidgetData ),
+      &sDefaultWidgetData,
+      sizeof( ImguiProfileWidgetData ) ) };
 
-  static const ImGuiRscIdx sWidgetID{ ImGuiRegisterWindowResource( TAC_STRINGIFY( ImguiProfileWidgetData ),
-                                                                   &sDefaultWidgetData,
-                                                                   sizeof( ImguiProfileWidgetData ) ) };
+  // -----------------------------------------------------------------------------------------------
 
-  static int CalculateProfileHeight( ProfileFunction* profileFunction )
+  static auto CalculateProfileHeight( ProfileFunction* profileFunction ) -> int
   {
     if( !profileFunction )
       return 0;
@@ -50,7 +88,7 @@ namespace Tac
     return 1 + childDepthMax;
   }
 
-  static int GetFPS()
+  static auto GetFPS() -> int
   {
     Timepoint now { Timepoint::Now() };
     static Timepoint prev { now };
@@ -70,51 +108,15 @@ namespace Tac
     return fps;
   }
 
-  struct ProfileThreadManager
-  {
-    int GetProfileThreadCount()
-    {
-      return ( int )sThreadNumberMap.size();
-    }
-
-    int GetProfileThreadNumber( const std::thread::id threadId )
-    {
-      const int n { sThreadNumberMap.size() };
-      for( int i{}; i < n; ++i )
-        if( sThreadNumberMap[ i ] == threadId )
-          return i;
-
-      sThreadNumberMap.push_back( threadId );
-      return n;
-    }
-
-    Vector< std::thread::id > sThreadNumberMap;
-  };
-
-  static ProfileThreadManager sProfileThreadManager;
-
-  static v4 GetProfileFunctionColor( const ProfileFunction* profileFunction )
+  static auto GetProfileFunctionColor( const ProfileFunction* profileFunction ) -> v4
   {
     const HashValue hash { Hash( profileFunction->mName ) };
     const float t { Sin( ( float )hash ) * 0.5f + 0.5f };
-    //              a      b                             c          d
     const float r { 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.0f ) ) };
     const float g { 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.33f ) ) };
     const float b { 0.5f + 0.5f * Cos( 6.28318f * ( 1.0f * t + 0.66f ) ) };
     return { r, g, b, 1 };
   }
-
-  struct IndexedThreadProfileData
-  {
-    const List< ProfileFunction* >* mProfiledFunctionList;
-    int                             mTreeHeight;
-  };
-
-  struct ProfileFunctionDepth
-  {
-    ProfileFunction* mProfileFunction;
-    int              mDepth;
-  };
 
   static void ImGuiProfileWidgetCamera( const v2 cameraViewportPos,
                                         const v2 cameraViewportSize )

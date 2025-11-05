@@ -10,12 +10,12 @@ import std;
 
 namespace Tac
 {
-  ctor Mutex::Mutex()
+  Mutex::Mutex()
   {
     mImpl = TAC_NEW std::mutex();
   }
 
-  dtor Mutex::~Mutex()
+  Mutex::~Mutex()
   {
     TAC_DELETE( std::mutex* )mImpl;
   }

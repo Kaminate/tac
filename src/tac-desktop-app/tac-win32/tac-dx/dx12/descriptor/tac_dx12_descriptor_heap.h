@@ -24,7 +24,7 @@ namespace Tac::Render
       D3D12_DESCRIPTOR_HEAP_DESC mHeapDesc     {};
       StringView                 mName         {};
     };
-    dtor ~DX12DescriptorHeap();
+    ~DX12DescriptorHeap();
     void Init( Params, Errors& );
     auto GetID3D12DescriptorHeap() -> ID3D12DescriptorHeap*;
     auto GetType() const -> D3D12_DESCRIPTOR_HEAP_TYPE;

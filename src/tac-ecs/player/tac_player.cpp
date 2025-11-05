@@ -11,13 +11,13 @@
 namespace Tac
 {
 
-  TAC_META_REGISTER_COMPOSITE_BEGIN( Player );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mPlayerUUID );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mEntityUUID );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mInputDirection );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mIsSpaceJustDown );
-  TAC_META_REGISTER_COMPOSITE_MEMBER( mCameraPos );
-  TAC_META_REGISTER_COMPOSITE_END( Player );
+  TAC_META_REGISTER_STRUCT_BEGIN( Player );
+  TAC_META_REGISTER_STRUCT_MEMBER( mPlayerUUID );
+  TAC_META_REGISTER_STRUCT_MEMBER( mEntityUUID );
+  TAC_META_REGISTER_STRUCT_MEMBER( mInputDirection );
+  TAC_META_REGISTER_STRUCT_MEMBER( mIsSpaceJustDown );
+  TAC_META_REGISTER_STRUCT_MEMBER( mCameraPos );
+  TAC_META_REGISTER_STRUCT_END( Player );
 
   void Player::DebugImgui()
   {
@@ -37,14 +37,14 @@ namespace Tac
 
   static NetVarRegistration sNetVars;
 
-  void               PlayerNetVarsRegister()
+  void PlayerNetVarsRegister()
   {
     const MetaCompositeType& metaPlayer{ ( MetaCompositeType& )GetMetaType< Player >() };
 
     sNetVars = {};
     sNetVars.mMetaType = &metaPlayer;
-    sNetVars.Add( TAC_MEMBER_NAME( Player, mPlayerUUID ) );
-    sNetVars.Add( TAC_MEMBER_NAME( Player, mInputDirection ) );
+    sNetVars.Add( TAC_TYPESAFE_STRINGIFY_MEMBER( Player, mPlayerUUID ) );
+    sNetVars.Add( TAC_TYPESAFE_STRINGIFY_MEMBER( Player, mInputDirection ) );
 
 #if 0
     const NetVar netEntityUUID
@@ -69,9 +69,6 @@ namespace Tac
 #endif
   }
 
-  const NetVarRegistration& PlayerNetVarsGet()
-  {
-    return sNetVars;
-  }
+  auto PlayerNetVarsGet() -> const NetVarRegistration& { return sNetVars; }
 }
 

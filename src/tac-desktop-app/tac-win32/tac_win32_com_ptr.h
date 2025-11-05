@@ -29,7 +29,7 @@ namespace Tac
 
     PCom( PCom&& other ) noexcept
     {
-      swap( Tac::move( other ) );
+      swap( ( PCom&& )other );
     }
 
     ~PCom()

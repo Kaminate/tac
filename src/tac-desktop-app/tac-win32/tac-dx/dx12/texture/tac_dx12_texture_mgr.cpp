@@ -5,11 +5,6 @@
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
-#include "tac-dx/dx12/tac_dx12_transition_helper.h"
-
-#if !TAC_DELETE_ME()
-#include "tac-std-lib/os/tac_os.h"
-#endif
 
 namespace Tac::Render
 {

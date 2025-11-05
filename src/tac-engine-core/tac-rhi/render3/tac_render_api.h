@@ -126,7 +126,7 @@ namespace Tac::Render
 
   struct FormatElement
   {
-    static FormatElement GetFloat();
+    static auto GetFloat() -> FormatElement;
 
     int          mPerElementByteCount {};
     GraphicsType mPerElementDataType { GraphicsType::unknown };
@@ -137,11 +137,11 @@ namespace Tac::Render
   struct VertexAttributeFormat
   {
     int                          CalculateTotalByteCount() const;
-    static VertexAttributeFormat FromElements( FormatElement, int = 1 );
-    static VertexAttributeFormat GetFloat();
-    static VertexAttributeFormat GetVector2();
-    static VertexAttributeFormat GetVector3();
-    static VertexAttributeFormat GetVector4();
+    static auto FromElements( FormatElement, int = 1 ) -> VertexAttributeFormat;
+    static auto GetFloat() -> VertexAttributeFormat;
+    static auto GetVector2() -> VertexAttributeFormat;
+    static auto GetVector3() -> VertexAttributeFormat;
+    static auto GetVector4() -> VertexAttributeFormat;
 
     int           mElementCount        {};
     int           mPerElementByteCount {};
@@ -160,7 +160,7 @@ namespace Tac::Render
 
   struct VertexDeclarations : public FixedVector< VertexDeclaration, 10 >
   {
-    int CalculateStride() const;
+    auto CalculateStride() const -> int;
   };
 
   // $$$ Should this still be called an "Image", since the data parameter was removed?
@@ -403,17 +403,17 @@ namespace Tac::Render
 
     struct Binding
     {
-      ctor Binding() = default;
-      ctor Binding( int );
+      Binding() = default;
+      Binding( int );
       bool IsValid() const;
-      int  GetIndex() const;
+      auto GetIndex() const -> int;
     private:
       int mIndex{ -1 };
     };
 
-    ctor            IBindlessArray( Params );
-    virtual Binding Bind( ResourceHandle, Errors& ) = 0;
-    virtual void    Unbind( Binding ) = 0;
+    IBindlessArray( Params );
+    virtual auto Bind( ResourceHandle, Errors& ) -> Binding= 0;
+    virtual void Unbind( Binding ) = 0;
 
   protected:
     HandleType      mHandleType;
@@ -437,10 +437,10 @@ namespace Tac::Render
   {
     struct Scope
     {
-      ctor      Scope( IContext* = nullptr );
-      dtor      ~Scope();
-      IContext* operator ->();
-      IContext* GetContext();
+      Scope( IContext* = nullptr );
+      ~Scope();
+      auto operator ->() -> IContext*;
+      auto GetContext() -> IContext*;
 #if 0
       /*oper*/      operator IContext* ();
 #endif
@@ -513,15 +513,15 @@ namespace Tac::Render
       const FileSys::Path&  mShaderOutputPath;
     };
 
-    static void             Init( InitParams, Errors& );
-    static void             Uninit();
-    static int              GetMaxGPUFrameCount();
-    static FileSys::Path    GetShaderOutputPath();
-    static IDevice*         GetRenderDevice();
-    static void             SetRenderDevice( IDevice* );
-    static void             BeginRenderFrame( Errors& );
-    static void             EndRenderFrame( Errors& );
-    static u64              GetCurrentRenderFrameIndex();
+    static void Init( InitParams, Errors& );
+    static void Uninit();
+    static auto GetMaxGPUFrameCount() -> int;
+    static auto GetShaderOutputPath() -> FileSys::Path;
+    static auto GetRenderDevice() -> IDevice*;
+    static void SetRenderDevice( IDevice* );
+    static void BeginRenderFrame( Errors& );
+    static void EndRenderFrame( Errors& );
+    static auto GetCurrentRenderFrameIndex() -> u64;
   };
 
   struct NDCAttribs
@@ -545,39 +545,39 @@ namespace Tac::Render
       ProgramAttribs mProgramAttribs;
     };
 
-    virtual void            Init( Errors& )                                  {}
-    virtual void            BeginRenderFrame( Errors& )                      {}
-    virtual void            EndRenderFrame( Errors& )                        {}
+    virtual void Init( Errors& )                                                     {}
+    virtual void BeginRenderFrame( Errors& )                                         {}
+    virtual void EndRenderFrame( Errors& )                                           {}
 
-    virtual Info            GetInfo() const                                  { return {}; }
+    virtual Info GetInfo() const                                                     { return {}; }
 
-    virtual PipelineHandle  CreatePipeline( PipelineParams, Errors& )        {}
-    virtual IShaderVar*     GetShaderVariable( PipelineHandle, StringView )  { return {}; }
-    virtual void            DestroyPipeline( PipelineHandle )                {}
+    virtual auto CreatePipeline( PipelineParams, Errors& ) -> PipelineHandle         {}
+    virtual auto GetShaderVariable( PipelineHandle, StringView ) -> IShaderVar*      { return {}; }
+    virtual void DestroyPipeline( PipelineHandle )                                   {}
 
-    virtual ProgramHandle   CreateProgram( ProgramParams, Errors& )          {}
-    virtual String          GetProgramBindings_TEST( ProgramHandle )         { return {}; }
-    virtual void            DestroyProgram( ProgramHandle )                  {}
+    virtual auto CreateProgram( ProgramParams, Errors& ) -> ProgramHandle            {}
+    virtual auto GetProgramBindings_TEST( ProgramHandle ) -> String                  { return {}; }
+    virtual void DestroyProgram( ProgramHandle )                                     {}
 
-    virtual SamplerHandle   CreateSampler( CreateSamplerParams )             {}
-    virtual void            DestroySampler( SamplerHandle )                  {}
+    virtual auto CreateSampler( CreateSamplerParams ) -> SamplerHandle               {}
+    virtual void DestroySampler( SamplerHandle )                                     {}
 
-    virtual SwapChainHandle CreateSwapChain( SwapChainParams, Errors& )      {}
-    virtual void            ResizeSwapChain( SwapChainHandle, v2i, Errors& ) {}
-    virtual SwapChainParams GetSwapChainParams( SwapChainHandle )            { return {}; }
-    virtual void            DestroySwapChain( SwapChainHandle )              {}
-    virtual TextureHandle   GetSwapChainCurrentColor( SwapChainHandle )      { return {}; }
-    virtual TextureHandle   GetSwapChainDepth( SwapChainHandle )             { return {}; }
-    virtual void            Present( SwapChainHandle, Errors& )              {};
+    virtual auto CreateSwapChain( SwapChainParams, Errors& ) -> SwapChainHandle      {}
+    virtual void ResizeSwapChain( SwapChainHandle, v2i, Errors& )                    {}
+    virtual auto GetSwapChainParams( SwapChainHandle ) -> SwapChainParams            { return {}; }
+    virtual void DestroySwapChain( SwapChainHandle )                                 {}
+    virtual auto GetSwapChainCurrentColor( SwapChainHandle ) -> TextureHandle        { return {}; }
+    virtual auto GetSwapChainDepth( SwapChainHandle ) -> TextureHandle               { return {}; }
+    virtual void Present( SwapChainHandle, Errors& )                                 {};
 
-    virtual BufferHandle    CreateBuffer( CreateBufferParams, Errors& )      {}
-    virtual void            DestroyBuffer( BufferHandle )                    {}
+    virtual auto CreateBuffer( CreateBufferParams, Errors& ) -> BufferHandle         {}
+    virtual void DestroyBuffer( BufferHandle )                                       {}
 
-    virtual TextureHandle   CreateTexture( CreateTextureParams, Errors& )    {}
-    virtual void            DestroyTexture( TextureHandle )                  {}
+    virtual auto CreateTexture( CreateTextureParams, Errors& ) -> TextureHandle      {}
+    virtual void DestroyTexture( TextureHandle )                                     {}
 
-    virtual IContext::Scope CreateRenderContext( Errors& )                   { return {}; }
-    virtual IBindlessArray* CreateBindlessArray( IBindlessArray::Params )    { return {}; }
+    virtual auto CreateRenderContext( Errors& ) -> IContext::Scope                   { return {}; }
+    virtual auto CreateBindlessArray( IBindlessArray::Params ) -> IBindlessArray*    { return {}; }
   };
 }
 
