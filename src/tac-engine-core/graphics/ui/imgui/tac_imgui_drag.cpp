@@ -30,7 +30,13 @@ namespace Tac
   };
 
   static const ImGuiRscIdx sDragDataID{
-    ImGuiRegisterWindowResource( TAC_TYPESAFE_STRINGIFY_TYPE( DragData ), nullptr, sizeof( DragData ) ) };
+    ImGuiWindowResource::Register(
+      ImGuiWindowResource::Params
+      {
+        .mName                 { TAC_TYPESAFE_STRINGIFY_TYPE( DragData ) },
+        .mInitialDataBytes     { nullptr},
+        .mInitialDataByteCount { sizeof( DragData )},
+      } ) };
 
 
   using Drag_Getter = String( * )( const void* );

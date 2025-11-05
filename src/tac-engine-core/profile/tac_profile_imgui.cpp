@@ -66,10 +66,15 @@ namespace Tac
   static ProfileFrame           sProfiledFunctions    {};
   static ImguiProfileWidgetData sDefaultWidgetData;
   static ProfileThreadManager   sProfileThreadManager;
-  static const ImGuiRscIdx      sWidgetID{ ImGuiRegisterWindowResource(
-      TAC_TYPESAFE_STRINGIFY_TYPE( ImguiProfileWidgetData ),
-      &sDefaultWidgetData,
-      sizeof( ImguiProfileWidgetData ) ) };
+  static const ImGuiRscIdx      sWidgetID{
+    ImGuiWindowResource::Register(
+      ImGuiWindowResource::Params
+      {
+        .mName                 { TAC_TYPESAFE_STRINGIFY_TYPE( ImguiProfileWidgetData ) },
+        .mInitialDataBytes     { &sDefaultWidgetData },
+        .mInitialDataByteCount { sizeof( ImguiProfileWidgetData ) },
+      } ) };
+
 
   // -----------------------------------------------------------------------------------------------
 
@@ -152,11 +157,9 @@ namespace Tac
       indexedThreadProfileData->mTreeHeight = treeHeight;
     }
 
-    float threadY { cameraViewportPos.y };
+    dynmc float threadY { cameraViewportPos.y };
     const float boxHeight { fontSize };
-
-
-    static Vector< ProfileFunctionDepth > visitors;
+    dynmc Vector< ProfileFunctionDepth > visitors;
 
     for( int iThread {}; iThread < sProfileThreadManager.GetProfileThreadCount(); ++iThread )
     {
@@ -363,17 +366,19 @@ void Tac::ImGuiProfileWidget()
   static bool profileDrawGrid { true };
   ImGuiCheckbox( "Profile draw grid", &profileDrawGrid );
 
-  const v2    timelinePos { imguiWindow->mViewportSpaceCurrCursor };
-  const v2    timelineSize{ v2( imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - imguiWindow->mViewportSpaceCurrCursor.x,
-                                 fontSize * 3.0f ) };
-  imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
+  const float timelineW = imguiWindow->mViewportSpaceVisibleRegion.mMaxi.x - imguiWindow->mViewportSpaceCurrCursor.x;
+  const float timelineH = fontSize * 3.0f;
+  const v2 timelineSize{ timelineW, timelineH };
+  const v2 timelinePos { imguiWindow->mViewportSpaceCurrCursor };
 
-  const v2    cameraViewportPos { imguiWindow->mViewportSpaceCurrCursor };
-  const v2    cameraViewportSize { imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos };
+  // Q: Why is this done twice?
+  imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
   imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
   if( profileDrawGrid )
   {
+    const v2 cameraViewportPos { imguiWindow->mViewportSpaceCurrCursor };
+    const v2 cameraViewportSize { imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos };
     ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
     ImGuiProfileWidgetCamera(  cameraViewportPos, cameraViewportSize );
   }

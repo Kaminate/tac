@@ -257,34 +257,22 @@ namespace Tac
 	void ScriptMatchmaker::Update( float seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
+
 		TAC_TIMELINE_BEGIN;
+
     mSocket = TAC_CALL( Network::Net::Instance->CreateSocket(
       "Matchmaking socket",
       Network::AddressFamily::IPv4,
-      Network::SocketType::TCP, errors ) );
-
-
-    const Network::SocketCallbackDataMessage socketCallbackDataMessage =
-    {
-      .mCallback { ScriptMatchmaker::TCPOnMessage },
-      .mUserData { this },
-    };
-		mSocket->mTCPOnMessage.push_back( socketCallbackDataMessage );
-
-    const Network::SocketCallbackData socketCallbackData =
-    {
-      .mCallback { TCPOnConnectionClosed },
-      .mUserData { this },
-    };
-		mSocket->mTCPOnConnectionClosed.push_back( socketCallbackData );
-
-		//String hostname = SettingsGetString( "hostname" , defaultHostname );
+      Network::SocketType::TCP,
+      errors ) );
+    mSocket->mTCPOnMessage.push_back( Network::SocketCallbackDataMessage{
+        .mCallback { ScriptMatchmaker::TCPOnMessage }, .mUserData { this }, } );
+    mSocket->mTCPOnConnectionClosed.push_back( Network::SocketCallbackData{
+        .mCallback { TCPOnConnectionClosed }, .mUserData { this }, } );
     mPort = ( u16 )mSettingsNode
       .GetChild( "port" )
       .GetValueWithFallback( ( JsonNumber )defaultPort ).mNumber;
-
-		mConnectionAttemptStartSeconds = Timestep::GetElapsedTime();
-
+    mConnectionAttemptStartSeconds = Timestep::GetElapsedTime();
     {
       String text;
       text += "Attempting to connect to ";
@@ -295,9 +283,10 @@ namespace Tac
     }
 
 		TAC_TIMELINE_KEYFRAME;
-		SetNextKeyDelay( 1.0f );
-		TAC_TIMELINE_KEYFRAME;
 
+		SetNextKeyDelay( 1.0f );
+
+		TAC_TIMELINE_KEYFRAME;
 
 		if( mTryAutoConnect )
 			TryConnect();
@@ -327,9 +316,7 @@ namespace Tac
 		mSocket->mRequiresWebsocketFrame = true;
 		mSocket->mKeepaliveOverride.mUserData = this;
     mSocket->mKeepaliveOverride.mCallback = ScriptMatchmaker::KeepAlive;
-
 		mScriptRoot->OnMsg( kScriptMsgConnect );
-
 
 		TAC_TIMELINE_KEYFRAME;
 

@@ -375,27 +375,23 @@ auto Tac::ImGuiGetColName( const ImGuiCol colIdx ) -> const char*
 
 void Tac::ImGuiSetNextWindowStretch()
 {
-  gNextWindow.mStretch = true;
+  ImGuiNextWindow::gNextWindow.mStretch = true;
 }
 
 void Tac::ImGuiSetNextWindowHandle( const WindowHandle& WindowHandle )
 {
-  gNextWindow.mWindowHandle = WindowHandle;
+  ImGuiNextWindow::gNextWindow.mWindowHandle = WindowHandle;
 }
 
-auto Tac::ImGuiGetWindowHandle() -> Tac::WindowHandle
+auto Tac::ImGuiGetWindowHandle() -> WindowHandle
 {
   return ImGuiGlobals::Instance.mCurrentWindow->GetWindowHandle();
 }
 
-auto Tac::ImGuiGetWindowHandle( StringView name ) -> Tac::WindowHandle
+auto Tac::ImGuiGetWindowHandle( StringView name ) -> WindowHandle
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  ImGuiWindow* window{ globals.FindWindow( name ) };
-  if( !window )
-    return {};
-
-  return window->mDesktopWindow->mWindowHandle;
+  ImGuiWindow* window{ ImGuiGlobals::Instance.FindWindow( name ) };
+  return window ? window->mDesktopWindow->mWindowHandle : WindowHandle{};
 }
 
 auto Tac::ImGuiGetContentRect() -> Tac::ImGuiRect
@@ -404,20 +400,20 @@ auto Tac::ImGuiGetContentRect() -> Tac::ImGuiRect
   return window->mViewportSpaceVisibleRegion;
 }
 
-void Tac::ImGuiSetNextWindowMoveResize()            { gNextWindow.mMoveResize = true; }
+void Tac::ImGuiSetNextWindowMoveResize()            { ImGuiNextWindow::gNextWindow.mMoveResize = true; }
 void Tac::ImGuiSetNextWindowPosition( v2 position, ImGuiCondition cond )
 {
   TAC_UNUSED_PARAMETER( cond );
-  gNextWindow.mPosition = position;
-  gNextWindow.mPositionValid = true;
+  ImGuiNextWindow::gNextWindow.mPosition = position;
+  ImGuiNextWindow::gNextWindow.mPositionValid = true;
 }
 void Tac::ImGuiSetNextWindowSize( v2 size, ImGuiCondition cond ) 
 {
   TAC_UNUSED_PARAMETER( cond );
-  gNextWindow.mSize = size;
-  gNextWindow.mSizeValid = true;
+  ImGuiNextWindow::gNextWindow.mSize = size;
+  ImGuiNextWindow::gNextWindow.mSizeValid = true;
 }
-void Tac::ImGuiSetNextWindowDisableBG() { gNextWindow.mEnableBG = false; }
+void Tac::ImGuiSetNextWindowDisableBG() { ImGuiNextWindow::gNextWindow.mEnableBG = false; }
 
 auto Tac::GetID( StringView label ) -> Tac::ImGuiID
 {
@@ -448,7 +444,7 @@ bool Tac::ImGuiBegin( const StringView& name )
   ImGuiWindow* window{ globals.FindWindow( name ) };
   if( !window )
   {
-    WindowHandle hDesktopWindow{ gNextWindow.mWindowHandle };
+    WindowHandle hDesktopWindow{ ImGuiNextWindow::gNextWindow.mWindowHandle };
     int desktopWindowWidth{};
     int desktopWindowHeight{};
 
@@ -468,16 +464,16 @@ bool Tac::ImGuiBegin( const StringView& name )
       int w{ 800 };
       int h{ 600 };
 
-      if( gNextWindow.mPositionValid )
+      if( ImGuiNextWindow::gNextWindow.mPositionValid )
       {
-        x = ( int )gNextWindow.mPosition.x;
-        y = ( int )gNextWindow.mPosition.y;
+        x = ( int )ImGuiNextWindow::gNextWindow.mPosition.x;
+        y = ( int )ImGuiNextWindow::gNextWindow.mPosition.y;
       }
 
-      if( gNextWindow.mSizeValid )
+      if( ImGuiNextWindow::gNextWindow.mSizeValid )
       {
-        w = ( int )gNextWindow.mSize.x;
-        h = ( int )gNextWindow.mSize.y;
+        w = ( int )ImGuiNextWindow::gNextWindow.mSize.x;
+        h = ( int )ImGuiNextWindow::gNextWindow.mSize.y;
       }
 
       SettingsNode windowJson{ ImGuiGetWindowSettingsJson( name ) };
@@ -515,8 +511,8 @@ bool Tac::ImGuiBegin( const StringView& name )
       desktopWindowHeight = h;
     }
 
-    const v2 size{ gNextWindow.mSize.x + ( gNextWindow.mSize.x > 0 ? 0 : desktopWindowWidth ),
-                   gNextWindow.mSize.y + ( gNextWindow.mSize.y > 0 ? 0 : desktopWindowHeight ) };
+    const v2 size{ ImGuiNextWindow::gNextWindow.mSize.x + ( ImGuiNextWindow::gNextWindow.mSize.x > 0 ? 0 : desktopWindowWidth ),
+                   ImGuiNextWindow::gNextWindow.mSize.y + ( ImGuiNextWindow::gNextWindow.mSize.y > 0 ? 0 : desktopWindowHeight ) };
 
     ImGuiDesktopWindowImpl* imguiDesktopWindow
       = ImGuiGlobals::Instance.FindDesktopWindow( hDesktopWindow );
@@ -533,17 +529,17 @@ bool Tac::ImGuiBegin( const StringView& name )
     window->mDrawData = TAC_NEW UI2DDrawData;
     window->mTextInputData = TAC_NEW TextInputData;
     window->mDesktopWindow = imguiDesktopWindow;
-    window->mWindowHandleOwned = !gNextWindow.mWindowHandle.IsValid();
+    window->mWindowHandleOwned = !ImGuiNextWindow::gNextWindow.mWindowHandle.IsValid();
     window->mViewportSpacePos = {};
     window->mSize = size;
-    window->mStretchWindow = gNextWindow.mStretch;
-    window->mMoveResizeWindow = gNextWindow.mMoveResize;
-    window->mEnableBG = gNextWindow.mEnableBG;
+    window->mStretchWindow = ImGuiNextWindow::gNextWindow.mStretch;
+    window->mMoveResizeWindow = ImGuiNextWindow::gNextWindow.mMoveResize;
+    window->mEnableBG = ImGuiNextWindow::gNextWindow.mEnableBG;
     ImGuiGlobals::Instance.mAllWindows.push_back( window );
   }
 
 
-  gNextWindow = {};
+  ImGuiNextWindow::gNextWindow = {};
 
   TAC_ASSERT( window->mSize.x > 0 && window->mSize.y > 0 );
 
@@ -1108,18 +1104,21 @@ auto Tac::ImGuiGetDrawData() -> Tac::UI2DDrawData*
   return ImGuiGlobals::Instance.mCurrentWindow->mDrawData;
 }
 
-// -----------------------------------------------------------------------------------------------
-
 bool Tac::ImGuiDragFloat( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 1 ); }
-bool Tac::ImGuiDragFloat2( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 2 ); }
-bool Tac::ImGuiDragFloat3( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 3 ); }
-bool Tac::ImGuiDragFloat4( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 4 ); }
-bool Tac::ImGuiDragInt( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 1 ); }
-bool Tac::ImGuiDragInt2( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 2 ); }
-bool Tac::ImGuiDragInt3( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 3 ); }
-bool Tac::ImGuiDragInt4( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 4 ); }
 
-// -----------------------------------------------------------------------------------------------
+bool Tac::ImGuiDragFloat2( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 2 ); }
+
+bool Tac::ImGuiDragFloat3( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 3 ); }
+
+bool Tac::ImGuiDragFloat4( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 4 ); }
+
+bool Tac::ImGuiDragInt( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 1 ); }
+
+bool Tac::ImGuiDragInt2( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 2 ); }
+
+bool Tac::ImGuiDragInt3( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 3 ); }
+
+bool Tac::ImGuiDragInt4( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 4 ); }
 
 bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags flags )
 {

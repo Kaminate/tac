@@ -235,14 +235,7 @@ namespace Tac
     SelectedEntities::Init( mSettingsNode );
     TAC_CALL( mSimState.Init( errors ) );
     TAC_CALL( mSysState.Init( errors ) );
-
-    //CreationSystemWindow::Init();
-    //CreationAssetView::Init();
-    //CreationMainWindow::Init();
     CreationGameWindow::Init( mSettingsNode, errors );
-    //CreationPropertyWindow::Init();
-    //CreationProfileWindow::Init();
-
     TAC_CALL( PrefabLoad( mSettingsNode,
                           &mEntityUUIDCounter,
                           mSimState.mWorld,

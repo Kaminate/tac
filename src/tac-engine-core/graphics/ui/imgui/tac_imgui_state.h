@@ -34,12 +34,17 @@ namespace Tac
 
 
   using ImGuiRscIdx = int;
-  ImGuiRscIdx ImGuiRegisterWindowResource( StringView name,
-                                          const void* initialDataBytes,
-                                          int initialDataByteCount );
 
   struct ImGuiWindowResource
   {
+    struct Params
+    {
+       StringView  mName                 {};
+       const void* mInitialDataBytes     {};
+       int         mInitialDataByteCount {};
+    };
+    static auto Register( Params ) -> ImGuiRscIdx;
+
     ImGuiID                       mImGuiID {};
     ImGuiRscIdx                   mIndex   { -1 };
     Vector< char >                mData    {};
@@ -47,40 +52,33 @@ namespace Tac
 
   struct ImGuiWindow
   {
-    void                          BeginFrame();
-    void                          EndFrame();
+    void BeginFrame();
+    void EndFrame();
 
-    //                            tell the window that we are adding a new element of this size
-    //                            at the current cursor position.
-    //
-    //                            this lets the window internally update the cursor and other
-    //                            positioning-related housekeeping information for scrollbars,
-    //                            sameline, groups, etc.
-    void                          ItemSize( v2 );
+    //  tell the window that we are adding a new element of this size
+    //  at the current cursor position.
+    //  this lets the window internally update the cursor and other
+    //  positioning-related housekeeping information for scrollbars,
+    //  sameline, groups, etc.
+    void ItemSize( v2 );
 
-    //                            Clipping/Culling functions
-    bool                          Overlaps( const ImGuiRect& ) const;
-    ImGuiRect                     Clip( const ImGuiRect& ) const;
-
-    void                          UpdateMaxCursorDrawPos( v2 );
-    void*                         GetWindowResource( ImGuiRscIdx, ImGuiID );
-    bool                          IsHovered( const ImGuiRect& );
-    v2                            GetMousePosViewport();
-    v2                            GetWindowPosScreenspace();
-    void                          Scrollbar();
-    void                          PushXOffset();
-    void                          BeginMoveControls();
-    void                          UpdateMoveControls();
-
-    ImGuiID                       GetID( StringView );
-
-    float                         GetRemainingWidth() const;
-    float                         GetRemainingHeight() const;
-    WindowHandle                  GetWindowHandle() const;
-    //const DesktopWindowState*     GetDesktopWindowState() const;
-
-    void                          ResizeControls();
-    void                          DrawWindowBackground();
+    bool Overlaps( const ImGuiRect& ) const;
+    auto Clip( const ImGuiRect& ) const -> ImGuiRect;
+    void UpdateMaxCursorDrawPos( v2 );
+    auto GetWindowResource( ImGuiRscIdx, ImGuiID ) -> void*;
+    bool IsHovered( const ImGuiRect& );
+    auto GetMousePosViewport() -> v2;
+    auto GetWindowPosScreenspace() -> v2;
+    void Scrollbar();
+    void PushXOffset();
+    void BeginMoveControls();
+    void UpdateMoveControls();
+    auto GetID( StringView ) -> ImGuiID;
+    auto GetRemainingWidth() const -> float;
+    auto GetRemainingHeight() const -> float;
+    auto GetWindowHandle() const -> WindowHandle;
+    void ResizeControls();
+    void DrawWindowBackground();
 
 
     String                        mName                        {};
@@ -153,81 +151,27 @@ namespace Tac
     ImGuiRenderBuffer mIB;
   };
 
-#if 0
-  struct ImGuiSimWindowDraws
-  {
-    void CopyBuffers( Render::IContext*, ImGuiRenderBuffers*, Errors& );
-
-    WindowHandle                       mHandle;
-    Vector< SmartPtr< UI2DDrawData > > mDrawData;
-    int                                mVertexCount{};
-    int                                mIndexCount{};
-
-    // cant really give it a debug name because this is assocaited wiht hte viewport, not the wnd
-    //
-    //String                             mDebugName;
-
-  private:
-    void CopyIdxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );
-    void CopyVtxBuffer( Render::IContext*, ImGuiRenderBuffers*, Errors& );
-  };
-#endif
-
-#if 0
-  // generated once per game logic update frame,
-  // passed to the imgui platform frame
-  struct ImGuiSimFrame
-  {
-    struct WindowSizeData
-    {
-      WindowHandle    mWindowHandle;
-      Optional< v2i > mRequestedPosition;
-      Optional< v2i > mRequestedSize;
-    };
-
-    Vector< ImGuiSimWindowDraws > mWindowDraws;
-    Vector< WindowSizeData >      mWindowSizeDatas;
-    ImGuiMouseCursor              mCursor{ ImGuiMouseCursor::kNone };
-  };
-#endif
-
   struct ImGuiPersistantViewport
   {
     WindowHandle                 mWindowHandle  {};
-    int                          mFrameIndex{};
-    Vector< ImGuiRenderBuffers > mRenderBuffers{};
+    int                          mFrameIndex    {};
+    Vector< ImGuiRenderBuffers > mRenderBuffers {};
   };
 
   struct ImGuiDrawDatas : public Vector< UI2DDrawData* >
   {
-    int VertexCount() const;
-    int IndexCount() const;
+    auto VertexCount() const -> int;
+    auto IndexCount() const -> int;
   };
 
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
   {
-    
-    //ImGuiSimWindowDraws GetSimWindowDraws();
     ImGuiDrawDatas mDrawData;
   };
 
 
   struct ImGuiPersistantPlatformData
   {
-    static ImGuiPersistantPlatformData Instance;
-
-    void                       Init( Errors& );
-    void                       UpdateAndRender( // ImGuiSimFrame*,
-                                                Errors& );
-    void                       UpdateAndRenderWindow( ImGuiDesktopWindowImpl* , // ImGuiSimWindowDraws*,
-                                                      ImGuiPersistantViewport*,
-                                                      Errors& );
-    ImGuiPersistantViewport*   GetPersistantWindowData( WindowHandle );
-    void                       UpdatePerFrame( Render::IContext*, v2i, Errors& );
-    void                       UpdatePerObject( Render::IContext*,
-                                               const UI2DDrawCall&,
-                                               Errors& );
-
     // todo: hard code this to always expect rgba16f with d24s8
     struct Element
     {
@@ -239,17 +183,24 @@ namespace Tac
       Render::IShaderVar*    mShaderPerFrame  {};
     };
 
-    Element                    GetElement( Render::TexFmt, Errors& );
-    Render::BlendState         GetBlendState() const;
-    Render::DepthState         GetDepthState() const;
-    Render::RasterizerState    GetRasterizerState() const;
-    void                       Init1x1White( Errors& );
-    void                       InitProgram( Errors& );
-    void                       InitPerFrame( Errors& );
-    void                       InitPerObject( Errors& );
-    void                       InitSampler();
-    Render::VertexDeclarations GetVertexDeclarations() const;
+    void Init( Errors& );
+    void UpdateAndRender( Errors& );
+    void UpdateAndRenderWindow( ImGuiDesktopWindowImpl*, ImGuiPersistantViewport*, Errors& );
+    auto GetPersistantWindowData( WindowHandle ) -> ImGuiPersistantViewport*;
+    void UpdatePerFrame( Render::IContext*, v2i, Errors& );
+    void UpdatePerObject( Render::IContext*, const UI2DDrawCall&, Errors& );
+    auto GetElement( Render::TexFmt, Errors& ) -> Element;
+    auto GetBlendState() const -> Render::BlendState;
+    auto GetDepthState() const -> Render::DepthState;
+    auto GetRasterizerState() const -> Render::RasterizerState;
+    void Init1x1White( Errors& );
+    void InitProgram( Errors& );
+    void InitPerFrame( Errors& );
+    void InitPerObject( Errors& );
+    void InitSampler();
+    auto GetVertexDeclarations() const -> Render::VertexDeclarations;
 
+    static ImGuiPersistantPlatformData Instance;
     Render::SamplerHandle             mSampler;
     Render::TextureHandle             m1x1White;
     Vector< ImGuiPersistantViewport > mViewportDatas;
@@ -260,18 +211,17 @@ namespace Tac
   };
 
 
-  void    SetActiveID( ImGuiID, ImGuiWindow* );
-  void    SetHoveredID( ImGuiID );
-  void    ClearActiveID();
-  ImGuiID GetActiveID();
+  void SetActiveID( ImGuiID, ImGuiWindow* );
+  void SetHoveredID( ImGuiID );
+  void ClearActiveID();
+  auto GetActiveID() -> ImGuiID;
 
   struct ImGuiGlobals
   {
+    auto FindWindow( const StringView& ) -> ImGuiWindow*;
+    auto FindDesktopWindow( WindowHandle ) -> ImGuiDesktopWindowImpl*;
+
     static ImGuiGlobals               Instance;
-
-    ImGuiWindow*                      FindWindow( const StringView& );
-    ImGuiDesktopWindowImpl*           FindDesktopWindow( WindowHandle );
-
     ImGuiMouseCursor                  mMouseCursor          { ImGuiMouseCursor::kNone };
     Timestamp                         mElapsedSeconds       {};
     Vector< ImGuiWindow* >            mAllWindows           {};
@@ -307,8 +257,8 @@ namespace Tac
     bool           mStretch           {};
     bool           mMoveResize        {};
     bool           mEnableBG          { true }; // Set false to disable background render
+    static ImGuiNextWindow gNextWindow;
   };
 
-  extern ImGuiNextWindow gNextWindow;
 
 } // namespace Tac

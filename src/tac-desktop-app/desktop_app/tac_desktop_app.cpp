@@ -1,25 +1,38 @@
 #include "tac_desktop_app.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app_error_report.h"
-#include "tac-desktop-app/desktop_app/tac_render_state.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
+#include "tac-desktop-app/desktop_app/tac_render_state.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event_handler.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_move.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_resize.h"
 #include "tac-ecs/tac_space.h"
+#include "tac-engine-core/asset/tac_asset.h"
+#include "tac-engine-core/asset/tac_asset_hash_cache.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
+#include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
+#include "tac-engine-core/graphics/ui/tac_font.h"
+#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
+#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings_root.h"
 #include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-#include "tac-engine-core/asset/tac_asset_hash_cache.h"
+#include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -30,12 +43,7 @@
 namespace Tac
 {
   static DesktopEventHandler           sDesktopEventHandler;
-#if TAC_SINGLE_THREADED()
   static Errors                        sAppErrors( Errors::kDebugBreaks );
-#else
-  static Errors                        sSysErrors( Errors::kDebugBreaks );
-  static Errors                        sSimErrors( Errors::kDebugBreaks );
-#endif
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
   static App*                          sApp;
   //static GameStateManager              sGameStateManager;
@@ -86,184 +94,7 @@ namespace Tac
     }
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  void DesktopApp::Init( Errors& errors )
-  {
-    TAC_ASSERT( PlatformFns::GetInstance() );
-
-    sApp = App::Create();
-
-    sAppThreadAllocator.Init( 1024 * 1024 * 10 ); // 10MB
-    FrameMemorySetThreadAllocator( &sAppThreadAllocator );
-
-    Shell::sShellAppName = sApp->GetAppName();
-    TAC_ASSERT( !Shell::sShellAppName.empty() );
-
-    Shell::sShellStudioName = sApp->GetStudioName();
-    TAC_ASSERT( !Shell::sShellStudioName.empty() );
-
-    Shell::sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
-    TAC_ASSERT( !Shell::sShellPrefPath.empty() );
-
-    Shell::sShellInitialWorkingDir = FileSys::GetCurrentWorkingDirectory();
-    TAC_ASSERT( !Shell::sShellInitialWorkingDir.empty() );
-
-    // for macos standalone_sdl_vk_1_tri, appDataPath =
-    //
-    //     /Users/n473/Library/Application Support/Sleeping Studio/Vk Ex/
-    //
-    // for win32 project standalone_win_vk_1_tri, appDataPath =
-    //
-    //     C:\Users\Nate\AppData\Roaming + /Sleeping Studio + /Whatever bro
-    TAC_RAISE_ERROR_IF( !FileSys::Exists( Shell::sShellPrefPath ), String()
-                        + "app data path " + Shell::sShellPrefPath.u8string() + " doesnt exist" );
-
-    const FileSys::Path logPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.log" ) };
-    LogApi::LogSetPath( logPath );
-
-    const FileSys::Path settingsPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.cfg" ) };
-    TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
-
-    TAC_CALL( AssetHashCache::Init( errors ) );
-
-    if( sVerbose )
-      LogApi::LogMessagePrintLine( "DesktopApp::Init" );
-
-    const Render::RenderApi::InitParams renderApiInitParams
-    {
-      .mShaderOutputPath { Shell::sShellPrefPath },
-    };
-    TAC_CALL( Render::RenderApi::Init( renderApiInitParams, errors ) );
-
-    TAC_CALL( Shell::Init( errors ) );
-
-#if TAC_FONT_ENABLED()
-    TAC_CALL( FontApi::Init( errors ) );
-#endif
-
-    const ImGuiInitParams imguiInitParams
-    {
-      .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
-      .mSettingsNode     { sSettingsRoot.GetRootNode() },
-    };
-    TAC_CALL( ImGuiInit( imguiInitParams, errors ) );
-
-    DesktopEventApi::Init( &sDesktopEventHandler );
-
-    // todo: this is ugly, fix it
-    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
-
-    TAC_CALL( sApp->Init( errors ) );
-
-    sCurrState = sApp->GameState_Create();
-    sPrevState = sApp->GameState_Create();
-  }
-
-  void DesktopApp::Run( Errors& errors )
-  {
-    PlatformFns* platform{ PlatformFns::GetInstance() };
-
-#if TAC_SINGLE_THREADED()
-#else
-    SimThread sSimThread
-    {
-      .mApp              { sApp },
-      .mErrors           { &sSimErrors },
-      .sGameStateManager { &sGameStateManager },
-      .sWindowApi        { sSimWindowApi },
-      .sKeyboardApi      { sSimKeyboardApi},
-      .mSettingsRoot     { &sSettingsRoot },
-    };
-
-    SysThread sSysThread
-    {
-      .mApp              { sApp },
-      .mErrors           { &sSysErrors },
-      .mGameStateManager { &sGameStateManager },
-      .mWindowApi        { sSysWindowApi },
-      .AppKeyboardApi::      { sSysKeyboardApi },
-    };
-#endif
-
-
-#if TAC_SINGLE_THREADED()
-#else
-    TAC_CALL( sSysThread.Init( errors ) );
-    TAC_CALL( sSimThread.Init( errors ) );
-#endif
-
-
-
-#if TAC_SINGLE_THREADED()
-
-    while( OS::OSAppIsRunning() )
-    {
-
-
-      // Win32FrameBegin polls wndproc
-      TAC_CALL( platform->PlatformFrameBegin( errors ) );
-
-      // Apply queued wndproc to saved keyboard/window state
-      TAC_CALL( DesktopEventApi::Apply( errors ) );
-
-      TAC_CALL( DesktopApp::Update( errors ) );
-      TAC_CALL( platform->PlatformFrameEnd( errors ) );
-
-
-      TAC_CALL( Network::NetApi::Update( errors ) );
-      TAC_CALL( sSettingsRoot.Tick( errors ) );
-      TAC_CALL( UpdateSimulation( errors ) );
-
-#if TAC_DELETE_ME()
-      static bool tempSlept;
-      if( !tempSlept ) // temp temp temp
-      {
-        std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
-        tempSlept = true;
-      }
-#endif
-
-      TAC_CALL( Render( errors ) );
-
-      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
-    }
-
-    sApp->Uninit( errors );
-    TAC_DELETE sApp;
-    sApp = nullptr;
-
-#else
-    std::thread logicThread( &SimThread::Update, sSimThread, std::ref( SSimErrors ) );
-    sSysThread.mApp = sApp;
-    sSysThread.mErrors = &sSysErrors;
-    sSysThread.Update( sSysErrors );
-    logicThread.join();
-
-    sSysThread.Uninit();
-    sSimThread.Uninit();
-#endif
-
-    ImGuiUninit();
-
-    DesktopAppErrorReport errorReport;
-#if TAC_SINGLE_THREADED()
-    errorReport.Add( "App Thread", &sAppErrors );
-#else
-    errorReport.Add( "Sys Thread", &sSysErrors );
-    errorReport.Add( "Sim Thread", &SSimErrors );
-#endif
-    errorReport.Add( "Main Function", &gMainFunctionErrors );
-    errorReport.Report();
-  }
-
-  void DesktopApp::Update( Errors& )
-  {
-    DesktopAppUpdateMove();
-    DesktopAppUpdateResize();
-  }
-
-  void DesktopApp::UpdateSimulation( Errors& errors )
+  static void DesktopUpdateSimulation( Errors& errors )
   {
     if( !Timestep::Update() )
       return;
@@ -308,7 +139,7 @@ namespace Tac
     sNumRenderFramesSincePrevSimFrame = 0;
   }
 
-  void DesktopApp::Render( Errors& errors )
+  static void DesktopRender( Errors& errors )
   {
       TAC_PROFILE_BLOCK;
 
@@ -418,17 +249,122 @@ namespace Tac
       sNumRenderFramesSincePrevSimFrame++;
   }
 
+
+  // -----------------------------------------------------------------------------------------------
+
+  void DesktopApp::Init( Errors& errors )
+  {
+    TAC_ASSERT( PlatformFns::GetInstance() );
+    sApp = App::Create();
+    sAppThreadAllocator.Init( 1024 * 1024 * 10 ); // 10MB
+    FrameMemorySetThreadAllocator( &sAppThreadAllocator );
+    Shell::sShellAppName = sApp->GetAppName();
+    Shell::sShellStudioName = sApp->GetStudioName();
+    Shell::sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
+    Shell::sShellInitialWorkingDir = FileSys::GetCurrentWorkingDirectory();
+    TAC_ASSERT( !Shell::sShellAppName.empty() );
+    TAC_ASSERT( !Shell::sShellStudioName.empty() );
+    TAC_ASSERT( !Shell::sShellPrefPath.empty() );
+    TAC_ASSERT( !Shell::sShellInitialWorkingDir.empty() );
+
+    // macos appDataPath = /Users/Nate/Library/Application Support/Studio/Project
+    // win32 appDataPath = C:/Users/Nate/AppData/Roaming/Studio/Project
+    TAC_RAISE_ERROR_IF( !FileSys::Exists( Shell::sShellPrefPath ),
+                        String() + "app data path " + Shell::sShellPrefPath.u8string() + " doesnt exist" );
+    LogApi::LogSetPath( Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.log" ) );
+    const FileSys::Path settingsPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.cfg" ) };
+    TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
+    TAC_CALL( AssetHashCache::Init( errors ) );
+    if( sVerbose )
+      LogApi::LogMessagePrintLine( "DesktopApp::Init" );
+
+    TAC_CALL( Render::RenderApi::Init(
+      Render::RenderApi::InitParams
+      {
+        .mShaderOutputPath { Shell::sShellPrefPath },
+      }, errors ) );
+    Job::JobQueueInit();
+    ModelAssetManager::Init();
+    TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ) );
+    TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );
+    TAC_CALL( Render::DefaultCBufferPerObject::Init( errors ) );
+    TAC_CALL( Render::CBufferLights::Init( errors ) );
+    TAC_CALL( UI2DCommonDataInit( errors ) );
+    TAC_CALL( Debug3DCommonDataInit( errors ) );
+
+
+
+#if TAC_FONT_ENABLED()
+    TAC_CALL( FontApi::Init( errors ) );
+#endif
+
+    TAC_CALL( ImGuiInit(
+      ImGuiInitParams
+      {
+        .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
+        .mSettingsNode     { sSettingsRoot.GetRootNode() },
+      }, errors ) );
+    DesktopEventApi::Init( &sDesktopEventHandler );
+
+    // todo: this is ugly, fix it
+    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
+    TAC_CALL( sApp->Init( errors ) );
+    sCurrState = sApp->GameState_Create();
+    sPrevState = sApp->GameState_Create();
+  }
+
+  void DesktopApp::Run( Errors& errors )
+  {
+    PlatformFns* platform{ PlatformFns::GetInstance() };
+    while( OS::OSAppIsRunning() )
+    {
+      TAC_CALL( platform->PlatformFrameBegin( errors ) ); // poll wndproc
+      TAC_CALL( DesktopEventApi::Apply( errors ) ); // apply queued wndproc events to keyboard/window state
+      TAC_CALL( DesktopApp::Update( errors ) );
+      TAC_CALL( platform->PlatformFrameEnd( errors ) );
+      TAC_CALL( Network::NetApi::Update( errors ) );
+      TAC_CALL( sSettingsRoot.Tick( errors ) );
+      TAC_CALL( DesktopUpdateSimulation( errors ) );
+      TAC_CALL( DesktopRender( errors ) );
+      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
+    }
+
+    sApp->Uninit( errors );
+    TAC_DELETE sApp;
+    sApp = nullptr;
+
+    UI2DCommonDataUninit();
+    Debug3DCommonDataUninit();
+
+  #if TAC_FONT_ENABLED()
+    FontApi::Uninit();
+  #endif
+
+    ModelAssetManager::Uninit();
+
+    ImGuiUninit();
+    Render::RenderApi::Uninit();
+
+    DesktopAppErrorReport errorReport;
+    errorReport.Add( "App Thread", &sAppErrors );
+    errorReport.Add( "Main Function", &gMainFunctionErrors );
+    errorReport.Report();
+  }
+
+  void DesktopApp::Update( Errors& )
+  {
+    DesktopAppUpdateMove();
+    DesktopAppUpdateResize();
+  }
+
   void DesktopApp::DebugImGui( Errors& errors )
   {
-    if( !ImGuiCollapsingHeader( "DesktopAppDebugImGui" ) )
-      return;
-
-    TAC_IMGUI_INDENT_BLOCK;
-
-    DesktopAppDebugImGuiHoveredWindow();
-
-    PlatformFns* platform { PlatformFns::GetInstance() };
-    platform->PlatformImGui( errors );
+    if( ImGuiCollapsingHeader( "DesktopAppDebugImGui" ) )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      DesktopAppDebugImGuiHoveredWindow();
+      PlatformFns::GetInstance()->PlatformImGui( errors );
+    }
   }
 
   auto DesktopApp::GetMainErrors() -> Errors& { return gMainFunctionErrors; }

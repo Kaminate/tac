@@ -26,34 +26,7 @@ Tac::String        Tac::Shell::sShellStudioName;
 Tac::FileSys::Path Tac::Shell::sShellPrefPath; // Path where the app can save files to
 Tac::FileSys::Path Tac::Shell::sShellInitialWorkingDir;
 
-void Tac::Shell::Uninit()
-{
-  UI2DCommonDataUninit();
-  Debug3DCommonDataUninit();
 
-#if TAC_FONT_ENABLED()
-  FontApi::Uninit();
-#endif
-
-  //delete mLog;
-
-  ModelAssetManager::Uninit();
-
-  // last, so resources can be freed
-  Render::RenderApi::Uninit();
-}
-
-void Tac::Shell::Init( Errors& errors )
-{
-  Job::JobQueueInit();
-  ModelAssetManager::Init();
-  TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ) );
-  TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );
-  TAC_CALL( Render::DefaultCBufferPerObject::Init( errors ) );
-  TAC_CALL( Render::CBufferLights::Init( errors ) );
-  TAC_CALL( UI2DCommonDataInit( errors ) );
-  TAC_CALL( Debug3DCommonDataInit( errors ) );
-}
 
 auto Tac::ModifyPathRelative( const FileSys::Path& path, Errors& errors ) -> Tac::AssetPathStringView
 {
