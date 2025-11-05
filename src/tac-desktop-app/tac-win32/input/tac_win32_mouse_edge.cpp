@@ -282,8 +282,7 @@ void Tac::Win32MouseEdgeInit()
 void Tac::Win32MouseEdgeUpdate()
 {
   sMouseHoveredHwnd = GetMouseHoveredHWND();
-  sMouseHoveredDesktopWindow = Win32WindowManagerFindWindow( sMouseHoveredHwnd );
-
+  sMouseHoveredDesktopWindow = Win32WindowManager::FindWindow( sMouseHoveredHwnd );
   mMouseDownPrev = mMouseDownCurr;
   mMouseDownCurr = GetKeyState( VK_LBUTTON ) & 0x100;
   switch( mHandlerType )

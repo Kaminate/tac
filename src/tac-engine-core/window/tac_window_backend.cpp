@@ -44,12 +44,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static void         FreeWindowHandle( WindowHandle h )
+  static void FreeWindowHandle( WindowHandle h )
   {
     sFreeHandles.push_back( h.GetIndex() );
   }
 
-  static WindowHandle AllocWindowHandle()
+  static auto AllocWindowHandle() -> WindowHandle
   {
     int i;
     if( sFreeHandles.empty() )
@@ -138,7 +138,7 @@ namespace Tac
     sAppHovered = h;
   }
 
-  v2i  AppWindowApiBackend::GetWindowPos( WindowHandle h )
+  auto AppWindowApiBackend::GetWindowPos( WindowHandle h ) -> v2i
   {
     return sAppCurr[ h.GetIndex() ].mPos;
   }
@@ -150,23 +150,23 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  bool                    AppWindowApi::IsShown( WindowHandle h)
+  bool AppWindowApi::IsShown( WindowHandle h)
   {
     return h.IsValid() ? sAppCurr[ h.GetIndex() ].mShown : false;
   }
 
-  bool                    AppWindowApi::IsHovered( WindowHandle h )
+  bool AppWindowApi::IsHovered( WindowHandle h )
   {
     return h.IsValid() ? sAppHovered == h : false;
   }
 
-  v2i                     AppWindowApi::GetPos( WindowHandle h )
+  auto AppWindowApi::GetPos( WindowHandle h ) -> v2i
   {
     TAC_ASSERT( h.IsValid() );
     return sAppCurr[ h.GetIndex() ].mPos;
   }
 
-  void                    AppWindowApi::SetPos( WindowHandle h, v2i pos)
+  void AppWindowApi::SetPos( WindowHandle h, v2i pos)
   {
     TAC_ASSERT( h.IsValid() );
     sAppCurr[ h.GetIndex() ].mPos = pos;
@@ -175,13 +175,13 @@ namespace Tac
     platform->PlatformSetWindowPos( h, pos );
   }
 
-  v2i                     AppWindowApi::GetSize( WindowHandle h)
+  auto AppWindowApi::GetSize( WindowHandle h) -> v2i
   {
     TAC_ASSERT( h.IsValid() );
     return sAppCurr[ h.GetIndex() ].mSize;
   }
 
-  void                    AppWindowApi::SetSize( WindowHandle h, v2i size )
+  void AppWindowApi::SetSize( WindowHandle h, v2i size )
   {
     TAC_ASSERT( h.IsValid() );
     sAppCurr[ h.GetIndex() ].mSize = size;
@@ -190,67 +190,65 @@ namespace Tac
     platform->PlatformSetWindowSize( h, size );
   }
 
-  StringView              AppWindowApi::GetName( WindowHandle h)
+  auto AppWindowApi::GetName( WindowHandle h) -> StringView
   {
     TAC_ASSERT( h.IsValid() );
     return sAppCurr[ h.GetIndex() ].mName;
   }
 
-  const void*             AppWindowApi::GetNativeWindowHandle( WindowHandle h)
+  auto AppWindowApi::GetNativeWindowHandle( WindowHandle h) -> const void*
   {
     TAC_ASSERT( h.IsValid() );
     return sAppCurr[ h.GetIndex() ].mNativeWindowHandle;
   }
 
-  WindowHandle            AppWindowApi::CreateWindow( WindowCreateParams windowCreateParams,
-                                                      Errors& errors )
+  auto AppWindowApi::CreateWindow( WindowCreateParams params, Errors& errors ) -> WindowHandle
   {
     const WindowHandle h{ AllocWindowHandle() };
-    const PlatformSpawnWindowParams platformParams
-    {
-      .mHandle { h },
-      .mName   { windowCreateParams.mName },
-      .mPos    { windowCreateParams.mPos },
-      .mSize   { windowCreateParams.mSize },
-    };
-
     PlatformFns* platform { PlatformFns::GetInstance() };
-    TAC_CALL_RET( platform->PlatformSpawnWindow( platformParams, errors ) );
+    TAC_CALL_RET( platform->PlatformSpawnWindow(
+      PlatformSpawnWindowParams
+      {
+        .mHandle { h },
+        .mName   { params.mName },
+        .mPos    { params.mPos },
+        .mSize   { params.mSize },
+      }, errors ) );
     return h;
   }
 
-  void                    AppWindowApi::DestroyWindow( WindowHandle h)
+  void AppWindowApi::DestroyWindow( WindowHandle h)
   {
     PlatformFns* platform { PlatformFns::GetInstance() };
     platform->PlatformDespawnWindow( h );
     FreeWindowHandle( h );
   }
 
-  Render::SwapChainHandle AppWindowApi::GetSwapChainHandle( WindowHandle h )
+  auto AppWindowApi::GetSwapChainHandle( WindowHandle h ) -> Render::SwapChainHandle
   {
     return sAppCurr[ h.GetIndex() ].mSwapChainHandle;
   }
 
-  void                    AppWindowApi::SetSwapChainAutoCreate( bool autoCreate)
+  void AppWindowApi::SetSwapChainAutoCreate( bool autoCreate)
   {
     AppWindowApiBackend::SetCreatesSwapChain( autoCreate );
   }
 
-  void                    AppWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt )
+  void AppWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt )
   {
     sSwapChainColorFormat = texFmt;
   }
 
-  void                    AppWindowApi::SetSwapChainDepthFormat( Render::TexFmt texFmt )
+  void AppWindowApi::SetSwapChainDepthFormat( Render::TexFmt texFmt )
   {
     sSwapChainDepthFormat = texFmt;
   }
 
-  Render::TexFmt          AppWindowApi::GetSwapChainColorFormat() { return sSwapChainColorFormat; }
+  auto AppWindowApi::GetSwapChainColorFormat() -> Render::TexFmt { return sSwapChainColorFormat; }
 
-  Render::TexFmt          AppWindowApi::GetSwapChainDepthFormat() { return sSwapChainDepthFormat; }
+  auto AppWindowApi::GetSwapChainDepthFormat() -> Render::TexFmt { return sSwapChainDepthFormat; }
 
-  void                    AppWindowApi::DesktopWindowDebugImgui()
+  void AppWindowApi::DesktopWindowDebugImgui()
   {
 #if 0
     if( !ImGuiCollapsingHeader( "DesktopWindowDebugImgui" ) )

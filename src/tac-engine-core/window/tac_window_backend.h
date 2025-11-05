@@ -38,7 +38,7 @@ namespace Tac
     static void SetWindowSize( WindowHandle, v2i, Errors& );
     static void SetWindowPos( WindowHandle, v2i );
     static void SetWindowHovered( WindowHandle );
-    static v2i  GetWindowPos( WindowHandle );
+    static auto GetWindowPos( WindowHandle ) -> v2i;
     static void SetCreatesSwapChain( bool );
   };
 }

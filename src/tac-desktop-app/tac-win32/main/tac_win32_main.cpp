@@ -32,8 +32,8 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   TAC_CALL_RET( XInputInit( errors ) );
   Win32MouseEdgeInit();
   PlatformFns::SetInstance( &sWin32PlatformFns );
+  TAC_CALL_RET( Win32WindowManager::Init( errors ) );
   TAC_CALL_RET( DesktopApp::Init( errors ) );
-  TAC_CALL_RET( Win32WindowManagerInit( errors ) );
   TAC_CALL_RET( Network::NetWinsockInit( errors ) );
   TAC_CALL_RET( DesktopApp::Run( errors ) );
   Render::DXGIReportLiveObjects();

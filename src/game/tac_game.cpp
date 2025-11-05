@@ -15,27 +15,26 @@ namespace Tac
 {
   static WindowHandle   mWindowHandle;
   static SettingsNode   sSettingsNode;
+  static Ghost*         sGhost;
 
   static void GameCallbackInit(  Errors& errors )
   {
     SpaceInit();
-
     const Monitor monitor{ OS::OSGetPrimaryMonitor() };
     TAC_ASSERT( !Shell::sShellAppName.empty() );
-    const v2i size( ( int )( monitor.mSize.x * 0.8f ),
-                    ( int )( monitor.mSize.y * 0.8f ) );
-    const WindowCreateParams windowCreateParams
-    {
-      .mName { Shell::sShellAppName },
-      .mPos  {},
-      .mSize { size },
-    };
-
-    TAC_CALL( mWindowHandle = AppWindowApi::CreateWindow( windowCreateParams, errors ) );
-
-    auto ghost { TAC_NEW Ghost };
-    //ghost->mRenderView = mDesktopWindow->mRenderView;
-    TAC_CALL( ghost->Init( sSettingsNode,  errors ));
+    const int x{ ( int )( monitor.mSize.x * 0.1f ) };
+    const int y{ ( int )( monitor.mSize.y * 0.1f ) };
+    const int w{ ( int )( monitor.mSize.x * 0.8f ) };
+    const int h{ ( int )( monitor.mSize.y * 0.8f ) };
+    TAC_CALL( mWindowHandle = AppWindowApi::CreateWindow(
+      WindowCreateParams
+      {
+        .mName { Shell::sShellAppName },
+        .mPos  { x, y },
+        .mSize { w, h },
+      }, errors ) );
+    sGhost = TAC_NEW Ghost;
+    TAC_CALL( sGhost->Init( sSettingsNode, errors ));
   }
 
   static void GameCallbackUpdate( Errors& )
@@ -57,15 +56,7 @@ namespace Tac
     }
   };
 
-  App* App::Create()
-  {
-    const App::Config config
-    {
-       .mName { "Game" },
-    };
-    return TAC_NEW GameApp( config );
-  }
-
+  App* App::Create() { return TAC_NEW GameApp( App::Config{ .mName { "Game" }, } ); }
 
 }// namespace Tac
 

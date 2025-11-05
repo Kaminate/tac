@@ -28,12 +28,10 @@ namespace Tac::Network
   struct SocketWinsock : public Socket
   {
     ~SocketWinsock();
-    void        SetIsBlocking( bool isBlocking, Errors& );
-    void        SetKeepalive( bool keepAlive, Errors& );
-    void        Send( void* bytes, int byteCount, Errors& ) override;
-    void        TCPTryConnect( StringView hostname,
-                               u16 port,
-                               Errors& ) override;
+    void SetIsBlocking( bool isBlocking, Errors& );
+    void SetKeepalive( bool keepAlive, Errors& );
+    void Send( void* bytes, int byteCount, Errors& ) override;
+    void TCPTryConnect( StringView hostname, u16 port, Errors& ) override;
 
     SOCKET      mSocket               { INVALID_SOCKET };
     int         mWinsockAddressFamily {};
@@ -44,14 +42,11 @@ namespace Tac::Network
   struct NetWinsock : public Net
   {
     ~NetWinsock();
-    void                       Init( Errors& ) override;
-    void                       DebugImgui() override;
-    void                       Update( Errors& ) override;
-    Socket*                    CreateSocket( StringView name,
-                                             AddressFamily,
-                                             SocketType,
-                                             Errors& ) override;
-    Vector< Socket* >          GetSockets() override;
+    void Init( Errors& ) override;
+    void DebugImgui() override;
+    void Update( Errors& ) override;
+    auto CreateSocket( StringView name, AddressFamily, SocketType, Errors& ) -> Socket* override;
+    auto GetSockets() -> Vector< Socket* > override;
 
     Set< SocketWinsock* >      mSocketWinsocks           {};
     bool                       mPrintReceivedMessages    {};
@@ -66,14 +61,11 @@ namespace Tac::Network
 
   // -----------------------------------------------------------------------------------------------
 
-  void NetWinsockInit( Errors& errors )
-  {
-    sNetWinsock.Init( errors );
-  }
+  void NetWinsockInit( Errors& errors ) { sNetWinsock.Init( errors ); }
 
   // -----------------------------------------------------------------------------------------------
 
-  static int    GetWinsockAddressFamily( AddressFamily addressFamily )
+  static auto GetWinsockAddressFamily( AddressFamily addressFamily ) -> int
   {
     switch( addressFamily )
     {
@@ -83,7 +75,7 @@ namespace Tac::Network
     }
   }
 
-  static int    GetWinsockSocketType( SocketType socketType )
+  static auto GetWinsockSocketType( SocketType socketType ) -> int
   {
     switch( socketType )
     {
@@ -93,14 +85,14 @@ namespace Tac::Network
     }
   }
 
-  static String GetWSAErrorString( int wsaErrorCode )
+  static auto GetWSAErrorString( int wsaErrorCode ) -> String
   {
     // From Win32 API: FormatMessage can obtain the message string for the returned error
     const DWORD dwMessageId = wsaErrorCode;
     return Win32ErrorStringFromDWORD( dwMessageId );
   }
 
-  static String GetLastWSAErrorString()
+  static auto GetLastWSAErrorString() -> String
   {
     const int errorCode = WSAGetLastError();
     return GetWSAErrorString( errorCode );
@@ -283,7 +275,7 @@ namespace Tac::Network
     WSACleanup();
   }
 
-  void              NetWinsock::Init( Errors& errors )
+  void NetWinsock::Init( Errors& errors )
   {
     const WORD wsaVersion { MAKEWORD( 2, 2 ) };
     WSAData wsaData;
@@ -296,10 +288,10 @@ namespace Tac::Network
     mPrintReceivedMessages = true;
   }
 
-  Socket*           NetWinsock::CreateSocket( StringView name,
+  auto NetWinsock::CreateSocket( StringView name,
                                               AddressFamily addressFamily,
                                               SocketType socketType,
-                                              Errors& errors )
+                                              Errors& errors ) -> Socket*
   {
     const int winsockSocketType { GetWinsockSocketType( socketType ) };
     const int winsockAddressFamily { GetWinsockAddressFamily( addressFamily ) };
@@ -325,7 +317,7 @@ namespace Tac::Network
     return ( Socket* )netWinsocket;
   }
 
-  Vector< Socket* > NetWinsock::GetSockets()
+  auto NetWinsock::GetSockets() -> Vector< Socket* >
   {
     Vector< Socket* > result;
     for( SocketWinsock* netWinsocket : mSocketWinsocks )
@@ -333,7 +325,7 @@ namespace Tac::Network
     return result;
   }
 
-  void              NetWinsock::DebugImgui()
+  void NetWinsock::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "Network" ) )
     //  return;
@@ -349,7 +341,7 @@ namespace Tac::Network
     //}
   }
 
-  void              NetWinsock::Update( Errors& errors )
+  void NetWinsock::Update( Errors& errors )
   {
     bool shouldSendKeepalive { Timestep::GetElapsedTime() > mKeepaliveNextSeconds };
     if( shouldSendKeepalive )

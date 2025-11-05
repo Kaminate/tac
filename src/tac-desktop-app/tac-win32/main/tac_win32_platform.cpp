@@ -18,12 +18,12 @@ namespace Tac
 
     TAC_IMGUI_INDENT_BLOCK;
 
-    Win32WindowManagerDebugImGui();
+    Win32WindowManager::DebugImGui();
   }
 
   void Win32PlatformFns::PlatformFrameBegin( Errors& errors ) const
   {
-    Win32WindowManagerPoll( errors );
+    Win32WindowManager::Poll( errors );
   }
 
   void Win32PlatformFns::PlatformFrameEnd( Errors& errors ) const
@@ -38,19 +38,17 @@ namespace Tac
   void Win32PlatformFns::PlatformSpawnWindow( const PlatformSpawnWindowParams& params,
                                               Errors& errors ) const
   {
-    Win32WindowManagerSpawnWindow( params, errors );
+    Win32WindowManager::SpawnWindow( params, errors );
   }
 
   void Win32PlatformFns::PlatformDespawnWindow( WindowHandle handle ) const
   {
-    Win32WindowManagerDespawnWindow( handle );
+    Win32WindowManager::DespawnWindow( handle );
   }
 
   void Win32PlatformFns::PlatformSetWindowPos( WindowHandle windowHandle, v2i pos) const
   {
-    const HWND hwnd{ Win32WindowManagerGetHWND( windowHandle ) };
-
-
+    const HWND hwnd{ Win32WindowManager::GetHWND( windowHandle ) };
     RECT rect;
     if( !::GetWindowRect( hwnd, &rect ) )
     {
@@ -62,7 +60,6 @@ namespace Tac
     const int y{ pos.y };
     const int w{ rect.right - rect.left };
     const int h{ rect.bottom - rect.top };
-
     ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 
@@ -73,7 +70,6 @@ namespace Tac
     static HCURSOR cursorArrowEW { LoadCursor( NULL, IDC_SIZEWE ) };
     static HCURSOR cursorArrowNE_SW { LoadCursor( NULL, IDC_SIZENESW ) };
     static HCURSOR cursorArrowNW_SE { LoadCursor( NULL, IDC_SIZENWSE ) };
-
     switch( cursor )
     {
     case PlatformMouseCursor::kNone:        ::SetCursor( nullptr );          break;
@@ -88,9 +84,7 @@ namespace Tac
 
   void Win32PlatformFns::PlatformSetWindowSize( WindowHandle windowHandle, v2i size) const
   {
-    const HWND hwnd{ Win32WindowManagerGetHWND( windowHandle ) };
-
-
+    const HWND hwnd{ Win32WindowManager::GetHWND( windowHandle ) };
     RECT rect;
     if( !::GetWindowRect( hwnd, &rect ) )
     {
@@ -102,18 +96,17 @@ namespace Tac
     const int y{ rect.top };
     const int w{ size.x };
     const int h{ size.y };
-
     ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 
-  WindowHandle Win32PlatformFns::PlatformGetMouseHoveredWindow() const
+  auto Win32PlatformFns::PlatformGetMouseHoveredWindow() const -> WindowHandle
   {
     POINT cursorPos;
     if( !::GetCursorPos( &cursorPos ) )
       return {};
 
     const HWND hwnd{ ::WindowFromPoint( cursorPos ) };
-    return Win32WindowManagerFindWindow( hwnd );
+    return Win32WindowManager::FindWindow( hwnd );
   }
 
   // -----------------------------------------------------------------------------------------------

@@ -46,7 +46,7 @@ namespace Tac
     CreationSimState mSimState;
   };
 
-  static String CreationGetNewEntityName( World* world )
+  static auto CreationGetNewEntityName( World* world ) -> String
   {
     dynmc String desiredEntityName { "Entity" };
     dynmc int parenNumber { 1 };
@@ -62,7 +62,7 @@ namespace Tac
     return desiredEntityName;
   }
 
-  static void   CheckSavePrefab( World* world )
+  static void CheckSavePrefab( World* world )
   {
     if( const bool triggered{
           AppKeyboardApi::JustPressed( Key::S ) &&
@@ -83,7 +83,7 @@ namespace Tac
     CreationGameWindow::SetStatusMessage( msg, duration );
   }
 
-  static void   CloseAppWhenAllWindowsClosed()
+  static void CloseAppWhenAllWindowsClosed()
   {
     static bool hasAnyWindowShown;
     const bool isAnyWindowShown{
@@ -140,19 +140,19 @@ namespace Tac
       AddData( "asset", &CreationAssetView::sShowWindow );
     }
 
-    void             Load(  SettingsNode settingsNode, StringView windowName, bool& show )
+    void Load( SettingsNode settingsNode, StringView windowName, bool& show )
     {
       const ShortFixedString path{ MakePath( windowName ) };
       show = settingsNode.GetChild( path ).GetValueWithFallback( true );
     }
 
-    void             Save(  SettingsNode settingsNode, StringView windowName, bool& show )
+    void Save( SettingsNode settingsNode, StringView windowName, bool& show )
     {
       const ShortFixedString path{ MakePath( windowName ) };
       settingsNode.GetChild( path ).SetValue( show );
     }
 
-    void             AddData( StringView windowName, bool* show )
+    void AddData( StringView windowName, bool* show )
     {
       Data data;
       data.mWindowName = windowName;
@@ -160,7 +160,7 @@ namespace Tac
       mDatas.push_back( data );
     }
 
-    ShortFixedString MakePath( StringView name )
+    auto MakePath( StringView name ) -> ShortFixedString
     {
       return ShortFixedString::Concat( "show window.", name );
     }
@@ -181,12 +181,12 @@ namespace Tac
       gCreation.Init( mSettingsNode, errors );
     }
 
-    State GameState_Create() override
+    auto GameState_Create() -> State override 
     {
       return TAC_NEW CreationAppState;
     }
 
-    void  GameState_Update( IState* state ) override
+    void GameState_Update( IState* state ) override
     {
       ( ( CreationAppState* )state )->mSimState.CopyFrom( gCreation.mSimState );
     }
@@ -215,18 +215,11 @@ namespace Tac
     CreationAppState mState;
   };
 
-  App* App::Create()
-  {
-    const App::Config config
-    {
-      .mName { "Level Editor"  },
-    };
-    return TAC_NEW LevelEditorApp( config );
-  }
+  auto App::Create() -> App* { return TAC_NEW LevelEditorApp( App::Config { .mName { "Level Editor"  }, } ); }
 
   //===-------------- Creation -------------===//
 
-  void                Creation::Init( SettingsNode settingsNode, Errors& errors )
+  void Creation::Init( SettingsNode settingsNode, Errors& errors )
   {
     mSettingsNode = settingsNode;
 
@@ -255,7 +248,7 @@ namespace Tac
                           errors ) );
   }
 
-  void                Creation::Uninit( Errors& )
+  void Creation::Uninit( Errors& )
   {
     ShowWindowHelper::GetInstance().Save( mSettingsNode );
     sIconRenderer.Uninit();
@@ -264,8 +257,7 @@ namespace Tac
     mSysState.Uninit();
   }
 
-  void                Creation::Render( const CreationAppState* renderParams,
-                                        Errors& errors )
+  void Creation::Render( const CreationAppState* renderParams, Errors& errors )
   {
     World* world{ renderParams->mSimState.mWorld };
     Camera* camera{ renderParams->mSimState.mEditorCamera };
@@ -274,7 +266,7 @@ namespace Tac
     CreationGameWindow::Render( world, camera, errors );
   }
 
-  void                Creation::Update( World* world, Camera* camera, Errors& errors )
+  void Creation::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
     CheckSavePrefab( world );
@@ -293,7 +285,7 @@ namespace Tac
     CloseAppWhenAllWindowsClosed();
   }
 
-  RelativeSpace       Creation::GetEditorCameraVisibleRelativeSpace( const Camera* camera )
+  auto Creation::GetEditorCameraVisibleRelativeSpace( const Camera* camera ) -> RelativeSpace
   {
     return RelativeSpace
     {
@@ -301,10 +293,10 @@ namespace Tac
     };
   }
 
-  Entity*             Creation::InstantiateAsCopy( World* world,
-                                                   Camera* camera,
-                                                   Entity* prefabEntity,
-                                                   const RelativeSpace& relativeSpace )
+  auto Creation::InstantiateAsCopy( World* world,
+                                    Camera* camera,
+                                    Entity* prefabEntity,
+                                    const RelativeSpace& relativeSpace ) -> Entity*
   {
     Entity* copyEntity{ CreateEntity( world, camera ) };
     copyEntity->mRelativeSpace = relativeSpace;
@@ -341,7 +333,7 @@ namespace Tac
     return copyEntity;
   }
 
-  Entity* Creation::CreateEntity( World* world, Camera* camera )
+  auto Creation::CreateEntity( World* world, Camera* camera ) -> Entity*
   {
     Entity* entity{ world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
     entity->mName = CreationGetNewEntityName( world );

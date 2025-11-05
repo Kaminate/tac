@@ -4,15 +4,19 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-engine-core/platform/tac_platform.h"
 
+#undef FindWindow
+
 namespace Tac
 {
-  void                Win32WindowManagerInit( Errors& );
-  void                Win32WindowManagerPoll( Errors& );
-  void                Win32WindowManagerSpawnWindow( const PlatformSpawnWindowParams&, Errors& );
-  void                Win32WindowManagerDespawnWindow( WindowHandle );
-  //WindowHandle        Win32WindowManagerGetCursorUnobscuredWindow();
-  WindowHandle        Win32WindowManagerFindWindow( HWND );
-  HWND                Win32WindowManagerGetHWND( WindowHandle );
-  void                Win32WindowManagerDebugImGui();
+  struct Win32WindowManager
+  {
+    static void Init( Errors& );
+    static void Poll( Errors& );
+    static void SpawnWindow( const PlatformSpawnWindowParams&, Errors& );
+    static void DespawnWindow( WindowHandle );
+    static auto FindWindow( HWND ) -> WindowHandle;
+    static HWND GetHWND( WindowHandle );
+    static void DebugImGui();
+  };
 }
 

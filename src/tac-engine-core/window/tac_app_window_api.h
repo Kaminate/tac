@@ -13,23 +13,23 @@ namespace Tac
 {
   struct AppWindowApi
   {
-    static bool                    IsShown( WindowHandle );
-    static bool                    IsHovered( WindowHandle );
-    static v2i                     GetPos( WindowHandle );
-    static void                    SetPos( WindowHandle, v2i );
-    static v2i                     GetSize( WindowHandle );
-    static void                    SetSize( WindowHandle, v2i );
-    static StringView              GetName( WindowHandle );
-    static const void*             GetNativeWindowHandle( WindowHandle );
-    static WindowHandle            CreateWindow( WindowCreateParams, Errors& );
-    static void                    DestroyWindow( WindowHandle );
-    static Render::SwapChainHandle GetSwapChainHandle( WindowHandle );
-    static void                    SetSwapChainAutoCreate( bool );
-    static void                    SetSwapChainColorFormat( Render::TexFmt );
-    static void                    SetSwapChainDepthFormat( Render::TexFmt );
-    static Render::TexFmt          GetSwapChainColorFormat();
-    static Render::TexFmt          GetSwapChainDepthFormat();
-    static void                    DesktopWindowDebugImgui();
+    static bool IsShown( WindowHandle );
+    static bool IsHovered( WindowHandle );
+    static auto GetPos( WindowHandle ) -> v2i;
+    static void SetPos( WindowHandle, v2i );
+    static auto GetSize( WindowHandle ) -> v2i;
+    static void SetSize( WindowHandle, v2i );
+    static auto GetName( WindowHandle ) -> StringView;
+    static auto GetNativeWindowHandle( WindowHandle ) -> const void*;
+    static auto CreateWindow( WindowCreateParams, Errors& ) -> WindowHandle;
+    static void DestroyWindow( WindowHandle );
+    static auto GetSwapChainHandle( WindowHandle ) -> Render::SwapChainHandle;
+    static void SetSwapChainAutoCreate( bool );
+    static void SetSwapChainColorFormat( Render::TexFmt );
+    static void SetSwapChainDepthFormat( Render::TexFmt );
+    static auto GetSwapChainColorFormat() -> Render::TexFmt;
+    static auto GetSwapChainDepthFormat() -> Render::TexFmt;
+    static void DesktopWindowDebugImgui();
   };
 
 } // namespace Tac
