@@ -69,7 +69,7 @@ namespace Tac
       posAttribute->data->buffer_view->buffer->data +
       posAttribute->data->buffer_view->buffer->size };
 
-    MeshRaycast::SubMeshTriangle tri{};
+    Triangle tri{};
     int iVert{};
 
     const auto AppendVertex
@@ -517,7 +517,7 @@ namespace Tac
           ( parsedPrim->indices->stride * ii ) + // stride (using accessor stride, not buffer view stride)
           ( char* )parsedPrim->indices->buffer_view->buffer->data }; // buffer start
 
-        JPPTCPUMeshData::IndexType jpptIndex;
+        JPPTCPUMeshData::IndexType jpptIndex{};
         const MetaType::CastParams castParams
         {
           .mDst     { &jpptIndex },
@@ -597,7 +597,7 @@ namespace Tac
         ConvertToVertexBuffer( vtxDecls, parsedPrim, vtxBufName, errors ) } );
 
       const MeshRaycast subMeshRaycast{ GetMeshRaycast( parsedPrim ) };
-      for( const MeshRaycast::SubMeshTriangle& tri : subMeshRaycast.mTris )
+      for( const Triangle& tri : subMeshRaycast.mTris )
         meshRaycast.mTris.push_back( tri );
 
       const Render::PrimitiveTopology topology{ Render::PrimitiveTopology::TriangleList };

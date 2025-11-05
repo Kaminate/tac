@@ -300,7 +300,7 @@ namespace Tac
     void DebugVisualizeSceneBVH( Debug3DDrawData*, SceneBVH* );
 
   private:
-    const BVHMesh* FindSelectedMesh( SceneBVH* );
+    const BVHMesh* FindSelectedMesh( SceneBVH* ) const;
     const BVHNode* FindSelectedNode( const BVHMesh* );
 
     void DebugImguiSceneBVHMeshes( SceneBVH* );

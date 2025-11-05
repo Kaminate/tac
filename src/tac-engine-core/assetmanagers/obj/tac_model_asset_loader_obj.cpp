@@ -15,12 +15,49 @@
 
 namespace Tac
 {
+  struct WavefrontObjVtxDeclCreator
+  {
+    static Render::VertexDeclarations Create( const WavefrontObj& wavefrontObj  )
+    {
+      return WavefrontObjVtxDeclCreator( wavefrontObj ).mVertexDeclarations;
+    }
 
-  static WavefrontObj::Vertex WavefrontObjParseVertex( StringView line )
+  private:
+    WavefrontObjVtxDeclCreator( const WavefrontObj& wavefrontObj )
+    {
+      if( !wavefrontObj.mPositions.empty() )
+        AddAttribute( Render::Attribute::Position, Render::VertexAttributeFormat::GetVector3() );
+
+      if( !wavefrontObj.mNormals.empty() )
+        AddAttribute( Render::Attribute::Normal, Render::VertexAttributeFormat::GetVector3() );
+
+      if( !wavefrontObj.mTexCoords.empty() )
+        AddAttribute( Render::Attribute::Texcoord, Render::VertexAttributeFormat::GetVector2() );
+
+      TAC_ASSERT( mVertexDeclarations.CalculateStride() == mRunningStride );
+    };
+
+    void AddAttribute( Render::Attribute attrib, Render::VertexAttributeFormat vaf )
+    {
+        const Render::VertexDeclaration vtxDecl
+        {
+          .mAttribute         { attrib },
+          .mFormat            { vaf },
+          .mAlignedByteOffset { mRunningStride },
+        };
+        mVertexDeclarations.push_back( vtxDecl );
+        mRunningStride += vaf.CalculateTotalByteCount();
+    }
+
+    int                        mRunningStride{};
+    Render::VertexDeclarations mVertexDeclarations;
+  };
+
+  static auto WavefrontObjParseVertex( StringView line ) -> WavefrontObj::Vertex
   {
     ParseData parseData( line.begin(), line.end() );
     WavefrontObj::Vertex vertex;
-    const int slashCount = Count( line, '/' );
+    const int slashCount{ Count( line, '/' ) };
     if( slashCount == 0 )
     {
       vertex.miPosition = ( int )parseData.EatFloat().GetValue() - 1;
@@ -43,9 +80,8 @@ namespace Tac
     return vertex;
   }
 
-  static WavefrontObj::Face   WavefrontObjParseFace( ParseData* parseData )
+  static auto WavefrontObjParseFace( ParseData* parseData ) -> WavefrontObj::Face
   {
-    //ParseData parseData( line.begin(), line.end() );
     WavefrontObj::Face face  {};
     for( WavefrontObj::Vertex* vertex { face.mVertexes }; vertex < face.mVertexes + 3; ++vertex )
       if( StringView vertexString { parseData->EatWord() }; !vertexString.empty() )
@@ -54,68 +90,27 @@ namespace Tac
     return face;
   }
 
-  static v2 EatV2( ParseData* parseData )
+  static auto EatV2( ParseData* parseData ) -> v2
   {
-    float x { parseData->EatFloat().GetValue() };
-    float y { parseData->EatFloat().GetValue() };
+    const float x { parseData->EatFloat().GetValue() };
+    const float y { parseData->EatFloat().GetValue() };
     return { x, y };
   }
 
-  static v3 EatV3( ParseData* parseData )
+  static auto EatV3( ParseData* parseData ) -> v3
   {
-    float x { parseData->EatFloat().GetValue() };
-    float y { parseData->EatFloat().GetValue() };
-    float z { parseData->EatFloat().GetValue() };
+    const float x { parseData->EatFloat().GetValue() };
+    const float y { parseData->EatFloat().GetValue() };
+    const float z { parseData->EatFloat().GetValue() };
     return { x, y, z };
   }
 
-  WavefrontObj       WavefrontObj::Load( const void* bytes, int byteCount )
-  {
-    ParseData                  parseData( ( const char* )bytes, byteCount );
-    Vector< v3 >               normals;
-    Vector< v2 >               texcoords;
-    Vector< v3 >               positions;
-    Vector< Face > faces;
-
-    for( ;; )
-    {
-      if( parseData.GetRemainingByteCount() == 0 )
-        break;
-
-      const StringView word{ parseData.EatWord() };
-      if( word == StringView( "f" ) )
-        faces.push_back( WavefrontObjParseFace( &parseData ) );
-      else if( word == StringView( "vn" ) )
-        normals.push_back( EatV3( &parseData ) );
-      else if( word == StringView( "vt" ) )
-        texcoords.push_back( EatV2( &parseData ) );
-      else if( word == StringView( "v" ) )
-        positions.push_back( EatV3( &parseData ) );
-      else
-      {
-        TAC_ASSERT_UNIMPLEMENTED;
-      }
-
-      parseData.EatRestOfLine();
-    }
-
-    return WavefrontObj
-    {
-      .mNormals   { normals },
-      .mTexCoords { texcoords },
-      .mPositions { positions },
-      .mFaces     { faces },
-    };
-  }
-
-
-  static MeshRaycast   WavefrontObjGetMeshRaycast( const WavefrontObj& wavefrontObj )
+  static auto WavefrontObjGetMeshRaycast( const WavefrontObj& wavefrontObj ) -> MeshRaycast
   {
     MeshRaycast subMeshTriangles;
-
     for( const WavefrontObj::Face& face : wavefrontObj.mFaces )
     {
-      MeshRaycast::SubMeshTriangle subMeshTriangle {};
+      Triangle subMeshTriangle {};
       for( int iTriVert {}; iTriVert < 3; ++iTriVert )
       {
         const WavefrontObj::Vertex& tri { face.mVertexes[ iTriVert ] };
@@ -128,11 +123,10 @@ namespace Tac
     return subMeshTriangles;
   }
 
-
-  static Mesh               WavefrontObjConvertToMesh( const StringView& name,
-                                                       const WavefrontObj& wavefrontObj,
-                                                       const Render::VertexDeclarations& vertexDeclarations,
-                                                       Errors& errors )
+  static auto WavefrontObjConvertToMesh( const StringView& name,
+                                         const WavefrontObj& wavefrontObj,
+                                         const Render::VertexDeclarations& vertexDeclarations,
+                                         Errors& errors ) -> Mesh
   {
     const int stride { vertexDeclarations.CalculateStride() };
 
@@ -228,53 +222,10 @@ namespace Tac
     };
   }
 
-  struct WavefrontObjVtxDeclCreator
+  static auto WavefrontObjLoadIntoMesh( ModelAssetManager::Params params, Errors& errors ) -> Mesh
   {
-    static Render::VertexDeclarations Create( const WavefrontObj& wavefrontObj  )
-    {
-      return WavefrontObjVtxDeclCreator( wavefrontObj ).mVertexDeclarations;
-    }
-
-  private:
-    WavefrontObjVtxDeclCreator( const WavefrontObj& wavefrontObj )
-    {
-      if( !wavefrontObj.mPositions.empty() )
-        AddAttribute( Render::Attribute::Position, Render::VertexAttributeFormat::GetVector3() );
-
-      if( !wavefrontObj.mNormals.empty() )
-        AddAttribute( Render::Attribute::Normal, Render::VertexAttributeFormat::GetVector3() );
-
-      if( !wavefrontObj.mTexCoords.empty() )
-        AddAttribute( Render::Attribute::Texcoord, Render::VertexAttributeFormat::GetVector2() );
-
-      TAC_ASSERT( mVertexDeclarations.CalculateStride() == mRunningStride );
-    };
-
-    void AddAttribute( Render::Attribute attrib, Render::VertexAttributeFormat vaf )
-    {
-        const Render::VertexDeclaration vtxDecl
-        {
-          .mAttribute         { attrib },
-          .mFormat            { vaf },
-          .mAlignedByteOffset { mRunningStride },
-        };
-        mVertexDeclarations.push_back( vtxDecl );
-        mRunningStride += vaf.CalculateTotalByteCount();
-    }
-
-    int                        mRunningStride{};
-    Render::VertexDeclarations mVertexDeclarations;
-  };
-
-
-  static Mesh               WavefrontObjLoadIntoMesh( ModelAssetManager::Params params,
-                                                      Errors& errors )
-  {
-
     const AssetPathStringView assetPath{ params.mPath };
-    //const int iModel{ params.mModelIndex };
     dynmc Render::VertexDeclarations vertexDeclarations{ params.mOptVtxDecls };
-
     const StringView name { assetPath.GetFilename() };
     const String bytes { LoadAssetPath( assetPath, errors ) };
     const WavefrontObj wavefrontObj { WavefrontObj::Load( bytes.data(), bytes.size() ) };
@@ -284,10 +235,50 @@ namespace Tac
     return WavefrontObjConvertToMesh( name, wavefrontObj, vertexDeclarations, errors );
   }
 
-  void                      WavefrontObj::Init()
+  void WavefrontObj::Init()
   {
     ModelLoadFunctionRegister( WavefrontObjLoadIntoMesh, ".obj" );
   }
+
+  auto WavefrontObj::Load( const void* bytes, int byteCount ) -> WavefrontObj
+  {
+    ParseData                  parseData( ( const char* )bytes, byteCount );
+    Vector< v3 >               normals;
+    Vector< v2 >               texcoords;
+    Vector< v3 >               positions;
+    Vector< Face > faces;
+
+    for( ;; )
+    {
+      if( parseData.GetRemainingByteCount() == 0 )
+        break;
+
+      const StringView word{ parseData.EatWord() };
+      if( word == StringView( "f" ) )
+        faces.push_back( WavefrontObjParseFace( &parseData ) );
+      else if( word == StringView( "vn" ) )
+        normals.push_back( EatV3( &parseData ) );
+      else if( word == StringView( "vt" ) )
+        texcoords.push_back( EatV2( &parseData ) );
+      else if( word == StringView( "v" ) )
+        positions.push_back( EatV3( &parseData ) );
+      else
+      {
+        TAC_ASSERT_UNIMPLEMENTED;
+      }
+
+      parseData.EatRestOfLine();
+    }
+
+    return WavefrontObj
+    {
+      .mNormals   { normals },
+      .mTexCoords { texcoords },
+      .mPositions { positions },
+      .mFaces     { faces },
+    };
+  }
+
 
 } // namespace Tac
 

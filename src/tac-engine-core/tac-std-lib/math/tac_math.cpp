@@ -53,8 +53,6 @@ void Tac::Spring( float* posCurrent,
   *velCurrent = detV * detInv;
 }
 
-
-
 auto Tac::Saturate( const float value ) -> float { return Clamp( value, 0.0f, 1.0f ); }
 
 auto Tac::Clamp( float x, float xMin, float xMax ) -> float
@@ -73,11 +71,11 @@ auto Tac::Clamp( float x, float xMin, float xMax ) -> float
 // ------------
 
 auto Tac::Sin( float f ) -> float               { return std::sinf( f ); }
-auto Tac::Sin( double d ) -> double              { return std::sin( d );  }
+auto Tac::Sin( double d ) -> double             { return std::sin( d );  }
 auto Tac::Cos( float f ) -> float               { return std::cosf( f ); }
-auto Tac::Cos( double d ) -> double              { return std::cos( d );  }
+auto Tac::Cos( double d ) -> double             { return std::cos( d );  }
 auto Tac::Tan( float f ) -> float               { return std::tanf( f ); }
-auto Tac::Tan( double d ) -> double              { return std::tan( d );  }
+auto Tac::Tan( double d ) -> double             { return std::tan( d );  }
 auto Tac::Atan2( float y, float x ) -> float    { return std::atan2( y, x ); }
 auto Tac::Asin( float f ) -> float              { return std::asinf( f ); }
 auto Tac::Acos( float f ) -> float              { return std::acosf( f ); }
@@ -86,7 +84,7 @@ auto Tac::Acos( float f ) -> float              { return std::acosf( f ); }
 // Rounding
 // --------
 
-auto Tac::Round( float f ) -> float              { return std::roundf( f ); }
+auto Tac::Round( float f ) -> float             { return std::roundf( f ); }
 
 // Example:
 //   RoundUpToNearestMultiple( 10, 5 ) = 10
@@ -96,15 +94,15 @@ auto Tac::Round( float f ) -> float              { return std::roundf( f ); }
 //  return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
 //}
 
-auto Tac::Floor( float f ) -> float           { return std::floor( f ); }
-auto Tac::Floor( double d ) -> double          { return std::floor( d ); }
+auto Tac::Floor( float f ) -> float             { return std::floor( f ); }
+auto Tac::Floor( double d ) -> double           { return std::floor( d ); }
 auto Tac::Floor( const v2& v ) -> Tac::v2       { return v2( Floor( v.x ), Floor( v.y ) ); }
 auto Tac::Floor( const v3& v ) -> Tac::v3       { return v3( Floor( v.x ), Floor( v.y ), Floor( v.z ) ); }
-auto Tac::Ceil( float f ) -> float            { return std::ceil( f ); }
+auto Tac::Ceil( float f ) -> float              { return std::ceil( f ); }
 auto Tac::Ceil( const v2& v ) -> Tac::v2        { return v2( Ceil( v.x ), Ceil( v.y ) ); }
 auto Tac::Ceil( const v3& v ) -> Tac::v3        { return v3( Ceil( v.x ), Ceil( v.y ), Ceil( v.z ) ); }
-auto Tac::Fmod( float x, float y ) -> float   { return std::fmodf( x, y ); }
-auto Tac::Fmod( double x, double y ) -> double { return std::fmod( x, y ); }
+auto Tac::Fmod( float x, float y ) -> float     { return std::fmodf( x, y ); }
+auto Tac::Fmod( double x, double y ) -> double  { return std::fmod( x, y ); }
 
 // ----------
 // Randomness
@@ -158,12 +156,12 @@ namespace Tac
 // Intersection
 // ------------
 
-auto Tac::RaySphere( const v3& rayPos, const v3& rayDir, const v3& spherePos, float sphereRadius ) -> float
+auto Tac::RaySphere( Ray ray, Sphere sphere  ) -> float
 {
-  const v3 dp { rayPos - spherePos };
-  const float c { Dot( dp, dp ) - Square( sphereRadius ) };
-  const float b { 2 * Dot( dp, rayDir ) };
-  const float a { Dot( rayDir, rayDir ) };
+  const v3 dp { ray.mOrigin - sphere.mOrigin };
+  const float c { Dot( dp, dp ) - Square( sphere.mRadius ) };
+  const float b { 2 * Dot( dp, ray.mDirection ) };
+  const float a { Dot( ray.mDirection, ray.mDirection ) };
   const float discriminant { Square( b ) - 4 * a * c };
   if( discriminant < 0 )
     return -1;
@@ -178,8 +176,10 @@ auto Tac::RaySphere( const v3& rayPos, const v3& rayDir, const v3& spherePos, fl
   return -1;
 }
 
-auto Tac::ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p ) -> Tac::v3
+auto Tac::ClosestPointLineSegment( LineSegment line, const v3& p ) -> Tac::v3
 {
+  const v3& p0 = line[ 0 ];
+  const v3& p1 = line[ 1 ];
   const v3 to1 { p1 - p0 };
   const v3 toP { p - p0 };
   const float toP_dot_to1 { Dot( toP, to1 ) };
@@ -219,12 +219,12 @@ auto Tac::IsInf( float f ) -> bool              { return std::isinf( f ); }
 
 namespace Tac
 {
-  auto ClosestPointLineSegments::Solve( Input input) -> ClosestPointLineSegments::Output
+  ClosestPointLineSegments::ClosestPointLineSegments( Input input)
   {
-    const v3 p1{input.mLine1Begin};
-    const v3 q1{input.mLine1End};
-    const v3 p2{input.mLine2Begin};
-    const v3 q2{input.mLine2End};
+    const v3 p1{input.mLine1[0]};
+    const v3 q1{input.mLine1[1]};
+    const v3 p2{input.mLine2[0]};
+    const v3 q2{input.mLine2[1]};
     // this function ripped from real time collision detection
     float s { -1 };
     float t { -1 };
@@ -272,14 +272,11 @@ namespace Tac
     }
     const v3 c1 { p1 + d1 * s };
     const v3 c2 { p2 + d2 * t };
-    return Output
-    {
-      .mClosestPointOnLine1{ c1 },
-      .mClosestPointOnLine2{ c2 },
-    };
+    mClosestPointOnLine1 = c1;
+    mClosestPointOnLine2 = c2;
   }
 
-  auto ClosestPointTwoRays::Solve( Input input ) -> ClosestPointTwoRays::Output
+  ClosestPointTwoRays::ClosestPointTwoRays( Input input )
   {
     // http://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
     //
@@ -321,12 +318,9 @@ namespace Tac
     // +--> e - scalar such that b*e=E
     // +--> d - scalar such that a*d=D
     // +--> z - vector perpendicular to both a and b ( z = D - E )
-
-    const v3 A{ input.mRay0Pos };
-    const v3 a{ input.mRay0Dir };
-    const v3 B{ input.mRay1Pos };
-    const v3 b{ input.mRay1Dir };
-    const v3 c{ B - A };
+    const v3 a{ input.mRay0.mDirection };
+    const v3 b{ input.mRay1.mDirection };
+    const v3 c{ input.mRay1.mOrigin - input.mRay0.mOrigin };
     const float ab{ Dot( a, b ) };
     const float bc{ Dot( b, c ) };
     const float ac{ Dot( a, c ) };
@@ -335,55 +329,40 @@ namespace Tac
     const float denom{ aa * bb - ab * ab };
     const float d{ ( -ab * bc + ac * bb ) / denom };
     const float e{ ( ab * ac - bc * aa ) / denom };
-    return Output
-    {
-      .mRay0T { d },
-      .mRay1T { e },
-    };
+    mRay0T = d;
+    mRay1T = e;
   }
 
-  auto RayTriangle::Output::GetIntersectionPoint( const Triangle& tri ) const -> v3
+  auto RayTriangle::GetIntersectionPoint( const Triangle& tri ) const -> v3
   {
-    const v3& A{ tri.mP0 };
-    const v3& B{ tri.mP1 };
-    const v3& C{ tri.mP2 };
+    const v3& A{ tri[0] };
+    const v3& B{ tri[1] };
+    const v3& C{ tri[2] };
     const float u { mU };
     const float v { mV };
     const float w { 1.0f - u - v };
     return A * w + B * u + C * v;
   }
 
-  auto RayTriangle::Solve( const Ray& ray, const Triangle& triangle ) -> RayTriangle::Output
+  RayTriangle::RayTriangle( const Ray& ray, const Triangle& triangle )
   {
     // Moller-Trumbore algorithm - "Fast, Minimum Storage Ray/Triangle Intersection" (1977)
-    const v3& p0{ triangle.mP0 };
-    const v3& p1{ triangle.mP1 };
-    const v3& p2{ triangle.mP2 };
-    const v3& rayPos{ ray.mOrigin };
-    const v3& rayDir{ ray.mDirection };
-
-    const v3 edge2{ p2 - p0 };
-    const v3 edge1{ p1 - p0 };
-    const v3 b{ rayPos - p0 };
-    const v3 p{ Cross( rayDir, edge2 ) };
+    const v3 edge2{ triangle[2] - triangle[0] };
+    const v3 edge1{ triangle[1] - triangle[0] };
+    const v3 b{ ray.mOrigin - triangle[0] };
+    const v3 p{ Cross( ray.mDirection, edge2 ) };
     const v3 q{ Cross( b, edge1 ) };
     const float pdotv1{ Dot( p, edge1 ) };
     if( pdotv1 == 0 ) // either the triangle is degenerate, or the ray and triangle are parallel
-      return {}; 
+      return; 
 
-    const float t{ Dot( q, edge2 ) / pdotv1 };
-    const float u{ Dot( p, b ) / pdotv1 };
-    const float v{ Dot( q, rayDir ) / pdotv1 };
-    if( t < 0 || u < 0 || v < 0 || u + v > 1 )
-      return {};
+    mT = Dot( q, edge2 ) / pdotv1;
+    mU = Dot( p, b ) / pdotv1;
+    mV = Dot( q, ray.mDirection ) / pdotv1;
+    if( mT < 0 || mU < 0 || mV < 0 || mU + mV > 1 )
+      return;
 
-    return RayTriangle::Output
-    {
-      .mT{ t },
-      .mU{ u },
-      .mV{ v },
-      .mValid{ true },
-    };
+    mValid = true;
   }
 } // namespace Tac
 

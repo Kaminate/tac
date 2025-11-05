@@ -36,12 +36,6 @@ namespace Tac
     int          arrowAxis    {};
   };
 
-  struct Ray
-  {
-    v3 mPos {};
-    v3 mDir {};
-  };
-
   struct RaycastResult
   {
     bool  mHit {};
@@ -69,11 +63,8 @@ namespace Tac
 
   static RaycastResult MousePickingEntityLight( Ray ray, const Light* light )
   {
-    const float lightWidgetSize{ LightWidget::sSize };
-    const float t{ RaySphere( ray.mPos,
-                              ray.mDir,
-                              light->mEntity->mWorldPosition,
-                              lightWidgetSize ) };
+    const Sphere sphere{ .mOrigin{light->mEntity->mWorldPosition}, .mRadius{LightWidget::sSize} };
+    const float t{ RaySphere( ray ,sphere ) };
     return RaycastResult
     {
       .mHit { t > 0 },
@@ -93,13 +84,13 @@ namespace Tac
     if( !transformInvExists )
       return {};
 
-    const v3 modelSpaceMouseRayPos3 { ( transformInv * v4( ray.mPos, 1 ) ).xyz() };
-    const v3 modelSpaceMouseRayDir3 { Normalize( ( transformInv * v4( ray.mDir, 0 ) ).xyz() ) };
+    const v3 modelSpaceMouseRayPos3 { ( transformInv * v4( ray.mOrigin, 1 ) ).xyz() };
+    const v3 modelSpaceMouseRayDir3 { Normalize( ( transformInv * v4( ray.mDirection, 0 ) ).xyz() ) };
 
-    const MeshRaycast::Ray meshRay
+    const Ray meshRay
     {
-      .mPos{ modelSpaceMouseRayPos3 },
-      .mDir{ modelSpaceMouseRayDir3 },
+      .mOrigin{ modelSpaceMouseRayPos3 },
+      .mDirection{ modelSpaceMouseRayDir3 },
     };
 
     const MeshRaycast::Result meshRaycastResult { mesh->mMeshRaycast.Raycast( meshRay ) };
@@ -112,7 +103,7 @@ namespace Tac
       modelSpaceMouseRayPos3 + modelSpaceMouseRayDir3 * meshRaycastResult.mT };
     const v3 worldSpaceHitPoint {
       ( entity->mWorldTransform * v4( modelSpaceHitPoint, 1 ) ).xyz() };
-    const float dist { Distance( ray.mPos, worldSpaceHitPoint ) };
+    const float dist { Distance( ray.mOrigin, worldSpaceHitPoint ) };
     return RaycastResult
     {
       .mHit { true },
@@ -127,13 +118,9 @@ namespace Tac
   {
     Debug3DDrawData* drawData{ world->mDebug3DDrawData };
 
-    MeshRaycast::SubMeshTriangle closestTri{};
+    Triangle closestTri{};
     MeshRaycast::Result closestResult{};
-    const MeshRaycast::Ray meshRay
-    {
-      .mPos{ ray.mPos },
-      .mDir{ ray.mDir },
-    };
+    const Ray meshRay = ray;
 
     for( Entity* entity : world->mEntities )
     {
@@ -154,19 +141,12 @@ namespace Tac
       if( !mesh )
         continue;
 
-      for( const MeshRaycast::SubMeshTriangle& subMeshTri : mesh->mMeshRaycast.mTris )
+      for( const Triangle& subMeshTri : mesh->mMeshRaycast.mTris )
       {
         const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
         const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
         const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
-
-        const MeshRaycast::SubMeshTriangle meshTri
-        {
-          wsTriv0,
-          wsTriv1,
-          wsTriv2,
-        };
-
+        const Triangle meshTri { wsTriv0, wsTriv1, wsTriv2, };
         if( const MeshRaycast::Result meshResult{ MeshRaycast::RaycastTri( meshRay, meshTri ) };
             meshResult.mHit && ( !closestResult.mHit || meshResult.mT < closestResult.mT ) )
         {
@@ -271,10 +251,10 @@ namespace Tac
       // 3/3: inverse scale
       modelSpaceRayPos3 /= mGizmoMgr-> mArrowLen;
 
-      const MeshRaycast::Ray meshRay
+      const Ray meshRay
       { 
-        .mPos{ modelSpaceRayPos3 },
-        .mDir{ modelSpaceRayDir3 },
+        .mOrigin{ modelSpaceRayPos3 },
+        .mDirection{ modelSpaceRayDir3 },
       };
 
       const MeshRaycast::Result meshRaycastResult{ mArrow->mMeshRaycast.Raycast( meshRay ) };
@@ -297,8 +277,8 @@ namespace Tac
   {
     const Ray ray
     {
-      .mPos{ camera->mPos },
-      .mDir{ mWorldSpaceMouseDir },
+      .mOrigin{ camera->mPos },
+      .mDirection{ mWorldSpaceMouseDir },
     };
 
     if(mWindowHovered)

@@ -16,23 +16,16 @@ namespace Tac
 {
   struct MeshRaycast
   {
-    struct Ray
-    {
-      v3 mPos {};
-      v3 mDir {};
-    };
-
     struct Result
     {
       bool  mHit {};
       float mT   {};
     };
 
-    using SubMeshTriangle  = Array< v3, 3 >;
-    using SubMeshTriangles = Vector< SubMeshTriangle >;
+    using SubMeshTriangles = Vector< Triangle >;
 
     Result Raycast( Ray ) const;
-    static Result RaycastTri( Ray, const SubMeshTriangle& );
+    static Result RaycastTri( Ray, const Triangle& );
 
     SubMeshTriangles mTris {};
   };

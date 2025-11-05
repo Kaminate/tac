@@ -220,8 +220,10 @@ namespace Tac
         bins[ BinIndex ].mBounds.Grow( triangle.mV2 );
       }
 
-      float LeftArea[ BINS - 1 ], RightArea[ BINS - 1 ];
-      int LeftCount[ BINS - 1 ], RightCount[ BINS - 1 ];
+      float LeftArea[ BINS - 1 ]{};
+      float RightArea[ BINS - 1 ]{};
+      int LeftCount[ BINS - 1 ]{};
+      int RightCount[ BINS - 1 ]{};
 
       AABB32 LeftBox{};
       AABB32 RightBox{};
@@ -748,23 +750,15 @@ namespace Tac
           const u32 iTri{ bvh.mTriangleIndices[ iiTri ] };
           const BVHTriangle& tri{ bvhMesh.mTriangles[ iTri ] };
 
-          const RayTriangle::Ray isectRay
+          const Ray isectRay
           {
             .mOrigin    { ray_modelspace.mOrigin },
             .mDirection { ray_modelspace.mDirection },
           };
-
-          const RayTriangle::Triangle isectTri
-          {
-            .mP0{ tri.mV0 },
-            .mP1{ tri.mV1 },
-            .mP2{ tri.mV2 },
-          };
-
-          const RayTriangle::Output isectOut{ RayTriangle::Solve( isectRay, isectTri ) };
+          const Triangle isectTri{ tri.mV0, tri.mV1, tri.mV2 };
+          const RayTriangle isectOut( isectRay, isectTri );
           if( isectOut.mValid && isectOut.mT < result->mDistance )
           {
-
             *result = SceneIntersection
             {
               .mDistance       { isectOut.mT },
@@ -939,7 +933,7 @@ namespace Tac
     return bvhNode;
   }
 
-  const BVHMesh* SceneBVHDebug::FindSelectedMesh( SceneBVH* sceneBVH )
+  const BVHMesh* SceneBVHDebug::FindSelectedMesh( SceneBVH* sceneBVH ) const
   {
     const Vector< BVHMesh >& meshes{ sceneBVH->mMeshes };
     const int nMeshes{ meshes.size() };

@@ -47,7 +47,7 @@ namespace Tac
   //
   // -----------------------------------------------------------------------------------------------
 
-  auto PreBakeScene::Raycast( PatchPower* fromPatch, RayTriangle::Ray ray ) -> PreBakeScene::RaycastResult
+  auto PreBakeScene::Raycast( PatchPower* fromPatch, Ray ray ) -> PreBakeScene::RaycastResult
   {
     constexpr float kFloatMax{ std::numeric_limits<float>::max() };
     dynmc RaycastResult result{ .mT { kFloatMax } };
@@ -59,13 +59,13 @@ namespace Tac
         if( &patchPower == fromPatch )
           continue;
 
-        const RayTriangle::Triangle triangle
+        const Triangle triangle
         {
-          .mP0 { patchPower.mTriVerts[ 0 ] },
-          .mP1 { patchPower.mTriVerts[ 1 ] },
-          .mP2 { patchPower.mTriVerts[ 2 ] },
+          patchPower.mTriVerts[ 0 ],
+          patchPower.mTriVerts[ 1 ],
+          patchPower.mTriVerts[ 2 ],
         };
-        const RayTriangle::Output raycastResult{ RayTriangle::Solve( ray, triangle ) };
+        const RayTriangle raycastResult( ray, triangle );
         if( !raycastResult.mValid || raycastResult.mT >= result.mT )
           continue;
 
@@ -681,7 +681,7 @@ namespace Tac
           const int nSrcSamples{ ( int )( q_src * samplesPerIteration ) };
           for( int iSrcSample{}; iSrcSample < nSrcSamples; ++iSrcSample )
           {
-            const RayTriangle::Ray ray
+            const Ray ray
             {
               .mOrigin    { srcPatch.GetUniformRandomSurfacePoint() },
               .mDirection { SampleCosineWeightedHemisphere( srcPatch.mUnitNormal ) }

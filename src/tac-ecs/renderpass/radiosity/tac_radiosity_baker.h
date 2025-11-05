@@ -54,7 +54,7 @@ namespace Tac
       float           mT                {};
     };
 
-    auto Raycast( PatchPower* fromPatch, RayTriangle::Ray ) -> RaycastResult;
+    auto Raycast( PatchPower* fromPatch, Ray ) -> RaycastResult;
     auto GetMesh( const Model* ) -> const Mesh*;
     void Init( const World* );
     auto ComputeTotalUnshotPower() -> float;

@@ -102,47 +102,60 @@ namespace Tac
     float mPhi    {}; // [0, 2pi]
   };
 
+  // --------
+  // Geometry
+  // --------
+  struct Ray3D{ v3 mOrigin; v3 mDirection; };
+  struct Triangle3D
+  {
+    v3 mVertices[ 3 ];
+    auto operator[]( int i ) -> v3& { return mVertices[ i ]; }
+    auto operator[]( int i ) const -> const v3& { return mVertices[ i ]; }
+  };
+  struct LineSegment3D
+  {
+    v3 mEndPoints[ 2 ];
+    auto operator[]( int i ) -> v3& { return mEndPoints[ i ]; }
+    auto operator[]( int i ) const -> const v3& { return mEndPoints[ i ]; }
+  };
+  struct Sphere3D { v3 mOrigin; float mRadius; };
+
+  using Ray = Ray3D;
+  using Triangle = Triangle3D;
+  using LineSegment = LineSegment3D;
+  using Sphere = Sphere3D;
+
   // ------------
   // Intersection
   // ------------
 
-  //                       returns -1 on failure
-  float                    RaySphere( const v3& rayPos,
-                                      const v3& rayDir,
-                                      const v3& spherePos,
-                                      float sphereRadius );
-  v3                       ClosestPointLineSegment( const v3& p0, const v3& p1, const v3& p );
+  auto RaySphere( Ray, Sphere ) -> float; // returns -1 on failure
+  auto ClosestPointLineSegment( LineSegment, const v3& p ) -> v3;
 
   struct RayTriangle
   {
-    struct Ray{ v3 mOrigin; v3 mDirection; };
-    struct Triangle{ v3 mP0; v3 mP1; v3 mP2; };
-
-    struct Output
-    {
-      v3 GetIntersectionPoint( const Triangle& ) const;
-
-      float mT     {};
-      float mU     {};
-      float mV     {};
-      bool  mValid {};
-    };
-
-    static Output Solve( const Ray&, const Triangle& );
+    RayTriangle( const Ray&, const Triangle& );
+    auto GetIntersectionPoint( const Triangle& ) const -> v3;
+    float mT{};
+    float mU{};
+    float mV{};
+    bool  mValid{};
   };
 
   struct ClosestPointLineSegments
   {
-    struct Input  { v3 mLine1Begin; v3 mLine1End; v3 mLine2Begin; v3 mLine2End; };
-    struct Output { v3 mClosestPointOnLine1; v3 mClosestPointOnLine2; };
-    static Output Solve( Input );
+    struct Input { LineSegment mLine1; LineSegment mLine2; };
+    ClosestPointLineSegments( Input );
+    v3 mClosestPointOnLine1;
+    v3 mClosestPointOnLine2;
   };
   
   struct ClosestPointTwoRays
   {
-    struct Input  { v3 mRay0Pos; v3 mRay0Dir; v3 mRay1Pos; v3 mRay1Dir; };
-    struct Output { float mRay0T; float mRay1T; };
-    static Output Solve( Input );
+    struct Input { Ray mRay0; Ray mRay1; };
+    ClosestPointTwoRays( Input );
+    float mRay0T;
+    float mRay1T;
   };
 
   // ------------
@@ -163,11 +176,11 @@ namespace Tac
   // Misc?? / Unsorted / IEEE 754 Floating Point
   // -----------------
 
-  bool                     IsNan( float );
-  bool                     IsInf( float );
+  bool IsNan( float );
+  bool IsInf( float );
 
-  SphericalCoordinate      SampleCosineWeightedHemisphere();
-  v3                       SampleCosineWeightedHemisphere(v3 n);
+  auto SampleCosineWeightedHemisphere() -> SphericalCoordinate;
+  auto SampleCosineWeightedHemisphere(v3 n) -> v3;
 
 } // namespace Tac
 

@@ -9,7 +9,7 @@
 namespace Tac
 {
 
-  bool                GizmoMgr::IsTranslationWidgetActive( int i )
+  bool GizmoMgr::IsTranslationWidgetActive( int i ) const
   {
     return mGizmosEnabled && mSelectedGizmo && mTranslationGizmoAxis == i;
   }
@@ -35,16 +35,13 @@ namespace Tac
     mArrowLen = arrowLen;
   }
 
-  void                GizmoMgr::Update( const v3 worldSpaceMouseDir,
-                                        const Camera* camera,
-                                        Errors& )
+  void GizmoMgr::Update( Ray worldspaceMouseRay, Errors& )
   {
     if( !SelectedEntities::empty() )
     {
       mTranslationGizmoVisible = true;
       mGizmoOrigin = SelectedEntities::ComputeAveragePosition();
     }
-
 
     if( !mSelectedGizmo )
       return;
@@ -55,31 +52,16 @@ namespace Tac
       return;
     }
 
-    const ClosestPointTwoRays::Input input
-    {
-      .mRay0Pos { camera->mPos },
-      .mRay0Dir { worldSpaceMouseDir },
-      .mRay1Pos { mGizmoOrigin },
-      .mRay1Dir { mTranslationGizmoDir },
-    };
-    const ClosestPointTwoRays::Output output{ ClosestPointTwoRays::Solve( input ) };
-    //const float gizmoMouseDist{ output.mRay0T };
+    const ClosestPointTwoRays output(
+      {
+        .mRay0 { worldspaceMouseRay },
+        .mRay1 {.mOrigin { mGizmoOrigin }, .mDirection{mTranslationGizmoDir} },
+      } );
     const float secondDist{ output.mRay1T };
-
-    const v3 translate {
-      mTranslationGizmoDir
-      * ( secondDist - mTranslationGizmoOffset ) };
-
+    const v3 translate { mTranslationGizmoDir * ( secondDist - mTranslationGizmoOffset ) };
     for( Entity* entity : SelectedEntities() )
-    {
       entity->mRelativeSpace.mPosition += translate;
-    }
   }
-
-  void                GizmoMgr::Render( Errors& )
-  {
-  }
-
 
 } // namespace Tac
 

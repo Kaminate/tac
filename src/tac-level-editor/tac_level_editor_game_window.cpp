@@ -611,10 +611,12 @@ namespace Tac
     CameraUpdateControls( camera );
     mGizmoMgr->ComputeArrowLen( camera );
     TAC_CALL(mMousePicking->Update( world, camera, errors ) );
-
-    const v3 wsMouseDir{ mMousePicking->GetWorldspaceMouseDir() };
-
-    TAC_CALL( gCreation.mGizmoMgr.Update( wsMouseDir, camera, errors ) );
+    const Ray ray
+    {
+      .mOrigin    { camera->mPos },
+      .mDirection { mMousePicking->GetWorldspaceMouseDir() },
+    };
+    TAC_CALL( gCreation.mGizmoMgr.Update( ray, errors ) );
 
     if( drawGrid )
       world->mDebug3DDrawData->DebugDraw3DGrid();

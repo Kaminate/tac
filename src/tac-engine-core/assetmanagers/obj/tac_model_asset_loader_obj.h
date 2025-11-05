@@ -25,8 +25,8 @@ namespace Tac
       Vertex mVertexes[ 3 ]{};
     };
 
-    static void         Init();
-    static WavefrontObj Load( const void*, int );
+    static void Init();
+    static auto Load( const void*, int ) -> WavefrontObj;
 
     Vector< v3 >   mNormals;
     Vector< v2 >   mTexCoords;

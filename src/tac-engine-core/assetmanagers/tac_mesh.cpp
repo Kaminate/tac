@@ -6,24 +6,9 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  MeshRaycast::Result MeshRaycast::RaycastTri( Ray meshRay, const SubMeshTriangle& tri )
+  MeshRaycast::Result MeshRaycast::RaycastTri( Ray meshRay, const Triangle& tri )
   {
-    const RayTriangle::Ray rayTriangleRay
-    {
-      .mOrigin{ meshRay.mPos },
-      .mDirection{ meshRay.mDir },
-    };
-
-    const RayTriangle::Triangle rayTriangleTriangle
-    {
-      .mP0{ tri[ 0 ] },
-      .mP1{ tri[ 1 ] },
-      .mP2{ tri[ 2 ] },
-    };
-
-    const RayTriangle::Output rayTriangleOutput{
-      RayTriangle::Solve( rayTriangleRay, rayTriangleTriangle ) };
-
+    const RayTriangle rayTriangleOutput( meshRay, tri );
     return Result{ .mHit{ rayTriangleOutput.mValid }, .mT{ rayTriangleOutput.mT } };
   }
 

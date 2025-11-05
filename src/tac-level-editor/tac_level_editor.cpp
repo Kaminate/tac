@@ -128,8 +128,8 @@ namespace Tac
   private:
     struct Data
     {
-      StringView mWindowName;
-      bool*      mShow;
+      StringView mWindowName {};
+      bool*      mShow       {};
     };
 
     ShowWindowHelper()
