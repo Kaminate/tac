@@ -66,14 +66,14 @@ namespace Tac
   struct ScriptMatchmaker : public ScriptThread
   {
     ScriptMatchmaker( SettingsNode );
-    void     Update( float seconds, Errors& ) override;
-    void     DebugImgui( Errors& ) override;
-    void     OnScriptGameConnectionClosed( Network::Socket* );
-    void     OnScriptGameMessage( Network::Socket* , void* bytes, int byteCount );
-    void     PokeServer( Errors& );
-    void     ClearServerLog( Errors& );
-    void     Log( StringView text );
-    void     TryConnect();
+    void Update( float seconds, Errors& ) override;
+    void DebugImgui( Errors& ) override;
+    void OnScriptGameConnectionClosed( Network::Socket* );
+    void OnScriptGameMessage( Network::Socket* , void* bytes, int byteCount );
+    void PokeServer( Errors& );
+    void ClearServerLog( Errors& );
+    void Log( StringView text );
+    void TryConnect();
 
     static void TCPOnMessage( void*, Network::Socket*, void*, int );
     static void TCPOnConnectionClosed( void*, Network::Socket* );
@@ -94,11 +94,10 @@ namespace Tac
   };
 
   // Mirrored in server.js
-  const String MatchMessageCreateRoom = "create room";
-
-  static const String scriptMatchmakerName = "matchmaker";
-  static const String scriptMsgDisconnect = "websocket disconnect";
-  static const String scriptMsgConnect = "websocket connect";
+  static const String kMatchMessageCreateRoom = "create room";
+  static const String kScriptMatchmakerName = "matchmaker";
+  static const String kScriptMsgDisconnect = "websocket disconnect";
+  static const String kScriptMsgConnect = "websocket connect";
 
   typedef void ( ScriptMainMenu:: *ScriptMainMenuMessageCallback )( const ScriptMsg* scriptMsg );
   typedef Set< ScriptMainMenuMessageCallback > ScriptCallbacks;

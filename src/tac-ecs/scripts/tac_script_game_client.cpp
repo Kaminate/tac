@@ -160,7 +160,7 @@ namespace Tac
 
 	ScriptMatchmaker::ScriptMatchmaker(SettingsNode settingsNode )
 	{
-		mName = scriptMatchmakerName;
+		mName = kScriptMatchmakerName;
     mSettingsNode = settingsNode;
 	}
 
@@ -171,7 +171,7 @@ namespace Tac
 		mSocket = nullptr;
 		mPretendWebsocketHandshakeDone = false;
 		mLine = 0;
-		mScriptRoot->OnMsg( scriptMsgDisconnect );
+		mScriptRoot->OnMsg( kScriptMsgDisconnect );
 	}
 
   void ScriptMatchmaker::OnScriptGameMessage( [[maybe_unused ]] Network::Socket* socket,
@@ -328,7 +328,7 @@ namespace Tac
 		mSocket->mKeepaliveOverride.mUserData = this;
     mSocket->mKeepaliveOverride.mCallback = ScriptMatchmaker::KeepAlive;
 
-		mScriptRoot->OnMsg( scriptMsgConnect );
+		mScriptRoot->OnMsg( kScriptMsgConnect );
 
 
 		TAC_TIMELINE_KEYFRAME;
@@ -954,7 +954,7 @@ namespace Tac
 		TAC_TIMELINE_BEGIN;
 
 		ScriptMatchmaker* matchMaker {
-      ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName ) };
+      ( ScriptMatchmaker* )mScriptRoot->GetThread( kScriptMatchmakerName ) };
 
 		ConnectToServerJob* job { TAC_NEW ConnectToServerJob };
 		job->mMatchmaker = matchMaker;
