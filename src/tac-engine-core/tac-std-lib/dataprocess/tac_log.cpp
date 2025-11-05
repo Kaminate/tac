@@ -272,7 +272,7 @@ namespace Tac
     if( OS::OSOpenDialog )
     {
       Errors dialogErrors;
-      FileSys::Path dialogPath{ OS::OSOpenDialog( dialogErrors ) };
+      FileSys::Path dialogPath{ OS::OSOpenDialog( {}, dialogErrors ) };
       if( dialogErrors.empty() )
       {
         mPath = dialogPath;

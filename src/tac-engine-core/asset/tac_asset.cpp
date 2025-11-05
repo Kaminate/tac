@@ -6,7 +6,8 @@
 #include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
-//#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/shell/tac_shell.h"
 
 namespace Tac
 {
@@ -201,5 +202,26 @@ Tac::AssetPathStrings Tac::IterateAssetsInDir( const AssetPathStringView& dir,
   }
 
   return result;
+}
+
+auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
+{
+  const FileSys::Path dir { Shell::sShellInitialWorkingDir / AssetPathRootFolderName };
+  const OS::OpenParams params{ .mDefaultFolder { &dir }, };
+  TAC_CALL_RET( const FileSys::Path fsPath{ OS::OSOpenDialog( params, errors ) } );
+  return ModifyPathRelative( fsPath, errors );
+}
+
+auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors ) -> Tac::AssetPathStringView
+{
+  const FileSys::Path dir { Shell::sShellInitialWorkingDir / AssetPathRootFolderName };
+  const FileSys::Path suggestedFilename { params.mSuggestedFilename };
+  const OS::SaveParams saveParams
+  {
+    .mDefaultFolder { & dir },
+    .mSuggestedFilename { &suggestedFilename },
+  };
+  const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
+  return ModifyPathRelative( fsPath, errors );
 }
 // -----------------------------------------------------------------------------------------------

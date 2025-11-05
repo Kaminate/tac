@@ -30,7 +30,6 @@
 namespace Tac
 {
   static DesktopEventHandler           sDesktopEventHandler;
-
 #if TAC_SINGLE_THREADED()
   static Errors                        sAppErrors( Errors::kDebugBreaks );
 #else
@@ -38,29 +37,21 @@ namespace Tac
   static Errors                        sSimErrors( Errors::kDebugBreaks );
 #endif
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
-
   static App*                          sApp;
-
   //static GameStateManager              sGameStateManager;
   static App::State                    sPrevState;
   static App::State                    sCurrState;
-
   static DesktopApp                    sDesktopApp;
-
   static SettingsRoot                  sSettingsRoot;
   static const bool                    sVerbose;
-
   static ThreadAllocator               sAppThreadAllocator;
-
   static Timestamp                     sRenderDelay( 0.0 );
   static int                           sNumRenderFramesSincePrevSimFrame{};
 
 
   // -----------------------------------------------------------------------------------------------
 
-
-
-  static void         DesktopAppDebugImGuiHoveredWindow()
+  static void DesktopAppDebugImGuiHoveredWindow()
   {
 #if 0
     PlatformFns* platform { PlatformFns::GetInstance() };
@@ -81,7 +72,7 @@ namespace Tac
 #endif
   }
   
-  static PlatformMouseCursor ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor )
+  static auto ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor ) -> PlatformMouseCursor
   {
     switch( imguiCursor )
     {
@@ -97,7 +88,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void                DesktopApp::Init( Errors& errors )
+  void DesktopApp::Init( Errors& errors )
   {
     TAC_ASSERT( PlatformFns::GetInstance() );
 
@@ -169,7 +160,7 @@ namespace Tac
     sPrevState = sApp->GameState_Create();
   }
 
-  void                DesktopApp::Run( Errors& errors )
+  void DesktopApp::Run( Errors& errors )
   {
     PlatformFns* platform{ PlatformFns::GetInstance() };
 
@@ -266,13 +257,13 @@ namespace Tac
     errorReport.Report();
   }
 
-  void                DesktopApp::Update( Errors& )
+  void DesktopApp::Update( Errors& )
   {
     DesktopAppUpdateMove();
     DesktopAppUpdateResize();
   }
 
-  void                DesktopApp::UpdateSimulation(Errors&errors)
+  void DesktopApp::UpdateSimulation( Errors& errors )
   {
     if( !Timestep::Update() )
       return;
@@ -317,7 +308,7 @@ namespace Tac
     sNumRenderFramesSincePrevSimFrame = 0;
   }
 
-  void               DesktopApp::Render( Errors& errors )
+  void DesktopApp::Render( Errors& errors )
   {
       TAC_PROFILE_BLOCK;
 
@@ -339,7 +330,7 @@ namespace Tac
 
       TAC_ASSERT( sCurrState->mTimestamp != sPrevState->mTimestamp );
 
-      const Timepoint now{ Timepoint::Now() };
+      const auto now{ Timepoint::Now() };
 
       dynmc float t{
         ( now - sPrevState->mTimepoint ) /
@@ -427,7 +418,7 @@ namespace Tac
       sNumRenderFramesSincePrevSimFrame++;
   }
 
-  void                DesktopApp::DebugImGui( Errors& errors )
+  void DesktopApp::DebugImGui( Errors& errors )
   {
     if( !ImGuiCollapsingHeader( "DesktopAppDebugImGui" ) )
       return;
@@ -440,7 +431,7 @@ namespace Tac
     platform->PlatformImGui( errors );
   }
 
-  Errors&             DesktopApp::GetMainErrors() { return gMainFunctionErrors; }
+  auto DesktopApp::GetMainErrors() -> Errors& { return gMainFunctionErrors; }
 
 } // namespace Tac
 

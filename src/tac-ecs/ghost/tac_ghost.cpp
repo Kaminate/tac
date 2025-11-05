@@ -158,13 +158,11 @@ namespace Tac
     //mUIRoot->mGhost = this;
   }
 
-  User* Ghost::AddPlayer( StringView name, 
-                          Errors& errors )
+  User* Ghost::AddPlayer( StringView name, Errors& errors )
   {
-    Ghost* ghost { this };
-    User* user { TAC_NEW User( name, ghost, errors ) };
+    auto user{ TAC_NEW User( name, this, errors ) };
     mUsers.push_back( user );
-
+    const String scriptMsgNameUserConnect { "user connect" };
     const ScriptMsg scriptMsg
     {
       .mType { scriptMsgNameUserConnect },

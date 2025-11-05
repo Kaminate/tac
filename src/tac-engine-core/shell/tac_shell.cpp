@@ -72,17 +72,4 @@ auto Tac::ModifyPathRelative( const FileSys::Path& path, Errors& errors ) -> Tac
   return FrameMemoryCopy( pathUTF8.c_str() );
 }
 
-auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
-{
-  TAC_CALL_RET( const FileSys::Path fsPath{ OS::OSOpenDialog( errors ) } );
-  return ModifyPathRelative( fsPath, errors );
-}
-
-auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors ) -> Tac::AssetPathStringView
-{
-  FileSys::Path suggestedFilename { params.mSuggestedFilename };
-  const OS::SaveParams saveParams { .mSuggestedFilename { &suggestedFilename }, };
-  const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
-  return ModifyPathRelative( fsPath, errors );
-}
 

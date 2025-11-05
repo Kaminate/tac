@@ -57,18 +57,6 @@ namespace Tac
     return Monitor{ .mSize { w, h } };
   }
 
-  static auto Win32OSOpenDialog( Errors& errors ) -> FileSys::Path
-  {
-    FileDialogHelper helper( FileDialogHelper::kOpen );
-    return helper.Run( errors );
-  }
-
-  static auto Win32OSSaveDialog( const OS::SaveParams&, Errors& errors ) -> FileSys::Path
-  {
-    FileDialogHelper helper( FileDialogHelper::kSave );
-    return helper.Run( errors );
-  };
-
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {
     TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString() );
@@ -82,8 +70,7 @@ namespace Tac
 
   static auto Win32OSLoadDLL( const StringView& path ) -> void*
   {
-    HMODULE lib { LoadLibraryA( path.c_str() ) };
-    return lib;
+    return { LoadLibraryA( path.c_str() ) };
   }
 
   static auto Win32OSGetProcAddr( void* dll, const StringView& path ) -> void*
@@ -177,8 +164,8 @@ void Tac::Win32OSInit()
   OS::OSDebugBreak = Win32DebugBreak;
   OS::OSDebugPopupBox = Win32OSDebugPopupBox;
   OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;
-  OS::OSSaveDialog = Win32OSSaveDialog;
-  OS::OSOpenDialog = Win32OSOpenDialog;
+  OS::OSSaveDialog = Win32FileDialogSave;
+  OS::OSOpenDialog = Win32FileDialogOpen;
   OS::OSGetPrimaryMonitor = Win32OSGetPrimaryMonitor;
   OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
   OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;

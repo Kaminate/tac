@@ -4,19 +4,18 @@
 
 namespace Tac::FileSys { struct Path; }
 
-namespace Tac { struct StringView; struct StackFrame; struct Errors; struct v2; }
-
 namespace Tac
 {
-  //TAC_DEFINE_HANDLE( SemaphoreHandle );
-  //TAC_DEFINE_HANDLE( MutexHandle );
+  struct StringView;
+  struct StackFrame;
+  struct Errors;
+  struct v2;
 
   struct Monitor
   {
     v2i mSize;
   };
 }
-
 
 namespace Tac::OS
 {
@@ -31,13 +30,19 @@ namespace Tac::OS
   //                 Gets the path where you can save files to, such as user configs
   extern FileSys::Path ( *OSGetApplicationDataPath )( Errors& );
 
+  struct OpenParams
+  {
+    const FileSys::Path* mDefaultFolder {}; // eww wtf is this pointer
+  };
+
   struct SaveParams
   {
-    FileSys::Path* mSuggestedFilename {}; // eww wtf is this
+    const FileSys::Path* mDefaultFolder {}; // eww wtf is this pointer
+    const FileSys::Path* mSuggestedFilename {}; // eww wtf is this pointer
   };
 
   extern FileSys::Path( *OSSaveDialog )( const SaveParams&, Errors& );
-  extern FileSys::Path( *OSOpenDialog )( Errors& );
+  extern FileSys::Path( *OSOpenDialog )( const OpenParams&, Errors& );
   extern void         ( *OSOpenPath )( const FileSys::Path&, Errors& );
 
 

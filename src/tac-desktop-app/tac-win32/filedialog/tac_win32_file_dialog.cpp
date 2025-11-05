@@ -5,6 +5,9 @@
 #include "tac-engine-core/shell/tac_shell.h" // sShellInitialWorkingDir
 #include "tac-win32/tac_win32.h" // TAC_HR_CALL
 
+#include "tac-win32/tac_win32_com_ptr.h" // PCom
+#include <shobjidl_core.h> // IFileDialog, IFileSaveDialog, IFileOpenDialog
+
 #if TAC_SHOULD_IMPORT_STD()
   import std;
 #else
@@ -18,7 +21,19 @@
 
 namespace Tac
 {
-    FileDialogHelper::FileDialogHelper( Type type ) : mType( type ) { }
+
+  struct FileDialogHelper
+  {
+    ~FileDialogHelper();
+    void SetDefaultFolder( FileSys::Path, Errors& );
+    void InitDialog(REFCLSID, REFIID, void**, IFileDialog*, Errors&);
+    auto RunEnd(Errors&) -> FileSys::Path;
+
+    IFileDialog*            mDialog     {};
+    PCom< IFileOpenDialog > mOpenDialog {};
+    PCom< IFileSaveDialog > mSaveDialog {};
+    bool                    mCancelled  {};
+  };
 
     FileDialogHelper::~FileDialogHelper()
     {
@@ -28,21 +43,57 @@ namespace Tac
       CoUninitialize();
     }
 
-    auto FileDialogHelper::Run( Errors& errors ) -> FileSys::Path
+    auto Win32FileDialogSave( const OS::SaveParams& params, Errors& errors ) -> FileSys::Path
     {
-      TAC_HR_CALL_RET( CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
-      TAC_CALL_RET( CreateDialogInstance( errors ) );
-      TAC_CALL_RET( SetDefaultFolder( errors ) );
-      TAC_CALL_RET( Show( errors ) );
-      return mCancelled ? FileSys::Path{} : GetResult( errors );
+      FileDialogHelper helper;
+      TAC_CALL_RET( helper.InitDialog( CLSID_FileSaveDialog,
+                                helper.mSaveDialog.iid(),
+                                helper.mSaveDialog.ppv(),
+                                ( IFileDialog* )helper.mSaveDialog,
+                                errors ) );
+      TAC_CALL_RET( helper.SetDefaultFolder( ( params.mDefaultFolder && !params.mDefaultFolder->empty() )
+                                      ? *params.mDefaultFolder
+                                      : Shell::sShellInitialWorkingDir,
+                                      errors ) );
+      return helper.RunEnd( errors );
     }
 
-    void FileDialogHelper::SetDefaultFolder( Errors& errors )
+    auto Win32FileDialogOpen( const OS::OpenParams& params, Errors& errors ) -> FileSys::Path
     {
-      const FileSys::Path dir { Shell::sShellInitialWorkingDir / AssetPathRootFolderName };
+      FileDialogHelper helper;
+      TAC_CALL_RET( helper.InitDialog( CLSID_FileOpenDialog,
+                                       helper.mOpenDialog.iid(),
+                                       helper.mOpenDialog.ppv(),
+                                       ( IFileDialog* )helper.mOpenDialog,
+                                       errors ) );
+      TAC_CALL_RET( helper.SetDefaultFolder( ( params.mDefaultFolder && !params.mDefaultFolder->empty() )
+                                             ? *params.mDefaultFolder
+                                             : Shell::sShellInitialWorkingDir,
+                                             errors ) );
+      return helper.RunEnd( errors );
+    }
+
+    auto FileDialogHelper::RunEnd( Errors& errors ) -> FileSys::Path
+    {
+      {
+        const HRESULT hr{ mDialog->Show( nullptr ) };
+        if( hr == HRESULT_FROM_WIN32( ERROR_CANCELLED ) )
+          return {};
+        TAC_RAISE_ERROR_IF_RETURN( FAILED( hr ), "Failed to show dialog" );
+      }
+      PCom< IShellItem > pItem;
+      TAC_HR_CALL_RET( mDialog->GetResult( pItem.CreateAddress() ) );
+      PWSTR pszFilePath;
+      TAC_HR_CALL_RET( pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
+      TAC_ON_DESTRUCT( CoTaskMemFree( pszFilePath ) );
+      const std::filesystem::path stdPath( pszFilePath );
+      return stdPath.u8string().c_str();
+    }
+
+    void FileDialogHelper::SetDefaultFolder( FileSys::Path dir, Errors& errors )
+    {
       const std::filesystem::path stdDir( ( char8_t* )dir.u8string().c_str() );
       const std::wstring wDir { stdDir.wstring() };
-
       PCom< IShellItem > shDir;
       TAC_HR_CALL( SHCreateItemFromParsingName(
                    wDir.c_str(),
@@ -52,33 +103,11 @@ namespace Tac
       TAC_HR_CALL( mDialog->SetDefaultFolder( ( IShellItem* )shDir ) );
     }
 
-    void FileDialogHelper::CreateDialogInstance( Errors& errors )
+    void FileDialogHelper::InitDialog( REFCLSID sid, REFIID iid, void** ppv, IFileDialog* dialog, Errors& errors )
     {
-      REFCLSID sid{ mType == Type::kOpen ? CLSID_FileOpenDialog : CLSID_FileSaveDialog };
-      REFIID iid{ mType == Type::kOpen ? mOpenDialog.iid() : mSaveDialog.iid() };
-      void** ppv{ mType == Type::kOpen ? mOpenDialog.ppv() : mSaveDialog.ppv() };
+      TAC_HR_CALL( CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
       TAC_HR_CALL( CoCreateInstance( sid, NULL, CLSCTX_INPROC_SERVER, iid, ppv ) );
-      mDialog = mType == Type::kOpen ? ( IFileDialog* )mOpenDialog : ( IFileDialog* )mSaveDialog;
-    };
-
-    void FileDialogHelper::Show( Errors& errors )
-    {
-      const HRESULT hr{ mDialog->Show( nullptr ) };
-      mCancelled = hr == HRESULT_FROM_WIN32( ERROR_CANCELLED );
-      TAC_RAISE_ERROR_IF( FAILED( hr ) && !mCancelled, "Failed to show dialog" );
-    }
-
-    auto FileDialogHelper::GetResult( Errors& errors ) -> FileSys::Path
-    {
-      PCom< IShellItem > pItem;
-      TAC_HR_CALL_RET( mDialog->GetResult( pItem.CreateAddress() ) );
-
-      PWSTR pszFilePath;
-      TAC_HR_CALL_RET( pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
-      TAC_ON_DESTRUCT( CoTaskMemFree( pszFilePath ) );
-
-      const std::filesystem::path stdPath( pszFilePath );
-      return stdPath.u8string().c_str();
+      mDialog = dialog;
     }
 
 } // namespace Tac

@@ -91,7 +91,5 @@ namespace Tac
     SettingsNode    mSettingsNode               {};
   };
 
-  const String scriptMsgNameUserConnect { "user connect" };
-
 } // namespace Tac
 

@@ -8,6 +8,7 @@
 namespace Tac
 {
   struct Errors;
+  struct AssetPathStringView;
   
   // An asset path
   // - is a local path to an asset
@@ -22,8 +23,6 @@ namespace Tac
   // Because an asset path can be initialized from a c-string literal (hardcoded)
   // or loaded from a file (data driven), this class inherits from StringView
 
-  struct AssetPathStringView;
-
 
   inline const char     AssetPathSeperator      { '/' };
   inline const char*    AssetPathRootFolderName { "assets" };
@@ -34,6 +33,8 @@ namespace Tac
     AssetPathString( const AssetPathStringView& );
     void operator = ( const String& );
   };
+
+  using AssetPathStrings = Vector< AssetPathString >;
 
   struct AssetPathStringView : public StringView
   {
@@ -49,13 +50,16 @@ namespace Tac
     bool                IsDirectory() const;
   };
 
-  using AssetPathStrings = Vector< AssetPathString >;
+  struct AssetSaveDialogParams { String mSuggestedFilename; };
+
   enum class AssetIterateType { Default, Recursive };
 
-  void             SaveToFile( const AssetPathStringView&, const void*, int, Errors& );
-  String           LoadAssetPath( const AssetPathStringView&, Errors& );
-  bool             Exists( const AssetPathStringView& );
-  AssetPathStrings IterateAssetsInDir( const AssetPathStringView&, AssetIterateType, Errors& );
+  void SaveToFile( const AssetPathStringView&, const void*, int, Errors& );
+  auto LoadAssetPath( const AssetPathStringView&, Errors& ) -> String;
+  bool Exists( const AssetPathStringView& );
+  auto IterateAssetsInDir( const AssetPathStringView&, AssetIterateType, Errors& ) -> AssetPathStrings;
+  auto AssetOpenDialog( Errors& ) -> Tac::AssetPathStringView;
+  auto AssetSaveDialog( const AssetSaveDialogParams&, Errors& ) -> AssetPathStringView;
 
   TAC_META_DECL( AssetPathString );
 

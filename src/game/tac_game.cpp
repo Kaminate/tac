@@ -22,10 +22,11 @@ namespace Tac
     SpaceInit();
     const Monitor monitor{ OS::OSGetPrimaryMonitor() };
     TAC_ASSERT( !Shell::sShellAppName.empty() );
-    const int x{ ( int )( monitor.mSize.x * 0.1f ) };
-    const int y{ ( int )( monitor.mSize.y * 0.1f ) };
-    const int w{ ( int )( monitor.mSize.x * 0.8f ) };
-    const int h{ ( int )( monitor.mSize.y * 0.8f ) };
+    const float percent{ .8f };
+    const int x{ ( int )( monitor.mSize.x * ( 1 - percent ) / 2 ) };
+    const int y{ ( int )( monitor.mSize.y * ( 1 - percent ) / 2 ) };
+    const int w{ ( int )( monitor.mSize.x * percent ) };
+    const int h{ ( int )( monitor.mSize.y * percent ) };
     TAC_CALL( mWindowHandle = AppWindowApi::CreateWindow(
       WindowCreateParams
       {
@@ -34,7 +35,7 @@ namespace Tac
         .mSize { w, h },
       }, errors ) );
     sGhost = TAC_NEW Ghost;
-    TAC_CALL( sGhost->Init( sSettingsNode, errors ));
+    TAC_CALL( sGhost->Init( sSettingsNode, errors ) );
   }
 
   static void GameCallbackUpdate( Errors& )

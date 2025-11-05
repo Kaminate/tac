@@ -25,8 +25,6 @@ namespace Tac
     Language     mLanguage { Language::English };
   };
 
-  struct AssetSaveDialogParams { String mSuggestedFilename; };
-
   //
   // The shell acts as the interface between platform-specific applications
   // and the ghost
@@ -46,6 +44,4 @@ namespace Tac
   //                      Try not to use this function, instead prefer using a function that
   //                      returns AssetPaths instead of FileSys::Path's
   auto ModifyPathRelative( const FileSys::Path&, Errors& ) -> AssetPathStringView;
-  auto AssetOpenDialog( Errors& ) -> AssetPathStringView;
-  auto AssetSaveDialog( const AssetSaveDialogParams&, Errors& ) -> AssetPathStringView;
 } // namespace Tac
