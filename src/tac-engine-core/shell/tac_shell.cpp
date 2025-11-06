@@ -1,38 +1,17 @@
 #include "tac_shell.h" // self-inc
 
-#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-engine-core/graphics/tac_renderer_util.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/hid/controller/tac_controller_input.h"
-#include "tac-engine-core/job/tac_job_queue.h"
-#include "tac-engine-core/net/tac_net.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-engine-core/asset/tac_asset.h"
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string.h"
 
 Tac::String        Tac::Shell::sShellAppName;
 Tac::String        Tac::Shell::sShellStudioName;
 Tac::FileSys::Path Tac::Shell::sShellPrefPath; // Path where the app can save files to
 Tac::FileSys::Path Tac::Shell::sShellInitialWorkingDir;
 
-
-
 auto Tac::ModifyPathRelative( const FileSys::Path& path, Errors& errors ) -> Tac::AssetPathStringView
 {
   const FileSys::Path& workingDir { Shell::sShellInitialWorkingDir };
   const String workingUTF8 { workingDir.u8string() };
-  String pathUTF8 { path.u8string() };
+  dynmc String pathUTF8 { path.u8string() };
   if( path.is_absolute() )
   {
     TAC_RAISE_ERROR_IF_RETURN( !pathUTF8.starts_with( workingUTF8 ), 

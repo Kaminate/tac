@@ -82,7 +82,6 @@ namespace Tac
   Ghost::Ghost()
   {
     mScriptRoot = TAC_NEW ScriptRoot;
-    //mUIRoot = new UIRoot;
     mServerData = TAC_NEW ServerData;
   }
 
@@ -92,7 +91,6 @@ namespace Tac
     //delete mFBODepthBuffer;
     for( User* user : mUsers )
       TAC_DELETE user;
-    //delete mUIRoot;
     TAC_DELETE mServerData;
     TAC_DELETE mClientData;
   }
@@ -101,7 +99,7 @@ namespace Tac
   {
     mSettingsNode = settingsNode;
     mShouldPopulateWorldInitial = false;
-    mScriptRoot->mGhost = this;
+    //mScriptRoot->mGhost = this;
     //int w = shell->mWindowWidth;
     //int h = shell->mWindowHeight;
 

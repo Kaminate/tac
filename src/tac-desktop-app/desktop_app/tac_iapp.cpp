@@ -4,12 +4,11 @@ namespace Tac
 {
   static App* sInstance;
 
-  //App::IState* App::GetGameState()          { return nullptr; }
-  bool         App::IsRenderEnabled() const { return !mConfig.mDisableRenderer; }
-  StringView   App::GetAppName() const      { return mConfig.mName; }
-  StringView   App::GetStudioName() const   { return mConfig.mStudioName; }
-
   App::App( const Config& config ) : mConfig( config ) { sInstance = this;  }
-  auto App::Instance() -> App* { return sInstance; }
+  bool App::IsRenderEnabled() const               { return !mConfig.mDisableRenderer; }
+  auto App::GetAppName() const -> StringView      { return mConfig.mName; }
+  auto App::GetStudioName() const -> StringView   { return mConfig.mStudioName; }
+  auto App::GameState_Create() -> State           { return { TAC_NEW IState }; } // dummy state
+  auto App::Instance() -> App*                    { return sInstance; }
 } // namespace Tac
 

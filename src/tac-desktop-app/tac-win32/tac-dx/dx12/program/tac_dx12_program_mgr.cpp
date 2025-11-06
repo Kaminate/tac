@@ -11,12 +11,10 @@
 
 namespace Tac::Render
 {
-  // 2024-11-10 dropping from 6_6 to 6_5 on desktop, idk it used to work before?
   static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
-
   static Timestamp              sHotReloadTick;
 
-  static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
+  static auto GetHighestShaderModel( ID3D12Device* device ) -> D3D_SHADER_MODEL
   {
     const D3D_SHADER_MODEL lowestDefined { D3D_SHADER_MODEL_5_1 };
     const D3D_SHADER_MODEL highestDefined { D3D_SHADER_MODEL_6_7 }; // D3D_HIGHEST_SHADER_MODEL undefined?;
@@ -44,26 +42,7 @@ namespace Tac::Render
     return lowestDefined;
   }
 
-  struct PreprocessorInput : public AssetPathStrings
-  {
-    PreprocessorInput( const ProgramParams& programParams )
-    {
-      const IDevice* device{ Render::RenderApi::GetRenderDevice() };
-      const IDevice::Info info{ device->GetInfo() };
-      const ProgramAttribs programAttribs{ info.mProgramAttribs };
-      const StringView shaderDir{ programAttribs.mDir };
-      const StringView shaderExt{ programAttribs.mExt };
-
-      Vector< AssetPathString > assetPaths;
-      for( const String& input : programParams.mInputs )
-      {
-        const AssetPathString inputAsset{ shaderDir + input + shaderExt };
-        push_back( inputAsset );
-      }
-    }
-  };
-
-  static DXCCompileOutput Compile( ProgramParams programParams, Errors& errors )
+  static auto Compile( ProgramParams programParams, Errors& errors ) -> DXCCompileOutput
   {
     TAC_RAISE_ERROR_IF_RETURN( programParams.mInputs.empty(), "Missing shader sources" );
 
@@ -71,7 +50,6 @@ namespace Tac::Render
       programParams.mName = programParams.mInputs[ 0 ];
 
     TAC_RAISE_ERROR_IF_RETURN( programParams.mName.empty(), "Missing shader name" );
-
 
 #if 0
     if( programParams.mInputs.size() > 1 )
@@ -90,27 +68,37 @@ namespace Tac::Render
     }
 #endif
 
+    struct PreprocessorInput : public AssetPathStrings
+    {
+      PreprocessorInput( const ProgramParams& programParams )
+      {
+        const IDevice* device{ Render::RenderApi::GetRenderDevice() };
+        const ProgramAttribs programAttribs{ device->GetInfo().mProgramAttribs };
+        Vector< AssetPathString > assetPaths;
+        for( const String& input : programParams.mInputs )
+        {
+          const AssetPathString inputAsset{ programAttribs.mDir + input + programAttribs.mExt };
+          push_back( inputAsset );
+        }
+      }
+    };
     const IDevice* device{ Render::RenderApi::GetRenderDevice() };
     const IDevice::Info info{ device->GetInfo() };
     const ProgramAttribs programAttribs{ info.mProgramAttribs };
     const StringView shaderExt{ programAttribs.mExt };
-
     const PreprocessorInput assetPaths( programParams );
-
     TAC_CALL_RET( const String preprocessedShader{
       HLSLPreprocessor::Process( assetPaths, errors ) } );
-
     const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
     const String fileName{ programParams.mName + shaderExt };
-    const DXCCompileParams input
-    {
-      .mFileName           { fileName },
-      .mOutputDir          { outputDir },
-      .mPreprocessedShader { preprocessedShader },
-      .mShaderModel        { sShaderModel },
-    };
-
-    return DXCCompile( input, errors );
+    return DXCCompile(
+      DXCCompileParams
+      {
+        .mFileName           { fileName },
+        .mOutputDir          { outputDir },
+        .mPreprocessedShader { preprocessedShader },
+        .mShaderModel        { sShaderModel },
+      }, errors );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -127,12 +115,12 @@ namespace Tac::Render
     TAC_RAISE_ERROR_IF( sShaderModel > highestShaderModel, "Shader model too high" );
   }
 
-  DX12Program*  DX12ProgramMgr::FindProgram( ProgramHandle h )
+  auto DX12ProgramMgr::FindProgram( ProgramHandle h ) -> DX12Program*
   {
     return h.IsValid() ? &mPrograms[ h.GetIndex() ] : nullptr;
   }
 
-  void          DX12ProgramMgr::DestroyProgram( ProgramHandle h )
+  void DX12ProgramMgr::DestroyProgram( ProgramHandle h )
   {
     if( h.IsValid() )
     {
@@ -141,50 +129,40 @@ namespace Tac::Render
     }
   }
 
-  void          DX12ProgramMgr::CreateProgramAtIndex( const ProgramHandle h ,
-                                                      dynmc ProgramParams params,
-                                                      dynmc Errors& errors )
+  void DX12ProgramMgr::CreateProgramAtIndex( ProgramHandle h, ProgramParams params, Errors& errors )
   {
     if( params.mName.empty() && params.mInputs.size() == 1 )
       params.mName = params.mInputs[ 0 ];
 
     TAC_RAISE_ERROR_IF( params.mInputs.empty(), "Missing shader sources" );
     TAC_RAISE_ERROR_IF( params.mName.empty(), "Missing shader name" );
-
-    // Basically const, but 
     TAC_CALL( const DXCCompileOutput output{ Compile( params, errors ) } );
-
     const D3D12ProgramBindDescs programBindDescs( output.mReflInfo.mReflBindings );
-
     const DX12Program::Inputs programInputs( output.mReflInfo.mInputs );
-
     TAC_CALL( const DX12Program::HotReloadInputs hotReloadInputs( params, errors ) );
-
     mPrograms[ h.GetIndex() ] = DX12Program
     {
       .mVSBlob           { output.mVSBlob },
-      .mVSBytecode       { output.GetVSBytecode() },
       .mPSBlob           { output.mPSBlob },
-      .mPSBytecode       { output.GetPSBytecode() },
       .mCSBlob           { output.mCSBlob },
+      .mVSBytecode       { output.GetVSBytecode() },
+      .mPSBytecode       { output.GetPSBytecode() },
       .mCSBytecode       { output.GetCSBytecode() },
       .mProgramBindDescs { programBindDescs },
       .mProgramParams    { params },
       .mInputs           { programInputs },
       .mHotReloadInputs  { hotReloadInputs },
     };
-
   }
 
-  ProgramHandle DX12ProgramMgr::CreateProgram( ProgramParams params,
-                                               Errors& errors )
+  auto DX12ProgramMgr::CreateProgram( ProgramParams params, Errors& errors ) -> ProgramHandle
   {
     const ProgramHandle h{ AllocProgramHandle() };
     CreateProgramAtIndex( h, params, errors );
     return h;
   }
 
-  String        DX12ProgramMgr::GetProgramBindings_TEST( ProgramHandle h )
+  auto DX12ProgramMgr::GetProgramBindings_TEST( ProgramHandle h ) -> String
   {
     const DX12Program* program{ FindProgram( h ) };
     if( !program )
@@ -200,7 +178,7 @@ namespace Tac::Render
     return result;
   }
 
-  void          DX12ProgramMgr::HotReload( Errors& errors )
+  void DX12ProgramMgr::HotReload( Errors& errors )
   {
     const Timestamp curTime{ Timestep::GetElapsedTime() };
     const TimestampDifference diffTime{ curTime - sHotReloadTick };

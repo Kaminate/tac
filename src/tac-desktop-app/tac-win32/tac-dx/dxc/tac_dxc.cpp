@@ -471,18 +471,10 @@ namespace Tac
     const StringView fileName{ input.mFileName };
 
     {
-#if 0
-      const int iSlash{ input.mFileName.find_last_of( "/\\" ) };
-      const StringView inputShaderName{
-        iSlash == StringView::npos ? input.mFileName : input.mFileName.substr( iSlash + 1 ) };
-      const FileSys::Path hlslShaderPath { input.mOutputDir / inputShaderName };
-      TAC_CALL_RET( FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
-#else
-      // ???? why
-      TAC_ASSERT( !fileName.contains( "/\\" ) );
+      TAC_ASSERT( !fileName.contains( '/' ) );
+      TAC_ASSERT( !fileName.contains( '\\' ) );
       const FileSys::Path hlslShaderPath { input.mOutputDir / fileName };
       TAC_CALL_RET( FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
-#endif
     }
 
     TAC_CALL_RET( PCom< IDxcBlob > vsBlob { sVSData.DXCCompileBlob( blobInput, errors ) } );

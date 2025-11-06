@@ -67,7 +67,7 @@ namespace Tac
     ScriptThread*             GetThread( StringView name );
 
     Set< ScriptThread* >      mChildren {};
-    Ghost*                    mGhost    {};
+    //Ghost*                    mGhost    {};
   };
 
 }

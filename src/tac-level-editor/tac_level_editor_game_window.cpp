@@ -44,7 +44,7 @@ namespace Tac
   static bool                          sWASDCameraOrbitSnap      { false };
   static float                         sWASDCameraNoSnapScale    { .01f };
   static StringView                    sImguiWindowName          { "Level Editor Game Window" };
-  static Soul*                         sSoul                     {};
+  static Ghost*                        sSoul                     {};
   static Debug3DDrawBuffers            sBuffers                  {};
   static String                        sStatusMessage            {};
   static Timestamp                     sStatusMessageEndTime     {};
@@ -253,19 +253,19 @@ namespace Tac
     static AssetPathString savedPrefabPath;
     static Camera savedCamera;
 
-    const AssetPathStringView loadedPrefab { PrefabGetLoaded() };
-    if( ( StringView )loadedPrefab != ( StringView )savedPrefabPath )
+    if( const AssetPathStringView loadedPrefab{ PrefabGetLoaded() };
+        ( StringView )loadedPrefab != ( StringView )savedPrefabPath )
     {
       savedPrefabPath = loadedPrefab;
       savedCamera = *camera;
     }
 
-    const bool cameraSame{
-      savedCamera.mPos == camera->mPos &&
-      savedCamera.mForwards == camera->mForwards &&
-      savedCamera.mRight == camera->mRight &&
-      savedCamera.mUp == camera->mUp };
-    if( cameraSame )
+    if( const bool cameraSame{
+        savedCamera.mPos == camera->mPos &&
+        savedCamera.mForwards == camera->mForwards &&
+        savedCamera.mRight == camera->mRight &&
+        savedCamera.mUp == camera->mUp };
+        cameraSame )
       return;
 
     savedCamera = *camera;

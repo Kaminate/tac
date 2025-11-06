@@ -15,7 +15,6 @@ namespace Tac
   struct UILayout;
   struct UIText;
   struct Job;
-  struct Ghost;
   struct ScriptMainMenu;
   struct ScriptSplash;
   struct ScriptMatchmaker;

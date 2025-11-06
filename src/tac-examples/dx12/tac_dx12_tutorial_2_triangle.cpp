@@ -52,20 +52,8 @@ namespace Tac
 
   // Helper functions for App::Init
 
-  void DX12AppHelloTriangle::EnableDebug( Errors& errors )
-  {
-    if constexpr( kIsDebugMode )
-    {
-      PCom< ID3D12Debug > dx12debug;
-      TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
-      dx12debug.QueryInterface( m_debug );
-      TAC_ASSERT( !m_device ); // EnableDebugLayer must be called before the device is created
-      m_debug->EnableDebugLayer();
-      m_debugLayerEnabled = true;
-    }
-  }
 
-  void  MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
+  static void MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
                             D3D12_MESSAGE_SEVERITY Severity,
                             D3D12_MESSAGE_ID ID,
                             LPCSTR pDescription,
@@ -79,23 +67,31 @@ namespace Tac
     OS::OSDebugBreak();
   }
 
+  DX12AppHelloTriangle::DX12AppHelloTriangle( const Config& cfg ) : App( cfg ) {}
+
+  void DX12AppHelloTriangle::EnableDebug( Errors& errors )
+  {
+    if constexpr( kIsDebugMode )
+    {
+      PCom< ID3D12Debug > dx12debug;
+      TAC_DX12_CALL( D3D12GetDebugInterface( dx12debug.iid(), dx12debug.ppv() ) );
+      dx12debug.QueryInterface( m_debug );
+      TAC_ASSERT( !m_device ); // EnableDebugLayer must be called before the device is created
+      m_debug->EnableDebugLayer();
+      m_debugLayerEnabled = true;
+    }
+  }
+
   void DX12AppHelloTriangle::CreateInfoQueue( Errors& errors )
   {
     if constexpr( kIsDebugMode )
     {
-
       TAC_ASSERT( m_debugLayerEnabled );
-
       m_device.QueryInterface( m_infoQueue );
       TAC_ASSERT( m_infoQueue );
-
-      // Make the application debug break when bad things happen
       TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE ) );
       TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_ERROR, TRUE ) );
       TAC_DX12_CALL( m_infoQueue->SetBreakOnSeverity( D3D12_MESSAGE_SEVERITY_WARNING, TRUE ) );
-
-      // First available in Windows 10 Release Preview build 20236,
-      // But as of 2023-12-11 not available on my machine :(
       if( auto infoQueue1{ m_infoQueue.QueryInterface<ID3D12InfoQueue1>() } )
       {
         const D3D12MessageFunc CallbackFunc{ MyD3D12MessageFunc };
@@ -181,7 +177,6 @@ namespace Tac
                    m_rtvHeap.iid(),
                    m_rtvHeap.ppv() ) );
     m_rtvCpuHeapStart = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
-    m_rtvGpuHeapStart = m_rtvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
   void DX12AppHelloTriangle::CreateSRVDescriptorHeap( Errors& errors )
@@ -200,10 +195,10 @@ namespace Tac
     m_srvGpuHeapStart = m_srvHeap->GetGPUDescriptorHandleForHeapStart();
   }
 
-  // This is used to create a hlsl ByteAddressBuffer in DX12HelloTriangleBindless.hlsl
-  // It is passed to the shader via the descriptor heap
   void DX12AppHelloTriangle::CreateSRV( Errors& )
   {
+    // This is used to create a hlsl ByteAddressBuffer in DX12HelloTriangleBindless.hlsl
+    // It is passed to the shader via the descriptor heap
     TAC_ASSERT( m_vertexBuffer );
 
     // srv --> byteaddressbuffer
@@ -344,7 +339,7 @@ namespace Tac
       &defaultHeapProps,
       D3D12_HEAP_FLAG_NONE,
       &resourceDesc,
-      D3D12_RESOURCE_STATE_COPY_DEST, // we want to copy into here from the upload buffer
+      D3D12_RESOURCE_STATE_COMMON,
       pOptimizedClearValue,
       m_vertexBuffer.iid(),
       m_vertexBuffer.ppv() ) );
@@ -358,8 +353,6 @@ namespace Tac
     TAC_DX12_CALL( m_vertexBufferUploadHeap->Map( 0, &readRange, &pVertexDataBegin ) );
     MemCpy( pVertexDataBegin, triangleVertices, m_vertexBufferSize );
     m_vertexBufferUploadHeap->Unmap( 0, nullptr );
-
-    // Initialize the vertex buffer view.
     m_vertexBufferView = D3D12_VERTEX_BUFFER_VIEW 
     {
       .BufferLocation { m_vertexBuffer->GetGPUVirtualAddress() },
@@ -481,14 +474,12 @@ namespace Tac
       : "assets/hlsl/DX12HelloTriangleBindless.hlsl" };
 
     ID3D12Device* device{ m_device.Get() };
-
-    DX12ExampleProgramCompiler::Params programCompilerParams
-    {
-      .mOutputDir { Shell::sShellPrefPath },
-      .mDevice    { device },
-    };
-
-    TAC_CALL( DX12ExampleProgramCompiler compiler( programCompilerParams, errors ) );
+    TAC_CALL( DX12ExampleProgramCompiler compiler(
+      DX12ExampleProgramCompiler::Params
+      {
+        .mOutputDir { Shell::sShellPrefPath },
+        .mDevice    { device },
+      }, errors ) );
     TAC_CALL( DX12ExampleProgramCompiler::Result program{ compiler.Compile( shaderAssetPath, errors ) } );
 
     const VertexDeclaration posDecl
@@ -510,8 +501,6 @@ namespace Tac
     decls.push_back( colDecl );
 
     const DX12BuiltInputLayout inputLayout{ decls };
-
-
     const D3D12_RASTERIZER_DESC RasterizerState
     {
       .FillMode              { D3D12_FILL_MODE_SOLID },
@@ -522,34 +511,13 @@ namespace Tac
       .SlopeScaledDepthBias  { D3D12_DEFAULT_SLOPE_SCALED_DEPTH_BIAS },
       .DepthClipEnable       { true },
     };
-
-    const D3D12_RENDER_TARGET_BLEND_DESC RTBlendDesc
-    {
-      // [x] Q: Why is BlendEnable = false? Why not just leave it out?
-      //     A: You can leave it out.
-#if 0
-      .BlendEnable           {},
-      .LogicOpEnable         {},
-      .SrcBlend              { D3D12_BLEND_ONE },
-      .DestBlend             { D3D12_BLEND_ZERO },
-      .BlendOp               { D3D12_BLEND_OP_ADD },
-      .SrcBlendAlpha         { D3D12_BLEND_ONE },
-      .DestBlendAlpha        { D3D12_BLEND_ZERO },
-      .BlendOpAlpha          { D3D12_BLEND_OP_ADD },
-      .LogicOp               { D3D12_LOGIC_OP_NOOP },
-#endif
-      .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL },
-    };
-
-    const D3D12_BLEND_DESC BlendState { .RenderTarget { RTBlendDesc }, };
-
-
+    const D3D12_BLEND_DESC BlendState{
+      .RenderTarget { D3D12_RENDER_TARGET_BLEND_DESC {
+        .RenderTargetWriteMask { D3D12_COLOR_WRITE_ENABLE_ALL } } } };
     const D3D12_INPUT_LAYOUT_DESC InputLayout{ sUseInputLayout
-          ? ( D3D12_INPUT_LAYOUT_DESC )inputLayout
+          ? inputLayout.mDesc
           : D3D12_INPUT_LAYOUT_DESC{} };
-
     const DXGI_FORMAT rtvDXVIFmt{ DXGIFormatFromTexFmt( mRTVFmt ) };
-
     const DXGI_SAMPLE_DESC SampleDesc{ .Count{ 1 } };
     const D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc
     {
@@ -570,9 +538,7 @@ namespace Tac
               &psoDesc,
               mPipelineState.iid(),
               mPipelineState.ppv() ));
-
     DX12SetName( mPipelineState, "My Pipeline State" );
-
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -583,59 +549,50 @@ namespace Tac
   {
     TAC_ASSERT( m_commandQueue );
     TAC_ASSERT( hwnd );
-
-    const DXGISwapChainWrapper::Params scInfo
-    {
-      .mHwnd        { hwnd },
-      .mDevice      { ( IUnknown* )m_commandQueue }, // swap chain can force flush the queue
-      .mBufferCount { bufferCount },
-      .mWidth       { size.x },
-      .mHeight      { size.y },
-      .mFmt         { DXGIFormatFromTexFmt( mRTVFmt ) },
-    };
-    TAC_CALL( m_swapChain.Init( scInfo, errors ));
+    TAC_CALL( m_swapChain.Init(
+      DXGISwapChainWrapper::Params
+      {
+        .mHwnd        { hwnd },
+        .mDevice      { ( IUnknown* )m_commandQueue }, // swap chain can force flush the queue
+        .mBufferCount { bufferCount },
+        .mWidth       { size.x },
+        .mHeight      { size.y },
+        .mFmt         { DXGIFormatFromTexFmt( mRTVFmt ) },
+      }, errors ));
     TAC_CALL( m_swapChain->GetDesc1( &m_swapChainDesc ) );
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::OffsetCpuDescHandle(
+  auto DX12AppHelloTriangle::OffsetCpuDescHandle(
     D3D12_CPU_DESCRIPTOR_HANDLE heapStart,
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
-    int iOffset ) const
+    int iOffset ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     const UINT descriptorSize { m_descriptorSizes[heapType] };
-    const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
-    return D3D12_CPU_DESCRIPTOR_HANDLE{ ptr };
+    return D3D12_CPU_DESCRIPTOR_HANDLE{ .ptr {  heapStart.ptr + iOffset * descriptorSize  } };
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::OffsetGpuDescHandle(
+  auto DX12AppHelloTriangle::OffsetGpuDescHandle(
     D3D12_GPU_DESCRIPTOR_HANDLE heapStart,
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
-    int iOffset ) const
+    int iOffset ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     const UINT descriptorSize { m_descriptorSizes[heapType] };
-    const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
-    return D3D12_GPU_DESCRIPTOR_HANDLE{ ptr };
+    return D3D12_GPU_DESCRIPTOR_HANDLE{ .ptr { heapStart.ptr + iOffset * descriptorSize } };
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetRTVCpuDescHandle( int i ) const
+  auto DX12AppHelloTriangle::GetRTVCpuDescHandle( int i ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_rtvHeap );
     return OffsetCpuDescHandle( m_rtvCpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, i );
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetRTVGpuDescHandle( int i ) const
-  {
-    TAC_ASSERT( m_rtvHeap );
-    return OffsetGpuDescHandle( m_rtvGpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, i );
-  }
-
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetSRVCpuDescHandle( int i ) const
+  auto DX12AppHelloTriangle::GetSRVCpuDescHandle( int i ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_srvHeap );
     return OffsetCpuDescHandle( m_srvCpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, i );
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloTriangle::GetSRVGpuDescHandle( int i ) const
+  auto DX12AppHelloTriangle::GetSRVGpuDescHandle( int i ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_srvHeap );
     return OffsetGpuDescHandle( m_srvGpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, i );
@@ -664,7 +621,7 @@ namespace Tac
   }
 
   void DX12AppHelloTriangle::TransitionRenderTarget( const int iRT,
-                                                   const D3D12_RESOURCE_STATES targetState )
+                                                     const D3D12_RESOURCE_STATES targetState )
   {
     ID3D12Resource* rtResource = (ID3D12Resource*)m_renderTargets[ iRT ];
     TAC_ASSERT(rtResource );
@@ -952,11 +909,6 @@ namespace Tac
     m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
   }
 
-
-  // -----------------------------------------------------------------------------------------------
-
-  DX12AppHelloTriangle::DX12AppHelloTriangle( const Config& cfg ) : App( cfg ) {}
-
   void DX12AppHelloTriangle::Init( Errors& errors )
   {
     AppWindowApi::SetSwapChainAutoCreate( false );
@@ -1044,14 +996,13 @@ namespace Tac
 
   App* App::Create()
   {
-    const App::Config config
-    {
-      .mName            { "DX12 Hello Triangle" },
-      .mDisableRenderer { true },
-    };
-    return TAC_NEW DX12AppHelloTriangle( config );
+    return TAC_NEW DX12AppHelloTriangle(
+      Config
+      {
+        .mName            { "DX12 Hello Triangle" },
+        .mDisableRenderer { true },
+      } );
   };
-
 
 } // namespace Tac
 

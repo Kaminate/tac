@@ -22,13 +22,12 @@ namespace Tac::Render
 
     struct Params
     {
-      FileSys::Path mOutputDir;
+      FileSys::Path    mOutputDir;
       ID3D12Device*    mDevice;
     };
 
     DX12ExampleProgramCompiler( Params, Errors& );
-    Result Compile( const AssetPathStringView&, Errors& ) const;
-
+    auto Compile( const AssetPathStringView&, Errors& ) const -> Result;
   };
 
 } // namespace Tac::Render

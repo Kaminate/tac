@@ -5,28 +5,19 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
-#define TRY_SET_HUD_OPTIONS() false
-
-#if TRY_SET_HUD_OPTIONS()
-#include "tac-win32/tac_win32.h"
-#include "WinPixEventRuntime/pix3.h" // include after tac_win32.h
-using PixSetHUDOptionsSig = HRESULT(WINAPI* )(PIXHUDOptions);
-static PixSetHUDOptionsSig sPixSetHUDOptions;
-#endif
-
 namespace Tac::Render
 {
-  static const FileSys::Path pixInstallPath { "C:/Program Files/Microsoft PIX" };
-  static const char*         pixDllName     { "WinPixGpuCapturer.dll" };
+  static const FileSys::Path pixInstallPath{ "C:/Program Files/Microsoft PIX" };
+  static const char* pixDllName{ "WinPixGpuCapturer.dll" };
 
   // Looking at https://devblogs.microsoft.com/pix/download/
   // Pix version numbers seem to usually be XXXX.YY 
-  static bool IsVersionPattern(StringView sv)
+  static bool IsVersionPattern( StringView sv )
   {
     if( sv.size() != 7 )
       return false;
 
-    const char* p { sv.data() };
+    const char* p{ sv.data() };
 
     for( int i{}; i < 4; ++i )
       if( !IsDigit( *p++ ) )
@@ -42,7 +33,7 @@ namespace Tac::Render
     return true;
   }
 
-  static FileSys::Path TryFindPIXDllPath(Errors& errors)
+  static auto TryFindPIXDllPath( Errors& errors ) -> FileSys::Path
   {
     if( !FileSys::Exists( pixInstallPath ) )
       return {};
@@ -50,7 +41,7 @@ namespace Tac::Render
     TAC_CALL_RET( const FileSys::Paths subdirs{ FileSys::IterateDirectories(
       pixInstallPath,
       FileSys::IterateType::Default,
-      errors ) }  );
+      errors ) } );
 
     if( subdirs.empty() )
       return {};
@@ -82,8 +73,8 @@ namespace Tac::Render
   {
     if constexpr( kIsDebugMode )
     {
-      if( !OS::CmdLineIsFlagPresent( "allowpixattach" ) )
-        return;
+      //if( !OS::CmdLineIsFlagPresent( "allowpixattach" ) )
+      //  return;
 
       // Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
       // This may happen if the application is launched through the PIX UI. 
@@ -100,19 +91,13 @@ namespace Tac::Render
         return;
       }
 
-      void* lib{ OS::OSLoadDLL( path.u8string() ) };
-      if( !lib )
+      
+      if( void* lib{ OS::OSLoadDLL( path.u8string() ) };
+          !lib )
       {
         OS::OSDebugPrintLine( String() +
                               "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
       }
-
-
-#if TRY_SET_HUD_OPTIONS()
-        sPixSetHUDOptions = (PixSetHUDOptionsSig)OS::OSGetProcAddress( lib, "PixSetHUDOptions" );
-        if( sPixSetHUDOptions )
-          sPixSetHUDOptions( PIX_HUD_SHOW_ON_NO_WINDOWS );
-#endif
     }
   }
 

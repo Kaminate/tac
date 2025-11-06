@@ -118,9 +118,6 @@ namespace Tac
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
-		//Ghost* ghost = mScriptRoot->mGhost;
-		//UIRoot* uiRoot = ghost->mUIRoot;
-
 
 		TAC_TIMELINE_BEGIN;
 
@@ -440,9 +437,7 @@ namespace Tac
 	{
     TAC_UNUSED_PARAMETER( errors );
     TAC_UNUSED_PARAMETER( seconds );
-		//Ghost* ghost = mScriptRoot->mGhost;
 		//;
-		////UIRoot* uiRoot = ghost->mUIRoot;
 		//auto* scriptMatchmaker = ( ScriptMatchmaker* )mScriptRoot->GetThread( scriptMatchmakerName );
 		//ServerData* serverData = ghost->mServerData;
 		//World* world = serverData->mWorld;

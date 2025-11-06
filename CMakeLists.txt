@@ -1,15 +1,8 @@
 # --------------------------------------------------------------------------------------------------
 
-# 3.30 required for c++23 `import std`
-cmake_minimum_required( VERSION 3.31.0 )
-
-# --------------------------------------------------------------------------------------------------
-
+cmake_minimum_required( VERSION 4.0.0 )
 cmake_policy( SET CMP0072 NEW ) # prefer latest opengl
 cmake_policy( SET CMP0076 NEW ) # convert relative paths to absolute paths in target_sources
-
-# --------------------------------------------------------------------------------------------------
-
 project( Tac CXX )
 
 # --------------------------------------------------------------------------------------------------
@@ -25,7 +18,12 @@ message( VERBOSE "cmake binary dir: ${CMAKE_BINARY_DIR}" )
 if( MSVC )
 
     set( CMAKE_VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
-    add_compile_options( /ZI  # 
+
+    # same as add_compile_options( /ZI  ) ?Produce a PDB that supports Edit and Continue
+    # set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>")
+
+    add_compile_options( # /ZI  # Produce a PDB that supports Edit and Continue
+                         /external:W0 # disable warnings for external headers
                          /W4  # warning level 4
                          /WX  # treat linker warnings as errors
                          /MP  # multi processor compilation
@@ -56,17 +54,9 @@ else() # gcc, clang
 
 endif()
 
-# --------------------------------------------------------------------------------------------------
-
-# allow including files from #include "src/..."
-#
-# Note Prefer the target_include_directories() command to add include directories to individual
-# targets and optionally propagate/export them to dependents.
-# include_directories( ${CMAKE_SOURCE_DIR} )
-
-# --------------------------------------------------------------------------------------------------
 
 set( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
+set( CMAKE_CXX_STANDARD 23 )
 
 # --------------------------------------------------------------------------------------------------
 
@@ -74,11 +64,6 @@ set( CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" )
 # Auto adds CMAKE_CURRENT_SOURCE_DIR and CMAKE_CURRENT_BINARY_DIR to the inc path for each dir.
 # These do not propagate down to subdirectories
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
-
-# --------------------------------------------------------------------------------------------------
-
-# C++20 Modules, and `import std;`
-set( CMAKE_CXX_STANDARD 23 )
 
 # --------------------------------------------------------------------------------------------------
 

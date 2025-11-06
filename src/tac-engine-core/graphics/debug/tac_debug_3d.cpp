@@ -25,26 +25,27 @@ namespace Tac
     m4 mWorldToClip;
   };
 
-  static struct Debug3DCommonData
+  struct Debug3DCommonData
   {
-    void                          Init( Errors& );
-    void                          Uninit();
+    void Init( Errors& );
+    void Uninit() const;
+    auto GetAlphaBlendState() const -> Render::BlendState;
+    auto GetDepthState() const -> Render::DepthState;
+    auto GetRasterizerStateNoCull() const -> Render::RasterizerState;
+    auto GetVertexColorFormat() const -> Render::VertexDeclarations;
+    auto GetProgramParams() const -> Render::ProgramParams;
+    auto GetConstBufParams() const -> Render::CreateBufferParams;
+    auto GetPipelineParams() const -> Render::PipelineParams;
 
-    Render::BlendState            GetAlphaBlendState() const;
-    Render::DepthState            GetDepthState() const;
-    Render::RasterizerState       GetRasterizerStateNoCull() const;
-    Render::VertexDeclarations    GetVertexColorFormat() const;
-    Render::ProgramParams         GetProgramParams() const;
-    Render::CreateBufferParams    GetConstBufParams() const;
-    Render::PipelineParams        GetPipelineParams() const;
+    Render::ProgramHandle         m3DVertexColorShader{};
+    Render::BufferHandle          mConstBuf{};
+    Render::PipelineHandle        mPipeline{};
+    Render::IShaderVar*           mShaderConstBuf{};
+  };
+  
+  static Debug3DCommonData gDebug3DCommonData;
 
-    Render::ProgramHandle         m3DVertexColorShader;
-    Render::BufferHandle          mConstBuf;
-    Render::PipelineHandle        mPipeline;
-    Render::IShaderVar*           mShaderConstBuf;
-  } gDebug3DCommonData;
-
-  static m4 Debug3DGetProj( const Camera* camera, const v2i viewSize )
+  static auto Debug3DGetProj( const Camera* camera, const v2i viewSize ) -> m4
   {
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const auto ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
@@ -72,14 +73,14 @@ namespace Tac
     gDebug3DCommonData.Uninit();
   }
 
-  void Debug3DCommonData::Uninit()
+  void Debug3DCommonData::Uninit() const
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     renderDevice->DestroyProgram( m3DVertexColorShader );
     renderDevice->DestroyPipeline( mPipeline );
   }
 
-  Render::BlendState            Debug3DCommonData::GetAlphaBlendState() const
+  auto Debug3DCommonData::GetAlphaBlendState() const -> Render::BlendState
   {
     return Render::BlendState
     {
@@ -92,7 +93,7 @@ namespace Tac
     };
   }
 
-  Render::DepthState            Debug3DCommonData::GetDepthState() const
+  auto Debug3DCommonData::GetDepthState() const -> Render::DepthState
   {
     return Render::DepthState
     {
@@ -103,7 +104,7 @@ namespace Tac
     };
   }
 
-  Render::RasterizerState       Debug3DCommonData::GetRasterizerStateNoCull() const
+  auto Debug3DCommonData::GetRasterizerStateNoCull() const -> Render::RasterizerState
   {
     return Render::RasterizerState
     {
@@ -114,7 +115,7 @@ namespace Tac
     };
   }
 
-  Render::VertexDeclarations    Debug3DCommonData::GetVertexColorFormat() const
+  auto Debug3DCommonData::GetVertexColorFormat() const -> Render::VertexDeclarations
   {
     const Render::VertexDeclaration posDecl
     {
@@ -136,7 +137,7 @@ namespace Tac
     return decls;
   }
 
-  Render::ProgramParams         Debug3DCommonData::GetProgramParams() const
+  auto Debug3DCommonData::GetProgramParams() const -> Render::ProgramParams
   {
     return Render::ProgramParams
     {
@@ -145,7 +146,7 @@ namespace Tac
     };
   }
 
-  Render::CreateBufferParams    Debug3DCommonData::GetConstBufParams() const
+  auto Debug3DCommonData::GetConstBufParams() const -> Render::CreateBufferParams
   {
     return Render::CreateBufferParams 
     {
@@ -156,7 +157,7 @@ namespace Tac
     };
   }
 
-  Render::PipelineParams        Debug3DCommonData::GetPipelineParams() const
+  auto Debug3DCommonData::GetPipelineParams() const -> Render::PipelineParams
   {
     const Render::RasterizerState rasterizerState{ GetRasterizerStateNoCull() };
     const Render::DepthState depthStateData{ GetDepthState() };
@@ -201,10 +202,9 @@ namespace Tac
     renderDevice->DestroyBuffer( mVtxBuf );
   }
 
-  const Debug3DDrawBuffers::Buffer* Debug3DDrawBuffers::Update(
-    Render::IContext* renderContext,
-    Span< DefaultVertexColor > vtxs,
-    Errors& errors )
+  auto Debug3DDrawBuffers::Update( Render::IContext* renderContext,
+                                   Span< DefaultVertexColor > vtxs,
+                                   Errors& errors ) -> const Buffer*
   {
     const int frameCount{ Render::RenderApi::GetMaxGPUFrameCount() };
     mBuffers.resize( frameCount );
@@ -257,16 +257,12 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
 
-  void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
-                                         const v3& p1 )
+  void Debug3DDrawData::DebugDraw3DLine( const v3& p0, const v3& p1 )
   {
     DebugDraw3DLine( p0, p1, v4( 1, 1, 1, 1 ) );
   }
 
-  void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
-                                         const v3& p1,
-                                         const v3& color0,
-                                         const v3& color1 )
+  void Debug3DDrawData::DebugDraw3DLine( const v3& p0, const v3& p1, const v3& color0, const v3& color1 )
   {
     if constexpr( kIsDebugMode )
     {
@@ -286,17 +282,12 @@ namespace Tac
     }
   }
 
-  void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
-                                         const v3& p1,
-                                         const v4& color )
+  void Debug3DDrawData::DebugDraw3DLine( const v3& p0, const v3& p1, const v4& color )
   {
     DebugDraw3DLine( p0, p1, color, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
-                                         const v3& p1,
-                                         const v4& color0,
-                                         const v4& color1 )
+  void Debug3DDrawData::DebugDraw3DLine( const v3& p0, const v3& p1, const v4& color0, const v4& color1 )
   {
     if constexpr( kIsDebugMode )
     {
@@ -316,17 +307,12 @@ namespace Tac
     }
   }
 
-  void Debug3DDrawData::DebugDraw3DLine( const v3& p0,
-                                         const v3& p1,
-                                         const v3& color )
+  void Debug3DDrawData::DebugDraw3DLine( const v3& p0, const v3& p1, const v3& color )
   {
     DebugDraw3DLine( p0, p1, color, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DCircle( const v3& p0,
-                                           const v3& dir,
-                                           float rad,
-                                           const v3& color )
+  void Debug3DDrawData::DebugDraw3DCircle( const v3& p0, const v3& dir, float rad, const v3& color )
   {
     const float length { Length( dir ) };
     if( length < 0.001f || Abs( rad ) < 0.001f )
@@ -348,19 +334,14 @@ namespace Tac
     }
   }
 
-  void Debug3DDrawData::DebugDraw3DSphere( const v3& origin,
-                                           float radius,
-                                           const v3& color )
+  void Debug3DDrawData::DebugDraw3DSphere( const v3& origin, float radius, const v3& color )
   {
     DebugDraw3DCircle( origin, v3( 1, 0, 0 ), radius, color );
     DebugDraw3DCircle( origin, v3( 0, 1, 0 ), radius, color );
     DebugDraw3DCircle( origin, v3( 0, 0, 1 ), radius, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DCapsule( const v3& p0,
-                                            const v3& p1,
-                                            float radius,
-                                            const v3& color )
+  void Debug3DDrawData::DebugDraw3DCapsule( const v3& p0, const v3& p1, float radius, const v3& color )
   {
     v3 dir { p1 - p0 };
     const float dirlen { Length( dir ) };
@@ -376,10 +357,7 @@ namespace Tac
     DebugDraw3DCylinder( p0, p1, radius, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DHemisphere( const v3& mOrigin,
-                                               const v3& mDirection,
-                                               float radius,
-                                               const v3& color )
+  void Debug3DDrawData::DebugDraw3DHemisphere( const v3& mOrigin, const v3& mDirection, float radius, const v3& color )
   {
     Vector< v3 > mPrevPts( cylinderSegmentCount );
     Vector< v3 > mCurrPts( cylinderSegmentCount );
@@ -420,10 +398,7 @@ namespace Tac
     }
   }
 
-  void Debug3DDrawData::DebugDraw3DCylinder( const v3& p0,
-                                             const v3& p1,
-                                             float radius,
-                                             const v3& color )
+  void Debug3DDrawData::DebugDraw3DCylinder( const v3& p0, const v3& p1, float radius, const v3& color )
   {
     v3 dir { p1 - p0 };
     const float dirlen { Length( dir ) };
@@ -485,9 +460,7 @@ namespace Tac
     DebugDraw3DLine( {}, { 0, 0, d }, { 0, 0, 1, 1 }, { 0, 0, 1, 0 } );
   }
 
-  void Debug3DDrawData::DebugDraw3DArrow( const v3& from,
-                                          const v3& to,
-                                          const v3& color )
+  void Debug3DDrawData::DebugDraw3DArrow( const v3& from, const v3& to, const v3& color )
   {
     const v3 arrowDiff { to - from };
     const float arrowDiffLenSq { Quadrance( arrowDiff ) };
@@ -512,10 +485,7 @@ namespace Tac
     DebugDraw3DLine( to, circlePos - tan2, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DOBB( const v3& pos,
-                                        const v3& halfextents,
-                                        const m3& orientation,
-                                        const v3& color )
+  void Debug3DDrawData::DebugDraw3DOBB( const v3& pos, const v3& halfextents, const m3& orientation, const v3& color )
   {
     const int pointCount { 8 };
     v3 original_points[]  {
@@ -554,27 +524,18 @@ namespace Tac
     }
   }
 
-  void Debug3DDrawData::DebugDraw3DOBB( const v3& pos,
-                                        const v3& halfextents,
-                                        const v3& eulerAnglesRad,
-                                        const v3& color )
+  void Debug3DDrawData::DebugDraw3DOBB( const v3& pos, const v3& halfextents, const v3& eulerAnglesRad, const v3& color )
   {
     m3 orientation { m3::RotRadEuler(eulerAnglesRad) };
     DebugDraw3DOBB( pos, halfextents, orientation, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DCube( const v3& pos,
-                                         float fullwidth,
-                                         const m3& orientation,
-                                         const v3& color )
+  void Debug3DDrawData::DebugDraw3DCube( const v3& pos, float fullwidth, const m3& orientation, const v3& color )
   {
     DebugDraw3DOBB( pos, v3( fullwidth / 2 ), orientation, color );
   }
 
-  void Debug3DDrawData::DebugDraw3DAABB( const v3& mini,
-                                         const v3& maxi,
-                                         const v3& miniColor,
-                                         const v3& maxiColor )
+  void Debug3DDrawData::DebugDraw3DAABB( const v3& mini, const v3& maxi, const v3& miniColor, const v3& maxiColor )
   {
 
     for( int a0 {}; a0 < 3; ++a0 )
@@ -608,9 +569,7 @@ namespace Tac
     }
   }
 
-  void Debug3DDrawData::DebugDraw3DAABB( const v3& mini,
-                                         const v3& maxi,
-                                         const v3& color )
+  void Debug3DDrawData::DebugDraw3DAABB( const v3& mini, const v3& maxi, const v3& color )
   {
     for( int a0 {}; a0 < 3; ++a0 )
     {
@@ -635,22 +594,14 @@ namespace Tac
     }
   }
 
-  void Debug3DDrawData::DebugDraw3DTriangle( const v3& p0,
-                                             const v3& p1,
-                                             const v3& p2,
-                                             const v3& color0,
-                                             const v3& color1,
-                                             const v3& color2 )
+  void Debug3DDrawData::DebugDraw3DTriangle( const v3& p0, const v3& p1, const v3& p2, const v3& color0, const v3& color1, const v3& color2 )
   {
     DebugDraw3DLine( p0, p1, color0, color1 );
     DebugDraw3DLine( p0, p2, color0, color2 );
     DebugDraw3DLine( p1, p2, color1, color2 );
   }
 
-  void Debug3DDrawData::DebugDraw3DTriangle( const v3& p0,
-                                             const v3& p1,
-                                             const v3& p2,
-                                             const v3& color )
+  void Debug3DDrawData::DebugDraw3DTriangle( const v3& p0, const v3& p1, const v3& p2, const v3& color )
   {
     DebugDraw3DTriangle( p0, p1, p2, color, color, color );
   }
@@ -660,16 +611,15 @@ namespace Tac
     mDebugDrawVerts = other.mDebugDrawVerts;
   }
 
-    void Debug3DDrawData::Clear()
+  void Debug3DDrawData::Clear()
     {
       mDebugDrawVerts.clear();
     }
 
-    Span< DefaultVertexColor > Debug3DDrawData::GetVerts()
+  auto Debug3DDrawData::GetVerts() -> Span< DefaultVertexColor >
     {
       return { mDebugDrawVerts.data(), mDebugDrawVerts.size() };
     }
-  
 
   void Debug3DDrawBuffers::Buffer::DebugDraw3DToTexture( Render::IContext* renderContext,
                                                          const Render::TextureHandle renderTargetColor,
@@ -698,7 +648,7 @@ namespace Tac
       .mSrcBytes     { &constBufData },
       .mSrcByteCount { sizeof( Debug3DConstBuf ) },
     };
-    renderContext->UpdateBuffer(  gDebug3DCommonData.mConstBuf, updateConstBuf, errors );
+    renderContext->UpdateBuffer( gDebug3DCommonData.mConstBuf, updateConstBuf, errors );
 
     const Render::DrawArgs drawArgs
     {

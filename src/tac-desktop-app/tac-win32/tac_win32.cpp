@@ -50,7 +50,7 @@ auto Tac::Win32ErrorStringFromDWORD( const DWORD winErrorValue ) -> String
 {
   if( !winErrorValue )
     return "no error";
-  LPVOID lpMsgBuf;
+  dynmc LPVOID lpMsgBuf{};
   const DWORD flags{
     FORMAT_MESSAGE_ALLOCATE_BUFFER |
     FORMAT_MESSAGE_FROM_SYSTEM |
@@ -70,11 +70,7 @@ auto Tac::Win32ErrorStringFromDWORD( const DWORD winErrorValue ) -> String
   return result;
 }
 
-auto Tac::Win32GetLastErrorString() -> String
-{
-  const DWORD winErrorValue{ GetLastError() };
-  return Win32ErrorStringFromDWORD( winErrorValue );
-}
+auto Tac::Win32GetLastErrorString() -> String { return Win32ErrorStringFromDWORD( GetLastError() ); }
 
 void Tac::Win32DebugBreak()
 {

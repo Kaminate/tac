@@ -38,3 +38,4 @@ run/cloc_out.txt
 run/__pycache__/*
 
 
+/.vs

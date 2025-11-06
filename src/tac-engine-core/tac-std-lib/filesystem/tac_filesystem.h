@@ -5,7 +5,7 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
-//import std; // <filesystem>
+#undef CreateDirectory
 
 namespace Tac::FileSys
 {
@@ -14,46 +14,29 @@ namespace Tac::FileSys
   // unicode in paths
   struct Path
   {
-    // Constructors
-
     Path() = default;
-    //Path( const std::filesystem::path& );
     Path( const char* );
     Path( const char8_t* );
     Path( const String& );
     Path( const StringView& );
-
-    // ---------------------------------------------------------------------------------------------
-
-    // Functions
-
     Path parent_path() const; // ie: foo/bar/qux.txt --> foo/bar
     Path stem() const;        // ie: foo/bar/qux.txt --> qux
     Path extension() const;   // ie: foo/bar/qux.txt --> .txt
     Path filename() const;    // ie: foo/bar/qux.txt --> qux.txt
     Path dirname() const;     // ie: foo/bar/qux.txt --> bar
-    
     auto u8string() const -> String;  // convert to utf-8
     bool empty() const;
     void clear();
-
     bool is_absolute() const;
     bool is_relative() const;
-
     bool has_parent_path() const;
     bool has_stem() const;
     bool has_extension() const;
     bool has_filename() const;
     bool has_dirname() const;
-
-    // In-class Operators
-
-
-    //operator const std::filesystem::path &() const;
-    //Path& operator /= ( const char* );
-    Path& operator /= ( const StringView& );
-    Path& operator = ( const Path& ) = default;
-    Path& operator += ( const StringView& );
+    auto operator /= ( const StringView& ) -> Path&;
+    auto operator = ( const Path& ) ->Path& = default;
+    auto operator += ( const StringView& ) -> Path&;
 
   private:
     String mUTF8String;
@@ -64,43 +47,23 @@ namespace Tac::FileSys
   Path operator / ( const Path&, const Path& );
   bool operator == ( const Path&, const Path& );
 
-  // -----------------------------------------------------------------------------------------------
-
-  // -----------------------------------------------------------------------------------------------
-
-  Path GetCurrentWorkingDirectory();
-
-  bool Exists( const Path& );
-
-  bool Exists( const char* );
-
-  bool IsDirectory( const Path& );
-
-#undef CreateDirectory
-  void CreateDirectory( const Path& );
-  void CreateDirectory2( const Path& );
-
   enum class IterateType { Default, Recursive };
   using Paths = Vector< Path >;
 
-  Paths            IterateFiles( const Path& dir, IterateType, Errors& );
-  Paths            IterateDirectories( const Path& dir, IterateType, Errors& );
-
-  //
-  // Filesystem utils
-  //
-
-  bool   IsOfExt( const StringView& str, const StringView& ext );
-  String StripExt( const StringView& ); // "foo.txt" --> "foo"
-  String StripLeadingSlashes( const StringView& );
-
-  // -----------------------------------------------------------------------------------------------
-
-  // File I/O
-
-  void        SaveToFile( const Path&, StringView, Errors& );
-  void        SaveToFile( const Path&, const void*, int, Errors& );
-  String      LoadFilePath( const Path&, Errors& );
+  Path GetCurrentWorkingDirectory();
+  bool Exists( const Path& );
+  bool Exists( const char* );
+  bool IsDirectory( const Path& );
+  void CreateDirectory( const Path& );
+  void CreateDirectory2( const Path& );
+  auto IterateFiles( const Path& dir, IterateType, Errors& ) -> Paths;
+  auto IterateDirectories( const Path& dir, IterateType, Errors& ) -> Paths;
+  bool IsOfExt( const StringView& str, const StringView& ext );
+  auto StripExt( const StringView& ) -> String; // "foo.txt" --> "foo"
+  auto StripLeadingSlashes( const StringView& ) -> String;
+  void SaveToFile( const Path&, StringView, Errors& );
+  void SaveToFile( const Path&, const void*, int, Errors& );
+  auto LoadFilePath( const Path&, Errors& ) -> String;
 
   // not using time_t anymore, just using the default clock cppstl filesystem comes with
   struct Time
@@ -111,13 +74,8 @@ namespace Tac::FileSys
     ~Time();
     void operator = ( const Time& );
     void operator = ( Time&& ) noexcept;
-    //bool IsValid() const;
-    //bool operator == ( const Time& ) const;
-    //bool operator != ( const Time& ) const;
     void SwapWith( Time&& ) noexcept;
-
     void* mImpl{};
-    //std::filesystem::file_time_type mTime{};
   };
 
   bool operator == ( Time, Time );
@@ -125,8 +83,4 @@ namespace Tac::FileSys
 
   Time GetFileLastModifiedTime( const Path&, Errors& );
 
-  // -----------------------------------------------------------------------------------------------
-
-  //void DeleteThisFilesystemFn();
-
-} // namespace Tac::Filesystem
+} // namespace Tac::FileSys

@@ -27,7 +27,6 @@ namespace Tac
       FrameIndex         mFrameIndex          {};
       Timestamp          mTimestamp           {};
       Timepoint          mTimepoint           {};
-      //ImGuiSimFrame      mImGuiSimFrame       {};
     };
 
     struct Config
@@ -57,8 +56,7 @@ namespace Tac
     virtual void Render( RenderParams, Errors& ){};
     virtual void Present( Errors& ){};
     virtual void Uninit( Errors& ){};
-
-    virtual auto GameState_Create() -> State { return {}; }
+    virtual auto GameState_Create() -> State;
     virtual void GameState_Update( IState* ) {}
 
     bool IsRenderEnabled() const;

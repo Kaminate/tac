@@ -51,23 +51,19 @@ namespace Tac
     void CreatePipelineState( Errors& );
     void InitDescriptorSizes();
     
-
     // Helper functions for Update()
     void DX12CreateSwapChain( HWND, v2i, Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
-    D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetRTVGpuDescHandle( int ) const;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGpuDescHandle( int ) const;
-
-    D3D12_CPU_DESCRIPTOR_HANDLE OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
-                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
-                                                     int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
-                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
-                                                     int ) const;
+    auto GetRTVCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetSRVCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetSRVGpuDescHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
+    auto OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
+                              D3D12_DESCRIPTOR_HEAP_TYPE,
+                              int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
+                              D3D12_DESCRIPTOR_HEAP_TYPE,
+                              int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
     void PopulateCommandList( Errors& );
     void ExecuteCommandLists();
     void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
@@ -79,7 +75,7 @@ namespace Tac
 
     static const int                   bufferCount { 2 };
 
-    WindowHandle                       hDesktopWindow;
+    WindowHandle                       hDesktopWindow{};
     float                              mT {};
 
     // ---------------------------------------------------------------------------------------------
@@ -87,7 +83,6 @@ namespace Tac
     // ID3D12 objects
 
     PCom< ID3D12Device5 >              m_device;
-
     PCom< ID3D12Debug3 >               m_debug;
     bool                               m_debugLayerEnabled {};
     PCom<ID3D12DebugDevice2>           m_debugDevice;
@@ -95,7 +90,6 @@ namespace Tac
     // rtvs
     PCom< ID3D12DescriptorHeap >       m_rtvHeap;
     D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvCpuHeapStart{};
-    D3D12_GPU_DESCRIPTOR_HANDLE        m_rtvGpuHeapStart{};
 
     // srvs
     PCom< ID3D12DescriptorHeap >       m_srvHeap;
@@ -123,9 +117,9 @@ namespace Tac
     PCom< ID3D12CommandQueue >         m_commandQueue;
     PCom< ID3D12CommandAllocator >     m_commandAllocator;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
-    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
-    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
+    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ]{};
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ]{};
+    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ]{};
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
@@ -147,22 +141,22 @@ namespace Tac
 
     PCom<ID3D12Resource>               m_vertexBufferUploadHeap;
     PCom<ID3D12Resource>               m_vertexBuffer;
-    D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
-    UINT                               m_vertexBufferSize;
+    D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView{};
+    UINT                               m_vertexBufferSize{};
     bool                               m_vertexBufferCopied {};
 
-    D3D12_VIEWPORT                     m_viewport;
-    D3D12_RECT                         m_scissorRect;
+    D3D12_VIEWPORT                     m_viewport{};
+    D3D12_RECT                         m_scissorRect{};
 
-    Viewports                          m_viewports;
-    ScissorRects                       m_scissorRects;
+    Viewports                          m_viewports{};
+    ScissorRects                       m_scissorRects{};
 
     // ---------------------------------------------------------------------------------------------
 
     // DXGI objects
 
-    DXGISwapChainWrapper               m_swapChain;
-    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc;
+    DXGISwapChainWrapper               m_swapChain{};
+    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc{};
     Render::TexFmt                     mRTVFmt{ Render::TexFmt::kRGBA16F };
  
     // ---------------------------------------------------------------------------------------------
@@ -173,7 +167,7 @@ namespace Tac
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
     UINT                               m_frameIndex{};
-    Win32Event                         m_fenceEvent;
+    Win32Event                         m_fenceEvent{};
 
     // UINT64 is big enough to run at 1000 fps for 500 million years
     UINT64                             m_fenceValue{};

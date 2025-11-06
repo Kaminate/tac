@@ -28,7 +28,6 @@ namespace Tac
 
   struct Player;
   struct OtherPlayer;
-  struct Ghost;
   struct User;
   struct World;
 

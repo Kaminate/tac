@@ -8,7 +8,6 @@
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/math/tac_vector2.h"
-//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-ecs/tac_space.h"
@@ -24,10 +23,10 @@ namespace Tac
   struct ScriptRoot;
   struct UIText;
   struct UILayout;
-  struct UIRoot;
   struct IndexBuffer;
   struct VertexBuffer;
   //struct Controller;
+  struct Ghost;
 
   //
   // A user stores data for a person interactiong with this application.
@@ -56,15 +55,16 @@ namespace Tac
   // The original idea was for the ghost to be the hotloaded game ddl
   // for iteration, but that hasn't happened.
   //
-  struct Ghost : public Soul
+  struct Ghost
   {
     Ghost();
     virtual ~Ghost();
-    void            Init( SettingsNode, Errors& ) override;
-    void            Update( Errors& ) override;
+
+    void            Init( SettingsNode, Errors& );
+    void            Update( Errors& );
+    void            DebugImgui( Errors& );
     void            ImguiCreatePlayerPopup( Errors& );
     User*           AddPlayer( StringView name, Errors& );
-    void            DebugImgui( Errors& ) override;
     void            PopulateWorldInitial();
     void            Draw( Errors& );
     void            AddMorePlayers( Errors& );

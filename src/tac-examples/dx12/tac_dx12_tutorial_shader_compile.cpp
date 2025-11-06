@@ -15,16 +15,14 @@
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
-  static FileSys::Path sOutputDir; // = sShellPrefPath,
+  static       FileSys::Path    sOutputDir;
+  static const D3D_SHADER_MODEL kShaderModel{ D3D_SHADER_MODEL_6_5 };
 
-  // static helper functions
-
-
-  static D3D_SHADER_MODEL GetHighestShaderModel( ID3D12Device* device )
+  static auto GetHighestShaderModel( ID3D12Device* device ) -> D3D_SHADER_MODEL
   {
-    const D3D_SHADER_MODEL lowestDefined = D3D_SHADER_MODEL_5_1;
-    const D3D_SHADER_MODEL highestDefined = D3D_SHADER_MODEL_6_7; // D3D_HIGHEST_SHADER_MODEL undefined?;
-    for( D3D_SHADER_MODEL shaderModel = highestDefined; 
+    const D3D_SHADER_MODEL lowestDefined{ D3D_SHADER_MODEL_5_1 };
+    const D3D_SHADER_MODEL highestDefined{ D3D_SHADER_MODEL_6_7 }; // D3D_HIGHEST_SHADER_MODEL undefined?;
+    for( D3D_SHADER_MODEL shaderModel{ highestDefined };
          shaderModel >= lowestDefined;
          shaderModel = D3D_SHADER_MODEL( shaderModel - 1 ) )
     {
@@ -47,61 +45,32 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  // DX12ExampleProgramCompiler::Result definition
-  
-#if 0
-  D3D12_SHADER_BYTECODE DX12ExampleProgramCompiler::Result::GetBytecode( ShaderType type )
-  {
-    auto blob = ( IDxcBlob* )mBlobs[ ( int )type ];
-    return blob ?
-      D3D12_SHADER_BYTECODE{ blob->GetBufferPointer(), blob->GetBufferSize() } :
-      D3D12_SHADER_BYTECODE{};
-  }
-#endif
-
-  // -----------------------------------------------------------------------------------------------
-
-  // DX12ExampleProgramCompiler definitions
-
-  const D3D_SHADER_MODEL shaderModel = D3D_SHADER_MODEL_6_5;
-
   DX12ExampleProgramCompiler::DX12ExampleProgramCompiler( Params params, Errors& errors )
   {
-    ID3D12Device* device = params.mDevice;
     sOutputDir = params.mOutputDir;
-    const D3D_SHADER_MODEL highestShaderModel = GetHighestShaderModel( device );
-    TAC_RAISE_ERROR_IF( shaderModel > highestShaderModel, "Shader model too high" );
+    const D3D_SHADER_MODEL highestShaderModel{ GetHighestShaderModel( params.mDevice ) };
+    TAC_RAISE_ERROR_IF( kShaderModel > highestShaderModel, "Shader model too high" );
   }
 
   // you know... this code assumes all the shaders are in the same file... why would that
   // even be a fair assumption...
-  DX12ExampleProgramCompiler::Result DX12ExampleProgramCompiler::Compile(
-    const AssetPathStringView& path,
-    Errors& errors ) const
+  auto DX12ExampleProgramCompiler::Compile( const AssetPathStringView& path, Errors& errors ) const -> Result
   {
     const String shaderStrProcessed { HLSLPreprocessor::Process( { path }, errors ) };
-
-    const DXCCompileParams compileParams
-    {
-      .mFileName           { path },
-      .mOutputDir          { sOutputDir },
-      .mPreprocessedShader { shaderStrProcessed },
-      .mShaderModel        { shaderModel },
-    };
-
-    TAC_CALL_RET( DXCCompileOutput compileOutput{ DXCCompile( compileParams, errors ) } );
-
-    const PCom< IDxcBlob > PSBlob { compileOutput.mPSBlob };
-    const PCom< IDxcBlob > VSBlob { compileOutput.mVSBlob };
-    const D3D12_SHADER_BYTECODE VSBytecode{ VSBlob->GetBufferPointer(), VSBlob->GetBufferSize() };
-    const D3D12_SHADER_BYTECODE PSBytecode{ PSBlob->GetBufferPointer(), PSBlob->GetBufferSize() };
-
+    TAC_CALL_RET( DXCCompileOutput compileOutput{ DXCCompile(
+      DXCCompileParams
+      {
+        .mFileName           { path.GetFilename() },
+        .mOutputDir          { sOutputDir },
+        .mPreprocessedShader { shaderStrProcessed },
+        .mShaderModel        { kShaderModel },
+      }, errors ) } );
     return Result
     {
-      .mVSBlob = VSBlob,
-      .mPSBlob = PSBlob,
-      .mVSBytecode = VSBytecode,
-      .mPSBytecode = PSBytecode,
+      .mVSBlob { compileOutput.mVSBlob },
+      .mPSBlob { compileOutput.mPSBlob },
+      .mVSBytecode { compileOutput.mVSBlob->GetBufferPointer(), compileOutput.mVSBlob->GetBufferSize() },
+      .mPSBytecode { compileOutput.mPSBlob->GetBufferPointer(), compileOutput.mPSBlob->GetBufferSize() },
     };
   }
 

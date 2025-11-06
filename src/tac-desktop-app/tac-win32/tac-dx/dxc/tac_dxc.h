@@ -20,7 +20,6 @@ namespace Tac::Render
     // Used to have shader source and pdb in a gpu debugger
     FileSys::Path    mOutputDir           {};
 
-    //StringView       mFileName            {}; // ie: "foo.hlsl"
     StringView       mPreprocessedShader  {};
     D3D_SHADER_MODEL mShaderModel         {};
   };
@@ -32,9 +31,9 @@ namespace Tac::Render
 
     struct Input
     {
-      String mName;
-      int    mIndex;
-      int    mRegister;
+      String mName     {};
+      int    mIndex    {};
+      int    mRegister {};
     };
 
     using Inputs            = Vector< Input >;
@@ -42,23 +41,17 @@ namespace Tac::Render
     using BindDescs         = Vector< D3D12_SHADER_INPUT_BIND_DESC >;
     using ShaderReflections = Vector< PCom< ID3D12ShaderReflection > >;
 
-    //                Storing IDxcBlob / ID3D12ShaderReflection because I assume that the string
-    //                pointers in the D3D12_SHADER_INPUT_BIND_DESC go inside one of these
-    Blobs             mReflBlobs;
-
-    ShaderReflections mRefls;
-
-    //                Combined bindings from all shader stanges
-    BindDescs         mReflBindings;
-
-    Inputs            mInputs;
+    Blobs             mReflBlobs    {};
+    ShaderReflections mRefls        {};
+    BindDescs         mReflBindings {}; // Combined bindings from all shader stanges
+    Inputs            mInputs       {};
   };
 
   struct DXCCompileOutput
   {
-    D3D12_SHADER_BYTECODE GetVSBytecode() const;
-    D3D12_SHADER_BYTECODE GetPSBytecode() const;
-    D3D12_SHADER_BYTECODE GetCSBytecode() const;
+    auto GetVSBytecode() const -> D3D12_SHADER_BYTECODE;
+    auto GetPSBytecode() const -> D3D12_SHADER_BYTECODE;
+    auto GetCSBytecode() const -> D3D12_SHADER_BYTECODE;
 
     PCom< IDxcBlob > mVSBlob;
     PCom< IDxcBlob > mPSBlob;
@@ -66,9 +59,7 @@ namespace Tac::Render
     DXCReflInfo      mReflInfo;
   };
 
-  //enum DXC;
-
-  DXCCompileOutput DXCCompile( const DXCCompileParams&, Errors& );
+  auto DXCCompile( const DXCCompileParams&, Errors& ) -> DXCCompileOutput;
 
 } // namespace Tac::Render
 

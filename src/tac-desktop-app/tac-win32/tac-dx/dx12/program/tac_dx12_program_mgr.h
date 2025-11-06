@@ -9,16 +9,16 @@ namespace Tac::Render
 {
   struct DX12ProgramMgr
   {
-    void          Init( Errors& );
-    ProgramHandle CreateProgram( ProgramParams, Errors& );
-    String        GetProgramBindings_TEST( ProgramHandle );
-    void          DestroyProgram( ProgramHandle );
-    DX12Program*  FindProgram( ProgramHandle );
-    void          HotReload( Errors& );
+    void Init( Errors& );
+    auto CreateProgram( ProgramParams, Errors& ) -> ProgramHandle;
+    auto GetProgramBindings_TEST( ProgramHandle ) -> String;
+    void DestroyProgram( ProgramHandle );
+    auto FindProgram( ProgramHandle ) -> DX12Program*;
+    void HotReload( Errors& );
 
   private:
 
-    void          CreateProgramAtIndex( ProgramHandle, ProgramParams, Errors& );
+    void CreateProgramAtIndex( ProgramHandle, ProgramParams, Errors& );
 
     Array< DX12Program, 100 > mPrograms    {};
     ID3D12Device*             mDevice      {};

@@ -7,10 +7,10 @@
 
 namespace Tac::Render
 {
-  struct DX12BuiltInputLayout : public D3D12_INPUT_LAYOUT_DESC
+  struct DX12BuiltInputLayout
   {
     DX12BuiltInputLayout( const VertexDeclarations& vtxDecls );
-    
-    FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs;
+    D3D12_INPUT_LAYOUT_DESC                     mDesc{};
+    FixedVector< D3D12_INPUT_ELEMENT_DESC, 10 > mElementDescs{};
   };
 }// namespace

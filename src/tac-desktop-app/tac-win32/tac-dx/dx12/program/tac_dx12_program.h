@@ -17,8 +17,8 @@ namespace Tac::Render
   {
     struct HotReloadInput
     {
-      FileSys::Path mFilePath;
-      FileSys::Time mFileTime;
+      FileSys::Path mFilePath {};
+      FileSys::Time mFileTime {};
     };
 
     struct HotReloadInputs : public Vector< HotReloadInput >
@@ -29,9 +29,9 @@ namespace Tac::Render
 
     struct Input
     {
-      String mName; // this is a semantic name
-      int    mIndex;
-      int    mRegister;
+      String mName     {}; // this is a semantic name
+      int    mIndex    {};
+      int    mRegister {};
     };
 
     struct Inputs : public Vector< Input >
@@ -40,20 +40,16 @@ namespace Tac::Render
       Inputs( const DXCReflInfo::Inputs& );
     };
 
-    PCom< IDxcBlob >         mVSBlob;
-    D3D12_SHADER_BYTECODE    mVSBytecode;
-
-    PCom< IDxcBlob >         mPSBlob;
-    D3D12_SHADER_BYTECODE    mPSBytecode;
-
-    PCom< IDxcBlob >         mCSBlob;
-    D3D12_SHADER_BYTECODE    mCSBytecode;
-
-    D3D12ProgramBindDescs    mProgramBindDescs;
-    ProgramParams            mProgramParams;
-
-    Inputs                   mInputs;
-    Vector< HotReloadInput > mHotReloadInputs;
+    PCom< IDxcBlob >         mVSBlob           {};
+    PCom< IDxcBlob >         mPSBlob           {};
+    PCom< IDxcBlob >         mCSBlob           {};
+    D3D12_SHADER_BYTECODE    mVSBytecode       {};
+    D3D12_SHADER_BYTECODE    mPSBytecode       {};
+    D3D12_SHADER_BYTECODE    mCSBytecode       {};
+    D3D12ProgramBindDescs    mProgramBindDescs {};
+    ProgramParams            mProgramParams    {};
+    Inputs                   mInputs           {};
+    Vector< HotReloadInput > mHotReloadInputs  {};
   };
 } // namespace Tac::Render
 

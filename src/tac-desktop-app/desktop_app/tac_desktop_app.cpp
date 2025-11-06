@@ -59,26 +59,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static void DesktopAppDebugImGuiHoveredWindow()
-  {
-#if 0
-    PlatformFns* platform { PlatformFns::GetInstance() };
-    const WindowHandle hoveredHandle { platform->PlatformGetMouseHoveredWindow() };
-    const DesktopWindowState* hovered { hoveredHandle.GetDesktopWindowState() };
-    if( !hovered )
-    {
-      ImGuiText( "Hovered window: <none>" );
-      return;
-    }
-
-    const ShortFixedString text{ ShortFixedString::Concat(
-      "Hovered window: ",
-      ToString( hoveredHandle.GetIndex() ),
-      " ",
-      hovered->mName ) };
-    ImGuiText( text );
-#endif
-  }
   
   static auto ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor ) -> PlatformMouseCursor
   {
@@ -108,15 +88,11 @@ namespace Tac
 
     TAC_PROFILE_BLOCK_NAMED( "frame" );
 
-
-    PlatformFns* platform{ PlatformFns::GetInstance() };
-
-    const BeginFrameData data
+    ImGuiBeginFrame( BeginFrameData
     {
       .mElapsedSeconds      { Timestep::GetElapsedTime() },
-      .mMouseHoveredWindow  { platform->PlatformGetMouseHoveredWindow() },
-    };
-    ImGuiBeginFrame( data );
+      .mMouseHoveredWindow  { PlatformFns::GetInstance()->PlatformGetMouseHoveredWindow() },
+    } );
 
     ControllerApi::UpdateJoysticks();
 
@@ -146,8 +122,6 @@ namespace Tac
       Render::RenderApi::BeginRenderFrame( errors );
       TAC_ON_DESTRUCT( Render::RenderApi::EndRenderFrame( errors ) );
 
-      //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
       // Interpolate between game states and render
       //
       // Explanation:
@@ -160,9 +134,7 @@ namespace Tac
         return;
 
       TAC_ASSERT( sCurrState->mTimestamp != sPrevState->mTimestamp );
-
       const auto now{ Timepoint::Now() };
-
       dynmc float t{
         ( now - sPrevState->mTimepoint ) /
         ( sCurrState->mTimestamp - sPrevState->mTimestamp ) };
@@ -176,29 +148,18 @@ namespace Tac
         OS::OSDebugPrintLine( String() + "t before clamping: " + ToString( t ) );
 
       t = Min( t, 1.0f );
-
-      const Timestamp interpolatedTimestamp{ Lerp( sPrevState->mTimestamp.mSeconds,
-                                                   sCurrState->mTimestamp.mSeconds,
-                                                   t ) };
-
       TAC_CALL( FontApi::UpdateGPU( errors ) );
-
-      //ImGuiSimFrame* imguiSimFrame{ &sCurrState->mImGuiSimFrame };
-
-      TAC_CALL( ImGuiPlatformRenderFrameBegin( // imguiSimFrame,
-                                               errors ) );
-
-      const App::RenderParams renderParams
-      {
-        .mOldState    { sPrevState }, // A
-        .mNewState    { sCurrState }, // B
-        .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
-        .mTimestamp   { interpolatedTimestamp },
-      };
-
+      TAC_CALL( ImGuiPlatformRenderFrameBegin( errors ) );
       if( sCurrState->mTimestamp.mSeconds > sRenderDelay )
       {
-        TAC_CALL( sApp->Render( renderParams, errors ) );
+        TAC_CALL( sApp->Render(
+          App::RenderParams
+          {
+            .mOldState    { sPrevState }, // A
+            .mNewState    { sCurrState }, // B
+            .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
+            .mTimestamp   { Lerp( sPrevState->mTimestamp.mSeconds, sCurrState->mTimestamp.mSeconds, t ) },
+          }, errors ) );
         TAC_CALL( ImGuiPlatformRender( errors ) );
       }
 
@@ -207,44 +168,35 @@ namespace Tac
       if( oldCursor != newCursor )
       {
         oldCursor = newCursor;
-
-        PlatformFns* platform{ PlatformFns::GetInstance() };
-        platform->PlatformSetMouseCursor( newCursor );
+        PlatformFns::GetInstance()->PlatformSetMouseCursor( newCursor );
         if( sVerbose )
           OS::OSDebugPrintLine( "set mouse cursor : " + ToString( ( int )newCursor ) );
       }
 
       for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::Instance.mDesktopWindows )
-      //for( const ImGuiSimFrame::WindowSizeData& sizeData : imguiSimFrame->mWindowSizeDatas )
       {
-        const WindowHandle windowHandle{ desktopWindow->mWindowHandle };
-
         if( desktopWindow->mRequestedPosition.HasValue() )
-        //if( sizeData.mRequestedPosition.HasValue() )
         {
-          const v2i windowPos{ AppWindowApi::GetPos( windowHandle ) };
+          const v2i windowPos{ AppWindowApi::GetPos( desktopWindow->mWindowHandle ) };
           const v2i windowPosRequest{ desktopWindow->mRequestedPosition.GetValue() };
           if( windowPos != windowPosRequest )
-            AppWindowApi::SetPos( windowHandle, windowPosRequest );
+            AppWindowApi::SetPos( desktopWindow->mWindowHandle, windowPosRequest );
         }
 
         if( desktopWindow->mRequestedSize.HasValue() )
         {
-          const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+          const v2i windowSize{ AppWindowApi::GetSize( desktopWindow->mWindowHandle ) };
           const v2i windowSizeRequest{ desktopWindow->mRequestedSize.GetValue() };
           if( windowSize != windowSizeRequest )
-            AppWindowApi::SetSize( windowHandle, windowSizeRequest );
+            AppWindowApi::SetSize( desktopWindow->mWindowHandle, windowSizeRequest );
         }
       }
 
       if( sCurrState->mTimestamp.mSeconds > sRenderDelay )
       {
         TAC_CALL( sApp->Present( errors ) );
-
-        TAC_CALL( ImGuiPlatformPresent( // imguiSimFrame,
-                                        errors ) );
+        TAC_CALL( ImGuiPlatformPresent( errors ) );
       }
-      //Render::FrameEnd();
 
       sNumRenderFramesSincePrevSimFrame++;
   }
@@ -293,7 +245,6 @@ namespace Tac
     TAC_CALL( Debug3DCommonDataInit( errors ) );
 
 
-
 #if TAC_FONT_ENABLED()
     TAC_CALL( FontApi::Init( errors ) );
 #endif
@@ -315,13 +266,12 @@ namespace Tac
 
   void DesktopApp::Run( Errors& errors )
   {
-    PlatformFns* platform{ PlatformFns::GetInstance() };
     while( OS::OSAppIsRunning() )
     {
-      TAC_CALL( platform->PlatformFrameBegin( errors ) ); // poll wndproc
+      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameBegin( errors ) ); // poll wndproc
       TAC_CALL( DesktopEventApi::Apply( errors ) ); // apply queued wndproc events to keyboard/window state
       TAC_CALL( DesktopApp::Update( errors ) );
-      TAC_CALL( platform->PlatformFrameEnd( errors ) );
+      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameEnd( errors ) );
       TAC_CALL( Network::NetApi::Update( errors ) );
       TAC_CALL( sSettingsRoot.Tick( errors ) );
       TAC_CALL( DesktopUpdateSimulation( errors ) );
@@ -362,7 +312,6 @@ namespace Tac
     if( ImGuiCollapsingHeader( "DesktopAppDebugImGui" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      DesktopAppDebugImGuiHoveredWindow();
       PlatformFns::GetInstance()->PlatformImGui( errors );
     }
   }

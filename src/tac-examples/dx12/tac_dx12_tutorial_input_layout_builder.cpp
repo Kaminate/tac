@@ -34,7 +34,7 @@ namespace Tac::Render
       };
     }
 
-    *( D3D12_INPUT_LAYOUT_DESC* )this = D3D12_INPUT_LAYOUT_DESC
+    mDesc = D3D12_INPUT_LAYOUT_DESC
     {
       .pInputElementDescs { mElementDescs.data() },
       .NumElements        { ( UINT )n },
