@@ -51,17 +51,17 @@ namespace Tac::Render
 
   struct FrameBufferer
   {
-    void                       BeginRenderFrame( Errors& );
-    void                       EndRenderFrame( Errors& );
+    void BeginRenderFrame( Errors& );
+    void EndRenderFrame( Errors& );
 
     Vector< FenceSignal >      mFrameBufferingFenceValues;
   };
 
   struct DX12Renderer
   {
-    void                       Init( Errors& );
-    void                       BeginRenderFrame( Errors& );
-    void                       EndRenderFrame( Errors& );
+    void Init( Errors& );
+    void BeginRenderFrame( Errors& );
+    void EndRenderFrame( Errors& );
 
     static DX12Renderer        sRenderer;
 
@@ -90,6 +90,7 @@ namespace Tac::Render
   struct DX12Device : public IDevice
   {
     void            Init( Errors& ) override;
+    void            Uninit() override;
     Info            GetInfo() const override;
     void            BeginRenderFrame( Errors& ) override;
     void            EndRenderFrame( Errors& ) override;

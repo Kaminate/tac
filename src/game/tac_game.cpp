@@ -5,7 +5,7 @@
 #include "tac-ecs/tac_space.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
+
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -13,24 +13,24 @@
 
 namespace Tac
 {
-  static WindowHandle   mWindowHandle;
-  static SettingsNode   sSettingsNode;
-  static Ghost*         sGhost;
+  static WindowHandle   sWindowHandle {};
+  static SettingsNode   sSettingsNode {};
+  static Ghost*         sGhost        {};
+  const char*           sGameName     { "Game" };
 
-  static void GameCallbackInit(  Errors& errors )
+  static void GameCallbackInit( Errors& errors )
   {
     SpaceInit();
     const Monitor monitor{ OS::OSGetPrimaryMonitor() };
-    TAC_ASSERT( !Shell::sShellAppName.empty() );
     const float percent{ .8f };
     const int x{ ( int )( monitor.mSize.x * ( 1 - percent ) / 2 ) };
     const int y{ ( int )( monitor.mSize.y * ( 1 - percent ) / 2 ) };
     const int w{ ( int )( monitor.mSize.x * percent ) };
     const int h{ ( int )( monitor.mSize.y * percent ) };
-    TAC_CALL( mWindowHandle = AppWindowApi::CreateWindow(
+    TAC_CALL( sWindowHandle = AppWindowApi::CreateWindow(
       WindowCreateParams
       {
-        .mName { Shell::sShellAppName },
+        .mName { sGameName },
         .mPos  { x, y },
         .mSize { w, h },
       }, errors ) );
@@ -57,7 +57,7 @@ namespace Tac
     }
   };
 
-  App* App::Create() { return TAC_NEW GameApp( App::Config{ .mName { "Game" }, } ); }
+  App* App::Create() { return TAC_NEW GameApp( App::Config{ .mName { sGameName }, } ); }
 
 }// namespace Tac
 

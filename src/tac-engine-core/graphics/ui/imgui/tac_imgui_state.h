@@ -68,7 +68,7 @@ namespace Tac
     auto GetWindowResource( ImGuiRscIdx, ImGuiID ) -> void*;
     bool IsHovered( const ImGuiRect& );
     auto GetMousePosViewport() -> v2;
-    auto GetWindowPosScreenspace() -> v2;
+    auto GetWindowPosScreenspace() const -> v2;
     void Scrollbar();
     void PushXOffset();
     void BeginMoveControls();

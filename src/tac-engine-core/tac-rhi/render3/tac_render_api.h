@@ -506,11 +506,8 @@ namespace Tac::Render
   {
     struct InitParams
     {
-      //                    aka "frames in-flight"
-      int                   mMaxGPUFrameCount { 2 };
-
-      //                    fwd decl to avoid filesys header inc 
-      const FileSys::Path&  mShaderOutputPath;
+      int                   mMaxGPUFrameCount { 2 }; // aka "frames in-flight"
+      const FileSys::Path&  mShaderOutputPath; // fwd decl gross
     };
 
     static void Init( InitParams, Errors& );
@@ -546,36 +543,29 @@ namespace Tac::Render
     };
 
     virtual void Init( Errors& )                                                     {}
+    virtual void Uninit()                                                            {}
     virtual void BeginRenderFrame( Errors& )                                         {}
     virtual void EndRenderFrame( Errors& )                                           {}
-
     virtual Info GetInfo() const                                                     { return {}; }
-
     virtual auto CreatePipeline( PipelineParams, Errors& ) -> PipelineHandle         {}
     virtual auto GetShaderVariable( PipelineHandle, StringView ) -> IShaderVar*      { return {}; }
     virtual void DestroyPipeline( PipelineHandle )                                   {}
-
     virtual auto CreateProgram( ProgramParams, Errors& ) -> ProgramHandle            {}
     virtual auto GetProgramBindings_TEST( ProgramHandle ) -> String                  { return {}; }
     virtual void DestroyProgram( ProgramHandle )                                     {}
-
     virtual auto CreateSampler( CreateSamplerParams ) -> SamplerHandle               {}
     virtual void DestroySampler( SamplerHandle )                                     {}
-
     virtual auto CreateSwapChain( SwapChainParams, Errors& ) -> SwapChainHandle      {}
     virtual void ResizeSwapChain( SwapChainHandle, v2i, Errors& )                    {}
     virtual auto GetSwapChainParams( SwapChainHandle ) -> SwapChainParams            { return {}; }
     virtual void DestroySwapChain( SwapChainHandle )                                 {}
     virtual auto GetSwapChainCurrentColor( SwapChainHandle ) -> TextureHandle        { return {}; }
     virtual auto GetSwapChainDepth( SwapChainHandle ) -> TextureHandle               { return {}; }
-    virtual void Present( SwapChainHandle, Errors& )                                 {};
-
+    virtual void Present( SwapChainHandle, Errors& )                                 {}
     virtual auto CreateBuffer( CreateBufferParams, Errors& ) -> BufferHandle         {}
     virtual void DestroyBuffer( BufferHandle )                                       {}
-
     virtual auto CreateTexture( CreateTextureParams, Errors& ) -> TextureHandle      {}
     virtual void DestroyTexture( TextureHandle )                                     {}
-
     virtual auto CreateRenderContext( Errors& ) -> IContext::Scope                   { return {}; }
     virtual auto CreateBindlessArray( IBindlessArray::Params ) -> IBindlessArray*    { return {}; }
   };

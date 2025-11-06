@@ -17,28 +17,9 @@ namespace Tac
 {
   struct WidgetRenderer
   {
-    void Init( Errors& );
-    void Uninit();
-    void RenderTranslationWidget( Render::IContext*, WindowHandle, const Camera*, Errors& );
-    static WidgetRenderer sInstance;
-
-  private:
-
-    void UpdatePerFrame( Render::IContext*, WindowHandle, const Camera*, Errors& );
-    void UpdatePerObject( Render::IContext*, int, Errors& );
-    auto GetAxisColor( int ) -> v4;
-    auto GetAxisWorld( int ) -> m4;
-    auto GetPipelineParams() -> Render::PipelineParams;
-
-    Render::ProgramHandle         m3DShader                 {};
-    Render::PipelineHandle        m3DPipeline               {};
-    Render::BufferHandle          mBufferPerFrame           {};
-    Render::BufferHandle          mBufferPerObj             {};
-    Render::IShaderVar*           mShaderPerFrame           {};
-    Render::IShaderVar*           mShaderPerObj             {};
-    Mesh*                         mArrow                    {};
-    CreationMousePicking*         mMousePicking             {};
-    GizmoMgr*                     mGizmoMgr                 {};
+    static void Init( Errors& );
+    static void Uninit();
+    static void RenderTranslationWidget( Render::IContext*, WindowHandle, const Camera*, Errors& );
   };
 }
 #endif

@@ -4,14 +4,6 @@
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-std-lib/os/tac_os.h"
 
-#if 0
-extern "C" // https://devblogs.microsoft.com/directx/gettingstarted-dx12agility
-{
-  __declspec( dllexport ) extern const UINT  D3D12SDKVersion { 614 };
-  __declspec( dllexport ) extern const char* D3D12SDKPath    { ".\\D3D12\\" };
-}
-#endif
-
 namespace Tac::Render
 {
   static const char* D3D12_MESSAGE_SEVERITY_ToString( D3D12_MESSAGE_SEVERITY Severity )

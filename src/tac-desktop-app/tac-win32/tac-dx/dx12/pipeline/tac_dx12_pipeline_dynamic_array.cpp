@@ -199,9 +199,6 @@ namespace Tac::Render
   void                   PipelineDynamicArray::Commit( CommitParams commitParams )
   {
     ID3D12GraphicsCommandList* commandList{ commitParams.mCommandList };
-#if 0
-    DX12DescriptorCaches* descriptorCaches{ commitParams.mDescriptorCaches };
-#endif
     const bool isCompute{ commitParams.mIsCompute };
     const UINT rootParameterIndex{ commitParams.mRootParameterIndex };
 

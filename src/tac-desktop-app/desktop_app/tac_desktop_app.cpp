@@ -43,7 +43,6 @@
 namespace Tac
 {
   static DesktopEventHandler           sDesktopEventHandler;
-  static Errors                        sAppErrors( Errors::kDebugBreaks );
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
   static App*                          sApp;
   //static GameStateManager              sGameStateManager;
@@ -55,10 +54,6 @@ namespace Tac
   static ThreadAllocator               sAppThreadAllocator;
   static Timestamp                     sRenderDelay( 0.0 );
   static int                           sNumRenderFramesSincePrevSimFrame{};
-
-
-  // -----------------------------------------------------------------------------------------------
-
   
   static auto ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor ) -> PlatformMouseCursor
   {
@@ -74,7 +69,7 @@ namespace Tac
     }
   }
 
-  static void DesktopUpdateSimulation( Errors& errors )
+  static void DesktopAppUpdateSimulation( Errors& errors )
   {
     if( !Timestep::Update() )
       return;
@@ -115,7 +110,7 @@ namespace Tac
     sNumRenderFramesSincePrevSimFrame = 0;
   }
 
-  static void DesktopRender( Errors& errors )
+  static void DesktopAppRender( Errors& errors )
   {
       TAC_PROFILE_BLOCK;
 
@@ -201,10 +196,7 @@ namespace Tac
       sNumRenderFramesSincePrevSimFrame++;
   }
 
-
-  // -----------------------------------------------------------------------------------------------
-
-  void DesktopApp::Init( Errors& errors )
+  static void DesktopAppInit( Errors& errors )
   {
     TAC_ASSERT( PlatformFns::GetInstance() );
     sApp = App::Create();
@@ -213,11 +205,9 @@ namespace Tac
     Shell::sShellAppName = sApp->GetAppName();
     Shell::sShellStudioName = sApp->GetStudioName();
     Shell::sShellPrefPath = TAC_CALL( OS::OSGetApplicationDataPath( errors ) );
-    Shell::sShellInitialWorkingDir = FileSys::GetCurrentWorkingDirectory();
     TAC_ASSERT( !Shell::sShellAppName.empty() );
     TAC_ASSERT( !Shell::sShellStudioName.empty() );
     TAC_ASSERT( !Shell::sShellPrefPath.empty() );
-    TAC_ASSERT( !Shell::sShellInitialWorkingDir.empty() );
 
     // macos appDataPath = /Users/Nate/Library/Application Support/Studio/Project
     // win32 appDataPath = C:/Users/Nate/AppData/Roaming/Studio/Project
@@ -264,21 +254,8 @@ namespace Tac
     sPrevState = sApp->GameState_Create();
   }
 
-  void DesktopApp::Run( Errors& errors )
+  static void DesktopAppUninit( Errors& errors )
   {
-    while( OS::OSAppIsRunning() )
-    {
-      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameBegin( errors ) ); // poll wndproc
-      TAC_CALL( DesktopEventApi::Apply( errors ) ); // apply queued wndproc events to keyboard/window state
-      TAC_CALL( DesktopApp::Update( errors ) );
-      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameEnd( errors ) );
-      TAC_CALL( Network::NetApi::Update( errors ) );
-      TAC_CALL( sSettingsRoot.Tick( errors ) );
-      TAC_CALL( DesktopUpdateSimulation( errors ) );
-      TAC_CALL( DesktopRender( errors ) );
-      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
-    }
-
     sApp->Uninit( errors );
     TAC_DELETE sApp;
     sApp = nullptr;
@@ -294,11 +271,26 @@ namespace Tac
 
     ImGuiUninit();
     Render::RenderApi::Uninit();
+  }
 
-    DesktopAppErrorReport errorReport;
-    errorReport.Add( "App Thread", &sAppErrors );
-    errorReport.Add( "Main Function", &gMainFunctionErrors );
-    errorReport.Report();
+  void DesktopApp::Run( Errors& errors )
+  {
+    TAC_ON_DESTRUCT( DesktopAppErrorReport::Report( &errors ) );
+    TAC_CALL( DesktopAppInit( errors ) );
+    while( OS::OSAppIsRunning() )
+    {
+      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameBegin( errors ) ); // poll wndproc
+      TAC_CALL( DesktopEventApi::Apply( errors ) ); // apply queued wndproc events to keyboard/window state
+      TAC_CALL( DesktopApp::Update( errors ) );
+      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameEnd( errors ) );
+      TAC_CALL( Network::NetApi::Update( errors ) );
+      TAC_CALL( sSettingsRoot.Tick( errors ) );
+      TAC_CALL( DesktopAppUpdateSimulation( errors ) );
+      TAC_CALL( DesktopAppRender( errors ) );
+      std::this_thread::sleep_for( std::chrono::milliseconds( 1 ) ); // Dont max out power usage
+    }
+
+    TAC_CALL( DesktopAppUninit( errors ) );
   }
 
   void DesktopApp::Update( Errors& )
@@ -309,7 +301,7 @@ namespace Tac
 
   void DesktopApp::DebugImGui( Errors& errors )
   {
-    if( ImGuiCollapsingHeader( "DesktopAppDebugImGui" ) )
+    if( ImGuiCollapsingHeader( "DesktopApp::DebugImGui" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       PlatformFns::GetInstance()->PlatformImGui( errors );

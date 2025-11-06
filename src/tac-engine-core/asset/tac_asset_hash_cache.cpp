@@ -8,18 +8,8 @@
 
 namespace Tac
 {
-  template<>
-  HashValue Hash< >( AssetHash sv )
-  {
-    return sv.mHashValue;
-  }
-}
+  template<> HashValue Hash<>( AssetHash sv ) { return sv.mHashValue; }
 
-
-namespace Tac
-{
-
-  //static Map< HashValue, AssetPathString > sAssetHashCacheMap;
   static Map< AssetHash, AssetPathString > sAssetHashCacheMap;
 
   // -----------------------------------------------------------------------------------------------
@@ -31,19 +21,18 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void                AssetHashCache::Init( Errors& errors )
+  void AssetHashCache::Init( Errors& errors )
   {
     static bool sInitialized;
     if( sInitialized )
       return;
 
+    TAC_CALL( const AssetPathStrings paths{
+      IterateAssetsInDir( "assets", AssetIterateType::Recursive, errors ) } );
 
-    const FileSys::Paths paths{
-      FileSys::IterateFiles( "assets", FileSys::IterateType::Recursive, errors ) };
-
-    for( const FileSys::Path path : paths )
+    for( const AssetPathString& assetPath : paths )
     {
-      const AssetPathStringView assetPath{ ModifyPathRelative( path, errors ) };
+      //const AssetPathStringView assetPath{ ModifyPathRelative( path, errors ) };
       const AssetHash assetHash{ assetPath };
       TAC_ASSERT( !sAssetHashCacheMap.contains(assetHash) );
       sAssetHashCacheMap[ assetHash ] = assetPath;
@@ -52,10 +41,9 @@ namespace Tac
     sInitialized = true;
   }
 
-  AssetPathStringView AssetHashCache::GetPathFromHash( AssetHash assetHash )
+  auto AssetHashCache::GetPathFromHash( AssetHash assetHash ) -> AssetPathStringView
   {
     return sAssetHashCacheMap[ assetHash ];
-    //return sAssetHashCacheMap[ assetHash.mHashValue ];
   }
 
 } // namespace Tac

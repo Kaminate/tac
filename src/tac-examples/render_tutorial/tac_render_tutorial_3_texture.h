@@ -5,7 +5,7 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
-#include "tac-engine-core/window/tac_sys_window_api.h"
+
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 

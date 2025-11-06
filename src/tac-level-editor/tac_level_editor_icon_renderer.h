@@ -13,31 +13,13 @@ namespace Tac
 {
   struct IconRenderer
   {
-    void Init( Errors& );
-    void Uninit();
-
-    void RenderLights( const World*,
-                       const Camera*,
-                       Render::IContext*,
-                       WindowHandle,
-                       Errors& );
-    static IconRenderer sInstance;
-
-  private:
-    Render::PipelineParams GetPipelineParams();
-    void UpdatePerFrame( Render::IContext*, WindowHandle, const Camera* , Errors&);
-    void UpdatePerObj( Render::IContext*, const Light* , Errors&);
-
-    Render::ProgramHandle         mSpriteShader             {};
-    Render::PipelineHandle        mSpritePipeline           {};
-    Render::BufferHandle          mPerFrame                 {};
-    Render::BufferHandle          mPerObj                   {};
-    Render::SamplerHandle         mSampler                  {};
-
-    Render::IShaderVar*           mShaderPerFrame           {};
-    Render::IShaderVar*           mShaderPerObj             {};
-    Render::IShaderVar*           mShaderTexture            {};
-    Render::IShaderVar*           mShaderSampler            {};
+    static void Init( Errors& );
+    static void Uninit();
+    static void RenderLights( const World*,
+                              const Camera*,
+                              Render::IContext*,
+                              WindowHandle,
+                              Errors& );
   };
 }
 #endif

@@ -5,7 +5,7 @@
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
+
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 
@@ -24,72 +24,17 @@ namespace Tac
     m4 mWorld;
   };
 
-  // -----------------------------------------------------------------------------------------------
+  static Render::ProgramHandle         sSpriteShader             {};
+  static Render::PipelineHandle        sSpritePipeline           {};
+  static Render::BufferHandle          sPerFrame                 {};
+  static Render::BufferHandle          sPerObj                   {};
+  static Render::SamplerHandle         sSampler                  {};
+  static Render::IShaderVar*           sShaderPerFrame           {};
+  static Render::IShaderVar*           sShaderPerObj             {};
+  static Render::IShaderVar*           sShaderTexture            {};
+  static Render::IShaderVar*           sShaderSampler            {};
 
-  static Render::ProgramParams GetProgramParams3DSprite()
-  {
-    return Render::ProgramParams
-    {
-      .mInputs     { "3DSprite" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-  }
-
-  static Render::CreateSamplerParams GetSamplerParams()
-  {
-    return Render::CreateSamplerParams
-    {
-      .mFilter{ Render::Filter::Linear },
-      .mName  { "icon_lin_sampler" },
-    };
-  }
-
-  static Render::CreateBufferParams GetPerObjParams()
-  {
-    return Render::CreateBufferParams
-    {
-      .mByteCount     { sizeof( PerObj ) },
-      .mUsage         { Render::Usage::Dynamic },
-      .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "icon per obj" },
-    };
-  }
-
-  static Render::CreateBufferParams GetPerFrameParams()
-  {
-    return Render::CreateBufferParams
-    {
-      .mByteCount     { sizeof( PerFrame ) },
-      .mUsage         { Render::Usage::Dynamic },
-      .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "icon per frame" },
-    };
-  }
-
-  static Render::BlendState GetBlendState()
-  {
-    return Render::BlendState
-    {
-      .mSrcRGB   { Render::BlendConstants::SrcA },
-      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
-      .mBlendRGB { Render::BlendMode::Add },
-      .mSrcA     { Render::BlendConstants::Zero },
-      .mDstA     { Render::BlendConstants::One },
-      .mBlendA   { Render::BlendMode::Add},
-    };
-  }
-
-  static Render::DepthState GetDepthState()
-  {
-    return Render::DepthState
-    {
-      .mDepthTest  { true },
-      .mDepthWrite { true },
-      .mDepthFunc  { Render::DepthFunc::Less },
-    };
-  }
-
-  static m4 GetProj( WindowHandle viewHandle, const Camera* camera )
+  static auto GetProj( WindowHandle viewHandle, const Camera* camera ) -> m4
   {
     
     const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
@@ -107,63 +52,7 @@ namespace Tac
     };
     return m4::ProjPerspective( projParams );
   }
-
-  static Render::RasterizerState GetRasterizerState()
-  {
-    return Render::RasterizerState
-    {
-      .mFillMode              { Render::FillMode::Solid },
-      .mCullMode              { Render::CullMode::None },
-      .mFrontCounterClockwise { true },
-      .mMultisample           {},
-    };
-  }
-
-  // -----------------------------------------------------------------------------------------------
-  Render::PipelineParams IconRenderer::GetPipelineParams()
-  {
-    return Render::PipelineParams
-    {
-      .mProgram           { mSpriteShader },
-      .mBlendState        { GetBlendState() },
-      .mDepthState        { GetDepthState() },
-      .mRasterizerState   { GetRasterizerState() },
-      .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
-      .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
-      .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
-      .mName              { "IconPipeline"},
-    };
-  }
-
-  IconRenderer IconRenderer::sInstance;
-
-  void IconRenderer::Init( Errors& errors )
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-    mSampler = renderDevice->CreateSampler( GetSamplerParams() );
-    TAC_CALL( mSpriteShader = renderDevice->CreateProgram( GetProgramParams3DSprite(), errors ) );
-    TAC_CALL( mPerFrame = renderDevice->CreateBuffer( GetPerFrameParams(), errors ) );
-    TAC_CALL( mPerObj = renderDevice->CreateBuffer( GetPerObjParams(), errors ) );
-    TAC_CALL( mSpritePipeline = renderDevice->CreatePipeline( GetPipelineParams(), errors ) );
-    mShaderPerFrame = renderDevice->GetShaderVariable( mSpritePipeline, "perFrame" );
-    mShaderPerObj   = renderDevice->GetShaderVariable( mSpritePipeline, "perObj" );
-    mShaderTexture  = renderDevice->GetShaderVariable( mSpritePipeline, "sprite" );
-    mShaderSampler  = renderDevice->GetShaderVariable( mSpritePipeline, "linearSampler" );
-
-    mShaderPerFrame->SetResource( mPerFrame );
-    mShaderPerObj->SetResource( mPerObj );
-    mShaderSampler->SetResource( mSampler );
-  }
-
-  void IconRenderer::Uninit()
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyProgram( mSpriteShader);
-    renderDevice->DestroyPipeline( mSpritePipeline);
-  }
-
-  void IconRenderer::UpdatePerFrame( Render::IContext* renderContext,
+  static void IconRendererUpdatePerFrame( Render::IContext* renderContext,
                                      const WindowHandle viewHandle,
                                      const Camera* camera,
                                      Errors& errors )
@@ -182,10 +71,10 @@ namespace Tac
       .mSrcByteCount{ sizeof( PerFrame ) },
     };
 
-    renderContext->UpdateBuffer( mPerFrame, update, errors );
+    renderContext->UpdateBuffer( sPerFrame, update, errors );
   }
 
-  void IconRenderer::UpdatePerObj( Render::IContext* renderContext,
+  static void IconRendererUpdatePerObj( Render::IContext* renderContext,
                                    const Light* light,
                                    Errors& errors )
   {
@@ -205,8 +94,90 @@ namespace Tac
       .mSrcByteCount{ sizeof( PerObj ) },
     };
 
-    renderContext->UpdateBuffer( mPerObj, update, errors );
+    renderContext->UpdateBuffer( sPerObj, update, errors );
   }
+
+
+  void IconRenderer::Init( Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    sSampler = renderDevice->CreateSampler(
+      Render::CreateSamplerParams
+      {
+        .mFilter{ Render::Filter::Linear },
+        .mName  { "icon_lin_sampler" },
+      } );
+    TAC_CALL( sSpriteShader = renderDevice->CreateProgram(
+      Render::ProgramParams
+      {
+        .mInputs     { "3DSprite" },
+        .mStackFrame { TAC_STACK_FRAME },
+      }, errors ) );
+    TAC_CALL( sPerFrame = renderDevice->CreateBuffer(
+      Render::CreateBufferParams
+      {
+        .mByteCount     { sizeof( PerFrame ) },
+        .mUsage         { Render::Usage::Dynamic },
+        .mBinding       { Render::Binding::ConstantBuffer },
+        .mOptionalName  { "icon per frame" },
+      }, errors ) );
+    TAC_CALL( sPerObj = renderDevice->CreateBuffer(
+      Render::CreateBufferParams
+      {
+        .mByteCount     { sizeof( PerObj ) },
+        .mUsage         { Render::Usage::Dynamic },
+        .mBinding       { Render::Binding::ConstantBuffer },
+        .mOptionalName  { "icon per obj" },
+      }, errors ) );
+    TAC_CALL( sSpritePipeline = renderDevice->CreatePipeline(
+      Render::PipelineParams
+      {
+        .mProgram           { sSpriteShader },
+        .mBlendState        { Render::BlendState
+            {
+              .mSrcRGB   { Render::BlendConstants::SrcA },
+              .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+              .mBlendRGB { Render::BlendMode::Add },
+              .mSrcA     { Render::BlendConstants::Zero },
+              .mDstA     { Render::BlendConstants::One },
+              .mBlendA   { Render::BlendMode::Add},
+            } },
+        .mDepthState        { Render::DepthState
+          {
+            .mDepthTest  { true },
+            .mDepthWrite { true },
+            .mDepthFunc  { Render::DepthFunc::Less },
+          } },
+        .mRasterizerState   { Render::RasterizerState
+          {
+            .mFillMode              { Render::FillMode::Solid },
+            .mCullMode              { Render::CullMode::None },
+            .mFrontCounterClockwise { true },
+            .mMultisample           {},
+          } },
+        .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+        .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+        .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+        .mName              { "IconPipeline"},
+      }, errors ) );
+    sShaderPerFrame = renderDevice->GetShaderVariable( sSpritePipeline, "perFrame" );
+    sShaderPerObj   = renderDevice->GetShaderVariable( sSpritePipeline, "perObj" );
+    sShaderTexture  = renderDevice->GetShaderVariable( sSpritePipeline, "sprite" );
+    sShaderSampler  = renderDevice->GetShaderVariable( sSpritePipeline, "linearSampler" );
+    sShaderPerFrame->SetResource( sPerFrame );
+    sShaderPerObj->SetResource( sPerObj );
+    sShaderSampler->SetResource( sSampler );
+  }
+
+  void IconRenderer::Uninit()
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyProgram( sSpriteShader);
+    renderDevice->DestroyPipeline( sSpritePipeline);
+  }
+
+
 
   void IconRenderer::RenderLights( const World* world,
                                    const Camera* camera,
@@ -247,15 +218,15 @@ namespace Tac
       .mVertexCount { 6 },
     };
 
-    mShaderTexture->SetResource( textureHandle );
+    sShaderTexture->SetResource( textureHandle );
     renderContext->SetScissor( windowSize );
     renderContext->SetRenderTargets( renderTargets );
     renderContext->SetViewport( windowSize );
-    renderContext->SetPipeline( mSpritePipeline );
+    renderContext->SetPipeline( sSpritePipeline );
     renderContext->SetVertexBuffer( {} );
     renderContext->SetIndexBuffer( {} );
     renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
-    TAC_CALL( UpdatePerFrame( renderContext, viewHandle, camera, errors ) );
+    TAC_CALL( IconRendererUpdatePerFrame( renderContext, viewHandle, camera, errors ) );
     graphics->VisitLights( &lightVisitor );
 
     for( int iLight {}; iLight < lightVisitor.mLights.size(); ++iLight )
@@ -264,7 +235,7 @@ namespace Tac
       const String groupname{ String() + "Editor light " + ToString( iLight ) };
 
       TAC_RENDER_GROUP_BLOCK( renderContext, groupname );
-      TAC_CALL( UpdatePerObj( renderContext, light, errors ) );
+      TAC_CALL( IconRendererUpdatePerObj( renderContext, light, errors ) );
 
       renderContext->CommitShaderVariables();
       renderContext->Draw( drawArgs );

@@ -6,7 +6,7 @@
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h" // PremultipliedAlpha
-#include "tac-engine-core/window/tac_sys_window_api.h"
+
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 
@@ -32,6 +32,14 @@ namespace Tac
     v4 mColor;
   };
 
+
+  static Render::ProgramHandle         s3DShader                 {};
+  static Render::PipelineHandle        s3DPipeline               {};
+  static Render::BufferHandle          sBufferPerFrame           {};
+  static Render::BufferHandle          sBufferPerObj             {};
+  static Render::IShaderVar*           sShaderPerFrame           {};
+  static Render::IShaderVar*           sShaderPerObj             {};
+  static Mesh*                         sArrow                    {};
 
   static auto GetProj( WindowHandle viewHandle, const Camera* camera ) -> m4
   {
@@ -139,15 +147,11 @@ namespace Tac
     return m3DvertexFormatDecls;
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  WidgetRenderer WidgetRenderer::sInstance;
-
-  auto WidgetRenderer::GetPipelineParams() ->   Render::PipelineParams
+  static auto WidgetRendererGetPipelineParams() ->  Render::PipelineParams
   {
     return Render::PipelineParams
     {
-      .mProgram           { m3DShader },
+      .mProgram           { s3DShader },
       .mBlendState        { GetBlendState() },
       .mDepthState        { GetDepthState() },
       .mRasterizerState   { GetRasterizerState() },
@@ -159,42 +163,8 @@ namespace Tac
     };
   };
 
-  void WidgetRenderer::Init( Errors& errors )
-  {
-    Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
 
-    TAC_CALL( m3DShader = renderDevice->CreateProgram( GetProgramParams3DTest(), errors ) );
-    TAC_CALL( m3DPipeline = renderDevice->CreatePipeline( GetPipelineParams(), errors ) );
-
-    const Render::VertexDeclarations m3DvertexFormatDecls{ GetVtxDecls3D() };
-
-    const ModelAssetManager::Params meshParms
-    {
-      .mPath        { "assets/editor/arrow.gltf" },
-      .mOptVtxDecls { m3DvertexFormatDecls },
-    };
-
-    TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParms, errors ) );
-
-    TAC_CALL( mBufferPerFrame = renderDevice->CreateBuffer( GetPerFrameParams(), errors ) );
-    TAC_CALL( mBufferPerObj = renderDevice->CreateBuffer( GetPerObjParams(), errors ) );
-    mShaderPerFrame = renderDevice->GetShaderVariable( m3DPipeline, "perFrame" );
-    mShaderPerObj = renderDevice->GetShaderVariable( m3DPipeline, "perObj" );
-
-    mShaderPerFrame->SetResource( mBufferPerFrame );
-    mShaderPerObj->SetResource( mBufferPerObj );
-
-  }
-
-  void WidgetRenderer::Uninit()
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyProgram( m3DShader);
-    renderDevice->DestroyPipeline( m3DPipeline);
-  }
-
-
-  void WidgetRenderer::UpdatePerFrame( Render::IContext* renderContext,
+  static void WidgetRendererUpdatePerFrame( Render::IContext* renderContext,
                                        WindowHandle viewHandle,
                                        const Camera* camera,
                                        Errors& errors )
@@ -213,30 +183,10 @@ namespace Tac
       .mSrcByteCount { sizeof( PerFrame ) },
     };
 
-    renderContext->UpdateBuffer( mBufferPerFrame, update, errors );
+    renderContext->UpdateBuffer( sBufferPerFrame, update, errors );
   }
 
-  void WidgetRenderer::UpdatePerObject( Render::IContext* renderContext, int i, Errors& errors )
-  {
-    const v4 arrowColor{ GetAxisColor( i ) };
-    const m4 world{ GetAxisWorld( i ) };
-
-    const PerObj perObj
-    {
-      .mWorld { world },
-      .mColor { arrowColor },
-    };
-
-    const Render::UpdateBufferParams update
-    {
-      .mSrcBytes     { &perObj },
-      .mSrcByteCount { sizeof( PerObj ) },
-    };
-
-    renderContext->UpdateBuffer( mBufferPerObj, update, errors );
-  }
-
-  auto WidgetRenderer::GetAxisColor( int i ) ->   v4
+  static auto WidgetRendererGetAxisColor( int i ) -> v4
   {
     auto gizmoMgr{ &GizmoMgr::sInstance };
     auto mousePicking{ &CreationMousePicking::sInstance };
@@ -257,7 +207,8 @@ namespace Tac
     return color;
   }
 
-  auto WidgetRenderer::GetAxisWorld( const int i ) -> m4
+
+  static auto WidgetRendererGetAxisWorld( const int i ) -> m4
   {
     auto gizmoMgr{ &GizmoMgr::sInstance };
     const m4 rots[]{ m4::RotRadZ( -3.14f / 2.0f ),
@@ -268,6 +219,21 @@ namespace Tac
                     rots[ i ] *
                     m4::Scale( v3( 1, 1, 1 ) * gizmoMgr-> mArrowLen ) };
     return world;
+  }
+
+  static void WidgetRendererUpdatePerObject( Render::IContext* renderContext, int i, Errors& errors )
+  {
+    const PerObj perObj
+    {
+      .mWorld {  WidgetRendererGetAxisWorld( i )  },
+      .mColor {  WidgetRendererGetAxisColor( i )  },
+    };
+    const Render::UpdateBufferParams update
+    {
+      .mSrcBytes     { &perObj },
+      .mSrcByteCount { sizeof( PerObj ) },
+    };
+    renderContext->UpdateBuffer( sBufferPerObj, update, errors );
   }
 
   void WidgetRenderer::RenderTranslationWidget( Render::IContext* renderContext,
@@ -281,14 +247,14 @@ namespace Tac
       return;
 
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
-    renderContext->SetPipeline( m3DPipeline );
-    TAC_CALL( UpdatePerFrame( renderContext, viewHandle, camera, errors ) );
+    renderContext->SetPipeline( s3DPipeline );
+    TAC_CALL( WidgetRendererUpdatePerFrame( renderContext, viewHandle, camera, errors ) );
 
     for( int i{}; i < 3; ++i )
     {
-      TAC_CALL( UpdatePerObject( renderContext, i, errors ) );
+      TAC_CALL( WidgetRendererUpdatePerObject( renderContext, i, errors ) );
       renderContext->CommitShaderVariables();
-      for( const SubMesh& subMesh : mArrow->mSubMeshes )
+      for( const SubMesh& subMesh : sArrow->mSubMeshes )
       {
         const Render::DrawArgs drawArgs{ .mIndexCount { subMesh.mIndexCount }, };
         renderContext->SetPrimitiveTopology( subMesh.mPrimitiveTopology );
@@ -298,6 +264,34 @@ namespace Tac
       }
     }
   }
+
+  void WidgetRenderer::Init( Errors& errors )
+  {
+    Render::IDevice* renderDevice { Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( s3DShader = renderDevice->CreateProgram( GetProgramParams3DTest(), errors ) );
+    TAC_CALL( s3DPipeline = renderDevice->CreatePipeline( WidgetRendererGetPipelineParams(), errors ) );
+    const Render::VertexDeclarations m3DvertexFormatDecls{ GetVtxDecls3D() };
+    TAC_CALL( sArrow = ModelAssetManager::GetMesh(
+      ModelAssetManager::Params
+      {
+        .mPath        { "assets/editor/arrow.gltf" },
+        .mOptVtxDecls { m3DvertexFormatDecls },
+      }, errors ) );
+    TAC_CALL( sBufferPerFrame = renderDevice->CreateBuffer( GetPerFrameParams(), errors ) );
+    TAC_CALL( sBufferPerObj = renderDevice->CreateBuffer( GetPerObjParams(), errors ) );
+    sShaderPerFrame = renderDevice->GetShaderVariable( s3DPipeline, "perFrame" );
+    sShaderPerObj = renderDevice->GetShaderVariable( s3DPipeline, "perObj" );
+    sShaderPerFrame->SetResource( sBufferPerFrame );
+    sShaderPerObj->SetResource( sBufferPerObj );
+  }
+
+  void WidgetRenderer::Uninit()
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyProgram( s3DShader);
+    renderDevice->DestroyPipeline( s3DPipeline);
+  }
+
 } // namespace Tac
 
 #endif

@@ -453,22 +453,8 @@ namespace Tac
     RegisterWindowClass( errors );
   }
 
-#if 0
-  Tac::WindowHandle   Tac::Win32WindowManagerGetCursorUnobscuredWindow()
-  {
-    POINT cursorPos;
-    const bool cursorPosValid = 0 != ::GetCursorPos( &cursorPos );
-    if( !cursorPosValid )
-      return {};
-
-    const HWND hoveredHwnd = ::WindowFromPoint( cursorPos );
-    return Win32WindowManagerFindWindow( hoveredHwnd );
-  }
-#endif
-
   void Win32WindowManager::Poll( Errors& )
   {
-    //TAC_PROFILE_BLOCK;
     MSG msg{};
     while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
     {
@@ -481,22 +467,6 @@ namespace Tac
   {
     const auto i{ windowHandle.GetIndex() };
     const HWND hwnd{ sHWNDs[ i ] };
-
-    // unparent the children to prevent them from being
-    // sent WM_DESTROY when the parent is destroyed
-    // ( doesnt work )
-    //if( mParentHWND == hwnd )
-    //{
-    //  mParentHWND = NULL;
-    //  for( HWND child : sHWNDs )
-    //  {
-    //    if( child && child != hwnd )
-    //    {
-    //      SetParent( child, NULL );
-    //    }
-    //  }
-    //}
-
     DestroyWindow( hwnd );
   }
 

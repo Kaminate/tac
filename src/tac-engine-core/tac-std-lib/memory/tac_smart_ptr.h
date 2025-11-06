@@ -40,7 +40,7 @@ namespace Tac
     T*       Get()                       { return mT; }
     operator T* ()                       { return mT; }
     void     operator = ( T* t )         { mT = t; }
-    void     operator = ( SmartPtr&& s ) { SwapWith( ( SmartPtr&& )s ); }
+    void     operator = ( SmartPtr&& s ) noexcept { SwapWith( ( SmartPtr&& )s ); }
     void     operator = ( const SmartPtr& s )
     {
       if( !s )

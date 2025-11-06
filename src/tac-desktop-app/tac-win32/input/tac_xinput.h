@@ -6,5 +6,5 @@
 
 namespace Tac
 {
-  void XInputInit( Errors& );
+  void Win32InitXInput( Errors& );
 }

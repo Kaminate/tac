@@ -4,8 +4,8 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 
-namespace Tac::Network
+namespace Tac
 {
-  void NetWinsockInit( Errors& );
+  void Win32InitWinsock( Errors& );
 }
 

@@ -61,10 +61,6 @@ namespace Tac::Network
 
   // -----------------------------------------------------------------------------------------------
 
-  void NetWinsockInit( Errors& errors ) { sNetWinsock.Init( errors ); }
-
-  // -----------------------------------------------------------------------------------------------
-
   static auto GetWinsockAddressFamily( AddressFamily addressFamily ) -> int
   {
     switch( addressFamily )
@@ -278,20 +274,19 @@ namespace Tac::Network
   void NetWinsock::Init( Errors& errors )
   {
     const WORD wsaVersion { MAKEWORD( 2, 2 ) };
-    WSAData wsaData;
-    const int wsaErrorCode { WSAStartup( wsaVersion, &wsaData ) };
-    if( wsaErrorCode )
+    dynmc WSAData wsaData;
+    if( const int wsaErrorCode{ WSAStartup( wsaVersion, &wsaData ) };
+        wsaErrorCode )
     {
-      const String errorMsg { GetWSAErrorString( wsaErrorCode ) };
-      TAC_RAISE_ERROR( errorMsg);
+      TAC_RAISE_ERROR( GetWSAErrorString( wsaErrorCode ) );
     }
     mPrintReceivedMessages = true;
   }
 
   auto NetWinsock::CreateSocket( StringView name,
-                                              AddressFamily addressFamily,
-                                              SocketType socketType,
-                                              Errors& errors ) -> Socket*
+                                 AddressFamily addressFamily,
+                                 SocketType socketType,
+                                 Errors& errors ) -> Socket*
   {
     const int winsockSocketType { GetWinsockSocketType( socketType ) };
     const int winsockAddressFamily { GetWinsockAddressFamily( addressFamily ) };
@@ -419,5 +414,9 @@ namespace Tac::Network
 
   // -----------------------------------------------------------------------------------------------
 
-} // namespace Tac::Network
+} // namespace Tac
 
+void Tac::Win32InitWinsock( Errors& errors )
+{
+  Network::sNetWinsock.Init( errors );
+}

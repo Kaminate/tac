@@ -4,8 +4,6 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-#include "tac-engine-core/window/tac_sim_window_api.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/math/tac_vector2i.h"
 
@@ -44,8 +42,6 @@ namespace Tac
       const v2i windowPos{ AppWindowApi::GetPos( windowHandle ) };
       const v2 mousePos{ AppKeyboardApi::GetMousePosScreenspace() };
     }
-
-    void UpdateSys(  Input );
   };
 
   /*

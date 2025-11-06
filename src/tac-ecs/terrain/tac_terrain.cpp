@@ -30,41 +30,17 @@ namespace Tac
   TAC_META_REGISTER_STRUCT_END( Terrain );
 
 
-#if 0
-  static void        TerrainSavePrefab( Json& json, Component* component )
-  {
-    auto terrain { ( Terrain* )component };
-    json[ "mSideVertexCount" ].SetNumber( terrain->mSideVertexCount );
-    json[ "mSideLength" ].SetNumber( terrain->mSideLength );
-    json[ "mHeight" ].SetNumber( terrain->mUpwardsHeight );
-    json[ "mHeightmapTexturePath" ].SetString( terrain->mHeightmapTexturePath );
-    json[ "mGroundTexturePath" ].SetString( terrain->mGroundTexturePath );
-    json[ "mNoiseTexturePath" ].SetString( terrain->mNoiseTexturePath );
-  }
+  extern void TerrainDebugImgui( Terrain* );
 
-  static void        TerrainLoadPrefab( Json& json, Component* component )
-  {
-    auto terrain { ( Terrain* )component };
-    terrain->mSideVertexCount = ( int )json[ "mSideVertexCount" ].mNumber;
-    terrain->mSideLength = ( float )json[ "mSideLength" ].mNumber;
-    terrain->mUpwardsHeight = ( float )json[ "mHeight" ].mNumber;
-    terrain->mHeightmapTexturePath = json[ "mHeightmapTexturePath" ].mString;
-    terrain->mGroundTexturePath = json[ "mGroundTexturePath" ].mString;
-    terrain->mNoiseTexturePath = json[ "mNoiseTexturePath" ].mString;
-  }
-#endif
-
-  static Component*  CreateTerrainComponent( World* world )
+  static auto CreateTerrainComponent( World* world ) -> Component*
   {
     return Physics::GetSystem( world )->CreateTerrain();
   }
 
-  static void        DestroyTerrainComponent( World* world, Component* component )
+  static void DestroyTerrainComponent( World* world, Component* component )
   {
     Physics::GetSystem( world )->DestroyTerrain( ( Terrain* )component );
   }
-
-  void TerrainDebugImgui( Terrain* );
 
   static void DebugTerrainComponent( Component* component )
   {
@@ -76,7 +52,7 @@ namespace Tac
     mHeightmapTexturePath = "assets/heightmaps/heightmap2.png";
   }
 
-  void                    Terrain::SpaceInitPhysicsTerrain()
+  void Terrain::SpaceInitPhysicsTerrain()
   {
     *( sRegistry = ComponentInfo::Register() ) = ComponentInfo
     {
@@ -90,14 +66,14 @@ namespace Tac
     };
   }
 
-  const ComponentInfo* Terrain::GetEntry() const { return sRegistry; }
+  auto Terrain::GetEntry() const -> const ComponentInfo*{ return sRegistry; }
 
-  Terrain*                Terrain::GetComponent( Entity* entity )
+  auto Terrain::GetComponent( Entity* entity ) -> Terrain*
   {
     return ( Terrain* )entity->GetComponent( sRegistry );
   }
 
-  void                    Terrain::LoadTestHeightmap()
+  void Terrain::LoadTestHeightmap()
   {
     if( mTestHeightmapImageMemory.size() )
       return; // already loaded
@@ -128,22 +104,22 @@ namespace Tac
     stbi_image_free( loaded );
   }
 
-  int                     Terrain::GetGridIndex( int iRow, int iCol ) const
+  auto Terrain::GetGridIndex( int iRow, int iCol ) const -> int
   {
     return iCol + iRow * mSideVertexCount;
   }
 
-  v3                      Terrain::GetGridVal( int iRow, int iCol ) const
+  auto Terrain::GetGridVal( int iRow, int iCol ) const -> v3
   {
     return mRowMajorGrid[ GetGridIndex( iRow, iCol ) ];
   }
 
-  v3                      Terrain::GetGridValNormal( int iRow, int iCol ) const
+  auto Terrain::GetGridValNormal( int iRow, int iCol ) const -> v3
   {
     return mRowMajorGridNormals[ GetGridIndex( iRow, iCol ) ];
   }
 
-  void                    Terrain::PopulateGrid()
+  void Terrain::PopulateGrid()
   {
     Terrain* terrain { this };
 
@@ -238,7 +214,7 @@ namespace Tac
     }
   }
 
-  void                    Terrain::Recompute()
+  void Terrain::Recompute()
   {
     mRowMajorGrid.clear();
     mRowMajorGridNormals.clear();

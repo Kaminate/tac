@@ -3,16 +3,11 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-
-//#include "tac-engine-core/hid/tac_keyboard_api.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
-//#include "tac-engine-core/window/tac_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
-
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
-
 #include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h"
 #include "tac-win32/tac_win32.h"
 
@@ -28,7 +23,6 @@ namespace Tac
   struct MouseEdge
   {
     MouseEdgeFlags    mFlags        { MouseEdgeFlags::kNone };
-    //DesktopWindowRect mWindowSpaceMoveRect;
     int               mResizeBorder {};
   };
 
@@ -254,10 +248,10 @@ namespace Tac
     if( !GetCursorPos( &cursorPos ) )
       return;
 
-    int x { mWindowRectOnClick.left + cursorPos.x - mCursorPositionOnClick.x };
-    int y { mWindowRectOnClick.top + cursorPos.y - mCursorPositionOnClick.y };
-    int w { mWindowRectOnClick.right - mWindowRectOnClick.left };
-    int h { mWindowRectOnClick.bottom - mWindowRectOnClick.top };
+    const int x { mWindowRectOnClick.left + cursorPos.x - mCursorPositionOnClick.x };
+    const int y { mWindowRectOnClick.top + cursorPos.y - mCursorPositionOnClick.y };
+    const int w { mWindowRectOnClick.right - mWindowRectOnClick.left };
+    const int h { mWindowRectOnClick.bottom - mWindowRectOnClick.top };
     SetWindowPos( mHwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
   }
 }

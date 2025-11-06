@@ -1,11 +1,12 @@
 #pragma once
 
-#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 
 namespace Tac
 {
-  WindowHandle RenderTutorialCreateWindow( StringView, Errors& );
+  auto RenderTutorialCreateWindow( StringView, Errors& ) -> WindowHandle;
 
   struct NDCSpacePosition3
   {

@@ -54,6 +54,7 @@ namespace Tac
   auto LoadAssetPath( const AssetPathStringView&, Errors& ) -> String;
   bool Exists( const AssetPathStringView& );
   auto IterateAssetsInDir( const AssetPathStringView&, AssetIterateType, Errors& ) -> AssetPathStrings;
+  auto IterateAssetsDirs( const AssetPathStringView&, AssetIterateType, Errors& ) -> AssetPathStrings;
   auto AssetOpenDialog( Errors& ) -> Tac::AssetPathStringView;
   auto AssetSaveDialog( const AssetSaveDialogParams&, Errors& ) -> AssetPathStringView;
 

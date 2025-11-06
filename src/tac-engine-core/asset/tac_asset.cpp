@@ -8,6 +8,7 @@
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 
 namespace Tac
 {
@@ -34,6 +35,7 @@ namespace Tac
     const AssetPathString& ToRef( const void* v ) const                                             { return *( AssetPathString* )v; }
   };
 
+  static const FileSys::Path sInitialWorkingDir       { FileSys::GetCurrentWorkingDirectory() };
   static const char          sAssetPathSeperator      { '/' };
   static const char*         sAssetPathRootFolderName { "assets" };
   TAC_META_IMPL_INSTANCE2( AssetPathString, MetaAssetPathString );
@@ -151,6 +153,39 @@ namespace Tac
     Validate( s );
   }
 
+
+  static auto ModifyPathRelative( const FileSys::Path& path, Errors& errors ) -> Tac::AssetPathStringView
+  {
+    const String workingUTF8 { sInitialWorkingDir.u8string() };
+    dynmc String pathUTF8 { path.u8string() };
+    if( path.is_absolute() )
+    {
+      TAC_RAISE_ERROR_IF_RETURN( !pathUTF8.starts_with( workingUTF8 ), 
+                                 String() + pathUTF8 + String( " is not in " ) + workingUTF8 );
+      pathUTF8.erase( 0, workingUTF8.size() );
+      pathUTF8 = FileSys::StripLeadingSlashes( pathUTF8 );
+    }
+
+    pathUTF8.replace( "\\", "/");
+    return FrameMemoryCopy( pathUTF8.c_str() );
+  }
+
+  static AssetPathStrings ConvertAssetPaths( const FileSys::Paths& paths )
+  {
+    AssetPathStrings result;
+    for( const FileSys::Path& path : paths )
+    {
+      String s{ path.u8string() };
+      s.replace( "\\", "/" );
+      const int i{ s.find( "assets/" ) };
+      TAC_ASSERT( i != s.npos );
+      s = s.substr( i );
+      const AssetPathString assetPath( s );
+      result.push_back( assetPath );
+    }
+    return result;
+  }
+
 } // namespace Tac
 
 bool Tac::Exists( const AssetPathStringView& assetPath )
@@ -174,51 +209,43 @@ auto Tac::LoadAssetPath( const AssetPathStringView& assetPath, Errors& errors ) 
   return FileSys::LoadFilePath( fsPath, errors );
 }
 
+
+auto Tac::IterateAssetsDirs( const AssetPathStringView& dir,
+                             AssetIterateType type,
+                             Errors& errors ) -> AssetPathStrings
+{
+  const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
+  TAC_CALL_RET( const FileSys::Paths paths{ FileSys::IterateDirectories( dir, fsIterate, errors ) } );
+  return ConvertAssetPaths( paths );
+}
+
 auto Tac::IterateAssetsInDir( const AssetPathStringView& dir,
                               AssetIterateType type,
                               Errors& errors ) -> AssetPathStrings
 {
   const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
-
-  TAC_CALL_RET( const FileSys::Paths paths{
-    FileSys::IterateFiles( dir, fsIterate, errors ) } );
-
-  AssetPathStrings result;
-  for( const FileSys::Path& path : paths )
-  {
-    String s { path.u8string() };
-    s.replace("\\", "/");
-    const int i { s.find( "assets/" ) };
-    TAC_ASSERT( i != s.npos );
-    s = s.substr( i );
-
-    const AssetPathString assetPath( s );
-
-    //const AssetPathStringView assetPath = ModifyPathRelative( path, errors );
-    result.push_back( assetPath );
-  }
-
-  return result;
+  TAC_CALL_RET( const FileSys::Paths paths{ FileSys::IterateFiles( dir, fsIterate, errors ) } );
+  return ConvertAssetPaths( paths );
 }
 
 auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path dir { Shell::sShellInitialWorkingDir / sAssetPathRootFolderName };
-  const OS::OpenParams params{ .mDefaultFolder { &dir }, };
-  TAC_CALL_RET( const FileSys::Path fsPath{ OS::OSOpenDialog( params, errors ) } );
+  const FileSys::Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
+  TAC_CALL_RET( const FileSys::Path fsPath{ OS::OSOpenDialog(
+    OS::OpenParams{.mDefaultFolder { &dir }, }, errors ) } );
   return ModifyPathRelative( fsPath, errors );
 }
 
 auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path dir { Shell::sShellInitialWorkingDir / sAssetPathRootFolderName };
+  const FileSys::Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
   const FileSys::Path suggestedFilename { params.mSuggestedFilename };
-  const OS::SaveParams saveParams
-  {
-    .mDefaultFolder { & dir },
-    .mSuggestedFilename { &suggestedFilename },
-  };
-  const FileSys::Path fsPath { OS::OSSaveDialog( saveParams, errors ) };
+  const FileSys::Path fsPath { OS::OSSaveDialog(
+    OS::SaveParams
+    {
+      .mDefaultFolder     { & dir },
+      .mSuggestedFilename { &suggestedFilename },
+    }, errors ) };
   return ModifyPathRelative( fsPath, errors );
 }
 

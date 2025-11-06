@@ -18,7 +18,6 @@ namespace Tac
   struct DepthBuffer;
   struct Localization;
   struct FontStuff;
-  struct Renderer;
   struct FontAtlasCell;
   struct ScriptRoot;
   struct UIText;

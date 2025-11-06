@@ -5,10 +5,6 @@
 #include <unknwn.h> // IUnknown
 #include <guiddef.h>
 
-// delete be begin
-#include <d3d12.h>
-// delete be end
-
 namespace Tac
 {
   // Wrapper for Com Object, similar to Microsoft::WRL::ComPtr

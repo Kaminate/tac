@@ -162,13 +162,7 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* dxCommandList { GetCommandList() };
     TAC_DX12_CALL( dxCommandList->Reset( dxCommandAllocator, nullptr ) );
 
-#if 0
-    // [ ] Q: why not mState = {}; ?
-    State empty;
-    Swap( mState, empty );
-#else
     mState = {};
-#endif
   }
 
   void DX12Context::SetSynchronous()

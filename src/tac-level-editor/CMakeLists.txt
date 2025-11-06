@@ -32,8 +32,6 @@ function( tac_target )
   target_sources( ${TAC_TARGET_NAME} PRIVATE 
     "tac_entity_selection.cpp"
     "tac_entity_selection.h"
-    "tac_level_editor_window_manager.cpp"
-    "tac_level_editor_window_manager.h"
     "tac_level_editor.cpp"
     "tac_level_editor.h"
     "tac_level_editor_gizmo_mgr.cpp"
@@ -53,8 +51,6 @@ function( tac_target )
     "tac_level_editor_icon_renderer.h"
     "tac_level_editor_widget_renderer.cpp"
     "tac_level_editor_widget_renderer.h"
-    "tac_level_editor_game_object_menu_window.cpp"
-    "tac_level_editor_game_object_menu_window.h"
     "tac_level_editor_game_window.cpp"
     "tac_level_editor_game_window.h"
     "tac_level_editor_main_window.cpp"
@@ -67,6 +63,7 @@ function( tac_target )
     "tac_level_editor_property_window.h"
     "tac_level_editor_system_window.cpp"
     "tac_level_editor_system_window.h"
+
   )
 
 endfunction()

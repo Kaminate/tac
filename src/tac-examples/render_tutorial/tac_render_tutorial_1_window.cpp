@@ -2,7 +2,6 @@
 
 #include "tac_render_tutorial.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
-#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
@@ -17,10 +16,9 @@ namespace Tac
     TAC_CALL( sWindowHandle = RenderTutorialCreateWindow( mConfig.mName, errors ) );
   }
 
-  App* App::Create()
+  auto App::Create() -> App*
   {
-    const App::Config config { .mName { "Hello Window" } };
-    return TAC_NEW RenderTutorial1Window( config );
+    return TAC_NEW RenderTutorial1Window( App::Config{ .mName { "Hello Window" } } );
   };
 
 } // namespace Tac

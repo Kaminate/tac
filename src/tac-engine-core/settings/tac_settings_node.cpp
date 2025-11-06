@@ -3,37 +3,28 @@
 #include "tac-engine-core/settings/tac_settings_root.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
-
 namespace Tac
 {
-
   SettingsNode::SettingsNode( SettingsRoot* root, Json* json ) : mRoot( root ), mJson( json ) {}
-
-  void         SettingsNode::SetValue( Json val )
+ 
+  void SettingsNode::SetValue( Json val )
   {
     *mJson = val;
     mRoot->SetDirty();
   }
 
-  Json&        SettingsNode::GetValue()
-  {
-    return *mJson;
-  }
+  auto SettingsNode::GetValue() -> Json& { return *mJson; }
 
-  bool          SettingsNode::IsValid() const
-  {
-    return mRoot;
-  }
+  bool SettingsNode::IsValid() const { return mRoot; }
 
-  Json&        SettingsNode::GetValueWithFallback( Json fallback )
+  auto SettingsNode::GetValueWithFallback( Json fallback ) -> Json&
   {
     if( mJson->mType != fallback.mType )
       SetValue( fallback );
-
     return *mJson;
   }
 
-  SettingsNode SettingsNode::GetChild( StringView path )
+  auto SettingsNode::GetChild( StringView path ) -> SettingsNode
   {
     Json* root{ mJson };
     while( !path.empty() )
@@ -81,19 +72,16 @@ namespace Tac
       TAC_ASSERT( StrCmp( oldPath, path ) );
     }
     TAC_ASSERT( root != mJson );
-
     return SettingsNode( mRoot, root );
   }
 
-  Span< SettingsNode > SettingsNode::GetChildrenArray()
+  auto SettingsNode::GetChildrenArray() -> Span< SettingsNode >
   {
     mJson->mType = JsonType::Array;
     const int n{ mJson->mArrayElements.size() };
-
     SettingsNode* data{ ( SettingsNode* )FrameMemoryAllocate( n * sizeof( SettingsNode ) ) };
     for( int i{}; i < n; ++i )
       data[ i ] = SettingsNode( mRoot, mJson->mArrayElements[ i ] );
-
     return Span< SettingsNode >{ data, n };
   }
 

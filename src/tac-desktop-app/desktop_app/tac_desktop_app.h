@@ -8,7 +8,6 @@ namespace Tac
 {
   struct DesktopApp
   {
-    static void Init( Errors& );
     static void Run( Errors& );
     static void Update( Errors& );
     static void DebugImGui( Errors& );
@@ -16,3 +15,4 @@ namespace Tac
   };
 
 } // namespace Tac
+

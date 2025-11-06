@@ -17,7 +17,6 @@
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-level-editor/tac_level_editor.h"
-#include "tac-level-editor/tac_level_editor_game_object_menu_window.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
 #include "tac-level-editor/tac_level_editor_shader_graph_window.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
@@ -35,20 +34,18 @@ namespace Tac
     if( entity->mParent )
       return; // why?
 
-    const AssetSaveDialogParams saveParams
-    {
-      .mSuggestedFilename { entity->mName + ".prefab" },
-    };
-
-    const AssetPathStringView assetPath = TAC_CALL( AssetSaveDialog( saveParams, errors ) );
+    TAC_CALL( const AssetPathStringView assetPath{ AssetSaveDialog(
+      AssetSaveDialogParams 
+      {
+        .mSuggestedFilename { entity->mName + ".prefab" },
+      }, errors ) } );
     if( assetPath.empty() )
       return;
 
-    const Json entityJson = entity->Save();
-    const String prefabJsonString = entityJson.Stringify();
-    const void* bytes = prefabJsonString.data();
-    const int byteCount = prefabJsonString.size();
-
+    const Json entityJson { entity->Save() };
+    const String prefabJsonString { entityJson.Stringify() };
+    const void* bytes { prefabJsonString.data() };
+    const int byteCount{ prefabJsonString.size() };
     TAC_CALL( SaveToFile( assetPath, bytes, byteCount, errors ) );
   }
 

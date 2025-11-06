@@ -5,8 +5,6 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
-#undef CreateDirectory
-
 namespace Tac::FileSys
 {
   // Minimal wrapper for std::filesystem.
@@ -54,8 +52,7 @@ namespace Tac::FileSys
   bool Exists( const Path& );
   bool Exists( const char* );
   bool IsDirectory( const Path& );
-  void CreateDirectory( const Path& );
-  void CreateDirectory2( const Path& );
+  bool CreateDir( const Path& );
   auto IterateFiles( const Path& dir, IterateType, Errors& ) -> Paths;
   auto IterateDirectories( const Path& dir, IterateType, Errors& ) -> Paths;
   bool IsOfExt( const StringView& str, const StringView& ext );

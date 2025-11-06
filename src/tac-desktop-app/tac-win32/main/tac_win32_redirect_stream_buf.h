@@ -2,6 +2,5 @@
 
 namespace Tac
 {
-  void RedirectStreamBuf();
-} // namespace
-
+  void Win32RedirectStdoutVisualStudioOutputWindow();
+}

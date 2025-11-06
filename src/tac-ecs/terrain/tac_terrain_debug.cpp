@@ -17,7 +17,7 @@ namespace Tac
     {
       bool changed {};
 
-      const FileSys::Path oldHeightmapPath { mTerrain->mHeightmapTexturePath };
+      const AssetPathString oldHeightmapPath { mTerrain->mHeightmapTexturePath };
 
       if( ImGuiCollapsingHeader( "Heightmap" ) )
       {
@@ -34,21 +34,14 @@ namespace Tac
         {
           iterated = true;
           mHeightmapDirectoryIterateErrors.clear();
-          heightmapPaths = FileSys::IterateFiles(
-            FileSys::Path( "assets/heightmaps" ),
-            FileSys::IterateType::Recursive, // OS::OSGetFilesInDirectoryFlags::Recursive,
-            mHeightmapDirectoryIterateErrors );
+          heightmapPaths = IterateAssetsInDir( "assets/heightmaps",
+                                               AssetIterateType::Recursive,
+                                               mHeightmapDirectoryIterateErrors );
         }
 
-        for( const FileSys::Path& heightmapPath : heightmapPaths )
-        {
-          if( ImGuiButton( heightmapPath.u8string() ) )
-          {
-            Errors e;
-            mTerrain->mHeightmapTexturePath = ModifyPathRelative( heightmapPath, e );
-            TAC_ASSERT( !e );
-          }
-        }
+        for( const AssetPathString& heightmapPath : heightmapPaths )
+          if( ImGuiButton( heightmapPath ) )
+            mTerrain->mHeightmapTexturePath = heightmapPath;
 
         const bool changedHeightmap = mTerrain->mHeightmapTexturePath != oldHeightmapPath;
         if( changedHeightmap )
@@ -151,7 +144,7 @@ namespace Tac
     Errors mHeightmapDirectoryIterateErrors {};
     Terrain* mTerrain                       {};
     bool iterated                           {};
-    Vector< FileSys::Path > heightmapPaths  {};
+    AssetPathStrings heightmapPaths         {};
   } gTerrainDebugger;
 
   void TerrainDebugImgui( Terrain* terrain )

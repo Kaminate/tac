@@ -145,36 +145,13 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  auto  FileSys::operator / ( const Path& a, const Path& b ) -> FileSys::Path { return TacPath( StdPath(a) / StdPath( b ) ); }
-
-  bool FileSys::operator == ( const Path& a, const Path& b ) { return  StdPath( a ) == StdPath( b ); }
-
-  auto FileSys::GetCurrentWorkingDirectory() -> FileSys::Path { return TacPath( std::filesystem::current_path() ); }
-
-  bool FileSys::Exists( const Path& path )
-  {
-    return std::filesystem::exists( StdPath( path ) );
-  }
-
-  bool FileSys::IsDirectory( const Path& path )
-  {
-    return std::filesystem::is_directory( StdPath( path ) );
-  }
-
-  bool FileSys::Exists( const char* path )
-  {
-    return std::filesystem::exists( path );
-  }
-
-  void FileSys::CreateDirectory( const Path& path )
-  {
-    std::filesystem::create_directory( StdPath( path) );
-  }
-
-  void FileSys::CreateDirectory2( const Path& path )
-  {
-    std::filesystem::create_directory( StdPath( path) );
-  }
+  auto FileSys::operator / ( const Path& a, const Path& b ) -> FileSys::Path { return TacPath( StdPath(a) / StdPath( b ) ); }
+  bool FileSys::operator == ( const Path& a, const Path& b )                 { return StdPath( a ) == StdPath( b ); }
+  auto FileSys::GetCurrentWorkingDirectory() -> FileSys::Path                { return TacPath( std::filesystem::current_path() ); }
+  bool FileSys::Exists( const Path& path )      { return std::filesystem::exists( StdPath( path ) ); }
+  bool FileSys::IsDirectory( const Path& path ) { return std::filesystem::is_directory( StdPath( path ) ); }
+  bool FileSys::Exists( const char* path )      { return std::filesystem::exists( path ); }
+  bool FileSys::CreateDir( const Path& path )   { return std::filesystem::create_directory( StdPath( path) ); }
 
   auto FileSys::GetFileLastModifiedTime( const FileSys::Path& path, Errors& errors ) -> FileSys::Time
   {
@@ -186,12 +163,10 @@ namespace Tac
 
   auto FileSys::IterateFiles( const Path& dir, IterateType type, Errors& errors ) -> FileSys::Paths
   {
-    return IterateFilesHelper( dir, type,  &IsEntryRegularFile , errors );
+    return IterateFilesHelper( dir, type,  &IsEntryRegularFile, errors );
   }
 
-  auto FileSys::IterateDirectories( const Path& dir,
-                                                    IterateType type,
-                                                    Errors& errors ) -> FileSys::Paths
+  auto FileSys::IterateDirectories( const Path& dir, IterateType type, Errors& errors ) -> FileSys::Paths
   {
     return IterateFilesHelper( dir, type, &IsEntryDirectory, errors );
   }

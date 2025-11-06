@@ -31,7 +31,7 @@ namespace Tac
 
   struct AssetViewImportedModel
   {
-    Entity* SpawnEntity()
+    auto SpawnEntity() -> Entity*
     {
       const EntityUUID entityUUID{ mEntityUUIDCounter.AllocateNewUUID() };
       return mWorld.SpawnEntity( entityUUID );
@@ -62,26 +62,25 @@ namespace Tac
   static AssetPathString           sAssetViewFolderCur;
   static Vector< String >          sAssetViewFolderStack; // ie { "assets", "editor" }
   static Errors                    sAssetViewErrors;
-  static FileSys::Paths            sAssetViewFiles;
-  static FileSys::Paths            sAssetViewFolders;
-  static LoadedModels              sLoadedModels;
-  static const int                 w { 256 };
-  static const int                 h { 256 };
+  static AssetPathStrings          sAssetViewFiles;
+  static AssetPathStrings          sAssetViewFolders;
+  static LoadedModels              sAssetViewLoadedModels;
+  static const int                 sAssetViewWidth { 256 };
+  static const int                 sAssetViewHeight { 256 };
 
   // -----------------------------------------------------------------------------------------------
 
-  static String LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
+  static auto LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
 
-  static bool HasExt( const FileSys::Path& path, Vector< const char* > extensions )
+  static auto HasExt( const AssetPathStringView path, Vector< const char* > extensions )
   {
     for( const char* ext : extensions )
-      if( path.u8string().ends_with( ext ) )
+      if( path.GetFileExtension() == ( StringView )ext )
         return true;
-
     return false;
   }
 
-  static bool IsImage( const FileSys::Path& path )
+  static bool IsImage( const AssetPathStringView path )
   {
     Vector< const char* > exts;
     exts.push_back( ".png" );
@@ -90,7 +89,7 @@ namespace Tac
     return HasExt( path, exts );
   }
 
-  static bool IsModel( const FileSys::Path& path )
+  static bool IsModel( const AssetPathStringView path )
   {
     Vector< const char* > exts;
     exts.push_back( ".gltf" );
@@ -99,27 +98,27 @@ namespace Tac
     return HasExt( path, exts );
   }
 
-  static bool IsOther( const FileSys::Path& path )
+  static bool IsOther( const AssetPathStringView path )
   {
     return !IsImage(path) && !IsModel(path);
   }
 
-  static FileSys::Paths GetPathsUsingFn( bool ( *fn )( const FileSys::Path& ) )
+  static auto GetPathsUsingFn( bool ( *fn )( AssetPathStringView ) ) -> AssetPathStrings
   {
-    FileSys::Paths paths;
-    for( const FileSys::Path& path : sAssetViewFiles )
+    AssetPathStrings paths;
+    for( AssetPathStringView path : sAssetViewFiles )
       if( fn( path ) )
         paths.push_back( path );
     return paths;
   }
 
-  static FileSys::Paths GetImagePaths() { return GetPathsUsingFn( IsImage ); }
-  static FileSys::Paths GetModelPaths() { return GetPathsUsingFn( IsModel ); }
-  static FileSys::Paths GetOtherPaths() { return GetPathsUsingFn( IsOther ); }
+  static auto GetImagePaths() { return GetPathsUsingFn( IsImage ); }
+  static auto GetModelPaths() { return GetPathsUsingFn( IsModel ); }
+  static auto GetOtherPaths() { return GetPathsUsingFn( IsOther ); }
 
   static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
   {
-    for( AssetViewImportedModel* model : sLoadedModels )
+    for( AssetViewImportedModel* model : sAssetViewLoadedModels )
       if( ( StringView )model->mAssetPath == path )
         return model;
 
@@ -202,11 +201,11 @@ namespace Tac
 
   static void PopulateFolderContents( Errors& errors )
   {
-    TAC_CALL( sAssetViewFiles = FileSys::IterateFiles( sAssetViewFolderCur,
-                                                       FileSys::IterateType::Default,
+    TAC_CALL( sAssetViewFiles = IterateAssetsInDir( sAssetViewFolderCur,
+                                                       AssetIterateType::Default,
                                                        errors ) );
-    TAC_CALL( sAssetViewFolders = FileSys::IterateDirectories( sAssetViewFolderCur,
-                                                               FileSys::IterateType::Default,
+    TAC_CALL( sAssetViewFolders = IterateAssetsDirs( sAssetViewFolderCur,
+                                                               AssetIterateType::Default,
                                                                errors ) );
   }
 
@@ -357,8 +356,8 @@ namespace Tac
     const Render::CreateTextureParams texSpecColor
     {
       .mImage        { Render::Image {
-        .mWidth      { w },
-        .mHeight     { h },
+        .mWidth      { sAssetViewWidth },
+        .mHeight     { sAssetViewHeight },
         .mFormat     { Render::TexFmt::kRGBA16F }, } },
       .mMipCount     { 1 },
       .mBinding      { Render::Binding::ShaderResource | Render::Binding::RenderTarget },
@@ -372,8 +371,8 @@ namespace Tac
     const Render::CreateTextureParams texSpecDepth
     {
       .mImage        { Render::Image{
-        .mWidth      { w },
-        .mHeight     { h },
+        .mWidth      { sAssetViewWidth },
+        .mHeight     { sAssetViewHeight },
         .mFormat     { Render::TexFmt::kD24S8 } } },
       .mMipCount     { 1 },
       .mBinding      { Render::Binding::DepthStencil },
@@ -390,7 +389,7 @@ namespace Tac
        .mAssetPath          { assetPath },
     } };
 
-    sLoadedModels.push_back( result );
+    sAssetViewLoadedModels.push_back( result );
     return result;
   }
 
@@ -401,7 +400,7 @@ namespace Tac
     if( loadedModel->mWorld.mEntities.empty() )
       return;
 
-    const v2i viewSize{ w, h };
+    const v2i viewSize{ sAssetViewWidth, sAssetViewHeight };
     const ShortFixedString groupName{ ShortFixedString::Concat( "asset preview ",
                             loadedModel->mAssetPath.c_str() ) };
 
@@ -458,53 +457,34 @@ namespace Tac
   static void UIFoldersNext( Errors& errors )
   {
     const int n { sAssetViewFolders.size() };
-    for( int i {}; i < n; ++i )
+    for( AssetPathStringView asset : sAssetViewFolders )
     {
-      const FileSys::Path& path { sAssetViewFolders[ i ] };
-      //const int iPath { i };
-
-      const AssetPathString assetPath{ ModifyPathRelative( path, errors ) };
-
-      String folder{ path.filename().u8string() };
-      //String buttonStr{ assetPath.c_str() };
-      //if( buttonStr.starts_with( sAssetViewFolderCur.c_str() ) )
-      //  buttonStr = buttonStr.substr( sAssetViewFolderCur.size() );
-      //if( buttonStr.starts_with( "/" ) )
-      //  buttonStr = buttonStr.substr( 1 );
-
-      if( ImGuiButton( folder ) )
-      {
+      if( const String folder{ asset.GetFilename() };
+          ImGuiButton( folder ) )
         sAssetViewFolderStack.push_back( folder );
-      }
-      //if( iPath != sAssetViewFolders.size() - 1 )
-      //  ImGuiSameLine();
     }
   }
 
   static void UIFilesOther( Errors& errors )
   {
-    const FileSys::Paths paths{ GetOtherPaths() };
-    for( const FileSys::Path& path : paths )
+    const AssetPathStrings paths{ GetOtherPaths() };
+    for( const AssetPathStringView assetPath : paths )
     {
-      const AssetPathStringView assetPath{ ModifyPathRelative( path, errors ) };
       if( assetPath.ends_with( ".meta" ) )
         continue;
 
-      ImGuiText( path.filename().u8string() );
+      ImGuiText( assetPath.GetFilename() );
     }
   }
 
   static void UIFilesModelImGui( World* world,
                                  Camera* camera,
-                                 const FileSys::Path& path,
+                                 const AssetPathStringView assetPath,
                                  Errors& errors )
   {
-    const AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
     TAC_ASSERT( !errors );
 
-    const String filename{ path.filename().u8string() };
-
-    //const String filename = Filesystem::FilepathToFilename( path );
+    const String filename{ assetPath.GetFileExtension() };
     AssetViewImportedModel* loadedModel { GetLoadedModel( assetPath ) };
     if( !loadedModel )
     {
@@ -519,7 +499,7 @@ namespace Tac
     {
       loadedModel->mWorld.Step( TAC_DELTA_FRAME_SECONDS );
 
-      ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( w, h ) );
+      ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( sAssetViewWidth, sAssetViewHeight ) );
       ImGuiSameLine();
       ImGuiBeginGroup();
       ImGuiText( filename );
@@ -545,42 +525,32 @@ namespace Tac
     }
   }
 
-
   static void UIFilesModels( World* world, Camera* camera, Errors& errors )
   {
-    FileSys::Paths paths{ GetModelPaths() };
-    for( const FileSys::Path& path : paths )
-    {
+    AssetPathStrings paths{ GetModelPaths() };
+    for( const AssetPathStringView path : paths )
       UIFilesModelImGui( world, camera, path , errors );
-    }
   }
 
   static void UIFilesImages( Errors& errors )
   {
-    const FileSys::Paths paths{ GetImagePaths() };
+    const AssetPathStrings paths{ GetImagePaths() };
 
     int shownImageCount {};
     bool goSameLine {};
-    for( const FileSys::Path& path : paths )
+    for( const AssetPathStringView assetPath : paths )
     {
       if( goSameLine )
         ImGuiSameLine();
 
       goSameLine = false;
-
-      const String text{ path.filename().u8string() };
-      const AssetPathStringView assetPath { ModifyPathRelative( path, errors ) };
-
       ImGuiBeginChild( assetPath, { 200, 100 } );
-
-      ImGuiText( text );
-      const Render::TextureHandle textureHandle {
-        TextureAssetManager::GetTexture( assetPath, sAssetViewErrors ) };
+      ImGuiText( assetPath.GetFilename() );
+      const Render::TextureHandle textureHandle{ TextureAssetManager::GetTexture( assetPath, sAssetViewErrors ) };
       if( textureHandle.IsValid() )
         ImGuiImage( textureHandle.GetIndex(), v2( 50, 50 ) );
 
       ImGuiEndChild();
-
       if( shownImageCount++ % 3 < 3 - 1 )
         goSameLine = true;
     }
@@ -646,10 +616,9 @@ namespace Tac
     if( !sShowWindow )
       return;
 
-    const FileSys::Paths paths{ GetModelPaths() };
-    for( const FileSys::Path& path : paths )
+    const AssetPathStrings paths{ GetModelPaths() };
+    for( const AssetPathStringView assetPath : paths )
     {
-      TAC_CALL( AssetPathString assetPath{ ModifyPathRelative( path, errors ) } );
       AssetViewImportedModel* loadedModel{ GetLoadedModel( assetPath ) };
       if( !loadedModel )
       {

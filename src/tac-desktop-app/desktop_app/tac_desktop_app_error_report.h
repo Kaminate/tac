@@ -8,6 +8,7 @@ namespace Tac
   {
     static void Add( const char*, Errors* );
     static void Report();
+    static void Report(Errors*);
   };
 
 } // namespace Tac

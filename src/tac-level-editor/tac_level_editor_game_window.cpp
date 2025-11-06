@@ -38,7 +38,7 @@
 
 namespace Tac
 {
-  static bool                          sDrawGrid                  {};
+  static bool                          sDrawGrid                 {};
   static float                         sWASDCameraPanSpeed       { 10 };
   static float                         sWASDCameraOrbitSpeed     { 5 };
   static bool                          sWASDCameraOrbitSnap      { false };
@@ -140,8 +140,8 @@ namespace Tac
      
     struct PanKeyDir
     {
-      Key key;
-      v3            dir;
+      Key key{};
+      v3  dir{};
     };
     
     const PanKeyDir keyDirs[]
@@ -167,12 +167,12 @@ namespace Tac
 
     struct OrbitKeyDir
     {
-      Key   key;
-      float mThetaOffset;
-      float mPhiOffset;
+      Key   key          {};
+      float mThetaOffset {};
+      float mPhiOffset   {};
     };
     
-    OrbitKeyDir keyDirs[]
+    const OrbitKeyDir keyDirs[]
     {
       OrbitKeyDir{.key{ Key::W }, .mThetaOffset{-1} },
       OrbitKeyDir{.key{ Key::A }, .mPhiOffset{1}},
@@ -212,7 +212,7 @@ namespace Tac
     sPhiVel *= .5f;
 
     
-    const SphericalCoordinate prevSpherical = camOrbitSpherical;
+    const SphericalCoordinate prevSpherical{ camOrbitSpherical };
     
     camOrbitSpherical.mTheta += sThetaVel * TAC_DELTA_FRAME_SECONDS;
     camOrbitSpherical.mPhi += sPhiVel * TAC_DELTA_FRAME_SECONDS;
@@ -458,8 +458,6 @@ namespace Tac
     TAC_CALL( PlayGame( errors ) );
   }
 
-
-
   void CreationGameWindow::Render( World* world, Camera* camera, Errors& errors )
   {
     const WindowHandle windowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
@@ -484,15 +482,14 @@ namespace Tac
       }, errors );
 
 #if 1
-    TAC_CALL( WidgetRenderer::sInstance.RenderTranslationWidget( renderContext,
-                                                                 windowHandle,
-                                                                 camera,
-                                                                 errors ) );
+    TAC_CALL( WidgetRenderer::RenderTranslationWidget( renderContext,
+                                                       windowHandle,
+                                                       camera,
+                                                       errors ) );
 #endif
 
 #if 0
-    IconRenderer* IconRenderer{ gCreation.mSysState.mIconRenderer };
-    TAC_CALL( IconRenderer->RenderLights( world,
+    TAC_CALL( IconRenderer::RenderLights( world,
                                           camera,
                                           renderContext,
                                           windowHandle,
@@ -511,23 +508,21 @@ namespace Tac
   static Render::VertexDeclarations    m3DVertexFormatDecls;
   static void Create3DVertexFormat()
   {
-    const Render::VertexDeclaration posDecl
-    {
-      .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mPos ) },
-    };
-
-    const Render::VertexDeclaration norDecl
-    {
-      .mAttribute         { Render::Attribute::Normal },
-      .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-      .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mNor ) },
-    };
-
     m3DVertexFormatDecls.clear();
-    m3DVertexFormatDecls.push_back( posDecl );
-    m3DVertexFormatDecls.push_back( norDecl );
+    m3DVertexFormatDecls.push_back(
+      Render::VertexDeclaration
+      {
+        .mAttribute         { Render::Attribute::Position },
+        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+        .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mPos ) },
+      } );
+    m3DVertexFormatDecls.push_back(
+      Render::VertexDeclaration
+      {
+        .mAttribute         { Render::Attribute::Normal },
+        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
+        .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mNor ) },
+      } );
   }
 
 #if 0

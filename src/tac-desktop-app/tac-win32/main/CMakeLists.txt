@@ -1,12 +1,10 @@
 # Executables include the main files directory into their source
 add_library( TacWin32Main OBJECT
   "tac_win32_main.cpp"
-  "tac_win32_main.h"
   "tac_win32_platform.cpp"
   "tac_win32_platform.h"
   "tac_win32_redirect_stream_buf.cpp"
   "tac_win32_redirect_stream_buf.h"
-
 )
 
 set_target_properties( TacWin32Main PROPERTIES FOLDER "Engine/Desktop App" )

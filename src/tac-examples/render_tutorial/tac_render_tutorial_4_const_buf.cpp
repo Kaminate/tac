@@ -7,7 +7,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
-#include "tac-engine-core/window/tac_sys_window_api.h"
+
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
@@ -186,13 +186,13 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  App* App::Create()
+  auto App::Create() -> App*
   {
-    const App::Config config
-    {
-      .mName { "Hello Const Buf" },
-    };
-    return TAC_NEW HelloConstBuf( config );
+    return TAC_NEW HelloConstBuf(
+      App::Config
+      {
+        .mName { "Hello Const Buf" },
+      } );
   };
 
 } // namespace Tac

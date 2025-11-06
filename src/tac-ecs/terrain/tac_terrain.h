@@ -31,18 +31,15 @@ namespace Tac
   struct Terrain : public Component
   {
     Terrain();
-
-    static void                    SpaceInitPhysicsTerrain();
-    static Terrain*                GetComponent( Entity* );
-
-    const ComponentInfo*           GetEntry() const override;
-
-    void                           LoadTestHeightmap();
-    void                           PopulateGrid();
-    int                            GetGridIndex( int iRow, int iCol ) const;
-    v3                             GetGridVal( int iRow, int iCol ) const;
-    v3                             GetGridValNormal( int iRow, int iCol ) const;
-    void                           Recompute();
+    static void SpaceInitPhysicsTerrain();
+    static auto GetComponent( Entity* ) -> Terrain*;
+    auto GetEntry() const -> const ComponentInfo* override;
+    void LoadTestHeightmap();
+    void PopulateGrid();
+    auto GetGridIndex( int iRow, int iCol ) const -> int;
+    auto GetGridVal( int iRow, int iCol ) const -> v3;
+    auto GetGridValNormal( int iRow, int iCol ) const -> v3;
+    void Recompute();
 
     int                            mSideVertexCount           { 50 };
     float                          mSideLength                { 50.0f };

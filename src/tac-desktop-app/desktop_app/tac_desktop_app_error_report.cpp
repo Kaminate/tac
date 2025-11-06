@@ -17,7 +17,7 @@ namespace Tac
 
   struct NamedErrors
   {
-    String      FormatErrorString( int i ) const
+    auto FormatErrorString( int i ) const -> String
     {
       const char* name{ mNames[i]};
       const Errors* errors{ mErrorPointers[i]};
@@ -35,14 +35,7 @@ namespace Tac
       return errorStr;
     }
 
-
-    void        Add( const char* name, Errors* errors )
-    {
-      mNames.push_back( name );
-      mErrorPointers.push_back( errors );
-    }
-
-    String      FormatErrorString() const
+    auto FormatErrorString() const -> String
     {
       String result;
 
@@ -59,6 +52,12 @@ namespace Tac
       return result;
     }
 
+    void Add( const char* name, Errors* errors )
+    {
+      mNames.push_back( name );
+      mErrorPointers.push_back( errors );
+    }
+
     Vector< const char* > mNames;
     Vector< Errors* >     mErrorPointers;
   };
@@ -70,6 +69,12 @@ namespace Tac
   void DesktopAppErrorReport::Add( const char* name, Errors* errors )
   {
     sNamedErrors.Add( name, errors );
+  }
+
+  void DesktopAppErrorReport::Report( Errors* errors )
+  {
+    Add( "errors", errors );
+    Report();
   }
 
   void DesktopAppErrorReport::Report()

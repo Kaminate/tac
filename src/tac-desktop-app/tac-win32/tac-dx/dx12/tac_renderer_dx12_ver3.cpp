@@ -1,9 +1,11 @@
 #include "tac_renderer_dx12_ver3.h" // self-inc
 
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
-#include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
-#include "tac-dx/dxgi/tac_dxgi.h" // DXGICreateSwapChain
-#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-dx/dx12/tac_dx12_helper.h"                              // TAC_DX12_CALL
+#include "tac-dx/dxgi/tac_dxgi.h"                                     // DXGICreateSwapChain
+#include "tac-dx/dxgi/tac_dxgi_debug.h"                               // DXGIReportLiveObjects
+#include "tac-dx/pix/tac_pix_dbg_attach.h"                            // AllowPIXDebuggerAttachment
+#include "tac-std-lib/dataprocess/tac_log.h"                          // LogApi
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
@@ -117,7 +119,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void                       FrameBufferer::BeginRenderFrame( Errors& errors )
+  void FrameBufferer::BeginRenderFrame( Errors& errors )
   {
     DX12CommandQueue& mCommandQueue{ DX12Renderer::sRenderer.mCommandQueue };
     const int maxGPUFrameCount{ RenderApi::GetMaxGPUFrameCount() };
@@ -129,7 +131,7 @@ namespace Tac::Render
     TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
 
-  void                       FrameBufferer::EndRenderFrame( Errors& errors )
+  void FrameBufferer::EndRenderFrame( Errors& errors )
   {
     DX12CommandQueue& mCommandQueue{ DX12Renderer::sRenderer.mCommandQueue };
     const int maxGPUFrameCount{ RenderApi::GetMaxGPUFrameCount() };
@@ -171,12 +173,19 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void              DX12Device::Init( Errors& errors )
+  void DX12Device::Init( Errors& errors )
   {
-    DX12Renderer::sRenderer.Init( errors );
+    TAC_CALL( Render::AllowPIXDebuggerAttachment( errors ) );
+    TAC_CALL( DX12Renderer::sRenderer.Init( errors ) );
+    RenderApi::SetRenderDevice( this );
   }
 
-  IDevice::Info     DX12Device::GetInfo() const
+  void DX12Device::Uninit()
+  {
+    Render::DXGIReportLiveObjects();
+  }
+
+  auto DX12Device::GetInfo() const -> IDevice::Info
   {
     const NDCAttribs ndcAttribs
     {
@@ -197,12 +206,12 @@ namespace Tac::Render
     };
   }
 
-  PipelineHandle    DX12Device::CreatePipeline( PipelineParams params, Errors& errors )
+  auto DX12Device::CreatePipeline( PipelineParams params, Errors& errors ) -> PipelineHandle
   {
     return DX12Renderer::sRenderer.mPipelineMgr.CreatePipeline( params, errors );
   }
 
-  IShaderVar*       DX12Device::GetShaderVariable( PipelineHandle h, StringView sv )
+  auto DX12Device::GetShaderVariable( PipelineHandle h, StringView sv ) -> IShaderVar*
   {
     DX12Pipeline* pipeline { DX12Renderer::sRenderer.mPipelineMgr.FindPipeline( h ) };
     for( DX12Pipeline::Variable& var : pipeline->mShaderVariables )
@@ -213,77 +222,77 @@ namespace Tac::Render
     return nullptr;
   }
 
-  void              DX12Device::DestroyPipeline( PipelineHandle h )
+  void DX12Device::DestroyPipeline( PipelineHandle h )
   {
     DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
-  ProgramHandle     DX12Device::CreateProgram( ProgramParams params, Errors& errors )
+  auto DX12Device::CreateProgram( ProgramParams params, Errors& errors ) -> ProgramHandle
   {
     return DX12Renderer::sRenderer.mProgramMgr.CreateProgram( params, errors );
   }
 
-  String            DX12Device::GetProgramBindings_TEST( ProgramHandle h )
+  auto DX12Device::GetProgramBindings_TEST( ProgramHandle h ) -> String
   {
     return DX12Renderer::sRenderer.mProgramMgr.GetProgramBindings_TEST( h );
   }
 
-  void              DX12Device::DestroyProgram( ProgramHandle h )
+  void DX12Device::DestroyProgram( ProgramHandle h )
   {
     DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
-  SamplerHandle     DX12Device::CreateSampler( CreateSamplerParams params )
+  auto DX12Device::CreateSampler( CreateSamplerParams params ) -> SamplerHandle
   {
     return DX12Renderer::sRenderer.mSamplerMgr.CreateSampler( params );
   }
 
-  void              DX12Device::DestroySampler( SamplerHandle h )
+  void DX12Device::DestroySampler( SamplerHandle h )
   {
     DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
-  void              DX12Device::BeginRenderFrame( Errors& errors )
+  void DX12Device::BeginRenderFrame( Errors& errors )
   {
     DX12Renderer::sRenderer.BeginRenderFrame( errors );
   }
 
-  void              DX12Device::EndRenderFrame( Errors& errors )
+  void DX12Device::EndRenderFrame( Errors& errors )
   {
     DX12Renderer::sRenderer.EndRenderFrame( errors );
   }
 
-  SwapChainHandle   DX12Device::CreateSwapChain( SwapChainParams params, Errors& errors )
+  auto DX12Device::CreateSwapChain( SwapChainParams params, Errors& errors ) -> SwapChainHandle
   {
     return DX12Renderer::sRenderer.mSwapChainMgr.CreateSwapChain( params, errors );
   }
 
-  void              DX12Device::ResizeSwapChain( SwapChainHandle h, v2i size, Errors& errors )
+  void DX12Device::ResizeSwapChain( SwapChainHandle h, v2i size, Errors& errors )
   {
     DX12Renderer::sRenderer.mSwapChainMgr.ResizeSwapChain( h, size, errors );
   }
 
-  SwapChainParams   DX12Device::GetSwapChainParams( SwapChainHandle h )
+  auto DX12Device::GetSwapChainParams( SwapChainHandle h ) -> SwapChainParams
   {
     return DX12Renderer::sRenderer.mSwapChainMgr.GetSwapChainParams( h );
   }
 
-  void              DX12Device::DestroySwapChain( SwapChainHandle h )
+  void DX12Device::DestroySwapChain( SwapChainHandle h )
   {
     DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
-  TextureHandle     DX12Device::GetSwapChainCurrentColor( SwapChainHandle h)
+  auto DX12Device::GetSwapChainCurrentColor( SwapChainHandle h) -> TextureHandle
   {
     return DX12Renderer::sRenderer.mSwapChainMgr.GetSwapChainCurrentColor( h );
   }
 
-  TextureHandle     DX12Device::GetSwapChainDepth( SwapChainHandle h )
+  auto DX12Device::GetSwapChainDepth( SwapChainHandle h ) -> TextureHandle
   {
     return DX12Renderer::sRenderer.mSwapChainMgr.GetSwapChainDepth( h );
   }
 
-  void              DX12Device::Present( SwapChainHandle h, Errors& errors )
+  void DX12Device::Present( SwapChainHandle h, Errors& errors )
   {
     DX12SwapChain* swapChain{ DX12Renderer::sRenderer.mSwapChainMgr.FindSwapChain( h ) };
     TAC_ASSERT( swapChain );
@@ -325,33 +334,33 @@ namespace Tac::Render
     TAC_DX12_CALL( swapChain4->Present1( SyncInterval, PresentFlags, &params ) );
   }
 
-  BufferHandle      DX12Device::CreateBuffer( CreateBufferParams params, Errors& errors )
+  auto DX12Device::CreateBuffer( CreateBufferParams params, Errors& errors ) -> BufferHandle
   {
     return DX12Renderer::sRenderer.mBufMgr.CreateBuffer( params, errors );
   }
 
-  void              DX12Device::DestroyBuffer( BufferHandle h )
+  void DX12Device::DestroyBuffer( BufferHandle h )
   {
     DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
-  IContext::Scope   DX12Device::CreateRenderContext( Errors& errors )
+  auto DX12Device::CreateRenderContext( Errors& errors ) -> IContext::Scope
   {
     DX12Context* context{ DX12Renderer::sRenderer.mContextManager.GetContext( errors ) };
     return IContext::Scope( context );
   }
 
-  IBindlessArray*   DX12Device::CreateBindlessArray( IBindlessArray::Params params )
+  auto DX12Device::CreateBindlessArray( IBindlessArray::Params params ) -> IBindlessArray*
   {
     return TAC_NEW BindlessArray(params);
   }
 
-  TextureHandle     DX12Device::CreateTexture( CreateTextureParams params, Errors& errors )
+  auto DX12Device::CreateTexture( CreateTextureParams params, Errors& errors ) -> TextureHandle
   {
     return  DX12Renderer::sRenderer.mTexMgr.CreateTexture( params, errors );
   }
 
-  void              DX12Device::DestroyTexture( TextureHandle h )
+  void DX12Device::DestroyTexture( TextureHandle h )
   {
     DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }

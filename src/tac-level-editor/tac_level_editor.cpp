@@ -224,14 +224,10 @@ namespace Tac
   void Creation::Init( SettingsNode settingsNode, Errors& errors )
   {
     mSettingsNode = settingsNode;
-
     ShowWindowHelper::GetInstance().Load( settingsNode );
-
-    //CreationPropertyWindow::sShowWindow = true;
-
-    IconRenderer::sInstance.Init( errors );
+    IconRenderer::Init( errors );
     CreationMousePicking::sInstance.Init( errors );
-    WidgetRenderer::sInstance.Init( errors );
+    WidgetRenderer::Init( errors );
     SelectedEntities::Init( mSettingsNode );
     TAC_CALL( mSimState.Init( errors ) );
     TAC_CALL( mSysState.Init( errors ) );
@@ -246,8 +242,8 @@ namespace Tac
   void Creation::Uninit( Errors& )
   {
     ShowWindowHelper::GetInstance().Save( mSettingsNode );
-    IconRenderer::sInstance.Uninit();
-    WidgetRenderer::sInstance.Uninit();
+    IconRenderer::Uninit();
+    WidgetRenderer::Uninit();
     mSimState.Uninit();
     mSysState.Uninit();
   }

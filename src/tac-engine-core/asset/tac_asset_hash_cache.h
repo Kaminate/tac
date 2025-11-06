@@ -20,8 +20,8 @@ namespace Tac
 
   struct AssetHashCache
   {
-    static void                Init( Errors& );
-    static AssetPathStringView GetPathFromHash( AssetHash );
+    static void Init( Errors& );
+    static auto GetPathFromHash( AssetHash ) -> AssetPathStringView;
   };
 
 } // namespace Tac

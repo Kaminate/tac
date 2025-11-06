@@ -49,10 +49,10 @@ namespace Tac
                                 helper.mSaveDialog.ppv(),
                                 ( IFileDialog* )helper.mSaveDialog,
                                 errors ) );
-      TAC_CALL_RET( helper.SetDefaultFolder( ( params.mDefaultFolder && !params.mDefaultFolder->empty() )
-                                      ? *params.mDefaultFolder
-                                      : Shell::sShellInitialWorkingDir,
-                                      errors ) );
+      if( params.mDefaultFolder && !params.mDefaultFolder->empty() )
+      {
+        TAC_CALL_RET( helper.SetDefaultFolder( *params.mDefaultFolder, errors ) );
+      }
       return helper.RunEnd( errors );
     }
 
@@ -64,10 +64,11 @@ namespace Tac
                                        helper.mOpenDialog.ppv(),
                                        ( IFileDialog* )helper.mOpenDialog,
                                        errors ) );
-      TAC_CALL_RET( helper.SetDefaultFolder( ( params.mDefaultFolder && !params.mDefaultFolder->empty() )
-                                             ? *params.mDefaultFolder
-                                             : Shell::sShellInitialWorkingDir,
-                                             errors ) );
+      if( params.mDefaultFolder && !params.mDefaultFolder->empty() )
+      {
+        TAC_CALL_RET( helper.SetDefaultFolder( *params.mDefaultFolder, errors ) );
+      }
+
       return helper.RunEnd( errors );
     }
 

@@ -10,8 +10,6 @@
 #include "tac-engine-core/hid/controller/tac_controller_internal.h"
 
 #include <libloaderapi.h>
-
-#define DIRECTINPUT_VERSION 0x0800 // must be before dinput.h
 #include <dinput.h> // for other controller types
 
 #pragma comment( lib, "dxguid.lib" ) // IID_IDirectInput8A
@@ -223,6 +221,7 @@ namespace Tac
 
         TAC_DELETE controller;
         mControllers[ iController ] = nullptr;
+        controller = nullptr;
       }
       else
       {
@@ -232,8 +231,8 @@ namespace Tac
         TAC_ASSERT_INVALID_CODE_PATH;
       }
 
-      const ControllerState controllerState{ ToControllerState( js ) };
-      controller->mControllerStateCurr = controllerState;
+      if( controller )
+        controller->mControllerStateCurr = ToControllerState( js );
     }
   }
 
@@ -264,10 +263,11 @@ namespace Tac
 
   // API Functions
 
-  void XInputInit( Errors& errors )
-  {
-    auto xInput { TAC_NEW XInput() };
-    xInput->Init( errors );
-  }
 
 } // namespace Tac
+
+void Tac::Win32InitXInput( Errors& errors )
+{
+  auto xInput { TAC_NEW XInput() };
+  xInput->Init( errors );
+}

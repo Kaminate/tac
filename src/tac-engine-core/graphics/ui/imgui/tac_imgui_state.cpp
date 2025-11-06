@@ -6,7 +6,6 @@
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
-#include "tac-engine-core/window/tac_sys_window_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-rhi/render3/tac_render_api.h" // CreateContext
@@ -608,7 +607,7 @@ namespace Tac
     return mDesktopWindow->mWindowHandle;
   }
 
-  auto ImGuiWindow::GetWindowPosScreenspace() -> v2
+  auto ImGuiWindow::GetWindowPosScreenspace() const -> v2
   {
     //ImGuiGlobals& globals { ImGuiGlobals::Instance };
      

@@ -1,5 +1,6 @@
 #include "tac_win32_platform.h" // self-inc
 
+#include "tac-engine-core/platform/tac_platform.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h"
@@ -7,6 +8,19 @@
 
 namespace Tac
 {
+
+  struct Win32PlatformFns : public PlatformFns
+  {
+    void PlatformImGui( Errors& ) const override;
+    void PlatformFrameBegin( Errors& ) const override;
+    void PlatformFrameEnd( Errors& ) const override;
+    void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) const override;
+    void PlatformDespawnWindow( WindowHandle ) const override;
+    void PlatformSetWindowPos( WindowHandle, v2i ) const override;
+    void PlatformSetWindowSize( WindowHandle, v2i ) const override;
+    void PlatformSetMouseCursor( PlatformMouseCursor ) const override;
+    auto PlatformGetMouseHoveredWindow() const -> WindowHandle override;
+  };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -112,4 +126,10 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
 
+  static Win32PlatformFns   sWin32PlatformFns;
 } // namespace Tac
+
+void Tac::Win32InitPlatformFns()
+{
+  PlatformFns::SetInstance( &sWin32PlatformFns );
+}
