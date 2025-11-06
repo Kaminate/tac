@@ -85,34 +85,7 @@ namespace Tac
 
   bool CreationGameWindow::sShowWindow{};
 
-  //static Render::DefaultCBufferPerFrame GetPerFrame( float w, float h )
-  //{
-  //  const Camera* camera { gCreation.mEditorCamera };
-  //  const float aspectRatio{ ( float )w / ( float )h };
-  //  const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-  //  const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
-  //  const m4::ProjectionMatrixParams projParams
-  //  {
-  //    .mNDCMinZ       { ndcAttribs.mMinZ },
-  //    .mNDCMaxZ       { ndcAttribs.mMaxZ },
-  //    .mViewSpaceNear { camera->mNearPlane },
-  //    .mViewSpaceFar  { camera->mFarPlane },
-  //    .mAspectRatio   { aspectRatio },
-  //    .mFOVYRadians   { camera->mFovyrad },
-  //  };
-  //  const m4 view { camera->View() };
-  //  const m4 proj { m4::ProjPerspective( projParams ) };
-  //  return Render::DefaultCBufferPerFrame
-  //  {
-  //    .mView         { view },
-  //    .mProjection   { proj },
-  //    .mFar          { camera->mFarPlane },
-  //    .mNear         { camera->mNearPlane },
-  //    .mGbufferSize  { w, h }
-  //  };
-  //}
-
-  static v3 SnapToUnitDir( const v3 v ) // Returns the unit vector that best aligns with v
+  static auto SnapToUnitDir( const v3 v ) -> v3 // Returns the unit vector that best aligns with v
   {
     float biggestDot {};
     v3 biggestUnitDir  {};
@@ -132,7 +105,6 @@ namespace Tac
     }
     return biggestUnitDir;
   }
-
 
   static void CameraWASDControlsPan( Camera* camera )
   {
@@ -499,54 +471,6 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
-  struct GameModelVtx
-  {
-    v3 mPos;
-    v3 mNor;
-  };
-
-  static Render::VertexDeclarations    m3DVertexFormatDecls;
-  static void Create3DVertexFormat()
-  {
-    m3DVertexFormatDecls.clear();
-    m3DVertexFormatDecls.push_back(
-      Render::VertexDeclaration
-      {
-        .mAttribute         { Render::Attribute::Position },
-        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-        .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mPos ) },
-      } );
-    m3DVertexFormatDecls.push_back(
-      Render::VertexDeclaration
-      {
-        .mAttribute         { Render::Attribute::Normal },
-        .mFormat            { Render::VertexAttributeFormat::GetVector3() },
-        .mAlignedByteOffset { ( int )TAC_OFFSET_OF( GameModelVtx, mNor ) },
-      } );
-  }
-
-#if 0
-  static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
-  {
-    const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
-    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
-    const m4::ProjectionMatrixParams projParams
-    {
-      .mNDCMinZ       { ndcAttribs.mMinZ },
-      .mNDCMaxZ       { ndcAttribs.mMaxZ },
-      .mViewSpaceNear { camera->mNearPlane },
-      .mViewSpaceFar  { camera->mFarPlane },
-      .mAspectRatio   { aspectRatio },
-      .mFOVYRadians   { camera->mFovyrad },
-    };
-    const m4 proj{ m4::ProjPerspective( projParams ) };
-    return proj;
-  }
-#endif
-
-
-
   void CreationGameWindow::Update( World* world, Camera* camera, Errors& errors )
   {
     TAC_PROFILE_BLOCK;
@@ -587,14 +511,6 @@ namespace Tac
       world->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
                                                   camera->mForwards,
                                                   GizmoMgr::sInstance.mArrowLen );
-
-    static bool once;
-    if( !once )
-    {
-      once = true;
-      Create3DVertexFormat();
-    }
-
 
     const v2 origCursorPos{ ImGuiGetCursorPos() };
 

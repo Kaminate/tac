@@ -17,15 +17,13 @@ namespace Tac
 
   struct Creation
   {
-    void                 Init( SettingsNode, Errors& );
-    void                 Uninit( Errors& );
-    void                 Update( World*, Camera*, Errors& );
-    void                 Render( const CreationAppState*, Errors& );
-
-    // Entities
-    RelativeSpace        GetEditorCameraVisibleRelativeSpace( const Camera* );
-    Entity*              CreateEntity(World*,Camera*);
-    Entity*              InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& );
+    void Init( SettingsNode, Errors& );
+    void Uninit( Errors& );
+    void Update( World*, Camera*, Errors& );
+    void Render( const CreationAppState*, Errors& );
+    auto GetEditorCameraVisibleRelativeSpace( const Camera* ) -> RelativeSpace;
+    auto CreateEntity(World*,Camera*) -> Entity*;
+    auto InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& ) -> Entity*;
 
     EntityUUIDCounter    mEntityUUIDCounter       {};
     SettingsNode         mSettingsNode            {};

@@ -14,7 +14,6 @@
 
 namespace Tac
 {
-
   struct CreationGameWindow
   {
     static void Init( SettingsNode, Errors& );
@@ -23,37 +22,4 @@ namespace Tac
     static void SetStatusMessage( StringView, TimestampDifference );
     static bool sShowWindow;
   };
-
-#if 0
-  struct CreationGameWindow
-  {
-    // TODO: multiple game windows?
-    CreationGameWindow();
-    ~CreationGameWindow();
-    static CreationGameWindow*    Instance;
-    void                          Init( Errors& );
-    void                          Update( World*, Camera*,Errors& );
-    void                          Render( World*, Camera*, Errors& );
-
-    void                          CameraUpdateControls( Camera* );
-    void                          ImGuiOverlay( Camera*, Errors& );
-    void                          PlayGame( Errors& );
-
-    void                          SetStatusMessage( const StringView&,
-                                                    const TimestampDifference& );
-
-  private:
-    void                          ImGuiCamera( Camera* );
-    void                          RenderSelectionCircle(World*, Camera*);
-    void                          RenderEditorWidgets( Render::IContext*,
-                                                       WindowHandle,
-                                                       Camera* ,
-                                                       Errors& );
-
-    void CameraWASDControls( Camera* );
-
-  };
-  const char* const gGameWindowName { "VirtualGamePlayer" };
-#endif
-
 }
