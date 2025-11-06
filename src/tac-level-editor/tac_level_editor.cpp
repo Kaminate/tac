@@ -13,6 +13,7 @@
 #include "tac-engine-core/graphics/color/tac_color_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
