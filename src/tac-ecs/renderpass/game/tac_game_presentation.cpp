@@ -121,9 +121,9 @@ void Tac::GamePresentation::Uninit()
 
 }
 
-
 void Tac::GamePresentation::Render( RenderParams renderParams, Errors& errors )
 {
+  TAC_ASSERT( sInitialized );
   Render::IContext* renderContext { renderParams.mContext };
   const World* world { renderParams.mWorld };
   const Camera* camera { renderParams.mCamera };

@@ -12,6 +12,7 @@ namespace Tac
 {
   struct App
   {
+    // rename to renderstate?
     struct IState
     {
       virtual ~IState() = default;
@@ -49,7 +50,7 @@ namespace Tac
     virtual void Present( Errors& ){};
     virtual void Uninit( Errors& ){};
     virtual auto GameState_Create() -> State;
-    virtual void GameState_Update( IState* ) {}
+    virtual void GameState_Update( IState* ) {} // should be called like, sync render state
 
     bool IsRenderEnabled() const;
     auto GetAppName() const -> StringView;

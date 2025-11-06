@@ -27,7 +27,10 @@
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/tac_level_editor_main_window.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"
+#include "tac-level-editor/tac_level_editor_widget_renderer.h"
 #include "tac-level-editor/tac_level_editor_property_window.h"
+#include "tac-level-editor/tac_level_editor_gizmo_mgr.h"
+#include "tac-level-editor/tac_level_editor_mouse_picking.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -493,7 +496,7 @@ namespace Tac
     }
 
     CreationMousePicking::sInstance.BeginFrame( windowHandle, camera );
-    CameraUpdateSaved( sSettingsNode, Creation::gCreation.mSimState.mEditorCamera );
+    CameraUpdateSaved( sSettingsNode, Creation::gCreation.mEditorCamera );
     CameraUpdateControls( camera );
     GizmoMgr::sInstance.ComputeArrowLen( camera );
     TAC_CALL(CreationMousePicking::sInstance.Update( world, camera, errors ) );

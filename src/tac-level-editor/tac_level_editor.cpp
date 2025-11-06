@@ -8,6 +8,7 @@
 #include "tac-ecs/tac_space.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/color/tac_color_util.h"
@@ -41,11 +42,6 @@
 
 namespace Tac
 {
-  struct CreationAppState : public App::IState
-  {
-    CreationSimState mSimState;
-  };
-
   static auto CreationGetNewEntityName( World* world ) -> String
   {
     dynmc String desiredEntityName { "Entity" };
@@ -168,56 +164,6 @@ namespace Tac
     Vector< Data > mDatas;
   };
 
-
-  //===-------------- App -------------===//
-
-  struct LevelEditorApp : public App
-  {
-    LevelEditorApp( const Config& cfg ) : App( cfg ) {}
-
-    void Init( Errors& errors ) override
-    {
-      SpaceInit();
-      Creation::gCreation.Init( mSettingsNode, errors );
-    }
-
-    auto GameState_Create() -> State override 
-    {
-      return TAC_NEW CreationAppState;
-    }
-
-    void GameState_Update( IState* state ) override
-    {
-      ( ( CreationAppState* )state )->mSimState.CopyFrom( Creation::gCreation.mSimState );
-    }
-
-    void Update( Errors& errors ) override
-    {
-      Creation::gCreation.Update(
-        Creation::gCreation.mSimState.mWorld,
-        Creation::gCreation.mSimState.mEditorCamera,
-        errors );
-    }
-
-    void Render( App::RenderParams renderParams, Errors& errors ) override
-    {
-      // todo: interpolate between old and new state?
-      CreationAppState* state{ ( CreationAppState* )renderParams.mNewState };
-      Creation::gCreation.Render( state, errors );
-    }
-
-    void Uninit( Errors& errors ) override
-    {
-      Creation::gCreation.mSimState.Uninit();
-      Creation::gCreation.mSysState.Uninit();
-      Creation::gCreation.Uninit( errors );
-    }
-
-    CreationAppState mState;
-  };
-
-  auto App::Create() -> App* { return TAC_NEW LevelEditorApp( App::Config { .mName { "Level Editor"  }, } ); }
-
   //===-------------- Creation -------------===//
 
   Creation Creation::gCreation;
@@ -230,13 +176,20 @@ namespace Tac
     CreationMousePicking::sInstance.Init( errors );
     WidgetRenderer::Init( errors );
     SelectedEntities::Init( mSettingsNode );
-    TAC_CALL( mSimState.Init( errors ) );
-    TAC_CALL( mSysState.Init( errors ) );
+    mWorld = TAC_NEW World;
+    mEditorCamera = TAC_NEW Camera
+    {
+      .mPos       { 0, 1, 5 },
+      .mForwards  { 0, 0, -1 },
+      .mRight     { 1, 0, 0 },
+      .mUp        { 0, 1, 0 }
+    };
+    TAC_CALL( GamePresentation::Init( errors ) );
     CreationGameWindow::Init( mSettingsNode, errors );
     TAC_CALL( PrefabLoad( mSettingsNode,
                           &mEntityUUIDCounter,
-                          mSimState.mWorld,
-                          mSimState.mEditorCamera,
+                          mWorld,
+                          mEditorCamera,
                           errors ) );
   }
 
@@ -245,22 +198,22 @@ namespace Tac
     ShowWindowHelper::GetInstance().Save( mSettingsNode );
     IconRenderer::Uninit();
     WidgetRenderer::Uninit();
-    mSimState.Uninit();
-    mSysState.Uninit();
+    GamePresentation::Uninit(); 
+    TAC_DELETE mWorld;
+    TAC_DELETE mEditorCamera;
   }
 
-  void Creation::Render( const CreationAppState* renderParams, Errors& errors )
+  void Creation::Render( World* world, Camera* camera, Errors& errors )
   {
-    World* world{ renderParams->mSimState.mWorld };
-    Camera* camera{ renderParams->mSimState.mEditorCamera };
-
     CreationAssetView::Render( errors );
     CreationGameWindow::Render( world, camera, errors );
   }
 
-  void Creation::Update( World* world, Camera* camera, Errors& errors )
+  void Creation::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
+    World* world{ mWorld };
+    Camera* camera{ mEditorCamera };
     CheckSavePrefab( world );
     world->mDebug3DDrawData->Clear();
 

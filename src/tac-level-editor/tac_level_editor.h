@@ -8,8 +8,6 @@
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-level-editor/tac_entity_selection.h"
-#include "tac-level-editor/tac_level_editor_sim_state.h"
-#include "tac-level-editor/tac_level_editor_sys_state.h"
 
 namespace Tac
 {
@@ -19,16 +17,16 @@ namespace Tac
   {
     void Init( SettingsNode, Errors& );
     void Uninit( Errors& );
-    void Update( World*, Camera*, Errors& );
-    void Render( const CreationAppState*, Errors& );
+    void Update( Errors& );
+    void Render( World*, Camera*, Errors& );
     auto GetEditorCameraVisibleRelativeSpace( const Camera* ) -> RelativeSpace;
     auto CreateEntity(World*,Camera*) -> Entity*;
     auto InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& ) -> Entity*;
 
     EntityUUIDCounter    mEntityUUIDCounter       {};
     SettingsNode         mSettingsNode            {};
-    CreationSimState     mSimState                {};
-    CreationSysState     mSysState                {};
+    World*               mWorld                   {};
+    Camera*              mEditorCamera            {};
     static Creation      gCreation;
   };
 
