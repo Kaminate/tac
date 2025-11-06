@@ -94,7 +94,7 @@ void Parser::addAtom(const sptr<Atom>& atom) const {
 }
 
 void Parser::addRow() const {
-  if (!_arrayMode) throw ex_parse("Can not add row in none-array mode!");
+  if (!_arrayMode) MICROTEX_ERROR("Can not add row in none-array mode!");
   ((ArrayFormula*)_formula)->addRow();
 }
 
@@ -136,7 +136,7 @@ string Parser::getGroup(char open, char close) {
     if (group != 0) return _latex.substr(spos + 1, _pos - spos - 1);
     return _latex.substr(spos + 1, _pos - spos - 2);
   }
-  throw ex_parse("Missing '" + toString((char)open) + "'!");
+  MICROTEX_ERROR_RET("Missing '" + toString((char)open) + "'!");
 }
 
 string Parser::getGroup(const string& open, const string& close) {
@@ -205,7 +205,7 @@ string Parser::getGroup(const string& open, const string& close) {
 
   if (group != 0) {
     if (_isPartial) return buf;
-    throw ex_parse("Parse string not closed correctly!");
+    MICROTEX_ERROR_RET("Parse string not closed correctly!");
   }
 
   return buf.substr(0, buf.length() - _pos + startC);
@@ -251,7 +251,7 @@ string Parser::getOverArgument() {
   }
 
   // end of string reached, but not processed properly
-  if (ogroup >= 2) throw ex_parse("Illegal end, missing '}'!");
+  if (ogroup >= 2) MICROTEX_ERROR_RET("Illegal end, missing '}'!");
 
   string str;
   if (ogroup == 0) {
@@ -349,7 +349,7 @@ string Parser::forwardBalancedGroup() {
     }
   }
   if (closing != 0) {
-    throw ex_parse("Found a closing '}' without an opening '{'!");
+    MICROTEX_ERROR_RET("Found a closing '}' without an opening '{'!");
   }
   const string& sub = _latex.substr(_pos, i - _pos);
   _pos = i;
@@ -370,28 +370,28 @@ void Parser::getOptsArgs(int argc, int opts, Args& args) {
 
   auto getOpts = [&]() {
     int j = argc + 1;
-    try {
+    //try {
       for (; j < argc + 11; j++) {
         skipWhiteSpace();
         args[j] = getGroup(L_BRACK, R_BRACK);
       }
-    } catch (ex_parse& e) {
-      args[j] = "";
-    }
+    //} catch (ex_parse& e) {
+    //  args[j] = "";
+    //}
   };
 
   auto getArg = [&](int i) {  // NOLINT(misc-no-recursion)
     skipWhiteSpace();
-    try {
+    //try {
       args[i] = getGroup(L_GROUP, R_GROUP);
-    } catch (ex_parse& e) {
-      if (_latex[_pos] != '\\') {
-        args[i] = toString(_latex[_pos]);
-        _pos++;
-      } else {
-        args[i] = getCmdWithArgs(getCmd());
-      }
-    }
+    //} catch (ex_parse& e) {
+    //  if (_latex[_pos] != '\\') {
+    //    args[i] = toString(_latex[_pos]);
+    //    _pos++;
+    //  } else {
+    //    args[i] = getCmdWithArgs(getCmd());
+    //  }
+    //}
   };
 
   // we get the options just after the command name
@@ -450,7 +450,7 @@ sptr<Atom> Parser::processEscape() {
 
   // not a valid command or symbol or predefined Formula found
   if (!_isPartial) {
-    throw ex_parse("Unknown symbol or command or predefined Formula: '" + cmd + "'");
+    MICROTEX_ERROR_RET("Unknown symbol or command or predefined Formula: '" + cmd + "'");
   }
   auto rm = sptrOf<FontStyleAtom>(
     FontStyle::tt,
@@ -629,14 +629,14 @@ void Parser::inflateNewCmd(string& cmd, Args& args, int& pos) {
   auto mac = MacroInfo::get(cmd);
   getOptsArgs(mac->argc, mac->opt, args);
   args[0] = cmd;
-  try {
+  //try {
     mac->invoke(*this, args);
     // The last element is the returned value (after inflated macro)
     _latex.replace(pos, _pos - pos, args.back());
-  } catch (ex_parse& e) {
-    if (!_isPartial) throw e;
-    pos += cmd.length() + 1;
-  }
+  //} catch (ex_parse& e) {
+  //  if (!_isPartial) throw e;
+  //  pos += cmd.length() + 1;
+  //}
   _len = _latex.length();
   _pos = pos;
 }
@@ -646,7 +646,7 @@ void Parser::inflateEnv(string& cmd, Args& args, int& pos) {
   string env = args[1] + "@env";
   auto mac = MacroInfo::get(env);
   if (mac == nullptr) {
-    throw ex_parse("Unknown environment: " + args[1]);
+    MICROTEX_ERROR("Unknown environment: " + args[1]);
   }
   vector<string> optargs;
   getOptsArgs(mac->argc - 1, 0, optargs);
@@ -671,11 +671,11 @@ void Parser::preprocess() {
       case ESCAPE: {
         spos = _pos;
         string cmd = getCmd();
-        try {
+        //try {
           preprocess(cmd, args, spos);
-        } catch (ex_parse& e) {
-          if (!_isPartial) throw e;
-        }
+        //} catch (ex_parse& e) {
+        //  if (!_isPartial) throw e;
+        //}
         args.clear();
         break;
       }
@@ -761,7 +761,7 @@ void Parser::parse() {
         _group--;
         _pos++;
         if (_group == -1) {
-          throw ex_parse("Found a closing '}' without an opening '{'!");
+          MICROTEX_ERROR("Found a closing '}' without an opening '{'!");
         }
         // End of a group
         return;
@@ -777,7 +777,7 @@ void Parser::parse() {
       } break;
       case '&': {
         if (!_arrayMode) {
-          throw ex_parse("Character '&' is only available in array mode!");
+          MICROTEX_ERROR("Character '&' is only available in array mode!");
         }
         ((ArrayFormula*)_formula)->addCol();
         _pos++;

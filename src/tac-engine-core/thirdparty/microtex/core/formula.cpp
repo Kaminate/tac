@@ -17,11 +17,11 @@ Formula::Formula() : _parser("", this, false) {}
 Formula::Formula(const Parser& tp, const string& latex, bool preprocess, bool isMathMode)
     : _parser(tp.isPartial(), latex, this, preprocess, isMathMode) {
   if (tp.isPartial()) {
-    try {
+    //try {
       _parser.parse();
-    } catch (exception& e) {
-      if (_root == nullptr) _root = sptrOf<EmptyAtom>();
-    }
+    //} catch (exception& e) {
+    //  if (_root == nullptr) _root = sptrOf<EmptyAtom>();
+    //}
   } else {
     _parser.parse();
   }

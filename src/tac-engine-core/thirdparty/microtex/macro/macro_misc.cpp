@@ -17,7 +17,7 @@ macro(longdiv) {
   valueOf(args[1], dividend);
   long divisor = 0;
   valueOf(args[2], divisor);
-  if (divisor == 0) throw ex_parse("Divisor must not be 0.");
+  if (divisor == 0) MICROTEX_ERROR_RET("Divisor must not be 0.");
   return sptrOf<LongDivAtom>(divisor, dividend);
 }
 
@@ -83,7 +83,7 @@ template <typename F>
 sptr<Atom> _def_cmd(Parser& tp, Args& args, F&& f) {
   string newcmd(args[1]);
   int argc = 0;
-  if (!tp.isValidCmd(newcmd)) throw ex_parse("Invalid name for the command '" + newcmd);
+  if (!tp.isValidCmd(newcmd)) MICROTEX_ERROR_RET("Invalid name for the command '" + newcmd);
 
   if (!args[3].empty()) valueOf(args[3], argc);
 

@@ -46,7 +46,7 @@ public:
    * @param preprocess if do preprocessing
    * @param isMathMode if parse in math mode
    *
-   * @throw ex_parse if the string could not be parsed correctly
+   * @MICROTEX_ERROR if the string could not be parsed correctly
    */
   Formula(
     const Parser& tp,
@@ -62,7 +62,7 @@ public:
    * @param latex the string to be parsed
    * @param preprocess if do preprocessing
    *
-   * @throw ex_parse if the string could not be parsed correctly
+   * @MICROTEX_ERROR if the string could not be parsed correctly
    */
   explicit Formula(const std::string& latex, bool preprocess = true);
 

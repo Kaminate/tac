@@ -30,7 +30,7 @@ void microtex::PlatformFactory::activate(const std::string& name) {
 microtex::PlatformFactory* microtex::PlatformFactory::get() {
   auto it = _data->factories.find(_data->currentFactory);
   if (it == _data->factories.end()) {
-    throw ex_invalid_state(
+    MICROTEX_ERROR_RET(
       "No factory found with name '" + _data->currentFactory + "', please register one."
     );
   }

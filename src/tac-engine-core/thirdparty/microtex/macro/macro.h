@@ -99,7 +99,9 @@ public:
   //      \scalebox{0.5}[2]{\LaTeX}
   const int opt;
 
-  no_copy_assign(MacroInfo);
+  MacroInfo(const MacroInfo&) = delete;
+  void operator=( const MacroInfo& ) = delete;
+
 
   MacroInfo() : argc(0), opt(0) {}
 
@@ -120,7 +122,8 @@ private:
   Macro* const _macro;
 
 public:
-  no_copy_assign(InflationMacroInfo);
+  InflationMacroInfo( const InflationMacroInfo& ) = delete;
+  void operator=( const InflationMacroInfo& ) = delete;
 
   InflationMacroInfo(Macro* macro, int argc) : _macro(macro), MacroInfo(argc) {}
 
@@ -140,7 +143,8 @@ private:
   MacroDelegate _delegate;
 
 public:
-  no_copy_assign(PreDefMacro);
+  PreDefMacro(const PreDefMacro&) = delete;
+  void operator=( const PreDefMacro& ) = delete;
 
   PreDefMacro(int argc, int posOpts, MacroDelegate delegate)
       : MacroInfo(argc, posOpts), _delegate(delegate) {}

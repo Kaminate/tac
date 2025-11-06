@@ -22,11 +22,13 @@ if( MSVC )
     # same as add_compile_options( /ZI  ) ?Produce a PDB that supports Edit and Continue
     # set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>")
 
-    add_compile_options( # /ZI  # Produce a PDB that supports Edit and Continue
+    add_compile_options( /ZI  # Produce a PDB that supports Edit and Continue
                          /external:W0 # disable warnings for external headers
                          /W4  # warning level 4
                          /WX  # treat linker warnings as errors
                          /MP  # multi processor compilation
+
+                         /EHsc #??? warning C4530: C++ exception handler used, but unwind semantics are not enabled. Specify /EHsc
                          )
                          # /experimental:module) # modules???
 else() # gcc, clang

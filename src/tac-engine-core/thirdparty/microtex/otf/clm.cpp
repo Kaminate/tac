@@ -57,14 +57,14 @@ public:
   explicit BinaryFileReader(const char* filePath) {
     _file = fopen(filePath, "rb");
     if (_file == nullptr) {
-      throw ex_file_not_found(std::string(filePath) + " cannot be opened.");
+      MICROTEX_ERROR(std::string(filePath) + " cannot be opened.");
     }
   }
 
   const u8* readBytes(size_t bytes) override {
     const auto remain = _currentSize - _index;
     if (remain < bytes) readChunk(remain);
-    if (_index >= _currentSize) throw ex_eof("end of data");
+    if (_index >= _currentSize) MICROTEX_ERROR_RET("end of data");
     const u8* p = _buff + _index;
     _index += bytes;
     return p;
@@ -77,7 +77,7 @@ public:
       const auto remain = _currentSize - (_index + len);
       if (remain < 32) readChunk(32);
 
-      if (_index + len >= _currentSize) throw ex_eof("end of data");
+      if (_index + len >= _currentSize) MICROTEX_ERROR_RET("end of data");
       active = _buff[_index + len];
       len++;
     }
@@ -99,7 +99,7 @@ public:
   explicit BinaryDataReader(size_t len, const u8* data) : _len(len), _data(data) {}
 
   const u8* readBytes(size_t bytes) override {
-    if (_index >= _len) throw ex_eof("end of data");
+    if (_index >= _len) MICROTEX_ERROR_RET("end of data");
     const u8* p = _data + _index;
     _index += bytes;
     return p;
@@ -109,7 +109,7 @@ public:
     size_t len = 0;
     u8 active = 0x00;
     while (active != until || len == 0) {
-      if (_index + len >= _len) throw ex_eof("end of data");
+      if (_index + len >= _len) MICROTEX_ERROR_RET("end of data");
       active = _data[_index + len];
       len++;
     }
@@ -359,11 +359,11 @@ Otf* CLMReader::read(BinaryReader& reader) {
   const auto l = reader.read<u8>();
   const auto m = reader.read<u8>();
   if (c != 'c' || l != 'l' || m != 'm') {
-    throw ex_invalid_param("invalid clm data format");
+    MICROTEX_ERROR_RET("invalid clm data format");
   }
   const auto ver = reader.read<u16>();
   if (ver != CLM_VER_MAJOR) {
-    throw ex_invalid_param(
+    MICROTEX_ERROR_RET(
       "clm data (with version: " + toString(ver) + ") does not match the required version ("
       + toString(CLM_VER_MAJOR) + ")!"
     );
@@ -372,7 +372,7 @@ Otf* CLMReader::read(BinaryReader& reader) {
   const bool hasGlyphPath = CLM_SUPPORT_GLYPH_PATH(minor);
 #if GLYPH_RENDER_TYPE == GLYPH_RENDER_TYPE_PATH
   if (!hasGlyphPath) {
-    throw ex_invalid_param("The given clm data does not have glyph paths.");
+    MICROTEX_ERROR("The given clm data does not have glyph paths.");
   }
 #endif
   // read otf-spec

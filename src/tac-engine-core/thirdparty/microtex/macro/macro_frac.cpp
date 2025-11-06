@@ -14,7 +14,7 @@ macro(binom) {
   Formula num(tp, args[1], false);
   Formula den(tp, args[2], false);
   if (num._root == nullptr || den._root == nullptr)
-    throw ex_parse("Both binomial coefficients must be not empty!");
+    MICROTEX_ERROR_RET("Both binomial coefficients must be not empty!");
   auto f = sptrOf<FracAtom>(num._root, den._root, false);
   return sptrOf<FencedAtom>(f, "lparen", "rparen");
 }
@@ -28,7 +28,7 @@ sptr<Atom> _choose(
   auto num = tp.popFormulaAtom();
   auto den = Formula(tp, tp.getOverArgument(), false)._root;
   if (num == nullptr || den == nullptr)
-    throw ex_parse("Both numerator and denominator of choose can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of choose can't be empty!");
   auto f = sptrOf<FracAtom>(num, den, false);
   return sptrOf<FencedAtom>(f, left, right);
 }
@@ -37,7 +37,7 @@ macro(frac) {
   Formula num(tp, args[1], false);
   Formula den(tp, args[2], false);
   if (num._root == nullptr || den._root == nullptr)
-    throw ex_parse("Both numerator and denominator of a fraction can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of a fraction can't be empty!");
   return sptrOf<FracAtom>(num._root, den._root, true);
 }
 
@@ -46,7 +46,7 @@ macro(above) {
   const auto& thick = tp.getDimen();
   auto den = Formula(tp, tp.getOverArgument(), false)._root;
   if (num == nullptr || den == nullptr) {
-    throw ex_parse("Both numerator and denominator of a fraction can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of a fraction can't be empty!");
   }
   return sptrOf<FracAtom>(num, den, true, thick);
 }
@@ -55,7 +55,7 @@ macro(atop) {
   auto num = tp.popFormulaAtom();
   auto den = Formula(tp, tp.getOverArgument(), false)._root;
   if (num == nullptr || den == nullptr)
-    throw ex_parse("Both numerator and denominator of a fraction can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of a fraction can't be empty!");
   return sptrOf<FracAtom>(num, den, false);
 }
 
@@ -63,7 +63,7 @@ macro(over) {
   auto num = tp.popFormulaAtom();
   auto den = Formula(tp, tp.getOverArgument(), false)._root;
   if (num == nullptr || den == nullptr)
-    throw ex_parse("Both numerator and denominator of a fraction can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of a fraction can't be empty!");
   return sptrOf<FracAtom>(num, den, true);
 }
 
@@ -73,7 +73,7 @@ sptr<Atom> _frac_with_delims(Parser& tp, Args& args, bool rule, bool hasLength) 
   auto den = Formula(tp, tp.getOverArgument(), false)._root;
 
   if (num == nullptr || den == nullptr)
-    throw ex_parse("Both numerator and denominator of a fraction can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of a fraction can't be empty!");
 
   auto f = (hasLength ? sptrOf<FracAtom>(num, den, rule, l) : sptrOf<FracAtom>(num, den, rule));
   return sptrOf<FencedAtom>(f, args[1], args[2]);
@@ -101,7 +101,7 @@ macro(cfrac) {
   Formula num(tp, args[1], false);
   Formula denom(tp, args[2], false);
   if (num._root == nullptr || denom._root == nullptr)
-    throw ex_parse("Both numerator and denominator of a fraction can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of a fraction can't be empty!");
   const auto n = sptrOf<StyleAtom>(TexStyle::display, num._root);
   const auto d = sptrOf<StyleAtom>(TexStyle::display, denom._root);
   const auto f = sptrOf<FracAtom>(n, d, numAlign, Alignment::center);
@@ -123,7 +123,7 @@ macro(genfrac) {
   Formula num(tp, args[5], false);
   Formula den(tp, args[6], false);
   if (num._root == nullptr || den._root == nullptr) {
-    throw ex_parse("Both numerator and denominator of a fraction can't be empty!");
+    MICROTEX_ERROR_RET("Both numerator and denominator of a fraction can't be empty!");
   }
 
   auto fa = sptrOf<FracAtom>(num._root, den._root, rule, thickness);

@@ -19,9 +19,7 @@
       "inherits": "windows-base",
       "architecture": { "value": "x64", "strategy": "external" },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_FLAGS": "/ZI /W4 /WX /MP /external:W0",
-        "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "$<$<CONFIG:Debug>:EditAndContinue>"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {

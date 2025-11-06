@@ -41,7 +41,7 @@ FontMeta MicroTeX::init(const FontSrc& mathFontSrc) {
   std::setlocale(LC_NUMERIC, "C"); // workaround for decimal parsing on German (decimal comma) systems
   auto meta = FontContext::addFont(mathFontSrc);
   if (!meta.isMathFont) {
-    throw ex_invalid_param("'" + meta.name + "' is not a math font!");
+    MICROTEX_ERROR_RET("'" + meta.name + "' is not a math font!");
   }
   _config->defaultMathFontName = meta.name;
   _config->isInited = true;

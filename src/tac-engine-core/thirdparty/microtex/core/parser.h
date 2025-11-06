@@ -74,7 +74,7 @@ public:
    * Create a new TeXParser
    * @param latex the string to be parsed
    * @param formula the formula where to put the atoms
-   * @throw ex_parse if the string could not be parsed correctly
+   * @MICROTEX_ERROR if the string could not be parsed correctly
    */
   Parser(const std::string& latex, Formula* formula) { init(true, latex, formula, true); }
 
@@ -83,7 +83,7 @@ public:
    * @param isPartial if true certain exceptions are not thrown
    * @param latex the string to be parsed
    * @param formula the formula where to put the atoms
-   * @throw ex_parse if the string could not be parsed correctly
+   * @MICROTEX_ERROR if the string could not be parsed correctly
    */
   Parser(bool isPartial, const std::string& latex, Formula* formula) {
     init(isPartial, latex, formula, true);
@@ -96,7 +96,7 @@ public:
    * @param formula the formula where to put the atoms
    * @param preprocess indicate if the parser must replace the user-defined macros by their content
    *
-   * @throw ex_parse if the string could not be parsed correctly
+   * @MICROTEX_ERROR if the string could not be parsed correctly
    */
   Parser(bool isPartial, const std::string& latex, Formula* formula, bool preprocess) {
     init(isPartial, latex, formula, preprocess);
@@ -108,7 +108,7 @@ public:
    * @param formula the formula where to put the atoms
    * @param preprocess indicate if the parser must replace the user-defined macros by their content
    *
-   * @throw ex_parse if the string could not be parsed correctly
+   * @MICROTEX_ERROR if the string could not be parsed correctly
    */
   Parser(const std::string& latex, Formula* formula, bool preprocess) {
     init(true, latex, formula, preprocess);
@@ -124,7 +124,7 @@ public:
    * @param preprocess indicate if the parser must replace the user-defined macros by their content
    * @param isMathMode a boolean to indicate if the parser must ignore or not the white space
    *
-   * @throw ex_parse if the string could not be parsed correctly
+   * @MICROTEX_ERROR if the string could not be parsed correctly
    */
   Parser(
     bool isPartial,
@@ -199,14 +199,14 @@ public:
   /**
    * Add a new row when the parser is in array mode
    *
-   * @throw ex_parse if the parser is not in array mode
+   * @MICROTEX_ERROR if the parser is not in array mode
    */
   void addRow() const;
 
   /**
    * Parse the input string
    *
-   * @throw ex_parse if an error is encountered during parse
+   * @MICROTEX_ERROR if an error is encountered during parse
    */
   void parse();
 
@@ -216,7 +216,7 @@ public:
    * @param openClose the opening and closing character (such as $)
    * @return the enclosed contents
    *
-   * @throw ex_parse if the contents are badly enclosed
+   * @MICROTEX_ERROR if the contents are badly enclosed
    */
   std::string getGroup(char openClose);
 
@@ -227,7 +227,7 @@ public:
    * @param close the closing character
    * @return the enclosed contents
    *
-   * @throw ex_parse if the contents are badly enclosed
+   * @MICROTEX_ERROR if the contents are badly enclosed
    */
   std::string getGroup(char open, char close);
 
@@ -238,7 +238,7 @@ public:
    * @param close the closing string
    * @return the enclosed contents
    *
-   * @throw ex_parse if the contents are badly enclosed
+   * @MICROTEX_ERROR if the contents are badly enclosed
    */
   std::string getGroup(const std::string& open, const std::string& close);
 
@@ -247,7 +247,7 @@ public:
    *
    * @return the corresponding atom
    *
-   * @throw ex_parse if the argument is incorrect
+   * @MICROTEX_ERROR if the argument is incorrect
    */
   sptr<Atom> getArgument();
 

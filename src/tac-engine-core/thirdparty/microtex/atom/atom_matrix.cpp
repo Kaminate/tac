@@ -113,7 +113,7 @@ void MatrixAtom::parsePositions(string opt, vector<Alignment>& lpos) {
         }
         if (!hasrep) {
           // Notify an error instead of using a default alignment
-          throw ex_parse("Invalid alignment in array environment!");
+          MICROTEX_ERROR("Invalid alignment in array environment!");
         }
       } break;
     }

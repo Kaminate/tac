@@ -49,7 +49,7 @@ inline macro(mathclrlap) {
 
 inline sptr<Atom> _cancel(int cancelType, Parser& tp, std::vector<std::string>& args) {
   auto base = Formula(tp, args[1], false)._root;
-  if (base == nullptr) throw ex_parse("Cancel content must not be empty!");
+  if (base == nullptr) MICROTEX_ERROR_RET("Cancel content must not be empty!");
   return sptrOf<CancelAtom>(base, cancelType);
 }
 

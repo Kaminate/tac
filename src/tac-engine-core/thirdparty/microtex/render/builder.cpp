@@ -11,7 +11,8 @@ using namespace microtex;
 
 RenderBuilder& RenderBuilder::setLineSpace(const Dimen& dimen) {
   if (!dimen.isValid()) {
-    throw ex_invalid_state("Cannot set line space without having specified a width!");
+    MicroTexError("Cannot set line space without having specified a width!");
+    return *this;
   }
   _lineSpace = dimen;
   return *this;
@@ -25,10 +26,10 @@ Render* RenderBuilder::build(const sptr<Atom>& fc) {
   sptr<Atom> f = fc;
   if (f == nullptr) f = sptrOf<EmptyAtom>();
   if (_textSize == -1) {
-    throw ex_invalid_state("A text size is required, call function setTextSize before build.");
+    MICROTEX_ERROR_RET("A text size is required, call function setTextSize before build.");
   }
   if (_mathFontName.empty()) {
-    throw ex_invalid_state("A math font is required, call function setMathFontName before build.");
+    MICROTEX_ERROR_RET("A math font is required, call function setMathFontName before build.");
   }
 
   auto fctx = sptrOf<FontContext>();

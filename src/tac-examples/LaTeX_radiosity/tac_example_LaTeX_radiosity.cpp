@@ -344,8 +344,8 @@ namespace Tac
 
     const char* fallback{ "<nothing was drawn>" };
 
-    try
-    {
+    //try
+    //{
       if( microtex::Render* curRender{
         microtex::MicroTeX::parse( eqStr.c_str(), width, fontSize_windowspace, lineSpace, _color ) } )
       {
@@ -361,12 +361,12 @@ namespace Tac
 
         delete curRender;
       }
-    }
-    catch( std::exception e )
-    {
-      if( e.what() )
-        fallback = e.what();
-    }
+    //}
+    //catch( std::exception e )
+    //{
+    //  if( e.what() )
+    //    fallback = e.what();
+    //}
 
     if( fallback )
     {

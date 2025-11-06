@@ -57,7 +57,7 @@ inline macro(alignatATATenv) {
   arr->checkDimensions();
   size_t n = 0;
   valueOf(args[1], n);
-  if (arr->cols() != 2 * n) throw ex_parse("Bad number of equations in alignat environment!");
+  if (arr->cols() != 2 * n) MICROTEX_ERROR_RET("Bad number of equations in alignat environment!");
 
   return sptrOf<MatrixAtom>(tp.isPartial(), sptr<ArrayFormula>(arr), MatrixType::alignAt);
 }
@@ -78,7 +78,7 @@ inline macro(alignedatATATenv) {
   size_t n = 0;
   valueOf(args[1], n);
   if (arr->cols() != 2 * n) {
-    throw ex_parse("Bad number of equations in alignedat environment!");
+    MICROTEX_ERROR_RET("Bad number of equations in alignedat environment!");
   }
 
   return sptrOf<MatrixAtom>(tp.isPartial(), sptr<ArrayFormula>(arr), MatrixType::alignedAt);
@@ -90,7 +90,7 @@ inline macro(multlineATATenv) {
   p.parse();
   arr->checkDimensions();
   if (arr->cols() > 1) {
-    throw ex_parse("Requires exact one column in multiline environment!");
+    MICROTEX_ERROR_RET("Requires exact one column in multiline environment!");
   }
   if (arr->cols() == 0) return nullptr;
 
@@ -102,7 +102,7 @@ inline macro(gatherATATenv) {
   Parser p(tp.isPartial(), args[1], arr, false);
   p.parse();
   arr->checkDimensions();
-  if (arr->cols() > 1) throw ex_parse("Requires exact one column in gather environment!");
+  if (arr->cols() > 1) MICROTEX_ERROR_RET("Requires exact one column in gather environment!");
   if (arr->cols() == 0) return nullptr;
 
   return sptrOf<MultlineAtom>(tp.isPartial(), sptr<ArrayFormula>(arr), MultiLineType::gather);
@@ -113,14 +113,14 @@ inline macro(gatheredATATenv) {
   Parser p(tp.isPartial(), args[1], arr, false);
   p.parse();
   arr->checkDimensions();
-  if (arr->cols() > 1) throw ex_parse("Requires exact one column in gathered environment!");
+  if (arr->cols() > 1) MICROTEX_ERROR_RET("Requires exact one column in gathered environment!");
   if (arr->cols() == 0) return nullptr;
 
   return sptrOf<MultlineAtom>(tp.isPartial(), sptr<ArrayFormula>(arr), MultiLineType::gathered);
 }
 
 inline macro(multicolumn) {
-  if (!tp.isArrayMode()) throw ex_parse("Command 'multicolumn' only available in array mode!");
+  if (!tp.isArrayMode()) MICROTEX_ERROR_RET("Command 'multicolumn' only available in array mode!");
   int n = 0;
   valueOf(args[1], n);
   tp.addAtom(sptrOf<MulticolumnAtom>(n, args[2], Formula(tp, args[3])._root));
@@ -129,7 +129,7 @@ inline macro(multicolumn) {
 }
 
 inline macro(hdotsfor) {
-  if (!tp.isArrayMode()) throw ex_parse("Command 'hdotsfor' only available in array mode!");
+  if (!tp.isArrayMode()) MICROTEX_ERROR_RET("Command 'hdotsfor' only available in array mode!");
   int n = 0;
   valueOf(args[1], n);
   float f = 1.f;
@@ -140,12 +140,12 @@ inline macro(hdotsfor) {
 }
 
 inline macro(hline) {
-  if (!tp.isArrayMode()) throw ex_parse("The macro \\hline only available in array mode!");
+  if (!tp.isArrayMode()) MICROTEX_ERROR_RET("The macro \\hline only available in array mode!");
   return sptrOf<HlineAtom>();
 }
 
 inline macro(multirow) {
-  if (!tp.isArrayMode()) throw ex_parse("Command \\multirow must used in array environment!");
+  if (!tp.isArrayMode()) MICROTEX_ERROR_RET("Command \\multirow must used in array environment!");
   int n = 0;
   valueOf(args[1], n);
   tp.addAtom(sptrOf<MultiRowAtom>(n, args[2], Formula(tp, args[3])._root));
@@ -153,7 +153,7 @@ inline macro(multirow) {
 }
 
 inline macro(cellcolor) {
-  if (!tp.isArrayMode()) throw ex_parse("Command \\cellcolor must used in array environment!");
+  if (!tp.isArrayMode()) MICROTEX_ERROR_RET("Command \\cellcolor must used in array environment!");
   color c = ColorAtom::getColor(args[1]);
   auto atom = sptrOf<CellColorAtom>(c);
   ((ArrayFormula*)tp._formula)->addCellSpecifier(atom);
@@ -188,7 +188,7 @@ inline macro(columnbg) {
 }
 
 inline macro(rowcolor) {
-  if (!tp.isArrayMode()) throw ex_parse("Command \\rowcolor must used in array environment!");
+  if (!tp.isArrayMode()) MICROTEX_ERROR_RET("Command \\rowcolor must used in array environment!");
   color c = ColorAtom::getColor(args[1]);
   auto spe = sptrOf<CellColorAtom>(c);
   ((ArrayFormula*)tp._formula)->addRowSpecifier(spe);

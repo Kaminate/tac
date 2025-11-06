@@ -7,7 +7,7 @@
 namespace microtex {
 
 macro(intertext) {
-  if (!tp.isArrayMode()) throw ex_parse("Command \\intertext must used in array environment!");
+  if (!tp.isArrayMode()) MICROTEX_ERROR_RET("Command \\intertext must used in array environment!");
 
   std::string str(args[1]);
   replaceAll(str, "^{\\prime}", "\'");
@@ -26,7 +26,7 @@ macro(addfont) {
   if (MicroTeX::isPrivilegedEnvironment())
     MicroTeX::addFont(FontSrcFile(args[1], args[2]));
   else
-    throw ex_unprivileged("\\addfont may only be called in privileged environments");
+    MICROTEX_ERROR_RET("\\addfont may only be called in privileged environments");
   return nullptr;
 }
 

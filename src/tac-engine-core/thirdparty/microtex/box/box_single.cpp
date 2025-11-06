@@ -107,7 +107,7 @@ void TextBox::draw(Graphics2D& g2, float x, float y) {
 
 LineBox::LineBox(const vector<float>& lines, float thickness) {
   _thickness = thickness;
-  if (lines.size() % 4 != 0) throw ex_invalid_param("The vector not represent lines.");
+  if (lines.size() % 4 != 0) MICROTEX_ERROR("The vector not represent lines.");
   _lines = lines;
 }
 

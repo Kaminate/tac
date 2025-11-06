@@ -45,7 +45,7 @@ static sptr<Box> createDelim(
     atom = SymbolAtom::get(sym);
   }
   if (atom == nullptr) {
-    throw ex_parse(sym + " is not a delimiter!");
+    MICROTEX_ERROR_RET(sym + " is not a delimiter!");
   }
 
   const auto& chr = atom->getChar(env);

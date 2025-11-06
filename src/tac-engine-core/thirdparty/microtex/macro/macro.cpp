@@ -16,12 +16,12 @@ bool NewCommandMacro::isMacro(const string& name) {
 
 void NewCommandMacro::checkNew(const string& name) {
   if (_errIfConflict && isMacro(name))
-    throw ex_parse("Command " + name + " already exists! Use renewcommand instead!");
+    MICROTEX_ERROR("Command " + name + " already exists! Use renewcommand instead!");
 }
 
 void NewCommandMacro::checkRenew(const string& name) {
   if (NewCommandMacro::_errIfConflict && !isMacro(name))
-    throw ex_parse("Command " + name + " is no defined! Use newcommand instead!");
+    MICROTEX_ERROR("Command " + name + " is no defined! Use newcommand instead!");
 }
 
 void NewCommandMacro::addNewCommand(const string& name, const string& code, int argc) {
@@ -109,7 +109,7 @@ void NewEnvironmentMacro::addRenewEnvironment(
   int argc
 ) {
   if (_codes.find(name + "@env") == _codes.end()) {
-    throw ex_parse("Environment " + name + "is not defined! Use newenvironment instead!");
+    MICROTEX_ERROR("Environment " + name + "is not defined! Use newenvironment instead!");
   }
   addRenewCommand(name + "@env", begDef + " #" + toString(argc + 1) + " " + endDef, argc + 1);
 }
@@ -135,9 +135,9 @@ void MacroInfo::_free_() {
 }
 
 sptr<Atom> PreDefMacro::invoke(Parser& tp, vector<string>& args) {
-  try {
+  //try {
     return _delegate(tp, args);
-  } catch (ex_parse& e) {
-    throw ex_parse("Problem with command: " + args[0] + "\n caused by: " + e.what());
-  }
+  //} catch (ex_parse& e) {
+  //  MICROTEX_ERROR("Problem with command: " + args[0] + "\n caused by: " + e.what());
+  //}
 }
