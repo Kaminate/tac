@@ -9,6 +9,7 @@ namespace Tac
   {
     Timestamp() = default;
     Timestamp( double );
+    Timestamp( int );
     Timestamp( float ) = delete;
     void operator += ( const TimestampDifference& );
     operator double() const;
@@ -19,7 +20,8 @@ namespace Tac
   {
     TimestampDifference() = default;
     TimestampDifference( float );
-    TimestampDifference( double ) = delete;
+    TimestampDifference( int );
+    //TimestampDifference( double ) = delete;
     void operator += ( const TimestampDifference& );
     void operator -= ( const TimestampDifference& );
     operator float() const;

@@ -10,7 +10,6 @@
 namespace Tac
 {
   static Vector< Entity* >   sSelectedEntities;
-  static SettingsNode        sSettingsNode;
 
   auto SelectedEntities::begin() -> Iterator
   {
@@ -32,11 +31,6 @@ namespace Tac
     };
   }
 
-  void SelectedEntities::Init( SettingsNode settingsNode)
-  {
-    sSettingsNode = settingsNode;
-  }
-
   void SelectedEntities::AddToSelection( Entity* e ) { sSelectedEntities.push_back( e ); }
 
   void SelectedEntities::DeleteEntitiesCheck()
@@ -47,9 +41,7 @@ namespace Tac
 
   void SelectedEntities::DeleteEntities()
   {
-    SettingsNode settingsNode{ sSettingsNode };
     Vector< Entity* > topLevelEntitiesToDelete;
-
     for( Entity* entity : sSelectedEntities )
     {
       bool isTopLevel { true };
@@ -70,7 +62,7 @@ namespace Tac
 
     for( Entity* entity : topLevelEntitiesToDelete )
     {
-      PrefabRemoveEntityRecursively( settingsNode, entity );
+      PrefabRemoveEntityRecursively( entity );
       entity->mWorld->KillEntity( entity );
     }
 

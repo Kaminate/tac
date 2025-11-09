@@ -215,16 +215,12 @@ namespace Tac
       EntityImGui( entity );
   }
 
-  static void ImGuiHierarchy(World* world,
-                              Camera* camera ,
-                              SettingsNode settingsNode,
-                              Errors& errors )
+  static void ImGuiHierarchy(  Errors& errors )
   {
-
     {
       ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
-
-      for( Entity* entity : world->mEntities )
+      for( World* world{ Creation::GetWorld() };
+           Entity* entity : world->mEntities )
         if( !entity->mParent )
           RecursiveEntityHierarchyElement( entity );
 
@@ -232,21 +228,14 @@ namespace Tac
     }
 
     if( ImGuiButton( "Create Entity" ) )
-      Creation::gCreation.CreateEntity( world, camera );
+      Creation::CreateEntity();
 
     if( ImGuiButton( "Open Prefab" ) )
     {
-      TAC_CALL( const AssetPathStringView prefabAssetPath = AssetOpenDialog( errors ) );
-
-      if( prefabAssetPath.size() )
+      TAC_CALL( const AssetPathStringView prefabAssetPath{ AssetOpenDialog( errors ) } );
+      if( !prefabAssetPath.empty() )
       {
-        Camera* prefabLoadCamera{ world->mEntities.size() ? nullptr : camera };
-        TAC_CALL( PrefabLoadAtPath( settingsNode,
-                                    &Creation::gCreation.mEntityUUIDCounter,
-                                    world,
-                                    prefabLoadCamera,
-                                    prefabAssetPath,
-                                    errors ) );
+        TAC_CALL( PrefabLoadAtPath(  prefabAssetPath, errors ) );
       }
     }
   }
@@ -256,22 +245,18 @@ namespace Tac
   bool CreationPropertyWindow::sShowWindow{};
 
 
-  void CreationPropertyWindow::Update( World* world,
-                                       Camera* camera,
-                                       SettingsNode settingsNode,
-                                       Errors& errors )
+  void CreationPropertyWindow::Update( Errors& errors )
   {
     if( !sShowWindow)
       return;
     TAC_PROFILE_BLOCK;
-
 
     ImGuiSetNextWindowStretch();
     if( !ImGuiBegin( "Properties" ) )
       return;
 
     ImGuiBeginGroup();
-    TAC_CALL( ImGuiHierarchy( world, camera, settingsNode, errors ) );
+    TAC_CALL( ImGuiHierarchy( errors ) );
     ImGuiEndGroup();
 
     ImGuiSameLine();

@@ -7,7 +7,6 @@
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-ecs/terrain/tac_terrain.h"
-#include "tac-ecs/world/tac_world.h"
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
@@ -58,25 +57,18 @@ namespace Tac
     return desiredEntityName;
   }
 
-  static void CheckSavePrefab( World* world )
+  static void CheckSavePrefab()
   {
-    if( const bool triggered{
-          AppKeyboardApi::JustPressed( Key::S ) &&
-          AppKeyboardApi::IsPressed( Key::Modifier ) };
-          !triggered )
-      return;
-
-    dynmc Errors saveErrors;
-    const bool saved{ PrefabSave( world, saveErrors ) };
-    const TimestampDifference errorDurationSecs{ 60.0f };
-    const TimestampDifference successDurationSecs{ 5.0f };
-    const String msg{ [ & ]() ->String {
-      if( saveErrors ) { return saveErrors.ToString(); }
-      if( saved ) { return "Saved Prefabs!"; }
-      return "Didn't save prefabs";
-    }( ) };
-    const TimestampDifference duration{ saveErrors ? errorDurationSecs : successDurationSecs };
-    CreationGameWindow::SetStatusMessage( msg, duration );
+    if( !Creation::IsGameRunning() &&
+        AppKeyboardApi::IsPressed( Key::Modifier ) &&
+        AppKeyboardApi::JustPressed( Key::S ) )
+    {
+      dynmc Errors saveErrors;
+      if( PrefabSave( &Creation::GetData()->mWorld, saveErrors ) )
+        CreationGameWindow::SetStatusMessage( "Saved Prefabs!", TimestampDifference { 5.f } );
+      if( saveErrors)
+        CreationGameWindow::SetStatusMessage( saveErrors.ToString(), TimestampDifference { 60 } );
+    }
   }
 
   static void CloseAppWhenAllWindowsClosed()
@@ -164,9 +156,13 @@ namespace Tac
     Vector< Data > mDatas;
   };
 
+
   //===-------------- Creation -------------===//
 
-  Creation Creation::gCreation;
+  static bool           sIsGameRunning {};
+  static Creation::Data sGameStuff     {}; // game camera should be controlled through game script
+  static Creation::Data sEditorStuff   {};
+  static SettingsNode   mSettingsNode  {};
 
   void Creation::Init( SettingsNode settingsNode, Errors& errors )
   {
@@ -175,9 +171,9 @@ namespace Tac
     IconRenderer::Init( errors );
     CreationMousePicking::sInstance.Init( errors );
     WidgetRenderer::Init( errors );
-    SelectedEntities::Init( mSettingsNode );
-    mWorld = TAC_NEW World;
-    mEditorCamera = TAC_NEW Camera
+    sGameStuff.mWorld.Init();
+    sEditorStuff.mWorld.Init();
+    sEditorStuff.mCamera = Camera
     {
       .mPos       { 0, 1, 5 },
       .mForwards  { 0, 0, -1 },
@@ -185,12 +181,8 @@ namespace Tac
       .mUp        { 0, 1, 0 }
     };
     TAC_CALL( GamePresentation::Init( errors ) );
-    CreationGameWindow::Init( mSettingsNode, errors );
-    TAC_CALL( PrefabLoad( mSettingsNode,
-                          &mEntityUUIDCounter,
-                          mWorld,
-                          mEditorCamera,
-                          errors ) );
+    CreationGameWindow::Init( errors );
+    TAC_CALL( PrefabLoad( errors ) );
   }
 
   void Creation::Uninit( Errors& )
@@ -199,8 +191,6 @@ namespace Tac
     IconRenderer::Uninit();
     WidgetRenderer::Uninit();
     GamePresentation::Uninit(); 
-    TAC_DELETE mWorld;
-    TAC_DELETE mEditorCamera;
   }
 
   void Creation::Render( World* world, Camera* camera, Errors& errors )
@@ -212,20 +202,23 @@ namespace Tac
   void Creation::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
-    World* world{ mWorld };
-    Camera* camera{ mEditorCamera };
-    CheckSavePrefab( world );
-    world->mDebug3DDrawData->Clear();
+    CheckSavePrefab();
+
+    for( Data* datas[]{ &sEditorStuff, &sGameStuff }; Data* data : datas )
+        data->mWorld.mDebug3DDrawData->Clear();
 
     // Update the main window first so it becomes the parent window (maybe)
-    TAC_CALL( CreationMainWindow::Update( world, errors ) );
-    CreationSystemWindow::Update( world, mSettingsNode );
-    TAC_CALL( CreationAssetView::Update( world, camera, errors ) );
+    TAC_CALL( CreationMainWindow::Update( errors ) );
+    CreationSystemWindow::Update();
+    TAC_CALL( CreationAssetView::Update( errors ) );
     TAC_CALL( CreationShaderGraphWindow::Update(  errors ) );
-    TAC_CALL( CreationGameWindow::Update( world, camera, errors ) );
-    TAC_CALL( CreationPropertyWindow::Update( world, camera, mSettingsNode, errors ) );
-    TAC_CALL( CreationProfileWindow::Update(  errors ) );
-    world->Step( TAC_DELTA_FRAME_SECONDS );
+    TAC_CALL( CreationGameWindow::Update( errors ) );
+    TAC_CALL( CreationPropertyWindow::Update( errors ) );
+    TAC_CALL( CreationProfileWindow::Update( errors ) );
+
+    if( sIsGameRunning )
+      sGameStuff.mWorld.Step( TAC_DELTA_FRAME_SECONDS );
+
     SelectedEntities::DeleteEntitiesCheck();
     CloseAppWhenAllWindowsClosed();
   }
@@ -238,12 +231,11 @@ namespace Tac
     };
   }
 
-  auto Creation::InstantiateAsCopy( World* world,
-                                    Camera* camera,
-                                    Entity* prefabEntity,
-                                    const RelativeSpace& relativeSpace ) -> Entity*
+  auto Creation::GetSettingsNode() -> SettingsNode { return mSettingsNode; }
+
+  static auto InstantiateAsCopyAux( Entity* prefabEntity, const RelativeSpace& relativeSpace ) -> Entity*
   {
-    Entity* copyEntity{ CreateEntity( world, camera ) };
+    Entity* copyEntity{ Creation::CreateEntity() };
     copyEntity->mRelativeSpace = relativeSpace;
     copyEntity->mInheritParentScale = prefabEntity->mInheritParentScale;
     copyEntity->mName = prefabEntity->mName;
@@ -251,43 +243,44 @@ namespace Tac
     for( Component* prefabComponent : prefabEntity->mComponents )
     {
       const ComponentInfo* entry{ prefabComponent->GetEntry() };
-      const MetaType* metaType{ entry->mMetaType };
       dynmc Component* copyComponent{ copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
-      const MetaType::CopyParams copyParams
-      {
-        .mDst { copyComponent },
-        .mSrc { prefabComponent },
-      };
-      metaType->Copy( copyParams );
-
-
-      //Json entityJson;
-      //entry->mSaveFn( entityJson, prefabComponent );
-      //entry->mLoadFn( entityJson, copyComponent );
+      entry->mMetaType->Copy(
+        MetaType::CopyParams
+        {
+          .mDst { copyComponent },
+          .mSrc { prefabComponent },
+        } );
     }
-
+                              
     for( Entity* prefabChildEntity : prefabEntity->mChildren )
-    {
-      Entity* copyChildEntity{ InstantiateAsCopy( world,
-                                                  camera,
-                                                  prefabChildEntity,
-                                                  prefabChildEntity->mRelativeSpace ) };
-      copyEntity->AddChild( copyChildEntity );
-    }
+      if( Entity * copyChildEntity{
+        InstantiateAsCopyAux( prefabChildEntity, prefabChildEntity->mRelativeSpace ) } )
+        copyEntity->AddChild( copyChildEntity );
 
     return copyEntity;
   }
 
-  auto Creation::CreateEntity( World* world, Camera* camera ) -> Entity*
+  auto Creation::InstantiateAsCopy( Entity* prefabEntity ) -> Entity*
   {
-    Entity* entity{ world->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() ) };
-    entity->mName = CreationGetNewEntityName( world );
-    entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace( camera );
+    const RelativeSpace relativeSpace{ GetEditorCameraVisibleRelativeSpace( GetCamera() ) };
+    return InstantiateAsCopyAux( prefabEntity, relativeSpace );
+  }
+
+  auto Creation::CreateEntity() -> Entity*
+  {
+    Data* data{ GetData() };
+    Entity* entity{ data->mWorld.SpawnEntity( data->mEntityUUIDCounter.AllocateNewUUID() ) };
+    entity->mName = CreationGetNewEntityName( &data->mWorld );
+    entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace( &data->mCamera );
     SelectedEntities::Select( entity );
     return entity;
   }
 
 
+  auto Creation::GetData() -> Data*     { return sIsGameRunning ? &sGameStuff : &sEditorStuff; }
+  auto Creation::GetCamera() -> Camera* { return &GetData()->mCamera; }
+  auto Creation::GetWorld() -> World*   { return &GetData()->mWorld; }
+  bool Creation::IsGameRunning()        { return sIsGameRunning; }
 
 } // namespace Tac
 

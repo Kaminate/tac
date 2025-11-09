@@ -9,37 +9,29 @@ namespace Tac
   void LevelEditorApp::Init( Errors& errors )
   {
     SpaceInit();
-    Creation::gCreation.Init( mSettingsNode, errors );
+    Creation::Init( mSettingsNode, errors );
   }
 
-  auto LevelEditorApp::GameState_Create() -> State
-  {
-    return TAC_NEW CreationAppState;
-  }
+  auto LevelEditorApp::GameState_Create() -> State { return TAC_NEW CreationAppState; }
 
   void LevelEditorApp::GameState_Update( IState* state )
   {
+    Creation::Data* data{ Creation::GetData() };
     auto renderState{ ( CreationAppState* )state };
-    renderState->mWorld.DeepCopy( *Creation::gCreation.mWorld );
-    renderState->mEditorCamera = *Creation::gCreation.mEditorCamera;
+    renderState->mWorld.DeepCopy( data->mWorld );
+    renderState->mCamera = data->mCamera;
   }
 
-  void LevelEditorApp::Update( Errors& errors )
-  {
-    Creation::gCreation.Update( errors );
-  }
+  void LevelEditorApp::Update( Errors& errors ) { Creation::Update( errors ); }
 
   void LevelEditorApp::Render( App::RenderParams renderParams, Errors& errors )
   {
     // todo: interpolate between old and new state?
     CreationAppState* renderState{ ( CreationAppState* )renderParams.mNewState };
-    Creation::gCreation.Render( &renderState->mWorld, &renderState->mEditorCamera, errors );
+    Creation::Render( &renderState->mWorld, &renderState->mCamera, errors );
   }
 
-  void LevelEditorApp::Uninit( Errors& errors )
-  {
-    Creation::gCreation.Uninit( errors );
-  }
+  void LevelEditorApp::Uninit( Errors& errors ) { Creation::Uninit( errors ); }
 
 
   auto App::Create() -> App* { return TAC_NEW LevelEditorApp( App::Config{ .mName { "Level Editor" } } ); }

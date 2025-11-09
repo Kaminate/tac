@@ -12,7 +12,7 @@ namespace Tac
   // and then u can see each system ( graphics, physics, etc ) of level_editor->world->systems
   struct CreationSystemWindow
   {
-    static void Update( World*, SettingsNode );
+    static void Update();
     static bool sShowWindow;
   };
 }

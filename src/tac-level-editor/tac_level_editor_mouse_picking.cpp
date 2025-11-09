@@ -1,5 +1,6 @@
 #include "tac_level_editor_mouse_picking.h" // self-inc
 #include "tac_level_editor_light_widget.h"
+#include "tac_level_editor.h"
 
 
 #include "tac-engine-core/window/tac_app_window_api.h"
@@ -225,8 +226,10 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void CreationMousePicking::MousePickingGizmos( const Camera* camera )
+  void CreationMousePicking::MousePickingGizmos()
   {
+    const Creation::Data* data{ Creation::GetData() };
+    const Camera* camera{ &data->mCamera };
     GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
     if( SelectedEntities::empty() || !gizmoMgr->mGizmosEnabled || !mWindowHovered )
       return;
@@ -273,10 +276,11 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::MousePickingEntities( const World* world,
-                                                   const Camera* camera,
-                                                   Errors& errors )
+  void CreationMousePicking::MousePickingEntities( Errors& errors )
   {
+    Creation::Data* data{ Creation::GetData() };
+    Camera* camera{ &data->mCamera };
+    World* world{ &data->mWorld };
     const Ray ray
     {
       .mOrigin{ camera->mPos },
@@ -303,11 +307,12 @@ namespace Tac
     }
   }
 
-  void CreationMousePicking::MousePickingSelection( const Camera* camera )
+  void CreationMousePicking::MousePickingSelection()
   {
     if( !AppKeyboardApi::JustPressed( Key::MouseLeft ) || !mWindowHovered )
       return;
 
+    Camera* camera{ Creation::GetCamera() };
     const v3 worldSpaceHitPoint { camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
     GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
 
@@ -360,23 +365,24 @@ namespace Tac
       pickData.arrowAxis == i;
   }
 
-  void CreationMousePicking::Update( const World* world, const Camera* camera, Errors& errors )
+  void CreationMousePicking::Update( Errors& errors )
   {
     pickData = {};
-    TAC_CALL( MousePickingEntities( world, camera, errors ) );
-    MousePickingGizmos( camera );
-    MousePickingSelection( camera );
+    TAC_CALL( MousePickingEntities( errors ) );
+    MousePickingGizmos();
+    MousePickingSelection();
     if( pickData.pickedObject != PickedObject::None )
     {
-      const v3 worldSpaceHitPoint{ camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
-      world->mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+      Creation::Data* data{ Creation::GetData() };
+      const v3 worldSpaceHitPoint{ data->mCamera.mPos + pickData.closestDist * mWorldSpaceMouseDir };
+      data->mWorld.mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
   }
 
-  void CreationMousePicking::BeginFrame( WindowHandle mWindowHandle, Camera* camera )
+  void CreationMousePicking::BeginFrame( WindowHandle mWindowHandle )
   {
     mWindowHovered = AppWindowApi::IsHovered( mWindowHandle );
-
+    Camera* camera{ Creation::GetCamera() };
     const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
     const v2i windowPos{ AppWindowApi::GetPos( mWindowHandle ) };
     const float w{ ( float )windowSize.x };

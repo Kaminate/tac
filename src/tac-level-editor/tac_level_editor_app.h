@@ -8,8 +8,8 @@ namespace Tac
 {
   struct CreationAppState : public App::IState
   {
-    World  mWorld        {};
-    Camera mEditorCamera {};
+    World  mWorld  {};
+    Camera mCamera {};
   };
 
   struct LevelEditorApp : public App

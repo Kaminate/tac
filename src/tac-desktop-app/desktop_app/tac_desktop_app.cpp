@@ -52,7 +52,7 @@ namespace Tac
   static SettingsRoot                  sSettingsRoot;
   static const bool                    sVerbose;
   static ThreadAllocator               sAppThreadAllocator;
-  static Timestamp                     sRenderDelay( 0.0 );
+  static Timestamp                     sRenderDelay;
   static int                           sNumRenderFramesSincePrevSimFrame{};
   
   static auto ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor ) -> PlatformMouseCursor

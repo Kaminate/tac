@@ -51,7 +51,6 @@ namespace Tac
   static Debug3DDrawBuffers            sBuffers                  {};
   static String                        sStatusMessage            {};
   static Timestamp                     sStatusMessageEndTime     {};
-  static SettingsNode                  sSettingsNode             {};
 
   // TODO: find a home for this fn, maybe in tacexamples idk
 #if 0
@@ -223,8 +222,12 @@ namespace Tac
     }
   }
 
-  static void CameraUpdateSaved( SettingsNode settingsNode, Camera* camera )
+  static void CameraUpdateSaved()
   {
+    if( Creation::IsGameRunning() )
+      return;
+
+    Camera* camera{ Creation::GetCamera() };
     static AssetPathString savedPrefabPath;
     static Camera savedCamera;
 
@@ -244,21 +247,21 @@ namespace Tac
       return;
 
     savedCamera = *camera;
-    PrefabSaveCamera( settingsNode, camera );
+    PrefabSaveCamera( camera );
   }
 
   static void PlayGame( Errors& errors )
   {
-    if( sSoul )
-      return;
-
-    auto ghost { TAC_NEW Ghost };
-    TAC_CALL( ghost->Init( sSettingsNode, errors ) );
-    sSoul = ghost;
+    if( !sSoul )
+    {
+      sSoul = TAC_NEW Ghost;
+      TAC_CALL( sSoul->Init( Creation::GetSettingsNode(), errors ) );
+    }
   }
 
-  static void ImGuiCamera( Camera* camera )
+  static void ImGuiCamera()
   {
+    Camera* camera{ Creation::GetCamera() };
     if( !ImGuiCollapsingHeader( "Camera" ) )
       return;
 
@@ -297,7 +300,7 @@ namespace Tac
       camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
   }
 
-  static void ImGuiOverlay( World* , Camera* camera, Errors& errors )
+  static void ImGuiOverlay( Errors& errors )
   {
     static bool mHideUI {};
     if( mHideUI )
@@ -305,12 +308,9 @@ namespace Tac
 
     const ImGuiRect contentRect{ Tac::ImGuiGetContentRect() };
     const v2 cursorPos{ ImGuiGetCursorPos() };
-    
     const float w { 400 };
     const float h{ contentRect.mMaxi.y - cursorPos.y };
-
     ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
-
     if( ImGuiButton( "Close Window" ) )
       CreationGameWindow::sShowWindow = false;
 
@@ -324,7 +324,6 @@ namespace Tac
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
     ImGuiCheckbox( "draw gizmos", &GizmoMgr::sInstance.mGizmosEnabled );
     ImGuiCheckbox( "Draw raycast", &CreationMousePicking::sInstance.sDrawRaycast );
-
 
     if( sSoul )
     {
@@ -342,12 +341,9 @@ namespace Tac
       }
     }
 
-    ImGuiCamera( camera );
-
+    ImGuiCamera();
     if( Timestep::GetElapsedTime() < sStatusMessageEndTime )
-    {
       ImGuiText( sStatusMessage );
-    }
 
     ImGuiEndChild();
     ImGuiSameLine();
@@ -358,18 +354,15 @@ namespace Tac
     ImGuiInvisibleButton( "BUTTON", -v2( 8, 8 ) );
   }
 
-  static void CameraUpdateControls( Camera* camera )
+  static void CameraUpdateControls()
   {
-    
-
     WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
     if( !AppWindowApi::IsHovered( mWindowHandle ) )
       return;
 
     
-
+    dynmc Camera* camera{ Creation::GetCamera() };
     const Camera oldCamera { *camera };
-
     const v2 mouseDeltaPos { AppKeyboardApi::GetMousePosDelta() };
     if( AppKeyboardApi::IsPressed( Key::MouseRight ) &&
         mouseDeltaPos != v2( 0, 0 ) )
@@ -412,7 +405,6 @@ namespace Tac
     if( mouseDeltaScroll )
     {
       float unitsPerTick { 1.0f };
-
       if( !SelectedEntities::empty() )
       {
         const v3 origin { SelectedEntities::ComputeAveragePosition() };
@@ -427,9 +419,8 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void CreationGameWindow::Init( SettingsNode settingsNode, Errors& errors )
+  void CreationGameWindow::Init(  Errors& errors )
   {
-    sSettingsNode = settingsNode;
     TAC_CALL( PlayGame( errors ) );
   }
 
@@ -474,7 +465,7 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
-  void CreationGameWindow::Update( World* world, Camera* camera, Errors& errors )
+  void CreationGameWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
@@ -495,31 +486,31 @@ namespace Tac
       TAC_CALL( sSoul->Update( errors ) );
     }
 
-    CreationMousePicking::sInstance.BeginFrame( windowHandle, camera );
-    CameraUpdateSaved( sSettingsNode, Creation::gCreation.mEditorCamera );
-    CameraUpdateControls( camera );
-    GizmoMgr::sInstance.ComputeArrowLen( camera );
-    TAC_CALL(CreationMousePicking::sInstance.Update( world, camera, errors ) );
+    CreationMousePicking::sInstance.BeginFrame( windowHandle );
+    CameraUpdateSaved();
+    CameraUpdateControls();
+    GizmoMgr::sInstance.ComputeArrowLen();
+    TAC_CALL(CreationMousePicking::sInstance.Update(  errors ) );
     const Ray ray
     {
-      .mOrigin    { camera->mPos },
+      .mOrigin    { Creation::GetCamera()->mPos },
       .mDirection { CreationMousePicking::sInstance.GetWorldspaceMouseDir() },
     };
     TAC_CALL( GizmoMgr::sInstance.Update( ray, errors ) );
 
     if( sDrawGrid )
-      world->mDebug3DDrawData->DebugDraw3DGrid();
+      Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DGrid();
 
     if( GizmoMgr::sInstance.mGizmosEnabled && GizmoMgr::sInstance.mSelectedGizmo )
-      world->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
-                                                  camera->mForwards,
-                                                  GizmoMgr::sInstance.mArrowLen );
+      Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
+                                                                 Creation::GetCamera()->mForwards,
+                                                                 GizmoMgr::sInstance.mArrowLen );
 
     const v2 origCursorPos{ ImGuiGetCursorPos() };
 
     ImGuiSetCursorPos( origCursorPos );
 
-    TAC_CALL( ImGuiOverlay( world, camera, errors ) );
+    TAC_CALL( ImGuiOverlay(  errors ) );
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView msg,

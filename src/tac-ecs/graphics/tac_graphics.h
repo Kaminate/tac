@@ -15,29 +15,27 @@ namespace Tac
 
   struct Graphics : public System
   {
-    virtual Model*         CreateModelComponent() = 0;
-    virtual void           DestroyModelComponent( Model* ) = 0;
-    virtual void           VisitModels( ModelVisitor* ) const = 0;
+    virtual auto CreateModelComponent() -> Model* = 0 ;
+    virtual void DestroyModelComponent( Model* ) = 0;
+    virtual void VisitModels( ModelVisitor* ) const = 0;
 
-    virtual Material*      CreateMaterialComponent() = 0;
-    virtual void           DestroyMaterialComponent( Material* ) = 0;
+    virtual auto CreateMaterialComponent()  -> Material* = 0;
+    virtual void DestroyMaterialComponent( Material* ) = 0;
+    virtual void VisitMaterials( MaterialVisitor* ) const = 0;
 
-    // any reason this should exist?
-    virtual void           VisitMaterials( MaterialVisitor* ) const = 0;
+    virtual auto CreateSkyboxComponent()  -> Skybox* = 0;
+    virtual void DestroySkyboxComponent( Skybox* ) = 0;
+    virtual void VisitSkyboxes( SkyboxVisitor* ) const = 0;
 
-    virtual Skybox*        CreateSkyboxComponent() = 0;
-    virtual void           DestroySkyboxComponent( Skybox* ) = 0;
-    virtual void           VisitSkyboxes( SkyboxVisitor* ) const = 0;
+    virtual auto CreateLightComponent()  -> Light* = 0;
+    virtual void DestroyLightComponent( Light* ) = 0;
+    virtual void VisitLights( LightVisitor* ) const = 0;
 
-    virtual Light*         CreateLightComponent() = 0;
-    virtual void           DestroyLightComponent( Light* ) = 0;
-    virtual void           VisitLights( LightVisitor* ) const = 0;
+    void DebugImgui() override;
 
-    void                   DebugImgui() override;
-
-    static void            SpaceInitGraphics();
-    static dynmc Graphics* From( dynmc World* );
-    static const Graphics* From( const World* );
+    static void SpaceInitGraphics();
+    static auto From( dynmc World* ) -> dynmc Graphics*;
+    static auto From( const World* ) -> const Graphics*;
   };
 
   void              GraphicsDebugImgui( System* );

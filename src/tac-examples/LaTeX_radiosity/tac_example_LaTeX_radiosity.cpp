@@ -338,7 +338,6 @@ namespace Tac
     const float fontSize_windowspace{ px_per_world_unit * fontSize_worldspace };
     const float width{}; // unlimited
     const float lineSpace{}; // ???
-    //const microtex::color _color{ microtex::getColor( "white" ) };
 
     const microtex::color _color{ microtex::argb( def.mRuntimeData.mAlphaCur, 1.f, 1.f, 1.f ) };
 
@@ -458,7 +457,6 @@ namespace Tac
 
     for( TextBlockDef& def : sPresentationDef.mTextBlockDefs )
     {
-
       if( def.mLaTeX.ends_with( ".png" ) )
       {
         TAC_ASSERT( def.mLaTeX.starts_with( GetFileAssetPath( "" ) ) );
@@ -501,7 +499,7 @@ namespace Tac
 
     if( sDrawOrigin )
     {
-      if( auto drawData = ImGuiGetDrawData() )
+      if( auto drawData{ ImGuiGetDrawData() } )
       {
         DrawLineWorldspace( v2( 0, 0 ), v2( 1, 0 ), v4( 1, 0, 0, 1 ) );
         DrawLineWorldspace( v2( 0, 0 ), v2( 0, 1 ), v4( 0, 1, 0, 1 ) );

@@ -11,11 +11,10 @@ namespace Tac
 {
   struct Model : public Component
   {
-    static void                          RegisterComponent();
-    static dynmc Model*                  GetModel( dynmc Entity* );
-    static const Model*                  GetModel( const Entity* );
-
-    const ComponentInfo*                 GetEntry() const override;
+    static void RegisterComponent();
+    static auto GetModel( dynmc Entity* ) -> dynmc Model*;
+    static auto GetModel( const Entity* ) -> const Model*;
+    auto GetEntry() const -> const ComponentInfo* override ;
 
     //static const ComponentInfo* GetEntryStatic();
     //TextureUUID                        mTextureUUID = NullTextureUUID;
@@ -23,9 +22,9 @@ namespace Tac
 
     //                                   todo: rename mColor_sRGB
     //v3                                   mColorRGB   { 1, 1, 1 };
-    AssetPathString                      mModelPath  {};
-    int                                  mModelIndex { -1 };
-    bool                                 mIsStatic   {};
+    AssetPathString mModelPath  {};
+    int             mModelIndex { -1 };
+    bool            mIsStatic   {};
   };
 
 

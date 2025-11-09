@@ -1,21 +1,19 @@
 #include "tac_server.h" // self-inc
 
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-//#include "tac-engine-core/settings/tac_settings.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/containers/tac_set.h"
 #include "tac-ecs/component/tac_component.h"
-#include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/component/tac_component_registry.h"
-#include "tac-ecs/player/tac_player.h"
-#include "tac-ecs/script/tac_script.h"
-#include "tac-ecs/scripts/tac_script_game_client.h"
-#include "tac-ecs/net/tac_space_net.h"
+#include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/net/tac_entity_diff.h"
 #include "tac-ecs/net/tac_player_diff.h"
 #include "tac-ecs/net/tac_space_net.h"
+#include "tac-ecs/player/tac_player.h"
+#include "tac-ecs/script/tac_script.h"
+#include "tac-ecs/scripts/tac_script_game_client.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-std-lib/containers/tac_set.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
@@ -70,11 +68,8 @@ namespace Tac
     auto it = [ & ]()
       {
         for( auto it { mOtherPlayers.begin() }; it != mOtherPlayers.end(); ++it )
-        {
-          OtherPlayer* otherPlayer { *it };
-          if( otherPlayer->mConnectionUUID == connectionID )
+          if( OtherPlayer* otherPlayer { *it };otherPlayer->mConnectionUUID == connectionID )
             return it;
-        }
         return mOtherPlayers.end();
       }( );
 
@@ -91,15 +86,14 @@ namespace Tac
                               ConnectionUUID connectionID,
                               Errors& errors )
   {
-    OtherPlayer* otherPlayer { FindOtherPlayer( connectionID ) };
-    TAC_ASSERT( otherPlayer );
-
-    Player* player { mWorld->FindPlayer( otherPlayer->mPlayerUUID ) };
-    if( !player )
-      return;
-
-    TAC_CALL( player->mInputDirection = reader->Read<v2>( errors ) );
-    TAC_CALL( otherPlayer->mTimeStamp = reader->Read<Timestamp>( errors ) );
+    if( OtherPlayer * otherPlayer{ TAC_VERIFY( FindOtherPlayer( connectionID ) ) } )
+    {
+      if( Player * player{ mWorld->FindPlayer( otherPlayer->mPlayerUUID ) } )
+      {
+        TAC_CALL( player->mInputDirection = reader->Read<v2>( errors ) );
+        TAC_CALL( otherPlayer->mTimeStamp = reader->Read<Timestamp>( errors ) );
+      }
+    }
   }
 
   // OtherPlayer is the player who is the receipient of this snapshot
@@ -113,13 +107,11 @@ namespace Tac
 
     writer->Write( otherPlayer->mTimeStamp );
     writer->Write( ( UUID )otherPlayer->mPlayerUUID );
-
     const WorldsToDiff worldDiff
     {
       .mOldWorld{ oldWorld },
       .mNewWorld{ mWorld },
     };
-
     PlayerDiffs::Write( worldDiff, writer );
     EntityDiffAPI::Write( worldDiff, writer );
   }

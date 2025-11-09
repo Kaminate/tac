@@ -1,4 +1,5 @@
 #include "tac_level_editor_gizmo_mgr.h" // self-inc
+#include "tac_level_editor.h" // self-inc
 
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
@@ -15,7 +16,7 @@ namespace Tac
     return mGizmosEnabled && mSelectedGizmo && mTranslationGizmoAxis == i;
   }
 
-  void GizmoMgr::ComputeArrowLen( const Camera* camera )
+  void GizmoMgr::ComputeArrowLen()
   {
     if( SelectedEntities::empty() )
     {
@@ -23,15 +24,11 @@ namespace Tac
       return;
     }
 
-    const m4 view{ m4::View( camera->mPos,
-                             camera->mForwards,
-                             camera->mRight,
-                             camera->mUp ) };
+    const Camera* camera{ Creation::GetCamera() };
+    const m4 view{ m4::View( camera->mPos, camera->mForwards, camera->mRight, camera->mUp ) };
     const v3 pos{ SelectedEntities::ComputeAveragePosition() };
     const v4 posVS4{ view * v4( pos, 1 ) };
-    const float clip_height{ Abs( Tan( camera->mFovyrad / 2.0f )
-                                   * posVS4.z
-                                   * 2.0f ) };
+    const float clip_height{ Abs( Tan( camera->mFovyrad / 2.0f ) * posVS4.z * 2.0f ) };
     const float arrowLen{ clip_height * 0.2f };
     mArrowLen = arrowLen;
   }

@@ -14,9 +14,9 @@ namespace Tac
 {
   struct CreationMousePicking
   {
-    void                          BeginFrame( WindowHandle, Camera* );
+    void                          BeginFrame( WindowHandle );
     void                          Init( Errors& );
-    void                          Update( const World*, const Camera*, Errors& );
+    void                          Update( Errors& );
     bool                          IsTranslationWidgetPicked( int );
     v3                            GetWorldspaceMouseDir() const;
 
@@ -25,9 +25,9 @@ namespace Tac
     static CreationMousePicking   sInstance;
   private:
 
-    void                          MousePickingEntities( const World*, const Camera*, Errors& );
-    void                          MousePickingGizmos( const Camera*);
-    void                          MousePickingSelection( const Camera*);
+    void                          MousePickingEntities(  Errors& );
+    void                          MousePickingGizmos();
+    void                          MousePickingSelection();
 
     v3                            mViewSpaceUnitMouseDir    {};
     v3                            mWorldSpaceMouseDir       {};

@@ -5,7 +5,6 @@
 
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/containers/tac_vector.h" // Vector
-//#include "tac-rhi/render3/tac_render_api.h" // Render::
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h" // DefaultCBufferPerObject
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
@@ -14,6 +13,7 @@
 
 namespace Tac
 {
+  struct ImGuiRect;
   using UI2DIndex = u16;
 
   struct UI2DVertex
@@ -21,9 +21,6 @@ namespace Tac
     v2 mPosition    {};
     v2 mGLTexCoord  {};
   };
-
-  void UI2DCommonDataInit( Errors& );
-  void UI2DCommonDataUninit();
 
   struct UI2DDrawCall
   {
@@ -38,8 +35,6 @@ namespace Tac
     StackFrame                      mStackFrame      {};
     Render::DebugGroup::NodeIndex   mDebugGroupIndex { Render::DebugGroup::NullNodeIndex };
   };
-
-  struct ImGuiRect;
 
   struct UI2DDrawGpuInterface
   {
@@ -85,20 +80,14 @@ namespace Tac
                                 UI2DDrawGpuInterface*,
                                 Span< UI2DDrawData >,
                                 Errors& );
-
-#if 0
-    void                   DrawToTexture( Render::ViewHandle, int w, int h, Errors& );
-#endif
-
-    void                   AddText( const Text&, const ImGuiRect* = nullptr );
-    void                   AddBox( const Box&, const ImGuiRect* = nullptr );
-    void                   AddLine( const Line& );
-
-    void                   AddDrawCall( const UI2DDrawCall&, const StackFrame& );
-    void                   PushDebugGroup( const StringView& );
-    void                   PopDebugGroup();
-    bool                   empty() const;
-    void                   clear();
+    void AddText( const Text&, const ImGuiRect* = nullptr );
+    void AddBox( const Box&, const ImGuiRect* = nullptr );
+    void AddLine( const Line& );
+    void AddDrawCall( const UI2DDrawCall&, const StackFrame& );
+    void PushDebugGroup( const StringView& );
+    void PopDebugGroup();
+    bool empty() const;
+    void clear();
 
     Vector< UI2DVertex >      mVtxs;
     Vector< UI2DIndex >       mIdxs;
@@ -106,13 +95,13 @@ namespace Tac
     Render::DebugGroup::Stack mDebugGroupStack;
   };
 
-  Render::TextureHandle Get1x1White();
-
-  v2                    CalculateTextSize( const StringView&, float fontSize );
-  v2                    CalculateTextSize( const CodepointView&, float fontSize );
-  v2                    CalculateTextSize( const Codepoint*, int, float fontSize );
-
-  m4                    OrthographicUIMatrix( const float w, const float h );
+  auto Get1x1White() -> Render::TextureHandle;
+  auto CalculateTextSize( const StringView&, float fontSize ) -> v2;
+  auto CalculateTextSize( const CodepointView&, float fontSize ) -> v2;
+  auto CalculateTextSize( const Codepoint*, int, float fontSize ) -> v2;
+  auto OrthographicUIMatrix( const float w, const float h ) -> m4;
+  void UI2DCommonDataInit( Errors& );
+  void UI2DCommonDataUninit();
 
 } // namespace Tac
 

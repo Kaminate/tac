@@ -13,7 +13,7 @@ namespace Tac
   {
     void                Update( Ray, Errors& );
     bool                IsTranslationWidgetActive( int ) const;
-    void                ComputeArrowLen( const Camera* );
+    void                ComputeArrowLen();
 
     bool                mSelectedGizmo           {};
     v3                  mGizmoOrigin             {};

@@ -1,27 +1,24 @@
 #include "tac_ui_2d.h" // self-inc
 
-#include "tac-std-lib/containers/tac_array.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-//#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-//#include "tac-std-lib/os/tac_os.h" // deleteme
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-std-lib/math/tac_math_unit_test_helper.h"
+#include "tac-engine-core/profile/tac_profile.h"
+#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
+#include "tac-std-lib/containers/tac_array.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/math/tac_math_unit_test_helper.h"
 #include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/memory/tac_memory.h"
 
 namespace Tac
 {
-
   static struct UI2DCommonData
   {
     void Init( Errors& );
@@ -38,37 +35,6 @@ namespace Tac
     Render::SamplerStateHandle    mSamplerState;
 #endif
   } gUI2DCommonData;
-
-
-  // Converts from UI space to NDC space
-  m4 OrthographicUIMatrix( const float w, const float h )
-  {
-    // Derivation:
-    //   L < x < R
-    //   0 < x - L < R - L
-    //   0 < ( x - L ) / ( R - L ) < 1
-    //   0 < 2 ( x - L ) / ( R - L ) < 2
-    //   -1 < ( 2 ( x - L ) / ( R - L ) ) - 1 < -1
-    //   -1 < 2x/(R-L) + (R+L)/(L-R) < -1
-    //
-    // this function has the same output as OrthographicUIMatrix2(w,h)
-
-    const float L {};
-    const float R { w };
-    const float T {};
-    const float B { h };
-    const float sX { 2 / ( R - L ) };
-    const float sY { 2 / ( T - B ) };
-    const float tX { ( R + L ) / ( L - R ) };
-    const float tY { ( T + B ) / ( B - T ) };
-    return
-    {
-      sX, 0, 0, tX,
-      0, sY, 0, tY,
-      0, 0, 1, 0,
-      0, 0, 0, 1
-    };
-  }
 
 #if TAC_IS_DEBUG_MODE()
 
@@ -95,7 +61,7 @@ namespace Tac
     return projection;
   }
 
-  static void OrthographicUIMatrixUnitTest( const m4 m, const v2 in, const v2 out )
+  static void UnitTest( const m4 m, const v2 in, const v2 out )
   {
     const v4 in4( in, 0, 1 );
     const v4 out4( out, 0, 1 );
@@ -104,23 +70,22 @@ namespace Tac
     TAC_ASSERT( dist < 0.01f );
   }
 
-  static void OrthographicUIMatrixUnitTest( m4( *mtxFn )( float, float ) )
+  static void TestOrthoFn( m4( *mtxFn )( float, float ) )
   {
     const float w { 400 };
     const float h { 300 };
     const m4 m { mtxFn( w, h ) };
-    OrthographicUIMatrixUnitTest( m, { 0, 0 }, { -1, 1 } );
-    OrthographicUIMatrixUnitTest( m, { w, 0 }, { 1, 1 } );
-    OrthographicUIMatrixUnitTest( m, { 0, h }, { -1, -1 } );
-    OrthographicUIMatrixUnitTest( m, { w, h }, { 1, -1 } );
-    OrthographicUIMatrixUnitTest( m, { w / 2, h / 2 }, { 0, 0 } );
+    UnitTest( m, { 0, 0 }, { -1, 1 } );
+    UnitTest( m, { w, 0 }, { 1, 1 } );
+    UnitTest( m, { 0, h }, { -1, -1 } );
+    UnitTest( m, { w, h }, { 1, -1 } );
+    UnitTest( m, { w / 2, h / 2 }, { 0, 0 } );
   }
 
-
-  static void OrthographicUIMatrixUnitTest()
+  static void UnitTest()
   {
-    OrthographicUIMatrixUnitTest( OrthographicUIMatrix );
-    OrthographicUIMatrixUnitTest( OrthographicUIMatrix2 );
+    TestOrthoFn( OrthographicUIMatrix );
+    TestOrthoFn( OrthographicUIMatrix2 );
     const float w { 400 };
     const float h { 300 };
     const m4 m0 { OrthographicUIMatrix( w, h ) };
@@ -141,68 +106,6 @@ namespace Tac
   }
 #endif
 
-#if 0
-  static void UpdateDrawInterface( UI2DDrawData* drawData,
-                                   UI2DDrawGpuInterface* gDrawInterface,
-                                   Errors& errors )
-  {
-    Vector< UI2DVertex >& mDefaultVertex2Ds = drawData->mVtxs;
-    Vector< UI2DIndex >& mDefaultIndex2Ds = drawData->mIdxs;
-
-    int& mVertexCapacity { gDrawInterface->mVertexCapacity };
-    int& mIndexCapacity { gDrawInterface->mIndexCapacity };
-    Render::BufferHandle& mBufferHandle { gDrawInterface->mBufferHandle };
-    Render::BufferHandle& mBufferHandle { gDrawInterface->mBufferHandle };
-
-
-    const int vertexCount { mDefaultVertex2Ds.size() };
-    const int indexCount { mDefaultIndex2Ds.size() };
-    if( !mBufferHandle.IsValid() || mVertexCapacity < vertexCount )
-    {
-      if( mBufferHandle.IsValid() )
-        Render::DestroyVertexBuffer( mBufferHandle, TAC_STACK_FRAME );
-      mBufferHandle = Render::CreateBuffer( mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
-                                                        nullptr,
-                                                        sizeof( UI2DVertex ),
-                                                        Render::Access::Dynamic,
-                                                        TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( mBufferHandle, "ui2d-vtx-buf" );
-      mVertexCapacity = vertexCount;
-    }
-
-    if( !mBufferHandle.IsValid() || mIndexCapacity < indexCount )
-    {
-      if( mBufferHandle.IsValid() )
-        Render::DestroyIndexBuffer( mBufferHandle, TAC_STACK_FRAME );
-      Render::Format format{
-                             .mElementCount        { 1 },
-                             .mPerElementByteCount { sizeof( UI2DIndex ) },
-                             .mPerElementDataType  { Render::GraphicsType::uint },
-      };
-      mBufferHandle = Render::CreateIndexBuffer( indexCount * sizeof( UI2DIndex ),
-                                                      nullptr,
-                                                      Render::Access::Dynamic,
-                                                      format,
-                                                      TAC_STACK_FRAME );
-      Render::SetRenderObjectDebugName( mBufferHandle, "ui2d-idx-buf" );
-      mIndexCapacity = indexCount;
-    }
-
-
-    Render::UpdateVertexBuffer( mBufferHandle,
-                                mDefaultVertex2Ds.data(),
-                                mDefaultVertex2Ds.size() * sizeof( UI2DVertex ),
-                                TAC_STACK_FRAME );
-
-    Render::UpdateIndexBuffer( mBufferHandle,
-                               mDefaultIndex2Ds.data(),
-                               mDefaultIndex2Ds.size() * sizeof( UI2DIndex ),
-                               TAC_STACK_FRAME );
-  }
-#endif
-
-
-  void UI2DCommonDataInit( Errors& errors ){ gUI2DCommonData.Init( errors ); }
   void UI2DCommonData::Init( Errors& errors )
   {
 #if TAC_TEMPORARILY_DISABLED()
@@ -320,7 +223,6 @@ namespace Tac
 #endif
   }
 
-  void UI2DCommonDataUninit() { gUI2DCommonData.Uninit(); }
   void UI2DCommonData::Uninit()
   {
 #if TAC_TEMPORARILY_DISABLED()
@@ -780,96 +682,130 @@ namespace Tac
   }
 
 
+} // namespace Tac
 
-  v2 CalculateTextSize( const StringView& text, const float fontSize )
-  {
-    const CodepointView codepoints{ UTF8ToCodepointView( text ) };
-    return CalculateTextSize( codepoints, fontSize );
-  }
+auto Tac::Get1x1White() -> Render::TextureHandle { return gUI2DCommonData.m1x1White; }
 
-  v2 CalculateTextSize( const CodepointView& codepoints,
-                        const float fontSize )
-  {
-    return CalculateTextSize( codepoints.data(),
-                              codepoints.size(),
-                              fontSize );
-  }
+  // Converts from UI space to NDC space
+auto Tac::OrthographicUIMatrix( const float w, const float h ) -> m4
+{
+  // Derivation:
+  //   L < x < R
+  //   0 < x - L < R - L
+  //   0 < ( x - L ) / ( R - L ) < 1
+  //   0 < 2 ( x - L ) / ( R - L ) < 2
+  //   -1 < ( 2 ( x - L ) / ( R - L ) ) - 1 < -1
+  //   -1 < 2x/(R-L) + (R+L)/(L-R) < -1
+  //
+  // this function has the same output as OrthographicUIMatrix2(w,h)
 
-  // Uhh yeah so this function doesnt account for SDF padding (its old)
-  // (still useful as a guideline?)
-  v2 CalculateTextSize( const Codepoint* codepoints,
-                        const int codepointCount,
-                        const float fontSize )
+  const float L {};
+  const float R { w };
+  const float T {};
+  const float B { h };
+  const float sX { 2 / ( R - L ) };
+  const float sY { 2 / ( T - B ) };
+  const float tX { ( R + L ) / ( L - R ) };
+  const float tY { ( T + B ) / ( B - T ) };
+  return
   {
+    sX, 0, 0, tX,
+    0, sY, 0, tY,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+  };
+}
+
+
+auto Tac::CalculateTextSize( const StringView& text, const float fontSize ) -> v2
+{
+  const CodepointView codepoints{ UTF8ToCodepointView( text ) };
+  return CalculateTextSize( codepoints, fontSize );
+}
+
+auto Tac::CalculateTextSize( const CodepointView& codepoints, const float fontSize ) -> v2
+{
+  return CalculateTextSize( codepoints.data(),
+                            codepoints.size(),
+                            fontSize );
+}
+
+// Uhh yeah so this function doesnt account for SDF padding (its old)
+// (still useful as a guideline?)
+auto Tac::CalculateTextSize( const Codepoint* codepoints,
+                             const int codepointCount,
+                             const float fontSize ) -> v2
+{
 #if TAC_FONT_ENABLED()
 
-    //float unscaledLineWidthMax = 0; // max width of all lines
-    //float unscaledLineWidthCur = 0;
-    float xUnscaled {};
-    float xUnscaledMax {};
+  //float unscaledLineWidthMax = 0; // max width of all lines
+  //float unscaledLineWidthCur = 0;
+  float xUnscaled {};
+  float xUnscaledMax {};
 
-    Language defaultLanguage { Language::English };
-    auto fontFile { FontApi::GetLanguageFontDims( defaultLanguage ) };
+  Language defaultLanguage { Language::English };
+  auto fontFile { FontApi::GetLanguageFontDims( defaultLanguage ) };
 
-    int lineCount { 1 };
+  int lineCount { 1 };
 
-    //auto AccountForLine = [ &unscaledLineWidthMax, &unscaledLineWidth, &xUnscaled ]()
-    //{
-    //  unscaledLineWidthMax = Max( unscaledLineWidthMax, unscaledLineWidth );
-    //  // if the string ends with a space ( ' ' )
-    //  // ( bitmap width is 0, advance width is nonzero )
-    //  unscaledLineWidthMax = Max( unscaledLineWidthMax, xUnscaled );
-    //};
+  //auto AccountForLine = [ &unscaledLineWidthMax, &unscaledLineWidth, &xUnscaled ]()
+  //{
+  //  unscaledLineWidthMax = Max( unscaledLineWidthMax, unscaledLineWidth );
+  //  // if the string ends with a space ( ' ' )
+  //  // ( bitmap width is 0, advance width is nonzero )
+  //  unscaledLineWidthMax = Max( unscaledLineWidthMax, xUnscaled );
+  //};
 
-    for( int iCodepoint{}; iCodepoint < codepointCount; ++iCodepoint )
+  for( int iCodepoint{}; iCodepoint < codepointCount; ++iCodepoint )
+  {
+    Codepoint codepoint { codepoints[ iCodepoint ] };
+    if( !codepoint )
+      continue;
+
+    // First check for newlines
+    if( IsAsciiCharacter( codepoint ) )
     {
-      Codepoint codepoint { codepoints[ iCodepoint ] };
-      if( !codepoint )
-        continue;
+      if( codepoint == '\r' )
+        continue; // ignore '\r'
 
-      // First check for newlines
-      if( IsAsciiCharacter( codepoint ) )
+      if( codepoint == '\n' )
       {
-        if( codepoint == '\r' )
-          continue; // ignore '\r'
-
-        if( codepoint == '\n' )
-        {
-          //AccountForLine();
-          //unscaledLineWidthCur = 0;
-          xUnscaled = 0;
-          lineCount++;
-        }
+        //AccountForLine();
+        //unscaledLineWidthCur = 0;
+        xUnscaled = 0;
+        lineCount++;
       }
-
-      const FontAtlasCell* fontAtlasCell{
-        FontApi::GetFontAtlasCell( defaultLanguage, codepoint ) };
-
-      if( !fontAtlasCell )
-        continue;
-
-      xUnscaled += fontAtlasCell->mGlyphMetrics.mUnscaledAdvanceWidth;
-      xUnscaledMax = Max( xUnscaledMax, xUnscaled );
-      //unscaledLineWidthCur = Max( unscaledLineWidthCur, xUnscaled );
-      //unscaledLineWidthMax = Max( unscaledLineWidthMax, unscaledLineWidthCur );
     }
 
-    //AccountForLine();
+    const FontAtlasCell* fontAtlasCell{
+      FontApi::GetFontAtlasCell( defaultLanguage, codepoint ) };
 
-    const float fontSizeScale { fontFile->mScale * ( fontSize / TextPxHeight ) };
+    if( !fontAtlasCell )
+      continue;
 
-    const int gapCount { lineCount - 1 };
-    const float unscaledLineHeight { fontFile->mUnscaledAscent - fontFile->mUnscaledDescent };
-
-    const float yUnscaledMax { lineCount * unscaledLineHeight + gapCount * fontFile->mUnscaledLinegap };
-
-    const v2 unscaledTextSize( xUnscaledMax, yUnscaledMax );
-    const v2 scaledTextSize { unscaledTextSize * fontSizeScale };
-    return scaledTextSize;
-#else
-    return {};
-#endif
+    xUnscaled += fontAtlasCell->mGlyphMetrics.mUnscaledAdvanceWidth;
+    xUnscaledMax = Max( xUnscaledMax, xUnscaled );
+    //unscaledLineWidthCur = Max( unscaledLineWidthCur, xUnscaled );
+    //unscaledLineWidthMax = Max( unscaledLineWidthMax, unscaledLineWidthCur );
   }
 
-  Render::TextureHandle Get1x1White() { return gUI2DCommonData.m1x1White; }
-} // namespace Tac
+  //AccountForLine();
+
+  const float fontSizeScale { fontFile->mScale * ( fontSize / TextPxHeight ) };
+
+  const int gapCount { lineCount - 1 };
+  const float unscaledLineHeight { fontFile->mUnscaledAscent - fontFile->mUnscaledDescent };
+
+  const float yUnscaledMax { lineCount * unscaledLineHeight + gapCount * fontFile->mUnscaledLinegap };
+
+  const v2 unscaledTextSize( xUnscaledMax, yUnscaledMax );
+  const v2 scaledTextSize { unscaledTextSize * fontSizeScale };
+  return scaledTextSize;
+#else
+  return {};
+#endif
+}
+
+
+void Tac::UI2DCommonDataInit( Errors& errors ){ gUI2DCommonData.Init( errors ); }
+void Tac::UI2DCommonDataUninit() { gUI2DCommonData.Uninit(); }

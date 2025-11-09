@@ -16,8 +16,6 @@
 
 namespace Tac
 {
-  //static int sRegistryIndex;
-
   static ComponentInfo* sEntry;
 
   TAC_META_REGISTER_STRUCT_BEGIN( Model );
@@ -26,13 +24,13 @@ namespace Tac
   TAC_META_REGISTER_STRUCT_MEMBER( mIsStatic );
   TAC_META_REGISTER_STRUCT_END( Model );
 
-	static Component* CreateModelComponent( World* world )
+	static auto CreateModelComponent( World* world ) -> Component*
 	{
     Graphics* graphics{ Graphics::From( world ) };
 		return graphics->CreateModelComponent();
 	}
 
-	static void       DestroyModelComponent( World* world, Component* component )
+	static void DestroyModelComponent( World* world, Component* component )
 	{
     Graphics* graphics{ Graphics::From( world ) };
     graphics->DestroyModelComponent( ( Model* )component );
@@ -96,22 +94,13 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-	const Model*          Model::GetModel( const Entity* entity )
-	{
-		return ( Model* )entity->GetComponent( sEntry );
-	}
+	auto Model::GetModel( const Entity* entity ) -> const Model* { return ( Model* )entity->GetComponent( sEntry ); }
 
-	dynmc Model*          Model::GetModel( dynmc Entity* entity )
-	{
-		return ( Model* )entity->GetComponent( sEntry );
-	}
+	auto Model::GetModel( dynmc Entity* entity ) -> dynmc Model* { return ( Model* )entity->GetComponent( sEntry ); }
 
-	const ComponentInfo*  Model::GetEntry() const
-	{
-    return sEntry;
-	}
+  auto Model::GetEntry() const -> const ComponentInfo* { return sEntry; }
 
-	void                  Model::RegisterComponent()
+	void Model::RegisterComponent()
 	{
     //const NetVar netColor
     //{

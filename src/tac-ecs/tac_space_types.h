@@ -5,9 +5,7 @@
 
 namespace Tac
 {
-
   using UUID = u32;
-
   const UUID NullUUID {};
 
   enum class ConnectionUUID : UUID;
@@ -25,19 +23,14 @@ namespace Tac
   template < typename T >
   struct UUIDCounter
   {
-    T AllocateNewUUID() { return ( T )( ++mUUIDCounter ); }
-    UUID mUUIDCounter { NullUUID };
+    auto AllocateNewUUID() { return ( T )( ++mUUIDCounter ); }
+    UUID mUUIDCounter      { NullUUID };
   };
 
-  typedef UUIDCounter< EntityUUID > EntityUUIDCounter;
-  typedef UUIDCounter< PlayerUUID > PlayerUUIDCounter;
-
-
+  using EntityUUIDCounter = UUIDCounter< EntityUUID >;
+  using PlayerUUIDCounter = UUIDCounter< PlayerUUID >;
 
   TAC_META_DECL( PlayerUUID );
   TAC_META_DECL( EntityUUID );
-
-
-
-}
+} // namespace Tac
 

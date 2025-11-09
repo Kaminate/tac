@@ -8,7 +8,7 @@ namespace Tac
 {
   struct CreationAssetView
   {
-    static void Update( World*, Camera*, Errors& );
+    static void Update( Errors& );
     static void Render( Errors& );
     static bool sShowWindow;
   };

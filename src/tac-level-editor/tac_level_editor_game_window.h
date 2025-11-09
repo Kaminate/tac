@@ -10,8 +10,8 @@ namespace Tac
 {
   struct CreationGameWindow
   {
-    static void Init( SettingsNode, Errors& );
-    static void Update( World*, Camera*, Errors& );
+    static void Init( Errors& );
+    static void Update( Errors& );
     static void Render( World*, Camera*, Errors& );
     static void SetStatusMessage( StringView, TimestampDifference );
     static bool sShowWindow;

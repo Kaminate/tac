@@ -6,28 +6,32 @@
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-ecs/tac_space_types.h"
+#include "tac-ecs/world/tac_world.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-level-editor/tac_entity_selection.h"
 
 namespace Tac
 {
-  struct CreationAppState;
-
   struct Creation
   {
-    void Init( SettingsNode, Errors& );
-    void Uninit( Errors& );
-    void Update( Errors& );
-    void Render( World*, Camera*, Errors& );
-    auto GetEditorCameraVisibleRelativeSpace( const Camera* ) -> RelativeSpace;
-    auto CreateEntity(World*,Camera*) -> Entity*;
-    auto InstantiateAsCopy( World*,Camera*, Entity*, const RelativeSpace& ) -> Entity*;
-
-    EntityUUIDCounter    mEntityUUIDCounter       {};
-    SettingsNode         mSettingsNode            {};
-    World*               mWorld                   {};
-    Camera*              mEditorCamera            {};
-    static Creation      gCreation;
+    struct Data
+    {
+      World               mWorld               {};
+      Camera              mCamera              {};
+      EntityUUIDCounter   mEntityUUIDCounter   {};
+    };
+    static void Init( SettingsNode, Errors& );
+    static void Uninit( Errors& );
+    static void Update( Errors& );
+    static void Render( World*, Camera*, Errors& );
+    static auto GetEditorCameraVisibleRelativeSpace( const Camera* ) -> RelativeSpace;
+    static auto CreateEntity() -> Entity*;
+    static auto InstantiateAsCopy( Entity* ) -> Entity*;
+    static auto GetSettingsNode() -> SettingsNode;
+    static auto GetData() -> Data*;
+    static auto GetCamera() -> Camera*;
+    static auto GetWorld() -> World*;
+    static bool IsGameRunning();
   };
 
 

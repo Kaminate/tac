@@ -12,7 +12,7 @@ namespace Tac
 
   struct CreationPropertyWindow
   {
-    static void                    Update( World*, Camera*, SettingsNode, Errors& );
-    static bool                    sShowWindow;
+    static void Update( Errors& );
+    static bool sShowWindow;
   };
 }

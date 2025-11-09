@@ -21,29 +21,30 @@ namespace Tac
     World();
     ~World();
 
-    dynmc System* GetSystem( const SystemInfo* ) dynmc;
-    const System* GetSystem( const SystemInfo* ) const;
-    void          DeepCopy( const World& );
-    void          Step( float seconds );
-    void          DebugImgui();
-    void          ApplyInput( Player*, float seconds );
-    void          ComputeTransformsRecursively();
-    void          ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, Entity* );
+    void Init();
+    auto GetSystem( const SystemInfo* ) dynmc -> dynmc System*;
+    auto GetSystem( const SystemInfo* ) const -> const System*;
+    void DeepCopy( const World& );
+    void Step( float seconds );
+    void DebugImgui();
+    void ApplyInput( Player*, float seconds );
+    void ComputeTransformsRecursively();
+    void ComputeTransformsRecursively( const m4& parentWorldTransformNoScale, Entity* );
 
-    //            Entity api
-    Entity*       SpawnEntity( EntityUUID );
-    void          KillEntity( EntityUUID );
-    void          KillEntity( Entity* );
-    void          KillEntity( EntityIterator );
-    Entity*       FindEntity( PlayerUUID );
-    Entity*       FindEntity( EntityUUID );
-    Entity*       FindEntity( StringView ); // returns first matching Entity::mName
+    //   Entity api
+    auto SpawnEntity( EntityUUID ) -> Entity*;
+    void KillEntity( EntityUUID );
+    void KillEntity( Entity* );
+    void KillEntity( EntityIterator );
+    auto FindEntity( PlayerUUID ) -> Entity*;
+    auto FindEntity( EntityUUID ) -> Entity*;
+    auto FindEntity( StringView ) -> Entity*;
 
-    //            Player api
-    Player*       SpawnPlayer( PlayerUUID );
-    void          KillPlayer( PlayerUUID );
-    Player*       FindPlayer( PlayerUUID );
-    Player*       FindPlayer( EntityUUID );
+    //   Player api
+    auto SpawnPlayer( PlayerUUID ) -> Player*;
+    void KillPlayer( PlayerUUID );
+    auto FindPlayer( PlayerUUID ) -> Player*;
+    auto FindPlayer( EntityUUID ) -> Player*;
 
     Timestamp            mElapsedSecs;
     bool                 mDebugDrawEntityOrigins { true };

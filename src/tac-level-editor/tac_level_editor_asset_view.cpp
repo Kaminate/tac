@@ -31,26 +31,11 @@ namespace Tac
 
   struct AssetViewImportedModel
   {
-    auto SpawnEntity() -> Entity*
-    {
-      const EntityUUID entityUUID{ mEntityUUIDCounter.AllocateNewUUID() };
-      return mWorld.SpawnEntity( entityUUID );
-    }
-
-    void ImportObjectIntoScene(World* world, Camera* camera) const
-    {
-      const RelativeSpace relativeSpace{
-        Creation::gCreation.GetEditorCameraVisibleRelativeSpace( camera ) };
-      Creation::gCreation.InstantiateAsCopy( world, camera, mPrefab, relativeSpace );
-    }
-
+    Creation::Data            mData                  {};
     bool                      mAttemptedToLoadEntity {};
-    EntityUUIDCounter         mEntityUUIDCounter     {};
-    World                     mWorld                 {};
     Entity*                   mPrefab                {};
     Render::TextureHandle     mTextureHandleColor    {};
     Render::TextureHandle     mTextureHandleDepth    {};
-    Camera                    mCamera                {};
     AssetPathString           mAssetPath             {};
     Debug3DDrawBuffers        mDebug3DDrawBuffers    {};
   };
@@ -70,64 +55,10 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static auto LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
 
-  static auto HasExt( const AssetPathStringView path, Vector< const char* > extensions )
+  static auto DecomposeGLTFTransform( const cgltf_node* node ) -> RelativeSpace
   {
-    for( const char* ext : extensions )
-      if( path.GetFileExtension() == ( StringView )ext )
-        return true;
-    return false;
-  }
-
-  static bool IsImage( const AssetPathStringView path )
-  {
-    Vector< const char* > exts;
-    exts.push_back( ".png" );
-    exts.push_back( ".jpg" );
-    exts.push_back( ".bmp" );
-    return HasExt( path, exts );
-  }
-
-  static bool IsModel( const AssetPathStringView path )
-  {
-    Vector< const char* > exts;
-    exts.push_back( ".gltf" );
-    exts.push_back( ".glb" );
-    //exts.push_back( ".obj" );
-    return HasExt( path, exts );
-  }
-
-  static bool IsOther( const AssetPathStringView path )
-  {
-    return !IsImage(path) && !IsModel(path);
-  }
-
-  static auto GetPathsUsingFn( bool ( *fn )( AssetPathStringView ) ) -> AssetPathStrings
-  {
-    AssetPathStrings paths;
-    for( AssetPathStringView path : sAssetViewFiles )
-      if( fn( path ) )
-        paths.push_back( path );
-    return paths;
-  }
-
-  static auto GetImagePaths() { return GetPathsUsingFn( IsImage ); }
-  static auto GetModelPaths() { return GetPathsUsingFn( IsModel ); }
-  static auto GetOtherPaths() { return GetPathsUsingFn( IsOther ); }
-
-  static AssetViewImportedModel* GetLoadedModel( const AssetPathStringView& path )
-  {
-    for( AssetViewImportedModel* model : sAssetViewLoadedModels )
-      if( ( StringView )model->mAssetPath == path )
-        return model;
-
-    return nullptr;
-  }
-
-  static RelativeSpace DecomposeGLTFTransform( const cgltf_node* node )
-  {
-    cgltf_float local[ 16 ];
+    cgltf_float local[ 16 ]{};
     cgltf_node_transform_local( node, local );
 
     m4 mLocal {};
@@ -199,6 +130,200 @@ namespace Tac
     };
   }
 
+  static void AssetImporterAttemptLoadEntity( AssetViewImportedModel* loadedModel,
+                                   const AssetPathStringView& path,
+                                   Errors& errors )
+  {
+    if( loadedModel->mAttemptedToLoadEntity )
+      return;
+
+#if 0
+    if( path.ends_with( ".obj" ) )
+    {
+      TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
+
+      ++asdf;
+      // todo: async
+      TAC_CALL( const String fileStr{ FileSys::LoadFilePath( path, errors ) } );
+      const void* fileBytes{ fileStr.data() };
+      const int fileByteCount{ fileStr.size() };
+      const WavefrontObj wavefrontObj{ WavefrontObj::Load( fileBytes, fileByteCount ) };
+
+
+
+    }
+    else
+#endif
+    {
+
+      const cgltf_data* gltfData{ TryGetGLTFData( path ) };
+      if( !gltfData )
+        return;
+
+      TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
+
+      Entity* entityRoot{loadedModel->mData.mWorld.SpawnEntity(
+          loadedModel->mData.mEntityUUIDCounter.AllocateNewUUID() )};
+
+      entityRoot->mName = path.GetFilename();
+
+      loadedModel->mPrefab = entityRoot;
+
+      const int nNodes{ ( int )gltfData->nodes_count };
+
+      Vector< Entity* > entityNodes( nNodes );
+      for( int i{}; i < nNodes; ++i )
+        entityNodes[ i ] = loadedModel->mData.mWorld.SpawnEntity(
+          loadedModel->mData.mEntityUUIDCounter.AllocateNewUUID() );
+
+      for( int i{}; i < nNodes; ++i )
+      {
+        const cgltf_node& gltfNode{ gltfData->nodes[ i ] };
+        const cgltf_mesh* gltfMesh{ gltfNode.mesh };
+        const String name
+        {
+          [ & ]() -> String
+          {
+            if( gltfNode.name )
+              return gltfNode.name;
+
+            if( gltfMesh && gltfMesh->name )
+                return gltfMesh->name;
+
+            return String() + "node " + ToString( i );
+          }()
+        };
+
+        Entity* entity{ entityNodes[ i ] };
+        entity->mName = name;
+        entity->mRelativeSpace = DecomposeGLTFTransform( &gltfNode );
+
+        if( gltfMesh )
+        {
+          Model* model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
+          model->mModelPath = path;
+          model->mModelIndex = ( int )( gltfMesh - gltfData->meshes );
+
+          TAC_ASSERT( gltfMesh->primitives_count == 1 );
+          const cgltf_primitive* gltfPrimitive{ &gltfMesh->primitives[ 0 ] };
+          const cgltf_material* gltfMaterial{ gltfPrimitive->material };
+          if( gltfMaterial )
+          {
+            if( gltfMaterial->has_pbr_metallic_roughness )
+            {
+              const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
+                &gltfMaterial->pbr_metallic_roughness };
+              const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
+                              pbr_metallic_roughness->base_color_factor[ 1 ],
+                              pbr_metallic_roughness->base_color_factor[ 2 ],
+                              pbr_metallic_roughness->base_color_factor[ 3 ] );
+
+              const v3 emissive = v3( gltfMaterial->emissive_factor[ 0 ],
+                                      gltfMaterial->emissive_factor[ 1 ],
+                                      gltfMaterial->emissive_factor[ 2 ] ) *
+                ( gltfMaterial->has_emissive_strength
+                  ? gltfMaterial->emissive_strength.emissive_strength
+                  : 1 );
+
+              Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
+              ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
+              ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
+              ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
+              ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
+              ecsMaterial->mColor = color;
+              ecsMaterial->mEmissive = emissive;
+
+              if( pbr_metallic_roughness->base_color_texture.texture )
+              {
+                TAC_ASSERT_UNIMPLEMENTED;
+              }
+
+              if( pbr_metallic_roughness->metallic_roughness_texture.texture )
+              {
+                TAC_ASSERT_UNIMPLEMENTED;
+              }
+
+            }
+            else
+            {
+              TAC_ASSERT_UNIMPLEMENTED;
+            }
+          }
+        }
+
+        const int nChildren{ ( int )gltfNode.children_count };
+        for( int iChild{}; iChild < nChildren; ++iChild )
+        {
+          const cgltf_node* gltfChild{ gltfNode.children[ iChild ] };
+          Entity* ecsChild{ entityNodes[ gltfChild - gltfData->nodes ] };
+          // shouldnt this be recursive
+          entity->AddChild( ecsChild );
+        }
+
+        if( !gltfNode.parent )
+          entityRoot->AddChild( entity );
+      }
+    }
+
+    loadedModel->mData.mWorld.ComputeTransformsRecursively();
+  }
+
+
+  static auto LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
+
+  static auto HasExt( const AssetPathStringView path, Vector< const char* > extensions )
+  {
+    for( const char* ext : extensions )
+      if( path.GetFileExtension() == ( StringView )ext )
+        return true;
+    return false;
+  }
+
+  static bool IsImage( const AssetPathStringView path )
+  {
+    Vector< const char* > exts;
+    exts.push_back( ".png" );
+    exts.push_back( ".jpg" );
+    exts.push_back( ".bmp" );
+    return HasExt( path, exts );
+  }
+
+  static bool IsModel( const AssetPathStringView path )
+  {
+    Vector< const char* > exts;
+    exts.push_back( ".gltf" );
+    exts.push_back( ".glb" );
+    //exts.push_back( ".obj" );
+    return HasExt( path, exts );
+  }
+
+  static bool IsOther( const AssetPathStringView path )
+  {
+    return !IsImage(path) && !IsModel(path);
+  }
+
+  static auto GetPathsUsingFn( bool ( *fn )( AssetPathStringView ) ) -> AssetPathStrings
+  {
+    AssetPathStrings paths;
+    for( AssetPathStringView path : sAssetViewFiles )
+      if( fn( path ) )
+        paths.push_back( path );
+    return paths;
+  }
+
+  static auto GetImagePaths() { return GetPathsUsingFn( IsImage ); }
+  static auto GetModelPaths() { return GetPathsUsingFn( IsModel ); }
+  static auto GetOtherPaths() { return GetPathsUsingFn( IsOther ); }
+
+  static auto GetLoadedModel( const AssetPathStringView& path ) -> AssetViewImportedModel*
+  {
+    for( AssetViewImportedModel* model : sAssetViewLoadedModels )
+      if( ( StringView )model->mAssetPath == path )
+        return model;
+
+    return nullptr;
+  }
+
   static void PopulateFolderContents( Errors& errors )
   {
     TAC_CALL( sAssetViewFiles = IterateAssetsInDir( sAssetViewFolderCur,
@@ -209,146 +334,8 @@ namespace Tac
                                                                errors ) );
   }
 
-  struct AssetImporter
-  {
-    static void AttemptLoadEntity( AssetViewImportedModel* loadedModel,
-                                   const AssetPathStringView& path,
-                                   Errors& errors )
-    {
-      if( loadedModel->mAttemptedToLoadEntity )
-        return;
-
-  #if 0
-      if( path.ends_with( ".obj" ) )
-      {
-        TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
-
-        ++asdf;
-        // todo: async
-        TAC_CALL( const String fileStr{ FileSys::LoadFilePath( path, errors ) } );
-        const void* fileBytes{ fileStr.data() };
-        const int fileByteCount{ fileStr.size() };
-        const WavefrontObj wavefrontObj{ WavefrontObj::Load( fileBytes, fileByteCount ) };
-
-
-
-      }
-      else
-  #endif
-      {
-
-        const cgltf_data* gltfData{ TryGetGLTFData( path ) };
-        if( !gltfData )
-          return;
-
-        TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
-
-        Entity* entityRoot{ loadedModel->SpawnEntity() };
-        entityRoot->mName = path.GetFilename();
-
-        loadedModel->mPrefab = entityRoot;
-
-        const int nNodes{ ( int )gltfData->nodes_count };
-
-        Vector< Entity* > entityNodes( nNodes );
-        for( int i{}; i < nNodes; ++i )
-          entityNodes[ i ] = loadedModel->SpawnEntity();
-
-        for( int i{}; i < nNodes; ++i )
-        {
-          const cgltf_node& gltfNode{ gltfData->nodes[ i ] };
-          const cgltf_mesh* gltfMesh{ gltfNode.mesh };
-          const String name
-          {
-            [ & ]() -> String
-            {
-              if( gltfNode.name )
-                return gltfNode.name;
-
-              if( gltfMesh && gltfMesh->name )
-                  return gltfMesh->name;
-
-              return String() + "node " + ToString( i );
-            }()
-          };
-
-          Entity* entity{ entityNodes[ i ] };
-          entity->mName = name;
-          entity->mRelativeSpace = DecomposeGLTFTransform( &gltfNode );
-
-          if( gltfMesh )
-          {
-            Model* model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
-            model->mModelPath = path;
-            model->mModelIndex = ( int )( gltfMesh - gltfData->meshes );
-
-            TAC_ASSERT( gltfMesh->primitives_count == 1 );
-            const cgltf_primitive* gltfPrimitive{ &gltfMesh->primitives[ 0 ] };
-            const cgltf_material* gltfMaterial{ gltfPrimitive->material };
-            if( gltfMaterial )
-            {
-              if( gltfMaterial->has_pbr_metallic_roughness )
-              {
-                const cgltf_pbr_metallic_roughness* pbr_metallic_roughness{
-                  &gltfMaterial->pbr_metallic_roughness };
-                const v4 color( pbr_metallic_roughness->base_color_factor[ 0 ],
-                                pbr_metallic_roughness->base_color_factor[ 1 ],
-                                pbr_metallic_roughness->base_color_factor[ 2 ],
-                                pbr_metallic_roughness->base_color_factor[ 3 ] );
-
-                const v3 emissive = v3( gltfMaterial->emissive_factor[ 0 ],
-                                        gltfMaterial->emissive_factor[ 1 ],
-                                        gltfMaterial->emissive_factor[ 2 ] ) *
-                  ( gltfMaterial->has_emissive_strength
-                    ? gltfMaterial->emissive_strength.emissive_strength
-                    : 1 );
-
-                Material* ecsMaterial{ ( Material* )entity->AddNewComponent( Material{}.GetEntry() ) };
-                ecsMaterial->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
-                ecsMaterial->mIsGlTF_PBR_MetallicRoughness = true;
-                ecsMaterial->mPBR_Factor_Metallic = pbr_metallic_roughness->metallic_factor;
-                ecsMaterial->mPBR_Factor_Roughness = pbr_metallic_roughness->roughness_factor;
-                ecsMaterial->mColor = color;
-                ecsMaterial->mEmissive = emissive;
-
-                if( pbr_metallic_roughness->base_color_texture.texture )
-                {
-                  TAC_ASSERT_UNIMPLEMENTED;
-                }
-
-                if( pbr_metallic_roughness->metallic_roughness_texture.texture )
-                {
-                  TAC_ASSERT_UNIMPLEMENTED;
-                }
-
-              }
-              else
-              {
-                TAC_ASSERT_UNIMPLEMENTED;
-              }
-            }
-          }
-
-          const int nChildren{ ( int )gltfNode.children_count };
-          for( int iChild{}; iChild < nChildren; ++iChild )
-          {
-            const cgltf_node* gltfChild{ gltfNode.children[ iChild ] };
-            Entity* ecsChild{ entityNodes[ gltfChild - gltfData->nodes ] };
-            // shouldnt this be recursive
-            entity->AddChild( ecsChild );
-          }
-
-          if( !gltfNode.parent )
-            entityRoot->AddChild( entity );
-        }
-      }
-
-      loadedModel->mWorld.ComputeTransformsRecursively();
-    }
-  };
-
-  static AssetViewImportedModel* CreateLoadedModel( const AssetPathStringView& assetPath,
-                                                    Errors& errors )
+  static auto CreateLoadedModel( const AssetPathStringView& assetPath,
+                                 Errors& errors ) -> AssetViewImportedModel*
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
@@ -397,7 +384,7 @@ namespace Tac
                                    AssetViewImportedModel* loadedModel,
                                    Errors& errors )
   {
-    if( loadedModel->mWorld.mEntities.empty() )
+    if( loadedModel->mData.mWorld.mEntities.empty() )
       return;
 
     const v2i viewSize{ sAssetViewWidth, sAssetViewHeight };
@@ -420,8 +407,8 @@ namespace Tac
     const GamePresentation::RenderParams renderParams
     {
       .mContext  { renderContext },
-      .mWorld    { &loadedModel->mWorld },
-      .mCamera   { &loadedModel->mCamera },
+      .mWorld    { &loadedModel->mData.mWorld },
+      .mCamera   { &loadedModel->mData.mCamera },
       .mViewSize { viewSize },
       .mColor    { loadedModel->mTextureHandleColor },
       .mDepth    { loadedModel->mTextureHandleDepth },
@@ -477,10 +464,7 @@ namespace Tac
     }
   }
 
-  static void UIFilesModelImGui( World* world,
-                                 Camera* camera,
-                                 const AssetPathStringView assetPath,
-                                 Errors& errors )
+  static void UIFilesModelImGui( const AssetPathStringView assetPath, Errors& errors )
   {
     TAC_ASSERT( !errors );
 
@@ -490,14 +474,13 @@ namespace Tac
     {
       const ShortFixedString text{
         ShortFixedString::Concat( "Loading ", filename, LoadEllipses() ) };
-
       ImGuiText( text );
       return;
     }
 
-    if( !loadedModel->mWorld.mEntities.empty() )
+    if( !loadedModel->mData.mWorld.mEntities.empty() )
     {
-      loadedModel->mWorld.Step( TAC_DELTA_FRAME_SECONDS );
+      loadedModel->mData.mWorld.Step( TAC_DELTA_FRAME_SECONDS );
 
       ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( sAssetViewWidth, sAssetViewHeight ) );
       ImGuiSameLine();
@@ -512,7 +495,8 @@ namespace Tac
       //}
 
       if( ImGuiButton( "Import object into scene" ) )
-        loadedModel->ImportObjectIntoScene( world, camera );
+        Creation::InstantiateAsCopy( loadedModel->mPrefab );
+
       ImGuiEndGroup();
     }
     else if( loadedModel->mAttemptedToLoadEntity )
@@ -525,11 +509,10 @@ namespace Tac
     }
   }
 
-  static void UIFilesModels( World* world, Camera* camera, Errors& errors )
+  static void UIFilesModels(  Errors& errors )
   {
-    AssetPathStrings paths{ GetModelPaths() };
-    for( const AssetPathStringView path : paths )
-      UIFilesModelImGui( world, camera, path , errors );
+    for( AssetPathStrings paths{ GetModelPaths() }; const AssetPathStringView path : paths )
+      UIFilesModelImGui(  path, errors );
   }
 
   static void UIFilesImages( Errors& errors )
@@ -556,13 +539,13 @@ namespace Tac
     }
   }
 
-  static void UIFiles( World* world, Camera* camera, Errors& errors )
+  static void UIFiles(  Errors& errors )
   {
     if( sAssetViewFiles.empty() )
       ImGuiText( "no files :(" );
 
     TAC_CALL( UIFilesImages( errors ) );
-    TAC_CALL( UIFilesModels( world, camera, errors ) );
+    TAC_CALL( UIFilesModels(  errors ) );
     TAC_CALL( UIFilesOther( errors ) );
   }
 
@@ -570,7 +553,7 @@ namespace Tac
 
   bool CreationAssetView::sShowWindow{};
 
-  void CreationAssetView::Update( World* world, Camera* camera, Errors& errors )
+  void CreationAssetView::Update( Errors& errors )
   {
     if( !sShowWindow )
       return;
@@ -600,7 +583,7 @@ namespace Tac
     ImGuiSameLine();
 
     ImGuiBeginGroup();
-    TAC_CALL( UIFiles( world, camera, errors ) );
+    TAC_CALL( UIFiles( errors ) );
     ImGuiEndGroup();
 
     if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
@@ -625,7 +608,7 @@ namespace Tac
         TAC_CALL( loadedModel = CreateLoadedModel( assetPath, errors ) );
       }
 
-      AssetImporter::AttemptLoadEntity( loadedModel, assetPath, errors );
+      AssetImporterAttemptLoadEntity( loadedModel, assetPath, errors );
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
       TAC_CALL( Render::IContext::Scope renderContextScope{
         renderDevice->CreateRenderContext( errors ) } );

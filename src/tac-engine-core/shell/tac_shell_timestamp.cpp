@@ -59,6 +59,7 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   Timestamp::Timestamp( double s ) : mSeconds( s ) {}
+  Timestamp::Timestamp( int s ) : mSeconds( ( double )s ) {}
 
   Timestamp::operator double() const { return mSeconds; }
 
@@ -70,6 +71,7 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   TimestampDifference::TimestampDifference( float s ) : mSeconds( s ) {}
+  TimestampDifference::TimestampDifference( int s ) : mSeconds( ( float )s ) {}
 
   TimestampDifference::operator float() const { return mSeconds; }
 

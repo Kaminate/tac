@@ -49,7 +49,7 @@ namespace Tac
     TAC_CALL( SaveToFile( assetPath, bytes, byteCount, errors ) );
   }
 
-  static void ImGuiSaveAs( World* world )
+  static void ImGuiSaveAs()
   {
     static Errors saveErrors;
     Errors& errors = saveErrors;
@@ -60,6 +60,7 @@ namespace Tac
     if( !ImGuiButton( "save as" ) )
       return;
 
+    World* world{ Creation::GetWorld() };
     for( Entity* entity : world->mEntities )
     {
       TAC_CALL( ImGuiSaveEntityAs( entity, errors ) );
@@ -70,7 +71,7 @@ namespace Tac
 
   bool CreationMainWindow::sShowWindow{};
 
-  void CreationMainWindow::Update( World* world, Errors& errors )
+  void CreationMainWindow::Update(  Errors& errors )
   {
     if( !sShowWindow )
       return;
@@ -81,7 +82,7 @@ namespace Tac
     if( !ImGuiBegin( "Main Window" ) )
       return;
 
-    ImGuiSaveAs( world );
+    ImGuiSaveAs();
 
     ImGuiText( "Windows" );
     ImGuiIndent();

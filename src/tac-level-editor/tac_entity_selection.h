@@ -21,7 +21,6 @@ namespace Tac
     };
     auto begin() -> Iterator;
     auto end() -> Iterator;
-    static void Init( SettingsNode );
     static void DeleteEntitiesCheck();
     static void DeleteEntities();
     static void AddToSelection( Entity* );

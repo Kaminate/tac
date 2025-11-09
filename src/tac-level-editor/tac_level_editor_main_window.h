@@ -7,7 +7,7 @@ namespace Tac
 {
   struct CreationMainWindow
   {
-    static void Update( World* , Errors& );
+    static void Update( Errors& );
 
     static bool sShowWindow;
   };

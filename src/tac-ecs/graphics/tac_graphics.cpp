@@ -23,43 +23,40 @@ namespace Tac
 
     // TODO: this shit is rediculous, i need a better ECS
 
-    //                  Model
-
-    Model*              CreateModelComponent() override
+    auto CreateModelComponent() -> Model* override
     {
       auto model { TAC_NEW Model };
       mModels.insert( model );
       return model;
     }
 
-    void                DestroyModelComponent( Model* model ) override
+    void DestroyModelComponent( Model* model ) override
     {
       mModels.erase( model );
       TAC_DELETE model;
     }
 
-    void                VisitModels( ModelVisitor* modelVisitor ) const override
+    void VisitModels( ModelVisitor* modelVisitor ) const override
     {
       for( Model* model : mModels )
         if( model->mEntity->mActive )
           ( *modelVisitor )( model );
     }
     
-    //                  Material
-    Material*   CreateMaterialComponent() override
+    auto CreateMaterialComponent() -> Material* override
     {
       auto material { TAC_NEW Material };
       mMaterials.insert( material );
       return material;
     }
 
-    void        DestroyMaterialComponent( Material* material ) override
+    void DestroyMaterialComponent( Material* material ) override
     {
       mMaterials.erase( material );
       TAC_DELETE material;
     }
 
-    void        VisitMaterials( MaterialVisitor* materialVisitor) const override
+    void VisitMaterials( MaterialVisitor* materialVisitor) const override
     {
       for( Material* material : mMaterials )
         if( material->mEntity->mActive )
@@ -67,50 +64,45 @@ namespace Tac
     }
 
 
-    //                  Skybox
-
-    Skybox*             CreateSkyboxComponent() override
+    auto CreateSkyboxComponent() -> Skybox* override
     {
       auto skybox { TAC_NEW Skybox };
       mSkyboxes.insert( skybox );
       return skybox;
     }
 
-    void                DestroySkyboxComponent( Skybox* skybox ) override
+    void DestroySkyboxComponent( Skybox* skybox ) override
     {
       mSkyboxes.erase( skybox );
       TAC_DELETE skybox;
     }
 
-    void                VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) const override
+    void VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) const override
     {
       for( Skybox* skybox : mSkyboxes )
         if( skybox->mEntity->mActive )
           ( *skyboxVisitor )( skybox );
     }
 
-    // Light
-
-    Light*              CreateLightComponent() override
+    auto CreateLightComponent() -> Light* override
     {
       auto light { TAC_NEW Light };
       mLights.insert( light );
       return light;
     }
 
-    void                DestroyLightComponent( Light* light ) override
+    void DestroyLightComponent( Light* light ) override
     {
        mLights.erase( light );
       TAC_DELETE light;
     }
 
-    void                VisitLights( LightVisitor* lightVisitor ) const override
+    void VisitLights( LightVisitor* lightVisitor ) const override
     {
       for( Light* light : mLights )
         if( light->mEntity->mActive )
           ( *lightVisitor )( light );
     }
-
 
     Set< Model* >     mModels;
     Set< Skybox* >    mSkyboxes;
@@ -120,13 +112,10 @@ namespace Tac
 
   static SystemInfo* sGraphicsInfo;
 
-  static System* CreateGraphicsSystem()
-  {
-    return TAC_NEW GraphicsImpl;
-  }
+  static auto CreateGraphicsSystem() -> System* { return TAC_NEW GraphicsImpl; }
 
   // Why does Graphics::DebugImgui() and GraphicsDebugImgui() exist
-  void      Graphics::DebugImgui()
+  void Graphics::DebugImgui()
   {
     //if( !ImGui::CollapsingHeader( "Graphics" ) )
     //  return;
@@ -139,7 +128,7 @@ namespace Tac
   }
 
 
-  void              Graphics::SpaceInitGraphics()
+  void Graphics::SpaceInitGraphics()
   {
     sGraphicsInfo = SystemInfo::Register();
     sGraphicsInfo->mName = "Graphics";
@@ -152,8 +141,8 @@ namespace Tac
     Material::RegisterComponent();
   }
 
-  dynmc Graphics*   Graphics::From( dynmc World* world ) { return ( dynmc Graphics* )world->GetSystem( sGraphicsInfo ); }
-  const Graphics*   Graphics::From( const World* world ) { return ( const Graphics* )world->GetSystem( sGraphicsInfo ); }
+  auto Graphics::From( dynmc World* world ) -> dynmc Graphics* { return ( dynmc Graphics* )world->GetSystem( sGraphicsInfo ); }
+  auto Graphics::From( const World* world ) -> const Graphics* { return ( const Graphics* )world->GetSystem( sGraphicsInfo ); }
 
 } // namespace Tac
 

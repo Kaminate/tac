@@ -22,8 +22,9 @@ namespace Tac
   static bool                       sInitialized;
   static const StringView           sDefaultSystem{ "Graphics" };
 
-  static void Initialize( SettingsNode mSettingsNode )
+  static void Initialize()
   {
+    SettingsNode mSettingsNode{ Creation::GetSettingsNode() };
     const String systemName{ mSettingsNode.GetChild( nSysPath ).GetValueWithFallback( "" ) };
     for( const SystemInfo& entry : SystemInfo::Iterate() )
       if( entry.mName == systemName.c_str() )
@@ -33,12 +34,12 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   bool CreationSystemWindow::sShowWindow{};
-  void CreationSystemWindow::Update( World* world, SettingsNode mSettingsNode )
+  void CreationSystemWindow::Update()
   {
     if( !sShowWindow )
       return;
 
-    Initialize( mSettingsNode );
+    Initialize();
     ImGuiSetNextWindowStretch();
 
     if( !ImGuiBegin( "System Window" ) )
@@ -54,7 +55,8 @@ namespace Tac
             || ( !sSystemInfo && ( StringView )systemRegistryEntry.mName == sDefaultSystem ) )
         {
           sSystemInfo = &systemRegistryEntry;
-          mSettingsNode.GetChild( nSysPath ).SetValue( systemRegistryEntry.mName );
+          SettingsNode settingsNode{ Creation::GetSettingsNode() };
+          settingsNode.GetChild( nSysPath ).SetValue( systemRegistryEntry.mName );
         }
 
         if( sSystemInfo == &systemRegistryEntry )
@@ -67,14 +69,13 @@ namespace Tac
 
     if( sSystemInfo && sSystemInfo->mDebugImGui )
     {
-      const ShortFixedString headerStr{
+      if( const ShortFixedString headerStr{
         ShortFixedString::Concat( sSystemInfo->mName, " Debug" ) };
-
-      if( ImGuiCollapsingHeader( headerStr, ImGuiNodeFlags_DefaultOpen ) )
+        ImGuiCollapsingHeader( headerStr, ImGuiNodeFlags_DefaultOpen ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        System* system{ world->GetSystem( sSystemInfo ) };
-        sSystemInfo->mDebugImGui( system );
+        Creation::Data* data{ Creation::GetData() };
+        sSystemInfo->mDebugImGui( data->mWorld.GetSystem( sSystemInfo ) );
       }
     }
 
