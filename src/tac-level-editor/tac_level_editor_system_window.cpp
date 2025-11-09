@@ -24,7 +24,7 @@ namespace Tac
 
   static void Initialize()
   {
-    SettingsNode mSettingsNode{ Creation::GetSettingsNode() };
+    SettingsNode mSettingsNode{ Shell::sShellSettings };
     const String systemName{ mSettingsNode.GetChild( nSysPath ).GetValueWithFallback( "" ) };
     for( const SystemInfo& entry : SystemInfo::Iterate() )
       if( entry.mName == systemName.c_str() )
@@ -55,7 +55,7 @@ namespace Tac
             || ( !sSystemInfo && ( StringView )systemRegistryEntry.mName == sDefaultSystem ) )
         {
           sSystemInfo = &systemRegistryEntry;
-          SettingsNode settingsNode{ Creation::GetSettingsNode() };
+          SettingsNode settingsNode{ Shell::sShellSettings };
           settingsNode.GetChild( nSysPath ).SetValue( systemRegistryEntry.mName );
         }
 

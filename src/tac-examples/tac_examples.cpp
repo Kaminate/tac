@@ -12,10 +12,9 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
+#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-
-
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-examples/tac_examples_registry.h"
 #include "tac-examples/tac_examples_state_machine.h"
@@ -26,7 +25,6 @@
 
 namespace Tac
 {
-
   struct ExampleState : public App::IState
   {
     World  mWorld  {};
@@ -51,13 +49,11 @@ namespace Tac
     TAC_DELETE mCamera;
   }
 
-
-  static WindowHandle sNavWindow;
-  static WindowHandle sDemoWindow;
-  static SettingsNode sSettingsNode;
+  static WindowHandle       sNavWindow;
+  static WindowHandle       sDemoWindow;
   static Debug3DDrawBuffers sDebug3DDrawBuffers;
 
-  static void   ExamplesInitCallback( Errors& errors )
+  static void ExamplesInitCallback( Errors& errors )
   {
     // nav
     //const int x { 50 };
@@ -74,21 +70,14 @@ namespace Tac
     //QuitProgramOnWindowClose( sNavWindow );
 
     ExampleRegistryPopulate();
-
-    SettingsNode childNode{ sSettingsNode.GetChild( "Example.Name" ) };
+    SettingsNode childNode{ Shell::sShellSettings.GetChild( "Example.Name" ) };
     const String settingExampleName { childNode.GetValueWithFallback( "" ) };
     const int    settingExampleIndex { GetExampleIndex( settingExampleName ) };
-
     SetNextExample( settingExampleIndex );
-
     TAC_CALL( GamePresentation::Init( errors ));
   }
 
-  static void   ExamplesUninitCallback( Errors& )
-  {
-    ExampleStateMachineUnint();
-  }
-
+  static void ExamplesUninitCallback( Errors& ) { ExampleStateMachineUnint(); }
 
   static void ExampleSelectorWindow( Errors& )
   {
@@ -107,7 +96,6 @@ namespace Tac
       showWindow = false;
 
     sNavWindow = ImGuiGetWindowHandle();
-
 
     int offset {  };
     int iSelected { -1 };
@@ -157,13 +145,12 @@ namespace Tac
     const int iNew { GetCurrExampleIndex() };
     if( iOld != iNew )
     {
-      sSettingsNode.GetChild( "Example.Name" ).SetValue( GetExampleName( iNew ) );
+      Shell::sShellSettings.GetChild( "Example.Name" ).SetValue( GetExampleName( iNew ) );
     }
   }
 
   static void ExamplesRenderCallback( App::RenderParams appRenderParams, Errors& errors )
   {
-
     if( !sDemoWindow.IsValid() || !AppWindowApi::IsShown( sDemoWindow ) )
       return;
 
@@ -176,15 +163,11 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::TextureHandle backbufferColor{
       renderDevice->GetSwapChainCurrentColor( swapChain ) };
-
     const Render::TextureHandle backbufferDepth{
       renderDevice->GetSwapChainDepth( swapChain ) };
-
     TAC_CALL( Render::IContext::Scope renderContextScope{
       renderDevice->CreateRenderContext( errors ) } );
-
     Render::IContext* renderContext{renderContextScope.GetContext()};
-
     renderContext->ClearColor( backbufferColor, v4( 0, 0, 0, 1 ) );
     renderContext->ClearDepth( backbufferDepth, 1.0f );
 
@@ -211,18 +194,13 @@ namespace Tac
     TAC_CALL( ExampleSelectorWindow( errors ) );
   }
 
-
   struct ExamplesApp : public App
   {
     ExamplesApp( const Config& config ) : App( config ) {}
     void Init( Errors& errors ) override
     {
-      sSettingsNode = mSettingsNode;
       SpaceInit();
-      TAC_CALL( SkyboxPresentation::Init( errors ) );
       TAC_CALL( GamePresentation::Init( errors ) );
-      TAC_CALL( ShadowPresentation::Init( errors ) );
-      //TAC_CALL( VoxelGIPresentationInit( errors ) );
       ExamplesInitCallback( errors );
     }
 
@@ -251,10 +229,7 @@ namespace Tac
       //}
     }
 
-    State GameState_Create() override
-    {
-      return TAC_NEW ExampleState;
-    }
+    auto GameState_Create() -> State override { return TAC_NEW ExampleState; }
 
     void GameState_Update( IState* state ) override
     {
@@ -268,13 +243,12 @@ namespace Tac
     void Uninit( Errors& errors ) override { ExamplesUninitCallback( errors ); }
   };
 
-  App* App::Create()
+  auto App::Create() -> App*
   {
-    const App::Config cfg{ .mName { "Examples" } };
-    return TAC_NEW ExamplesApp(cfg);
+    return TAC_NEW ExamplesApp( App::Config{ .mName { "Examples" } } );
   }
 
-  v3 Example::GetWorldspaceKeyboardDir()
+  auto Example::GetWorldspaceKeyboardDir() -> v3
   {
     v3 force{};
     force += AppKeyboardApi::IsPressed( Key::W ) ? mCamera->mUp : v3{};
@@ -287,7 +261,7 @@ namespace Tac
     return force;
   }
 
-  AssetPathString Example::GetFileAssetPath( const char* filename )
+  auto Example::GetFileAssetPath( const char* filename ) -> AssetPathString
   {
     AssetPathString result;
     result += "assets/";

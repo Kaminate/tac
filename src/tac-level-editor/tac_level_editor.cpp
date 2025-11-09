@@ -96,22 +96,8 @@ namespace Tac
       return sInstance;
     }
 
-    void Load( SettingsNode settingsNode )
-    {
-      for( Data& data : mDatas )
-      {
-        Load( settingsNode, data.mWindowName, *data.mShow );
-      }
-    }
-
-    void Save( SettingsNode settingsNode )
-    {
-      for( Data& data : mDatas )
-      {
-        Save( settingsNode, data.mWindowName, *data.mShow );
-      }
-    }
-
+    void Load() { for( Data& data : mDatas ) Load( data.mWindowName, *data.mShow ); } 
+    void Save() { for( Data& data : mDatas ) Save( data.mWindowName, *data.mShow ); } 
 
   private:
     struct Data
@@ -128,16 +114,16 @@ namespace Tac
       AddData( "asset", &CreationAssetView::sShowWindow );
     }
 
-    void Load( SettingsNode settingsNode, StringView windowName, bool& show )
+    void Load( StringView windowName, bool& show )
     {
       const ShortFixedString path{ MakePath( windowName ) };
-      show = settingsNode.GetChild( path ).GetValueWithFallback( true );
+      show = Shell::sShellSettings.GetChild( path ).GetValueWithFallback( true );
     }
 
-    void Save( SettingsNode settingsNode, StringView windowName, bool& show )
+    void Save( StringView windowName, bool& show )
     {
       const ShortFixedString path{ MakePath( windowName ) };
-      settingsNode.GetChild( path ).SetValue( show );
+      Shell::sShellSettings.GetChild( path ).SetValue( show );
     }
 
     void AddData( StringView windowName, bool* show )
@@ -162,12 +148,10 @@ namespace Tac
   static bool           sIsGameRunning {};
   static Creation::Data sGameStuff     {}; // game camera should be controlled through game script
   static Creation::Data sEditorStuff   {};
-  static SettingsNode   mSettingsNode  {};
 
-  void Creation::Init( SettingsNode settingsNode, Errors& errors )
+  void Creation::Init( Errors& errors )
   {
-    mSettingsNode = settingsNode;
-    ShowWindowHelper::GetInstance().Load( settingsNode );
+    ShowWindowHelper::GetInstance().Load();
     IconRenderer::Init( errors );
     CreationMousePicking::sInstance.Init( errors );
     WidgetRenderer::Init( errors );
@@ -187,7 +171,7 @@ namespace Tac
 
   void Creation::Uninit( Errors& )
   {
-    ShowWindowHelper::GetInstance().Save( mSettingsNode );
+    ShowWindowHelper::GetInstance().Save();
     IconRenderer::Uninit();
     WidgetRenderer::Uninit();
     GamePresentation::Uninit(); 
@@ -230,8 +214,6 @@ namespace Tac
       .mPosition { camera->mPos + camera->mForwards * 5.0f },
     };
   }
-
-  auto Creation::GetSettingsNode() -> SettingsNode { return mSettingsNode; }
 
   static auto InstantiateAsCopyAux( Entity* prefabEntity, const RelativeSpace& relativeSpace ) -> Entity*
   {

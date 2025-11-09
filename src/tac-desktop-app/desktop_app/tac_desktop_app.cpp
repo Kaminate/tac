@@ -2,7 +2,6 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app_error_report.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
-#include "tac-desktop-app/desktop_app/tac_render_state.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event_handler.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_move.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_resize.h"
@@ -45,7 +44,6 @@ namespace Tac
   static DesktopEventHandler           sDesktopEventHandler;
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
   static App*                          sApp;
-  //static GameStateManager              sGameStateManager;
   static App::State                    sPrevState;
   static App::State                    sCurrState;
   static DesktopApp                    sDesktopApp;
@@ -216,6 +214,7 @@ namespace Tac
     LogApi::LogSetPath( Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.log" ) );
     const FileSys::Path settingsPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.cfg" ) };
     TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
+    Shell::sShellSettings = sSettingsRoot.GetRootNode();
     TAC_CALL( AssetHashCache::Init( errors ) );
     if( sVerbose )
       LogApi::LogMessagePrintLine( "DesktopApp::Init" );
@@ -247,8 +246,6 @@ namespace Tac
       }, errors ) );
     DesktopEventApi::Init( &sDesktopEventHandler );
 
-    // todo: this is ugly, fix it
-    sApp->mSettingsNode = sSettingsRoot.GetRootNode();
     TAC_CALL( sApp->Init( errors ) );
     sCurrState = sApp->GameState_Create();
     sPrevState = sApp->GameState_Create();

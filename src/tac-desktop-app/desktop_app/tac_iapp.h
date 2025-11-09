@@ -59,8 +59,6 @@ namespace Tac
     static auto Create() -> App*;
     static auto Instance() -> App*;
 
-    SettingsNode    mSettingsNode{};
-
   protected:
     Config          mConfig{};
   };

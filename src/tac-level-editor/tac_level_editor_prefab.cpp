@@ -44,7 +44,7 @@ namespace Tac
     Json children;
     for( const AssetPathString& documentPath : documentPaths )
       *children.AddChild() = Json( documentPath.c_str() );
-    SettingsNode settingsNode{ Creation::GetSettingsNode() };
+    SettingsNode settingsNode{ Shell::sShellSettings };
     settingsNode.GetChild( kPrefabSettingsPath ).SetValue( children );
   }
 
@@ -65,7 +65,7 @@ namespace Tac
 
   static void PrefabLoadCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
   {
-    SettingsNode settingsNode{ Creation::GetSettingsNode() };
+    SettingsNode settingsNode{ Shell::sShellSettings };
     if( SettingsNode node{ GetPrefabCameraNode( settingsNode, prefab ) };\
         node.IsValid() )
       for( int iAxis{}; iAxis < 3; ++iAxis )
@@ -228,7 +228,7 @@ void Tac::PrefabLoadAtPath( const AssetPathStringView& prefabPath,
 
 void Tac::PrefabLoad(  Errors& errors )
 {
-  SettingsNode settingsNode{ Creation::GetSettingsNode() };
+  SettingsNode settingsNode{ Shell::sShellSettings };
   //                  TODO: when prefabs spawn, they need to have a entity uuid.
   //                        this can only be done by a serverdata.
   //
@@ -256,7 +256,7 @@ bool Tac::PrefabSave( World* world, Errors& errors )
 
 void Tac::PrefabSaveCamera(  Camera* camera )
 {
-  SettingsNode settingsNode{ Creation::GetSettingsNode()};
+  SettingsNode settingsNode{ Shell::sShellSettings };
   for( Prefab* prefab : sPrefabs )
   {
     PrefabSaveCameraVec( settingsNode, prefab, kRefFrameVecNamePosition, camera->mPos );

@@ -12,7 +12,7 @@
 
 namespace Tac
 {
-  void          SettingsRoot::Init( const FileSys::Path& path , Errors& errors )
+  void SettingsRoot::Init( const FileSys::Path& path , Errors& errors )
   {
     sSavePath = path;
     if( FileSys::Exists( sSavePath ) )
@@ -22,12 +22,9 @@ namespace Tac
     }
   }
 
-  SettingsNode  SettingsRoot::GetRootNode()
-  {
-    return SettingsNode( this, &sJson );
-  }
+  auto SettingsRoot::GetRootNode() -> SettingsNode { return SettingsNode( this, &sJson ); }
 
-  void          SettingsRoot::Tick( Errors& errors )
+  void SettingsRoot::Tick( Errors& errors )
   {
     if( !sDirty )
       return;
@@ -41,7 +38,7 @@ namespace Tac
     Flush( errors );
   }
 
-  void          SettingsRoot::Flush( Errors& errors )
+  void SettingsRoot::Flush( Errors& errors )
   {
     if( !sDirty )
       return;
@@ -56,7 +53,7 @@ namespace Tac
     sLastSaveSeconds = Timestep::GetElapsedTime();
   }
 
-  void          SettingsRoot::SetDirty()
+  void SettingsRoot::SetDirty()
   {
     sDirty = true;
   }

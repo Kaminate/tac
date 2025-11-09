@@ -95,9 +95,8 @@ namespace Tac
     TAC_DELETE mClientData;
   }
 
-  void Ghost::Init( SettingsNode settingsNode, Errors& errors )
+  void Ghost::Init( Errors& errors )
   {
-    mSettingsNode = settingsNode;
     mShouldPopulateWorldInitial = false;
     //mScriptRoot->mGhost = this;
     //int w = shell->mWindowWidth;
@@ -129,11 +128,11 @@ namespace Tac
 
     const String serverTypeGameClient { TAC_TYPESAFE_STRINGIFY_TYPE( ScriptGameClient ) };
     const String serverType {
-      settingsNode.GetChild( "server type" ).GetValueWithFallback( serverTypeGameClient ) };
+      Shell::sShellSettings.GetChild( "server type" ).GetValueWithFallback( serverTypeGameClient ) };
 
     ScriptThread* child {};
     if( serverType == serverTypeGameClient )
-      child = TAC_NEW ScriptGameClient( mSettingsNode );
+      child = TAC_NEW ScriptGameClient();
     else
       TAC_ASSERT_INVALID_CODE_PATH;
 

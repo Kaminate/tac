@@ -37,13 +37,13 @@ namespace Tac
   struct ScriptThread
   {
     virtual ~ScriptThread() = default;
-    virtual void                    Update( float seconds, Errors& );
-    void                            DebugImguiOuter( Errors& );
-    virtual void                    DebugImgui( Errors& ) {}
-    void                            SetNextKeyDelay( float seconds );
-    void                            OnMsg( const ScriptMsg* );
-    void                            AddScriptCallback( void* userData, ScriptCallbackFunction* );
-    void                            RunForever();
+    virtual void Update( float seconds, Errors& );
+    virtual void DebugImgui( Errors& ) {}
+    void DebugImguiOuter( Errors& );
+    void SetNextKeyDelay( float seconds );
+    void OnMsg( const ScriptMsg* );
+    void AddScriptCallback( void* userData, ScriptCallbackFunction* );
+    void RunForever();
 
     ScriptRoot*                     mScriptRoot     {};
     int                             mLine           {};

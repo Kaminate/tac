@@ -74,10 +74,9 @@ namespace Tac
 	//  TAC_TIMELINE_END
 	//}
 
-  ScriptGameClient::ScriptGameClient( SettingsNode settingsNode )
+  ScriptGameClient::ScriptGameClient()
 	{
 		mName = "Game Client";
-    mSettingsNode = settingsNode;
 	}
 
 	void ScriptGameClient::Update( float seconds, Errors& errors )
@@ -86,7 +85,7 @@ namespace Tac
     TAC_UNUSED_PARAMETER( errors );
 		TAC_TIMELINE_BEGIN;
 
-    auto scriptMatchmaker{ TAC_NEW ScriptMatchmaker( mSettingsNode ) };
+    auto scriptMatchmaker{ TAC_NEW ScriptMatchmaker };
 		mScriptRoot->AddChild( scriptMatchmaker );
 
 		auto scriptSplash { TAC_NEW ScriptSplash };
@@ -155,10 +154,9 @@ namespace Tac
 		//ImGui::Checkbox( "Skip splash screen", &mSkipSplashScreen );
 	}
 
-	ScriptMatchmaker::ScriptMatchmaker(SettingsNode settingsNode )
+	ScriptMatchmaker::ScriptMatchmaker()
 	{
 		mName = kScriptMatchmakerName;
-    mSettingsNode = settingsNode;
 	}
 
 	void ScriptMatchmaker::OnScriptGameConnectionClosed( [[maybe_unused]] Network::Socket* socket )
@@ -266,7 +264,7 @@ namespace Tac
         .mCallback { ScriptMatchmaker::TCPOnMessage }, .mUserData { this }, } );
     mSocket->mTCPOnConnectionClosed.push_back( Network::SocketCallbackData{
         .mCallback { TCPOnConnectionClosed }, .mUserData { this }, } );
-    mPort = ( u16 )mSettingsNode
+    mPort = ( u16 )Shell::sShellSettings
       .GetChild( "port" )
       .GetValueWithFallback( ( JsonNumber )defaultPort ).mNumber;
     mConnectionAttemptStartSeconds = Timestep::GetElapsedTime();

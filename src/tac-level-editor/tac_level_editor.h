@@ -21,14 +21,13 @@ namespace Tac
       Camera              mCamera              {};
       EntityUUIDCounter   mEntityUUIDCounter   {};
     };
-    static void Init( SettingsNode, Errors& );
+    static void Init( Errors& );
     static void Uninit( Errors& );
     static void Update( Errors& );
     static void Render( World*, Camera*, Errors& );
     static auto GetEditorCameraVisibleRelativeSpace( const Camera* ) -> RelativeSpace;
     static auto CreateEntity() -> Entity*;
     static auto InstantiateAsCopy( Entity* ) -> Entity*;
-    static auto GetSettingsNode() -> SettingsNode;
     static auto GetData() -> Data*;
     static auto GetCamera() -> Camera*;
     static auto GetWorld() -> World*;

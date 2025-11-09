@@ -14,7 +14,6 @@
 namespace Tac
 {
   static WindowHandle   sWindowHandle {};
-  static SettingsNode   sSettingsNode {};
   static Ghost*         sGhost        {};
   const char*           sGameName     { "Game" };
 
@@ -35,7 +34,7 @@ namespace Tac
         .mSize { w, h },
       }, errors ) );
     sGhost = TAC_NEW Ghost;
-    TAC_CALL( sGhost->Init( sSettingsNode, errors ) );
+    TAC_CALL( sGhost->Init( errors ) );
   }
 
   static void GameCallbackUpdate( Errors& errors)
@@ -46,15 +45,8 @@ namespace Tac
   struct GameApp : public App
   {
     GameApp( const Config& cfg ) : App( cfg ) {}
-    void Init(  Errors& errors ) override
-    {
-      sSettingsNode = mSettingsNode;
-      GameCallbackInit(  errors );
-    }
-    void Update(  Errors& errors ) override
-    {
-      GameCallbackUpdate( errors );
-    }
+    void Init( Errors& errors ) override { GameCallbackInit( errors ); }
+    void Update( Errors& errors ) override { GameCallbackUpdate( errors ); }
   };
 
   App* App::Create() { return TAC_NEW GameApp( App::Config{ .mName { sGameName }, } ); }

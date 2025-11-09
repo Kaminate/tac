@@ -9,7 +9,7 @@ namespace Tac
   void LevelEditorApp::Init( Errors& errors )
   {
     SpaceInit();
-    Creation::Init( mSettingsNode, errors );
+    Creation::Init( errors );
   }
 
   auto LevelEditorApp::GameState_Create() -> State { return TAC_NEW CreationAppState; }

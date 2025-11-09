@@ -255,7 +255,7 @@ namespace Tac
     if( !sSoul )
     {
       sSoul = TAC_NEW Ghost;
-      TAC_CALL( sSoul->Init( Creation::GetSettingsNode(), errors ) );
+      TAC_CALL( sSoul->Init( errors ) );
     }
   }
 

@@ -22,10 +22,10 @@ namespace Tac
     void TryCallFn( Callback fn ) { if( fn ) fn(); }
     auto GetWorldspaceKeyboardDir() -> v3;
 
-    virtual void Init()                          { TryCallFn( mInitFn ); }
-    virtual void Update( Errors& )               { TryCallFn( mUpdateFn ); }
-    virtual void Render()                        { TryCallFn( mRenderFn ); }
-    virtual void Uninit()                        { TryCallFn( mUninitFn ); }
+    virtual void Init()            { TryCallFn( mInitFn ); }
+    virtual void Update( Errors& ) { TryCallFn( mUpdateFn ); }
+    virtual void Render()          { TryCallFn( mRenderFn ); }
+    virtual void Uninit()          { TryCallFn( mUninitFn ); }
 
     Callback     mInitFn   {};
     Callback     mUpdateFn {};

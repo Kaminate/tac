@@ -55,16 +55,14 @@ namespace Tac
 
   struct ScriptGameClient : public ScriptThread
   {
-    ScriptGameClient( SettingsNode );
+    ScriptGameClient();
     void Update( float seconds, Errors& ) override;
     void DebugImgui( Errors& ) override;
-
-    SettingsNode mSettingsNode;
   };
 
   struct ScriptMatchmaker : public ScriptThread
   {
-    ScriptMatchmaker( SettingsNode );
+    ScriptMatchmaker();
     void Update( float seconds, Errors& ) override;
     void DebugImgui( Errors& ) override;
     void OnScriptGameConnectionClosed( Network::Socket* );
@@ -89,7 +87,6 @@ namespace Tac
     bool             mLogReceivedMessages           {};
     bool             mTryAutoConnect                {};
     Timestamp        mConnectionAttemptStartSeconds {};
-    SettingsNode     mSettingsNode;
   };
 
   // Mirrored in server.js

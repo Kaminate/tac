@@ -59,7 +59,7 @@ namespace Tac
     Ghost();
     virtual ~Ghost();
 
-    void            Init( SettingsNode, Errors& );
+    void            Init( Errors& );
     void            Update( Errors& );
     void            DebugImgui( Errors& );
     void            ImguiCreatePlayerPopup( Errors& );
@@ -87,7 +87,6 @@ namespace Tac
     float           mImguiImagePosRelTopLeftX   {};
     float           mImguiImagePosRelTopLeftY   {};
     bool            mShouldPopulateWorldInitial {};
-    SettingsNode    mSettingsNode               {};
   };
 
 } // namespace Tac
