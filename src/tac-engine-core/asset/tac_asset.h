@@ -39,11 +39,11 @@ namespace Tac
     AssetPathStringView( const String& );
     AssetPathStringView( const StringView& );
     AssetPathStringView( const AssetPathString& );
-    AssetPathStringView GetDirectory() const;
-    StringView          GetFilename() const; // "foo/bar.qux" --> "bar.qux"
-    StringView          GetFileExtension() const; // ".png", ".txt"
-    bool                IsFile() const;
-    bool                IsDirectory() const;
+    auto GetDirectory() const -> AssetPathStringView;
+    auto GetFilename() const -> StringView; // "foo/bar.qux" --> "bar.qux", "foo/bar" --> "bar"
+    auto GetFileExtension() const -> StringView; // ".png", ".txt"
+    auto IsFile() const -> bool;
+    auto IsDirectory() const -> bool;
   };
 
   struct AssetSaveDialogParams { String mSuggestedFilename; };

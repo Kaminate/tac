@@ -6,8 +6,6 @@
 #include "tac-engine-core/shell/tac_shell_timestamp.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
-
-namespace Tac::FileSys { struct Path; }
 namespace Tac
 {
   struct SettingsRoot

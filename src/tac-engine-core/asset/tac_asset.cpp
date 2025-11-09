@@ -106,25 +106,24 @@ namespace Tac
   AssetPathStringView::AssetPathStringView( const AssetPathString& s ) : StringView( s )            {} // already validated
   AssetPathStringView::AssetPathStringView( const StringView& s ) : StringView( s )                 { Validate( s ); };
 
-  AssetPathStringView AssetPathStringView::GetDirectory() const
+  auto AssetPathStringView::GetDirectory() const -> AssetPathStringView
   {
     TAC_ASSERT( IsFile() );
     return substr( 0, find_last_of( sAssetPathSeperator ) );
   }
 
-  StringView          AssetPathStringView::GetFilename() const
+  auto AssetPathStringView::GetFilename() const -> StringView
   {
-    TAC_ASSERT( IsFile() );
     return substr( find_last_of( sAssetPathSeperator ) + 1 );
   }
 
-  StringView          AssetPathStringView::GetFileExtension() const
+  auto AssetPathStringView::GetFileExtension() const -> StringView
   {
     TAC_ASSERT( IsFile() );
     return substr( find_last_of( '.' ) ); // returned string includes the '.', ie ".png"
   }
 
-  bool                AssetPathStringView::IsFile() const
+  bool AssetPathStringView::IsFile() const
   {
     if( empty() )
       return false;
@@ -136,7 +135,7 @@ namespace Tac
     return lastDot > lastSlash;
   }
 
-  bool                AssetPathStringView::IsDirectory() const
+  bool AssetPathStringView::IsDirectory() const
   {
     return !empty() && !IsFile();
   }

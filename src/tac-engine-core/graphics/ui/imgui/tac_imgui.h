@@ -50,9 +50,8 @@ namespace Tac
     bool ContainsPoint( v2 ) const;
     bool Contains( const ImGuiRect& ) const;
     bool Overlaps( const ImGuiRect& ) const;
-
-    v2               mMini  {};
-    v2               mMaxi  {};
+    v2 mMini  {};
+    v2 mMaxi  {};
   };
 
   enum class ImGuiCol

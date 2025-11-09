@@ -12,6 +12,7 @@
 
 namespace Tac
 {
+  // "Creation" is the name of the level editor
   struct Creation
   {
     struct Data

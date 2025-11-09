@@ -37,14 +37,13 @@ namespace Tac
   static int GetCaret( const Vector< Codepoint >& codepoints,
                        float mousePos ) // mouse pos rel text top left corner
   {
-    const float fontSize{ ImGuiGetFontSize() };
     const int codepointCount{ codepoints.size() };
 
     float runningTextWidth{};
     int numGlyphsBeforeCaret{};
     for( int i{ 1 }; i <= codepointCount; ++i )
     {
-      const v2 substringSize{ CalculateTextSize( codepoints.begin(), i, fontSize ) };
+      const v2 substringSize{ CalculateTextSize( codepoints.begin(), i, ImGuiGetFontSize() ) };
       const float lastGlyphWidth{ substringSize.x - runningTextWidth };
       const float lastGlyphMidpoint{ runningTextWidth + lastGlyphWidth / 2 };
 
@@ -150,40 +149,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  ImGuiRect ImGuiRect::FromPosSize( v2 pos, v2 size )
-  {
-    return
-    {
-      .mMini { pos },
-      .mMaxi { pos + size },
-    };
-  }
-
-  ImGuiRect ImGuiRect::FromMinMax( v2 mini, v2 maxi )
-  {
-    return
-    {
-      .mMini { mini },
-      .mMaxi { maxi },
-    };
-  }
-
-  float     ImGuiRect::GetWidth() const
-  {
-    return mMaxi.x - mMini.x;
-  }
-
-  float     ImGuiRect::GetHeight() const
-  {
-    return mMaxi.y - mMini.y;
-  }
-
-  v2        ImGuiRect::GetSize() const
-  {
-    return mMaxi - mMini;
-  }
-
-  bool      ImGuiRect::ContainsPoint( v2 p ) const
+  auto ImGuiRect::FromPosSize( v2 pos, v2 size ) -> ImGuiRect { return { .mMini { pos }, .mMaxi { pos + size }, }; }
+  auto ImGuiRect::FromMinMax( v2 mini, v2 maxi ) -> ImGuiRect { return { .mMini { mini }, .mMaxi { maxi }, }; }
+  auto ImGuiRect::GetWidth() const -> float { return mMaxi.x - mMini.x; }
+  auto ImGuiRect::GetHeight() const -> float { return mMaxi.y - mMini.y; }
+  auto ImGuiRect::GetSize() const -> v2 { return mMaxi - mMini; }
+  bool ImGuiRect::ContainsPoint( v2 p ) const
   {
     return
       p.x > mMini.x &&
@@ -192,7 +163,7 @@ namespace Tac
       p.y < mMaxi.y;
   }
 
-  bool      ImGuiRect::Contains( const ImGuiRect& r ) const
+  bool ImGuiRect::Contains( const ImGuiRect& r ) const
   {
     return
       r.mMini.x >= mMini.x &&
@@ -201,7 +172,7 @@ namespace Tac
       r.mMaxi.y <= mMaxi.y;
   }
 
-  bool      ImGuiRect::Overlaps( const ImGuiRect& r ) const
+  bool ImGuiRect::Overlaps( const ImGuiRect& r ) const
   {
     return
       r.mMini.x <= mMaxi.x &&
@@ -254,24 +225,16 @@ namespace Tac
     drawData->PopDebugGroup();
   }
 
-
-
   // -----------------------------------------------------------------------------------------------
 
   static Vector< UI2DDrawGpuInterface > sDrawInterfaces;
-
-
-
 }
 
-void Tac::TextInputDataUpdateKeys( TextInputData* inputData,
-                                   const v2& mousePos,
-                                   const v2& textPos )
+void Tac::TextInputDataUpdateKeys( TextInputData* inputData, const v2& mousePos, const v2& textPos )
 {
-  //ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   struct KeyMap
   {
-    Key mKey;
+    Key           mKey;
     TextInputKey  mTextInputKey;
   };
   const KeyMap keyMaps[]
@@ -292,14 +255,12 @@ void Tac::TextInputDataUpdateKeys( TextInputData* inputData,
 
   if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
   {
-    const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
-                                               mousePos.x - textPos.x );
+    const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints, mousePos.x - textPos.x );
     inputData->OnClick( numGlyphsBeforeCaret );
   }
   else if( AppKeyboardApi::IsPressed( Key::MouseLeft ) )
   {
-    const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints,
-                                               mousePos.x - textPos.x );
+    const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints, mousePos.x - textPos.x );
     inputData->OnDrag( numGlyphsBeforeCaret );
   }
 }
@@ -317,13 +278,13 @@ void Tac::TextInputDataDrawSelection( TextInputData* inputData,
     const int maxCaret{ inputData->GetMaxCaret() };
     const float minCaretPos{ CalculateTextSize( codepoints, minCaret, fontSize ).x };
     const float maxCaretPos{ CalculateTextSize( codepoints, maxCaret, fontSize ).x };
-    const UI2DDrawData::Box box
-    {
-      .mMini  { textPos + v2( minCaretPos, 0 ) },
-      .mMaxi  { textPos + v2( maxCaretPos, fontSize ) },
-      .mColor { ImGuiGetColor( ImGuiCol::TextSelection ) },
-    };
-    drawData->AddBox( box, clipRect );
+    drawData->AddBox(
+      UI2DDrawData::Box
+      {
+        .mMini  { textPos + v2( minCaretPos, 0 ) },
+        .mMaxi  { textPos + v2( maxCaretPos, fontSize ) },
+        .mColor { ImGuiGetColor( ImGuiCol::TextSelection ) },
+      }, clipRect );
   }
 
   if( inputData->mCaretCount == 1 )
@@ -335,13 +296,13 @@ void Tac::TextInputDataDrawSelection( TextInputData* inputData,
     const float blinkySpeed{ 2.25f };
     const double t{ ImGuiGlobals::Instance.mElapsedSeconds };
     const float a{ 1 - Pow( ( float )Cos( blinkySpeed * t ), 4 ) };
-    const UI2DDrawData::Box box
-    {
-      .mMini { textPos + v2( caretPos - caretHalfWidth, caretYPadding ) },
-      .mMaxi { textPos + v2( caretPos + caretHalfWidth, fontSize - caretYPadding ) },
-      .mColor { v4( ImGuiGetColor( ImGuiCol::Text ).xyz(), a ) },
-    };
-    drawData->AddBox( box, clipRect );
+    drawData->AddBox(
+      UI2DDrawData::Box
+      {
+        .mMini { textPos + v2( caretPos - caretHalfWidth, caretYPadding ) },
+        .mMaxi { textPos + v2( caretPos + caretHalfWidth, fontSize - caretYPadding ) },
+        .mColor { v4( ImGuiGetColor( ImGuiCol::Text ).xyz(), a ) },
+      }, clipRect );
   }
 }
 
@@ -423,14 +384,13 @@ auto Tac::GetID( StringView label ) -> Tac::ImGuiID
 void Tac::PushID( StringView str )
 {
   ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-  ImGuiID id{ window->GetID( str ) };
+  const ImGuiID id{ window->GetID( str ) };
   window->mIDStack.push_back( id );
 }
 
 void Tac::PopID()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-  window->mIDStack.pop_back();
+  ImGuiGlobals::Instance.mCurrentWindow->mIDStack.pop_back();
 }
 
 
@@ -563,7 +523,6 @@ bool Tac::ImGuiBegin( const StringView& name )
 void Tac::ImGuiEnd()
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-
   Vector< ImGuiWindow* >& windowStack{ globals.mWindowStack };
   ImGuiWindow* backWindow{ windowStack.back() };
   backWindow->EndFrame();
@@ -606,16 +565,14 @@ void Tac::ImGuiEndChild()
 void Tac::ImGuiBeginGroup()
 {
   ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-
   window->PushXOffset();
   window->mCurrLineHeight = 0;
-
-  const GroupData groupData
-  {
-    .mSavedCursorDrawPos { window->mViewportSpaceCurrCursor },
-    .mSavedLineHeight    { window->mCurrLineHeight },
-  };
-  window->mGroupSK.push_back( groupData );
+  window->mGroupSK.push_back(
+    GroupData
+    {
+      .mSavedCursorDrawPos { window->mViewportSpaceCurrCursor },
+      .mSavedLineHeight    { window->mCurrLineHeight },
+    } );
 }
 
 void Tac::ImGuiEndGroup()
@@ -647,11 +604,10 @@ void Tac::ImGuiUnindent()
 
 void Tac::ImGuiSameLine()
 {
-  const UIStyle& style{ ImGuiGetStyle() };
-  const v2 offset( style.itemSpacing.x, 0 );
-
   ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-  window->mViewportSpaceCurrCursor = window->mViewportSpacePrevCursor + offset;
+  window->mViewportSpaceCurrCursor
+    = window->mViewportSpacePrevCursor
+    + v2( ImGuiGetStyle().itemSpacing.x, 0 );
   window->mCurrLineHeight = window->mPrevLineHeight;
 }
 
@@ -659,35 +615,29 @@ void Tac::ImGuiText( const StringView& utf8 )
 {
   ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
   UI2DDrawData* drawData{ window->mDrawData };
-
-  const float fontSize{ ImGuiGetFontSize() };
   const v2 textPos{ window->mViewportSpaceCurrCursor };
-  const v2 textSize{ CalculateTextSize( utf8, fontSize ) };
+  const v2 textSize{ CalculateTextSize( utf8, ImGuiGetFontSize() ) };
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( textPos, textSize ) };
-
   window->ItemSize( textSize );
   if( !window->Overlaps( origRect ) )
     return;
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-
-  const UI2DDrawData::Text text
-  {
-    .mPos      { textPos },
-    .mFontSize { fontSize },
-    .mUtf8     { utf8 },
-    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
-  };
-
   drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiText(", utf8, ")" ) );
-  drawData->AddText( text, &clipRect );
+  drawData->AddText(
+    UI2DDrawData::Text
+    {
+      .mPos      { textPos },
+      .mFontSize { ImGuiGetFontSize() },
+      .mUtf8     { utf8 },
+      .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
+    }, &clipRect );
   drawData->PopDebugGroup();
 }
 
 bool Tac::ImGuiInputText( const StringView& label, String& text )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  const float fontSize{ ImGuiGetFontSize() };
   const float buttonPadding{ ImGuiGetButtonPadding() };
   const v2& itemSpacing{ ImGuiGetItemSpacing() };
 
@@ -700,7 +650,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   const v2 pos{ window->mViewportSpaceCurrCursor };
   const int lineCount{ ComputeLineCount( text ) };
   const float width { window->GetRemainingWidth() };
-  const v2 totalSize( width, lineCount * fontSize );
+  const v2 totalSize( width, lineCount * ImGuiGetFontSize() );
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, totalSize ) };
 
   window->ItemSize( totalSize );
@@ -778,7 +728,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   const UI2DDrawData::Text drawText
   {
     .mPos      { textPos },
-    .mFontSize { fontSize },
+    .mFontSize { ImGuiGetFontSize() },
     .mUtf8     { text },
     .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
   };
@@ -787,7 +737,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   const UI2DDrawData::Text labelText
   {
     .mPos      { v2( textBackgroundMaxi.x + itemSpacing.x, pos.y ) },
-    .mFontSize { fontSize },
+    .mFontSize { ImGuiGetFontSize() },
     .mUtf8     { label },
     .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
   };
@@ -799,14 +749,13 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 bool Tac::ImGuiSelectable( const StringView& str, bool selected )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  const float fontSize{ ImGuiGetFontSize() };
 
   ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
 
   const float remainingWidth{ window->GetRemainingWidth() };
 
   const v2 buttonPosViewport{ window->mViewportSpaceCurrCursor };
-  const v2 buttonSize( remainingWidth, fontSize );
+  const v2 buttonSize( remainingWidth, ImGuiGetFontSize() );
 
   window->ItemSize( buttonSize );
   const ImGuiID id{ window->GetID( str ) };
@@ -830,30 +779,28 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
 
   if( selected || hovered )
   {
-    const UI2DDrawData::Box box
-    {
-      .mMini  { buttonPosViewport },
-      .mMaxi  { buttonPosViewport + buttonSize },
-      .mColor { GetFrameColor( hovered ) },
-    };
-    drawData->AddBox( box, &clipRectViewport );
+    drawData->AddBox(
+      UI2DDrawData::Box
+      {
+        .mMini  { buttonPosViewport },
+        .mMaxi  { buttonPosViewport + buttonSize },
+        .mColor { GetFrameColor( hovered ) },
+      }, &clipRectViewport );
   }
-
-  const UI2DDrawData::Text text
-  {
-    .mPos      { buttonPosViewport },
-    .mFontSize { fontSize },
-    .mUtf8     { str },
-    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
-  };
-  drawData->AddText( text, &clipRectViewport );
+  drawData->AddText(
+    UI2DDrawData::Text
+    {
+      .mPos      { buttonPosViewport },
+      .mFontSize { ImGuiGetFontSize() },
+      .mUtf8     { str },
+      .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
+    }, &clipRectViewport );
   return clicked;
 }
 
 bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-
   ImGuiWindow* window{ globals.mCurrentWindow };
 
   dynmc v2 buttonSize{ size };
@@ -863,16 +810,13 @@ bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
     buttonSize.y += window->GetRemainingHeight();
 
   const v2 pos{ window->mViewportSpaceCurrCursor };
-
   window->ItemSize( buttonSize );
-
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, buttonSize ) };
   if( !window->Overlaps( origRect ) )
     return false;
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRect ) };
-
   if( hovered )
   {
     const ImGuiID id{ window->GetID( str ) };
@@ -885,13 +829,9 @@ bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
 bool Tac::ImGuiButton( const StringView& str, v2 size )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-
-  const float fontSize{ ImGuiGetFontSize() };
-  const float buttonPadding{ ImGuiGetButtonPadding() };
-
   ImGuiWindow* window{ globals.mCurrentWindow };
-
-  const v2 textSize{ CalculateTextSize( str, fontSize ) };
+  const float buttonPadding{ ImGuiGetButtonPadding() };
+  const v2 textSize{ CalculateTextSize( str, ImGuiGetFontSize() ) };
   dynmc v2 buttonSize{ textSize + v2( 2 * buttonPadding, 0 ) };
   if( size.x != 0 )
     buttonSize.x = size.x;
@@ -903,7 +843,6 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
     buttonSize.y += window->GetRemainingHeight();
 
   const v2 pos{ window->mViewportSpaceCurrCursor };
-
   window->ItemSize( buttonSize );
 
   // TODO: compare the various window->clip... apis against what dearimgui does
@@ -911,10 +850,8 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
   if( !window->Overlaps( origRect ) )
     return false;
 
-
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRect ) };
-
   if( hovered )
   {
     const ImGuiID id{ window->GetID( str ) };
@@ -923,48 +860,39 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
     //static Timestamp d;
     //Mouse::TryConsumeMouseMovement( &d, TAC_STACK_FRAME );
   }
-
-  const UI2DDrawData::Box box
-  {
-    .mMini  { pos },
-    .mMaxi  { pos + buttonSize },
-    .mColor { GetFrameColor( hovered ) },
-  };
-
-  const UI2DDrawData::Text text
-  {
-    .mPos      { pos + v2( buttonPadding, 0 ) },
-    .mFontSize { fontSize },
-    .mUtf8     { str },
-    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
-  };
-
-
   UI2DDrawData* drawData{ window->mDrawData };
   drawData->PushDebugGroup( ShortFixedString::Concat( "Button(", str, ")" ) );
-  drawData->AddBox( box, &clipRect );
-  drawData->AddText( text, &clipRect );
+  drawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini  { pos },
+      .mMaxi  { pos + buttonSize },
+      .mColor { GetFrameColor( hovered ) },
+    }, &clipRect );
+  drawData->AddText(
+    UI2DDrawData::Text
+    {
+      .mPos      { pos + v2( buttonPadding, 0 ) },
+      .mFontSize { ImGuiGetFontSize() },
+      .mUtf8     { str },
+      .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
+    }, &clipRect );
   drawData->PopDebugGroup();
-
   return hovered && AppKeyboardApi::JustPressed( Key::MouseLeft );
 }
 
 bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-
-  const bool oldValue{ *value };
-  const float fontSize{ ImGuiGetFontSize() };
-  const v2& itemSpacing{ ImGuiGetItemSpacing() };
-
   ImGuiWindow* window{ globals.mCurrentWindow };
+  const bool oldValue{ *value };
+  const v2& itemSpacing{ ImGuiGetItemSpacing() };
   const v2 pos{ window->mViewportSpaceCurrCursor };
-  const v2 textSize{ CalculateTextSize( str, fontSize ) };
+  const v2 textSize{ CalculateTextSize( str, ImGuiGetFontSize() ) };
   const float boxWidth{ textSize.y };
   const v2 boxSize{ v2( 1, 1 ) * boxWidth };
   const v2 totalSize{ textSize + v2( boxWidth + itemSpacing.x, 0 ) };
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, totalSize ) };
-
   window->ItemSize( totalSize );
   if( !window->Overlaps( origRect ) )
     return false;
@@ -972,37 +900,33 @@ bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRect ) };
   const Key lmb{ Key::MouseLeft };
-
   if( hovered && AppKeyboardApi::JustPressed( lmb ) )
   {
     *value = !*value;
     //Mouse::ButtonSetIsDown( lmb, false );
   }
 
-  const UI2DDrawData::Box box
-  {
-    .mMini  { pos },
-    .mMaxi  { pos + boxSize },
-    .mColor { GetFrameColor( hovered ) },
-  };
-
-  const UI2DDrawData::Text text
-  {
-    .mPos      { pos + v2( boxWidth + itemSpacing.x, 0 ) },
-    .mFontSize { fontSize },
-    .mUtf8     { str },
-    .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
-  };
-
-
   UI2DDrawData* drawData{ window->mDrawData };
   drawData->PushDebugGroup( ShortFixedString::Concat( "Checkbox(", str ,")" ) );
-  drawData->AddBox( box, &clipRect );
+  drawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini  { pos },
+      .mMaxi  { pos + boxSize },
+      .mColor { GetFrameColor( hovered ) },
+    }, &clipRect );
 
   if( *value )
     ImGuiDrawCheckMark( pos, boxWidth );
 
-  drawData->AddText( text, &clipRect );
+  drawData->AddText(
+    UI2DDrawData::Text
+    {
+      .mPos      { pos + v2( boxWidth + itemSpacing.x, 0 ) },
+      .mFontSize { ImGuiGetFontSize() },
+      .mUtf8     { str },
+      .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
+    }, &clipRect );
   drawData->PopDebugGroup();
 
   return oldValue != *value;
@@ -1015,8 +939,7 @@ auto Tac::ImGuiGetCursorPos() -> Tac::v2
 
 void Tac::ImGuiSetCursorPos( const v2 local )
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-  window->mViewportSpaceCurrCursor = local;
+  ImGuiGlobals::Instance.mCurrentWindow->mViewportSpaceCurrCursor = local;
 }
 
 bool Tac::ImGuiIsRectHovered( ImGuiRect rect )
@@ -1026,22 +949,9 @@ bool Tac::ImGuiIsRectHovered( ImGuiRect rect )
     && globals.mCurrentWindow->IsHovered( rect );
 }
 
-auto Tac::ImGuiGetStyle() -> Tac::UIStyle&
-{
-  return ImGuiGlobals::Instance.mUIStyle;
-}
-
-auto Tac::ImGuiGetColor( ImGuiCol col ) -> const Tac::v4&
-{
-  UIStyle& style{ ImGuiGetStyle() };
-  return style.colors[ ( int )col ];
-}
-
-void Tac::ImGuiSetColor( ImGuiCol colidx, v4 rgba )
-{
-  UIStyle& style{ ImGuiGetStyle() };
-  style.colors[ ( int )colidx ] = rgba;
-}
+auto Tac::ImGuiGetStyle() -> Tac::UIStyle&                { return ImGuiGlobals::Instance.mUIStyle; }
+auto Tac::ImGuiGetColor( ImGuiCol col ) -> const Tac::v4& { return ImGuiGetStyle().colors[ ( int )col ]; }
+void Tac::ImGuiSetColor( ImGuiCol colidx, v4 rgba )       { ImGuiGetStyle().colors[ ( int )colidx ] = rgba; }
 
 void Tac::ImGuiDebugColors()
 {
@@ -1082,20 +992,17 @@ void Tac::ImGuiImage( const int hTex, const v2& size, const v4& color )
 {
   ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
   const v2 pos{ window->mViewportSpaceCurrCursor };
-
   window->ItemSize( size );
-
-  const UI2DDrawData::Box box
-  {
-    .mMini          { pos },
-    .mMaxi          { pos + size },
-    .mColor         { color },
-    .mTextureHandle { Render::TextureHandle( hTex ) },
-  };
-
   UI2DDrawData* drawData{ window->mDrawData };
   drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiImage(", ToString( hTex ), ")" ) );
-  drawData->AddBox( box );
+  drawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini          { pos },
+      .mMaxi          { pos + size },
+      .mColor         { color },
+      .mTextureHandle { Render::TextureHandle( hTex ) },
+    } );
   drawData->PopDebugGroup();
 }
 
@@ -1104,36 +1011,24 @@ auto Tac::ImGuiGetDrawData() -> Tac::UI2DDrawData*
   return ImGuiGlobals::Instance.mCurrentWindow->mDrawData;
 }
 
-bool Tac::ImGuiDragFloat( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 1 ); }
-
+bool Tac::ImGuiDragFloat( const StringView& s, float* v )  { return ImGuiDragFloatN( s, v, 1 ); }
 bool Tac::ImGuiDragFloat2( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 2 ); }
-
 bool Tac::ImGuiDragFloat3( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 3 ); }
-
 bool Tac::ImGuiDragFloat4( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 4 ); }
-
-bool Tac::ImGuiDragInt( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 1 ); }
-
-bool Tac::ImGuiDragInt2( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 2 ); }
-
-bool Tac::ImGuiDragInt3( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 3 ); }
-
-bool Tac::ImGuiDragInt4( const StringView& s, int* v ) { return ImGuiDragIntN( s, v, 4 ); }
+bool Tac::ImGuiDragInt( const StringView& s, int* v )      { return ImGuiDragIntN( s, v, 1 ); }
+bool Tac::ImGuiDragInt2( const StringView& s, int* v )     { return ImGuiDragIntN( s, v, 2 ); }
+bool Tac::ImGuiDragInt3( const StringView& s, int* v )     { return ImGuiDragIntN( s, v, 3 ); }
+bool Tac::ImGuiDragInt4( const StringView& s, int* v )     { return ImGuiDragIntN( s, v, 4 ); }
 
 bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags flags )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-
-  const float fontSize{ ImGuiGetFontSize() };
-  const float buttonPadding{ ImGuiGetButtonPadding() };
-
   ImGuiWindow* window{ globals.mCurrentWindow };
-
+  const float buttonPadding{ ImGuiGetButtonPadding() };
   const float width{ window->GetRemainingWidth() };
   const v2 pos{ window->mViewportSpaceCurrCursor };
-  const v2 totalSize( width, fontSize );
+  const v2 totalSize( width, ImGuiGetFontSize() );
   const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, totalSize ) };
-
   window->ItemSize( totalSize );
   if( !window->Overlaps( origRect ) )
     return false;
@@ -1141,31 +1036,27 @@ bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags fl
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRect ) };
   const ImGuiID id{ window->GetID( name ) };
-
   if( flags & ImGuiNodeFlags_DefaultOpen && !window->mCollapsingHeaderStates.contains( id ) )
     window->mCollapsingHeaderStates[ id ] = true;
 
   bool& isOpen{ window->mCollapsingHeaderStates[ id ] };
-
   if( hovered && AppKeyboardApi::JustPressed( Key::MouseLeft ) )
     isOpen = !isOpen;
 
-  const UI2DDrawData::Box box
-  {
-    .mMini  { pos },
-    .mMaxi  { pos + totalSize },
-    .mColor { GetFrameColor( hovered ) },
-  };
-
   UI2DDrawData* drawData{ window->mDrawData };
   drawData->PushDebugGroup( ShortFixedString::Concat( "ImGuiCollapsingHeader(", name, ")" ) );
-  drawData->AddBox( box, &clipRect );
+  drawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini  { pos },
+      .mMaxi  { pos + totalSize },
+      .mColor { GetFrameColor( hovered ) },
+    }, &clipRect );
   ImGuiSetCursorPos( pos + v2( buttonPadding, 0 ) );
   ImGuiText( isOpen ? "v" : ">" );
   ImGuiSameLine();
   ImGuiText( name );
   drawData->PopDebugGroup();
-
   return isOpen;
 }
 
@@ -1183,21 +1074,17 @@ void Tac::ImGuiPopFontSize()
 
 void Tac::ImGuiBeginMenuBar()
 {
-  const float fontSize{ ImGuiGetFontSize() };
-  const float buttonPadding{ ImGuiGetButtonPadding() };
-
   ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
   UI2DDrawData* drawData{ window->mDrawData };
   TAC_ASSERT( !window->mIsAppendingToMenu );
   window->mIsAppendingToMenu = true;
-
-  const UI2DDrawData::Box box
-  {
-    .mMini  {},
-    .mMaxi  { v2( window->mSize.x, fontSize + buttonPadding * 2 ) },
-    .mColor { v3( 69, 45, 83 ) / 255.0f, 1.0f },
-  };
-  drawData->AddBox( box );
+  drawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini  {},
+      .mMaxi  { v2( window->mSize.x, ImGuiGetFontSize() + ImGuiGetButtonPadding() * 2 ) },
+      .mColor { v3( 69, 45, 83 ) / 255.0f, 1.0f },
+    } );
 }
 
 void Tac::ImGuiEndMenuBar()
@@ -1241,7 +1128,6 @@ void Tac::ImGuiEndFrame( Errors& errors )
   TAC_PROFILE_BLOCK;
 
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-
   for( const ImGuiWindow* window : globals.mWindowStack )
   {
     TAC_ASSERT_CRITICAL( String() + "Mismatched ImGuiBegin/ImGuiEnd for " + window->mName );
@@ -1253,33 +1139,17 @@ void Tac::ImGuiEndFrame( Errors& errors )
     window->BeginMoveControls();
 }
 
-auto Tac::ImGuiGetFontSize() -> float
-{
-  const UIStyle& style{ ImGuiGetStyle() };
-  return style.fontSize;
-}
-
-auto Tac::ImGuiGetItemSpacing() -> const Tac::v2&
-{
-  const UIStyle& style{ ImGuiGetStyle() };
-  return style.itemSpacing;
-}
-
-auto Tac::ImGuiGetButtonPadding() -> float
-{
-  const UIStyle& style{ ImGuiGetStyle() };
-  return style.buttonPadding;
-}
+auto Tac::ImGuiGetFontSize() -> float             { return ImGuiGetStyle().fontSize; }
+auto Tac::ImGuiGetItemSpacing() -> const Tac::v2& { return ImGuiGetStyle().itemSpacing; }
+auto Tac::ImGuiGetButtonPadding() -> float        { return ImGuiGetStyle().buttonPadding; }
 
 void Tac::ImGuiInit( const ImGuiInitParams& params, Errors& errors )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   globals.mMaxGpuFrameCount = params.mMaxGpuFrameCount;
   globals.mSettingsNode = params.mSettingsNode;
-
   TAC_ASSERT( globals.mMaxGpuFrameCount );
   TAC_ASSERT( globals.mSettingsNode.IsValid() );
-
   ImGuiPersistantPlatformData::Instance.Init( errors );
 }
 
@@ -1298,21 +1168,16 @@ void Tac::ImGuiUninit()
     ImGuiSaveWindowSettings( window );
 }
 
-void Tac::ImGuiSetIsScrollbarEnabled( bool b )
-{
-  ImGuiGlobals::Instance.mScrollBarEnabled = b;
-}
+void Tac::ImGuiSetIsScrollbarEnabled( bool b ) { ImGuiGlobals::Instance.mScrollBarEnabled = b; }
 
 auto Tac::ImGuiGetWindowPos() -> v2
 {
-    ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-    return window->mViewportSpacePos;
+    return ImGuiGlobals::Instance.mCurrentWindow->mViewportSpacePos;
 }
 
 auto Tac::ImGuiGetWindowContentRegionMin() -> v2
 {
-    ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
-    return window->mViewportSpaceVisibleRegion.mMini;
+    return ImGuiGlobals::Instance.mCurrentWindow->mViewportSpaceVisibleRegion.mMini;
 }
 
 void Tac::ImGuiPlatformRender( Errors& errors )

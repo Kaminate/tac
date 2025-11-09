@@ -161,16 +161,10 @@ namespace Tac
         return;
 
       TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
-
-      Entity* entityRoot{loadedModel->mData.mWorld.SpawnEntity(
-          loadedModel->mData.mEntityUUIDCounter.AllocateNewUUID() )};
-
-      entityRoot->mName = path.GetFilename();
-
-      loadedModel->mPrefab = entityRoot;
-
+      loadedModel->mPrefab = loadedModel->mData.mWorld.SpawnEntity(
+        loadedModel->mData.mEntityUUIDCounter.AllocateNewUUID() );
+      loadedModel->mPrefab->mName = path.GetFilename();
       const int nNodes{ ( int )gltfData->nodes_count };
-
       Vector< Entity* > entityNodes( nNodes );
       for( int i{}; i < nNodes; ++i )
         entityNodes[ i ] = loadedModel->mData.mWorld.SpawnEntity(
@@ -197,7 +191,6 @@ namespace Tac
         Entity* entity{ entityNodes[ i ] };
         entity->mName = name;
         entity->mRelativeSpace = DecomposeGLTFTransform( &gltfNode );
-
         if( gltfMesh )
         {
           Model* model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
@@ -261,7 +254,7 @@ namespace Tac
         }
 
         if( !gltfNode.parent )
-          entityRoot->AddChild( entity );
+          loadedModel->mPrefab->AddChild( entity );
       }
     }
 

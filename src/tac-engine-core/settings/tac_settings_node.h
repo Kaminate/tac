@@ -5,7 +5,6 @@
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/containers/tac_span.h"
 
-namespace Tac::FileSys { struct Path; }
 namespace Tac
 {
   struct SettingsRoot;
