@@ -165,8 +165,8 @@ namespace Tac
       .mUp        { 0, 1, 0 }
     };
     TAC_CALL( GamePresentation::Init( errors ) );
-    CreationGameWindow::Init( errors );
     TAC_CALL( PrefabLoad( errors ) );
+    CreationGameWindow::Init( errors );
   }
 
   void Creation::Uninit( Errors& )

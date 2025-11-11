@@ -38,7 +38,7 @@ namespace Tac
     mSecondsSlept = 0;
   }
 
-  void ScriptThread::AddScriptCallback( void* userData, ScriptCallbackFunction* scriptCallbackFunction )
+  void ScriptThread::AddScriptCallback( void* userData, ScriptCallbackFunction scriptCallbackFunction )
   {
     auto* scriptCallbackData { TAC_NEW ScriptCallbackData };
     scriptCallbackData->mUserData = userData;
@@ -64,6 +64,7 @@ namespace Tac
     }
   }
 
+#if 1
   ScriptRoot::~ScriptRoot()
   {
     for( ScriptThread* child : mChildren )
@@ -72,7 +73,7 @@ namespace Tac
     }
   }
 
-  void          ScriptRoot::Update( float seconds, Errors& errors )
+  void ScriptRoot::Update( float seconds, Errors& errors )
   {
 
     // threads can add children during the update, so make a copy
@@ -104,14 +105,14 @@ namespace Tac
     }
   }
 
-  void          ScriptRoot::AddChild( ScriptThread* child )
+  void ScriptRoot::AddChild( ScriptThread* child )
   {
     TAC_ASSERT( child->mName.size() );
     child->mScriptRoot = this;
     mChildren.insert( child );
   }
 
-  void          ScriptRoot::DebugImgui( Errors& errors )
+  void ScriptRoot::DebugImgui( Errors& errors )
   {
     TAC_UNUSED_PARAMETER( errors );
     //if( !ImGui::CollapsingHeader( "Script Root" ) )
@@ -124,27 +125,28 @@ namespace Tac
     //}
   }
 
-  void          ScriptRoot::OnMsg( const ScriptMsg* scriptMsg )
+  void ScriptRoot::OnMsg( const ScriptMsg* scriptMsg )
   {
     TAC_ASSERT( scriptMsg->mType.size() );
     for( ScriptThread* child : mChildren )
       child->OnMsg( scriptMsg );
   }
 
-  void          ScriptRoot::OnMsg( StringView scriptMsgType )
+  void ScriptRoot::OnMsg( StringView scriptMsgType )
   {
     ScriptMsg scriptMsg;
     scriptMsg.mType = scriptMsgType;
     OnMsg( &scriptMsg );
   }
 
-  ScriptThread* ScriptRoot::GetThread( StringView name )
+  auto ScriptRoot::GetThread( StringView name ) -> ScriptThread*
   {
     for( ScriptThread* scriptThread : mChildren )
       if( ( StringView )scriptThread->mName == name )
         return scriptThread;
     return nullptr;
   }
+#endif
 
 
 } // namespace Tac

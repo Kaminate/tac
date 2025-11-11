@@ -26,7 +26,7 @@ namespace Tac
     Dirichlet
   };
 
-  typedef float( *Fn2D )( float, float );
+  using Fn2D = float( * )( float, float );
 
   struct BoundaryFunctions
   {
@@ -186,7 +186,7 @@ namespace Tac
   //static float( *sGraphEqFx )( float );
   //static float( *sGraphEqGx )( float );
 
-  typedef float( *Fn2D )( float );
+  using Fn2D = float( * )( float );
   float Ex1FxEqualsXMinusCosX( float x ) { return x - Cos( x ); }
   float Ex1GxEqualsCosX( float x )       { return Cos( x ); }
   float Ex1YEqualsX( float x )           { return x; }

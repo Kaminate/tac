@@ -25,15 +25,46 @@ namespace Tac
     void*  mData {};
   };
 
-  typedef void ScriptCallbackFunction( ScriptCallbackData*, const ScriptMsg* );
+  using ScriptCallbackFunction = void (*)( ScriptCallbackData*, const ScriptMsg* );
 
   struct ScriptCallbackData
   {
-    void*                   mUserData               {};
-    ScriptCallbackFunction* mScriptCallbackFunction {};
-    bool                    mRequestDeletion        {};
+    void*                  mUserData               {};
+    ScriptCallbackFunction mScriptCallbackFunction {};
+    bool                   mRequestDeletion        {};
   };
 
+  // A ScriptThread is based off of CoD's GSC thread.
+  // 
+  // I think the way it should work is that all game "logic" is written as ScriptThreads.
+  // ScriptThreads operate at a higher level than engine systems such as graphics and physics.
+  // A ScriptThread itself is not an an engine system, it operates at a higher level, and
+  // interacts with the engine through entities/components.
+  //
+  // So a messaging system exists for script threads to communicate with one another.
+  // see example in https://wiki.modme.co/wiki/black_ops_3/guides/Scripting-guide.html
+  //
+  //    // somewhere in zombie code, when it dies near a player
+  //    player notify( "splatter_blood_onscreen" ); 
+  //
+  //    // a function threaded on a player
+  //    function blood_splatter()
+  //    {
+  //      self endon( "death" ); 
+  //      while(1)
+  //      {
+  //        self waittill( "splatter_blood_on_screen" ); 
+  //        iprintlnbold( "splatter blood now" ); 
+  //      }
+  //    } 
+  //
+  // NEW TAKE:
+  //  I think Ghost should inherit ScriptThread and
+  //  ...be attached to a persistant gameobject (but we may want the thread to persist after the object dies)
+  //  ...be part of a script ecs system?
+  //  ...be part of an engine system?
+  //
+  //  Also, how to separate client script from server script?
   struct ScriptThread
   {
     virtual ~ScriptThread() = default;
@@ -42,7 +73,7 @@ namespace Tac
     void DebugImguiOuter( Errors& );
     void SetNextKeyDelay( float seconds );
     void OnMsg( const ScriptMsg* );
-    void AddScriptCallback( void* userData, ScriptCallbackFunction* );
+    void AddScriptCallback( void* userData, ScriptCallbackFunction );
     void RunForever();
 
     ScriptRoot*                     mScriptRoot     {};
@@ -56,19 +87,21 @@ namespace Tac
     Set< ScriptCallbackData* >      mMsgCallbacks   {};
   };
 
+#if 1
   struct ScriptRoot
   {
     ~ScriptRoot();
-    void                      AddChild( ScriptThread* child );
-    void                      Update( float seconds, Errors& errors );
-    void                      DebugImgui( Errors& errors );
-    void                      OnMsg( const ScriptMsg* scriptMsg );
-    void                      OnMsg( StringView scriptMsgType );
-    ScriptThread*             GetThread( StringView name );
+    void AddChild( ScriptThread* child );
+    void Update( float seconds, Errors& errors );
+    void DebugImgui( Errors& errors );
+    void OnMsg( const ScriptMsg* scriptMsg );
+    void OnMsg( StringView scriptMsgType );
+    auto GetThread( StringView name ) -> ScriptThread*;
 
     Set< ScriptThread* >      mChildren {};
     //Ghost*                    mGhost    {};
   };
+#endif
 
 }
 

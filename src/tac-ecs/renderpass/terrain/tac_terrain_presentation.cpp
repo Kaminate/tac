@@ -120,7 +120,7 @@ namespace Tac
       return;
 
 
-    typedef u32 TerrainIndex;
+    using TerrainIndex = u32;
 
     Vector< TerrainVertex > vertexes;
     Vector< TerrainIndex > indexes;

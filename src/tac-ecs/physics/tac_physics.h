@@ -13,27 +13,27 @@ namespace Tac
   {
     Physics();
 
-    Collider* CreateCollider();
-    void      DestroyCollider( Collider* );
+    auto CreateCollider() -> Collider*;
+    void DestroyCollider( Collider* );
 
-    Terrain*  CreateTerrain();
-    void      DestroyTerrain( Terrain* );
+    auto CreateTerrain() -> Terrain*;
+    void DestroyTerrain( Terrain* );
 
-    void      Integrate();
-    void      Narrowphase();
-    void      DebugDrawCapsules();
-    void      DebugDrawTerrains();
-
-    // ---------------------------------------------------------------------------------------------
-
-    void      Update() override;
-    void      DebugImgui() override;
+    void Integrate();
+    void Narrowphase();
+    void DebugDrawCapsules();
+    void DebugDrawTerrains();
 
     // ---------------------------------------------------------------------------------------------
 
-    static void                 SpaceInitPhysics();
-    static dynmc Physics*       GetSystem( dynmc World* );
-    static const Physics*       GetSystem( const World* );
+    void Update() override;
+    void DebugImgui() override;
+
+    // ---------------------------------------------------------------------------------------------
+
+    static void SpaceInitPhysics();
+    static auto GetSystem( dynmc World* ) -> dynmc Physics*;
+    static auto GetSystem( const World* ) -> const Physics*;
     static SystemInfo*          sInfo;
 
     // ---------------------------------------------------------------------------------------------

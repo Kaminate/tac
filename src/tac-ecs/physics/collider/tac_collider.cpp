@@ -2,43 +2,48 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/component/tac_component_registry.h"
+#include "tac-std-lib/math/tac_math_meta.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 
 namespace Tac
 {
   static ComponentInfo* sEntry;
 
-  Collider*                     Collider::GetCollider( Entity* entity )
+  TAC_META_REGISTER_STRUCT_BEGIN( Collider );
+  TAC_META_REGISTER_STRUCT_MEMBER( mVelocity );
+  TAC_META_REGISTER_STRUCT_MEMBER( mRadius );
+  TAC_META_REGISTER_STRUCT_MEMBER( mTotalHeight );
+  TAC_META_REGISTER_STRUCT_END( Collider );
+
+  auto Collider::GetCollider( Entity* entity ) -> Collider*
   {
     return ( Collider* )entity->GetComponent( sEntry );
   }
 
-  const ComponentInfo* Collider::GetEntry() const
-  {
-    return sEntry;
-  }
+  auto Collider::GetEntry() const -> const ComponentInfo* { return sEntry; }
 
-  Collider*                     Collider::CreateCollider( World* world )
+  auto Collider::CreateCollider( World* world ) -> Collider*
   {
     return Physics::GetSystem( world )->CreateCollider();
   }
 
-  static void       DestroyColliderComponent( World* world, Component* component )
+  static void DestroyColliderComponent( World* world, Component* component )
   {
     Physics::GetSystem( world )->DestroyCollider( ( Collider* )component );
   }
 
-  static Component* CreateColliderComponent( World* world )
+  static auto CreateColliderComponent( World* world ) -> Component*
   {
      return Collider::CreateCollider( world );
   }
 
-  void ColliderDebugImgui( Collider* );
-
   static void DebugComponent(  Component* component  )
   {
-       ColliderDebugImgui( ( Collider* )component );
+    Collider* collider{ ( Collider* )component  };
+    ImGuiDragFloat3( "Velocity" , collider->mVelocity.data() );
+    ImGuiDragFloat( "Capsule Radius", &collider->mRadius  );
+    ImGuiDragFloat( "Capsule Height", &collider->mTotalHeight );
   }
-
 
   void Collider::RegisterComponent()
   {
@@ -55,6 +60,7 @@ namespace Tac
       .mCreateFn     { CreateColliderComponent },
       .mDestroyFn    { DestroyColliderComponent },
       .mDebugImguiFn { DebugComponent },
+      .mMetaType     { &GetMetaType<Collider>() },
     };
   }
 

@@ -24,16 +24,20 @@ namespace Tac
   TAC_META_DECL( u32 );
   TAC_META_DECL( u64 );
 
-  const MetaType&                        GetNullMetaType();
+  auto GetNullMetaType() -> const MetaType&;
 
   // For GetMetaType() to work, files that define new meta types must be included before this one
   // ^ is this even true?
-  template< typename T > const MetaType& GetMetaType()         { T t{}; return GetMetaType( t ); }
-  template <> inline const MetaType&     GetMetaType< void >() { return GetNullMetaType(); }
+  template< typename T >
+  auto GetMetaType() -> const MetaType&         { T t{}; return GetMetaType( t ); }
+
+  template <> inline
+  auto GetMetaType< void >() -> const MetaType& { return GetNullMetaType(); }
 
 #define TAC_GET_META_TYPE_DEFINED
 
-  template < typename T > T              MetaCast( const void* v, const MetaType* m )
+  template < typename T >
+  auto MetaCast( const void* v, const MetaType* m ) -> T
   {
     T t{};
     const MetaType::CastParams castParams
@@ -52,7 +56,7 @@ namespace Tac
     struct Iterator
     {
       Iterator( T* t ) : mT( t )            {}
-      T*   operator*()                      { return mT; }
+      auto operator*() -> T*                { return mT; }
       void operator++()                     { mT = ( ( AutoLister* )mT )->mNext; }
       bool operator!=( const Iterator& it ) { return mT != it.mT; }
 

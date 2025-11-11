@@ -58,7 +58,7 @@ namespace Tac
 
   };
 
-  typedef Map< Language, LocalizedStringStuff > LanguageMap;
+  using LanguageMap = Map< Language, LocalizedStringStuff >;
 
   struct LocalizedString
   {

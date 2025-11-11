@@ -9,15 +9,14 @@ namespace Tac
   // This is an upright capsule
   struct Collider : public Component
   {
-    static void                    RegisterComponent();
-
-    static Collider*               CreateCollider( World* );
-    static Collider*               GetCollider( Entity* );
-    const ComponentInfo*  GetEntry() const override;
-
-    v3                             mVelocity    {};
-    float                          mRadius      { 0.5f };
-    float                          mTotalHeight { 2.0f };
+    static void RegisterComponent();
+    static auto CreateCollider( World* ) -> Collider*;
+    static auto GetCollider( Entity* ) -> Collider*;
+    auto GetEntry() const -> const ComponentInfo* override;
+    v3    mVelocity    {};
+    float mRadius      { 0.5f };
+    float mTotalHeight { 2.0f };
   };
+  TAC_META_DECL( Collider );
 }
 

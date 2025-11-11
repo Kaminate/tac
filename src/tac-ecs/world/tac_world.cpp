@@ -51,6 +51,7 @@ namespace Tac
 
   auto World::SpawnEntity( EntityUUID entityUUID ) -> Entity*
   {
+    TAC_ASSERT( entityUUID != NullEntityUUID );
     Entity* entity { TAC_NEW Entity };
     entity->mEntityUUID = entityUUID;
     entity->mWorld = this;

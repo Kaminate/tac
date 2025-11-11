@@ -36,8 +36,8 @@ namespace Tac
   struct Timeline
   {
     ~Timeline();
-    void                      Update( double time, Errors& );
-    void                      Add( TimelineAction* );
+    void Update( double time, Errors& );
+    void Add( TimelineAction* );
     Vector< TimelineAction* > mTimelineActions;
   };
 
@@ -45,8 +45,8 @@ namespace Tac
   {
     ScriptSplash();
     ~ScriptSplash();
-    void    Update( float seconds, Errors& ) override;
-    void    DebugImgui( Errors& ) override;
+    void Update( float seconds, Errors& ) override;
+    void DebugImgui( Errors& ) override;
     UIText* mStudioName       {};
     float   mFullyVisibleSec  {};
     float   mFadeSecTotal     {};
@@ -95,16 +95,16 @@ namespace Tac
   static const String kScriptMsgDisconnect = "websocket disconnect";
   static const String kScriptMsgConnect = "websocket connect";
 
-  typedef void ( ScriptMainMenu:: *ScriptMainMenuMessageCallback )( const ScriptMsg* scriptMsg );
-  typedef Set< ScriptMainMenuMessageCallback > ScriptCallbacks;
+  using ScriptMainMenuMessageCallback = void ( ScriptMainMenu:: * )( const ScriptMsg* scriptMsg );
+  using ScriptCallbacks = Set< ScriptMainMenuMessageCallback > ;
 
   struct ScriptMainMenu : public ScriptThread
   {
     ScriptMainMenu();
-    void                  Update( float seconds, Errors& ) override;
-    void                  DebugImgui( Errors& ) override;
-    void                  AddCallbackConnect();
-    void                  AddCallbackDisconnect();
+    void Update( float seconds, Errors& ) override;
+    void DebugImgui( Errors& ) override;
+    void AddCallbackConnect();
+    void AddCallbackDisconnect();
     float                 mFadeSecTotal                 { 0.2f };
     ScriptCallbacks       mMsgCallbacks                 {};
     ScriptCallbacks       mMsgCallbacksToRemove         {};

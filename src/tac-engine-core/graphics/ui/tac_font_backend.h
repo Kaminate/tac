@@ -20,21 +20,15 @@ namespace Tac
 
   struct FontFile
   {
-    typedef Map< Codepoint, FontAtlasCell* > CellMap;
+    using CellMap = Map< Codepoint, FontAtlasCell* > ;
 
     FontFile( const AssetPathStringView&, Errors& );
 
-    GlyphBytes     GetGlyphBytes( int glyphIndex ) const;
-    GlyphMetrics   GetGlyphMetrics( int glyphIndex ) const;
-    void           DebugGlyph( int glyphIndex );
-    FontAtlasCell* TryFindFontAtlasCell( Codepoint codepoint ) const
-    {
-      auto it{ mCells.find( codepoint ) };
-      if( it == mCells.end() )
-        return nullptr;
-      auto& [_, cell] {*it};
-      return cell;
-    }
+    auto GetGlyphBytes( int glyphIndex ) const -> GlyphBytes;
+    auto GetGlyphMetrics( int glyphIndex ) const -> GlyphMetrics;
+    void DebugGlyph( int glyphIndex );
+    auto TryFindFontAtlasCell( Codepoint codepoint ) const -> FontAtlasCell*;
+    
     
     AssetPathString  mAssetPath  {};
     CellMap          mCells      {};
@@ -73,7 +67,7 @@ namespace Tac
     void FillAtlasRegion( void*, const TexelRegion&, u8 ); // inclusive
     auto ComputeTexCoords( const FontCellPos&, const GlyphMetrics& ) -> FontCellUVs;
     auto CellIndexToPos( int ) -> FontCellPos;
-    void UploadCellGPU( FontAtlasCell*, Errors& );
+    void UploadCellGPU( FontAtlasCell*, Errors& ) const;
 
   public: // HACK, REMOVE ME
     Render::TextureHandle           mTextureId            {};

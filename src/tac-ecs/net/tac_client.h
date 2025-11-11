@@ -20,9 +20,7 @@ namespace Tac
     v2        mInputDirection{};
   };
 
-  typedef void( *ClientSendNetworkMessageCallback )( void* bytes,
-                                                     int byteCount,
-                                                     void* userData );
+  using ClientSendNetworkMessageCallback = void( * )( void* bytes, int byteCount, void* userData );
 
   //struct Reader;
   //struct Writer;

@@ -8,7 +8,7 @@
 namespace Tac
 {
 
-  typedef void ( *VkSurfaceFn )( VkInstance,
+  using VkSurfaceFn = void ( * )( VkInstance,
                                  const void* nativeWindowHandle,
                                  //const DesktopWindowHandle&,
                                  VkSurfaceKHR*,
@@ -16,8 +16,8 @@ namespace Tac
 
   // This GetVkSurfaceFn and GetVkExtensions are supposed to be platform-agnostic,
   // so there will exist a Win32 and SDL version of them.
-  VkSurfaceFn    GetVkSurfaceFn();
-  Vector<String> GetVkExtensions( Errors& );
+  auto GetVkSurfaceFn()->VkSurfaceFn;
+  auto GetVkExtensions( Errors& ) -> Vector<String>;
 
 
 }

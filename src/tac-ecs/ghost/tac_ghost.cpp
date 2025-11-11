@@ -81,7 +81,7 @@ namespace Tac
 
   Ghost::Ghost()
   {
-    mScriptRoot = TAC_NEW ScriptRoot;
+    //mScriptRoot = TAC_NEW ScriptRoot;
     mServerData = TAC_NEW ServerData;
   }
 
@@ -136,7 +136,7 @@ namespace Tac
     else
       TAC_ASSERT_INVALID_CODE_PATH;
 
-    mScriptRoot->AddChild( child );
+    //mScriptRoot->AddChild( child );
 
     if( mShouldPopulateWorldInitial )
       PopulateWorldInitial();

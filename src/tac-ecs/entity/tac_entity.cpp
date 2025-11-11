@@ -6,10 +6,10 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
-//#include "tac-std-lib/memory/tac_frame_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/meta/tac_meta.h"
+#include "tac-std-lib/error/tac_assert.h"
 
 namespace Tac
 {
@@ -32,83 +32,7 @@ namespace Tac
     json.GetChild( "z" ).SetNumber( v.z );
     return &json;
   }
-
-
-  //struct MetaEntity : public MetaCompositeType
-  //{
-  //  MetaEntity() : MetaCompositeType( "Entity", sizeof( Entity ), {} )
-  //  {
-  //    mMetaVars.push_back( TAC_META_MEMBER( Entity, mEntityUUID ) );
-  //    mMetaVars.push_back( TAC_META_MEMBER( Entity, mEntityUUID ) );
-  //  }
-  //};
-
 }
-
-#if 0
-Tac::RelativeSpace Tac::RelativeSpaceFromMatrix( const m4& mLocal )
-  {
-    v3 c0  { mLocal.m00, mLocal.m10, mLocal.m20 };
-    v3 c1  { mLocal.m01, mLocal.m11, mLocal.m21 };
-    v3 c2  { mLocal.m02, mLocal.m12, mLocal.m22 };
-    v3 c3  { mLocal.m03, mLocal.m13, mLocal.m23 };
-    v3 scale  { Length( c0 ), Length( c1 ), Length( c2 ) };
-    c0 /= scale.x;
-    c1 /= scale.y;
-    c2 /= scale.z;
-
-    float
-      r11, r12, r13,
-      r21, r22, r23,
-      r31, r32, r33;
-    {
-      r11 = c0[ 0 ];
-      r21 = c0[ 1 ];
-      r31 = c0[ 2 ];
-
-      r12 = c1[ 0 ];
-      r22 = c1[ 1 ];
-      r32 = c1[ 2 ];
-
-      r13 = c2[ 0 ];
-      r23 = c2[ 1 ];
-      r33 = c2[ 2 ];
-    }
-
-    TAC_UNUSED_PARAMETER( r22 );
-    TAC_UNUSED_PARAMETER( r23 );
-
-    // On-rotation-deformation-zones-for-finite-strain-Cosserat-plasticity.pdf
-    // Rot( x, y, z ) = rotZ(phi) * rotY(theta) * rotX(psi)
-    float zPhi {};
-    float yTheta {};
-    float xPsi {};
-
-
-    if( r31 != 1.0f && r31 != -1.0f )
-    {
-      yTheta = -Asin( r31 );
-      xPsi = Atan2( r32 / Cos( yTheta ), r33 / Cos( yTheta ) );
-      zPhi = Atan2( r21 / Cos( yTheta ), r11 / Cos( yTheta ) );
-    }
-    else
-    {
-      zPhi = 0;
-      if( r31 == -1.0f )
-      {
-        yTheta = 3.14f / 2.0f;
-        xPsi = Atan2( r12, r13 );
-      }
-      else
-      {
-        yTheta = -3.14f / 2.0f;
-        xPsi = Atan2( -r12, -r13 );
-      }
-    }
-
-    return { .mPosition = c3, .mEulerRads = { xPsi, yTheta, zPhi }, .mScale = scale };
-  }
-#endif
 
 namespace Tac
 {
@@ -120,7 +44,7 @@ namespace Tac
     // Assert that the world no longer contains this entity?
   }
 
-  void             Entity::RemoveAllComponents()
+  void Entity::RemoveAllComponents()
   {
     for( Component* component : mComponents )
     {
@@ -130,7 +54,7 @@ namespace Tac
     mComponents.Clear();
   }
 
-  Component*       Entity::AddNewComponent( const ComponentInfo* entry )
+  auto Entity::AddNewComponent( const ComponentInfo* entry ) -> Component*
   {
     TAC_ASSERT( entry );
     TAC_ASSERT( !HasComponent( entry ) );
@@ -142,7 +66,7 @@ namespace Tac
     return component;
   }
 
-  dynmc Component* Entity::GetComponent( const ComponentInfo* entry ) dynmc
+  auto Entity::GetComponent( const ComponentInfo* entry ) dynmc -> dynmc Component*
   {
     for( Component* component : mComponents )
       if( component->GetEntry() == entry )
@@ -150,7 +74,7 @@ namespace Tac
     return nullptr;
   }
 
-  const Component* Entity::GetComponent( const ComponentInfo* entry ) const
+  auto Entity::GetComponent( const ComponentInfo* entry ) const -> const Component*
   {
     for( const Component* component : mComponents )
       if( component->GetEntry() == entry )
@@ -158,18 +82,18 @@ namespace Tac
     return nullptr;
   }
 
-  bool             Entity::HasComponent( const ComponentInfo* entry ) const
+  bool Entity::HasComponent( const ComponentInfo* entry ) const
   {
     return GetComponent( entry ) != nullptr;
   }
 
-  void             Entity::RemoveComponent( const ComponentInfo* entry )
+  void Entity::RemoveComponent( const ComponentInfo* entry )
   {
     Component* component { mComponents.Remove( entry ) };
     entry->mDestroyFn( mWorld, component );
   }
 
-  void             Entity::DeepCopy( const Entity& entity )
+  void Entity::DeepCopy( const Entity& entity )
   {
     TAC_ASSERT( mWorld );
     TAC_ASSERT( entity.mWorld );
@@ -202,7 +126,7 @@ namespace Tac
     // shouldn't this fn be recursive?
   }
 
-  void             Entity::AddChild( Entity* child )
+  void Entity::AddChild( Entity* child )
   {
     TAC_ASSERT( !Contains( mChildren, child ) );
     TAC_ASSERT( child->mParent != this );
@@ -211,7 +135,7 @@ namespace Tac
     mChildren.push_back( child );
   }
 
-  void             Entity::DebugImgui()
+  void Entity::DebugImgui()
   {
     // This has been moved to tac_level_editor_property_window.cpp EntityImGui() (?)
 #if 0
@@ -272,7 +196,7 @@ namespace Tac
 #endif
   }
 
-  void             Entity::Unparent()
+  void Entity::Unparent()
   {
     if( !mParent )
       return;
@@ -291,7 +215,7 @@ namespace Tac
     // todo: relative positioning
   }
 
-  Json             Entity::Save()
+  Json Entity::Save()
   {
     Entity* entity { this };
 
@@ -300,17 +224,15 @@ namespace Tac
     entityJson[ "mScale" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mScale ) );
     entityJson[ "mName" ].SetString( entity->mName );
     entityJson[ "mEulerRads" ].DeepCopy( Vector3ToJson( entity->mRelativeSpace.mEulerRads ) );
-    entityJson[ "mEntityUUID" ].SetNumber( ( JsonNumber )entity->mEntityUUID );
     entityJson[ "mActive" ].SetBool( entity->mActive );
     entityJson[ "mStatic" ].SetBool( entity->mStatic );
+    // mEntityUUID is not saved, it is runtime only.
 
     for( Component* component : entity->mComponents )
     {
       const ComponentInfo* entry { component->GetEntry() };
       Json componentJson;
       entry->mMetaType->JsonSerialize( &componentJson, component );
-      //if( entry->mSaveFn )
-      //  entry->mSaveFn( componentJson, component );
 
       entityJson[ StringView( entry->mName ) ].DeepCopy( &componentJson );
     }
@@ -325,13 +247,14 @@ namespace Tac
     return entityJson;
   }
 
-  void             Entity::Load( const Json& prefabJson )
+  void Entity::Load( EntityUUIDCounter& uuidCounter, const Json& prefabJson )
   {
+    TAC_ASSERT_MSG( mEntityUUID != NullEntityUUID,
+                    "This entity has not been spawned, and is therefore missing an ID" );
     Json* jsonPos { prefabJson.FindChild( "mPosition" ) };
     Json* jsonScale { prefabJson.FindChild( "mScale" ) };
     Json* jsonEuler { prefabJson.FindChild( "mEulerRads" ) };
     Json* jsonName { prefabJson.FindChild( "mName" ) };
-    Json* jsonUUID { prefabJson.FindChild( "mEntityUUID" ) };
     Json* jsonActive { prefabJson.FindChild( "mActive" ) };
     Json* jsonStatic { prefabJson.FindChild( "mStatic" ) };
 
@@ -340,37 +263,29 @@ namespace Tac
     entity->mRelativeSpace.mScale = Vector3FromJson( *jsonScale );
     entity->mRelativeSpace.mEulerRads = Vector3FromJson( *jsonEuler );
     entity->mName = jsonName->mString;
-    entity->mEntityUUID = ( EntityUUID )( UUID )jsonUUID->mNumber;
     entity->mActive = jsonActive ? jsonActive->mBoolean : entity->mActive;
     entity->mStatic = jsonStatic ? jsonStatic->mBoolean : entity->mStatic;
 
     // I think these should have its own mComponents json node
+    // ^ 2025-11-11 totally agree, it's gross as it is.
     for( auto& [key, componentJson] : prefabJson.mObjectChildrenMap )
     {
-      //const StringView key { pair.mFirst };
-      //Json* componentJson { pair.mSecond };
-
-      ComponentInfo* componentInfo { ComponentInfo::Find( key.c_str() ) };
-      if( !componentInfo )
-        continue; // This key-value pair is not a component
-
-      TAC_ASSERT( componentInfo );
-      Component* component { entity->AddNewComponent( componentInfo ) };
-      //if( componentInfo->mLoadFn )
-      //  componentInfo->mLoadFn( *componentJson, component );
-      componentInfo->mMetaType->JsonDeserialize( componentJson, component );
+      if( ComponentInfo * componentInfo{ ComponentInfo::Find( key.c_str() ) } )
+      {
+        Component* component{ entity->AddNewComponent( componentInfo ) };
+        componentInfo->mMetaType->JsonDeserialize( componentJson, component );
+      }
     }
 
 
     if( auto childrenJson{ prefabJson.mObjectChildrenMap.find( "mChildren" ) };
         childrenJson != prefabJson.mObjectChildrenMap.end() )
     {
-      auto& [_, arrayElements] { ( *childrenJson ) };
-      for( Json* childJson : arrayElements->mArrayElements )
+      for( auto& [_, arrayElements] { ( *childrenJson ) };
+           Json* childJson : arrayElements->mArrayElements )
       {
-        Entity* childEntity { mWorld->SpawnEntity( NullEntityUUID ) };
-        childEntity->Load( *childJson );
-
+        Entity* childEntity { mWorld->SpawnEntity( uuidCounter.AllocateNewUUID() ) };
+        childEntity->Load( uuidCounter, *childJson );
         entity->AddChild( childEntity );
       }
     }

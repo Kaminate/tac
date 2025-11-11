@@ -1,4 +1,15 @@
 {
+  "Collider":
+  {
+    "mRadius": 1.009,
+    "mTotalHeight": 2,
+    "mVelocity":
+    {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    }
+  },
   "mActive": true,
   "mChildren":
   [
@@ -54,7 +65,7 @@
             "mModelPath": "assets/glTF-sample/Box/Box.gltf"
           },
           "mActive": true,
-          "mEntityUUID": 3,
+          "mEntityUUID": 12,
           "mEulerRads":
           {
             "x": 0,
@@ -77,7 +88,7 @@
           "mStatic": false
         }
       ],
-      "mEntityUUID": 2,
+      "mEntityUUID": 11,
       "mEulerRads":
       {
         "x": -1.57,
@@ -100,14 +111,14 @@
       "mStatic": false
     }
   ],
-  "mEntityUUID": 1,
+  "mEntityUUID": 10,
   "mEulerRads":
   {
     "x": 0,
     "y": 0,
     "z": 0
   },
-  "mName": "Box.gltf",
+  "mName": "Box",
   "mPosition":
   {
     "x": 0,

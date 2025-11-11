@@ -29,7 +29,7 @@ namespace Tac::Network
     IPv6,
     Count,
   };
-  String ToString( AddressFamily );
+  auto ToString( AddressFamily ) -> String;
 
   enum class SocketType
   {
@@ -37,22 +37,22 @@ namespace Tac::Network
     UDP, // user datagram protocol
     Count,
   };
-  String ToString( SocketType );
+  auto ToString( SocketType ) -> String;
 
-  typedef void( SocketCallback )( void* userData, Socket* );
-  typedef void( SocketCallbackMessage )( void* userData, Socket*, void* bytes, int byteCount );
+  using SocketCallback = void( * )( void* userData, Socket* );
+  using SocketCallbackMessage = void( * )( void* userData, Socket*, void* bytes, int byteCount );
 
   // Should these have a debug name?
   // Should these struct S be merged and the callback be a union?
   struct SocketCallbackData
   {
-    SocketCallback*        mCallback {};
+    SocketCallback         mCallback {};
     void*                  mUserData {};
   };
 
   struct SocketCallbackDataMessage
   {
-    SocketCallbackMessage* mCallback {};
+    SocketCallbackMessage  mCallback {};
     void*                  mUserData {};
   };
 
@@ -60,13 +60,11 @@ namespace Tac::Network
   {
     virtual ~Socket() = default;
     void DebugImgui();
-    void                                Send( const HTTPRequest&, Errors& );
-    void                                Send( StringView, Errors& );
-    virtual void                        Send( void* bytes, int byteCount, Errors& ) = 0;
-    virtual void                        TCPTryConnect( StringView hostname,
-                                                       u16 port,
-                                                       Errors& ) = 0;
-    void                                OnMessage( void* bytes, int byteCount );
+    void Send( const HTTPRequest&, Errors& );
+    void Send( StringView, Errors& );
+    void OnMessage( void* bytes, int byteCount );
+    virtual void Send( void* bytes, int byteCount, Errors& ) = 0;
+    virtual void TCPTryConnect( StringView hostname, u16 port, Errors& ) = 0;
 
     String                              mName                     {};
     SocketType                          mSocketType               { SocketType::Count };
@@ -83,16 +81,12 @@ namespace Tac::Network
 
   struct HTTPRequest
   {
-    void           AddString( StringView );
-    void           AddNewline();
-    void           AddLine( StringView );
-    void           FormatRequestHTTP( StringView requestMethod,
-                                      StringView host,
-                                      StringView messageBody );
-    void           FormatRequestWebsocket( StringView uri,
-                                           StringView host,
-                                           const Vector< u8 > & secWebsocketKey );
-    String         ToString();
+    void AddString( StringView );
+    void AddNewline();
+    void AddLine( StringView );
+    void FormatRequestHTTP( StringView requestMethod, StringView host, StringView messageBody );
+    void FormatRequestWebsocket( StringView uri, StringView host, const Vector< u8 > & secWebsocketKey );
+    auto ToString() -> String;
     Vector< char > mBytes;
   };
 
@@ -101,21 +95,16 @@ namespace Tac::Network
     static Net* Instance;
     Net();
     virtual ~Net() = default;
-    virtual Socket*           CreateSocket( StringView name,
-                                            AddressFamily,
-                                            SocketType,
-                                            Errors& ) = 0;
-    virtual Vector< Socket* > GetSockets() = 0;
-    virtual void              DebugImgui() = 0;
-    virtual void              Init( Errors& ) = 0;
-    virtual void              Update( Errors& ) = 0;
-
+    virtual auto CreateSocket( StringView name, AddressFamily, SocketType, Errors& ) -> Socket* = 0;
+    virtual auto GetSockets() -> Vector< Socket* > = 0;
+    virtual void DebugImgui() = 0;
+    virtual void Init( Errors& ) = 0;
+    virtual void Update( Errors& ) = 0;
   };
 
-  Vector< u8 > GenerateSecWebsocketKey();
-
-  String Base64Encode( const Vector< u8 >& );
-  String Base64Encode( StringView );
+  auto GenerateSecWebsocketKey() -> Vector< u8 >;
+  auto Base64Encode( const Vector< u8 >& ) -> String;
+  auto Base64Encode( StringView ) -> String;
   void Base64EncodeRunTests();
 
 

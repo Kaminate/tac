@@ -227,6 +227,15 @@ namespace Tac
 #endif
   }
 
+  auto FontFile::TryFindFontAtlasCell( Codepoint codepoint ) const -> FontAtlasCell*
+  {
+    auto it{ mCells.find( codepoint ) };
+    if( it == mCells.end() )
+      return nullptr;
+    auto& [_, cell] {*it};
+    return cell;
+  }
+
   // -----------------------------------------------------------------------------------------------
 
   FontAtlas FontAtlas::Instance;
@@ -474,7 +483,10 @@ namespace Tac
     }
   }
 
-  void FontAtlas::UploadCellGPU( FontAtlasCell* cell, Errors& errors )
+    // For cells with no sdf ( ie: the ' ' caracter ), clear the cell to black.
+    static const u8 black[ FontCellPxWidth * FontCellPxHeight ]  {};
+
+  void FontAtlas::UploadCellGPU( FontAtlasCell* cell, Errors& errors ) const
   {
     if( !cell->mNeedsGPUCopy )
       return;
@@ -491,8 +503,6 @@ namespace Tac
 
     const GlyphBytes glyphBytes{ fontFile->GetGlyphBytes( glyphIndex ) };
 
-    // For cells with no sdf ( ie: the ' ' caracter ), clear the cell to black.
-    const u8 black[ FontCellPxWidth * FontCellPxHeight ]  {};
 
     const Render::Image src
     {

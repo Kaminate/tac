@@ -54,6 +54,15 @@ namespace Tac
   // The original idea was for the ghost to be the hotloaded game ddl
   // for iteration, but that hasn't happened.
   //
+  //
+  // NEW TAKE:
+  //  I think Ghost should inherit ScriptThread and
+  //  ...be attached to a persistant gameobject (but we may want the thread to persist after the object dies)
+  //  ...be part of a script ecs system?
+  //  ...be part of an engine system?
+  //
+  //  Also, how to separate client script from server script?
+  //
   struct Ghost
   {
     Ghost();

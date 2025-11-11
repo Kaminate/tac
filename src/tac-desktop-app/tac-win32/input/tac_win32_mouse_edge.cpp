@@ -35,7 +35,7 @@ namespace Tac
 
   // If CursorDir |= CursorDirE, that means we would be dragging the left wide of the window,
   // and the right side of the window would be cursor locked.
-  typedef int CursorDir;
+  using CursorDir = int;
 
   static MouseEdge    sMouseEdges[ kDesktopWindowCapacity ];
 

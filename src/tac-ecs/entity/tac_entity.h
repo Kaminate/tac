@@ -20,29 +20,22 @@ namespace Tac
     v3 mScale     { 1, 1, 1 };
   };
 
-#if 0
-  RelativeSpace RelativeSpaceFromMatrix( const m4& );
-#endif
-
-
   struct Entity
   {
     ~Entity();
 
-    dynmc Component*  GetComponent( const ComponentInfo* ) dynmc;
-    const Component*  GetComponent( const ComponentInfo* ) const;
-    bool              HasComponent( const ComponentInfo* ) const;
-    Component*        AddNewComponent( const ComponentInfo* );
-    void              RemoveComponent( const ComponentInfo* );
-    void              RemoveAllComponents();
-
-    void              DeepCopy( const Entity& );
-    void              DebugImgui();
-    //void Integrate( float time );
-    void              Unparent();
-    void              AddChild( Entity* );
-    Json              Save();
-    void              Load( const Json& );
+    auto GetComponent( const ComponentInfo* ) dynmc -> dynmc Component*;
+    auto GetComponent( const ComponentInfo* ) const -> const Component*;
+    bool HasComponent( const ComponentInfo* ) const;
+    auto AddNewComponent( const ComponentInfo* ) -> Component*;
+    void RemoveComponent( const ComponentInfo* );
+    void RemoveAllComponents();
+    void DeepCopy( const Entity& );
+    void DebugImgui();
+    void Unparent();
+    void AddChild( Entity* );
+    Json Save();
+    void Load( EntityUUIDCounter&, const Json& );
 
     Entity*           mParent             {};
     Vector< Entity* > mChildren           {};

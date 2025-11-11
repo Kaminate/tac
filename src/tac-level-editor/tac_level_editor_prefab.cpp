@@ -92,17 +92,6 @@ namespace Tac
 
   }
 
-
-
-  static void AllocateEntityUUIDsRecursively( EntityUUIDCounter* entityUUIDCounter,
-                                                      Entity* entityParent )
-  {
-    entityParent->mEntityUUID = entityUUIDCounter->AllocateNewUUID();
-    for( Entity* entityChild : entityParent->mChildren )
-      AllocateEntityUUIDsRecursively( entityUUIDCounter, entityChild );
-  }
-
-
   static auto PrefabFind( Entity* entity ) -> Prefab*
   {
     for( Prefab* prefab : sPrefabs )
@@ -205,9 +194,8 @@ void Tac::PrefabLoadAtPath( const AssetPathStringView& prefabPath,
   Creation::Data* data{ Creation::GetData() };
   TAC_CALL( const String memory{ LoadAssetPath( prefabPath, errors ) } );
   TAC_CALL( const Json prefabJson{ Json::Parse( memory, errors ) } );
-  Entity* entity{ data->mWorld.SpawnEntity( NullEntityUUID ) };
-  entity->Load( prefabJson );
-  AllocateEntityUUIDsRecursively( &data->mEntityUUIDCounter, entity );
+  Entity* entity{ data->mWorld.SpawnEntity( data->mEntityUUIDCounter.AllocateNewUUID() ) };
+  entity->Load( data->mEntityUUIDCounter, prefabJson );
   auto prefab{ TAC_NEW Prefab
   {
     .mEntities  { entity },

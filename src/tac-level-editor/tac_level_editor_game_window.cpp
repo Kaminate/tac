@@ -47,7 +47,9 @@ namespace Tac
   static bool                          sWASDCameraOrbitSnap      { false };
   static float                         sWASDCameraNoSnapScale    { .01f };
   static StringView                    sImguiWindowName          { "Level Editor Game Window" };
+#if 0
   static Ghost*                        sSoul                     {};
+#endif
   static Debug3DDrawBuffers            sBuffers                  {};
   static String                        sStatusMessage            {};
   static Timestamp                     sStatusMessageEndTime     {};
@@ -250,6 +252,7 @@ namespace Tac
     PrefabSaveCamera( camera );
   }
 
+#if 0
   static void PlayGame( Errors& errors )
   {
     if( !sSoul )
@@ -258,6 +261,7 @@ namespace Tac
       TAC_CALL( sSoul->Init( errors ) );
     }
   }
+#endif
 
   static void ImGuiCamera()
   {
@@ -325,6 +329,7 @@ namespace Tac
     ImGuiCheckbox( "draw gizmos", &GizmoMgr::sInstance.mGizmosEnabled );
     ImGuiCheckbox( "Draw raycast", &CreationMousePicking::sInstance.sDrawRaycast );
 
+#if 0
     if( sSoul )
     {
       if( ImGuiButton( "End simulation" ) )
@@ -340,6 +345,7 @@ namespace Tac
         TAC_CALL( PlayGame( errors ) );
       }
     }
+#endif
 
     ImGuiCamera();
     if( Timestep::GetElapsedTime() < sStatusMessageEndTime )
@@ -419,9 +425,11 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void CreationGameWindow::Init(  Errors& errors )
+  void CreationGameWindow::Init( Errors& errors )
   {
+#if 0
     TAC_CALL( PlayGame( errors ) );
+#endif
   }
 
   void CreationGameWindow::Render( World* world, Camera* camera, Errors& errors )
@@ -481,10 +489,12 @@ namespace Tac
 
     const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
 
+#if 0
     if( sSoul )
     {
       TAC_CALL( sSoul->Update( errors ) );
     }
+#endif
 
     CreationMousePicking::sInstance.BeginFrame( windowHandle );
     CameraUpdateSaved();

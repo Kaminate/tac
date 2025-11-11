@@ -37,7 +37,7 @@ namespace Tac
 
   // Static functions
 
-  static CapsuleSupport GetSupport( const Collider* collider )
+  static auto GetSupport( const Collider* collider ) -> CapsuleSupport
   {
     const CapsuleSupport capsuleSupport( collider->mEntity->mRelativeSpace.mPosition,
                                          collider->mTotalHeight,
@@ -45,7 +45,7 @@ namespace Tac
     return capsuleSupport;
   }
 
-  static System* CreatePhysicsSystem() { return TAC_NEW Physics; }
+  static auto CreatePhysicsSystem() -> System* { return TAC_NEW Physics; }
 
 #if TAC_TEMPORARILY_DISABLED()
   static void DebugDrawGJK( const GJK& gjk, Graphics* graphics )
@@ -101,34 +101,34 @@ namespace Tac
     mGJKDebugMaxEPAIter = 10;
   }
 
-  Collider* Physics::CreateCollider()
+  auto Physics::CreateCollider() -> Collider*
   {
     auto collider { TAC_NEW Collider };
     mColliders.insert( collider );
     return collider;
   }
 
-  Terrain*  Physics::CreateTerrain()
+  auto Physics::CreateTerrain() -> Terrain*
   {
     auto terrain { TAC_NEW Terrain };
     mTerrains.insert( terrain );
     return terrain;
   }
 
-  void      Physics::DestroyCollider( Collider* collider )
+  void Physics::DestroyCollider( Collider* collider )
   {
     mColliders.erase( collider );
     TAC_DELETE collider;
   }
 
-  void      Physics::DestroyTerrain( Terrain* terrain )
+  void Physics::DestroyTerrain( Terrain* terrain )
   {
     mTerrains.erase( terrain );
     TAC_DELETE terrain;
   }
 
 
-  void      Physics::DebugDrawCapsules()
+  void Physics::DebugDrawCapsules()
   {
     //Graphics* graphics = Graphics::Get( mWorld );
     for( Collider* collider : mColliders )
@@ -140,7 +140,7 @@ namespace Tac
       //                               mDebugDrawCapsuleColor );
     }
   }
-  void      Physics::DebugDrawTerrains()
+  void Physics::DebugDrawTerrains()
   {
     //Graphics* graphics = Graphics::Get( mWorld );
 
@@ -161,7 +161,7 @@ namespace Tac
     }
   }
 
-  void      Physics::Integrate()
+  void Physics::Integrate()
   {
     /*TAC_PROFILE_BLOCK*/;
     const v3 a( 0, mGravity, 0 );
@@ -175,7 +175,7 @@ namespace Tac
     }
   }
 
-  void      Physics::Narrowphase()
+  void Physics::Narrowphase()
   {
     /*TAC_PROFILE_BLOCK*/;
     //Graphics* graphics = Graphics::Get( mWorld );
@@ -275,7 +275,7 @@ namespace Tac
 
   // override functions
 
-  void      Physics::Update()
+  void Physics::Update()
   {
     /*TAC_PROFILE_BLOCK*/;
     if( mShouldDebugDrawCapsules )
@@ -291,7 +291,7 @@ namespace Tac
       Narrowphase();
   }
 
-  void      Physics::DebugImgui()
+  void Physics::DebugImgui()
   {
 #if TAC_TEMPORARILY_DISABLED()
 
@@ -384,12 +384,12 @@ namespace Tac
     Collider::RegisterComponent();
   }
 
-  Physics* Physics::GetSystem( World* world )
+  auto Physics::GetSystem( dynmc World* world ) -> dynmc Physics*
   {
-    return ( Physics* )world->GetSystem( Physics::sInfo );
+    return ( dynmc Physics* )world->GetSystem( Physics::sInfo );
   }
 
-  const Physics* Physics::GetSystem( const World* world )
+  auto Physics::GetSystem( const World* world ) -> const Physics*
   {
     return ( const Physics* )world->GetSystem( Physics::sInfo );
   }
