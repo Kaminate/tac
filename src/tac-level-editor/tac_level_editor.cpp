@@ -5,6 +5,7 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/ghost/tac_ghost.h"
 #include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/graphics/camera/tac_camera_component.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
@@ -43,18 +44,20 @@ namespace Tac
 {
   static auto CreationGetNewEntityName( World* world ) -> String
   {
-    dynmc String desiredEntityName { "Entity" };
+    // This is what unity3d does
+    const String desiredEntityPrefix { "Entity" };
+    dynmc String desiredEntitySuffix { "" };
     dynmc int parenNumber { 1 };
     for( ;; )
     {
-      if( !world->FindEntity( desiredEntityName ) )
+      if( !world->FindEntity( desiredEntityPrefix + desiredEntitySuffix ) )
         break;
 
-      desiredEntityName = "Entity (" + ToString( parenNumber ) + ")";
+      desiredEntitySuffix = " (" + ToString( parenNumber ) + ")";
       parenNumber++;
     }
 
-    return desiredEntityName;
+    return desiredEntityPrefix + desiredEntitySuffix;
   }
 
   static void CheckSavePrefab()
@@ -64,7 +67,7 @@ namespace Tac
         AppKeyboardApi::JustPressed( Key::S ) )
     {
       dynmc Errors saveErrors;
-      if( PrefabSave( &Creation::GetData()->mWorld, saveErrors ) )
+      if( PrefabSave( Creation::GetWorld(), saveErrors ) )
         CreationGameWindow::SetStatusMessage( "Saved Prefabs!", TimestampDifference { 5.f } );
       if( saveErrors)
         CreationGameWindow::SetStatusMessage( saveErrors.ToString(), TimestampDifference { 60 } );
@@ -145,9 +148,12 @@ namespace Tac
 
   //===-------------- Creation -------------===//
 
-  static bool           sIsGameRunning {};
-  static Creation::Data sGameStuff     {}; // game camera should be controlled through game script
-  static Creation::Data sEditorStuff   {};
+  static bool                 sIsGameRunning           {};
+  static Camera               sEditorCamera            {};
+  static World                sEditorWorld             {};
+  static EntityUUIDCounter    sEditorEntityUUIDCounter {};
+  static World                sGameWorld               {};
+  static EntityUUIDCounter    sGameEntityUUIDCounter   {};
 
   void Creation::Init( Errors& errors )
   {
@@ -155,9 +161,9 @@ namespace Tac
     IconRenderer::Init( errors );
     CreationMousePicking::sInstance.Init( errors );
     WidgetRenderer::Init( errors );
-    sGameStuff.mWorld.Init();
-    sEditorStuff.mWorld.Init();
-    sEditorStuff.mCamera = Camera
+    sGameWorld.Init();
+    sEditorWorld.Init();
+    sEditorCamera = Camera
     {
       .mPos       { 0, 1, 5 },
       .mForwards  { 0, 0, -1 },
@@ -177,7 +183,7 @@ namespace Tac
     GamePresentation::Uninit(); 
   }
 
-  void Creation::Render( World* world, Camera* camera, Errors& errors )
+  void Creation::Render( World* world, const Camera* camera, Errors& errors )
   {
     CreationAssetView::Render( errors );
     CreationGameWindow::Render( world, camera, errors );
@@ -188,8 +194,9 @@ namespace Tac
     TAC_PROFILE_BLOCK;
     CheckSavePrefab();
 
-    for( Data* datas[]{ &sEditorStuff, &sGameStuff }; Data* data : datas )
-        data->mWorld.mDebug3DDrawData->Clear();
+    for( World* worlds[]{ &sEditorWorld, &sGameWorld };
+         World* world : worlds )
+      world->mDebug3DDrawData->Clear();
 
     // Update the main window first so it becomes the parent window (maybe)
     TAC_CALL( CreationMainWindow::Update( errors ) );
@@ -201,7 +208,7 @@ namespace Tac
     TAC_CALL( CreationProfileWindow::Update( errors ) );
 
     if( sIsGameRunning )
-      sGameStuff.mWorld.Step( TAC_DELTA_FRAME_SECONDS );
+      sGameWorld.Step( TAC_DELTA_FRAME_SECONDS );
 
     SelectedEntities::DeleteEntitiesCheck();
     CloseAppWhenAllWindowsClosed();
@@ -250,18 +257,36 @@ namespace Tac
 
   auto Creation::CreateEntity() -> Entity*
   {
-    Data* data{ GetData() };
-    Entity* entity{ data->mWorld.SpawnEntity( data->mEntityUUIDCounter.AllocateNewUUID() ) };
-    entity->mName = CreationGetNewEntityName( &data->mWorld );
-    entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace( &data->mCamera );
+    World* world{ GetWorld() };
+    Camera* camera{ GetCamera() };
+    EntityUUIDCounter* entityUUIDCounter{GetEntityUUIDCounter()};
+    Entity* entity{ world->SpawnEntity( entityUUIDCounter->AllocateNewUUID() ) };
+    entity->mName = CreationGetNewEntityName( world );
+    entity->mRelativeSpace = GetEditorCameraVisibleRelativeSpace( camera );
     SelectedEntities::Select( entity );
     return entity;
   }
 
+  auto Creation::GetEditorCamera() -> Camera* { return &sEditorCamera; }
 
-  auto Creation::GetData() -> Data*     { return sIsGameRunning ? &sGameStuff : &sEditorStuff; }
-  auto Creation::GetCamera() -> Camera* { return &GetData()->mCamera; }
-  auto Creation::GetWorld() -> World*   { return &GetData()->mWorld; }
+  auto Creation::GetCamera() -> Camera*
+  {
+    if( !sIsGameRunning )
+      return &sEditorCamera;
+
+    struct : public CameraVisitor
+    {
+      void operator()( CameraComponent* camera ) override { mCamera = camera; }
+      CameraComponent* mCamera{};
+    } cameraVisitor;
+    Graphics::From( &sGameWorld )->VisitCameras( &cameraVisitor );
+    return cameraVisitor.mCamera ? &cameraVisitor.mCamera->mCamera : nullptr;
+  }
+  auto Creation::GetWorld() -> World*   { return sIsGameRunning ? &sGameWorld : &sEditorWorld; }
+  auto Creation::GetEntityUUIDCounter() -> EntityUUIDCounter*
+  {
+   return sIsGameRunning ? &sGameEntityUUIDCounter : &sEditorEntityUUIDCounter;
+  }
   bool Creation::IsGameRunning()        { return sIsGameRunning; }
 
 } // namespace Tac

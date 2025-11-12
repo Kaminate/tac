@@ -13,6 +13,26 @@
 
 namespace Tac
 {
+  static void ComputeTransformsRecursivelyAux( const m4& parentTransform, Entity* entity )
+  {
+    const m4 localTransform{ m4::Transform( entity->mRelativeSpace.mScale,
+                                       entity->mRelativeSpace.mEulerRads,
+                                       entity->mRelativeSpace.mPosition ) };
+    const m4 worldTransform { parentTransform * localTransform };
+    const m4 localTransformNoScale{ m4::Transform( v3( 1, 1, 1 ),
+                                              entity->mRelativeSpace.mEulerRads,
+                                              entity->mRelativeSpace.mPosition ) };
+    const m4 worldTransformNoScale { parentTransform * localTransformNoScale };
+    entity->mWorldTransform = worldTransform;
+    entity->mWorldPosition = ( worldTransform * v4( 0, 0, 0, 1 ) ).xyz();
+    for( Entity* child : entity->mChildren )
+    {
+      const m4& parentTransformForChild{ child->mInheritParentScale
+        ? worldTransformNoScale
+        : worldTransform };
+      ComputeTransformsRecursivelyAux( parentTransformForChild, child );
+    }
+  }
 
   World::World()
   {
@@ -210,38 +230,12 @@ namespace Tac
     //stuff->zCCWEulerRotDeg = stuff->mWaddleParams.mAngle;
   }
 
-  void World::ComputeTransformsRecursively( const m4& parentTransform, Entity* entity )
-  {
-    m4 localTransform{ m4::Transform( entity->mRelativeSpace.mScale,
-                                       entity->mRelativeSpace.mEulerRads,
-                                       entity->mRelativeSpace.mPosition ) };
-    m4 worldTransform { parentTransform * localTransform };
-
-    m4 localTransformNoScale{ m4::Transform( v3( 1, 1, 1 ),
-                                              entity->mRelativeSpace.mEulerRads,
-                                              entity->mRelativeSpace.mPosition ) };
-    m4 worldTransformNoScale { parentTransform * localTransformNoScale };
-
-    //entity->mLocalTransform = localTransform;
-    entity->mWorldTransform = worldTransform;
-    entity->mWorldPosition = ( worldTransform * v4( 0, 0, 0, 1 ) ).xyz();
-    //entity->mWorldTransformNoScale = worldTransformNoScale;
-
-    for( Entity* child : entity->mChildren )
-    {
-      const m4* parentTransformForChild { &worldTransform };
-      if( !child->mInheritParentScale )
-        parentTransformForChild = &worldTransformNoScale;
-      ComputeTransformsRecursively( *parentTransformForChild, child );
-    }
-  }
-
   void World::ComputeTransformsRecursively()
   {
     const m4 identity { m4::Identity() };
     for( Entity* entity : mEntities )
       if( !entity->mParent )
-        ComputeTransformsRecursively( identity, entity );
+        ComputeTransformsRecursivelyAux( identity, entity );
   }
 
   void World::Step( float seconds )

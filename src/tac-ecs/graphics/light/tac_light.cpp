@@ -25,12 +25,12 @@ namespace Tac
   TAC_META_REGISTER_STRUCT_MEMBER( mNearPlaneOverride );
   TAC_META_REGISTER_STRUCT_END( Light );
 
-  static Component* CreateLightComponent( World* world )
+  static auto CreateLightComponent( World* world ) -> Component*
   {
     return Graphics::From( world )->CreateLightComponent();
   }
 
-  static void       DestroyLightComponent( World* world, Component* component )
+  static void DestroyLightComponent( World* world, Component* component )
   {
     Graphics::From( world )->DestroyLightComponent( ( Light* )component );
   }
@@ -38,7 +38,7 @@ namespace Tac
 #if 0
   static void       SaveLightComponent( Json& lightJson, Component* component )
   {
-    auto light { ( Light* )component };
+    auto light{ ( Light* )component };
     lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].SetNumber( light->mSpotHalfFOVRadians );
     lightJson[ TAC_MEMBER_NAME( Light, mType ) ].SetString( LightTypeToString( light->mType ) );
     lightJson[ TAC_MEMBER_NAME( Light, mShadowResolution ) ].SetNumber( light->mShadowResolution );
@@ -49,7 +49,7 @@ namespace Tac
 
   static void       LoadLightComponent( Json& lightJson, Component* component )
   {
-    auto light { ( Light* )component };
+    auto light{ ( Light* )component };
 
     if( lightJson.HasChild( TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ) )
       light->mSpotHalfFOVRadians = ( float )lightJson[ TAC_MEMBER_NAME( Light, mSpotHalfFOVRadians ) ].mNumber;
@@ -72,38 +72,53 @@ namespace Tac
 #endif
 
 
-  Light*                        Light::GetLight( Entity* entity )
+  auto Light::RegisterComponent() -> void
+  {
+    *( sComponentInfo = ComponentInfo::Register() ) = ComponentInfo
+    {
+      .mName         { "Light" },
+      //sComponentInfo->mNetVars = ComponentLightBits;
+      .mCreateFn     { CreateLightComponent },
+      .mDestroyFn    { DestroyLightComponent },
+      .mDebugImguiFn { []( Component* c ) { LightDebugImgui( ( Light* )c ); } },
+      //sComponentInfo->mSaveFn = SaveLightComponent;
+      //sComponentInfo->mLoadFn = LoadLightComponent;
+      .mMetaType     {&GetMetaType< Light >()}
+    };
+  }
+
+  auto Light::GetLight( Entity* entity ) -> Light*
   {
     return ( Light* )entity->GetComponent( sComponentInfo );
   }
 
-  const Light*                  Light::GetLight( const Entity* entity )
+  auto Light::GetLight( const Entity* entity ) -> const Light*
   {
     return ( Light* )entity->GetComponent( sComponentInfo );
   }
 
-  const ComponentInfo* Light::GetEntry() const
+  auto Light::GetEntry() const-> const ComponentInfo*
   {
     return sComponentInfo;
   }
 
-  v3                            Light::GetUnitDirection() const
+  auto Light::GetUnitDirection() const-> v3
   {
-    v3 z { mEntity->mWorldTransform.GetColumn( 2 ).xyz() };
+    v3 z{ mEntity->mWorldTransform.GetColumn( 2 ).xyz() };
     z = Normalize( z );
     return -z;
   }
 
-  Camera                        Light::GetCamera() const
+  auto Light::GetCamera() const-> Camera
   {
-    v3 z { -GetUnitDirection() };
+    v3 z{ -GetUnitDirection() };
     v3 x, y;
     GetFrameRH( z, x, y );
 
     v3 up( 0, 1, 0 );
-    const float rads { Acos( Dot( up, y ) ) };
+    const float rads{ Acos( Dot( up, y ) ) };
 
-    m3 m { m3::RotRadAngleAxis( rads, z ) };
+    m3 m{ m3::RotRadAngleAxis( rads, z ) };
     x = m * x;
     y = m * y;
 
@@ -122,12 +137,12 @@ namespace Tac
         return v3( Round( v.x ),
                    Round( v.y ),
                    Round( v.z ) );
-        };
+      };
 
-      const v3 roundedZ { round3( z ) };
-      const v3 roundedX { round3( x ) };
-      const v3 roundedY { round3( y ) };
-      const float roundEps { 0.01f };
+      const v3 roundedZ{ round3( z ) };
+      const v3 roundedX{ round3( x ) };
+      const v3 roundedY{ round3( y ) };
+      const float roundEps{ 0.01f };
       const bool canRound{
         Distance( roundedZ, z ) < roundEps &&
         Distance( roundedX, x ) < roundEps &&
@@ -138,7 +153,7 @@ namespace Tac
     }
 
 
-    Camera camera  {};
+    Camera camera{};
     camera.mForwards = -z;
     camera.mRight = x;
     camera.mUp = y;
@@ -154,7 +169,7 @@ namespace Tac
     return camera;
   }
 
-  void                          Light::FreeRenderResources()
+  auto Light::FreeRenderResources() -> void
   {
     mCreatedRenderResources = false;
 
@@ -164,80 +179,67 @@ namespace Tac
     mShadowMapDepth = {};
   }
 
-  void                                   Light::RegisterComponent()
-  {
-    *( sComponentInfo = ComponentInfo::Register() ) = ComponentInfo
-    {
-      .mName         { "Light" },
-      //sComponentInfo->mNetVars = ComponentLightBits;
-      .mCreateFn     { CreateLightComponent },
-      .mDestroyFn    { DestroyLightComponent },
-      .mDebugImguiFn { []( Component* c ) { LightDebugImgui( ( Light* )c ); } },
-      //sComponentInfo->mSaveFn = SaveLightComponent;
-      //sComponentInfo->mLoadFn = LoadLightComponent;
-    };
-  }
-
-  const char*                            LightTypeToString( Light::Type type )
-  {
-    switch( type )
-    {
-      case Light::kDirectional: return "Directional";
-      case Light::kSpot: return "Spot";
-      default: TAC_ASSERT_INVALID_CASE( type ); return nullptr;
-    }
-  }
-
-  Light::Type                            LightTypeFromString( const StringView& str )
-  {
-    for( int i{}; i < Light::Type::kCount; ++i )
-    {
-      auto curType { ( Light::Type )i };
-      const char* curTypeStr { LightTypeToString( curType ) };
-      if( ( StringView )curTypeStr == str )
-        return curType;
-    }
-    return Light::Type::kCount;
-  }
-
-  Render::ShaderLight                            LightToShaderLight( const Light* light )
-  {
-    const Camera camera { light->GetCamera() };
-    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
-    const m4::ProjectionMatrixParams projParams
-    {
-      .mNDCMinZ       { ndcAttribs.mMinZ },
-      .mNDCMaxZ       { ndcAttribs.mMaxZ },
-      .mViewSpaceNear { camera.mNearPlane },
-      .mViewSpaceFar  { camera.mFarPlane },
-      .mAspectRatio   { 1 },
-      .mFOVYRadians   { camera.mFovyrad },
-    };
-
-    const m4 view { camera.View() };
-    const m4 proj { m4::ProjPerspective( projParams ) };
-
-    const u32 flags{ 0
-      | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
-      | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows ) };
-
-    const float a{ proj.m22 };
-    const float b{ proj.m23 };
-
-    const Render::ShaderLight shaderLight
-    {
-      .mWorldToClip             { proj * view },
-      .mWorldSpacePosition      { light->mEntity->mWorldPosition, 1 },
-      .mWorldSpaceUnitDirection { light->GetUnitDirection(), 0 },
-      .mColorRadiance           { light->mColor, light->mRadiance },
-      .mFlags                   { flags },
-      .mProjA                   { a },
-      .mProjB                   { b },
-    };
-    return shaderLight;
-
-  }
-
 } // namespace Tac
+
+auto Tac::LightTypeToString( Light::Type type ) -> const char*
+
+{
+  switch( type )
+  {
+    case Light::kDirectional: return "Directional";
+    case Light::kSpot: return "Spot";
+    default: TAC_ASSERT_INVALID_CASE( type ); return nullptr;
+  }
+}
+
+auto Tac::LightTypeFromString( const StringView& str ) -> Light::Type
+{
+  for( int i{}; i < Light::Type::kCount; ++i )
+  {
+    auto curType { ( Light::Type )i };
+    const char* curTypeStr { LightTypeToString( curType ) };
+    if( ( StringView )curTypeStr == str )
+      return curType;
+  }
+  return Light::Type::kCount;
+}
+
+auto Tac::LightToShaderLight( const Light* light ) -> Render::ShaderLight
+{
+  const Camera camera { light->GetCamera() };
+  const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
+  const m4::ProjectionMatrixParams projParams
+  {
+    .mNDCMinZ       { ndcAttribs.mMinZ },
+    .mNDCMaxZ       { ndcAttribs.mMaxZ },
+    .mViewSpaceNear { camera.mNearPlane },
+    .mViewSpaceFar  { camera.mFarPlane },
+    .mAspectRatio   { 1 },
+    .mFOVYRadians   { camera.mFovyrad },
+  };
+
+  const m4 view { camera.View() };
+  const m4 proj { m4::ProjPerspective( projParams ) };
+
+  const u32 flags{ 0
+    | Render::GetShaderLightFlagType()->ShiftResult( light->mType )
+    | Render::GetShaderLightFlagCastsShadows()->ShiftResult( light->mCastsShadows ) };
+
+  const float a{ proj.m22 };
+  const float b{ proj.m23 };
+
+  const Render::ShaderLight shaderLight
+  {
+    .mWorldToClip             { proj * view },
+    .mWorldSpacePosition      { light->mEntity->mWorldPosition, 1 },
+    .mWorldSpaceUnitDirection { light->GetUnitDirection(), 0 },
+    .mColorRadiance           { light->mColor, light->mRadiance },
+    .mFlags                   { flags },
+    .mProjA                   { a },
+    .mProjB                   { b },
+  };
+  return shaderLight;
+
+}
 

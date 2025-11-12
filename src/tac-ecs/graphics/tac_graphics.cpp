@@ -8,6 +8,7 @@
 #include "tac-std-lib/containers/tac_set.h"
 
 #include "tac-ecs/graphics/light/tac_light.h"
+#include "tac-ecs/graphics/camera/tac_camera_component.h"
 #include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/entity/tac_entity.h"
@@ -29,13 +30,11 @@ namespace Tac
       mModels.insert( model );
       return model;
     }
-
     void DestroyModelComponent( Model* model ) override
     {
       mModels.erase( model );
       TAC_DELETE model;
     }
-
     void VisitModels( ModelVisitor* modelVisitor ) const override
     {
       for( Model* model : mModels )
@@ -49,13 +48,11 @@ namespace Tac
       mMaterials.insert( material );
       return material;
     }
-
     void DestroyMaterialComponent( Material* material ) override
     {
       mMaterials.erase( material );
       TAC_DELETE material;
     }
-
     void VisitMaterials( MaterialVisitor* materialVisitor) const override
     {
       for( Material* material : mMaterials )
@@ -63,20 +60,17 @@ namespace Tac
           ( *materialVisitor )( material );
     }
 
-
     auto CreateSkyboxComponent() -> Skybox* override
     {
       auto skybox { TAC_NEW Skybox };
       mSkyboxes.insert( skybox );
       return skybox;
     }
-
     void DestroySkyboxComponent( Skybox* skybox ) override
     {
       mSkyboxes.erase( skybox );
       TAC_DELETE skybox;
     }
-
     void VisitSkyboxes( SkyboxVisitor* skyboxVisitor ) const override
     {
       for( Skybox* skybox : mSkyboxes )
@@ -90,13 +84,11 @@ namespace Tac
       mLights.insert( light );
       return light;
     }
-
     void DestroyLightComponent( Light* light ) override
     {
        mLights.erase( light );
       TAC_DELETE light;
     }
-
     void VisitLights( LightVisitor* lightVisitor ) const override
     {
       for( Light* light : mLights )
@@ -104,15 +96,48 @@ namespace Tac
           ( *lightVisitor )( light );
     }
 
-    Set< Model* >     mModels;
-    Set< Skybox* >    mSkyboxes;
-    Set< Light* >     mLights;
-    Set< Material* >  mMaterials;
+
+    auto CreateCameraComponent() -> CameraComponent* override
+    {
+      auto camera { TAC_NEW CameraComponent };
+      mCameras.insert( camera );
+      return camera;
+    }
+    void DestroyCameraComponent( CameraComponent* camera ) override
+    {
+      mCameras.erase( camera );
+      TAC_DELETE camera;
+    }
+    void VisitCameras( CameraVisitor* visitor ) const override
+    {
+      for( CameraComponent* cam : mCameras )
+        if( cam->mEntity->mActive )
+          ( *visitor )( cam );
+    }
+
+
+    Set< Model* >           mModels;
+    Set< Skybox* >          mSkyboxes;
+    Set< Light* >           mLights;
+    Set< Material* >        mMaterials;
+    Set< CameraComponent* > mCameras;
   };
 
   static SystemInfo* sGraphicsInfo;
 
   static auto CreateGraphicsSystem() -> System* { return TAC_NEW GraphicsImpl; }
+
+  void Graphics::Update()
+  {
+    for( CameraComponent* cameraComponent : ( ( GraphicsImpl* )this )->mCameras )
+    {
+      dynmc Camera& camera{ cameraComponent->mCamera };
+      cameraComponent->mCamera.mPos = cameraComponent->mEntity->mWorldTransform.GetColumn(3).xyz();
+      cameraComponent->mCamera.mForwards = cameraComponent->mEntity->mWorldTransform.GetColumn( 2 ).xyz();
+      cameraComponent->mCamera.mRight = cameraComponent->mEntity->mWorldTransform.GetColumn( 0 ).xyz();
+      cameraComponent->mCamera.mUp = cameraComponent->mEntity->mWorldTransform.GetColumn( 1 ).xyz();
+    }
+  }
 
   // Why does Graphics::DebugImgui() and GraphicsDebugImgui() exist
   void Graphics::DebugImgui()
@@ -127,7 +152,6 @@ namespace Tac
     ImGuiText( "Graphics::DebugImgui()" );
   }
 
-
   void Graphics::SpaceInitGraphics()
   {
     sGraphicsInfo = SystemInfo::Register();
@@ -139,6 +163,7 @@ namespace Tac
     Skybox::RegisterComponent();
     Light::RegisterComponent();
     Material::RegisterComponent();
+    CameraComponent::RegisterComponent();
   }
 
   auto Graphics::From( dynmc World* world ) -> dynmc Graphics* { return ( dynmc Graphics* )world->GetSystem( sGraphicsInfo ); }

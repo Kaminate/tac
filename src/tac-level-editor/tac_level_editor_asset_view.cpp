@@ -31,7 +31,9 @@ namespace Tac
 
   struct AssetViewImportedModel
   {
-    Creation::Data            mData                  {};
+    World                     mWorld                 {};
+    Camera                    mCamera                {};
+    EntityUUIDCounter         mEntityUUIDCounter     {};
     bool                      mAttemptedToLoadEntity {};
     Entity*                   mPrefab                {};
     Render::TextureHandle     mTextureHandleColor    {};
@@ -148,27 +150,23 @@ namespace Tac
       const void* fileBytes{ fileStr.data() };
       const int fileByteCount{ fileStr.size() };
       const WavefrontObj wavefrontObj{ WavefrontObj::Load( fileBytes, fileByteCount ) };
-
-
-
     }
     else
 #endif
     {
-
       const cgltf_data* gltfData{ TryGetGLTFData( path ) };
       if( !gltfData )
         return;
 
       TAC_ON_DESTRUCT( loadedModel->mAttemptedToLoadEntity = true );
-      loadedModel->mPrefab = loadedModel->mData.mWorld.SpawnEntity(
-        loadedModel->mData.mEntityUUIDCounter.AllocateNewUUID() );
+      loadedModel->mPrefab = loadedModel->mWorld.SpawnEntity(
+        loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
       loadedModel->mPrefab->mName = path.GetFilename();
       const int nNodes{ ( int )gltfData->nodes_count };
       Vector< Entity* > entityNodes( nNodes );
       for( int i{}; i < nNodes; ++i )
-        entityNodes[ i ] = loadedModel->mData.mWorld.SpawnEntity(
-          loadedModel->mData.mEntityUUIDCounter.AllocateNewUUID() );
+        entityNodes[ i ] = loadedModel->mWorld.SpawnEntity(
+          loadedModel->mEntityUUIDCounter.AllocateNewUUID() );
 
       for( int i{}; i < nNodes; ++i )
       {
@@ -258,7 +256,7 @@ namespace Tac
       }
     }
 
-    loadedModel->mData.mWorld.ComputeTransformsRecursively();
+    loadedModel->mWorld.ComputeTransformsRecursively();
   }
 
 
@@ -377,7 +375,7 @@ namespace Tac
                                    AssetViewImportedModel* loadedModel,
                                    Errors& errors )
   {
-    if( loadedModel->mData.mWorld.mEntities.empty() )
+    if( loadedModel->mWorld.mEntities.empty() )
       return;
 
     const v2i viewSize{ sAssetViewWidth, sAssetViewHeight };
@@ -400,8 +398,8 @@ namespace Tac
     const GamePresentation::RenderParams renderParams
     {
       .mContext  { renderContext },
-      .mWorld    { &loadedModel->mData.mWorld },
-      .mCamera   { &loadedModel->mData.mCamera },
+      .mWorld    { &loadedModel->mWorld },
+      .mCamera   { &loadedModel->mCamera },
       .mViewSize { viewSize },
       .mColor    { loadedModel->mTextureHandleColor },
       .mDepth    { loadedModel->mTextureHandleDepth },
@@ -471,9 +469,10 @@ namespace Tac
       return;
     }
 
-    if( !loadedModel->mData.mWorld.mEntities.empty() )
+    if( !loadedModel->mWorld.mEntities.empty() )
     {
-      loadedModel->mData.mWorld.Step( TAC_DELTA_FRAME_SECONDS );
+      // this line should be removed, no? it should only compute transforms recursively, if even.
+      loadedModel->mWorld.Step( TAC_DELTA_FRAME_SECONDS );
 
       ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( sAssetViewWidth, sAssetViewHeight ) );
       ImGuiSameLine();

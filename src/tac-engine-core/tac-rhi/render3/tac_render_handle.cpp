@@ -2,17 +2,7 @@
 
 #include "tac-std-lib/error/tac_assert.h"
 
-namespace Tac::Render
-{
-  // -----------------------------------------------------------------------------------------------
-
-  IHandle::IHandle( int i ) : mIndex( i ) {}
-  int IHandle::GetIndex() const { return mIndex; }
-  bool IHandle::IsValid() const { return mIndex != -1; }
-
-
-  // -----------------------------------------------------------------------------------------------
-  const char* HandleTypeToString( HandleType t )
+  auto Tac::Render::HandleTypeToString( HandleType t ) -> const char*
   {
     switch(t)
     {
@@ -25,6 +15,17 @@ namespace Tac::Render
     default: TAC_ASSERT_INVALID_CASE( t ); return "?";
     }
   }
+
+namespace Tac::Render
+{
+  // -----------------------------------------------------------------------------------------------
+
+  IHandle::IHandle( int i ) : mIndex( i ) {}
+  auto IHandle::GetIndex() const -> int{ return mIndex; }
+  bool IHandle::IsValid() const { return mIndex != -1; }
+
+
+  // -----------------------------------------------------------------------------------------------
   // -----------------------------------------------------------------------------------------------
 
   ResourceHandle::ResourceHandle( HandleType t, IHandle h ) : mHandle( h ), mHandleType{ t } {}

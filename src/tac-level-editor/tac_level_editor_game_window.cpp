@@ -229,7 +229,7 @@ namespace Tac
     if( Creation::IsGameRunning() )
       return;
 
-    Camera* camera{ Creation::GetCamera() };
+    const Camera* camera{ Creation::GetEditorCamera() };
     static AssetPathString savedPrefabPath;
     static Camera savedCamera;
 
@@ -249,7 +249,7 @@ namespace Tac
       return;
 
     savedCamera = *camera;
-    PrefabSaveCamera( camera );
+    PrefabSaveCamera( &savedCamera, savedPrefabPath );
   }
 
 #if 0
@@ -432,7 +432,7 @@ namespace Tac
 #endif
   }
 
-  void CreationGameWindow::Render( World* world, Camera* camera, Errors& errors )
+  void CreationGameWindow::Render( World* world, const Camera* camera, Errors& errors )
   {
     const WindowHandle windowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
     if( !AppWindowApi::IsShown( windowHandle ) )
@@ -463,11 +463,11 @@ namespace Tac
 #endif
 
 #if 0
-    TAC_CALL( IconRenderer::RenderLights( world,
-                                          camera,
-                                          renderContext,
-                                          windowHandle,
-                                          errors ) );
+    TAC_CALL( IconRenderer::RenderIcons( world,
+                                         camera,
+                                         renderContext,
+                                         windowHandle,
+                                         errors ) );
 #endif
 
     TAC_CALL( renderContext->Execute( errors ) );

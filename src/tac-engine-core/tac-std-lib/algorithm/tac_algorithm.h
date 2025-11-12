@@ -24,7 +24,7 @@ namespace Tac
     return false;
   }
 
-  template< typename T> bool              Contains( const T* beginElement, const T* endElement, const T& element )
+  template< typename T> bool Contains( const T* beginElement, const T* endElement, const T& element )
   {
     for( const T* curElement { beginElement }; curElement != endElement; ++curElement )
       if( *curElement == element )
@@ -33,12 +33,12 @@ namespace Tac
   }
 
   // ie: int i = Random( { 1, 2, 3, 4, 5, 6 } )
-  template< typename T > auto             RandomAccess( const T& ts ) -> decltype( ts[ 0 ] )
+  template< typename T > auto RandomAccess( const T& ts ) -> decltype( ts[ 0 ] )
   {
     return ts[ RandomIndex( ( int )ts.size() ) ];
   }
 
-  template< typename T > auto             RandomNoAccess( const T& ts ) -> decltype( *ts.begin() )
+  template< typename T > auto RandomNoAccess( const T& ts ) -> decltype( *ts.begin() )
   {
     int c = RandomIndex( ts.size() );
     auto it = ts.begin();
@@ -60,14 +60,14 @@ namespace Tac
   //template< typename T, size_t U > T      Random( const std::array< T, U >& ts ) { return RandomAccess( ts );   }
   //template< typename T > T                Random( std::initializer_list<T> ts )  { return RandomNoAccess( ts ); }
 
-  template< typename T > void             Swap( T& a, T& b )                    
+  template< typename T > void Swap( T& a, T& b )                    
   {
     T temp{ ( T&& )a };
     a = ( T&& )b;
     b = ( T&& )temp;
   }
 
-  template< typename T > int              Count( const T& ts, decltype ( *ts.begin() ) value )
+  template< typename T > auto Count( const T& ts, decltype ( *ts.begin() ) value ) -> int
   {
     int n {};
     for( auto t : ts )
@@ -77,7 +77,7 @@ namespace Tac
   }
 
   // this could be templated
-  template< typename T > void             Reverse( T* begin, T* end )
+  template< typename T > void Reverse( T* begin, T* end )
   {
     --end;
     while( begin < end )

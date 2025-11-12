@@ -56,7 +56,7 @@ namespace Tac
   //        self waittill( "splatter_blood_on_screen" ); 
   //        iprintlnbold( "splatter blood now" ); 
   //      }
-  //    } 
+  //    }
   //
   // NEW TAKE:
   //  I think Ghost should inherit ScriptThread and
@@ -65,6 +65,8 @@ namespace Tac
   //  ...be part of an engine system?
   //
   //  Also, how to separate client script from server script?
+  //
+  //
   struct ScriptThread
   {
     virtual ~ScriptThread() = default;

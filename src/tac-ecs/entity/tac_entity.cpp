@@ -268,6 +268,7 @@ namespace Tac
 
     // I think these should have its own mComponents json node
     // ^ 2025-11-11 totally agree, it's gross as it is.
+    //              You'd have to change all the .prefab files though
     for( auto& [key, componentJson] : prefabJson.mObjectChildrenMap )
     {
       if( ComponentInfo * componentInfo{ ComponentInfo::Find( key.c_str() ) } )

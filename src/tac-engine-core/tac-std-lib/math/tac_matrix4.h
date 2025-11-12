@@ -33,8 +33,8 @@ namespace Tac
     bool         operator== ( const m4& ) const;
     explicit operator m3() const;
     void         Transpose();
-    v4           GetRow( int );
-    v4           GetColumn( int );
+    v4           GetRow( int ) const;
+    v4           GetColumn( int ) const;
     void         SetRow( int, const v4& );
     void         SetColumn( int, const v4& );
     float        Determinant() const;

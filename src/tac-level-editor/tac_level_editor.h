@@ -15,22 +15,17 @@ namespace Tac
   // "Creation" is the name of the level editor
   struct Creation
   {
-    struct Data
-    {
-      World               mWorld               {};
-      Camera              mCamera              {};
-      EntityUUIDCounter   mEntityUUIDCounter   {};
-    };
     static void Init( Errors& );
     static void Uninit( Errors& );
     static void Update( Errors& );
-    static void Render( World*, Camera*, Errors& );
+    static void Render( World*, const Camera*, Errors& );
     static auto GetEditorCameraVisibleRelativeSpace( const Camera* ) -> RelativeSpace;
     static auto CreateEntity() -> Entity*;
     static auto InstantiateAsCopy( Entity* ) -> Entity*;
-    static auto GetData() -> Data*;
+    static auto GetEditorCamera() -> Camera*;
     static auto GetCamera() -> Camera*;
     static auto GetWorld() -> World*;
+    static auto GetEntityUUIDCounter() -> EntityUUIDCounter*;
     static bool IsGameRunning();
   };
 

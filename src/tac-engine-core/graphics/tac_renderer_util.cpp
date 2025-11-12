@@ -4,26 +4,17 @@
 
 namespace Tac::Render
 {
-  v4 ToColorAlphaPremultiplied( const v4& colorAlphaUnassociated )
-  {
-    return {
-      colorAlphaUnassociated.x * colorAlphaUnassociated.w,
-      colorAlphaUnassociated.y * colorAlphaUnassociated.w,
-      colorAlphaUnassociated.z * colorAlphaUnassociated.w,
-      colorAlphaUnassociated.w };
-  }
-
-  u32 ShaderFlags::Info::ShiftResult( u32 unshifted ) const
+  auto ShaderFlags::Info::ShiftResult( u32 unshifted ) const -> u32
   {
     return unshifted << mOffset;
   }
 
-  u32 ShaderFlags::Info::Extract( u32 flags ) const
+  auto ShaderFlags::Info::Extract( u32 flags ) const -> u32
   {
     return ( flags >> mOffset ) & ( ( 1 << mBitCount ) - 1 );
   }
 
-  ShaderFlags::Info ShaderFlags::Add( int bitCount )
+  auto ShaderFlags::Add( int bitCount ) -> ShaderFlags::Info
   {
     const Info shaderFlag
     {
@@ -38,10 +29,11 @@ namespace Tac::Render
   static ShaderFlags       shaderLightFlags;
   static ShaderFlags::Info shaderLightFlagType              { shaderLightFlags.Add( 4 ) };
   static ShaderFlags::Info shaderLightFlagCastsShadows      { shaderLightFlags.Add( 1 ) };
-  const ShaderFlags::Info* GetShaderLightFlagType()         { return &shaderLightFlagType; }
-  const ShaderFlags::Info* GetShaderLightFlagCastsShadows() { return &shaderLightFlagCastsShadows; }
+  Render::BufferHandle     CBufferLights::sHandle;
+  Render::BufferHandle     DefaultCBufferPerFrame::sHandle;
+  Render::BufferHandle     DefaultCBufferPerObject::sHandle;
 
-  bool             CBufferLights::TryAddLight( const ShaderLight& shaderLight )
+  auto CBufferLights::TryAddLight( const ShaderLight& shaderLight ) -> bool
   {
     const bool result { lightCount < TAC_MAX_SHADER_LIGHTS };
     if( result )
@@ -49,11 +41,7 @@ namespace Tac::Render
     return result;
   }
 
-  Render::BufferHandle CBufferLights::sHandle;
-  Render::BufferHandle DefaultCBufferPerFrame::sHandle;
-  Render::BufferHandle DefaultCBufferPerObject::sHandle;
-
-  void      DefaultCBufferPerFrame::Init( Errors& errors )
+  void DefaultCBufferPerFrame::Init( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::CreateBufferParams params
@@ -66,7 +54,7 @@ namespace Tac::Render
     sHandle = TAC_CALL( renderDevice->CreateBuffer( params, errors ) );
   }
 
-  void      DefaultCBufferPerObject::Init(Errors& errors)
+  void DefaultCBufferPerObject::Init(Errors& errors)
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::CreateBufferParams params
@@ -95,17 +83,17 @@ namespace Tac::Render
 
   PremultipliedAlpha::PremultipliedAlpha( const v4& c ) : mColor( c ) {}
 
-  PremultipliedAlpha PremultipliedAlpha::From_sRGB( const v3& sRGB )
+  auto PremultipliedAlpha::From_sRGB( const v3& sRGB ) -> PremultipliedAlpha
   {
     return PremultipliedAlpha( { sRGB, 1.0f } );
   }
 
-  PremultipliedAlpha PremultipliedAlpha::From_sRGB_linearAlpha( const v3& sRGB, float linearAlpha )
+  auto PremultipliedAlpha::From_sRGB_linearAlpha( const v3& sRGB, float linearAlpha ) -> PremultipliedAlpha
   {
     return PremultipliedAlpha( { sRGB * linearAlpha, linearAlpha } );
   }
 
-  PremultipliedAlpha PremultipliedAlpha::From_sRGB_linearAlpha( const v4& sRGB_linearAlpha )
+  auto PremultipliedAlpha::From_sRGB_linearAlpha( const v4& sRGB_linearAlpha ) -> PremultipliedAlpha
   {
     return From_sRGB_linearAlpha( sRGB_linearAlpha.xyz(), sRGB_linearAlpha.w );
   }
@@ -128,11 +116,11 @@ namespace Tac::Render
   //{
   //}
 
-  const m4& DefaultCBufferPerObject::GetWorld() const { return World; }
+  auto DefaultCBufferPerObject::GetWorld() const -> const m4&{ return World; }
 
-  const v4& DefaultCBufferPerObject::GetColor() const { return Color.mColor; }
+  auto DefaultCBufferPerObject::GetColor() const -> const v4&{ return Color.mColor; }
 
-  void      CBufferLights::Init(Errors& errors)
+  void CBufferLights::Init(Errors& errors)
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Render::CreateBufferParams params
@@ -146,4 +134,18 @@ namespace Tac::Render
   }
 
 } // namespace Tac::Render
+
+namespace Tac
+{
+  auto Render::ToColorAlphaPremultiplied( const v4& colorAlphaUnassociated ) -> v4
+  {
+    return {
+      colorAlphaUnassociated.x * colorAlphaUnassociated.w,
+      colorAlphaUnassociated.y * colorAlphaUnassociated.w,
+      colorAlphaUnassociated.z * colorAlphaUnassociated.w,
+      colorAlphaUnassociated.w };
+  }
+  auto Render::GetShaderLightFlagType() -> const ShaderFlags::Info*          { return &shaderLightFlagType; }
+  auto Render::GetShaderLightFlagCastsShadows() -> const ShaderFlags::Info*  { return &shaderLightFlagCastsShadows; }
+}
 

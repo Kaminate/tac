@@ -15,11 +15,7 @@ namespace Tac
   {
     static void Init( Errors& );
     static void Uninit();
-    static void RenderLights( const World*,
-                              const Camera*,
-                              Render::IContext*,
-                              WindowHandle,
-                              Errors& );
+    static void RenderIcons( const World*, const Camera*, Render::IContext*, WindowHandle, Errors& );
   };
 }
 #endif

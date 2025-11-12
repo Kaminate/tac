@@ -3,13 +3,14 @@
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-std-lib/containers/tac_optional.h"
 
 namespace Tac
 {
   struct CreationAppState : public App::IState
   {
-    World  mWorld  {};
-    Camera mCamera {};
+    World            mWorld  {};
+    Optional<Camera> mCamera {};
   };
 
   struct LevelEditorApp : public App

@@ -3,6 +3,7 @@
 
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/graphics/light/tac_light.h"
+#include "tac-ecs/graphics/camera/tac_camera_component.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 
@@ -26,13 +27,21 @@ namespace Tac
 
   static Render::ProgramHandle         sSpriteShader             {};
   static Render::PipelineHandle        sSpritePipeline           {};
+
+  // uhhh... should these be Vectors of size RenderApi::GetMaxGPUFrameCount indexed by RenderApi::GetCurrentRenderFrameIndex???
   static Render::BufferHandle          sPerFrame                 {};
   static Render::BufferHandle          sPerObj                   {};
+
   static Render::SamplerHandle         sSampler                  {};
   static Render::IShaderVar*           sShaderPerFrame           {};
   static Render::IShaderVar*           sShaderPerObj             {};
   static Render::IShaderVar*           sShaderTexture            {};
   static Render::IShaderVar*           sShaderSampler            {};
+  static AssetPathString               kLightIconPath            {"assets/editor/light.png"};
+  static const float                   kLightIconSize            { 6 }; 
+  static AssetPathString               kCameraIconPath           {"assets/editor/camera.png"};
+  static const float                   kCameraIconSize           { 6 }; 
+  static const Render::DrawArgs        drawArgs                  { .mVertexCount { 6 }, };
 
   static auto GetProj( WindowHandle viewHandle, const Camera* camera ) -> m4
   {
@@ -64,36 +73,32 @@ namespace Tac
       .mView{ view },
       .mProj{ proj },
     };
-
     const Render::UpdateBufferParams update
     {
       .mSrcBytes{ &perFrame },
       .mSrcByteCount{ sizeof( PerFrame ) },
     };
-
     renderContext->UpdateBuffer( sPerFrame, update, errors );
   }
 
   static void IconRendererUpdatePerObj( Render::IContext* renderContext,
-                                   const Light* light,
+                                   const Entity* entity,
+                                    const float widgetSize,
                                    Errors& errors )
   {
 
     // note: Only scaling the m00, quad x and y scale are handled by m00, see 3DSprite.hlsl
-    m4 world { light->mEntity->mWorldTransform };
-    world.m00 = LightWidget::sSize;
-
+    m4 world { entity->mWorldTransform };
+    world.m00 = widgetSize;
     const PerObj perObj
     {
       .mWorld { world },
     };
-
     const Render::UpdateBufferParams update
     {
       .mSrcBytes{ &perObj },
       .mSrcByteCount{ sizeof( PerObj ) },
     };
-
     renderContext->UpdateBuffer( sPerObj, update, errors );
   }
 
@@ -177,69 +182,66 @@ namespace Tac
     renderDevice->DestroyPipeline( sSpritePipeline);
   }
 
+  static void RenderLightIcons( Render::IContext* renderContext, const World* world, Errors& errors )
+  {
+    TAC_RENDER_GROUP_BLOCK( renderContext, "RenderLightIcons" );
+    if( const Render::TextureHandle lightTextureHandle{
+      TextureAssetManager::GetTexture( kLightIconPath, errors ) };
+      lightTextureHandle.IsValid() )
+    {
+      sShaderTexture->SetResource( lightTextureHandle );
+      Graphics::From( world )->TVisitLights( [&]( Light* light )
+      {
+        TAC_CALL( IconRendererUpdatePerObj( renderContext, light->mEntity, kLightIconSize, errors ) );
+        renderContext->CommitShaderVariables();
+        renderContext->Draw( drawArgs );
+      } );
+    }
+  }
 
+  static void RenderCameraIcons( Render::IContext* renderContext, const World* world, Errors& errors )
+  {
+    TAC_RENDER_GROUP_BLOCK( renderContext, "RenderCameraIcons" );
+    if( const Render::TextureHandle textureHandle{
+      TextureAssetManager::GetTexture( kCameraIconPath, errors ) };
+      textureHandle.IsValid() )
+    {
+      sShaderTexture->SetResource( textureHandle );
+      Graphics::From( world )->TVisitCameras( [&]( CameraComponent* cameraComponent )
+      {
+        TAC_CALL( IconRendererUpdatePerObj( renderContext, cameraComponent->mEntity, kCameraIconSize, errors ) );
+        renderContext->CommitShaderVariables();
+        renderContext->Draw( drawArgs );
+      } );
+    }
+  }
 
-  void IconRenderer::RenderLights( const World* world,
+  void IconRenderer::RenderIcons(  const World* world,
                                    const Camera* camera,
                                    Render::IContext* renderContext,
                                    WindowHandle viewHandle,
                                    Errors& errors )
   {
-    TAC_RENDER_GROUP_BLOCK( renderContext, "light widgets" );
-
-    const Render::TextureHandle textureHandle{
-      TextureAssetManager::GetTexture( "assets/editor/light.png", errors ) };
-
-    if( !textureHandle.IsValid() )
-      return;
-
-    struct : public LightVisitor
-    {
-      void operator()( Light* light ) override { mLights.push_back( light ); }
-      Vector< const Light* > mLights;
-    } lightVisitor;
-
-    
+    TAC_RENDER_GROUP_BLOCK( renderContext, "RenderIcons" );
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
     const Graphics* graphics { Graphics::From( world ) };
     const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
     Render::SwapChainHandle swapChain { AppWindowApi::GetSwapChainHandle( viewHandle ) };
-    Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( swapChain ) };
-    Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( swapChain ) };
-    const Render::Targets renderTargets
-    {
-      .mColors{ swapChainColor },
-      .mDepth{ swapChainDepth },
-    };
-
-    const Render::DrawArgs drawArgs
-    {
-      .mVertexCount { 6 },
-    };
-
-    sShaderTexture->SetResource( textureHandle );
     renderContext->SetScissor( windowSize );
-    renderContext->SetRenderTargets( renderTargets );
+    renderContext->SetRenderTargets(
+      Render::Targets
+      {
+        .mColors { renderDevice->GetSwapChainCurrentColor( swapChain ) },
+        .mDepth  { renderDevice->GetSwapChainDepth( swapChain ) },
+      } );
     renderContext->SetViewport( windowSize );
     renderContext->SetPipeline( sSpritePipeline );
     renderContext->SetVertexBuffer( {} );
     renderContext->SetIndexBuffer( {} );
     renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
     TAC_CALL( IconRendererUpdatePerFrame( renderContext, viewHandle, camera, errors ) );
-    graphics->VisitLights( &lightVisitor );
-
-    for( int iLight {}; iLight < lightVisitor.mLights.size(); ++iLight )
-    {
-      const Light* light { lightVisitor.mLights[ iLight ] };
-      const String groupname{ String() + "Editor light " + ToString( iLight ) };
-
-      TAC_RENDER_GROUP_BLOCK( renderContext, groupname );
-      TAC_CALL( IconRendererUpdatePerObj( renderContext, light, errors ) );
-
-      renderContext->CommitShaderVariables();
-      renderContext->Draw( drawArgs );
-    }
+    TAC_CALL( RenderLightIcons( renderContext, world, errors ) );
+    TAC_CALL( RenderCameraIcons( renderContext, world, errors ) );
   }
 } // namespace Tac
 #endif

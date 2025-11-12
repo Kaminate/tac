@@ -74,8 +74,8 @@ namespace Tac
         ImGuiCollapsingHeader( headerStr, ImGuiNodeFlags_DefaultOpen ) )
       {
         TAC_IMGUI_INDENT_BLOCK;
-        Creation::Data* data{ Creation::GetData() };
-        sSystemInfo->mDebugImGui( data->mWorld.GetSystem( sSystemInfo ) );
+        World* world{ Creation::GetWorld() };
+        sSystemInfo->mDebugImGui( world->GetSystem( sSystemInfo ) );
       }
     }
 

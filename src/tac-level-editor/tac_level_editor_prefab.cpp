@@ -25,10 +25,24 @@ namespace Tac
     AssetPathString   mAssetPath; // Filepath of the serialized prefab
   };
 
-  static const char*        kRefFrameVecNamePosition { "mPos" };
-  static const char*        kRefFrameVecNameForward  { "mForwards" };
-  static const char*        kRefFrameVecNameRight    { "mRight" };
-  static const char*        kRefFrameVecNameUp       { "mUp" };
+  struct CameraSaveHelper
+  {
+    const char* mJsonName;
+    int mOffset;
+  };
+  static const char*            kRefFrameVecNamePosition { "mPos" };
+  static const char*            kRefFrameVecNameForward  { "mForwards" };
+  static const char*            kRefFrameVecNameRight    { "mRight" };
+  static const char*            kRefFrameVecNameUp       { "mUp" };
+  static const CameraSaveHelper kCameraSaveHelpers[]
+  {
+    CameraSaveHelper{.mJsonName{kRefFrameVecNamePosition}, .mOffset{TAC_OFFSET_OF(Camera, mPos)}},
+    CameraSaveHelper{.mJsonName{kRefFrameVecNameForward}, .mOffset{TAC_OFFSET_OF(Camera, mForwards)}},
+    CameraSaveHelper{.mJsonName{kRefFrameVecNameRight}, .mOffset{TAC_OFFSET_OF(Camera, mRight)}},
+    CameraSaveHelper{.mJsonName{kRefFrameVecNameUp}, .mOffset{TAC_OFFSET_OF(Camera, mUp)}},
+  };
+
+
   static const char*        kPrefabSettingsPath      { "prefabs" };
   static Vector< Prefab* >  sPrefabs                 {};
 
@@ -48,49 +62,21 @@ namespace Tac
     settingsNode.GetChild( kPrefabSettingsPath ).SetValue( children );
   }
 
-  static auto GetPrefabCameraNode( SettingsNode settingsNode, Prefab* prefab ) -> SettingsNode
+  static auto GetPrefabCameraNode( SettingsNode settingsNode, const AssetPathStringView prefabPath ) -> SettingsNode
   {
-    if( prefab->mAssetPath.empty() )
-      return {};
+    if( prefabPath.empty() )
+      return {}; // when would this ever happen?
 
     Span< SettingsNode > nodes{
       settingsNode.GetChild( "prefabCameraRefFrames" ).GetChildrenArray() };
 
     for( SettingsNode node : nodes )
-      if( node.GetChild( "path" ).GetValue() == prefab->mAssetPath )
+      if( node.GetChild( "path" ).GetValue() == prefabPath )
         return node;
 
     return {};
   }
 
-  static void PrefabLoadCameraVec( Prefab* prefab, StringView refFrameVecName, v3& refFrameVec )
-  {
-    SettingsNode settingsNode{ Shell::sShellSettings };
-    if( SettingsNode node{ GetPrefabCameraNode( settingsNode, prefab ) };\
-        node.IsValid() )
-      for( int iAxis{}; iAxis < 3; ++iAxis )
-        refFrameVec[ iAxis ] = ( float )node
-          .GetChild( String() + refFrameVecName + "." + StringView( "xyz" + iAxis, 1 ) )
-          .GetValueWithFallback( refFrameVec[ iAxis ] ).mNumber;
-  }
-
-  static void PrefabSaveCameraVec( SettingsNode settingsNode,
-                                           Prefab* prefab,
-                                           StringView refFrameVecName,
-                                           v3 refFrameVec )
-  {
-    SettingsNode node{ GetPrefabCameraNode( settingsNode, prefab ) };
-    if( !node.IsValid() )
-      return;
-
-    for( int iAxis{}; iAxis < 3; ++iAxis )
-    {
-      node
-        .GetChild( String() + refFrameVecName + "." + StringView( "xyz" + iAxis, 1 ) )
-        .SetValue( refFrameVec[ iAxis ] );
-    }
-
-  }
 
   static auto PrefabFind( Entity* entity ) -> Prefab*
   {
@@ -188,29 +174,32 @@ namespace Tac
   }
 }
 
-void Tac::PrefabLoadAtPath( const AssetPathStringView& prefabPath,
-                            Errors& errors )
+void Tac::PrefabLoadAtPath( const AssetPathStringView prefabPath, Errors& errors )
 {
-  Creation::Data* data{ Creation::GetData() };
+  World* world{ Creation::GetWorld() };
+  EntityUUIDCounter* entityUUIDCounter{ Creation::GetEntityUUIDCounter() };
   TAC_CALL( const String memory{ LoadAssetPath( prefabPath, errors ) } );
   TAC_CALL( const Json prefabJson{ Json::Parse( memory, errors ) } );
-  Entity* entity{ data->mWorld.SpawnEntity( data->mEntityUUIDCounter.AllocateNewUUID() ) };
-  entity->Load( data->mEntityUUIDCounter, prefabJson );
+
+  if( world->mEntities.empty() )
+    if( Camera * camera{ Creation::GetEditorCamera() } )
+      if( SettingsNode node{ GetPrefabCameraNode( Shell::sShellSettings, prefabPath ) };
+          node.IsValid() )
+        for( int iAxis{}; iAxis < 3; ++iAxis )
+          for( CameraSaveHelper helper : kCameraSaveHelpers )
+            if( v3& v{ *( v3* )( ( u8* )camera + helper.mOffset ) }; true )
+              v[ iAxis ] = ( float )node
+              .GetChild( String() + helper.mJsonName + "." + StringView( "xyz" + iAxis, 1 ) )
+              .GetValueWithFallback( v[ iAxis ] ).mNumber;
+
+  Entity* entity{ world->SpawnEntity( entityUUIDCounter->AllocateNewUUID() ) };
+  entity->Load( *entityUUIDCounter, prefabJson );
   auto prefab{ TAC_NEW Prefab
   {
     .mEntities  { entity },
     .mAssetPath { prefabPath },
   } };
   sPrefabs.push_back( prefab );
-  if( data->mWorld.mEntities.empty() )
-  {
-    Camera* camera{&data->mCamera};
-    PrefabLoadCameraVec( prefab, kRefFrameVecNamePosition, camera->mPos );
-    PrefabLoadCameraVec( prefab, kRefFrameVecNameForward, camera->mForwards );
-    PrefabLoadCameraVec( prefab, kRefFrameVecNameRight, camera->mRight );
-    PrefabLoadCameraVec( prefab, kRefFrameVecNameUp, camera->mUp );
-  }
-
   PrefabUpdateOpenedInEditor();
 }
 
@@ -242,16 +231,19 @@ bool Tac::PrefabSave( World* world, Errors& errors )
   return result;
 }
 
-void Tac::PrefabSaveCamera(  Camera* camera )
+void Tac::PrefabSaveCamera( const Camera* camera, const AssetPathStringView prefabPath )
 {
   SettingsNode settingsNode{ Shell::sShellSettings };
   for( Prefab* prefab : sPrefabs )
-  {
-    PrefabSaveCameraVec( settingsNode, prefab, kRefFrameVecNamePosition, camera->mPos );
-    PrefabSaveCameraVec( settingsNode, prefab, kRefFrameVecNameForward, camera->mForwards );
-    PrefabSaveCameraVec( settingsNode, prefab, kRefFrameVecNameRight, camera->mRight );
-    PrefabSaveCameraVec( settingsNode, prefab, kRefFrameVecNameUp, camera->mUp );
-  }
+    if( ( AssetPathStringView )prefab->mAssetPath == prefabPath )
+      if( SettingsNode node{ GetPrefabCameraNode( settingsNode, prefabPath ) };
+          node.IsValid() )
+        for( CameraSaveHelper helper : kCameraSaveHelpers )
+          if( const v3& v{ *( const v3* )( ( const u8* )camera + helper.mOffset ) }; true )
+            for( int iAxis{}; iAxis < 3; ++iAxis )
+              node
+              .GetChild( String() + helper.mJsonName + "." + StringView( "xyz" + iAxis, 1 ) )
+              .SetValue( v[ iAxis ] );
 }
 
 void Tac::PrefabRemoveEntityRecursively(  Entity* entity )

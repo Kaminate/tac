@@ -8,7 +8,7 @@ namespace Tac::Render
     static constexpr int kInvalidIndex{ -1 };
 
     IHandle( int i = kInvalidIndex );
-    int GetIndex() const;
+    auto GetIndex() const -> int;
     bool IsValid() const;
 
   private:
@@ -27,7 +27,7 @@ namespace Tac::Render
     kCount,
   };
 
-  const char* HandleTypeToString( HandleType );
+  auto HandleTypeToString( HandleType ) -> const char*;
 
   struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = kInvalidIndex ) : IHandle{ i } {} };
   struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = kInvalidIndex ) : IHandle{ i } {} };

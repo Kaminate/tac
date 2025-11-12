@@ -163,7 +163,6 @@ namespace Tac
     };
   };
 
-
   static void WidgetRendererUpdatePerFrame( Render::IContext* renderContext,
                                        WindowHandle viewHandle,
                                        const Camera* camera,
@@ -176,13 +175,11 @@ namespace Tac
       .mView { view },
       .mProj { proj },
     };
-
     const Render::UpdateBufferParams update
     {
       .mSrcBytes     { &perFrame },
       .mSrcByteCount { sizeof( PerFrame ) },
     };
-
     renderContext->UpdateBuffer( sBufferPerFrame, update, errors );
   }
 
@@ -249,7 +246,6 @@ namespace Tac
     TAC_RENDER_GROUP_BLOCK( renderContext, "Editor Selection" );
     renderContext->SetPipeline( s3DPipeline );
     TAC_CALL( WidgetRendererUpdatePerFrame( renderContext, viewHandle, camera, errors ) );
-
     for( int i{}; i < 3; ++i )
     {
       TAC_CALL( WidgetRendererUpdatePerObject( renderContext, i, errors ) );

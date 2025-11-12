@@ -15,7 +15,7 @@ namespace Tac::Render
 {
   static constexpr bool kLogBufferLifetimes{ kIsDebugMode && true };
 
-  static D3D12_RESOURCE_FLAGS GetResourceFlags( Binding binding )
+  static auto GetResourceFlags( Binding binding ) -> D3D12_RESOURCE_FLAGS
   {
     D3D12_RESOURCE_FLAGS ResourceFlags{ D3D12_RESOURCE_FLAG_NONE };
 
@@ -28,7 +28,7 @@ namespace Tac::Render
     return ResourceFlags;
   }
 
-  static DXGI_FORMAT GetSRVFormat( CreateBufferParams params )
+  static auto GetSRVFormat( CreateBufferParams params ) -> DXGI_FORMAT
   {
     if( params.mGpuBufferMode == GpuBufferMode::kStructured )
       return DXGIFormatFromTexFmt( params.mGpuBufferFmt );
@@ -39,6 +39,8 @@ namespace Tac::Render
     return DXGI_FORMAT_UNKNOWN;
   }
 
+  static const char* kDestroyBufferAction{"[destroying_buffer]"};
+  static const char* kCreateBufferAction{"[creating_buffer]"};
   static void LogBufferAux( StringView action, BufferHandle h, dynmc DX12Buffer* buffer )
   {
     if( !kLogBufferLifetimes )
@@ -69,18 +71,9 @@ namespace Tac::Render
     LogApi::LogMessagePrint( renderFrameStr );
     LogApi::LogMessagePrint( "\n" );
   }
-  static void LogBufferDestruction( BufferHandle h, dynmc DX12Buffer* buffer )
-  {
-    LogBufferAux( "[destroying_buffer]", h, buffer );
-  }
-  static void LogBufferCreation( BufferHandle h, dynmc DX12Buffer* buffer )
-  {
-    LogBufferAux( "[creating_buffer]", h , buffer);
-  }
 
-
-  DX12BufferMgr::DescriptorBindings DX12BufferMgr::CreateBindings( ID3D12Resource* resource,
-                                                                   CreateBufferParams params )
+  auto DX12BufferMgr::CreateBindings( ID3D12Resource* resource,
+                                      CreateBufferParams params ) -> DescriptorBindings
   {
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
@@ -156,8 +149,7 @@ namespace Tac::Render
     };
   }
 
-  BufferHandle DX12BufferMgr::CreateBuffer( CreateBufferParams params,
-                                            Errors& errors )
+  auto DX12BufferMgr::CreateBuffer( CreateBufferParams params, Errors& errors ) -> BufferHandle
   {
     const int byteCount { params.mByteCount };
     const StackFrame sf { params.mStackFrame };
@@ -178,7 +170,7 @@ namespace Tac::Render
         buffer.mCreateParams.mOptionalName = buffer.mCreateName;
       }
 
-      LogBufferCreation( h, &mBuffers[ h.GetIndex() ] );
+      LogBufferAux( kCreateBufferAction, h, &mBuffers[ h.GetIndex() ] );
 
       return h;
     }
@@ -324,12 +316,12 @@ namespace Tac::Render
       .mCreateParams   { params },
     };
 
-    LogBufferCreation( h, &mBuffers[ i ] );
+    LogBufferAux( kCreateBufferAction, h, &mBuffers[ i ] );
 
     return h;
   }
 
-  DX12Buffer* DX12BufferMgr::FindBuffer( BufferHandle h )
+  auto DX12BufferMgr::FindBuffer( BufferHandle h ) -> DX12Buffer*
   {
     return h.IsValid() ? &mBuffers[ h.GetIndex() ] : nullptr;
   }
@@ -443,7 +435,7 @@ namespace Tac::Render
   {
     if( h.IsValid() )
     {
-      LogBufferDestruction( h, &mBuffers[ h.GetIndex() ] );
+      LogBufferAux( kDestroyBufferAction, h, &mBuffers[ h.GetIndex() ] );
       FreeHandle( h );
       mBuffers[ h.GetIndex() ] = {};
     }

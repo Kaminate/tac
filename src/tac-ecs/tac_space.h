@@ -13,6 +13,7 @@ namespace Tac
   struct Light;
   struct Terrain;
   struct Material;
+  struct CameraComponent;
 
   // Entity-Component Systems
   struct Component;
@@ -26,6 +27,7 @@ namespace Tac
   struct Graphics;
   struct Physics;
 
+  // ...
   struct Player;
   struct OtherPlayer;
   struct User;
@@ -40,6 +42,5 @@ namespace Tac
   struct ScriptCallbackData;
   struct ScriptThread;
   struct ScriptRoot;
-
 }
 

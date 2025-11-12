@@ -10,10 +10,10 @@
 namespace Tac
 {
   bool PrefabSave( World*, Errors& );
-  void PrefabLoadAtPath(  const AssetPathStringView&, Errors& );
+  void PrefabLoadAtPath( AssetPathStringView, Errors& );
   void PrefabLoad( Errors& );
   void PrefabImGui();
-  void PrefabSaveCamera( Camera* );
+  void PrefabSaveCamera( const Camera*, AssetPathStringView );
   void PrefabRemoveEntityRecursively( Entity* );
   auto PrefabGetOrNull( Entity* ) -> AssetPathStringView;
   auto PrefabGetLoaded() -> AssetPathStringView;

@@ -18,25 +18,25 @@ namespace Tac::Render
   {
     struct Info
     {
-      u32 ShiftResult( u32 unshifted ) const;
-      u32 Extract( u32 flags ) const;
-      int      mOffset;
-      int      mBitCount;
+      auto ShiftResult( u32 unshifted ) const -> u32;
+      auto Extract( u32 flags ) const -> u32;
+      int mOffset;
+      int mBitCount;
     };
 
-    Info       Add( int bitCount );
-    int        mRunningBitCount {};
+    Info Add( int bitCount );
+    int mRunningBitCount {};
   };
 
   // this should really be called like per camera data
   struct DefaultCBufferPerFrame
   {
-    static const char*                  name_view()        { return "View";        };
-    static const char*                  name_proj()        { return "Projection";  };
-    static const char*                  name_far()         { return "far";         };
-    static const char*                  name_near()        { return "near";        };
-    static const char*                  name_gbuffersize() { return "gbufferSize"; };
-    static void                         Init( Errors& );
+    static auto name_view()        { return "View";        };
+    static auto name_proj()        { return "Projection";  };
+    static auto name_far()         { return "far";         };
+    static auto name_near()        { return "near";        };
+    static auto name_gbuffersize() { return "gbufferSize"; };
+    static void Init( Errors& );
 
     m4                                  mView;
     m4                                  mProjection;
@@ -51,9 +51,9 @@ namespace Tac::Render
 
   struct PremultipliedAlpha
   {
-    static PremultipliedAlpha From_sRGB( const v3& );
-    static PremultipliedAlpha From_sRGB_linearAlpha( const v3&, float );
-    static PremultipliedAlpha From_sRGB_linearAlpha( const v4& );
+    static auto From_sRGB( const v3& ) -> PremultipliedAlpha;
+    static auto From_sRGB_linearAlpha( const v3&, float ) -> PremultipliedAlpha;
+    static auto From_sRGB_linearAlpha( const v4& ) -> PremultipliedAlpha;
 
     explicit PremultipliedAlpha( const v4& );
     PremultipliedAlpha() = default;
@@ -64,27 +64,21 @@ namespace Tac::Render
 
   struct DefaultCBufferPerObject
   {
+    static auto name_world()       { return "World";       };
+    static auto name_color()       { return "Color";       };
+    static void Init(Errors&);
+    auto GetWorld() const -> const m4&;
+    auto GetColor() const -> const v4&;
 
-    //DefaultCBufferPerObject() = default;
-    //DefaultCBufferPerObject( const m4&, const PremultipliedAlpha& );
-
-    static const char*                  name_world()       { return "World";       };
-    static const char*                  name_color()       { return "Color";       };
-    static void                         Init(Errors&);
     static Render::BufferHandle         sHandle;
-
-    const m4&                           GetWorld() const;
-    const v4&                           GetColor() const;
-
-  //private:
     m4                                  World { m4::Identity() };
     PremultipliedAlpha                  Color;
   };
 
 
 
-  const ShaderFlags::Info* GetShaderLightFlagType();
-  const ShaderFlags::Info* GetShaderLightFlagCastsShadows();
+  auto GetShaderLightFlagType() -> const ShaderFlags::Info*;
+  auto GetShaderLightFlagCastsShadows() -> const ShaderFlags::Info*;
 
   // https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl-packing-rules
   struct ShaderLight
@@ -101,22 +95,22 @@ namespace Tac::Render
 
   struct CBufferLights
   {
+
+    bool TryAddLight( const ShaderLight& );
+    static void Init( Errors& );
+
     static const int TAC_MAX_SHADER_LIGHTS            { 4 };
     static const int sShaderRegister                  { 2 };
-
     ShaderLight      lights[ TAC_MAX_SHADER_LIGHTS ]  {};
     u32              lightCount                       {};
     u32              useLights                        { true };
     u32              testNumber                       { 1234567890 };
-    bool             TryAddLight( const ShaderLight& );
-
-    static void      Init( Errors& );
 
     static Render::BufferHandle sHandle;
   };
 
   // maybe this should be in renderer idk
-  v4 ToColorAlphaPremultiplied( const v4& colorAlphaUnassociated );
+  auto ToColorAlphaPremultiplied( const v4& colorAlphaUnassociated ) -> v4;
 
 
 } // namespace Tac::Render

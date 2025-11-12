@@ -41,6 +41,8 @@ namespace Tac::Render
     {
       ResourceHandle mResourceHandle;
       u64            mRenderFrameIndex     { RenderApi::GetCurrentRenderFrameIndex() };
+
+      // why is this needed?
       FrameIndex     mSimulationFrameIndex { Timestep::GetElapsedFrames() };
     };
 

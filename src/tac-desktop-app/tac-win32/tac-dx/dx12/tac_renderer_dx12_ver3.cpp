@@ -32,6 +32,8 @@ namespace Tac::Render
     };
     mEntries.push( entry );
 
+    TAC_ASSERT( entry.mResourceHandle.GetHandleType() != HandleType::kUnknown ); // sanity
+
     if( mVerbose )
     {
       LogApi::LogMessagePrintLine(
@@ -61,24 +63,23 @@ namespace Tac::Render
         break;
 
       const Entry& entry{ mEntries.front() };
-      const u64 deleteRenderFrameIndex { entry.mRenderFrameIndex + maxGPUFrameCount };
-
       const FrameIndex simulationFrameIndex { Timestep::GetElapsedFrames() };
-      const bool canDelete{ currentRenderFrameIndex > deleteRenderFrameIndex &&
-       simulationFrameIndex > entry.mSimulationFrameIndex
+      const bool canDelete{
+        ( currentRenderFrameIndex > entry.mRenderFrameIndex + maxGPUFrameCount ) &&
+        ( simulationFrameIndex > entry.mSimulationFrameIndex )
       };
       if( !canDelete )
         break;
 
       const HandleType handleType{ entry.mResourceHandle.GetHandleType() };
-
       if( mVerbose )
       {
         LogApi::LogMessagePrintLine(
           String()
-          + "Render frame " + ToString( currentRenderFrameIndex ) + ", "
           + "deleting " + HandleTypeToString( handleType )
-          + " #" + ToString( entry.mResourceHandle.GetIndex() ) );
+          + " #" + ToString( entry.mResourceHandle.GetIndex() )
+          + "(render frame: " + ToString( currentRenderFrameIndex )
+        );
       }
 
       switch( handleType )

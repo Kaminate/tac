@@ -16,10 +16,11 @@ namespace Tac
 
   void LevelEditorApp::GameState_Update( IState* state )
   {
-    Creation::Data* data{ Creation::GetData() };
+    World* world{ Creation::GetWorld() };
+    Camera* camera{ Creation::GetCamera() };
     auto renderState{ ( CreationAppState* )state };
-    renderState->mWorld.DeepCopy( data->mWorld );
-    renderState->mCamera = data->mCamera;
+    renderState->mWorld.DeepCopy( *world );
+    renderState->mCamera = camera ? *camera : Optional<Camera>{};
   }
 
   void LevelEditorApp::Update( Errors& errors ) { Creation::Update( errors ); }
@@ -28,7 +29,8 @@ namespace Tac
   {
     // todo: interpolate between old and new state?
     CreationAppState* renderState{ ( CreationAppState* )renderParams.mNewState };
-    Creation::Render( &renderState->mWorld, &renderState->mCamera, errors );
+    const Camera* camera{ renderState->mCamera.HasValue() ? &renderState->mCamera.GetValue() : nullptr };
+    Creation::Render( &renderState->mWorld, camera, errors );
   }
 
   void LevelEditorApp::Uninit( Errors& errors ) { Creation::Uninit( errors ); }

@@ -20,16 +20,6 @@ namespace Tac
 {
   struct Light : public Component
   {
-    static void         RegisterComponent();
-    static dynmc Light* GetLight( Entity* );
-    static const Light* GetLight( const Entity* );
-
-    const ComponentInfo* GetEntry() const override;
-
-    void                                 FreeRenderResources();
-    Camera                               GetCamera() const;
-    v3                                   GetUnitDirection() const;
-
     enum Type
     {
       kDirectional,
@@ -39,6 +29,14 @@ namespace Tac
       kCount,
     };
 
+    static void RegisterComponent();
+    static auto GetLight( Entity* ) -> dynmc Light*;
+    static auto GetLight( const Entity* ) -> const Light*;
+
+    auto GetEntry() const -> const ComponentInfo* override;
+    void FreeRenderResources();
+    auto GetCamera() const->Camera;
+    auto GetUnitDirection() const ->v3;
     bool                      mOverrideClipPlanes     {};
     float                     mFarPlaneOverride       { 10000.0f };
     float                     mNearPlaneOverride      { 0.1f };
@@ -55,12 +53,11 @@ namespace Tac
     float                     mRadiance               { 5.0f }; // i guess?
   };
 
-  Render::ShaderLight LightToShaderLight( const Light* );
-  const char*         LightTypeToString( Light::Type );
-  Light::Type         LightTypeFromString( const StringView& );
-  void                LightDebugImgui( Light* );
+  auto LightToShaderLight( const Light* ) -> Render::ShaderLight;
+  auto LightTypeToString( Light::Type ) -> const char*;
+  auto LightTypeFromString( const StringView& ) -> Light::Type;
+  auto LightDebugImgui( Light* ) -> void;
 
   TAC_META_DECL( Light );
-  //const MetaType&     GetMetaType( const Light& );
 }
 

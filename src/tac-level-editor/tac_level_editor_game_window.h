@@ -12,7 +12,7 @@ namespace Tac
   {
     static void Init( Errors& );
     static void Update( Errors& );
-    static void Render( World*, Camera*, Errors& );
+    static void Render( World*, const Camera*, Errors& );
     static void SetStatusMessage( StringView, TimestampDifference );
     static bool sShowWindow;
   };

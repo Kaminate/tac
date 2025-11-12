@@ -10,3 +10,5 @@ add_subdirectory( light )
 add_subdirectory( model )
 add_subdirectory( skybox )
 add_subdirectory( material )
+add_subdirectory( camera )
+

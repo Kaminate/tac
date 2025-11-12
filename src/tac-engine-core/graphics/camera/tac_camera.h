@@ -7,11 +7,11 @@ namespace Tac
 {
   struct Camera
   {
-    void  SetForwards( v3 ); // does not need to be normalized
-    m4    View() const;
-    m4    ViewInv() const;
-    m4    Proj( float aspectRatio ) const;
-    m4    ProjInv( float aspectRatio ) const;
+    void SetForwards( v3 ); // does not need to be normalized
+    auto View() const -> m4;
+    auto ViewInv() const -> m4;
+    auto Proj( float aspectRatio ) const -> m4;
+    auto ProjInv( float aspectRatio ) const -> m4;
 
     v3    mPos       { 0,0,5 }; // worldspace
     v3    mForwards  { 0,0,-1}; // worldspace

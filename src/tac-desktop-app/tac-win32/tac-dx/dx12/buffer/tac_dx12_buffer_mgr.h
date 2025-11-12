@@ -13,16 +13,16 @@ namespace Tac::Render
 {
   struct DX12BufferMgr
   {
-    BufferHandle CreateBuffer( CreateBufferParams, Errors& );
+    auto CreateBuffer( CreateBufferParams, Errors& ) -> BufferHandle;
 
     //           !?! eww
-    void         UpdateBuffer( BufferHandle,
-                               Span< const UpdateBufferParams >,
-                               DX12Context*,
-                               Errors& );
+    void UpdateBuffer( BufferHandle,
+                       Span< const UpdateBufferParams >,
+                       DX12Context*,
+                       Errors& );
 
-    DX12Buffer*  FindBuffer( BufferHandle );
-    void         DestroyBuffer( BufferHandle );
+    auto FindBuffer( BufferHandle ) -> DX12Buffer*;
+    void DestroyBuffer( BufferHandle );
 
   private:
 
@@ -34,10 +34,8 @@ namespace Tac::Render
       Optional< DX12Descriptor > mUAV;
     };
 
-    DescriptorBindings  CreateBindings( ID3D12Resource* , CreateBufferParams );
-    void                TransitionBuffer( Binding,
-                                          DX12Resource*,
-                                          ID3D12GraphicsCommandList* );
+    auto CreateBindings( ID3D12Resource* , CreateBufferParams ) -> DescriptorBindings;
+    void TransitionBuffer( Binding, DX12Resource*, ID3D12GraphicsCommandList* );
 
     DX12Buffers mBuffers{};
   };

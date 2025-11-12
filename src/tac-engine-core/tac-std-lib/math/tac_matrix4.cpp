@@ -78,12 +78,12 @@ namespace Tac
                 m03, m13, m23, m33 );
   }
 
-  v4           m4::GetRow( int r )
+  v4           m4::GetRow( int r ) const
   {
     return *( ( v4* )data() + r );
   }
 
-  v4           m4::GetColumn( int c )
+  v4           m4::GetColumn( int c ) const
   {
     return { data()[ 4 * 0 + c ],
              data()[ 4 * 1 + c ],

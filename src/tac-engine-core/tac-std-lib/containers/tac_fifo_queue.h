@@ -13,20 +13,11 @@
 
 namespace Tac
 {
-
-  // How come ~T() is never called?
-  // Seems like a mega bug
-
   template< typename T >
   struct FifoQueue
   {
     FifoQueue() = default;
-
-    FifoQueue( FifoQueue&& q )
-    {
-      swap( q );
-    }
-
+    FifoQueue( FifoQueue&& q ) noexcept { swap( ( FifoQueue&& )q ); }
     FifoQueue( const FifoQueue& v )
     {
       reserve( v.mTCount );
@@ -46,64 +37,60 @@ namespace Tac
     // Note: mOffset prevents begin() == end() when count == capacity
     struct ConstIterator
     {
-      int        GetIndex()    { return ( mFifoQueue->mStartIndex + mOffset ) % mFifoQueue->mTCapacity; }
+      auto GetIndex()                { return ( mFifoQueue->mStartIndex + mOffset ) % mFifoQueue->mTCapacity; }
+      auto operator *() -> const T&  { return mFifoQueue->mTs[ GetIndex() ]; }
+      void operator ++()             { mOffset++; }
+      bool operator ==( const ConstIterator& ) const = default;
 
-      const T&   operator *()  { return mFifoQueue->mTs[ GetIndex() ]; }
-      void       operator ++() { mOffset++; }
-      bool       operator ==( const ConstIterator& ) const = default;
-
-      FifoQueue* mFifoQueue    {};
+      const FifoQueue* mFifoQueue    {};
       int        mOffset       {};
     };
 
-    struct Iterator
+    struct DynmcIterator
     {
-      int        GetIndex()    { return ( mFifoQueue->mStartIndex + mOffset ) % mFifoQueue->mTCapacity; }
+      auto GetIndex()                { return ( mFifoQueue->mStartIndex + mOffset ) % mFifoQueue->mTCapacity; }
+      auto operator *() -> dynmc T&  { return mFifoQueue->mTs[ GetIndex() ]; }
+      void operator ++()             { mOffset++; }
+      bool operator ==( const DynmcIterator& ) const = default;
 
-      dynmc T&   operator *()  { return mFifoQueue->mTs[ GetIndex() ]; }
-      void       operator ++() { mOffset++; }
-      bool       operator ==( const Iterator& ) const = default;
-
-      FifoQueue* mFifoQueue    {};
+      dynmc FifoQueue* mFifoQueue    {};
       int        mOffset       {};
     };
 
-    void     operator =( FifoQueue< T >&& v )
+    void operator =( FifoQueue< T >&& v )
     {
-      swap( v );
+      swap( ( FifoQueue<T>&& )v );
     }
 
-    void     operator =( const FifoQueue< T >& v )
+    void operator =( const FifoQueue< T >& v )
     {
       reserve( v.mTCount );
       for( T& t : v )
         push( t );
     }
 
-    void     clear()
+    void clear()
     {
-      Iterator i = begin();
-      Iterator e = end();
+      DynmcIterator i{ begin() };
+      DynmcIterator e{ end() };
       for( ; i != e; ++i )
       {
         T& t = *i;
         t.~T();
       }
-      //for( T& t : *this )
-      //  t.~T();
 
       mTCount = 0;
       mStartIndex = 0;
     }
 
-    void     push( T&& t )
+    void push( T&& t )
     {
       reserve();
       mTCount++;
       TAC_PLACEMENT_NEW( &back() )T( move( t ) );
     }
 
-    void     push( const T& t )
+    void push( const T& t )
     {
       reserve();
       mTCount++;
@@ -127,14 +114,14 @@ namespace Tac
       mTCapacity = capacity;
     }
 
-    void     reserve()
+    void reserve()
     {
       if( mTCount == mTCapacity )
         reserve( int( mTCount * 1.5f ) + 1 );
     }
 
     template< class ... Args >
-    T&       emplace( Args&& ... args )
+    auto emplace( Args&& ... args ) -> T&
     {
       reserve();
       mTCount++;
@@ -142,7 +129,7 @@ namespace Tac
       return back();
     }
 
-    void     pop()                
+    void pop()
     {
       TAC_ASSERT( mTCount );
       T& t{ front() };
@@ -150,10 +137,10 @@ namespace Tac
       mTCount--;
       mStartIndex = ( mStartIndex + 1 ) % mTCapacity;
     }
-    bool     empty() const              { return !mTCount; }
-    int      size() const               { return mTCount; }
+    bool empty() const              { return !mTCount; }
+    auto size() const               { return mTCount; }
 
-    void     swap( FifoQueue<T>& other )
+    void swap( FifoQueue<T>&& other ) noexcept
     {
       Swap( mTs, other.mTs );
       Swap( mTCount, other.mTCount );
@@ -161,9 +148,9 @@ namespace Tac
       Swap( mStartIndex, other.mStartIndex );
     }
 
-    Iterator      begin() dynmc         { return Iterator     { .mFifoQueue{ this }, .mOffset{} }; }
+    DynmcIterator begin() dynmc         { return DynmcIterator{ .mFifoQueue{ this }, .mOffset{} }; }
     ConstIterator begin() const         { return ConstIterator{ .mFifoQueue{ this }, .mOffset{} }; }
-    Iterator      end() dynmc           { return Iterator     { .mFifoQueue{ this }, .mOffset{ mTCount } }; }
+    DynmcIterator end() dynmc           { return DynmcIterator{ .mFifoQueue{ this }, .mOffset{ mTCount } }; }
     ConstIterator end() const           { return ConstIterator{ .mFifoQueue{ this }, .mOffset{ mTCount } }; }
 
     // first element in the queue / the next element to be popped
@@ -179,7 +166,7 @@ namespace Tac
 
   private:
 
-    friend struct Iterator;
+    friend struct DynmcIterator;
     friend struct ConstIterator;
 
     T*       mTs         {};

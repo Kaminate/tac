@@ -228,8 +228,7 @@ namespace Tac
 
   void CreationMousePicking::MousePickingGizmos()
   {
-    const Creation::Data* data{ Creation::GetData() };
-    const Camera* camera{ &data->mCamera };
+    const Camera* camera{ Creation::GetCamera() };
     GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
     if( SelectedEntities::empty() || !gizmoMgr->mGizmosEnabled || !mWindowHovered )
       return;
@@ -278,9 +277,8 @@ namespace Tac
 
   void CreationMousePicking::MousePickingEntities( Errors& errors )
   {
-    Creation::Data* data{ Creation::GetData() };
-    Camera* camera{ &data->mCamera };
-    World* world{ &data->mWorld };
+    Camera* camera{ Creation::GetCamera() };
+    World* world{ Creation::GetWorld() };
     const Ray ray
     {
       .mOrigin{ camera->mPos },
@@ -373,16 +371,17 @@ namespace Tac
     MousePickingSelection();
     if( pickData.pickedObject != PickedObject::None )
     {
-      Creation::Data* data{ Creation::GetData() };
-      const v3 worldSpaceHitPoint{ data->mCamera.mPos + pickData.closestDist * mWorldSpaceMouseDir };
-      data->mWorld.mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
+      dynmc World* world{ Creation::GetWorld() };
+      const Camera* camera{ Creation::GetCamera() };
+      const v3 worldSpaceHitPoint{ camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
+      world->mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
   }
 
   void CreationMousePicking::BeginFrame( WindowHandle mWindowHandle )
   {
     mWindowHovered = AppWindowApi::IsHovered( mWindowHandle );
-    Camera* camera{ Creation::GetCamera() };
+    const Camera* camera{ Creation::GetCamera() };
     const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
     const v2i windowPos{ AppWindowApi::GetPos( mWindowHandle ) };
     const float w{ ( float )windowSize.x };

@@ -6,7 +6,7 @@
 namespace Tac
 {
 
-  static m4::ProjectionMatrixParams GetProjParams( const Camera* camera, float aspectRatio )
+  static auto GetProjParams( const Camera* camera, float aspectRatio ) -> m4::ProjectionMatrixParams
   {
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
@@ -33,23 +33,17 @@ namespace Tac
     mUp = Cross( mRight, mForwards );
   }
 
-  m4    Camera::View() const
-  {
-    return m4::View( mPos, mForwards, mRight, mUp );
-  }
+  auto Camera::View() const -> m4 { return m4::View( mPos, mForwards, mRight, mUp ); }
 
-  m4    Camera::Proj( float aspectRatio ) const
+  auto Camera::Proj( float aspectRatio ) const -> m4
   {
     const m4::ProjectionMatrixParams projParams{ GetProjParams( this, aspectRatio ) };
     return m4::ProjPerspective( projParams );
   }
 
-  m4    Camera::ViewInv() const
-  {
-    return m4::ViewInv( mPos, mForwards, mRight, mUp );
-  }
+  auto Camera::ViewInv() const -> m4 { return m4::ViewInv( mPos, mForwards, mRight, mUp ); }
 
-  m4    Camera::ProjInv( float aspectRatio ) const
+  auto Camera::ProjInv( float aspectRatio ) const -> m4
   {
     const m4::ProjectionMatrixParams projParams{ GetProjParams( this, aspectRatio ) };
     return m4::ProjPerspectiveInv( projParams );
