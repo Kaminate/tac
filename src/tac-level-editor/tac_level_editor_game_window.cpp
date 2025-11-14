@@ -190,8 +190,8 @@ namespace Tac
     
     const SphericalCoordinate prevSpherical{ camOrbitSpherical };
     
-    camOrbitSpherical.mTheta += sThetaVel * TAC_DELTA_FRAME_SECONDS;
-    camOrbitSpherical.mPhi += sPhiVel * TAC_DELTA_FRAME_SECONDS;
+    camOrbitSpherical.mTheta += sThetaVel * TAC_DT;
+    camOrbitSpherical.mPhi += sPhiVel * TAC_DT;
     camOrbitSpherical.mTheta = Clamp( camOrbitSpherical.mTheta, vertLimit, 3.14f - vertLimit );
 
     camera->mPos = orbitCenter + camOrbitSpherical.ToCartesian();
@@ -524,7 +524,7 @@ namespace Tac
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView msg,
-                                             const TimestampDifference duration )
+                                             const TimeDuration duration )
   {
     const Timestamp curTime { Timestep::GetElapsedTime() };
     sStatusMessage = msg;

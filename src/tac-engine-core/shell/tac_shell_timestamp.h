@@ -3,41 +3,40 @@
 namespace Tac
 {
   struct String;
-  struct TimestampDifference;
+  struct TimeDuration;
 
   struct Timestamp
   {
-    Timestamp() = default;
-    Timestamp( double );
-    Timestamp( int );
-    Timestamp( float ) = delete;
-    void operator += ( const TimestampDifference& );
+    //Timestamp() = default;
+    //Timestamp( double );
+    //Timestamp( int );
+    //Timestamp( float ) = delete;
     operator double() const;
+    auto Format() const -> String;
     double mSeconds {};
   };
 
-  struct TimestampDifference
+  struct TimeDuration
   {
-    TimestampDifference() = default;
-    TimestampDifference( float );
-    TimestampDifference( int );
-    //TimestampDifference( double ) = delete;
-    void operator += ( const TimestampDifference& );
-    void operator -= ( const TimestampDifference& );
+    //TimeDuration() = default;
+    //TimeDuration( float );
+    //TimeDuration( int );
+    //void operator += ( const TimeDuration& );
+    //void operator -= ( const TimeDuration& );
     operator float() const;
+    auto Format() const -> String;
     float mSeconds {};
   };
 
-  // TODO: rename to FormatSeconds
-  String FormatFrameTime( double seconds );
-
-  bool                operator == ( const Timestamp&, const Timestamp& );
-  bool                operator < ( const TimestampDifference&, const TimestampDifference& );
-  bool                operator > ( const TimestampDifference&, const TimestampDifference& );
-  TimestampDifference operator - ( const Timestamp&, const Timestamp& );
-  //TimestampDifference operator * ( float, const TimestampDifference& );
-  Timestamp           operator + ( const TimestampDifference&, const Timestamp& );
-  Timestamp           operator + ( const Timestamp&, const TimestampDifference& );
+  auto operator += ( Timestamp&, const TimeDuration& ) -> Timestamp&;
+  auto operator += ( TimeDuration&, const TimeDuration& ) -> TimeDuration&;
+  auto operator -= ( TimeDuration&, const TimeDuration& ) -> TimeDuration&;
+  bool operator == ( const Timestamp&, const Timestamp& );
+  bool operator < ( const TimeDuration&, const TimeDuration& );
+  bool operator > ( const TimeDuration&, const TimeDuration& );
+  auto operator - ( const Timestamp&, const Timestamp& ) -> TimeDuration;
+  auto operator + ( const TimeDuration&, const Timestamp& ) -> Timestamp;
+  auto operator + ( const Timestamp&, const TimeDuration& ) -> Timestamp;
 
 } // namespace Tac
 

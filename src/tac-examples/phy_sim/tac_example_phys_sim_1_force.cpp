@@ -45,8 +45,8 @@ namespace Tac
                         + keyboardForce };
     const v3 accel { totalForce / mBall.mMass };
 
-    mBall.mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
-    mBall.mPos += mBall.mVelocity * TAC_DELTA_FRAME_SECONDS;
+    mBall.mVelocity += accel * TAC_DT;
+    mBall.mPos += mBall.mVelocity * TAC_DT;
 
     ImGuiText( "WASD to apply force" );
 

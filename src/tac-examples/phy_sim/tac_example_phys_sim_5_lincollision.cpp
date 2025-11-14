@@ -105,7 +105,7 @@ namespace Tac
 
   void ExamplePhys5SimObj::Integrate()
   {
-    float dt { (float)TAC_DELTA_FRAME_SECONDS };
+    float dt { (float)TAC_DT };
     const v3 a { mLinForceAccum / mMass };
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;
@@ -191,10 +191,10 @@ namespace Tac
 
     if (sEnableGravity)
       mWorld->mDebug3DDrawData->DebugDraw3DArrow(mPlayer.mLinPos,
-                                                mPlayer.mLinPos + grav * TAC_DELTA_FRAME_SECONDS,
+                                                mPlayer.mLinPos + grav * TAC_DT,
                                                 mPlayer.mColor);
     mWorld->mDebug3DDrawData->DebugDraw3DArrow(mPlayer.mLinPos,
-                                              mPlayer.mLinPos + keyboardForce * TAC_DELTA_FRAME_SECONDS,
+                                              mPlayer.mLinPos + keyboardForce * TAC_DT,
                                               mPlayer.mColor);
 
     const Sim5CollisionResult collisionResult = Sim5Collide( mPlayer, mObstacle );

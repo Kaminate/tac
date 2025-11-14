@@ -99,7 +99,7 @@ namespace Tac
     const int toggleCount { sAppCurr.mToggles[ ( int )key ] };
     return IsDepressed( key ) && toggleCount >= 1;
   }
-  TimestampDifference AppKeyboardApi::HeldSeconds( Key key )
+  TimeDuration AppKeyboardApi::HeldSeconds( Key key )
   {
     if( !IsPressed( key ) ) { return {}; }
     return sAppCurr.mTime - sAppCurr.mKeyTimes[ ( int )key ];

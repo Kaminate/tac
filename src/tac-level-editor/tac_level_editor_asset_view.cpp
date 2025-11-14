@@ -472,7 +472,7 @@ namespace Tac
     if( !loadedModel->mWorld.mEntities.empty() )
     {
       // this line should be removed, no? it should only compute transforms recursively, if even.
-      loadedModel->mWorld.Step( TAC_DELTA_FRAME_SECONDS );
+      loadedModel->mWorld.Step( TAC_DT );
 
       ImGuiImage( loadedModel->mTextureHandleColor.GetIndex(), v2( sAssetViewWidth, sAssetViewHeight ) );
       ImGuiSameLine();

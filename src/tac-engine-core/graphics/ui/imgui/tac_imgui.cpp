@@ -121,7 +121,7 @@ namespace Tac
     {
       ImGuiWindow* window{ globals.mAllWindows[ iAllWindows ] };
       const Timestamp curSeconds{ globals.mElapsedSeconds };
-      const TimestampDifference deletionWaitSeconds{ 0.1f };
+      const TimeDuration deletionWaitSeconds{ 0.1f };
       if( curSeconds > window->mRequestTime + deletionWaitSeconds )
       {
         if( window->mWindowHandleOwned )
@@ -704,7 +704,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
     {
       const v2 screenspaceMousePos{ AppKeyboardApi::GetMousePosScreenspace() };
       const Timestamp elapsedSecs{ ImGuiGlobals::Instance.mElapsedSeconds };
-      const TimestampDifference kDoubleClickSecs{ 0.5f };
+      const TimeDuration kDoubleClickSecs{ 0.5f };
       const bool releasedRecently{ elapsedSecs - lastMouseReleaseSeconds < kDoubleClickSecs };
       const bool releasedSamePos{ lastMousePositionDesktopWindowspace == screenspaceMousePos };
       if( releasedRecently )

@@ -217,7 +217,7 @@ namespace Tac
     for( User* user : mUsers )
       user->Update( errors );
 
-    TAC_CALL( mScriptRoot->Update( TAC_DELTA_FRAME_SECONDS, errors ));
+    TAC_CALL( mScriptRoot->Update( TAC_DT, errors ));
     //mUIRoot->Update();
     TAC_CALL( Draw( errors ));
 

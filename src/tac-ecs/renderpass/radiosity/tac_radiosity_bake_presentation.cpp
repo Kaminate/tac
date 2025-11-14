@@ -131,11 +131,9 @@ namespace Tac
     {
       if( sPreBakeScene->GetStatus() == JobState::ThreadRunning )
       {
-        ;
-
         ImGuiText( "Baking" + String( "...", ( int )Timestep::GetElapsedTime() % 4 )
                    + " ("
-                   + FormatFrameTime( sPreBakeScene->mElapsed.mSeconds ) 
+                   + sPreBakeScene->mElapsed.Format()
                    + ")" );
       }
 

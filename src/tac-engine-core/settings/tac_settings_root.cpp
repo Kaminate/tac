@@ -29,7 +29,7 @@ namespace Tac
       return;
 
     const Timestamp elapsedSeconds{ Timestep::GetElapsedTime() };
-    const TimestampDifference saveFrequencySecs{ 0.1f };
+    const TimeDuration saveFrequencySecs{ 0.1f };
     const bool savedRecently{ elapsedSeconds < sLastSaveSeconds + saveFrequencySecs };
     if( savedRecently )
       return;

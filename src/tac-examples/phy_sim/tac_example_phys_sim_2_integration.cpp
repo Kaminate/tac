@@ -133,7 +133,7 @@ namespace Tac
 
   void ExamplePhysSim2Integration::TrackPositions()
   {
-    timer -= TAC_DELTA_FRAME_SECONDS;
+    timer -= TAC_DT;
     if( timer > 0 )
       return;
 
@@ -199,18 +199,18 @@ namespace Tac
       case IntegrationMode::Euler:
       {
         const v3 accel { GetAcceleration(mPosition) };
-        mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
-        mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
+        mPosition += mVelocity * TAC_DT;
+        mVelocity += accel * TAC_DT;
       } break;
       case IntegrationMode::SemiImplicitEuler:
       {
         const v3 accel { GetAcceleration(mPosition) };
 
         // Explicit velocity update step
-        mVelocity += accel * TAC_DELTA_FRAME_SECONDS;
+        mVelocity += accel * TAC_DT;
 
         // Implicit position update step
-        mPosition += mVelocity * TAC_DELTA_FRAME_SECONDS;
+        mPosition += mVelocity * TAC_DT;
       } break;
       case IntegrationMode::RK4:
       {
@@ -221,13 +221,13 @@ namespace Tac
         };
         const Rk4StateDerivative k1 { s1.Derive() };
 
-        const RK4State s2 { s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k1 };
+        const RK4State s2 { s1 + 0.5f * TAC_DT * k1 };
         const Rk4StateDerivative k2 { s2.Derive() };
 
-        const RK4State s3 { s1 + 0.5f * TAC_DELTA_FRAME_SECONDS * k2 };
+        const RK4State s3 { s1 + 0.5f * TAC_DT * k2 };
         const Rk4StateDerivative k3 { s3.Derive() };
 
-        const RK4State s4 { s1 + TAC_DELTA_FRAME_SECONDS * k3 };
+        const RK4State s4 { s1 + TAC_DT * k3 };
         const Rk4StateDerivative k4 { s4.Derive() };
 
         const Rk4StateDerivative k{
@@ -235,7 +235,7 @@ namespace Tac
           ( 2 / 6.0f ) * k2 +
           ( 2 / 6.0f ) * k3 +
           ( 1 / 6.0f ) * k4 };
-        const RK4State s { s1 + TAC_DELTA_FRAME_SECONDS * k };
+        const RK4State s { s1 + TAC_DT * k };
         mPosition = s.mPosition;
         mVelocity = s.mVelocity;
       } break;

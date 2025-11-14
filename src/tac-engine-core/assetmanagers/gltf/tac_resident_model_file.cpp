@@ -139,7 +139,7 @@ namespace Tac
 
     lastUpdateSeconds = currUpdateSeconds;
 
-    const TimestampDifference persistSeconds { 1.0f };
+    const TimeDuration persistSeconds { 1.0f };
 
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( loadedStuff.mLastRequestSeconds + persistSeconds > currUpdateSeconds )

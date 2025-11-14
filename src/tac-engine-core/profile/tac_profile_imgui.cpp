@@ -258,7 +258,7 @@ namespace Tac
           {
             const float movePixels { (float)AppKeyboardApi::GetMousePosDelta().x };
             const float movePercent { movePixels / cameraViewportSize.x };
-            const float moveSeconds { movePercent * ( sMilisecondsToDisplay / 1000 ) };
+            const TimeDuration moveSeconds{ .mSeconds{ movePercent * ( sMilisecondsToDisplay / 1000 ) } };
             sPauseSec -= moveSeconds;
           }
           sMilisecondsToDisplay -= AppKeyboardApi::GetMouseWheelDelta() * 0.4f;

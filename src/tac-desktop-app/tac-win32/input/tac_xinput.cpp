@@ -176,7 +176,7 @@ namespace Tac
   void XInput::UpdateInner()
   {
 
-    mSecondsTillDiscover -= TAC_DELTA_FRAME_SECONDS;
+    mSecondsTillDiscover -= TAC_DT;
     if( mSecondsTillDiscover < 0 )
     {
       mSecondsTillDiscover = mSecondsTillDiscoverMax;

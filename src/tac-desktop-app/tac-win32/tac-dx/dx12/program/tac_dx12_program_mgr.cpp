@@ -181,7 +181,7 @@ namespace Tac::Render
   void DX12ProgramMgr::HotReload( Errors& errors )
   {
     const Timestamp curTime{ Timestep::GetElapsedTime() };
-    const TimestampDifference diffTime{ curTime - sHotReloadTick };
+    const TimeDuration diffTime{ curTime - sHotReloadTick };
     if( diffTime.mSeconds < 1.0f )
       return;
 

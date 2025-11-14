@@ -55,7 +55,7 @@ namespace Tac
 	//  SetAlpha( mValueInitial );
 	//
 	//  if( mShouldFade )
-	//    SetNextKeyDelay( mPreFadeSec );
+	//    Sleep( mPreFadeSec );
 	//
 	//  TAC_TIMELINE_KEYFRAME;
 	//  if( mShouldFade )
@@ -70,7 +70,7 @@ namespace Tac
 	//  TAC_TIMELINE_KEYFRAME;
 	//  SetAlpha( mValueFinal );
 	//  if( mShouldFade )
-	//    SetNextKeyDelay( mPostFadeSec );
+	//    Sleep( mPostFadeSec );
 	//  TAC_TIMELINE_END
 	//}
 
@@ -183,9 +183,7 @@ namespace Tac
 		if( !mSocket->mTCPIsConnected )
 			return;
 
-    const String s{
-      "ScriptGameClient messsage: elapsed time is " +
-      FormatFrameTime( Timestep::GetElapsedTime() ) };
+    const String s{ "ScriptGameClient messsage: elapsed time is " + Timestep::GetElapsedTime().Format() };
 
 		Json json;
 		json[ "name" ].SetString( "Ping" );
@@ -279,7 +277,7 @@ namespace Tac
 
 		TAC_TIMELINE_KEYFRAME;
 
-		SetNextKeyDelay( 1.0f );
+    Sleep( TimeDuration{ .mSeconds{ 1.0f } } );
 
 		TAC_TIMELINE_KEYFRAME;
 

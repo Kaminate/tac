@@ -33,7 +33,7 @@ namespace Tac
 
   void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )
   {
-    const TimestampDifference lagSimSecs { mLagSimulationMS * 0.001f };
+    const TimeDuration lagSimSecs { mLagSimulationMS * 0.001f };
     const Timestamp delayedTillSecs { elapsedSecs + lagSimSecs };
     const DelayedNetMsg delayedNetMsg
     {

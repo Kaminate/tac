@@ -31,10 +31,10 @@ namespace Tac
     //DebugImgui( errors );
   }
 
-  void ScriptThread::SetNextKeyDelay( float seconds )
+  void ScriptThread::Sleep( TimeDuration time )
   {
     mIsSleeping = true;
-    mSecondsToSleep = seconds;
+    mSecondsToSleep = time.mSeconds;
     mSecondsSlept = 0;
   }
 

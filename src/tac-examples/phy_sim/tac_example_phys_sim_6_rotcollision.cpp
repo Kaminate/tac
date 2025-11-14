@@ -194,16 +194,16 @@ namespace Tac
 
   void ExamplePhys6SimObj::Integrate()
   {
-    const float dt { TAC_DELTA_FRAME_SECONDS };
+    const float dt { TAC_DT };
     const v3 a { mLinForceAccum / mMass };
 
     mLinVel += a * dt;
     mLinPos += mLinVel * dt;
 
-    mAngMomentum += mAngTorqueAccum * TAC_DELTA_FRAME_SECONDS;
+    mAngMomentum += mAngTorqueAccum * TAC_DT;
     mAngVel = mAngRot * mAngInvInertiaTensor * m3::Transpose( mAngRot ) * mAngMomentum;
 
-    mAngRot += TAC_DELTA_FRAME_SECONDS * ( m3::CrossProduct( mAngVel ) * mAngRot );
+    mAngRot += TAC_DT * ( m3::CrossProduct( mAngVel ) * mAngRot );
 
     mAngRot.OrthoNormalize();
   }

@@ -10,16 +10,14 @@ namespace Tac
 
   struct Timestep
   {
-    static bool                Update();
-    static Timestamp           GetElapsedTime();
-    static FrameIndex          GetElapsedFrames();
-    static TimestampDifference GetAccumulatedTime();
-    static Timepoint           GetLastTick();
+    static bool Update();
+    static auto GetElapsedTime() -> Timestamp;
+    static auto GetElapsedFrames() -> FrameIndex;
+    static auto GetAccumulatedTime() -> TimeDuration;
+    static auto GetLastTick() -> Timepoint;
   };
 
-  extern const int                 TAC_FRAMES_PER_SECOND;
-  extern const TimestampDifference TAC_DELTA_FRAME_SECONDS;
-
-
+  extern const int          TAC_FPS;
+  extern const TimeDuration TAC_DT;
 } // namespace Tac
 

@@ -16,46 +16,47 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  Timepoint Timepoint::Now()
+  Timepoint::Timepoint( NanosecondDuration ns )                   { mTimeSinceEpoch = ns; }
+
+  auto Timepoint::Now() -> Timepoint
   {
     //       std::time_point                           std::duration      long long
     return { std::chrono::high_resolution_clock::now().time_since_epoch().count() };
   }
 
-  void Timepoint::operator -= ( TimestampDifference d )
+  void Timepoint::operator -= ( TimeDuration d )
   {
     mTimeSinceEpoch -= ( Timepoint::NanosecondDuration )( d.mSeconds * 1e9 );
   }
 
-  Timepoint::Timepoint( NanosecondDuration ns )                   { mTimeSinceEpoch = ns; }
-  Timepoint::NanosecondDuration Timepoint::TimeSinceEpoch() const { return mTimeSinceEpoch; }
+  auto Timepoint::TimeSinceEpoch() const -> NanosecondDuration    { return mTimeSinceEpoch; }
 
-  TimestampDifference operator - ( const Timepoint& a, const Timepoint& b )
+  auto operator - ( const Timepoint& a, const Timepoint& b ) -> TimeDuration
   {
     const Timepoint::NanosecondDuration ns{ a.TimeSinceEpoch() - b.TimeSinceEpoch() };
     const double seconds{ ns / 1e9 };
-    return TimestampDifference{ ( float )seconds };
+    return TimeDuration{ ( float )seconds };
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  void                Timer::Start()
+  void Timer::Start()
   {
     mStarted = true;
     mLastTick = Timepoint::Now();
   }
 
-  TimestampDifference Timer::Tick()
+  auto Timer::Tick() -> TimeDuration
   {
     TAC_ASSERT( mStarted );
-
     const Timepoint now { Timepoint::Now() };
-    const TimestampDifference seconds { now - mLastTick };
+    const TimeDuration seconds { now - mLastTick };
     mLastTick = now;
-    return ( float )seconds;
+    return seconds;
   }
 
-  bool                Timer::IsRunning() const   { return mStarted; }
-  Timepoint           Timer::GetLastTick() const { return mLastTick; }
+  bool Timer::IsRunning() const                { return mStarted; }
+
+  auto Timer::GetLastTick() const -> Timepoint { return mLastTick; }
 
 } // namespace Tac

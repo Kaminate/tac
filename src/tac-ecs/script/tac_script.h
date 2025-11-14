@@ -4,6 +4,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_set.h"
+#include "tac-engine-core/shell/tac_shell_timestamp.h"
 
 namespace Tac
 {
@@ -73,7 +74,7 @@ namespace Tac
     virtual void Update( float seconds, Errors& );
     virtual void DebugImgui( Errors& ) {}
     void DebugImguiOuter( Errors& );
-    void SetNextKeyDelay( float seconds );
+    void Sleep( TimeDuration );
     void OnMsg( const ScriptMsg* );
     void AddScriptCallback( void* userData, ScriptCallbackFunction );
     void RunForever();

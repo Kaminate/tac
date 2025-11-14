@@ -257,7 +257,7 @@ namespace Tac
     }
 
 
-    mElapsedSecs += seconds;
+    mElapsedSecs += TimeDuration{ .mSeconds{seconds} };
 #if TAC_TEMPORARILY_DISABLED()
     if( mDebugDrawEntityOrigins )
     {

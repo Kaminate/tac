@@ -52,7 +52,7 @@ namespace Tac::Network
     bool                       mPrintReceivedMessages    {};
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
     Timestamp                  mKeepaliveNextSeconds     {};
-    TimestampDifference        mKeepaliveIntervalSeconds { 30.0f };
+    TimeDuration        mKeepaliveIntervalSeconds { 30.0f };
   };
 
   // -----------------------------------------------------------------------------------------------

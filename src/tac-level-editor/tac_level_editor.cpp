@@ -68,9 +68,9 @@ namespace Tac
     {
       dynmc Errors saveErrors;
       if( PrefabSave( Creation::GetWorld(), saveErrors ) )
-        CreationGameWindow::SetStatusMessage( "Saved Prefabs!", TimestampDifference { 5.f } );
+        CreationGameWindow::SetStatusMessage( "Saved Prefabs!", TimeDuration { 5.f } );
       if( saveErrors)
-        CreationGameWindow::SetStatusMessage( saveErrors.ToString(), TimestampDifference { 60 } );
+        CreationGameWindow::SetStatusMessage( saveErrors.ToString(), TimeDuration { 60 } );
     }
   }
 
@@ -208,7 +208,7 @@ namespace Tac
     TAC_CALL( CreationProfileWindow::Update( errors ) );
 
     if( sIsGameRunning )
-      sGameWorld.Step( TAC_DELTA_FRAME_SECONDS );
+      sGameWorld.Step( TAC_DT );
 
     SelectedEntities::DeleteEntitiesCheck();
     CloseAppWhenAllWindowsClosed();

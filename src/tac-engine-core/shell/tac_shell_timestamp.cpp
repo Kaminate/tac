@@ -26,7 +26,8 @@ namespace Tac
     Vector< String > lines;
   };
 
-  String FormatFrameTime( const double seconds )
+
+  static String FormatFrameTime( const double seconds )
   {
     const double miliseconds_per_second { 1000 };
     const double seconds_per_minute { 60 };
@@ -56,67 +57,78 @@ namespace Tac
   }
 
 
+
   // -----------------------------------------------------------------------------------------------
 
-  Timestamp::Timestamp( double s ) : mSeconds( s ) {}
-  Timestamp::Timestamp( int s ) : mSeconds( ( double )s ) {}
+  //Timestamp::Timestamp( double s ) : mSeconds( s ) {}
+  //Timestamp::Timestamp( int s ) : mSeconds( ( double )s ) {}
 
   Timestamp::operator double() const { return mSeconds; }
 
-  void Timestamp::operator += ( const TimestampDifference& diff )
-  {
-    mSeconds += (double)diff.mSeconds;
-  }
+  auto Timestamp::Format() const -> String{ return FormatFrameTime( mSeconds ); } 
 
   // -----------------------------------------------------------------------------------------------
 
-  TimestampDifference::TimestampDifference( float s ) : mSeconds( s ) {}
-  TimestampDifference::TimestampDifference( int s ) : mSeconds( ( float )s ) {}
+  //TimeDuration::TimeDuration( float s ) : mSeconds( s ) {}
+  //TimeDuration::TimeDuration( int s ) : mSeconds( ( float )s ) {}
 
-  TimestampDifference::operator float() const { return mSeconds; }
+  auto TimeDuration::Format() const -> String{ return FormatFrameTime( mSeconds ); } 
 
-  void TimestampDifference::operator += ( const TimestampDifference& other )
-  {
-    mSeconds += other.mSeconds;
-  }
-  void TimestampDifference::operator -= ( const TimestampDifference& other )
-  {
-    mSeconds -= other.mSeconds;
-  }
+  TimeDuration::operator float() const { return mSeconds; }
 
   // -----------------------------------------------------------------------------------------------
+
+  auto operator += ( Timestamp& stamp, const TimeDuration& diff ) -> Timestamp&
+  {
+    stamp.mSeconds += (double)diff.mSeconds;
+    return stamp;
+  }
+
+  auto operator += ( TimeDuration& duration, const TimeDuration& other ) -> TimeDuration&
+  {
+    duration.mSeconds += other.mSeconds;
+    return duration;
+  }
+
+  auto operator -= ( TimeDuration& duration, const TimeDuration& other ) -> TimeDuration&
+  {
+    duration.mSeconds -= other.mSeconds;
+    return duration;
+  }
+
+
 
   bool operator == ( const Timestamp& a, const Timestamp& b ) { return a.mSeconds == b.mSeconds; }
 
-  bool operator < ( const TimestampDifference& a, const TimestampDifference& b)
+  bool operator < ( const TimeDuration& a, const TimeDuration& b)
   {
     return a.mSeconds < b.mSeconds;
   }
 
-  bool operator > ( const TimestampDifference& a, const TimestampDifference& b)
+  bool operator > ( const TimeDuration& a, const TimeDuration& b)
   {
     return a.mSeconds > b.mSeconds;
   }
   // -----------------------------------------------------------------------------------------------
   
-  TimestampDifference operator - ( const Timestamp& a, const Timestamp& b )
+  auto operator - ( const Timestamp& a, const Timestamp& b ) -> TimeDuration
   {
-    return float(a.mSeconds - b.mSeconds);
+    return TimeDuration{ .mSeconds { float( a.mSeconds - b.mSeconds )} };
   }
 
-  //TimestampDifference operator * ( float a, const TimestampDifference& b)
+  //TimeDuration operator * ( float a, const TimeDuration& b)
   //{
   //  return a * b.mSeconds;
   //}
 
-  Timestamp operator + ( const TimestampDifference& a, const Timestamp& b )
+  auto operator + ( const TimeDuration& a, const Timestamp& b ) -> Timestamp
   {
-    return  (double)a.mSeconds + b.mSeconds ;
+    return Timestamp{ .mSeconds { ( double )a.mSeconds + b.mSeconds } };
   }
 
-  Timestamp operator + ( const Timestamp& a, const TimestampDifference& b)
+  auto operator + ( const Timestamp& a, const TimeDuration& b) -> Timestamp
   {
-    return  a.mSeconds + (double)b.mSeconds ;
+    return Timestamp{ .mSeconds{ a.mSeconds + ( double )b.mSeconds } };
   }
 
   // -----------------------------------------------------------------------------------------------

@@ -5,20 +5,18 @@
 
 // Test out different time steps:
 
-//const int                      Tac::TAC_FRAMES_PER_SECOND = 1;
-const int                      Tac::TAC_FRAMES_PER_SECOND = 20;
-//const int                      Tac::TAC_FRAMES_PER_SECOND = 60;
-const Tac::TimestampDifference Tac::TAC_DELTA_FRAME_SECONDS = 1.0f / Tac::TAC_FRAMES_PER_SECOND;
+const int               Tac::TAC_FPS = 20;
+const Tac::TimeDuration Tac::TAC_DT{ .mSeconds { 1.0f / Tac::TAC_FPS } };
 
 namespace Tac
 {
 
-  static Timer               sTimer;
-  static Timestamp           sElapsedTime;
-  static TimestampDifference sAccumulator;
-  static FrameIndex          sElapsedFrames {};
+  static Timer        sTimer         {};
+  static Timestamp    sElapsedTime   {};
+  static TimeDuration sAccumulator   {};
+  static FrameIndex   sElapsedFrames {};
 
-  bool                Timestep::Update()
+  bool Timestep::Update()
   {
     if( !sTimer.IsRunning() )
     {
@@ -26,23 +24,22 @@ namespace Tac
       return true;
     }
 
-    const TimestampDifference dt { sTimer.Tick() };
-    sAccumulator = Fmod( ( float )sAccumulator + ( float )dt,
-                         ( float )TAC_DELTA_FRAME_SECONDS * 2.0f );
+    const TimeDuration dt{ sTimer.Tick() };
+    sAccumulator.mSeconds = Fmod( sAccumulator.mSeconds + dt.mSeconds,
+                                  TAC_DT.mSeconds * 2.0f );
 
-    if( sAccumulator < TAC_DELTA_FRAME_SECONDS )
+    if( sAccumulator < TAC_DT )
       return false;
 
 
-    sAccumulator -= TAC_DELTA_FRAME_SECONDS;
-    sElapsedTime += TAC_DELTA_FRAME_SECONDS;
+    sAccumulator -= TAC_DT;
+    sElapsedTime += TAC_DT;
     sElapsedFrames++;
     return true;
   }
-
-  Timestamp           Timestep::GetElapsedTime()     { return sElapsedTime; }
-  FrameIndex          Timestep::GetElapsedFrames()   { return sElapsedFrames; }
-  TimestampDifference Timestep::GetAccumulatedTime() { return sAccumulator; }
-  Timepoint           Timestep::GetLastTick()        { return sTimer.GetLastTick(); }
+  auto Timestep::GetElapsedTime() -> Timestamp        { return sElapsedTime; }
+  auto Timestep::GetElapsedFrames() -> FrameIndex     { return sElapsedFrames; }
+  auto Timestep::GetAccumulatedTime() -> TimeDuration { return sAccumulator; }
+  auto Timestep::GetLastTick() -> Timepoint           { return sTimer.GetLastTick(); }
 
 } // namespace Tac

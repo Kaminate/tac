@@ -195,7 +195,7 @@ namespace Tac
           if( dlgErr )
           {
             sStatusMessage = dlgErr.ToString();
-            sStatusMessageEndTime = Timestep::GetElapsedTime() + TimestampDifference( 60.0f );
+            sStatusMessageEndTime = Timestep::GetElapsedTime() + TimeDuration( 60.0f );
           }
           else if( Exists( asset ) )
           {
@@ -230,7 +230,7 @@ namespace Tac
       Errors saveErrors;
       SavePresentationDef( saveErrors );
       const Timestamp curTime{ Timestep::GetElapsedTime() };
-      const TimestampDifference duration{ saveErrors ? 60.0f : 5.0f };
+      const TimeDuration duration{ saveErrors ? 60.0f : 5.0f };
       sStatusMessage = saveErrors ? saveErrors.ToString() : "Saved!";
       sStatusMessageEndTime = curTime + duration;
     }

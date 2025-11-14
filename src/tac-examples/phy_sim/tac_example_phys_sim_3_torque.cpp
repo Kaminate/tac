@@ -115,11 +115,11 @@ namespace Tac
   void ExamplePhysSim3Torque::Integrate()
   {
     const v3 a { mForceAccumWs / mMass };
-    mLinVel += a * TAC_DELTA_FRAME_SECONDS;
-    mPos += mLinVel * TAC_DELTA_FRAME_SECONDS;
-    mAngMomentum += mTorqueAccumWs * TAC_DELTA_FRAME_SECONDS;
+    mLinVel += a * TAC_DT;
+    mPos += mLinVel * TAC_DT;
+    mAngMomentum += mTorqueAccumWs * TAC_DT;
     mAngVel = mRot * mInvMoment * m3::Transpose( mRot ) * mAngMomentum;
-    mRot += TAC_DELTA_FRAME_SECONDS * ( m3::CrossProduct( mAngVel ) * mRot );
+    mRot += TAC_DT * ( m3::CrossProduct( mAngVel ) * mRot );
     mRot.OrthoNormalize();
     if( debugPrintRotMtx && ( mAngVel.x > 0 || mAngVel.y > 0 || mAngVel.z > 0 ) )
       DebugPrintMtx( mRot );
