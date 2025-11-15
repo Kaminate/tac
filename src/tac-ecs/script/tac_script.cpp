@@ -38,11 +38,11 @@ namespace Tac
     mSecondsSlept = 0;
   }
 
-  void ScriptThread::AddScriptCallback( void* userData, ScriptCallbackFunction scriptCallbackFunction )
+  void ScriptThread::AddScriptCallback( void* userData, ScriptCallbackFunction fn )
   {
     auto* scriptCallbackData { TAC_NEW ScriptCallbackData };
     scriptCallbackData->mUserData = userData;
-    scriptCallbackData->mScriptCallbackFunction = scriptCallbackFunction;
+    scriptCallbackData->mScriptCallbackFunction = fn;
     mMsgCallbacks.insert( scriptCallbackData );
   }
 
@@ -75,12 +75,9 @@ namespace Tac
 
   void ScriptRoot::Update( float seconds, Errors& errors )
   {
-
     // threads can add children during the update, so make a copy
     FrameMemoryVector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
     FrameMemoryVector< ScriptThread* > childrenToKill;
-    //Vector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );
-    //Vector< ScriptThread* > childrenToKill;
     for( ScriptThread* child : childrenToUpdate )
     {
       // should we check for complete? ( ie: child A sends a message that completes child B )

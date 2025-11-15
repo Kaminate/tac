@@ -79,25 +79,26 @@ namespace Tac
     void AddScriptCallback( void* userData, ScriptCallbackFunction );
     void RunForever();
 
-    ScriptRoot*                     mScriptRoot     {};
-    int                             mLine           {};
-    bool                            mIsSleeping     {};
-    float                           mSecondsSlept   {};
-    float                           mSecondsToSleep {};
-    bool                            mIsComplete     {};
-    bool                            mRunForever     {};
-    String                          mName           {};
-    Set< ScriptCallbackData* >      mMsgCallbacks   {};
+    using MsgCallbacks = Set< ScriptCallbackData* >;
+    ScriptRoot*  mScriptRoot     {};
+    int          mLine           {};
+    bool         mIsSleeping     {};
+    float        mSecondsSlept   {};
+    float        mSecondsToSleep {};
+    bool         mIsComplete     {};
+    bool         mRunForever     {};
+    String       mName           {};
+    MsgCallbacks mMsgCallbacks   {};
   };
 
 #if 1
   struct ScriptRoot
   {
     ~ScriptRoot();
-    void AddChild( ScriptThread* child );
-    void Update( float seconds, Errors& errors );
-    void DebugImgui( Errors& errors );
-    void OnMsg( const ScriptMsg* scriptMsg );
+    void AddChild( ScriptThread* );
+    void Update( float seconds, Errors& );
+    void DebugImgui( Errors& );
+    void OnMsg( const ScriptMsg* );
     void OnMsg( StringView scriptMsgType );
     auto GetThread( StringView name ) -> ScriptThread*;
 
