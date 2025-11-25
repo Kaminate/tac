@@ -4,7 +4,7 @@
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix2.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-ecs/world/tac_world.h"
@@ -385,8 +385,8 @@ namespace Tac
 
     const float r { 1.4f };
     const float speed { 2.0f };
-    p.x = ( float )Cos( speed * Timestep::GetElapsedTime() ) * r;
-    p.y = ( float )Sin( speed * Timestep::GetElapsedTime() ) * r;
+    p.x = ( float )Cos( speed * GameTimer::GetElapsedTime() ) * r;
+    p.y = ( float )Sin( speed * GameTimer::GetElapsedTime() ) * r;
     p += GetWorldspaceKeyboardDir() * 0.1f;
     const v3 lineColor { v3( 0.2f, 0.8f, 0.3f ) * 0.5f };
     const v3 pointColor { v3( 0.6f, 0.3f, 0.4f ) };
@@ -417,7 +417,7 @@ namespace Tac
     Sim6ResolveCollision( collisionResult, mPlayer, mObstacle );
     Render();
     if( dorot )
-      mPlayer.mAngRot = m3::RotRadZ( ( float )Timestep::GetElapsedTime() );
+      mPlayer.mAngRot = m3::RotRadZ( ( float )GameTimer::GetElapsedTime() );
 
     TestLineSegmentPoint();
     UI();

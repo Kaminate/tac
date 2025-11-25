@@ -11,9 +11,7 @@
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-
-
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
@@ -391,7 +389,6 @@ namespace Tac
     *params.mCurrentState = params.mTargetState;
   }
 
-
   void DX12AppHelloFrameBuf::CreateCommandAllocatorBundle( Errors& errors )
   {
     // a command allocator manages storage for cmd lists and bundles
@@ -701,57 +698,57 @@ namespace Tac
     m_swapChainValid = true;
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::OffsetCpuDescHandle(
+  auto DX12AppHelloFrameBuf::OffsetCpuDescHandle(
     D3D12_CPU_DESCRIPTOR_HANDLE heapStart,
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
-    int iOffset ) const
+    int iOffset ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     const UINT descriptorSize { m_descriptorSizes[heapType] };
     const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
     return D3D12_CPU_DESCRIPTOR_HANDLE{ ptr };
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::OffsetGpuDescHandle(
+  auto DX12AppHelloFrameBuf::OffsetGpuDescHandle(
     D3D12_GPU_DESCRIPTOR_HANDLE heapStart,
     D3D12_DESCRIPTOR_HEAP_TYPE heapType,
-    int iOffset ) const
+    int iOffset ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     const UINT descriptorSize { m_descriptorSizes[heapType] };
     const SIZE_T ptr { heapStart.ptr + iOffset * descriptorSize };
     return D3D12_GPU_DESCRIPTOR_HANDLE{ ptr };
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::GetRTVCpuDescHandle( int i ) const
+  auto DX12AppHelloFrameBuf::GetRTVCpuDescHandle( int i ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_rtvHeap );
     return OffsetCpuDescHandle( m_rtvCpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, i );
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::GetRTVGpuDescHandle( int i ) const
+  auto DX12AppHelloFrameBuf::GetRTVGpuDescHandle( int i ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_rtvHeap );
     return OffsetGpuDescHandle( m_rtvGpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, i );
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::GetSRVCpuDescHandle( int i ) const
+  auto DX12AppHelloFrameBuf::GetSRVCpuDescHandle( int i ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_srvHeap );
     return OffsetCpuDescHandle( m_srvCpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, i );
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::GetSRVGpuDescHandle( int i ) const
+  auto DX12AppHelloFrameBuf::GetSRVGpuDescHandle( int i ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_srvHeap );
     return OffsetGpuDescHandle( m_srvGpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, i );
   }
 
-  D3D12_CPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::GetSamplerCpuDescHandle( int i ) const
+  auto DX12AppHelloFrameBuf::GetSamplerCpuDescHandle( int i ) const -> D3D12_CPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_samplerHeap );
     return OffsetCpuDescHandle( m_samplerCpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, i );
   }
 
-  D3D12_GPU_DESCRIPTOR_HANDLE DX12AppHelloFrameBuf::GetSamplerGpuDescHandle( int i ) const
+  auto DX12AppHelloFrameBuf::GetSamplerGpuDescHandle( int i ) const -> D3D12_GPU_DESCRIPTOR_HANDLE
   {
     TAC_ASSERT( m_samplerHeap );
     return OffsetGpuDescHandle( m_samplerGpuHeapStart, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, i );
@@ -797,7 +794,6 @@ namespace Tac
     m_viewports =    { m_viewport };
     m_scissorRects = { m_scissorRect };
   }
-
 
   void DX12AppHelloFrameBuf::TransitionRenderTarget( ID3D12GraphicsCommandList* m_commandList,
                                                      const int iRT,
@@ -1013,18 +1009,16 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  // DX12AppHelloFrameBuf
-
   DX12AppHelloFrameBuf::DX12AppHelloFrameBuf( const Config& cfg ) : App( cfg ) {}
 
-  void         DX12AppHelloFrameBuf::Init( Errors& errors )
+  void DX12AppHelloFrameBuf::Init( Errors& errors )
   {
     AppWindowApi::SetSwapChainAutoCreate( false );
 
     TAC_CALL( hDesktopWindow = DX12ExampleCreateWindow( "DX12 Frame Buf", errors ) );
   }
 
-  void         DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)
+  void DX12AppHelloFrameBuf::PreSwapChainInit( Errors& errors)
   {
     TAC_CALL( DXGIInit( errors ) );
 
@@ -1062,16 +1056,16 @@ namespace Tac
     mUploadPageManager.Init( m_device.Get(), &mCommandQueue );
   }
 
-  void         DX12AppHelloFrameBuf::Update(  Errors& )
+  void DX12AppHelloFrameBuf::Update(  Errors& )
   {
     if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
 
-    const double t { Timestep::GetElapsedTime().mSeconds };
+    const double t { GameTimer::GetElapsedTime().mSeconds };
     mState.mTranslateX = ( float )Sin( t * 0.2f );
   }
 
-  void         DX12AppHelloFrameBuf::Uninit( Errors& errors )
+  void DX12AppHelloFrameBuf::Uninit( Errors& errors )
   {
 
       // Ensure that the GPU is no longer referencing resources that are about to be
@@ -1081,17 +1075,14 @@ namespace Tac
     DXGIUninit();
   }
 
-  App::State   DX12AppHelloFrameBuf::GameState_Create()
-  {
-    return TAC_NEW State;
-  }
+  auto DX12AppHelloFrameBuf::GameState_Create() -> App::State { return TAC_NEW State; }
 
-  void         DX12AppHelloFrameBuf::GameState_Update( IState* state )
+  void DX12AppHelloFrameBuf::GameState_Update( IState* state )
   {
     *( ( State* )state ) = mState;
   }
 
-  void         DX12AppHelloFrameBuf::RenderBegin( Errors& errors )
+  void DX12AppHelloFrameBuf::RenderBegin( Errors& errors )
   {
     TAC_ASSERT_INDEX( m_gpuFlightFrameIndex, MAX_GPU_FRAME_COUNT );
 
@@ -1099,7 +1090,7 @@ namespace Tac
     TAC_CALL( mCommandQueue.WaitForFence( signalValue, errors ) );
   }
 
-  void         DX12AppHelloFrameBuf::RenderEnd( Errors& errors )
+  void DX12AppHelloFrameBuf::RenderEnd( Errors& errors )
   {
     mFenceValues[ m_gpuFlightFrameIndex ] = TAC_CALL( mCommandQueue.IncrementFence( errors ) );
     TAC_CALL( SwapChainPresent( errors ) );
@@ -1112,7 +1103,7 @@ namespace Tac
     TAC_ASSERT( m_gpuFlightFrameIndex == mSentGPUFrameCount % MAX_GPU_FRAME_COUNT );
   }
    
-  void         DX12AppHelloFrameBuf::Render( RenderParams renderParams, Errors& errors )
+  void DX12AppHelloFrameBuf::Render( RenderParams renderParams, Errors& errors )
   {
     const State* oldState { ( State* )renderParams.mOldState };
     const State* newState { ( State* )renderParams.mNewState };

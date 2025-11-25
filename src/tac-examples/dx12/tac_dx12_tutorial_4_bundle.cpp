@@ -4,7 +4,7 @@
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_span.h"
@@ -1137,7 +1137,7 @@ namespace Tac
 
 #if 0
     const double speed { 3 };
-    const auto t { ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f };
+    const auto t { ( float )Sin( GameTimer::GetElapsedTime() * speed ) * 0.5f + 0.5f };
 
     // Record commands.
     const v4 clearColor  { t, 0.2f, 0.4f, 1.0f };

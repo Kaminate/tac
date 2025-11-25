@@ -3,9 +3,10 @@
 #include "tac-std-lib/string/tac_string.h"              // String
 #include "tac-std-lib/error/tac_error_handling.h"       // Errors
 #include "tac-std-lib/memory/tac_smart_ptr.h"           // SmartPtr
-#include "tac-engine-core/shell/tac_shell_timestep.h"   // FrameIndex
-#include "tac-engine-core/shell/tac_shell_timestamp.h"  // Timestamp
-#include "tac-engine-core/shell/tac_shell_timer.h"      // Timepoint
+//#include "tac-engine-core/shell/tac_shell_game_time.h"   // GameFrame
+#include "tac-engine-core/shell/tac_shell_game_time.h"  // GameTime
+#include "tac-engine-core/shell/tac_shell_real_time.h"  // RealTime
+//#include "tac-engine-core/shell/tac_shell_timer.h"      // RealTime
 #include "tac-engine-core/settings/tac_settings_node.h" // SettingsNode
 
 namespace Tac
@@ -17,26 +18,26 @@ namespace Tac
     {
       virtual ~IState() = default;
 
-      FrameIndex         mFrameIndex          {};
-      Timestamp          mTimestamp           {};
-      Timepoint          mTimepoint           {};
+      GameFrame mFrameIndex {};
+      GameTime  mGameTime   {};
+      RealTime  mRealTime   {};
     };
 
     struct Config
     {
-      String mName                       { "Tac" };
-      String mStudioName                 { "Sleeping Studio" };
+      String mName            { "Tac" };
+      String mStudioName      { "Sleeping Studio" };
 
       //     Can disable the renderer for headless apps or for apps that define their own renderer
-      bool   mDisableRenderer            {};
+      bool   mDisableRenderer {};
     };
 
     struct RenderParams
     {
-      IState*        mOldState    {};
-      IState*        mNewState    {};
-      float          mT           {}; // [ 0, 1 ]
-      Timestamp      mTimestamp   {}; // = Lerp( old timestamp, new timestamp, t )
+      IState*  mOldState    {};
+      IState*  mNewState    {};
+      float    mT           {}; // [ 0, 1 ]
+      GameTime mGameTime    {}; // = Lerp( old GameTime, new GameTime, t )
     };
 
     using State = SmartPtr< IState >;
@@ -60,7 +61,7 @@ namespace Tac
     static auto Instance() -> App*;
 
   protected:
-    Config          mConfig{};
+    Config mConfig{};
   };
 } // namespace Tac
 

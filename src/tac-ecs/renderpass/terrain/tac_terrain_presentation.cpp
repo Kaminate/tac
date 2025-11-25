@@ -18,7 +18,7 @@
 #include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix4.h"

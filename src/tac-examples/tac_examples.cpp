@@ -13,7 +13,7 @@
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-examples/tac_examples_registry.h"

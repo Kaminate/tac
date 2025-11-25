@@ -14,7 +14,7 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/tac_level_editor_prefab.h"

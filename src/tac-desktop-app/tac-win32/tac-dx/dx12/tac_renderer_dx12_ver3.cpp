@@ -63,7 +63,7 @@ namespace Tac::Render
         break;
 
       const Entry& entry{ mEntries.front() };
-      const FrameIndex simulationFrameIndex { Timestep::GetElapsedFrames() };
+      const GameFrame simulationFrameIndex { GameTimer::GetElapsedFrames() };
       const bool canDelete{
         ( currentRenderFrameIndex > entry.mRenderFrameIndex + maxGPUFrameCount ) &&
         ( simulationFrameIndex > entry.mSimulationFrameIndex )

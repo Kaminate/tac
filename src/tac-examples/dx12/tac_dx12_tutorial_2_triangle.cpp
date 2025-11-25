@@ -5,7 +5,7 @@
 #include "tac_dx12_tutorial.h"
 
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
@@ -966,8 +966,8 @@ namespace Tac
     
     if( !AppWindowApi::IsShown( hDesktopWindow ) )
       return;
-    const double t { Lerp( renderParams.mOldState->mTimestamp.mSeconds, 
-                           renderParams.mNewState->mTimestamp.mSeconds, 
+    const double t { Lerp( renderParams.mOldState->mGameTime.mSeconds, 
+                           renderParams.mNewState->mGameTime.mSeconds, 
                            renderParams.mT ) };
     mT = ( float )Sin( t ) * .5f + .5f;
 

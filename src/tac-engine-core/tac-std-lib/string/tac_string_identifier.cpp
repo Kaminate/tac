@@ -7,8 +7,8 @@
 namespace Tac
 {
   // -----------------------------------------------------------------------------------------------
-  const int   kMaxStringDictionaryEntries = 1024;
-  String      gStringLookup[ kMaxStringDictionaryEntries ];
+  static const int   kMaxStringDictionaryEntries{ 1024 };
+  static String      gStringLookup[ kMaxStringDictionaryEntries ];
   // -----------------------------------------------------------------------------------------------
 
   // static functions
@@ -27,8 +27,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  // constructors
-
   StringID::StringID( const char* s, int n ) : mHashedValue( Hash( s, n  ) )
   {
     Init( StringView( s, n ) );
@@ -44,22 +42,8 @@ namespace Tac
     Init( stringView );
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  // public member functions
-
-  bool      StringID::empty() const    { return !mHashedValue; }
-  HashValue StringID::GetValue() const { return mHashedValue;  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  // public member operators
-
-  StringID::operator HashValue() const { return mHashedValue;  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  // private member functions
+  bool StringID::empty() const                  { return !mHashedValue; }
+  auto StringID::GetValue() const  -> HashValue { return mHashedValue;  }
 
   void StringID::Init( const StringView& s ) const
   {
@@ -67,21 +51,17 @@ namespace Tac
     DebugSetStringLookup( *this, s );
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-
-
-  bool operator <  ( StringID a, StringID b ) { return ( HashValue )a < ( HashValue )b; }
-  bool operator == ( StringID a, StringID b ) { return ( HashValue )a == ( HashValue )b; }
-
-  // -----------------------------------------------------------------------------------------------
-
-  StringView StringIDDebugLookup( const StringID stringID )
-  {
-    if constexpr( kIsDebugMode )
-      return "";
-
-    return gStringLookup[ stringID % kMaxStringDictionaryEntries ];
-  }
+  StringID::operator HashValue() const { return mHashedValue;  }
 
 } // namespace Tac
+
+bool Tac::operator <  ( StringID a, StringID b ) { return ( HashValue )a < ( HashValue )b; }
+bool Tac::operator == ( StringID a, StringID b ) { return ( HashValue )a == ( HashValue )b; }
+
+auto Tac::StringIDDebugLookup( const StringID stringID ) -> StringView
+{
+  if constexpr( kIsDebugMode )
+    return "";
+
+  return gStringLookup[ stringID % kMaxStringDictionaryEntries ];
+}

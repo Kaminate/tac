@@ -13,15 +13,14 @@ namespace Tac
     StringID( const char*, int );
     StringID( const StringView& );
     bool empty() const;
+    auto GetValue() const -> HashValue;
     operator HashValue() const;
-    HashValue GetValue() const;
   private:
     void Init( const StringView& ) const;
-
     HashValue mHashedValue {};
   };
 
-  bool          operator <  ( StringID, StringID );
-  bool          operator == ( StringID, StringID );
-  StringView    StringIDDebugLookup( StringID );
+  bool operator <  ( StringID, StringID );
+  bool operator == ( StringID, StringID );
+  auto StringIDDebugLookup( StringID ) -> StringView;
 }

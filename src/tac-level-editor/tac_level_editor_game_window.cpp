@@ -21,7 +21,7 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-level-editor/tac_level_editor.h"
@@ -52,7 +52,7 @@ namespace Tac
 #endif
   static Debug3DDrawBuffers            sBuffers                  {};
   static String                        sStatusMessage            {};
-  static Timestamp                     sStatusMessageEndTime     {};
+  static GameTime                     sStatusMessageEndTime     {};
 
   // TODO: find a home for this fn, maybe in tacexamples idk
 #if 0
@@ -348,7 +348,7 @@ namespace Tac
 #endif
 
     ImGuiCamera();
-    if( Timestep::GetElapsedTime() < sStatusMessageEndTime )
+    if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
       ImGuiText( sStatusMessage );
 
     ImGuiEndChild();
@@ -524,9 +524,9 @@ namespace Tac
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView msg,
-                                             const TimeDuration duration )
+                                             const TimeDelta duration )
   {
-    const Timestamp curTime { Timestep::GetElapsedTime() };
+    const GameTime curTime { GameTimer::GetElapsedTime() };
     sStatusMessage = msg;
     sStatusMessageEndTime = curTime + duration;
   }

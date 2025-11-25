@@ -9,7 +9,7 @@
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
 #include "tac-std-lib/math/tac_vector2.h" // v2
 #include "tac-rhi/render3/tac_render_api.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/asset/tac_asset.h"
 
 #define TAC_FONT_ENABLED() 1
@@ -117,8 +117,8 @@ namespace Tac
     char           mCodepointAscii          {}; 
 
     FontFile*      mOwner                   {};
-    Timestamp      mWriteTime               {};
-    Timestamp      mReadTime                {};
+    GameTime      mWriteTime               {};
+    GameTime      mReadTime                {};
 
     FontCellPos    mFontCellPos             {};
     FontCellUVs    mFontCellUVs             {};

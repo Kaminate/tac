@@ -1,4 +1,4 @@
-#include "tac-engine-core/shell/tac_shell_timestamp.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h" // Join
@@ -60,37 +60,37 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  //Timestamp::Timestamp( double s ) : mSeconds( s ) {}
-  //Timestamp::Timestamp( int s ) : mSeconds( ( double )s ) {}
+  //GameTime::GameTime( double s ) : mSeconds( s ) {}
+  //GameTime::GameTime( int s ) : mSeconds( ( double )s ) {}
 
-  Timestamp::operator double() const { return mSeconds; }
+  GameTime::operator double() const { return mSeconds; }
 
-  auto Timestamp::Format() const -> String{ return FormatFrameTime( mSeconds ); } 
-
-  // -----------------------------------------------------------------------------------------------
-
-  //TimeDuration::TimeDuration( float s ) : mSeconds( s ) {}
-  //TimeDuration::TimeDuration( int s ) : mSeconds( ( float )s ) {}
-
-  auto TimeDuration::Format() const -> String{ return FormatFrameTime( mSeconds ); } 
-
-  TimeDuration::operator float() const { return mSeconds; }
+  auto GameTime::Format() const -> String{ return FormatFrameTime( mSeconds ); } 
 
   // -----------------------------------------------------------------------------------------------
 
-  auto operator += ( Timestamp& stamp, const TimeDuration& diff ) -> Timestamp&
+  //TimeDelta::TimeDelta( float s ) : mSeconds( s ) {}
+  //TimeDelta::TimeDelta( int s ) : mSeconds( ( float )s ) {}
+
+  auto TimeDelta::Format() const -> String{ return FormatFrameTime( mSeconds ); } 
+
+  TimeDelta::operator float() const { return mSeconds; }
+
+  // -----------------------------------------------------------------------------------------------
+
+  auto operator += ( GameTime& stamp, const TimeDelta& diff ) -> GameTime&
   {
     stamp.mSeconds += (double)diff.mSeconds;
     return stamp;
   }
 
-  auto operator += ( TimeDuration& duration, const TimeDuration& other ) -> TimeDuration&
+  auto operator += ( TimeDelta& duration, const TimeDelta& other ) -> TimeDelta&
   {
     duration.mSeconds += other.mSeconds;
     return duration;
   }
 
-  auto operator -= ( TimeDuration& duration, const TimeDuration& other ) -> TimeDuration&
+  auto operator -= ( TimeDelta& duration, const TimeDelta& other ) -> TimeDelta&
   {
     duration.mSeconds -= other.mSeconds;
     return duration;
@@ -98,37 +98,37 @@ namespace Tac
 
 
 
-  bool operator == ( const Timestamp& a, const Timestamp& b ) { return a.mSeconds == b.mSeconds; }
+  bool operator == ( const GameTime& a, const GameTime& b ) { return a.mSeconds == b.mSeconds; }
 
-  bool operator < ( const TimeDuration& a, const TimeDuration& b)
+  bool operator < ( const TimeDelta& a, const TimeDelta& b)
   {
     return a.mSeconds < b.mSeconds;
   }
 
-  bool operator > ( const TimeDuration& a, const TimeDuration& b)
+  bool operator > ( const TimeDelta& a, const TimeDelta& b)
   {
     return a.mSeconds > b.mSeconds;
   }
   // -----------------------------------------------------------------------------------------------
   
-  auto operator - ( const Timestamp& a, const Timestamp& b ) -> TimeDuration
+  auto operator - ( const GameTime& a, const GameTime& b ) -> TimeDelta
   {
-    return TimeDuration{ .mSeconds { float( a.mSeconds - b.mSeconds )} };
+    return TimeDelta{ .mSeconds { float( a.mSeconds - b.mSeconds )} };
   }
 
-  //TimeDuration operator * ( float a, const TimeDuration& b)
+  //TimeDelta operator * ( float a, const TimeDelta& b)
   //{
   //  return a * b.mSeconds;
   //}
 
-  auto operator + ( const TimeDuration& a, const Timestamp& b ) -> Timestamp
+  auto operator + ( const TimeDelta& a, const GameTime& b ) -> GameTime
   {
-    return Timestamp{ .mSeconds { ( double )a.mSeconds + b.mSeconds } };
+    return GameTime{ .mSeconds { ( double )a.mSeconds + b.mSeconds } };
   }
 
-  auto operator + ( const Timestamp& a, const TimeDuration& b) -> Timestamp
+  auto operator + ( const GameTime& a, const TimeDelta& b) -> GameTime
   {
-    return Timestamp{ .mSeconds{ a.mSeconds + ( double )b.mSeconds } };
+    return GameTime{ .mSeconds{ a.mSeconds + ( double )b.mSeconds } };
   }
 
   // -----------------------------------------------------------------------------------------------

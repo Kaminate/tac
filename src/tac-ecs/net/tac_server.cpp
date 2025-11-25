@@ -19,7 +19,7 @@ namespace Tac
 {
   // decreasing to 0 for easier debugging
   // ( consistant update between server/client )
-  const float sSnapshotUntilNextSecondsMax {}; //0.1f;
+  static const TimeDelta sSnapshotUntilNextSecondsMax {}; //0.1f;
 
   ServerData::ServerData()
   {
@@ -91,7 +91,7 @@ namespace Tac
       if( Player * player{ mWorld->FindPlayer( otherPlayer->mPlayerUUID ) } )
       {
         TAC_CALL( player->mInputDirection = reader->Read<v2>( errors ) );
-        TAC_CALL( otherPlayer->mTimeStamp = reader->Read<Timestamp>( errors ) );
+        TAC_CALL( otherPlayer->mGameTime = reader->Read<GameTime>( errors ) );
       }
     }
   }
@@ -101,11 +101,11 @@ namespace Tac
   {
     writer->Write( mWorld->mElapsedSecs );
     TAC_ASSERT( otherPlayer );
-    World* oldWorld { mSnapshots.FindSnapshot( otherPlayer->mTimeStamp ) };
+    World* oldWorld { mSnapshots.FindSnapshot( otherPlayer->mGameTime ) };
     if( !oldWorld )
       oldWorld = mEmptyWorld;
 
-    writer->Write( otherPlayer->mTimeStamp );
+    writer->Write( otherPlayer->mGameTime );
     writer->Write( ( UUID )otherPlayer->mPlayerUUID );
     const WorldsToDiff worldDiff
     {
@@ -178,7 +178,7 @@ namespace Tac
       errors );
   }
 
-  void ServerData::Update( const float seconds,
+  void ServerData::Update( const TimeDelta seconds,
                            const ServerSendNetworkMessageCallback sendNetworkMessageCallback,
                            void* userData,
                            Errors& errors )

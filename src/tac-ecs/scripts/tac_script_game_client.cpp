@@ -1,22 +1,22 @@
 #include "tac_script_game_client.h" // self-inc
 
-#include "tac-std-lib/dataprocess/tac_json.h"
-#include "tac-std-lib/dataprocess/tac_log.h"
-//#include "tac-engine-core/settings/tac_settings.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/net/tac_net.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/job/tac_job_queue.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-engine-core/thirdparty/stb/stb_image.h"
-#include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/ghost/tac_ghost.h"
+#include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/net/tac_server.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/job/tac_job_queue.h"
+#include "tac-engine-core/net/tac_net.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/thirdparty/stb/stb_image.h"
+#include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {
@@ -48,7 +48,7 @@ namespace Tac
 	//{
 	//  *mValue = alpha;
 	//}
-	//void ScriptFader::Update( float seconds, Errors& errors )
+	//void ScriptFader::Update( TimeDelta seconds, Errors& errors )
 	//{
 	//  TAC_TIMELINE_BEGIN;
 	//  mFadeSecElapsed = 0;
@@ -79,7 +79,7 @@ namespace Tac
 		mName = "Game Client";
 	}
 
-	void ScriptGameClient::Update( float seconds, Errors& errors )
+	void ScriptGameClient::Update( TimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
@@ -113,7 +113,7 @@ namespace Tac
 		//mScriptRoot->AddChild( TAC_NEW ScriptMainMenu );
 		mScriptRoot->AddChild( TAC_NEW ScriptMainMenu2 );
 	}
-	void ScriptSplash::Update( float seconds, Errors& errors )
+	void ScriptSplash::Update( TimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
@@ -183,7 +183,7 @@ namespace Tac
 		if( !mSocket->mTCPIsConnected )
 			return;
 
-    const String s{ "ScriptGameClient messsage: elapsed time is " + Timestep::GetElapsedTime().Format() };
+    const String s{ "ScriptGameClient messsage: elapsed time is " + GameTimer::GetElapsedTime().Format() };
 
 		Json json;
 		json[ "name" ].SetString( "Ping" );
@@ -247,7 +247,7 @@ namespace Tac
     scriptMatchmaker->PokeServer( errors );
   };
 
-	void ScriptMatchmaker::Update( float seconds, Errors& errors )
+	void ScriptMatchmaker::Update( TimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
 
@@ -265,7 +265,7 @@ namespace Tac
     mPort = ( u16 )Shell::sShellSettings
       .GetChild( "port" )
       .GetValueWithFallback( ( JsonNumber )defaultPort ).mNumber;
-    mConnectionAttemptStartSeconds = Timestep::GetElapsedTime();
+    mConnectionAttemptStartSeconds = GameTimer::GetElapsedTime();
     {
       String text;
       text += "Attempting to connect to ";
@@ -277,7 +277,7 @@ namespace Tac
 
 		TAC_TIMELINE_KEYFRAME;
 
-    Sleep( TimeDuration{ .mSeconds{ 1.0f } } );
+    Sleep( TimeDelta{ .mSeconds{ 1.0f } } );
 
 		TAC_TIMELINE_KEYFRAME;
 
@@ -429,7 +429,7 @@ namespace Tac
 		//                     }
 		//                   } );
 	}
-	void ScriptMainMenu::Update( float seconds, Errors& errors )
+	void ScriptMainMenu::Update( TimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( errors );
     TAC_UNUSED_PARAMETER( seconds );
@@ -502,7 +502,7 @@ namespace Tac
 		//{
 		//  String utf8 = "Trying to connect";
 		//  int maxDotCount = 3;
-		//  double elapsedSeconds = Timestep::GetElapsedTime() - scriptMatchmaker->mConnectionAttemptStartSeconds;
+		//  double elapsedSeconds = GameTimer::GetElapsedTime() - scriptMatchmaker->mConnectionAttemptStartSeconds;
 		//  double partialDotSeconds = std::fmod( elapsedSeconds, ( double )( ( maxDotCount + 1 ) * dotPeriodSeconds ) );
 		//  for( int i{}; i < int( partialDotSeconds / dotPeriodSeconds ); ++i )
 		//    utf8 += '.';
@@ -515,7 +515,7 @@ namespace Tac
 		//if( mUITextPressStart )
 		//{
 		//  double pressStartPeriod = 2.0f;
-		//  double s = std::fmod( Timestep::GetElapsedTime(), pressStartPeriod );
+		//  double s = std::fmod( GameTimer::GetElapsedTime(), pressStartPeriod );
 		//  bool b = s > pressStartPeriod * 0.5f;
 		//  if( mPressStart != b )
 		//  {
@@ -537,7 +537,7 @@ namespace Tac
 		////UIAnchorHorizontal menuAnchorHorizontal = UIAnchorHorizontal::Left;
 		////UIAnchorVertical menuAnchorVertical = UIAnchorVertical::Center;
 
-		//double timelineSeconds = Timestep::GetElapsedTime();
+		//double timelineSeconds = GameTimer::GetElapsedTime();
 
 		////auto createGameTitle = [ = ]()
 		////{
@@ -772,7 +772,7 @@ namespace Tac
 		//TAC_TIMELINE_KEYFRAME;
 
 
-		//TAC_CALL(mTimeline.Update( Timestep::GetElapsedTime(), errors ));
+		//TAC_CALL(mTimeline.Update( GameTimer::GetElapsedTime(), errors ));
 
 		//return;
 
@@ -904,7 +904,7 @@ namespace Tac
 		//    status == JobState::ThreadRunning )
 		//  {
 		//    String text = "Connecting to server";
-		//    for( int i{}; i < ( int )Timestep::GetElapsedTime() % 4; ++i )
+		//    for( int i{}; i < ( int )GameTimer::GetElapsedTime() % 4; ++i )
 		//      text += ".";
 		//    ImGuiText( text );
 		//  }
@@ -924,7 +924,7 @@ namespace Tac
 		//}
 		//ImGuiEnd();
 	}
-	void ScriptMainMenu2::Update( float seconds, Errors& errors )
+	void ScriptMainMenu2::Update( TimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );

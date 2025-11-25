@@ -11,7 +11,7 @@
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/memory/tac_memory.h"

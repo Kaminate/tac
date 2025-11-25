@@ -6,7 +6,7 @@
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_map.h"
@@ -136,7 +136,7 @@ namespace Tac
     bool                          mEnableBG                    { true };
 
     //                            [ ] Q: What does this parameter do
-    Timestamp                     mRequestTime                 {};
+    GameTime                     mRequestTime                 {};
   };
 
   struct ImGuiRenderBuffer
@@ -223,7 +223,7 @@ namespace Tac
 
     static ImGuiGlobals               Instance;
     ImGuiMouseCursor                  mMouseCursor          { ImGuiMouseCursor::kNone };
-    Timestamp                         mElapsedSeconds       {};
+    GameTime                         mElapsedSeconds       {};
     Vector< ImGuiWindow* >            mAllWindows           {};
     Vector< ImGuiWindow* >            mWindowStack          {};
     Vector< ImGuiDesktopWindowImpl* > mDesktopWindows       {};

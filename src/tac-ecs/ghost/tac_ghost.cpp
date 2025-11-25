@@ -17,7 +17,8 @@
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -151,7 +152,7 @@ namespace Tac
       TAC_CALL( AddPlayer( playerName, errors ));
     }
 
-    //mUIRoot->mElapsedSeconds = &Timestep::GetElapsedTime(); // eww
+    //mUIRoot->mElapsedSeconds = &GameTimer::GetElapsedTime(); // eww
     //mUIRoot->mGhost = this;
   }
 

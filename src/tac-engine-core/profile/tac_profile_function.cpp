@@ -1,10 +1,9 @@
-#include "tac-engine-core/profile/tac_profile_function.h"
+#include "tac_profile_function.h" // self-inc
 #include "tac-engine-core/profile/tac_profile_function_pool.h"
 
 namespace Tac
 {
-
-  void       ProfileFunction::AppendChild( ProfileFunction* child )
+  void ProfileFunction::AppendChild( ProfileFunction* child )
   {
     child->mParent = this;
 

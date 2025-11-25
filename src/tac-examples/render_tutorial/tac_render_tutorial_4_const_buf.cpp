@@ -152,7 +152,7 @@ namespace Tac
     TAC_ASSERT( mBindlessVtxBufBinding.IsValid() );
 #endif
 
-    const float translateX{ ( float )Sin( renderParams.mTimestamp.mSeconds / 2.0f ) / 2.0f };
+    const float translateX{ ( float )Sin( renderParams.mGameTime.mSeconds / 2.0f ) / 2.0f };
     const m4 world{ m4::Translate( v3( translateX, 0, 0 ) ) };
     const MyCBufType cbuf
     {

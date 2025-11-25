@@ -203,7 +203,7 @@ namespace Tac
     mPlayers.erase( it );
   }
 
-  void World::ApplyInput( Player* player, float seconds )
+  void World::ApplyInput( Player* player, TimeDelta seconds )
   {
     TAC_UNUSED_PARAMETER( seconds );
     Entity* entity { FindEntity( player->mEntityUUID ) };
@@ -238,7 +238,7 @@ namespace Tac
         ComputeTransformsRecursivelyAux( identity, entity );
   }
 
-  void World::Step( float seconds )
+  void World::Step( TimeDelta seconds )
   {
     TAC_PROFILE_BLOCK;
 
@@ -257,7 +257,7 @@ namespace Tac
     }
 
 
-    mElapsedSecs += TimeDuration{ .mSeconds{seconds} };
+    mElapsedSecs += seconds;
 #if TAC_TEMPORARILY_DISABLED()
     if( mDebugDrawEntityOrigins )
     {

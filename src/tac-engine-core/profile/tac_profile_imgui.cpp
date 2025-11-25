@@ -6,7 +6,7 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile_backend.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -62,7 +62,7 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   static float                  sMilisecondsToDisplay { 20.0f };
-  static Timepoint              sPauseSec             {};
+  static RealTime              sPauseSec             {};
   static ProfileFrame           sProfiledFunctions    {};
   static ImguiProfileWidgetData sDefaultWidgetData;
   static ProfileThreadManager   sProfileThreadManager;
@@ -95,8 +95,8 @@ namespace Tac
 
   static auto GetFPS() -> int
   {
-    Timepoint now { Timepoint::Now() };
-    static Timepoint prev { now };
+    RealTime now { RealTime::Now() };
+    static RealTime prev { now };
 
     const float sec { now - prev };
     static int frames;
@@ -175,8 +175,8 @@ namespace Tac
 
 
       const float timeScaleSeconds { sMilisecondsToDisplay / 1000.0f };
-      const Timepoint gameBeginTimepoint { ProfileTimepointGetLastGameFrameBegin() };
-      const Timepoint timepointLeft { ProfileGetIsRuning() ? gameBeginTimepoint : sPauseSec };
+      const RealTime gameBeginRealTime { ProfileRealTimeGetLastGameFrameBegin() };
+      const RealTime RealTimeLeft { ProfileGetIsRuning() ? gameBeginRealTime : sPauseSec };
 
       while( !visitors.empty() )
       {
@@ -195,7 +195,7 @@ namespace Tac
         const float     boxDeltaPercent { boxDeltaSeconds / timeScaleSeconds };
         //                           Max() ensures things are still visible
         const float     boxWidthPx { Max( boxDeltaPercent * cameraViewportSize.x, 10.0f ) };
-        const float     boxXMinPercent{ ( profileFunction->mBeginTime - timepointLeft ) / timeScaleSeconds };
+        const float     boxXMinPercent{ ( profileFunction->mBeginTime - RealTimeLeft ) / timeScaleSeconds };
         const float     boxXMinPx { cameraViewportPos.x + cameraViewportSize.x * boxXMinPercent };
         const float     boxXMaxPx { boxXMinPx + boxWidthPx };
         const float     boxY { threadY + visitor.mDepth * boxHeight };
@@ -249,7 +249,7 @@ namespace Tac
       const ImGuiRect viewRect { ImGuiRect::FromPosSize( cameraViewportPos, cameraViewportSize ) };
       if( imguiWindow->IsHovered( viewRect ) )
       {
-        //static Timestamp mouseMovement;
+        //static GameTime mouseMovement;
         //Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
 
         //if( mouseMovement )
@@ -258,7 +258,7 @@ namespace Tac
           {
             const float movePixels { (float)AppKeyboardApi::GetMousePosDelta().x };
             const float movePercent { movePixels / cameraViewportSize.x };
-            const TimeDuration moveSeconds{ .mSeconds{ movePercent * ( sMilisecondsToDisplay / 1000 ) } };
+            const TimeDelta moveSeconds{ .mSeconds{ movePercent * ( sMilisecondsToDisplay / 1000 ) } };
             sPauseSec -= moveSeconds;
           }
           sMilisecondsToDisplay -= AppKeyboardApi::GetMouseWheelDelta() * 0.4f;
@@ -357,7 +357,7 @@ void Tac::ImGuiProfileWidget()
     if( ImGuiButton( "Pause Profiling" ) )
     {
       ProfileSetIsRuning( false );
-      sPauseSec = ProfileTimepointGetLastGameFrameBegin();
+      sPauseSec = ProfileRealTimeGetLastGameFrameBegin();
     }
   }
   else if( ImGuiButton( "Resume Profiling" ) )

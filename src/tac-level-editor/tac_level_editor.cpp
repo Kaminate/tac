@@ -19,7 +19,7 @@
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-level-editor/tac_level_editor_asset_view.h"
 #include "tac-level-editor/tac_level_editor_game_window.h"
 #include "tac-level-editor/tac_level_editor_icon_renderer.h"
@@ -68,9 +68,9 @@ namespace Tac
     {
       dynmc Errors saveErrors;
       if( PrefabSave( Creation::GetWorld(), saveErrors ) )
-        CreationGameWindow::SetStatusMessage( "Saved Prefabs!", TimeDuration { 5.f } );
+        CreationGameWindow::SetStatusMessage( "Saved Prefabs!", TimeDelta { 5.f } );
       if( saveErrors)
-        CreationGameWindow::SetStatusMessage( saveErrors.ToString(), TimeDuration { 60 } );
+        CreationGameWindow::SetStatusMessage( saveErrors.ToString(), TimeDelta { 60 } );
     }
   }
 

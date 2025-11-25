@@ -15,24 +15,15 @@ import std; // <thread>
 namespace Tac
 {
 
-  //struct ProfileFunctionVisitor
-  //{
-  //  void             Visit( ProfileFunction* );
-  //  virtual void     operator()( ProfileFunction* ) = 0;
-  //};
-
   // todo: rename PerThreadProfileData
   struct PerThreadProfileFrame
   {
-    ~PerThreadProfileFrame() { Clear(); }
-
+    ~PerThreadProfileFrame();
     void Clear();
     void DeepCopy( const PerThreadProfileFrame& );
-
-    void operator = ( const PerThreadProfileFrame& other ) { DeepCopy( other ); }
     void RemoveOldFunctions();
-
-    bool empty() { return mFunctions.empty(); }
+    bool empty() const;
+    void operator = ( const PerThreadProfileFrame& );
 
     // There are no 'frames', these are top-level functions added by
     // TAC_PROFILE_BLOCK/TAC_PROFILE_BLOCK_NAMED. By "top-level", we just mean that these
@@ -52,28 +43,15 @@ namespace Tac
     ProfileFrame() = default;
     ProfileFrame( ProfileFrame& ) = default;
     void Clear();
-    bool empty()
-    {
-      for( PerThreadProfileFrame& f : mThreadFrames )
-        if( !f.empty() )
-          return false;
-      return true;
-    }
-
-    void operator = ( const ProfileFrame& other )
-    {
-      mThreadFrames = other.mThreadFrames;
-    }
-
+    bool empty() const;
+    auto Find( std::thread::id ) -> PerThreadProfileFrame*;
+    void operator = ( const ProfileFrame& );
     void operator = ( ProfileFrame&& ) noexcept;
-    PerThreadProfileFrame* Find( std::thread::id );
-
-    //void operator = ( const ProfileFrame& other );
     Vector< PerThreadProfileFrame > mThreadFrames;
   };
 
 
-  Timepoint           ProfileTimepointGetLastGameFrameBegin();
-  ProfileFrame&&      ProfileCopyFrame();
+  auto ProfileRealTimeGetLastGameFrameBegin() -> RealTime;
+  auto ProfileCopyFrame() -> ProfileFrame&&;
 }
 

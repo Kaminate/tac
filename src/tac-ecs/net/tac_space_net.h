@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/dataprocess/tac_serialization.h" // Endianness
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-std-lib/containers/tac_list.h"
 
 #include "tac-ecs/tac_space.h"
@@ -30,14 +30,14 @@ namespace Tac
 
   struct DelayedNetMsg
   {
-    Timestamp      mDelayedTillSecs {};
+    GameTime      mDelayedTillSecs {};
     Vector< char > mData            {};
   };
 
   struct LagTest
   {
-    void                       SaveMessage( const Vector< char >& data, Timestamp elapsedSecs );
-    bool                       TryPopSavedMessage( Vector< char >& data, Timestamp elapsedSecs );
+    void                       SaveMessage( const Vector< char >& data, GameTime elapsedSecs );
+    bool                       TryPopSavedMessage( Vector< char >& data, GameTime elapsedSecs );
 
     int                        mLagSimulationMS      {};
     List< DelayedNetMsg >      mSavedNetworkMessages {};
@@ -47,7 +47,7 @@ namespace Tac
   {
     ~SnapshotBuffer();
     void                AddSnapshot( const World* );
-    World*              FindSnapshot( Timestamp elapsedGameSecs );
+    World*              FindSnapshot( GameTime elapsedGameSecs );
 
     List< World* >      mSnapshots   {};
     const int           maxSnapshots { 32 };

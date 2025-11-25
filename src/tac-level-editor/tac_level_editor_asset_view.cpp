@@ -13,7 +13,7 @@
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
@@ -260,7 +260,7 @@ namespace Tac
   }
 
 
-  static auto LoadEllipses() { return String( "...", ( int )Timestep::GetElapsedTime() % 4 ); }
+  static auto LoadEllipses() { return String( "...", ( int )GameTimer::GetElapsedTime() % 4 ); }
 
   static auto HasExt( const AssetPathStringView path, Vector< const char* > extensions )
   {

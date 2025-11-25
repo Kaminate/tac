@@ -1,17 +1,14 @@
 #include "tac_debug_3d.h" // self-inc
 
-//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-
-//#include <cmath>
 
 namespace Tac
 {
@@ -62,17 +59,6 @@ namespace Tac
     return m4::ProjPerspective( projMtxParams );
   }
   
-
-  void Debug3DCommonDataInit( Errors& errors )
-  {
-    gDebug3DCommonData.Init( errors );
-  }
-
-  void Debug3DCommonDataUninit()
-  {
-    gDebug3DCommonData.Uninit();
-  }
-
   void Debug3DCommonData::Uninit() const
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -441,9 +427,9 @@ namespace Tac
       const float a { 1 - ( Abs( i ) / d ) };
       v4 n( lineColor, a ); // Near Color
 #if 1 // rainbow
-      n.x += a * 1.0f * ( ( Sin( ( float )Timestep::GetElapsedTime() * 3.0f + i ) ) * 0.5f + 0.5f );
-      n.y += a * 1.0f * ( ( Sin( ( float )Timestep::GetElapsedTime() * 5.0f + i ) ) * 0.5f + 0.5f );
-      n.z += a * 1.0f * ( ( Sin( ( float )Timestep::GetElapsedTime() * 7.0f + i ) ) * 0.5f + 0.5f );
+      n.x += a * 1.0f * ( ( Sin( ( float )GameTimer::GetElapsedTime() * 3.0f + i ) ) * 0.5f + 0.5f );
+      n.y += a * 1.0f * ( ( Sin( ( float )GameTimer::GetElapsedTime() * 5.0f + i ) ) * 0.5f + 0.5f );
+      n.z += a * 1.0f * ( ( Sin( ( float )GameTimer::GetElapsedTime() * 7.0f + i ) ) * 0.5f + 0.5f );
 #endif
       if( i )
       {
@@ -675,4 +661,14 @@ namespace Tac
   }
 
 } // namespace Tac
+
+void Tac::Debug3DCommonDataInit( Errors& errors )
+{
+  gDebug3DCommonData.Init( errors );
+}
+
+void Tac::Debug3DCommonDataUninit()
+{
+  gDebug3DCommonData.Uninit();
+}
 

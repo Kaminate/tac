@@ -4,7 +4,7 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/controller/tac_controller_internal.h"
@@ -31,11 +31,11 @@ namespace Tac
 
   struct XInput : public ControllerInput
   {
-    void                      Init( Errors& );
-    void                      UpdateInner() override;
-    void                      DebugImguiInner() override;
-    void                      EnumerateController( const DIDEVICEINSTANCE* );
-    DirectInputPerController* FindDInputController( const DIDEVICEINSTANCE* );
+    void Init( Errors& );
+    void UpdateInner() override;
+    void DebugImguiInner() override;
+    void EnumerateController( const DIDEVICEINSTANCE* );
+    auto FindDInputController( const DIDEVICEINSTANCE* ) -> DirectInputPerController*;
 
     IDirectInput8*            mDirectInput            {};
     float                     mSecondsTillDiscover    {};
@@ -58,7 +58,7 @@ namespace Tac
   //  return result;
   //}
 
-  static float ConvertDirectInputSigned( LONG inputVal, float deadzonePercent )
+  static auto ConvertDirectInputSigned( LONG inputVal, float deadzonePercent ) -> float
   {
     float result { ( float )inputVal };
     result /= 65535.0f;
@@ -73,16 +73,30 @@ namespace Tac
     return result;
   }
 
-  ControllerState ToControllerState( const DIJOYSTATE2& js )
+  static auto ToControllerState( const DIJOYSTATE2& js ) -> ControllerState
   {
     float deadzone { 0.1f };
     ControllerState controllerState  {};
     controllerState.mLeftStick.x = ConvertDirectInputSigned( js.lX, deadzone );
     //controllerState.mLeftStick.y = ConvertDirectInputSigned( js.lY, deadzone );
 
-
     return controllerState;
   }
+
+  static auto GetDirectInput8CreateErr( HRESULT hr ) -> const char*
+  {
+    switch( hr )
+    {
+      case DIERR_BETADIRECTINPUTVERSION: return "beta ver"; 
+      case DIERR_INVALIDPARAM:           return "invalid param"; 
+      case DIERR_OLDDIRECTINPUTVERSION:  return "old ver"; 
+      case DIERR_OUTOFMEMORY:            return "oom"; 
+    }
+
+    return "???";
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
   DirectInputPerController::~DirectInputPerController()
   {
@@ -129,18 +143,8 @@ namespace Tac
     //ImGui::Text( "rglFSlider: %i %i", js.rglFSlider[ 0 ], js.rglFSlider[ 1 ] );
   }
 
-  const char* GetDirectInput8CreateErr( HRESULT hr )
-  {
-    switch( hr )
-    {
-      case DIERR_BETADIRECTINPUTVERSION: return "beta ver"; 
-      case DIERR_INVALIDPARAM:           return "invalid param"; 
-      case DIERR_OLDDIRECTINPUTVERSION:  return "old ver"; 
-      case DIERR_OUTOFMEMORY:            return "oom"; 
-    }
+  // -----------------------------------------------------------------------------------------------
 
-    return "???";
-  }
 
   void XInput::Init( Errors& errors )
   {
@@ -152,7 +156,7 @@ namespace Tac
     TAC_RAISE_ERROR_IF( hr != DI_OK, GetDirectInput8CreateErr( hr ) );
   }
 
-  DirectInputPerController* XInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance )
+  auto XInput::FindDInputController( const DIDEVICEINSTANCE* mDeviceInstance ) -> DirectInputPerController*
   {
     for( Controller* controller : mControllers )
     {

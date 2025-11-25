@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/math/tac_vector2.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/string/tac_string.h"
@@ -16,7 +16,7 @@ namespace Tac
 {
   struct SavedInput
   {
-    Timestamp mTimestamp;
+    GameTime mGameTime;
     v2        mInputDirection{};
   };
 
@@ -32,8 +32,8 @@ namespace Tac
     void                    OnClientDisconnect();
     void                    WriteInputBody( WriteStream* );
     void                    ExecuteNetMsg( const void*, int, Errors& );
-    void                    ApplyPrediction( Timestamp lastTime );
-    void                    Update( float seconds,
+    void                    ApplyPrediction( GameTime lastTime );
+    void                    Update( TimeDelta,
                                     v2 inputDir,
                                     ClientSendNetworkMessageCallback sendNetworkMessageCallback,
                                     void* userData,
@@ -53,7 +53,7 @@ namespace Tac
     bool                    mIsPredicting           { true };
     // </>
 
-    Timestamp               mMostRecentSnapshotTime {};
+    GameTime               mMostRecentSnapshotTime {};
     SnapshotBuffer          mSnapshots              {};
   };
 

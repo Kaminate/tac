@@ -6,7 +6,7 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
-#include "tac-engine-core/shell/tac_shell_timer.h"
+#include "tac-engine-core/shell/tac_shell_real_timer.h"
 #include "tac-engine-core/thirdparty/cgltf/cgltf_write.h"
 #include "tac-engine-core/graphics/color/tac_color.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
@@ -46,6 +46,159 @@ namespace Tac
   // https://knarkowicz.wordpress.com/2016/01/09/automatic-exposure/
   //
   // -----------------------------------------------------------------------------------------------
+  //
+  // \text{unshotPower_src} = \Delta P_{src}^{(k)}
+  //
+  // q_src is the probability of sampling this light source
+  //
+  //          \Delta P_src^{(k)}
+  // p(src) = ------------------
+  //           \Delta P_T
+  //
+  // N_src represents the number of samples allocated to this light source
+  //
+  // samplePoint_src_worldspace
+  //            1
+  //   p(x) = -----
+  //          A_src
+  //
+  // sampleDir_src_worldspace
+  //              cos(theta)
+  //   p(omega) = ----------
+  //                  pi
+  //
+  //
+  //
+  // p( src, dst ) = p( src ) * p( dst | src )
+  //                 |          |
+  //     +-----------+          +-------------------------------------+
+  //     |                                                            |
+  //     +-> Probability p( src ) of sampling the src patch           |
+  //                                                                  |
+  //                    \Delta P_src^{(k)}                            |
+  //         p( src ) = ------------------                            |
+  //                        \Delta P_T                                |
+  //                                                                  |
+  //     +------------------------------------------------------------+
+  //     |          
+  //     +-> Probability p( dst ) of sampling the dst patch
+  //      
+  //         p( dst ) = F_{src, dst}
+  //                    |
+  //         +----------+
+  //         |
+  //         +-> Form factor F_{src, dst} describing power emitted by src, received by dst
+  //
+  //             F_{src, dst} = P_{src, dst}
+  //                            |
+  //             +--------------+
+  //             |
+  //             +-> Probability P_{src, dst} of ray originating on patch src landing on patch dst
+  //
+  //                 P_{src, dst} = \int_{S_{src}} \int_{\Omega_x} \chi_{dst}(x, \Omega) p(x,\Omega) dA_x d \omega_\Omega
+  //                                                               |                     |
+  //                 +---------------------------------------------+                     |
+  //                 |                                                                   |
+  //                 +-> 1 or 0 if a ray shot from src at point x into \Omega hits dst   |
+  //                                                                                     |
+  //                     \chi_{dst}(x, \Omega) = { 1 if the ray hits }                   |
+  //                                             { 0 otherwise }                         |
+  //                                                                                     |
+  //                 +-------------------------------------------------------------------+
+  //                 |
+  //                 +-> Probability density p(x,omega) of ray
+  //                                
+  //                     p(x,omega) = p(x) * p(omega)
+  //                                  |      |
+  //                     +------------+      +-----------------------------+
+  //                     |                                                 |
+  //                     +-> Probability of x uniformly chosen on src      |
+  //                                                                       |
+  //                                  1                                    |
+  //                         p(x) = -----                                  |
+  //                                A_src                                  |
+  //                                                                       |
+  //                     +-------------------------------------------------+
+  //                     |
+  //                     +-> Probability p(omega) ray in direction omega, cos weighted
+  //
+  //                                    cos(theta)
+  //                         p(omega) = ----------
+  //                                        pi
+  // The continue inside the if( !raycastResult.mHitPatch ) is for \delta_{li}
+  //
+  // totalUnshotPower = \Delta P_T^{(k)}
+  //
+  // -----------------------------------------------------------------------------
+  //                            The Monte Carlo Method
+  // -----------------------------------------------------------------------------
+  //
+  // Say we want to compute the sum S of std::vector<int> numbers { 10, 13, 43, 74, 25 }
+  //
+  //   S = \sum_{i=1}^{n} a_i
+  //
+  // In the monte carlo method, an "estimator" is a random number whose "expectation"
+  // is equal to the value we are trying to compute. The estimator we will use is:
+  //
+  //   \hat{S} = (n a_i, \frac{1}{n})
+  //
+  //   which has value n a_i and probability \frac{1}{n}
+  //
+  // This is what it looks like in code:
+  //
+  //   #include <vector>
+  //   #include <iostream>
+  //   #include <numeric>
+  //   int main()
+  //   {
+  //     std::vector<int> numbers { 10, 13, 43, 74, 25 };
+  //     std::cout << "actual sum: " << std::accumulate( numbers.begin(), numbers.end(), 0 ) << std::endl;
+  //     int a_i = numbers[ std::rand() % numbers.size() ];
+  //     int S = numbers.size() * a_i;
+  //     std::cout << "monte carlo sum: " << S << std::endl;
+  //   }
+  //
+  // Only the estimator value is used in computing the sum, but it is important that the
+  // samples are chosen with the specified probability \frac{1}{n}.
+  //
+  // Now this gives kind of a shitty estimate of the sum, but with a monte carlo estimator
+  // it is kind of assumed that we reduce the variance by averaging multiple samples.
+  //
+  //   #include <vector>
+  //   #include <iostream>
+  //   #include <numeric>
+  //   int main()
+  //   {
+  //     std::vector<int> numbers { 10, 13, 43, 74, 25 };
+  //     std::cout << "actual sum: " << std::accumulate( numbers.begin(), numbers.end(), 0 ) << std::endl;
+  //     int N = 10000;
+  //     float S = 0;
+  //     for( int i = 0; i < N; ++i )
+  //     {
+  //       int a_i = numbers[ std::rand() % numbers.size() ];
+  //       S += numbers.size() * a_i / (float)N;
+  //     }
+  //     std::cout << "monte carlo sum: " << S << std::endl;
+  //   }
+  //
+  // -----------------------------------------------------------------------------
+  //                                 Application
+  // -----------------------------------------------------------------------------
+  // The value we would like to estimate is:
+  //
+  //   \Delta P_i^{k+1} = \sum_j \sum_{l \new j } \Delta P_j^{(k)}F_{jl}\rho_l \delta_{li}
+  //
+  // So we will use the following estimator
+  //
+  //   \Delta \hat{P_i} = ( \rho_i \Delta P_T^{(k)} \delta_{li}, \frac{\Delta P_j^{(k)}}{\Delta P_T^{(k)}} F_{jl} )
+  //
+  // In code, what that means is the sample value of \rho_i \Delta P_T^{(k)} \delta_{li}
+  // is itself an estimate for the i'th PatchPower::mCurrentReceivedPower.
+  //
+  // To reiterate, only the estimator value is used to compute \Delta P_i^{k+1}
+  // but it is important that the samples are chosen with the specified probabilty.
+  // \frac{\Delta P_j^{(k)}}{\Delta P_T^{(k)}} F_{jl}
+  //
 
   auto PreBakeScene::Raycast( PatchPower* fromPatch, Ray ray ) -> PreBakeScene::RaycastResult
   {
@@ -119,6 +272,8 @@ namespace Tac
   {
     return RandomPointInTriangle( mTriVerts[ 0 ], mTriVerts[ 1 ], mTriVerts[ 2 ] );
   }
+
+  auto PreBakeScene::Instance::VertexCount() const -> int { return mPatchPowers.size() * 3; }
 
   void PreBakeScene::Init(const World* origWorld)
   {
@@ -505,168 +660,13 @@ namespace Tac
       ofs.write( padding, 4 - ( buffer.size % 4 ) );
   }
 
-  // \text{unshotPower_src} = \Delta P_{src}^{(k)}
-  //
-  // q_src is the probability of sampling this light source
-  //
-  //          \Delta P_src^{(k)}
-  // p(src) = ------------------
-  //           \Delta P_T
-  //
-  // N_src represents the number of samples allocated to this light source
-  //
-  // samplePoint_src_worldspace
-  //            1
-  //   p(x) = -----
-  //          A_src
-  //
-  // sampleDir_src_worldspace
-  //              cos(theta)
-  //   p(omega) = ----------
-  //                  pi
-  //
-  //
-  //
-  // p( src, dst ) = p( src ) * p( dst | src )
-  //                 |          |
-  //     +-----------+          +-------------------------------------+
-  //     |                                                            |
-  //     +-> Probability p( src ) of sampling the src patch           |
-  //                                                                  |
-  //                    \Delta P_src^{(k)}                            |
-  //         p( src ) = ------------------                            |
-  //                        \Delta P_T                                |
-  //                                                                  |
-  //     +------------------------------------------------------------+
-  //     |          
-  //     +-> Probability p( dst ) of sampling the dst patch
-  //      
-  //         p( dst ) = F_{src, dst}
-  //                    |
-  //         +----------+
-  //         |
-  //         +-> Form factor F_{src, dst} describing power emitted by src, received by dst
-  //
-  //             F_{src, dst} = P_{src, dst}
-  //                            |
-  //             +--------------+
-  //             |
-  //             +-> Probability P_{src, dst} of ray originating on patch src landing on patch dst
-  //
-  //                 P_{src, dst} = \int_{S_{src}} \int_{\Omega_x} \chi_{dst}(x, \Omega) p(x,\Omega) dA_x d \omega_\Omega
-  //                                                               |                     |
-  //                 +---------------------------------------------+                     |
-  //                 |                                                                   |
-  //                 +-> 1 or 0 if a ray shot from src at point x into \Omega hits dst   |
-  //                                                                                     |
-  //                     \chi_{dst}(x, \Omega) = { 1 if the ray hits }                   |
-  //                                             { 0 otherwise }                         |
-  //                                                                                     |
-  //                 +-------------------------------------------------------------------+
-  //                 |
-  //                 +-> Probability density p(x,omega) of ray
-  //                                
-  //                     p(x,omega) = p(x) * p(omega)
-  //                                  |      |
-  //                     +------------+      +-----------------------------+
-  //                     |                                                 |
-  //                     +-> Probability of x uniformly chosen on src      |
-  //                                                                       |
-  //                                  1                                    |
-  //                         p(x) = -----                                  |
-  //                                A_src                                  |
-  //                                                                       |
-  //                     +-------------------------------------------------+
-  //                     |
-  //                     +-> Probability p(omega) ray in direction omega, cos weighted
-  //
-  //                                    cos(theta)
-  //                         p(omega) = ----------
-  //                                        pi
-  // The continue inside the if( !raycastResult.mHitPatch ) is for \delta_{li}
-  //
-  // totalUnshotPower = \Delta P_T^{(k)}
-  //
-  // -----------------------------------------------------------------------------
-  //                            The Monte Carlo Method
-  // -----------------------------------------------------------------------------
-  //
-  // Say we want to compute the sum S of std::vector<int> numbers { 10, 13, 43, 74, 25 }
-  //
-  //   S = \sum_{i=1}^{n} a_i
-  //
-  // In the monte carlo method, an "estimator" is a random number whose "expectation"
-  // is equal to the value we are trying to compute. The estimator we will use is:
-  //
-  //   \hat{S} = (n a_i, \frac{1}{n})
-  //
-  //   which has value n a_i and probability \frac{1}{n}
-  //
-  // This is what it looks like in code:
-  //
-  //   #include <vector>
-  //   #include <iostream>
-  //   #include <numeric>
-  //   int main()
-  //   {
-  //     std::vector<int> numbers { 10, 13, 43, 74, 25 };
-  //     std::cout << "actual sum: " << std::accumulate( numbers.begin(), numbers.end(), 0 ) << std::endl;
-  //     int a_i = numbers[ std::rand() % numbers.size() ];
-  //     int S = numbers.size() * a_i;
-  //     std::cout << "monte carlo sum: " << S << std::endl;
-  //   }
-  //
-  // Only the estimator value is used in computing the sum, but it is important that the
-  // samples are chosen with the specified probability \frac{1}{n}.
-  //
-  // Now this gives kind of a shitty estimate of the sum, but with a monte carlo estimator
-  // it is kind of assumed that we reduce the variance by averaging multiple samples.
-  //
-  //   #include <vector>
-  //   #include <iostream>
-  //   #include <numeric>
-  //   int main()
-  //   {
-  //     std::vector<int> numbers { 10, 13, 43, 74, 25 };
-  //     std::cout << "actual sum: " << std::accumulate( numbers.begin(), numbers.end(), 0 ) << std::endl;
-  //     int N = 10000;
-  //     float S = 0;
-  //     for( int i = 0; i < N; ++i )
-  //     {
-  //       int a_i = numbers[ std::rand() % numbers.size() ];
-  //       S += numbers.size() * a_i / (float)N;
-  //     }
-  //     std::cout << "monte carlo sum: " << S << std::endl;
-  //   }
-  //
-  // -----------------------------------------------------------------------------
-  //                                 Application
-  // -----------------------------------------------------------------------------
-  // The value we would like to estimate is:
-  //
-  //   \Delta P_i^{k+1} = \sum_j \sum_{l \new j } \Delta P_j^{(k)}F_{jl}\rho_l \delta_{li}
-  //
-  // So we will use the following estimator
-  //
-  //   \Delta \hat{P_i} = ( \rho_i \Delta P_T^{(k)} \delta_{li}, \frac{\Delta P_j^{(k)}}{\Delta P_T^{(k)}} F_{jl} )
-  //
-  // In code, what that means is the sample value of \rho_i \Delta P_T^{(k)} \delta_{li}
-  // is itself an estimate for the i'th PatchPower::mCurrentReceivedPower.
-  //
-  // To reiterate, only the estimator value is used to compute \Delta P_i^{k+1}
-  // but it is important that the samples are chosen with the specified probabilty.
-  // \frac{\Delta P_j^{(k)}}{\Delta P_T^{(k)}} F_{jl}
-  //
-
-
-
 
   void PreBakeScene::Execute( Errors& )
   {
     const float minPowerLimit{ 0.01f };
     const int maxJacobiIterations{ 100 };
     const int samplesPerIteration{ 100000 };
-    Timer timer{};
+    RealTimer timer{};
     timer.Start();
     for( int iJacobi{}; iJacobi < maxJacobiIterations; ++iJacobi )
     {
@@ -704,8 +704,5 @@ namespace Tac
       } );
     }
   }
-
-
-
 }
 

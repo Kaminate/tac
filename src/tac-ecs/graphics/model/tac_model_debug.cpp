@@ -1,20 +1,21 @@
 #include "tac_model_debug.h" // self-inc
 
-#include "tac-engine-core/assetmanagers/tac_mesh.h"
-#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/string/tac_short_fixed_string.h"
-#include "tac-std-lib/os/tac_os.h"
 #include "tac-ecs/graphics/model/tac_model.h"
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-ecs/renderpass/mesh/tac_mesh_presentation.h"
+#include "tac-engine-core/assetmanagers/tac_mesh.h"
+#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
+#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
@@ -47,8 +48,8 @@ namespace Tac
         ImGuiText( getfilesErrors.ToString() );
 
       static bool needsRefresh { true };
-      static Timestamp refreshSecTimestamp;
-      const Timestamp curSecTimestamp { Timestep::GetElapsedTime() };
+      static GameTime refreshSecGameTime;
+      const GameTime curSecGameTime { GameTimer::GetElapsedTime() };
       if( needsRefresh || ImGuiButton( "Refresh Model List" ) )
       {
         getfilesErrors.clear();
@@ -63,14 +64,14 @@ namespace Tac
           if( IsModelPath( file  ) )
             modelPaths.push_back( file );
 
-        refreshSecTimestamp = curSecTimestamp;
+        refreshSecGameTime = curSecGameTime;
       }
 
       // how long (in seconds) it should take to populate the list
       const float populateDuration { 0.1f };
 
       const int numberOfFilesPopulate{
-        int( ( curSecTimestamp - refreshSecTimestamp ) / populateDuration * modelPaths.size() ) };
+        int( ( curSecGameTime - refreshSecGameTime ) / populateDuration * modelPaths.size() ) };
       const int numberOfFilesToShow { Min( ( int )modelPaths.size(), numberOfFilesPopulate ) };
 
       for( int i{}; i < numberOfFilesToShow; ++i )
@@ -203,7 +204,7 @@ namespace Tac
 
     if( !mesh )
     {
-      const String ellipses( "...", ( int )Timestep::GetElapsedTime() % 4 );
+      const String ellipses( "...", ( int )GameTimer::GetElapsedTime() % 4 );
       ImGuiText( "Loading" + ellipses );
       return;
     }

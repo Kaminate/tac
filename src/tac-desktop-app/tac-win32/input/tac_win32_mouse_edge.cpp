@@ -3,7 +3,7 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
@@ -62,7 +62,7 @@ namespace Tac
   static HWND         mHwnd;
   static bool         mMouseDownCurr;
   static bool         mMouseDownPrev;
-  static Timestamp    keyboardMoveT;
+  static GameTime    keyboardMoveT;
 
   static HWND         sMouseHoveredHwnd;
   static WindowHandle sMouseHoveredDesktopWindow;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-engine-core/shell/tac_shell_timer.h"
+#include "tac-engine-core/shell/tac_shell_real_time.h"
 
 namespace Tac
 {
@@ -13,12 +13,8 @@ namespace Tac
     ProfileFunction* mParent    {};
     ProfileFunction* mNext      {};
     ProfileFunction* mChildren  {};
-
-    //               must be a time point, Timestep::GetElapsedTime()
-    //               is constant for the entire frame
-    Timepoint        mBeginTime {};
-    Timepoint        mEndTime   {};
-
+    RealTime         mBeginTime {};
+    RealTime         mEndTime   {};
     const char*      mName      {};
   };
 }

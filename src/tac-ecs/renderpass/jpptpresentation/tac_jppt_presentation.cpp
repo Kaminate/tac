@@ -500,7 +500,7 @@ namespace Tac
     //  .mDepth  { swapChainDepth },
     //};
 
-    //const float t{ ( float )Sin( renderParams.mTimestamp.mSeconds * 2.0 ) * 0.5f + 0.5f };
+    //const float t{ ( float )Sin( renderParams.mGameTime.mSeconds * 2.0 ) * 0.5f + 0.5f };
 
     const v3i threadGroupCounts( RoundUpToNearestMultiple( sTextureW, 8 ),
                                  RoundUpToNearestMultiple( sTextureH, 8 ),

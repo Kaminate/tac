@@ -31,10 +31,10 @@ namespace Tac
   //  return vars.Diff( oldData, newData );
   //}
 
-  void LagTest::SaveMessage( const Vector< char >& data, Timestamp elapsedSecs )
+  void LagTest::SaveMessage( const Vector< char >& data, GameTime elapsedSecs )
   {
-    const TimeDuration lagSimSecs { mLagSimulationMS * 0.001f };
-    const Timestamp delayedTillSecs { elapsedSecs + lagSimSecs };
+    const TimeDelta lagSimSecs { mLagSimulationMS * 0.001f };
+    const GameTime delayedTillSecs { elapsedSecs + lagSimSecs };
     const DelayedNetMsg delayedNetMsg
     {
       .mDelayedTillSecs { delayedTillSecs },
@@ -43,7 +43,7 @@ namespace Tac
     mSavedNetworkMessages.push_back( delayedNetMsg );
   }
 
-  bool LagTest::TryPopSavedMessage( Vector< char >& data, Timestamp elapsedSecs )
+  bool LagTest::TryPopSavedMessage( Vector< char >& data, GameTime elapsedSecs )
   {
     if( mSavedNetworkMessages.empty() )
       return false;
@@ -80,7 +80,7 @@ namespace Tac
     mSnapshots.push_back( snapshot );
   }
 
-  World* SnapshotBuffer::FindSnapshot( Timestamp elapsedGameSecs )
+  World* SnapshotBuffer::FindSnapshot( GameTime elapsedGameSecs )
   {
     for( World* world : mSnapshots )
       if( world->mElapsedSecs == elapsedGameSecs )

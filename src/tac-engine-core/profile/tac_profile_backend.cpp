@@ -1,34 +1,25 @@
 #include "tac-engine-core/profile/tac_profile_backend.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/profile/tac_profile_function_pool.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/mutex/tac_mutex.h"
 #include "tac-std-lib/os/tac_os.h"
 
 namespace Tac
 {
-
-  const float                      kProfileStoreSeconds { 0.1f };
-
-  // The function corresponding to the most recent unended ProfileBlockBegin() 
-  // Following the parent chain forms the current call stack.
-  thread_local ProfileFunction*    sFunctionUnfinished  {};
-
-  static bool               sIsRunning;
-  static Timepoint          sGameFrameTimepointCurr;
-  static Timepoint          sGameFrameTimepointPrev;
-
   struct ProfiledFunctions
   {
     struct Scope
     {
-      Scope() : mLockGuard( sProfiledFunctionsMutex ), mProfileFrame( sProfiledFunctions )
+      Scope()
+        : mLockGuard( sProfiledFunctionsMutex )
+        , mProfileFrame( sProfiledFunctions )
       {
       }
 
-      ProfileFrame&        mProfileFrame;
-      LockGuard            mLockGuard;
+      ProfileFrame& mProfileFrame;
+      LockGuard     mLockGuard;
     };
 
   private:
@@ -36,32 +27,22 @@ namespace Tac
     static Mutex           sProfiledFunctionsMutex;
   };
 
-  ProfileFrame    ProfiledFunctions::sProfiledFunctions;
-  Mutex           ProfiledFunctions::sProfiledFunctionsMutex;
+  const float                   kProfileStoreSeconds{ 0.1f };
 
+  // The function corresponding to the most recent unended ProfileBlockBegin() 
+  // Following the parent chain forms the current call stack.
+  thread_local ProfileFunction* sFunctionUnfinished{};
 
-  //void              ProfileFunctionVisitor::Visit( ProfileFunction* profileFunction )
-  //{
-  //  if( profileFunction )
-  //    (*this)( profileFunction );
+  static bool                   sIsRunning;
+  static RealTime               sGameFrameRealTimeCurr;
+  static RealTime               sGameFrameRealTimePrev;
 
-  //  if( profileFunction->mChildren )
-  //    (*this)( profileFunction->mChildren );
-
-  //  if( profileFunction->mNext )
-  //    (*this)( profileFunction->mNext );
-  //}
-
+  ProfileFrame                  ProfiledFunctions::sProfiledFunctions;
+  Mutex                         ProfiledFunctions::sProfiledFunctionsMutex;
 
   // -----------------------------------------------------------------------------------------------
 
-  void ProfileFrame::Clear()
-  {
-    for( PerThreadProfileFrame& perThreadProfileFrame : mThreadFrames )
-      perThreadProfileFrame.Clear();
-
-    mThreadFrames.clear();
-  }
+  PerThreadProfileFrame::~PerThreadProfileFrame() { Clear(); }
 
   void PerThreadProfileFrame::Clear()
   {
@@ -81,14 +62,38 @@ namespace Tac
     }
   }
 
-  //void ProfileFrame::operator = ( const ProfileFrame& other )
-  //{
-    //Clear();
-    //for( const PerThreadProfileFrame& perThread : other.mThreadFrames )
-    //{
-    //  mThreadFrames.
-    //}
-  //}
+  void PerThreadProfileFrame::operator = ( const PerThreadProfileFrame& other ) { DeepCopy( other ); }
+
+  bool PerThreadProfileFrame::empty() const { return mFunctions.empty(); }
+
+  void PerThreadProfileFrame::RemoveOldFunctions()
+  {
+    const RealTime now { RealTime::Now() };
+    for( auto it { mFunctions.begin() };
+         it != mFunctions.end();
+         it = mFunctions.erase( it ) )
+    {
+        ProfileFunction* profileFunction { *it };
+        const float secondsAgo { now - profileFunction->mBeginTime };
+
+        // Don't need to iterate the remaining functions, the list is chronological
+        if( secondsAgo < kProfileStoreSeconds )
+          return;
+
+        ProfileFunctionPool::sFunctionPool.Dealloc( profileFunction );
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+
+  void ProfileFrame::Clear()
+  {
+    for( PerThreadProfileFrame& perThreadProfileFrame : mThreadFrames )
+      perThreadProfileFrame.Clear();
+
+    mThreadFrames.clear();
+  }
 
   void ProfileFrame::operator = ( ProfileFrame&& other ) noexcept
   {
@@ -97,31 +102,28 @@ namespace Tac
     OS::OSDebugBreak(); // todooooooooooooo
   }
 
-  ProfileFrame&& ProfileCopyFrame()
+  void ProfileFrame::operator = ( const ProfileFrame& other )
   {
-    ProfileFrame frameCopy;
-    if( !sIsRunning )
-      return move(frameCopy);
-
-
-    ProfiledFunctions::Scope scope;
-    frameCopy = scope.mProfileFrame;
-
-    return move( frameCopy );
+    mThreadFrames = other.mThreadFrames;
   }
 
-  void              ProfileSetIsRuning( const bool isRunning ) { sIsRunning = isRunning; }
-
-  bool              ProfileGetIsRuning() { return sIsRunning; }
-
-
-  void              ProfileSetGameFrame()
+  bool ProfileFrame::empty() const
   {
-    sGameFrameTimepointPrev = sGameFrameTimepointCurr;
-    sGameFrameTimepointCurr = Timepoint::Now();
+    for( const PerThreadProfileFrame& f : mThreadFrames )
+      if( !f.empty() )
+        return false;
+    return true;
   }
 
-  Timepoint  ProfileTimepointGetLastGameFrameBegin() { return sGameFrameTimepointPrev; }
+  auto ProfileFrame::Find( std::thread::id id ) -> PerThreadProfileFrame*
+  {
+    for(PerThreadProfileFrame& perThreadData : mThreadFrames )
+      if( perThreadData.mThreadId == id )
+        return &perThreadData;
+    return nullptr;
+  }
+
+  // -----------------------------------------------------------------------------------------------
 
   ProfileBlock::ProfileBlock( const char* name )
   {
@@ -132,7 +134,7 @@ namespace Tac
     
     ProfileFunction* function = ProfileFunctionPool::sFunctionPool.Alloc();
     function->mName = name;
-    function->mBeginTime = Timepoint::Now();
+    function->mBeginTime = RealTime::Now();
 
     if( sFunctionUnfinished )
       sFunctionUnfinished->AppendChild( function );
@@ -149,7 +151,7 @@ namespace Tac
     // assume same string literal, dont strcmp. <-- hmm Tac::StringLiteral time?
     TAC_ASSERT( sFunctionUnfinished->mName == mName );
 
-    sFunctionUnfinished->mEndTime = Timepoint::Now();
+    sFunctionUnfinished->mEndTime = RealTime::Now();
 
     if( sFunctionUnfinished->mParent )
     {
@@ -195,30 +197,28 @@ namespace Tac
 
   }
 
-  PerThreadProfileFrame* ProfileFrame::Find( std::thread::id id )
-  {
-    for(PerThreadProfileFrame& perThreadData : mThreadFrames )
-      if( perThreadData.mThreadId == id )
-        return &perThreadData;
-    return nullptr;
-  }
-
-  void PerThreadProfileFrame::RemoveOldFunctions()
-  {
-    const Timepoint now { Timepoint::Now() };
-    for( auto it { mFunctions.begin() };
-         it != mFunctions.end();
-         it = mFunctions.erase( it ) )
-    {
-        ProfileFunction* profileFunction { *it };
-        const float secondsAgo { now - profileFunction->mBeginTime };
-
-        // Don't need to iterate the remaining functions, the list is chronological
-        if( secondsAgo < kProfileStoreSeconds )
-          return;
-
-        ProfileFunctionPool::sFunctionPool.Dealloc( profileFunction );
-    }
-  }
 } // namespace Tac
+
+auto Tac::ProfileCopyFrame() -> ProfileFrame&&
+{
+  ProfileFrame frameCopy;
+  if( !sIsRunning )
+    return move(frameCopy);
+
+  ProfiledFunctions::Scope scope;
+  frameCopy = scope.mProfileFrame;
+  return move( frameCopy );
+}
+
+void Tac::ProfileSetIsRuning( const bool isRunning ) { sIsRunning = isRunning; }
+
+bool Tac::ProfileGetIsRuning() { return sIsRunning; }
+
+void Tac::ProfileSetGameFrame()
+{
+  sGameFrameRealTimePrev = sGameFrameRealTimeCurr;
+  sGameFrameRealTimeCurr = RealTime::Now();
+}
+
+auto Tac::ProfileRealTimeGetLastGameFrameBegin() -> RealTime { return sGameFrameRealTimePrev; }
 

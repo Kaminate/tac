@@ -23,7 +23,7 @@
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings_root.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
@@ -50,7 +50,7 @@ namespace Tac
   static SettingsRoot                  sSettingsRoot;
   static const bool                    sVerbose;
   static ThreadAllocator               sAppThreadAllocator;
-  static Timestamp                     sRenderDelay;
+  static GameTime                     sRenderDelay;
   static int                           sNumRenderFramesSincePrevSimFrame{};
   
   static auto ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor ) -> PlatformMouseCursor
@@ -69,10 +69,10 @@ namespace Tac
 
   static void DesktopAppUpdateSimulation( Errors& errors )
   {
-    if( !Timestep::Update() )
+    if( !GameTimer::Update() )
       return;
 
-    // update at the end so that frameindex 0 has timestep 0
+    // update at the end so that GameFrame 0 has GameTimer 0
 
     TAC_PROFILE_BLOCK;
     ProfileSetGameFrame();
@@ -83,7 +83,7 @@ namespace Tac
 
     ImGuiBeginFrame( BeginFrameData
     {
-      .mElapsedSeconds      { Timestep::GetElapsedTime() },
+      .mElapsedSeconds      { GameTimer::GetElapsedTime() },
       .mMouseHoveredWindow  { PlatformFns::GetInstance()->PlatformGetMouseHoveredWindow() },
     } );
 
@@ -100,9 +100,9 @@ namespace Tac
     sApp->GameState_Update( sCurrState );
     if( sCurrState )
     {
-      sCurrState->mFrameIndex = Timestep::GetElapsedFrames();
-      sCurrState->mTimestamp = Timestep::GetElapsedTime();
-      sCurrState->mTimepoint = Timestep::GetLastTick();
+      sCurrState->mFrameIndex = GameTimer::GetElapsedFrames();
+      sCurrState->mGameTime = GameTimer::GetElapsedTime();
+      sCurrState->mRealTime = GameTimer::GetLastTick();
     }
 
     sNumRenderFramesSincePrevSimFrame = 0;
@@ -126,13 +126,13 @@ namespace Tac
       if( !sCurrState || !sPrevState || !sCurrState->mFrameIndex )
         return;
 
-      TAC_ASSERT( sCurrState->mTimestamp != sPrevState->mTimestamp );
-      const auto now{ Timepoint::Now() };
+      TAC_ASSERT( sCurrState->mGameTime != sPrevState->mGameTime );
+      const auto now{ RealTime::Now() };
       dynmc float t{
-        ( now - sPrevState->mTimepoint ) /
-        ( sCurrState->mTimestamp - sPrevState->mTimestamp ) };
+        ( now - sPrevState->mRealTime ) /
+        ( sCurrState->mGameTime - sPrevState->mGameTime ) };
 
-      // if currTime is inbetween pair.mOldState->mTimestamp and pair.mNewState->mTimestamp,
+      // if currTime is inbetween pair.mOldState->mGameTime and pair.mNewState->mGameTime,
       // then we should instead of picking the two most recent simulation states, should pick
       // a pair thats one frame less recent
       TAC_ASSERT( t >= 0 );
@@ -143,7 +143,7 @@ namespace Tac
       t = Min( t, 1.0f );
       TAC_CALL( FontApi::UpdateGPU( errors ) );
       TAC_CALL( ImGuiPlatformRenderFrameBegin( errors ) );
-      if( sCurrState->mTimestamp.mSeconds > sRenderDelay )
+      if( sCurrState->mGameTime.mSeconds > sRenderDelay )
       {
         TAC_CALL( sApp->Render(
           App::RenderParams
@@ -151,7 +151,7 @@ namespace Tac
             .mOldState    { sPrevState }, // A
             .mNewState    { sCurrState }, // B
             .mT           { t }, // inbetween B and (future) C, but used to lerp A and B
-            .mTimestamp   { Lerp( sPrevState->mTimestamp.mSeconds, sCurrState->mTimestamp.mSeconds, t ) },
+            .mGameTime   { Lerp( sPrevState->mGameTime.mSeconds, sCurrState->mGameTime.mSeconds, t ) },
           }, errors ) );
         TAC_CALL( ImGuiPlatformRender( errors ) );
       }
@@ -185,7 +185,7 @@ namespace Tac
         }
       }
 
-      if( sCurrState->mTimestamp.mSeconds > sRenderDelay )
+      if( sCurrState->mGameTime.mSeconds > sRenderDelay )
       {
         TAC_CALL( sApp->Present( errors ) );
         TAC_CALL( ImGuiPlatformPresent( errors ) );

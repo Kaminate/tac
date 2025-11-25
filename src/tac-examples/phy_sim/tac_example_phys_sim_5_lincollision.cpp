@@ -5,7 +5,7 @@
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-std-lib/math/tac_math.h"
 
 // This example based off
@@ -201,7 +201,7 @@ namespace Tac
     Sim5ResolveCollision( collisionResult, mPlayer, mObstacle );
 
     if(spin)
-        mPlayer.mAngRot = m3::RotRadZ( (float)Timestep::GetElapsedTime() );
+        mPlayer.mAngRot = m3::RotRadZ( (float)GameTimer::GetElapsedTime() );
 
 
     DrawObject( mPlayer );

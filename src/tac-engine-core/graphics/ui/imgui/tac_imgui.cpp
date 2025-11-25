@@ -120,8 +120,8 @@ namespace Tac
     while( iAllWindows < nAllWindows )
     {
       ImGuiWindow* window{ globals.mAllWindows[ iAllWindows ] };
-      const Timestamp curSeconds{ globals.mElapsedSeconds };
-      const TimeDuration deletionWaitSeconds{ 0.1f };
+      const GameTime curSeconds{ globals.mElapsedSeconds };
+      const TimeDelta deletionWaitSeconds{ 0.1f };
       if( curSeconds > window->mRequestTime + deletionWaitSeconds )
       {
         if( window->mWindowHandleOwned )
@@ -641,7 +641,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   const float buttonPadding{ ImGuiGetButtonPadding() };
   const v2& itemSpacing{ ImGuiGetItemSpacing() };
 
-  const Timestamp mouseReleaseSeconds{ globals.mElapsedSeconds };
+  const GameTime mouseReleaseSeconds{ globals.mElapsedSeconds };
 
   ImGuiWindow* window{ globals.mCurrentWindow };
 
@@ -696,15 +696,15 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
     TextInputDataUpdateKeys( textInputData, window->GetMousePosViewport(), textPos );
 
     // handle double click
-    static Timestamp lastMouseReleaseSeconds;
+    static GameTime lastMouseReleaseSeconds;
     static v2 lastMousePositionDesktopWindowspace;
     if( AppKeyboardApi::JustDepressed( Key::MouseLeft ) &&
         hovered &&
         !textInputData->mCodepoints.empty() )
     {
       const v2 screenspaceMousePos{ AppKeyboardApi::GetMousePosScreenspace() };
-      const Timestamp elapsedSecs{ ImGuiGlobals::Instance.mElapsedSeconds };
-      const TimeDuration kDoubleClickSecs{ 0.5f };
+      const GameTime elapsedSecs{ ImGuiGlobals::Instance.mElapsedSeconds };
+      const TimeDelta kDoubleClickSecs{ 0.5f };
       const bool releasedRecently{ elapsedSecs - lastMouseReleaseSeconds < kDoubleClickSecs };
       const bool releasedSamePos{ lastMousePositionDesktopWindowspace == screenspaceMousePos };
       if( releasedRecently )
@@ -857,7 +857,7 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
     const ImGuiID id{ window->GetID( str ) };
     SetHoveredID( id );
 
-    //static Timestamp d;
+    //static GameTime d;
     //Mouse::TryConsumeMouseMovement( &d, TAC_STACK_FRAME );
   }
   UI2DDrawData* drawData{ window->mDrawData };

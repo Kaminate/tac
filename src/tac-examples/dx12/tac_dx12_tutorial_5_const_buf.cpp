@@ -11,7 +11,7 @@
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_array.h"
@@ -985,7 +985,7 @@ namespace Tac
           u32          mTexture;
         };
 
-        const float t { (float) Sin( Timestep::GetElapsedTime().mSeconds ) };
+        const float t { (float) Sin( GameTimer::GetElapsedTime().mSeconds ) };
         const m4 transform { m4::Translate( v3( t, 0, 0 ) ) };
 
         const MyCBufType cbuf

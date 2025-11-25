@@ -6,13 +6,12 @@
 
 #pragma once
 
-
 struct cgltf_data;
 
 namespace Tac
 {
   struct AssetPathStringView;
 
-  const cgltf_data* TryGetGLTFData( const AssetPathStringView& );
+  auto TryGetGLTFData( const AssetPathStringView& ) -> const cgltf_data*;
 }
 

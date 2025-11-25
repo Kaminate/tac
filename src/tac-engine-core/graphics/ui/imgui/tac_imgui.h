@@ -3,7 +3,7 @@
 #pragma once
 
 #include "tac-engine-core/i18n/tac_localization.h" // Codepoint
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
@@ -113,7 +113,7 @@ namespace Tac
 
   struct BeginFrameData
   {
-    Timestamp    mElapsedSeconds;
+    GameTime     mElapsedSeconds;
     WindowHandle mMouseHoveredWindow;
   };
 

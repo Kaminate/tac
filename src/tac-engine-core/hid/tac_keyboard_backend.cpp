@@ -4,6 +4,7 @@
 #include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/hid/tac_sys_keyboard_api.h"
+#include "tac-engine-core/shell/tac_shell_real_timer.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -14,7 +15,7 @@
 namespace Tac
 {
   using KeyStates = Array< AppKeyboardApiBackend::KeyState, ( int )Key::Count >;
-  using KeyTimes = Array< Timepoint, ( int )Key::Count >;
+  using KeyTimes = Array< RealTime, ( int )Key::Count >;
   using KeyToggles = Array< int, ( int )Key::Count >;
 
   struct KeyboardMouseState
@@ -23,7 +24,7 @@ namespace Tac
     v2i             mMousePosScreenspace {};
     KeyStates       mKeyStates           {};
     KeyTimes        mKeyTimes            {};
-    Timepoint       mTime                {};
+    RealTime       mTime                {};
     KeyToggles      mToggles             {};
     CodepointString mCodepointDelta      {};
   };
@@ -41,7 +42,7 @@ namespace Tac
 
     currKeySate = state;
     sAppCurr.mToggles[ ( int )key ]++;
-    sAppCurr.mKeyTimes[ ( int )key ] = Timepoint::Now();
+    sAppCurr.mKeyTimes[ ( int )key ] = RealTime::Now();
   }
 
   void AppKeyboardApiBackend::SetCodepoint( Codepoint codepoint )
@@ -49,7 +50,7 @@ namespace Tac
     sAppCurr.mCodepointDelta.push_back( codepoint );
   }
 
-  void AppKeyboardApiBackend::SetMousePos( v2 screenspace )
+  void AppKeyboardApiBackend::SetScreenspaceMousePos( v2 screenspace )
   {
     sAppCurr.mMousePosScreenspace = screenspace;
 
@@ -71,7 +72,7 @@ namespace Tac
   void AppKeyboardApiBackend::Sync()
   {
     sAppPrev = sAppCurr;
-    sAppCurr.mTime = Timepoint::Now();
+    sAppCurr.mTime = RealTime::Now();
     sAppCurr.mToggles = {};
     sAppCurr.mCodepointDelta = {};
   }
@@ -99,7 +100,7 @@ namespace Tac
     const int toggleCount { sAppCurr.mToggles[ ( int )key ] };
     return IsDepressed( key ) && toggleCount >= 1;
   }
-  TimeDuration AppKeyboardApi::HeldSeconds( Key key )
+  TimeDelta AppKeyboardApi::HeldSeconds( Key key )
   {
     if( !IsPressed( key ) ) { return {}; }
     return sAppCurr.mTime - sAppCurr.mKeyTimes[ ( int )key ];

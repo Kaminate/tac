@@ -58,7 +58,7 @@ namespace Tac::Render
     // Some examples:
     // - ID3D12CommandQueue::ExecuteCommandLists
     // - ID3D12CommandQueue::GetClockCalibration
-    // - ID3D12CommandQueue::GetTimestampFrequency
+    // - ID3D12CommandQueue::GetGameTimeFrequency
     // - ID3D12CommandQueue::Signal
     // - ID3D12CommandQueue::Wait
     // 

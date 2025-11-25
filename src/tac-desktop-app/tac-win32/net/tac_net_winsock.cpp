@@ -7,10 +7,9 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/dataprocess/tac_serialization.h"
-//#include "tac-engine-core/settings/tac_settings.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-engine-core/net/tac_net.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/os/tac_os.h"
@@ -51,8 +50,8 @@ namespace Tac::Network
     Set< SocketWinsock* >      mSocketWinsocks           {};
     bool                       mPrintReceivedMessages    {};
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
-    Timestamp                  mKeepaliveNextSeconds     {};
-    TimeDuration        mKeepaliveIntervalSeconds { 30.0f };
+    GameTime                  mKeepaliveNextSeconds     {};
+    TimeDelta        mKeepaliveIntervalSeconds { 30.0f };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -304,7 +303,7 @@ namespace Tac::Network
     netWinsocket->mSocketType = socketType;
     netWinsocket->mWinsockAddressFamily = winsockAddressFamily;
     netWinsocket->mWinsockSocketType = winsockSocketType;
-    netWinsocket->mElapsedSecondsOnLastRecv = Timestep::GetElapsedTime();
+    netWinsocket->mElapsedSecondsOnLastRecv = GameTimer::GetElapsedTime();
     TAC_CALL_RET( netWinsocket->SetKeepalive( true, errors ) );
     TAC_CALL_RET( netWinsocket->SetIsBlocking( false, errors ) );
 
@@ -338,7 +337,7 @@ namespace Tac::Network
 
   void NetWinsock::Update( Errors& errors )
   {
-    bool shouldSendKeepalive { Timestep::GetElapsedTime() > mKeepaliveNextSeconds };
+    bool shouldSendKeepalive { GameTimer::GetElapsedTime() > mKeepaliveNextSeconds };
     if( shouldSendKeepalive )
       mKeepaliveNextSeconds += mKeepaliveIntervalSeconds;
 
@@ -389,7 +388,7 @@ namespace Tac::Network
         continue;
       }
 
-      socketWinsock->mElapsedSecondsOnLastRecv = Timestep::GetElapsedTime();
+      socketWinsock->mElapsedSecondsOnLastRecv = GameTimer::GetElapsedTime();
       if( mPrintReceivedMessages )
       {
         const StringView recvMsg( recvBuf, recvResult );

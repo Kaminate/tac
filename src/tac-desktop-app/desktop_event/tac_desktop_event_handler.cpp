@@ -65,7 +65,7 @@ namespace Tac
     const v2 screenSpaceWindowPos{ AppWindowApiBackend::GetWindowPos( data.mWindowHandle ) };
     const v2 windowSpaceMousePos{ ( float )data.mX, ( float )data.mY };
     const v2 screenSpaceMousePos{ screenSpaceWindowPos + windowSpaceMousePos };
-    AppKeyboardApiBackend::SetMousePos( screenSpaceMousePos );
+    AppKeyboardApiBackend::SetScreenspaceMousePos( screenSpaceMousePos );
   }
 
   void DesktopEventHandler::Handle( const DesktopEventApi::MouseWheelEvent& data ) 

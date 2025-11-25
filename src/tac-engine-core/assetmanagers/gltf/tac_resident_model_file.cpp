@@ -2,7 +2,8 @@
 
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/os/tac_os.h"
@@ -14,9 +15,9 @@ namespace Tac
 {
   struct LoadJob : public Job
   {
-    void             ExecuteAux( Errors& );
-    void             Execute( Errors& ) override;
-    void             Clear();
+    void ExecuteAux( Errors& );
+    void Execute( Errors& ) override;
+    void Clear();
 
     String           bytes       {};
     FileSys::Path    mPath       {};
@@ -74,13 +75,13 @@ namespace Tac
 
     FileSys::Path    mPath               {};
     StringID         mAssetPathID        {};
-    Timestamp        mLastRequestSeconds {};
+    GameTime         mLastRequestSeconds {};
     cgltf_data*      mParsedData         {};
   };
 
   // -----------------------------------------------------------------------------------------------
 
-  void   LoadedStuff::Clear()
+  void LoadedStuff::Clear()
   {
     mPath.clear();
     mLastRequestSeconds = {};
@@ -102,7 +103,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void   LoadingStuff::Clear()
+  void LoadingStuff::Clear()
   {
     mPath.clear();
     mJob.Clear();
@@ -114,7 +115,7 @@ namespace Tac
   static LoadingStuff sLoadingStuff[ 4 ];
   static LoadedStuff  sLoadedStuff[ 4 ];
 
-  static LoadingStuff* TryGetEmptyLoadingStuff()
+  static auto TryGetEmptyLoadingStuff() -> LoadingStuff*
   {
     for( LoadingStuff& loadingStuff : sLoadingStuff )
       if( loadingStuff.mPath.empty() )
@@ -122,7 +123,7 @@ namespace Tac
     return nullptr;
   }
 
-  static LoadedStuff*  TryGetEmptyLoadedStuff()
+  static auto TryGetEmptyLoadedStuff() -> LoadedStuff*
   {
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( loadedStuff.mPath.empty() )
@@ -130,16 +131,16 @@ namespace Tac
     return nullptr;
   }
 
-  static void          ResidentModelFileUpdate()
+  static void ResidentModelFileUpdate()
   {
-    static Timestamp lastUpdateSeconds;
-    const Timestamp currUpdateSeconds { Timestep::GetElapsedTime() };
+    static GameTime lastUpdateSeconds;
+    const GameTime currUpdateSeconds { GameTimer::GetElapsedTime() };
     if( lastUpdateSeconds == currUpdateSeconds )
       return;
 
     lastUpdateSeconds = currUpdateSeconds;
 
-    const TimeDuration persistSeconds { 1.0f };
+    const TimeDelta persistSeconds { 1.0f };
 
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( loadedStuff.mLastRequestSeconds + persistSeconds > currUpdateSeconds )
@@ -171,7 +172,7 @@ namespace Tac
     }
   }
 
-  static LoadedStuff* FindLoadedStuff( StringID id )
+  static auto FindLoadedStuff( StringID id ) -> LoadedStuff*
   {
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( loadedStuff.mAssetPathID == id )
@@ -179,7 +180,7 @@ namespace Tac
     return nullptr;
   }
 
-  static LoadingStuff* FindLoadingStuff( StringID id )
+  static auto FindLoadingStuff( StringID id ) -> LoadingStuff*
   {
     for( LoadingStuff& stuff : sLoadingStuff )
       if( stuff.mAssetPathID == id )
@@ -187,32 +188,33 @@ namespace Tac
     return nullptr;
   }
 
-  const cgltf_data*    TryGetGLTFData( const AssetPathStringView& assetPath )
-  {
-    ResidentModelFileUpdate();
-
-    const StringID id{ assetPath };
-
-    if( LoadedStuff * stuff{ FindLoadedStuff( id ) } )
-    {
-        stuff->mLastRequestSeconds = Timestep::GetElapsedTime();
-        return stuff->mParsedData;
-    }
-
-    // Still loading
-    if( FindLoadingStuff( id ) )
-      return nullptr;
-
-    LoadingStuff* loadingStuff { TryGetEmptyLoadingStuff() };
-    if( !loadingStuff )
-      return nullptr;
-
-    loadingStuff->mPath = assetPath;
-    loadingStuff->mAssetPathID = id;
-    loadingStuff->mJob.mPath = assetPath;
-    Job::JobQueuePush( &loadingStuff->mJob );
-
-    return nullptr;
-  }
 
 } // namespace Tac
+
+auto Tac::TryGetGLTFData( const AssetPathStringView& assetPath ) -> const cgltf_data*
+{
+  ResidentModelFileUpdate();
+
+  const StringID id{ assetPath };
+
+  if( LoadedStuff * stuff{ FindLoadedStuff( id ) } )
+  {
+      stuff->mLastRequestSeconds = GameTimer::GetElapsedTime();
+      return stuff->mParsedData;
+  }
+
+  // Still loading
+  if( FindLoadingStuff( id ) )
+    return nullptr;
+
+  LoadingStuff* loadingStuff { TryGetEmptyLoadingStuff() };
+  if( !loadingStuff )
+    return nullptr;
+
+  loadingStuff->mPath = assetPath;
+  loadingStuff->mAssetPathID = id;
+  loadingStuff->mJob.mPath = assetPath;
+  Job::JobQueuePush( &loadingStuff->mJob );
+
+  return nullptr;
+}

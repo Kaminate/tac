@@ -79,7 +79,7 @@ namespace Tac
     const v2 valuePos { pos + v2( buttonPadding, 0 ) };
     const bool hovered { window->IsHovered( clipRect ) };
 
-    //static Timestamp consumeMouse;
+    //static GameTime consumeMouse;
     //if( hovered )
     //  Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
 
@@ -132,12 +132,12 @@ namespace Tac
         lastMouseXDesktopWindowspace = screenspaceMousePos.x;
 
         // handle double click
-        static Timestamp lastMouseReleaseSeconds;
+        static GameTime lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
         if( AppKeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
         {
-          const Timestamp mouseReleaseSeconds { ImGuiGlobals::Instance.mElapsedSeconds };
-          const TimeDuration kDoubleClickSecs{ .mSeconds{ 0.5f } };
+          const GameTime mouseReleaseSeconds { ImGuiGlobals::Instance.mElapsedSeconds };
+          const TimeDelta kDoubleClickSecs{ .mSeconds{ 0.5f } };
           if( mouseReleaseSeconds - lastMouseReleaseSeconds < kDoubleClickSecs &&
               lastMousePositionDesktopWindowspace == screenspaceMousePos )
           {

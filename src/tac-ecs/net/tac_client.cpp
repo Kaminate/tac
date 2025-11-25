@@ -16,10 +16,6 @@
 
 namespace Tac
 {
-
-
-
-
   void ClientData::WriteInputBody( WriteStream* writer )
   {
     writer->Write( mSavedInputs.back().mInputDirection );
@@ -33,7 +29,7 @@ namespace Tac
     mPlayerUUID = ( PlayerUUID )0;
   }
 
-  void ClientData::ApplyPrediction( Timestamp lastTime )
+  void ClientData::ApplyPrediction( GameTime lastTime )
   {
     Entity* entity { mWorld->FindEntity( mPlayerUUID ) };
     if( !entity )
@@ -45,11 +41,11 @@ namespace Tac
 
     for( const SavedInput& savedInput : mSavedInputs )
     {
-      auto timeDifference { ( float )( savedInput.mTimestamp - lastTime ) };
+      TimeDelta timeDifference { savedInput.mGameTime - lastTime };
       if( timeDifference < 0 )
         continue;
 
-      lastTime = savedInput.mTimestamp;
+      lastTime = savedInput.mGameTime;
       Collider* collider { Collider::GetCollider( entity ) };
       if( !collider )
         continue;
@@ -62,16 +58,15 @@ namespace Tac
   }
 
 
-  void ClientData::ReadSnapshotBody( ReadStream* reader,
-                                     Errors& errors )
+  void ClientData::ReadSnapshotBody( ReadStream* reader, Errors& errors )
   {
-    TAC_CALL( const Timestamp newGameTime{ reader->Read< Timestamp >( errors ) } );
+    TAC_CALL( const GameTime newGameTime{ reader->Read< GameTime >( errors ) } );
     if( newGameTime < mMostRecentSnapshotTime )
       return;
 
     mMostRecentSnapshotTime = newGameTime;
 
-    TAC_CALL( const Timestamp oldGameTime{ reader->Read<Timestamp >( errors ) } );
+    TAC_CALL( const GameTime oldGameTime{ reader->Read<GameTime >( errors ) } );
 
     World* snapshotFrom { mSnapshots.FindSnapshot( oldGameTime ) };
     if( !snapshotFrom )
@@ -95,7 +90,6 @@ namespace Tac
     mWorld->mElapsedSecs = newGameTime;
 
     TAC_CALL( mPlayerUUID = reader->Read< PlayerUUID >( errors ) );
-
     TAC_CALL( PlayerDiffs::Read( mWorld, reader, errors ) );
     TAC_CALL( EntityDiffAPI::Read( mWorld, reader, errors ) );
 
@@ -105,14 +99,9 @@ namespace Tac
       ApplyPrediction( oldGameTime );
   }
 
-  void ClientData::ExecuteNetMsg( const void* bytes,
-                                  int byteCount,
-                                  Errors& errors )
+  void ClientData::ExecuteNetMsg( const void* bytes, int byteCount, Errors& errors )
   {
-    ReadStream readStream
-    {
-      .mBytes { ( const char* )bytes, byteCount },
-    };
+    ReadStream readStream{ .mBytes { ( const char* )bytes, byteCount }, };
 
     TAC_CALL( const NetMsgType networkMessage{ ReadNetMsgHeader( &readStream, errors ) } );
 
@@ -127,7 +116,7 @@ namespace Tac
   }
 
 
-  void ClientData::Update( float seconds,
+  void ClientData::Update( TimeDelta seconds,
                            v2 inputDir,
                            ClientSendNetworkMessageCallback sendNetworkMessageCallback,
                            void* userData,
@@ -140,12 +129,11 @@ namespace Tac
     }
 
     WriteStream writer{};
-
     WriteNetMsgHeader( &writer, NetMsgType::Input );
 
     const SavedInput newInput
     {
-      .mTimestamp      { mWorld->mElapsedSecs },
+      .mGameTime      { mWorld->mElapsedSecs },
       .mInputDirection { inputDir },
     };
 
@@ -158,9 +146,7 @@ namespace Tac
         player->mInputDirection = inputDir;
 
     WriteInputBody( &writer );
-
     sendNetworkMessageCallback( writer.Data(), writer.Size(), userData );
-
     mWorld->Step( seconds );
 
     //if( mChat.mIsReadyToSend )
@@ -176,9 +162,7 @@ namespace Tac
     //}
   }
 
-  void ClientData::ReceiveMessage( void* bytes,
-                                   int byteCount,
-                                   Errors& errors )
+  void ClientData::ReceiveMessage( void* bytes, int byteCount, Errors& errors )
   {
     if( mSavedNetworkMessages.mLagSimulationMS )
     {

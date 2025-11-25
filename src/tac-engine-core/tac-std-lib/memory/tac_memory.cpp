@@ -2,7 +2,7 @@
 
 //#include "tac-desktop-app/desktop_app/tac_desktop_app.h" // temp
 //#include "tac-engine-core/shell/tac_shell.h"
-//#include "tac-engine-core/shell/tac_shell_timestep.h"
+//#include "tac-engine-core/shell/tac_shell_game_time.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -33,7 +33,7 @@ void* Tac::Allocate( const std::size_t sz )
   }
 
   // track dynamic memory allocations
-  //if( Timestep::GetElapsedTime() > 2)
+  //if( GameTimer::GetElapsedTime() > 2)
   {
     ++memAllocCounter;
     ++memCount;

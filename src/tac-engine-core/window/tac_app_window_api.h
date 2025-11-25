@@ -32,6 +32,14 @@ namespace Tac
     static void DesktopWindowDebugImgui();
   };
 
+  struct AppWindowMgr
+  {
+    static bool WindowBegin( StringView );
+    static void WindowEnd();
+    static void FrameBegin();
+    static void FrameEnd();
+  };
+
 } // namespace Tac
 
 

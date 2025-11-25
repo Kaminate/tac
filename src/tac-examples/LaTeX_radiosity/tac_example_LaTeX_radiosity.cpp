@@ -1,19 +1,18 @@
 #include "tac_example_LaTeX_radiosity.h" // self-inc
 
-
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_microtex.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-std-lib/containers/tac_vector_meta.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math_meta.h"
 #include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/meta/tac_meta_enum.h"
-//#include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string_meta.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
@@ -164,7 +163,7 @@ namespace Tac
     }
 
     static String sStatusMessage;
-    static Timestamp sStatusMessageEndTime;
+    static GameTime sStatusMessageEndTime;
 
     if( ImGuiCollapsingHeader( "Text Block Def", ImGuiNodeFlags_DefaultOpen ) )
     {
@@ -195,7 +194,7 @@ namespace Tac
           if( dlgErr )
           {
             sStatusMessage = dlgErr.ToString();
-            sStatusMessageEndTime = Timestep::GetElapsedTime() + TimeDuration( 60.0f );
+            sStatusMessageEndTime = GameTimer::GetElapsedTime() + TimeDelta( 60.0f );
           }
           else if( Exists( asset ) )
           {
@@ -229,13 +228,13 @@ namespace Tac
       saveRequested = false;
       Errors saveErrors;
       SavePresentationDef( saveErrors );
-      const Timestamp curTime{ Timestep::GetElapsedTime() };
-      const TimeDuration duration{ saveErrors ? 60.0f : 5.0f };
+      const GameTime curTime{ GameTimer::GetElapsedTime() };
+      const TimeDelta duration{ saveErrors ? 60.0f : 5.0f };
       sStatusMessage = saveErrors ? saveErrors.ToString() : "Saved!";
       sStatusMessageEndTime = curTime + duration;
     }
 
-    if( Timestep::GetElapsedTime() < sStatusMessageEndTime )
+    if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
       ImGuiText( sStatusMessage );
 
   }

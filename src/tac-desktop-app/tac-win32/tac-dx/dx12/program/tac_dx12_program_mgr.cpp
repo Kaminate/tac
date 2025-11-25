@@ -6,13 +6,13 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-rhi/render3/tac_render_backend.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 
 namespace Tac::Render
 {
   static const D3D_SHADER_MODEL sShaderModel { D3D_SHADER_MODEL_6_5 };
-  static Timestamp              sHotReloadTick;
+  static GameTime              sHotReloadTick;
 
   static auto GetHighestShaderModel( ID3D12Device* device ) -> D3D_SHADER_MODEL
   {
@@ -180,8 +180,8 @@ namespace Tac::Render
 
   void DX12ProgramMgr::HotReload( Errors& errors )
   {
-    const Timestamp curTime{ Timestep::GetElapsedTime() };
-    const TimeDuration diffTime{ curTime - sHotReloadTick };
+    const GameTime curTime{ GameTimer::GetElapsedTime() };
+    const TimeDelta diffTime{ curTime - sHotReloadTick };
     if( diffTime.mSeconds < 1.0f )
       return;
 

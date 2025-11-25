@@ -2,7 +2,7 @@
 
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/tac_space.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
@@ -25,9 +25,9 @@ namespace Tac
     auto GetSystem( const SystemInfo* ) dynmc -> dynmc System*;
     auto GetSystem( const SystemInfo* ) const -> const System*;
     void DeepCopy( const World& );
-    void Step( float seconds );
+    void Step( TimeDelta );
     void DebugImgui();
-    void ApplyInput( Player*, float seconds );
+    void ApplyInput( Player*, TimeDelta );
     void ComputeTransformsRecursively();
 
     //   Entity api
@@ -45,7 +45,7 @@ namespace Tac
     auto FindPlayer( PlayerUUID ) -> Player*;
     auto FindPlayer( EntityUUID ) -> Player*;
 
-    Timestamp            mElapsedSecs;
+    GameTime            mElapsedSecs;
     bool                 mDebugDrawEntityOrigins { true };
     List< Player* >      mPlayers;
     List< Entity* >      mEntities;

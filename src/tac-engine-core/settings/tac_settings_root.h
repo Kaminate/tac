@@ -3,7 +3,7 @@
 #pragma once
 
 #include "tac-engine-core/settings/tac_settings_node.h"
-#include "tac-engine-core/shell/tac_shell_timestamp.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
 namespace Tac
@@ -18,7 +18,7 @@ namespace Tac
 
     Json             sJson;
     bool             sDirty{};
-    Timestamp        sLastSaveSeconds;
+    GameTime        sLastSaveSeconds;
     FileSys::Path    sSavePath;
   };
 }

@@ -21,8 +21,8 @@ namespace Tac
       using VtxPos = Array< v3, 3 >;
       using VtxNor = Array< v3, 3 >;
 
-      auto    GetUnshotPower() const -> float;
-      auto    GetUniformRandomSurfacePoint() const -> v3;
+      auto GetUnshotPower() const -> float;
+      auto GetUniformRandomSurfacePoint() const -> v3;
 
       VtxPos  mTriVerts             {}; // worldspace
       VtxNor  mTriNormals           {}; // worldspace
@@ -37,7 +37,7 @@ namespace Tac
 
     struct Instance
     {
-      int VertexCount() const { return mPatchPowers.size() * 3; }
+      auto VertexCount() const -> int;
 
       const Entity*   mEntity      {};
       const Model*    mModel       {};
@@ -77,7 +77,7 @@ namespace Tac
     bool        mDebugLine     {};
     Instances   mInstances     {};
     World*      mWorld         {};
-    TimeDuration mElapsed {};
+    TimeDelta   mElapsed       {};
   };
 } // namespace Tac
 

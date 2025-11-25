@@ -1,13 +1,9 @@
 #include "tac_radiosity_bake_presentation.h" // self-inc
 
-//#include "tac-ecs/entity/tac_entity.h"
-//#include "tac-ecs/graphics/material/tac_material.h"
-//#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/renderpass/radiosity/tac_radiosity_baker.h"
-//#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-//#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-ecs/renderpass/radiosity/tac_radiosity_baker.h"
 #include "tac-ecs/world/tac_world.h"
 
 #if TAC_RADIOSITY_BAKE_PRESENTATION_ENABLED()
@@ -131,7 +127,7 @@ namespace Tac
     {
       if( sPreBakeScene->GetStatus() == JobState::ThreadRunning )
       {
-        ImGuiText( "Baking" + String( "...", ( int )Timestep::GetElapsedTime() % 4 )
+        ImGuiText( "Baking" + String( "...", ( int )GameTimer::GetElapsedTime() % 4 )
                    + " ("
                    + sPreBakeScene->mElapsed.Format()
                    + ")" );

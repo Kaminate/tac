@@ -96,7 +96,7 @@ namespace Tac
   static HWND         mHwnd;
   static bool         mMouseDownCurr;
   static bool         mMouseDownPrev;
-  static Timestamp    keyboardMoveT;
+  static GameTime    keyboardMoveT;
 
   static HWND         sMouseHoveredHwnd;
   static WindowHandle sMouseHoveredDesktopWindow;

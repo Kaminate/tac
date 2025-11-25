@@ -3,7 +3,7 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_timer.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -316,7 +316,7 @@ namespace Tac
     const D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle { GetRenderTargetDescriptorHandle( m_frameIndex ) };
 
     const double speed { 3 };
-    const auto t { ( float )Sin( Timestep::GetElapsedTime() * speed ) * 0.5f + 0.5f };
+    const auto t { ( float )Sin( GameTimer::GetElapsedTime() * speed ) * 0.5f + 0.5f };
 
     // Record commands.
     const float clearColor[]  { t, 0.2f, 0.4f, 1.0f };

@@ -33,7 +33,7 @@ namespace Tac::Network
     //  return;
     //ImGui::Indent();
     //OnDestruct( ImGui::Unindent() );
-    //String time = FormatFrameTime( mNet->Timestep::GetElapsedTime() - mElapsedSecondsOnLastRecv );
+    //String time = FormatFrameTime( mNet->GameTimer::GetElapsedTime() - mElapsedSecondsOnLastRecv );
     //ImGui::Text( "Address Family: %s", ToString( mAddressFamily ).c_str() );
     //ImGui::Text( "Socket Type: %s", ToString( mSocketType ).c_str() );
     //ImGui::Text( "Last recvd msg: %s", time.c_str() );

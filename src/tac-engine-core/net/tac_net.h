@@ -1,16 +1,10 @@
-
 // Networking interface ( udp, tcp websockets )
-
 #pragma once
-
-//#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+#include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/tac_ints.h"
-
-
 
 namespace Tac::Network
 {
@@ -69,7 +63,7 @@ namespace Tac::Network
     String                              mName                     {};
     SocketType                          mSocketType               { SocketType::Count };
     AddressFamily                       mAddressFamily            { AddressFamily::Count };
-    Timestamp                           mElapsedSecondsOnLastRecv {};
+    GameTime                            mElapsedSecondsOnLastRecv {};
     Net*                                mNet                      {};
     bool                                mTCPIsConnected           {};
     bool                                mRequestDeletion          {};

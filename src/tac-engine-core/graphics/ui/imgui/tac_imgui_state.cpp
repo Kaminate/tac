@@ -4,7 +4,7 @@
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/shell/tac_shell_timestep.h"
+//#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
@@ -264,7 +264,7 @@ namespace Tac
 
     mDrawData->AddBox( scrollbarBox );
 
-    //static Timestamp consumeT;
+    //static GameTime consumeT;
     //if( active )
     //  Mouse::TryConsumeMouseMovement( &consumeT, TAC_STACK_FRAME );
 
