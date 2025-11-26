@@ -2,8 +2,8 @@
 
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/os/tac_os.h"
@@ -132,7 +132,7 @@ namespace Tac
 
     lastUpdateSeconds = currUpdateSeconds;
 
-    const TimeDelta persistSeconds { 1.0f };
+    const GameTimeDelta persistSeconds { 1.0f };
 
     for( LoadedStuff& loadedStuff : sLoadedStuff )
       if( loadedStuff.mLastRequestSeconds + persistSeconds > currUpdateSeconds )

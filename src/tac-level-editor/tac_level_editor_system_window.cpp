@@ -8,7 +8,7 @@
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-std-lib/error/tac_error_handling.h"

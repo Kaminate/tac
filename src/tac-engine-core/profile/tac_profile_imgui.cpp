@@ -6,7 +6,7 @@
 
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile_backend.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -258,7 +258,7 @@ namespace Tac
           {
             const float movePixels { (float)AppKeyboardApi::GetMousePosDelta().x };
             const float movePercent { movePixels / cameraViewportSize.x };
-            const TimeDelta moveSeconds{ .mSeconds{ movePercent * ( sMilisecondsToDisplay / 1000 ) } };
+            const RealTimeDelta moveSeconds{ .mSeconds{ movePercent * ( sMilisecondsToDisplay / 1000 ) } };
             sPauseSec -= moveSeconds;
           }
           sMilisecondsToDisplay -= AppKeyboardApi::GetMouseWheelDelta() * 0.4f;

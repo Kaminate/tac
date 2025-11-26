@@ -70,14 +70,14 @@ namespace Tac
 
     using Instances = Vector< Instance >;
 
-    v3          mDebugSrcPos   {};
-    PatchPower* mDebugSrcPatch {};
-    v3          mDebugDstPos   {};
-    PatchPower* mDebugDstPatch {};
-    bool        mDebugLine     {};
-    Instances   mInstances     {};
-    World*      mWorld         {};
-    TimeDelta   mElapsed       {};
+    v3            mDebugSrcPos   {};
+    PatchPower*   mDebugSrcPatch {};
+    v3            mDebugDstPos   {};
+    PatchPower*   mDebugDstPatch {};
+    bool          mDebugLine     {};
+    Instances     mInstances     {};
+    World*        mWorld         {};
+    RealTimeDelta mElapsed       {};
   };
 } // namespace Tac
 

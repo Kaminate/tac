@@ -19,7 +19,7 @@ namespace Tac
 {
   // decreasing to 0 for easier debugging
   // ( consistant update between server/client )
-  static const TimeDelta sSnapshotUntilNextSecondsMax {}; //0.1f;
+  static const GameTimeDelta sSnapshotUntilNextSecondsMax {}; //0.1f;
 
   ServerData::ServerData()
   {
@@ -55,7 +55,7 @@ namespace Tac
   }
 
 
-  OtherPlayer* ServerData::FindOtherPlayer( ConnectionUUID connectionID )
+  auto ServerData::FindOtherPlayer( ConnectionUUID connectionID ) -> OtherPlayer*
   {
     for( OtherPlayer* otherPlayer : mOtherPlayers )
       if( otherPlayer->mConnectionUUID == connectionID )
@@ -139,12 +139,12 @@ namespace Tac
     }
   }
 
-  Entity* ServerData::SpawnEntity()
+  auto ServerData::SpawnEntity() -> Entity*
   {
     return mWorld->SpawnEntity( mEntityUUIDCounter.AllocateNewUUID() );
   }
 
-  Player* ServerData::SpawnPlayer()
+  auto ServerData::SpawnPlayer() -> Player*
   {
     return mWorld->mPlayers.size() < sPlayerCountMax
       ? mWorld->SpawnPlayer( mPlayerUUIDCounter.AllocateNewUUID() )
@@ -178,7 +178,7 @@ namespace Tac
       errors );
   }
 
-  void ServerData::Update( const TimeDelta seconds,
+  void ServerData::Update( const GameTimeDelta seconds,
                            const ServerSendNetworkMessageCallback sendNetworkMessageCallback,
                            void* userData,
                            Errors& errors )
@@ -194,7 +194,6 @@ namespace Tac
       }
     }
 
-
     mWorld->Step( seconds );
 
     mSnapshotUntilNextSecondsCur -= seconds;
@@ -202,13 +201,11 @@ namespace Tac
       return;
 
     mSnapshotUntilNextSecondsCur = sSnapshotUntilNextSecondsMax;
-
     mSnapshots.AddSnapshot( mWorld );
 
     for( OtherPlayer* otherPlayer : mOtherPlayers )
     {
       WriteStream writer{};
-
       WriteNetMsgHeader( &writer, NetMsgType::Snapshot );
       WriteSnapshotBody( otherPlayer, &writer );
       if( sendNetworkMessageCallback )

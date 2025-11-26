@@ -4,7 +4,7 @@
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_span.h"

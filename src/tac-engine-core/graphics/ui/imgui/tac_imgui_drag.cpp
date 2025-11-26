@@ -137,7 +137,7 @@ namespace Tac
         if( AppKeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
         {
           const GameTime mouseReleaseSeconds { ImGuiGlobals::Instance.mElapsedSeconds };
-          const TimeDelta kDoubleClickSecs{ .mSeconds{ 0.5f } };
+          const GameTimeDelta kDoubleClickSecs{ .mSeconds{ 0.5f } };
           if( mouseReleaseSeconds - lastMouseReleaseSeconds < kDoubleClickSecs &&
               lastMousePositionDesktopWindowspace == screenspaceMousePos )
           {

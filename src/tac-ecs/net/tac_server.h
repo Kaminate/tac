@@ -5,7 +5,7 @@
 #include "tac-ecs/tac_space.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_list.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 
 namespace Tac
 {
@@ -36,22 +36,22 @@ namespace Tac
     void DebugImgui();
     auto FindOtherPlayer( ConnectionUUID ) -> OtherPlayer*;
     void ReceiveMessage( ConnectionUUID, void* bytes, int byteCount, Errors& );
-    void Update( TimeDelta, ServerSendNetworkMessageCallback, void* userData, Errors& );
+    void Update( GameTimeDelta, ServerSendNetworkMessageCallback, void* userData, Errors& );
     void OnLoseClient( ConnectionUUID );
     void ReadInput( ReadStream*, ConnectionUUID, Errors& );
     void WriteSnapshotBody( OtherPlayer*, WriteStream* );
     void ExecuteNetMsg( ConnectionUUID, const void* bytes, int byteCount, Errors& );
 
     SnapshotBuffer            mSnapshots                   {};
-    TimeDelta              mSnapshotUntilNextSecondsCur {};
+    GameTimeDelta             mSnapshotUntilNextSecondsCur {};
     World*                    mWorld                       {};
     World*                    mEmptyWorld                  {};
-    static const int          sOtherPlayerCountMax         { 3 };
     List< OtherPlayer* >      mOtherPlayers                {};
     //PlayerUUID                mPlayerUUIDCounter { NullPlayerUUID };
     //EntityUUID                mEntityUUIDCounter { NullEntityUUID };
     PlayerUUIDCounter         mPlayerUUIDCounter           {};
     EntityUUIDCounter         mEntityUUIDCounter           {};
+    static const int          sOtherPlayerCountMax         { 3 };
   };
 }
 

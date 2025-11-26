@@ -2,7 +2,7 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-std-lib/os/tac_os.h"

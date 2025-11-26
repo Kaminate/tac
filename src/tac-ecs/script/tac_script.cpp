@@ -8,7 +8,7 @@ namespace Tac
 {
 
 
-  void ScriptThread::Update( TimeDelta, Errors& )
+  void ScriptThread::Update( GameTimeDelta, Errors& )
   {
 
   }
@@ -31,7 +31,7 @@ namespace Tac
     //DebugImgui( errors );
   }
 
-  void ScriptThread::Sleep( TimeDelta time )
+  void ScriptThread::Sleep( GameTimeDelta time )
   {
     mIsSleeping = true;
     mSecondsToSleep = time.mSeconds;
@@ -73,7 +73,7 @@ namespace Tac
     }
   }
 
-  void ScriptRoot::Update( TimeDelta seconds, Errors& errors )
+  void ScriptRoot::Update( GameTimeDelta seconds, Errors& errors )
   {
     // threads can add children during the update, so make a copy
     FrameMemoryVector< ScriptThread* > childrenToUpdate( mChildren.begin(), mChildren.end() );

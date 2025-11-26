@@ -7,7 +7,7 @@
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h" // PremultipliedAlpha
 #include "tac-engine-core/window/tac_app_window_api.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 
 #if TAC_IS_WIDGET_RENDERER_ENABLED()

@@ -2,7 +2,7 @@
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-ecs/renderpass/radiosity/tac_radiosity_baker.h"
 #include "tac-ecs/world/tac_world.h"
 

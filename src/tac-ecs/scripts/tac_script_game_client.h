@@ -45,7 +45,7 @@ namespace Tac
   {
     ScriptSplash();
     ~ScriptSplash();
-    void Update( TimeDelta, Errors& ) override;
+    void Update( GameTimeDelta, Errors& ) override;
     void DebugImgui( Errors& ) override;
     UIText* mStudioName       {};
     float   mFullyVisibleSec  {};
@@ -56,14 +56,14 @@ namespace Tac
   struct ScriptGameClient : public ScriptThread
   {
     ScriptGameClient();
-    void Update( TimeDelta, Errors& ) override;
+    void Update( GameTimeDelta, Errors& ) override;
     void DebugImgui( Errors& ) override;
   };
 
   struct ScriptMatchmaker : public ScriptThread
   {
     ScriptMatchmaker();
-    void Update( TimeDelta, Errors& ) override;
+    void Update( GameTimeDelta, Errors& ) override;
     void DebugImgui( Errors& ) override;
     void OnScriptGameConnectionClosed( Network::Socket* );
     void OnScriptGameMessage( Network::Socket* , void* bytes, int byteCount );
@@ -101,7 +101,7 @@ namespace Tac
   struct ScriptMainMenu : public ScriptThread
   {
     ScriptMainMenu();
-    void Update( TimeDelta, Errors& ) override;
+    void Update( GameTimeDelta, Errors& ) override;
     void DebugImgui( Errors& ) override;
     void AddCallbackConnect();
     void AddCallbackDisconnect();
@@ -126,7 +126,7 @@ namespace Tac
     ScriptMainMenu2();
     ~ScriptMainMenu2();
     void RenderMainMenu();
-    void Update( TimeDelta, Errors& ) override;
+    void Update( GameTimeDelta, Errors& ) override;
     Job* mConnectToServerJob {};
   };
 }

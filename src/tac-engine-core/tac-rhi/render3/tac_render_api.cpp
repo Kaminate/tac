@@ -30,10 +30,10 @@ namespace Tac
 
 namespace Tac::Render
 {
-  static int               sMaxGPUFrameCount; 
+  static int      sMaxGPUFrameCount; 
   static UTF8Path sShaderOutputPath; 
-  static IDevice*          sDevice;
-  static u64               sCurrentRenderFrameIndex;
+  static IDevice* sDevice;
+  static u64      sCurrentRenderFrameIndex;
 
    // -----------------------------------------------------------------------------------------------
 
@@ -126,13 +126,10 @@ namespace Tac::Render
 
   auto VertexDeclarations::CalculateStride() const-> int 
   {
-    int maxStride {};
+    int maxStride{};
     for( const VertexDeclaration& decl : *this )
-    {
-      const int curStride { decl.mAlignedByteOffset + decl.mFormat.CalculateTotalByteCount() };
-      maxStride = Max( maxStride, curStride );
-    }
-
+      if( const int curStride{ decl.mAlignedByteOffset + decl.mFormat.CalculateTotalByteCount() } )
+        maxStride = Max( maxStride, curStride );
     return maxStride;
   }
 

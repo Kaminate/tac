@@ -43,7 +43,7 @@ namespace Tac
 
     for( const SavedInput& savedInput : mSavedInputs )
     {
-      TimeDelta timeDifference { savedInput.mGameTime - lastTime };
+      GameTimeDelta timeDifference { savedInput.mGameTime - lastTime };
       if( timeDifference < 0 )
         continue;
 
@@ -116,7 +116,7 @@ namespace Tac
     }
   }
 
-  void ClientData::Update( TimeDelta seconds,
+  void ClientData::Update( GameTimeDelta seconds,
                            v2 inputDir,
                            ClientSendNetworkMessageCallback sendNetworkMessageCallback,
                            void* userData,

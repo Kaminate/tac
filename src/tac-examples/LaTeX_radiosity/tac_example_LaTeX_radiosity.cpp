@@ -6,7 +6,7 @@
 #include "tac-engine-core/graphics/ui/tac_microtex.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/containers/tac_vector_meta.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math_meta.h"
@@ -189,7 +189,7 @@ namespace Tac
           if( dlgErr )
           {
             sStatusMessage = dlgErr.ToString();
-            sStatusMessageEndTime = GameTimer::GetElapsedTime() + TimeDelta( 60.0f );
+            sStatusMessageEndTime = GameTimer::GetElapsedTime() + GameTimeDelta{ .mSeconds{  60.0f } };
           }
           else if( Exists( asset ) )
           {
@@ -224,7 +224,7 @@ namespace Tac
       Errors saveErrors;
       SavePresentationDef( saveErrors );
       const GameTime curTime{ GameTimer::GetElapsedTime() };
-      const TimeDelta duration{ saveErrors ? 60.0f : 5.0f };
+      const GameTimeDelta duration{ saveErrors ? 60.0f : 5.0f };
       sStatusMessage = saveErrors ? saveErrors.ToString() : "Saved!";
       sStatusMessageEndTime = curTime + duration;
     }

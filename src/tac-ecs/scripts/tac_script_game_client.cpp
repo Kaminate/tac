@@ -8,8 +8,8 @@
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/thirdparty/stb/stb_image.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
@@ -79,7 +79,7 @@ namespace Tac
 		mName = "Game Client";
 	}
 
-	void ScriptGameClient::Update( TimeDelta seconds, Errors& errors )
+	void ScriptGameClient::Update( GameTimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
@@ -113,7 +113,7 @@ namespace Tac
 		//mScriptRoot->AddChild( TAC_NEW ScriptMainMenu );
 		mScriptRoot->AddChild( TAC_NEW ScriptMainMenu2 );
 	}
-	void ScriptSplash::Update( TimeDelta seconds, Errors& errors )
+	void ScriptSplash::Update( GameTimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
@@ -247,7 +247,7 @@ namespace Tac
     scriptMatchmaker->PokeServer( errors );
   };
 
-	void ScriptMatchmaker::Update( TimeDelta seconds, Errors& errors )
+	void ScriptMatchmaker::Update( GameTimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
 
@@ -277,7 +277,7 @@ namespace Tac
 
 		TAC_TIMELINE_KEYFRAME;
 
-    Sleep( TimeDelta{ .mSeconds{ 1.0f } } );
+    Sleep( GameTimeDelta{ .mSeconds{ 1.0f } } );
 
 		TAC_TIMELINE_KEYFRAME;
 
@@ -429,7 +429,7 @@ namespace Tac
 		//                     }
 		//                   } );
 	}
-	void ScriptMainMenu::Update( TimeDelta seconds, Errors& errors )
+	void ScriptMainMenu::Update( GameTimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( errors );
     TAC_UNUSED_PARAMETER( seconds );
@@ -851,6 +851,13 @@ namespace Tac
     ScriptMatchmaker* mMatchmaker{};
 	};
 
+  void ConnectToServerJob::Execute( Errors& errors )
+  {
+    mMatchmaker->TryConnect();
+    errors = mMatchmaker->mConnectionErrors;
+  }
+
+
 	ScriptMainMenu2::ScriptMainMenu2()
 	{
 		mName = "Main Menu 2";
@@ -924,7 +931,7 @@ namespace Tac
 		//}
 		//ImGuiEnd();
 	}
-	void ScriptMainMenu2::Update( TimeDelta seconds, Errors& errors )
+	void ScriptMainMenu2::Update( GameTimeDelta seconds, Errors& errors )
 	{
     TAC_UNUSED_PARAMETER( seconds );
     TAC_UNUSED_PARAMETER( errors );
@@ -949,11 +956,5 @@ namespace Tac
 		TAC_TIMELINE_END;
 	}
 
-
-  void ConnectToServerJob::Execute( Errors& errors )
-  {
-    mMatchmaker->TryConnect();
-    errors = mMatchmaker->mConnectionErrors;
-  }
 
 } // namespace Tac

@@ -9,7 +9,7 @@
 #include "tac-std-lib/dataprocess/tac_serialization.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-engine-core/net/tac_net.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/os/tac_os.h"
@@ -51,7 +51,7 @@ namespace Tac::Network
     bool                       mPrintReceivedMessages    {};
     // TODO: Only send a keepalive if we haven't received a message within mKeepaliveIntervalSeconds
     GameTime                  mKeepaliveNextSeconds     {};
-    TimeDelta        mKeepaliveIntervalSeconds { 30.0f };
+    GameTimeDelta        mKeepaliveIntervalSeconds { 30.0f };
   };
 
   // -----------------------------------------------------------------------------------------------

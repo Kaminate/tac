@@ -2,7 +2,7 @@
 
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
-#include "tac-engine-core/shell/tac_shell_real_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -22,7 +22,7 @@ namespace Tac
     v2i             mMousePosScreenspace {};
     KeyStates       mKeyStates           {};
     KeyTimes        mKeyTimes            {};
-    RealTime       mTime                {};
+    RealTime        mTime                {};
     KeyToggles      mToggles             {};
     CodepointString mCodepointDelta      {};
   };
@@ -65,8 +65,6 @@ namespace Tac
     sAppCurr.mMouseWheel += wheelDelta;
   }
 
-  // -----------------------------------------------------------------------------------------------
-
   void AppKeyboardApiBackend::Sync()
   {
     sAppPrev = sAppCurr;
@@ -96,7 +94,7 @@ namespace Tac
     const int toggleCount { sAppCurr.mToggles[ ( int )key ] };
     return IsDepressed( key ) && toggleCount >= 1;
   }
-  auto AppKeyboardApi::HeldSeconds( Key key ) -> TimeDelta
+  auto AppKeyboardApi::HeldSeconds( Key key ) -> RealTimeDelta
   {
     if( !IsPressed( key ) ) { return {}; }
     return sAppCurr.mTime - sAppCurr.mKeyTimes[ ( int )key ];

@@ -203,7 +203,7 @@ namespace Tac
     mPlayers.erase( it );
   }
 
-  void World::ApplyInput( Player* player, TimeDelta seconds )
+  void World::ApplyInput( Player* player, GameTimeDelta seconds )
   {
     TAC_UNUSED_PARAMETER( seconds );
     Entity* entity { FindEntity( player->mEntityUUID ) };
@@ -238,7 +238,7 @@ namespace Tac
         ComputeTransformsRecursivelyAux( identity, entity );
   }
 
-  void World::Step( TimeDelta seconds )
+  void World::Step( GameTimeDelta seconds )
   {
     TAC_PROFILE_BLOCK;
 

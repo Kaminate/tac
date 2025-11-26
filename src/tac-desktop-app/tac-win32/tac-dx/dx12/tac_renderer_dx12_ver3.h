@@ -4,7 +4,7 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_fifo_queue.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-rhi/render3/tac_render_backend.h"
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-dx/dx12/buffer/tac_dx12_buffer_mgr.h"

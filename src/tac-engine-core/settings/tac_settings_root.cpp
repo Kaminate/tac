@@ -1,7 +1,7 @@
 #include "tac_settings_root.h" // self-inc
 
-#include "tac-engine-core/shell/tac_shell_game_time.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
@@ -30,7 +30,7 @@ namespace Tac
       return;
 
     const GameTime elapsedSeconds{ GameTimer::GetElapsedTime() };
-    const TimeDelta saveFrequencySecs{ 0.1f };
+    const GameTimeDelta saveFrequencySecs{ 0.1f };
     const bool savedRecently{ elapsedSeconds < sLastSaveSeconds + saveFrequencySecs };
     if( savedRecently )
       return;

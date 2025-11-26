@@ -3,10 +3,7 @@
 #include "tac-std-lib/string/tac_string.h"              // String
 #include "tac-std-lib/error/tac_error_handling.h"       // Errors
 #include "tac-std-lib/memory/tac_smart_ptr.h"           // SmartPtr
-//#include "tac-engine-core/shell/tac_shell_game_time.h"   // GameFrame
-#include "tac-engine-core/shell/tac_shell_game_time.h"  // GameTime
-#include "tac-engine-core/shell/tac_shell_real_time.h"  // RealTime
-//#include "tac-engine-core/shell/tac_shell_timer.h"      // RealTime
+#include "tac-engine-core/shell/tac_shell_time.h"       // GameTime, RealTime
 #include "tac-engine-core/settings/tac_settings_node.h" // SettingsNode
 
 namespace Tac

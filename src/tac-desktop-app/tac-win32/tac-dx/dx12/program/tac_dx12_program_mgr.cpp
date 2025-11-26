@@ -6,7 +6,7 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-rhi/render3/tac_render_backend.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 
 namespace Tac::Render
@@ -181,7 +181,7 @@ namespace Tac::Render
   void DX12ProgramMgr::HotReload( Errors& errors )
   {
     const GameTime curTime{ GameTimer::GetElapsedTime() };
-    const TimeDelta diffTime{ curTime - sHotReloadTick };
+    const GameTimeDelta diffTime{ curTime - sHotReloadTick };
     if( diffTime.mSeconds < 1.0f )
       return;
 

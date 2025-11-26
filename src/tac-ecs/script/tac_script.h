@@ -4,7 +4,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_set.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 
 namespace Tac
 {
@@ -71,10 +71,10 @@ namespace Tac
   struct ScriptThread
   {
     virtual ~ScriptThread() = default;
-    virtual void Update( TimeDelta, Errors& );
+    virtual void Update( GameTimeDelta, Errors& );
     virtual void DebugImgui( Errors& ) {}
     void DebugImguiOuter( Errors& );
-    void Sleep( TimeDelta );
+    void Sleep( GameTimeDelta );
     void OnMsg( const ScriptMsg* );
     void AddScriptCallback( void* userData, ScriptCallbackFunction );
     void RunForever();
@@ -96,7 +96,7 @@ namespace Tac
   {
     ~ScriptRoot();
     void AddChild( ScriptThread* );
-    void Update( TimeDelta, Errors& );
+    void Update( GameTimeDelta, Errors& );
     void DebugImgui( Errors& );
     void OnMsg( const ScriptMsg* );
     void OnMsg( StringView scriptMsgType );

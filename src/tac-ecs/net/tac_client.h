@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/math/tac_vector2.h"
-#include "tac-engine-core/shell/tac_shell_game_time.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/string/tac_string.h"
@@ -21,10 +21,6 @@ namespace Tac
 
   using ClientSendNetworkMessageCallback = void( * )( void* bytes, int byteCount, void* userData );
 
-  //struct Reader;
-  //struct Writer;
-
-
   struct ClientData
   {
     void ReadSnapshotBody( ReadStream*, Errors& );
@@ -32,14 +28,12 @@ namespace Tac
     void WriteInputBody( WriteStream* );
     void ExecuteNetMsg( const void*, int, Errors& );
     void ApplyPrediction( GameTime lastTime );
-    void Update( TimeDelta,
+    void Update( GameTimeDelta,
                  v2 inputDir,
                  ClientSendNetworkMessageCallback sendNetworkMessageCallback,
                  void* userData,
                  Errors& );
-    void ReceiveMessage( void* bytes,
-                         int byteCount,
-                         Errors& );
+    void ReceiveMessage( void* bytes, int byteCount, Errors& );
 
     LagTest                 mSavedNetworkMessages   {};
     World*                  mWorld                  {};

@@ -21,7 +21,7 @@
 
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-level-editor/tac_level_editor.h"
@@ -518,12 +518,10 @@ namespace Tac
     TAC_CALL( ImGuiOverlay( errors ) );
   }
 
-  void CreationGameWindow::SetStatusMessage( const StringView msg,
-                                             const TimeDelta duration )
+  void CreationGameWindow::SetStatusMessage( const StringView msg, const GameTimeDelta duration )
   {
-    const GameTime curTime { GameTimer::GetElapsedTime() };
     sStatusMessage = msg;
-    sStatusMessageEndTime = curTime + duration;
+    sStatusMessageEndTime = GameTimer::GetElapsedTime() + duration;
   }
 
 } // namespace Tac

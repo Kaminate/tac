@@ -13,7 +13,7 @@
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/shell/tac_shell_game_timer.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
