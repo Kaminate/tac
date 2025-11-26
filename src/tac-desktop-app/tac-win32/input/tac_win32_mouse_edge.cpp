@@ -1,10 +1,10 @@
 #include "tac_win32_mouse_edge.h" // self-inc
 
-
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/shell/tac_shell_game_time.h"
 #include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/platform/tac_platform.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
@@ -276,7 +276,7 @@ void Tac::Win32MouseEdgeInit()
 void Tac::Win32MouseEdgeUpdate()
 {
   sMouseHoveredHwnd = GetMouseHoveredHWND();
-  sMouseHoveredDesktopWindow = Win32WindowManager::FindWindow( sMouseHoveredHwnd );
+  sMouseHoveredDesktopWindow = Platform::PlatformGetMouseHoveredWindow(); // Win32WindowManager::FindWindow( sMouseHoveredHwnd );
   mMouseDownPrev = mMouseDownCurr;
   mMouseDownCurr = GetKeyState( VK_LBUTTON ) & 0x100;
   switch( mHandlerType )

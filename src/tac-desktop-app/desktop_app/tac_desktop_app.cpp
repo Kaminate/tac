@@ -84,7 +84,7 @@ namespace Tac
     ImGuiBeginFrame( BeginFrameData
     {
       .mElapsedSeconds      { GameTimer::GetElapsedTime() },
-      .mMouseHoveredWindow  { PlatformFns::GetInstance()->PlatformGetMouseHoveredWindow() },
+      .mMouseHoveredWindow  { Platform::PlatformGetMouseHoveredWindow() },
     } );
 
     ControllerApi::UpdateJoysticks();
@@ -161,7 +161,7 @@ namespace Tac
       if( oldCursor != newCursor )
       {
         oldCursor = newCursor;
-        PlatformFns::GetInstance()->PlatformSetMouseCursor( newCursor );
+        Platform::PlatformSetMouseCursor( newCursor );
         if( sVerbose )
           OS::OSDebugPrintLine( "set mouse cursor : " + ToString( ( int )newCursor ) );
       }
@@ -196,7 +196,6 @@ namespace Tac
 
   static void DesktopAppInit( Errors& errors )
   {
-    TAC_ASSERT( PlatformFns::GetInstance() );
     sApp = App::Create();
     sAppThreadAllocator.Init( 1024 * 1024 * 10 ); // 10MB
     FrameMemorySetThreadAllocator( &sAppThreadAllocator );
@@ -209,10 +208,10 @@ namespace Tac
 
     // macos appDataPath = /Users/Nate/Library/Application Support/Studio/Project
     // win32 appDataPath = C:/Users/Nate/AppData/Roaming/Studio/Project
-    TAC_RAISE_ERROR_IF( !FileSys::Exists( Shell::sShellPrefPath ),
-                        String() + "app data path " + Shell::sShellPrefPath.u8string() + " doesnt exist" );
+    TAC_RAISE_ERROR_IF( !Shell::sShellPrefPath.Exists(),
+                        String() + "app data path " + Shell::sShellPrefPath + " doesnt exist" );
     LogApi::LogSetPath( Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.log" ) );
-    const FileSys::Path settingsPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.cfg" ) };
+    const UTF8Path settingsPath{ Shell::sShellPrefPath / ( Shell::sShellAppName + ".tac.cfg" ) };
     TAC_CALL( sSettingsRoot.Init( settingsPath, errors ) );
     Shell::sShellSettings = sSettingsRoot.GetRootNode();
     TAC_CALL( AssetHashCache::Init( errors ) );
@@ -276,10 +275,10 @@ namespace Tac
     TAC_CALL( DesktopAppInit( errors ) );
     while( OS::OSAppIsRunning() )
     {
-      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameBegin( errors ) ); // poll wndproc
+      TAC_CALL( Platform::PlatformFrameBegin( errors ) ); // poll wndproc
       TAC_CALL( DesktopEventApi::Apply( errors ) ); // apply queued wndproc events to keyboard/window state
       TAC_CALL( DesktopApp::Update( errors ) );
-      TAC_CALL( PlatformFns::GetInstance()->PlatformFrameEnd( errors ) );
+      TAC_CALL( Platform::PlatformFrameEnd( errors ) );
       TAC_CALL( Network::NetApi::Update( errors ) );
       TAC_CALL( sSettingsRoot.Tick( errors ) );
       TAC_CALL( DesktopAppUpdateSimulation( errors ) );
@@ -301,7 +300,7 @@ namespace Tac
     if( ImGuiCollapsingHeader( "DesktopApp::DebugImGui" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
-      PlatformFns::GetInstance()->PlatformImGui( errors );
+      Platform::PlatformImGui( errors );
     }
   }
 

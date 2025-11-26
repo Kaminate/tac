@@ -13,7 +13,7 @@ namespace Tac
   constexpr auto Render::operator & ( Binding lhs, Binding rhs ) -> BindingMask { return { ( Binding )( ( int )lhs & ( int )rhs ) }; }
 #endif
 
-  int Render::GetTexFmtSize( const TexFmt fmt )
+  auto Render::GetTexFmtSize( const TexFmt fmt ) -> int
   {
     switch( fmt )
     {
@@ -30,10 +30,10 @@ namespace Tac
 
 namespace Tac::Render
 {
-  static int              sMaxGPUFrameCount; 
-  static FileSys::Path    sShaderOutputPath; 
-  static IDevice*         sDevice;
-  static u64              sCurrentRenderFrameIndex;
+  static int               sMaxGPUFrameCount; 
+  static UTF8Path sShaderOutputPath; 
+  static IDevice*          sDevice;
+  static u64               sCurrentRenderFrameIndex;
 
    // -----------------------------------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ namespace Tac::Render
     // ...
   }
   auto RenderApi::GetMaxGPUFrameCount() -> int           { return sMaxGPUFrameCount; }
-  auto RenderApi::GetShaderOutputPath() -> FileSys::Path { return sShaderOutputPath; }
+  auto RenderApi::GetShaderOutputPath() -> UTF8Path { return sShaderOutputPath; }
   auto RenderApi::GetRenderDevice() -> IDevice*          { return sDevice; }
   void RenderApi::SetRenderDevice( IDevice* device )     { sDevice = device; }
   void RenderApi::BeginRenderFrame( Errors& errors )

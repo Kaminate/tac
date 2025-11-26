@@ -6,54 +6,31 @@ namespace Tac { struct String; }
 
 namespace Tac
 {
-
-  bool       IsSpace( char );
-  bool       IsAlpha( char );
-  bool       IsDigit( char );
-
-  // Negative value if lhs appears before rhs in lexicographical order.
-  // Zero if lhs and rhs compare equal.
-  // Positive value if lhs appears after rhs in lexicographical order.
-  int        StrCmp( const char*, const char* );
-  void       StrCpy( char*, const char* );
-  int        StrLen( const char* );
-
-  // Returns 0 if they match
-  int        MemCmp( const void*, const void*, int );
-  void       MemCpy( void*, const void*, int );
-  void       MemSet( void*, unsigned char, int );
-
-  String     ToString( int );
-  String     ToString( char );
-  String     ToString( unsigned int );
-  String     ToString( unsigned long long );
-  String     ToString( const void* );
-  String     ToString( double );
-  String     ToString( float );
-
-  // StringView Va( const char* format, ... );
-  int        Atoi( const StringView& );
-  float      Atof( const StringView& );
-  String     Itoa( int, int base = 10 );
+  bool IsSpace( char );
+  bool IsAlpha( char );
+  bool IsDigit( char );
+  auto StrCmp( const char*, const char* ) -> int; // return <0, =0, or >0
+  void StrCpy( char*, const char* );
+  auto StrLen( const char* ) -> int;
+  auto MemCmp( const void*, const void*, int ) -> int; // Returns 0 if they match
+  void MemCpy( void*, const void*, int );
+  void MemSet( void*, unsigned char, int );
+  auto ToString( int ) -> String;
+  auto ToString( char ) -> String;
+  auto ToString( unsigned int ) -> String;
+  auto ToString( unsigned long long ) -> String;
+  auto ToString( const void* ) -> String;
+  auto ToString( double ) -> String;
+  auto ToString( float ) -> String;
+  auto Atoi( const StringView& ) -> int;
+  auto Atof( const StringView& ) -> float;
+  auto Itoa( int, int base = 10 ) -> String;
 
   // -----------------------------------------------------------------------------------------------
 
-  // example:
-  //
-  //   u64 i = 123;
-  //   printf( PRIu64, i ); 
-  //   
-  //   StringView s = "hello world";
-  //   printf( TAC_PRI_SV_FMT, TAC_PRI_SV_ARG( s ) ); 
-
-#define TAC_PRI_SV_FMT      "%.*s"
-#define TAC_PRI_SV_ARG( s ) s.size(), s.data()
-
-  // TODO: 
-  //   in STL, the string capacity returns the number of characters that can be written
-  //   to the string, not including the null terminator
-  //   ie, buf_size = capacity + 1
-  //   https://devblogs.microsoft.com/oldnewthing/20230803-00/?p=108532
+  // A String represents a contiguous array of bytes representing readable text.
+  // The encoding is assumed to be ascii, although there is nothing stopping you from stuffing
+  // UTF-8 data in there, just note that internally it will be treated as ascii.
   struct String
   {
     String() = default;
@@ -69,13 +46,8 @@ namespace Tac
     void operator = ( const String& );
     void operator = ( const StringView& );
     void operator = ( const char* );
-    //void operator += ( const char* );
     void operator += ( const StringView& );
-    //void operator += ( const String& );
     void operator += ( char );
-
-   // stl doesnt have this, there is only operator string_view
-    //operator const char* () const = delete;
 
     void clear();
     bool empty() const;
@@ -83,7 +55,6 @@ namespace Tac
     auto data() const -> const char*;
     auto size() const -> int;
     void erase( int pos, int len = npos );
-    void push_back( char );
     bool starts_with( StringView ) const;
     bool starts_with( char ) const;
     bool ends_with( StringView ) const;
@@ -97,6 +68,7 @@ namespace Tac
     void reserve( int lenNotIncNull );
     void resize( int lenNotIncNull );
     void replace( StringView, StringView );
+    void push_back( char );
     void pop_back();
     auto begin() const -> char*;
     auto end() const -> char*;
@@ -120,40 +92,26 @@ namespace Tac
     static const int npos                      { -1 };          // mimicking the standard library
     char             mSSOBuffer[ ssocapacity ] { "" };
     char*            mStr                      { mSSOBuffer };
-    int              mLen                      {};           // number of bytes before the null-terminator
-    int              mCapacity                 { ssocapacity }; // includes the null-terminator
+    int              mLen                      {};              // number of bytes before the null-terminator
+    int              mCapacity                 { ssocapacity }; // includes the null-terminator (unlike std::string)
   };
 
   // -----------------------------------------------------------------------------------------------
 
-  // operator +
-  String operator + ( char, const String& );
-  String operator + ( const String&, char );
-  String operator + ( const String&, const char* );
-  String operator + ( const String&, const String& );
-  String operator + ( const String&, const StringView& );
-  String operator + ( const char*, const String& );
-  String operator + ( const char*, const StringView& );
-  String operator + ( const StringView&, const String& );
-  String operator + ( const StringView&, const char* );
-
-  // operator !=
-  bool   operator != ( const String& , const String&  );
-
-  // operator <
-  bool   operator < ( const String& , const String&  );
-  bool   operator > ( const String& , const String&  );
-
-  // operator ==
-  bool   operator == ( const StringView&, const StringView& );
-  //bool   operator == ( const StringView&, const String& );
-  //bool   operator == ( const StringView&, const char* );
-  //bool   operator == ( const String&, const StringView& );
-  bool   operator == ( const String&, const String& );
-  //bool   operator == ( const String&, const char* );
-  //bool   operator == ( const char*, const StringView& );
-
-
+  auto operator + ( char, const String& ) -> String;
+  auto operator + ( const String&, char ) -> String;
+  auto operator + ( const String&, const char* ) -> String;
+  auto operator + ( const String&, const String& ) -> String;
+  auto operator + ( const String&, const StringView& ) -> String;
+  auto operator + ( const char*, const String& ) -> String;
+  auto operator + ( const char*, const StringView& ) -> String;
+  auto operator + ( const StringView&, const String& ) -> String;
+  auto operator + ( const StringView&, const char* ) -> String;
+  bool operator != ( const String& , const String&  );
+  bool operator < ( const String& , const String&  );
+  bool operator > ( const String& , const String&  );
+  bool operator == ( const StringView&, const StringView& );
+  bool operator == ( const String&, const String& );
 
 } // namespace Tac
 

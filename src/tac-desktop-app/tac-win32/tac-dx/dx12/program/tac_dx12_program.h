@@ -17,8 +17,8 @@ namespace Tac::Render
   {
     struct HotReloadInput
     {
-      FileSys::Path mFilePath {};
-      FileSys::Time mFileTime {};
+      UTF8Path mFilePath {};
+      FileTime mFileTime {};
     };
 
     struct HotReloadInputs : public Vector< HotReloadInput >

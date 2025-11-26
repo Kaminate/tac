@@ -146,7 +146,7 @@ namespace Tac
 
       ++asdf;
       // todo: async
-      TAC_CALL( const String fileStr{ FileSys::LoadFilePath( path, errors ) } );
+      TAC_CALL( const String fileStr{ LoadFilePath( path, errors ) } );
       const void* fileBytes{ fileStr.data() };
       const int fileByteCount{ fileStr.size() };
       const WavefrontObj wavefrontObj{ WavefrontObj::Load( fileBytes, fileByteCount ) };
@@ -417,8 +417,8 @@ namespace Tac
 
     for( int iStack {}; iStack < sAssetViewFolderStack.size(); ++iStack )
     {
-      const FileSys::Path& folder { sAssetViewFolderStack[ iStack ] };
-      if( ImGuiButton( folder.u8string() ) )
+      const UTF8Path& folder { sAssetViewFolderStack[ iStack ] };
+      if( ImGuiButton( folder ) )
       {
         sAssetViewFolderStack.resize( iStack + 1 );
       }
@@ -611,6 +611,4 @@ namespace Tac
   }
 
 } // namespace Tac
-
-
 

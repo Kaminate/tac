@@ -67,12 +67,12 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
   static void SaveBlobToFile( dynmc PCom< IDxcBlob> blob,
-                              const FileSys::Path& path,
+                              const UTF8Path& path,
                               Errors& errors )
   {
     const void* bytes { blob->GetBufferPointer() };
     const int byteCount { ( int )blob->GetBufferSize() };
-    TAC_CALL( FileSys::SaveToFile( path, bytes, byteCount, errors ) );
+    TAC_CALL( path.SaveToFile( bytes, byteCount, errors ) );
   }
 
   static String GetBlob16AsUTF8( IDxcBlobUtf16* blob16, IDxcUtils* pUtils )
@@ -260,7 +260,7 @@ namespace Tac::Render
                        IDxcPdbUtils* pdbUtils,
                        IDxcResult* pResults,
                        IDxcBlob* pShader,
-                       FileSys::Path outputDir,
+                       UTF8Path outputDir,
                        Errors& errors )
   {
     if( !pResults->HasOutput( DXC_OUT_PDB ) )
@@ -273,7 +273,7 @@ namespace Tac::Render
                        pPDBName.CreateAddress() ) );
     TAC_RAISE_ERROR_IF( !pShader, "No shader pdb" );
     const String pdbName { GetBlob16AsUTF8( pPDBName.Get(), pUtils ) };
-    const FileSys::Path pdbPath { outputDir / pdbName };
+    const UTF8Path pdbPath { outputDir / pdbName };
     TAC_CALL( SaveBlobToFile( pPDB, pdbPath, errors ) );
 
     if( sVerbose )
@@ -437,7 +437,7 @@ namespace Tac::Render
                        pShaderName.CreateAddress() ) );
     TAC_RAISE_ERROR_IF_RETURN( !pShader, "No shader dxil" );
     const String outputShaderName { GetBlob16AsUTF8( pShaderName.Get(), pUtils.Get() ) };
-    const FileSys::Path dxilShaderPath { input.mOutputDir / outputShaderName };
+    const UTF8Path dxilShaderPath { input.mOutputDir / outputShaderName };
     TAC_CALL_RET( SaveBlobToFile( pShader, dxilShaderPath, errors ) );
 
     SavePDB( pUtils.Get(),
@@ -473,8 +473,8 @@ namespace Tac
     {
       TAC_ASSERT( !fileName.contains( '/' ) );
       TAC_ASSERT( !fileName.contains( '\\' ) );
-      const FileSys::Path hlslShaderPath { input.mOutputDir / fileName };
-      TAC_CALL_RET( FileSys::SaveToFile( hlslShaderPath, input.mPreprocessedShader, errors ) );
+      const UTF8Path hlslShaderPath { input.mOutputDir / fileName };
+      TAC_CALL_RET( hlslShaderPath.SaveToFile( input.mPreprocessedShader, errors ) );
     }
 
     TAC_CALL_RET( PCom< IDxcBlob > vsBlob { sVSData.DXCCompileBlob( blobInput, errors ) } );

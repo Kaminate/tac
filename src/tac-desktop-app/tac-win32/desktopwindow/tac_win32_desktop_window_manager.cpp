@@ -3,13 +3,11 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-//#include "tac-engine-core/hid/tac_keyboard_api.h"
+#include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/profile/tac_profile.h"
-//#include "tac-engine-core/settings/tac_settings.h"
-#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
@@ -17,15 +15,28 @@
 #include "tac-win32/input/tac_win32_mouse_edge.h"
 #include "tac-win32/net/tac_net_winsock.h"
 
+#undef FindWindow
+
 namespace Tac
 {
-  static const char* sClassName{ "tac" };
-
-  //                  Elements in this array are added/removed by wndproc
+  static const char*  sClassName{ "tac" };
   static HWND         sHWNDs[ kDesktopWindowCapacity ]{};
   static HWND         sParentHWND{};
   static WindowHandle sWindowUnderConstruction{};
   static bool         sMouseInWindow{};
+
+  struct Win32WindowManager
+  {
+    static void Init( Errors& );
+    static void Poll( Errors& );
+    static void SpawnWindow( const PlatformSpawnWindowParams&, Errors& );
+    static void DespawnWindow( WindowHandle );
+    static auto FindWindow( HWND ) -> WindowHandle;
+    static HWND GetHWND( WindowHandle );
+    static void DebugImGui();
+  };
+
+  // -----------------------------------------------------------------------------------------------
 
   static auto GetKey( u8 keyCode ) -> Key
   {
@@ -407,6 +418,8 @@ namespace Tac
                         "Failed to register window class " + String( sClassName ) );
   }
 
+  // -----------------------------------------------------------------------------------------------
+
   auto Win32WindowManager::FindWindow( HWND hwnd ) -> Tac::WindowHandle
   {
     for( int i{}; i < kDesktopWindowCapacity; ++i )
@@ -470,8 +483,7 @@ namespace Tac
     DestroyWindow( hwnd );
   }
 
-  void Win32WindowManager::SpawnWindow( const PlatformSpawnWindowParams& params,
-                                             Errors& errors )
+  void Win32WindowManager::SpawnWindow( const PlatformSpawnWindowParams& params, Errors& errors )
   {
     const WindowHandle& windowHandle = params.mHandle;
 
@@ -576,4 +588,112 @@ namespace Tac
     }
   }
 
+  // -----------------------------------------------------------------------------------------------
+
+  void Platform::PlatformImGui( Errors& errors )
+  {
+    TAC_UNUSED_PARAMETER( errors );
+    if( !ImGuiCollapsingHeader( "Win32Platform::PlatformImGui" ) )
+      return;
+
+    TAC_IMGUI_INDENT_BLOCK;
+
+    Win32WindowManager::DebugImGui();
+  }
+
+  void Platform::PlatformFrameBegin( Errors& errors ) 
+  {
+    Win32WindowManager::Poll( errors );
+  }
+
+  void Platform::PlatformFrameEnd( Errors& errors ) 
+  {
+    TAC_UNUSED_PARAMETER( errors );
+    Win32MouseEdgeUpdate();
+
+    const DesktopEventApi::CursorUnobscuredEvent data{ Win32MouseEdgeGetCursorHovered() };
+    DesktopEventApi::Queue( data );
+  }
+
+  void Platform::PlatformSpawnWindow( const PlatformSpawnWindowParams& params, Errors& errors ) 
+  {
+    Win32WindowManager::SpawnWindow( params, errors );
+  }
+
+  void Platform::PlatformDespawnWindow( WindowHandle handle ) 
+  {
+    Win32WindowManager::DespawnWindow( handle );
+  }
+
+  void Platform::PlatformSetWindowPos( WindowHandle windowHandle, v2i pos) 
+  {
+    const HWND hwnd{ Win32WindowManager::GetHWND( windowHandle ) };
+    RECT rect;
+    if( !::GetWindowRect( hwnd, &rect ) )
+    {
+      //String errStr{ Win32GetLastErrorString() };
+      return;
+    }
+
+    const int x{ pos.x };
+    const int y{ pos.y };
+    const int w{ rect.right - rect.left };
+    const int h{ rect.bottom - rect.top };
+    ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
+  }
+
+  void Platform::PlatformSetMouseCursor( PlatformMouseCursor cursor ) 
+  {
+    static HCURSOR cursorArrow { LoadCursor( NULL, IDC_ARROW ) };
+    static HCURSOR cursorArrowNS { LoadCursor( NULL, IDC_SIZENS ) };
+    static HCURSOR cursorArrowEW { LoadCursor( NULL, IDC_SIZEWE ) };
+    static HCURSOR cursorArrowNE_SW { LoadCursor( NULL, IDC_SIZENESW ) };
+    static HCURSOR cursorArrowNW_SE { LoadCursor( NULL, IDC_SIZENWSE ) };
+    switch( cursor )
+    {
+    case PlatformMouseCursor::kNone:        ::SetCursor( nullptr );          break;
+    case PlatformMouseCursor::kArrow:       ::SetCursor( cursorArrow );      break;
+    case PlatformMouseCursor::kResizeNS:    ::SetCursor( cursorArrowNS );    break;
+    case PlatformMouseCursor::kResizeEW:    ::SetCursor( cursorArrowEW );    break;
+    case PlatformMouseCursor::kResizeNE_SW: ::SetCursor( cursorArrowNE_SW ); break;
+    case PlatformMouseCursor::kResizeNW_SE: ::SetCursor( cursorArrowNW_SE ); break;
+    default: TAC_ASSERT_INVALID_CASE( cursor );                              break;
+    }
+  }
+
+  void Platform::PlatformSetWindowSize( WindowHandle windowHandle, v2i size) 
+  {
+    const HWND hwnd{ Win32WindowManager::GetHWND( windowHandle ) };
+    RECT rect;
+    if( !::GetWindowRect( hwnd, &rect ) )
+    {
+      //String errStr{ Win32GetLastErrorString() };
+      return;
+    }
+
+    const int x{ rect.left };
+    const int y{ rect.top };
+    const int w{ size.x };
+    const int h{ size.y };
+    ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_ASYNCWINDOWPOS );
+  }
+
+  auto Platform::PlatformGetMouseHoveredWindow() -> WindowHandle
+  {
+    POINT cursorPos;
+    if( !::GetCursorPos( &cursorPos ) )
+      return {};
+
+    const HWND hwnd{ ::WindowFromPoint( cursorPos ) };
+    return Win32WindowManager::FindWindow( hwnd );
+  }
+
+  // -----------------------------------------------------------------------------------------------
+
+
+} // namespace Tac
+
+void Tac::Win32WindowManagerInit( Errors& errors )
+{
+  Win32WindowManager::Init( errors );
 }

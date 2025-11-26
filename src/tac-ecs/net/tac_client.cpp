@@ -16,6 +16,8 @@
 
 namespace Tac
 {
+  static const int sMaxSavedInputCount { 60 };
+
   void ClientData::WriteInputBody( WriteStream* writer )
   {
     writer->Write( mSavedInputs.back().mInputDirection );
@@ -56,7 +58,6 @@ namespace Tac
       // TODO: this doesn't play nice with physics system integrate?
     }
   }
-
 
   void ClientData::ReadSnapshotBody( ReadStream* reader, Errors& errors )
   {
@@ -115,7 +116,6 @@ namespace Tac
     }
   }
 
-
   void ClientData::Update( TimeDelta seconds,
                            v2 inputDir,
                            ClientSendNetworkMessageCallback sendNetworkMessageCallback,
@@ -137,7 +137,7 @@ namespace Tac
       .mInputDirection { inputDir },
     };
 
-    if( mSavedInputs.size() == ClientData::sMaxSavedInputCount )
+    if( mSavedInputs.size() == sMaxSavedInputCount )
       mSavedInputs.pop_front();
     mSavedInputs.push_back( newInput );
 

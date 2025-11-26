@@ -4,7 +4,7 @@
 #include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h" // Win32WindowManagerInit
 #include "tac-win32/input/tac_xinput.h"                               // XInputInit
 #include "tac-win32/input/tac_win32_mouse_edge.h"                     // Win32MouseEdgeInit
-#include "tac-win32/main/tac_win32_platform.h"                        // Win32PlatformFns
+#include "tac-win32/main/tac_win32_platform.h"                        // Win32Platform
 #include "tac-win32/main/tac_win32_redirect_stream_buf.h"             // RedirectStreamBuf
 #include "tac-win32/net/tac_net_winsock.h"                            // NetWinsockInit
 
@@ -22,11 +22,10 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
   Win32MouseEdgeInit();
   Win32OSInit();
-  Win32InitPlatformFns();
   TAC_CALL_RET( Win32InitWinsock( errors ) );
   TAC_CALL_RET( Win32InitXInput( errors ) );
+  TAC_CALL_RET( Win32WindowManagerInit( errors ) );
   TAC_CALL_RET( sDX12Device.Init( errors ) );
-  TAC_CALL_RET( Win32WindowManager::Init( errors ) );
   TAC_CALL_RET( DesktopApp::Run( errors ) );
   sDX12Device.Uninit();
   return 0;

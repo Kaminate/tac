@@ -5,26 +5,32 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
-namespace Tac::FileSys
+namespace Tac
 {
-  // Minimal wrapper for std::filesystem.
-  // Hard to roll your own because of OS formats (wchar_t) for example, and being able to handle
-  // unicode in paths
-  struct Path
+  struct FileTime
   {
-    Path() = default;
-    Path( const char* );
-    Path( const char8_t* );
-    Path( const String& );
-    Path( const StringView& );
-    Path parent_path() const; // ie: foo/bar/qux.txt --> foo/bar
-    Path stem() const;        // ie: foo/bar/qux.txt --> qux
-    Path extension() const;   // ie: foo/bar/qux.txt --> .txt
-    Path filename() const;    // ie: foo/bar/qux.txt --> qux.txt
-    Path dirname() const;     // ie: foo/bar/qux.txt --> bar
-    auto u8string() const -> String;  // convert to utf-8
-    bool empty() const;
-    void clear();
+    FileTime();
+    FileTime( const FileTime& );
+    FileTime( FileTime&& ) noexcept;
+    ~FileTime();
+    void SwapWith( FileTime&& ) noexcept;
+    void operator = ( const FileTime& );
+    void operator = ( FileTime&& ) noexcept;
+    void* mImpl{};
+  };
+
+  struct UTF8Path : public String
+  {
+    enum class IterateType { Default, Recursive };
+    UTF8Path() = default;
+    UTF8Path( const char* );
+    UTF8Path( const String& );
+    UTF8Path( const StringView& );
+    auto parent_path() const -> UTF8Path; // ie: foo/bar/qux.txt --> foo/bar
+    auto stem() const -> UTF8Path;        // ie: foo/bar/qux.txt --> qux
+    auto extension() const -> UTF8Path;   // ie: foo/bar/qux.txt --> .txt
+    auto filename() const -> UTF8Path;    // ie: foo/bar/qux.txt --> qux.txt
+    auto dirname() const -> UTF8Path;     // ie: foo/bar/qux.txt --> bar
     bool is_absolute() const;
     bool is_relative() const;
     bool has_parent_path() const;
@@ -32,52 +38,25 @@ namespace Tac::FileSys
     bool has_extension() const;
     bool has_filename() const;
     bool has_dirname() const;
-    auto operator /= ( const StringView& ) -> Path&;
-    auto operator = ( const Path& ) ->Path& = default;
-    auto operator += ( const StringView& ) -> Path&;
-
-  private:
-    String mUTF8String;
+    bool Exists() const;
+    bool CreateDir() const;
+    auto IterateFiles( IterateType, Errors& ) const -> Vector< UTF8Path >;
+    auto IterateDirectories( IterateType, Errors& ) const  -> Vector< UTF8Path >;
+    void SaveToFile( StringView, Errors& ) const ;
+    void SaveToFile( const void*, int, Errors& ) const ;
+    auto LoadFilePath( Errors& ) const -> String;
+    auto GetFileLastModifiedTime( Errors& ) const -> FileTime;
+    auto operator /= ( const StringView& ) -> UTF8Path&;
+    auto operator = ( const UTF8Path& ) ->UTF8Path& = default;
+    auto operator += ( const StringView& ) -> UTF8Path&;
+    static auto GetCurrentWorkingDirectory() -> UTF8Path;
   };
 
-  // Outside of class operators
+  using UTF8Paths = Vector< UTF8Path >;
 
-  Path operator / ( const Path&, const Path& );
-  bool operator == ( const Path&, const Path& );
 
-  enum class IterateType { Default, Recursive };
-  using Paths = Vector< Path >;
-
-  Path GetCurrentWorkingDirectory();
-  bool Exists( const Path& );
-  bool Exists( const char* );
-  bool IsDirectory( const Path& );
-  bool CreateDir( const Path& );
-  auto IterateFiles( const Path& dir, IterateType, Errors& ) -> Paths;
-  auto IterateDirectories( const Path& dir, IterateType, Errors& ) -> Paths;
-  bool IsOfExt( const StringView& str, const StringView& ext );
-  auto StripExt( const StringView& ) -> String; // "foo.txt" --> "foo"
-  auto StripLeadingSlashes( const StringView& ) -> String;
-  void SaveToFile( const Path&, StringView, Errors& );
-  void SaveToFile( const Path&, const void*, int, Errors& );
-  auto LoadFilePath( const Path&, Errors& ) -> String;
-
-  // not using time_t anymore, just using the default clock cppstl filesystem comes with
-  struct Time
-  {
-    Time();
-    Time( const Time& );
-    Time( Time&& ) noexcept;
-    ~Time();
-    void operator = ( const Time& );
-    void operator = ( Time&& ) noexcept;
-    void SwapWith( Time&& ) noexcept;
-    void* mImpl{};
-  };
-
-  bool operator == ( Time, Time );
-  bool operator != ( Time, Time );
-
-  Time GetFileLastModifiedTime( const Path&, Errors& );
-
+  auto operator / ( const UTF8Path&, const UTF8Path& ) -> UTF8Path;
+  bool operator == ( const UTF8Path&, const UTF8Path& );
+  bool operator == ( FileTime, FileTime );
+  bool operator != ( FileTime, FileTime );
 } // namespace Tac::FileSys

@@ -58,13 +58,13 @@ namespace Tac::Render
       for( const String& input : programParams.mInputs )
       {
         TAC_CALL_RET( const String inputStr{
-          FileSys::LoadFilePath( sShaderDir + input + sShaderExt, errors ) } );
+          LoadFilePath( sShaderDir + input + sShaderExt, errors ) } );
 
         combinedInputs += inputStr;
         combinedInputs += "\n";
       }
 
-      TAC_CALL_RET( FileSys::SaveToFile( filePath, combinedInputs, errors ) );
+      TAC_CALL_RET( SaveToFile( filePath, combinedInputs, errors ) );
     }
 #endif
 
@@ -89,7 +89,7 @@ namespace Tac::Render
     const PreprocessorInput assetPaths( programParams );
     TAC_CALL_RET( const String preprocessedShader{
       HLSLPreprocessor::Process( assetPaths, errors ) } );
-    const FileSys::Path outputDir{ RenderApi::GetShaderOutputPath() };
+    const UTF8Path outputDir{ RenderApi::GetShaderOutputPath() };
     const String fileName{ programParams.mName + shaderExt };
     return DXCCompile(
       DXCCompileParams
@@ -186,19 +186,15 @@ namespace Tac::Render
       return;
 
     Vector< ProgramHandle > reloadedPrograms;
-
     const int n{ mPrograms.size()};
     for( int i{}; i < n; ++i )
     {
       const ProgramHandle h{ i };
       dynmc DX12Program& program{ mPrograms[ i ] };
-
       int updatedTimeCount{};
       for( dynmc DX12Program::HotReloadInput& hotReloadInput : program.mHotReloadInputs )
       {
-        TAC_CALL( const FileSys::Time fileTime{
-          FileSys::GetFileLastModifiedTime( hotReloadInput.mFilePath, errors ) } );
-
+        TAC_CALL( const FileTime fileTime{ hotReloadInput.mFilePath.GetFileLastModifiedTime( errors ) } );
         if( hotReloadInput.mFileTime != fileTime )
         {
           hotReloadInput.mFileTime = fileTime;
@@ -210,7 +206,6 @@ namespace Tac::Render
         continue;
 
       Errors reloadErrors;
-
       for( ;; )
       {
         CreateProgramAtIndex( h, program.mProgramParams, reloadErrors );
@@ -231,9 +226,7 @@ namespace Tac::Render
     }
 
     sHotReloadTick = curTime;
-
-    const Span< ProgramHandle > reloadedProgramSpan( reloadedPrograms.data(),
-                                                     reloadedPrograms.size() );
+    const Span< ProgramHandle > reloadedProgramSpan( reloadedPrograms.data(), reloadedPrograms.size() );
     TAC_CALL( mPipelineMgr->HotReload( reloadedProgramSpan, errors ) );
   }
 

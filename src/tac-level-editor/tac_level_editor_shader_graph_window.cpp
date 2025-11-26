@@ -334,11 +334,11 @@ namespace Tac
 
       if( ImGuiButton( "Open " + assetPath ) )
       {
-        //FileSys::Path path{ sg.mMaterialShader };
-        //FileSys::Path dir{ path.parent_path() };
+        //UTF8Path path{ sg.mMaterialShader };
+        //UTF8Path dir{ path.parent_path() };
 
-        //TAC_CALL( FileSys::Paths paths{
-        //  FileSys::IterateFiles( dir, FileSys::IterateType::Default, errors ) } );
+        //TAC_CALL( UTF8Paths paths{
+        //  IterateFiles( dir, IterateType::Default, errors ) } );
 
         OS::OSOpenPath( assetPath, errors );
       }

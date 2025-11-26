@@ -19,7 +19,7 @@ namespace Tac
 void Tac::DesktopAppUpdateMove()
 {
 #if 0
-  PlatformFns* sPlatformFns { PlatformFns::GetInstance() };
+  Platform* sPlatform { Platform::GetInstance() };
 
   for( int i{}; i < kDesktopWindowCapacity; ++i )
   {
@@ -35,7 +35,7 @@ void Tac::DesktopAppUpdateMove()
       ? WindowHandle.GetDesktopWindowRectWindowspace()
       : requestMove->mRect };
 
-    sPlatformFns->PlatformWindowMoveControls( WindowHandle, desktopWindowRect );
+    sPlatform->PlatformWindowMoveControls( WindowHandle, desktopWindowRect );
     sRequestMove[ i ] = RequestMove();
   }
 #endif

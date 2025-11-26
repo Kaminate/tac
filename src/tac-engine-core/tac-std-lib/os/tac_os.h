@@ -1,16 +1,14 @@
 #pragma once
 
+#include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector2i.h"
-
-namespace Tac::FileSys { struct Path; }
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/error/tac_stack_frame.h"
+#include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 
 namespace Tac
 {
-  struct StringView;
-  struct StackFrame;
-  struct Errors;
-  struct v2;
-
   struct Monitor
   {
     v2i mSize;
@@ -28,22 +26,22 @@ namespace Tac::OS
   extern void        ( *OSDebugPopupBox )( const StringView& );
 
   //                 Gets the path where you can save files to, such as user configs
-  extern FileSys::Path ( *OSGetApplicationDataPath )( Errors& );
+  extern UTF8Path ( *OSGetApplicationDataPath )( Errors& );
 
   struct OpenParams
   {
-    const FileSys::Path* mDefaultFolder {}; // eww wtf is this pointer
+    const UTF8Path* mDefaultFolder {}; // eww wtf is this pointer
   };
 
   struct SaveParams
   {
-    const FileSys::Path* mDefaultFolder {}; // eww wtf is this pointer
-    const FileSys::Path* mSuggestedFilename {}; // eww wtf is this pointer
+    const UTF8Path* mDefaultFolder {}; // eww wtf is this pointer
+    const UTF8Path* mSuggestedFilename {}; // eww wtf is this pointer
   };
 
-  extern FileSys::Path( *OSSaveDialog )( const SaveParams&, Errors& );
-  extern FileSys::Path( *OSOpenDialog )( const OpenParams&, Errors& );
-  extern void         ( *OSOpenPath )( const FileSys::Path&, Errors& );
+  extern UTF8Path( *OSSaveDialog )( const SaveParams&, Errors& );
+  extern UTF8Path( *OSOpenDialog )( const OpenParams&, Errors& );
+  extern void         ( *OSOpenPath )( const UTF8Path&, Errors& );
 
 
   extern Monitor      ( *OSGetPrimaryMonitor )();
@@ -68,21 +66,6 @@ namespace Tac::OS
   extern void*        ( *OSGetLoadedDLL )( const StringView& name );
   extern void*        ( *OSLoadDLL )( const StringView& path );
   extern void*        ( *OSGetProcAddress )( void* dll, const StringView& path );
-
-  struct ISemaphore
-  {
-    virtual void DecrementWait() = 0;
-    virtual void IncrementPost() = 0;
-  };
-
-  // semaphore values cannot go less than 0,
-  // so if the semaphore is currently at 0, it needs to wait for
-  // someone to increment the semaphore first.
-  extern ISemaphore* ( *OSSemaphoreCreate )( );
-
-  //MutexHandle     OSMutexCreate();
-  //void            OSMutexLock( MutexHandle );
-  //void            OSMutexUnlock( MutexHandle );
 
   void CmdLineAddFlag( StringView );
   bool CmdLineIsFlagPresent( StringView );

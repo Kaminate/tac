@@ -6,8 +6,7 @@
 #include "tac-std-lib/containers/tac_list.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/tac_std_lib.h" // ReadStream, WriteStream
-
+#include "tac-std-lib/dataprocess/tac_serialization.h"
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/net/tac_space_net.h"
 #include "tac-ecs/world/tac_world.h"
@@ -16,8 +15,8 @@ namespace Tac
 {
   struct SavedInput
   {
-    GameTime mGameTime;
-    v2        mInputDirection{};
+    GameTime mGameTime       {};
+    v2       mInputDirection {};
   };
 
   using ClientSendNetworkMessageCallback = void( * )( void* bytes, int byteCount, void* userData );
@@ -28,32 +27,29 @@ namespace Tac
 
   struct ClientData
   {
-    void                    ReadSnapshotBody( ReadStream*, Errors& );
-    void                    OnClientDisconnect();
-    void                    WriteInputBody( WriteStream* );
-    void                    ExecuteNetMsg( const void*, int, Errors& );
-    void                    ApplyPrediction( GameTime lastTime );
-    void                    Update( TimeDelta,
-                                    v2 inputDir,
-                                    ClientSendNetworkMessageCallback sendNetworkMessageCallback,
-                                    void* userData,
-                                    Errors& );
-    void                    ReceiveMessage( void* bytes,
-                                            int byteCount,
-                                            Errors& );
+    void ReadSnapshotBody( ReadStream*, Errors& );
+    void OnClientDisconnect();
+    void WriteInputBody( WriteStream* );
+    void ExecuteNetMsg( const void*, int, Errors& );
+    void ApplyPrediction( GameTime lastTime );
+    void Update( TimeDelta,
+                 v2 inputDir,
+                 ClientSendNetworkMessageCallback sendNetworkMessageCallback,
+                 void* userData,
+                 Errors& );
+    void ReceiveMessage( void* bytes,
+                         int byteCount,
+                         Errors& );
 
     LagTest                 mSavedNetworkMessages   {};
     World*                  mWorld                  {};
     World*                  mEmptyWorld             {};
     PlayerUUID              mPlayerUUID             { NullPlayerUUID };
 
-    // < Prediction >
-    static const int        sMaxSavedInputCount     { 60 };
     List< SavedInput >      mSavedInputs            {};
     bool                    mIsPredicting           { true };
-    // </>
 
-    GameTime               mMostRecentSnapshotTime {};
+    GameTime                mMostRecentSnapshotTime {};
     SnapshotBuffer          mSnapshots              {};
   };
 

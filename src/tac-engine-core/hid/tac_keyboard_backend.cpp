@@ -1,9 +1,7 @@
 #include "tac_keyboard_backend.h" // self-inc
 
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
-#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
-#include "tac-engine-core/hid/tac_sys_keyboard_api.h"
 #include "tac-engine-core/shell/tac_shell_real_timer.h"
 
 #if TAC_SHOULD_IMPORT_STD()
@@ -77,47 +75,45 @@ namespace Tac
     sAppCurr.mCodepointDelta = {};
   }
 
-
   // -----------------------------------------------------------------------------------------------
-
   
-  bool                AppKeyboardApi::IsPressed( Key key )
+  bool AppKeyboardApi::IsPressed( Key key )
   {
     return sAppCurr.mKeyStates[ ( int )key ] == AppKeyboardApiBackend::KeyState::Down;
   }
-  bool                AppKeyboardApi::IsDepressed( Key key )
+  bool AppKeyboardApi::IsDepressed( Key key )
   {
     if( key == Key::Myself ) { return true; }
     return sAppCurr.mKeyStates[ ( int )key ] == AppKeyboardApiBackend::KeyState::Up;
   }
-  bool                AppKeyboardApi::JustPressed( Key key )
+  bool AppKeyboardApi::JustPressed( Key key )
   {
     const int toggleCount { sAppCurr.mToggles[ ( int )key ] };
     return IsPressed( key ) && toggleCount >= 1;
   }
-  bool                AppKeyboardApi::JustDepressed( Key key )
+  bool AppKeyboardApi::JustDepressed( Key key )
   {
     const int toggleCount { sAppCurr.mToggles[ ( int )key ] };
     return IsDepressed( key ) && toggleCount >= 1;
   }
-  TimeDelta AppKeyboardApi::HeldSeconds( Key key )
+  auto AppKeyboardApi::HeldSeconds( Key key ) -> TimeDelta
   {
     if( !IsPressed( key ) ) { return {}; }
     return sAppCurr.mTime - sAppCurr.mKeyTimes[ ( int )key ];
   }
-  CodepointView       AppKeyboardApi::GetCodepoints()
+  auto AppKeyboardApi::GetCodepoints() -> CodepointView
   {
     return sAppCurr.mCodepointDelta;
   }
-  float               AppKeyboardApi::GetMouseWheelDelta()
+  auto AppKeyboardApi::GetMouseWheelDelta() -> float
   {
     return sAppCurr.mMouseWheel - sAppPrev.mMouseWheel;
   }
-  v2i                 AppKeyboardApi::GetMousePosScreenspace()
+  auto AppKeyboardApi::GetMousePosScreenspace() -> v2i
   {
     return sAppCurr.mMousePosScreenspace;
   }
-  v2i                 AppKeyboardApi::GetMousePosDelta()
+  auto AppKeyboardApi::GetMousePosDelta() -> v2i
   {
     return sAppCurr.mMousePosScreenspace - sAppPrev.mMousePosScreenspace;
   }

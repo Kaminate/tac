@@ -11,10 +11,8 @@ namespace Tac::Render
 
     for( const String& input : params.mInputs )
     {
-      const FileSys::Path filePath{ shaderDir + input + shaderExt };
-      TAC_CALL( const FileSys::Time fileTime{
-        FileSys::GetFileLastModifiedTime( filePath, errors ) } );
-
+      const UTF8Path filePath{ shaderDir + input + shaderExt };
+      TAC_CALL( const FileTime fileTime{ filePath.GetFileLastModifiedTime( errors ) } );
       const DX12Program::HotReloadInput hotReloadInput
       {
         .mFilePath{ filePath },

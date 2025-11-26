@@ -10,7 +10,7 @@ namespace Tac
   {
     static String           sShellAppName;
     static String           sShellStudioName;
-    static FileSys::Path    sShellPrefPath;
+    static UTF8Path    sShellPrefPath;
     static SettingsNode     sShellSettings;
   };
 } // namespace Tac

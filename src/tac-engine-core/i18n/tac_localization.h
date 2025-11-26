@@ -7,13 +7,11 @@
 
 #pragma once
 
-//#include "tac-std-lib/tac_core.h"
-
 #include "tac-std-lib/tac_ints.h"
 #include "tac-std-lib/containers/tac_vector.h"
-
-namespace Tac{ struct StringView; struct Errors; }
-namespace Tac::FileSys { struct Path; }
+#include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/string/tac_string_view.h"
 
 namespace Tac
 {
@@ -62,6 +60,6 @@ namespace Tac
   auto CodepointsToUTF8( CodepointView ) -> StringView;
 
   auto LocalizationGetString( Language, StringView ) -> CodepointView;
-  auto LocalizationLoad( const FileSys::Path&, Errors& ) -> void;
+  auto LocalizationLoad( const UTF8Path&, Errors& ) -> void;
   auto LocalizationDebugImgui() -> void;
 } // namespace Tac

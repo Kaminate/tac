@@ -7,13 +7,13 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-//#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-std-lib/os/tac_os.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
 #else
   #include <fstream>
+  #include <filesystem>
 #endif
 
 namespace Tac
@@ -234,12 +234,12 @@ namespace Tac
     void EnsureOpen();
     void LogMessagePrint( StringView );
     void LogMessagePrintLine( StringView );
-    void SetPath( FileSys::Path );
+    void SetPath( UTF8Path );
 
   private:
 
     String        mBuffer;
-    FileSys::Path mPath;
+    UTF8Path mPath;
     std::ofstream mOfs;
   };
 
@@ -251,14 +251,13 @@ namespace Tac
       return;
 
     EnsurePath();
-
     const std::ios_base::openmode mode{ std::ios::out | std::ios::trunc };
-
-    mOfs.open( mPath.u8string().data(), mode );
+    const std::filesystem::path stdPath{ ( char8_t* )mPath.c_str() };
+    mOfs.open( stdPath, mode );
   }
 
 
-  void Log::SetPath( FileSys::Path path )
+  void Log::SetPath( UTF8Path path )
   {
     TAC_ASSERT( !mOfs.is_open() );
     mPath = path;
@@ -272,7 +271,7 @@ namespace Tac
     if( OS::OSOpenDialog )
     {
       Errors dialogErrors;
-      FileSys::Path dialogPath{ OS::OSOpenDialog( {}, dialogErrors ) };
+      UTF8Path dialogPath{ OS::OSOpenDialog( {}, dialogErrors ) };
       if( dialogErrors.empty() )
       {
         mPath = dialogPath;
@@ -348,7 +347,7 @@ namespace Tac
     sLog.Flush();
   }
 
-  void LogApi::LogSetPath( const FileSys::Path& path )
+  void LogApi::LogSetPath( const UTF8Path& path )
   {
     sLog.SetPath( path );
   }

@@ -12,12 +12,12 @@
 
 namespace Tac
 {
-  void SettingsRoot::Init( const FileSys::Path& path , Errors& errors )
+  void SettingsRoot::Init( const UTF8Path& path , Errors& errors )
   {
     sSavePath = path;
-    if( FileSys::Exists( sSavePath ) )
+    if( sSavePath.Exists() )
     {
-      const String loaded{ LoadFilePath( sSavePath, errors ) };
+      const String loaded{ sSavePath.LoadFilePath( errors ) };
       sJson = Json::Parse( loaded, errors );
     }
   }
@@ -46,16 +46,11 @@ namespace Tac
     const String str{ sJson.Stringify() };
     const void* data{ ( void* )str.data() };
     const int n{ ( int )str.size() };
-
-    TAC_CALL( FileSys::SaveToFile( sSavePath, data, n, errors ) );
-
+    TAC_CALL( sSavePath.SaveToFile( data, n, errors ) );
     sDirty = false;
     sLastSaveSeconds = GameTimer::GetElapsedTime();
   }
 
-  void SettingsRoot::SetDirty()
-  {
-    sDirty = true;
-  }
+  void SettingsRoot::SetDirty() { sDirty = true; }
 }
 

@@ -17,7 +17,7 @@ namespace Tac
 void Tac::DesktopAppUpdateResize()
 {
 #if 0
-  PlatformFns* platform = PlatformFns::GetInstance();
+  Platform* platform = Platform::GetInstance();
 
   for( int i{}; i < kDesktopWindowCapacity; ++i )
   {

@@ -8,8 +8,7 @@
 
 #include "tac-std-lib/error/tac_stack_frame.h"
 #include "tac-std-lib/string/tac_string_view.h"
-
-namespace Tac::FileSys { struct Path; }
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 
 namespace Tac
 {
@@ -65,7 +64,7 @@ namespace Tac
     void LogMessagePrint( const StringView&, Severity = kInfo );
     void LogMessagePrintLine( const StringView&, Severity = kInfo );
     void LogFlush();
-    void LogSetPath( const FileSys::Path& );
+    void LogSetPath( const UTF8Path& );
   }
 
   // -----------------------------------------------------------------------------------------------

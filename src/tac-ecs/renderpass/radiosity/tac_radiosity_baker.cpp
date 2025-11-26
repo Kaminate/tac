@@ -631,7 +631,7 @@ namespace Tac
 
     const cgltf_options options{ .type { cgltf_file_type_glb } };
     const OS::SaveParams saveParams{ .mSuggestedFilename{}, };
-    static FileSys::Path path;
+    static UTF8Path path;
     
     if( path.empty() )
     {
@@ -641,14 +641,14 @@ namespace Tac
     if( path.empty() )
       return;
 
-    const String pathu8{ path.u8string() };
+    const String pathu8{ path };
     const char* szPath{ pathu8.c_str() };
 
     const cgltf_result result{ cgltf_write_file( &options, szPath, &data ) };
     TAC_RAISE_ERROR_IF( result != cgltf_result_success, glTF_ResultToString( result ) );
 
     std::ofstream ofs( szPath, std::ios::binary | std::ios::app );
-    TAC_RAISE_ERROR_IF( !ofs.is_open(), String() + "Failed to append data to " + path.u8string() );
+    TAC_RAISE_ERROR_IF( !ofs.is_open(), String() + "Failed to append data to " + path );
 
     const char* padding{ "   " };
     const u32 chunkLen{ ( u32 )buffer.size };

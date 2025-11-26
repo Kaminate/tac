@@ -23,9 +23,9 @@ namespace Tac
   struct FileDialogHelper
   {
     ~FileDialogHelper();
-    void SetDefaultFolder( FileSys::Path, Errors& );
+    void SetDefaultFolder( UTF8Path, Errors& );
     void InitDialog(REFCLSID, REFIID, void**, IFileDialog*, Errors&);
-    auto RunEnd(Errors&) -> FileSys::Path;
+    auto RunEnd(Errors&) -> UTF8Path;
 
     IFileDialog*            mDialog     {};
     PCom< IFileOpenDialog > mOpenDialog {};
@@ -41,7 +41,7 @@ namespace Tac
       CoUninitialize();
     }
 
-    auto Win32FileDialogSave( const OS::SaveParams& params, Errors& errors ) -> FileSys::Path
+    auto Win32FileDialogSave( const OS::SaveParams& params, Errors& errors ) -> UTF8Path
     {
       FileDialogHelper helper;
       TAC_CALL_RET( helper.InitDialog( CLSID_FileSaveDialog,
@@ -56,7 +56,7 @@ namespace Tac
       return helper.RunEnd( errors );
     }
 
-    auto Win32FileDialogOpen( const OS::OpenParams& params, Errors& errors ) -> FileSys::Path
+    auto Win32FileDialogOpen( const OS::OpenParams& params, Errors& errors ) -> UTF8Path
     {
       FileDialogHelper helper;
       TAC_CALL_RET( helper.InitDialog( CLSID_FileOpenDialog,
@@ -72,7 +72,7 @@ namespace Tac
       return helper.RunEnd( errors );
     }
 
-    auto FileDialogHelper::RunEnd( Errors& errors ) -> FileSys::Path
+    auto FileDialogHelper::RunEnd( Errors& errors ) -> UTF8Path
     {
       {
         const HRESULT hr{ mDialog->Show( nullptr ) };
@@ -86,12 +86,12 @@ namespace Tac
       TAC_HR_CALL_RET( pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
       TAC_ON_DESTRUCT( CoTaskMemFree( pszFilePath ) );
       const std::filesystem::path stdPath( pszFilePath );
-      return stdPath.u8string().c_str();
+      return (char*)stdPath.u8string().c_str();
     }
 
-    void FileDialogHelper::SetDefaultFolder( FileSys::Path dir, Errors& errors )
+    void FileDialogHelper::SetDefaultFolder( UTF8Path dir, Errors& errors )
     {
-      const std::filesystem::path stdDir( ( char8_t* )dir.u8string().c_str() );
+      const std::filesystem::path stdDir( ( char8_t* )dir.c_str() );
       const std::wstring wDir { stdDir.wstring() };
       PCom< IShellItem > shDir;
       TAC_HR_CALL( SHCreateItemFromParsingName(

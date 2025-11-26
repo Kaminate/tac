@@ -161,8 +161,7 @@ namespace Tac
     TAC_ASSERT( h.IsValid() );
     sAppCurr[ h.GetIndex() ].mPos = pos;
 
-    PlatformFns* platform{ PlatformFns::GetInstance() };
-    platform->PlatformSetWindowPos( h, pos );
+    Platform::PlatformSetWindowPos( h, pos );
   }
 
   auto AppWindowApi::GetSize( WindowHandle h) -> v2i
@@ -176,8 +175,7 @@ namespace Tac
     TAC_ASSERT( h.IsValid() );
     sAppCurr[ h.GetIndex() ].mSize = size;
     
-    PlatformFns* platform{ PlatformFns::GetInstance() };
-    platform->PlatformSetWindowSize( h, size );
+    Platform::PlatformSetWindowSize( h, size );
   }
 
   auto AppWindowApi::GetName( WindowHandle h) -> StringView
@@ -195,8 +193,7 @@ namespace Tac
   auto AppWindowApi::CreateWindow( WindowCreateParams params, Errors& errors ) -> WindowHandle
   {
     const WindowHandle h{ AllocWindowHandle() };
-    PlatformFns* platform { PlatformFns::GetInstance() };
-    TAC_CALL_RET( platform->PlatformSpawnWindow(
+    TAC_CALL_RET( Platform::PlatformSpawnWindow(
       PlatformSpawnWindowParams
       {
         .mHandle { h },
@@ -209,8 +206,7 @@ namespace Tac
 
   void AppWindowApi::DestroyWindow( WindowHandle h)
   {
-    PlatformFns* platform { PlatformFns::GetInstance() };
-    platform->PlatformDespawnWindow( h );
+    Platform::PlatformDespawnWindow( h );
     FreeWindowHandle( h );
   }
 

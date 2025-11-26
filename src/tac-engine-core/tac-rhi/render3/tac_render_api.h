@@ -8,19 +8,16 @@
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/containers/tac_array.h"
-//#include "tac-std-lib/memory/tac_smart_ptr.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/tac_ints.h"
 #include "tac-std-lib/tac_type_traits.h"
 #include "tac-rhi/render3/tac_render_handle.h"
-
+#include "tac-std-lib/filesystem/tac_filesystem.h"
 
 // i dont like how the compiler shows it as IHandle<3> instead of like IHandle<kTexture>
 // also you cant fwd decalre
 #define TAC_IS_IHANDLE_TEMPLATE() 0
 
-
-namespace Tac::FileSys{ struct Path; }
 namespace Tac::Render
 {
   struct IContext;
@@ -127,7 +124,6 @@ namespace Tac::Render
   struct FormatElement
   {
     static auto GetFloat() -> FormatElement;
-
     int          mPerElementByteCount {};
     GraphicsType mPerElementDataType { GraphicsType::unknown };
   };
@@ -136,7 +132,7 @@ namespace Tac::Render
   // Used so the gpu can translate from cpu types to gpu types
   struct VertexAttributeFormat
   {
-    int                          CalculateTotalByteCount() const;
+    auto CalculateTotalByteCount() const -> int;
     static auto FromElements( FormatElement, int = 1 ) -> VertexAttributeFormat;
     static auto GetFloat() -> VertexAttributeFormat;
     static auto GetVector2() -> VertexAttributeFormat;
@@ -507,13 +503,13 @@ namespace Tac::Render
     struct InitParams
     {
       int                   mMaxGPUFrameCount { 2 }; // aka "frames in-flight"
-      const FileSys::Path&  mShaderOutputPath; // fwd decl gross
+      const UTF8Path&  mShaderOutputPath; // fwd decl gross
     };
 
     static void Init( InitParams, Errors& );
     static void Uninit();
     static auto GetMaxGPUFrameCount() -> int;
-    static auto GetShaderOutputPath() -> FileSys::Path;
+    static auto GetShaderOutputPath() -> UTF8Path;
     static auto GetRenderDevice() -> IDevice*;
     static void SetRenderDevice( IDevice* );
     static void BeginRenderFrame( Errors& );

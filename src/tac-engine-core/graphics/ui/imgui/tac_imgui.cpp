@@ -5,7 +5,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-#include "tac-engine-core/hid/tac_sim_keyboard_api.h"
+
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
@@ -442,7 +442,7 @@ bool Tac::ImGuiBegin( const StringView& name )
       w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
       h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
 
-      //PlatformFns* platform = PlatformFns::GetInstance();
+      //Platform* platform = Platform::GetInstance();
       //
 
       //const WindowApi::CreateParams createParams

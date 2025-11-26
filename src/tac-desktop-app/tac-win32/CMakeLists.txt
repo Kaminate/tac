@@ -33,11 +33,6 @@ target_link_libraries( TacDX TacWin32 )
 target_link_libraries( TacDX TacStdLib )
 target_link_libraries( TacWin32Main TacDX )
 
-
-
-# this is used in tac_register_renderers for __has_include( "tac_renderer_directx11.h" )
-target_include_directories( TacWin32 PUBLIC renderer )
-
 target_include_directories( TacWin32 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../ )
 
 # Executables include the main files directory into their source

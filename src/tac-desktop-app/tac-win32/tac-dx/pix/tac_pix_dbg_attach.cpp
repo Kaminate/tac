@@ -7,7 +7,7 @@
 
 namespace Tac::Render
 {
-  static const FileSys::Path pixInstallPath{ "C:/Program Files/Microsoft PIX" };
+  static const UTF8Path pixInstallPath{ "C:/Program Files/Microsoft PIX" };
   static const char* pixDllName{ "WinPixGpuCapturer.dll" };
 
   // Looking at https://devblogs.microsoft.com/pix/download/
@@ -33,23 +33,22 @@ namespace Tac::Render
     return true;
   }
 
-  static auto TryFindPIXDllPath( Errors& errors ) -> FileSys::Path
+  static auto TryFindPIXDllPath( Errors& errors ) -> UTF8Path
   {
-    if( !FileSys::Exists( pixInstallPath ) )
+    if( !pixInstallPath.Exists() )
       return {};
 
-    TAC_CALL_RET( const FileSys::Paths subdirs{ FileSys::IterateDirectories(
-      pixInstallPath,
-      FileSys::IterateType::Default,
+    TAC_CALL_RET( const UTF8Paths subdirs{ pixInstallPath.IterateDirectories(
+      UTF8Path::IterateType::Default,
       errors ) } );
 
     if( subdirs.empty() )
       return {};
 
     String bestVer;
-    for( const FileSys::Path& subdir : subdirs )
+    for( const UTF8Path& subdir : subdirs )
     {
-      const String ver { subdir.dirname().u8string() };
+      const String ver { subdir.dirname() };
       if( !IsVersionPattern( ver ) || ver < bestVer )// ( !bestSubdir.empty() && ver < bestSubdir ) )
         continue;
 
@@ -81,8 +80,8 @@ namespace Tac::Render
       if( OS::OSGetLoadedDLL( pixDllName ) )
         return;
 
-      const FileSys::Path path{ TryFindPIXDllPath( errors ) };
-      const String path8{ path.u8string() };
+      const UTF8Path path{ TryFindPIXDllPath( errors ) };
+      const String path8{ path };
       if( path8.empty() )
       {
         OS::OSDebugPrintLine( String() + "Warning: Could not find PIX dll " + pixDllName
@@ -92,7 +91,7 @@ namespace Tac::Render
       }
 
       
-      if( void* lib{ OS::OSLoadDLL( path.u8string() ) };
+      if( void* lib{ OS::OSLoadDLL( path ) };
           !lib )
       {
         OS::OSDebugPrintLine( String() +

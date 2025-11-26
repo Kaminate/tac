@@ -106,7 +106,7 @@ namespace Tac
 
     //                             for a single texture, this is a file on desk,
     //                             for a cubemap texture, this is a folder containing 6 files
-    FileSys::Path                  mFilepath     {  };
+    UTF8Path                  mFilepath     {  };
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -138,7 +138,7 @@ namespace Tac
   TextureLoadJob::TextureLoadJob( Params params )
   {
     mFilepath = params.mFilepath;
-    mIsCubemap = FileSys::IsDirectory( mFilepath );
+    mIsCubemap = !mFilepath.has_extension();
   }
 
   auto TextureLoadJob::CreateTexture( Errors& errors ) -> Render::TextureHandle
@@ -166,20 +166,18 @@ namespace Tac
       };
     }
 
-    const String name{ mFilepath.filename().u8string() };
-
-    const Render::CreateTextureParams createTextureParams
-    {
-       .mImage        { mImage },
-       .mMipCount     { n },
-       .mSubresources { subresources.data(), n },
-       .mBinding      { Render::Binding::ShaderResource },
-       .mOptionalName { name },
-       .mStackFrame   { TAC_STACK_FRAME },
-    };
-
+    const String name{ mFilepath.filename() };
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    return renderDevice->CreateTexture( createTextureParams, errors );
+    return renderDevice->CreateTexture( 
+      Render::CreateTextureParams
+      {
+         .mImage        { mImage },
+         .mMipCount     { n },
+         .mSubresources { subresources.data(), n },
+         .mBinding      { Render::Binding::ShaderResource },
+         .mOptionalName { name },
+         .mStackFrame   { TAC_STACK_FRAME },
+      }, errors );
   }
 
   auto TextureLoadJob::CreateTexCubemap( Errors& errors ) -> Render::TextureHandle
@@ -251,12 +249,11 @@ namespace Tac
 
   void TextureLoadJob::ExecuteTexSingleJob( Errors& errors )
   {
-    TAC_CALL( const String memory{ FileSys::LoadFilePath( mFilepath, errors ) } );
-
-    const FileSys::Path metaPath{
+    TAC_CALL( const String memory{ mFilepath.LoadFilePath( errors ) } );
+    const UTF8Path metaPath{
       [ & ]()
       {
-        FileSys::Path path { mFilepath };
+        UTF8Path path { mFilepath };
         path += ".meta";
         return path;
       }( ) };
@@ -268,7 +265,6 @@ namespace Tac
     SettingsNode settingsNode{ settingsRoot.GetRootNode() };
     mIs_sRGB = settingsNode.GetChild( "is sRGB" ).GetValueWithFallback( true );
     
-
     int x;
     int y;
     int previousChannelCount;
@@ -471,16 +467,15 @@ namespace Tac
 
   void TextureLoadJob::ExecuteTexCubemapJob( Errors& errors )
   {
-
-    TAC_CALL( Vector< FileSys::Path > files{
-      FileSys::IterateFiles( mFilepath, FileSys::IterateType::Recursive, errors ) } );
+    TAC_CALL( UTF8Paths files{
+      mFilepath.IterateFiles( UTF8Path::IterateType::Recursive, errors ) } );
 
     if( files.size() != 6 )
     {
       const String errorMsg{ "found "
       + ToString( files.size() )
       + " textures in "
-      + mFilepath.u8string() };
+      + mFilepath };
 
       TAC_RAISE_ERROR( errorMsg);
     }
@@ -489,8 +484,8 @@ namespace Tac
     {
       for( int i{}; i < 6; ++i )
       {
-        FileSys::Path filepath { files[ i ] };
-        if( ToLower( filepath.u8string() ).find( ToLower( face ) ) == String::npos )
+        UTF8Path filepath { files[ i ] };
+        if( ToLower( filepath ).find( ToLower( face ) ) == String::npos )
           continue;
 
         Swap( files[ i ], files[ desiredIndex ] );
@@ -513,8 +508,8 @@ namespace Tac
     int prevH {};
     for( int iFile {}; iFile < 6; ++iFile )
     {
-      const FileSys::Path& filepath { files[ iFile ] };
-      TAC_CALL( const String memory { LoadFilePath( filepath, errors ) });
+      const UTF8Path& filepath { files[ iFile ] };
+      TAC_CALL( const String memory { filepath.LoadFilePath( errors ) });
 
       int x;
       int y;
@@ -538,11 +533,11 @@ namespace Tac
 
       if( iFile && !( x == prevW && y == prevH ) )
       {
-        const FileSys::Path& filepathPrev { files[ iFile - 1 ] };
+        const UTF8Path& filepathPrev { files[ iFile - 1 ] };
         const String msg{ String()
-          + filepath.u8string() + " (" + ToString( x ) + "x" + ToString( y ) + ")"
+          + filepath + " (" + ToString( x ) + "x" + ToString( y ) + ")"
           + " has different dimensions from "
-          + filepathPrev.u8string() + "(" + ToString( prevW ) + "x" + ToString( prevH ) + ")" };
+          + filepathPrev + "(" + ToString( prevW ) + "x" + ToString( prevH ) + ")" };
         TAC_RAISE_ERROR( msg );
       }
 

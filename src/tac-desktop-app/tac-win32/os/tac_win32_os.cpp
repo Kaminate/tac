@@ -32,15 +32,6 @@
 
 namespace Tac
 {
-  struct Win32Semaphore : public OS::ISemaphore
-  {
-    Win32Semaphore()              { mNativeHandle = CreateSemaphoreA( NULL, 0, 100, NULL ); }
-    void DecrementWait() override { WaitForSingleObject( mNativeHandle, INFINITE ); }
-    void IncrementPost() override { ReleaseSemaphore( mNativeHandle, 1, NULL ); }
-
-    HANDLE mNativeHandle;
-  };
-
   static auto Win32OSGetPrimaryMonitor() -> Monitor
   {
     return { .mSize { GetSystemMetrics( SM_CXSCREEN ), GetSystemMetrics( SM_CYSCREEN ) } };
@@ -66,9 +57,9 @@ namespace Tac
     return GetProcAddress( ( HMODULE )dll, path.c_str() );
   }
 
-  static void Win32OSOpenPath( const FileSys::Path& path, Errors& errors )
+  static void Win32OSOpenPath( const UTF8Path& path, Errors& errors )
   {
-    String pathStr{ path.u8string() };
+    String pathStr{ path };
     pathStr.replace( "/", "\\" ); // <-- important
     const INT_PTR shellExecuteResult{ ( INT_PTR )
       ::ShellExecuteA( NULL, "open", pathStr.data(), NULL, NULL, SW_SHOWDEFAULT ) };
@@ -83,39 +74,36 @@ namespace Tac
     }
   }
 
-  static auto GetRoamingAppDataPathUTF8( Errors& errors ) -> FileSys::Path
+  static auto GetRoamingAppDataUTF8Path( Errors& errors ) -> UTF8Path
   {
     PWSTR outPath {};
     const HRESULT hr {
       SHGetKnownFolderPath( FOLDERID_RoamingAppData, KF_FLAG_CREATE, nullptr, &outPath ) };
     TAC_ON_DESTRUCT( CoTaskMemFree( outPath ) );
     TAC_RAISE_ERROR_IF_RETURN( hr != S_OK, "Failed to get roaming folder" );
-    return std::filesystem::path( outPath ).u8string().c_str();
+    return (char*)std::filesystem::path( outPath ).u8string().c_str();
   }
 
-  static auto Win32OSGetApplicationDataPath( Errors& errors ) -> FileSys::Path
+  static auto Win32OSGetApplicationDataPath( Errors& errors ) -> UTF8Path
   {
-    TAC_CALL_RET( FileSys::Path path{ GetRoamingAppDataPathUTF8( errors ) } );
-    TAC_ASSERT( FileSys::Exists( path ) );
+    TAC_CALL_RET( UTF8Path path{ GetRoamingAppDataUTF8Path( errors ) } );
+    TAC_ASSERT( path.Exists() );
 
     path /= Shell::sShellStudioName;
-    FileSys::CreateDir( path );
-    TAC_ASSERT( FileSys::Exists( path ) );
+    path.CreateDir();
+    TAC_ASSERT( path.Exists() );
 
     path /= Shell::sShellAppName;
-    FileSys::CreateDir( path );
-    TAC_ASSERT( FileSys::Exists( path ) );
+    path.CreateDir();
+    TAC_ASSERT( path.Exists() );
 
     return path;
   }
-
-  static auto Win32OSSemaphoreCreate() -> OS::ISemaphore* { return TAC_NEW Win32Semaphore; }
 
 } // namespace Tac
 
 void Tac::Win32OSInit()
 {
-  OS::OSSemaphoreCreate = Win32OSSemaphoreCreate;
   OS::OSDebugBreak = Win32DebugBreak;
   OS::OSDebugPopupBox = Win32OSDebugPopupBox;
   OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;

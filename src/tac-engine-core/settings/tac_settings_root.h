@@ -10,7 +10,7 @@ namespace Tac
 {
   struct SettingsRoot
   {
-    void Init( const FileSys::Path&, Errors& );
+    void Init( const UTF8Path&, Errors& );
     auto GetRootNode() -> SettingsNode;
     void Tick( Errors& );
     void Flush( Errors& );
@@ -19,7 +19,7 @@ namespace Tac
     Json             sJson;
     bool             sDirty{};
     GameTime        sLastSaveSeconds;
-    FileSys::Path    sSavePath;
+    UTF8Path    sSavePath;
   };
 }
 

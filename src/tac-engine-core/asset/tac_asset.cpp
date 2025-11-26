@@ -35,7 +35,7 @@ namespace Tac
     const AssetPathString& ToRef( const void* v ) const                                             { return *( AssetPathString* )v; }
   };
 
-  static const FileSys::Path sInitialWorkingDir       { FileSys::GetCurrentWorkingDirectory() };
+  static const UTF8Path sInitialWorkingDir   { UTF8Path::GetCurrentWorkingDirectory() };
   static const char          sAssetPathSeperator      { '/' };
   static const char*         sAssetPathRootFolderName { "assets" };
   TAC_META_IMPL_INSTANCE2( AssetPathString, MetaAssetPathString );
@@ -87,13 +87,13 @@ namespace Tac
 #endif
   }
 
-  static FileSys::IterateType AssetToFSIterateType( AssetIterateType t )
+  static UTF8Path::IterateType AssetToFSIterateType( AssetIterateType t )
   {
     switch( t )
     {
-    case AssetIterateType::Default: return FileSys::IterateType::Default;
-    case AssetIterateType::Recursive: return FileSys::IterateType::Recursive;
-    default: TAC_ASSERT_INVALID_CASE( t ); return FileSys::IterateType::Default;
+    case AssetIterateType::Default: return UTF8Path::IterateType::Default;
+    case AssetIterateType::Recursive: return UTF8Path::IterateType::Recursive;
+    default: TAC_ASSERT_INVALID_CASE( t ); return UTF8Path::IterateType::Default;
     }
   }
 
@@ -152,29 +152,37 @@ namespace Tac
     Validate( s );
   }
 
-
-  static auto ModifyPathRelative( const FileSys::Path& path, Errors& errors ) -> Tac::AssetPathStringView
+  static auto StripLeadingSlashes( const StringView& path ) -> String
   {
-    const String workingUTF8 { sInitialWorkingDir.u8string() };
-    dynmc String pathUTF8 { path.u8string() };
-    if( path.is_absolute() )
-    {
-      TAC_RAISE_ERROR_IF_RETURN( !pathUTF8.starts_with( workingUTF8 ), 
-                                 String() + pathUTF8 + String( " is not in " ) + workingUTF8 );
-      pathUTF8.erase( 0, workingUTF8.size() );
-      pathUTF8 = FileSys::StripLeadingSlashes( pathUTF8 );
-    }
-
-    pathUTF8.replace( "\\", "/");
-    return FrameMemoryCopy( pathUTF8.c_str() );
+    int i{};
+    for( i; i < path.size(); i++ )
+      if( path[ i ] != '/' && path[ i ] != '\\' )
+        break;
+    return path.substr( i );
   }
 
-  static AssetPathStrings ConvertAssetPaths( const FileSys::Paths& paths )
+  static auto ModifyPathRelative( const UTF8Path& path, Errors& errors ) -> Tac::AssetPathStringView
+  {
+    const String workingUTF8 { sInitialWorkingDir };
+    dynmc String UTF8Path { path };
+    if( path.is_absolute() )
+    {
+      TAC_RAISE_ERROR_IF_RETURN( !UTF8Path.starts_with( workingUTF8 ), 
+                                 String() + UTF8Path + String( " is not in " ) + workingUTF8 );
+      UTF8Path.erase( 0, workingUTF8.size() );
+      UTF8Path = StripLeadingSlashes( UTF8Path );
+    }
+
+    UTF8Path.replace( "\\", "/");
+    return FrameMemoryCopy( UTF8Path.c_str() );
+  }
+
+  static AssetPathStrings ConvertAssetPaths( const UTF8Paths& paths )
   {
     AssetPathStrings result;
-    for( const FileSys::Path& path : paths )
+    for( const UTF8Path& path : paths )
     {
-      String s{ path.u8string() };
+      String s{ path };
       s.replace( "\\", "/" );
       const int i{ s.find( "assets/" ) };
       TAC_ASSERT( i != s.npos );
@@ -189,8 +197,8 @@ namespace Tac
 
 bool Tac::Exists( const AssetPathStringView& assetPath )
 {
-  const FileSys::Path fsPath( assetPath );
-  return Exists( fsPath );
+  const UTF8Path fsPath( assetPath );
+  return fsPath.Exists();
 }
 
 void Tac::SaveToFile( const AssetPathStringView& assetPath,
@@ -198,14 +206,14 @@ void Tac::SaveToFile( const AssetPathStringView& assetPath,
                       int byteCount,
                       Errors& errors )
 {
-  const FileSys::Path fsPath( assetPath );
-  FileSys::SaveToFile( fsPath, bytes, byteCount, errors );
+  const UTF8Path fsPath( assetPath );
+  fsPath.SaveToFile( bytes, byteCount, errors );
 }
 
 auto Tac::LoadAssetPath( const AssetPathStringView& assetPath, Errors& errors ) -> String
 {
-  const FileSys::Path fsPath( assetPath );
-  return FileSys::LoadFilePath( fsPath, errors );
+  const UTF8Path fsPath( assetPath );
+  return fsPath.LoadFilePath( errors );
 }
 
 
@@ -213,8 +221,8 @@ auto Tac::IterateAssetsDirs( const AssetPathStringView& dir,
                              AssetIterateType type,
                              Errors& errors ) -> AssetPathStrings
 {
-  const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
-  TAC_CALL_RET( const FileSys::Paths paths{ FileSys::IterateDirectories( dir, fsIterate, errors ) } );
+  const UTF8Path::IterateType fsIterate { AssetToFSIterateType( type ) };
+  TAC_CALL_RET( const UTF8Paths paths{ UTF8Path( dir ).IterateDirectories( fsIterate, errors ) } );
   return ConvertAssetPaths( paths );
 }
 
@@ -222,24 +230,24 @@ auto Tac::IterateAssetsInDir( const AssetPathStringView& dir,
                               AssetIterateType type,
                               Errors& errors ) -> AssetPathStrings
 {
-  const FileSys::IterateType fsIterate { AssetToFSIterateType( type ) };
-  TAC_CALL_RET( const FileSys::Paths paths{ FileSys::IterateFiles( dir, fsIterate, errors ) } );
+  const UTF8Path::IterateType fsIterate { AssetToFSIterateType( type ) };
+  TAC_CALL_RET( const UTF8Paths paths{ UTF8Path( dir ).IterateFiles(  fsIterate, errors ) } );
   return ConvertAssetPaths( paths );
 }
 
 auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
-  TAC_CALL_RET( const FileSys::Path fsPath{ OS::OSOpenDialog(
+  const UTF8Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
+  TAC_CALL_RET( const UTF8Path fsPath{ OS::OSOpenDialog(
     OS::OpenParams{.mDefaultFolder { &dir }, }, errors ) } );
   return ModifyPathRelative( fsPath, errors );
 }
 
 auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors ) -> Tac::AssetPathStringView
 {
-  const FileSys::Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
-  const FileSys::Path suggestedFilename { params.mSuggestedFilename };
-  const FileSys::Path fsPath { OS::OSSaveDialog(
+  const UTF8Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
+  const UTF8Path suggestedFilename { params.mSuggestedFilename };
+  const UTF8Path fsPath { OS::OSSaveDialog(
     OS::SaveParams
     {
       .mDefaultFolder     { & dir },

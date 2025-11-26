@@ -15,7 +15,7 @@
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
-  static       FileSys::Path    sOutputDir;
+  static       UTF8Path    sOutputDir;
   static const D3D_SHADER_MODEL kShaderModel{ D3D_SHADER_MODEL_6_5 };
 
   static auto GetHighestShaderModel( ID3D12Device* device ) -> D3D_SHADER_MODEL

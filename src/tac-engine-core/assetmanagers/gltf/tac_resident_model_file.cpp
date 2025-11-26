@@ -19,27 +19,19 @@ namespace Tac
     void Execute( Errors& ) override;
     void Clear();
 
-    String           bytes       {};
-    FileSys::Path    mPath       {};
-    cgltf_data*      mParsedData {};
+    String            mBytes      {};
+    UTF8Path mPath       {};
+    cgltf_data*       mParsedData {};
   };
 
   // -----------------------------------------------------------------------------------------------
 
   void LoadJob::ExecuteAux( Errors& errors )
   {
-    TAC_CALL( bytes = LoadFilePath( mPath, errors ) );
-
-    const cgltf_options options  {};
-
-    [[maybe_unused]] const String u8Path { mPath.u8string() };
-    [[maybe_unused]] const char* u8Pathcstr { u8Path.c_str() };
-
-    TAC_GLTF_CALL( cgltf_parse, &options, bytes.data(), bytes.size(), &mParsedData );
-
+    const cgltf_options options{};
+    TAC_CALL( mBytes = mPath.LoadFilePath( errors ) );
+    TAC_GLTF_CALL( cgltf_parse, &options, mBytes.data(), mBytes.size(), &mParsedData );
     TAC_GLTF_CALL( cgltf_validate, mParsedData );
-
-
   }
 
   void LoadJob::Execute( Errors& errors )
@@ -60,7 +52,7 @@ namespace Tac
 
   void LoadJob::Clear()
   {
-    bytes.clear();
+    mBytes.clear();
     mPath.clear();
     cgltf_free( mParsedData );
     mParsedData = nullptr;
@@ -73,7 +65,7 @@ namespace Tac
   {
     void             Clear();
 
-    FileSys::Path    mPath               {};
+    UTF8Path    mPath               {};
     StringID         mAssetPathID        {};
     GameTime         mLastRequestSeconds {};
     cgltf_data*      mParsedData         {};
@@ -96,7 +88,7 @@ namespace Tac
     void             Clear();
     
 
-    FileSys::Path    mPath;
+    UTF8Path    mPath;
     StringID         mAssetPathID;
     LoadJob          mJob;
   };

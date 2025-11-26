@@ -15,37 +15,13 @@ namespace Tac
   struct LocalizedStringStuff
   {
     LocalizedStringStuff() = default;
-    LocalizedStringStuff( CodepointString cv, StringView sv )
-    {
-      SetCodepointsOnly( cv );
-      SetUTF8StringOnly( sv );
-    }
-    LocalizedStringStuff( CodepointView cv, StringView sv )
-    {
-      SetCodepointsOnly( cv );
-      SetUTF8StringOnly( sv );
-    }
-
-    void                SetCodepoints( CodepointView );
-
-    void                SetCodepointsAndUTF8String( CodepointView cv, StringView sv )
-    {
-      SetCodepointsOnly( cv );
-      SetUTF8StringOnly( sv );
-    }
-
-    void                SetUTF8String( StringView );
-
-    StringView          GetUTF8String() const
-    {
-      return mUTF8String;
-    }
-
-    CodepointView       GetCodepointView() const
-    {
-      return CodepointView( mCodepoints.data(),
-                            mCodepoints.size() );
-    }
+    LocalizedStringStuff( CodepointString, StringView );
+    LocalizedStringStuff( CodepointView, StringView );
+    void SetCodepoints( CodepointView );
+    void SetCodepointsAndUTF8String( CodepointView , StringView );
+    void SetUTF8String( StringView );
+    auto GetUTF8String() const -> StringView;
+    auto GetCodepointView() const -> CodepointView;
 
   private:
     void SetUTF8StringOnly( StringView );
@@ -62,13 +38,26 @@ namespace Tac
 
   struct LocalizedString
   {
-    String               mReference;
-    LanguageMap          mCodepoints;
+    String      mReference;
+    LanguageMap mCodepoints;
   };
 
-  static Vector< LocalizedString > mLocalizedStrings;
+  using LocalizedStrings = Vector< LocalizedString >;
+  using Languages = String[ ( int )Language::Count ];
 
-  static void             LoadLanguageMapEntry( LanguageMap* languageMap, ParseData& parseData )
+  static LocalizedStrings sLocalizedStrings;
+  static const Languages  kLanguages
+  {
+    "Arabic",
+    "Chinese",
+    "English",
+    "Japanese",
+    "Korean",
+    "Russian",
+    "Spanish",
+  };
+
+  static void LoadLanguageMapEntry( LanguageMap* languageMap, ParseData& parseData )
   {
     const StringView word{ parseData.EatWord() };
     const Language language{ GetLanguage( word ) };
@@ -83,7 +72,7 @@ namespace Tac
     localizedStringStuff.SetCodepointsAndUTF8String( codepointView, utf8String );
   }
 
-  static bool             LoadLocalizedString( LocalizedString* localizedString, ParseData& parseData )
+  static bool LoadLocalizedString( LocalizedString* localizedString, ParseData& parseData )
   {
     const StringView reference { parseData.EatRestOfLine() };
     if( reference.empty() )
@@ -103,34 +92,38 @@ namespace Tac
     return true;
   }
 
-  static LocalizedString* FindLocalizedString( StringView reference )
+  static auto FindLocalizedString( StringView reference ) -> LocalizedString*
   {
-    for( LocalizedString& str : mLocalizedStrings )
+    for( LocalizedString& str : sLocalizedStrings )
       if( ( StringView )str.mReference == reference )
         return &str;
     return nullptr;
   }
 
-  const String Languages[ ( int )Language::Count ] =
-  {
-    "Arabic",
-    "Chinese",
-    "English",
-    "Japanese",
-    "Korean",
-    "Russian",
-    "Spanish",
-  };
 
-  bool IsAsciiCharacter( Codepoint codepoint )
+  LocalizedStringStuff::LocalizedStringStuff( CodepointString cv, StringView sv )
   {
-    return codepoint < ( Codepoint )128;
+    SetCodepointsOnly( cv );
+    SetUTF8StringOnly( sv );
+  }
+
+  LocalizedStringStuff::LocalizedStringStuff( CodepointView cv, StringView sv )
+  {
+    SetCodepointsOnly( cv );
+    SetUTF8StringOnly( sv );
   }
 
   void LocalizedStringStuff::SetUTF8String( StringView utf8String )
   {
     SetUTF8StringOnly( utf8String );
     SetCodepointsOnly( UTF8ToCodepointString( utf8String ) );
+  }
+
+  auto LocalizedStringStuff::GetUTF8String() const -> StringView { return mUTF8String; }
+
+  auto LocalizedStringStuff::GetCodepointView() const -> CodepointView
+  {
+    return CodepointView( mCodepoints.data(), mCodepoints.size() );
   }
 
   void LocalizedStringStuff::SetUTF8StringOnly( StringView utf8String )
@@ -157,6 +150,12 @@ namespace Tac
     SetUTF8StringOnly( CodepointsToUTF8( codepoints ) );
   }
 
+  void LocalizedStringStuff::SetCodepointsAndUTF8String( CodepointView cv, StringView sv )
+  {
+    SetCodepointsOnly( cv );
+    SetUTF8StringOnly( sv );
+  }
+
   //===--- Converter ---===//
 
   struct Converter
@@ -176,7 +175,7 @@ namespace Tac
     mEnd = stringView.end();
   }
 
-  Codepoint Converter::Extract()
+  auto Converter::Extract() -> Codepoint
   {
     const char b0 { GetNextByte() };
     if( !b0 )
@@ -215,11 +214,10 @@ namespace Tac
       ( ( 0b00000111 & b0 ) << 18 );
   }
 
-  char      Converter::GetNextByte()
+  char Converter::GetNextByte()
   {
     return mBegin < mEnd ? *mBegin++ : 0;
   }
-
 
   //===--- Codepoint View ---===//
 
@@ -235,68 +233,67 @@ namespace Tac
     mCodepointCount = codepointString.size();
   }
 
-  const Codepoint* CodepointView::data() const
+  auto CodepointView::data() const -> const Codepoint*
   {
     return mCodepoints;
 
   }
 
-  const Codepoint* CodepointView::begin() const
+  auto CodepointView::begin() const -> const Codepoint*
   {
     return mCodepoints;
   }
 
-  const Codepoint* CodepointView::end() const
+  auto CodepointView::end() const -> const Codepoint*
   {
     return mCodepoints + mCodepointCount;
   }
 
-  int              CodepointView::size() const
+  auto CodepointView::size() const -> int
   {
     return mCodepointCount;
   }
 
-  bool             CodepointView::empty() const
+  bool CodepointView::empty() const
   {
     return mCodepointCount == 0;
   }
 
-  Codepoint        CodepointView::operator[]( int i ) const
+  auto CodepointView::operator[]( int i ) const -> Codepoint
   {
     return mCodepoints[ i ];
   }
-
-  bool operator != ( CodepointView a, CodepointView b )
-  {
-    return !( a == b );
-  }
-
-  bool operator == ( CodepointView a, CodepointView b )
-  {
-    if( a.size() != b.size() )
-      return false;
-    for( int i{}; i < a.size(); ++i )
-      if( a[ i ] != b[ i ] )
-        return false;
-    return true;
-  }
-
 }
 
-Tac::StringView      Tac::LanguageToStr( Language language )
+bool Tac::operator != ( CodepointView a, CodepointView b )
 {
-  return Languages[ ( int )language ];
+  return !( a == b );
 }
 
-Tac::Language        Tac::GetLanguage( StringView str )
+bool Tac::operator == ( CodepointView a, CodepointView b )
+{
+  if( a.size() != b.size() )
+    return false;
+  for( int i{}; i < a.size(); ++i )
+    if( a[ i ] != b[ i ] )
+      return false;
+  return true;
+}
+
+auto Tac::LanguageToStr( Language language ) -> StringView
+{
+  return kLanguages[ ( int )language ];
+}
+
+auto Tac::GetLanguage( StringView str ) -> Language
   {
     for( int i{}; i < ( int )Language::Count; ++i )
-      if( ( StringView )Languages[ i ] == str )
+      if( ( StringView )kLanguages[ i ] == str )
         return ( Language )i;
     return Language::Count;
   }
 
-Tac::CodepointString Tac::UTF8ToCodepointString( StringView stringView )
+auto Tac::UTF8ToCodepointString( StringView stringView ) -> CodepointString
 {
   CodepointString codepoints;
   Converter converter( stringView );
@@ -305,7 +302,7 @@ Tac::CodepointString Tac::UTF8ToCodepointString( StringView stringView )
   return codepoints;
 }
 
-Tac::CodepointView   Tac::UTF8ToCodepointView( StringView stringView )
+auto Tac::UTF8ToCodepointView( StringView stringView ) -> CodepointView
 {
   Codepoint* codepoints{
     ( Codepoint* )FrameMemoryAllocate( sizeof( Codepoint ) * stringView.size() ) };
@@ -317,7 +314,7 @@ Tac::CodepointView   Tac::UTF8ToCodepointView( StringView stringView )
   return CodepointView( codepoints, n );
 }
 
-Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
+auto Tac::CodepointsToUTF8( CodepointView codepointView ) -> StringView
 {
   auto str { ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) ) };
   int len {};
@@ -351,9 +348,7 @@ Tac::StringView      Tac::CodepointsToUTF8( CodepointView codepointView )
   return StringView( str, len );
 }
 
-//===--- Localization ---===//
-
-Tac::CodepointView   Tac::LocalizationGetString( Language language, StringView reference )
+auto Tac::LocalizationGetString( Language language, StringView reference ) -> CodepointView
 {
   LocalizedString* str{ FindLocalizedString( reference ) };
   if( !str )
@@ -366,18 +361,16 @@ Tac::CodepointView   Tac::LocalizationGetString( Language language, StringView r
   return localizedStringStuff.GetCodepointView();
 }
 
-void                 Tac::LocalizationLoad( const FileSys::Path& path, Errors& errors )
+void Tac::LocalizationLoad( const UTF8Path& path, Errors& errors )
 {
-  TAC_CALL( const String str{ LoadFilePath( path, errors ) }  );
-
+  TAC_CALL( const String str{ path.LoadFilePath( errors ) }  );
   ParseData parseData( str.data(), str.size() );
-
   LocalizedString localizedString;
   while( LoadLocalizedString( &localizedString, parseData ) )
-    mLocalizedStrings.push_back( localizedString );
+    sLocalizedStrings.push_back( localizedString );
 }
 
-void                 Tac::LocalizationDebugImgui()
+void Tac::LocalizationDebugImgui()
 {
   //if( !ImGui::CollapsingHeader( "Localization" ) )
   //  return;
@@ -403,9 +396,7 @@ void                 Tac::LocalizationDebugImgui()
   //}
 }
 
-
-// Should I make an ImGui::Enum?
-void                 Tac::LanguageDebugImgui( StringView , Language* )
+void Tac::LanguageDebugImgui( StringView, Language* )
 {
   //auto currentItem = ( int )( *language );
   //auto itemGetter = []( void* data, int idx, const char** outText )
@@ -418,3 +409,6 @@ void                 Tac::LanguageDebugImgui( StringView , Language* )
   //  return;
   //*language = ( Language )currentItem;
 }
+
+bool Tac::IsAsciiCharacter( Codepoint codepoint ) { return codepoint < ( Codepoint )128; }
+

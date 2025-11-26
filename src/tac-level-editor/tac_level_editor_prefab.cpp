@@ -116,8 +116,7 @@ namespace Tac
     const String prefabJsonString{ entityJson.Stringify() };
     const void* bytes{ prefabJsonString.data() };
     const int byteCount{ prefabJsonString.size() };
-    const FileSys::Path fsPath( prefab->mAssetPath );
-    TAC_CALL_RET( FileSys::SaveToFile( fsPath, bytes, byteCount, errors ) );
+    TAC_CALL_RET( SaveToFile( prefab->mAssetPath, bytes, byteCount, errors ) );
     return true;
   }
 
@@ -150,9 +149,9 @@ namespace Tac
       if( removedEntityFromPrefab )
         break;
     }
+
     for( Entity* child : entity->mChildren )
       PrefabRemoveEntityRecursivelyAux( child );
-
   }
 
 
