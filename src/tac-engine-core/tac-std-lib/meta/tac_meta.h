@@ -65,11 +65,11 @@ namespace Tac
 
     struct Range
     {
-      Iterator begin()                      { return Head(); }
-      Iterator end()                        { return nullptr; }
+      auto begin() -> Iterator              { return Head(); }
+      auto end() -> Iterator                { return nullptr; }
     };
 
-    static T*& Head()                       { static T* sHead; return sHead; }
+    static auto Head() -> T*&               { static T* sHead; return sHead; }
     AutoLister()                            { mNext = Head(); Head() = ( T* )this; }
 
     T* mNext;

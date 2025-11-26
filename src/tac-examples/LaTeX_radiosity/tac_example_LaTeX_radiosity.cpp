@@ -20,14 +20,7 @@
 
 namespace Tac
 {
-  static bool                  sInitialized                 {};
-  static MicroTeXImGuiGraphics sGraphics2D                  {};
-
-  // Camera parameters (worldspace)
-  static v2                    sWorldspaceCamPos            {};
-  static float                 sWorldspaceCamHeight         { 10 };
-
-  static bool                  sDrawOrigin                  {};
+  using TextBlockID = i32;
 
   enum TextStyle
   {
@@ -35,8 +28,6 @@ namespace Tac
     kHeading1,
     kCount,
   };
-
-  using TextBlockID = i32;
 
   struct TextBlockDef
   {
@@ -75,9 +66,13 @@ namespace Tac
     TextBlockID   mIDCounter                      {};
   };
 
-  static PresentationDef sPresentationDef;
-  static AssetPathString sPresentationDefAssetPath;
-
+  static PresentationDef       sPresentationDef;
+  static AssetPathString       sPresentationDefAssetPath;
+  static bool                  sInitialized                 {};
+  static MicroTeXImGuiGraphics sGraphics2D                  {};
+  static v2                    sWorldspaceCamPos            {};
+  static float                 sWorldspaceCamHeight         { 10 };
+  static bool                  sDrawOrigin                  {};
 
   TAC_META_REGISTER_ENUM_BEGIN( TextStyle );
   TAC_META_REGISTER_ENUM_VALUE( kNormalText );
@@ -239,14 +234,13 @@ namespace Tac
 
   }
 
-
-  static v2 WorldToCamera( v2 p_world )
+  static auto WorldToCamera( v2 p_world ) -> v2
   {
     m3 worldToCameraTranslation{ m3::Translate( -sWorldspaceCamPos ) };
     return ( worldToCameraTranslation * v3( p_world, 1.0f ) ).xy();
   }
 
-  static v2 CameraToWindow( v2 p_view )
+  static auto CameraToWindow( v2 p_view ) -> v2
   {
     const ImGuiRect contentRect{ ImGuiGetContentRect() };
     float px_per_world_unit = contentRect.GetHeight() / sWorldspaceCamHeight;
@@ -257,7 +251,7 @@ namespace Tac
     return p_window;
   }
 
-  static v2 WorldToWindow( v2 p_world )
+  static auto WorldToWindow( v2 p_world ) -> v2
   {
     v2 p_view = WorldToCamera( p_world );
     v2 p_window = CameraToWindow( p_view );

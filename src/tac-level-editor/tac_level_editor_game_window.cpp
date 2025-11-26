@@ -52,7 +52,7 @@ namespace Tac
 #endif
   static Debug3DDrawBuffers            sBuffers                  {};
   static String                        sStatusMessage            {};
-  static GameTime                     sStatusMessageEndTime     {};
+  static GameTime                      sStatusMessageEndTime     {};
 
   // TODO: find a home for this fn, maybe in tacexamples idk
 #if 0
@@ -486,7 +486,6 @@ namespace Tac
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
 
-
     const WindowHandle windowHandle{ ImGuiGetWindowHandle() };
 
 #if 0
@@ -511,16 +510,12 @@ namespace Tac
     if( sDrawGrid )
       Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DGrid();
 
-    if( GizmoMgr::sInstance.mGizmosEnabled && GizmoMgr::sInstance.mSelectedGizmo )
+    if( GizmoMgr::sInstance.mGizmosEnabled &&
+        GizmoMgr::sInstance.mSelectedGizmo )
       Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
                                                                  Creation::GetCamera()->mForwards,
                                                                  GizmoMgr::sInstance.mArrowLen );
-
-    const v2 origCursorPos{ ImGuiGetCursorPos() };
-
-    ImGuiSetCursorPos( origCursorPos );
-
-    TAC_CALL( ImGuiOverlay(  errors ) );
+    TAC_CALL( ImGuiOverlay( errors ) );
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView msg,

@@ -18,7 +18,8 @@ namespace Tac
     void*           mAddr;
   };
 
-  template < typename T > T MetaCast( Variable v )
+  template < typename T >
+  auto MetaCast( Variable v ) -> T
   {
     T t{};
     const MetaType::CastParams castParams
@@ -86,18 +87,18 @@ namespace Tac
 
     }
 
-    const char*     Name() const;
-    const MetaType* RetType() const;
-    const MetaType* ArgType( int ) const;
-    int             ArgCount() const;
-    void            Apply( Variable ret, Variable* args, int argCount );
-
+    auto Name() const -> const char*;
+    auto RetType() const -> const MetaType*;
+    auto ArgType( int ) const -> const MetaType*;
+    auto ArgCount() const -> int;
+    void Apply( Variable ret, Variable* args, int argCount );
 
   private:
+    using ApplyFn = void( * )( FnPtr, Variable, Variable*, int );
     const char* mName;
     MetaFnSig   mFnSig;
     FnPtr       mFn;
-    void( *mApplyWrapper )( FnPtr, Variable, Variable*, int );
+    ApplyFn     mApplyWrapper;
   };
 
   void MetaPrintFunctions();

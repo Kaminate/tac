@@ -11,14 +11,15 @@ namespace Tac
   {
     return i * 2;
   }
+  static MetaFn doubleMeta( "DoubleMyGuy", DoubleMyGuy );
 
   static int AddMyGuys( int i, float f )
   {
     return i + ( int )f;
   }
+  static MetaFn addFn( "AddMyGuys", AddMyGuys );
 
-
-  void MetaFnUnitTest0()
+  static void MetaFnUnitTest0()
   {
     int doubleRet {};
     int doubleArg { 5 };
@@ -30,9 +31,7 @@ namespace Tac
       + "Double( " + ToString( doubleArg ) + " ) = " + ToString( doubleRet ) );
   }
 
-  static MetaFn doubleMeta( "DoubleMyGuy", DoubleMyGuy );
-
-  void MetaFnUnitTest1()
+  static void MetaFnUnitTest1()
   {
     int doubleRet {};
     int doubleArg { 6 };
@@ -44,9 +43,7 @@ namespace Tac
       String() + fnname + "( " + ToString( doubleArg) + " ) = " + ToString( doubleRet ) );
   }
 
-  static MetaFn addFn( "AddMyGuys", AddMyGuys );
-
-  void MetaFnUnitTest2()
+  static void MetaFnUnitTest2()
   {
     int ret {};
     int arg0 { 10 };
@@ -63,46 +60,46 @@ namespace Tac
       + ToString( ret ) );
   }
 
-  void MetaFnUnitTest()
-  {
-    MetaFnUnitTest0();
-    MetaFnUnitTest1();
-    MetaFnUnitTest2();
-  }
-
-  void MetaPrintFunctions()
-  {
-    for( MetaFn* fn : MetaFn::Range() )
-    {
-      String joinedArgs;
-      const char* sep = "";
-      for( int i {}; i < fn->ArgCount(); ++i )
-      {
-        joinedArgs += sep;
-        joinedArgs += fn->ArgType( i )->GetName();
-        sep = ", ";
-      }
-
-      String line;
-      line += fn->RetType()->GetName();
-      line += ' ';
-      line += fn->Name();
-      line += '(';
-      line += joinedArgs;
-      line += ')';
-      line += '\n';
-
-      OS::OSDebugPrintLine( line );
-    }
-  }
-
-  const char*     MetaFn::Name() const           { return mName; }
-  const MetaType* MetaFn::RetType() const        { return mFnSig.RetType(); }
-  const MetaType* MetaFn::ArgType( int i ) const { return mFnSig.ArgType( i ); }
-  int             MetaFn::ArgCount() const       { return mFnSig.ArgCount(); }
-  void            MetaFn::Apply( Variable ret, Variable* args, int argCount )
+  auto MetaFn::Name() const -> const char*                { return mName; }
+  auto MetaFn::RetType() const -> const MetaType*         { return mFnSig.RetType(); }
+  auto MetaFn::ArgType( int i ) const -> const MetaType*  { return mFnSig.ArgType( i ); }
+  auto MetaFn::ArgCount() const -> int                    { return mFnSig.ArgCount(); }
+  void MetaFn::Apply( Variable ret, Variable* args, int argCount )
   {
     mApplyWrapper( mFn, ret, args, argCount );
   }
 } // namespace Tac
+
+void Tac::MetaFnUnitTest()
+{
+  MetaFnUnitTest0();
+  MetaFnUnitTest1();
+  MetaFnUnitTest2();
+}
+
+void Tac::MetaPrintFunctions()
+{
+  for( MetaFn* fn : MetaFn::Range() )
+  {
+    String joinedArgs;
+    const char* sep = "";
+    for( int i {}; i < fn->ArgCount(); ++i )
+    {
+      joinedArgs += sep;
+      joinedArgs += fn->ArgType( i )->GetName();
+      sep = ", ";
+    }
+
+    String line;
+    line += fn->RetType()->GetName();
+    line += ' ';
+    line += fn->Name();
+    line += '(';
+    line += joinedArgs;
+    line += ')';
+    line += '\n';
+
+    OS::OSDebugPrintLine( line );
+  }
+}
 

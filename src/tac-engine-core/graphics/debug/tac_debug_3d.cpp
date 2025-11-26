@@ -12,10 +12,9 @@
 
 namespace Tac
 {
-
-  static const int cylinderSegmentCount   { 10 };
-  static const int hemisphereSegmentCount { 4 };
-  static const int numdivisions           { 20 };
+  static const int kCylinderSegmentCount   { 10 };
+  static const int kHemisphereSegmentCount { 4 };
+  static const int kCircleSegmentCount     { 20 };
 
   struct Debug3DConstBuf
   {
@@ -311,9 +310,9 @@ namespace Tac
     tan1 *= rad;
     tan2 *= rad;
     v3 prevPoint { p0 + tan1 };
-    for( int i { 1 }; i <= numdivisions; ++i )
+    for( int i { 1 }; i <= kCircleSegmentCount; ++i )
     {
-      const float theta { 3.14f * 2.0f * ( float )i / ( float )numdivisions };
+      const float theta { 3.14f * 2.0f * ( float )i / ( float )kCircleSegmentCount };
       const v3 point{ p0 + Cos( theta ) * tan1 + Sin( theta ) * tan2 };
       DebugDraw3DLine( prevPoint, point, color );
       prevPoint = point;
@@ -345,17 +344,17 @@ namespace Tac
 
   void Debug3DDrawData::DebugDraw3DHemisphere( const v3& mOrigin, const v3& mDirection, float radius, const v3& color )
   {
-    Vector< v3 > mPrevPts( cylinderSegmentCount );
-    Vector< v3 > mCurrPts( cylinderSegmentCount );
+    Vector< v3 > mPrevPts( kCylinderSegmentCount );
+    Vector< v3 > mCurrPts( kCylinderSegmentCount );
     float hemisphereRads {  };
-    float dHemisphereRads { ( 3.14f * 0.5f ) / hemisphereSegmentCount };
+    float dHemisphereRads { ( 3.14f * 0.5f ) / kHemisphereSegmentCount };
     v3 tan1;
     v3 tan2;
     GetFrameRH( mDirection, tan1, tan2 );
-    for( int iCylinder {  }; iCylinder < cylinderSegmentCount; ++iCylinder )
+    for( int iCylinder {  }; iCylinder < kCylinderSegmentCount; ++iCylinder )
       mPrevPts[ iCylinder ] = mOrigin + mDirection * radius;
 
-    for( int iHemisphere {  }; iHemisphere < hemisphereSegmentCount; ++iHemisphere )
+    for( int iHemisphere {  }; iHemisphere < kHemisphereSegmentCount; ++iHemisphere )
     {
       hemisphereRads += dHemisphereRads;
       float circleRadius { radius * Sin( hemisphereRads ) };
@@ -363,8 +362,8 @@ namespace Tac
       v3 circleOrigin { mOrigin + mDirection * circleOffset };
 
       float circleRads {  };
-      float dCircleRads { ( 3.14f * 2.0f ) / cylinderSegmentCount };
-      for( int iCylinder {  }; iCylinder < cylinderSegmentCount; ++iCylinder )
+      float dCircleRads { ( 3.14f * 2.0f ) / kCylinderSegmentCount };
+      for( int iCylinder {  }; iCylinder < kCylinderSegmentCount; ++iCylinder )
       {
         mCurrPts[ iCylinder ]
           = circleOrigin
@@ -373,9 +372,9 @@ namespace Tac
         circleRads += dCircleRads;
       }
 
-      for( int iCylinder {}; iCylinder < cylinderSegmentCount; ++iCylinder )
+      for( int iCylinder {}; iCylinder < kCylinderSegmentCount; ++iCylinder )
       {
-        const int iCylinderNext { ( iCylinder + 1 ) % cylinderSegmentCount };
+        const int iCylinderNext { ( iCylinder + 1 ) % kCylinderSegmentCount };
         DebugDraw3DLine( mPrevPts[ iCylinder ], mCurrPts[ iCylinder ], color );
         DebugDraw3DLine( mCurrPts[ iCylinder ], mCurrPts[ iCylinderNext ], color );
       }
@@ -392,16 +391,16 @@ namespace Tac
       return;
 
     dir /= dirlen;
-    Vector< v3 > p0Points( cylinderSegmentCount );
-    Vector< v3 > p1Points( cylinderSegmentCount );
+    Vector< v3 > p0Points( kCylinderSegmentCount );
+    Vector< v3 > p1Points( kCylinderSegmentCount );
     v3 tan1;
     v3 tan2;
     GetFrameRH( dir, tan1, tan2 );
     tan1 *= radius;
     tan2 *= radius;
-    for( int iSegment {}; iSegment < cylinderSegmentCount; ++iSegment )
+    for( int iSegment {}; iSegment < kCylinderSegmentCount; ++iSegment )
     {
-      const float angle { ( 3.14f * 2.0f ) * iSegment / ( float )cylinderSegmentCount };
+      const float angle { ( 3.14f * 2.0f ) * iSegment / ( float )kCylinderSegmentCount };
       const float s { Sin( angle ) };
       const float c { Cos( angle ) };
       const v3 offset { c * tan1 + s * tan2 };
@@ -409,9 +408,9 @@ namespace Tac
       p1Points[ iSegment ] = p1 + offset;
     }
 
-    for( int iSegment {}; iSegment < cylinderSegmentCount; ++iSegment )
+    for( int iSegment {}; iSegment < kCylinderSegmentCount; ++iSegment )
     {
-      const int iSegmentNext { ( iSegment + 1 ) % cylinderSegmentCount };
+      const int iSegmentNext { ( iSegment + 1 ) % kCylinderSegmentCount };
       DebugDraw3DLine( p0Points[ iSegment ], p0Points[ iSegmentNext ], color );
       DebugDraw3DLine( p1Points[ iSegment ], p1Points[ iSegmentNext ], color );
       DebugDraw3DLine( p0Points[ iSegment ], p1Points[ iSegment ], color );
