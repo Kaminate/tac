@@ -1,9 +1,5 @@
 #include "tac_memory.h" // self-inc
 
-//#include "tac-desktop-app/desktop_app/tac_desktop_app.h" // temp
-//#include "tac-engine-core/shell/tac_shell.h"
-//#include "tac-engine-core/shell/tac_shell_time.h"
-
 #if TAC_SHOULD_IMPORT_STD()
   import std;
 #else

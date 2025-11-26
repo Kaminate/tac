@@ -11,7 +11,6 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
-
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/containers/tac_array.h"

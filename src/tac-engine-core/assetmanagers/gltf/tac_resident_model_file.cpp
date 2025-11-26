@@ -3,13 +3,11 @@
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
-#include "tac-engine-core/shell/tac_shell_time.h"
+#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/job/tac_job_queue.h"
-#include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 
 namespace Tac
 {

@@ -806,6 +806,5 @@ auto Tac::CalculateTextSize( const Codepoint* codepoints,
 #endif
 }
 
-
-void Tac::UI2DCommonDataInit( Errors& errors ){ gUI2DCommonData.Init( errors ); }
-void Tac::UI2DCommonDataUninit() { gUI2DCommonData.Uninit(); }
+void Tac::UI2DCommonDataInit( Errors& errors ) { gUI2DCommonData.Init( errors ); }
+void Tac::UI2DCommonDataUninit()               { gUI2DCommonData.Uninit(); }

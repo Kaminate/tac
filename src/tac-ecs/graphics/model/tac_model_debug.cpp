@@ -8,7 +8,6 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
-#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
