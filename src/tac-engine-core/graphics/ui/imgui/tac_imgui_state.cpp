@@ -21,20 +21,6 @@
 
 namespace Tac
 {
-
-  struct PerFrameType
-  {
-    m4    mOrthoProj         {};
-    float mSDFOnEdge         {};
-    float mSDFPixelDistScale {};
-  };
-
-  struct PerObjectType
-  {
-    v4  mColor{};
-    u32 mType{};
-  };
-
   struct RegisteredWindowResource
   {
     String         mName        {};
@@ -51,73 +37,6 @@ namespace Tac
     Vector< RegisteredWindowResource > mRegisteredWindowResources;
     int                                mResourceCounter {};
   };
-
-  struct ImGuiCopyHelper
-  {
-    using GetDrawElementBytes = void* ( * )( const UI2DDrawData* );
-    using GetDrawElementCount = int ( * )( const UI2DDrawData* );
-
-    void Copy( Render::IContext* renderContext, Errors& errors ) const
-    {
-      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-      const int srcTotByteCount{ mSrcTotElemCount * mSizeOfElem };
-      if( !srcTotByteCount )
-        return;
-
-      if( !mDst->mBuffer.IsValid() || mDst->mByteCount < srcTotByteCount )
-      {
-        renderDevice->DestroyBuffer( mDst->mBuffer );
-        const Render::CreateBufferParams createBufferParams
-        {
-          .mByteCount    { srcTotByteCount },
-          .mStride       { mSizeOfElem },
-          .mUsage        { Render::Usage::Dynamic },
-          .mBinding      { mBinding },
-          .mGpuBufferFmt { mTexFmt },
-          .mOptionalName { mBufName },
-        };
-        TAC_CALL( mDst->mBuffer = renderDevice->CreateBuffer( createBufferParams, errors ) );
-        mDst->mByteCount = srcTotByteCount;
-      }
-
-      const int drawCount{ mDraws.size() };
-      Render::UpdateBufferParams* updateBufferParams{
-        ( Render::UpdateBufferParams* )FrameMemoryAllocate(
-          drawCount * sizeof( Render::UpdateBufferParams ) ) };
-
-      Span< const Render::UpdateBufferParams > updates( updateBufferParams, drawCount );
-
-      int byteOffset {};
-      for( const UI2DDrawData* pDrawData : mDraws )
-      {
-        const int srcByteCount { mGetDrawElementCount( pDrawData ) * mSizeOfElem };
-
-        *updateBufferParams++ = Render::UpdateBufferParams
-        {
-          .mSrcBytes      { mGetDrawElementBytes( pDrawData ) },
-          .mSrcByteCount  { srcByteCount },
-          .mDstByteOffset { byteOffset },
-        };
-
-        byteOffset += srcByteCount;
-      }
-
-      TAC_CALL( renderContext->UpdateBuffer( mDst->mBuffer, updates, errors ) );
-    }
-
-    ImGuiRenderBuffer*    mDst;
-    int                   mSizeOfElem;
-    int                   mSrcTotElemCount;
-    GetDrawElementBytes   mGetDrawElementBytes;
-    GetDrawElementCount   mGetDrawElementCount;
-    StringView            mBufName;
-    Span< UI2DDrawData* > mDraws;
-    //ImGuiDrawDatas&       mDraws; 
-    Render::TexFmt        mTexFmt  { Render::TexFmt::kUnknown };
-    Render::Binding       mBinding { Render::Binding::None };
-  };
-
 
   // -----------------------------------------------------------------------------------------------
 
@@ -318,8 +237,6 @@ namespace Tac
 
   void ImGuiWindow::BeginFrame()
   {
-    //dynmc ImGuiGlobals& globals { ImGuiGlobals::Instance };
-
     const UIStyle& style{ ImGuiGetStyle() };
     const float windowPadding{ style.windowPadding };
 
@@ -412,9 +329,6 @@ namespace Tac
 
   void ImGuiWindow::ResizeControls()
   {
-    //if( !mWindowHandleOwned )
-    //  return;
-
     if( mParent )
       return;
 
@@ -669,379 +583,26 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiDesktopWindowImpl* desktopWindow, // ImGuiSimWindowDraws* simDraws,
+  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiDesktopWindowImpl* desktopWindow,
                                                            ImGuiPersistantViewport* sysDraws,
                                                            Errors& errors )
   {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-    const WindowHandle hDesktopWindow { sysDraws->mWindowHandle };
-    if( !AppWindowApi::IsShown( hDesktopWindow ) )
+    if( !AppWindowApi::IsShown( sysDraws->mWindowHandle ) )
       return;
 
-    const int n { ImGuiGlobals::Instance.mMaxGpuFrameCount };
-    if( sysDraws->mRenderBuffers.size() < n )
-      sysDraws->mRenderBuffers.resize( n );
-
-    const int iRenderBuffer{ sysDraws->mFrameIndex };
-    ImGuiRenderBuffers& renderBuffers { sysDraws->mRenderBuffers[ iRenderBuffer ] };
-    ( ++sysDraws->mFrameIndex ) %= n;
-
-    TAC_CALL( Render::IContext::Scope renderContextScope{
-      renderDevice->CreateRenderContext( errors ) } );
-    Render::IContext* renderContext { renderContextScope.GetContext() };
-
-    // combine draw data
-    //simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
-    {
-      int vertexCount{};
-      int indexCount{};
-      for( const UI2DDrawData* drawData : desktopWindow->mImGuiDrawDatas )
-      {
-        vertexCount += drawData->mVtxs.size();
-        indexCount += drawData->mIdxs.size();
-      }
-
-      const ShortFixedString vtxBufName{ ShortFixedString::Concat(
-        "imgui_vtx_buf " ,
-        "(frame ", ToString( iRenderBuffer ), ")" ,
-        "(window ", ToString( desktopWindow->mWindowHandle.GetIndex() ), ")"
-      ) };
-
-      const ShortFixedString idxBufName{ ShortFixedString::Concat(
-        String( "imgui_idx_buf " ) ,
-        "(frame ", ToString( iRenderBuffer ), ")" ,
-        "(window ", ToString( desktopWindow->mWindowHandle.GetIndex() ), ")"
-      ) };
-
-      auto getVtxBytes{ []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
-      auto getVtxCount{ []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
-      const ImGuiCopyHelper vtxCopyHelper
-      {
-        .mDst                 { &renderBuffers.mVB },
-        .mSizeOfElem          { sizeof( UI2DVertex ) },
-        .mSrcTotElemCount     { vertexCount },
-        .mGetDrawElementBytes { getVtxBytes },
-        .mGetDrawElementCount { getVtxCount },
-        .mBufName             { vtxBufName },
-        .mDraws               { desktopWindow->mImGuiDrawDatas.data(), desktopWindow->mImGuiDrawDatas.size() },
-        .mBinding             { Render::Binding::VertexBuffer },
-      };
-
-      auto getIdxBytes { []( const UI2DDrawData* dd ) { return ( void* )dd->mIdxs.data(); } };
-      auto getIdxCount { []( const UI2DDrawData* dd ) { return dd->mIdxs.size(); } };
-
-      const ImGuiCopyHelper idxCopyHelper
-      {
-        .mDst                 { &renderBuffers.mIB },
-        .mSizeOfElem          { sizeof( UI2DIndex ) },
-        .mSrcTotElemCount     { indexCount },
-        .mGetDrawElementBytes { getIdxBytes },
-        .mGetDrawElementCount { getIdxCount },
-        .mBufName             { idxBufName },
-        .mDraws               { desktopWindow->mImGuiDrawDatas.data(), desktopWindow->mImGuiDrawDatas.size() },
-        .mTexFmt              { Render::TexFmt::kR16_uint },
-        .mBinding             { Render::Binding::IndexBuffer },
-      };
-
-      TAC_CALL( vtxCopyHelper.Copy( renderContext, errors ) );
-      TAC_CALL( idxCopyHelper.Copy( renderContext, errors ) );
-    }
-
-    const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( hDesktopWindow ) };
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    Span< UI2DDrawData* > drawDatas( desktopWindow->mImGuiDrawDatas.data(), desktopWindow->mImGuiDrawDatas.size() );
+    const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( sysDraws->mWindowHandle ) };
+    const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
     const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
     const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
-
-    const Element& element{ GetElement( fbFmt, errors ) };
-
-    const ShortFixedString renderGroupStr{ ShortFixedString::Concat(
-      __FUNCTION__ , "(" , Tac::ToString( hDesktopWindow.GetIndex() ) , ")" ) };
-
-    const v2i windowSize { AppWindowApi::GetSize( hDesktopWindow ) };
-
-    const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
-    const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };
-    const Render::Targets renderTargets
-    {
-      .mColors { swapChainColor },
-      .mDepth  { swapChainDepth },
-    };
-
-    UpdatePerFrame( renderContext, windowSize, errors );
-
-    renderContext->SetVertexBuffer( renderBuffers.mVB.mBuffer );
-    renderContext->SetIndexBuffer( renderBuffers.mIB.mBuffer );
-    renderContext->SetPipeline( element.mPipeline );
-    renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
-    renderContext->SetRenderTargets( renderTargets );
-    renderContext->SetViewport( windowSize );
-    renderContext->SetScissor( windowSize );
-    renderContext->DebugEventBegin( renderGroupStr );
-    renderContext->DebugMarker( "hello hello" );
-
-    for( UI2DDrawData* drawData : desktopWindow->mImGuiDrawDatas ) //  simDraws->mDrawData )
-    {
-      Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
-      debugGroupStack.AssertNodeHeights();
-
-
-      // making static to reduce std::vector allcoations
-      static Render::DebugGroup::Iterator debugGroupIterator;
-      debugGroupIterator.Reset( renderContext );
-        //debugGroupStack.IterateBegin( renderContext ) };
-
-      TAC_ASSERT( debugGroupStack.GetInfo() == Render::DebugGroup::NullNodeIndex );
-
-      for( const UI2DDrawCall& uidrawCall : drawData->mDrawCall2Ds )
-      {
-        debugGroupStack.IterateElement( debugGroupIterator, uidrawCall.mDebugGroupIndex );
-
-        const Render::TextureHandle texture{ uidrawCall.mTexture.IsValid()
-          ? uidrawCall.mTexture
-          : m1x1White };
-
-        element.mShaderImage->SetResource( texture );
-
-        UpdatePerObject( renderContext, uidrawCall, errors );
-        renderContext->CommitShaderVariables();
-
-        renderContext->Draw(
-          Render::DrawArgs 
-          {
-            .mIndexCount { uidrawCall.mIndexCount },
-            .mStartIndex { uidrawCall.mIIndexStart },
-          } );
-      }
-
-      debugGroupStack.IterateEnd( debugGroupIterator );
-
-    //for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
-    //  window->mDrawData->mDebugGroupStack.clear();
-    }
-
-
-    renderContext->DebugEventEnd();
-    TAC_CALL( renderContext->Execute( errors ) );
-  }
-
-  // -----------------------------------------------------------------------------------------------
-
-  //auto ImGuiDrawDatas::VertexCount() const -> int
-  //{
-  //  int n{};
-  //  for( const UI2DDrawData* drawData : *this )
-  //    n += drawData->mVtxs.size();
-  //  return n;
-  //}
-
-  //auto ImGuiDrawDatas::IndexCount() const -> int
-  //{
-  //  int n{};
-  //  for( const UI2DDrawData* drawData : *this )
-  //    n += drawData->mIdxs.size();
-  //  return n;
-  //}
-
-  // -----------------------------------------------------------------------------------------------
-
-  void ImGuiPersistantPlatformData::Init1x1White( Errors& errors )
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-
-    const u8 data[] { 255, 255, 255, 255 };
-    const Render::Image image
-    {
-      .mWidth  { 1 },
-      .mHeight { 1 },
-      .mFormat { Render::TexFmt::kRGBA8_unorm },
-    };
-    const Render::CreateTextureParams::Subresource subresource
-    {
-      .mBytes { data },
-      .mPitch { 4 },
-    };
-    const Render::CreateTextureParams createTextureParams
-    {
-      .mImage        { image },
-      .mMipCount     { 1 },
-      .mSubresources { &subresource },
-      .mBinding      { Render::Binding::ShaderResource },
-      .mOptionalName { "1x1white" },
-    };
-    TAC_CALL( m1x1White = renderDevice->CreateTexture( createTextureParams, errors ) );
-  }
-
-  auto ImGuiPersistantPlatformData::GetVertexDeclarations() const -> Render::VertexDeclarations
-  {
-    const Render::VertexDeclaration posData
-    {
-      .mAttribute         { Render::Attribute::Position },
-      .mFormat            { Render::VertexAttributeFormat::GetVector2() },
-      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
-    };
-
-    const Render::VertexDeclaration uvData
-    {
-      .mAttribute         { Render::Attribute::Texcoord },
-      .mFormat            { Render::VertexAttributeFormat::GetVector2() },
-      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
-    };
-
-    Render::VertexDeclarations decls;
-    decls.push_back( posData );
-    decls.push_back( uvData );
-    return decls;
-  }
-
-  void ImGuiPersistantPlatformData::InitProgram( Errors& errors )
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::ProgramParams programParams2DImage { .mInputs { "ImGui" }, };
-    TAC_CALL( mProgram = renderDevice->CreateProgram( programParams2DImage, errors ) );
-  }
-
-  void ImGuiPersistantPlatformData::InitPerFrame( Errors& errors )
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::CreateBufferParams perFrameParams
-    {
-      .mByteCount     { sizeof( PerFrameType ) },
-      .mUsage         { Render::Usage::Dynamic },
-      .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "ImGui_per_frame" },
-    };
-
-    TAC_CALL( mPerFrame = renderDevice->CreateBuffer( perFrameParams, errors ) );
-  }
-
-  void ImGuiPersistantPlatformData::InitPerObject( Errors& errors )
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::CreateBufferParams perObjectParams
-    {
-      .mByteCount     { sizeof( PerObjectType ) },
-      .mUsage         { Render::Usage::Dynamic },
-      .mBinding       { Render::Binding::ConstantBuffer },
-      .mOptionalName  { "ImGui_per_object" },
-    };
-    TAC_CALL( mPerObject = renderDevice->CreateBuffer( perObjectParams, errors ) );
-  }
-
-  void ImGuiPersistantPlatformData::InitSampler()
-  {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::CreateSamplerParams samplerParams
-    {
-      .mFilter { Render::Filter::Linear },
-      .mName   { "imgui linear sampler" },
-    };
-    mSampler = renderDevice->CreateSampler( samplerParams );
-  }
-
-  void ImGuiPersistantPlatformData::Init( Errors& errors )
-  {
-    InitSampler();
-    TAC_CALL( Init1x1White( errors ) );
-    TAC_CALL( InitProgram( errors ) );
-    TAC_CALL( InitPerFrame( errors ) );
-    TAC_CALL( InitPerObject( errors ) );
-  }
-
-  auto ImGuiPersistantPlatformData::GetBlendState() const -> Render::BlendState
-  {
-    // https://shawnhargreaves.com/blog/premultiplied-alpha.html
-    const Render::BlendState blendState
-    {
-      .mSrcRGB   { Render::BlendConstants::One },
-      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
-      .mBlendRGB { Render::BlendMode::Add },
-
-      // do these 3 even matter?
-      .mSrcA     { Render::BlendConstants::One },
-      .mDstA     { Render::BlendConstants::Zero },
-      .mBlendA   { Render::BlendMode::Add },
-    };
-    return blendState;
-  }
-
-  auto ImGuiPersistantPlatformData::GetDepthState() const -> Render::DepthState
-  {
-    const Render::DepthState depthState
-    {
-      .mDepthTest  {},
-      .mDepthWrite {},
-      .mDepthFunc  { Render::DepthFunc::Less },
-    };
-    return depthState;
-  }
-
-  auto ImGuiPersistantPlatformData::GetRasterizerState() const -> Render::RasterizerState
-  {
-    const Render::RasterizerState rasterizerState
-    {
-      .mFillMode              { Render::FillMode::Solid },
-      .mCullMode              { Render::CullMode::None },
-      .mFrontCounterClockwise { true },
-      .mMultisample           {},
-    };
-    return rasterizerState;
-  }
-
-  auto ImGuiPersistantPlatformData::GetElement( Render::TexFmt texFmt, Errors& errors ) -> ImGuiPersistantPlatformData::Element
-  {
-    for( Element& element : mElements )
-      if( element.mTexFmt == texFmt )
-        return element;
-
-    const Render::PipelineParams pipelineParams
-    {
-      .mProgram         { mProgram },
-      .mBlendState      { GetBlendState() },
-      .mDepthState      { GetDepthState() },
-      .mRasterizerState { GetRasterizerState() },
-      .mRTVColorFmts    { texFmt },
-      .mVtxDecls        { GetVertexDeclarations() },
-    };
-
-    mElements.resize( mElements.size() + 1 );
-    Element& element { mElements.back() };
-
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL_RET( const Render::PipelineHandle pipeline{
-      renderDevice->CreatePipeline( pipelineParams, errors ) } );
-
-    Render::IShaderVar* shaderImage{
-      renderDevice->GetShaderVariable( pipeline, "image" )};
-
-    Render::IShaderVar* shaderSampler{
-      renderDevice->GetShaderVariable( pipeline, "linearSampler" )};
-
-    Render::IShaderVar* shaderPerObject{
-      renderDevice->GetShaderVariable( pipeline, "perObject" )};
-
-    Render::IShaderVar* shaderPerFrame{
-      renderDevice->GetShaderVariable( pipeline, "perFrame" )};
-
-    shaderPerFrame->SetResource( mPerFrame );
-    shaderPerObject->SetResource( mPerObject );
-    shaderSampler->SetResource( mSampler );
-
-    element = Element
-    {
-      .mPipeline        { pipeline },
-      .mTexFmt          { texFmt },
-      .mShaderImage     { shaderImage },
-      .mShaderSampler   { shaderSampler },
-      .mShaderPerObject { shaderPerObject },
-      .mShaderPerFrame  { shaderPerFrame },
-    };
-    return element;
+    const v2i windowSize { AppWindowApi::GetSize( sysDraws->mWindowHandle ) };
+    TAC_CALL( sysDraws->mRenderBuffers.DebugDraw2DToTexture( drawDatas, swapChainColor, fbFmt, windowSize, errors ) );
   }
 
   void ImGuiPersistantPlatformData::UpdateAndRender( Errors& errors )
   {
     ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    
     for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
     {
       desktopWindow->mImGuiDrawDatas.clear();
@@ -1059,11 +620,8 @@ namespace Tac
     }
 
     for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
-    {
-        ImGuiPersistantViewport* viewportDraw{ GetPersistantWindowData( desktopWindow->mWindowHandle ) };
+      if(ImGuiPersistantViewport* viewportDraw{ GetPersistantWindowData( desktopWindow->mWindowHandle ) })
         UpdateAndRenderWindow( desktopWindow, viewportDraw, errors );
-    }
-
   }
 
   auto ImGuiPersistantPlatformData::GetPersistantWindowData( WindowHandle h ) -> ImGuiPersistantViewport*
@@ -1075,62 +633,6 @@ namespace Tac
     const ImGuiPersistantViewport persistantViewport { .mWindowHandle { h }, };
     mViewportDatas.push_back( persistantViewport );
     return &mViewportDatas.back();
-  }
-
-  void ImGuiPersistantPlatformData::UpdatePerFrame( Render::IContext* context,
-                                                    v2i windowSize,
-                                                    Errors& errors )
-  {
-
-    const m4 proj { OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
-    const PerFrameType perFrame
-    {
-      .mOrthoProj         { proj },
-      .mSDFOnEdge         { FontApi::GetSDFOnEdgeValue() },
-      .mSDFPixelDistScale { FontApi::GetSDFPixelDistScale() },
-    };
-
-
-    const Render::UpdateBufferParams updatePerFrame
-    {
-      .mSrcBytes     { &perFrame },
-      .mSrcByteCount { sizeof( PerFrameType ) },
-    };
-
-    TAC_CALL( context->UpdateBuffer( mPerFrame, &updatePerFrame, errors ) );
-
-  }
-
-  void ImGuiPersistantPlatformData::UpdatePerObject( Render::IContext* context,
-                                                    const UI2DDrawCall& uidrawCall,
-                                                    Errors& errors )
-  {
-
-    const u32 drawType{
-      [ & ]()
-      {
-        if( uidrawCall.mType == UI2DDrawCall::Type::kImage )
-          return ( u32 )0;
-        if( uidrawCall.mType == UI2DDrawCall::Type::kText )
-          return ( u32 )1;
-        TAC_ASSERT_INVALID_CODE_PATH;
-        return ( u32 )0;
-      }( )
-    };
-
-    const PerObjectType perObject
-    {
-      .mColor { uidrawCall.mColor },
-      .mType  { drawType },
-    };
-
-    const Render::UpdateBufferParams updatePerObj
-    {
-      .mSrcBytes     { &perObject },
-      .mSrcByteCount { sizeof( PerObjectType ) },
-    };
-
-    TAC_CALL( context->UpdateBuffer( mPerObject, &updatePerObj, errors ) );
   }
 
   // -----------------------------------------------------------------------------------------------

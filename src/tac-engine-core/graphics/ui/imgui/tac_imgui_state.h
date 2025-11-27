@@ -139,78 +139,26 @@ namespace Tac
     GameTime                     mRequestTime                 {};
   };
 
-  struct ImGuiRenderBuffer
-  {
-    Render::BufferHandle mBuffer    {};
-    int                  mByteCount {};
-  };
-
-  struct ImGuiRenderBuffers
-  {
-    ImGuiRenderBuffer mVB;
-    ImGuiRenderBuffer mIB;
-  };
-
   struct ImGuiPersistantViewport
   {
     WindowHandle                 mWindowHandle  {};
-    int                          mFrameIndex    {};
-    Vector< ImGuiRenderBuffers > mRenderBuffers {};
-  };
-
-  struct ImGuiDrawDatas : public Vector< UI2DDrawData* >
-  {
-    //auto VertexCount() const -> int;
-    //auto IndexCount() const -> int;
+    UI2DRenderData               mRenderBuffers {};
   };
 
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
   {
-    ImGuiDrawDatas mImGuiDrawDatas;
+    Vector< UI2DDrawData* > mImGuiDrawDatas;
   };
 
-
-  // TODO: Delete this (ImGuiPersistantPlatformData) and instantiate UI2DRenderData instead
   struct ImGuiPersistantPlatformData
   {
-    // todo: hard code this to always expect rgba16f with d24s8
-    struct Element
-    {
-      Render::PipelineHandle mPipeline        {};
-      Render::TexFmt         mTexFmt          {};
-      Render::IShaderVar*    mShaderImage     {};
-      Render::IShaderVar*    mShaderSampler   {};
-      Render::IShaderVar*    mShaderPerObject {};
-      Render::IShaderVar*    mShaderPerFrame  {};
-    };
-
-    void Init( Errors& );
     void UpdateAndRender( Errors& );
     void UpdateAndRenderWindow( ImGuiDesktopWindowImpl*, ImGuiPersistantViewport*, Errors& );
     auto GetPersistantWindowData( WindowHandle ) -> ImGuiPersistantViewport*;
-    void UpdatePerFrame( Render::IContext*, v2i, Errors& );
-    void UpdatePerObject( Render::IContext*, const UI2DDrawCall&, Errors& );
-    auto GetElement( Render::TexFmt, Errors& ) -> Element;
-    auto GetBlendState() const -> Render::BlendState;
-    auto GetDepthState() const -> Render::DepthState;
-    auto GetRasterizerState() const -> Render::RasterizerState;
-    void Init1x1White( Errors& );
-    void InitProgram( Errors& );
-    void InitPerFrame( Errors& );
-    void InitPerObject( Errors& );
-    void InitSampler();
-    auto GetVertexDeclarations() const -> Render::VertexDeclarations;
 
     static ImGuiPersistantPlatformData Instance;
-    Render::SamplerHandle             mSampler;
-    Render::TextureHandle             m1x1White;
     Vector< ImGuiPersistantViewport > mViewportDatas;
-    Vector< Element >                 mElements;
-    Render::ProgramHandle             mProgram;
-    Render::BufferHandle              mPerObject;
-    Render::BufferHandle              mPerFrame;
   };
-
 
   void SetActiveID( ImGuiID, ImGuiWindow* );
   void SetHoveredID( ImGuiID );
@@ -224,7 +172,7 @@ namespace Tac
 
     static ImGuiGlobals               Instance;
     ImGuiMouseCursor                  mMouseCursor          { ImGuiMouseCursor::kNone };
-    GameTime                         mElapsedSeconds       {};
+    GameTime                          mElapsedSeconds       {};
     Vector< ImGuiWindow* >            mAllWindows           {};
     Vector< ImGuiWindow* >            mWindowStack          {};
     Vector< ImGuiDesktopWindowImpl* > mDesktopWindows       {};

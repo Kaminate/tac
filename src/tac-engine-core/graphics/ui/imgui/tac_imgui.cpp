@@ -1149,7 +1149,6 @@ void Tac::ImGuiInit( const ImGuiInitParams& params, Errors& errors )
   globals.mSettingsNode = params.mSettingsNode;
   TAC_ASSERT( globals.mMaxGpuFrameCount );
   TAC_ASSERT( globals.mSettingsNode.IsValid() );
-  ImGuiPersistantPlatformData::Instance.Init( errors );
 }
 
 void Tac::ImGuiSaveWindowSettings( WindowHandle windowHandle )
