@@ -75,6 +75,12 @@ namespace Tac
       int w = 400;
       int h = 300;
 
+      SettingsNode windowJson{ GetWindowSettingsJson( name ) };
+      x = ( int )windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x ).mNumber;
+      y = ( int )windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y ).mNumber;
+      w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
+      h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
+
       if( sNextWindow.mPositionValid )
       {
         x = (int)sNextWindow.mPosition.x;
@@ -87,11 +93,6 @@ namespace Tac
         h = (int)sNextWindow.mSize.y;
       }
 
-      SettingsNode windowJson{ GetWindowSettingsJson( name ) };
-      x = ( int )windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x ).mNumber;
-      y = ( int )windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y ).mNumber;
-      w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
-      h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
       static Errors errors;
       WindowHandle windowHandle{
       AppWindowApi::CreateWindow(
