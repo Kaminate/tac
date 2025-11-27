@@ -8,6 +8,7 @@
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_handle.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/os/tac_os.h"
 
@@ -18,6 +19,7 @@ namespace Tac
   const char*               sGameName{ "Game" };
   static UI2DDrawData       sUI2DDrawData{};
   static UI2DRenderData     sUI2DRenderData{};
+  static bool               sIsFullscreen{};
 
   struct GameApp : public App
   {
@@ -65,13 +67,64 @@ namespace Tac
         float width_px = monitor.mDpi * width_inches * uiScale;
         float height_inches = 1;
         float height_px = monitor.mDpi * height_inches * uiScale;
+
+        WindowHandle windowHandle{ AppWindowMgr::GetWindowHandle() };
+        v2i windowPos{ AppWindowApi::GetPos( windowHandle ) };
+        v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+        sIsFullscreen = windowPos == monitor.mPos && windowSize == monitor.mSize;
+        sUI2DDrawData.clear();
+
+        ImGuiRect contentRect{ ImGuiRect::FromPosSize( {}, windowSize ) };
+        if( !sIsFullscreen )
+        {
+          // draw grab bars
+          float grabBarThinnessPx = .2f * monitor.mDpi * uiScale;
+
+          sUI2DDrawData.AddBox(
+            UI2DDrawData::Box
+            {
+              .mMini  { 50, 50 },
+              .mMaxi  { 50.f + width_px, 50.f + height_px },
+              .mColor { 1, 1, 1, 1 },
+            } );
+
+        }
+
+        //v2 cursorPos{ ImGuiGetCursorPos() };
+        v2 cursorPos{ AppKeyboardApi::GetMousePosScreenspace() - windowPos };
+        String cursorPosStr{ String() + "(" +
+          ToString( cursorPos.x ) + ", " + 
+          ToString( cursorPos.y ) + ")" };
+
+        if( sIsFullscreen )
+        {
+          //sUI2DDrawData.AddText( UI2DDrawData::Text
+          //                       {
+          //                          .mPos      {},
+          //                          .mFontSize {},
+          //                          .mUtf8     {},
+          //                       } );
+        }
+        else
+        {
+        }
+
         sUI2DDrawData.AddBox(
           UI2DDrawData::Box
           {
-            .mMini          { 50, 50 },
-            .mMaxi          { 50.f + width_px, 50.f + height_px },
-            .mColor         { 1, 1, 1, 1 },
+            .mMini  { 50, 50 },
+            .mMaxi  { 50.f + width_px, 50.f + height_px },
+            .mColor { 1, 1, 1, 1 },
           } );
+        sUI2DDrawData.AddText( UI2DDrawData::Text
+                               {
+                                  .mPos      { 100, 100 },
+                                  .mFontSize { 40 },
+                                  .mUtf8     { cursorPosStr },
+                                  .mColor    { 1, 0, 0, 1 },
+                               } );
+
+
       }
     }
     void Render( RenderParams renderParams, Errors& errors ) override

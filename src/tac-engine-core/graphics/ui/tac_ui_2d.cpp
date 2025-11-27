@@ -19,25 +19,6 @@
 
 namespace Tac
 {
-
-    struct Element
-    {
-      Render::PipelineHandle mPipeline        {};
-      Render::TexFmt         mTexFmt          {};
-      Render::IShaderVar*    mShaderImage     {};
-      Render::IShaderVar*    mShaderSampler   {};
-      Render::IShaderVar*    mShaderPerObject {};
-      Render::IShaderVar*    mShaderPerFrame  {};
-    };
-    static Render::SamplerHandle             mSampler;
-    static Vector< Element >                 mElements;
-    static Render::ProgramHandle             mProgram;
-    static Render::BufferHandle              mPerObject;
-    static Render::BufferHandle              mPerFrame;
-    static Render::TextureHandle         m1x1White;
-    static Render::ProgramHandle         mShader;
-    static Render::ProgramHandle         m2DTextShader;
-
   struct PerFrameType
   {
     m4    mOrthoProj         {};
@@ -50,9 +31,6 @@ namespace Tac
     v4  mColor{};
     u32 mType{};
   };
-
-
-
 
   struct UI2DCopyHelper
   {
@@ -119,6 +97,151 @@ namespace Tac
     Render::TexFmt        mTexFmt  { Render::TexFmt::kUnknown };
     Render::Binding       mBinding { Render::Binding::None };
   };
+
+  struct Element
+  {
+    Render::PipelineHandle mPipeline{};
+    Render::TexFmt         mTexFmt{};
+    Render::IShaderVar*    mShaderImage{};
+    Render::IShaderVar*    mShaderSampler{};
+    Render::IShaderVar*    mShaderPerObject{};
+    Render::IShaderVar*    mShaderPerFrame{};
+  };
+
+  static Render::SamplerHandle             mSampler;
+  static Vector< Element >                 mElements;
+  static Render::ProgramHandle             mProgram;
+  static Render::BufferHandle              mPerObject;
+  static Render::BufferHandle              mPerFrame;
+  static Render::TextureHandle             m1x1White;
+  static Render::ProgramHandle             mShader;
+  static Render::ProgramHandle             m2DTextShader;
+  static const Render::BlendState          sPremultipliedAlphaBlendState
+  {
+    .mSrcRGB   { Render::BlendConstants::One },
+    .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+    .mBlendRGB { Render::BlendMode::Add },
+
+    // do these 3 even matter?
+    .mSrcA     { Render::BlendConstants::One },
+    .mDstA     { Render::BlendConstants::Zero },
+    .mBlendA   { Render::BlendMode::Add },
+  };
+  static const Render::DepthState          sDepthState
+  {
+    .mDepthTest  {},
+    .mDepthWrite {},
+    .mDepthFunc  { Render::DepthFunc::Less },
+  };
+  static const Render::RasterizerState     sRasterizerState
+  {
+    .mFillMode              { Render::FillMode::Solid },
+    .mCullMode              { Render::CullMode::None },
+    .mFrontCounterClockwise { true },
+    .mMultisample           {},
+  };
+  static const Render::VertexDeclaration   sPosDecl
+  {
+    .mAttribute         { Render::Attribute::Position },
+    .mFormat            { Render::VertexAttributeFormat::GetVector2() },
+    .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
+  };
+  static const Render::VertexDeclaration   sUVDecl
+  {
+    .mAttribute         { Render::Attribute::Texcoord },
+    .mFormat            { Render::VertexAttributeFormat::GetVector2() },
+    .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
+  };
+
+  static auto GetElement( Render::TexFmt texFmt, Errors& errors ) -> Element
+  {
+    for( Element& element : mElements )
+      if( element.mTexFmt == texFmt )
+        return element;
+
+    Render::VertexDeclarations vtxDecls;
+    vtxDecls.push_back( sPosDecl );
+    vtxDecls.push_back( sUVDecl );
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL_RET( const Render::PipelineHandle pipeline{ renderDevice->CreatePipeline(
+      Render::PipelineParams
+      {
+        .mProgram         { mProgram },
+        .mBlendState      { sPremultipliedAlphaBlendState },
+        .mDepthState      { sDepthState },
+        .mRasterizerState { sRasterizerState },
+        .mRTVColorFmts    { texFmt },
+        .mVtxDecls        { vtxDecls },
+      }, errors ) } );
+    Render::IShaderVar* shaderImage{ renderDevice->GetShaderVariable( pipeline, "image" ) };
+    Render::IShaderVar* shaderSampler{ renderDevice->GetShaderVariable( pipeline, "linearSampler" ) };
+    Render::IShaderVar* shaderPerObject{ renderDevice->GetShaderVariable( pipeline, "perObject" ) };
+    Render::IShaderVar* shaderPerFrame{ renderDevice->GetShaderVariable( pipeline, "perFrame" ) };
+    shaderPerFrame->SetResource( mPerFrame );
+    shaderPerObject->SetResource( mPerObject );
+    shaderSampler->SetResource( mSampler );
+    mElements.push_back(
+      Element
+      {
+        .mPipeline        { pipeline },
+        .mTexFmt          { texFmt },
+        .mShaderImage     { shaderImage },
+        .mShaderSampler   { shaderSampler },
+        .mShaderPerObject { shaderPerObject },
+        .mShaderPerFrame  { shaderPerFrame },
+      } );
+    return mElements.back();
+  }
+
+  static void UpdatePerFrame( Render::IContext* context, v2i windowSize, Errors& errors )
+  {
+    const m4 proj{ OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
+    const PerFrameType perFrame
+    {
+      .mOrthoProj         { proj },
+      .mSDFOnEdge         { FontApi::GetSDFOnEdgeValue() },
+      .mSDFPixelDistScale { FontApi::GetSDFPixelDistScale() },
+    };
+    const Render::UpdateBufferParams updatePerFrame
+    {
+      .mSrcBytes     { &perFrame },
+      .mSrcByteCount { sizeof( PerFrameType ) },
+    };
+    TAC_CALL( context->UpdateBuffer( mPerFrame, &updatePerFrame, errors ) );
+  }
+
+  static void UpdatePerObject( Render::IContext* context,
+                               const UI2DDrawCall& uidrawCall,
+                               Errors& errors )
+  {
+
+    const u32 drawType{
+      [ & ]()
+      {
+        if( uidrawCall.mType == UI2DDrawCall::Type::kImage )
+          return ( u32 )0;
+        if( uidrawCall.mType == UI2DDrawCall::Type::kText )
+          return ( u32 )1;
+        TAC_ASSERT_INVALID_CODE_PATH;
+        return ( u32 )0;
+      }( )
+    };
+
+    const PerObjectType perObject
+    {
+      .mColor { uidrawCall.mColor },
+      .mType  { drawType },
+    };
+
+    const Render::UpdateBufferParams updatePerObj
+    {
+      .mSrcBytes     { &perObject },
+      .mSrcByteCount { sizeof( PerObjectType ) },
+    };
+
+    TAC_CALL( context->UpdateBuffer( mPerObject, &updatePerObj, errors ) );
+  }
 
 #if TAC_IS_DEBUG_MODE()
 
@@ -375,26 +498,21 @@ namespace Tac
     *pVtx++ = { .mPosition  { clippedMini.x, clippedMaxi.y }, .mGLTexCoord  { 0, 0 } };
     *pVtx++ = { .mPosition  { clippedMaxi.x, clippedMaxi.y }, .mGLTexCoord  { 1, 0 } };
     *pVtx++ = { .mPosition  { clippedMaxi.x, clippedMini.y }, .mGLTexCoord  { 1, 1 } };
-
     const v4 color { Render::PremultipliedAlpha::From_sRGB_linearAlpha( box.mColor ).mColor };
-
     TAC_ASSERT( oldVtxCount + vtxCount == mVtxs.size() );
     TAC_ASSERT( oldIdxCount + idxCount == mIdxs.size() );
-
-    const UI2DDrawCall drawCall
-    {
-      .mIVertexStart  { oldVtxCount },
-      .mVertexCount   { vtxCount },
-      .mIIndexStart   { oldIdxCount },
-      .mIndexCount    { idxCount },
-      .mType          { UI2DDrawCall::Type::kImage },
-      .mTexture       { box.mTextureHandle },
-      .mColor         { color },
-    };
-
-    AddDrawCall( drawCall, TAC_STACK_FRAME );
+    AddDrawCall(
+      UI2DDrawCall
+      {
+        .mIVertexStart  { oldVtxCount },
+        .mVertexCount   { vtxCount },
+        .mIIndexStart   { oldIdxCount },
+        .mIndexCount    { idxCount },
+        .mType          { UI2DDrawCall::Type::kImage },
+        .mTexture       { box.mTextureHandle },
+        .mColor         { color },
+      }, TAC_STACK_FRAME );
   }
-
 
   void UI2DDrawData::AddLine( const Line& line)
   {
@@ -442,7 +560,6 @@ namespace Tac
 
     AddDrawCall( drawCall, TAC_STACK_FRAME );
   }
-
 
   void UI2DDrawData::AddText( const Text& text, const ImGuiRect* clipRect )
   {
@@ -636,169 +753,6 @@ namespace Tac
 #endif
   }
 
-
-
-
-
-
-    static const Render::BlendState sPremultipliedAlphaBlendState
-    {
-      .mSrcRGB   { Render::BlendConstants::One },
-      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
-      .mBlendRGB { Render::BlendMode::Add },
-
-      // do these 3 even matter?
-      .mSrcA     { Render::BlendConstants::One },
-      .mDstA     { Render::BlendConstants::Zero },
-      .mBlendA   { Render::BlendMode::Add },
-    };
-
-    static const Render::DepthState sDepthState
-    {
-      .mDepthTest  {},
-      .mDepthWrite {},
-      .mDepthFunc  { Render::DepthFunc::Less },
-    };
-
-    static const Render::RasterizerState sRasterizerState
-    {
-      .mFillMode              { Render::FillMode::Solid },
-      .mCullMode              { Render::CullMode::None },
-      .mFrontCounterClockwise { true },
-      .mMultisample           {},
-    };
-
-
-  static struct VtxDecls : public Render::VertexDeclarations
-  {
-    VtxDecls()
-    {
-      const Render::VertexDeclaration posData
-      {
-        .mAttribute         { Render::Attribute::Position },
-        .mFormat            { Render::VertexAttributeFormat::GetVector2() },
-        .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
-      };
-
-      const Render::VertexDeclaration uvData
-      {
-        .mAttribute         { Render::Attribute::Texcoord },
-        .mFormat            { Render::VertexAttributeFormat::GetVector2() },
-        .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
-      };
-
-      push_back( posData );
-      push_back( uvData );
-    }
-
-  } sVtxDecls;
-
-  static auto GetElement( Render::TexFmt texFmt, Errors& errors ) -> Element
-  {
-    for( Element& element : mElements )
-      if( element.mTexFmt == texFmt )
-        return element;
-
-    const Render::PipelineParams pipelineParams
-    {
-      .mProgram         { mProgram },
-      .mBlendState      { sPremultipliedAlphaBlendState },
-      .mDepthState      { sDepthState },
-      .mRasterizerState { sRasterizerState },
-      .mRTVColorFmts    { texFmt },
-      .mVtxDecls        { sVtxDecls },
-    };
-
-    mElements.resize( mElements.size() + 1 );
-    Element& element { mElements.back() };
-
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    TAC_CALL_RET( const Render::PipelineHandle pipeline{
-      renderDevice->CreatePipeline( pipelineParams, errors ) } );
-
-    Render::IShaderVar* shaderImage{
-      renderDevice->GetShaderVariable( pipeline, "image" )};
-
-    Render::IShaderVar* shaderSampler{
-      renderDevice->GetShaderVariable( pipeline, "linearSampler" )};
-
-    Render::IShaderVar* shaderPerObject{
-      renderDevice->GetShaderVariable( pipeline, "perObject" )};
-
-    Render::IShaderVar* shaderPerFrame{
-      renderDevice->GetShaderVariable( pipeline, "perFrame" )};
-
-    shaderPerFrame->SetResource( mPerFrame );
-    shaderPerObject->SetResource( mPerObject );
-    shaderSampler->SetResource( mSampler );
-
-    element = Element
-    {
-      .mPipeline        { pipeline },
-      .mTexFmt          { texFmt },
-      .mShaderImage     { shaderImage },
-      .mShaderSampler   { shaderSampler },
-      .mShaderPerObject { shaderPerObject },
-      .mShaderPerFrame  { shaderPerFrame },
-    };
-    return element;
-  }
-  static void UpdatePerFrame( Render::IContext* context,
-                                                    v2i windowSize,
-                                                    Errors& errors )
-  {
-
-    const m4 proj { OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
-    const PerFrameType perFrame
-    {
-      .mOrthoProj         { proj },
-      .mSDFOnEdge         { FontApi::GetSDFOnEdgeValue() },
-      .mSDFPixelDistScale { FontApi::GetSDFPixelDistScale() },
-    };
-
-
-    const Render::UpdateBufferParams updatePerFrame
-    {
-      .mSrcBytes     { &perFrame },
-      .mSrcByteCount { sizeof( PerFrameType ) },
-    };
-
-    TAC_CALL( context->UpdateBuffer( mPerFrame, &updatePerFrame, errors ) );
-
-  }
-
-  static void  UpdatePerObject( Render::IContext* context,
-                                                    const UI2DDrawCall& uidrawCall,
-                                                    Errors& errors )
-  {
-
-    const u32 drawType{
-      [ & ]()
-      {
-        if( uidrawCall.mType == UI2DDrawCall::Type::kImage )
-          return ( u32 )0;
-        if( uidrawCall.mType == UI2DDrawCall::Type::kText )
-          return ( u32 )1;
-        TAC_ASSERT_INVALID_CODE_PATH;
-        return ( u32 )0;
-      }( )
-    };
-
-    const PerObjectType perObject
-    {
-      .mColor { uidrawCall.mColor },
-      .mType  { drawType },
-    };
-
-    const Render::UpdateBufferParams updatePerObj
-    {
-      .mSrcBytes     { &perObject },
-      .mSrcByteCount { sizeof( PerObjectType ) },
-    };
-
-    TAC_CALL( context->UpdateBuffer( mPerObject, &updatePerObj, errors ) );
-  }
-
   void UI2DRenderData::DebugDraw2DToTexture( const Span< UI2DDrawData* > drawDatas,
                                              const Render::TextureHandle texture,
                                              const Render::TexFmt texFmt,
@@ -879,23 +833,10 @@ namespace Tac
       TAC_CALL( idxCopyHelper.Copy( renderContext, errors ) );
     }
 
-    //const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( hDesktopWindow ) };
-    //const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
-    //const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
-
     const Element& element{ GetElement( texFmt, errors ) };
-
     const ShortFixedString renderGroupStr{ "UI2D" };
 
-    //const v2i windowSize { AppWindowApi::GetSize( hDesktopWindow ) };
-
-    //const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
-    //const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };
-    const Render::Targets renderTargets
-    {
-      .mColors { texture },
-      //.mDepth  { swapChainDepth },
-    };
+    const Render::Targets renderTargets { .mColors { texture }, };
 
     UpdatePerFrame( renderContext, textureSize, errors );
 
@@ -914,7 +855,6 @@ namespace Tac
       Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
       debugGroupStack.AssertNodeHeights();
 
-
       static Render::DebugGroup::Iterator debugGroupIterator;
       debugGroupIterator.Reset( renderContext );
 
@@ -923,7 +863,6 @@ namespace Tac
       for( const UI2DDrawCall& uidrawCall : drawData->mDrawCall2Ds )
       {
         debugGroupStack.IterateElement( debugGroupIterator, uidrawCall.mDebugGroupIndex );
-
         const Render::TextureHandle textureResource{ uidrawCall.mTexture.IsValid()
           ? uidrawCall.mTexture
           : m1x1White };
@@ -953,9 +892,7 @@ namespace Tac
 
 } // namespace Tac
 
-auto Tac::Get1x1White() -> Render::TextureHandle { return m1x1White; }
-
-  // Converts from UI space to NDC space
+// Converts from UI space to NDC space
 auto Tac::OrthographicUIMatrix( const float w, const float h ) -> m4
 {
   // Derivation:
@@ -1248,6 +1185,7 @@ void Tac::UI2DCommonDataInit( Errors& errors )
 #endif
 
 }
+
 void Tac::UI2DCommonDataUninit()              
 {
 #if TAC_TEMPORARILY_DISABLED()

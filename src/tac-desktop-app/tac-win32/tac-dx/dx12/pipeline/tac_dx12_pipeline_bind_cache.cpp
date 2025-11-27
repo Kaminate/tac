@@ -9,9 +9,9 @@ namespace Tac::Render
   using CmdList = ID3D12GraphicsCommandList;
   using CmdListFn = void ( CmdList::* )( UINT, D3D12_GPU_VIRTUAL_ADDRESS );
 
-  static CmdListFn GetCmdListFn( D3D12ProgramBindType programBindType,
+  static auto GetCmdListFn( D3D12ProgramBindType programBindType,
                                  D3D12_RESOURCE_STATES state,
-                                 CommitParams commitParams )
+                                 CommitParams commitParams ) -> CmdListFn
   {
     const bool isCompute{ commitParams.mIsCompute };
     if( programBindType.IsConstantBuffer() )
@@ -44,7 +44,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  void           RootParameterBinding::SetFence( FenceSignal fenceSignal )
+  void RootParameterBinding::SetFence( FenceSignal fenceSignal )
   {
     // | commented out because now its part of dx12descriptorcache
     // |
@@ -66,7 +66,7 @@ namespace Tac::Render
     }
   }
 
-  void           RootParameterBinding::CommitAsDescriptorTable( CommitParams commitParams)
+  void RootParameterBinding::CommitAsDescriptorTable( CommitParams commitParams)
   {
     switch( mType )
     {
@@ -83,7 +83,7 @@ namespace Tac::Render
     }
   }
 
-  void           RootParameterBinding::CommitAsResource( CommitParams commitParams)
+  void RootParameterBinding::CommitAsResource( CommitParams commitParams)
   {
     const D3D12ProgramBindType programBindType{ mProgramBindDesc.mType };
     TAC_ASSERT_MSG( !programBindType.IsTexture(),
@@ -104,7 +104,7 @@ namespace Tac::Render
     ( commandList->*cmdListFn )( mRootParameterIndex, gpuVirtualAddress );
   }
 
-  void           RootParameterBinding::Commit( CommitParams commitParams )
+  void RootParameterBinding::Commit( CommitParams commitParams )
   {
     if( mProgramBindDesc.BindsAsDescriptorTable() )
       CommitAsDescriptorTable( commitParams );

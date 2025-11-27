@@ -25,13 +25,11 @@ namespace Tac::Render
       kBindlessArray,
       kResourceHandle,
     };
-    //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const;
-    void                   SetFence( FenceSignal );
-
-    void                   Commit( CommitParams );
+    void SetFence( FenceSignal );
+    void Commit( CommitParams );
   private:
-    void                   CommitAsDescriptorTable( CommitParams );
-    void                   CommitAsResource( CommitParams );
+    void CommitAsDescriptorTable( CommitParams );
+    void CommitAsResource( CommitParams );
   public:
 
 

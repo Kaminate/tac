@@ -400,9 +400,6 @@ namespace Tac
       
     if( globals.mActiveID.IsValid() || globals.mHoveredID.IsValid() )
       return;
-
-    //if( !mWindowHandleOwned )
-    //  return;
     
     if( mDesktopWindow->mWindowHandle != globals.mMouseHoveredWindow )
       return;

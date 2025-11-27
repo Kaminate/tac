@@ -363,15 +363,15 @@ namespace Tac::Render
 
   struct UpdateBufferParams
   {
-    const void*  mSrcBytes;
-    int          mSrcByteCount;
-    int          mDstByteOffset;
+    const void*  mSrcBytes      {};
+    int          mSrcByteCount  {};
+    int          mDstByteOffset {};
   };
 
   struct Targets
   {
-    TextureHandle mColors[ 8 ];
-    TextureHandle mDepth;
+    TextureHandle mColors[ 8 ] {};
+    TextureHandle mDepth       {};
   };
 
   struct DrawArgs

@@ -36,10 +36,6 @@ namespace Tac
     Render::DebugGroup::NodeIndex   mDebugGroupIndex { Render::DebugGroup::NullNodeIndex };
   };
 
-
-
-
-  // why does this class exist
   struct UI2DDrawData
   {
     struct Text
@@ -69,11 +65,6 @@ namespace Tac
     UI2DDrawData() = default;
     ~UI2DDrawData() = default;
 
-    //static void DrawToTexture2( Render::IContext*,
-    //                            Render::TextureHandle,
-    //                            UI2DDrawGpuInterface*,
-    //                            Span< UI2DDrawData >,
-    //                            Errors& );
     void AddText( const Text&, const ImGuiRect* = nullptr );
     void AddBox( const Box&, const ImGuiRect* = nullptr );
     void AddLine( const Line& );
@@ -101,11 +92,8 @@ namespace Tac
     Vector< Render::BufferHandle > mIBs;
     Vector< int >                  mVBByteCounts;
     Vector< int >                  mIBByteCounts;
-    //int                            mFrameIndex;
   };
 
-
-  auto Get1x1White() -> Render::TextureHandle;
   auto CalculateTextSize( const StringView&, float fontSize ) -> v2;
   auto CalculateTextSize( const CodepointView&, float fontSize ) -> v2;
   auto CalculateTextSize( const Codepoint*, int, float fontSize ) -> v2;
