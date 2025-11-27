@@ -54,16 +54,6 @@ namespace Tac::Render
     SwapWith( move( other ) );
   }
 
-  void DX12DescriptorRegion::SwapWith( DX12DescriptorRegion&& other )
-  {
-    TAC_ASSERT( !DX12Descriptor::IsValid() );
-    TAC_ASSERT( !mRegionManager );
-    TAC_ASSERT( mRegionIndex == DX12DescriptorAllocator::RegionIndex::kNull );
-    Swap( ( DX12Descriptor& )( *this ), ( DX12Descriptor& )other );
-    Swap( mRegionIndex, other.mRegionIndex );
-    Swap( mRegionManager, other.mRegionManager );
-  }
-
   DX12DescriptorRegion::~DX12DescriptorRegion()
   {
     if( !mRegionManager )
@@ -84,6 +74,16 @@ namespace Tac::Render
 
       mRegionManager->Free( regionDesc );
     }
+  }
+
+  void DX12DescriptorRegion::SwapWith( DX12DescriptorRegion&& other )
+  {
+    TAC_ASSERT( !DX12Descriptor::IsValid() );
+    TAC_ASSERT( !mRegionManager );
+    TAC_ASSERT( mRegionIndex == DX12DescriptorAllocator::RegionIndex::kNull );
+    Swap( ( DX12Descriptor& )( *this ), ( DX12Descriptor& )other );
+    Swap( mRegionIndex, other.mRegionIndex );
+    Swap( mRegionManager, other.mRegionManager );
   }
 
   //DX12DescriptorAllocator::RegionIndex DX12DescriptorRegion::GetRegionIndex() const
@@ -202,12 +202,12 @@ namespace Tac::Render
     mFreeNodes.push_back( ( RegionIndex )0 );
   }
 
-  DX12DescriptorAllocator::RegionIndex DX12DescriptorAllocator::GetIndex( RegionDesc* region ) const
+  auto DX12DescriptorAllocator::GetIndex( RegionDesc* region ) const -> RegionIndex
   {
     return RegionIndex( region - mRegions.data() );
   }
 
-  void           DX12DescriptorAllocator::DebugTitleBegin( StringView title )
+  void DX12DescriptorAllocator::DebugTitleBegin( StringView title )
   {
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
@@ -222,7 +222,7 @@ namespace Tac::Render
 #endif
   }
 
-  void           DX12DescriptorAllocator::DebugTitleEnd( StringView title )
+  void DX12DescriptorAllocator::DebugTitleEnd( StringView title )
   {
 #if TAC_GPU_REGION_DEBUG()
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
@@ -237,8 +237,23 @@ namespace Tac::Render
 #endif
   }
 
-  DX12DescriptorRegion DX12DescriptorAllocator::Alloc( const int descriptorCount )
+  auto DX12DescriptorAllocator::Alloc( const int descriptorCount ) -> DX12DescriptorRegion
   {
+#if !TAC_DELETE_ME()
+
+    // -------------------------------------
+    // -----------  FIX ME         ---------
+    // -------------------------------------
+
+    // There seems to be a memory leak of some sort, where over time, 
+    // mRegions and mPendingFreeNodes grows until we run out of descriptors to allocate
+    // then the program asserts.
+
+    // -------------------------------------
+    // -------------   FIX ME --------------
+    // -------------------------------------
+
+#endif
     if( ++mPump % 8 == 0 ) { PumpFreeQueue(); }
 
 #if TAC_GPU_REGION_DEBUG()
@@ -247,7 +262,6 @@ namespace Tac::Render
                      + ( descriptorCount == 1 ? " byte" : " bytes" ) };
     DebugTitleBegin( dbgTitle );
 #endif
-
 
     RegionIndex iAlloc{ -1 };
     RegionDesc* allocRegion{};
@@ -333,7 +347,7 @@ namespace Tac::Render
     return DX12DescriptorRegion( descriptor, this, iAlloc );
   }
 
-  String DX12DescriptorAllocator::DebugPendingFreeListString()
+  auto DX12DescriptorAllocator::DebugPendingFreeListString() -> String
   {
     const FenceSignal lastCompleted{ mCommandQueue->GetLastCompletedFenceValue() };
     const int nPendingFree{ mPendingFreeNodes.size() };
@@ -363,7 +377,7 @@ namespace Tac::Render
     return str;
   }
 
-  String DX12DescriptorAllocator::DebugFreeListString()
+  auto DX12DescriptorAllocator::DebugFreeListString() -> String
   {
     String str;
     str += "( free list: ";
@@ -442,8 +456,6 @@ namespace Tac::Render
       DebugTitleBegin( "PumpFreeQueue" );
 #endif
 
-    
-
     int iiRegion{};
     int n{ mPendingFreeNodes.size() };
     while( iiRegion < n )
@@ -477,7 +489,7 @@ namespace Tac::Render
 #endif
   }
 
-  DX12DescriptorAllocator::RegionDesc* DX12DescriptorAllocator::GetRegionAtIndex( RegionIndex index )
+  auto DX12DescriptorAllocator::GetRegionAtIndex( RegionIndex index ) -> RegionDesc*
   {
     return index == RegionIndex::kNull ? nullptr : &mRegions[ ( int )index ];
   }

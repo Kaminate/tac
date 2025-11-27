@@ -89,3 +89,25 @@ void Tac::HrCallAux( const HRESULT hr, const char* fnName, Errors& errors )
                    fnName + " failed with return value " + ToString( ( unsigned long long ) hr ) );
 }
 
+
+BOOL Tac::_IsWindowsVersionOrGreater( WORD major, WORD minor, WORD )
+{
+  typedef LONG( WINAPI* PFN_RtlVerifyVersionInfo )( OSVERSIONINFOEXW*, ULONG, ULONGLONG );
+  static PFN_RtlVerifyVersionInfo RtlVerifyVersionInfoFn = nullptr;
+  if( !RtlVerifyVersionInfoFn )
+    if( HMODULE ntdllModule = ::GetModuleHandleA( "ntdll.dll" ) )
+      RtlVerifyVersionInfoFn = ( PFN_RtlVerifyVersionInfo )GetProcAddress( ntdllModule, "RtlVerifyVersionInfo" );
+  if( !RtlVerifyVersionInfoFn )
+    return FALSE;
+
+  ULONGLONG conditionMask{};
+  RTL_OSVERSIONINFOEXW versionInfo
+  {
+    .dwOSVersionInfoSize = sizeof( RTL_OSVERSIONINFOEXW ),
+    .dwMajorVersion = major,
+    .dwMinorVersion = minor,
+  };
+  VER_SET_CONDITION( conditionMask, VER_MAJORVERSION, VER_GREATER_EQUAL );
+  VER_SET_CONDITION( conditionMask, VER_MINORVERSION, VER_GREATER_EQUAL );
+  return ( RtlVerifyVersionInfoFn( &versionInfo, VER_MAJORVERSION | VER_MINORVERSION, conditionMask ) == 0 ) ? TRUE : FALSE;
+}

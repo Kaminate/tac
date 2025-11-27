@@ -14,16 +14,26 @@ namespace Tac
     static bool IsDepressed( Key );
     static bool JustPressed( Key );
     static bool JustDepressed( Key );
-
-    // This function returns a float instead of TimeDelta
-    // because it is a difference of Tac.RealTime and not Tac.GameTime.
-    //
-    // Returns 0 if the key is up
     static auto HeldSeconds( Key ) -> RealTimeDelta;
     static auto GetCodepoints() -> CodepointView;
     static auto GetMouseWheelDelta() -> float; // units are magic
     static auto GetMousePosScreenspace() -> v2i;
     static auto GetMousePosDelta() -> v2i;
+  };
+
+  struct UIKeyboardApi
+  {
+    static bool IsPressed( Key );
+    static bool IsDepressed( Key );
+    static bool JustPressed( Key );
+    static bool JustDepressed( Key );
+    static auto HeldSeconds( Key ) -> RealTimeDelta;
+    static auto GetCodepoints() -> CodepointView;
+    static auto GetMouseWheelDelta() -> float; // units are magic
+    static auto GetMousePosScreenspace() -> v2i;
+    static auto GetMousePosDelta() -> v2i;
+    static bool sWantCaptureKeyboard;
+    static bool sWantCaptureMouse;
   };
 }
 

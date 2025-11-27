@@ -164,17 +164,17 @@ namespace Tac
         auto windowInfo{ ( const CREATESTRUCT* )lParam };
         TAC_ASSERT( windowInfo->cx && windowInfo->cy );
         TAC_ASSERT( windowInfo->lpszName );
-        const DesktopEventApi::WindowCreateEvent data
-        {
-            .mWindowHandle       { windowHandle },
-            .mName               { windowInfo->lpszName },
-            .mNativeWindowHandle { hwnd },
-            .mX                  { windowInfo->x },
-            .mY                  { windowInfo->y },
-            .mW                  { windowInfo->cx },
-            .mH                  { windowInfo->cy },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::WindowCreateEvent
+          {
+              .mWindowHandle       { windowHandle },
+              .mName               { windowInfo->lpszName },
+              .mNativeWindowHandle { hwnd },
+              .mX                  { windowInfo->x },
+              .mY                  { windowInfo->y },
+              .mW                  { windowInfo->cx },
+              .mH                  { windowInfo->cy },
+          } );
       } break;
 
       // Indicates a request to terminate an application
@@ -188,23 +188,23 @@ namespace Tac
       // - notify the logic thread that the windowstate has been updated
       case WM_SIZE:
       {
-        const DesktopEventApi::WindowResizeEvent data
-        {
-          .mWindowHandle { windowHandle },
-          .mWidth        { ( int )LOWORD( lParam ) },
-          .mHeight       { ( int )HIWORD( lParam ) },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::WindowResizeEvent
+          {
+            .mWindowHandle { windowHandle },
+            .mWidth        { ( int )LOWORD( lParam ) },
+            .mHeight       { ( int )HIWORD( lParam ) },
+          } );
       } break;
       case WM_MOVE:
       {
-        const DesktopEventApi::WindowMoveEvent data
-        {
-          .mWindowHandle { windowHandle },
-          .mX            { ( int )LOWORD( lParam ) },
-          .mY            { ( int )HIWORD( lParam ) },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::WindowMoveEvent
+          {
+            .mWindowHandle { windowHandle },
+            .mX            { ( int )( short )LOWORD( lParam ) },
+            .mY            { ( int )( short )HIWORD( lParam ) },
+          } );
       } break;
       case WM_CHAR:
       {
@@ -227,13 +227,7 @@ namespace Tac
         const Key key{ GetKey( ( u8 )wParam ) };
         if( key == Key::Count )
           break;
-
-        const DesktopEventApi::KeyStateEvent data
-        {
-          .mKey { key },
-          .mDown { isDown },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue( DesktopEventApi::KeyStateEvent { .mKey { key }, .mDown { isDown }, } );
       } break;
 
       //case WM_SETCURSOR:
@@ -262,12 +256,12 @@ namespace Tac
           ? DesktopEventApi::WindowActivationEvent::Activated
           : DesktopEventApi::WindowActivationEvent::Deactivated };
 
-        const DesktopEventApi::WindowActivationEvent data
-        {
-          .mWindowHandle { windowHandle },
-          .mState        { state },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::WindowActivationEvent
+          {
+            .mWindowHandle { windowHandle },
+            .mState        { state },
+          } );
 
         if( verboseActivate && wParam ) { OS::OSDebugPrintLine( "Window activate!" ); }
         if( verboseActivate && !wParam ) { OS::OSDebugPrintLine( "Window deactivate!" ); }
@@ -295,13 +289,7 @@ namespace Tac
         if( uMsg == WM_LBUTTONDOWN ) { key = Key::MouseLeft; }
         if( uMsg == WM_RBUTTONDOWN ) { key = Key::MouseRight; }
         if( uMsg == WM_MBUTTONDOWN ) { key = Key::MouseMiddle; }
-
-        const DesktopEventApi::KeyStateEvent data
-        {
-          .mKey  { key },
-          .mDown { true },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue( DesktopEventApi::KeyStateEvent { .mKey  { key }, .mDown { true }, } );
 
         // make it so clicking the window brings the window to the top of the z order
         ::SetActiveWindow( hwnd );
@@ -320,13 +308,7 @@ namespace Tac
         if( uMsg == WM_LBUTTONUP ) { key = Key::MouseLeft; }
         if( uMsg == WM_RBUTTONUP ) { key = Key::MouseRight; }
         if( uMsg == WM_MBUTTONUP ) { key = Key::MouseMiddle; }
-
-        const DesktopEventApi::KeyStateEvent data
-        {
-          .mKey  { key },
-          .mDown {},
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue( DesktopEventApi::KeyStateEvent { .mKey  { key }, .mDown {}, } );
 
         // Release mouse input capturing
         if( hwnd == ::GetCapture() )
@@ -346,26 +328,34 @@ namespace Tac
           sMouseInWindow = true;
           ::SetCursor( ::LoadCursor( nullptr, IDC_ARROW ) );
         }
-
         const int xPos{ GET_X_LPARAM( lParam ) };
         const int yPos{ GET_Y_LPARAM( lParam ) };
-
-        const DesktopEventApi::MouseMoveEvent data
-        {
-          .mWindowHandle { windowHandle },
-          .mX            { xPos },
-          .mY            { yPos },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::MouseMoveEvent
+          {
+            .mWindowHandle { windowHandle },
+            .mX            { xPos },
+            .mY            { yPos },
+          } );
       } break;
 
       case WM_MOUSEWHEEL:
       {
         const short delta{ GET_WHEEL_DELTA_WPARAM( wParam ) };
         const float deltaScaled{ ( float )delta / WHEEL_DELTA };
-        const DesktopEventApi::MouseWheelEvent data{ deltaScaled };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue( DesktopEventApi::MouseWheelEvent{ .mDelta{ deltaScaled } } );
       } break;
+
+      case WM_DPICHANGED:
+      {
+        auto suggested_rect{ ( RECT* )lParam };
+        const int x{ suggested_rect->left };
+        const int y{ suggested_rect->top };
+        const int w{ suggested_rect->right - suggested_rect->left };
+        const int h{ suggested_rect->bottom - suggested_rect->top };
+        ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE );
+        return 0;
+      }
     }
 
     return ::DefWindowProc( hwnd, uMsg, wParam, lParam );

@@ -52,7 +52,7 @@ namespace Tac
     int                                mResourceCounter {};
   };
 
-  struct CopyHelper
+  struct ImGuiCopyHelper
   {
     using GetDrawElementBytes = void* ( * )( const UI2DDrawData* );
     using GetDrawElementCount = int ( * )( const UI2DDrawData* );
@@ -112,7 +112,8 @@ namespace Tac
     GetDrawElementBytes   mGetDrawElementBytes;
     GetDrawElementCount   mGetDrawElementCount;
     StringView            mBufName;
-    ImGuiDrawDatas&       mDraws; 
+    Span< UI2DDrawData* > mDraws;
+    //ImGuiDrawDatas&       mDraws; 
     Render::TexFmt        mTexFmt  { Render::TexFmt::kUnknown };
     Render::Binding       mBinding { Render::Binding::None };
   };
@@ -211,8 +212,8 @@ namespace Tac
     // scroll with middle mouse
     if( !GetActiveID().IsValid()
         && IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) )
-        && AppKeyboardApi::GetMouseWheelDelta() )
-      mScroll = Clamp( mScroll - AppKeyboardApi::GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
+        && UIKeyboardApi::GetMouseWheelDelta() )
+      mScroll = Clamp( mScroll - UIKeyboardApi::GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
 
     const float scrollbarForegroundMiniX{ 3 + scrollbarBackgroundMini.x };
     const float scrollbarForegroundMiniY{ 3
@@ -239,10 +240,10 @@ namespace Tac
     {
       SetHoveredID( id );
 
-      if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+      if( UIKeyboardApi::JustPressed( Key::MouseLeft ) )
       {
         SetActiveID( id, this );
-        mScrollMousePosScreenspaceInitial = AppKeyboardApi::GetMousePosScreenspace();
+        mScrollMousePosScreenspaceInitial = UIKeyboardApi::GetMousePosScreenspace();
       }
     }
 
@@ -272,14 +273,14 @@ namespace Tac
     if(active)
     {
       const float mouseDY{
-        AppKeyboardApi::GetMousePosScreenspace().y
+        UIKeyboardApi::GetMousePosScreenspace().y
        - mScrollMousePosScreenspaceInitial.y };
-      mScrollMousePosScreenspaceInitial.y = (float)AppKeyboardApi::GetMousePosScreenspace().y;
+      mScrollMousePosScreenspaceInitial.y = (float)UIKeyboardApi::GetMousePosScreenspace().y;
       const float scrollDY{ mouseDY * ( contentVisibleHeight / scrollbarHeight ) };
       mScroll = Clamp( mScroll + scrollDY , scrollMin, scrollMax );
 
 
-      if( !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+      if( !UIKeyboardApi::IsPressed( Key::MouseLeft ) )
       {
         ClearActiveID();
       }
@@ -370,12 +371,14 @@ namespace Tac
   void ImGuiWindow::UpdateMoveControls()
   {
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    if( AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+    if( UIKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
       mDesktopWindow->mRequestedPosition = GetMousePosViewport()
                                          - globals.mActiveIDClickPos_VS
                                          + mViewportSpacePos
                                          + GetWindowPosScreenspace();
+
+
       globals.mSettingsDirty = true;
     }
     else
@@ -389,7 +392,7 @@ namespace Tac
   {
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
 
-    if( !AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+    if( !UIKeyboardApi::JustPressed( Key::MouseLeft ) )
       return;
 
     if( !IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) ) )
@@ -498,14 +501,14 @@ namespace Tac
         }
     }
 
-    if( anyEdgeActive && !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+    if( anyEdgeActive && !UIKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
       ClearActiveID();
     }
 
     if( !globals.mActiveID.IsValid() &&
         hoverMask &&
-        AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+        UIKeyboardApi::JustPressed( Key::MouseLeft ) )
     {
       globals.mActiveIDClickPos_VS = mousePos_VS;
       globals.mActiveIDWindowSize = mSize;
@@ -617,7 +620,7 @@ namespace Tac
 
   auto ImGuiWindow::GetMousePosViewport() -> v2
   {
-    const v2 mousePos_SS{ AppKeyboardApi::GetMousePosScreenspace() };
+    const v2 mousePos_SS{ UIKeyboardApi::GetMousePosScreenspace() };
     const v2 windowPos_SS{ GetWindowPosScreenspace() };
     return mousePos_SS - windowPos_SS;
   }
@@ -694,8 +697,13 @@ namespace Tac
     // combine draw data
     //simDraws->CopyBuffers( renderContext, &renderBuffers, errors );
     {
-      const int vertexCount{ desktopWindow->mDrawData.VertexCount() };
-      const int indexCount{ desktopWindow->mDrawData.IndexCount() };
+      int vertexCount{};
+      int indexCount{};
+      for( const UI2DDrawData* drawData : desktopWindow->mImGuiDrawDatas )
+      {
+        vertexCount += drawData->mVtxs.size();
+        indexCount += drawData->mIdxs.size();
+      }
 
       const ShortFixedString vtxBufName{ ShortFixedString::Concat(
         "imgui_vtx_buf " ,
@@ -711,7 +719,7 @@ namespace Tac
 
       auto getVtxBytes{ []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
       auto getVtxCount{ []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
-      const CopyHelper vtxCopyHelper
+      const ImGuiCopyHelper vtxCopyHelper
       {
         .mDst                 { &renderBuffers.mVB },
         .mSizeOfElem          { sizeof( UI2DVertex ) },
@@ -719,14 +727,14 @@ namespace Tac
         .mGetDrawElementBytes { getVtxBytes },
         .mGetDrawElementCount { getVtxCount },
         .mBufName             { vtxBufName },
-        .mDraws               { desktopWindow->mDrawData },
+        .mDraws               { desktopWindow->mImGuiDrawDatas.data(), desktopWindow->mImGuiDrawDatas.size() },
         .mBinding             { Render::Binding::VertexBuffer },
       };
 
       auto getIdxBytes { []( const UI2DDrawData* dd ) { return ( void* )dd->mIdxs.data(); } };
       auto getIdxCount { []( const UI2DDrawData* dd ) { return dd->mIdxs.size(); } };
 
-      const CopyHelper idxCopyHelper
+      const ImGuiCopyHelper idxCopyHelper
       {
         .mDst                 { &renderBuffers.mIB },
         .mSizeOfElem          { sizeof( UI2DIndex ) },
@@ -734,7 +742,7 @@ namespace Tac
         .mGetDrawElementBytes { getIdxBytes },
         .mGetDrawElementCount { getIdxCount },
         .mBufName             { idxBufName },
-        .mDraws               { desktopWindow->mDrawData },
+        .mDraws               { desktopWindow->mImGuiDrawDatas.data(), desktopWindow->mImGuiDrawDatas.size() },
         .mTexFmt              { Render::TexFmt::kR16_uint },
         .mBinding             { Render::Binding::IndexBuffer },
       };
@@ -774,7 +782,7 @@ namespace Tac
     renderContext->DebugEventBegin( renderGroupStr );
     renderContext->DebugMarker( "hello hello" );
 
-    for( UI2DDrawData* drawData : desktopWindow->mDrawData ) //  simDraws->mDrawData )
+    for( UI2DDrawData* drawData : desktopWindow->mImGuiDrawDatas ) //  simDraws->mDrawData )
     {
       Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
       debugGroupStack.AssertNodeHeights();
@@ -800,12 +808,12 @@ namespace Tac
         UpdatePerObject( renderContext, uidrawCall, errors );
         renderContext->CommitShaderVariables();
 
-        const Render::DrawArgs drawArgs
-        {
-          .mIndexCount { uidrawCall.mIndexCount },
-          .mStartIndex { uidrawCall.mIIndexStart },
-        };
-        renderContext->Draw( drawArgs );
+        renderContext->Draw(
+          Render::DrawArgs 
+          {
+            .mIndexCount { uidrawCall.mIndexCount },
+            .mStartIndex { uidrawCall.mIIndexStart },
+          } );
       }
 
       debugGroupStack.IterateEnd( debugGroupIterator );
@@ -821,21 +829,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  auto ImGuiDrawDatas::VertexCount() const -> int
-  {
-    int n{};
-    for( const UI2DDrawData* drawData : *this )
-      n += drawData->mVtxs.size();
-    return n;
-  }
+  //auto ImGuiDrawDatas::VertexCount() const -> int
+  //{
+  //  int n{};
+  //  for( const UI2DDrawData* drawData : *this )
+  //    n += drawData->mVtxs.size();
+  //  return n;
+  //}
 
-  auto ImGuiDrawDatas::IndexCount() const -> int
-  {
-    int n{};
-    for( const UI2DDrawData* drawData : *this )
-      n += drawData->mIdxs.size();
-    return n;
-  }
+  //auto ImGuiDrawDatas::IndexCount() const -> int
+  //{
+  //  int n{};
+  //  for( const UI2DDrawData* drawData : *this )
+  //    n += drawData->mIdxs.size();
+  //  return n;
+  //}
 
   // -----------------------------------------------------------------------------------------------
 
@@ -891,10 +899,7 @@ namespace Tac
   void ImGuiPersistantPlatformData::InitProgram( Errors& errors )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::ProgramParams programParams2DImage
-    {
-      .mInputs { "ImGui" },
-    };
+    const Render::ProgramParams programParams2DImage { .mInputs { "ImGui" }, };
     TAC_CALL( mProgram = renderDevice->CreateProgram( programParams2DImage, errors ) );
   }
 
@@ -1042,28 +1047,23 @@ namespace Tac
     
     for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
     {
-      desktopWindow->mDrawData.clear();
+      desktopWindow->mImGuiDrawDatas.clear();
 
       // Grab all imgui windows that use this viewport window
       for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
       {
         // All windows of the same viewport share the same draw data
-        if( window->mDesktopWindow                == desktopWindow               
-        // if( window->mDesktopWindow->mWindowHandle == desktopWindow->mWindowHandle
-            && !window->mParent )
+        if( window->mDesktopWindow == desktopWindow && !window->mParent )
         {
-          desktopWindow->mDrawData.push_back( window->mDrawData );
-
+          desktopWindow->mImGuiDrawDatas.push_back( window->mDrawData );
           window->mDrawData->mDebugGroupStack.AssertNodeHeights();
         }
-
       }
     }
 
     for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
     {
-        ImGuiPersistantViewport* viewportDraw{
-          GetPersistantWindowData( desktopWindow->mWindowHandle ) };
+        ImGuiPersistantViewport* viewportDraw{ GetPersistantWindowData( desktopWindow->mWindowHandle ) };
         UpdateAndRenderWindow( desktopWindow, viewportDraw, errors );
     }
 
@@ -1075,10 +1075,7 @@ namespace Tac
       if( viewportData.mWindowHandle == h )
         return &viewportData;
      
-    const ImGuiPersistantViewport persistantViewport
-    {
-      .mWindowHandle { h },
-    };
+    const ImGuiPersistantViewport persistantViewport { .mWindowHandle { h }, };
     mViewportDatas.push_back( persistantViewport );
     return &mViewportDatas.back();
   }

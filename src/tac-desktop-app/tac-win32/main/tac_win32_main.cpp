@@ -1,3 +1,5 @@
+#include "tac_win32_main.h"
+
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"              // DesktopApp::Init
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"                       // DX12Device
 #include "tac-std-lib/dataprocess/tac_log.h"                          // LogScope
@@ -5,7 +7,6 @@
 #include "tac-win32/input/tac_xinput.h"                               // XInputInit
 #include "tac-win32/input/tac_win32_mouse_edge.h"                     // Win32MouseEdgeInit
 #include "tac-win32/main/tac_win32_platform.h"                        // Win32Platform
-#include "tac-win32/main/tac_win32_redirect_stream_buf.h"             // RedirectStreamBuf
 #include "tac-win32/net/tac_net_winsock.h"                            // NetWinsockInit
 
 static Tac::Render::DX12Device sDX12Device;
@@ -19,6 +20,7 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   Errors& errors{ DesktopApp::GetMainErrors() };
   TAC_SCOPE_GUARD( LogScope );
   Win32RedirectStdoutVisualStudioOutputWindow();
+  Win32EnableDpiAwareness();
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
   Win32MouseEdgeInit();
   Win32OSInit();

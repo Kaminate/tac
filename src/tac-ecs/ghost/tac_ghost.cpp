@@ -80,7 +80,7 @@ namespace Tac
 
   Ghost::Ghost()
   {
-    //mScriptRoot = TAC_NEW ScriptRoot;
+    mScriptRoot = TAC_NEW ScriptRoot;
     mServerData = TAC_NEW ServerData;
   }
 

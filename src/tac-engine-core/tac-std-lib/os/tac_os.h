@@ -11,7 +11,9 @@ namespace Tac
 {
   struct Monitor
   {
-    v2i mSize;
+    v2i mPos  {};
+    v2i mSize {};
+    int mDpi  { 96 }; // win32 default
   };
 }
 
@@ -45,6 +47,7 @@ namespace Tac::OS
 
 
   extern Monitor      ( *OSGetPrimaryMonitor )();
+  extern Monitor      ( *OSGetMonitorAtPoint )( v2 );
 
 
   // I don't think this function should exist.

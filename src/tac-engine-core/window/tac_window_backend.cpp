@@ -160,7 +160,6 @@ namespace Tac
   {
     TAC_ASSERT( h.IsValid() );
     sAppCurr[ h.GetIndex() ].mPos = pos;
-
     Platform::PlatformSetWindowPos( h, pos );
   }
 
@@ -174,7 +173,6 @@ namespace Tac
   {
     TAC_ASSERT( h.IsValid() );
     sAppCurr[ h.GetIndex() ].mSize = size;
-    
     Platform::PlatformSetWindowSize( h, size );
   }
 

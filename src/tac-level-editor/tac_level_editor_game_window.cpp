@@ -473,12 +473,14 @@ namespace Tac
     TAC_CALL( renderContext->Execute( errors ) );
   }
 
+
   void CreationGameWindow::Update( Errors& errors )
   {
     TAC_PROFILE_BLOCK;
 
     if( !sShowWindow )
       return;
+
 
     ImGuiSetNextWindowDisableBG();
     if( !ImGuiBegin( sImguiWindowName ) )

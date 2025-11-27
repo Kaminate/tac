@@ -36,13 +36,7 @@ namespace Tac
     Render::DebugGroup::NodeIndex   mDebugGroupIndex { Render::DebugGroup::NullNodeIndex };
   };
 
-  struct UI2DDrawGpuInterface
-  {
-    int                  mVertexCapacity     {};
-    int                  mIndexCapacity      {};
-    Render::BufferHandle mVertexBufferHandle {};
-    Render::BufferHandle mIndexBufferHandle  {};
-  };
+
 
 
   // why does this class exist
@@ -75,11 +69,11 @@ namespace Tac
     UI2DDrawData() = default;
     ~UI2DDrawData() = default;
 
-    static void DrawToTexture2( Render::IContext*,
-                                Render::TextureHandle,
-                                UI2DDrawGpuInterface*,
-                                Span< UI2DDrawData >,
-                                Errors& );
+    //static void DrawToTexture2( Render::IContext*,
+    //                            Render::TextureHandle,
+    //                            UI2DDrawGpuInterface*,
+    //                            Span< UI2DDrawData >,
+    //                            Errors& );
     void AddText( const Text&, const ImGuiRect* = nullptr );
     void AddBox( const Box&, const ImGuiRect* = nullptr );
     void AddLine( const Line& );
@@ -94,6 +88,22 @@ namespace Tac
     Vector< UI2DDrawCall >    mDrawCall2Ds;
     Render::DebugGroup::Stack mDebugGroupStack;
   };
+
+  struct UI2DRenderData
+  {
+    void DebugDraw2DToTexture( Span<UI2DDrawData*>, 
+                               Render::TextureHandle,
+                               Render::TexFmt,
+                               v2i,
+                               Errors& );
+
+    Vector< Render::BufferHandle > mVBs;
+    Vector< Render::BufferHandle > mIBs;
+    Vector< int >                  mVBByteCounts;
+    Vector< int >                  mIBByteCounts;
+    //int                            mFrameIndex;
+  };
+
 
   auto Get1x1White() -> Render::TextureHandle;
   auto CalculateTextSize( const StringView&, float fontSize ) -> v2;

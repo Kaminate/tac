@@ -32,9 +32,75 @@
 
 namespace Tac
 {
+
+
+  typedef enum { MDT_EFFECTIVE_DPI = 0, MDT_ANGULAR_DPI = 1, MDT_RAW_DPI = 2, MDT_DEFAULT = MDT_EFFECTIVE_DPI } MONITOR_DPI_TYPE;
+  using PFN_GetDpiForMonitor = HRESULT( WINAPI* )( HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT* );        // Shcore.lib + dll, Windows 8.1+
+
+  static auto Win32GetMonitorDpi( HMONITOR monitor ) -> int
+  {
+    TAC_ASSERT( monitor );
+    if( _IsWindows8Point1OrGreater() )
+    {
+      static HINSTANCE shcore_dll{ ::LoadLibraryA( "shcore.dll" ) }; // Reference counted per-process
+      static PFN_GetDpiForMonitor GetDpiForMonitorFn;
+      if( !GetDpiForMonitorFn && shcore_dll )
+        GetDpiForMonitorFn = ( PFN_GetDpiForMonitor )::GetProcAddress( shcore_dll, "GetDpiForMonitor" );
+      if( GetDpiForMonitorFn )
+      {
+        UINT xdpi{};
+        UINT ydpi{};
+        HRESULT hr{ GetDpiForMonitorFn( ( HMONITOR )monitor, MDT_EFFECTIVE_DPI, &xdpi, &ydpi ) };
+        TAC_ASSERT( hr == S_OK );
+        return (int)xdpi; // assumed same as y
+      }
+    }
+
+    TAC_ASSERT_UNIMPLEMENTED; // Should this be demoted to a warning?
+    return USER_DEFAULT_SCREEN_DPI;
+  }
+
+  static auto Win32MonitorToTacMonitor( HMONITOR win32Monitor ) -> Monitor
+  {
+    const int dpi{ Win32GetMonitorDpi( win32Monitor ) };
+
+    MONITORINFO info  {};
+    info.cbSize = sizeof(info);
+    if( !TAC_VERIFY( ::GetMonitorInfo( win32Monitor, &info ) ) )
+      return {};
+
+    int w{ info.rcMonitor.right - info.rcMonitor.left };
+    int h{ info.rcMonitor.bottom - info.rcMonitor.top };
+    int x{ info.rcMonitor.left };
+    int y{ info.rcMonitor.top };
+
+    return Monitor
+    {
+      .mPos { x, y },
+      .mSize { w, h},
+      .mDpi  { dpi},
+    };
+  }
+
   static auto Win32OSGetPrimaryMonitor() -> Monitor
   {
-    return { .mSize { GetSystemMetrics( SM_CXSCREEN ), GetSystemMetrics( SM_CYSCREEN ) } };
+    HMONITOR win32Monitor{ ::MonitorFromPoint( POINT{}, MONITOR_DEFAULTTOPRIMARY ) };
+    return Win32MonitorToTacMonitor( win32Monitor );
+    
+#if 0
+      return Monitor
+      {
+        .mSize { GetSystemMetrics( SM_CXSCREEN ), GetSystemMetrics( SM_CYSCREEN ) },
+      };
+#endif
+  }
+
+
+  static auto Win32OSGetMonitorAtPoint( v2 p ) -> Monitor
+  {
+    POINT point{ ( LONG )p.x, ( LONG )p.y };
+    HMONITOR win32Monitor{ ::MonitorFromPoint( point, MONITOR_DEFAULTTONEAREST ) };
+    return Win32MonitorToTacMonitor( win32Monitor );
   }
 
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
@@ -110,6 +176,7 @@ void Tac::Win32OSInit()
   OS::OSSaveDialog = Win32FileDialogSave;
   OS::OSOpenDialog = Win32FileDialogOpen;
   OS::OSGetPrimaryMonitor = Win32OSGetPrimaryMonitor;
+  OS::OSGetMonitorAtPoint = Win32OSGetMonitorAtPoint;
   OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
   OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;
   OS::OSLoadDLL = Win32OSLoadDLL;

@@ -19,45 +19,37 @@ namespace Tac
     StringView() = default;
     StringView( const char* );
     StringView( int ) = delete; // prevent StringView( 0 ) from compiling
-    //        StringView( const char*, int );
-    constexpr StringView( const char* , int );
-  //        StringView::StringView( const char* str, int len ) : mStr( str ), mLen( len ) {}
-
-    constexpr StringView( const char* , const char* );
-    //constexpr StringView( const char* strBegin, const char* strEnd );
-    //StringView( const String& );
-    //StringView( const StringLiteral& );
-    //StringView( const ShortFixedString& );
+    constexpr StringView( const char*, int );
+    constexpr StringView( const char*, const char* );
     operator const char* ( ) const;
+    auto data() const -> const char*;
+    auto size() const -> int;
+    auto begin() const -> const char*;
+    auto end() const -> const char*;
+    auto c_str() const -> const char*;
+    bool empty() const;
+
+    //   searches this stringview for the last character which matches
+    //   any of the characters in s, return npos if no matches
+    auto find_last_of( const StringView& ) const -> int;
+    auto find_last_of( char ) const -> int;
+    auto find_first_of( const StringView& ) const -> int;
+    auto find_first_of( char ) const -> int;
+
+    auto find( const StringView& ) const -> int; // returns the index of the substr, or npos
+    auto find( char ) const -> int;
+    bool contains( const StringView& ) const;
+    bool contains( const char* ) const;
+    bool contains( char ) const;
+    auto substr( int pos = 0, int len = npos ) const -> StringView;
+    char front() const;
+    char back() const;
+    bool starts_with( StringView ) const;
+    bool starts_with( char ) const;
+    bool ends_with( StringView ) const;
+    void remove_prefix( int );
+    void remove_suffix( int );
     char operator[]( int ) const;
-    const char* data() const;
-    int         size() const;
-    const char* begin() const;
-    const char* end() const;
-    const char* c_str() const;
-    bool        empty() const;
-
-    //          searches this stringview for the last character which matches
-    //          any of the characters in s, return npos if no matches
-    int         find_last_of( const StringView& ) const;
-    int         find_last_of( char ) const;
-    int         find_first_of( const StringView& ) const;
-    int         find_first_of( char ) const;
-
-    //          returns the index of the substr, or npos
-    int         find( const StringView& ) const;
-    int         find( char ) const;
-    bool        contains( const StringView& ) const;
-    bool        contains( const char* ) const;
-    bool        contains( char ) const;
-    StringView  substr( int pos = 0, int len = npos ) const;
-    char        front() const;
-    char        back() const;
-    bool        starts_with( StringView ) const;
-    bool        starts_with( char ) const;
-    bool        ends_with( StringView ) const;
-    void        remove_prefix( int );
-    void        remove_suffix( int );
 
     static const int npos { -1 }; // mimicking the standard library
     const char*      mStr { "" }; // not nullptr, default should be printable

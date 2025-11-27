@@ -12,109 +12,111 @@
 
 namespace Tac
 {
-  using KeyStates = Array< AppKeyboardApiBackend::KeyState, ( int )Key::Count >;
-  using KeyTimes = Array< RealTime, ( int )Key::Count >;
-  using KeyToggles = Array< int, ( int )Key::Count >;
-
-  struct KeyboardMouseState
-  {
-    float           mMouseWheel          {};
-    v2i             mMousePosScreenspace {};
-    KeyStates       mKeyStates           {};
-    KeyTimes        mKeyTimes            {};
-    RealTime        mTime                {};
-    KeyToggles      mToggles             {};
-    CodepointString mCodepointDelta      {};
-  };
-
-  static KeyboardMouseState  sAppCurr;
-  static KeyboardMouseState  sAppPrev;
+  AppKeyboardApiBackend AppKeyboardApiBackend::sGameKeyboardBackend;
+  AppKeyboardApiBackend AppKeyboardApiBackend::sUIKeyboardBackend;
 
   // -----------------------------------------------------------------------------------------------
 
   void AppKeyboardApiBackend::SetKeyState( Key key, KeyState state )
   {
-    KeyState& currKeySate{ sAppCurr.mKeyStates[ ( int )key ] };
+    KeyState& currKeySate{ mCurr.mKeyStates[ ( int )key ] };
     if( currKeySate == state )
       return;
 
     currKeySate = state;
-    sAppCurr.mToggles[ ( int )key ]++;
-    sAppCurr.mKeyTimes[ ( int )key ] = RealTime::Now();
+    mCurr.mToggles[ ( int )key ]++;
+    mCurr.mKeyTimes[ ( int )key ] = RealTime::Now();
   }
-
   void AppKeyboardApiBackend::SetCodepoint( Codepoint codepoint )
   {
-    sAppCurr.mCodepointDelta.push_back( codepoint );
+    mCurr.mCodepointDelta.push_back( codepoint );
   }
-
   void AppKeyboardApiBackend::SetScreenspaceMousePos( v2 screenspace )
   {
-    sAppCurr.mMousePosScreenspace = screenspace;
+    mCurr.mMousePosScreenspace = screenspace;
 
     // prevent frame 1 jump when calling getmouse when calling GetMousePosDelta()
     if( static bool sInitialized; !sInitialized )
     {
       sInitialized = true;
-      sAppPrev.mMousePosScreenspace = screenspace;
+      mPrev.mMousePosScreenspace = screenspace;
     }
   }
-
   void AppKeyboardApiBackend::AddMouseWheelDelta( float wheelDelta )
   {
-    sAppCurr.mMouseWheel += wheelDelta;
+    mCurr.mMouseWheel += wheelDelta;
   }
-
   void AppKeyboardApiBackend::Sync()
   {
-    sAppPrev = sAppCurr;
-    sAppCurr.mTime = RealTime::Now();
-    sAppCurr.mToggles = {};
-    sAppCurr.mCodepointDelta = {};
+    mPrev = mCurr;
+    mCurr.mTime = RealTime::Now();
+    mCurr.mToggles = {};
+    mCurr.mCodepointDelta = {};
   }
 
-  // -----------------------------------------------------------------------------------------------
-  
-  bool AppKeyboardApi::IsPressed( Key key )
+  bool AppKeyboardApiBackend::GetIsPressed( Key key )
   {
-    return sAppCurr.mKeyStates[ ( int )key ] == AppKeyboardApiBackend::KeyState::Down;
+    return mCurr.mKeyStates[ ( int )key ] == AppKeyboardApiBackend::KeyState::Down;
   }
-  bool AppKeyboardApi::IsDepressed( Key key )
+  bool AppKeyboardApiBackend::GetIsDepressed( Key key )
   {
     if( key == Key::Myself ) { return true; }
-    return sAppCurr.mKeyStates[ ( int )key ] == AppKeyboardApiBackend::KeyState::Up;
+    return mCurr.mKeyStates[ ( int )key ] == AppKeyboardApiBackend::KeyState::Up;
   }
-  bool AppKeyboardApi::JustPressed( Key key )
+  bool AppKeyboardApiBackend::GetIsJustPressed( Key key )
   {
-    const int toggleCount { sAppCurr.mToggles[ ( int )key ] };
-    return IsPressed( key ) && toggleCount >= 1;
+    const int toggleCount { mCurr.mToggles[ ( int )key ] };
+    return GetIsPressed( key ) && toggleCount >= 1;
   }
-  bool AppKeyboardApi::JustDepressed( Key key )
+  bool AppKeyboardApiBackend::GetIsJustDepressed( Key key )
   {
-    const int toggleCount { sAppCurr.mToggles[ ( int )key ] };
-    return IsDepressed( key ) && toggleCount >= 1;
+    const int toggleCount { mCurr.mToggles[ ( int )key ] };
+    return GetIsDepressed( key ) && toggleCount >= 1;
   }
-  auto AppKeyboardApi::HeldSeconds( Key key ) -> RealTimeDelta
+  auto AppKeyboardApiBackend::GetHeldSeconds( Key key ) -> RealTimeDelta
   {
-    if( !IsPressed( key ) ) { return {}; }
-    return sAppCurr.mTime - sAppCurr.mKeyTimes[ ( int )key ];
+    if( !GetIsPressed( key ) ) { return {}; }
+    return mCurr.mTime - mCurr.mKeyTimes[ ( int )key ];
   }
-  auto AppKeyboardApi::GetCodepoints() -> CodepointView
+  auto AppKeyboardApiBackend::GetCodepoints() -> CodepointView
   {
-    return sAppCurr.mCodepointDelta;
+    return mCurr.mCodepointDelta;
   }
-  auto AppKeyboardApi::GetMouseWheelDelta() -> float
+  auto AppKeyboardApiBackend::GetMouseWheelDelta() -> float
   {
-    return sAppCurr.mMouseWheel - sAppPrev.mMouseWheel;
+    return mCurr.mMouseWheel - mPrev.mMouseWheel;
   }
-  auto AppKeyboardApi::GetMousePosScreenspace() -> v2i
+  auto AppKeyboardApiBackend::GetMousePosScreenspace() -> v2i
   {
-    return sAppCurr.mMousePosScreenspace;
+    return mCurr.mMousePosScreenspace;
   }
-  auto AppKeyboardApi::GetMousePosDelta() -> v2i
+  auto AppKeyboardApiBackend::GetMousePosDelta() -> v2i
   {
-    return sAppCurr.mMousePosScreenspace - sAppPrev.mMousePosScreenspace;
+    return mCurr.mMousePosScreenspace - mPrev.mMousePosScreenspace;
   }
+
+  bool AppKeyboardApi::IsPressed( Key key )                    { return AppKeyboardApiBackend::sGameKeyboardBackend.GetIsPressed( key ); }
+  bool AppKeyboardApi::IsDepressed( Key key )                  { return AppKeyboardApiBackend::sGameKeyboardBackend.GetIsDepressed( key ); }
+  bool AppKeyboardApi::JustPressed( Key key )                  { return AppKeyboardApiBackend::sGameKeyboardBackend.GetIsJustPressed( key ); }
+  bool AppKeyboardApi::JustDepressed( Key key )                { return AppKeyboardApiBackend::sGameKeyboardBackend.GetIsJustDepressed( key ); } 
+  auto AppKeyboardApi::HeldSeconds( Key key ) -> RealTimeDelta { return AppKeyboardApiBackend::sGameKeyboardBackend.GetHeldSeconds( key ); }
+  auto AppKeyboardApi::GetCodepoints() -> CodepointView        { return AppKeyboardApiBackend::sGameKeyboardBackend.GetCodepoints(); }
+  auto AppKeyboardApi::GetMouseWheelDelta() -> float           { return AppKeyboardApiBackend::sGameKeyboardBackend.GetMouseWheelDelta(); }
+  auto AppKeyboardApi::GetMousePosScreenspace() -> v2i         { return AppKeyboardApiBackend::sGameKeyboardBackend.GetMousePosScreenspace(); }
+  auto AppKeyboardApi::GetMousePosDelta() -> v2i               { return AppKeyboardApiBackend::sGameKeyboardBackend.GetMousePosDelta(); }
+
+  bool UIKeyboardApi::IsPressed( Key key )                     { return AppKeyboardApiBackend::sUIKeyboardBackend.GetIsPressed( key ); }
+  bool UIKeyboardApi::IsDepressed( Key key )                   { return AppKeyboardApiBackend::sUIKeyboardBackend.GetIsDepressed( key ); }
+  bool UIKeyboardApi::JustPressed( Key key )                   { return AppKeyboardApiBackend::sUIKeyboardBackend.GetIsJustPressed( key ); }
+  bool UIKeyboardApi::JustDepressed( Key key )                 { return AppKeyboardApiBackend::sUIKeyboardBackend.GetIsJustDepressed( key ); } 
+  auto UIKeyboardApi::HeldSeconds( Key key ) -> RealTimeDelta  { return AppKeyboardApiBackend::sUIKeyboardBackend.GetHeldSeconds( key ); }
+  auto UIKeyboardApi::GetCodepoints() -> CodepointView         { return AppKeyboardApiBackend::sUIKeyboardBackend.GetCodepoints(); }
+  auto UIKeyboardApi::GetMouseWheelDelta() -> float            { return AppKeyboardApiBackend::sUIKeyboardBackend.GetMouseWheelDelta(); }
+  auto UIKeyboardApi::GetMousePosScreenspace() -> v2i          { return AppKeyboardApiBackend::sUIKeyboardBackend.GetMousePosScreenspace(); }
+  auto UIKeyboardApi::GetMousePosDelta() -> v2i                { return AppKeyboardApiBackend::sUIKeyboardBackend.GetMousePosDelta(); }
+
+  bool UIKeyboardApi::sWantCaptureKeyboard;
+  bool UIKeyboardApi::sWantCaptureMouse;
 
   // -----------------------------------------------------------------------------------------------
 

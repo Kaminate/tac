@@ -160,16 +160,17 @@ namespace Tac
 
   struct ImGuiDrawDatas : public Vector< UI2DDrawData* >
   {
-    auto VertexCount() const -> int;
-    auto IndexCount() const -> int;
+    //auto VertexCount() const -> int;
+    //auto IndexCount() const -> int;
   };
 
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
   {
-    ImGuiDrawDatas mDrawData;
+    ImGuiDrawDatas mImGuiDrawDatas;
   };
 
 
+  // TODO: Delete this (ImGuiPersistantPlatformData) and instantiate UI2DRenderData instead
   struct ImGuiPersistantPlatformData
   {
     // todo: hard code this to always expect rgba16f with d24s8

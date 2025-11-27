@@ -19,22 +19,106 @@
 
 namespace Tac
 {
-  static struct UI2DCommonData
-  {
-    void Init( Errors& );
-    void Uninit();
 
-    Render::TextureHandle         m1x1White;
-    Render::ProgramHandle         mShader;
-    Render::ProgramHandle         m2DTextShader;
-#if TAC_TEMPORARILY_DISABLED()
-    Render::VertexFormatHandle    mFormat;
-    Render::DepthStateHandle      mDepthState;
-    Render::BlendStateHandle      mBlendState;
-    Render::RasterizerStateHandle mRasterizerState;
-    Render::SamplerStateHandle    mSamplerState;
-#endif
-  } gUI2DCommonData;
+    struct Element
+    {
+      Render::PipelineHandle mPipeline        {};
+      Render::TexFmt         mTexFmt          {};
+      Render::IShaderVar*    mShaderImage     {};
+      Render::IShaderVar*    mShaderSampler   {};
+      Render::IShaderVar*    mShaderPerObject {};
+      Render::IShaderVar*    mShaderPerFrame  {};
+    };
+    static Render::SamplerHandle             mSampler;
+    static Vector< Element >                 mElements;
+    static Render::ProgramHandle             mProgram;
+    static Render::BufferHandle              mPerObject;
+    static Render::BufferHandle              mPerFrame;
+    static Render::TextureHandle         m1x1White;
+    static Render::ProgramHandle         mShader;
+    static Render::ProgramHandle         m2DTextShader;
+
+  struct PerFrameType
+  {
+    m4    mOrthoProj         {};
+    float mSDFOnEdge         {};
+    float mSDFPixelDistScale {};
+  };
+
+  struct PerObjectType
+  {
+    v4  mColor{};
+    u32 mType{};
+  };
+
+
+
+
+  struct UI2DCopyHelper
+  {
+    using GetDrawElementBytes = void* ( * )( const UI2DDrawData* );
+    using GetDrawElementCount = int ( * )( const UI2DDrawData* );
+
+    void Copy( Render::IContext* renderContext, Errors& errors ) const
+    {
+      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+      const int srcTotByteCount{ mSrcTotElemCount * mSizeOfElem };
+      if( !srcTotByteCount )
+        return;
+
+      if( !mDstBuffer.IsValid() || mDstBufferByteCount < srcTotByteCount )
+      {
+        renderDevice->DestroyBuffer( mDstBuffer );
+        const Render::CreateBufferParams createBufferParams
+        {
+          .mByteCount    { srcTotByteCount },
+          .mStride       { mSizeOfElem },
+          .mUsage        { Render::Usage::Dynamic },
+          .mBinding      { mBinding },
+          .mGpuBufferFmt { mTexFmt },
+          .mOptionalName { mBufName },
+        };
+        TAC_CALL( mDstBuffer = renderDevice->CreateBuffer( createBufferParams, errors ) );
+        mDstBufferByteCount = srcTotByteCount;
+      }
+
+      const int drawCount{ mDraws.size() };
+      Render::UpdateBufferParams* updateBufferParams{
+        ( Render::UpdateBufferParams* )FrameMemoryAllocate(
+          drawCount * sizeof( Render::UpdateBufferParams ) ) };
+
+      Span< const Render::UpdateBufferParams > updates( updateBufferParams, drawCount );
+
+      int byteOffset {};
+      for( const UI2DDrawData* pDrawData : mDraws )
+      {
+        const int srcByteCount { mGetDrawElementCount( pDrawData ) * mSizeOfElem };
+
+        *updateBufferParams++ = Render::UpdateBufferParams
+        {
+          .mSrcBytes      { mGetDrawElementBytes( pDrawData ) },
+          .mSrcByteCount  { srcByteCount },
+          .mDstByteOffset { byteOffset },
+        };
+
+        byteOffset += srcByteCount;
+      }
+
+      TAC_CALL( renderContext->UpdateBuffer( mDstBuffer, updates, errors ) );
+    }
+
+    Render::BufferHandle& mDstBuffer;
+    int&                  mDstBufferByteCount;
+    int                   mSizeOfElem;
+    int                   mSrcTotElemCount;
+    GetDrawElementBytes   mGetDrawElementBytes;
+    GetDrawElementCount   mGetDrawElementCount;
+    StringView            mBufName;
+    Span< UI2DDrawData* > mDraws;
+    Render::TexFmt        mTexFmt  { Render::TexFmt::kUnknown };
+    Render::Binding       mBinding { Render::Binding::None };
+  };
 
 #if TAC_IS_DEBUG_MODE()
 
@@ -106,137 +190,7 @@ namespace Tac
   }
 #endif
 
-  void UI2DCommonData::Init( Errors& errors )
-  {
-#if TAC_TEMPORARILY_DISABLED()
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const u8 data[] { 255, 255, 255, 255 };
-    const Render::CreateTextureParams textureData
-    {
-      .mImage
-      {
-        .mWidth { 1 },
-        .mHeight { 1 },
-        .mFormat
-        {
-          .mElementCount { 4 },
-          .mPerElementByteCount { 1 },
-          .mPerElementDataType = Render::GraphicsType::unorm,
-        },
-      },
-      .mPitch { 1 },
-      .mImageBytes { data },
-      .mBinding { Render::Binding::ShaderResource },
-    };
-    m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( m1x1White, "1x1white" );
 
-    const Render::ProgramParams programParams2D
-    {
-      .mFileStem   { "2D" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-    mShader = renderDevice->CreateProgram( programParams2D, errors );
-
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::ProgramParams programParams2Dtext
-    {
-      .mFileStem   { "2Dtext" },
-      .mStackFrame { TAC_STACK_FRAME },
-    };
-    m2DTextShader = renderDevice->CreateProgram( programParams2Dtext, errors );
-
-    const Render::VertexDeclaration posData
-    {
-      .mAttribute { Render::Attribute::Position },
-      .mTextureFormat = Render::Format
-      {
-        .mElementCount        { 2 },
-        .mPerElementByteCount { sizeof( float ) },
-        .mPerElementDataType  { Render::GraphicsType::rea }l
-      },
-      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
-    };
-
-    const Render::VertexDeclaration uvData
-    {
-      .mAttribute { Render::Attribute::Texcoord },
-      .mTextureFormat
-      { 
-        .mElementCount        { 2 },
-        .mPerElementByteCount { sizeof( float ) },
-        .mPerElementDataType  { Render::GraphicsType::rea }l
-      },
-      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
-    };
-
-    Render::VertexDeclarations decls;
-    decls.push_back( posData );
-    decls.push_back( uvData );
-
-    mFormat = Render::CreateVertexFormat( decls, mShader, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mFormat, "2dVtxFmt" );
-
-    const Render::BlendState blendStateData
-    {
-      .mSrcRGB   { Render::BlendConstants::One },
-      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
-      .mBlendRGB { Render::BlendMode::Add },
-      .mSrcA     { Render::BlendConstants::One },
-      .mDstA     { Render::BlendConstants::OneMinusSrcA },
-      .mBlendA   { Render::BlendMode::Add },
-    };
-    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mBlendState, "2dalphablend" );
-
-    const Render::DepthState depthStateData
-    {
-      .mDepthTest  {},
-      .mDepthWrite {},
-      .mDepthFunc  { Render::DepthFunc::Less },
-    };
-    mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mDepthState, "2d-no-depth" );
-
-    const Render::RasterizerState rasterizerStateData
-    {
-      .mFillMode              { Render::FillMode::Solid },
-      .mCullMode              { Render::CullMode::None },
-      .mFrontCounterClockwise { true },
-      .mScissor               { true },
-      .mMultisample           {},
-    };
-    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mRasterizerState , "2d-rast" );
-
-
-    const Render::SamplerState samplerStateData
-    {
-      .mU      { Render::AddressMode::Clamp },
-      .mV      { Render::AddressMode::Clamp },
-      .mFilter { Render::Filter::Linear },
-    };
-    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
-    Render::SetRenderObjectDebugName( mSamplerState  , "2d-samp" );
-#else
-    TAC_UNUSED_PARAMETER( errors );
-#endif
-  }
-
-  void UI2DCommonData::Uninit()
-  {
-#if TAC_TEMPORARILY_DISABLED()
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    renderDevice->DestroyTexture( m1x1White );
-    renderDevice->DestroyVertexFormat( mFormat );
-    renderDevice->DestroyProgram( mShader );
-    renderDevice->DestroyProgram( m2DTextShader );
-    renderDevice->DestroyDepthState( mDepthState );
-    renderDevice->DestroyBlendState( mBlendState );
-    renderDevice->DestroyRasterizerState( mRasterizerState );
-    renderDevice->DestroySamplerState( mSamplerState );
-#endif
-  }
 
 #if 0
 
@@ -335,14 +289,14 @@ namespace Tac
   }
 #endif
 
-  void UI2DDrawData::DrawToTexture2( Render::IContext*,
-                                     Render::TextureHandle,
-                                     UI2DDrawGpuInterface* ,
-                                     Span< UI2DDrawData > ,
-                                     Errors& )
-  {
+  //void UI2DDrawData::DrawToTexture2( Render::IContext*,
+  //                                   Render::TextureHandle,
+  //                                   UI2DDrawGpuInterface* ,
+  //                                   Span< UI2DDrawData > ,
+  //                                   Errors& )
+  //{
       //UpdateDrawInterface( this, &gDrawInterface, errors );
-  }
+  //}
 
   // -----------------------------------------------------------------------------------------------
 
@@ -353,22 +307,22 @@ namespace Tac
   //  mDebugGroupStack.Push( debugGroup );
   //}
 
-  void                   UI2DDrawData::PushDebugGroup( const StringView& name )
+  void UI2DDrawData::PushDebugGroup( const StringView& name )
   {
     mDebugGroupStack.Push( name );
   }
 
-  void                   UI2DDrawData::PopDebugGroup()
+  void UI2DDrawData::PopDebugGroup()
   {
     mDebugGroupStack.Pop();
   }
 
-  bool                   UI2DDrawData::empty() const
+  bool UI2DDrawData::empty() const
   {
     return mDrawCall2Ds.empty();
   }
 
-  void                   UI2DDrawData::clear()
+  void UI2DDrawData::clear()
   {
     mVtxs.clear();
     mIdxs.clear();
@@ -383,6 +337,7 @@ namespace Tac
     modified.mDebugGroupIndex = mDebugGroupStack.GetInfo();
 
     mDrawCall2Ds.resize( mDrawCall2Ds.size() + 1, modified );
+    //mDrawCall2Ds.push_back( modified ); <-- Why not just do this instead?
   }
 
   void UI2DDrawData::AddBox( const Box& box, const ImGuiRect* clipRect )
@@ -682,9 +637,323 @@ namespace Tac
   }
 
 
+
+
+
+
+    static const Render::BlendState sPremultipliedAlphaBlendState
+    {
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+      .mBlendRGB { Render::BlendMode::Add },
+
+      // do these 3 even matter?
+      .mSrcA     { Render::BlendConstants::One },
+      .mDstA     { Render::BlendConstants::Zero },
+      .mBlendA   { Render::BlendMode::Add },
+    };
+
+    static const Render::DepthState sDepthState
+    {
+      .mDepthTest  {},
+      .mDepthWrite {},
+      .mDepthFunc  { Render::DepthFunc::Less },
+    };
+
+    static const Render::RasterizerState sRasterizerState
+    {
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mMultisample           {},
+    };
+
+
+  static struct VtxDecls : public Render::VertexDeclarations
+  {
+    VtxDecls()
+    {
+      const Render::VertexDeclaration posData
+      {
+        .mAttribute         { Render::Attribute::Position },
+        .mFormat            { Render::VertexAttributeFormat::GetVector2() },
+        .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
+      };
+
+      const Render::VertexDeclaration uvData
+      {
+        .mAttribute         { Render::Attribute::Texcoord },
+        .mFormat            { Render::VertexAttributeFormat::GetVector2() },
+        .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
+      };
+
+      push_back( posData );
+      push_back( uvData );
+    }
+
+  } sVtxDecls;
+
+  static auto GetElement( Render::TexFmt texFmt, Errors& errors ) -> Element
+  {
+    for( Element& element : mElements )
+      if( element.mTexFmt == texFmt )
+        return element;
+
+    const Render::PipelineParams pipelineParams
+    {
+      .mProgram         { mProgram },
+      .mBlendState      { sPremultipliedAlphaBlendState },
+      .mDepthState      { sDepthState },
+      .mRasterizerState { sRasterizerState },
+      .mRTVColorFmts    { texFmt },
+      .mVtxDecls        { sVtxDecls },
+    };
+
+    mElements.resize( mElements.size() + 1 );
+    Element& element { mElements.back() };
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL_RET( const Render::PipelineHandle pipeline{
+      renderDevice->CreatePipeline( pipelineParams, errors ) } );
+
+    Render::IShaderVar* shaderImage{
+      renderDevice->GetShaderVariable( pipeline, "image" )};
+
+    Render::IShaderVar* shaderSampler{
+      renderDevice->GetShaderVariable( pipeline, "linearSampler" )};
+
+    Render::IShaderVar* shaderPerObject{
+      renderDevice->GetShaderVariable( pipeline, "perObject" )};
+
+    Render::IShaderVar* shaderPerFrame{
+      renderDevice->GetShaderVariable( pipeline, "perFrame" )};
+
+    shaderPerFrame->SetResource( mPerFrame );
+    shaderPerObject->SetResource( mPerObject );
+    shaderSampler->SetResource( mSampler );
+
+    element = Element
+    {
+      .mPipeline        { pipeline },
+      .mTexFmt          { texFmt },
+      .mShaderImage     { shaderImage },
+      .mShaderSampler   { shaderSampler },
+      .mShaderPerObject { shaderPerObject },
+      .mShaderPerFrame  { shaderPerFrame },
+    };
+    return element;
+  }
+  static void UpdatePerFrame( Render::IContext* context,
+                                                    v2i windowSize,
+                                                    Errors& errors )
+  {
+
+    const m4 proj { OrthographicUIMatrix( ( float )windowSize.x, ( float )windowSize.y ) };
+    const PerFrameType perFrame
+    {
+      .mOrthoProj         { proj },
+      .mSDFOnEdge         { FontApi::GetSDFOnEdgeValue() },
+      .mSDFPixelDistScale { FontApi::GetSDFPixelDistScale() },
+    };
+
+
+    const Render::UpdateBufferParams updatePerFrame
+    {
+      .mSrcBytes     { &perFrame },
+      .mSrcByteCount { sizeof( PerFrameType ) },
+    };
+
+    TAC_CALL( context->UpdateBuffer( mPerFrame, &updatePerFrame, errors ) );
+
+  }
+
+  static void  UpdatePerObject( Render::IContext* context,
+                                                    const UI2DDrawCall& uidrawCall,
+                                                    Errors& errors )
+  {
+
+    const u32 drawType{
+      [ & ]()
+      {
+        if( uidrawCall.mType == UI2DDrawCall::Type::kImage )
+          return ( u32 )0;
+        if( uidrawCall.mType == UI2DDrawCall::Type::kText )
+          return ( u32 )1;
+        TAC_ASSERT_INVALID_CODE_PATH;
+        return ( u32 )0;
+      }( )
+    };
+
+    const PerObjectType perObject
+    {
+      .mColor { uidrawCall.mColor },
+      .mType  { drawType },
+    };
+
+    const Render::UpdateBufferParams updatePerObj
+    {
+      .mSrcBytes     { &perObject },
+      .mSrcByteCount { sizeof( PerObjectType ) },
+    };
+
+    TAC_CALL( context->UpdateBuffer( mPerObject, &updatePerObj, errors ) );
+  }
+
+  void UI2DRenderData::DebugDraw2DToTexture( const Span< UI2DDrawData* > drawDatas,
+                                             const Render::TextureHandle texture,
+                                             const Render::TexFmt texFmt,
+                                             const v2i textureSize,
+                                             Errors& errors )
+  {
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    const int nFrames{ Render::RenderApi::GetMaxGPUFrameCount() };
+    const int iFrame{ ( int )( Render::RenderApi::GetCurrentRenderFrameIndex() % ( u64 )nFrames ) };
+
+    mVBs.resize( nFrames );
+    mVBByteCounts.resize( nFrames );
+    mIBs.resize( nFrames );
+    mIBByteCounts.resize( nFrames );
+
+    Render::BufferHandle& vB{ mVBs[ iFrame ] };
+    Render::BufferHandle& iB{ mIBs[ iFrame ] };
+    int& vBByteCount{ mVBByteCounts[ iFrame ] };
+    int& iBByteCount{ mIBByteCounts[ iFrame ] };
+
+    TAC_CALL( Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) } );
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+
+    int combinedVtxCount{};
+    int combinedIdxCount{};
+    for( const UI2DDrawData* drawData : drawDatas )
+    {
+      combinedVtxCount += drawData->mVtxs.size();
+      combinedIdxCount += drawData->mIdxs.size();
+    }
+
+    // combine draw data
+    {
+      const ShortFixedString vtxBufName{ ShortFixedString::Concat(
+        "UI2D_vtx_buf " ,
+        "(frame ", ToString( iFrame ), ")"
+      ) };
+
+      const ShortFixedString idxBufName{ ShortFixedString::Concat(
+        String( "UI2D_idx_buf " ) ,
+        "(frame ", ToString( iFrame ), ")"
+      ) };
+
+      auto getVtxBytes{ []( const UI2DDrawData* dd ) { return ( void* )dd->mVtxs.data(); } };
+      auto getVtxCount{ []( const UI2DDrawData* dd ) { return dd->mVtxs.size(); } };
+      const UI2DCopyHelper vtxCopyHelper
+      {
+        .mDstBuffer           { vB },
+        .mDstBufferByteCount  { vBByteCount },
+        .mSizeOfElem          { sizeof( UI2DVertex ) },
+        .mSrcTotElemCount     { combinedVtxCount },
+        .mGetDrawElementBytes { getVtxBytes },
+        .mGetDrawElementCount { getVtxCount },
+        .mBufName             { vtxBufName },
+        .mDraws               { drawDatas },
+        .mBinding             { Render::Binding::VertexBuffer },
+      };
+
+      auto getIdxBytes{ []( const UI2DDrawData* dd ) { return ( void* )dd->mIdxs.data(); } };
+      auto getIdxCount{ []( const UI2DDrawData* dd ) { return dd->mIdxs.size(); } };
+
+      const UI2DCopyHelper idxCopyHelper
+      {
+        .mDstBuffer           { iB },
+        .mDstBufferByteCount  { iBByteCount },
+        .mSizeOfElem          { sizeof( UI2DIndex ) },
+        .mSrcTotElemCount     { combinedIdxCount },
+        .mGetDrawElementBytes { getIdxBytes },
+        .mGetDrawElementCount { getIdxCount },
+        .mBufName             { idxBufName },
+        .mDraws               { drawDatas },
+        .mTexFmt              { Render::TexFmt::kR16_uint },
+        .mBinding             { Render::Binding::IndexBuffer },
+      };
+
+      TAC_CALL( vtxCopyHelper.Copy( renderContext, errors ) );
+      TAC_CALL( idxCopyHelper.Copy( renderContext, errors ) );
+    }
+
+    //const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( hDesktopWindow ) };
+    //const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
+    //const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
+
+    const Element& element{ GetElement( texFmt, errors ) };
+
+    const ShortFixedString renderGroupStr{ "UI2D" };
+
+    //const v2i windowSize { AppWindowApi::GetSize( hDesktopWindow ) };
+
+    //const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
+    //const Render::TextureHandle swapChainDepth { renderDevice->GetSwapChainDepth( fb ) };
+    const Render::Targets renderTargets
+    {
+      .mColors { texture },
+      //.mDepth  { swapChainDepth },
+    };
+
+    UpdatePerFrame( renderContext, textureSize, errors );
+
+    renderContext->SetVertexBuffer( vB );
+    renderContext->SetIndexBuffer( iB );
+    renderContext->SetPipeline( element.mPipeline );
+    renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
+    renderContext->SetRenderTargets( renderTargets );
+    renderContext->SetViewport( textureSize );
+    renderContext->SetScissor( textureSize );
+    renderContext->DebugEventBegin( renderGroupStr );
+    renderContext->DebugMarker( "hello hello" );
+
+    for( UI2DDrawData* drawData : drawDatas ) //  simDraws->mDrawData )
+    {
+      Render::DebugGroup::Stack& debugGroupStack{ drawData->mDebugGroupStack };
+      debugGroupStack.AssertNodeHeights();
+
+
+      static Render::DebugGroup::Iterator debugGroupIterator;
+      debugGroupIterator.Reset( renderContext );
+
+      TAC_ASSERT( debugGroupStack.GetInfo() == Render::DebugGroup::NullNodeIndex );
+
+      for( const UI2DDrawCall& uidrawCall : drawData->mDrawCall2Ds )
+      {
+        debugGroupStack.IterateElement( debugGroupIterator, uidrawCall.mDebugGroupIndex );
+
+        const Render::TextureHandle textureResource{ uidrawCall.mTexture.IsValid()
+          ? uidrawCall.mTexture
+          : m1x1White };
+
+        element.mShaderImage->SetResource( textureResource );
+
+        UpdatePerObject( renderContext, uidrawCall, errors );
+        renderContext->CommitShaderVariables();
+        renderContext->Draw(
+          Render::DrawArgs
+          {
+            .mIndexCount { uidrawCall.mIndexCount },
+            .mStartIndex { uidrawCall.mIIndexStart },
+          } );
+      }
+
+      debugGroupStack.IterateEnd( debugGroupIterator );
+
+      //for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+      //  window->mDrawData->mDebugGroupStack.clear();
+
+    }
+
+    renderContext->DebugEventEnd();
+    TAC_CALL( renderContext->Execute( errors ) );
+  }
+
 } // namespace Tac
 
-auto Tac::Get1x1White() -> Render::TextureHandle { return gUI2DCommonData.m1x1White; }
+auto Tac::Get1x1White() -> Render::TextureHandle { return m1x1White; }
 
   // Converts from UI space to NDC space
 auto Tac::OrthographicUIMatrix( const float w, const float h ) -> m4
@@ -806,5 +1075,191 @@ auto Tac::CalculateTextSize( const Codepoint* codepoints,
 #endif
 }
 
-void Tac::UI2DCommonDataInit( Errors& errors ) { gUI2DCommonData.Init( errors ); }
-void Tac::UI2DCommonDataUninit()               { gUI2DCommonData.Uninit(); }
+void Tac::UI2DCommonDataInit( Errors& errors )
+{ 
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+
+    mSampler = renderDevice->CreateSampler(
+      Render::CreateSamplerParams
+    {
+      .mFilter { Render::Filter::Linear },
+      .mName   { "imgui linear sampler" },
+    } );
+
+    TAC_CALL( mProgram = renderDevice->CreateProgram(
+      Render::ProgramParams{ .mInputs { "ImGui" }, },
+      errors ) );
+
+    TAC_CALL( mPerFrame = renderDevice->CreateBuffer(
+      Render::CreateBufferParams
+    {
+      .mByteCount     { sizeof( PerFrameType ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "UI2D_per_frame" },
+    }, errors ) );
+
+    TAC_CALL( mPerObject = renderDevice->CreateBuffer(
+      Render::CreateBufferParams 
+    {
+      .mByteCount     { sizeof( PerObjectType ) },
+      .mUsage         { Render::Usage::Dynamic },
+      .mBinding       { Render::Binding::ConstantBuffer },
+      .mOptionalName  { "UI2D_per_object" },
+    }, errors ) );
+
+
+    const u8 data[] { 255, 255, 255, 255 };
+    const Render::CreateTextureParams::Subresource subresource
+    {
+      .mBytes { data },
+      .mPitch { 4 },
+    };
+    const Render::CreateTextureParams createTextureParams
+    {
+      .mImage        {
+        Render::Image
+        {
+          .mWidth  { 1 },
+          .mHeight { 1 },
+          .mFormat { Render::TexFmt::kRGBA8_unorm },
+        } },
+      .mMipCount     { 1 },
+      .mSubresources { &subresource },
+      .mBinding      { Render::Binding::ShaderResource },
+      .mOptionalName { "1x1white" },
+    };
+    TAC_CALL( m1x1White = renderDevice->CreateTexture( createTextureParams, errors ) );
+
+
+#if TAC_TEMPORARILY_DISABLED()
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const u8 data[] { 255, 255, 255, 255 };
+    const Render::CreateTextureParams textureData
+    {
+      .mImage
+      {
+        .mWidth { 1 },
+        .mHeight { 1 },
+        .mFormat
+        {
+          .mElementCount { 4 },
+          .mPerElementByteCount { 1 },
+          .mPerElementDataType = Render::GraphicsType::unorm,
+        },
+      },
+      .mPitch { 1 },
+      .mImageBytes { data },
+      .mBinding { Render::Binding::ShaderResource },
+    };
+    m1x1White = Render::CreateTexture( textureData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( m1x1White, "1x1white" );
+
+    const Render::ProgramParams programParams2D
+    {
+      .mFileStem   { "2D" },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+    mShader = renderDevice->CreateProgram( programParams2D, errors );
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::ProgramParams programParams2Dtext
+    {
+      .mFileStem   { "2Dtext" },
+      .mStackFrame { TAC_STACK_FRAME },
+    };
+    m2DTextShader = renderDevice->CreateProgram( programParams2Dtext, errors );
+
+    const Render::VertexDeclaration posData
+    {
+      .mAttribute { Render::Attribute::Position },
+      .mTextureFormat = Render::Format
+      {
+        .mElementCount        { 2 },
+        .mPerElementByteCount { sizeof( float ) },
+        .mPerElementDataType  { Render::GraphicsType::rea }l
+      },
+      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mPosition ) },
+    };
+
+    const Render::VertexDeclaration uvData
+    {
+      .mAttribute { Render::Attribute::Texcoord },
+      .mTextureFormat
+      { 
+        .mElementCount        { 2 },
+        .mPerElementByteCount { sizeof( float ) },
+        .mPerElementDataType  { Render::GraphicsType::rea }l
+      },
+      .mAlignedByteOffset { TAC_OFFSET_OF( UI2DVertex, mGLTexCoord ) },
+    };
+
+    Render::VertexDeclarations decls;
+    decls.push_back( posData );
+    decls.push_back( uvData );
+
+    mFormat = Render::CreateVertexFormat( decls, mShader, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mFormat, "2dVtxFmt" );
+
+    const Render::BlendState blendStateData
+    {
+      .mSrcRGB   { Render::BlendConstants::One },
+      .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+      .mBlendRGB { Render::BlendMode::Add },
+      .mSrcA     { Render::BlendConstants::One },
+      .mDstA     { Render::BlendConstants::OneMinusSrcA },
+      .mBlendA   { Render::BlendMode::Add },
+    };
+    mBlendState = Render::CreateBlendState( blendStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mBlendState, "2dalphablend" );
+
+    const Render::DepthState depthStateData
+    {
+      .mDepthTest  {},
+      .mDepthWrite {},
+      .mDepthFunc  { Render::DepthFunc::Less },
+    };
+    mDepthState = Render::CreateDepthState( depthStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mDepthState, "2d-no-depth" );
+
+    const Render::RasterizerState rasterizerStateData
+    {
+      .mFillMode              { Render::FillMode::Solid },
+      .mCullMode              { Render::CullMode::None },
+      .mFrontCounterClockwise { true },
+      .mScissor               { true },
+      .mMultisample           {},
+    };
+    mRasterizerState = Render::CreateRasterizerState( rasterizerStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mRasterizerState , "2d-rast" );
+
+
+    const Render::SamplerState samplerStateData
+    {
+      .mU      { Render::AddressMode::Clamp },
+      .mV      { Render::AddressMode::Clamp },
+      .mFilter { Render::Filter::Linear },
+    };
+    mSamplerState = Render::CreateSamplerState( samplerStateData, TAC_STACK_FRAME );
+    Render::SetRenderObjectDebugName( mSamplerState  , "2d-samp" );
+#else
+    TAC_UNUSED_PARAMETER( errors );
+#endif
+
+}
+void Tac::UI2DCommonDataUninit()              
+{
+#if TAC_TEMPORARILY_DISABLED()
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    renderDevice->DestroyTexture( m1x1White );
+    renderDevice->DestroyVertexFormat( mFormat );
+    renderDevice->DestroyProgram( mShader );
+    renderDevice->DestroyProgram( m2DTextShader );
+    renderDevice->DestroyDepthState( mDepthState );
+    renderDevice->DestroyBlendState( mBlendState );
+    renderDevice->DestroyRasterizerState( mRasterizerState );
+    renderDevice->DestroySamplerState( mSamplerState );
+#endif
+
+}

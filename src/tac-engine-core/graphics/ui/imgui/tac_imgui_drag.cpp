@@ -83,7 +83,7 @@ namespace Tac
     //if( hovered )
     //  Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
 
-    if( hovered && AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+    if( hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
       SetActiveID( id, window );
 
     const bool active { GetActiveID() == id };
@@ -92,17 +92,17 @@ namespace Tac
     {
       if( dragFloatData->mMode == DragMode::Drag )
       {
-        v2 screenspaceMousePos { AppKeyboardApi::GetMousePosScreenspace() };
+        v2 screenspaceMousePos { UIKeyboardApi::GetMousePosScreenspace() };
         static float lastMouseXDesktopWindowspace;
 
 
-        if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+        if( UIKeyboardApi::JustPressed( Key::MouseLeft ) )
         {
           lastMouseXDesktopWindowspace = screenspaceMousePos.x;
           dragFloatData->mDragDistPx = 0;
           MemCpy( dragFloatData->mValueCopy, valueBytes, valueByteCount );
         }
-        else if ( AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+        else if ( UIKeyboardApi::IsPressed( Key::MouseLeft ) )
         {
           WindowHandle windowHandle { window->GetWindowHandle() };
           const v2 desktopWindowPos { AppWindowApi::GetPos( windowHandle ) };
@@ -134,7 +134,7 @@ namespace Tac
         // handle double click
         static GameTime lastMouseReleaseSeconds;
         static v2 lastMousePositionDesktopWindowspace;
-        if( AppKeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
+        if( UIKeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
         {
           const GameTime mouseReleaseSeconds { ImGuiGlobals::Instance.mElapsedSeconds };
           const GameTimeDelta kDoubleClickSecs{ .mSeconds{ 0.5f } };
@@ -173,7 +173,7 @@ namespace Tac
           valueStr = newText;
 
           // tab between x,y,z for imguidragfloat3
-          //if( AppKeyboardApi::JustPressed( Key::Tab ) )
+          //if( UIKeyboardApi::JustPressed( Key::Tab ) )
           //  window->mIDAllocator->mActiveID++;
         }
       }

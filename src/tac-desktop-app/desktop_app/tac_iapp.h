@@ -45,7 +45,7 @@ namespace Tac
     virtual void Init( Errors& ){};
     virtual void Update( Errors& ){};
     virtual void Render( RenderParams, Errors& ){};
-    virtual void Present( Errors& ){};
+    //virtual void Present( Errors& ){};
     virtual void Uninit( Errors& ){};
     virtual auto GameState_Create() -> State;
     virtual void GameState_Update( IState* ) {} // should be called like, sync render state

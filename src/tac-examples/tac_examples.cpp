@@ -214,8 +214,8 @@ namespace Tac
       ExamplesRenderCallback( renderParams, errors );
     }
 
-    void Present( Errors& ) override
-    {
+    //void Present( Errors& ) override
+    //{
       //const SysWindowApi windowApi{ presentParams.mWindowApi };
       //const WindowHandle handles[]{ sNavWindow, sDemoWindow };
       //for( WindowHandle handle : handles )
@@ -227,7 +227,7 @@ namespace Tac
       //    TAC_CALL( renderDevice->Present( swapChain, errors ) );
       //  }
       //}
-    }
+    //}
 
     auto GameState_Create() -> State override { return TAC_NEW ExampleState; }
 

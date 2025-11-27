@@ -32,13 +32,27 @@ namespace Tac
     static void DesktopWindowDebugImgui();
   };
 
+#if 1
   struct AppWindowMgr
   {
+    //enum class Condition
+    //{
+    //  kNone = 0,
+    //  kAlways,
+    //  kFirstUse
+    //};
+
+    static void SetNextWindowPosition( v2/*, Condition = Condition::kNone*/ );
+    static void SetNextWindowSize( v2/*, Condition = Condition::kNone*/ );
     static bool WindowBegin( StringView );
     static void WindowEnd();
+    static auto GetWindowHandle() -> WindowHandle;
+    static auto GetWindowHandle( StringView ) -> WindowHandle;
     static void FrameBegin();
     static void FrameEnd();
+    static void RenderPresent( Errors&);
   };
+#endif
 
 } // namespace Tac
 

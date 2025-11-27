@@ -201,19 +201,13 @@ namespace Tac::Render
     ID3D12GraphicsCommandList* commandList{ commitParams.mCommandList };
     const bool isCompute{ commitParams.mIsCompute };
     const UINT rootParameterIndex{ commitParams.mRootParameterIndex };
-
     DX12Renderer&   renderer   { DX12Renderer::sRenderer };
-    //DX12TextureMgr* textureMgr { &renderer.mTexMgr };
-    //DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
-    //DX12SamplerMgr* samplerMgr { &renderer.mSamplerMgr };
     ID3D12Device*   device     { renderer.mDevice };
 
     const D3D12_DESCRIPTOR_HEAP_TYPE heapType{ GetHeapType( mProgramBindType ) };
-
     dynmc DX12TransitionHelper transitionHelper;
     const Span< DX12Descriptor > cpuDescriptors{ GetDescriptors( &transitionHelper ) };
     transitionHelper.ResourceBarrier( commandList );
-
     dynmc DX12DescriptorHeap& heap{ renderer.mDescriptorHeapMgr.mGPUHeaps[ heapType ] };
     dynmc DX12DescriptorAllocator* descriptorAllocator{ heap.GetRegionMgr() };
     const int nDescriptors{ cpuDescriptors.size() };

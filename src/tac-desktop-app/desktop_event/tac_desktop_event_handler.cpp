@@ -1,6 +1,7 @@
 #include "tac_desktop_event_handler.h" // self-inc
 
 #include "tac-engine-core/window/tac_window_backend.h"
+#include "tac-engine-core/hid/tac_app_keyboard_api.h"
 
 namespace Tac
 {
@@ -13,12 +14,13 @@ namespace Tac
   void DesktopEventHandler::Handle( const DesktopEventApi::WindowActivationEvent& data )
   {
     // Release all keys on deactivation
-    if( data.mState == 0 )
+    if( data.mState == DesktopEventApi::WindowActivationEvent::State::Deactivated )
     {
       for( int i{}; i < ( int )Key::Count; ++i )
       {
         const Key key{ ( Key )i };
-        AppKeyboardApiBackend::SetKeyState( key, AppKeyboardApiBackend::KeyState::Up );
+        AppKeyboardApiBackend::sUIKeyboardBackend.SetKeyState( key, AppKeyboardApiBackend::KeyState::Up );
+        AppKeyboardApiBackend::sGameKeyboardBackend.SetKeyState( key, AppKeyboardApiBackend::KeyState::Up );
       }
     }
   }
@@ -48,7 +50,9 @@ namespace Tac
 
   void DesktopEventHandler::Handle( const DesktopEventApi::KeyInputEvent& data ) 
   {
-    AppKeyboardApiBackend::SetCodepoint( data.mCodepoint );
+    AppKeyboardApiBackend::sUIKeyboardBackend.SetCodepoint( data.mCodepoint );
+    if( !UIKeyboardApi::sWantCaptureKeyboard )
+      AppKeyboardApiBackend::sGameKeyboardBackend.SetCodepoint( data.mCodepoint );
   }
 
   void DesktopEventHandler::Handle( const DesktopEventApi::KeyStateEvent& data ) 
@@ -57,7 +61,9 @@ namespace Tac
       ? AppKeyboardApiBackend::KeyState::Down
       : AppKeyboardApiBackend::KeyState::Up };
 
-    AppKeyboardApiBackend::SetKeyState( data.mKey, state );
+    AppKeyboardApiBackend::sUIKeyboardBackend.SetKeyState( data.mKey, state );
+    if( !UIKeyboardApi::sWantCaptureKeyboard )
+      AppKeyboardApiBackend::sGameKeyboardBackend.SetKeyState( data.mKey, state );
   }
 
   void DesktopEventHandler::Handle( const DesktopEventApi::MouseMoveEvent& data )
@@ -65,12 +71,16 @@ namespace Tac
     const v2 screenSpaceWindowPos{ AppWindowApiBackend::GetWindowPos( data.mWindowHandle ) };
     const v2 windowSpaceMousePos{ ( float )data.mX, ( float )data.mY };
     const v2 screenSpaceMousePos{ screenSpaceWindowPos + windowSpaceMousePos };
-    AppKeyboardApiBackend::SetScreenspaceMousePos( screenSpaceMousePos );
+    AppKeyboardApiBackend::sUIKeyboardBackend.SetScreenspaceMousePos( screenSpaceMousePos );
+    if( !UIKeyboardApi::sWantCaptureMouse )
+      AppKeyboardApiBackend::sGameKeyboardBackend.SetScreenspaceMousePos( screenSpaceMousePos );
   }
 
   void DesktopEventHandler::Handle( const DesktopEventApi::MouseWheelEvent& data ) 
   {
-    AppKeyboardApiBackend::AddMouseWheelDelta( data.mDelta );
+    AppKeyboardApiBackend::sUIKeyboardBackend.AddMouseWheelDelta( data.mDelta );
+    if( !UIKeyboardApi::sWantCaptureMouse )
+      AppKeyboardApiBackend::sGameKeyboardBackend.AddMouseWheelDelta( data.mDelta );
   }
 
   void DesktopEventHandler::Handle( const DesktopEventApi::WindowMoveEvent& data ) 

@@ -3,7 +3,7 @@
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/error/tac_assert.h"
 
-Tac::StringView Tac::KeyToString( const Key key )
+auto Tac::KeyToString( const Key key ) -> StringView
 {
   switch( key )
   {

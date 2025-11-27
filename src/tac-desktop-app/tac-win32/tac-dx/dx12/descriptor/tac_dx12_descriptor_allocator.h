@@ -30,9 +30,9 @@ namespace Tac::Render
       DX12DescriptorHeap* mDescriptorHeap {};
     };
 
-    void                 Init( Params );
-    DX12DescriptorRegion Alloc( int );
-    void                 PumpFreeQueue();
+    void Init( Params );
+    auto Alloc( int ) -> DX12DescriptorRegion;
+    void PumpFreeQueue();
 
   private:
 
@@ -62,23 +62,20 @@ namespace Tac::Render
       static auto StateToString( State ) -> StringView;
     };
 
-    void           Free( RegionDesc* );
-    RegionIndex    GetIndex( RegionDesc* ) const;
-    RegionDesc*    GetRegionAtIndex( RegionIndex );
-    void           DebugPrint();
-    void           DebugTitleBegin( StringView );
-    void           DebugTitleEnd( StringView );
-    String         DebugFreeListString();
-    String         DebugPendingFreeListString();
-    void           RemoveFromFreeList( RegionDesc* );
-
+    void Free( RegionDesc* );
+    auto GetIndex( RegionDesc* ) const -> RegionIndex;
+    auto GetRegionAtIndex( RegionIndex ) -> RegionDesc*;
+    void DebugPrint();
+    void DebugTitleBegin( StringView );
+    void DebugTitleEnd( StringView );
+    auto DebugFreeListString() -> String;
+    auto DebugPendingFreeListString() -> String;
+    void RemoveFromFreeList( RegionDesc* );
 
     Vector< RegionDesc >   mRegions          {};
-
     Vector< RegionIndex >  mFreeNodes        {};
     Vector< RegionIndex >  mPendingFreeNodes {};
     Vector< RegionIndex >  mUnusedNodes      {};
-
     DX12CommandQueue*      mCommandQueue     {};
     DX12DescriptorHeap*    mOwner            {};
     int                    mPump             {};

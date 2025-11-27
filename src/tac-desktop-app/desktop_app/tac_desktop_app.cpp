@@ -93,7 +93,8 @@ namespace Tac
 
     TAC_CALL( ImGuiEndFrame( errors ) );
 
-    AppKeyboardApiBackend::Sync();
+    AppKeyboardApiBackend::sGameKeyboardBackend.Sync();
+    AppKeyboardApiBackend::sUIKeyboardBackend.Sync();
 
     Swap( sPrevState, sCurrState );
 
@@ -173,7 +174,9 @@ namespace Tac
           const v2i windowPos{ AppWindowApi::GetPos( desktopWindow->mWindowHandle ) };
           const v2i windowPosRequest{ desktopWindow->mRequestedPosition.GetValue() };
           if( windowPos != windowPosRequest )
+          {
             AppWindowApi::SetPos( desktopWindow->mWindowHandle, windowPosRequest );
+          }
         }
 
         if( desktopWindow->mRequestedSize.HasValue() )
@@ -187,8 +190,9 @@ namespace Tac
 
       if( sCurrState->mGameTime.mSeconds > sRenderDelay )
       {
-        TAC_CALL( sApp->Present( errors ) );
+        //TAC_CALL( sApp->Present( errors ) );
         TAC_CALL( ImGuiPlatformPresent( errors ) );
+        TAC_CALL( AppWindowMgr::RenderPresent( errors ) );
       }
 
       sNumRenderFramesSincePrevSimFrame++;

@@ -24,7 +24,7 @@
 
 namespace Tac
 {
-  static int ComputeLineCount( const StringView& s )
+  static auto ComputeLineCount( const StringView& s ) -> int
   {
     // todo: word wrap
     int lineCount{ 1 };
@@ -34,8 +34,7 @@ namespace Tac
     return lineCount;
   }
 
-  static int GetCaret( const Vector< Codepoint >& codepoints,
-                       float mousePos ) // mouse pos rel text top left corner
+  static auto GetCaret( const Vector< Codepoint >& codepoints, float mousePos ) -> int // mouse pos rel text top left corner
   {
     const int codepointCount{ codepoints.size() };
 
@@ -57,7 +56,7 @@ namespace Tac
   }
 
 
-  static SettingsNode ImGuiGetWindowSettingsJson( const StringView& name )
+  static auto ImGuiGetWindowSettingsJson( const StringView& name ) -> SettingsNode
   {
     SettingsNode windowsJson{ ImGuiGlobals::Instance.mSettingsNode.GetChild( "imgui.windows" ) };
     const int n{ windowsJson.GetValue().mArrayElements.size() };
@@ -101,10 +100,10 @@ namespace Tac
     ImGuiSaveWindowWithSettings( window->mName, pos.x, pos.y, size.x, size.y );
   }
 
-  static const v4& GetFrameColor( const bool hovered )
+  static auto GetFrameColor( const bool hovered ) -> const v4&
   {
     //ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    const bool active{ hovered && AppKeyboardApi::IsPressed( Key::MouseLeft ) };
+    const bool active{ hovered && UIKeyboardApi::IsPressed( Key::MouseLeft ) };
     const v4& boxColor{ ImGuiGetColor( active
                                        ? ImGuiCol::FrameBGActive : hovered
                                        ? ImGuiCol::FrameBGHovered : ImGuiCol::FrameBG ) };
@@ -227,7 +226,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static Vector< UI2DDrawGpuInterface > sDrawInterfaces;
+  //static Vector< UI2DDrawGpuInterface > sDrawInterfaces;
 }
 
 void Tac::TextInputDataUpdateKeys( TextInputData* inputData, const v2& mousePos, const v2& textPos )
@@ -246,19 +245,19 @@ void Tac::TextInputDataUpdateKeys( TextInputData* inputData, const v2& mousePos,
   };
 
   for( const KeyMap& keyMap : keyMaps )
-    if( AppKeyboardApi::JustPressed( keyMap.mKey ) )
+    if( UIKeyboardApi::JustPressed( keyMap.mKey ) )
       inputData->OnKeyPressed( keyMap.mTextInputKey );
 
-  const CodepointView codepoints{ AppKeyboardApi::GetCodepoints() };
+  const CodepointView codepoints{ UIKeyboardApi::GetCodepoints() };
   for( Codepoint codepoint : codepoints )
     inputData->OnCodepoint( codepoint );
 
-  if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+  if( UIKeyboardApi::JustPressed( Key::MouseLeft ) )
   {
     const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints, mousePos.x - textPos.x );
     inputData->OnClick( numGlyphsBeforeCaret );
   }
-  else if( AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+  else if( UIKeyboardApi::IsPressed( Key::MouseLeft ) )
   {
     const int numGlyphsBeforeCaret = GetCaret( inputData->mCodepoints, mousePos.x - textPos.x );
     inputData->OnDrag( numGlyphsBeforeCaret );
@@ -400,7 +399,6 @@ bool Tac::ImGuiBegin( const StringView& name )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   
-  //ImGuiCreateWindow createWindowFn = globals.mCreateWindow;
   ImGuiWindow* window{ globals.FindWindow( name ) };
   if( !window )
   {
@@ -534,6 +532,7 @@ void Tac::ImGuiBeginChild( const StringView& name, const v2& size )
 {
   ImGuiGlobals& Instance{ ImGuiGlobals::Instance };
   ImGuiWindow* parent{ Instance.mCurrentWindow };
+  TAC_ASSERT( parent );
   ImGuiWindow* child{ Instance.FindWindow( name ) };
   if( !child )
   {
@@ -668,7 +667,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   const ImGuiID activeId{ GetActiveID() };
   const bool hovered{ window->IsHovered( clipRect ) };
   const bool isActive{ activeId == id };
-  const bool mouseLeftJustPressed{ AppKeyboardApi::JustPressed( Key::MouseLeft ) };
+  const bool mouseLeftJustPressed{ UIKeyboardApi::JustPressed( Key::MouseLeft ) };
 
   if( mouseLeftJustPressed && hovered && !isActive )
   {
@@ -698,11 +697,11 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
     // handle double click
     static GameTime lastMouseReleaseSeconds;
     static v2 lastMousePositionDesktopWindowspace;
-    if( AppKeyboardApi::JustDepressed( Key::MouseLeft ) &&
+    if( UIKeyboardApi::JustDepressed( Key::MouseLeft ) &&
         hovered &&
         !textInputData->mCodepoints.empty() )
     {
-      const v2 screenspaceMousePos{ AppKeyboardApi::GetMousePosScreenspace() };
+      const v2 screenspaceMousePos{ UIKeyboardApi::GetMousePosScreenspace() };
       const GameTime elapsedSecs{ ImGuiGlobals::Instance.mElapsedSeconds };
       const GameTimeDelta kDoubleClickSecs{ 0.5f };
       const bool releasedRecently{ elapsedSecs - lastMouseReleaseSeconds < kDoubleClickSecs };
@@ -770,11 +769,11 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   const ImGuiRect clipRectViewport{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRectViewport ) };
   const bool active{ globals.mActiveID == id };
-  const bool clicked{ hovered && AppKeyboardApi::JustPressed( Key::MouseLeft ) };
+  const bool clicked{ hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) };
   if( clicked )
     SetActiveID( id, window );
 
-  if( active && !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+  if( active && !UIKeyboardApi::IsPressed( Key::MouseLeft ) )
     ClearActiveID();
 
   if( selected || hovered )
@@ -823,7 +822,7 @@ bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
     SetHoveredID( id );
   }
 
-  return hovered && AppKeyboardApi::JustPressed( Key::MouseLeft );
+  return hovered && UIKeyboardApi::JustPressed( Key::MouseLeft );
 }
 
 bool Tac::ImGuiButton( const StringView& str, v2 size )
@@ -878,7 +877,7 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
       .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
     }, &clipRect );
   drawData->PopDebugGroup();
-  return hovered && AppKeyboardApi::JustPressed( Key::MouseLeft );
+  return hovered && UIKeyboardApi::JustPressed( Key::MouseLeft );
 }
 
 bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
@@ -900,7 +899,7 @@ bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRect ) };
   const Key lmb{ Key::MouseLeft };
-  if( hovered && AppKeyboardApi::JustPressed( lmb ) )
+  if( hovered && UIKeyboardApi::JustPressed( lmb ) )
   {
     *value = !*value;
     //Mouse::ButtonSetIsDown( lmb, false );
@@ -1040,7 +1039,7 @@ bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags fl
     window->mCollapsingHeaderStates[ id ] = true;
 
   bool& isOpen{ window->mCollapsingHeaderStates[ id ] };
-  if( hovered && AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+  if( hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
     isOpen = !isOpen;
 
   UI2DDrawData* drawData{ window->mDrawData };

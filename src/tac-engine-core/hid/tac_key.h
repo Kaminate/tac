@@ -1,6 +1,7 @@
 #pragma once
 
-namespace Tac{ struct StringView; }
+#include "tac-std-lib/string/tac_string_view.h"
+
 namespace Tac
 {
   enum class Key
@@ -30,5 +31,5 @@ namespace Tac
     Count,
   };
   
-  StringView KeyToString( Key );
+  auto KeyToString( Key ) -> StringView;
 }
