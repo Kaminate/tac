@@ -665,7 +665,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
   const ImGuiID activeId{ GetActiveID() };
-  const bool hovered{ window->IsHovered( clipRect ) };
+  const bool hovered{ window->IsHovered( clipRect, id ) };
   const bool isActive{ activeId == id };
   const bool mouseLeftJustPressed{ UIKeyboardApi::JustPressed( Key::MouseLeft ) };
 
@@ -767,7 +767,7 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   TAC_ON_DESTRUCT( drawData->PopDebugGroup() );
 
   const ImGuiRect clipRectViewport{ window->Clip( origRect ) };
-  const bool hovered{ window->IsHovered( clipRectViewport ) };
+  const bool hovered{ window->IsHovered( clipRectViewport, id ) };
   const bool active{ globals.mActiveID == id };
   const bool clicked{ hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) };
   if( clicked )
@@ -814,13 +814,9 @@ bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
   if( !window->Overlaps( origRect ) )
     return false;
 
-  const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const bool hovered{ window->IsHovered( clipRect ) };
-  if( hovered )
-  {
     const ImGuiID id{ window->GetID( str ) };
-    SetHoveredID( id );
-  }
+  const ImGuiRect clipRect{ window->Clip( origRect ) };
+  const bool hovered{ window->IsHovered( clipRect, id ) };
 
   return hovered && UIKeyboardApi::JustPressed( Key::MouseLeft );
 }
@@ -849,16 +845,9 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
   if( !window->Overlaps( origRect ) )
     return false;
 
+  const ImGuiID id{ window->GetID( str ) };
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const bool hovered{ window->IsHovered( clipRect ) };
-  if( hovered )
-  {
-    const ImGuiID id{ window->GetID( str ) };
-    SetHoveredID( id );
-
-    //static GameTime d;
-    //Mouse::TryConsumeMouseMovement( &d, TAC_STACK_FRAME );
-  }
+  const bool hovered{ window->IsHovered( clipRect, id ) };
   UI2DDrawData* drawData{ window->mDrawData };
   drawData->PushDebugGroup( ShortFixedString::Concat( "Button(", str, ")" ) );
   drawData->AddBox(
@@ -884,6 +873,7 @@ bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
 {
   ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   ImGuiWindow* window{ globals.mCurrentWindow };
+  const ImGuiID id{ window->GetID( str ) };
   const bool oldValue{ *value };
   const v2& itemSpacing{ ImGuiGetItemSpacing() };
   const v2 pos{ window->mViewportSpaceCurrCursor };
@@ -897,7 +887,7 @@ bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
     return false;
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const bool hovered{ window->IsHovered( clipRect ) };
+  const bool hovered{ window->IsHovered( clipRect, id ) };
   const Key lmb{ Key::MouseLeft };
   if( hovered && UIKeyboardApi::JustPressed( lmb ) )
   {
@@ -941,12 +931,6 @@ void Tac::ImGuiSetCursorPos( const v2 local )
   ImGuiGlobals::Instance.mCurrentWindow->mViewportSpaceCurrCursor = local;
 }
 
-bool Tac::ImGuiIsRectHovered( ImGuiRect rect )
-{
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  return globals.mMouseHoveredWindow == globals.mCurrentWindow->GetWindowHandle()
-    && globals.mCurrentWindow->IsHovered( rect );
-}
 
 auto Tac::ImGuiGetStyle() -> Tac::UIStyle&                { return ImGuiGlobals::Instance.mUIStyle; }
 auto Tac::ImGuiGetColor( ImGuiCol col ) -> const Tac::v4& { return ImGuiGetStyle().colors[ ( int )col ]; }
@@ -1033,8 +1017,8 @@ bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags fl
     return false;
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const bool hovered{ window->IsHovered( clipRect ) };
   const ImGuiID id{ window->GetID( name ) };
+  const bool hovered{ window->IsHovered( clipRect, id ) };
   if( flags & ImGuiNodeFlags_DefaultOpen && !window->mCollapsingHeaderStates.contains( id ) )
     window->mCollapsingHeaderStates[ id ] = true;
 
@@ -1136,6 +1120,11 @@ void Tac::ImGuiEndFrame( Errors& errors )
 
   for( ImGuiWindow* window : globals.mAllWindows )
     window->BeginMoveControls();
+
+  if( ImGuiGlobals::Instance.mHoveredIDPrev && !ImGuiGlobals::Instance.mHoveredID )
+    ImGuiGlobals::Instance.mHoverStartTime = {};
+  ImGuiGlobals::Instance.mHoveredIDPrev = ImGuiGlobals::Instance.mHoveredID;
+
 }
 
 auto Tac::ImGuiGetFontSize() -> float             { return ImGuiGetStyle().fontSize; }

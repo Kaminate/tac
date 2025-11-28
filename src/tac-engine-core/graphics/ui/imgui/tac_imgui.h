@@ -126,7 +126,6 @@ namespace Tac
   auto ImGuiGetFontSize() -> float;
   auto ImGuiGetItemSpacing() -> const v2&;
   auto ImGuiGetButtonPadding() -> float;
-  bool ImGuiIsRectHovered( ImGuiRect );
 
   //   ImGui System Functions
   void ImGuiInit( const ImGuiInitParams&, Errors& );

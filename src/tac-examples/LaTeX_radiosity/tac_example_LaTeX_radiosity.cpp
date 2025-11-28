@@ -4,7 +4,9 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_microtex.h"
+#include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/containers/tac_vector_meta.h"
@@ -243,8 +245,8 @@ namespace Tac
   static auto CameraToWindow( v2 p_view ) -> v2
   {
     const ImGuiRect contentRect{ ImGuiGetContentRect() };
-    float px_per_world_unit = contentRect.GetHeight() / sWorldspaceCamHeight;
-    v2 p_window = p_view * px_per_world_unit;
+    float px_per_world_unit{ contentRect.GetHeight() / sWorldspaceCamHeight };
+    v2 p_window{ p_view * px_per_world_unit };
     p_window.y *= -1;
     p_window.x += contentRect.GetWidth() / 2;
     p_window.y += contentRect.GetHeight() / 2;
@@ -253,8 +255,8 @@ namespace Tac
 
   static auto WorldToWindow( v2 p_world ) -> v2
   {
-    v2 p_view = WorldToCamera( p_world );
-    v2 p_window = CameraToWindow( p_view );
+    v2 p_view{ WorldToCamera( p_world ) };
+    v2 p_window{ CameraToWindow( p_view ) };
     return p_window;
   }
 
@@ -298,7 +300,16 @@ namespace Tac
     v2 rectMaxi_windowspace{ pos_windowspace + v2( size_windowspace.x * 1.05f,
                                                    size_windowspace.y * 1.25f ) };
     ImGuiRect rect_windowspace{ ImGuiRect::FromMinMax( rectMini_windowspace, rectMaxi_windowspace ) };
-    const bool hovered{ ImGuiIsRectHovered( rect_windowspace ) };
+    bool hovered = false;
+    WindowHandle hoveredWindow{ Platform::PlatformGetMouseHoveredWindow() };
+    WindowHandle imguiWindow{ ImGuiGetWindowHandle() };
+    if( hoveredWindow == imguiWindow )
+    {
+      v2i windowPos{ AppWindowApi::GetPos( hoveredWindow ) };
+      v2i mousePosScreenspace{ AppKeyboardApi::GetMousePosScreenspace() };
+      v2i mousePosWindowSpace{ mousePosScreenspace - windowPos };
+      hovered = rect_windowspace.ContainsPoint( mousePosWindowSpace );
+    }
     if( !hovered )
       return;
     
@@ -462,7 +473,18 @@ namespace Tac
 
       ImGuiRect rect_windowspace{ ImGuiRect::FromPosSize( def.mRuntimeData.mPos_windowspace,
                                                           def.mRuntimeData.mSize_windowspace ) };
-      const bool hovered{ ImGuiIsRectHovered( rect_windowspace ) };
+
+      WindowHandle hoveredWindow{ Platform::PlatformGetMouseHoveredWindow() };
+      WindowHandle imguiWindow{ ImGuiGetWindowHandle() };
+      bool hovered = false;
+      if( hoveredWindow == imguiWindow )
+      {
+        v2i windowPos{ AppWindowApi::GetPos( hoveredWindow ) };
+        v2i mousePosScreenspace{ AppKeyboardApi::GetMousePosScreenspace() };
+        v2i mousePosWindowSpace{ mousePosScreenspace - windowPos };
+        hovered = rect_windowspace.ContainsPoint( mousePosWindowSpace );
+      }
+
       def.mRuntimeData.mHovered = hovered;
       if( def.mRuntimeData.mHovered && AppKeyboardApi::JustPressed( Key::MouseLeft ) )
       {

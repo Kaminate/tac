@@ -211,7 +211,9 @@ namespace Tac
           ? textFunction + textPrefix.size()
           : textFunction };
 
-        if( imguiWindow->IsHovered( boxRect ) )
+        ImGuiID id{ imguiWindow->GetID( profileFunction->mName ) };
+
+        if( imguiWindow->IsHovered( boxRect, id ) )
         {
           const v2 textSize { CalculateTextSize( profileFunction->mName, fontSize ) };
           const float boxDeltaMsec { ( float )( boxDeltaSeconds * 1000 ) };
@@ -247,7 +249,8 @@ namespace Tac
     // Pan camera
     {
       const ImGuiRect viewRect { ImGuiRect::FromPosSize( cameraViewportPos, cameraViewportSize ) };
-      if( imguiWindow->IsHovered( viewRect ) )
+      ImGuiID id{ imguiWindow->GetID( "##PROFILECAMERA" ) };
+      if( imguiWindow->IsHovered( viewRect, id ) )
       {
         //static GameTime mouseMovement;
         //Mouse::TryConsumeMouseMovement( &mouseMovement, TAC_STACK_FRAME );
@@ -380,7 +383,7 @@ void Tac::ImGuiProfileWidget()
     const v2 cameraViewportPos { imguiWindow->mViewportSpaceCurrCursor };
     const v2 cameraViewportSize { imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos };
     ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
-    ImGuiProfileWidgetCamera(  cameraViewportPos, cameraViewportSize );
+    ImGuiProfileWidgetCamera( cameraViewportPos, cameraViewportSize );
   }
 }
 

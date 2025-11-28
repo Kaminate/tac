@@ -105,6 +105,7 @@ namespace Tac
     const float scrollbarWidth { 30 };
 
 
+    const ImGuiID id{ GetID( "##SCROLLBAR" ) };
     const v2 scrollbarBackgroundMini { mViewportSpacePos + v2( mSize.x - scrollbarWidth, 0 ) };
     const v2 scrollbarBackgroundMaxi { mViewportSpacePos + mSize };
 
@@ -130,7 +131,7 @@ namespace Tac
 
     // scroll with middle mouse
     if( !GetActiveID().IsValid()
-        && IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) )
+        && IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ), id )
         && UIKeyboardApi::GetMouseWheelDelta() )
       mScroll = Clamp( mScroll - UIKeyboardApi::GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
 
@@ -152,13 +153,10 @@ namespace Tac
 
     const ImGuiRect scrollbarForegroundRect{ ImGuiRect::FromMinMax( scrollbarForegroundMini,
                                                                      scrollbarForegroundMaxi ) };
-    const ImGuiID id{ GetID( "##SCROLLBAR" ) };
 
-    const bool hovered { IsHovered( scrollbarForegroundRect ) };
+    const bool hovered { IsHovered( scrollbarForegroundRect, id ) };
     if( hovered )
     {
-      SetHoveredID( id );
-
       if( UIKeyboardApi::JustPressed( Key::MouseLeft ) )
       {
         SetActiveID( id, this );
@@ -312,7 +310,7 @@ namespace Tac
     if( !UIKeyboardApi::JustPressed( Key::MouseLeft ) )
       return;
 
-    if( !IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) ) )
+    if( !IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ), mMoveID ) )
       return;
       
     if( globals.mActiveID.IsValid() || globals.mHoveredID.IsValid() )
@@ -360,7 +358,11 @@ namespace Tac
         case N: edgeRect_VS.mMaxi.y = edgeRect_VS.mMini.y + windowPadding; break;
         }
 
-        const bool hovered{ IsHovered( edgeRect_VS ) };
+        const String idStr{ "size" + ToString( iSide ) };
+        const ImGuiID sideID{ GetID( idStr ) };
+
+        const bool hovered{ IsHovered( edgeRect_VS, sideID ) };
+
         const bool edgeActive{ anyEdgeActive && ( globals.mResizeMask & dir ) };
 
 #if TAC_IMGUI_RESIZE_DEBUG()
@@ -382,12 +384,16 @@ namespace Tac
           if( edgeActive )
             color = green;
 #else
-            color = ImGuiGetColor( ImGuiCol::FrameBG );
-            if( edgeActive )
-              color.xyz() *= 2;
-            else if( hovered )
-              color.xyz() *= 3;
+          color = ImGuiGetColor( ImGuiCol::FrameBG );
+          if( edgeActive )
+            color.xyz() *= 2;
+          else if( hovered )
+            color.xyz() *= 3;
 #endif
+
+          GameTimeDelta hoveredSeconds{
+              ImGuiGlobals::Instance.mElapsedSeconds -
+              ImGuiGlobals::Instance.mHoverStartTime };
 
           const UI2DDrawData::Box box
           {
@@ -488,8 +494,11 @@ namespace Tac
     mViewportSpaceMaxiCursor.y = Max( mViewportSpaceMaxiCursor.y, pos.y );
   }
 
-  bool ImGuiWindow::IsHovered( const ImGuiRect& rectViewport )
+  bool ImGuiWindow::IsHovered( const ImGuiRect& rectViewport, ImGuiID id )
   {
+    if( ImGuiGlobals::Instance.mHoveredID && ImGuiGlobals::Instance.mHoveredID != id )
+      return false;
+
     const WindowHandle mouseHoveredWindow { ImGuiGlobals::Instance.mMouseHoveredWindow };
     if( !mouseHoveredWindow.IsValid() )
       return false;
@@ -498,7 +507,14 @@ namespace Tac
     if( mouseHoveredWindow.GetIndex() != windowHandle.GetIndex() )
       return false;
 
-    return rectViewport.ContainsPoint( GetMousePosViewport() );
+    if( !rectViewport.ContainsPoint( GetMousePosViewport() ) )
+      return false;
+
+    if( id != ImGuiGlobals::Instance.mHoveredIDPrev )
+      ImGuiGlobals::Instance.mHoverStartTime = ImGuiGlobals::Instance.mElapsedSeconds;
+
+    ImGuiGlobals::Instance.mHoveredID = id;
+    return true;
   }
 
   void ImGuiWindow::PushXOffset()
@@ -646,8 +662,6 @@ namespace Tac
 } // namespace Tac
 
 auto Tac::GetActiveID() -> Tac::ImGuiID { return ImGuiGlobals::Instance.mActiveID; }
-
-void Tac::SetHoveredID( ImGuiID id ) { ImGuiGlobals::Instance.mHoveredID = id; }
 
 void Tac::SetActiveID( ImGuiID id, ImGuiWindow* window )
 {

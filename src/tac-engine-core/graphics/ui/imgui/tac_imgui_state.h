@@ -66,7 +66,7 @@ namespace Tac
     auto Clip( const ImGuiRect& ) const -> ImGuiRect;
     void UpdateMaxCursorDrawPos( v2 );
     auto GetWindowResource( ImGuiRscIdx, ImGuiID ) -> void*;
-    bool IsHovered( const ImGuiRect& );
+    bool IsHovered( const ImGuiRect&, ImGuiID );
     auto GetMousePosViewport() -> v2;
     auto GetWindowPosScreenspace() const -> v2;
     void Scrollbar();
@@ -161,7 +161,6 @@ namespace Tac
   };
 
   void SetActiveID( ImGuiID, ImGuiWindow* );
-  void SetHoveredID( ImGuiID );
   void ClearActiveID();
   auto GetActiveID() -> ImGuiID;
 
@@ -184,6 +183,8 @@ namespace Tac
     int                               mMaxGpuFrameCount     {};
     SettingsNode                      mSettingsNode         {};
     ImGuiID                           mHoveredID            {};
+    ImGuiID                           mHoveredIDPrev        {};
+    GameTime                          mHoverStartTime       {};
     ImGuiID                           mActiveID             {};
     ImGuiWindow*                      mActiveIDWindow       {};
     ImGuiWindow*                      mMovingWindow         {};

@@ -77,7 +77,7 @@ namespace Tac
 
     const ImGuiRect clipRect { window->Clip( origRect ) };
     const v2 valuePos { pos + v2( buttonPadding, 0 ) };
-    const bool hovered { window->IsHovered( clipRect ) };
+    const bool hovered { window->IsHovered( clipRect, id ) };
 
     //static GameTime consumeMouse;
     //if( hovered )
