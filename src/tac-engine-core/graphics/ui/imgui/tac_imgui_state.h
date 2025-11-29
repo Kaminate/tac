@@ -136,11 +136,14 @@ namespace Tac
     bool                          mEnableBG                    { true };
 
     //                            [ ] Q: What does this parameter do
-    GameTime                     mRequestTime                 {};
+    GameTime                      mRequestTime                 {};
+
+    v2                            mBorderData[4]               {}; // Used for window resize grips
   };
 
   struct ImGuiPersistantViewport
   {
+    float                        mMonitorDpi    { 96 };
     WindowHandle                 mWindowHandle  {};
     UI2DRenderData               mRenderBuffers {};
   };
@@ -163,6 +166,13 @@ namespace Tac
   void SetActiveID( ImGuiID, ImGuiWindow* );
   void ClearActiveID();
   auto GetActiveID() -> ImGuiID;
+
+  struct ReferenceResolution
+  {
+    int mWidthPx = 1920;
+    int mHeightPx = 1080;
+    int mDpi = 96;
+  };
 
   struct ImGuiGlobals
   {
@@ -193,22 +203,9 @@ namespace Tac
     v2                                mActiveIDWindowPos_SS {};
     int                               mResizeMask           {};
     bool                              mSettingsDirty        {};
+    ReferenceResolution               mReferenceResolution  {};
   };
 
-  struct ImGuiNextWindow
-  {
-    v2             mPosition          {};
-    bool           mPositionValid     {};
-    ImGuiCondition mPositionCondition {};
-    v2             mSize              {};
-    bool           mSizeValid         {};
-    ImGuiCondition mSizeCondition     {};
-    WindowHandle   mWindowHandle      {};
-    bool           mStretch           {};
-    bool           mMoveResize        {};
-    bool           mEnableBG          { true }; // Set false to disable background render
-    static ImGuiNextWindow gNextWindow;
-  };
 
 
 } // namespace Tac

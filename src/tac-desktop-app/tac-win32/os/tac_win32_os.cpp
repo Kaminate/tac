@@ -103,6 +103,15 @@ namespace Tac
     return Win32MonitorToTacMonitor( win32Monitor );
   }
 
+  static auto Win32OSGetMonitorFromNativeWindowHandle ( void* p ) -> Monitor
+  {
+    return{};
+#if 0
+    HMONITOR win32Monitor{ ::MonitorFromWindow( ( HWND )p, ... ) };
+    return Win32MonitorToTacMonitor( win32Monitor );
+#endif
+  }
+
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )
   {
     TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString() );
@@ -177,6 +186,7 @@ void Tac::Win32OSInit()
   OS::OSOpenDialog = Win32FileDialogOpen;
   OS::OSGetPrimaryMonitor = Win32OSGetPrimaryMonitor;
   OS::OSGetMonitorAtPoint = Win32OSGetMonitorAtPoint;
+  OS::OSGetMonitorFromNativeWindowHandle = Win32OSGetMonitorFromNativeWindowHandle;
   OS::OSSetScreenspaceCursorPos = Win32OSSetScreenspaceCursorPos;
   OS::OSGetLoadedDLL = Win32OSGetLoadedDLL;
   OS::OSLoadDLL = Win32OSLoadDLL;

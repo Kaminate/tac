@@ -48,6 +48,7 @@ namespace Tac::OS
 
   extern Monitor      ( *OSGetPrimaryMonitor )();
   extern Monitor      ( *OSGetMonitorAtPoint )( v2 );
+  extern Monitor      ( *OSGetMonitorFromNativeWindowHandle )( void* );
 
 
   // I don't think this function should exist.

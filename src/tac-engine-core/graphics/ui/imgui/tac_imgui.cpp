@@ -24,6 +24,24 @@
 
 namespace Tac
 {
+
+  struct ImGuiNextWindow
+  {
+    v2             mPosition          {};
+    bool           mPositionValid     {};
+    ImGuiCondition mPositionCondition {};
+    v2             mSize              {};
+    bool           mSizeValid         {};
+    ImGuiCondition mSizeCondition     {};
+    WindowHandle   mWindowHandle      {};
+    bool           mStretch           {};
+    bool           mMoveResize        {};
+    bool           mEnableBG          { true }; // Set false to disable background render
+    static ImGuiNextWindow gNextWindow;
+  };
+
+  ImGuiNextWindow             ImGuiNextWindow::gNextWindow;
+
   static auto ComputeLineCount( const StringView& s ) -> int
   {
     // todo: word wrap
@@ -34,7 +52,7 @@ namespace Tac
     return lineCount;
   }
 
-  static auto GetCaret( const Vector< Codepoint >& codepoints, float mousePos ) -> int // mouse pos rel text top left corner
+  static auto GetCaret( const CodepointString& codepoints, float mousePos ) -> int // mouse pos rel text top left corner
   {
     const int codepointCount{ codepoints.size() };
 
@@ -54,7 +72,6 @@ namespace Tac
     }
     return numGlyphsBeforeCaret;
   }
-
 
   static auto ImGuiGetWindowSettingsJson( const StringView& name ) -> SettingsNode
   {

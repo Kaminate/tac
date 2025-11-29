@@ -14,5 +14,5 @@ namespace Tac
   void Win32MouseEdgeUpdate();
   void Win32MouseEdgeSetMovable( const WindowHandle&, const DesktopWindowRect& );
   void Win32MouseEdgeSetResizable( const WindowHandle&, int );
-  WindowHandle Win32MouseEdgeGetCursorHovered();
+  auto Win32MouseEdgeGetCursorHovered() -> WindowHandle;
 }

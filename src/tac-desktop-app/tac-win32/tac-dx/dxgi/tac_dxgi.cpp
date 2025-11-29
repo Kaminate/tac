@@ -210,6 +210,9 @@ namespace Tac::Render
                               + win32ErrStr );
     }
 
+    // We will handle alt-enter ourselves
+    TAC_DXGI_CALL_RET( sImpl.mFactory->MakeWindowAssociation( info.mHwnd, DXGI_MWA_NO_ALT_ENTER ) );
+
     return swapChain1.QueryInterface< IDXGISwapChain4 >();
   }
 

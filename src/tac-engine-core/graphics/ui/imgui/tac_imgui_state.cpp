@@ -42,7 +42,6 @@ namespace Tac
 
   ImGuiPersistantPlatformData ImGuiPersistantPlatformData::Instance;
   ImGuiGlobals                ImGuiGlobals::Instance;
-  ImGuiNextWindow             ImGuiNextWindow::gNextWindow;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -358,50 +357,61 @@ namespace Tac
         case N: edgeRect_VS.mMaxi.y = edgeRect_VS.mMini.y + windowPadding; break;
         }
 
-        const String idStr{ "size" + ToString( iSide ) };
-        const ImGuiID sideID{ GetID( idStr ) };
-
-        const bool hovered{ IsHovered( edgeRect_VS, sideID ) };
-
+        const bool hovered{ IsHovered( edgeRect_VS, id ) };
         const bool edgeActive{ anyEdgeActive && ( globals.mResizeMask & dir ) };
+        dynmc float& alphaCur{ mBorderData[ iSide ].x };
+        dynmc float& alphaVel{ mBorderData[ iSide ].y };
+        dynmc float alphaTgt = 0.05f;
+        if( edgeActive ) { alphaTgt += .6f; }
+        else if( hovered ) {
+          const GameTimeDelta hoverTime{
+            ImGuiGlobals::Instance.mElapsedSeconds -
+            ImGuiGlobals::Instance.mHoverStartTime };
+          alphaTgt += 0.2f * ( .5f + .5f * ( float )Sin( -3.14f / 2 + hoverTime.mSeconds * 4 ) );
+        }
+        
+        const float kAlphaEps{ 0.01f };
+        if( Abs( alphaTgt - alphaCur ) < kAlphaEps )
+          alphaCur = alphaTgt;
+        else
+          Tac::Spring( &alphaCur, &alphaVel, alphaTgt, 32.0f, TAC_DT );
 
 #if TAC_IMGUI_RESIZE_DEBUG()
         const bool drawBorder { true };
 #else
-        const bool drawBorder { hovered || edgeActive };
+        //const bool drawBorder { hovered || edgeActive || Abs( alphaTgt - alphaCur ) > kAlphaEps };
+        const bool drawBorder{ true };
 #endif
 
-        if( drawBorder )
+        //if( drawBorder )
         {
+          dynmc v4 color{};
+
+#if TAC_IMGUI_RESIZE_DEBUG()
           const v4 red{ 1, 0, 0, 1 };
           const v4 green{ 0, 1, 0, 1 };
           const v4 yellow{ 1, 1, 0, 1 };
-          dynmc v4 color { red };
-
-#if TAC_IMGUI_RESIZE_DEBUG()
+          color = red;
           if( hovered )
             color = yellow;
           if( edgeActive )
             color = green;
 #else
-          color = ImGuiGetColor( ImGuiCol::FrameBG );
+          const v4& framgBGColor{ImGuiGetColor( ImGuiCol::FrameBG )};
           if( edgeActive )
-            color.xyz() *= 2;
+            color = v4( framgBGColor.xyz() * 3, alphaCur );
           else if( hovered )
-            color.xyz() *= 3;
+            color = v4( framgBGColor.xyz() * 2, alphaCur );
+          else
+            color = v4( framgBGColor.xyz() * 1, alphaCur );
 #endif
-
-          GameTimeDelta hoveredSeconds{
-              ImGuiGlobals::Instance.mElapsedSeconds -
-              ImGuiGlobals::Instance.mHoverStartTime };
-
-          const UI2DDrawData::Box box
-          {
-            .mMini  { edgeRect_VS.mMini },
-            .mMaxi  { edgeRect_VS.mMaxi},
-            .mColor { color },
-          };
-          mDrawData->AddBox( box );
+          mDrawData->AddBox(
+            UI2DDrawData::Box
+            {
+              .mMini  { edgeRect_VS.mMini },
+              .mMaxi  { edgeRect_VS.mMaxi},
+              .mColor { color },
+            } );
         }
 
         hoverMask |= hovered ? dir : 0;

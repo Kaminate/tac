@@ -310,7 +310,7 @@ void Tac::Win32MouseEdgeSetResizable( const WindowHandle& WindowHandle,
   mouseEdge.mResizeBorder = borderPx;
 }
 
-Tac::WindowHandle Tac::Win32MouseEdgeGetCursorHovered()
+auto Tac::Win32MouseEdgeGetCursorHovered() -> Tac::WindowHandle
 {
   return sMouseHoveredDesktopWindow;
 }

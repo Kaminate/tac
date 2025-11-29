@@ -98,9 +98,9 @@ namespace Tac
   }
 
   static auto CALLBACK WindowProc( const HWND hwnd,
-                                      const UINT uMsg,
-                                      const WPARAM wParam,
-                                      const LPARAM lParam ) -> LRESULT
+                                   const UINT uMsg,
+                                   const WPARAM wParam,
+                                   const LPARAM lParam ) -> LRESULT
   {
     static bool verboseMouseInWindow{};
     static bool verboseFocus{};
@@ -495,41 +495,20 @@ namespace Tac
     }
     else
     {
-      const bool isOverlappedWindow{
-        ( windowStyle == WS_OVERLAPPED ) ||
-        ( ( windowStyle & WS_OVERLAPPEDWINDOW ) == WS_OVERLAPPEDWINDOW ) };
-      if( isOverlappedWindow )
-      {
-        x = y = w = h = CW_USEDEFAULT;
-      }
-      else
-      {
-        const v2i monitorSize{ OS::OSGetPrimaryMonitor().mSize };
-        const int monitorW{ monitorSize.x };
-        const int monitorH{ monitorSize.y };
-        x = monitorW / 4;
-        y = monitorH / 4;
-        w = monitorW / 2;
-        h = monitorH / 2;
-      }
+      const v2i monitorSize{ OS::OSGetPrimaryMonitor().mSize };
+      const int monitorW{ monitorSize.x };
+      const int monitorH{ monitorSize.y };
+      x = monitorW / 4;
+      y = monitorH / 4;
+      w = monitorW / 2;
+      h = monitorH / 2;
     }
 
-    // if the window is completely outside the desktop area
-    // ( this can happen if its saved data refers to a monitor that is no longer on )
-    // then move it back inside
-    //if( x + w < 0 || x > )
-    //{
-    //  x = CW_USEDEFAULT;
-    //  y = CW_USEDEFAULT;
-    //  w = CW_USEDEFAULT;
-    //  h = CW_USEDEFAULT;
-    //}
 
+    // TODO: handle spawning a window not contained within any monitor
 
     TAC_ASSERT( w && h );
-
     sWindowUnderConstruction = windowHandle;
-
     const HINSTANCE hinst{ Win32GetStartupInstance() };
     const HWND hwnd{ CreateWindowA( sClassName,
                                     name,
@@ -539,13 +518,9 @@ namespace Tac
                                     nullptr,
                                     hinst,
                                     nullptr ) };
-
-
     if( !hwnd )
     {
-
       const String lastErrorString{ Win32GetLastErrorString() };
-
       String msg;
       msg += "\nhttps://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-createwindowexa";
       msg += "\n - This function typically fails for one of the following reasons";
@@ -555,14 +530,10 @@ namespace Tac
       msg += "\n - if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE";
       msg += "\nGetLastError() returned: ";
       msg += lastErrorString;
-
       TAC_RAISE_ERROR( msg );
     }
 
-
-    // Sets the keyboard focus to the specified window
-    SetFocus( hwnd );
-
+    SetFocus( hwnd ); // Sets the keyboard focus to the specified window
     SetWindowLong( hwnd, GWL_STYLE, 0 );
 
     // Brings the thread that created the specified window into the foreground and activates the window.
@@ -572,10 +543,9 @@ namespace Tac
     SetForegroundWindow( hwnd );
 
     ShowWindow( hwnd, Win32GetStartupCmdShow() );
-    if( false )
-    {
+#if 0
       sParentHWND = sParentHWND ? sParentHWND : hwnd; // combine windows into one tab group
-    }
+#endif
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -587,7 +557,6 @@ namespace Tac
       return;
 
     TAC_IMGUI_INDENT_BLOCK;
-
     Win32WindowManager::DebugImGui();
   }
 
@@ -600,9 +569,8 @@ namespace Tac
   {
     TAC_UNUSED_PARAMETER( errors );
     Win32MouseEdgeUpdate();
-
-    const DesktopEventApi::CursorUnobscuredEvent data{ Win32MouseEdgeGetCursorHovered() };
-    DesktopEventApi::Queue( data );
+    const WindowHandle windowHandle{Win32MouseEdgeGetCursorHovered()};
+    DesktopEventApi::Queue( DesktopEventApi::CursorUnobscuredEvent{ .mWindowHandle{ windowHandle } } );
   }
 
   void Platform::PlatformSpawnWindow( const PlatformSpawnWindowParams& params, Errors& errors ) 

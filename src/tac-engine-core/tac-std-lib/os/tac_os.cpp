@@ -27,6 +27,7 @@ namespace Tac::OS
   TAC_INIT_PTR( OSOpenDialog );
   TAC_INIT_PTR( OSGetPrimaryMonitor );
   TAC_INIT_PTR( OSGetMonitorAtPoint );
+  TAC_INIT_PTR( OSGetMonitorFromNativeWindowHandle );
   TAC_INIT_PTR( OSSetScreenspaceCursorPos );
   TAC_INIT_PTR( OSGetLoadedDLL );
   TAC_INIT_PTR( OSLoadDLL );
