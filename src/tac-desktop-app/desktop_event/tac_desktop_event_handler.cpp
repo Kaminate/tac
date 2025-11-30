@@ -2,6 +2,7 @@
 
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 
 namespace Tac
 {
@@ -91,6 +92,11 @@ namespace Tac
   void DesktopEventHandler::Handle( const DesktopEventApi::WindowResizeEvent& data, Errors& errors ) 
   {
     AppWindowApiBackend::SetWindowSize( data.mWindowHandle, v2i( data.mWidth, data.mHeight ), errors );
+  }
+
+  void DesktopEventHandler::Handle( const DesktopEventApi::WindowDpiChangedEvent& data) 
+  {
+    ImGuiPlatformHandleDpiChange();
   }
 
 } // namespace Tac

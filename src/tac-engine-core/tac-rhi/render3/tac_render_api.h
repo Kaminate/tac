@@ -553,7 +553,9 @@ namespace Tac::Render
     virtual void DestroySampler( SamplerHandle )                                     {}
     virtual auto CreateSwapChain( SwapChainParams, Errors& ) -> SwapChainHandle      {}
     virtual void ResizeSwapChain( SwapChainHandle, v2i, Errors& )                    {}
-    virtual auto GetSwapChainParams( SwapChainHandle ) -> SwapChainParams            { return {}; }
+    //virtual auto GetSwapChainParams( SwapChainHandle ) -> SwapChainParams            { return {}; }
+    virtual auto GetSwapChainColorFmt( SwapChainHandle ) -> TexFmt                   { return TexFmt::kUnknown; }
+    virtual auto GetSwapChainDepthFmt( SwapChainHandle ) -> TexFmt                   { return TexFmt::kUnknown; }
     virtual void DestroySwapChain( SwapChainHandle )                                 {}
     virtual auto GetSwapChainCurrentColor( SwapChainHandle ) -> TextureHandle        { return {}; }
     virtual auto GetSwapChainDepth( SwapChainHandle ) -> TextureHandle               { return {}; }

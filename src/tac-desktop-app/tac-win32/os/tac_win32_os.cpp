@@ -103,13 +103,10 @@ namespace Tac
     return Win32MonitorToTacMonitor( win32Monitor );
   }
 
-  static auto Win32OSGetMonitorFromNativeWindowHandle ( void* p ) -> Monitor
+  static auto Win32OSGetMonitorFromNativeWindowHandle ( const void* p ) -> Monitor
   {
-    return{};
-#if 0
-    HMONITOR win32Monitor{ ::MonitorFromWindow( ( HWND )p, ... ) };
+    HMONITOR win32Monitor{ ::MonitorFromWindow( ( HWND )p, MONITOR_DEFAULTTOPRIMARY ) };
     return Win32MonitorToTacMonitor( win32Monitor );
-#endif
   }
 
   static void Win32OSSetScreenspaceCursorPos( const v2& pos, Errors& errors )

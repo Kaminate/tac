@@ -64,7 +64,7 @@ namespace Tac
       mTCapacity = {};
     }
 
-    void     operator =( Vector< T >&& v ) noexcept
+    void operator =( Vector< T >&& v ) noexcept
     {
       const int n{ v.size() };
       resize( n );
@@ -75,12 +75,12 @@ namespace Tac
       // 
     }
 
-    void     operator =( const Vector< T >& v )
+    void operator =( const Vector< T >& v )
     {
       assign( v.begin(), v.end() );
     }
 
-    void     assign( const T* begin, const T* end )
+    void assign( const T* begin, const T* end )
     {
       const int n { ( int )( end - begin ) };
       resize( n );
@@ -88,14 +88,14 @@ namespace Tac
         mTs[ i ] = begin[ i ];
     }
 
-    void     assign( int n, const T& t )
+    void assign( int n, const T& t )
     {
       resize( n );
       for( int i{}; i < n; ++i )
         mTs[ i ] = t;
     }
 
-    void     clear()
+    void clear()
     {
       for( int i{}; i < mTCount; ++i )
         mTs[ i ].~T();
@@ -103,14 +103,14 @@ namespace Tac
       mTCount = 0;
     }
 
-    void     push_back( T&& t )
+    void push_back( T&& t )
     {
       reserve();
       T* dst{ &mTs[ mTCount++ ] };
       TAC_PLACEMENT_NEW( dst )T( move( t ) );
     }
 
-    void     push_back( const T& t )
+    void push_back( const T& t )
     {
       reserve();
       T* dst{ &mTs[ mTCount++ ] };
@@ -118,23 +118,23 @@ namespace Tac
     }
 
     template< class ... Args >
-    T&       emplace_back( Args&& ... args )
+    auto emplace_back( Args&& ... args ) -> T&
     {
       reserve();
       TAC_PLACEMENT_NEW( &mTs[ mTCount++ ] )T( forward< Args>( args )... );
       return back();
     }
 
-    void     pop_back()
+    void pop_back()
     {
       TAC_ASSERT( mTCount );
       mTs[ mTCount - 1 ].~T();
       mTCount--;
     }
-    bool     empty() const              { return !mTCount; }
-    int      size() const               { return mTCount; }
+    bool empty() const              { return !mTCount; }
+    auto size() const -> int        { return mTCount; }
 
-    void     resize( const int newSize )
+    void resize( const int newSize )
     {
       const int oldSize{ mTCount };
       reserve( newSize );
@@ -158,7 +158,7 @@ namespace Tac
       mTCount = newSize;
     }
 
-    void     resize( int newSize, const T value )
+    void resize( int newSize, const T value )
     {
       const int oldSize{ mTCount };
       resize( newSize );
@@ -175,7 +175,7 @@ namespace Tac
         reserve( int( mTCount * 1.5f ) + 1 );
     }
 
-    void     reserve( int capacity )
+    void reserve( int capacity )
     {
       if( capacity <= mTCapacity )
         return;
@@ -189,7 +189,7 @@ namespace Tac
       mTCapacity = capacity;
     }
 
-    void     swap( Vector<T>& other )
+    void swap( Vector<T>& other )
     {
       Swap( mTs, other.mTs );
       Swap( mTCount, other.mTCount );

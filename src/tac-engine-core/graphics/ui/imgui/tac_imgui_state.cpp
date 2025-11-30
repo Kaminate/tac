@@ -4,7 +4,6 @@
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-//#include "tac-engine-core/shell/tac_shell_timestep.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
@@ -40,7 +39,6 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  ImGuiPersistantPlatformData ImGuiPersistantPlatformData::Instance;
   ImGuiGlobals                ImGuiGlobals::Instance;
 
   // -----------------------------------------------------------------------------------------------
@@ -172,18 +170,13 @@ namespace Tac
     if( active )
       barColor =  ImGuiGetColor( ImGuiCol::ScrollbarActive );
 
-    const UI2DDrawData::Box scrollbarBox
-    {
-      .mMini  { scrollbarForegroundMini },
-      .mMaxi  { scrollbarForegroundMaxi },
-      .mColor { barColor },
-    };
-
-    mDrawData->AddBox( scrollbarBox );
-
-    //static GameTime consumeT;
-    //if( active )
-    //  Mouse::TryConsumeMouseMovement( &consumeT, TAC_STACK_FRAME );
+    mDrawData->AddBox( 
+      UI2DDrawData::Box
+      {
+        .mMini  { scrollbarForegroundMini },
+        .mMaxi  { scrollbarForegroundMaxi },
+        .mColor { barColor },
+      } );
 
 
     if(active)
@@ -235,35 +228,28 @@ namespace Tac
   void ImGuiWindow::BeginFrame()
   {
     const UIStyle& style{ ImGuiGetStyle() };
-    const float windowPadding{ style.windowPadding };
+    const float windowPaddingPx{ style.windowPadding
+      * mDesktopWindow->mMonitorDpi
+      / ImGuiGlobals::Instance.mReferenceResolution.mDpi
+    };
 
     if( !mParent )
       mDrawData->clear();
 
-    // Push a debug group to be popped in ImGuiWindow::EndFrame
+    // popped in ImGuiWindow::EndFrame
     mDrawData->PushDebugGroup( ShortFixedString::Concat( "BeginFrame(" , mName , ")" ) );
 
-    mWindowID = Hash( mName );
-
-    // clear() and push_back() because mIDStack = { mWindowID } allocates memory
     mIDStack.clear();
-    mIDStack.push_back( mWindowID );
-
+    mIDStack.push_back( mWindowID = Hash( mName ) );
     mMoveID = GetID( "#MOVE" );
 
     mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
-
     DrawWindowBackground();
-
     mViewportSpaceVisibleRegion = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
-
     Scrollbar();
-
-    mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPadding;
-    mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPadding;
-
+    mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPaddingPx;
+    mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPaddingPx;
     const v2 drawPos { mViewportSpaceVisibleRegion.mMini - v2( 0, mScroll ) };
-    
     mViewportSpaceCurrCursor = drawPos;
     mViewportSpacePrevCursor = drawPos;
     mViewportSpaceMaxiCursor = drawPos;
@@ -332,7 +318,10 @@ namespace Tac
     dynmc ImGuiGlobals& globals{ ImGuiGlobals::Instance };
     const ImGuiID id{ GetID( "##RESIZE" ) };
     const UIStyle style{ globals.mUIStyle };
-    const float windowPadding { style.windowPadding };
+    const float windowPaddingPx{ style.windowPadding
+      * mDesktopWindow->mMonitorDpi
+      / globals.mReferenceResolution.mDpi 
+    };
     const v2i viewportPos_SS{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
     const v2 mousePos_VS{ GetMousePosViewport() };
     const ImGuiRect origWindowRect_VS{ ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
@@ -351,10 +340,10 @@ namespace Tac
         const int dir{ 1 << iSide };
         switch( dir )
         {
-        case E: edgeRect_VS.mMini.x = edgeRect_VS.mMaxi.x - windowPadding; break;
-        case S: edgeRect_VS.mMini.y = edgeRect_VS.mMaxi.y - windowPadding; break;
-        case W: edgeRect_VS.mMaxi.x = edgeRect_VS.mMini.x + windowPadding; break;
-        case N: edgeRect_VS.mMaxi.y = edgeRect_VS.mMini.y + windowPadding; break;
+        case E: edgeRect_VS.mMini.x = edgeRect_VS.mMaxi.x - windowPaddingPx; break;
+        case S: edgeRect_VS.mMini.y = edgeRect_VS.mMaxi.y - windowPaddingPx; break;
+        case W: edgeRect_VS.mMaxi.x = edgeRect_VS.mMini.x + windowPaddingPx; break;
+        case N: edgeRect_VS.mMaxi.y = edgeRect_VS.mMini.y + windowPaddingPx; break;
         }
 
         const bool hovered{ IsHovered( edgeRect_VS, id ) };
@@ -564,8 +553,7 @@ namespace Tac
 
   auto ImGuiWindow::GetID( StringView s ) -> ImGuiID
   {
-    const ImGuiID id{ Hash( mIDStack.back(), Hash( s ) ) };
-    return id;
+    return Hash( mIDStack.back(), Hash( s ) );
   }
 
   auto ImGuiWindow::GetWindowResource( ImGuiRscIdx index, ImGuiID imGuiId ) -> void*
@@ -609,24 +597,21 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void ImGuiPersistantPlatformData::UpdateAndRenderWindow( ImGuiDesktopWindowImpl* desktopWindow,
-                                                           ImGuiPersistantViewport* sysDraws,
-                                                           Errors& errors )
+  static void UpdateAndRenderWindow( ImGuiDesktopWindowImpl* desktopWindow, Errors& errors )
   {
-    if( !AppWindowApi::IsShown( sysDraws->mWindowHandle ) )
+    if( !AppWindowApi::IsShown( desktopWindow->mWindowHandle ) )
       return;
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     Span< UI2DDrawData* > drawDatas( desktopWindow->mImGuiDrawDatas.data(), desktopWindow->mImGuiDrawDatas.size() );
-    const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( sysDraws->mWindowHandle ) };
+    const Render::SwapChainHandle fb { AppWindowApi::GetSwapChainHandle( desktopWindow->mWindowHandle ) };
     const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
-    const Render::SwapChainParams swapChainParams { renderDevice->GetSwapChainParams( fb ) };
-    const Render::TexFmt fbFmt { swapChainParams.mColorFmt };
-    const v2i windowSize { AppWindowApi::GetSize( sysDraws->mWindowHandle ) };
-    TAC_CALL( sysDraws->mRenderBuffers.DebugDraw2DToTexture( drawDatas, swapChainColor, fbFmt, windowSize, errors ) );
+    const Render::TexFmt fbFmt { renderDevice->GetSwapChainColorFmt( fb ) };
+    const v2i windowSize { AppWindowApi::GetSize( desktopWindow->mWindowHandle ) };
+    TAC_CALL( desktopWindow->mRenderBuffers.DebugDraw2DToTexture( drawDatas, swapChainColor, fbFmt, windowSize, errors ) );
   }
 
-  void ImGuiPersistantPlatformData::UpdateAndRender( Errors& errors )
+  void Tac::ImGuiPlatformRender( Errors& errors )
   {
     ImGuiGlobals& globals{ ImGuiGlobals::Instance };
     for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
@@ -646,19 +631,9 @@ namespace Tac
     }
 
     for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
-      if(ImGuiPersistantViewport* viewportDraw{ GetPersistantWindowData( desktopWindow->mWindowHandle ) })
-        UpdateAndRenderWindow( desktopWindow, viewportDraw, errors );
-  }
-
-  auto ImGuiPersistantPlatformData::GetPersistantWindowData( WindowHandle h ) -> ImGuiPersistantViewport*
-  {
-    for( ImGuiPersistantViewport& viewportData : mViewportDatas )
-      if( viewportData.mWindowHandle == h )
-        return &viewportData;
-     
-    const ImGuiPersistantViewport persistantViewport { .mWindowHandle { h }, };
-    mViewportDatas.push_back( persistantViewport );
-    return &mViewportDatas.back();
+    {
+      TAC_CALL( UpdateAndRenderWindow( desktopWindow, errors ) );
+    }
   }
 
   // -----------------------------------------------------------------------------------------------

@@ -53,7 +53,7 @@ namespace Tac
                                    Drag_MouseHandler mouseHandler )
   {
     ImGuiGlobals& globals { ImGuiGlobals::Instance };
-    const float fontSize { ImGuiGetFontSize() };
+    const float fontSize { ImGuiGetFontSizePx() };
     const float buttonPadding { ImGuiGetButtonPadding() };
 
     String valueStr { getter( valueBytes ) };

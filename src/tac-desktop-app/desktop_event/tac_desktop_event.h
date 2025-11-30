@@ -89,6 +89,11 @@ namespace Tac::DesktopEventApi
     int          mY            {};
   };
 
+  struct WindowDpiChangedEvent
+  {
+    WindowHandle mWindowHandle {};
+  };
+
   // -----------------------------------------------------------------------------------------------
 
   struct Handler
@@ -104,6 +109,7 @@ namespace Tac::DesktopEventApi
     virtual void Handle( const WindowResizeEvent&, Errors& ) {};
     virtual void Handle( const WindowVisibleEvent& ) {};
     virtual void Handle( const WindowActivationEvent& ) {};
+    virtual void Handle( const WindowDpiChangedEvent& ) {};
   };
 
   void Init( Handler* );
@@ -118,6 +124,7 @@ namespace Tac::DesktopEventApi
   void Queue( const WindowMoveEvent& );
   void Queue( const WindowResizeEvent& );
   void Queue( const WindowVisibleEvent& );
+  void Queue( const WindowDpiChangedEvent& );
 
   void Apply( Errors& );
 

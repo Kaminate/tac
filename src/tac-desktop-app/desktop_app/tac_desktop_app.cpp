@@ -235,12 +235,9 @@ namespace Tac
     TAC_CALL( Render::CBufferLights::Init( errors ) );
     TAC_CALL( UI2DCommonDataInit( errors ) );
     TAC_CALL( Debug3DCommonDataInit( errors ) );
-
-
 #if TAC_FONT_ENABLED()
     TAC_CALL( FontApi::Init( errors ) );
 #endif
-
     TAC_CALL( ImGuiInit(
       ImGuiInitParams
       {
@@ -248,7 +245,6 @@ namespace Tac
         .mSettingsNode     { sSettingsRoot.GetRootNode() },
       }, errors ) );
     DesktopEventApi::Init( &sDesktopEventHandler );
-
     TAC_CALL( sApp->Init( errors ) );
     sCurrState = sApp->GameState_Create();
     sPrevState = sApp->GameState_Create();
@@ -295,8 +291,6 @@ namespace Tac
 
   void DesktopApp::Update( Errors& )
   {
-    DesktopAppUpdateMove();
-    DesktopAppUpdateResize();
   }
 
   void DesktopApp::DebugImGui( Errors& errors )

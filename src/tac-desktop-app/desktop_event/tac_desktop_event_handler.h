@@ -5,6 +5,7 @@
 
 namespace Tac
 {
+  // [ ] Q: why is there inheritance here at all?
   struct DesktopEventHandler : public DesktopEventApi::Handler
   {
     void Handle( const DesktopEventApi::CursorUnobscuredEvent& ) override;
@@ -18,6 +19,7 @@ namespace Tac
     void Handle( const DesktopEventApi::WindowResizeEvent&, Errors& ) override;
     void Handle( const DesktopEventApi::WindowVisibleEvent& ) override;
     void Handle( const DesktopEventApi::WindowActivationEvent& ) override;
+    void Handle( const DesktopEventApi::WindowDpiChangedEvent& ) override;
   };
 } // namespace Tac
 

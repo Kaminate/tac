@@ -150,7 +150,7 @@ namespace Tac
     if( dirty || !sWindowspaceEqRender )
     {
       const float width{}; // unlimited
-      const float textSize{ ImGuiGetFontSize() * sWindowspaceEqSizeMultipler };
+      const float textSize{ ImGuiGetFontSizePx() * sWindowspaceEqSizeMultipler };
       const float lineSpace{}; // ???
       const microtex::color _color{ microtex::getColor( "white" ) };
       sWindowspaceEqRender = microtex::MicroTeX::parse( sWindowspaceEqStr, width, textSize, lineSpace, _color );
@@ -162,7 +162,7 @@ namespace Tac
     if( sWindowspaceEqEnabled && sWindowspaceEqRender )
     {
       sWindowspaceEqRender->draw( sGraphics2D, sWindowspaceEqPos.x, sWindowspaceEqPos.y );
-      if( auto drawData = ImGuiGetDrawData() )
+      if( UI2DDrawData* drawData{ ImGuiGetDrawData() } )
       {
         v2 mini{ sWindowspaceEqPos * 0.95f };
         v2 maxi{ sWindowspaceEqPos + 1.05f * v2( sWindowspaceEqRender->getWidth(), sWindowspaceEqRender->getHeight() ) }; //  *1.05f };
@@ -177,8 +177,7 @@ namespace Tac
       }
     }
 
-
-    if( auto drawData = ImGuiGetDrawData() )
+    if( UI2DDrawData* drawData{ ImGuiGetDrawData() } )
     {
       DrawLineWorldspace( v2( 0, 0 ), v2( 1, 0 ), v4( 1, 0, 0, 1 ) );
       DrawLineWorldspace( v2( 0, 0 ), v2( 0, 1 ), v4( 0, 1, 0, 1 ) );

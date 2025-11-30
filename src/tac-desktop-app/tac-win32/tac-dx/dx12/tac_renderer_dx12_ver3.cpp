@@ -273,9 +273,13 @@ namespace Tac::Render
     DX12Renderer::sRenderer.mSwapChainMgr.ResizeSwapChain( h, size, errors );
   }
 
-  auto DX12Device::GetSwapChainParams( SwapChainHandle h ) -> SwapChainParams
+  auto DX12Device::GetSwapChainColorFmt( SwapChainHandle h) -> TexFmt
   {
-    return DX12Renderer::sRenderer.mSwapChainMgr.GetSwapChainParams( h );
+    return DX12Renderer::sRenderer.mSwapChainMgr.GetSwapChainParams( h ).mColorFmt;
+  }
+  auto DX12Device::GetSwapChainDepthFmt( SwapChainHandle h) -> TexFmt
+  {
+    return DX12Renderer::sRenderer.mSwapChainMgr.GetSwapChainParams( h ).mDepthFmt;
   }
 
   void DX12Device::DestroySwapChain( SwapChainHandle h )

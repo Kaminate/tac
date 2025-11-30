@@ -91,38 +91,32 @@ namespace Tac::Render
 
   struct DX12Device : public IDevice
   {
-    void            Init( Errors& ) override;
-    void            Uninit() override;
-    Info            GetInfo() const override;
-    void            BeginRenderFrame( Errors& ) override;
-    void            EndRenderFrame( Errors& ) override;
-
-    PipelineHandle  CreatePipeline( PipelineParams, Errors& ) override;
-    IShaderVar*     GetShaderVariable( PipelineHandle, StringView ) override;
-    void            DestroyPipeline( PipelineHandle ) override;
-
-    ProgramHandle   CreateProgram( ProgramParams, Errors& ) override;
-    String          GetProgramBindings_TEST( ProgramHandle ) override;
-    void            DestroyProgram( ProgramHandle ) override;
-
-    SamplerHandle   CreateSampler( CreateSamplerParams ) override;
-    void            DestroySampler( SamplerHandle ) override;
-
-    SwapChainHandle CreateSwapChain( SwapChainParams, Errors& ) override;
-    void            ResizeSwapChain( SwapChainHandle, v2i, Errors& ) override;
-    SwapChainParams GetSwapChainParams( SwapChainHandle ) override;
-    void            DestroySwapChain( SwapChainHandle ) override;
-    TextureHandle   GetSwapChainCurrentColor( SwapChainHandle ) override;
-    TextureHandle   GetSwapChainDepth( SwapChainHandle ) override;
-    void            Present( SwapChainHandle, Errors& ) override;
-
-    BufferHandle    CreateBuffer( CreateBufferParams, Errors& ) override;
-    void            DestroyBuffer( BufferHandle ) override;
-
-    TextureHandle   CreateTexture( CreateTextureParams, Errors& ) override;
-    void            DestroyTexture( TextureHandle ) override;
-
-    IContext::Scope CreateRenderContext( Errors& ) override;
-    IBindlessArray* CreateBindlessArray( IBindlessArray::Params ) override;
+    void Init( Errors& ) override;
+    void Uninit() override;
+    Info GetInfo() const override;
+    void BeginRenderFrame( Errors& ) override;
+    void EndRenderFrame( Errors& ) override;
+    auto CreatePipeline( PipelineParams, Errors& ) -> PipelineHandle override;
+    auto GetShaderVariable( PipelineHandle, StringView ) -> IShaderVar*override;
+    void DestroyPipeline( PipelineHandle ) override;
+    auto CreateProgram( ProgramParams, Errors& ) -> ProgramHandle override;
+    auto GetProgramBindings_TEST( ProgramHandle ) -> String override;
+    void DestroyProgram( ProgramHandle ) override;
+    auto CreateSampler( CreateSamplerParams ) -> SamplerHandle override;
+    void DestroySampler( SamplerHandle ) override;
+    auto CreateSwapChain( SwapChainParams, Errors& ) -> SwapChainHandle override;
+    void ResizeSwapChain( SwapChainHandle, v2i, Errors& ) override;
+    auto GetSwapChainColorFmt( SwapChainHandle ) -> TexFmt override;
+    auto GetSwapChainDepthFmt( SwapChainHandle ) -> TexFmt override;
+    void DestroySwapChain( SwapChainHandle ) override;
+    auto GetSwapChainCurrentColor( SwapChainHandle ) -> TextureHandle override;
+    auto GetSwapChainDepth( SwapChainHandle ) -> TextureHandle override;
+    void Present( SwapChainHandle, Errors& ) override;
+    auto CreateBuffer( CreateBufferParams, Errors& ) -> BufferHandle override;
+    void DestroyBuffer( BufferHandle ) override;
+    auto CreateTexture( CreateTextureParams, Errors& ) -> TextureHandle override;
+    void DestroyTexture( TextureHandle ) override;
+    auto CreateRenderContext( Errors& ) -> IContext::Scope override;
+    auto CreateBindlessArray( IBindlessArray::Params ) -> IBindlessArray*override;
   };
 } // namespace Tac::Render

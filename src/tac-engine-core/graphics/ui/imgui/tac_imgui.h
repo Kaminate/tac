@@ -29,9 +29,10 @@ namespace Tac
   {
     virtual ~ImGuiDesktopWindow() = default;
 
-    WindowHandle    mWindowHandle;
-    Optional< v2i > mRequestedPosition;
-    Optional< v2i > mRequestedSize;
+    WindowHandle    mWindowHandle      {};
+    float           mMonitorDpi        { 96 };
+    Optional< v2i > mRequestedPosition {};
+    Optional< v2i > mRequestedSize     {};
   };
 
   // +--> x
@@ -123,8 +124,8 @@ namespace Tac
 
   auto ImGuiGetMouseCursor() -> ImGuiMouseCursor;
   auto ImGuiGetColName( ImGuiCol ) -> const char*;
-  auto ImGuiGetFontSize() -> float;
-  auto ImGuiGetItemSpacing() -> const v2&;
+  auto ImGuiGetFontSizePx() -> float;
+  auto ImGuiGetItemSpacingPx() -> v2;
   auto ImGuiGetButtonPadding() -> float;
 
   //   ImGui System Functions
@@ -215,6 +216,7 @@ namespace Tac
   void ImGuiPlatformRenderFrameBegin( Errors& );
   void ImGuiPlatformRender( Errors& );
   void ImGuiPlatformPresent( Errors& );
+  void ImGuiPlatformHandleDpiChange();
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \
                                           TAC_ON_DESTRUCT( ImGuiUnindent() );

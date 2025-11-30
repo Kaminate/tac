@@ -22,26 +22,25 @@ namespace Tac
     WindowMove,
     WindowResize,
     WindowVisible,
+    WindowDpiChanged,
     Count,
   };
 
   struct DesktopEventQueueImpl
   {
-    void       Init();
-
-    void       QueuePush( DesktopEventType, const void*, int );
-
-    bool       QueuePop( void*, int );
+    void Init();
+    void QueuePush( DesktopEventType, const void*, int );
+    bool QueuePop( void*, int );
+    bool Empty();
 
     template< typename T >
-    T          QueuePop()
+    auto QueuePop() -> T
     {
       T t;
       QueuePop( &t, sizeof( T ) );
       return t;
     }
 
-    bool       Empty();
 
   private:
     RingBuffer mQueue;
@@ -104,6 +103,7 @@ namespace Tac
   void DesktopEventApi::Queue( const WindowMoveEvent& data )       { sEventQueue.QueuePush( DesktopEventType::WindowMove,       &data, sizeof( WindowMoveEvent ) ); }
   void DesktopEventApi::Queue( const WindowResizeEvent& data )     { sEventQueue.QueuePush( DesktopEventType::WindowResize,     &data, sizeof( WindowResizeEvent ) ); }
   void DesktopEventApi::Queue( const WindowVisibleEvent& data )    { sEventQueue.QueuePush( DesktopEventType::WindowVisible,    &data, sizeof( WindowVisibleEvent ) ); }
+  void DesktopEventApi::Queue( const WindowDpiChangedEvent& data ) { sEventQueue.QueuePush( DesktopEventType::WindowVisible,    &data, sizeof( WindowDpiChangedEvent ) ); }
 
   void DesktopEventApi::Apply( Errors& errors )
   {
@@ -123,6 +123,7 @@ namespace Tac
       case DesktopEventType::WindowResize:       sHandler->Handle( sEventQueue.QueuePop< WindowResizeEvent >(), errors ); break;
       case DesktopEventType::WindowVisible:      sHandler->Handle( sEventQueue.QueuePop< WindowVisibleEvent >() );        break;
       case DesktopEventType::WindowActivation:   sHandler->Handle( sEventQueue.QueuePop< WindowActivationEvent >() );     break;
+      case DesktopEventType::WindowDpiChanged:   sHandler->Handle( sEventQueue.QueuePop< WindowDpiChangedEvent >() );     break;
       default: TAC_ASSERT_INVALID_CASE( desktopEventType ); return;
       }
     }

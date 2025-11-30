@@ -17,7 +17,7 @@ namespace Tac::Render
   {
     SwapChainHandle CreateSwapChain( SwapChainParams, Errors& );
     void            ResizeSwapChain( SwapChainHandle, v2i, Errors& );
-    auto            GetSwapChainParams( SwapChainHandle ) -> SwapChainParams;
+    auto            GetSwapChainParams( SwapChainHandle ) -> const SwapChainParams&;
     void            DestroySwapChain( SwapChainHandle );
     DX12SwapChain*  FindSwapChain( SwapChainHandle );
     TextureHandle   GetSwapChainCurrentColor( SwapChainHandle );

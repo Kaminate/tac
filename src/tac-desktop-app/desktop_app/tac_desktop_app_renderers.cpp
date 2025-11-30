@@ -2,9 +2,7 @@
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h" // Tac::asdf
 #include "tac-std-lib/error/tac_error_handling.h"
-//#include "tac-rhi/renderer/tac_renderer_backend.h"
 #include "tac-rhi/render3/tac_render_api.h"
-//#include "tac-engine-core/settings/tac_settings.h"
 
 #if defined( TAC_USE_RENDERER_VK ) && __has_include( "tac_renderer_vulkan.h" )
 #define TAC_INCLUDED_RENDERER_VULKAN true

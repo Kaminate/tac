@@ -134,12 +134,12 @@ namespace Tac
       {
         Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
         Render::SwapChainHandle swapChain{ AppWindowApi::GetSwapChainHandle( windowHandle ) };
-        Render::SwapChainParams swapChainParams{ renderDevice->GetSwapChainParams( swapChain ) };
+        Render::TexFmt texFmt{ renderDevice->GetSwapChainColorFmt( swapChain ) };
         Render::TextureHandle tex{ renderDevice->GetSwapChainCurrentColor( swapChain ) };
-        v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
+        const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
         UI2DDrawData* pDrawData{ &sUI2DDrawData };
         Span<UI2DDrawData*> drawDatas( pDrawData );
-        sUI2DRenderData.DebugDraw2DToTexture( drawDatas, tex, swapChainParams.mColorFmt, windowSize, errors );
+        sUI2DRenderData.DebugDraw2DToTexture( drawDatas, tex, texFmt, windowSize, errors );
       }
     };
   };

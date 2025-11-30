@@ -177,7 +177,7 @@ namespace Tac::Render
     mTextureMgr->SetName( swapChainDepth, rtDepthName );
   }
 
-  auto DX12SwapChainMgr::GetSwapChainParams( SwapChainHandle h ) -> SwapChainParams
+  auto DX12SwapChainMgr::GetSwapChainParams( SwapChainHandle h ) -> const SwapChainParams&
   {
     return mSwapChains[ h.GetIndex() ].mSwapChainParams;
   }

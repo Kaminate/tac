@@ -141,26 +141,11 @@ namespace Tac
     v2                            mBorderData[4]               {}; // Used for window resize grips
   };
 
-  struct ImGuiPersistantViewport
-  {
-    float                        mMonitorDpi    { 96 };
-    WindowHandle                 mWindowHandle  {};
-    UI2DRenderData               mRenderBuffers {};
-  };
-
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
   {
-    Vector< UI2DDrawData* > mImGuiDrawDatas;
-  };
-
-  struct ImGuiPersistantPlatformData
-  {
-    void UpdateAndRender( Errors& );
-    void UpdateAndRenderWindow( ImGuiDesktopWindowImpl*, ImGuiPersistantViewport*, Errors& );
-    auto GetPersistantWindowData( WindowHandle ) -> ImGuiPersistantViewport*;
-
-    static ImGuiPersistantPlatformData Instance;
-    Vector< ImGuiPersistantViewport > mViewportDatas;
+    Vector< UI2DDrawData* > mImGuiDrawDatas      {};
+    bool                    mMonitorDpiRequested { true };
+    UI2DRenderData          mRenderBuffers       {};
   };
 
   void SetActiveID( ImGuiID, ImGuiWindow* );

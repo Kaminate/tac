@@ -192,7 +192,7 @@ namespace Tac
 
     ImGuiPushFontSize( _fontSize * sTransform.m11 );
 
-    float fontSize = ImGuiGetFontSize() * sMagicTextScale;
+    float fontSize = ImGuiGetFontSizePx() * sMagicTextScale;
     sLastGlyphFontSize = fontSize;
 
     

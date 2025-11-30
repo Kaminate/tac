@@ -146,10 +146,15 @@ namespace Tac
   bool UTF8Path::Exists() const      { return std::filesystem::exists( StdPath( this ) ); }
   bool UTF8Path::CreateDir() const   { return std::filesystem::create_directory( StdPath( this) ); }
 
-  auto UTF8Path::GetFileLastModifiedTime(  Errors& errors )  const -> FileTime
+  auto UTF8Path::GetFileLastModifiedTime( Errors& errors )  const -> FileTime
   {
     TAC_UNUSED_PARAMETER( errors );
-    const std::filesystem::path stdPath{ StdPath( this ) };
+#if 0 // hack to reduce dynamic memory allocation, doesnt work
+    static thread_local std::filesystem::path stdPath;
+    stdPath.assign( ( char8_t* )c_str() );
+#else
+    std::filesystem::path stdPath( StdPath( this ) );
+#endif
     const std::filesystem::file_time_type stdTime{ std::filesystem::last_write_time( stdPath ) };
     return TacTime( stdTime );
   }

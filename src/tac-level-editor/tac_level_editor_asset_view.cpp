@@ -54,6 +54,10 @@ namespace Tac
   static LoadedModels              sAssetViewLoadedModels;
   static const int                 sAssetViewWidth { 256 };
   static const int                 sAssetViewHeight { 256 };
+  static AssetPathStrings          sAssetViewImagePaths;
+  static bool                      sAssetViewImagePathsDirty{ true };
+  static AssetPathStrings          sAssetViewOtherPaths;
+  static bool                      sAssetViewOtherPathsDirty{ true };
 
   // -----------------------------------------------------------------------------------------------
 
@@ -262,30 +266,19 @@ namespace Tac
 
   static auto LoadEllipses() { return String( "...", ( int )GameTimer::GetElapsedTime() % 4 ); }
 
-  static auto HasExt( const AssetPathStringView path, Vector< const char* > extensions )
-  {
-    for( const char* ext : extensions )
-      if( path.GetFileExtension() == ( StringView )ext )
-        return true;
-    return false;
-  }
-
   static bool IsImage( const AssetPathStringView path )
   {
-    Vector< const char* > exts;
-    exts.push_back( ".png" );
-    exts.push_back( ".jpg" );
-    exts.push_back( ".bmp" );
-    return HasExt( path, exts );
+    const StringView ext{ path.GetFileExtension() };
+    return ext == ( StringView )".png"
+      || ext == ( StringView )".jpg"
+      || ext == ( StringView )".bmp";
   }
 
   static bool IsModel( const AssetPathStringView path )
   {
-    Vector< const char* > exts;
-    exts.push_back( ".gltf" );
-    exts.push_back( ".glb" );
-    //exts.push_back( ".obj" );
-    return HasExt( path, exts );
+    const StringView ext{ path.GetFileExtension() };
+    return ext == (StringView)".gltf"
+      || ext == (StringView)".glb";
   }
 
   static bool IsOther( const AssetPathStringView path )
@@ -445,8 +438,12 @@ namespace Tac
 
   static void UIFilesOther( Errors& errors )
   {
-    const AssetPathStrings paths{ GetOtherPaths() };
-    for( const AssetPathStringView assetPath : paths )
+    if( sAssetViewOtherPathsDirty )
+    {
+      sAssetViewOtherPaths = GetOtherPaths();
+      sAssetViewOtherPathsDirty = false;
+    }
+    for( const AssetPathStringView assetPath : sAssetViewOtherPaths )
     {
       if( assetPath.ends_with( ".meta" ) )
         continue;
@@ -504,16 +501,20 @@ namespace Tac
   static void UIFilesModels(  Errors& errors )
   {
     for( AssetPathStrings paths{ GetModelPaths() }; const AssetPathStringView path : paths )
-      UIFilesModelImGui(  path, errors );
+      UIFilesModelImGui( path, errors );
   }
 
   static void UIFilesImages( Errors& errors )
   {
-    const AssetPathStrings paths{ GetImagePaths() };
+    if( sAssetViewImagePathsDirty )
+    {
+      sAssetViewImagePaths = GetImagePaths();
+      sAssetViewImagePathsDirty = false;
+    }
 
     int shownImageCount {};
     bool goSameLine {};
-    for( const AssetPathStringView assetPath : paths )
+    for( const AssetPathStringView assetPath : sAssetViewImagePaths )
     {
       if( goSameLine )
         ImGuiSameLine();

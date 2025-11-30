@@ -8,7 +8,6 @@
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/containers/tac_vector.h"
-//#include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac

@@ -97,6 +97,7 @@ namespace Tac
     }
   }
 
+  // This is our WndProc/lpfnWndProc from RegisterClass/Ex
   static auto CALLBACK WindowProc( const HWND hwnd,
                                    const UINT uMsg,
                                    const WPARAM wParam,
@@ -354,6 +355,7 @@ namespace Tac
         const int w{ suggested_rect->right - suggested_rect->left };
         const int h{ suggested_rect->bottom - suggested_rect->top };
         ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE );
+        DesktopEventApi::Queue( DesktopEventApi::WindowDpiChangedEvent{ .mWindowHandle{windowHandle } } );
         return 0;
       }
     }

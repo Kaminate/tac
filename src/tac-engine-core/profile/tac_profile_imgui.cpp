@@ -126,7 +126,7 @@ namespace Tac
   static void ImGuiProfileWidgetCamera( const v2 cameraViewportPos,
                                         const v2 cameraViewportSize )
   {
-    const float fontSize { ImGuiGetFontSize() };
+    const float fontSize { ImGuiGetFontSizePx() };
     ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
     UI2DDrawData* drawData { imguiWindow->mDrawData };
 
@@ -273,7 +273,7 @@ namespace Tac
   static void ImGuiProfileWidgetTimeScale( const v2 timelinePos,
                                            const v2 timelineSize )
   {
-    const float fontSize { ImGuiGetFontSize() };
+    const float fontSize { ImGuiGetFontSizePx() };
     const v4& textColor { ImGuiGetColor( ImGuiCol::Text ) };
 
     ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
@@ -325,7 +325,7 @@ namespace Tac
 
 void Tac::ImGuiProfileWidget()
 {
-  const float fontSize { ImGuiGetFontSize() };
+  const float fontSize { ImGuiGetFontSizePx() };
   ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
   UI2DDrawData* drawData { imguiWindow->mDrawData };
 
