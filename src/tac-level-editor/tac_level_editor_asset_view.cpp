@@ -55,9 +55,8 @@ namespace Tac
   static const int                 sAssetViewWidth { 256 };
   static const int                 sAssetViewHeight { 256 };
   static AssetPathStrings          sAssetViewImagePaths;
-  static bool                      sAssetViewImagePathsDirty{ true };
   static AssetPathStrings          sAssetViewOtherPaths;
-  static bool                      sAssetViewOtherPathsDirty{ true };
+  static AssetPathStrings          sAssetViewModelPaths;
 
   // -----------------------------------------------------------------------------------------------
 
@@ -295,9 +294,6 @@ namespace Tac
     return paths;
   }
 
-  static auto GetImagePaths() { return GetPathsUsingFn( IsImage ); }
-  static auto GetModelPaths() { return GetPathsUsingFn( IsModel ); }
-  static auto GetOtherPaths() { return GetPathsUsingFn( IsOther ); }
 
   static auto GetLoadedModel( const AssetPathStringView& path ) -> AssetViewImportedModel*
   {
@@ -311,11 +307,14 @@ namespace Tac
   static void PopulateFolderContents( Errors& errors )
   {
     TAC_CALL( sAssetViewFiles = IterateAssetsInDir( sAssetViewFolderCur,
-                                                       AssetIterateType::Default,
-                                                       errors ) );
+                                                    AssetIterateType::Default,
+                                                    errors ) );
     TAC_CALL( sAssetViewFolders = IterateAssetsDirs( sAssetViewFolderCur,
-                                                               AssetIterateType::Default,
-                                                               errors ) );
+                                                     AssetIterateType::Default,
+                                                     errors ) );
+    sAssetViewImagePaths = GetPathsUsingFn( IsImage );
+    sAssetViewOtherPaths = GetPathsUsingFn( IsOther );
+    sAssetViewModelPaths = GetPathsUsingFn( IsModel );
   }
 
   static auto CreateLoadedModel( const AssetPathStringView& assetPath,
@@ -425,24 +424,8 @@ namespace Tac
     }
   }
 
-  static void UIFoldersNext( Errors& errors )
-  {
-    const int n { sAssetViewFolders.size() };
-    for( AssetPathStringView asset : sAssetViewFolders )
-    {
-      if( const String folder{ asset.GetFilename() };
-          ImGuiButton( folder ) )
-        sAssetViewFolderStack.push_back( folder );
-    }
-  }
-
   static void UIFilesOther( Errors& errors )
   {
-    if( sAssetViewOtherPathsDirty )
-    {
-      sAssetViewOtherPaths = GetOtherPaths();
-      sAssetViewOtherPathsDirty = false;
-    }
     for( const AssetPathStringView assetPath : sAssetViewOtherPaths )
     {
       if( assetPath.ends_with( ".meta" ) )
@@ -456,7 +439,7 @@ namespace Tac
   {
     TAC_ASSERT( !errors );
 
-    const String filename{ assetPath.GetFileExtension() };
+    const String filename{ assetPath.GetFilename() };
     AssetViewImportedModel* loadedModel { GetLoadedModel( assetPath ) };
     if( !loadedModel )
     {
@@ -498,20 +481,16 @@ namespace Tac
     }
   }
 
-  static void UIFilesModels(  Errors& errors )
+  static void UIFilesModels( Errors& errors )
   {
-    for( AssetPathStrings paths{ GetModelPaths() }; const AssetPathStringView path : paths )
-      UIFilesModelImGui( path, errors );
+    for( const AssetPathStringView path : sAssetViewModelPaths )
+    {
+      TAC_CALL( UIFilesModelImGui( path, errors ) );
+    }
   }
 
   static void UIFilesImages( Errors& errors )
   {
-    if( sAssetViewImagePathsDirty )
-    {
-      sAssetViewImagePaths = GetImagePaths();
-      sAssetViewImagePathsDirty = false;
-    }
-
     int shownImageCount {};
     bool goSameLine {};
     for( const AssetPathStringView assetPath : sAssetViewImagePaths )
@@ -538,7 +517,7 @@ namespace Tac
       ImGuiText( "no files :(" );
 
     TAC_CALL( UIFilesImages( errors ) );
-    TAC_CALL( UIFilesModels(  errors ) );
+    TAC_CALL( UIFilesModels( errors ) );
     TAC_CALL( UIFilesOther( errors ) );
   }
 
@@ -553,8 +532,9 @@ namespace Tac
 
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowMoveResize();
-    if(  !ImGuiBegin( "Asset View" )  )
+    if( !ImGuiBegin( "Asset View" ) )
       return;
+
     TAC_PROFILE_BLOCK;
     ImGuiText( "--- Asset View ---" );
     if( sAssetViewErrors )
@@ -567,11 +547,23 @@ namespace Tac
 
     UIFoldersUpToCurr();
 
+
+    ImGuiBeginGroup();
     {
-      ImGuiBeginGroup();
-      TAC_CALL( UIFoldersNext( errors ) );
-      ImGuiEndGroup();
+      const int n{ sAssetViewFolders.size() };
+      for( AssetPathStringView asset : sAssetViewFolders )
+      {
+        if( const String folder{ asset.GetFilename() };
+            ImGuiButton( folder ) )
+          sAssetViewFolderStack.push_back( folder );
+      }
+      if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
+      {
+        sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
+        PopulateFolderContents( sAssetViewErrors );
+      }
     }
+    ImGuiEndGroup();
 
     ImGuiSameLine();
 
@@ -579,11 +571,6 @@ namespace Tac
     TAC_CALL( UIFiles( errors ) );
     ImGuiEndGroup();
 
-    if( oldStackSize != sAssetViewFolderStack.size() || ImGuiButton( "Refresh" ) )
-    {
-      sAssetViewFolderCur = Join( sAssetViewFolderStack, "/" );
-      PopulateFolderContents( sAssetViewErrors );
-    }
     ImGuiEnd();
   }
 
@@ -592,7 +579,7 @@ namespace Tac
     if( !sShowWindow )
       return;
 
-    const AssetPathStrings paths{ GetModelPaths() };
+    const AssetPathStrings paths{ sAssetViewModelPaths };
     for( const AssetPathStringView assetPath : paths )
     {
       AssetViewImportedModel* loadedModel{ GetLoadedModel( assetPath ) };

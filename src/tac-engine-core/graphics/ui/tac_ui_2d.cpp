@@ -881,7 +881,7 @@ namespace Tac
 
       debugGroupStack.IterateEnd( debugGroupIterator );
 
-      //for( ImGuiWindow* window : ImGuiGlobals::Instance.mAllWindows )
+      //for( ImGuiWindow* window : ImGuiGlobals::mAllWindows )
       //  window->mDrawData->mDebugGroupStack.clear();
 
     }

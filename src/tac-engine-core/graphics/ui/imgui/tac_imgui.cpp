@@ -75,7 +75,7 @@ namespace Tac
 
   static auto ImGuiGetWindowSettingsJson( const StringView& name ) -> SettingsNode
   {
-    SettingsNode windowsJson{ ImGuiGlobals::Instance.mSettingsNode.GetChild( "imgui.windows" ) };
+    SettingsNode windowsJson{ ImGuiGlobals::mSettingsNode.GetChild( "imgui.windows" ) };
     const int n{ windowsJson.GetValue().mArrayElements.size() };
     for( int i{}; i < n; ++i )
     {
@@ -102,8 +102,8 @@ namespace Tac
 
   static void ImGuiSaveWindowSettings( ImGuiWindow* window )
   {
-    ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-    globals.mSettingsDirty = false;
+    
+    ImGuiGlobals::mSettingsDirty = false;
     
     //if( !window->mWindowHandleOwned )
     //  return;
@@ -119,7 +119,7 @@ namespace Tac
 
   static auto GetFrameColor( const bool hovered ) -> const v4&
   {
-    //ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+    //
     const bool active{ hovered && UIKeyboardApi::IsPressed( Key::MouseLeft ) };
     const v4& boxColor{ ImGuiGetColor( active
                                        ? ImGuiCol::FrameBGActive : hovered
@@ -129,14 +129,14 @@ namespace Tac
 
   static void ImGuiDeleteWindows()
   {
-    ImGuiGlobals& globals{ ImGuiGlobals::Instance };
     
-    dynmc int nAllWindows{ globals.mAllWindows.size() };
+    
+    dynmc int nAllWindows{ ImGuiGlobals::mAllWindows.size() };
     dynmc int iAllWindows{};
     while( iAllWindows < nAllWindows )
     {
-      ImGuiWindow* window{ globals.mAllWindows[ iAllWindows ] };
-      const GameTime curSeconds{ globals.mElapsedSeconds };
+      ImGuiWindow* window{ ImGuiGlobals::mAllWindows[ iAllWindows ] };
+      const GameTime curSeconds{ ImGuiGlobals::mElapsedSeconds };
       const GameTimeDelta deletionWaitSeconds{ 0.1f };
       if( curSeconds > window->mRequestTime + deletionWaitSeconds )
       {
@@ -145,7 +145,7 @@ namespace Tac
           AppWindowApi::DestroyWindow( window->GetWindowHandle() );
         }
 
-        globals.mAllWindows[ iAllWindows ] = globals.mAllWindows[ --nAllWindows ];
+        ImGuiGlobals::mAllWindows[ iAllWindows ] = ImGuiGlobals::mAllWindows[ --nAllWindows ];
         TAC_DELETE window;
       }
       else
@@ -153,7 +153,7 @@ namespace Tac
         ++iAllWindows;
       }
     }
-    globals.mAllWindows.resize( nAllWindows );
+    ImGuiGlobals::mAllWindows.resize( nAllWindows );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ namespace Tac
 
   static void ImGuiDrawCheckMark( const v2& pos, const  float boxWidth )
   {
-    ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+    ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
     UI2DDrawData* drawData{ window->mDrawData };
 
     const v4& checkmarkColor{ ImGuiGetColor( ImGuiCol::Checkmark ) };
@@ -310,7 +310,7 @@ void Tac::TextInputDataDrawSelection( TextInputData* inputData,
     const float caretYPadding{ 2.0f };
     const float caretHalfWidth{ 0.5f };
     const float blinkySpeed{ 2.25f };
-    const double t{ ImGuiGlobals::Instance.mElapsedSeconds };
+    const double t{ ImGuiGlobals::mElapsedSeconds };
     const float a{ 1 - Pow( ( float )Cos( blinkySpeed * t ), 4 ) };
     drawData->AddBox(
       UI2DDrawData::Box
@@ -324,7 +324,7 @@ void Tac::TextInputDataDrawSelection( TextInputData* inputData,
 
 auto Tac::ImGuiGetMouseCursor() -> Tac::ImGuiMouseCursor
 {
-  return ImGuiGlobals::Instance.mMouseCursor;
+  return ImGuiGlobals::mMouseCursor;
 }
 
 auto Tac::ImGuiGetColName( const ImGuiCol colIdx ) -> const char*
@@ -362,18 +362,18 @@ void Tac::ImGuiSetNextWindowHandle( const WindowHandle& WindowHandle )
 
 auto Tac::ImGuiGetWindowHandle() -> WindowHandle
 {
-  return ImGuiGlobals::Instance.mCurrentWindow->GetWindowHandle();
+  return ImGuiGlobals::mCurrentWindow->GetWindowHandle();
 }
 
 auto Tac::ImGuiGetWindowHandle( StringView name ) -> WindowHandle
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.FindWindow( name ) };
+  ImGuiWindow* window{ ImGuiGlobals::FindWindow( name ) };
   return window ? window->mDesktopWindow->mWindowHandle : WindowHandle{};
 }
 
 auto Tac::ImGuiGetContentRect() -> Tac::ImGuiRect
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   return window->mViewportSpaceVisibleRegion;
 }
 
@@ -394,19 +394,19 @@ void Tac::ImGuiSetNextWindowDisableBG() { ImGuiNextWindow::gNextWindow.mEnableBG
 
 auto Tac::GetID( StringView label ) -> Tac::ImGuiID
 {
-  return ImGuiGlobals::Instance.mCurrentWindow->GetID( label );
+  return ImGuiGlobals::mCurrentWindow->GetID( label );
 }
 
 void Tac::PushID( StringView str )
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const ImGuiID id{ window->GetID( str ) };
   window->mIDStack.push_back( id );
 }
 
 void Tac::PopID()
 {
-  ImGuiGlobals::Instance.mCurrentWindow->mIDStack.pop_back();
+  ImGuiGlobals::mCurrentWindow->mIDStack.pop_back();
 }
 
 
@@ -414,9 +414,9 @@ void Tac::PopID()
 // In Tac ImGui, this is not the case.
 bool Tac::ImGuiBegin( const StringView& name )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
   
-  ImGuiWindow* window{ globals.FindWindow( name ) };
+  
+  ImGuiWindow* window{ ImGuiGlobals::FindWindow( name ) };
   if( !window )
   {
     WindowHandle hDesktopWindow{ ImGuiNextWindow::gNextWindow.mWindowHandle };
@@ -490,12 +490,12 @@ bool Tac::ImGuiBegin( const StringView& name )
                    ImGuiNextWindow::gNextWindow.mSize.y + ( ImGuiNextWindow::gNextWindow.mSize.y > 0 ? 0 : desktopWindowHeight ) };
 
     ImGuiDesktopWindowImpl* imguiDesktopWindow
-      = ImGuiGlobals::Instance.FindDesktopWindow( hDesktopWindow );
+      = ImGuiGlobals::FindDesktopWindow( hDesktopWindow );
     if( !imguiDesktopWindow )
     {
       imguiDesktopWindow = TAC_NEW ImGuiDesktopWindowImpl;
       imguiDesktopWindow->mWindowHandle = hDesktopWindow;
-      ImGuiGlobals::Instance.mDesktopWindows.push_back( imguiDesktopWindow );
+      ImGuiGlobals::mDesktopWindows.push_back( imguiDesktopWindow );
     }
 
     TAC_ASSERT( hDesktopWindow.IsValid() );
@@ -510,7 +510,7 @@ bool Tac::ImGuiBegin( const StringView& name )
     window->mStretchWindow = ImGuiNextWindow::gNextWindow.mStretch;
     window->mMoveResizeWindow = ImGuiNextWindow::gNextWindow.mMoveResize;
     window->mEnableBG = ImGuiNextWindow::gNextWindow.mEnableBG;
-    ImGuiGlobals::Instance.mAllWindows.push_back( window );
+    ImGuiGlobals::mAllWindows.push_back( window );
   }
 
 
@@ -520,12 +520,12 @@ bool Tac::ImGuiBegin( const StringView& name )
 
   ImGuiDesktopWindow* desktopWindow{ window->mDesktopWindow };
   const WindowHandle hWindow { desktopWindow->mWindowHandle };
-  window->mRequestTime = ImGuiGlobals::Instance.mElapsedSeconds;
+  window->mRequestTime = ImGuiGlobals::mElapsedSeconds;
   if( !AppWindowApi::IsShown( hWindow ) )
     return false;
 
-  ImGuiGlobals::Instance.mWindowStack.push_back( window );
-  ImGuiGlobals::Instance.mCurrentWindow = window;
+  ImGuiGlobals::mWindowStack.push_back( window );
+  ImGuiGlobals::mCurrentWindow = window;
 
   if( window->mStretchWindow )
     window->mSize = AppWindowApi::GetSize( hWindow );
@@ -537,20 +537,19 @@ bool Tac::ImGuiBegin( const StringView& name )
 
 void Tac::ImGuiEnd()
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  Vector< ImGuiWindow* >& windowStack{ globals.mWindowStack };
-  ImGuiWindow* backWindow{ windowStack.back() };
-  backWindow->EndFrame();
-  windowStack.pop_back();
-  globals.mCurrentWindow = windowStack.empty() ? nullptr : windowStack.back();
+  ImGuiGlobals::mWindowStack.back()->EndFrame();
+  ImGuiGlobals::mWindowStack.pop_back();
+  ImGuiGlobals::mCurrentWindow
+    = ImGuiGlobals::mWindowStack.empty()
+    ? nullptr
+    : ImGuiGlobals::mWindowStack.back();
 }
 
 void Tac::ImGuiBeginChild( const StringView& name, const v2& size )
 {
-  ImGuiGlobals& Instance{ ImGuiGlobals::Instance };
-  ImGuiWindow* parent{ Instance.mCurrentWindow };
+  ImGuiWindow* parent{ ImGuiGlobals::mCurrentWindow };
   TAC_ASSERT( parent );
-  ImGuiWindow* child{ Instance.FindWindow( name ) };
+  ImGuiWindow* child{ ImGuiGlobals::FindWindow( name ) };
   if( !child )
   {
     child = TAC_NEW ImGuiWindow;
@@ -559,29 +558,29 @@ void Tac::ImGuiBeginChild( const StringView& name, const v2& size )
     child->mDrawData = parent->mDrawData;
     child->mTextInputData = parent->mTextInputData;
     child->mDesktopWindow = parent->mDesktopWindow;
-    Instance.mAllWindows.push_back( child );
+    ImGuiGlobals::mAllWindows.push_back( child );
   }
-  child->mRequestTime = ImGuiGlobals::Instance.mElapsedSeconds;
+  child->mRequestTime = ImGuiGlobals::mElapsedSeconds;
   child->mSize = v2( size.x > 0 ? size.x : size.x + parent->mSize.x,
                      size.y > 0 ? size.y : size.y + parent->mSize.y );
-  Instance.mWindowStack.push_back( child );
-  Instance.mCurrentWindow = child;
+  ImGuiGlobals::mWindowStack.push_back( child );
+  ImGuiGlobals::mCurrentWindow = child;
   child->BeginFrame();
 }
 
 void Tac::ImGuiEndChild()
 {
-  ImGuiGlobals& Instance{ ImGuiGlobals::Instance };
-  ImGuiWindow* child{ Instance.mCurrentWindow };
+  
+  ImGuiWindow* child{ ImGuiGlobals::mCurrentWindow };
   child->mParent->ItemSize( child->mSize );
   child->EndFrame();
-  Instance.mWindowStack.pop_back();
-  Instance.mCurrentWindow = Instance.mWindowStack.back();
+  ImGuiGlobals::mWindowStack.pop_back();
+  ImGuiGlobals::mCurrentWindow = ImGuiGlobals::mWindowStack.back();
 }
 
 void Tac::ImGuiBeginGroup()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   window->PushXOffset();
   window->mCurrLineHeight = 0;
   window->mGroupSK.push_back(
@@ -594,7 +593,7 @@ void Tac::ImGuiBeginGroup()
 
 void Tac::ImGuiEndGroup()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const GroupData& groupData{ window->mGroupSK.back() };
   const v2 groupSize{ window->mViewportSpaceMaxiCursor - groupData.mSavedCursorDrawPos };
 
@@ -607,21 +606,21 @@ void Tac::ImGuiEndGroup()
 
 void Tac::ImGuiIndent()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   window->mViewportSpaceCurrCursor.x += 15.0f;
   window->PushXOffset();
 }
 
 void Tac::ImGuiUnindent()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   window->mXOffsets.pop_back();
   window->mViewportSpaceCurrCursor.x = window->mViewportSpacePos.x + window->mXOffsets.back();
 }
 
 void Tac::ImGuiSameLine()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   window->mViewportSpaceCurrCursor
     = window->mViewportSpacePrevCursor
     + v2( ImGuiGetStyle().itemSpacing.x, 0 );
@@ -630,7 +629,7 @@ void Tac::ImGuiSameLine()
 
 void Tac::ImGuiText( const StringView& utf8 )
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   UI2DDrawData* drawData{ window->mDrawData };
   const v2 textPos{ window->mViewportSpaceCurrCursor };
   const v2 textSize{ CalculateTextSize( utf8, ImGuiGetFontSizePx() ) };
@@ -654,13 +653,13 @@ void Tac::ImGuiText( const StringView& utf8 )
 
 bool Tac::ImGuiInputText( const StringView& label, String& text )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  
   const float buttonPadding{ ImGuiGetButtonPadding() };
   const v2& itemSpacing{ ImGuiGetItemSpacingPx() };
 
-  const GameTime mouseReleaseSeconds{ globals.mElapsedSeconds };
+  const GameTime mouseReleaseSeconds{ ImGuiGlobals::mElapsedSeconds };
 
-  ImGuiWindow* window{ globals.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
 
   const ImGuiID id{ window->GetID( label ) };
   const String oldText{ text };
@@ -682,19 +681,19 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   TAC_ON_DESTRUCT( drawData->PopDebugGroup() );
 
   const ImGuiRect clipRect{ window->Clip( origRect ) };
-  const ImGuiID activeId{ GetActiveID() };
+  const ImGuiID activeId{ ImGuiGlobals::GetActiveID() };
   const bool hovered{ window->IsHovered( clipRect, id ) };
   const bool isActive{ activeId == id };
   const bool mouseLeftJustPressed{ UIKeyboardApi::JustPressed( Key::MouseLeft ) };
 
   if( mouseLeftJustPressed && hovered && !isActive )
   {
-    SetActiveID( id, window );
+    ImGuiGlobals::SetActiveID( id, window );
     textInputData->SetText( text );
   }
 
   if( mouseLeftJustPressed && !hovered && isActive )
-    ClearActiveID();
+    ImGuiGlobals::ClearActiveID();
 
   const v2 textPos{ pos + v2( buttonPadding, 0 ) };
   const v2 textBackgroundMaxi{ pos + v2( totalSize.x * ( 2.0f / 3.0f ), totalSize.y ) };
@@ -720,7 +719,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
         !textInputData->mCodepoints.empty() )
     {
       const v2 screenspaceMousePos{ UIKeyboardApi::GetMousePosScreenspace() };
-      const GameTime elapsedSecs{ ImGuiGlobals::Instance.mElapsedSeconds };
+      const GameTime elapsedSecs{ ImGuiGlobals::mElapsedSeconds };
       const GameTimeDelta kDoubleClickSecs{ 0.5f };
       const bool releasedRecently{ elapsedSecs - lastMouseReleaseSeconds < kDoubleClickSecs };
       const bool releasedSamePos{ lastMousePositionDesktopWindowspace == screenspaceMousePos };
@@ -765,9 +764,9 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
 
 bool Tac::ImGuiSelectable( const StringView& str, bool selected )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
+  
 
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
 
   const float remainingWidth{ window->GetRemainingWidth() };
 
@@ -786,13 +785,13 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
 
   const ImGuiRect clipRectViewport{ window->Clip( origRect ) };
   const bool hovered{ window->IsHovered( clipRectViewport, id ) };
-  const bool active{ globals.mActiveID == id };
+  const bool active{ ImGuiGlobals::mActiveID == id };
   const bool clicked{ hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) };
   if( clicked )
-    SetActiveID( id, window );
+    ImGuiGlobals::SetActiveID( id, window );
 
   if( active && !UIKeyboardApi::IsPressed( Key::MouseLeft ) )
-    ClearActiveID();
+    ImGuiGlobals::ClearActiveID();
 
   if( selected || hovered )
   {
@@ -817,8 +816,8 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
 
 bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  ImGuiWindow* window{ globals.mCurrentWindow };
+  
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
 
   dynmc v2 buttonSize{ size };
   if( size.x < 0 )
@@ -841,8 +840,8 @@ bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
 
 bool Tac::ImGuiButton( const StringView& str, v2 size )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  ImGuiWindow* window{ globals.mCurrentWindow };
+  
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const float buttonPadding{ ImGuiGetButtonPadding() };
   const v2 textSize{ CalculateTextSize( str, ImGuiGetFontSizePx() ) };
   dynmc v2 buttonSize{ textSize + v2( 2 * buttonPadding, 0 ) };
@@ -889,8 +888,8 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
 
 bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  ImGuiWindow* window{ globals.mCurrentWindow };
+  
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const ImGuiID id{ window->GetID( str ) };
   const bool oldValue{ *value };
   const v2& itemSpacing{ ImGuiGetItemSpacingPx() };
@@ -941,16 +940,16 @@ bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
 
 auto Tac::ImGuiGetCursorPos() -> Tac::v2
 {
-  return ImGuiGlobals::Instance.mCurrentWindow->mViewportSpaceCurrCursor;
+  return ImGuiGlobals::mCurrentWindow->mViewportSpaceCurrCursor;
 }
 
 void Tac::ImGuiSetCursorPos( const v2 local )
 {
-  ImGuiGlobals::Instance.mCurrentWindow->mViewportSpaceCurrCursor = local;
+  ImGuiGlobals::mCurrentWindow->mViewportSpaceCurrCursor = local;
 }
 
 
-auto Tac::ImGuiGetStyle() -> Tac::UIStyle&                { return ImGuiGlobals::Instance.mUIStyle; }
+auto Tac::ImGuiGetStyle() -> Tac::UIStyle&                { return ImGuiGlobals::mUIStyle; }
 auto Tac::ImGuiGetColor( ImGuiCol col ) -> const Tac::v4& { return ImGuiGetStyle().colors[ ( int )col ]; }
 void Tac::ImGuiSetColor( ImGuiCol colidx, v4 rgba )       { ImGuiGetStyle().colors[ ( int )colidx ] = rgba; }
 
@@ -991,7 +990,7 @@ void Tac::ImGuiDefaultColors()
 
 void Tac::ImGuiImage( const int hTex, const v2& size, const v4& color )
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const v2 pos{ window->mViewportSpaceCurrCursor };
   window->ItemSize( size );
   UI2DDrawData* drawData{ window->mDrawData };
@@ -1009,7 +1008,7 @@ void Tac::ImGuiImage( const int hTex, const v2& size, const v4& color )
 
 auto Tac::ImGuiGetDrawData() -> Tac::UI2DDrawData*
 {
-  return ImGuiGlobals::Instance.mCurrentWindow->mDrawData;
+  return ImGuiGlobals::mCurrentWindow->mDrawData;
 }
 
 bool Tac::ImGuiDragFloat( const StringView& s, float* v )  { return ImGuiDragFloatN( s, v, 1 ); }
@@ -1023,8 +1022,8 @@ bool Tac::ImGuiDragInt4( const StringView& s, int* v )     { return ImGuiDragInt
 
 bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags flags )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  ImGuiWindow* window{ globals.mCurrentWindow };
+  
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const float buttonPadding{ ImGuiGetButtonPadding() };
   const float width{ window->GetRemainingWidth() };
   const v2 pos{ window->mViewportSpaceCurrCursor };
@@ -1063,19 +1062,19 @@ bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags fl
 
 void Tac::ImGuiPushFontSize( float value )
 {
-  ImGuiGlobals::Instance.mFontSizeSK.push_back( ImGuiGlobals::Instance.mUIStyle.fontSize );
-  ImGuiGlobals::Instance.mUIStyle.fontSize = value;
+  ImGuiGlobals::mFontSizeStack.push_back( ImGuiGlobals::mUIStyle.fontSize );
+  ImGuiGlobals::mUIStyle.fontSize = value;
 }
 
 void Tac::ImGuiPopFontSize()
 {
-  ImGuiGlobals::Instance.mUIStyle.fontSize = ImGuiGlobals::Instance.mFontSizeSK.back();
-  ImGuiGlobals::Instance.mFontSizeSK.pop_back();
+  ImGuiGlobals::mUIStyle.fontSize = ImGuiGlobals::mFontSizeStack.back();
+  ImGuiGlobals::mFontSizeStack.pop_back();
 }
 
 void Tac::ImGuiBeginMenuBar()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   UI2DDrawData* drawData{ window->mDrawData };
   TAC_ASSERT( !window->mIsAppendingToMenu );
   window->mIsAppendingToMenu = true;
@@ -1090,17 +1089,17 @@ void Tac::ImGuiBeginMenuBar()
 
 void Tac::ImGuiEndMenuBar()
 {
-  ImGuiWindow* window{ ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   TAC_ASSERT( window->mIsAppendingToMenu );
   window->mIsAppendingToMenu = false;
 }
 
 void Tac::ImGuiDebugDraw()
 {
-  const ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  const ImGuiID activeId{ globals.mActiveID };
-  const ImGuiID hoveredId{ globals.mHoveredID };
-  const ImGuiWindow* activeIDWindow{ globals.mActiveIDWindow };
+  
+  const ImGuiID activeId{ ImGuiGlobals::mActiveID };
+  const ImGuiID hoveredId{ ImGuiGlobals::mHoveredID };
+  const ImGuiWindow* activeIDWindow{ ImGuiGlobals::mActiveIDWindow };
   const String activeIdWindowStr{ activeIDWindow ? activeIDWindow->mName : "null" };
   ImGuiText( String() + "hovered id: " + ToString( hoveredId.mValue ) );
   ImGuiText( String() + "active id: " + ToString( activeId.mValue ) );
@@ -1109,13 +1108,13 @@ void Tac::ImGuiDebugDraw()
 
 void Tac::ImGuiBeginFrame( const BeginFrameData& data )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  globals.mElapsedSeconds = data.mElapsedSeconds;
-  globals.mMouseHoveredWindow = data.mMouseHoveredWindow;
-  globals.mMouseCursor = ImGuiMouseCursor::kArrow;
-  globals.mHoveredID = {};
+  
+  ImGuiGlobals::mElapsedSeconds = data.mElapsedSeconds;
+  ImGuiGlobals::mMouseHoveredWindow = data.mMouseHoveredWindow;
+  ImGuiGlobals::mMouseCursor = ImGuiMouseCursor::kArrow;
+  ImGuiGlobals::mHoveredID = {};
 
-  for( ImGuiDesktopWindowImpl* desktopWindow : globals.mDesktopWindows )
+  for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::mDesktopWindows )
   {
     if( desktopWindow->mMonitorDpiRequested )
     {
@@ -1126,11 +1125,11 @@ void Tac::ImGuiBeginFrame( const BeginFrameData& data )
     }
   }
 
-  if( ImGuiWindow * window{ globals.mMovingWindow } )
+  if( ImGuiWindow * window{ ImGuiGlobals::mMovingWindow } )
     window->UpdateMoveControls();
 
-  if( globals.mSettingsDirty )
-    for( ImGuiWindow* window : globals.mAllWindows )
+  if( ImGuiGlobals::mSettingsDirty )
+    for( ImGuiWindow* window : ImGuiGlobals::mAllWindows )
         ImGuiSaveWindowSettings( window );
 }
 
@@ -1139,77 +1138,77 @@ void Tac::ImGuiEndFrame( Errors& errors )
   TAC_UNUSED_PARAMETER( errors );
   TAC_PROFILE_BLOCK;
 
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  for( const ImGuiWindow* window : globals.mWindowStack )
+  
+  for( const ImGuiWindow* window : ImGuiGlobals::mWindowStack )
   {
     TAC_ASSERT_CRITICAL( String() + "Mismatched ImGuiBegin/ImGuiEnd for " + window->mName );
   }
 
   ImGuiDeleteWindows();
 
-  for( ImGuiWindow* window : globals.mAllWindows )
+  for( ImGuiWindow* window : ImGuiGlobals::mAllWindows )
     window->BeginMoveControls();
 
-  if( ImGuiGlobals::Instance.mHoveredIDPrev && !ImGuiGlobals::Instance.mHoveredID )
-    ImGuiGlobals::Instance.mHoverStartTime = {};
-  ImGuiGlobals::Instance.mHoveredIDPrev = ImGuiGlobals::Instance.mHoveredID;
+  if( ImGuiGlobals::mHoveredIDPrev && !ImGuiGlobals::mHoveredID )
+    ImGuiGlobals::mHoverStartTime = {};
+  ImGuiGlobals::mHoveredIDPrev = ImGuiGlobals::mHoveredID;
 
 }
 
 auto Tac::ImGuiGetFontSizePx() -> float           
 {
   return ImGuiGetStyle().fontSize
-    * ImGuiGlobals::Instance.mCurrentWindow->mDesktopWindow->mMonitorDpi
-    / ImGuiGlobals::Instance.mReferenceResolution.mDpi;
+    * ImGuiGlobals::mCurrentWindow->mDesktopWindow->mMonitorDpi
+    / ImGuiGlobals::mReferenceResolution.mDpi;
 }
 auto Tac::ImGuiGetItemSpacingPx() -> Tac::v2
 {
   return ImGuiGetStyle().itemSpacing
-    * ImGuiGlobals::Instance.mCurrentWindow->mDesktopWindow->mMonitorDpi
-    / ImGuiGlobals::Instance.mReferenceResolution.mDpi;
+    * ImGuiGlobals::mCurrentWindow->mDesktopWindow->mMonitorDpi
+    / ImGuiGlobals::mReferenceResolution.mDpi;
 }
 auto Tac::ImGuiGetButtonPadding() -> float        { return ImGuiGetStyle().buttonPadding; }
 
 void Tac::ImGuiInit( const ImGuiInitParams& params, Errors& errors )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  globals.mMaxGpuFrameCount = params.mMaxGpuFrameCount;
-  globals.mSettingsNode = params.mSettingsNode;
-  TAC_ASSERT( globals.mMaxGpuFrameCount );
-  TAC_ASSERT( globals.mSettingsNode.IsValid() );
+  
+  ImGuiGlobals::mMaxGpuFrameCount = params.mMaxGpuFrameCount;
+  ImGuiGlobals::mSettingsNode = params.mSettingsNode;
+  TAC_ASSERT( ImGuiGlobals::mMaxGpuFrameCount );
+  TAC_ASSERT( ImGuiGlobals::mSettingsNode.IsValid() );
 }
 
 void Tac::ImGuiSaveWindowSettings( WindowHandle windowHandle )
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  for( ImGuiWindow* window : globals.mAllWindows )
+  
+  for( ImGuiWindow* window : ImGuiGlobals::mAllWindows )
     if( window->mDesktopWindow->mWindowHandle == windowHandle )
       ImGuiSaveWindowSettings( window );
 }
 
 void Tac::ImGuiUninit()
 {
-  ImGuiGlobals& globals{ ImGuiGlobals::Instance };
-  for( ImGuiWindow* window : globals.mAllWindows )
+  
+  for( ImGuiWindow* window : ImGuiGlobals::mAllWindows )
     ImGuiSaveWindowSettings( window );
 }
 
-void Tac::ImGuiSetIsScrollbarEnabled( bool b ) { ImGuiGlobals::Instance.mScrollBarEnabled = b; }
+void Tac::ImGuiSetIsScrollbarEnabled( bool b ) { ImGuiGlobals::mScrollBarEnabled = b; }
 
 auto Tac::ImGuiGetWindowPos() -> v2
 {
-    return ImGuiGlobals::Instance.mCurrentWindow->mViewportSpacePos;
+    return ImGuiGlobals::mCurrentWindow->mViewportSpacePos;
 }
 
 auto Tac::ImGuiGetWindowContentRegionMin() -> v2
 {
-    return ImGuiGlobals::Instance.mCurrentWindow->mViewportSpaceVisibleRegion.mMini;
+    return ImGuiGlobals::mCurrentWindow->mViewportSpaceVisibleRegion.mMini;
 }
 
 
 void Tac::ImGuiPlatformRenderFrameBegin( Errors& errors )
 {
-  Vector< ImGuiDesktopWindowImpl* >& desktopWindows{ ImGuiGlobals::Instance.mDesktopWindows };
+  Vector< ImGuiDesktopWindowImpl* >& desktopWindows{ ImGuiGlobals::mDesktopWindows };
   for( ImGuiDesktopWindowImpl* desktopWindow : desktopWindows ) //for( ImGuiSimWindowDraws& simDraw : simFrame->mWindowDraws )
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -1241,13 +1240,13 @@ void Tac::ImGuiPlatformRenderFrameBegin( Errors& errors )
 
 void Tac::ImGuiPlatformHandleDpiChange()
 {
-  for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::Instance.mDesktopWindows )
+  for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::mDesktopWindows )
     desktopWindow->mMonitorDpiRequested = true;
 }
 
 void Tac::ImGuiPlatformPresent( Errors& errors )
 {
-  for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::Instance.mDesktopWindows ) 
+  for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::mDesktopWindows ) 
   {
     const WindowHandle windowHandle{ desktopWindow->mWindowHandle };
     if( !AppWindowApi::IsShown( windowHandle ) )

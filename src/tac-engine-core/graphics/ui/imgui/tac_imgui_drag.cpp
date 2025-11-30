@@ -52,14 +52,14 @@ namespace Tac
                                    Drag_Setter setter,
                                    Drag_MouseHandler mouseHandler )
   {
-    ImGuiGlobals& globals { ImGuiGlobals::Instance };
+
     const float fontSize { ImGuiGetFontSizePx() };
     const float buttonPadding { ImGuiGetButtonPadding() };
 
     String valueStr { getter( valueBytes ) };
     bool changed {};
 
-    ImGuiWindow* window { globals.mCurrentWindow };
+    ImGuiWindow* window { ImGuiGlobals::mCurrentWindow };
     UI2DDrawData* drawData { window->mDrawData };
     TextInputData* inputData { window->mTextInputData };
     TAC_ASSERT( inputData );
@@ -84,9 +84,9 @@ namespace Tac
     //  Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
 
     if( hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
-      SetActiveID( id, window );
+      ImGuiGlobals::SetActiveID( id, window );
 
-    const bool active { GetActiveID() == id };
+    const bool active { ImGuiGlobals::GetActiveID() == id };
 
     if(active)
     {
@@ -126,7 +126,7 @@ namespace Tac
         }
         else
         {
-          ClearActiveID();
+          ImGuiGlobals::ClearActiveID();
         }
 
         lastMouseXDesktopWindowspace = screenspaceMousePos.x;
@@ -136,7 +136,7 @@ namespace Tac
         static v2 lastMousePositionDesktopWindowspace;
         if( UIKeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
         {
-          const GameTime mouseReleaseSeconds { ImGuiGlobals::Instance.mElapsedSeconds };
+          const GameTime mouseReleaseSeconds { ImGuiGlobals::mElapsedSeconds };
           const GameTimeDelta kDoubleClickSecs{ .mSeconds{ 0.5f } };
           if( mouseReleaseSeconds - lastMouseReleaseSeconds < kDoubleClickSecs &&
               lastMousePositionDesktopWindowspace == screenspaceMousePos )
@@ -179,7 +179,7 @@ namespace Tac
       }
     }
 
-    if( id != GetActiveID() )
+    if( id != ImGuiGlobals::GetActiveID() )
     {
       if( dragFloatData->mMode == DragMode::TextInput )
       {
@@ -240,7 +240,7 @@ namespace Tac
                               Drag_Setter setter,
                               Drag_MouseHandler mouseHandler )
   {
-    ImGuiWindow* window { ImGuiGlobals::Instance.mCurrentWindow };
+    ImGuiWindow* window { ImGuiGlobals::mCurrentWindow };
     const float xMax { window->mViewportSpaceVisibleRegion.mMaxi.x };
     const float xCur { window->mViewportSpaceCurrCursor.x };
 
@@ -248,7 +248,7 @@ namespace Tac
 
     float dragW { xMax - xCur }; // total remaining usable width
     dragW *= dragNumbersPercentage; // width usable for the drag widgets (not the label)
-    dragW -= ( n - 1 ) * ImGuiGlobals::Instance.mUIStyle.itemSpacing.x; // account for sameline
+    dragW -= ( n - 1 ) * ImGuiGlobals::mUIStyle.itemSpacing.x; // account for sameline
     dragW /= n; // width usable for a single drag widget
 
 

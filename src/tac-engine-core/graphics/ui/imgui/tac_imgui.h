@@ -73,7 +73,7 @@ namespace Tac
 
   enum class ImGuiMouseCursor
   {
-    kNone,
+    kNone = 0,
     kArrow,
     kResizeNS,
     kResizeEW,

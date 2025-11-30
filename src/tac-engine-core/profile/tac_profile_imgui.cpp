@@ -18,7 +18,7 @@ namespace Tac
   // Totally unused, but keeping it because its the only place where ImGuiRegisterWindowResource is used
   // It would be gotten like this:
   //
-  //   ImGuiWindow* imguiWindow = ImGuiGlobals::Instance.mCurrentWindow;
+  //   ImGuiWindow* imguiWindow = ImGuiGlobals::mCurrentWindow;
   //   auto profileWidgetData = ( ImguiProfileWidgetData* )imguiWindow->GetWindowResource( sWidgetID );
   //
 
@@ -127,7 +127,7 @@ namespace Tac
                                         const v2 cameraViewportSize )
   {
     const float fontSize { ImGuiGetFontSizePx() };
-    ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
+    ImGuiWindow* imguiWindow { ImGuiGlobals::mCurrentWindow };
     UI2DDrawData* drawData { imguiWindow->mDrawData };
 
     const UI2DDrawData::Box vpBox 
@@ -276,7 +276,7 @@ namespace Tac
     const float fontSize { ImGuiGetFontSizePx() };
     const v4& textColor { ImGuiGetColor( ImGuiCol::Text ) };
 
-    ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
+    ImGuiWindow* imguiWindow { ImGuiGlobals::mCurrentWindow };
     UI2DDrawData* drawData { imguiWindow->mDrawData };
 
     const UI2DDrawData::Box box 
@@ -326,7 +326,7 @@ namespace Tac
 void Tac::ImGuiProfileWidget()
 {
   const float fontSize { ImGuiGetFontSizePx() };
-  ImGuiWindow* imguiWindow { ImGuiGlobals::Instance.mCurrentWindow };
+  ImGuiWindow* imguiWindow { ImGuiGlobals::mCurrentWindow };
   UI2DDrawData* drawData { imguiWindow->mDrawData };
 
   const int   fps { GetFPS() };

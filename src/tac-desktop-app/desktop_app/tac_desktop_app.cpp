@@ -158,7 +158,7 @@ namespace Tac
       }
 
       static PlatformMouseCursor oldCursor{ PlatformMouseCursor::kNone };
-      const PlatformMouseCursor newCursor{ ImGuiToPlatformMouseCursor( ImGuiGlobals::Instance.mMouseCursor ) }; // imguiSimFrame->mCursor ) };
+      const PlatformMouseCursor newCursor{ ImGuiToPlatformMouseCursor( ImGuiGlobals::mMouseCursor ) };
       if( oldCursor != newCursor )
       {
         oldCursor = newCursor;
@@ -167,7 +167,7 @@ namespace Tac
           OS::OSDebugPrintLine( "set mouse cursor : " + ToString( ( int )newCursor ) );
       }
 
-      for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::Instance.mDesktopWindows )
+      for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::mDesktopWindows )
       {
         if( desktopWindow->mRequestedPosition.HasValue() )
         {

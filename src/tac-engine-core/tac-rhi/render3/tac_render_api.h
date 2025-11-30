@@ -107,6 +107,7 @@ namespace Tac::Render
     Color,
     BoneIndex,
     BoneWeight,
+    Tangent,
     Coeffs,
   };
 

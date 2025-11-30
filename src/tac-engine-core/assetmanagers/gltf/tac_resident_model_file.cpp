@@ -17,9 +17,9 @@ namespace Tac
     void Execute( Errors& ) override;
     void Clear();
 
-    String            mBytes      {};
-    UTF8Path mPath       {};
-    cgltf_data*       mParsedData {};
+    String      mBytes      {};
+    UTF8Path    mPath       {};
+    cgltf_data* mParsedData {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -61,12 +61,12 @@ namespace Tac
 
   struct LoadedStuff
   {
-    void             Clear();
+    void Clear();
 
     UTF8Path    mPath               {};
-    StringID         mAssetPathID        {};
-    GameTime         mLastRequestSeconds {};
-    cgltf_data*      mParsedData         {};
+    StringID    mAssetPathID        {};
+    GameTime    mLastRequestSeconds {};
+    cgltf_data* mParsedData         {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -83,12 +83,10 @@ namespace Tac
 
   struct LoadingStuff
   {
-    void             Clear();
-    
-
-    UTF8Path    mPath;
-    StringID         mAssetPathID;
-    LoadJob          mJob;
+    void Clear();
+    UTF8Path mPath;
+    StringID mAssetPathID;
+    LoadJob  mJob;
   };
 
   // -----------------------------------------------------------------------------------------------

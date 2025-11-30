@@ -148,9 +148,6 @@ namespace Tac
     UI2DRenderData          mRenderBuffers       {};
   };
 
-  void SetActiveID( ImGuiID, ImGuiWindow* );
-  void ClearActiveID();
-  auto GetActiveID() -> ImGuiID;
 
   struct ReferenceResolution
   {
@@ -161,34 +158,36 @@ namespace Tac
 
   struct ImGuiGlobals
   {
-    auto FindWindow( const StringView& ) -> ImGuiWindow*;
-    auto FindDesktopWindow( WindowHandle ) -> ImGuiDesktopWindowImpl*;
+    static auto FindWindow( const StringView& ) -> ImGuiWindow*;
+    static auto FindDesktopWindow( WindowHandle ) -> ImGuiDesktopWindowImpl*;
+    static void SetActiveID( ImGuiID, ImGuiWindow* );
+    static void ClearActiveID();
+    static auto GetActiveID() -> ImGuiID;
 
-    static ImGuiGlobals               Instance;
-    ImGuiMouseCursor                  mMouseCursor          { ImGuiMouseCursor::kNone };
-    GameTime                          mElapsedSeconds       {};
-    Vector< ImGuiWindow* >            mAllWindows           {};
-    Vector< ImGuiWindow* >            mWindowStack          {};
-    Vector< ImGuiDesktopWindowImpl* > mDesktopWindows       {};
-    ImGuiWindow*                      mCurrentWindow        {};
-    Vector< float >                   mFontSizeSK           {}; // wtf does sk stand for?
-    UIStyle                           mUIStyle              {};
-    WindowHandle                      mMouseHoveredWindow   {};
-    bool                              mScrollBarEnabled     { true };
-    int                               mMaxGpuFrameCount     {};
-    SettingsNode                      mSettingsNode         {};
-    ImGuiID                           mHoveredID            {};
-    ImGuiID                           mHoveredIDPrev        {};
-    GameTime                          mHoverStartTime       {};
-    ImGuiID                           mActiveID             {};
-    ImGuiWindow*                      mActiveIDWindow       {};
-    ImGuiWindow*                      mMovingWindow         {};
-    v2                                mActiveIDClickPos_VS  {};
-    v2                                mActiveIDWindowSize   {};
-    v2                                mActiveIDWindowPos_SS {};
-    int                               mResizeMask           {};
-    bool                              mSettingsDirty        {};
-    ReferenceResolution               mReferenceResolution  {};
+    static ImGuiMouseCursor                  mMouseCursor;
+    static GameTime                          mElapsedSeconds;
+    static Vector< ImGuiWindow* >            mAllWindows;
+    static Vector< ImGuiWindow* >            mWindowStack;
+    static Vector< ImGuiDesktopWindowImpl* > mDesktopWindows;
+    static ImGuiWindow*                      mCurrentWindow;
+    static Vector< float >                   mFontSizeStack;
+    static UIStyle                           mUIStyle;
+    static WindowHandle                      mMouseHoveredWindow;
+    static bool                              mScrollBarEnabled;
+    static int                               mMaxGpuFrameCount;
+    static SettingsNode                      mSettingsNode;
+    static ImGuiID                           mHoveredID;
+    static ImGuiID                           mHoveredIDPrev;
+    static GameTime                          mHoverStartTime;
+    static ImGuiID                           mActiveID;
+    static ImGuiWindow*                      mActiveIDWindow;
+    static ImGuiWindow*                      mMovingWindow;
+    static v2                                mActiveIDClickPos_VS;
+    static v2                                mActiveIDWindowSize;
+    static v2                                mActiveIDWindowPos_SS;
+    static int                               mResizeMask;
+    static bool                              mSettingsDirty;
+    static ReferenceResolution               mReferenceResolution;
   };
 
 

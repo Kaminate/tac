@@ -87,7 +87,7 @@ auto Tac::glTF_AttributeToTac( cgltf_attribute_type attributeType ) -> Tac::Rend
     case cgltf_attribute_type_color:    return Render::Attribute::Color;
     case cgltf_attribute_type_joints:   return Render::Attribute::BoneIndex;
     case cgltf_attribute_type_weights:  return Render::Attribute::BoneWeight;
-
+    case cgltf_attribute_type_tangent:  return Render::Attribute::Tangent;
     default: TAC_ASSERT_INVALID_CASE( attributeType ); return Render::Attribute::Unknown;
   }
 }
@@ -102,7 +102,7 @@ auto Tac::glTF_AttributeFromTac( const Render::Attribute attributeType ) -> cglt
     case Render::Attribute::Color:      return cgltf_attribute_type_color;
     case Render::Attribute::BoneIndex:  return cgltf_attribute_type_joints;
     case Render::Attribute::BoneWeight: return cgltf_attribute_type_weights;
-
+    case Render::Attribute::Tangent:    return cgltf_attribute_type_tangent;
     default: TAC_ASSERT_INVALID_CASE( attributeType ); return cgltf_attribute_type_invalid;
   }
 }
@@ -116,13 +116,10 @@ auto Tac::glTF_PrimitiveFromTac( const Render::PrimitiveTopology topology ) -> c
   }
 }
 
-auto Tac::glTF_CallHelper( const cgltf_result fnResult,
-                         const char* fnName,
-                         const char* fnArgs ) -> const char*
+auto Tac::glTF_CallHelper( const cgltf_result fnResult, const char* fnName, const char* fnArgs ) -> const char*
 {
 
   const char* gltfErrorStr { glTF_ResultToString( fnResult ) };
-
   String msg;
   msg += fnName;
   msg += "( ";
@@ -130,7 +127,6 @@ auto Tac::glTF_CallHelper( const cgltf_result fnResult,
   msg += " )";
   msg += " returned ";
   msg += gltfErrorStr;
-
   return FrameMemoryCopy( msg );
 }
 
@@ -160,7 +156,7 @@ auto Tac::glTF_GetComponentMetaType( cgltf_component_type type ) -> const Tac::M
   case cgltf_component_type_r_8: return &GetMetaType< i8 >();
   case cgltf_component_type_r_8u: return &GetMetaType< u8 >();
   case cgltf_component_type_r_16: return &GetMetaType< i16 >();
-  case cgltf_component_type_r_16u:return  &GetMetaType< u16 >();
+  case cgltf_component_type_r_16u: return &GetMetaType< u16 >();
   case cgltf_component_type_r_32u: return &GetMetaType< u32 >();
   case cgltf_component_type_r_32f: return &GetMetaType< r32 >();
   default: TAC_ASSERT_INVALID_CASE( type ); return nullptr;
