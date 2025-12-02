@@ -143,16 +143,22 @@ namespace Tac::Render
     TAC_CALL( swapChain.mDXGISwapChain.Resize( size, errors ) );
 
     swapChain.mSize = size;
-
-    TAC_DX12_CALL( swapChain.mDXGISwapChain->GetDesc1( &swapChain.mDXGISwapChainDesc ) );
-
-    TAC_CALL( const TextureHandle swapChainDepth{
-      CreateDepthTexture( size, swapChain.mSwapChainParams, errors ) } );
-
-    TAC_CALL( DX12SwapChainImages swapChainImages{
-      CreateColorTextures( swapChain.mDXGISwapChain, swapChain.mSwapChainParams, errors ) } );
-
-    NameRTTextures( h, swapChainImages, swapChainDepth );
+    TextureHandle swapChainDepth;
+    DX12SwapChainImages swapChainImages;
+    if( size.x > 0 && size.y > 0 )
+    {
+      TAC_DX12_CALL( swapChain.mDXGISwapChain->GetDesc1( &swapChain.mDXGISwapChainDesc ) );
+      TAC_CALL( swapChainDepth = CreateDepthTexture( size, swapChain.mSwapChainParams, errors ) );
+      TAC_CALL( swapChainImages = CreateColorTextures( swapChain.mDXGISwapChain, swapChain.mSwapChainParams, errors ) );
+      NameRTTextures( h, swapChainImages, swapChainDepth );
+    }
+    else
+    {
+      // When minimizing a window ::ShowWindow( hWnd, SW_MINIMIZE ), WndProc sends a WM_SIZE (0x0)
+      // event, but IDXGISwapChain4::ResizeBuffers results in a DXGI_SWAP_CHAIN_DESC1 of size (8x8)...
+      swapChain.mDXGISwapChainDesc.Width = 0;
+      swapChain.mDXGISwapChainDesc.Height = 0;
+    }
 
     swapChain.mRTDepth = swapChainDepth;
     swapChain.mRTColors = swapChainImages;

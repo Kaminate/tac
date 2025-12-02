@@ -14,12 +14,13 @@
 
 namespace Tac
 {
-  static WindowHandle       sWindowHandle{};
-  static Ghost*             sGhost{};
-  const char*               sGameName{ "Game" };
-  static UI2DDrawData       sUI2DDrawData{};
-  static UI2DRenderData     sUI2DRenderData{};
-  static bool               sIsFullscreen{};
+  static WindowHandle       sWindowHandle   {};
+  static Ghost*             sGhost          {};
+  static bool               sCreateGhost   {};
+  const char*               sGameName       { "Game" };
+  static UI2DDrawData       sUI2DDrawData   {};
+  static UI2DRenderData     sUI2DRenderData {};
+  static bool               sIsFullscreen   {};
 
   struct GameApp : public App
   {
@@ -27,105 +28,28 @@ namespace Tac
     void Init( Errors& errors ) override
     {
       SpaceInit();
-#if 0
-      const Monitor monitor{ OS::OSGetPrimaryMonitor() };
-      const float percent{ .8f };
-      const int x{ ( int )( monitor.mSize.x * ( 1 - percent ) / 2 ) };
-      const int y{ ( int )( monitor.mSize.y * ( 1 - percent ) / 2 ) };
-      const int w{ ( int )( monitor.mSize.x * percent ) };
-      const int h{ ( int )( monitor.mSize.y * percent ) };
-      TAC_CALL( sWindowHandle = AppWindowApi::CreateWindow(
-        WindowCreateParams
-        {
-          .mName { sGameName },
-          .mPos  { x, y },
-          .mSize { w, h },
-        }, errors ) );
-      sGhost = TAC_NEW Ghost;
-      TAC_CALL( sGhost->Init( errors ) );
-#endif
+      if( sCreateGhost )
+      {
+        sGhost = TAC_NEW Ghost;
+        TAC_CALL( sGhost->Init( errors ) );
+      }
     }
     void Update( Errors& errors ) override
     {
-#if 0
-      TAC_CALL( sGhost->Update( errors ) );
-#endif
-
-      Monitor monitor{ OS::OSGetMonitorAtPoint( v2( -2000, 50 ) ) };
-      //Monitor monitor{ OS::OSGetMonitorAtPoint( v2( 0, 0 ) ) };
-      int w{ Min( 1920 * monitor.mDpi / 96, ( int )( monitor.mSize.x * .95f ) ) };
-      int h{ Min( 1080 * monitor.mDpi / 96, ( int )( monitor.mSize.y * .95f ) ) };
-      int x{ monitor.mPos.x + ( monitor.mSize.x - w ) / 2 };
-      int y{ monitor.mPos.y + ( monitor.mSize.y - h ) / 2 };
-      AppWindowMgr::SetNextWindowPosition( v2( ( float )x, ( float )y ) );
-      AppWindowMgr::SetNextWindowSize( v2( ( float )w, ( float )h ) );
-      if( AppWindowMgr::WindowBegin( sGameName ) )
+      if( sGhost )
       {
-        TAC_ON_DESTRUCT(AppWindowMgr::WindowEnd());
-        float uiScale = 1.f;
-        float width_inches = 2;
-        float width_px = monitor.mDpi * width_inches * uiScale;
-        float height_inches = 1;
-        float height_px = monitor.mDpi * height_inches * uiScale;
-
-        WindowHandle windowHandle{ AppWindowMgr::GetWindowHandle() };
-        v2i windowPos{ AppWindowApi::GetPos( windowHandle ) };
-        v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
-        sIsFullscreen = windowPos == monitor.mPos && windowSize == monitor.mSize;
-        sUI2DDrawData.clear();
-
-        ImGuiRect contentRect{ ImGuiRect::FromPosSize( {}, windowSize ) };
-        if( !sIsFullscreen )
-        {
-          // draw grab bars
-          float grabBarThinnessPx = .2f * monitor.mDpi * uiScale;
-
-          sUI2DDrawData.AddBox(
-            UI2DDrawData::Box
-            {
-              .mMini  { 50, 50 },
-              .mMaxi  { 50.f + width_px, 50.f + height_px },
-              .mColor { 1, 1, 1, 1 },
-            } );
-
-        }
-
-        //v2 cursorPos{ ImGuiGetCursorPos() };
-        v2 cursorPos{ AppKeyboardApi::GetMousePosScreenspace() - windowPos };
-        String cursorPosStr{ String() + "(" +
-          ToString( cursorPos.x ) + ", " + 
-          ToString( cursorPos.y ) + ")" };
-
-        if( sIsFullscreen )
-        {
-          //sUI2DDrawData.AddText( UI2DDrawData::Text
-          //                       {
-          //                          .mPos      {},
-          //                          .mFontSize {},
-          //                          .mUtf8     {},
-          //                       } );
-        }
-        else
-        {
-        }
-
-        sUI2DDrawData.AddBox(
-          UI2DDrawData::Box
-          {
-            .mMini  { 50, 50 },
-            .mMaxi  { 50.f + width_px, 50.f + height_px },
-            .mColor { 1, 1, 1, 1 },
-          } );
-        sUI2DDrawData.AddText( UI2DDrawData::Text
-                               {
-                                  .mPos      { 100, 100 },
-                                  .mFontSize { 40 },
-                                  .mUtf8     { cursorPosStr },
-                                  .mColor    { 1, 0, 0, 1 },
-                               } );
-
-
+        TAC_CALL( sGhost->Update( errors ) );
       }
+
+      static bool doTest{ true };
+      if( ImGuiBegin( "Game", &doTest ) )
+      {
+        ImGuiButton( "button a" );
+        ImGuiButton( "button b" );
+        ImGuiButton( "button c" );
+        ImGuiEnd();
+      }
+      
     }
     void Render( RenderParams renderParams, Errors& errors ) override
     {

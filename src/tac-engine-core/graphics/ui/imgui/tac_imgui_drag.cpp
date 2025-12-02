@@ -54,7 +54,7 @@ namespace Tac
   {
 
     const float fontSize { ImGuiGetFontSizePx() };
-    const float buttonPadding { ImGuiGetButtonPadding() };
+    const float buttonPaddingPx { ImGuiGetButtonPaddingPx() };
 
     String valueStr { getter( valueBytes ) };
     bool changed {};
@@ -76,7 +76,7 @@ namespace Tac
       return false;
 
     const ImGuiRect clipRect { window->Clip( origRect ) };
-    const v2 valuePos { pos + v2( buttonPadding, 0 ) };
+    const v2 valuePos { pos + v2( buttonPaddingPx, 0 ) };
     const bool hovered { window->IsHovered( clipRect, id ) };
 
     //static GameTime consumeMouse;
@@ -86,9 +86,8 @@ namespace Tac
     if( hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
       ImGuiGlobals::SetActiveID( id, window );
 
-    const bool active { ImGuiGlobals::GetActiveID() == id };
-
-    if(active)
+    const bool active{ ImGuiGlobals::GetActiveID() == id };
+    if( active )
     {
       if( dragFloatData->mMode == DragMode::Drag )
       {
@@ -202,33 +201,28 @@ namespace Tac
     }
 
     ImGuiCol colEnum { ImGuiCol::FrameBG };
-    if( hovered )
-      colEnum = ImGuiCol::FrameBGHovered;
-    if( active )
-      colEnum = ImGuiCol::FrameBGActive;
+    if( hovered ) { colEnum = ImGuiCol::FrameBGHovered; }
+    if( active ) { colEnum = ImGuiCol::FrameBGActive; }
       
     const v4& color { ImGuiGetColor( colEnum ) };
-
-    const UI2DDrawData::Box box
-    {
-      .mMini  { pos },
-      .mMaxi  { pos + clipRect.GetSize() },
-      .mColor { color },
-    };
-    drawData->AddBox( box, &clipRect );
+    drawData->AddBox(
+      UI2DDrawData::Box
+      {
+        .mMini  { pos },
+        .mMaxi  { pos + clipRect.GetSize() },
+        .mColor { color },
+      }, &clipRect );
 
     if( dragFloatData->mMode == DragMode::TextInput )
       TextInputDataDrawSelection( inputData, drawData, valuePos, &clipRect );
 
-    const UI2DDrawData::Text text
+    drawData->AddText( UI2DDrawData::Text
     {
       .mPos      { valuePos },
       .mFontSize { fontSize },
       .mUtf8     { valueStr },
       .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
-    };
-    drawData->AddText( text, &clipRect );
-
+    }, &clipRect );
     return changed;
   }
 
@@ -248,7 +242,7 @@ namespace Tac
 
     float dragW { xMax - xCur }; // total remaining usable width
     dragW *= dragNumbersPercentage; // width usable for the drag widgets (not the label)
-    dragW -= ( n - 1 ) * ImGuiGlobals::mUIStyle.itemSpacing.x; // account for sameline
+    dragW -= ( n - 1 ) * ImGuiGetItemSpacingPx().x; // account for sameline
     dragW /= n; // width usable for a single drag widget
 
 

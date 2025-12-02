@@ -23,6 +23,7 @@ namespace Tac
     kResizeEW,
     kResizeNE_SW,
     kResizeNW_SE,
+    kResizeNSEW,
     kCount,
   };
 
@@ -33,6 +34,7 @@ namespace Tac
     static void PlatformFrameEnd( Errors& );
     static void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& );
     static void PlatformDespawnWindow( WindowHandle );
+    static void PlatformMinimizeWindow( WindowHandle );
     static void PlatformSetWindowPos( WindowHandle, v2i );
     static void PlatformSetWindowSize( WindowHandle, v2i );
     static void PlatformSetMouseCursor( PlatformMouseCursor );

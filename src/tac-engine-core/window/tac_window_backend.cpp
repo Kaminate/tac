@@ -111,6 +111,7 @@ namespace Tac
   {
     WindowState& windowState{ sAppCurr[ h.GetIndex() ] };
     windowState.mSize = size;
+    windowState.mShown = size.x > 0 && size.y > 0;
     if( mCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -206,6 +207,12 @@ namespace Tac
   {
     Platform::PlatformDespawnWindow( h );
     FreeWindowHandle( h );
+  }
+
+  void AppWindowApi::MinimizeWindow( WindowHandle h )
+  {
+    sAppCurr[ h.GetIndex() ].mShown = false;
+    Platform::PlatformMinimizeWindow( h );
   }
 
   auto AppWindowApi::GetSwapChainHandle( WindowHandle h ) -> Render::SwapChainHandle

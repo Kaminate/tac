@@ -6,7 +6,7 @@
 
 namespace Tac
 {
-  static String FormatColor( const v4& col4 )
+  static auto FormatColor( const v4& col4 ) -> String
   {
       String s;
       for( int i{}; i < 4; ++i )

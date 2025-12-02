@@ -78,11 +78,15 @@ namespace Tac
     auto GetRemainingHeight() const -> float;
     auto GetWindowHandle() const -> WindowHandle;
     void ResizeControls();
+    void MenuBar();
     void DrawWindowBackground();
+    void ToggleFullscreen();
 
 
     String                        mName                        {};
     ImGuiWindow*                  mParent                      {};
+    ImGuiWindowFlags              mFlags                       {};
+    bool*                         mOpen                        {};
 
     //                            The most bottom right the cursor has ever been,
     //                            updated during ItemSize()
@@ -94,10 +98,16 @@ namespace Tac
     //                            A value of (0,0) is at the top left ( probably mParent == nullptr )
     v2                            mViewportSpacePos            {};
     v2                            mSize                        {};
+    v2                            mPreviousViewportToggleSize                {}; // for toggling fullscreen and back
+    v2                            mPreviousViewportTogglePos   {}; // for toggling fullscreen and back
 
     //                            The viewport-space region in which visible ui is displayed on the screen
     //                            "Visible" here meaning not offscreen due to scrolling
+    //                            ...
+    //                            This should be renamed content rect. Doesn't include title bar
     ImGuiRect                     mViewportSpaceVisibleRegion  {};
+
+    ImGuiRect                     mViewportSpaceMouseGrabRegion {}; // grabbable by the mouse to move the window
 
     float                         mCurrLineHeight              {};
     float                         mPrevLineHeight              {};
@@ -107,7 +117,7 @@ namespace Tac
     float                         mScroll                           {};
     v2                            mScrollMousePosScreenspaceInitial {};
 
-    Vector< GroupData >           mGroupSK;
+    Vector< GroupData >           mGroupStack;
 
     //                            The mXOffsets.back() represents the horizontal tabbing distance
     //                            from the window mPos and the stuff that's about to be drawn
@@ -121,7 +131,7 @@ namespace Tac
     //                            Shared between sub-windows
     SmartPtr< TextInputData >     mTextInputData               {};
     Map< ImGuiID, bool >          mCollapsingHeaderStates      {};
-    bool                          mIsAppendingToMenu           {};
+    //bool                          mIsAppendingToMenu           {};
     Vector< ImGuiWindowResource > mResources                   {};
     SmartPtr< UI2DDrawData >      mDrawData                    {};
 

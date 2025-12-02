@@ -7,6 +7,4 @@ target_sources( TacEngineCore PRIVATE
 )
 
 add_subdirectory( controller )
-add_subdirectory( mouseedge )
-
 

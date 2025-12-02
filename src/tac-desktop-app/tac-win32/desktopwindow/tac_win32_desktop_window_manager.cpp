@@ -31,6 +31,7 @@ namespace Tac
     static void Poll( Errors& );
     static void SpawnWindow( const PlatformSpawnWindowParams&, Errors& );
     static void DespawnWindow( WindowHandle );
+    static void MinimizeWindow( WindowHandle );
     static auto FindWindow( HWND ) -> WindowHandle;
     static HWND GetHWND( WindowHandle );
     static void DebugImGui();
@@ -468,6 +469,13 @@ namespace Tac
     }
   }
 
+  void Win32WindowManager::MinimizeWindow( WindowHandle h )
+  {
+    const auto i{ h.GetIndex() };
+    const HWND hwnd{ sHWNDs[ i ] };
+    ::ShowWindow( hwnd, SW_MINIMIZE );
+  }
+
   void Win32WindowManager::DespawnWindow( WindowHandle windowHandle )
   {
     const auto i{ windowHandle.GetIndex() };
@@ -585,6 +593,8 @@ namespace Tac
     Win32WindowManager::DespawnWindow( handle );
   }
 
+  void Platform::PlatformMinimizeWindow( WindowHandle h ) { Win32WindowManager::MinimizeWindow( h ); }
+
   void Platform::PlatformSetWindowPos( WindowHandle windowHandle, v2i pos) 
   {
     const HWND hwnd{ Win32WindowManager::GetHWND( windowHandle ) };
@@ -609,6 +619,7 @@ namespace Tac
     static HCURSOR cursorArrowEW { LoadCursor( NULL, IDC_SIZEWE ) };
     static HCURSOR cursorArrowNE_SW { LoadCursor( NULL, IDC_SIZENESW ) };
     static HCURSOR cursorArrowNW_SE { LoadCursor( NULL, IDC_SIZENWSE ) };
+    static HCURSOR cursorArrowNSEW { LoadCursor( NULL, IDC_SIZEALL ) };
     switch( cursor )
     {
     case PlatformMouseCursor::kNone:        ::SetCursor( nullptr );          break;
@@ -617,6 +628,7 @@ namespace Tac
     case PlatformMouseCursor::kResizeEW:    ::SetCursor( cursorArrowEW );    break;
     case PlatformMouseCursor::kResizeNE_SW: ::SetCursor( cursorArrowNE_SW ); break;
     case PlatformMouseCursor::kResizeNW_SE: ::SetCursor( cursorArrowNW_SE ); break;
+    case PlatformMouseCursor::kResizeNSEW:  ::SetCursor( cursorArrowNSEW );  break;
     default: TAC_ASSERT_INVALID_CASE( cursor );                              break;
     }
   }

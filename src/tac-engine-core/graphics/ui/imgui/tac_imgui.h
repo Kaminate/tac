@@ -53,12 +53,20 @@ namespace Tac
     v2 mMaxi  {};
   };
 
+  enum ImGuiWindowFlags
+  {
+    ImGuiWindowFlags_None = 0,
+    ImGuiWindowFlags_NoTitleBar,
+    ImGuiWindowFlags_NoResize,
+  };
+
   enum class ImGuiCol
   {
     Text,
     TextSelection,
     WindowBackground,
     ChildWindowBackground,
+    ResizeGrip,
     FrameBG,
     FrameBGHovered,
     FrameBGActive,
@@ -79,6 +87,7 @@ namespace Tac
     kResizeEW,
     kResizeNE_SW,
     kResizeNW_SE,
+    kResizeNS_EW,
     kCount,
   };
 
@@ -126,7 +135,8 @@ namespace Tac
   auto ImGuiGetColName( ImGuiCol ) -> const char*;
   auto ImGuiGetFontSizePx() -> float;
   auto ImGuiGetItemSpacingPx() -> v2;
-  auto ImGuiGetButtonPadding() -> float;
+  auto ImGuiGetWindowPaddingPx() -> float;
+  auto ImGuiGetButtonPaddingPx() -> float;
 
   //   ImGui System Functions
   void ImGuiInit( const ImGuiInitParams&, Errors& );
@@ -135,15 +145,15 @@ namespace Tac
   void ImGuiDebugDraw();
 
   //   ImGuiBegin functions
-  bool ImGuiBegin( const StringView& );
-  void ImGuiBeginMenuBar();
+  bool ImGuiBegin( const StringView&, bool* open = {}, ImGuiWindowFlags = {} );
+  //void ImGuiBeginMenuBar();
   void ImGuiBeginChild( const StringView& name, const v2& size );
   void ImGuiBeginGroup();
   void ImGuiBeginFrame( const BeginFrameData& );
 
   //   ImGuiEnd functions
   void ImGuiEnd();
-  void ImGuiEndMenuBar();
+  //void ImGuiEndMenuBar();
   void ImGuiEndChild();
   void ImGuiEndGroup();
   void ImGuiEndFrame( Errors& );
@@ -182,7 +192,7 @@ namespace Tac
 
   //   ImGuiButton
   bool ImGuiButton( const StringView&, v2 size = { 0, 0 } );
-  bool ImGuiInvisibleButton( const StringView&, v2 size = { 0, 0 }             );
+  bool ImGuiInvisibleButton( const StringView&, v2 size = { 0, 0 } );
 
   bool ImGuiSelectable( const StringView& , bool );
   bool ImGuiCheckbox( const StringView& , bool* );

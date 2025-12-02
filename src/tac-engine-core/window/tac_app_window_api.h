@@ -23,6 +23,7 @@ namespace Tac
     static auto GetNativeWindowHandle( WindowHandle ) -> const void*;
     static auto CreateWindow( WindowCreateParams, Errors& ) -> WindowHandle;
     static void DestroyWindow( WindowHandle );
+    static void MinimizeWindow( WindowHandle );
     static auto GetSwapChainHandle( WindowHandle ) -> Render::SwapChainHandle;
     static void SetSwapChainAutoCreate( bool );
     static void SetSwapChainColorFormat( Render::TexFmt );

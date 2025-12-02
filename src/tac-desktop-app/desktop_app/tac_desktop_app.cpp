@@ -63,6 +63,7 @@ namespace Tac
     case ImGuiMouseCursor::kResizeEW:    return PlatformMouseCursor::kResizeEW;
     case ImGuiMouseCursor::kResizeNE_SW: return PlatformMouseCursor::kResizeNE_SW;
     case ImGuiMouseCursor::kResizeNW_SE: return PlatformMouseCursor::kResizeNW_SE;
+    case ImGuiMouseCursor::kResizeNS_EW: return PlatformMouseCursor::kResizeNSEW;
     default: TAC_ASSERT_INVALID_CASE( imguiCursor ) ; return {};
     }
   }

@@ -15,8 +15,6 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
-#define TAC_IMGUI_RESIZE_DEBUG() TAC_IS_DEBUG_MODE() && false
-
 namespace Tac
 {
   struct RegisteredWindowResource
@@ -220,19 +218,18 @@ namespace Tac
     if( const bool drawWindow{ mEnableBG
         && ( mParent || mStretchWindow || mWindowHandleOwned ) } )
     {
-      const ImGuiRect origRect { ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
-      if( Overlaps( origRect ) )
+      if( const ImGuiRect origRect { ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
+          Overlaps( origRect ) )
       {
         const ImGuiRect clipRect { Clip( origRect ) };
-        const ImGuiCol col{
-          mParent ? ImGuiCol::ChildWindowBackground : ImGuiCol::WindowBackground };
-        const UI2DDrawData::Box box
-        {
-          .mMini  { clipRect.mMini },
-          .mMaxi  { clipRect.mMaxi },
-          .mColor { ImGuiGetColor( col ) },
-        };
-        mDrawData->AddBox( box, &clipRect );
+        const ImGuiCol col{ mParent ? ImGuiCol::ChildWindowBackground : ImGuiCol::WindowBackground };
+        mDrawData->AddBox(
+          UI2DDrawData::Box
+          {
+            .mMini  { clipRect.mMini },
+            .mMaxi  { clipRect.mMaxi },
+            .mColor { ImGuiGetColor( col ) },
+          }, &clipRect );
       }
     }
   }
@@ -245,48 +242,190 @@ namespace Tac
   void ImGuiWindow::BeginFrame()
   {
     const UIStyle& style{ ImGuiGetStyle() };
-    const float windowPaddingPx{ style.windowPadding
-      * mDesktopWindow->mMonitorDpi
-      / ImGuiGlobals::mReferenceResolution.mDpi
-    };
-
-    if( !mParent )
-      mDrawData->clear();
-
-    // popped in ImGuiWindow::EndFrame
-    mDrawData->PushDebugGroup( ShortFixedString::Concat( "BeginFrame(" , mName , ")" ) );
-
-    mIDStack.clear();
-    mIDStack.push_back( mWindowID = Hash( mName ) );
-    mMoveID = GetID( "#MOVE" );
-
-    mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
-    DrawWindowBackground();
-    mViewportSpaceVisibleRegion = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
-    Scrollbar();
-    mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPaddingPx;
-    mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPaddingPx;
-    const v2 drawPos { mViewportSpaceVisibleRegion.mMini - v2( 0, mScroll ) };
-    mViewportSpaceCurrCursor = drawPos;
-    mViewportSpacePrevCursor = drawPos;
-    mViewportSpaceMaxiCursor = drawPos;
-    mCurrLineHeight = 0;
-    mPrevLineHeight = 0;
-
-    mXOffsets.clear();
-    PushXOffset();
+    const float windowPaddingPx{ ImGuiGetWindowPaddingPx() };
 
     if( mParent )
     {
       mDesktopWindow = mParent->mDesktopWindow;
       mWindowHandleOwned = false;
     }
+    else
+    {
+      mDrawData->clear();
+    }
 
+    // popped in ImGuiWindow::EndFrame
+    mDrawData->PushDebugGroup( ShortFixedString::Concat( "BeginFrame(" , mName , ")" ) );
+
+    mIDStack.clear();
+    mIDStack.push_back( mWindowID = Hash( mName ) );
+
+    mMoveID = GetID( "#MOVE" );
+
+
+    mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
+    mViewportSpaceVisibleRegion = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
+    mViewportSpaceCurrCursor = mViewportSpaceVisibleRegion.mMini;
+    mXOffsets.clear();
+    PushXOffset();
+    DrawWindowBackground();
+    Scrollbar();
     ResizeControls();
+    MenuBar();
+    
+
+
+    mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPaddingPx;
+    mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPaddingPx;
+
+
+    mViewportSpaceCurrCursor = mViewportSpaceVisibleRegion.mMini - v2( 0, mScroll ) ;
+    mViewportSpacePrevCursor = mViewportSpaceCurrCursor;
+    mViewportSpaceMaxiCursor = mViewportSpaceCurrCursor;
+    PushXOffset();
+    mCurrLineHeight = 0;
+    mPrevLineHeight = 0;
+
+    //mDrawData->AddBox(
+    //  UI2DDrawData::Box
+    //  {
+    //    .mMini  { mViewportSpaceVisibleRegion.mMini },
+    //    .mMaxi  { mViewportSpaceVisibleRegion.mMaxi },
+    //    .mColor { 1, 1, 0, 1 },
+    //  } );
+  }
+
+  void ImGuiWindow::ToggleFullscreen()
+  {
+    const v2i windowSize{ AppWindowApi::GetSize( mDesktopWindow->mWindowHandle ) };
+    const v2i windowPos{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
+    const void* nwh{ AppWindowApi::GetNativeWindowHandle( mDesktopWindow->mWindowHandle ) };
+    const Monitor monitor{ OS::OSGetMonitorFromNativeWindowHandle( nwh ) };
+    const bool isFullscreen{ windowPos == monitor.mPos && windowSize == monitor.mSize };
+    if( isFullscreen )
+    {
+      mSize = mPreviousViewportToggleSize;
+      mDesktopWindow->mRequestedPosition = mPreviousViewportTogglePos;
+      mDesktopWindow->mRequestedSize = mPreviousViewportToggleSize;
+    }
+    else
+    {
+      mPreviousViewportTogglePos = windowPos;
+      mPreviousViewportToggleSize = mSize;
+      mSize = monitor.mSize;
+      mDesktopWindow->mRequestedPosition = monitor.mPos;
+      mDesktopWindow->mRequestedSize = monitor.mSize;
+    }
+  }
+
+  void ImGuiWindow::MenuBar()
+  {
+    if( mParent )
+      return;
+
+    if( mFlags & ImGuiWindowFlags_NoTitleBar )
+      return;
+
+    bool menuBarPopulated{};
+
+    const v2 itemSpacingPx{ ImGuiGetItemSpacingPx() };
+    const float fontSizePx{ ImGuiGetFontSizePx() };
+    const float buttonPadPx{ ImGuiGetButtonPaddingPx() };
+
+    mViewportSpaceMouseGrabRegion = {};
+    v2 moveWindowGrabbableMini{ mViewportSpaceCurrCursor };
+    v2 moveWindowGrabbableMaxi{ mViewportSpaceVisibleRegion.mMaxi.x, mViewportSpaceCurrCursor.y + fontSizePx};
+
+    const float menuBarY{ mViewportSpaceCurrCursor.y };
+    {
+      ImGuiText( mName );
+      moveWindowGrabbableMini.x = mViewportSpaceMaxiCursor.x;
+    }
+
+    // TODO:
+    //   Add menu items here.
+    //   What im thinking is that we save the position of the menu items NOW, and
+    //   later when we actually call ImGui::MenuItem, we place those items at the saved locations.
+#if 0
+    if( !mParent )
+    {
+      if( mViewportSpaceCurrCursor.y != menuBarY )
+        ImGuiSameLine();
+
+      ImGuiButton( " File " );
+
+      ImGuiSameLine();
+      mViewportSpaceCurrCursor.x -= itemSpacingPx.x;
+
+      ImGuiButton( " Edit " );
+      ImGuiSameLine();
+      mViewportSpaceCurrCursor.x -= itemSpacingPx.x;
+
+      ImGuiButton( " Window " );
+
+      moveWindowGrabbableMini.x = mViewportSpaceMaxiCursor.x;
+      menuBarPopulated = true;
+    }
+#endif
+
+
+
+    // Title Bar buttons (minimize, maximize, close)
+    if( mOpen )
+    {
+      if( mViewportSpaceCurrCursor.y != menuBarY )
+      {
+        ImGuiSameLine();
+        if( menuBarPopulated )
+          mViewportSpaceCurrCursor.x -= itemSpacingPx.x; // undo spacing from sameline()
+      }
+      const char* minimizeStr{" - "};
+      const char* fullscrStr{" [] "};
+      const char* closeStr{" X "};
+      const v2 minimizeStrSize{ CalculateTextSize( minimizeStr, fontSizePx ) };
+      const v2 fullscrStrSize{ CalculateTextSize( fullscrStr, fontSizePx ) };
+      const v2 closeStrSize{ CalculateTextSize( closeStr, fontSizePx ) };
+
+      const float titleBarButtonsWidthPx{ 0
+        + minimizeStrSize.x + buttonPadPx * 2
+        + fullscrStrSize.x + buttonPadPx * 2
+        + closeStrSize.x + buttonPadPx * 2 };
+
+
+      mViewportSpaceCurrCursor.x = mViewportSpaceVisibleRegion.mMaxi.x - titleBarButtonsWidthPx;
+      moveWindowGrabbableMaxi.x = mViewportSpaceCurrCursor.x;
+
+      if( ImGuiButton( minimizeStr ) )
+        AppWindowApi::MinimizeWindow( mDesktopWindow->mWindowHandle );
+      ImGuiSameLine();
+      mViewportSpaceCurrCursor.x -= itemSpacingPx.x;
+      if( ImGuiButton( fullscrStr ) )
+        ToggleFullscreen();
+      ImGuiSameLine();
+      mViewportSpaceCurrCursor.x -= itemSpacingPx.x;
+      if( ImGuiButton( closeStr ) )
+        *mOpen = !*mOpen;
+    }
+
+    mDrawData->AddBox(
+      UI2DDrawData::Box
+      {
+        .mMini  { moveWindowGrabbableMini },
+        .mMaxi  { moveWindowGrabbableMaxi },
+        .mColor { ImGuiGetColor( ImGuiCol::ChildWindowBackground ) },
+      }
+    );
+
+    if( mViewportSpaceCurrCursor.y != menuBarY )
+      mViewportSpaceCurrCursor.y -= ImGuiGetItemSpacingPx().y;
+
+    mViewportSpaceVisibleRegion.mMini = mViewportSpaceCurrCursor;
+    mViewportSpaceMouseGrabRegion = ImGuiRect::FromMinMax( moveWindowGrabbableMini, moveWindowGrabbableMaxi );
   }
 
   void ImGuiWindow::UpdateMoveControls()
   {
+
     if( UIKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
       mDesktopWindow->mRequestedPosition = GetMousePosViewport()
@@ -295,6 +434,7 @@ namespace Tac
                                          + GetWindowPosScreenspace();
 
 
+      ImGuiGlobals::mMouseCursor = ImGuiMouseCursor::kResizeNS_EW;
       ImGuiGlobals::mSettingsDirty = true;
     }
     else
@@ -306,18 +446,21 @@ namespace Tac
 
   void ImGuiWindow::BeginMoveControls()
   {
-    if( !UIKeyboardApi::JustPressed( Key::MouseLeft ) )
+
+    if( ImGuiGlobals::mActiveID.IsValid() )
       return;
 
-    if( !IsHovered( ImGuiRect::FromPosSize( mViewportSpacePos, mSize ), mMoveID ) )
-      return;
-      
-    if( ImGuiGlobals::mActiveID.IsValid() || ImGuiGlobals::mHoveredID.IsValid() )
-      return;
-    
     if( mDesktopWindow->mWindowHandle != ImGuiGlobals::mMouseHoveredWindow )
       return;
 
+    if( IsHovered( mViewportSpaceMouseGrabRegion, mMoveID ) )
+      ImGuiGlobals::mMouseCursor = ImGuiMouseCursor::kResizeNS_EW;
+    else
+      return;
+
+    if( !UIKeyboardApi::JustPressed( Key::MouseLeft ) )
+      return;
+    
     ImGuiGlobals::SetActiveID( mMoveID, this );
     ImGuiGlobals::mActiveIDClickPos_VS = GetMousePosViewport();
     ImGuiGlobals::mActiveIDWindowPos_SS = GetWindowPosScreenspace();
@@ -329,13 +472,12 @@ namespace Tac
     if( mParent )
       return;
 
-    
+    if( mFlags & ImGuiWindowFlags_NoResize )
+      return;
+
     const ImGuiID id{ GetID( "##RESIZE" ) };
     const UIStyle style{ ImGuiGlobals::mUIStyle };
-    const float windowPaddingPx{ style.windowPadding
-      * mDesktopWindow->mMonitorDpi
-      / ImGuiGlobals::mReferenceResolution.mDpi 
-    };
+    const float windowPaddingPx{ ImGuiGetWindowPaddingPx() };
     const v2i viewportPos_SS{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
     const v2 mousePos_VS{ GetMousePosViewport() };
     const ImGuiRect origWindowRect_VS{ ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
@@ -360,6 +502,7 @@ namespace Tac
         case N: edgeRect_VS.mMaxi.y = edgeRect_VS.mMini.y + windowPaddingPx; break;
         }
 
+
         const bool hovered{ IsHovered( edgeRect_VS, id ) };
         const bool edgeActive{ anyEdgeActive && ( ImGuiGlobals::mResizeMask & dir ) };
         dynmc float& alphaCur{ mBorderData[ iSide ].x };
@@ -379,35 +522,19 @@ namespace Tac
         else
           Tac::Spring( &alphaCur, &alphaVel, alphaTgt, 32.0f, TAC_DT );
 
-#if TAC_IMGUI_RESIZE_DEBUG()
-        const bool drawBorder { true };
-#else
-        //const bool drawBorder { hovered || edgeActive || Abs( alphaTgt - alphaCur ) > kAlphaEps };
         const bool drawBorder{ true };
-#endif
 
         //if( drawBorder )
         {
-          dynmc v4 color{};
-
-#if TAC_IMGUI_RESIZE_DEBUG()
-          const v4 red{ 1, 0, 0, 1 };
-          const v4 green{ 0, 1, 0, 1 };
-          const v4 yellow{ 1, 1, 0, 1 };
-          color = red;
-          if( hovered )
-            color = yellow;
+          dynmc v4 color{ImGuiGetColor( ImGuiCol::ResizeGrip )};
           if( edgeActive )
-            color = green;
-#else
-          const v4& framgBGColor{ImGuiGetColor( ImGuiCol::FrameBG )};
-          if( edgeActive )
-            color = v4( framgBGColor.xyz() * 3, alphaCur );
+            color.xyz() *= 3 * alphaCur;
           else if( hovered )
-            color = v4( framgBGColor.xyz() * 2, alphaCur );
+            color.xyz() *= 2 * alphaCur;
           else
-            color = v4( framgBGColor.xyz() * 1, alphaCur );
-#endif
+            color.xyz() *= alphaCur;
+          
+
           mDrawData->AddBox(
             UI2DDrawData::Box
             {
@@ -415,6 +542,7 @@ namespace Tac
               .mMaxi  { edgeRect_VS.mMaxi},
               .mColor { color },
             } );
+
         }
 
         hoverMask |= hovered ? dir : 0;
@@ -423,12 +551,50 @@ namespace Tac
         {
           switch( dir )
           {
-          case E: targetWindowRect_VS.mMaxi.x = Max( targetWindowRect_VS.mMini.x + 50.0f, mousePos_VS.x + ImGuiGlobals::mActiveIDWindowSize.x - ImGuiGlobals::mActiveIDClickPos_VS.x ); break;
-          case W: targetWindowRect_VS.mMini.x = Min( targetWindowRect_VS.mMaxi.x - 50.0f, mousePos_VS.x                                 - ImGuiGlobals::mActiveIDClickPos_VS.x ); break;
-          case N: targetWindowRect_VS.mMini.y = Min( targetWindowRect_VS.mMaxi.y - 50.0f, mousePos_VS.y                                 - ImGuiGlobals::mActiveIDClickPos_VS.y ); break;
-          case S: targetWindowRect_VS.mMaxi.y = Max( targetWindowRect_VS.mMini.y + 50.0f, mousePos_VS.y + ImGuiGlobals::mActiveIDWindowSize.y - ImGuiGlobals::mActiveIDClickPos_VS.y ); break;
+            case E:
+              targetWindowRect_VS.mMaxi.x = Max(
+                targetWindowRect_VS.mMini.x + 50.0f,
+                mousePos_VS.x + ImGuiGlobals::mActiveIDWindowSize.x - ImGuiGlobals::mActiveIDClickPos_VS.x );
+              break;
+            case W:
+              targetWindowRect_VS.mMini.x = Min(
+                targetWindowRect_VS.mMaxi.x - 50.0f,
+                mousePos_VS.x - ImGuiGlobals::mActiveIDClickPos_VS.x );
+              break;
+            case N:
+              targetWindowRect_VS.mMini.y = Min(
+                targetWindowRect_VS.mMaxi.y - 50.0f,
+                mousePos_VS.y - ImGuiGlobals::mActiveIDClickPos_VS.y );
+              break;
+            case S:
+              targetWindowRect_VS.mMaxi.y = Max(
+                targetWindowRect_VS.mMini.y + 50.0f,
+                mousePos_VS.y + ImGuiGlobals::mActiveIDWindowSize.y - ImGuiGlobals::mActiveIDClickPos_VS.y );
+              break;
           }
         }
+    }
+
+    // Draw a 1 px border around the window
+    for( int iSide{}; iSide < 4; ++iSide )
+    {
+      ImGuiRect edgeRect_VS_1{ origWindowRect_VS };
+      const int dir{ 1 << iSide };
+      switch( dir )
+      {
+        case E: edgeRect_VS_1.mMini.x = edgeRect_VS_1.mMaxi.x - 1; break;
+        case S: edgeRect_VS_1.mMini.y = edgeRect_VS_1.mMaxi.y - 1; break;
+        case W: edgeRect_VS_1.mMaxi.x = edgeRect_VS_1.mMini.x + 1; break;
+        case N: edgeRect_VS_1.mMaxi.y = edgeRect_VS_1.mMini.y + 1; break;
+      }
+
+      mDrawData->AddBox(
+        UI2DDrawData::Box
+        {
+          .mMini  { edgeRect_VS_1.mMini },
+          .mMaxi  { edgeRect_VS_1.mMaxi},
+          .mColor { 1, 1, 0, .2f },
+        } );
     }
 
     if( anyEdgeActive && !UIKeyboardApi::IsPressed( Key::MouseLeft ) )
@@ -457,6 +623,7 @@ namespace Tac
       cursors[ S | E ] = ImGuiMouseCursor::kResizeNW_SE;
       cursors[ S | W ] = ImGuiMouseCursor::kResizeNE_SW;
       cursors[ N | W ] = ImGuiMouseCursor::kResizeNW_SE;
+      cursors[ N | S | E | W ] = ImGuiMouseCursor::kResizeNS_EW;
       ImGuiGlobals::mMouseCursor = cursors[ cursorMask ];
     }
 
@@ -472,6 +639,11 @@ namespace Tac
       ImGuiGlobals::mSettingsDirty = true;
       mSize = targetSize;
     }
+
+    mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPaddingPx;
+    mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPaddingPx;
+    mViewportSpaceCurrCursor = mViewportSpaceVisibleRegion.mMini;
+    PushXOffset();
   }
 
   bool ImGuiWindow::Overlaps( const ImGuiRect& clipRect) const
@@ -492,12 +664,10 @@ namespace Tac
   {
     mCurrLineHeight = Max( mCurrLineHeight, size.y );
     UpdateMaxCursorDrawPos( mViewportSpaceCurrCursor + v2{ size.x, mCurrLineHeight } );
-
     mViewportSpacePrevCursor = mViewportSpaceCurrCursor + v2( size.x, 0 );
     mPrevLineHeight = mCurrLineHeight;
-
     mViewportSpaceCurrCursor.x = mViewportSpacePos.x + mXOffsets.back();
-    mViewportSpaceCurrCursor.y += mCurrLineHeight + ImGuiGlobals::mUIStyle.itemSpacing.y;
+    mViewportSpaceCurrCursor.y += mCurrLineHeight + ImGuiGetItemSpacingPx().y;
     mCurrLineHeight = 0;
   }
 
