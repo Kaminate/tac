@@ -121,12 +121,12 @@ Tac::String Tac::Itoa( int val, int base )
   return ItoaI64( ( i64 )val, base );
 }
 
-float       Tac::Atof( const StringView& s )
+float       Tac::Atof( const StringView s )
 {
   return ( float )std::atof( s.data() );
 }
 
-int         Tac::Atoi( const StringView& s )
+int         Tac::Atoi( const StringView s )
 {
   int res {};
   int pow { 1 };
@@ -279,7 +279,7 @@ namespace Tac
     return npos;
   }
   int          String::find( char c ) const { return StringView( this->data(), this->size() ).find_first_of( c ); }
-  bool         String::contains( const StringView& s ) const { return npos != find( s ); }
+  bool         String::contains( const StringView s ) const { return npos != find( s ); }
   bool         String::contains( char c ) const                   { return npos != find( c ); }
   String       String::substr( int pos, int len ) const
   {
@@ -289,11 +289,11 @@ namespace Tac
   }
   void         String::operator = ( const char* str )        { assign( StringView( str ) ); }
   void         String::operator = ( const String& str )      { assign( str.c_str(), str.size() ); }
-  void         String::operator = ( const StringView& str )  { assign( str.data(), str.size() ); }
+  void         String::operator = ( const StringView str )  { assign( str.data(), str.size() ); }
   //void   String::operator += ( const char* str )       { append( str, StrLen( str ) ); }
   //void   String::operator += ( const String& s )       { append( s.mStr, s.mLen ); }
   void         String::operator += ( char c )                { append( &c, 1 ); }
-  void         String::operator += ( const StringView& sv )  { append( sv.data(), sv.size() ); }
+  void         String::operator += ( const StringView sv )  { append( sv.data(), sv.size() ); }
 
   void         String::erase( int pos, int len )
   {
@@ -314,7 +314,7 @@ namespace Tac
   }
   bool         String::ends_with( char c ) const         { return mLen && back() == c; }
 
-  void         String::assign( const StringView& s )
+  void         String::assign( const StringView s )
   {
     assign( s.data(), s.size() );
   }
@@ -353,16 +353,16 @@ namespace Tac
 
 } // namespace Tac
 
-bool          Tac::operator == ( const StringView& a, const StringView& b )
+bool          Tac::operator == ( const StringView a, const StringView b )
 {
   return a.size() == b.size() && !MemCmp( a.data(), b.data(), a.size() );
 }
 
-//bool          Tac::operator == ( const StringView& a, const String& b ) { return a == b; }
-//bool          Tac::operator == ( const String& a, const StringView& b ) { return ( StringView )a == b; }
+//bool          Tac::operator == ( const StringView a, const String& b ) { return a == b; }
+//bool          Tac::operator == ( const String& a, const StringView b ) { return ( StringView )a == b; }
 //bool          Tac::operator == ( const String& a, const char* b )       { return ( StringView )a == StringView( b ); }
-//bool          Tac::operator == ( const StringView& a, const char* b )   { return a == StringView( b ); }
-//bool          Tac::operator == ( const char* a, const StringView& b )   { return StringView( a ) == b; }
+//bool          Tac::operator == ( const StringView a, const char* b )   { return a == StringView( b ); }
+//bool          Tac::operator == ( const char* a, const StringView b )   { return StringView( a ) == b; }
 Tac::String   Tac::operator + ( char c, const String& s )
 {
   String result;
@@ -389,16 +389,16 @@ Tac::String   Tac::operator + ( const String& lhs, const String& rhs )
   result += rhs;
   return result;
 }
-Tac::String   Tac::operator + ( const String& lhs, const StringView& rhs )
+Tac::String   Tac::operator + ( const String& lhs, const StringView rhs )
 {
   String result = lhs;
   result += rhs;
   return result;
 }
-Tac::String   Tac::operator + ( const StringView& a, const char* b )   { return String( a ) + String( b ); }
-Tac::String   Tac::operator + ( const StringView& a, const String& b ) { return String( a ) + b; }
-Tac::String   Tac::operator + ( const char* a, const String& b )       { return String( a ) + b; }
-Tac::String   Tac::operator + ( const char* a, const StringView& b )   { return String( a ) + String( b ); }
+Tac::String   Tac::operator + ( StringView a, const char* b )   { return String( a ) + String( b ); }
+Tac::String   Tac::operator + ( StringView a, const String& b ) { return String( a ) + b; }
+Tac::String   Tac::operator + ( const char* a, const String& b ){ return String( a ) + b; }
+Tac::String   Tac::operator + ( const char* a, StringView b )   { return String( a ) + String( b ); }
 bool          Tac::operator == ( const String& a, const String& b )
 {
   return a.mLen == b.mLen && 0 == StrCmp( a.mStr, b.mStr );

@@ -769,7 +769,7 @@ namespace Tac
     return nullptr;
   }
 
-  auto ImGuiGlobals::FindWindow( const StringView& name ) -> ImGuiWindow*
+  auto ImGuiGlobals::FindWindow( const StringView name ) -> ImGuiWindow*
   {
     for( ImGuiWindow* window : mAllWindows )
       if( ( StringView )window->mName == name )

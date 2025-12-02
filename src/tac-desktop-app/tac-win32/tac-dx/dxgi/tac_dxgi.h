@@ -9,15 +9,15 @@
 
 namespace Tac::Render
 {
-  void                  DXGIInit( Errors& );
-  void                  DXGIUninit();
-  DXGI_FORMAT           DXGIFormatFromTexFmt( TexFmt );
-  DXGI_FORMAT           DXGIFormatFromVertexAttributeFormat( VertexAttributeFormat ); // todo: rename
-  void                  DXGISetObjectName( IDXGIObject*, const StringView& );
-  String                DXGIGetObjectName( IDXGIObject* );
-  String                DXGICallAux( const char*, HRESULT );
-  PCom< IDXGIAdapter4 > DXGIGetBestAdapter();
-  void                  DXGICheckSwapEffect( DXGI_SWAP_EFFECT, Errors& );
+  void DXGIInit( Errors& );
+  void DXGIUninit();
+  auto DXGIFormatFromTexFmt( TexFmt ) -> DXGI_FORMAT;
+  auto DXGIFormatFromVertexAttributeFormat( VertexAttributeFormat ) -> DXGI_FORMAT;
+  void DXGISetObjectName( IDXGIObject*, StringView );
+  auto DXGIGetObjectName( IDXGIObject* ) -> String;
+  auto DXGICallAux( const char*, HRESULT ) -> String;
+  auto DXGIGetBestAdapter() -> PCom< IDXGIAdapter4 >;
+  void DXGICheckSwapEffect( DXGI_SWAP_EFFECT, Errors& );
 
   struct DXGISwapChainWrapper
   {
@@ -31,11 +31,10 @@ namespace Tac::Render
       DXGI_FORMAT mFmt         { DXGI_FORMAT_R16G16B16A16_FLOAT };
     };
 
-    void             Init( Params, Errors& );
-    void             Resize( v2i, Errors& );
-    IDXGISwapChain4* GetIDXGISwapChain();
-    IDXGISwapChain4* operator ->();
-
+    void Init( Params, Errors& );
+    void Resize( v2i, Errors& );
+    auto GetIDXGISwapChain() -> IDXGISwapChain4*;
+    auto operator ->() -> IDXGISwapChain4*;
     operator bool();
 
   private:

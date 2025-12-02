@@ -21,7 +21,7 @@ namespace Tac
     StringView( int ) = delete; // prevent StringView( 0 ) from compiling
     constexpr StringView( const char*, int );
     constexpr StringView( const char*, const char* );
-    operator const char* ( ) const;
+    operator const char* () const;
     auto data() const -> const char*;
     auto size() const -> int;
     auto begin() const -> const char*;
@@ -31,14 +31,14 @@ namespace Tac
 
     //   searches this stringview for the last character which matches
     //   any of the characters in s, return npos if no matches
-    auto find_last_of( const StringView& ) const -> int;
+    auto find_last_of( StringView ) const -> int;
     auto find_last_of( char ) const -> int;
-    auto find_first_of( const StringView& ) const -> int;
+    auto find_first_of( StringView ) const -> int;
     auto find_first_of( char ) const -> int;
 
-    auto find( const StringView& ) const -> int; // returns the index of the substr, or npos
+    auto find( StringView ) const -> int; // returns the index of the substr, or npos
     auto find( char ) const -> int;
-    bool contains( const StringView& ) const;
+    bool contains( StringView ) const;
     bool contains( const char* ) const;
     bool contains( char ) const;
     auto substr( int pos = 0, int len = npos ) const -> StringView;

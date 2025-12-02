@@ -22,8 +22,8 @@ namespace Tac
   auto ToString( const void* ) -> String;
   auto ToString( double ) -> String;
   auto ToString( float ) -> String;
-  auto Atoi( const StringView& ) -> int;
-  auto Atof( const StringView& ) -> float;
+  auto Atoi( StringView ) -> int;
+  auto Atof( StringView ) -> float;
   auto Itoa( int, int base = 10 ) -> String;
 
   // -----------------------------------------------------------------------------------------------
@@ -44,9 +44,9 @@ namespace Tac
     auto operator[]( int ) const -> char;
     auto operator[]( int ) -> char&;
     void operator = ( const String& );
-    void operator = ( const StringView& );
+    void operator = ( StringView );
     void operator = ( const char* );
-    void operator += ( const StringView& );
+    void operator += ( StringView );
     void operator += ( char );
 
     void clear();
@@ -60,7 +60,7 @@ namespace Tac
     bool ends_with( StringView ) const;
     bool ends_with( char ) const;
     void assign( const char*, int );
-    void assign( const StringView& );
+    void assign( StringView );
     void append( const char*, int );
     void append( const char* );
     void append( const String& );
@@ -80,7 +80,7 @@ namespace Tac
     auto find_last_of( const char* c ) const -> int; // returns npos if not found
     auto find( const String& substr ) const -> int;
     auto find( char ) const -> int;
-    auto contains( const StringView& ) const -> bool;
+    auto contains( StringView ) const -> bool;
     auto contains( char c ) const -> bool;
     auto substr( int pos = 0, int len = npos ) const -> String;
 
@@ -102,15 +102,15 @@ namespace Tac
   auto operator + ( const String&, char ) -> String;
   auto operator + ( const String&, const char* ) -> String;
   auto operator + ( const String&, const String& ) -> String;
-  auto operator + ( const String&, const StringView& ) -> String;
+  auto operator + ( const String&, StringView ) -> String;
   auto operator + ( const char*, const String& ) -> String;
-  auto operator + ( const char*, const StringView& ) -> String;
-  auto operator + ( const StringView&, const String& ) -> String;
-  auto operator + ( const StringView&, const char* ) -> String;
+  auto operator + ( const char*, StringView ) -> String;
+  auto operator + ( StringView, const String& ) -> String;
+  auto operator + ( StringView, const char* ) -> String;
   bool operator != ( const String& , const String&  );
   bool operator < ( const String& , const String&  );
   bool operator > ( const String& , const String&  );
-  bool operator == ( const StringView&, const StringView& );
+  bool operator == ( StringView, StringView );
   bool operator == ( const String&, const String& );
 
 } // namespace Tac

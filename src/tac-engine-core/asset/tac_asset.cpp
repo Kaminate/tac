@@ -54,7 +54,7 @@ namespace Tac
       || c == sAssetPathSeperator;
   }
 
-  static bool IsValid( const StringView& s )
+  static bool IsValid( const StringView s )
   {
     if( s.empty() )
       return true;
@@ -73,7 +73,7 @@ namespace Tac
   }
 #endif
 
-  static void Validate( const StringView& s )
+  static void Validate( const StringView s )
   {
 #if TAC_IS_DEBUG_MODE()
       if( !IsValid( s ) )
@@ -104,7 +104,7 @@ namespace Tac
   AssetPathStringView::AssetPathStringView( const char* s ) : StringView( s )                       { Validate( s ); }
   AssetPathStringView::AssetPathStringView( const String& s ) : StringView( s )                     { Validate( s ); }
   AssetPathStringView::AssetPathStringView( const AssetPathString& s ) : StringView( s )            {} // already validated
-  AssetPathStringView::AssetPathStringView( const StringView& s ) : StringView( s )                 { Validate( s ); };
+  AssetPathStringView::AssetPathStringView( const StringView s ) : StringView( s )                 { Validate( s ); };
 
   auto AssetPathStringView::GetDirectory() const -> AssetPathStringView
   {
@@ -152,7 +152,7 @@ namespace Tac
     Validate( s );
   }
 
-  static auto StripLeadingSlashes( const StringView& path ) -> String
+  static auto StripLeadingSlashes( const StringView path ) -> String
   {
     int i{};
     for( i; i < path.size(); i++ )
@@ -239,7 +239,7 @@ auto Tac::AssetOpenDialog( Errors& errors ) -> Tac::AssetPathStringView
 {
   const UTF8Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
   TAC_CALL_RET( const UTF8Path fsPath{ OS::OSOpenDialog(
-    OS::OpenParams{.mDefaultFolder { &dir }, }, errors ) } );
+    OpenParams{.mDefaultFolder { dir }, }, errors ) } );
   return ModifyPathRelative( fsPath, errors );
 }
 
@@ -248,10 +248,10 @@ auto Tac::AssetSaveDialog( const AssetSaveDialogParams& params, Errors& errors )
   const UTF8Path dir { sInitialWorkingDir / sAssetPathRootFolderName };
   const UTF8Path suggestedFilename { params.mSuggestedFilename };
   const UTF8Path fsPath { OS::OSSaveDialog(
-    OS::SaveParams
+    SaveParams
     {
-      .mDefaultFolder     { & dir },
-      .mSuggestedFilename { &suggestedFilename },
+      .mDefaultFolder     { dir },
+      .mSuggestedFilename { suggestedFilename },
     }, errors ) };
   return ModifyPathRelative( fsPath, errors );
 }

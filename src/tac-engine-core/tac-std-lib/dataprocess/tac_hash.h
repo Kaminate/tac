@@ -18,7 +18,7 @@ namespace Tac
   HashValue Hash( u64 );
   HashValue Hash( const char* );
   HashValue Hash( const char*, int );
-  HashValue Hash( const StringView& );
+  HashValue Hash( StringView );
   HashValue Hash( const String& );
   //HashValue Hash( const AssetPathString& ); // gross?
 

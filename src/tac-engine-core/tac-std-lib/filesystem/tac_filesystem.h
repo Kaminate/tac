@@ -25,7 +25,7 @@ namespace Tac
     UTF8Path() = default;
     UTF8Path( const char* );
     UTF8Path( const String& );
-    UTF8Path( const StringView& );
+    UTF8Path( StringView );
     auto parent_path() const -> UTF8Path; // ie: foo/bar/qux.txt --> foo/bar
     auto stem() const -> UTF8Path;        // ie: foo/bar/qux.txt --> qux
     auto extension() const -> UTF8Path;   // ie: foo/bar/qux.txt --> .txt
@@ -46,9 +46,9 @@ namespace Tac
     void SaveToFile( const void*, int, Errors& ) const ;
     auto LoadFilePath( Errors& ) const -> String;
     auto GetFileLastModifiedTime( Errors& ) const -> FileTime;
-    auto operator /= ( const StringView& ) -> UTF8Path&;
+    auto operator /= ( StringView ) -> UTF8Path&;
     auto operator = ( const UTF8Path& ) ->UTF8Path& = default;
-    auto operator += ( const StringView& ) -> UTF8Path&;
+    auto operator += ( StringView ) -> UTF8Path&;
     static auto GetCurrentWorkingDirectory() -> UTF8Path;
   };
 

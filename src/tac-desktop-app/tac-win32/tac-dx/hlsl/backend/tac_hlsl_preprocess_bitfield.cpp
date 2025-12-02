@@ -43,7 +43,7 @@
 
 namespace Tac::Render
 {
-  static String GetFunctionName( const StringView& line )
+  static String GetFunctionName( const StringView line )
   {
     int iFunctionNameBegin { line.find( '(' ) + 1 };
     while( IsSpace( line[ iFunctionNameBegin ] ) )
@@ -54,7 +54,7 @@ namespace Tac::Render
                    line.data() + iFunctionNameEnd );
   }
 
-  static int GetBitCount( const StringView& line )
+  static int GetBitCount( const StringView line )
   {
     if constexpr( kIsDebugMode )
     {
@@ -80,7 +80,7 @@ namespace Tac::Render
     return 0;
   }
 
-  static String GetLeadingWhitespace( const StringView& line )
+  static String GetLeadingWhitespace( const StringView line )
   {
     String result;
     for( char c : line )

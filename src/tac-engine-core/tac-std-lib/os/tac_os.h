@@ -15,63 +15,42 @@ namespace Tac
     v2i mSize {};
     int mDpi  { 96 }; // win32 default
   };
-}
-
-namespace Tac::OS
-{
-
-  extern void        ( *OSDebugBreak )( );
-
-  void                OSDebugAssert( const StringView&, const StackFrame& );
-  void                OSDebugPrintLine( const StringView& );
-  void                OSDebugPrint( const StringView& );
-  extern void        ( *OSDebugPopupBox )( const StringView& );
-
-  //                 Gets the path where you can save files to, such as user configs
-  extern UTF8Path ( *OSGetApplicationDataPath )( Errors& );
 
   struct OpenParams
   {
-    const UTF8Path* mDefaultFolder {}; // eww wtf is this pointer
+    UTF8Path mDefaultFolder {};
   };
 
   struct SaveParams
   {
-    const UTF8Path* mDefaultFolder {}; // eww wtf is this pointer
-    const UTF8Path* mSuggestedFilename {}; // eww wtf is this pointer
+    UTF8Path mDefaultFolder {};
+    UTF8Path mSuggestedFilename {};
   };
+}
 
-  extern UTF8Path( *OSSaveDialog )( const SaveParams&, Errors& );
-  extern UTF8Path( *OSOpenDialog )( const OpenParams&, Errors& );
-  extern void         ( *OSOpenPath )( const UTF8Path&, Errors& );
-
-
-  extern Monitor      ( *OSGetPrimaryMonitor )();
-  extern Monitor      ( *OSGetMonitorAtPoint )( v2 );
-  extern Monitor      ( *OSGetMonitorFromNativeWindowHandle )( const void* );
-
-
-  // I don't think this function should exist.
-  // If you are debugging, hit a breakpoint, and THEN call this function,
-  // you're mouse is likely to have moved.
-  // What should happen is that this gets cached during the message pump,
-  // and accessed through MouseInput
-  //
-  //void        OSGetScreenspaceCursorPos( v2&, Errors& );
-
-  // but like.. isnt it weird that Set exists and Get doesnt?
-  extern void        ( *OSSetScreenspaceCursorPos )( const v2&, Errors& );
-
+namespace Tac::OS
+{
+  extern void      ( *OSDebugBreak )( );
+  void                OSDebugAssert( StringView, const StackFrame& );
+  void                OSDebugPrintLine( StringView );
+  void                OSDebugPrint( StringView );
+  extern void      ( *OSDebugPopupBox )( StringView );
+  extern auto      ( *OSGetApplicationDataPath )( Errors& )-> UTF8Path; // save files & user configs go here
+  extern auto      ( *OSSaveDialog )( const SaveParams&, Errors& ) -> UTF8Path;
+  extern auto      ( *OSOpenDialog )( const OpenParams&, Errors& ) -> UTF8Path;
+  extern void      ( *OSOpenPath )( const UTF8Path&, Errors& );
+  extern auto      ( *OSGetPrimaryMonitor )() -> Monitor;
+  extern auto      ( *OSGetMonitorAtPoint )( v2 ) -> Monitor;
+  extern auto      ( *OSGetMonitorFromNativeWindowHandle )( const void* ) -> Monitor;
+  extern void      ( *OSSetScreenspaceCursorPos )( const v2&, Errors& );
   void                OSThreadSleepSec( float );
   void                OSThreadSleepMsec( int );
   bool                OSAppIsRunning();
   void                OSAppStopRunning();
-
-  extern void*        ( *OSGetLoadedDLL )( const StringView& name );
-  extern void*        ( *OSLoadDLL )( const StringView& path );
-  extern void*        ( *OSGetProcAddress )( void* dll, const StringView& path );
-
-  void CmdLineAddFlag( StringView );
-  bool CmdLineIsFlagPresent( StringView );
+  extern auto      ( *OSGetLoadedDLL )( StringView name ) -> void*;
+  extern auto      ( *OSLoadDLL )( StringView path ) -> void*;
+  extern auto      ( *OSGetProcAddress )( void* dll, const StringView path ) -> void*;
+  void                CmdLineAddFlag( StringView );
+  bool                CmdLineIsFlagPresent( StringView );
 
 } // namespace Tac::OS

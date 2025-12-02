@@ -15,6 +15,58 @@
 //#include <dxcapi.h> // IDxcUtils, IDxcCompiler3, DxcCreateInstance, 
 #pragma comment( lib, "dxcompiler.lib" )
 
+namespace Tac
+{
+
+  // input: "hello\nworld"
+  // output: "+-------+\n"
+  //         "| hello |\n"
+  //         "| world |\n"
+  //         "+-------+"
+  static auto AsciiBoxAround( const StringView str ) -> String
+  {
+    if( str.empty() )
+    {
+      return
+        "+-----+\n"
+        "| n/a |\n"
+        "+-----+";
+    }
+
+    Vector< String > lines;
+
+    String runningLine;
+    for( char c : str )
+    {
+      if( c == '\n' )
+      {
+        lines.push_back( runningLine );
+        runningLine.clear();
+      }
+      else
+      {
+        runningLine += c;
+      }
+    }
+    lines.push_back( runningLine );
+
+    int longest {};
+    for( const String& line : lines )
+      longest = Max( longest, line.size() );
+    const int n{ longest };
+    const String topbot{ String() + "+-" + String( n, '-' ) + "-+" };
+
+    String result;
+    result += topbot + '\n';
+    for( const String& line : lines )
+    {
+      result += "| " + line + String( n - line.size(), ' ' ) + " |" + "\n";
+    }
+    result += topbot;
+    return result;
+  }
+}
+
 namespace Tac::Render
 {
   struct ShaderCompiler
@@ -93,16 +145,12 @@ namespace Tac::Render
     if( sPrintedCompilerInfo )
       return;
 
-
-
     if( S_OK != pdbUtils->Load( pPDB ) )
       return;
 
     PCom<IDxcVersionInfo> verInfo;
-
     if( S_OK != pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) )
       return;
-
 
     UINT32 commitCount{};
     char* commitHash{};
@@ -123,12 +171,9 @@ namespace Tac::Render
     }
 
     Vector< String > strs;
-    strs.push_back( String() + "Dxc Compiler commit count "
-                    + Tac::ToString( commitCount ) + " hash " + commitHash );
+    strs.push_back( String() + "Dxc Compiler commit count " + Tac::ToString( commitCount ) + " hash " + commitHash );
     strs.push_back( String() + "Flags: " + Tac::ToString( flags ) );
-    strs.push_back( String() + "Version: "
-                    + Tac::ToString( major ) + "."
-                    + Tac::ToString( minor ) );
+    strs.push_back( String() + "Version: " + Tac::ToString( major ) + "." + Tac::ToString( minor ) );
     strs.push_back( String() + "Custom Version: " + ( ver ? ver : "n/a" ) );
 
     OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );

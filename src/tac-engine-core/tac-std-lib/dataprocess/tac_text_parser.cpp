@@ -115,7 +115,7 @@ namespace Tac
     return false;
   }
 
-  bool ParseData::EatStringExpected( const StringView& str )
+  bool ParseData::EatStringExpected( const StringView str )
   {
     const int iByte { mIByte };
     mIByte += PeekStringExpected( str ) ? str.size() : 0;
@@ -162,7 +162,7 @@ namespace Tac
     return remainingCharCount;
   }
 
-  bool ParseData::PeekStringExpected( const StringView& expected ) const
+  bool ParseData::PeekStringExpected( const StringView expected ) const
   {
     const char* actual { PeekBytes( expected.size() ) };
     const bool result { actual && StringView( actual, expected.size() ) == expected };

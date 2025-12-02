@@ -4,16 +4,12 @@
 
 ## to const ref or pass by value
 
-Should Tac::StringView be passed by `const StringView&` or by `StringView`?
-According to the internet, the pass by reference may involve
-- taking an address/dereferencing
-- pointer aliasing with other parameters
-- memory being reloaded even though the variable is const, the variable behind may possibly change
-whereas the pass by value can fit the data in cpu registers.
+Tac::StringView should be passed by value (`StringView`) instead of const ref (`const StringView&`)
 
-On the otherhand, the pass by reference means we can forward declare our type and possbly compile faster.
-A contrived example on godbolt shows the same assembly, but the example may have been contrived.
-
+- The argument can be passed through a register
+- A reference introduces indirection when loading member variables
+- A reference prevents const optimization, (const vars can be still changed by other threads)
+- Prevents pointer aliasing with other parameters
 
 ---
 

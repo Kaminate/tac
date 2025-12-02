@@ -133,7 +133,7 @@ namespace Tac
   }
 }
 
-Tac::WindowHandle Tac::DX12ExampleCreateWindow( StringView name, Errors& errors )
+auto Tac::DX12ExampleCreateWindow( StringView name, Errors& errors ) -> WindowHandle
 {
   const Monitor monitor{ OS::OSGetPrimaryMonitor() };
   const v2i windowSize{ monitor.mSize / 2 };

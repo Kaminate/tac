@@ -71,7 +71,7 @@ void Tac::ExampleRegistryPopulate()
   ExampleRegistryAdd< ExampleLaTeXRadiosity >( "LaTeX Radiosity" );
   ExampleRegistryAdd< ExampleLaTeXSimple >( "LaTeX Simple" );
 }
-auto Tac::GetExampleIndex( const StringView& name ) -> int
+auto Tac::GetExampleIndex( const StringView name ) -> int
 {
   for( int i{}; i < sExamples.size(); ++i )
     if( ( StringView )sExamples[ i ].mExampleName == name )

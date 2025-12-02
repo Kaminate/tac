@@ -42,7 +42,7 @@ namespace Tac
 
   ImGuiNextWindow             ImGuiNextWindow::gNextWindow;
 
-  static auto ComputeLineCount( const StringView& s ) -> int
+  static auto ComputeLineCount( const StringView s ) -> int
   {
     // todo: word wrap
     int lineCount{ 1 };
@@ -73,7 +73,7 @@ namespace Tac
     return numGlyphsBeforeCaret;
   }
 
-  static auto ImGuiGetWindowSettingsJson( const StringView& name ) -> SettingsNode
+  static auto ImGuiGetWindowSettingsJson( const StringView name ) -> SettingsNode
   {
     SettingsNode windowsJson{ ImGuiGlobals::mSettingsNode.GetChild( "imgui.windows" ) };
     const int n{ windowsJson.GetValue().mArrayElements.size() };
@@ -90,7 +90,7 @@ namespace Tac
     return child;
   }
 
-  static void ImGuiSaveWindowWithSettings( const StringView& name, int x, int y, int w, int h )
+  static void ImGuiSaveWindowWithSettings( const StringView name, int x, int y, int w, int h )
   {
     SettingsNode windowJson{ ImGuiGetWindowSettingsJson( name ) };
     windowJson.GetChild( "name" ).SetValue( name );
@@ -413,7 +413,7 @@ void Tac::PopID()
 
 // In Dear ImGui, imgui.begin must be followed by imgui.end, regardless of imgui.begin return val
 // In Tac ImGui, this is not the case.
-bool Tac::ImGuiBegin( const StringView& name, bool* open, ImGuiWindowFlags flags )
+bool Tac::ImGuiBegin( const StringView name, bool* open, ImGuiWindowFlags flags )
 {
   ImGuiWindow* window{ ImGuiGlobals::FindWindow( name ) };
   if( open && !*open )
@@ -590,7 +590,7 @@ void Tac::ImGuiEnd()
     : ImGuiGlobals::mWindowStack.back();
 }
 
-void Tac::ImGuiBeginChild( const StringView& name, const v2& size )
+void Tac::ImGuiBeginChild( StringView name, const v2& size )
 {
   ImGuiWindow* parent{ ImGuiGlobals::mCurrentWindow };
   TAC_ASSERT( parent );
@@ -672,7 +672,7 @@ void Tac::ImGuiSameLine()
   window->mCurrLineHeight = window->mPrevLineHeight;
 }
 
-void Tac::ImGuiText( const StringView& utf8 )
+void Tac::ImGuiText( const StringView utf8 )
 {
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   UI2DDrawData* drawData{ window->mDrawData };
@@ -697,7 +697,7 @@ void Tac::ImGuiText( const StringView& utf8 )
   drawData->PopDebugGroup();
 }
 
-bool Tac::ImGuiInputText( const StringView& label, String& text )
+bool Tac::ImGuiInputText( const StringView label, String& text )
 {
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
 
@@ -801,7 +801,7 @@ bool Tac::ImGuiInputText( const StringView& label, String& text )
   return oldText != text;
 }
 
-bool Tac::ImGuiSelectable( const StringView& str, bool selected )
+bool Tac::ImGuiSelectable( const StringView str, bool selected )
 {
   
 
@@ -853,7 +853,7 @@ bool Tac::ImGuiSelectable( const StringView& str, bool selected )
   return clicked;
 }
 
-bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
+bool Tac::ImGuiInvisibleButton( const StringView str, v2 size )
 {
   
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
@@ -877,7 +877,7 @@ bool Tac::ImGuiInvisibleButton( const StringView& str, v2 size )
   return hovered && UIKeyboardApi::JustPressed( Key::MouseLeft );
 }
 
-bool Tac::ImGuiButton( const StringView& str, v2 size )
+bool Tac::ImGuiButton( const StringView str, v2 size )
 {
   
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
@@ -925,7 +925,7 @@ bool Tac::ImGuiButton( const StringView& str, v2 size )
   return hovered && UIKeyboardApi::JustPressed( Key::MouseLeft );
 }
 
-bool Tac::ImGuiCheckbox( const StringView& str, bool* value )
+bool Tac::ImGuiCheckbox( const StringView str, bool* value )
 {
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const ImGuiID id{ window->GetID( str ) };
@@ -1050,16 +1050,16 @@ auto Tac::ImGuiGetDrawData() -> Tac::UI2DDrawData*
   return ImGuiGlobals::mCurrentWindow->mDrawData;
 }
 
-bool Tac::ImGuiDragFloat( const StringView& s, float* v )  { return ImGuiDragFloatN( s, v, 1 ); }
-bool Tac::ImGuiDragFloat2( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 2 ); }
-bool Tac::ImGuiDragFloat3( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 3 ); }
-bool Tac::ImGuiDragFloat4( const StringView& s, float* v ) { return ImGuiDragFloatN( s, v, 4 ); }
-bool Tac::ImGuiDragInt( const StringView& s, int* v )      { return ImGuiDragIntN( s, v, 1 ); }
-bool Tac::ImGuiDragInt2( const StringView& s, int* v )     { return ImGuiDragIntN( s, v, 2 ); }
-bool Tac::ImGuiDragInt3( const StringView& s, int* v )     { return ImGuiDragIntN( s, v, 3 ); }
-bool Tac::ImGuiDragInt4( const StringView& s, int* v )     { return ImGuiDragIntN( s, v, 4 ); }
+bool Tac::ImGuiDragFloat( const StringView s, float* v )  { return ImGuiDragFloatN( s, v, 1 ); }
+bool Tac::ImGuiDragFloat2( const StringView s, float* v ) { return ImGuiDragFloatN( s, v, 2 ); }
+bool Tac::ImGuiDragFloat3( const StringView s, float* v ) { return ImGuiDragFloatN( s, v, 3 ); }
+bool Tac::ImGuiDragFloat4( const StringView s, float* v ) { return ImGuiDragFloatN( s, v, 4 ); }
+bool Tac::ImGuiDragInt( const StringView s, int* v )      { return ImGuiDragIntN( s, v, 1 ); }
+bool Tac::ImGuiDragInt2( const StringView s, int* v )     { return ImGuiDragIntN( s, v, 2 ); }
+bool Tac::ImGuiDragInt3( const StringView s, int* v )     { return ImGuiDragIntN( s, v, 3 ); }
+bool Tac::ImGuiDragInt4( const StringView s, int* v )     { return ImGuiDragIntN( s, v, 4 ); }
 
-bool Tac::ImGuiCollapsingHeader( const StringView& name, const ImGuiNodeFlags flags )
+bool Tac::ImGuiCollapsingHeader( const StringView name, const ImGuiNodeFlags flags )
 {
   
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
@@ -1111,29 +1111,21 @@ void Tac::ImGuiPopFontSize()
   ImGuiGlobals::mFontSizeStack.pop_back();
 }
 
-#if 0
-void Tac::ImGuiBeginMenuBar()
+bool Tac::ImGuiBeginMenu( const StringView )
 {
-  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
-  UI2DDrawData* drawData{ window->mDrawData };
-  TAC_ASSERT( !window->mIsAppendingToMenu );
-  window->mIsAppendingToMenu = true;
-  drawData->AddBox(
-    UI2DDrawData::Box
-    {
-      .mMini  {},
-      .mMaxi  { v2( window->mSize.x, ImGuiGetFontSizePx() + ImGuiGetButtonPaddingPx() * 2 ) },
-      .mColor { v3( 69, 45, 83 ) / 255.0f, 1.0f },
-    } );
+  return true;
 }
-
+void Tac::ImGuiEndMenu()
+{
+}
+bool Tac::ImGuiBeginMenuBar()
+{
+  return true;
+}
 void Tac::ImGuiEndMenuBar()
 {
-  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
-  TAC_ASSERT( window->mIsAppendingToMenu );
-  window->mIsAppendingToMenu = false;
 }
-#endif
+
 
 void Tac::ImGuiDebugDraw()
 {

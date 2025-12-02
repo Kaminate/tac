@@ -630,9 +630,8 @@ namespace Tac
     };
 
     const cgltf_options options{ .type { cgltf_file_type_glb } };
-    const OS::SaveParams saveParams{ .mSuggestedFilename{}, };
+    const SaveParams saveParams{ .mSuggestedFilename{}, };
     static UTF8Path path;
-    
     if( path.empty() )
     {
       TAC_CALL( path = OS::OSSaveDialog( saveParams, errors ) );

@@ -192,7 +192,7 @@ auto Tac::LightTypeToString( Light::Type type ) -> const char*
   }
 }
 
-auto Tac::LightTypeFromString( const StringView& str ) -> Light::Type
+auto Tac::LightTypeFromString( const StringView str ) -> Light::Type
 {
   for( int i{}; i < Light::Type::kCount; ++i )
   {

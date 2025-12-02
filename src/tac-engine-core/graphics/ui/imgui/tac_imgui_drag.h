@@ -1,8 +1,8 @@
 #pragma once
+#include "tac-std-lib/string/tac_string_view.h"
 
 namespace Tac
 {
-  struct StringView;
-  bool ImGuiDragFloatN( const StringView&, float*, int );
-  bool ImGuiDragIntN( const StringView&, int*, int );
+  bool ImGuiDragFloatN( StringView, float*, int );
+  bool ImGuiDragIntN( StringView, int*, int );
 } // namespace Tac

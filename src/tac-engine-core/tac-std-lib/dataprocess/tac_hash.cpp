@@ -61,7 +61,7 @@ namespace Tac
   //  return Hash( ( HashValue )i );
   //}
 
-  Tac::HashValue Tac::Hash( const StringView& s) { return Hash( s.data(), s.size() ); }
+  Tac::HashValue Tac::Hash( const StringView s) { return Hash( s.data(), s.size() ); }
   Tac::HashValue Tac::Hash( const String& s)     { return Hash( s.data(), s.size() ); }
 
   Tac::HashValue Tac::Hash( HashValue* v, int n)

@@ -112,7 +112,7 @@ namespace Tac
 
   static auto ConvertToVertexBuffer( const Render::VertexDeclarations& decls,
                                      const cgltf_primitive* parsedPrim,
-                                     const StringView& bufferName,
+                                     const StringView bufferName,
                                      Errors& errors ) -> Render::BufferHandle
   {
     const int dstVtxStride{ decls.CalculateStride() };
@@ -215,7 +215,7 @@ namespace Tac
 
 
   static auto ConvertToIndexBuffer( const cgltf_primitive* parsedPrim,
-                                    const StringView& bufferName,
+                                    const StringView bufferName,
                                     Errors& errors ) -> Render::BufferHandle
   {
     TAC_ASSERT( parsedPrim->indices->type == cgltf_type_scalar );

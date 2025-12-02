@@ -72,7 +72,7 @@ Tac::StringView  Tac::FrameMemoryCopy( const void* src, int n )
   return StringView( dst, n );
 }
 
-Tac::StringView  Tac::FrameMemoryCopy( const StringView& s)
+Tac::StringView  Tac::FrameMemoryCopy( const StringView s)
 {
   const char* src { s.data() };
   const int n { s.size() };

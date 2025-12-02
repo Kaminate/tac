@@ -6,7 +6,7 @@
 
 namespace Tac::Render
 {
-  static int GetPadByteCount( const StringView& line )
+  static int GetPadByteCount( const StringView line )
   {
     String numberStr;
 

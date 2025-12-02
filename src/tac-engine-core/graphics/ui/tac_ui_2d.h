@@ -69,7 +69,7 @@ namespace Tac
     void AddBox( const Box&, const ImGuiRect* = nullptr );
     void AddLine( const Line& );
     void AddDrawCall( const UI2DDrawCall&, const StackFrame& );
-    void PushDebugGroup( const StringView& );
+    void PushDebugGroup( StringView );
     void PopDebugGroup();
     bool empty() const;
     void clear();
@@ -94,8 +94,8 @@ namespace Tac
     Vector< int >                  mIBByteCounts;
   };
 
-  auto CalculateTextSize( const StringView&, float fontSize ) -> v2;
-  auto CalculateTextSize( const CodepointView&, float fontSize ) -> v2;
+  auto CalculateTextSize( StringView, float fontSize ) -> v2;
+  auto CalculateTextSize( CodepointView, float fontSize ) -> v2;
   auto CalculateTextSize( const Codepoint*, int, float fontSize ) -> v2;
   auto OrthographicUIMatrix( const float w, const float h ) -> m4;
   void UI2DCommonDataInit( Errors& );

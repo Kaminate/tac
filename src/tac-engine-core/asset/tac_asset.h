@@ -37,7 +37,7 @@ namespace Tac
     AssetPathStringView() = default;
     AssetPathStringView( const char* );
     AssetPathStringView( const String& );
-    AssetPathStringView( const StringView& );
+    AssetPathStringView( StringView );
     AssetPathStringView( const AssetPathString& );
     auto GetDirectory() const -> AssetPathStringView;
     auto GetFilename() const -> StringView; // "foo/bar.qux" --> "bar.qux", "foo/bar" --> "bar"

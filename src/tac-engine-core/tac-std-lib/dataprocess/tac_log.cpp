@@ -239,7 +239,7 @@ namespace Tac
   private:
 
     String        mBuffer;
-    UTF8Path mPath;
+    UTF8Path      mPath;
     std::ofstream mOfs;
   };
 
@@ -328,14 +328,14 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void LogApi::LogMessagePrint( const StringView& sv, Severity severity )
+  void LogApi::LogMessagePrint( const StringView sv, Severity severity )
   {
     sLog.LogMessagePrint( sv );
     if( severity == kError )
       sLog.Flush();
   }
 
-  void LogApi::LogMessagePrintLine( const StringView& sv, Severity severity )
+  void LogApi::LogMessagePrintLine( const StringView sv, Severity severity )
   {
     sLog.LogMessagePrintLine( sv );
     if( severity == kError )

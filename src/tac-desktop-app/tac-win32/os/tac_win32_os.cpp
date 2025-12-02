@@ -114,17 +114,17 @@ namespace Tac
     TAC_RAISE_ERROR_IF( !SetCursorPos( ( int )pos.x, ( int )pos.y ), Win32GetLastErrorString() );
   }
 
-  static auto Win32OSGetLoadedDLL( const StringView& name ) -> void*
+  static auto Win32OSGetLoadedDLL( StringView name ) -> void*
   {
     return GetModuleHandleA( name.c_str() ) ;
   }
 
-  static auto Win32OSLoadDLL( const StringView& path ) -> void*
+  static auto Win32OSLoadDLL( StringView path ) -> void*
   {
     return LoadLibraryA( path.c_str() );
   }
 
-  static auto Win32OSGetProcAddr( void* dll, const StringView& path ) -> void*
+  static auto Win32OSGetProcAddr( void* dll, StringView path ) -> void*
   {
     return GetProcAddress( ( HMODULE )dll, path.c_str() );
   }
@@ -138,7 +138,7 @@ namespace Tac
     TAC_RAISE_ERROR_IF( shellExecuteResult <= 32, Win32GetLastErrorString() );
   }
 
-  static void Win32OSDebugPopupBox( const StringView& s )
+  static void Win32OSDebugPopupBox( StringView s )
   {
     if constexpr( kIsDebugMode )
     {

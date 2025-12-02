@@ -37,7 +37,7 @@ namespace Tac
     return -1;
   }
 
-  static auto GetWindowSettingsJson( const StringView& name ) -> SettingsNode
+  static auto GetWindowSettingsJson( const StringView name ) -> SettingsNode
   {
     SettingsNode windowsJson{ Shell::sShellSettings.GetChild( "windowmgr.windows" ) };
     const int n{ windowsJson.GetValue().mArrayElements.size() };

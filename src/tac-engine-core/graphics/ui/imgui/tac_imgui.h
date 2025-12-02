@@ -145,15 +145,17 @@ namespace Tac
   void ImGuiDebugDraw();
 
   //   ImGuiBegin functions
-  bool ImGuiBegin( const StringView&, bool* open = {}, ImGuiWindowFlags = {} );
-  //void ImGuiBeginMenuBar();
-  void ImGuiBeginChild( const StringView& name, const v2& size );
+  bool ImGuiBegin( StringView, bool* open = {}, ImGuiWindowFlags = {} );
+  bool ImGuiBeginMenuBar();
+  bool ImGuiBeginMenu( StringView );
+  void ImGuiBeginChild( StringView, const v2& size );
   void ImGuiBeginGroup();
   void ImGuiBeginFrame( const BeginFrameData& );
 
   //   ImGuiEnd functions
   void ImGuiEnd();
-  //void ImGuiEndMenuBar();
+  void ImGuiEndMenuBar();
+  void ImGuiEndMenu();
   void ImGuiEndChild();
   void ImGuiEndGroup();
   void ImGuiEndFrame( Errors& );
@@ -186,31 +188,31 @@ namespace Tac
   void PopID();
 
   //   ImGuiText
-  void ImGuiText( const StringView& );
-  bool ImGuiInputText( const StringView& label, String& text );
+  void ImGuiText( StringView );
+  bool ImGuiInputText( StringView label, String& text );
 
 
   //   ImGuiButton
-  bool ImGuiButton( const StringView&, v2 size = { 0, 0 } );
-  bool ImGuiInvisibleButton( const StringView&, v2 size = { 0, 0 } );
+  bool ImGuiButton( StringView, v2 size = { 0, 0 } );
+  bool ImGuiInvisibleButton( StringView, v2 size = { 0, 0 } );
 
-  bool ImGuiSelectable( const StringView& , bool );
-  bool ImGuiCheckbox( const StringView& , bool* );
+  bool ImGuiSelectable( StringView , bool );
+  bool ImGuiCheckbox( StringView , bool* );
   void ImGuiImage( int hTex, const v2& size, const v4& color = { 1, 1, 1, 1 } );
-  bool ImGuiCollapsingHeader( const StringView&, ImGuiNodeFlags = ImGuiNodeFlags_None );
+  bool ImGuiCollapsingHeader( StringView, ImGuiNodeFlags = ImGuiNodeFlags_None );
   void ImGuiSameLine();
 
   //   ImGuiDragFloat
-  bool ImGuiDragFloat( const StringView&, float* );
-  bool ImGuiDragFloat2( const StringView&, float* );
-  bool ImGuiDragFloat3( const StringView&, float* );
-  bool ImGuiDragFloat4( const StringView&, float* );
+  bool ImGuiDragFloat( StringView, float* );
+  bool ImGuiDragFloat2( StringView, float* );
+  bool ImGuiDragFloat3( StringView, float* );
+  bool ImGuiDragFloat4( StringView, float* );
        
   //   ImGuiDragInt
-  bool ImGuiDragInt( const StringView&, int* );
-  bool ImGuiDragInt2( const StringView&, int* );
-  bool ImGuiDragInt3( const StringView&, int* );
-  bool ImGuiDragInt4( const StringView&, int* );
+  bool ImGuiDragInt( StringView, int* );
+  bool ImGuiDragInt2( StringView, int* );
+  bool ImGuiDragInt3( StringView, int* );
+  bool ImGuiDragInt4( StringView, int* );
 
   auto ImGuiGetCursorPos() -> v2;
   void ImGuiSetCursorPos( v2 local );

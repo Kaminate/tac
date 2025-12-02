@@ -423,14 +423,14 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  //void                   UI2DDrawData::PushDebugGroup( const StringView& prefix,
-  //                                                     const StringView& suffix )
+  //void                   UI2DDrawData::PushDebugGroup( const StringView prefix,
+  //                                                     const StringView suffix )
   //{
   //  const String debugGroup{ prefix + "(" + suffix + ")" };
   //  mDebugGroupStack.Push( debugGroup );
   //}
 
-  void UI2DDrawData::PushDebugGroup( const StringView& name )
+  void UI2DDrawData::PushDebugGroup( const StringView name )
   {
     mDebugGroupStack.Push( name );
   }
@@ -566,7 +566,7 @@ namespace Tac
 #if TAC_FONT_ENABLED()
     const v2& textPos { text.mPos };
     const float fontSize { text.mFontSize };
-    const StringView& utf8 { text.mUtf8 };
+    const StringView utf8 { text.mUtf8 };
     const v4& color { text.mColor };
 
     if( utf8.empty() || fontSize <= 0 )
@@ -923,13 +923,13 @@ auto Tac::OrthographicUIMatrix( const float w, const float h ) -> m4
 }
 
 
-auto Tac::CalculateTextSize( const StringView& text, const float fontSize ) -> v2
+auto Tac::CalculateTextSize( const StringView text, const float fontSize ) -> v2
 {
   const CodepointView codepoints{ UTF8ToCodepointView( text ) };
   return CalculateTextSize( codepoints, fontSize );
 }
 
-auto Tac::CalculateTextSize( const CodepointView& codepoints, const float fontSize ) -> v2
+auto Tac::CalculateTextSize( const CodepointView codepoints, const float fontSize ) -> v2
 {
   return CalculateTextSize( codepoints.data(),
                             codepoints.size(),

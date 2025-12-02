@@ -23,7 +23,7 @@ namespace Tac
     void      ClearData();
     void      Clear();
     void      Resize( int );
-    void      Push( const StringView& );
+    void      Push( StringView );
     void      Pop();
     void      Read( char* dst, int beginIndex, int bytes );
     LogNumber ReadStringLength( int beginIndex );
@@ -61,8 +61,8 @@ namespace Tac
       kWarning,
       kError,
     };
-    void LogMessagePrint( const StringView&, Severity = kInfo );
-    void LogMessagePrintLine( const StringView&, Severity = kInfo );
+    void LogMessagePrint( StringView, Severity = kInfo );
+    void LogMessagePrintLine( StringView, Severity = kInfo );
     void LogFlush();
     void LogSetPath( const UTF8Path& );
   }

@@ -31,7 +31,7 @@ namespace Tac
     bool EatUntilCharIsPrev( char );
 
     // Does not eat prepended whitespace
-    bool EatStringExpected( const StringView& );
+    bool EatStringExpected( StringView );
     auto EatFloat( Errors& ) -> float;
     auto EatFloat() -> Optional< float >;
     auto EatWord() -> StringView;
@@ -42,7 +42,7 @@ namespace Tac
     auto PeekByteUnchecked() const -> char;
     auto PeekWhitespace() const -> int;
     auto PeekNewline() const -> int;
-    auto PeekStringExpected( const StringView& ) const -> bool;
+    auto PeekStringExpected( StringView ) const -> bool;
     auto GetPos() const -> const char*;
     auto GetRemainingByteCount() const -> int;
 

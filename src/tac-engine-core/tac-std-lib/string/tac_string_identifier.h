@@ -11,12 +11,12 @@ namespace Tac
     StringID() = default;
     StringID( const char* );
     StringID( const char*, int );
-    StringID( const StringView& );
+    StringID( StringView );
     bool empty() const;
     auto GetValue() const -> HashValue;
     operator HashValue() const;
   private:
-    void Init( const StringView& ) const;
+    void Init( StringView ) const;
     HashValue mHashedValue {};
   };
 

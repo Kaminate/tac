@@ -7,45 +7,12 @@
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/os/tac_os.h"
 
-namespace Tac
-{
-  static Vector< String > GetLines( StringView str )
-  {
-    Vector< String > lines;
+bool Tac::IsLower( char c ) { return c >= 'a' && c <= 'z'; }
+bool Tac::IsUpper( char c ) { return c >= 'A' && c <= 'Z'; }
+char Tac::ToLower( char c ) { return IsUpper( c ) ? c + ( 'a' - 'A' ) : c; } // note: 'a' - 'A' == 32
+char Tac::ToUpper( char c ) { return IsLower( c ) ? c - ( 'a' - 'A' ) : c; }
 
-    String line;
-    for( char c : str )
-    {
-      if( c == '\n' )
-      {
-        lines.push_back( line );
-        line.clear();
-      }
-      else
-      {
-        line += c;
-      }
-    }
-    lines.push_back( line );
-    return lines;
-  }
-
-  static int LongestLineSize( const Vector<String>& lines )
-  {
-    int longest {};
-    for( const String& str : lines )
-      longest = Max( longest, str.size() );
-    return longest;
-  }
-}
-
-// Note: 'A' == 65, 'a' == 97
-bool   Tac::IsLower( char c ) { return c >= 'a' && c <= 'z'; }
-bool   Tac::IsUpper( char c ) { return c >= 'A' && c <= 'Z'; }
-char   Tac::ToLower( char c ) { return IsUpper( c ) ? c + ( 'a' - 'A' ) : c; }
-char   Tac::ToUpper( char c ) { return IsLower( c ) ? c - ( 'a' - 'A' ) : c; }
-
-Tac::String Tac::ToLower( const StringView& str )
+auto Tac::ToLower( const StringView str ) -> String
 {
   String result;
   for( char c : str )
@@ -53,7 +20,7 @@ Tac::String Tac::ToLower( const StringView& str )
   return result;
 }
 
-Tac::String Tac::FormatPercentage( float num_0_to_1 )
+auto Tac::FormatPercentage( float num_0_to_1 ) -> String
 {
   if( num_0_to_1 <= 0 )
     return "0%";
@@ -74,12 +41,12 @@ Tac::String Tac::FormatPercentage( float num_0_to_1 )
   return result;
 }
 
-Tac::String Tac::FormatPercentage( float curr, float maxi )
+auto Tac::FormatPercentage( float curr, float maxi ) -> String
 {
   return Tac::FormatPercentage( curr / maxi );
 }
 
-bool Tac::IsAscii( const StringView& s )
+bool Tac::IsAscii( const StringView s )
 {
   for( char c : s )
   {
@@ -91,29 +58,3 @@ bool Tac::IsAscii( const StringView& s )
   return true;
 }
 
-
-Tac::String Tac::AsciiBoxAround( const StringView& str )
-{
-  if( str.empty() )
-  {
-    return
-      "+-----+\n"
-      "| n/a |\n"
-      "+-----+";
-  }
-
-  const Vector< String > lines { GetLines( str ) };
-  const int n { LongestLineSize( lines ) };
-
-
-  const String topbot { String() + "+-" + String( n, '-' ) + "-+" };
-
-  String result;
-  result += topbot + '\n';
-  for( const String& line : lines )
-  {
-    result += "| " + line + String( n - line.size(), ' ' ) + " |" + "\n";
-  }
-  result += topbot;
-  return result;
-}

@@ -44,7 +44,7 @@ namespace Tac
 
     //void assign( const char* s )        { assign( StringView( s ) ); }
     //void assign( const char* s, int n ) { FixedStringAssign( GetFSD(), StringView( s, n ); }
-    void assign( const StringView& );
+    void assign( StringView );
     auto front() dynmc -> dynmc char&;
     auto front() const -> const char&;
     auto back() dynmc -> dynmc char&;
@@ -56,7 +56,7 @@ namespace Tac
     auto operator []( int ) dynmc -> dynmc char&;
     auto operator []( int ) const -> const char&;
     auto operator += ( char ) -> ShortFixedString&;
-    auto operator += ( const StringView& ) -> ShortFixedString&;
+    auto operator += ( StringView ) -> ShortFixedString&;
 
     operator StringView() const;
 

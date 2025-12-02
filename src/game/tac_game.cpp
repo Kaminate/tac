@@ -42,6 +42,15 @@ namespace Tac
       }
 
       static bool doTest{ true };
+      if( ImGuiBeginMenuBar() )
+      {
+        if( ImGuiBeginMenu( "File" ) )
+        {
+          ImGuiEndMenu();
+        }
+        ImGuiEndMenuBar();
+      }
+
       if( ImGuiBegin( "Game", &doTest ) )
       {
         ImGuiButton( "button a" );

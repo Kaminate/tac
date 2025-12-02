@@ -13,7 +13,7 @@ namespace Tac
 
   // static functions
 
-  static void DebugSetStringLookup( StringID stringID, const StringView& stringView )
+  static void DebugSetStringLookup( StringID stringID, const StringView stringView )
   {
     if constexpr( kIsDebugMode )
     {
@@ -37,7 +37,7 @@ namespace Tac
     Init( s );
   }
 
-  StringID::StringID( const StringView& stringView ) : mHashedValue( Hash( stringView ) )
+  StringID::StringID( const StringView stringView ) : mHashedValue( Hash( stringView ) )
   {
     Init( stringView );
   }
@@ -45,7 +45,7 @@ namespace Tac
   bool StringID::empty() const                  { return !mHashedValue; }
   auto StringID::GetValue() const  -> HashValue { return mHashedValue;  }
 
-  void StringID::Init( const StringView& s ) const
+  void StringID::Init( const StringView s ) const
   {
     TAC_ASSERT( !empty() );
     DebugSetStringLookup( *this, s );

@@ -55,7 +55,7 @@ namespace Tac
 
   auto LightToShaderLight( const Light* ) -> Render::ShaderLight;
   auto LightTypeToString( Light::Type ) -> const char*;
-  auto LightTypeFromString( const StringView& ) -> Light::Type;
+  auto LightTypeFromString( StringView ) -> Light::Type;
   auto LightDebugImgui( Light* ) -> void;
 
   TAC_META_DECL( Light );

@@ -8,7 +8,8 @@
 
 namespace Tac
 {
-  template< typename T > String Join( const T& container, const StringView& seperator )
+  template< typename T >
+  auto Join( const T& container, const StringView seperator ) -> String
   {
     String result;
     for( const auto& element : container )
@@ -19,21 +20,14 @@ namespace Tac
     return result;
   }
 
+  auto ToLower( StringView ) -> String;
+  char ToLower( char );
+  bool IsLower( char );
+  char ToUpper( char );
+  bool IsUpper( char );
+  auto FormatPercentage( float number_between_0_and_1 ) -> String;
+  auto FormatPercentage( float curr, float maxi ) -> String;
+  bool IsAscii( StringView );
 
-  String ToLower( const StringView& );
-  char   ToLower( char );
-  bool   IsLower( char );
-  char   ToUpper( char );
-  bool   IsUpper( char );
-  String FormatPercentage( float number_between_0_and_1 );
-  String FormatPercentage( float curr, float maxi );
-  bool   IsAscii( const StringView& );
-
-  // input: "hello\nworld"
-  // output: "+-------+\n"
-  //         "| hello |\n"
-  //         "| world |\n"
-  //         "+-------+"
-  String AsciiBoxAround( const StringView& );
 
 }

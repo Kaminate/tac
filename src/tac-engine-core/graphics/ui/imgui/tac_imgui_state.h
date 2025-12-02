@@ -131,7 +131,6 @@ namespace Tac
     //                            Shared between sub-windows
     SmartPtr< TextInputData >     mTextInputData               {};
     Map< ImGuiID, bool >          mCollapsingHeaderStates      {};
-    //bool                          mIsAppendingToMenu           {};
     Vector< ImGuiWindowResource > mResources                   {};
     SmartPtr< UI2DDrawData >      mDrawData                    {};
 
@@ -168,7 +167,7 @@ namespace Tac
 
   struct ImGuiGlobals
   {
-    static auto FindWindow( const StringView& ) -> ImGuiWindow*;
+    static auto FindWindow( StringView ) -> ImGuiWindow*;
     static auto FindDesktopWindow( WindowHandle ) -> ImGuiDesktopWindowImpl*;
     static void SetActiveID( ImGuiID, ImGuiWindow* );
     static void ClearActiveID();

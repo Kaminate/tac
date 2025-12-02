@@ -21,7 +21,7 @@ namespace Tac
   void        FrameMemoryInitThreadAllocator( int byteCount );
   void        FrameMemorySetThreadAllocator( ThreadAllocator* );
   void*       FrameMemoryAllocate( int );
-  StringView  FrameMemoryCopy( const StringView& );
+  StringView  FrameMemoryCopy( StringView );
   StringView  FrameMemoryCopy( const void*, int n);
   bool        FrameMemoryIsAllocated( const void* );
 

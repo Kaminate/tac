@@ -40,7 +40,7 @@ namespace Tac
 
 
   using Drag_Getter = String( * )( const void* );
-  using Drag_Setter = void( * )( const StringView& from, void* to );
+  using Drag_Setter = void( * )( const StringView from, void* to );
   using Drag_MouseHandler = void( * )( float mouseChangeSinceBeginningOfDrag,
                                        const void* valAtDragStart,
                                        void* curVal );
@@ -226,7 +226,7 @@ namespace Tac
     return changed;
   }
 
-  static bool ImGuiDragTypeN( const StringView& str,
+  static bool ImGuiDragTypeN( const StringView str,
                               int sizeOfT,
                               void* values,
                               int n,
@@ -290,7 +290,7 @@ namespace Tac
     return s;
   };
 
-  static void DragFloatSetter( const StringView& from, void* to )
+  static void DragFloatSetter( const StringView from, void* to )
   {
     *( float* )to = ( float )Atof( from.c_str() );
   };
@@ -309,7 +309,7 @@ namespace Tac
 
   static String DragIntGetter(  const void* from ) { return ToString( *( int* )from ); };
 
-  static void DragIntSetter( const StringView& from, void* to )
+  static void DragIntSetter( const StringView from, void* to )
   {
     *( int* )to = Atoi( from.c_str() );
   };
@@ -325,7 +325,7 @@ namespace Tac
   };
 } // namespace Tac
 
-bool Tac::ImGuiDragFloatN( const StringView& str, float* values, int n )
+bool Tac::ImGuiDragFloatN( const StringView str, float* values, int n )
 {
   return ImGuiDragTypeN( str,
                          sizeof( float ),
@@ -336,7 +336,7 @@ bool Tac::ImGuiDragFloatN( const StringView& str, float* values, int n )
                          DragFloatMouseHandler );
 }
 
-bool Tac::ImGuiDragIntN( const StringView& str, int* values, int n )
+bool Tac::ImGuiDragIntN( const StringView str, int* values, int n )
 {
   return ImGuiDragTypeN( str,
                          sizeof( int ),

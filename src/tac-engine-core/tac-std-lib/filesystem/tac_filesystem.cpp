@@ -90,7 +90,7 @@ namespace Tac
 
   UTF8Path::UTF8Path( const char* path )                  : String( path ) {}
   UTF8Path::UTF8Path( const String& path )                : String( path ) {}
-  UTF8Path::UTF8Path( const StringView& path )            : String( path ) {}
+  UTF8Path::UTF8Path( const StringView path )            : String( path ) {}
 
   // -----------------------------------------------------------------------------------------------
 
@@ -170,8 +170,8 @@ namespace Tac
   }
 
 
-  auto UTF8Path::operator /= ( const StringView& s ) -> UTF8Path& { return *this = TacPath( StdPath(this) /= s.data() );  }
-  auto UTF8Path::operator += ( const StringView& s ) -> UTF8Path& { return *this = TacPath( StdPath(this) += s.data() );  }
+  auto UTF8Path::operator /= ( const StringView s ) -> UTF8Path& { return *this = TacPath( StdPath(this) /= s.data() );  }
+  auto UTF8Path::operator += ( const StringView s ) -> UTF8Path& { return *this = TacPath( StdPath(this) += s.data() );  }
 
 
   // -----------------------------------------------------------------------------------------------

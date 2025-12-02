@@ -42,7 +42,7 @@ namespace Tac
 
   void OS::OSAppStopRunning() { mStopRunRequested = true; }
 
-  void OS::OSDebugAssert( const StringView& msg, const StackFrame& frame )
+  void OS::OSDebugAssert( const StringView msg, const StackFrame& frame )
   {
     const String str{ String()
       + "ASSERT FAILED( " + msg + " ) "
@@ -58,7 +58,7 @@ namespace Tac
     // TODO: c++26 <debugging> std::is_debugger_present
   }
 
-  void OS::OSDebugPrint( const StringView& s )
+  void OS::OSDebugPrint( const StringView s )
   {
     if constexpr( kIsDebugMode )
     {
@@ -67,7 +67,7 @@ namespace Tac
     }
   }
 
-  void OS::OSDebugPrintLine( const StringView& s )
+  void OS::OSDebugPrintLine( const StringView s )
   {
     if constexpr( kIsDebugMode )
     {

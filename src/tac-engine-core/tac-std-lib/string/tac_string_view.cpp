@@ -10,7 +10,7 @@ namespace Tac
   auto StringView::end() const -> const char*                 { return mStr + mLen; }
   auto StringView::c_str() const -> const char*               { return mStr; }
   bool StringView::empty() const                              { return mLen == 0; }
-  auto StringView::find_last_of( const StringView& s ) const -> int
+  auto StringView::find_last_of( const StringView s ) const -> int
   {
     for( int i{ mLen - 1 }; i >= 0; --i )
       if( s.contains( mStr[ i ] ) )
@@ -28,14 +28,14 @@ namespace Tac
   {
     return find( c );
   }
-  auto StringView::find_first_of( const StringView& s ) const -> int
+  auto StringView::find_first_of( const StringView s ) const -> int
   {
     for( int i{}; i < mLen; ++i )
       if( s.contains( mStr[ i ] ) )
         return i;
     return npos;
   }
-  auto StringView::find( const StringView& substr ) const -> int
+  auto StringView::find( const StringView substr ) const -> int
   {
     if( substr.mLen > mLen )
       return npos;
@@ -52,7 +52,7 @@ namespace Tac
     return npos;
   }
   bool StringView::contains( const char* substr ) const       { return npos != find( substr ); }
-  bool StringView::contains( const StringView& substr ) const { return npos != find( substr ); }
+  bool StringView::contains( const StringView substr ) const { return npos != find( substr ); }
   bool StringView::contains( char c ) const                   { return npos != find( c ); }
   auto StringView::substr( const int pos, const int len ) const -> StringView
   {
