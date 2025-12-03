@@ -148,6 +148,13 @@ namespace Tac
     GameTime                      mRequestTime                 {};
 
     v2                            mBorderData[4]               {}; // Used for window resize grips
+    bool                          mAppendingToMenuBar          {};
+    v2                            mMenuBarMini                 {}; // viewport space
+    float                         mMenuBarCurrWidth            {}; // viewport space
+    float                         mMenuBarPrevWidth            {}; // viewport space
+    v2                            mMenuBarCachedCursor         {};
+
+    String                        mPopupMenu                   {};
   };
 
   struct ImGuiDesktopWindowImpl : public ImGuiDesktopWindow
@@ -176,6 +183,7 @@ namespace Tac
     static ImGuiMouseCursor                  mMouseCursor;
     static GameTime                          mElapsedSeconds;
     static Vector< ImGuiWindow* >            mAllWindows;
+    static Vector< String >                  mPopupStack;
     static Vector< ImGuiWindow* >            mWindowStack;
     static Vector< ImGuiDesktopWindowImpl* > mDesktopWindows;
     static ImGuiWindow*                      mCurrentWindow;

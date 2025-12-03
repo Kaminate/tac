@@ -39,6 +39,7 @@ namespace Tac
   ImGuiMouseCursor                  ImGuiGlobals::mMouseCursor          {};
   GameTime                          ImGuiGlobals::mElapsedSeconds       {};
   Vector< ImGuiWindow* >            ImGuiGlobals::mAllWindows           {};
+  Vector< String >                  ImGuiGlobals::mPopupStack           {};
   Vector< ImGuiWindow* >            ImGuiGlobals::mWindowStack          {};
   Vector< ImGuiDesktopWindowImpl* > ImGuiGlobals::mDesktopWindows       {};
   ImGuiWindow*                      ImGuiGlobals::mCurrentWindow        {};
@@ -237,6 +238,15 @@ namespace Tac
   void ImGuiWindow::EndFrame()
   {
     mDrawData->PopDebugGroup(); // pushed in ImGuiWindow::BeginFrame
+    if( ( mFlags & ImGuiWindowFlags_AutoResize ) )
+    {
+      if( const v2 tgtSize{ mViewportSpaceMaxiCursor + v2( 1, 1 ) * ImGuiGetWindowPaddingPx() };
+          mSize != tgtSize )
+      {
+        mDesktopWindow->mRequestedSize = tgtSize;
+        mSize = tgtSize;
+      }
+    }
   }
 
   void ImGuiWindow::BeginFrame()
@@ -256,29 +266,22 @@ namespace Tac
 
     // popped in ImGuiWindow::EndFrame
     mDrawData->PushDebugGroup( ShortFixedString::Concat( "BeginFrame(" , mName , ")" ) );
-
     mIDStack.clear();
     mIDStack.push_back( mWindowID = Hash( mName ) );
-
     mMoveID = GetID( "#MOVE" );
-
-
     mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
     mViewportSpaceVisibleRegion = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
     mViewportSpaceCurrCursor = mViewportSpaceVisibleRegion.mMini;
+    mViewportSpacePrevCursor = mViewportSpaceCurrCursor;
+    mViewportSpaceMaxiCursor = mViewportSpaceCurrCursor;
     mXOffsets.clear();
     PushXOffset();
     DrawWindowBackground();
     Scrollbar();
     ResizeControls();
     MenuBar();
-    
-
-
     mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPaddingPx;
     mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPaddingPx;
-
-
     mViewportSpaceCurrCursor = mViewportSpaceVisibleRegion.mMini - v2( 0, mScroll ) ;
     mViewportSpacePrevCursor = mViewportSpaceCurrCursor;
     mViewportSpaceMaxiCursor = mViewportSpaceCurrCursor;
@@ -286,13 +289,13 @@ namespace Tac
     mCurrLineHeight = 0;
     mPrevLineHeight = 0;
 
-    //mDrawData->AddBox(
-    //  UI2DDrawData::Box
-    //  {
-    //    .mMini  { mViewportSpaceVisibleRegion.mMini },
-    //    .mMaxi  { mViewportSpaceVisibleRegion.mMaxi },
-    //    .mColor { 1, 1, 0, 1 },
-    //  } );
+    mDrawData->AddBoxOutline( 
+        UI2DDrawData::Box
+        {
+          .mMini  { mViewportSpacePos },
+          .mMaxi  { mSize },
+          .mColor { 1, 1, 0, .2f },
+        } );
   }
 
   void ImGuiWindow::ToggleFullscreen()
@@ -326,21 +329,20 @@ namespace Tac
     if( mFlags & ImGuiWindowFlags_NoTitleBar )
       return;
 
-    bool menuBarPopulated{};
-
     const v2 itemSpacingPx{ ImGuiGetItemSpacingPx() };
     const float fontSizePx{ ImGuiGetFontSizePx() };
     const float buttonPadPx{ ImGuiGetButtonPaddingPx() };
 
-    mViewportSpaceMouseGrabRegion = {};
-    v2 moveWindowGrabbableMini{ mViewportSpaceCurrCursor };
-    v2 moveWindowGrabbableMaxi{ mViewportSpaceVisibleRegion.mMaxi.x, mViewportSpaceCurrCursor.y + fontSizePx};
 
     const float menuBarY{ mViewportSpaceCurrCursor.y };
-    {
-      ImGuiText( mName );
-      moveWindowGrabbableMini.x = mViewportSpaceMaxiCursor.x;
-    }
+    ImGuiText( mName );
+    ImGuiSameLine();
+
+    mMenuBarMini.x = mViewportSpaceMaxiCursor.x;
+    mMenuBarMini.y = mViewportSpaceCurrCursor.y;
+
+    v2 moveWindowGrabbableMini{ mMenuBarMini + v2( mMenuBarPrevWidth, 0 ) };
+    v2 moveWindowGrabbableMaxi{ mViewportSpaceVisibleRegion.mMaxi.x, mViewportSpaceCurrCursor.y + fontSizePx};
 
     // TODO:
     //   Add menu items here.
@@ -373,27 +375,19 @@ namespace Tac
     // Title Bar buttons (minimize, maximize, close)
     if( mOpen )
     {
-      if( mViewportSpaceCurrCursor.y != menuBarY )
-      {
-        ImGuiSameLine();
-        if( menuBarPopulated )
-          mViewportSpaceCurrCursor.x -= itemSpacingPx.x; // undo spacing from sameline()
-      }
       const char* minimizeStr{" - "};
       const char* fullscrStr{" [] "};
       const char* closeStr{" X "};
       const v2 minimizeStrSize{ CalculateTextSize( minimizeStr, fontSizePx ) };
       const v2 fullscrStrSize{ CalculateTextSize( fullscrStr, fontSizePx ) };
       const v2 closeStrSize{ CalculateTextSize( closeStr, fontSizePx ) };
-
       const float titleBarButtonsWidthPx{ 0
         + minimizeStrSize.x + buttonPadPx * 2
         + fullscrStrSize.x + buttonPadPx * 2
         + closeStrSize.x + buttonPadPx * 2 };
 
-
       mViewportSpaceCurrCursor.x = mViewportSpaceVisibleRegion.mMaxi.x - titleBarButtonsWidthPx;
-      moveWindowGrabbableMaxi.x = mViewportSpaceCurrCursor.x;
+      moveWindowGrabbableMaxi.x = mViewportSpaceVisibleRegion.mMaxi.x - titleBarButtonsWidthPx;
 
       if( ImGuiButton( minimizeStr ) )
         AppWindowApi::MinimizeWindow( mDesktopWindow->mWindowHandle );
@@ -575,27 +569,6 @@ namespace Tac
         }
     }
 
-    // Draw a 1 px border around the window
-    for( int iSide{}; iSide < 4; ++iSide )
-    {
-      ImGuiRect edgeRect_VS_1{ origWindowRect_VS };
-      const int dir{ 1 << iSide };
-      switch( dir )
-      {
-        case E: edgeRect_VS_1.mMini.x = edgeRect_VS_1.mMaxi.x - 1; break;
-        case S: edgeRect_VS_1.mMini.y = edgeRect_VS_1.mMaxi.y - 1; break;
-        case W: edgeRect_VS_1.mMaxi.x = edgeRect_VS_1.mMini.x + 1; break;
-        case N: edgeRect_VS_1.mMaxi.y = edgeRect_VS_1.mMini.y + 1; break;
-      }
-
-      mDrawData->AddBox(
-        UI2DDrawData::Box
-        {
-          .mMini  { edgeRect_VS_1.mMini },
-          .mMaxi  { edgeRect_VS_1.mMaxi},
-          .mColor { 1, 1, 0, .2f },
-        } );
-    }
 
     if( anyEdgeActive && !UIKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
@@ -648,15 +621,17 @@ namespace Tac
 
   bool ImGuiWindow::Overlaps( const ImGuiRect& clipRect) const
   {
+    if( mAppendingToMenuBar ) { return true; } // menu items are outside content rect
     return mViewportSpaceVisibleRegion.Overlaps( clipRect );
   }
 
   auto ImGuiWindow::Clip( const ImGuiRect& clipRect) const -> ImGuiRect 
   {
+    if( mAppendingToMenuBar ) { return clipRect; } // menu items are outside content rect
     return ImGuiRect
     {
-      .mMini {  Max( clipRect.mMini, mViewportSpaceVisibleRegion.mMini )  },
-      .mMaxi {  Min( clipRect.mMaxi, mViewportSpaceVisibleRegion.mMaxi )  },
+      .mMini { Max( clipRect.mMini, mViewportSpaceVisibleRegion.mMini ) },
+      .mMaxi { Min( clipRect.mMaxi, mViewportSpaceVisibleRegion.mMaxi ) },
     };
   }
 

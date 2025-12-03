@@ -67,6 +67,7 @@ namespace Tac
 
     void AddText( const Text&, const ImGuiRect* = nullptr );
     void AddBox( const Box&, const ImGuiRect* = nullptr );
+    void AddBoxOutline( const Box&, const ImGuiRect* = nullptr );
     void AddLine( const Line& );
     void AddDrawCall( const UI2DDrawCall&, const StackFrame& );
     void PushDebugGroup( StringView );

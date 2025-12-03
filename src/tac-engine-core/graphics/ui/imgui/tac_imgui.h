@@ -58,6 +58,7 @@ namespace Tac
     ImGuiWindowFlags_None = 0,
     ImGuiWindowFlags_NoTitleBar,
     ImGuiWindowFlags_NoResize,
+    ImGuiWindowFlags_AutoResize,
   };
 
   enum class ImGuiCol

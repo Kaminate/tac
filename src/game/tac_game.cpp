@@ -1,6 +1,5 @@
 #include "tac_game.h" // self-inc
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-ecs/ghost/tac_ghost.h"
 #include "tac-ecs/tac_space.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -16,51 +15,71 @@ namespace Tac
 {
   static WindowHandle       sWindowHandle   {};
   static Ghost*             sGhost          {};
-  static bool               sCreateGhost   {};
+  static bool               sCreateGhost    {};
   const char*               sGameName       { "Game" };
   static UI2DDrawData       sUI2DDrawData   {};
   static UI2DRenderData     sUI2DRenderData {};
   static bool               sIsFullscreen   {};
 
-  struct GameApp : public App
+  GameApp::GameApp( const Config& cfg ) : App( cfg ) {}
+  void GameApp::Init( Errors& errors ) 
   {
-    GameApp( const Config& cfg ) : App( cfg ) {}
-    void Init( Errors& errors ) override
+    SpaceInit();
+    if( sCreateGhost )
     {
-      SpaceInit();
-      if( sCreateGhost )
-      {
-        sGhost = TAC_NEW Ghost;
-        TAC_CALL( sGhost->Init( errors ) );
-      }
+      sGhost = TAC_NEW Ghost;
+      TAC_CALL( sGhost->Init( errors ) );
     }
-    void Update( Errors& errors ) override
+  }
+  void GameApp::Update( Errors& errors )
+  {
+    if( sGhost )
     {
-      if( sGhost )
-      {
-        TAC_CALL( sGhost->Update( errors ) );
-      }
+      TAC_CALL( sGhost->Update( errors ) );
+    }
 
-      static bool doTest{ true };
-      if( ImGuiBeginMenuBar() )
+    static bool doTest{ true };
+
+    if( ImGuiBegin( "Game", &doTest ) )
+    {
+      if( false )//  ImGuiBeginMenuBar() )
       {
         if( ImGuiBeginMenu( "File" ) )
         {
+          ImGuiButton( "new" );
+          ImGuiButton( "open" );
+          ImGuiButton( "close" );
+          ImGuiButton( "exit" );
+          ImGuiButton( "save" );
+          ImGuiEndMenu();
+        }
+        if( ImGuiBeginMenu( "Edit" ) )
+        {
+          ImGuiButton( "undo" );
+          ImGuiButton( "redo" );
+          ImGuiButton( "cut" );
+          ImGuiButton( "copy" );
+          ImGuiButton( "paste" );
           ImGuiEndMenu();
         }
         ImGuiEndMenuBar();
       }
 
-      if( ImGuiBegin( "Game", &doTest ) )
-      {
-        ImGuiButton( "button a" );
-        ImGuiButton( "button b" );
-        ImGuiButton( "button c" );
-        ImGuiEnd();
-      }
-      
+      ImGuiBeginChild( "asdf", v2( 500, 500 ) );
+
+
+      ImGuiButton( "button a" );
+      ImGuiText( "the quick brown fox jumped over the lazy dog. :) !@#@#O$*&SD l;kfj we" );
+      ImGuiButton( "button b" );
+      ImGuiButton( "button c" );
+
+
+      ImGuiEndChild();
+      ImGuiEnd();
     }
-    void Render( RenderParams renderParams, Errors& errors ) override
+    
+  }
+  void GameApp::Render( RenderParams renderParams, Errors& errors ) 
     {
       if( WindowHandle windowHandle{ AppWindowMgr::GetWindowHandle( sGameName ) };
           AppWindowApi::IsShown( windowHandle ) )
@@ -75,7 +94,6 @@ namespace Tac
         sUI2DRenderData.DebugDraw2DToTexture( drawDatas, tex, texFmt, windowSize, errors );
       }
     };
-  };
 
   auto App::Create() -> App* { return TAC_NEW GameApp( App::Config{ .mName { sGameName }, } ); }
 

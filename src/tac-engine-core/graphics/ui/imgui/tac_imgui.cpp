@@ -481,6 +481,13 @@ bool Tac::ImGuiBegin( const StringView name, bool* open, ImGuiWindowFlags flags 
       int w{ 800 };
       int h{ 600 };
 
+
+      SettingsNode windowJson{ ImGuiGetWindowSettingsJson( name ) };
+      x = ( int )windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x ).mNumber;
+      y = ( int )windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y ).mNumber;
+      w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
+      h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
+
       if( ImGuiNextWindow::gNextWindow.mPositionValid )
       {
         x = ( int )ImGuiNextWindow::gNextWindow.mPosition.x;
@@ -492,12 +499,6 @@ bool Tac::ImGuiBegin( const StringView name, bool* open, ImGuiWindowFlags flags 
         w = ( int )ImGuiNextWindow::gNextWindow.mSize.x;
         h = ( int )ImGuiNextWindow::gNextWindow.mSize.y;
       }
-
-      SettingsNode windowJson{ ImGuiGetWindowSettingsJson( name ) };
-      x = ( int )windowJson.GetChild( "x" ).GetValueWithFallback( ( JsonNumber )x ).mNumber;
-      y = ( int )windowJson.GetChild( "y" ).GetValueWithFallback( ( JsonNumber )y ).mNumber;
-      w = ( int )windowJson.GetChild( "w" ).GetValueWithFallback( ( JsonNumber )w ).mNumber;
-      h = ( int )windowJson.GetChild( "h" ).GetValueWithFallback( ( JsonNumber )h ).mNumber;
 
       //Platform* platform = Platform::GetInstance();
       //
@@ -575,6 +576,7 @@ bool Tac::ImGuiBegin( const StringView name, bool* open, ImGuiWindowFlags flags 
 
   window->mFlags = flags;
   window->mOpen = open;
+  window->mPopupMenu = "";
   window->BeginFrame();
 
   return true;
@@ -879,7 +881,6 @@ bool Tac::ImGuiInvisibleButton( const StringView str, v2 size )
 
 bool Tac::ImGuiButton( const StringView str, v2 size )
 {
-  
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const float buttonPaddingPx{ ImGuiGetButtonPaddingPx() };
   const v2 textSize{ CalculateTextSize( str, ImGuiGetFontSizePx() ) };
@@ -1061,7 +1062,6 @@ bool Tac::ImGuiDragInt4( const StringView s, int* v )     { return ImGuiDragIntN
 
 bool Tac::ImGuiCollapsingHeader( const StringView name, const ImGuiNodeFlags flags )
 {
-  
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   const float buttonPaddingPx{ ImGuiGetButtonPaddingPx() };
   const float width{ window->GetRemainingWidth() };
@@ -1111,25 +1111,125 @@ void Tac::ImGuiPopFontSize()
   ImGuiGlobals::mFontSizeStack.pop_back();
 }
 
-bool Tac::ImGuiBeginMenu( const StringView )
+bool Tac::ImGuiBeginMenu( const StringView str )
 {
-  return true;
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
+
+  const v2 textSize{ CalculateTextSize( str, ImGuiGetFontSizePx() ) };
+  const float paddingPx{ 5 * ImGuiGetButtonPaddingPx() };
+  dynmc v2 buttonSize{ textSize + v2( 2 * paddingPx, 0 ) };
+  const v2 pos{ window->mViewportSpaceCurrCursor };
+  window->ItemSize( buttonSize );
+
+  const ImGuiRect origRect{ ImGuiRect::FromPosSize( pos, buttonSize ) };
+  if( !window->Overlaps( origRect ) )
+    return false;
+
+  const ImGuiID id{ window->GetID( str ) };
+  const bool hovered{ window->IsHovered( origRect, id ) };
+  UI2DDrawData* drawData{ window->mDrawData };
+  drawData->PushDebugGroup( ShortFixedString::Concat( "Button(", str, ")" ) );
+  drawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini  { pos },
+      .mMaxi  { pos + buttonSize },
+      .mColor { GetFrameColor( hovered ) },
+    }, &origRect );
+
+  drawData->AddText(
+    UI2DDrawData::Text
+    {
+      .mPos      { pos + v2( paddingPx, 0 ) },
+      .mFontSize { ImGuiGetFontSizePx() },
+      .mUtf8     { str },
+      .mColor    { ImGuiGetColor( ImGuiCol::Text ) },
+    }, &origRect );
+  drawData->PopDebugGroup();
+  ImGuiSameLine();
+
+
+  window->mMenuBarCurrWidth += buttonSize.x;
+  window->mViewportSpaceCurrCursor.x -= ImGuiGetItemSpacingPx().x;
+
+
+  String popupName{ str + "_popup"};
+  int popupIdx{ -1 };
+  for( int i{}; i < ImGuiGlobals::mPopupStack.size(); ++i )
+    if( ImGuiGlobals::mPopupStack[ i ] == popupName )
+      popupIdx = i;
+
+  if( hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
+  {
+    if( popupIdx == -1 )
+    {
+      ImGuiGlobals::mPopupStack.clear();
+      ImGuiGlobals::mPopupStack.push_back( popupName );
+      popupIdx = 0;
+    }
+    else
+    {
+      ImGuiGlobals::mPopupStack.resize( popupIdx );
+      popupIdx = -1;
+    }
+  }
+
+  if( popupIdx != -1 )
+  {
+    window->mPopupMenu = popupName;
+    ImGuiWindowFlags flags{ ImGuiWindowFlags( 0
+      | ImGuiWindowFlags_NoTitleBar
+      | ImGuiWindowFlags_NoResize
+      | ImGuiWindowFlags_AutoResize
+    ) };
+
+    ImGuiSetNextWindowPosition(
+      AppWindowApi::GetPos(window->mDesktopWindow->mWindowHandle) +  pos + v2( 0, textSize.y ) );
+    return ImGuiBegin( popupName, nullptr, flags );
+  }
+
+  return false;
 }
+
 void Tac::ImGuiEndMenu()
 {
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
+
+  int popupIdx{ -1 };
+  for( int i{}; i < ImGuiGlobals::mPopupStack.size(); ++i )
+    if( ImGuiGlobals::mPopupStack[ i ] == window->mName )
+      popupIdx = i;
+
+  if( popupIdx != -1 )
+    ImGuiEnd();
 }
+
 bool Tac::ImGuiBeginMenuBar()
 {
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
+  if( window->mFlags & ImGuiWindowFlags_NoTitleBar )
+    return false;
+  TAC_ASSERT(!window->mAppendingToMenuBar);
+  window->mAppendingToMenuBar = true;
+  window->mMenuBarCachedCursor = window->mViewportSpaceCurrCursor;
+  window->mViewportSpaceCurrCursor = window->mMenuBarMini;
   return true;
 }
+
 void Tac::ImGuiEndMenuBar()
 {
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
+  TAC_ASSERT(window->mAppendingToMenuBar);
+  TAC_ASSERT( !( window->mFlags & ImGuiWindowFlags_NoTitleBar ) );
+  window->mAppendingToMenuBar = false;
+  window->mViewportSpaceCurrCursor = window->mMenuBarCachedCursor;
+  window->mMenuBarPrevWidth = window->mMenuBarCurrWidth;
+  window->mMenuBarCurrWidth = 0;
 }
 
 
 void Tac::ImGuiDebugDraw()
 {
-  
   const ImGuiID activeId{ ImGuiGlobals::mActiveID };
   const ImGuiID hoveredId{ ImGuiGlobals::mHoveredID };
   const ImGuiWindow* activeIDWindow{ ImGuiGlobals::mActiveIDWindow };

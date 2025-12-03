@@ -463,6 +463,14 @@ namespace Tac
     //mDrawCall2Ds.push_back( modified ); <-- Why not just do this instead?
   }
 
+  void UI2DDrawData::AddBoxOutline( const Box& box, const ImGuiRect* clipRect )
+  {
+    Box T{ box }; T.mMaxi = v2( box.mMaxi.x, box.mMini.y + 1); AddBox( T, clipRect );
+    Box B{ box }; B.mMini = v2( box.mMini.x, box.mMaxi.y - 1); AddBox( B, clipRect );
+    Box L{ box }; L.mMaxi = v2( box.mMini.x + 1, box.mMaxi.y); AddBox( L, clipRect );
+    Box R{ box }; R.mMini = v2( box.mMaxi.x - 1, box.mMini.y); AddBox( R, clipRect );
+  }
+
   void UI2DDrawData::AddBox( const Box& box, const ImGuiRect* clipRect )
   {
     const v2& mini { box.mMini };
@@ -633,13 +641,12 @@ namespace Tac
       //
       // idk how the sdf offsets take into account the stbtt_GetFontVMetrics ascent descent stuff
 
-      const v2 sdfOffset( ( float )fontAtlasCell->mGlyphMetrics.mSDFxOffset,
+      v2 sdfOffset( ( float )fontAtlasCell->mGlyphMetrics.mSDFxOffset,
                           ( float )fontAtlasCell->mGlyphMetrics.mSDFyOffset );
-      const v2 sdfSize( ( float )fontAtlasCell->mGlyphMetrics.mSDFWidth,
+      v2 sdfSize( ( float )fontAtlasCell->mGlyphMetrics.mSDFWidth,
                         ( float )fontAtlasCell->mGlyphMetrics.mSDFHeight );
 
-      //v2 baselinePos( xPxCursor, yPxBaseline );
-
+      // 2025-12-02 fixme: this offset is causing text to not be centered inside buttons...
       glyphMin = baselineCursorPos + fontSizeRelativeScale * ( sdfOffset );
       glyphMax = baselineCursorPos + fontSizeRelativeScale * ( sdfOffset + sdfSize );
 
