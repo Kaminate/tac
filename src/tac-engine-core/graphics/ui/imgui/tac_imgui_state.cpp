@@ -55,9 +55,9 @@ namespace Tac
   ImGuiID                           ImGuiGlobals::mActiveID             {};
   ImGuiWindow*                      ImGuiGlobals::mActiveIDWindow       {};
   ImGuiWindow*                      ImGuiGlobals::mMovingWindow         {};
-  v2                                ImGuiGlobals::mActiveIDClickPos_VS  {};
+  v2                                ImGuiGlobals::mActiveIDClickPos_UIWindowSpace {};
   v2                                ImGuiGlobals::mActiveIDWindowSize   {};
-  v2                                ImGuiGlobals::mActiveIDWindowPos_SS {};
+  v2                                ImGuiGlobals::mActiveIDWindowPos_DesktopSpace {};
   int                               ImGuiGlobals::mResizeMask           {};
   bool                              ImGuiGlobals::mSettingsDirty        {};
   ReferenceResolution               ImGuiGlobals::mReferenceResolution  {};
@@ -149,7 +149,7 @@ namespace Tac
     if( !ImGuiGlobals::GetActiveID().IsValid()
         && ImGuiGlobals::mMouseHoveredWindow == GetWindowHandle()
         && UIKeyboardApi::GetMouseWheelDelta()
-        && ImGuiRect::FromPosSize( mViewportSpacePos, mSize ).ContainsPoint( GetMousePosViewport() ) )
+        && ImGuiRect::FromPosSize( mViewportSpacePos, mSize ).ContainsPoint( GetMousePos_uiwindowspace() ) )
       mScroll = Clamp( mScroll - UIKeyboardApi::GetMouseWheelDelta() * 40.0f, scrollMin, scrollMax );
 
     const float scrollbarForegroundMiniX{ 3 + scrollbarBackgroundMini.x };
@@ -293,7 +293,7 @@ namespace Tac
         UI2DDrawData::Box
         {
           .mMini  { mViewportSpacePos },
-          .mMaxi  { mSize },
+          .mMaxi  { mViewportSpacePos + mSize },
           .mColor { 1, 1, 0, .2f },
         } );
   }
@@ -334,7 +334,7 @@ namespace Tac
     const float buttonPadPx{ ImGuiGetButtonPaddingPx() };
 
 
-    const float menuBarY{ mViewportSpaceCurrCursor.y };
+    //const float menuBarY{ mViewportSpaceCurrCursor.y };
     ImGuiText( mName );
     ImGuiSameLine();
 
@@ -343,34 +343,6 @@ namespace Tac
 
     v2 moveWindowGrabbableMini{ mMenuBarMini + v2( mMenuBarPrevWidth, 0 ) };
     v2 moveWindowGrabbableMaxi{ mViewportSpaceVisibleRegion.mMaxi.x, mViewportSpaceCurrCursor.y + fontSizePx};
-
-    // TODO:
-    //   Add menu items here.
-    //   What im thinking is that we save the position of the menu items NOW, and
-    //   later when we actually call ImGui::MenuItem, we place those items at the saved locations.
-#if 0
-    if( !mParent )
-    {
-      if( mViewportSpaceCurrCursor.y != menuBarY )
-        ImGuiSameLine();
-
-      ImGuiButton( " File " );
-
-      ImGuiSameLine();
-      mViewportSpaceCurrCursor.x -= itemSpacingPx.x;
-
-      ImGuiButton( " Edit " );
-      ImGuiSameLine();
-      mViewportSpaceCurrCursor.x -= itemSpacingPx.x;
-
-      ImGuiButton( " Window " );
-
-      moveWindowGrabbableMini.x = mViewportSpaceMaxiCursor.x;
-      menuBarPopulated = true;
-    }
-#endif
-
-
 
     // Title Bar buttons (minimize, maximize, close)
     if( mOpen )
@@ -399,6 +371,7 @@ namespace Tac
       mViewportSpaceCurrCursor.x -= itemSpacingPx.x;
       if( ImGuiButton( closeStr ) )
         *mOpen = !*mOpen;
+      ImGuiSameLine();
     }
 
     mDrawData->AddBox(
@@ -410,8 +383,10 @@ namespace Tac
       }
     );
 
-    if( mViewportSpaceCurrCursor.y != menuBarY )
-      mViewportSpaceCurrCursor.y -= ImGuiGetItemSpacingPx().y;
+    //if( mViewportSpaceCurrCursor.y != menuBarY )
+    //  mViewportSpaceCurrCursor.y -= ImGuiGetItemSpacingPx().y;
+
+    ItemSize( v2( 0, 0 ) ); // advance to next line
 
     mViewportSpaceVisibleRegion.mMini = mViewportSpaceCurrCursor;
     mViewportSpaceMouseGrabRegion = ImGuiRect::FromMinMax( moveWindowGrabbableMini, moveWindowGrabbableMaxi );
@@ -422,10 +397,10 @@ namespace Tac
 
     if( UIKeyboardApi::IsPressed( Key::MouseLeft ) )
     {
-      mDesktopWindow->mRequestedPosition = GetMousePosViewport()
-                                         - ImGuiGlobals::mActiveIDClickPos_VS
+      mDesktopWindow->mRequestedPosition = GetMousePos_uiwindowspace()
+                                         - ImGuiGlobals::mActiveIDClickPos_UIWindowSpace
                                          + mViewportSpacePos
-                                         + GetWindowPosScreenspace();
+                                         + GetWindowPos_desktopspace();
 
 
       ImGuiGlobals::mMouseCursor = ImGuiMouseCursor::kResizeNS_EW;
@@ -440,7 +415,6 @@ namespace Tac
 
   void ImGuiWindow::BeginMoveControls()
   {
-
     if( ImGuiGlobals::mActiveID.IsValid() )
       return;
 
@@ -456,8 +430,8 @@ namespace Tac
       return;
     
     ImGuiGlobals::SetActiveID( mMoveID, this );
-    ImGuiGlobals::mActiveIDClickPos_VS = GetMousePosViewport();
-    ImGuiGlobals::mActiveIDWindowPos_SS = GetWindowPosScreenspace();
+    ImGuiGlobals::mActiveIDClickPos_UIWindowSpace = GetMousePos_uiwindowspace();
+    ImGuiGlobals::mActiveIDWindowPos_DesktopSpace = GetWindowPos_desktopspace();
     ImGuiGlobals::mMovingWindow = this;
   }
 
@@ -473,7 +447,7 @@ namespace Tac
     const UIStyle style{ ImGuiGlobals::mUIStyle };
     const float windowPaddingPx{ ImGuiGetWindowPaddingPx() };
     const v2i viewportPos_SS{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
-    const v2 mousePos_VS{ GetMousePosViewport() };
+    const v2 mousePos_VS{ GetMousePos_uiwindowspace() };
     const ImGuiRect origWindowRect_VS{ ImGuiRect::FromPosSize( mViewportSpacePos, mSize ) };
     dynmc ImGuiRect targetWindowRect_VS{ origWindowRect_VS };
     const int E { 1 << 0 };
@@ -548,22 +522,22 @@ namespace Tac
             case E:
               targetWindowRect_VS.mMaxi.x = Max(
                 targetWindowRect_VS.mMini.x + 50.0f,
-                mousePos_VS.x + ImGuiGlobals::mActiveIDWindowSize.x - ImGuiGlobals::mActiveIDClickPos_VS.x );
+                mousePos_VS.x + ImGuiGlobals::mActiveIDWindowSize.x - ImGuiGlobals::mActiveIDClickPos_UIWindowSpace.x );
               break;
             case W:
               targetWindowRect_VS.mMini.x = Min(
                 targetWindowRect_VS.mMaxi.x - 50.0f,
-                mousePos_VS.x - ImGuiGlobals::mActiveIDClickPos_VS.x );
+                mousePos_VS.x - ImGuiGlobals::mActiveIDClickPos_UIWindowSpace.x );
               break;
             case N:
               targetWindowRect_VS.mMini.y = Min(
                 targetWindowRect_VS.mMaxi.y - 50.0f,
-                mousePos_VS.y - ImGuiGlobals::mActiveIDClickPos_VS.y );
+                mousePos_VS.y - ImGuiGlobals::mActiveIDClickPos_UIWindowSpace.y );
               break;
             case S:
               targetWindowRect_VS.mMaxi.y = Max(
                 targetWindowRect_VS.mMini.y + 50.0f,
-                mousePos_VS.y + ImGuiGlobals::mActiveIDWindowSize.y - ImGuiGlobals::mActiveIDClickPos_VS.y );
+                mousePos_VS.y + ImGuiGlobals::mActiveIDWindowSize.y - ImGuiGlobals::mActiveIDClickPos_UIWindowSpace.y );
               break;
           }
         }
@@ -579,7 +553,7 @@ namespace Tac
         hoverMask &&
         UIKeyboardApi::JustPressed( Key::MouseLeft ) )
     {
-      ImGuiGlobals::mActiveIDClickPos_VS = mousePos_VS;
+      ImGuiGlobals::mActiveIDClickPos_UIWindowSpace = mousePos_VS;
       ImGuiGlobals::mActiveIDWindowSize = mSize;
       ImGuiGlobals::mResizeMask = hoverMask;
       ImGuiGlobals::SetActiveID( id, this );
@@ -662,7 +636,7 @@ namespace Tac
     if( mouseHoveredWindow.GetIndex() != windowHandle.GetIndex() )
       return false;
 
-    if( !rectViewport.ContainsPoint( GetMousePosViewport() ) )
+    if( !rectViewport.ContainsPoint( GetMousePos_nwhspace() ) )
       return false;
 
     if( id != ImGuiGlobals::mHoveredIDPrev )
@@ -692,18 +666,23 @@ namespace Tac
     return mDesktopWindow->mWindowHandle;
   }
 
-  auto ImGuiWindow::GetWindowPosScreenspace() const -> v2
+  auto ImGuiWindow::GetWindowPos_desktopspace() const -> v2
   {
-    //ImGuiGlobals& globals { ImGuiGlobals::Instance };
-     
-    const v2 viewportPosScreenspace{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
-    return viewportPosScreenspace + mViewportSpacePos;
+    const v2 nwh_screenspace{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
+    return nwh_screenspace + mViewportSpacePos;
   }
 
-  auto ImGuiWindow::GetMousePosViewport() -> v2
+  auto ImGuiWindow::GetMousePos_nwhspace() -> v2
   {
     const v2 mousePos_SS{ UIKeyboardApi::GetMousePosScreenspace() };
-    const v2 windowPos_SS{ GetWindowPosScreenspace() };
+    const v2 nwh_SS{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
+    return mousePos_SS - nwh_SS;
+  }
+
+  auto ImGuiWindow::GetMousePos_uiwindowspace() -> v2
+  {
+    const v2 mousePos_SS{ UIKeyboardApi::GetMousePosScreenspace() };
+    const v2 windowPos_SS{ GetWindowPos_desktopspace() };
     return mousePos_SS - windowPos_SS;
   }
 
@@ -759,17 +738,16 @@ namespace Tac
   {
     ImGuiGlobals::mActiveID = id;
     ImGuiGlobals::mActiveIDWindow = window;
-    ImGuiGlobals::mActiveIDClickPos_VS = window->GetMousePosViewport();
-    ImGuiGlobals::mActiveIDWindowPos_SS = window->GetWindowPosScreenspace();
+    ImGuiGlobals::mActiveIDClickPos_UIWindowSpace = window->GetMousePos_uiwindowspace();
+    ImGuiGlobals::mActiveIDWindowPos_DesktopSpace = window->GetWindowPos_desktopspace();
   }
 
   void ImGuiGlobals::ClearActiveID()
   {
-    
     ImGuiGlobals::mActiveID = {};
     ImGuiGlobals::mActiveIDWindow = {};
-    ImGuiGlobals::mActiveIDClickPos_VS = {};
-    ImGuiGlobals::mActiveIDWindowPos_SS = {};
+    ImGuiGlobals::mActiveIDClickPos_UIWindowSpace = {};
+    ImGuiGlobals::mActiveIDWindowPos_DesktopSpace = {};
   }
 
 

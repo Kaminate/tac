@@ -750,7 +750,7 @@ bool Tac::ImGuiInputText( const StringView label, String& text )
 
   if( isActive )
   {
-    TextInputDataUpdateKeys( textInputData, window->GetMousePosViewport(), textPos );
+    TextInputDataUpdateKeys( textInputData, window->GetMousePos_uiwindowspace(), textPos );
 
     // handle double click
     static GameTime lastMouseReleaseSeconds;

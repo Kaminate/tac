@@ -252,7 +252,7 @@ namespace Tac
     TAC_PROFILE_BLOCK;
 
     ImGuiSetNextWindowStretch();
-    if( !ImGuiBegin( "Properties" ) )
+    if( !ImGuiBegin( "Properties", &sShowWindow ) )
       return;
 
     ImGuiBeginGroup();

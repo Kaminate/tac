@@ -156,7 +156,7 @@ namespace Tac
       if( dragFloatData->mMode == DragMode::TextInput )
       {
         const auto oldCodepoints { inputData->mCodepoints };
-        TextInputDataUpdateKeys( inputData, window->GetMousePosViewport(), valuePos );
+        TextInputDataUpdateKeys( inputData, window->GetMousePos_uiwindowspace(), valuePos );
 
         const bool codepointsChanged { oldCodepoints != inputData->mCodepoints };
         //const bool codepointsChanged = oldCodepoints.size() != inputData->mCodepoints.size()

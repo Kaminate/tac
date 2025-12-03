@@ -65,7 +65,8 @@ namespace Tac
         ImGuiEndMenuBar();
       }
 
-      ImGuiBeginChild( "asdf", v2( 500, 500 ) );
+      //ImGuiBeginChild( "asdf", v2( 500, 500 ) );
+      ImGuiBeginGroup();
 
 
       ImGuiButton( "button a" );
@@ -74,7 +75,8 @@ namespace Tac
       ImGuiButton( "button c" );
 
 
-      ImGuiEndChild();
+      //ImGuiEndChild();
+      ImGuiEndGroup();
       ImGuiEnd();
     }
     

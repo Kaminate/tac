@@ -79,7 +79,7 @@ namespace Tac
     TAC_PROFILE_BLOCK;
 
     ImGuiSetNextWindowStretch();
-    if( !ImGuiBegin( "Main Window" ) )
+    if( !ImGuiBegin( "Main Window", &sShowWindow ) )
       return;
 
     ImGuiSaveAs();

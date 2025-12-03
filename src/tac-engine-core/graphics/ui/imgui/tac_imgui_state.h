@@ -67,8 +67,9 @@ namespace Tac
     void UpdateMaxCursorDrawPos( v2 );
     auto GetWindowResource( ImGuiRscIdx, ImGuiID ) -> void*;
     bool IsHovered( const ImGuiRect&, ImGuiID );
-    auto GetMousePosViewport() -> v2;
-    auto GetWindowPosScreenspace() const -> v2;
+    auto GetMousePos_uiwindowspace() -> v2; // mouse relative to ImGuiWindow corner
+    auto GetMousePos_nwhspace() -> v2; // mouse relative to win32 window corner
+    auto GetWindowPos_desktopspace() const -> v2; // mouse relative to primary monitor
     void Scrollbar();
     void PushXOffset();
     void BeginMoveControls();
@@ -98,7 +99,7 @@ namespace Tac
     //                            A value of (0,0) is at the top left ( probably mParent == nullptr )
     v2                            mViewportSpacePos            {};
     v2                            mSize                        {};
-    v2                            mPreviousViewportToggleSize                {}; // for toggling fullscreen and back
+    v2                            mPreviousViewportToggleSize  {}; // for toggling fullscreen and back
     v2                            mPreviousViewportTogglePos   {}; // for toggling fullscreen and back
 
     //                            The viewport-space region in which visible ui is displayed on the screen
@@ -199,9 +200,9 @@ namespace Tac
     static ImGuiID                           mActiveID;
     static ImGuiWindow*                      mActiveIDWindow;
     static ImGuiWindow*                      mMovingWindow;
-    static v2                                mActiveIDClickPos_VS;
+    static v2                                mActiveIDClickPos_UIWindowSpace;
     static v2                                mActiveIDWindowSize;
-    static v2                                mActiveIDWindowPos_SS;
+    static v2                                mActiveIDWindowPos_DesktopSpace;
     static int                               mResizeMask;
     static bool                              mSettingsDirty;
     static ReferenceResolution               mReferenceResolution;

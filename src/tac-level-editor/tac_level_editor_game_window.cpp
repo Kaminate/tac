@@ -482,7 +482,7 @@ namespace Tac
 
 
     ImGuiSetNextWindowDisableBG();
-    if( !ImGuiBegin( sImguiWindowName ) )
+    if( !ImGuiBegin( sImguiWindowName, &sShowWindow ) )
       return;
 
     TAC_ON_DESTRUCT( ImGuiEnd() );
