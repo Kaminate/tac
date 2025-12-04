@@ -15,7 +15,6 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/settings/tac_settings_node.h"
@@ -89,6 +88,33 @@ namespace Tac
       OS::OSAppStopRunning();
   }
 
+  static auto InstantiateAsCopyAux( Entity* prefabEntity, const RelativeSpace& relativeSpace ) -> Entity*
+  {
+    Entity* copyEntity{ Creation::CreateEntity() };
+    copyEntity->mRelativeSpace = relativeSpace;
+    copyEntity->mInheritParentScale = prefabEntity->mInheritParentScale;
+    copyEntity->mName = prefabEntity->mName;
+
+    for( Component* prefabComponent : prefabEntity->mComponents )
+    {
+      const ComponentInfo* entry{ prefabComponent->GetEntry() };
+      dynmc Component* copyComponent{ copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
+      entry->mMetaType->Copy(
+        MetaType::CopyParams
+        {
+          .mDst { copyComponent },
+          .mSrc { prefabComponent },
+        } );
+    }
+                              
+    for( Entity* prefabChildEntity : prefabEntity->mChildren )
+      if( Entity * copyChildEntity{
+        InstantiateAsCopyAux( prefabChildEntity, prefabChildEntity->mRelativeSpace ) } )
+        copyEntity->AddChild( copyChildEntity );
+
+    return copyEntity;
+  }
+
   struct ShowWindowHelper
   {
   public:
@@ -144,7 +170,6 @@ namespace Tac
 
     Vector< Data > mDatas;
   };
-
 
   //===-------------- Creation -------------===//
 
@@ -222,33 +247,6 @@ namespace Tac
     };
   }
 
-  static auto InstantiateAsCopyAux( Entity* prefabEntity, const RelativeSpace& relativeSpace ) -> Entity*
-  {
-    Entity* copyEntity{ Creation::CreateEntity() };
-    copyEntity->mRelativeSpace = relativeSpace;
-    copyEntity->mInheritParentScale = prefabEntity->mInheritParentScale;
-    copyEntity->mName = prefabEntity->mName;
-
-    for( Component* prefabComponent : prefabEntity->mComponents )
-    {
-      const ComponentInfo* entry{ prefabComponent->GetEntry() };
-      dynmc Component* copyComponent{ copyEntity->AddNewComponent( prefabComponent->GetEntry() ) };
-      entry->mMetaType->Copy(
-        MetaType::CopyParams
-        {
-          .mDst { copyComponent },
-          .mSrc { prefabComponent },
-        } );
-    }
-                              
-    for( Entity* prefabChildEntity : prefabEntity->mChildren )
-      if( Entity * copyChildEntity{
-        InstantiateAsCopyAux( prefabChildEntity, prefabChildEntity->mRelativeSpace ) } )
-        copyEntity->AddChild( copyChildEntity );
-
-    return copyEntity;
-  }
-
   auto Creation::InstantiateAsCopy( Entity* prefabEntity ) -> Entity*
   {
     const RelativeSpace relativeSpace{ GetEditorCameraVisibleRelativeSpace( GetCamera() ) };
@@ -282,11 +280,14 @@ namespace Tac
     Graphics::From( &sGameWorld )->VisitCameras( &cameraVisitor );
     return cameraVisitor.mCamera ? &cameraVisitor.mCamera->mCamera : nullptr;
   }
+
   auto Creation::GetWorld() -> World*   { return sIsGameRunning ? &sGameWorld : &sEditorWorld; }
+
   auto Creation::GetEntityUUIDCounter() -> EntityUUIDCounter*
   {
    return sIsGameRunning ? &sGameEntityUUIDCounter : &sEditorEntityUUIDCounter;
   }
+
   bool Creation::IsGameRunning()        { return sIsGameRunning; }
 
 } // namespace Tac

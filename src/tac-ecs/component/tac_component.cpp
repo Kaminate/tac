@@ -7,12 +7,12 @@ namespace Tac
   void Component::CopyFrom( const Component* component )
   {
     const ComponentInfo* entry{ GetEntry() };
-    const MetaType::CopyParams copyParams
-    {
-      .mDst { this },
-      .mSrc { component },
-    };
-    entry->mMetaType->Copy( copyParams );
+    entry->mMetaType->Copy(
+      MetaType::CopyParams
+      {
+        .mDst { this },
+        .mSrc { component },
+      } );
     //const NetVars& netVars{ entry->mNetVars };
 
     //const int nVars{ netVars.size() };

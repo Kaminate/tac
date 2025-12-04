@@ -43,7 +43,7 @@ namespace Tac
   static bool                          sDrawGrid                 {};
   static float                         sWASDCameraPanSpeed       { 10 };
   static float                         sWASDCameraOrbitSpeed     { 5 };
-  static bool                          sWASDCameraOrbitSnap      { false };
+  static bool                          sWASDCameraOrbitSnap      { true };
   static float                         sWASDCameraNoSnapScale    { .01f };
   static StringView                    sImguiWindowName          { "Level Editor Game Window" };
 #if 0
@@ -133,7 +133,7 @@ namespace Tac
         combinedDir += keyDir.dir;
     if( combinedDir == v3( 0, 0, 0 ) )
       return;
-    camera->mPos += combinedDir * sWASDCameraPanSpeed;
+    camera->mPos += combinedDir * sWASDCameraPanSpeed * TAC_DT;
   }
 
   static void CameraWASDControlsOrbit( Camera* camera, const v3 orbitCenter )

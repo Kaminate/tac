@@ -69,6 +69,7 @@ namespace Tac
       MetaCompositeType::SetSize( sizeof( T ) );                                                   \
       TAC_REQUIRE_SEMICOLON
 
+
 // Step 2 of 3: Define a vector of metamembers
 #define TAC_META_REGISTER_COMPOSITE_MEMBER( M )                                                    \
       MetaCompositeType::AddMetaMember( TAC_META_MEMBER( BaseType, M ) );                          \
@@ -80,6 +81,7 @@ namespace Tac
   };                                                                                               \
   TAC_META_IMPL( T ); /* Define the GetMetaType() fn */                                            \
   TAC_REQUIRE_SEMICOLON
+
 
 #define TAC_META_REGISTER_STRUCT_BEGIN( T )  TAC_META_REGISTER_COMPOSITE_BEGIN( T )
 #define TAC_META_REGISTER_STRUCT_MEMBER( M ) TAC_META_REGISTER_COMPOSITE_MEMBER( M )

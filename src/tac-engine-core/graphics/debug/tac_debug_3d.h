@@ -48,9 +48,9 @@ namespace Tac
   struct Debug3DDrawData
   {
     void DebugDraw3DLine( const v3& p0, const v3& p1 );
-    void DebugDraw3DLine( const v3& p0, const v3& p1, const v3& color  );
+    void DebugDraw3DLine( const v3& p0, const v3& p1, const v3& color );
     void DebugDraw3DLine( const v3& p0, const v3& p1, const v3& color0, const v3& color1 );
-    void DebugDraw3DLine( const v3& p0, const v3& p1, const v4& color  );
+    void DebugDraw3DLine( const v3& p0, const v3& p1, const v4& color );
     void DebugDraw3DLine( const v3& p0, const v3& p1, const v4& color0, const v4& color1 );
     void DebugDraw3DCircle( const v3& p0, const v3& dir, float rad, const v3& color = { 1, 1, 1 } );
     void DebugDraw3DSphere( const v3& origin, float radius, const v3& color = { 1, 1, 1 } );
@@ -72,10 +72,8 @@ namespace Tac
 
   private:
     
-    Vector< DefaultVertexColor > mDebugDrawVerts           {};
+    Vector< DefaultVertexColor > mDebugDrawVerts {};
   };
-
-  static void SampleCosineWeightedHemisphereDebugImGui();
 
 } // namespace Tac
 

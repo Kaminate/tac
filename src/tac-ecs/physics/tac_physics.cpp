@@ -86,19 +86,6 @@ namespace Tac
   Physics::Physics()
   {
     RegisterMetaphysics();
-    mShouldDebugDrawCapsules = true;
-    mDebugDrawCapsuleColor = v3( 19, 122, 152 ) / 255.0f;
-    mDebugDrawTerrainColor = v3( 122, 19, 152 ) / 255.0f;
-    mGravity = -9.8f;
-    mGravityOn = true;
-    mRunning = true;
-    mShouldDebugDrawTerrains = true;
-    mShouldIntegrate = true;
-    mShouldNarrowphase = true;
-    mGJKDebugging = false;
-    mDebugDrawCollision = true;
-    mGJKDebugMaxIter = 10;
-    mGJKDebugMaxEPAIter = 10;
   }
 
   auto Physics::CreateCollider() -> Collider*

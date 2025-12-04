@@ -46,18 +46,18 @@ namespace Tac
     Colliders mColliders                {};
     Terrains  mTerrains                 {};
     bool      mDebugDrawCollision       { true };
-    float     mGravity                  {};
-    bool      mGravityOn                {};
-    v3        mDebugDrawCapsuleColor    {};
-    bool      mShouldDebugDrawCapsules  {};
-    bool      mRunning                  {};
-    v3        mDebugDrawTerrainColor    {};
-    bool      mShouldDebugDrawTerrains  {};
-    bool      mShouldIntegrate          {};
-    bool      mShouldNarrowphase        {};
+    float     mGravity                  { -9.8f };
+    bool      mGravityOn                { true };
+    v3        mDebugDrawCapsuleColor    { v3( 19, 122, 152 ) / 255.0f };
+    bool      mShouldDebugDrawCapsules  { true };
+    bool      mRunning                  { true };
+    v3        mDebugDrawTerrainColor    { v3( 122, 19, 152 ) / 255.0f };
+    bool      mShouldDebugDrawTerrains  { true };
+    bool      mShouldIntegrate          { true };
+    bool      mShouldNarrowphase        { true };
     bool      mGJKDebugging             { true };
     int       mGJKDebugMaxIter          { 10 };
-    int       mGJKDebugMaxEPAIter       {};
+    int       mGJKDebugMaxEPAIter       { 10 };
   };
 
 } // namespace Tac

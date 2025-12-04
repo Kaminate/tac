@@ -25,27 +25,26 @@ namespace Tac
     FixedVector( T* tbegin, T* tend );
     FixedVector( std::initializer_list< T > );
 
-    void     clear()                       { mTCount = 0; }
-    int      size() const                  { return mTCount; }
-    bool     empty() const                 { return !mTCount; }
-    void     resize( int newSize )         { mTCount = newSize; }
-    void     push_back( const T& t )       { TAC_ASSERT( mTCount < N ); mTs[ mTCount++ ] = t; }
-    void     pop_back()                    { TAC_ASSERT( mTCount ); mTCount--; }
-    void     append_range( const T*, int );
-    int      max_size() const              { return N; }
-
-    T*       data()                        { return mTs; }
-    const T* data() const                  { return mTs; }
-    T&       front()                       { TAC_ASSERT( mTCount ); return mTs[ 0 ]; }
-    T        front() const                 { TAC_ASSERT( mTCount ); return mTs[ 0 ]; }
-    T        back()  const                 { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
-    T&       back()                        { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
-    T*       begin()                       { return mTs; }
-    const T* begin() const                 { return mTs; }
-    T*       end()                         { return mTs + mTCount; }
-    const T* end()   const                 { return mTs + mTCount; }
-    T&       operator[]( int index )       { return mTs[ index ]; }
-    const T& operator[]( int index ) const { return mTs[ index ]; }
+    void clear()                                   { mTCount = 0; }
+    auto size() const -> int                       { return mTCount; }
+    bool empty() const                             { return !mTCount; }
+    void resize( int newSize )                     { mTCount = newSize; }
+    void push_back( const T& t )                   { TAC_ASSERT( mTCount < N ); mTs[ mTCount++ ] = t; }
+    void pop_back()                                { TAC_ASSERT( mTCount ); mTCount--; }
+    void append_range( const T*, int );
+    auto max_size() const -> int                   { return N; }
+    auto data() dynmc -> dynmc T*                  { return mTs; }
+    auto data() const -> const T*                  { return mTs; }
+    auto front() dynmc -> dynmc T&                 { TAC_ASSERT( mTCount ); return mTs[ 0 ]; }
+    auto front() const -> const T&                 { TAC_ASSERT( mTCount ); return mTs[ 0 ]; }
+    auto back() const -> const T&                  { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
+    auto back() dynmc -> dynmc T&                  { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
+    auto begin() dynmc -> dynmc T*                 { return mTs; }
+    auto begin() const -> const T*                 { return mTs; }
+    auto end() dynmc -> dynmc T*                   { return mTs + mTCount; }
+    auto end() const -> const T*                   { return mTs + mTCount; }
+    auto operator[]( int index ) dynmc -> dynmc T& { return mTs[ index ]; }
+    auto operator[]( int index ) const -> const T& { return mTs[ index ]; }
 
   private:
     T        mTs[ N ]{};
@@ -87,7 +86,8 @@ namespace Tac
 
   // Member functions
 
-  template< typename T, int N > void     FixedVector<T, N>::append_range( const T* ts, int n )
+  template< typename T, int N >
+  void FixedVector<T, N>::append_range( const T* ts, int n )
   {
     TAC_ASSERT( mTCount + n <= N );
     T* dst { end() };
