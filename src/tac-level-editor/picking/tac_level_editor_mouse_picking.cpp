@@ -1,10 +1,10 @@
 #include "tac_level_editor_mouse_picking.h" // self-inc
-#include "tac_level_editor_light_widget.h"
 #include "tac_level_editor.h"
 
-
 #include "tac-engine-core/window/tac_app_window_api.h"
-
+#include "tac-level-editor/gizmo/tac_level_editor_light_widget.h"
+#include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
+#include "tac-level-editor/gizmo/tac_level_editor_gizmo_mgr.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/color/tac_color_util.h"
@@ -51,7 +51,7 @@ namespace Tac
   // -----------------------------------------------------------------------------------------------
 
   // Only need the position for picking
-  static Render::VertexDeclarations GetPosOnlyVtxDecls()
+  static auto GetPosOnlyVtxDecls() -> Render::VertexDeclarations
   {
     const Render::VertexDeclaration posDecl
     {
@@ -63,7 +63,7 @@ namespace Tac
     return m3DvertexFormatDecls;
   }
 
-  static RaycastResult MousePickingEntityLight( Ray ray, const Light* light )
+  static auto MousePickingEntityLight( Ray ray, const Light* light ) -> RaycastResult
   {
     const Sphere sphere{ .mOrigin{light->mEntity->mWorldPosition}, .mRadius{LightWidget::sSize} };
     const float t{ RaySphere( ray ,sphere ) };
@@ -74,7 +74,7 @@ namespace Tac
     };
   }
 
-  static RaycastResult MousePickingEntityModel( Ray ray, const Model* model, Errors& errors )
+  static auto MousePickingEntityModel( Ray ray, const Model* model, Errors& errors ) -> RaycastResult
   {
     const Entity* entity { model->mEntity };
     TAC_CALL_RET( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
@@ -202,7 +202,7 @@ namespace Tac
     }
   }
 
-  static RaycastResult MousePickingEntity( Ray ray, const Entity* entity, Errors& errors )
+  static auto MousePickingEntity( Ray ray, const Entity* entity, Errors& errors ) -> RaycastResult
   {
     if( const Material * material{ Material::GetMaterial( entity ) } )
       if( !material->mRenderEnabled )
@@ -354,7 +354,7 @@ namespace Tac
     TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParams, errors ) );
   }
 
-  v3   CreationMousePicking::GetWorldspaceMouseDir() const { return mWorldSpaceMouseDir; }
+  auto CreationMousePicking::GetWorldspaceMouseDir() const  -> v3{ return mWorldSpaceMouseDir; }
 
   bool CreationMousePicking::IsTranslationWidgetPicked( int i )
   {

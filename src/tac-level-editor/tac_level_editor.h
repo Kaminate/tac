@@ -8,7 +8,6 @@
 #include "tac-ecs/tac_space_types.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-ecs/tac_space.h"
-#include "tac-level-editor/tac_entity_selection.h"
 
 namespace Tac
 {

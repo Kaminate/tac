@@ -9,6 +9,8 @@
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/math/tac_matrix4.h"
+#include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
+#include "tac-level-editor/gizmo/tac_level_editor_gizmo_mgr.h"
 
 #if TAC_IS_WIDGET_RENDERER_ENABLED()
 
@@ -185,15 +187,13 @@ namespace Tac
 
   static auto WidgetRendererGetAxisColor( int i ) -> v4
   {
-    auto gizmoMgr{ &GizmoMgr::sInstance };
-    auto mousePicking{ &CreationMousePicking::sInstance };
     const v3 axises[ 3 ]{ v3( 1, 0, 0 ),
                           v3( 0, 1, 0 ),
                           v3( 0, 0, 1 ), };
     const v3 axis{ axises[ i ] };
     dynmc v4 color{ axis, 1 };
-    const bool isWidgetHovered{ mousePicking->IsTranslationWidgetPicked( i ) };
-    const bool isWidgetActive{ gizmoMgr->IsTranslationWidgetActive( i ) };
+    const bool isWidgetHovered{ CreationMousePicking::sInstance.IsTranslationWidgetPicked( i ) };
+    const bool isWidgetActive{ GizmoMgr::sInstance.IsTranslationWidgetActive( i ) };
     if( isWidgetHovered || isWidgetActive )
     {
       dynmc float t { float( Sin( GameTimer::GetElapsedTime() * 6.0 ) ) };

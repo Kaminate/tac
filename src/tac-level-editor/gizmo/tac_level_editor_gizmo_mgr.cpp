@@ -1,11 +1,11 @@
 #include "tac_level_editor_gizmo_mgr.h" // self-inc
 #include "tac_level_editor.h" // self-inc
 
-
+#include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-std-lib/math/tac_vector4.h"
-
 
 namespace Tac
 {

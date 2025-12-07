@@ -5,7 +5,6 @@
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-level-editor/tac_level_editor_mouse_picking.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 

@@ -1,12 +1,11 @@
 #include "tac_level_editor_icon_renderer.h" // self-inc
-#include "tac_level_editor_light_widget.h"
 
+#include "tac-level-editor/gizmo/tac_level_editor_light_widget.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/camera/tac_camera_component.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 

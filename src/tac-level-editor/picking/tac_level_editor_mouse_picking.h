@@ -6,8 +6,6 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-level-editor/tac_entity_selection.h"
-#include "tac-level-editor/tac_level_editor_gizmo_mgr.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac

@@ -6,6 +6,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-level-editor/tac_level_editor.h"
+#include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -27,9 +28,10 @@ namespace Tac
 
   struct CameraSaveHelper
   {
-    const char* mJsonName;
-    int mOffset;
+    const char* mJsonName {};
+    int         mOffset   {};
   };
+
   static const char*            kRefFrameVecNamePosition { "mPos" };
   static const char*            kRefFrameVecNameForward  { "mForwards" };
   static const char*            kRefFrameVecNameRight    { "mRight" };

@@ -24,12 +24,14 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-level-editor/tac_level_editor.h"
-#include "tac-level-editor/tac_level_editor_main_window.h"
-#include "tac-level-editor/tac_level_editor_prefab.h"
-#include "tac-level-editor/tac_level_editor_widget_renderer.h"
-#include "tac-level-editor/tac_level_editor_property_window.h"
-#include "tac-level-editor/tac_level_editor_gizmo_mgr.h"
-#include "tac-level-editor/tac_level_editor_mouse_picking.h"
+#include "tac-level-editor/windows/main/tac_level_editor_main_window.h"
+#include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
+#include "tac-level-editor/prefab/tac_level_editor_prefab.h"
+#include "tac-level-editor/render/tac_level_editor_widget_renderer.h"
+#include "tac-level-editor/windows/property/tac_level_editor_property_window.h"
+#include "tac-level-editor/gizmo/tac_level_editor_gizmo_mgr.h"
+#include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
+#include "tac-level-editor/tools/tac_level_editor_tool.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -53,38 +55,6 @@ namespace Tac
   static String                        sStatusMessage            {};
   static GameTime                      sStatusMessageEndTime     {};
 
-  // TODO: find a home for this fn, maybe in tacexamples idk
-#if 0
-  static void SampleCosineWeightedHemisphereTest( Debug3DDrawData* drawData )
-  {
-    if( !ImGuiCollapsingHeader( "Sample Cosine Weighted Hemisphere Test", ImGuiNodeFlags_DefaultOpen ) )
-      return;
-    TAC_IMGUI_INDENT_BLOCK;
-
-    static float radius = 10;
-    static Vector<v3> points;
-    static int nPoints = 500;
-
-    bool dirty = false;
-    dirty |= ImGuiDragInt( "num points", &nPoints );
-    dirty |= ImGuiButton( "reconfigure" );
-    ImGuiDragFloat( "radius", &radius);
-    if( dirty )
-    {
-      points.clear();
-      for( int i = 0; i < nPoints; ++i )
-      {
-        SphericalCoordinate coord = SampleCosineWeightedHemisphere();
-        v3 point = coord.ToCartesian();
-        points.push_back(point);
-      }
-    }
-
-    drawData->DebugDraw3DHemisphere( v3( 0, 0, 0 ), v3( 0, 1, 0 ), radius );
-    for( v3 point : points )
-      drawData->DebugDraw3DSphere( point * radius, 0.05f );
-  }
-#endif
 
   bool CreationGameWindow::sShowWindow{};
 
@@ -314,6 +284,8 @@ namespace Tac
     const float w { 400 };
     const float h{ contentRect.mMaxi.y - cursorPos.y };
     ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
+    TAC_ON_DESTRUCT(ImGuiEndChild());
+
     if( ImGuiButton( "Close Window" ) )
       CreationGameWindow::sShowWindow = false;
 
@@ -350,7 +322,8 @@ namespace Tac
     if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
       ImGuiText( sStatusMessage );
 
-    ImGuiEndChild();
+    TAC_CALL( Toolbox::DebugImGui( errors ) );
+
     ImGuiSameLine();
 
     // The purpose of this invisible button is to obscure the game window, so that you
@@ -364,7 +337,6 @@ namespace Tac
     WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
     if( !AppWindowApi::IsHovered( mWindowHandle ) )
       return;
-
     
     dynmc Camera* camera{ Creation::GetCamera() };
     const Camera oldCamera { *camera };
@@ -471,7 +443,6 @@ namespace Tac
 
     TAC_CALL( renderContext->Execute( errors ) );
   }
-
 
   void CreationGameWindow::Update( Errors& errors )
   {

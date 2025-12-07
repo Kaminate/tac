@@ -264,8 +264,8 @@ namespace Tac::Render
     Binding mBinding{};
   };
 
-  constexpr BindingMask operator | ( Binding lhs, Binding rhs ) { return { ( Binding )( ( int )lhs | ( int )rhs ) }; }
-  constexpr BindingMask operator & ( Binding lhs, Binding rhs ) { return { ( Binding )( ( int )lhs & ( int )rhs ) }; }
+  constexpr BindingMask operator | ( Binding lhs, Binding rhs ) { return { ( Binding )( ( unsigned )lhs | ( unsigned )rhs ) }; }
+  constexpr BindingMask operator & ( Binding lhs, Binding rhs ) { return { ( Binding )( ( unsigned )lhs & ( unsigned )rhs ) }; }
 
 
   struct CreateTextureParams
@@ -503,8 +503,8 @@ namespace Tac::Render
   {
     struct InitParams
     {
-      int                   mMaxGPUFrameCount { 2 }; // aka "frames in-flight"
-      const UTF8Path&  mShaderOutputPath; // fwd decl gross
+      int      mMaxGPUFrameCount { 2 }; // aka "frames in-flight"
+      UTF8Path mShaderOutputPath {};
     };
 
     static void Init( InitParams, Errors& );

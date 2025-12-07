@@ -471,14 +471,47 @@ auto Tac::SampleCosineWeightedHemisphere() -> Tac::SphericalCoordinate
 
 auto Tac::SampleCosineWeightedHemisphere(v3 n) -> v3
 {
-  auto spherical = SampleCosineWeightedHemisphere();
+  auto spherical{ SampleCosineWeightedHemisphere() };
   v3 tan0;
   v3 tan1;
   GetFrameRH(n, tan0, tan1);
-  v3 cartesian = spherical.ToCartesian();
+  v3 cartesian{ spherical.ToCartesian() };
   return
     cartesian.x * tan0 +
     cartesian.y * n +
     cartesian.z * tan1;
 }
+
+  // TODO: find a home for this fn, maybe in tacexamples idk
+#if 0
+  static void SampleCosineWeightedHemisphereTest( Debug3DDrawData* drawData )
+  {
+    if( !ImGuiCollapsingHeader( "Sample Cosine Weighted Hemisphere Test", ImGuiNodeFlags_DefaultOpen ) )
+      return;
+    TAC_IMGUI_INDENT_BLOCK;
+
+    static float radius = 10;
+    static Vector<v3> points;
+    static int nPoints = 500;
+
+    bool dirty{};
+    dirty |= ImGuiDragInt( "num points", &nPoints );
+    dirty |= ImGuiButton( "reconfigure" );
+    ImGuiDragFloat( "radius", &radius);
+    if( dirty )
+    {
+      points.clear();
+      for( int i{}; i < nPoints; ++i )
+      {
+        SphericalCoordinate coord{ SampleCosineWeightedHemisphere() };
+        v3 point{ coord.ToCartesian() };
+        points.push_back(point);
+      }
+    }
+
+    drawData->DebugDraw3DHemisphere( v3( 0, 0, 0 ), v3( 0, 1, 0 ), radius );
+    for( v3 point : points )
+      drawData->DebugDraw3DSphere( point * radius, 0.05f );
+  }
+#endif
 

@@ -1,6 +1,6 @@
-#include "tac_entity_selection.h" // self-inc
+#include "tac_level_editor_entity_selection.h" // self-inc
 
-#include "tac-level-editor/tac_level_editor_prefab.h" // PrefabRemoveEntityRecursively
+#include "tac-level-editor/prefab/tac_level_editor_prefab.h" // PrefabRemoveEntityRecursively
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
