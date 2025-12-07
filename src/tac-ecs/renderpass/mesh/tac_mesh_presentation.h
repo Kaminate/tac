@@ -17,17 +17,17 @@ namespace Tac
 {
   struct MeshPresentation
   {
-    static void        Init( Errors& );
-    static void        Uninit();
-    static void        Render( Render::IContext*,
+    static void Init( Errors& );
+    static void Uninit();
+    static void Render( Render::IContext*,
                                const World*,
                                const Camera*,
                                v2i viewSize,
                                Render::TextureHandle color,
                                Render::TextureHandle depth,
                                Errors& );
-    static void        DebugImGui();
-    static const Mesh* GetModelMesh( const Model*, Errors& );
+    static void DebugImGui();
+    static auto GetModelMesh( const Model*, Errors& ) -> const Mesh*;
   };
 }
 

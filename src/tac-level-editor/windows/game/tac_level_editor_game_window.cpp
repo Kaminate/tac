@@ -298,7 +298,7 @@ namespace Tac
     ImGuiCheckbox( "Draw grid", &sDrawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
     ImGuiCheckbox( "draw gizmos", &GizmoMgr::sInstance.mGizmosEnabled );
-    ImGuiCheckbox( "Draw raycast", &CreationMousePicking::sInstance.sDrawRaycast );
+    ImGuiCheckbox( "Draw raycast", &CreationMousePicking::sDrawRaycast );
 
 #if 0
     if( sSoul )
@@ -322,7 +322,10 @@ namespace Tac
     if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
       ImGuiText( sStatusMessage );
 
+    ImGuiSeparator();
+    ImGuiText( "Toolbox:" );
     TAC_CALL( Toolbox::DebugImGui( errors ) );
+    ImGuiSeparator();
 
     ImGuiSameLine();
 
@@ -467,15 +470,15 @@ namespace Tac
     }
 #endif
 
-    CreationMousePicking::sInstance.BeginFrame( windowHandle );
+    CreationMousePicking::BeginFrame( windowHandle );
     CameraUpdateSaved();
     CameraUpdateControls();
     GizmoMgr::sInstance.ComputeArrowLen();
-    TAC_CALL(CreationMousePicking::sInstance.Update(  errors ) );
+    TAC_CALL(CreationMousePicking::Update(  errors ) );
     const Ray ray
     {
       .mOrigin    { Creation::GetCamera()->mPos },
-      .mDirection { CreationMousePicking::sInstance.GetWorldspaceMouseDir() },
+      .mDirection { CreationMousePicking::GetWorldspaceMouseDir() },
     };
     TAC_CALL( GizmoMgr::sInstance.Update( ray, errors ) );
 
@@ -487,6 +490,9 @@ namespace Tac
       Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
                                                                  Creation::GetCamera()->mForwards,
                                                                  GizmoMgr::sInstance.mArrowLen );
+    if( Tool * tool{ Toolbox::GetActiveTool() } )
+      tool->Update();
+
     TAC_CALL( ImGuiOverlay( errors ) );
   }
 
@@ -494,6 +500,11 @@ namespace Tac
   {
     sStatusMessage = msg;
     sStatusMessageEndTime = GameTimer::GetElapsedTime() + duration;
+  }
+
+  auto CreationGameWindow::GetWindowHandle() -> WindowHandle
+  {
+    return ImGuiGetWindowHandle( sImguiWindowName );
   }
 
 } // namespace Tac

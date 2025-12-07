@@ -12,25 +12,13 @@ namespace Tac
 {
   struct CreationMousePicking
   {
-    void                          BeginFrame( WindowHandle );
-    void                          Init( Errors& );
-    void                          Update( Errors& );
-    bool                          IsTranslationWidgetPicked( int );
-    v3                            GetWorldspaceMouseDir() const;
-
-    bool                          sDrawRaycast              { true };
-
-    static CreationMousePicking   sInstance;
-  private:
-
-    void                          MousePickingEntities(  Errors& );
-    void                          MousePickingGizmos();
-    void                          MousePickingSelection();
-
-    v3                            mViewSpaceUnitMouseDir    {};
-    v3                            mWorldSpaceMouseDir       {};
-    Mesh*                         mArrow                    {};
-    bool                          mWindowHovered            {};
+    static void BeginFrame( WindowHandle );
+    static void Init( Errors& );
+    static void Update( Errors& );
+    static bool IsTranslationWidgetPicked( int );
+    static auto GetWorldspaceMouseDir() -> v3;
+    static auto GetPickedEntity() -> Entity*;
+    static bool sDrawRaycast;
   };
 
 } // namespace Tac

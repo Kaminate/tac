@@ -3,47 +3,19 @@
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-level-editor/tools/tac_level_editor_selection_tool.h"
+#include "tac-level-editor/tools/tac_level_editor_cube_tool.h"
 
 namespace Tac
 {
-  struct SelectionTool : public Tool
-  {
-    SelectionTool()
-    {
-      mDisplayName = "Selection";
-      mIcon = "assets/editor/tools/select_tool.png";
-    }
-    void OnToolSelected() override
-    {
-    }
-    void Update() override
-    {
-    }
-  };
-
-  struct CubeTool : public Tool
-  {
-    CubeTool()
-    {
-      mDisplayName = "Cube";
-      mIcon = "assets/editor/tools/cube_tool.png";
-    }
-    void OnToolSelected() override
-    {
-    }
-    void Update() override
-    {
-    }
-  };
-
   static Vector< Tool* > sRegisteredTools {};
   static Tool*           sActiveTool      {};
 
   void Toolbox::Init()
   {
-      //sRegisteredTools.push_back( &sSelectTool );
-      //sRegisteredTools.push_back( &sCubeTool );
-      //SelectTool( &sSelectTool );
+    sRegisteredTools.push_back( &SelectionTool::sInstance );
+    sRegisteredTools.push_back( &CubeTool::sInstance );
+    SelectTool( &SelectionTool::sInstance );
   }
 
 
@@ -56,6 +28,8 @@ namespace Tac
       sActiveTool->OnToolSelected();
     }
   }
+
+  auto Toolbox::GetActiveTool() -> Tool* { return sActiveTool; }
 
   void Toolbox::DebugImGui(Errors& errors)
   {

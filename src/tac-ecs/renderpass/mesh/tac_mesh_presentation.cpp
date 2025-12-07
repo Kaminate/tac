@@ -57,7 +57,7 @@ namespace Tac
 
   struct Samplers
   {
-    Render::SamplerHandle GetSampler( Render::Filter filter )
+    auto GetSampler( Render::Filter filter ) -> Render::SamplerHandle
     {
       return mSamplerHandles[ (int)filter ];
     }
@@ -91,7 +91,7 @@ namespace Tac
 
   private:
 
-    const char* GetName( Render::Filter filter )
+    auto GetName( Render::Filter filter ) -> const char*
     {
       switch ( filter )
       {
@@ -152,7 +152,7 @@ namespace Tac
     TAC_ASSERT( check6 );
   }
 
-  static m4 GetProjMtx( const Camera* camera, const v2i viewSize )
+  static auto GetProjMtx( const Camera* camera, const v2i viewSize ) -> m4
   {
     const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -170,8 +170,7 @@ namespace Tac
     return proj;
   }
 
-  static MeshPerFrameBuf GetPerFrameBuf( const Camera* camera,
-                                         const v2i viewSize )
+  static auto GetPerFrameBuf( const Camera* camera, const v2i viewSize ) -> MeshPerFrameBuf
   {
     const m4 view{ camera->View() };
     const m4 proj{ GetProjMtx( camera, viewSize ) };
@@ -183,7 +182,7 @@ namespace Tac
     };
   }
 
-  static Mesh* LoadModel( const Model* model, Errors& errors )
+  static auto LoadModel( const Model* model, Errors& errors ) -> Mesh*
   {
     const ModelAssetManager::Params meshParams
     {
@@ -342,7 +341,7 @@ namespace Tac
   }
 
 
-  static Render::DepthState GetDepthState()
+  static auto GetDepthState() -> Render::DepthState
   {
     return Render::DepthState
     {
@@ -352,7 +351,7 @@ namespace Tac
     };
   }
 
-  static Render::BlendState GetBlendState()
+  static auto GetBlendState() -> Render::BlendState
   {
     const Render::BlendState state
     {
@@ -366,7 +365,7 @@ namespace Tac
     return state;
   }
 
-  static Render::RasterizerState GetRasterizerState()
+  static auto GetRasterizerState() -> Render::RasterizerState
   {
     return Render::RasterizerState
     {
@@ -546,12 +545,12 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  const Tac::Mesh* MeshPresentation::GetModelMesh( const Model* model, Errors& errors )
+  auto MeshPresentation::GetModelMesh( const Model* model, Errors& errors ) -> const Tac::Mesh*
   {
     return LoadModel( model, errors );
   }
 
-  void             MeshPresentation::Init( Errors& errors )
+  void MeshPresentation::Init( Errors& errors )
   {
     if( sInitialized )
       return;
@@ -608,7 +607,7 @@ namespace Tac
     sInitialized = true;
   }
 
-  void             MeshPresentation::Uninit()
+  void MeshPresentation::Uninit()
   {
     if( sInitialized )
     {
@@ -623,7 +622,7 @@ namespace Tac
 
   }
 
-  void             MeshPresentation::Render( Render::IContext* renderContext,
+  void MeshPresentation::Render( Render::IContext* renderContext,
                                              const World* world,
                                              const Camera* camera,
                                              const v2i viewSize,
@@ -680,7 +679,7 @@ namespace Tac
     renderContext->DebugEventEnd();
   }
 
-  void             MeshPresentation::DebugImGui()
+  void MeshPresentation::DebugImGui()
   {
     if( !ImGuiCollapsingHeader( "Mesh Presentation" ) )
       return;

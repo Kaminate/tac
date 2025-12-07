@@ -19,7 +19,8 @@ namespace Tac
   {
     static void Init();
     static void SelectTool( Tool* );
-    static void DebugImGui(Errors&);
+    static void DebugImGui( Errors& );
+    static auto GetActiveTool() -> Tool*;
   };
 }
 

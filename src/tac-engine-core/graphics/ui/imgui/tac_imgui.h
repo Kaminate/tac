@@ -202,6 +202,7 @@ namespace Tac
   void ImGuiImage( int hTex, const v2& size, const v4& color = { 1, 1, 1, 1 } );
   bool ImGuiCollapsingHeader( StringView, ImGuiNodeFlags = ImGuiNodeFlags_None );
   void ImGuiSameLine();
+  void ImGuiSeparator();
 
   //   ImGuiDragFloat
   bool ImGuiDragFloat( StringView, float* );

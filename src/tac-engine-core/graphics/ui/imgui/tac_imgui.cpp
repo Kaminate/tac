@@ -674,6 +674,26 @@ void Tac::ImGuiSameLine()
   window->mCurrLineHeight = window->mPrevLineHeight;
 }
 
+void Tac::ImGuiSeparator()
+{
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
+  const float w{ window->GetRemainingWidth() };
+  const float h{ 1 }; // Tac::ImGuiGetFontSizePx() / 8
+  const v2 rectSize(w,h);
+  const ImGuiRect origRect{ ImGuiRect::FromPosSize( window->mViewportSpaceCurrCursor, rectSize ) };
+  window->ItemSize( rectSize );
+  if( !window->Overlaps( origRect ) )
+    return;
+  const ImGuiRect clipRect{ window->Clip( origRect ) };
+  window->mDrawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini     { clipRect.mMini },
+      .mMaxi     { clipRect.mMaxi },
+      .mColor    { 1, 1, 0, .2f },
+    }, &clipRect );
+}
+
 void Tac::ImGuiText( const StringView utf8 )
 {
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };

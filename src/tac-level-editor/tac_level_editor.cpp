@@ -31,6 +31,7 @@
 #include "tac-level-editor/windows/property/tac_level_editor_property_window.h"
 #include "tac-level-editor/windows/shadergraph/tac_level_editor_shader_graph_window.h"
 #include "tac-level-editor/windows/system/tac_level_editor_system_window.h"
+#include "tac-level-editor/tools/tac_level_editor_tool.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
@@ -185,9 +186,10 @@ namespace Tac
   void Creation::Init( Errors& errors )
   {
     ShowWindowHelper::GetInstance().Load();
-    IconRenderer::Init( errors );
-    CreationMousePicking::sInstance.Init( errors );
-    WidgetRenderer::Init( errors );
+    TAC_CALL(IconRenderer::Init( errors ));
+    TAC_CALL(CreationMousePicking::Init( errors ));
+    TAC_CALL(WidgetRenderer::Init( errors ));
+    Toolbox::Init();
     sGameWorld.Init();
     sEditorWorld.Init();
     sEditorCamera = Camera
@@ -199,7 +201,7 @@ namespace Tac
     };
     TAC_CALL( GamePresentation::Init( errors ) );
     TAC_CALL( PrefabLoad( errors ) );
-    CreationGameWindow::Init( errors );
+    TAC_CALL( CreationGameWindow::Init( errors ));
   }
 
   void Creation::Uninit( Errors& )

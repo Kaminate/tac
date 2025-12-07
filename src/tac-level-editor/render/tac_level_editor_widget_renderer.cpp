@@ -192,7 +192,7 @@ namespace Tac
                           v3( 0, 0, 1 ), };
     const v3 axis{ axises[ i ] };
     dynmc v4 color{ axis, 1 };
-    const bool isWidgetHovered{ CreationMousePicking::sInstance.IsTranslationWidgetPicked( i ) };
+    const bool isWidgetHovered{ CreationMousePicking::IsTranslationWidgetPicked( i ) };
     const bool isWidgetActive{ GizmoMgr::sInstance.IsTranslationWidgetActive( i ) };
     if( isWidgetHovered || isWidgetActive )
     {

@@ -88,7 +88,12 @@ namespace Tac
     return false;
   }
 
-  void SelectedEntities::Select( Entity* e ) { sSelectedEntities = { e }; }
+  void SelectedEntities::Select( Entity* e )
+  {
+    sSelectedEntities.clear();
+    if( e )
+      sSelectedEntities.push_back( e );
+  }
 
   bool SelectedEntities::empty() { return sSelectedEntities.empty(); }
 

@@ -30,40 +30,10 @@ function( tac_target )
 
 
   target_sources( ${TAC_TARGET_NAME} PRIVATE 
-    #"tac_entity_selection.cpp"
-    #"tac_entity_selection.h"
     "tac_level_editor.cpp"
     "tac_level_editor.h"
-    #"tac_level_editor_tool.cpp"
-    #"tac_level_editor_tool.h"
     "tac_level_editor_app.cpp"
     "tac_level_editor_app.h"
-    #"tac_level_editor_gizmo_mgr.cpp"
-    #"tac_level_editor_gizmo_mgr.h"
-    #"tac_level_editor_light_widget.h"
-    #"tac_level_editor_mouse_picking.cpp"
-    #"tac_level_editor_mouse_picking.h"
-    #"tac_level_editor_asset_view.cpp"
-    #"tac_level_editor_asset_view.h"
-    #"tac_level_editor_prefab.cpp"
-    #"tac_level_editor_prefab.h"
-    #"tac_level_editor_icon_renderer.cpp"
-    #"tac_level_editor_icon_renderer.h"
-    #"tac_level_editor_widget_renderer.cpp"
-    #"tac_level_editor_widget_renderer.h"
-    #"tac_level_editor_game_window.cpp"
-    #"tac_level_editor_game_window.h"
-    #"tac_level_editor_main_window.cpp"
-    #"tac_level_editor_main_window.h"
-    #"tac_level_editor_profile_window.cpp"
-    #"tac_level_editor_profile_window.h"
-    #"tac_level_editor_shader_graph_window.cpp"
-    #"tac_level_editor_shader_graph_window.h"
-    #"tac_level_editor_property_window.cpp"
-    #"tac_level_editor_property_window.h"
-    #"tac_level_editor_system_window.cpp"
-    #"tac_level_editor_system_window.h"
-
   )
 
   add_subdirectory( gizmo )
