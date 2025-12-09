@@ -11,7 +11,7 @@ namespace Tac
 {
   struct Material : public Component
   {
-    const ComponentInfo* GetEntry() const override;
+    auto GetEntry() const -> const ComponentInfo* override;
 
     static auto GetMaterial( dynmc Entity* ) -> dynmc Material*;
     static auto GetMaterial( const Entity* ) -> const Material*;

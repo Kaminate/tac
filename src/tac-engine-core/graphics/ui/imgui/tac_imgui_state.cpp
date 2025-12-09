@@ -488,7 +488,13 @@ namespace Tac
         if( Abs( alphaTgt - alphaCur ) < kAlphaEps )
           alphaCur = alphaTgt;
         else
-          Tac::Spring( &alphaCur, &alphaVel, alphaTgt, 32.0f, TAC_DT );
+          Tac::Spring(
+            SpringParams{
+              .mPosCur           { &alphaCur },
+              .mVelCur           { &alphaVel },
+              .mPosTgt           { alphaTgt },
+              .mSpringyness      { 32.0f },
+              .mDeltaTimeSeconds { TAC_DT } } );
 
         const bool drawBorder{ true };
 

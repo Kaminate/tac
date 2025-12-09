@@ -4,11 +4,11 @@
 
 namespace Tac::Render
 {
-  BufferHandle    AllocBufferHandle();
-  PipelineHandle  AllocPipelineHandle();
-  ProgramHandle   AllocProgramHandle();
-  SamplerHandle   AllocSamplerHandle();
-  SwapChainHandle AllocSwapChainHandle();
-  TextureHandle   AllocTextureHandle();
-  void            FreeHandle( ResourceHandle );
+  auto AllocBufferHandle() -> BufferHandle;
+  auto AllocPipelineHandle() -> PipelineHandle;
+  auto AllocProgramHandle() -> ProgramHandle;
+  auto AllocSamplerHandle() -> SamplerHandle;
+  auto AllocSwapChainHandle() -> SwapChainHandle;
+  auto AllocTextureHandle() -> TextureHandle;
+  void FreeHandle( ResourceHandle );
 }

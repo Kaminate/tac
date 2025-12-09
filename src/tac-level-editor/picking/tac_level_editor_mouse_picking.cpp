@@ -44,8 +44,8 @@ namespace Tac
   };
 
   static PickData pickData;
-  static v3       mViewSpaceUnitMouseDir    {};
-  static v3       mWorldSpaceMouseDir       {};
+  static v3       mMouseUnitDir_viewspace   {};
+  static v3       mMouseUnitDir_worldspace  {};
   static Mesh*    mArrow                    {};
   static bool     mWindowHovered            {};
   bool            CreationMousePicking::sDrawRaycast { true };
@@ -65,10 +65,11 @@ namespace Tac
     return m3DvertexFormatDecls;
   }
 
-  static auto MousePickingEntityLight( Ray ray, const Light* light ) -> RaycastResult
+  static auto MousePickingEntityLight( const Light* light ) -> RaycastResult
   {
+    const Ray ray_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
     const Sphere sphere{ .mOrigin{light->mEntity->mWorldPosition}, .mRadius{LightWidget::sSize} };
-    const float t{ RaySphere( ray ,sphere ) };
+    const float t{ RaySphere( ray_worldspace, sphere ) };
     return RaycastResult
     {
       .mHit { t > 0 },
@@ -76,47 +77,41 @@ namespace Tac
     };
   }
 
-  static auto MousePickingEntityModel( Ray ray, const Model* model, Errors& errors ) -> RaycastResult
+  static auto MousePickingEntityModel( const Model* model, Errors& errors ) -> RaycastResult
   {
+    const Ray ray_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
     const Entity* entity { model->mEntity };
     TAC_CALL_RET( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
     if( !mesh )
       return {};
 
-    bool transformInvExists;
-    const m4 transformInv { m4::Inverse( entity->mWorldTransform, &transformInvExists ) };
-    if( !transformInvExists )
+    bool invExists;
+    const m4 worldToModel_dir{ m4::Transpose( entity->mWorldTransform ) };
+    const m4 worldToModel_pos { m4::Inverse( entity->mWorldTransform, &invExists ) };
+    if( !invExists )
       return {};
 
-    const v3 modelSpaceMouseRayPos3 { ( transformInv * v4( ray.mOrigin, 1 ) ).xyz() };
-    const v3 modelSpaceMouseRayDir3 { Normalize( ( transformInv * v4( ray.mDirection, 0 ) ).xyz() ) };
-
-    const Ray meshRay
+    const Ray ray_modelspace
     {
-      .mOrigin{ modelSpaceMouseRayPos3 },
-      .mDirection{ modelSpaceMouseRayDir3 },
+      .mOrigin    { ( worldToModel_pos * v4( ray_worldspace.mOrigin, 1 ) ).xyz() },
+      .mDirection { ( worldToModel_dir * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
     };
 
-    const MeshRaycast::Result meshRaycastResult { mesh->mMeshRaycast.Raycast( meshRay ) };
-    if ( !meshRaycastResult.mHit )
+    const MeshRaycast::Result meshRaycastResult { mesh->mMeshRaycast.Raycast( ray_modelspace ) };
+    if ( !meshRaycastResult.IsValid() )
       return {};
 
-    // Recompute the distance by transforming the model space hit point into world space in order to
-    // account for non-uniform scaling
-    const v3 modelSpaceHitPoint {
-      modelSpaceMouseRayPos3 + modelSpaceMouseRayDir3 * meshRaycastResult.mT };
-    const v3 worldSpaceHitPoint {
-      ( entity->mWorldTransform * v4( modelSpaceHitPoint, 1 ) ).xyz() };
-    const float dist { Distance( ray.mOrigin, worldSpaceHitPoint ) };
+    const v3 hitPoint_modelspace{ ray_modelspace.mOrigin + ray_modelspace.mDirection * meshRaycastResult.mT };
+    const v3 hitPoint_worldspace{ ( entity->mWorldTransform * v4( hitPoint_modelspace, 1 ) ).xyz() };
+
     return RaycastResult
     {
       .mHit { true },
-      .mT   { dist },
+      .mT   { Distance( ray_worldspace.mOrigin, hitPoint_worldspace ) },
     };
   }
 
-
-  static auto MousePickingEntity( Ray ray, const Entity* entity, Errors& errors ) -> RaycastResult
+  static auto MousePickingEntity( const Entity* entity, Errors& errors ) -> RaycastResult
   {
     if( const Material * material{ Material::GetMaterial( entity ) } )
       if( !material->mRenderEnabled )
@@ -124,14 +119,13 @@ namespace Tac
 
     if( const Model * model{ Model::GetModel( entity ) } )
     {
-      TAC_CALL_RET( const RaycastResult raycastResult{
-        MousePickingEntityModel( ray, model, errors ) } );
+      TAC_CALL_RET( const RaycastResult raycastResult{ MousePickingEntityModel( model, errors ) } );
       if( raycastResult.mHit )
         return raycastResult;
     }
 
     if( const Light * light{ Light::GetLight( entity ) } )
-      if( const RaycastResult raycastResult{ MousePickingEntityLight( ray, light ) };
+      if( const RaycastResult raycastResult{ MousePickingEntityLight( light ) };
           raycastResult.mHit )
         return raycastResult;
 
@@ -154,8 +148,8 @@ namespace Tac
       // 1/3: inverse transform
       v3 modelSpaceRayPos3 { camera->mPos - selectionGizmoOrigin };
       v4 modelSpaceRayPos4 { v4( modelSpaceRayPos3, 1 ) };
-      v3 modelSpaceRayDir3 { mWorldSpaceMouseDir };
-      v4 modelSpaceRayDir4 { v4( mWorldSpaceMouseDir, 0 ) };
+      v3 modelSpaceRayDir3 { mMouseUnitDir_worldspace };
+      v4 modelSpaceRayDir4 { v4( mMouseUnitDir_worldspace, 0 ) };
 
       // 2/3: inverse rotate
       const m4& invArrowRot { invArrowRots[ i ] };
@@ -174,7 +168,7 @@ namespace Tac
       };
 
       const MeshRaycast::Result meshRaycastResult{ mArrow->mMeshRaycast.Raycast( meshRay ) };
-      if( !meshRaycastResult.mHit  )
+      if( !meshRaycastResult.IsValid()  )
         continue;
 
       const float dist{ meshRaycastResult.mT * gizmoMgr->mArrowLen };
@@ -189,19 +183,12 @@ namespace Tac
 
   static void MousePickingEntities( Errors& errors )
   {
-    Camera* camera{ Creation::GetCamera() };
-    World* world{ Creation::GetWorld() };
-    const Ray ray
-    {
-      .mOrigin{ camera->mPos },
-      .mDirection{ mWorldSpaceMouseDir },
-    };
-
     if( mWindowHovered )
     {
-      for( Entity* entity : world->mEntities )
+      for( World* world{ Creation::GetWorld() };
+           Entity* entity : world->mEntities )
       {
-        TAC_CALL( const RaycastResult raycastResult{ MousePickingEntity( ray, entity, errors ) } );
+        TAC_CALL( const RaycastResult raycastResult{ MousePickingEntity( entity, errors ) } );
         if( !raycastResult.mHit || !pickData.IsNewClosest( raycastResult.mT ) )
           continue;
 
@@ -225,7 +212,7 @@ namespace Tac
       {
         GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
         Camera* camera{ Creation::GetCamera() };
-        const v3 worldSpaceHitPoint{ camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
+        const v3 worldSpaceHitPoint{ camera->mPos + pickData.closestDist * mMouseUnitDir_worldspace };
         const v3 gizmoOrigin{ SelectedEntities::ComputeAveragePosition() };
 
         v3 arrowDir{};
@@ -256,6 +243,12 @@ namespace Tac
     return pickData.pickedObject == PickedObject::Entity ? pickData.closest : nullptr;
   }
 
+  auto CreationMousePicking::GetPickedPos() -> v3
+  {
+    Ray ray{ GetWorldspaceMouseRay() };
+    return ray.mOrigin + ray.mDirection * pickData.closestDist;
+  }
+
   void CreationMousePicking::Init( Errors& errors )
   {
     const Render::VertexDeclarations m3DvertexFormatDecls{ GetPosOnlyVtxDecls() };
@@ -267,7 +260,7 @@ namespace Tac
     TAC_CALL( mArrow = ModelAssetManager::GetMesh( meshParams, errors ) );
   }
 
-  auto CreationMousePicking::GetWorldspaceMouseDir() -> v3{ return mWorldSpaceMouseDir; }
+  auto CreationMousePicking::GetWorldspaceMouseDir() -> v3{ return mMouseUnitDir_worldspace; }
 
   bool CreationMousePicking::IsTranslationWidgetPicked( int i )
   {
@@ -286,7 +279,7 @@ namespace Tac
     {
       dynmc World* world{ Creation::GetWorld() };
       const Camera* camera{ Creation::GetCamera() };
-      const v3 worldSpaceHitPoint{ camera->mPos + pickData.closestDist * mWorldSpaceMouseDir };
+      const v3 worldSpaceHitPoint{ camera->mPos + pickData.closestDist * mMouseUnitDir_worldspace };
       world->mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );
     }
   }
@@ -322,8 +315,18 @@ namespace Tac
     const v3 viewSpaceMouseDir { Normalize( viewSpaceMousePosNearPlane ) };
     const v4 viewSpaceMouseDir4 { v4( viewSpaceMouseDir, 0 ) };
     const v4 worldSpaceMouseDir4 { viewInv * viewSpaceMouseDir4 };
-    mWorldSpaceMouseDir = worldSpaceMouseDir4.xyz();
-    mViewSpaceUnitMouseDir = viewSpaceMouseDir;
+    mMouseUnitDir_worldspace = worldSpaceMouseDir4.xyz();
+    mMouseUnitDir_viewspace = viewSpaceMouseDir;
+  }
+
+  auto CreationMousePicking::GetWorldspaceMouseRay() -> Ray
+  {
+    const Camera* camera{ Creation::GetCamera() };
+    return Ray
+    {
+      .mOrigin    { camera->mPos },
+      .mDirection { mMouseUnitDir_worldspace },
+    };
   }
 
 

@@ -9,9 +9,9 @@ namespace Tac
 {
   struct GizmoMgr
   {
-    void                Update( Ray, Errors& );
-    bool                IsTranslationWidgetActive( int ) const;
-    void                ComputeArrowLen();
+    void Update( Ray, Errors& );
+    bool IsTranslationWidgetActive( int ) const;
+    void ComputeArrowLen();
 
     bool                mSelectedGizmo           {};
     v3                  mGizmoOrigin             {};

@@ -7,7 +7,7 @@ namespace Tac
 {
   struct IdMgr
   {
-    int  Alloc();
+    auto Alloc() -> int;
     void Free( int );
 
   private:
@@ -15,7 +15,7 @@ namespace Tac
     Mutex        sMtx;
   };
 
-  int  IdMgr::Alloc()
+  auto IdMgr::Alloc() -> int
   {
     TAC_SCOPE_GUARD( LockGuard, sMtx );
     return sCollection.Alloc();
@@ -31,13 +31,13 @@ namespace Tac
 
   static IdMgr sIdMgrs[ ( int )Render::HandleType::kCount ];
 
-  Render::BufferHandle    Render::AllocBufferHandle()    { return sIdMgrs[ ( int )Render::HandleType::kBuffer ].Alloc(); }
-  Render::PipelineHandle  Render::AllocPipelineHandle()  { return sIdMgrs[ ( int )Render::HandleType::kPipeline ].Alloc(); }
-  Render::ProgramHandle   Render::AllocProgramHandle()   { return sIdMgrs[ ( int )Render::HandleType::kProgram ].Alloc(); }
-  Render::SamplerHandle   Render::AllocSamplerHandle()   { return sIdMgrs[ ( int )Render::HandleType::kSampler ].Alloc(); }
-  Render::SwapChainHandle Render::AllocSwapChainHandle() { return sIdMgrs[ ( int )Render::HandleType::kSwapChain ].Alloc(); }
-  Render::TextureHandle   Render::AllocTextureHandle()   { return sIdMgrs[ ( int )Render::HandleType::kTexture ].Alloc(); }
-  void                    Render::FreeHandle( ResourceHandle h ) 
+  auto Render::AllocBufferHandle() -> BufferHandle       { return sIdMgrs[ ( int )Render::HandleType::kBuffer ].Alloc(); }
+  auto Render::AllocPipelineHandle() -> PipelineHandle   { return sIdMgrs[ ( int )Render::HandleType::kPipeline ].Alloc(); }
+  auto Render::AllocProgramHandle() -> ProgramHandle     { return sIdMgrs[ ( int )Render::HandleType::kProgram ].Alloc(); }
+  auto Render::AllocSamplerHandle() -> SamplerHandle     { return sIdMgrs[ ( int )Render::HandleType::kSampler ].Alloc(); }
+  auto Render::AllocSwapChainHandle() -> SwapChainHandle { return sIdMgrs[ ( int )Render::HandleType::kSwapChain ].Alloc(); }
+  auto Render::AllocTextureHandle() -> TextureHandle     { return sIdMgrs[ ( int )Render::HandleType::kTexture ].Alloc(); }
+  void Render::FreeHandle( ResourceHandle h ) 
   {
     if( !h.IsValid() )
       return;

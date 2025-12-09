@@ -2,12 +2,12 @@
 
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
+#include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac
 {
-  struct m3;
   struct Camera;
 
   struct DefaultVertexColor

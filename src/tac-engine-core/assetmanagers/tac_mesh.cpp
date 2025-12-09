@@ -6,27 +6,41 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  MeshRaycast::Result MeshRaycast::RaycastTri( Ray meshRay, const Triangle& tri )
-  {
-    const RayTriangle rayTriangleOutput( meshRay, tri );
-    return Result{ .mHit{ rayTriangleOutput.mValid }, .mT{ rayTriangleOutput.mT } };
-  }
+  bool MeshRaycast::Result::IsValid() const { return mT; }
 
-  MeshRaycast::Result MeshRaycast::Raycast( Ray meshRay ) const
+  auto MeshRaycast::Raycast( Ray ray ) const -> Result
   {
-    MeshRaycast::Result meshResult;
+    int iClosest{};
+    float tClosest{};
 
     const int triCount{ ( int )mTris.size() };
     for( int iTri{}; iTri < triCount; ++iTri )
-      if( const MeshRaycast::Result triResult{ RaycastTri( meshRay, mTris[ iTri ] ) };
-          triResult.mHit && ( !meshResult.mT || triResult.mT < meshResult.mT ) )
-        meshResult = triResult;
+    {
+      if( const RayTriangle rayTri( ray, mTris[ iTri ] ); rayTri.mValid
+          && ( !tClosest || rayTri.mT < tClosest ) )
+      {
+        tClosest = rayTri.mT;
+        iClosest = iTri;
+      }
+    }
 
-    return meshResult;
+    if( !tClosest )
+      return {};
+
+    const Triangle closest{ mTris[ iClosest ] };
+    const RayTriangle rayTri( ray, closest );
+    return MeshRaycast::Result
+    {
+      .mT      { rayTri.mT },
+      .mU      { rayTri.mU },
+      .mV      { rayTri.mV },
+      .mTriIdx { iClosest },
+    };
   }
 
+  // -----------------------------------------------------------------------------------------------
 
-  void              SubMesh::ClearBuffers()
+  void SubMesh::ClearBuffers()
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     renderDevice->DestroyBuffer( mIndexBuffer );

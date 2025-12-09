@@ -4,11 +4,71 @@
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/math/tac_math.h"
 
-//#include <cmath>
-//#include <cstring> // memcmp
-
 namespace Tac
 {
+  struct AB
+  {
+    AB( m4::ProjectionMatrixParams params )
+    {
+      // Given the following knowns:
+      //   -n in view space is projected onto parmas.mNDCNearZ in ndc space
+      //   -f in view space is projected onto parmas.mNDCFarZ in ndc space
+      //   
+      // We are solving for the following unknowns:
+      //   A
+      //   B
+      //
+      // [ sX 0  0  0 ] [ x_view ] = [ sX * x_view    ]           [ ( sX * x_view ) / -z_view    ]
+      // [ 0  sY 0  0 ] [ y_view ] = [ sY * y_view    ] /w_clip = [ ( sY * y_view ) / -z_view    ]
+      // [ 0  0  A  B ] [ z_view ] = [ z_view * A + B ]           [ ( z_view * A + B ) / -z_view ]
+      // [ 0  0 -1  0 ] [ 1      ] = [    -z_view     ]           [              1               ]
+      //    ProjMtx     view space      clip space                          ndc space
+      //
+      // z_ndc = ( ( z_view ) A + B ) / ( -z_view )
+      //
+      // Two equations, two unknowns
+      // params.mNDCMinZ = ( -nA + B ) / n
+      // params.mNDCMaxZ = ( -fA + B ) / f
+
+      const float f { params.mViewSpaceFar };
+      const float n { params.mViewSpaceNear };
+
+      const float ndcZMin { params.mNDCMinZ }; // 0 in DirectX, -1 in OpenGL
+      const float ndcZMax { params.mNDCMaxZ }; // 1 in DirectX, 1 in OpenGL
+
+      float A {};
+      float B {};
+
+      if( ndcZMin == -1 && ndcZMax == 1 ) // OpenGL style
+      {
+        // -1 = ( -nA + B ) / n
+        //  1 = ( -fA + B ) / f
+        A = ( n + f ) / ( n - f );
+        B = n * ( A - 1 );
+      }
+      else if(  ndcZMin == 0 && ndcZMax == 1 ) // DirectX style
+      {
+        // 0 = ( -nA + B ) / n
+        // 1 = ( -fA + B ) / f
+        A = ( 1 * f ) / ( n - f );
+        B = ( n * f ) / ( n - f );
+
+        // note that https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
+        // uses -A and -B from ours, but their perspective matrix uses a 1 instead of our -1
+      }
+      else
+      {
+        TAC_ASSERT_INVALID_CODE_PATH;
+      }
+
+      mA = A;
+      mB = B;
+    }
+
+    float mA;
+    float mB;
+  };
+
   m4::m4( const m3& m )
   {
     *this = m4( m.m00, m.m01, m.m02, 0,
@@ -32,27 +92,68 @@ namespace Tac
     , m20( mm20 ), m21( mm21 ), m22( mm22 ), m23( mm23 )
     , m30( mm30 ), m31( mm31 ), m32( mm32 ), m33( mm33 ) {}
 
-  float*       m4::data()                                 { return &m00; }
+  auto m4::data() dynmc -> dynmc float*                           { return &m00; }
+  auto m4::data() const -> const float*                           { return &m00; }
+  void m4::Transpose()
+  {
+    *this = m4( m00, m10, m20, m30,
+                m01, m11, m21, m31,
+                m02, m12, m22, m32,
+                m03, m13, m23, m33 );
+  }
 
-  const float* m4::data() const                           { return &m00; }
+  auto m4::GetRow( int r ) const -> v4
+  {
+    return *( ( v4* )data() + r );
+  }
 
-  float&       m4::operator()( int iRow, int iCol )       { return data()[ 4 * iRow + iCol ]; }
+  auto m4::GetColumn( int c ) const -> v4
+  {
+    return { data()[ 4 * 0 + c ],
+             data()[ 4 * 1 + c ],
+             data()[ 4 * 2 + c ],
+             data()[ 4 * 3 + c ] };
+  }
 
-  float        m4::operator()( int iRow, int iCol ) const { return data()[ 4 * iRow + iCol ]; }
+  void m4::SetRow( int r, const v4& v )
+  {
+    ( ( v4* )data() )[ r ] = v;
+  }
 
-  float&       m4::operator[]( int i )                    { return data()[ i ]; }
+  void m4::SetColumn( int c, const v4&  v )
+  {
+    for( int i{}; i < 4; ++i )
+      this->operator()( i, c ) = v[ i ];
+  }
 
-  float        m4::operator[]( int i ) const              { return data()[ i ]; }
+  auto m4::Determinant() const -> float
+  {
+    const float det00{ m3( m11, m12, m13,
+                           m21, m22, m23,
+                           m31, m32, m33 ).Determinant() };
+    const float det01{ m3( m10, m12, m13,
+                           m20, m22, m23,
+                           m30, m32, m33 ).Determinant() };
+    const float det02{ m3( m10, m11, m13,
+                           m20, m21, m23,
+                           m30, m31, m33 ).Determinant() };
+    const float det03{ m3( m10, m11, m12,
+                           m20, m21, m22,
+                           m30, m31, m32 ).Determinant() };
+    return det00 - det01 + det02 - det03;
+  }
 
-  void         m4::operator /= ( const float f )
+  auto m4::operator()( int iRow, int iCol ) dynmc -> dynmc float& { return data()[ 4 * iRow + iCol ]; }
+  auto m4::operator()( int iRow, int iCol ) const -> const float& { return data()[ 4 * iRow + iCol ]; }
+  auto m4::operator[]( int i ) dynmc -> dynmc float&              { return data()[ i ]; }
+  auto m4::operator[]( int i ) const -> const float&              { return data()[ i ]; }
+  void m4::operator /= ( const float f )
   {
     const float finv = 1.0f / f;
     for( int i{}; i < 16; ++i )
       data()[ i ] *= finv;
   }
-
-
-  bool         m4::operator == ( const m4& m ) const
+  bool m4::operator == ( const m4& m ) const
   {
     for( int i{}; i < 16; ++i )
       if( data()[ i ] != m[ i ] )
@@ -70,56 +171,8 @@ namespace Tac
     };
   }
 
-  void         m4::Transpose()
-  {
-    *this = m4( m00, m10, m20, m30,
-                m01, m11, m21, m31,
-                m02, m12, m22, m32,
-                m03, m13, m23, m33 );
-  }
 
-  v4           m4::GetRow( int r ) const
-  {
-    return *( ( v4* )data() + r );
-  }
-
-  v4           m4::GetColumn( int c ) const
-  {
-    return { data()[ 4 * 0 + c ],
-             data()[ 4 * 1 + c ],
-             data()[ 4 * 2 + c ],
-             data()[ 4 * 3 + c ] };
-  }
-
-  void         m4::SetRow( int r, const v4& v )
-  {
-    ( ( v4* )data() )[ r ] = v;
-  }
-
-  void         m4::SetColumn( int c, const v4&  v )
-  {
-    for( int i{}; i < 4; ++i )
-      this->operator()( i, c ) = v[ i ];
-  }
-
-  float        m4::Determinant() const
-  {
-    const float det00{ m3( m11, m12, m13,
-                           m21, m22, m23,
-                           m31, m32, m33 ).Determinant() };
-    const float det01{ m3( m10, m12, m13,
-                           m20, m22, m23,
-                           m30, m32, m33 ).Determinant() };
-    const float det02{ m3( m10, m11, m13,
-                           m20, m21, m23,
-                           m30, m31, m33 ).Determinant() };
-    const float det03{ m3( m10, m11, m12,
-                           m20, m21, m22,
-                           m30, m31, m32 ).Determinant() };
-    return det00 - det01 + det02 - det03;
-  }
-
-  m4           m4::FromRows( const v4& r0, const v4& r1, const v4& r2, const v4& r3 )
+  m4 m4::FromRows( const v4& r0, const v4& r1, const v4& r2, const v4& r3 )
   {
     return { r0.x, r0.y, r0.z, r0.w,
              r1.x, r1.y, r1.z, r1.w,
@@ -127,7 +180,7 @@ namespace Tac
              r3.x, r3.y, r3.z, r3.w };
   }
 
-  m4           m4::FromColumns( const v4& c0, const v4& c1, const v4& c2, const v4& c3 )
+  m4 m4::FromColumns( const v4& c0, const v4& c1, const v4& c2, const v4& c3 )
   {
     return { c0.x, c1.x, c2.x, c3.x,
              c0.y, c1.y, c2.y, c3.y,
@@ -135,7 +188,7 @@ namespace Tac
              c0.w, c1.w, c2.w, c3.w };
   }
 
-  m4           m4::Identity()
+  m4 m4::Identity()
   {
     return { 1, 0, 0, 0,
              0, 1, 0, 0,
@@ -143,21 +196,18 @@ namespace Tac
              0, 0, 0, 1 };
   }
 
-  m4           m4::Scale( const v3& v )      { return m3::Scale( v ); }
+  m4 m4::Scale( const v3& v ) { return m3::Scale( v ); }
+  m4 m4::RotRadX( float v )   { return m3::RotRadX( v ); }
+  m4 m4::RotRadY( float v )   { return m3::RotRadY( v ); }
+  m4 m4::RotRadZ( float v )   { return m3::RotRadZ( v ); }
 
-  m4           m4::RotRadX( float v ) { return m3::RotRadX( v ); }
-
-  m4           m4::RotRadY( float v ) { return m3::RotRadY( v ); }
-
-  m4           m4::RotRadZ( float v ) { return m3::RotRadZ( v ); }
-
-  m4           m4::Transpose( m4 m )
+  m4 m4::Transpose( m4 m )
   {
     m.Transpose();
     return m;
   }
 
-  m4           m4::Translate( const v3& translate )
+  m4 m4::Translate( const v3& translate )
   {
     return { 1, 0, 0, translate[ 0 ],
              0, 1, 0, translate[ 1 ],
@@ -165,7 +215,7 @@ namespace Tac
              0, 0, 0, 1 };
   }
 
-  m4           m4::Transform( const v3& scale, const m3& rot, const v3& translate )
+  m4 m4::Transform( const v3& scale, const m3& rot, const v3& translate )
   {
     float m00 { scale[ 0 ] * rot( 0, 0 ) };
     float m01 { scale[ 1 ] * rot( 0, 1 ) };
@@ -185,13 +235,13 @@ namespace Tac
                0, 0, 0, 1 );
   }
 
-  m4           m4::Transform( const v3& scale, const v3& eulerRads, const v3& translate )
+  m4 m4::Transform( const v3& scale, const v3& eulerRads, const v3& translate )
   {
     const m3 rot = m3::RotRadEuler( eulerRads );
     return m4::Transform( scale, rot, translate );
   }
 
-  m4           m4::Inverse( const m4& m, bool* resultExists )
+  m4 m4::Inverse( const m4& m, bool* resultExists )
   {
     // gluInvertMatrix
     m4 inv;
@@ -324,7 +374,7 @@ namespace Tac
     return inv;
   }
 
-  m4           m4::TransformInverse( const v3& scale, const v3& eulerRads, const v3& translate )
+  m4 m4::TransformInverse( const v3& scale, const v3& eulerRads, const v3& translate )
   {
     const v3 s( 1.0f / scale[ 0 ],
                 1.0f / scale[ 1 ],
@@ -355,7 +405,7 @@ namespace Tac
     }
   }
 
-  m4           m4::View( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
+  m4 m4::View( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
   {
     const v3 negZ { -camViewDir };
     const m4 worldToCamRot( camR[ 0 ], camR[ 1 ], camR[ 2 ], 0,
@@ -370,7 +420,7 @@ namespace Tac
     return result;
   }
 
-  m4           m4::ViewInv( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
+  m4 m4::ViewInv( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
   {
     const v3 negZ { -camViewDir };
     const m4 camToWorRot( camR[ 0 ], camU[ 0 ], negZ[ 0 ], 0,
@@ -385,70 +435,7 @@ namespace Tac
     return result;
   }
 
-  struct AB
-  {
-    AB( m4::ProjectionMatrixParams params )
-    {
-      // Given the following knowns:
-      //   -n in view space is projected onto parmas.mNDCNearZ in ndc space
-      //   -f in view space is projected onto parmas.mNDCFarZ in ndc space
-      //   
-      // We are solving for the following unknowns:
-      //   A
-      //   B
-      //
-      // [ sX 0  0  0 ] [ x_view ] = [ sX * x_view    ]           [ ( sX * x_view ) / -z_view    ]
-      // [ 0  sY 0  0 ] [ y_view ] = [ sY * y_view    ] /w_clip = [ ( sY * y_view ) / -z_view    ]
-      // [ 0  0  A  B ] [ z_view ] = [ z_view * A + B ]           [ ( z_view * A + B ) / -z_view ]
-      // [ 0  0 -1  0 ] [ 1      ] = [    -z_view     ]           [              1               ]
-      //    ProjMtx     view space      clip space                          ndc space
-      //
-      // z_ndc = ( ( z_view ) A + B ) / ( -z_view )
-      //
-      // Two equations, two unknowns
-      // params.mNDCMinZ = ( -nA + B ) / n
-      // params.mNDCMaxZ = ( -fA + B ) / f
-
-      const float f { params.mViewSpaceFar };
-      const float n { params.mViewSpaceNear };
-
-      const float ndcZMin { params.mNDCMinZ }; // 0 in DirectX, -1 in OpenGL
-      const float ndcZMax { params.mNDCMaxZ }; // 1 in DirectX, 1 in OpenGL
-
-      float A {};
-      float B {};
-
-      if( ndcZMin == -1 && ndcZMax == 1 ) // OpenGL style
-      {
-        // -1 = ( -nA + B ) / n
-        //  1 = ( -fA + B ) / f
-        A = ( n + f ) / ( n - f );
-        B = n * ( A - 1 );
-      }
-      else if(  ndcZMin == 0 && ndcZMax == 1 ) // DirectX style
-      {
-        // 0 = ( -nA + B ) / n
-        // 1 = ( -fA + B ) / f
-        A = ( 1 * f ) / ( n - f );
-        B = ( n * f ) / ( n - f );
-
-        // note that https://docs.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
-        // uses -A and -B from ours, but their perspective matrix uses a 1 instead of our -1
-      }
-      else
-      {
-        TAC_ASSERT_INVALID_CODE_PATH;
-      }
-
-      mA = A;
-      mB = B;
-    }
-
-    float mA;
-    float mB;
-  };
-
-  m4           m4::ProjPerspective( ProjectionMatrixParams params )
+  m4 m4::ProjPerspective( ProjectionMatrixParams params )
   {
     TAC_ASSERT( params.mViewSpaceNear > 0 );
     TAC_ASSERT( params.mViewSpaceFar > 0 );
@@ -467,7 +454,7 @@ namespace Tac
              0, 0, -1, 0 };
   }
 
-  m4           m4::ProjPerspective( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
+  m4 m4::ProjPerspective( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
   {
     //                                                        [ x y z ] 
     //                              [x'y'z']             +-----+
@@ -502,7 +489,7 @@ namespace Tac
              0, 0, -1, 0 };
   }
 
-  m4           m4::ProjPerspectiveInv( ProjectionMatrixParams params )
+  m4 m4::ProjPerspectiveInv( ProjectionMatrixParams params )
   {
     // http://allenchou.net/2014/02/game-math-how-to-eyeball-the-inverse-of-a-matrix/
     const float theta { params.mFOVYRadians / 2.0f };
@@ -518,7 +505,7 @@ namespace Tac
              0, 0, 1.0f / B, A / B };
   }
 
-  m4           m4::ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
+  m4 m4::ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
   {
     // http://allenchou.net/2014/02/game-math-how-to-eyeball-the-inverse-of-a-matrix/
     const float theta { mFieldOfViewYRad / 2.0f };
@@ -531,22 +518,24 @@ namespace Tac
              0, 0, 1.0f / B, A / B };
   }
 
-  v4 operator*( const m4& m, const v4& v )
-  {
-    v4 result;
-    for( int i{}; i < 4; ++i )
-    {
-      float sum {};
-      for( int j {}; j < 4; ++j )
-      {
-        sum += m( i, j ) * v[ j ];
-      }
-      result[ i ] = sum;
-    }
-    return result;
-  }
+} // namespace Tac
 
-  m4 operator*( const m4& lhs, const m4& rhs )
+auto Tac::operator*( const m4& m, const v4& v ) -> v4
+{
+  v4 result;
+  for( int i{}; i < 4; ++i )
+  {
+    float sum {};
+    for( int j {}; j < 4; ++j )
+    {
+      sum += m( i, j ) * v[ j ];
+    }
+    result[ i ] = sum;
+  }
+  return result;
+}
+
+auto Tac::operator*( const m4& lhs, const m4& rhs ) -> m4
   {
     m4 result;
     for( int r {}; r < 4; ++r )
@@ -564,4 +553,3 @@ namespace Tac
     return result;
   }
 
-}

@@ -238,6 +238,11 @@ namespace Tac
 
     if( sIsGameRunning )
       sGameWorld.Step( TAC_DT );
+    else
+    {
+      sGameWorld.ComputeTransformsRecursively();
+      sEditorWorld.ComputeTransformsRecursively();
+    }
 
     SelectedEntities::DeleteEntitiesCheck();
     CloseAppWhenAllWindowsClosed();

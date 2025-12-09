@@ -41,7 +41,7 @@ namespace Tac::Render
   ResourceHandle::operator BufferHandle() const    { TAC_ASSERT( mHandleType == HandleType::kBuffer );    return mHandle.GetIndex(); }
   ResourceHandle::operator TextureHandle() const   { TAC_ASSERT( mHandleType == HandleType::kTexture );   return mHandle.GetIndex(); }
   ResourceHandle::operator SamplerHandle() const   { TAC_ASSERT( mHandleType == HandleType::kSampler );   return mHandle.GetIndex(); }
-  HandleType ResourceHandle::GetHandleType() const { return mHandleType; }
+  auto ResourceHandle::GetHandleType() const -> HandleType { return mHandleType; }
 
  // -----------------------------------------------------------------------------------------------
 

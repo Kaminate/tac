@@ -18,15 +18,15 @@ namespace Tac
   {
     struct Result
     {
-      bool  mHit {};
-      float mT   {};
+      bool IsValid() const;
+      float mT      {};
+      float mU      {};
+      float mV      {};
+      int   mTriIdx {};
     };
 
     using SubMeshTriangles = Vector< Triangle >;
-
-    Result Raycast( Ray ) const;
-    static Result RaycastTri( Ray, const Triangle& );
-
+    auto Raycast( Ray ) const -> Result;
     SubMeshTriangles mTris {};
   };
 

@@ -35,7 +35,7 @@ namespace Tac
 
   void SelectedEntities::DeleteEntitiesCheck()
   {
-    if( AppKeyboardApi::JustPressed( Key::Delete ) )
+    if( UIKeyboardApi::JustPressed( Key::Delete ) )
       DeleteEntities();
   }
 

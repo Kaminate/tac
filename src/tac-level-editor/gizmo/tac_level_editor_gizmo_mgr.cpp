@@ -2,6 +2,8 @@
 #include "tac_level_editor.h" // self-inc
 
 #include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
+#include "tac-level-editor/tools/tac_level_editor_tool.h"
+#include "tac-level-editor/tools/tac_level_editor_selection_tool.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-ecs/entity/tac_entity.h"
@@ -37,7 +39,8 @@ namespace Tac
   {
     if( !SelectedEntities::empty() )
     {
-      mTranslationGizmoVisible = true;
+      mTranslationGizmoVisible = Toolbox::GetActiveTool() == &SelectionTool::sInstance;
+
       mGizmoOrigin = SelectedEntities::ComputeAveragePosition();
     }
 

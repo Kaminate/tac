@@ -49,12 +49,12 @@ namespace Tac
 
   static ComponentInfo* sComponentInfo;
 
-  static Component* CreateMaterialComponent( World* world )
+  static auto CreateMaterialComponent( World* world ) -> Component*
   {
     return Graphics::From( world )->CreateMaterialComponent();
   }
 
-  static void       DestroyMaterialComponent( World* world, Component* component )
+  static void DestroyMaterialComponent( World* world, Component* component )
   {
     Graphics::From( world )->DestroyMaterialComponent( ( Material* )component );
   }
@@ -216,7 +216,6 @@ namespace Tac
     };
   }
 
-
   struct PhotometricEmissionEditor
   {
     static Material*    sMaterial;
@@ -229,7 +228,7 @@ namespace Tac
     static bool         sUseOverrideArea;
     static float        sOverrideArea;
 
-    static float ComputeArea( Errors& errors )
+    static auto ComputeArea( Errors& errors ) -> float
     {
       TAC_RAISE_ERROR_IF_RETURN( !sMaterial, "No material" );
       Entity* entity { sMaterial->mEntity };
@@ -269,7 +268,7 @@ namespace Tac
       return runningArea_Worldspace;
     }
 
-    static v3 ComputeRadiance_IlluminantA_Spectrum()
+    static auto ComputeRadiance_IlluminantA_Spectrum() -> v3
     {
       DenseSpectrum ds;
       for( int i{}; i < DenseSpectrum::kSampleCount; ++i )
@@ -298,7 +297,7 @@ namespace Tac
 
     // area (m^2)
     // luminous flux (lm)
-    static v3 ComputeRadiance_IlluminantA_RelativeXYZ_v3()
+    static auto ComputeRadiance_IlluminantA_RelativeXYZ_v3() -> v3
     {
       float area = 0.07f; // m^2
       float luminousFlux = 4000; // lm
@@ -314,7 +313,7 @@ namespace Tac
       return radiance;
     }
 
-    static v3 ComputeRadiance_IlluminantA_RelativeXYZ()
+    static auto ComputeRadiance_IlluminantA_RelativeXYZ() -> v3
     {
       //               d^2 luminous flux
       // luminance = ---------------------
@@ -360,7 +359,7 @@ namespace Tac
 
     }
     
-    static v3 ComputeRadiance_Blackbody()
+    static auto ComputeRadiance_Blackbody() -> v3
     {
       const DenseSpectrum ds{ Blackbody::TemperatureToSpectrum( sTemperature ) };
       TAC_UNUSED_PARAMETER( ds );
@@ -375,7 +374,7 @@ namespace Tac
       return {};
     }
 
-    static float GetArea()
+    static auto GetArea() -> float
     {
       return sUseOverrideArea ? sOverrideArea : sCalculatedArea;
     }
@@ -445,15 +444,15 @@ namespace Tac
     }
   };
 
-  Material*    PhotometricEmissionEditor::sMaterial{};
-  Material*    PhotometricEmissionEditor::sMaterialPrev{};
-  LuminousFlux PhotometricEmissionEditor::sLuminousFlux{ 4000 };
-  Temperature  PhotometricEmissionEditor::sTemperature{ 2856 };
-  Errors       PhotometricEmissionEditor::sErrors;
-  v3           PhotometricEmissionEditor::sRadiance;
-  float        PhotometricEmissionEditor::sCalculatedArea;
-  float        PhotometricEmissionEditor::sOverrideArea{0.07f};
-  bool         PhotometricEmissionEditor::sUseOverrideArea;
+  Material*    PhotometricEmissionEditor::sMaterial        {};
+  Material*    PhotometricEmissionEditor::sMaterialPrev    {};
+  LuminousFlux PhotometricEmissionEditor::sLuminousFlux    { 4000 };
+  Temperature  PhotometricEmissionEditor::sTemperature     { 2856 };
+  Errors       PhotometricEmissionEditor::sErrors          {};
+  v3           PhotometricEmissionEditor::sRadiance        {};
+  float        PhotometricEmissionEditor::sCalculatedArea  {};
+  float        PhotometricEmissionEditor::sOverrideArea    {0.07f};
+  bool         PhotometricEmissionEditor::sUseOverrideArea {};
 
   void Material::DebugImgui( Material* material )
   {

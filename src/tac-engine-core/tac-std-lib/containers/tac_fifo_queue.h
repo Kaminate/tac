@@ -33,7 +33,6 @@ namespace Tac
       mTCapacity = {};
     }
 
-
     // Note: mOffset prevents begin() == end() when count == capacity
     struct ConstIterator
     {
@@ -43,7 +42,7 @@ namespace Tac
       bool operator ==( const ConstIterator& ) const = default;
 
       const FifoQueue* mFifoQueue    {};
-      int        mOffset       {};
+      int              mOffset       {};
     };
 
     struct DynmcIterator
@@ -54,20 +53,8 @@ namespace Tac
       bool operator ==( const DynmcIterator& ) const = default;
 
       dynmc FifoQueue* mFifoQueue    {};
-      int        mOffset       {};
+      int              mOffset       {};
     };
-
-    void operator =( FifoQueue< T >&& v )
-    {
-      swap( ( FifoQueue<T>&& )v );
-    }
-
-    void operator =( const FifoQueue< T >& v )
-    {
-      reserve( v.mTCount );
-      for( T& t : v )
-        push( t );
-    }
 
     void clear()
     {
@@ -102,16 +89,17 @@ namespace Tac
       if( capacity <= mTCapacity )
         return;
 
-      T* newTs{ ( T* )Tac::Allocate( sizeof( T ) * capacity ) };
-      T* newT{ newTs };
-      for( T& t : *this )
+      auto newTs{ ( T* )Tac::Allocate( sizeof( T ) * capacity ) };
+      for( int i{}; i < mTCount; ++i )
       {
-        TAC_PLACEMENT_NEW( newT++ )T( move( t ) );
+        T& oldT{ mTs[ ( mStartIndex + i ) % mTCapacity ] };
+        TAC_PLACEMENT_NEW( newTs + i )T( move( oldT ) );
       }
 
       Tac::Deallocate( mTs );
-      mTs = newTs;
+      mStartIndex = 0; // !
       mTCapacity = capacity;
+      mTs = newTs;
     }
 
     void reserve()
@@ -148,21 +136,35 @@ namespace Tac
       Swap( mStartIndex, other.mStartIndex );
     }
 
-    DynmcIterator begin() dynmc         { return DynmcIterator{ .mFifoQueue{ this }, .mOffset{} }; }
-    ConstIterator begin() const         { return ConstIterator{ .mFifoQueue{ this }, .mOffset{} }; }
-    DynmcIterator end() dynmc           { return DynmcIterator{ .mFifoQueue{ this }, .mOffset{ mTCount } }; }
-    ConstIterator end() const           { return ConstIterator{ .mFifoQueue{ this }, .mOffset{ mTCount } }; }
+    auto begin() dynmc -> DynmcIterator        { return DynmcIterator{ .mFifoQueue{ this }, .mOffset{} }; }
+    auto begin() const -> ConstIterator        { return ConstIterator{ .mFifoQueue{ this }, .mOffset{} }; }
+    auto end() dynmc -> DynmcIterator          { return DynmcIterator{ .mFifoQueue{ this }, .mOffset{ mTCount } }; }
+    auto end() const -> ConstIterator          { return ConstIterator{ .mFifoQueue{ this }, .mOffset{ mTCount } }; }
 
     // first element in the queue / the next element to be popped
-    dynmc T& front() dynmc              { TAC_ASSERT( mTCount ); return mTs[ mStartIndex ]; }
-    const T& front() const              { TAC_ASSERT( mTCount ); return mTs[ mStartIndex ]; }
+    auto front() dynmc -> dynmc T&             { TAC_ASSERT( mTCount ); return mTs[ mStartIndex ]; }
+    auto front() const -> const T&             { TAC_ASSERT( mTCount ); return mTs[ mStartIndex ]; }
 
     // last element in the queue / the most recently pushed element
-    dynmc T& back() dynmc               { TAC_ASSERT( mTCount ); return mTs[ ( mStartIndex + mTCount - 1 ) % mTCapacity ]; }
-    const T& back() const               { TAC_ASSERT( mTCount ); return mTs[ ( mStartIndex + mTCount - 1 ) % mTCapacity ]; }
+    auto back() dynmc -> dynmc T&              { TAC_ASSERT( mTCount ); return mTs[ ( mStartIndex + mTCount - 1 ) % mTCapacity ]; }
+    auto back() const -> const T&              { TAC_ASSERT( mTCount ); return mTs[ ( mStartIndex + mTCount - 1 ) % mTCapacity ]; }
 
-    dynmc T* data() dynmc               { return mTs; }
-    const T* data() const               { return mTs; }
+    auto data() dynmc -> dynmc T*              { return mTs; }
+    auto data() const -> const T*              { return mTs; }
+
+
+    void operator =( FifoQueue< T >&& v )
+    {
+      swap( ( FifoQueue<T>&& )v );
+    }
+
+    void operator =( const FifoQueue< T >& v )
+    {
+      reserve( v.mTCount );
+      for( T& t : v )
+        push( t );
+    }
+
 
   private:
 

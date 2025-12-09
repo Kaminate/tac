@@ -32,6 +32,7 @@
 #include "tac-level-editor/gizmo/tac_level_editor_gizmo_mgr.h"
 #include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
 #include "tac-level-editor/tools/tac_level_editor_tool.h"
+#include "tac-level-editor/tools/tac_level_editor_selection_tool.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -183,13 +184,14 @@ namespace Tac
 
   static void CameraWASDControls( Camera* camera )
   {
-    if( SelectedEntities::empty() )
+    if( SelectedEntities::empty() &&
+        Toolbox::GetActiveTool() == &SelectionTool::sInstance )
     {
-      CameraWASDControlsPan( camera );
+      CameraWASDControlsOrbit( camera, GizmoMgr::sInstance.mGizmoOrigin );
     }
     else
     {
-      CameraWASDControlsOrbit( camera, GizmoMgr::sInstance.mGizmoOrigin );
+      CameraWASDControlsPan( camera );
     }
   }
 
@@ -323,16 +325,9 @@ namespace Tac
       ImGuiText( sStatusMessage );
 
     ImGuiSeparator();
-    ImGuiText( "Toolbox:" );
     TAC_CALL( Toolbox::DebugImGui( errors ) );
     ImGuiSeparator();
 
-    ImGuiSameLine();
-
-    // The purpose of this invisible button is to obscure the game window, so that you
-    // can move an entity via the translation widget GizmoMgr::Update, without unintentionally
-    // calling ImGuiWindow::BeginMoveControls and dragging the whole damn window
-    ImGuiInvisibleButton( "BUTTON", -v2( 8, 8 ) );
   }
 
   static void CameraUpdateControls()
@@ -490,10 +485,10 @@ namespace Tac
       Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
                                                                  Creation::GetCamera()->mForwards,
                                                                  GizmoMgr::sInstance.mArrowLen );
+    TAC_CALL( ImGuiOverlay( errors ) );
+
     if( Tool * tool{ Toolbox::GetActiveTool() } )
       tool->Update();
-
-    TAC_CALL( ImGuiOverlay( errors ) );
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView msg, const GameTimeDelta duration )

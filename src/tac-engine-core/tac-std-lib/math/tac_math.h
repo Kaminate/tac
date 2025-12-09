@@ -4,6 +4,7 @@
 #include "tac-std-lib/math/tac_vector2i.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector3i.h"
+#include "tac-std-lib/math/tac_vector4.h"
 
 namespace Tac
 {
@@ -12,73 +13,70 @@ namespace Tac
   // Interpolation
   // -------------
 
-  template< typename T > T Lerp( T from, T to, float t ) { return from + t * ( to - from ); }
-  template< typename T > T Max( const T& a, const T& b ) { return a > b ? a : b; }
-  template< typename T > T Min( const T& a, const T& b ) { return a < b ? a : b; }
-  v2                       Min( const v2&, const v2& );
-  v2                       Max( const v2&, const v2& );
-  v2i                      Min( const v2i&, const v2i& );
-  v2i                      Max( const v2i&, const v2i& );
-  v3                       Min( const v3&, const v3& );
-  v3                       Max( const v3&, const v3& );
-  v3i                      Min( const v3i&, const v3i& );
-  v3i                      Max( const v3i&, const v3i& );
-  float                    Clamp( float x, float xMin, float xMax );
-  float                    Saturate( float );
-  float                    EaseInOutQuart( float t );
-  void                     Spring( float* posCurrent,
-                                   float* velCurrent,
-                                   float posTarget,
-                                   float springyness,
-                                   float deltaTimeSeconds );
+  struct SpringParams { float* mPosCur; float* mVelCur; float mPosTgt; float mSpringyness; float mDeltaTimeSeconds; };
+  template< typename T > auto Lerp( T from, T to, float t ) -> T { return from + t * ( to - from ); }
+  template< typename T > auto Max( const T& a, const T& b ) -> T { return a > b ? a : b; }
+  template< typename T > auto Min( const T& a, const T& b ) -> T { return a < b ? a : b; }
+  auto Min( const v2&, const v2& ) -> v2;
+  auto Max( const v2&, const v2& ) -> v2;
+  auto Min( const v2i&, const v2i& ) -> v2i;
+  auto Max( const v2i&, const v2i& ) -> v2i;
+  auto Min( const v3&, const v3& ) -> v3;
+  auto Max( const v3&, const v3& ) -> v3;
+  auto Min( const v3i&, const v3i& ) -> v3i;
+  auto Max( const v3i&, const v3i& ) -> v3i;
+  auto Clamp( float x, float xMin, float xMax ) -> float;
+  auto Saturate( float ) -> float;
+  auto EaseInOutQuart( float ) -> float;
+  void Spring( SpringParams );
 
   // ------------
   // Trigonometry
   // ------------
-  float                    Sin( float );
-  double                   Sin( double );
-  float                    Cos( float );
-  double                   Cos( double );
-  float                    Tan( float );
-  double                   Tan( double );
-  float                    Asin( float );
-  float                    Acos( float );
-  float                    Atan2( float y, float x );
+  auto Sin( float ) -> float;
+  auto Sin( double ) -> double;
+  auto Cos( float ) -> float;
+  auto Cos( double ) -> double;
+  auto Tan( float ) -> float;
+  auto Tan( double ) -> double;
+  auto Asin( float ) -> float;
+  auto Acos( float ) -> float;
+  auto Atan2( float y, float x ) -> float;
 
   // --------
   // Rounding
   // --------
-  float                    Round( float );
-  constexpr int            RoundUpToNearestMultiple( int numToRound, int multiple )
+  constexpr auto RoundUpToNearestMultiple( int numToRound, int multiple )
   {
     return ( ( numToRound + ( multiple - 1 ) ) / multiple ) * multiple;
   }
-  float                    Floor( float );
-  double                   Floor( double );
-  v2                       Floor( const v2& );
-  v3                       Floor( const v3& );
-  float                    Ceil( float );
-  v2                       Ceil( const v2& );
-  v3                       Ceil( const v3& );
-  float                    Fmod( float, float );
-  double                   Fmod( double, double );
+  auto Round( float ) -> float;
+  auto Floor( float ) -> float;
+  auto Floor( double ) -> double;
+  auto Floor( const v2& ) -> v2;
+  auto Floor( const v3& ) -> v3;
+  auto Ceil( float ) -> float;
+  auto Ceil( const v2& ) -> v2;
+  auto Ceil( const v3& ) -> v3;
+  auto Fmod( float, float ) -> float;
+  auto Fmod( double, double ) -> double;
 
   // ----------
   // Randomness
   // ----------
 
-  float                    RandomFloat0To1();
-  float                    RandomFloatMinus1To1();
-  float                    RandomFloatBetween( float, float );
-  int                      RandomIndex( int n ); // [ 0, n )
-  v3                       RandomPointInTriangle( v3, v3, v3 );
+  auto RandomFloat0To1() -> float;
+  auto RandomFloatMinus1To1() -> float;
+  auto RandomFloatBetween( float, float ) -> float;
+  auto RandomIndex( int n ) -> int; // [ 0, n )
+  auto RandomPointInTriangle( v3, v3, v3 ) -> v3;
 
   // ---------------------
   // Angles
   // ---------------------
 
-  template< typename T > T DegreesToRadians( T d ) { return d * ( 3.14f / 180.0f ); }
-  template< typename T > T RadiansToDegrees( T r ) { return r * ( 180.0f / 3.14f ); }
+  template< typename T > auto DegreesToRadians( T d ) -> T { return d * ( 3.14f / 180.0f ); }
+  template< typename T > auto RadiansToDegrees( T r ) -> T { return r * ( 180.0f / 3.14f ); }
 
   //            y        (x,y,z)
   //            ^           +
@@ -94,7 +92,7 @@ namespace Tac
   //        z               +        
   struct SphericalCoordinate
   {
-    v3          ToCartesian() const;
+    auto ToCartesian() const -> v3;
     static auto FromCartesian( v3 ) -> SphericalCoordinate;
 
     float mRadius { 1 };
@@ -118,12 +116,21 @@ namespace Tac
     auto operator[]( int i ) -> v3& { return mEndPoints[ i ]; }
     auto operator[]( int i ) const -> const v3& { return mEndPoints[ i ]; }
   };
+  struct Plane3D
+  {
+    auto SignedDistance( v3 ) const -> float;
+    auto UnitNormal() const -> v3;
+    static auto FromPosNormal( v3 pos, v3 nor ) -> Plane3D;
+    static auto FromPosUnitNormal( v3 pos, v3 nor ) -> Plane3D;
+    v4 mImplicitCoeffs{}; // ax + by + cz + d = 0, and [a,b,c] is a unit normal
+  };
   struct Sphere3D { v3 mOrigin; float mRadius; };
 
   using Ray = Ray3D;
   using Triangle = Triangle3D;
   using LineSegment = LineSegment3D;
   using Sphere = Sphere3D;
+  using Plane = Plane3D;
 
   // ------------
   // Intersection
@@ -131,6 +138,14 @@ namespace Tac
 
   auto RaySphere( Ray, Sphere ) -> float; // returns -1 on failure
   auto ClosestPointLineSegment( LineSegment, const v3& p ) -> v3;
+
+  struct RayPlane
+  {
+    RayPlane( Ray, Plane );
+    operator bool() const;
+    float mT     {};
+    bool  mValid {};
+  };
 
   struct RayTriangle
   {
@@ -161,16 +176,16 @@ namespace Tac
   // ------------
   // Arithmetic
   // ------------
-  float                    Fract( float );
-  inline float             Abs( float v )              { return v > 0 ? v : -v; }
-  inline double            Abs( double v )             { return v > 0 ? v : -v; }
-  v2                       Abs( const v2& );
-  v3                       Abs( const v3& );
-  float                    Pow( float base, float exp );
-  float                    Sqrt( float );
-  float                    Exp( float ); // Exp(x) = e^x
-  inline float             Square( float v )           { return v * v; }
-  inline float             Cube( float v )             { return v * v * v; }
+  auto Fract( float ) -> float;
+  auto Pow( float base, float exp ) -> float;
+  auto Sqrt( float ) -> float;
+  auto Exp( float ) -> float; // Exp(x) = e^x
+  inline auto Abs( float v ) -> float     { return v > 0 ? v : -v; }
+  inline auto Abs( double v ) -> double   { return v > 0 ? v : -v; }
+  inline auto Abs( const v2& v ) -> v2    { return { Abs( v.x ), Abs( v.y ) }; }
+  inline auto Abs( const v3& v ) -> v3    { return { Abs( v.x ), Abs( v.y ), Abs( v.z ) }; }
+  inline auto Square( float v )           { return v * v; }
+  inline auto Cube( float v )             { return v * v * v; }
 
   // -----------------
   // Misc?? / Unsorted / IEEE 754 Floating Point

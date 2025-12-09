@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
 {
@@ -9,18 +10,18 @@ namespace Tac
   {
     ~IdCollection();
 
-    int    Alloc();
-    void   Free( int );
-    int    size() const          { return mSize; }
+    auto Alloc() -> int;
+    void Free( int );
+    auto size() const -> int            { return mSize;  }
 
     // Iterate through allocated ids
-    int*       begin()           { return mDense; }
-    const int* begin() const     { return mDense; }
-    int*       end()             { return mDense + mSize; }
-    const int* end() const       { return mDense + mSize; }
+    auto begin() dynmc -> dynmc int*    { return mDense; }
+    auto begin() const -> const int*    { return mDense; }
+    auto end() dynmc -> dynmc int*      { return mDense + mSize; }
+    auto end() const -> const int*      { return mDense + mSize; }
 
   private:
-    void   reserve( int );
+    void reserve( int );
 
     int    mCapacity {}; // Capacity of both the dense and sparse arrays
     int    mSize     {}; // Number of allocated IDs

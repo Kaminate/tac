@@ -49,7 +49,7 @@ namespace Tac
     mCapacity = capacity;
   }
 
-  int IdCollection::Alloc()
+  auto IdCollection::Alloc() -> int
   {
     if( mSize == mCapacity )
       reserve( mCapacity ? int( mCapacity * 1.5f ) : 5 );
@@ -76,8 +76,9 @@ namespace Tac
     mSparse[ iRemoveSparse ] = iLastDense;
   }
 
+} // namespace Tac
   
-  void UnitTestIdCollection()
+void Tac::UnitTestIdCollection()
   {
     IdCollection ids;
 
@@ -94,4 +95,3 @@ namespace Tac
     ids.Free( id2 );
     ids.Free( id1 );
   }
-} // namespace Tac

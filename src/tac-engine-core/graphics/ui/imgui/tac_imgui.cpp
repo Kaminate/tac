@@ -1261,7 +1261,6 @@ void Tac::ImGuiDebugDraw()
 
 void Tac::ImGuiBeginFrame( const BeginFrameData& data )
 {
-  
   ImGuiGlobals::mElapsedSeconds = data.mElapsedSeconds;
   ImGuiGlobals::mMouseHoveredWindow = data.mMouseHoveredWindow;
   ImGuiGlobals::mMouseCursor = ImGuiMouseCursor::kArrow;
@@ -1306,6 +1305,9 @@ void Tac::ImGuiEndFrame( Errors& errors )
     ImGuiGlobals::mHoverStartTime = {};
   ImGuiGlobals::mHoveredIDPrev = ImGuiGlobals::mHoveredID;
 
+  // true during text input, false otherwise
+  UIKeyboardApi::sWantCaptureKeyboard = ImGuiGlobals::mHoveredIDPrev.IsValid();
+  //UIKeyboardApi::sWantCaptureMouse = ImGuiGlobals::mHoveredIDPrev.IsValid();
 }
 auto Tac::ImGuiGetFontSizePx() -> float           
 {

@@ -12,20 +12,18 @@
 #include "tac-level-editor/windows/game/tac_level_editor_game_window.h"
 #include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
 #include "tac-level-editor/tac_level_editor.h"
+#include "tac-level-editor/gizmo/tac_level_editor_gizmo_mgr.h"
 
 namespace Tac
 {
 
-  static void MousePickingEntityDebug( Ray ray,
+  static void MousePickingEntityDebug( Ray ray_worldspace,
                                        const World* world,
                                        const Camera* ,
                                        Errors& errors )
   {
     Debug3DDrawData* drawData{ world->mDebug3DDrawData };
 
-    Triangle closestTri{};
-    MeshRaycast::Result closestResult{};
-    const Ray meshRay = ray;
 
     Entity* entity { CreationMousePicking::GetPickedEntity() };
     if( !entity )
@@ -36,48 +34,54 @@ namespace Tac
       if( !material->mRenderEnabled )
         return;
 
-      Model* model{ Model::GetModel( entity ) };
-      if( !model )
-        return;
+    Model* model{ Model::GetModel( entity ) };
+    if( !model )
+      return;
 
-      TAC_CALL( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
-      if( !mesh )
-        return;
+    TAC_CALL( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
+    if( !mesh )
+      return;
 
-      for( const Triangle& subMeshTri : mesh->mMeshRaycast.mTris )
-      {
-        const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
-        const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
-        const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
-        const Triangle meshTri { wsTriv0, wsTriv1, wsTriv2, };
-        if( const MeshRaycast::Result meshResult{ MeshRaycast::RaycastTri( meshRay, meshTri ) };
-            meshResult.mHit && ( !closestResult.mHit || meshResult.mT < closestResult.mT ) )
-        {
-          closestResult = meshResult;
-          closestTri = meshTri;
-        }
+    bool isInverseValid{};
+    m4 worldToModel_dir{ m4::Transpose( entity->mWorldTransform ) };
+    m4 worldToModel_pos{ m4::Inverse( entity->mWorldTransform, &isInverseValid ) };
+    if( !isInverseValid )
+      return;
 
-        // TODO(N8):
-        //
-        // Using debug draw to draw triangle wireframe is an abuse of debug draw.
-        // Debug draw uses lines primitives, which rasterizes differently from triangle primitives,
-        // leading to z-fighting.
-        // 
-        // Instead, I should use a real mesh triangle wireframe for picked/selected objects,
-        // and use debug draw for just 
-        const v3 color{ 1, 0, 0 };
-        drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2, color );
+    m4 modelToWorld_dir = m4::Transpose(worldToModel_pos);
 
-      }
-
-
-    if( closestResult.mHit )
+    Ray ray_modelspace
     {
+      .mOrigin    { ( worldToModel_pos * v4( ray_worldspace.mOrigin, 1 ) ).xyz()},
+      .mDirection { ( worldToModel_dir * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
+    };
 
+    // TODO(N8):
+    //
+    // triangle wireframe is an abuse of debug draw!
+    // Debug draw uses lines primitives, which rasterizes differently from triangle primitives.
+    // 
+    // I should use a real mesh triangle wireframe for picked/selected objects
+    for( const Triangle& subMeshTri : mesh->mMeshRaycast.mTris )
+    {
+      const v3 wsTriv0{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 0 ], 1.0f ) ).xyz() };
+      const v3 wsTriv1{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 1 ], 1.0f ) ).xyz() };
+      const v3 wsTriv2{ ( model->mEntity->mWorldTransform * v4( subMeshTri[ 2 ], 1.0f ) ).xyz() };
+      const v3 color{ 1, 0, 0 };
+      drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2, color );
+    }
+
+    
+
+    if( MeshRaycast::Result closestResult_modelspace{ mesh->mMeshRaycast.Raycast( ray_modelspace ) };
+        closestResult_modelspace.IsValid() )
+    {
+      Triangle closestTri_modelspace{ mesh->mMeshRaycast.mTris[ closestResult_modelspace.mTriIdx ] };
       const v3 triColor{ 0, 1, 0 };
-      v3 v0{ closestTri[ 0 ] };
-      v3 v1{ closestTri[ 1 ] };
-      v3 v2{ closestTri[ 2 ] };
+
+      v3 v0{ ( model->mEntity->mWorldTransform * v4( closestTri_modelspace[ 0 ], 1.0f ) ).xyz() };
+      v3 v1{ ( model->mEntity->mWorldTransform * v4( closestTri_modelspace[ 1 ], 1.0f ) ).xyz() };
+      v3 v2{ ( model->mEntity->mWorldTransform * v4( closestTri_modelspace[ 2 ], 1.0f ) ).xyz() };
 
       v3 zfighting = 0.001f * Normalize( Cross( v1 - v0, v2 - v0 ) );
       v0 += zfighting;
@@ -96,46 +100,58 @@ namespace Tac
                                        v2 + ( centroid - v2 ) * t,
                                        color );
       }
-      //float radius = 0.3f / Distance( centroid, ray.mPos );
-      //drawData->DebugDraw3DSphere( v0,radius, triColor );
-
     }
   }
 
-    SelectionTool SelectionTool::sInstance;
-    SelectionTool::SelectionTool()
+  SelectionTool SelectionTool::sInstance;
+  SelectionTool::SelectionTool()
+  {
+    mDisplayName = "Selection";
+    mIcon = "assets/editor/tools/select_tool.png";
+  }
+  void SelectionTool::OnToolSelected()
+  {
+  }
+  void SelectionTool::Update()
+  {
+    if( AppWindowApi::IsHovered( CreationGameWindow::GetWindowHandle() ) )
     {
-      mDisplayName = "Selection";
-      mIcon = "assets/editor/tools/select_tool.png";
-    }
-    void SelectionTool::OnToolSelected()
-    {
-    }
-    void SelectionTool::Update()
-    {
-      if( AppWindowApi::IsHovered( CreationGameWindow::GetWindowHandle() ) )
+      if( !GizmoMgr::sInstance.mSelectedGizmo && AppKeyboardApi::JustPressed( Key::MouseLeft ) )
       {
-        if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
-        {
-          SelectedEntities::Select( CreationMousePicking::GetPickedEntity() );
-        }
+        SelectedEntities::Select( CreationMousePicking::GetPickedEntity() );
+      }
 
-        if( CreationMousePicking::sDrawRaycast )
-        {
-          Camera* camera{Creation::GetCamera()};
-          World* world{Creation::GetWorld()};
-          v3 pos{ camera->mPos };
-          v3 dir{ CreationMousePicking::GetWorldspaceMouseDir() };
-          Ray ray{ .mOrigin{ pos }, .mDirection{ dir } };
+      if( CreationMousePicking::sDrawRaycast )
+      {
+        Camera* camera{ Creation::GetCamera() };
+        World* world{ Creation::GetWorld() };
+        v3 pos{ camera->mPos };
+        v3 dir{ CreationMousePicking::GetWorldspaceMouseDir() };
+        Ray ray{ .mOrigin{ pos }, .mDirection{ dir } };
 
-          Errors errors;
-          TAC_CALL( MousePickingEntityDebug( ray, world, camera, errors ) );
-          TAC_ASSERT( !errors );
-        }
+        Errors errors;
+        TAC_CALL( MousePickingEntityDebug( ray, world, camera, errors ) );
+        TAC_ASSERT( !errors );
+      }
+
+      int pickAxis{ -1 };
+      for( int i{}; i < 3; ++i )
+        if( CreationMousePicking::IsTranslationWidgetPicked( i ) )
+          pickAxis = i;
+
+      if( pickAxis != -1 && AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+      {
+        GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
+        const v3 worldSpaceHitPoint{ CreationMousePicking::GetPickedPos() };
+        const v3 gizmoOrigin{ SelectedEntities::ComputeAveragePosition() };
+        const v3 arrowDirs[]{ {1,0,0}, {0,1,0}, {0,0,1} };
+        const v3 arrowDir{ arrowDirs[ pickAxis ] };
+        gizmoMgr->mSelectedGizmo = true;
+        gizmoMgr->mTranslationGizmoDir = arrowDir;
+        gizmoMgr->mTranslationGizmoOffset = Dot( arrowDir, worldSpaceHitPoint - gizmoOrigin );
+        gizmoMgr->mTranslationGizmoAxis = pickAxis;
       }
     }
-
-
-
-}
+  }
+} // namespace Tac
 

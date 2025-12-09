@@ -496,17 +496,20 @@ namespace Tac
       }
 
       def.mRuntimeData.mHoverAlphaTgt = def.mRuntimeData.mHovered ? def.mRuntimeData.mAlphaTgt : 0;
-      Spring( &def.mRuntimeData.mHoverAlphaCur,
-              &def.mRuntimeData.mHoverAlphaVel,
-              def.mRuntimeData.mHoverAlphaTgt,
-              50.0f,
-              1 / 60.0f );
-
-      Spring( &def.mRuntimeData.mAlphaCur,
-              &def.mRuntimeData.mAlphaVel,
-              def.mRuntimeData.mAlphaTgt,
-              80.0f,
-              1 / 60.0f );
+      Spring( 
+        SpringParams{
+          .mPosCur           { &def.mRuntimeData.mHoverAlphaCur },
+          .mVelCur           { &def.mRuntimeData.mHoverAlphaVel },
+          .mPosTgt           { def.mRuntimeData.mHoverAlphaTgt },
+          .mSpringyness      { 50.0f },
+          .mDeltaTimeSeconds { 1 / 60.0f  } }  );
+      Spring( 
+        SpringParams{
+          .mPosCur           { &def.mRuntimeData.mAlphaCur },
+          .mVelCur           { &def.mRuntimeData.mAlphaVel },
+          .mPosTgt           { def.mRuntimeData.mAlphaTgt },
+          .mSpringyness      { 80.0f },
+          .mDeltaTimeSeconds { 1 / 60.0f } } );
     }
 
 

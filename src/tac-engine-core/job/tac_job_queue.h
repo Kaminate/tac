@@ -2,8 +2,11 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 
-//import std; // atomic
-//#include <atomic>
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <atomic>
+#endif
 
 namespace Tac
 {
