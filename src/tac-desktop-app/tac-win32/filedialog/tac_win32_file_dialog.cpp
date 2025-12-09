@@ -24,8 +24,10 @@ namespace Tac
   {
     ~FileDialogHelper();
     void SetDefaultFolder( UTF8Path, Errors& );
-    void InitDialog(REFCLSID, REFIID, void**, IFileDialog*, Errors&);
-    auto RunEnd(Errors&) -> UTF8Path;
+    void InitDialog( REFCLSID, REFIID, void**, Errors& );
+    void InitOpenDialog( Errors& );
+    void InitSaveDialog( Errors& );
+    auto RunEnd( Errors& ) -> UTF8Path;
 
     IFileDialog*            mDialog     {};
     PCom< IFileOpenDialog > mOpenDialog {};
@@ -44,31 +46,16 @@ namespace Tac
   auto Win32FileDialogSave( const SaveParams& params, Errors& errors ) -> UTF8Path
   {
     FileDialogHelper helper;
-    TAC_CALL_RET( helper.InitDialog( CLSID_FileSaveDialog,
-                              helper.mSaveDialog.iid(),
-                              helper.mSaveDialog.ppv(),
-                              ( IFileDialog* )helper.mSaveDialog,
-                              errors ) );
-    if( !params.mDefaultFolder.empty() )
-    {
-      TAC_CALL_RET( helper.SetDefaultFolder( params.mDefaultFolder, errors ) );
-    }
+    TAC_CALL_RET( helper.InitSaveDialog( errors ) );
+    TAC_CALL_RET( helper.SetDefaultFolder( params.mDefaultFolder, errors ) );
     return helper.RunEnd( errors );
   }
 
   auto Win32FileDialogOpen( const OpenParams& params, Errors& errors ) -> UTF8Path
   {
     FileDialogHelper helper;
-    TAC_CALL_RET( helper.InitDialog( CLSID_FileOpenDialog,
-                                     helper.mOpenDialog.iid(),
-                                     helper.mOpenDialog.ppv(),
-                                     ( IFileDialog* )helper.mOpenDialog,
-                                     errors ) );
-    if( !params.mDefaultFolder.empty() )
-    {
-      TAC_CALL_RET( helper.SetDefaultFolder( params.mDefaultFolder, errors ) );
-    }
-
+    TAC_CALL_RET( helper.InitOpenDialog( errors ) );
+    TAC_CALL_RET( helper.SetDefaultFolder( params.mDefaultFolder, errors ) );
     return helper.RunEnd( errors );
   }
 
@@ -89,6 +76,8 @@ namespace Tac
 
   void FileDialogHelper::SetDefaultFolder( UTF8Path dir, Errors& errors )
   {
+    if( dir.empty() )
+      return;
     const std::filesystem::path stdDir( ( char8_t* )dir.c_str() );
     const std::wstring wDir { stdDir.wstring() };
     PCom< IShellItem > shDir;
@@ -96,11 +85,22 @@ namespace Tac
     TAC_HR_CALL( mDialog->SetDefaultFolder( ( IShellItem* )shDir ) );
   }
 
-  void FileDialogHelper::InitDialog( REFCLSID sid, REFIID iid, void** ppv, IFileDialog* dialog, Errors& errors )
+  void FileDialogHelper::InitDialog( REFCLSID sid, REFIID iid, void** ppv, Errors& errors )
   {
-    TAC_HR_CALL( CoInitializeEx( NULL, COINIT_APARTMENTTHREADED ) );
+    TAC_HR_CALL( CoInitializeEx( NULL, COINIT_MULTITHREADED ) );
     TAC_HR_CALL( CoCreateInstance( sid, NULL, CLSCTX_INPROC_SERVER, iid, ppv ) );
-    mDialog = dialog;
+  }
+
+  void FileDialogHelper::InitOpenDialog( Errors& errors )
+  {
+    InitDialog( CLSID_FileOpenDialog, mOpenDialog.iid(), mOpenDialog.ppv(), errors );
+    mDialog = mOpenDialog.Get();
+  }
+
+  void FileDialogHelper::InitSaveDialog( Errors& errors )
+  {
+    InitDialog( CLSID_FileSaveDialog, mSaveDialog.iid(), mSaveDialog.ppv(), errors );
+    mDialog = mSaveDialog.Get();
   }
 
 } // namespace Tac
