@@ -1,10 +1,9 @@
 #include "tac_win32_file_dialog.h" // self-inc
 
-#include "tac-std-lib/error/tac_error_handling.h" // Errors
 #include "tac-engine-core/shell/tac_shell.h" // sShellInitialWorkingDir
+#include "tac-std-lib/error/tac_error_handling.h" // Errors
 #include "tac-win32/tac_win32.h" // TAC_HR_CALL
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
-#include <shobjidl_core.h> // IFileDialog, IFileSaveDialog, IFileOpenDialog
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -13,9 +12,7 @@
   #include <filesystem>
 #endif
 
-#if 0
-#include <Shlobj.h> // SHGetKnownFolderPath
-#endif
+#include <shobjidl_core.h> // IFileDialog, IFileSaveDialog, IFileOpenDialog
 
 namespace Tac
 {
