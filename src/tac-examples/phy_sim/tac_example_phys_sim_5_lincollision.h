@@ -10,14 +10,12 @@ namespace Tac
   struct ExamplePhys5SimObj
   {
     ExamplePhys5SimObj();
-
-    // should be called when the radius or mass changes
-    void        ComputeInertiaTensor();
-    void        AddForce( v3 );
-    void        BeginFrame();
-    void        Integrate();
-    float       Volume();
-    void        Recompute();
+    void ComputeInertiaTensor(); // should be called when the radius or mass changes
+    void AddForce( v3 );
+    void BeginFrame();
+    void Integrate();
+    auto Volume() -> float;
+    void Recompute();
 
     const char* mName                { "" };
     float       mMass                { 5 };

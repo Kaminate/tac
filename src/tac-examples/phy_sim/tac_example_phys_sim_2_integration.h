@@ -24,21 +24,23 @@ namespace Tac
     void DrawPositions();
     void Reset();
 
-    static v3   GetForce(v3 pos);
-    static v3   GetAcceleration(v3 pos);
-    static v3   GetCentripetalAcceleration(v3 pos);
-    static v3   GetCentripetalForce(v3 pos);
+    static auto GetForce(v3 pos) -> v3;
+    static auto GetAcceleration(v3 pos) -> v3;
+    static auto GetCentripetalAcceleration(v3 pos) -> v3;
+    static auto GetCentripetalForce(v3 pos) -> v3;
 
-    static const int            kRingCount { 25 };
-    IntegrationMode             mIntegrationMode{};
-    v3                          mPosition;
-    v3                          mVelocity;
-    RingArray< v3, kRingCount > mPositions;
-    float                       timer {};
-    static float                mBallRadius;
-    static float                mOrbitRadius;
-    static float                mDuration;
-    static float                mMass;
-    static float                mAngularVelocity;
+    static constexpr int kRingCount { 25 };
+    using Positions = RingArray< v3, kRingCount >;
+
+    IntegrationMode mIntegrationMode{};
+    v3              mPosition;
+    v3              mVelocity;
+    Positions       mPositions;
+    float           timer {};
+    static float    mBallRadius;
+    static float    mOrbitRadius;
+    static float    mDuration;
+    static float    mMass;
+    static float    mAngularVelocity;
   };
 }

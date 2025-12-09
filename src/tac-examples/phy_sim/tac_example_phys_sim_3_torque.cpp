@@ -4,7 +4,6 @@
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/os/tac_os.h"
@@ -20,7 +19,7 @@ namespace Tac
   static bool     drawDragForce     {};
   static bool     debugPrintRotMtx  {};
 
-  static m3 InertiaTensorBox(float mass, float a, float b, float c )
+  static auto InertiaTensorBox(float mass, float a, float b, float c ) -> m3
   {
     float s { mass / 12 };
     float ixx { s * ( b * b + c * c ) };
@@ -31,14 +30,38 @@ namespace Tac
              0, 0, izz };
   }
 
-  // Assumptions:
-  // - the box is of uniform density
-  // - 'mass' is of the entire box
-  // - 'size'.xyz is the full width/height/depth of the box size length
-  static m3 InertiaTensorBox(float mass, v3 size )
+  static auto InertiaTensorBox( float mass, v3 size ) -> m3
   {
+    // Assumptions:
+    // - the box is of uniform density
+    // - 'mass' is of the entire box
+    // - 'size'.xyz is the full width/height/depth of the box size length
     return InertiaTensorBox(mass, size.x, size.y, size.z);
   }
+
+  static auto Format( float f ) -> String
+  {
+    String result { Tac::ToString( f ) };
+    while( result.size() < 4 ) { result += " "; }
+    while( result.size() > 4 ) { result.pop_back(); }
+    return result;
+  }
+
+  static void DebugPrintMtx( const m3& m )
+  {
+    const m3& mOrientation { m };
+    const v3 r0 { mOrientation.GetRow( 0 ) };
+    const v3 r1 { mOrientation.GetRow( 1 ) };
+    const v3 r2 { mOrientation.GetRow( 2 ) };
+    const String s{ String()
+      + Format( r0.x ) + " " + Format( r0.y ) + " " + Format( r0.z ) + "\n"
+      + Format( r1.x ) + " " + Format( r1.y ) + " " + Format( r1.z ) + "\n"
+      + Format( r2.x ) + " " + Format( r2.y ) + " " + Format( r2.z ) + "\n"
+    };
+    OS::OSDebugPrintLine( s );
+    OS::OSDebugPrintLine( "\n" );
+  }
+
 
   ExamplePhysSim3Torque::ExamplePhysSim3Torque()
   {
@@ -50,12 +73,12 @@ namespace Tac
     mCamera->mPos = v3( 0, 2, 10 );
   }
 
-  v3 ExamplePhysSim3Torque::GetDragForce()
+  auto ExamplePhysSim3Torque::GetDragForce() -> v3
   {
     return 1.5f * mMass * -mLinVel.Length() * mLinVel;
   }
 
-  v3 ExamplePhysSim3Torque::GetDragTorque()
+  auto ExamplePhysSim3Torque::GetDragTorque() -> v3
   {
     // fake angular friction ( should actually use moment of inertia idk )
     return -0.5f * mMass * mAngVel.Length() * mAngVel;
@@ -87,29 +110,6 @@ namespace Tac
     mWorld->mDebug3DDrawData->DebugDraw3DArrow( mPos + wsOffset, mPos + wsOffset + wsKeyboardForce, v3( 0, 1, 0 ) );
     if(drawDragForce)
       mWorld->mDebug3DDrawData->DebugDraw3DArrow( mPos, mPos + dragForce, v3( 1, 0, 0 ) );
-  }
-
-  static String Format( float f )
-  {
-    String result { Tac::ToString( f ) };
-    while( result.size() < 4 ) { result += " "; }
-    while( result.size() > 4 ) { result.pop_back(); }
-    return result;
-  }
-
-  static void DebugPrintMtx( const m3& m )
-  {
-    const m3& mOrientation { m };
-    const v3 r0 { mOrientation.GetRow( 0 ) };
-    const v3 r1 { mOrientation.GetRow( 1 ) };
-    const v3 r2 { mOrientation.GetRow( 2 ) };
-    const String s{ String()
-      + Format( r0.x ) + " " + Format( r0.y ) + " " + Format( r0.z ) + "\n"
-      + Format( r1.x ) + " " + Format( r1.y ) + " " + Format( r1.z ) + "\n"
-      + Format( r2.x ) + " " + Format( r2.y ) + " " + Format( r2.z ) + "\n"
-    };
-    OS::OSDebugPrintLine( s );
-    OS::OSDebugPrintLine( "\n" );
   }
 
   void ExamplePhysSim3Torque::Integrate()

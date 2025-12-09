@@ -7,14 +7,11 @@
 #include "tac-examples/phy_sim/tac_example_phys_sim_1_force.h"
 #include "tac-examples/phy_sim/tac_example_phys_sim_2_integration.h"
 #include "tac-examples/phy_sim/tac_example_phys_sim_3_torque.h"
-#include "tac-examples/phy_sim/tac_example_phys_sim_4_tank.h"
 #include "tac-examples/phy_sim/tac_example_phys_sim_5_lincollision.h"
 #include "tac-examples/phy_sim/tac_example_phys_sim_6_rotcollision.h"
-#include "tac-examples/phy_sim/tac_example_phys_sim_7_friction.h"
 #include "tac-examples/imgui/tac_example_imgui.h"
 #include "tac-examples/LaTeX_radiosity/tac_example_LaTeX_radiosity.h"
 #include "tac-examples/LaTeX_simple/tac_example_LaTeX_simple.h"
-
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/containers/tac_vector.h"
 
@@ -59,13 +56,11 @@ void Tac::ExampleRegistryPopulate()
 {
   ExampleRegistryAdd< ExampleFluid >( "Fluid" );
   ExampleRegistryAdd< ExampleMeta >( "Meta" );
-  ExampleRegistryAdd< ExamplePhysSim1Force >( "Physics - Sim 1 Force" );
-  ExampleRegistryAdd< ExamplePhysSim2Integration >( "Physics - Sim 2 Integration" );
-  ExampleRegistryAdd< ExamplePhysSim3Torque >( "Physics - Sim 3 Torque" );
-  ExampleRegistryAdd< ExamplePhysSim4Tank >( "Physics - Sim 4 Tank" );
-  ExampleRegistryAdd< ExamplePhysSim5LinCollision >( "Physics - Sim 5 Lin Collision" );
-  ExampleRegistryAdd< ExamplePhysSim6RotCollision >( "Physics - Sim 6 Rot Collision" );
-  ExampleRegistryAdd< ExamplePhysSim7Friction >( "Physics - Sim 7 Friction" );
+  ExampleRegistryAdd< ExamplePhysSim1Force >( "Physics Sim - Force" );
+  ExampleRegistryAdd< ExamplePhysSim2Integration >( "Physics Sim - Integration" );
+  ExampleRegistryAdd< ExamplePhysSim3Torque >( "Physics Sim - Torque" );
+  ExampleRegistryAdd< ExamplePhysSim5LinCollision >( "Physics Sim - Lin Collision" );
+  ExampleRegistryAdd< ExamplePhysSim6RotCollision >( "Physics Sim - Rot Collision" );
   ExampleRegistryAdd< ExampleText >( "Text" );
   ExampleRegistryAdd< ExampleImgui >( "ImGui" );
   ExampleRegistryAdd< ExampleLaTeXRadiosity >( "LaTeX Radiosity" );
@@ -77,5 +72,5 @@ auto Tac::GetExampleIndex( const StringView name ) -> int
     if( ( StringView )sExamples[ i ].mExampleName == name )
       return i;
   return -1;
-  }
-  
+}
+

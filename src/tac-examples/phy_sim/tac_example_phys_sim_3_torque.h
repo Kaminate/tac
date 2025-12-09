@@ -11,8 +11,8 @@ namespace Tac
     ExamplePhysSim3Torque();
     void Update( Errors& ) override;
     void Integrate();
-    v3 GetDragForce();
-    v3 GetDragTorque();
+    auto GetDragForce() -> v3;
+    auto GetDragTorque() -> v3;
 
     float mMass       { 10 };
     float mWidth      { 2 };

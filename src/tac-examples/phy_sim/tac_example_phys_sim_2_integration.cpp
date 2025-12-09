@@ -21,7 +21,37 @@ namespace Tac
   float ExamplePhysSim2Integration::mMass;
   float ExamplePhysSim2Integration::mAngularVelocity;
 
-  const char* ToString( IntegrationMode m )
+  struct Rk4StateDerivative
+  {
+    v3 mVelocity;
+    v3 mAcceleration;
+  };
+
+  struct RK4State
+  {
+    v3 mPosition;
+    v3 mVelocity;
+
+    auto Derive() const -> Rk4StateDerivative
+    {
+      return
+      {
+        .mVelocity = mVelocity,
+        .mAcceleration = ExamplePhysSim2Integration::GetAcceleration( mPosition )
+      };
+    }
+
+    auto operator + ( const Rk4StateDerivative& k ) const -> RK4State
+    {
+      return
+      {
+        .mPosition = mPosition + k.mVelocity,
+        .mVelocity = mVelocity + k.mAcceleration,
+      };
+    }
+  };
+
+  static auto ToString( IntegrationMode m ) -> const char*
   {
     switch( m )
     {
@@ -32,13 +62,7 @@ namespace Tac
     }
   }
 
-  struct Rk4StateDerivative
-  {
-    v3 mVelocity;
-    v3 mAcceleration;
-  };
-
-  Rk4StateDerivative operator * ( float f, const Rk4StateDerivative& k )
+  static auto operator * ( float f, const Rk4StateDerivative& k ) -> Rk4StateDerivative
   {
     return Rk4StateDerivative
     {
@@ -47,7 +71,7 @@ namespace Tac
     };
   }
 
-  Rk4StateDerivative operator + ( const Rk4StateDerivative& lhs, const Rk4StateDerivative& rhs )
+  static auto operator + ( const Rk4StateDerivative& lhs, const Rk4StateDerivative& rhs ) -> Rk4StateDerivative
   {
     return Rk4StateDerivative
     {
@@ -55,31 +79,6 @@ namespace Tac
       .mAcceleration = lhs.mAcceleration + rhs.mAcceleration,
     };
   }
-
-  struct RK4State
-  {
-    v3 mPosition;
-    v3 mVelocity;
-
-    Rk4StateDerivative Derive() const
-    {
-      return
-      {
-        .mVelocity = mVelocity,
-        .mAcceleration = ExamplePhysSim2Integration::GetAcceleration( mPosition )
-      };
-    }
-
-    RK4State operator + ( const Rk4StateDerivative& k ) const
-    {
-      return
-      {
-        .mPosition = mPosition + k.mVelocity,
-        .mVelocity = mVelocity + k.mAcceleration,
-      };
-    }
-
-  };
 
   ExamplePhysSim2Integration::ExamplePhysSim2Integration()
   {
@@ -160,7 +159,7 @@ namespace Tac
     }
   }
 
-  v3   ExamplePhysSim2Integration::GetCentripetalAcceleration(v3 pos)
+  auto ExamplePhysSim2Integration::GetCentripetalAcceleration(v3 pos) -> v3
   {
     float radius { pos.Length() };
     float speed { radius * mAngularVelocity };
@@ -172,23 +171,21 @@ namespace Tac
     return accel;
   }
 
-  v3   ExamplePhysSim2Integration::GetCentripetalForce(v3 pos)
+  auto ExamplePhysSim2Integration::GetCentripetalForce(v3 pos) -> v3
   {
     v3 force { mMass * GetCentripetalAcceleration(pos) };
     return force;
   }
 
-  v3   ExamplePhysSim2Integration::GetForce(v3 pos)
+  auto ExamplePhysSim2Integration::GetForce(v3 pos) -> v3
   {
     return GetCentripetalForce(pos);
   }
 
-
-  v3   ExamplePhysSim2Integration::GetAcceleration(v3 pos)
+  auto ExamplePhysSim2Integration::GetAcceleration(v3 pos) -> v3
   {
     return GetForce(pos) / mMass;
   }
-
 
   void ExamplePhysSim2Integration::Update( Errors& )
   {

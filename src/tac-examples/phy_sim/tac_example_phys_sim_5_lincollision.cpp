@@ -4,7 +4,6 @@
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/math/tac_math.h"
 
@@ -18,14 +17,6 @@ static bool spin { true };
 
 namespace Tac
 {
-  static m3 InertiaTensorSphere( float mass, float radius )
-  {
-    const float s { ( 2.0f / 5.0f ) * mass * radius * radius };
-    return { s, 0, 0,
-             0, s, 0,
-             0, 0, s };
-  }
-
   struct Sim5CollisionResult
   {
     bool  mCollided {};
@@ -34,7 +25,7 @@ namespace Tac
     float mDist     {}; // penetration distance
   };
 
-  static Sim5CollisionResult Sim5CollideSphereSphere(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
+  static auto Sim5CollideSphereSphere(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB) -> Sim5CollisionResult
   {
     const v3 dx { objB.mLinPos - objA.mLinPos }; // vector from objA to objB
     const float q { dx.Quadrance() }; // quadrance between circles
@@ -53,7 +44,7 @@ namespace Tac
     };
   }
 
-  static Sim5CollisionResult Sim5Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB)
+  static auto Sim5Collide(const ExamplePhys5SimObj& objA, const ExamplePhys5SimObj& objB) -> Sim5CollisionResult
   {
     const v3 dx { objB.mLinPos - objA.mLinPos }; // vector from objA to objB
     const float q { dx.Quadrance() }; // quadrance between circles
@@ -84,11 +75,30 @@ namespace Tac
     objB.mLinVel -= ( j / objB.mMass ) * collisionResult.mNormal;
   }
 
+  static void SimObjUI(ExamplePhys5SimObj& obj)
+  {
+    if (!ImGuiCollapsingHeader(obj.mName))
+      return;
+
+    bool changed {};
+    changed |= ImGuiDragFloat("radius", &obj.mRadius);
+    if (changed)
+      obj.Recompute();
+  }
+
+  static auto InertiaTensorSphere( float mass, float radius ) -> m3
+  {
+    const float s { ( 2.0f / 5.0f ) * mass * radius * radius };
+    return { s, 0, 0,
+             0, s, 0,
+             0, 0, s };
+  }
+
+
   ExamplePhys5SimObj::ExamplePhys5SimObj()
   {
     ComputeInertiaTensor();
   }
-
 
   void ExamplePhys5SimObj::ComputeInertiaTensor()
   {
@@ -111,7 +121,7 @@ namespace Tac
     mLinPos += mLinVel * dt;
   }
 
-  float ExamplePhys5SimObj::Volume()
+  auto ExamplePhys5SimObj::Volume() -> float
   {
     return (4.0f / 3.0f) * 3.14f * mRadius * mRadius * mRadius;
   }
@@ -119,6 +129,12 @@ namespace Tac
   void ExamplePhys5SimObj::AddForce( v3 force )
   {
     mLinForceAccum += force;
+  }
+
+  void ExamplePhys5SimObj::Recompute()
+  {
+    mMass = density * Volume();
+    ComputeInertiaTensor();
   }
 
   ExamplePhysSim5LinCollision::ExamplePhysSim5LinCollision()
@@ -139,24 +155,6 @@ namespace Tac
     mObstacle.Recompute();
 
     mCamera->mPos = { 0, 2, 10 };
-  }
-
-
-  void ExamplePhys5SimObj::Recompute()
-  {
-    mMass = density * Volume();
-    ComputeInertiaTensor();
-  }
-
-  static void SimObjUI(ExamplePhys5SimObj& obj)
-  {
-    if (!ImGuiCollapsingHeader(obj.mName))
-      return;
-
-    bool changed {};
-    changed |= ImGuiDragFloat("radius", &obj.mRadius);
-    if (changed)
-      obj.Recompute();
   }
 
   void ExamplePhysSim5LinCollision::Update( Errors& )
