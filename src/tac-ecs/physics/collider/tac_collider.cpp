@@ -11,8 +11,10 @@ namespace Tac
 
   TAC_META_REGISTER_STRUCT_BEGIN( Collider );
   TAC_META_REGISTER_STRUCT_MEMBER( mVelocity );
+#if 0
   TAC_META_REGISTER_STRUCT_MEMBER( mRadius );
   TAC_META_REGISTER_STRUCT_MEMBER( mTotalHeight );
+#endif
   TAC_META_REGISTER_STRUCT_END( Collider );
 
   auto Collider::GetCollider( Entity* entity ) -> Collider*
@@ -41,8 +43,10 @@ namespace Tac
   {
     Collider* collider{ ( Collider* )component  };
     ImGuiDragFloat3( "Velocity" , collider->mVelocity.data() );
+#if 0
     ImGuiDragFloat( "Capsule Radius", &collider->mRadius  );
     ImGuiDragFloat( "Capsule Height", &collider->mTotalHeight );
+#endif
   }
 
   void Collider::RegisterComponent()

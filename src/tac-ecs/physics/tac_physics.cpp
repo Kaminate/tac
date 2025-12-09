@@ -37,13 +37,14 @@ namespace Tac
 
   // Static functions
 
+#if 0
   static auto GetSupport( const Collider* collider ) -> CapsuleSupport
   {
-    const CapsuleSupport capsuleSupport( collider->mEntity->mRelativeSpace.mPosition,
+    return CapsuleSupport( collider->mEntity->mRelativeSpace.mPosition,
                                          collider->mTotalHeight,
                                          collider->mRadius );
-    return capsuleSupport;
   }
+#endif
 
   static auto CreatePhysicsSystem() -> System* { return TAC_NEW Physics; }
 
@@ -120,7 +121,7 @@ namespace Tac
     //Graphics* graphics = Graphics::Get( mWorld );
     for( Collider* collider : mColliders )
     {
-      const CapsuleSupport capsuleSupport { GetSupport( collider ) };
+      //const CapsuleSupport capsuleSupport { GetSupport( collider ) };
       //graphics->DebugDrawCapsule( capsuleSupport.mBotSpherePos,
       //                               capsuleSupport.mTopSpherePos,
       //                               capsuleSupport.mRadius,
@@ -173,9 +174,10 @@ namespace Tac
         const ConvexPolygonSupport terrainSupport( obb.mPos, obb.mHalfExtents, obb.mEulerRads );
         for( Collider* collider : mColliders )
         {
-          const CapsuleSupport capsuleSupport { GetSupport( collider ) };
+          //const CapsuleSupport capsuleSupport { GetSupport( collider ) };
 
-          GJK gjk( &terrainSupport, &capsuleSupport );
+          //GJK gjk( &terrainSupport, &capsuleSupport );
+          GJK gjk;
 
 #if TAC_TEMPORARILY_DISABLED()
           OnDestruct( if( mGJKDebugging ) DebugDrawGJK( gjk, graphics ) );

@@ -22,7 +22,7 @@ namespace Tac
     return projParams;
   }
 
-  void  Camera::SetForwards( v3 v )
+  void Camera::SetForwards( v3 v )
   {
     const float q{ v.Quadrance() };
     if( q < 0.01f )

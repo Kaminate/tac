@@ -115,8 +115,10 @@ namespace Tac
   GJK::GJK( const Support* left,
             const Support* right )
   {
+    TAC_ASSERT( left && right );
     mLeft = left;
     mRight = right;
+    mIsRunning = true;
   }
 
   void GJK::EnsureCorrectTetrahedronOrientation()

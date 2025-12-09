@@ -87,7 +87,7 @@ namespace Tac
 
     bool invExists;
     const m4 worldToModel_dir{ m4::Transpose( entity->mWorldTransform ) };
-    const m4 worldToModel_pos { m4::Inverse( entity->mWorldTransform, &invExists ) };
+    const m4 worldToModel_pos{ m4::Inverse( entity->mWorldTransform, &invExists ) };
     if( !invExists )
       return {};
 
@@ -136,7 +136,10 @@ namespace Tac
   {
     const Camera* camera{ Creation::GetCamera() };
     GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
-    if( SelectedEntities::empty() || !gizmoMgr->mGizmosEnabled || !mWindowHovered )
+    if( SelectedEntities::empty()
+        || !gizmoMgr->mGizmosEnabled
+        || !gizmoMgr->mTranslationGizmoVisible
+        || !mWindowHovered )
       return;
 
     const v3 selectionGizmoOrigin { gizmoMgr->mGizmoOrigin };
@@ -163,21 +166,21 @@ namespace Tac
 
       const Ray meshRay
       { 
-        .mOrigin{ modelSpaceRayPos3 },
-        .mDirection{ modelSpaceRayDir3 },
+        .mOrigin    { modelSpaceRayPos3 },
+        .mDirection { modelSpaceRayDir3 },
       };
 
       const MeshRaycast::Result meshRaycastResult{ mArrow->mMeshRaycast.Raycast( meshRay ) };
-      if( !meshRaycastResult.IsValid()  )
-        continue;
-
-      const float dist{ meshRaycastResult.mT * gizmoMgr->mArrowLen };
-      if( !pickData.IsNewClosest( dist ) )
-        continue;
-
-      pickData.arrowAxis = i;
-      pickData.closestDist = dist;
-      pickData.pickedObject = PickedObject::WidgetTranslationArrow;
+      if( meshRaycastResult.IsValid() )
+      {
+        if( const float dist{ meshRaycastResult.mT * gizmoMgr->mArrowLen };
+            pickData.IsNewClosest( dist ) )
+        {
+          pickData.arrowAxis = i;
+          pickData.closestDist = dist;
+          pickData.pickedObject = PickedObject::WidgetTranslationArrow;
+        }
+      }
     }
   }
 
@@ -189,12 +192,12 @@ namespace Tac
            Entity* entity : world->mEntities )
       {
         TAC_CALL( const RaycastResult raycastResult{ MousePickingEntity( entity, errors ) } );
-        if( !raycastResult.mHit || !pickData.IsNewClosest( raycastResult.mT ) )
-          continue;
-
-        pickData.closestDist = raycastResult.mT;
-        pickData.closest = entity;
-        pickData.pickedObject = PickedObject::Entity;
+        if( raycastResult.mHit && pickData.IsNewClosest( raycastResult.mT ) )
+        {
+          pickData.closestDist = raycastResult.mT;
+          pickData.closest = entity;
+          pickData.pickedObject = PickedObject::Entity;
+        }
       }
     }
 

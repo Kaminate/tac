@@ -30,7 +30,7 @@ namespace Tac
     CapsuleSupport( v3 base,
                     float height,
                     float radius );
-    v3 GetFurthestPoint( const v3& dir ) const override;
+    auto GetFurthestPoint( const v3& dir ) const -> v3 override;
     v3 mBotSpherePos {};
     v3 mTopSpherePos {};
     float mRadius    {};
@@ -42,7 +42,7 @@ namespace Tac
     ConvexPolygonSupport( v3 obbPos,
                           v3 obbHalfExtents,
                           v3 obbEulerRads );
-    v3 GetFurthestPoint( const v3& dir ) const override;
+    auto GetFurthestPoint( const v3& dir ) const -> v3 override;
     Vector< v3 > mPoints;
   };
 
@@ -65,7 +65,7 @@ namespace Tac
     EPATriangle( CompoundSupport v0,
                  CompoundSupport v1,
                  CompoundSupport v2 );
-    v3 GetArbitraryPointOnTriangle();
+    auto GetArbitraryPointOnTriangle() -> v3;
     void ComputeDist();
 
     CompoundSupport mV0;
@@ -92,9 +92,9 @@ namespace Tac
     void EnsureCorrectTetrahedronOrientation();
     void Step();
     void EPAStep();
-    CompoundSupport GetCompountSupport( const v3& dir );
+    auto GetCompountSupport( const v3& dir ) -> CompoundSupport;
 
-    bool mIsRunning                                  { true };
+    bool mIsRunning                                  {};
     bool mIsColliding                                {};
     int mIteration                                   {};
     v3 mNormalizedSearchDir                          { 1, 0, 0 };

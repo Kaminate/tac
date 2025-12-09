@@ -8,13 +8,24 @@
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-ecs/graphics/material/tac_material.h"
+#include "tac-ecs/physics/collider/tac_collider.h"
 #include "tac-level-editor/windows/game/tac_level_editor_game_window.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
 
 namespace Tac
 {
+
+  struct PickingPreview
+  {
+    bool mIsValid;
+    v3 mUnitNormal;
+    v3 mPosition;
+  };
+
   static float cubeSize{ 1 };
+  static bool  sPlacingCubes{};
+  static Plane sPlacingCubePlane {};
 
   static auto Snap( v3 previewOrigin ) -> v3
   {
@@ -29,11 +40,11 @@ namespace Tac
     return previewOrigin;
   }
 
-  static auto GetEntityPreviewPos(Entity* pickedEntity) -> Optional< v3 >
+  static auto GetEntityPreviewPos( Entity* pickedEntity ) -> PickingPreview
   {
-    Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
-    Model* model{ Model::GetModel( pickedEntity ) };
-    if(!model)
+    const Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
+    const Model* model{ Model::GetModel( pickedEntity ) };
+    if( !model )
       return {};
 
     Errors errors;
@@ -43,67 +54,73 @@ namespace Tac
       .mModelIndex { model->mModelIndex },
     };
     bool isInverseValid{};
-    m4 worldToModel_dir{ m4::Transpose( pickedEntity->mWorldTransform ) };
-    m4 worldToModel_pos{ m4::Inverse( pickedEntity->mWorldTransform, &isInverseValid ) };
+    const m4 worldToModel_dir{ m4::Transpose( pickedEntity->mWorldTransform ) };
+    const m4 worldToModel_pos{ m4::Inverse( pickedEntity->mWorldTransform, &isInverseValid ) };
     if( !isInverseValid )
       return {};
 
-    m4 modelToWorld_dir = m4::Transpose(worldToModel_pos);
+    const m4 modelToWorld_dir{ m4::Transpose( worldToModel_pos ) };
 
-    Ray mouseRay_modelspace
+    const Ray mouseRay_modelspace
     {
       .mOrigin    { ( worldToModel_pos * v4( mouseRay_worldspace.mOrigin, 1 ) ).xyz()},
       .mDirection { ( worldToModel_dir * v4( mouseRay_worldspace.mDirection, 0 ) ).xyz() },
     };
 
-    Mesh* mesh{ ModelAssetManager::GetMesh( getMeshParams, errors ) };
+    const Mesh* mesh{ ModelAssetManager::GetMesh( getMeshParams, errors ) };
     TAC_ASSERT( !errors );
     if( !mesh )
       return {};
 
-    MeshRaycast::Result raycastResult{ mesh->mMeshRaycast.Raycast( mouseRay_modelspace ) };
+    const MeshRaycast::Result raycastResult{ mesh->mMeshRaycast.Raycast( mouseRay_modelspace ) };
     if( !raycastResult.IsValid() )
       return {};
 
-
-    auto closest{ mesh->mMeshRaycast.mTris[ raycastResult.mTriIdx ] };
+    const Triangle closest{ mesh->mMeshRaycast.mTris[ raycastResult.mTriIdx ] };
     const v3 e1{ closest.mVertices[ 1 ] - closest.mVertices[ 0 ] };
     const v3 e2{ closest.mVertices[ 2 ] - closest.mVertices[ 0 ] };
-    const v3 n_modelspace{ Normalize( Cross( e1, e2 ) ) };
+    const v3 n_modelspace{ Cross( e1, e2 ) };
     const v3 n_worldspace{ ( modelToWorld_dir * v4( n_modelspace, 0 ) ).xyz() };
+    const v3 hitPos_modelspace{ mouseRay_modelspace.mOrigin + mouseRay_modelspace.mDirection * raycastResult.mT };
+    const v3 hitPos_worldspace{ ( pickedEntity->mWorldTransform * v4( hitPos_modelspace, 1 ) ).xyz() };
 
-    v3 hitPos_modelspace{ mouseRay_modelspace.mOrigin + mouseRay_modelspace.mDirection * raycastResult.mT };
-    v3 hitPos_worldspace{ ( pickedEntity->mWorldTransform * v4( hitPos_modelspace, 1 ) ).xyz() };
+    return PickingPreview{
+      .mIsValid{ true },
+      .mUnitNormal{ Normalize( n_worldspace ) },
+      .mPosition {hitPos_worldspace},
+    };
 
-    v3 previewPos_unsnapped = hitPos_worldspace + n_worldspace * cubeSize / 2;
+    //v3 previewPos_unsnapped = hitPos_worldspace + n_worldspace * cubeSize / 2;
 
-    return Snap( previewPos_unsnapped );
   }
 
-  static auto GetGroundPreviewPos() -> Optional<v3>
+  static auto GetGroundPreviewPos() -> PickingPreview
   {
     Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
     Plane ground{ Plane::FromPosUnitNormal( {}, v3( 0, 1, 0 ) ) };
     RayPlane rayPlane{ mouseRay_worldspace, ground };
     if( !rayPlane )
       return {};
-    v3 hitPoint{ rayPlane.mT * mouseRay_worldspace.mDirection + mouseRay_worldspace.mOrigin };
-    v3 previewOrigin_unsnapped{ hitPoint + ground.UnitNormal() * cubeSize / 2 };
-    return Snap( previewOrigin_unsnapped );
+    v3 hitPoint_worldspace{ rayPlane.mT * mouseRay_worldspace.mDirection + mouseRay_worldspace.mOrigin };
+    //v3 previewOrigin_unsnapped{ hitPoint + ground.UnitNormal() * cubeSize / 2 };
+    //return Snap( previewOrigin_unsnapped );
+    return PickingPreview{
+      .mIsValid{ true },
+      .mUnitNormal{ ground.UnitNormal() },
+      .mPosition {hitPoint_worldspace},
+    };
   }
 
   static auto RandomColor() -> v4
   {
     v3 color{};
-    float t{RandomFloat0To1()};
+    float t{ RandomFloat0To1() };
     for( int i{}; i < 3; ++i )
-    {
-      float a{ v3 {0.8f, 0.5f, 0.4f}[ i ] };
-      float b{ v3 {0.2f, 0.4f, 0.2f}[ i ] };
-      float c{ v3 {2.0f, 1.0f, 1.0f}[ i ] };
-      float d{ v3 {0.0f, 0.2f, 0.2f}[ i ] };
-      color[ i ] = a + b * Cos( 6.283185f * ( c * t + d ) );
-    }
+      color[ i ]
+      = v3( 0.3f, 0.1f, 0.3f )[ i ]
+      + v3( 0.2f, 0.2f, 0.2f )[ i ] * Cos( 6.283185f * (
+        v3( 1.0f, 1.0f, 1.0f )[ i ] * t +
+        v3( 0.1f, 0.2f, 0.2f )[ i ] ) );
     return v4( color, 1 );
   }
 
@@ -118,27 +135,52 @@ namespace Tac
   }
   void CubeTool::Update()
   {
+    if( sPlacingCubes && !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+      sPlacingCubes = false;
+
     if( AppWindowApi::IsHovered( CreationGameWindow::GetWindowHandle() ) )
     {
-      Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
+
+      const Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
 
       // show preview
       World* world{ Creation::GetWorld() };
       Debug3DDrawData* drawData{ world->mDebug3DDrawData };
       
-      Optional< v3 > previewPos;
+      PickingPreview pickingPreview{};
       if( Entity* pickedEntity{CreationMousePicking::GetPickedEntity()} )
-        previewPos = GetEntityPreviewPos(pickedEntity);
+        pickingPreview = GetEntityPreviewPos(pickedEntity);
       else
-        previewPos = GetGroundPreviewPos();
+        pickingPreview = GetGroundPreviewPos();
 
-      if( previewPos )
+      if( pickingPreview.mIsValid )
       {
-        drawData->DebugDraw3DOBB( previewPos.GetValue(), v3(1,1,1) * cubeSize / 2, m3() );
-        if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+        v3 spawnPos{ Snap( pickingPreview.mPosition + pickingPreview.mUnitNormal * cubeSize / 2 ) };
+        drawData->DebugDraw3DOBB( spawnPos, v3(1,1,1) * cubeSize / 2, m3() );
+
+        bool shouldSpawnCube{};
+
+        if( sPlacingCubes
+            && Abs( sPlacingCubePlane.SignedDistance( pickingPreview.mPosition ) ) < .01f
+            && Dot( sPlacingCubePlane.UnitNormal(), pickingPreview.mUnitNormal ) > .99f )
         {
+          shouldSpawnCube = true;
+
+        }
+
+        if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
+          shouldSpawnCube = true;
+
+        if( shouldSpawnCube )
+        {
+          sPlacingCubePlane = Plane::FromPosUnitNormal( pickingPreview.mPosition, pickingPreview.mUnitNormal );
+          sPlacingCubes = true;
+
+          // this should say spawn prefab instance
+
           Entity* entity{ Creation::CreateEntity() };
-          entity->mRelativeSpace.mPosition = previewPos.GetValue();
+          entity->mRelativeSpace.mPosition = spawnPos;
+          entity->mStatic = true;
 
           auto model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
           model->mModelPath = "assets/essential/models/box/Box.gltf";
@@ -149,6 +191,9 @@ namespace Tac
           material->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
           material->mIsGlTF_PBR_MetallicRoughness = true;
           material->mPBR_Factor_Roughness = 1;
+
+          auto collider{ (Collider*) entity->AddNewComponent( Collider().GetEntry() ) };
+          //collider->SET SHAPE AS CUBE;
         }
       }
     }

@@ -6,16 +6,43 @@
 
 namespace Tac
 {
-  // This is an upright capsule
   struct Collider : public Component
   {
+    enum Type
+    {
+      kSphere,
+      kCapsule,
+      kRectanglarPrism,
+    };
+    struct SphereData
+    {
+      float mRadius;
+    };
+    struct CapsuleData
+    {
+      float mRadius     ;//{ 0.5f };
+      float mTotalHeight;//{ 2.0f };
+    };
+    struct RectangularPrismData
+    {
+      float mHalfX;
+      float mHalfY;
+      float mHalfZ;
+    };
+
     static void RegisterComponent();
     static auto CreateCollider( World* ) -> Collider*;
     static auto GetCollider( Entity* ) -> Collider*;
     auto GetEntry() const -> const ComponentInfo* override;
-    v3    mVelocity    {};
-    float mRadius      { 0.5f };
-    float mTotalHeight { 2.0f };
+
+    union
+    {
+      SphereData           mSphereData;
+      CapsuleData          mCapsuleData;
+      RectangularPrismData mRectangularPrismData;
+    };
+    Type mType     {};
+    v3   mVelocity {};
   };
   TAC_META_DECL( Collider );
 }

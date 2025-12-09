@@ -1,73 +1,47 @@
-#include "tac-std-lib/math/tac_vector3.h"
+#include "tac_vector3.h"
+
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_math_unit_test_helper.h"
-#include "tac-std-lib/math/tac_math.h"
-//#include <cmath> // sqrt
 
 namespace Tac
 {
   v3::v3( float xx, float yy, float zz ) : x( xx ), y( yy ), z( zz ){}
   v3::v3( float xyz ) : x( xyz ), y( xyz ), z( xyz ){}
   v3::v3( v2 xy, float zz ) : x( xy.x ), y( xy.y ), z( zz ){}
-  v2&          v3::xy()                        { return *( v2* )data(); }
-  float*       v3::begin()                     { return data(); }
-  float*       v3::end()                       { return data() + 3; }
-  float*       v3::data()                      { return &x; }
-  const float* v3::data() const                { return &x; }
-  float&       v3::operator[]( int i )         { return data()[ i ]; }
-  float        v3::operator[]( int i ) const   { return data()[ i ]; }
-  void         v3::operator /= ( float v )     { *this *= ( 1.0f / v ); }
-  void         v3::operator *= ( float v )     { for( int i{}; i < 3; ++i ) data()[ i ] *= v; }
-  void         v3::operator -= ( const v3& v ) { for( int i{}; i < 3; ++i ) data()[ i ] -= v[ i ]; }
-  void         v3::operator += ( const v3& v ) { for( int i{}; i < 3; ++i ) data()[ i ] += v[ i ]; }
-  bool         v3::operator == ( const v3& v )const
-  {
-    for( int i {}; i < 3; ++i )
-      if( data()[ i ] != v[ i ] )
-        return false;
-    return true;
-  }
-  bool         v3::operator != ( const v3& v )const
-  {
-    for( int i {}; i < 3; ++i )
-      if( data()[ i ] != v[ i ] )
-        return true;
-    return false;
-  }
-  v3           v3::operator - () const              { return *this * -1.0f; }
-  v3           v3::operator * ( float v ) const     { v3 result{ *this }; result *= v; return result; }
-  v3           v3::operator / ( float v ) const     { return *this * ( 1.0f / v ); }
-  v3           v3::operator + ( const v3& v ) const { v3 result{ *this }; result += v; return result; }
-  v3           v3::operator - ( const v3& v ) const { v3 result{ *this }; result -= v; return result; }
-  void         v3::Normalize()                      { *this /= Length(); }
-  float        v3::Length() const                   { return Sqrt( Quadrance() ); }
-  float        v3::Quadrance() const                { return Dot( *this, *this ); }
+  auto v3::xy() const -> const v2&                   { return *( v2* )data(); }
+  auto v3::xy() dynmc -> dynmc v2&                   { return *( v2* )data(); }
+  auto v3::begin() -> float*                         { return data(); }
+  auto v3::end() -> float*                           { return data() + 3; }
+  auto v3::data() dynmc -> dynmc float*              { return &x; }
+  auto v3::data() const -> const float*              { return &x; }
+  void v3::Normalize()                               { *this /= Length(); }
+  auto v3::Length() const -> float                   { return Sqrt( Quadrance() ); }
+  auto v3::Quadrance() const -> float                { return Dot( *this, *this ); }
+  auto v3::operator[]( int i ) dynmc -> dynmc float& { return data()[ i ]; }
+  auto v3::operator[]( int i ) const -> const float& { return data()[ i ]; }
+  void v3::operator /= ( float v )                   { *this *= ( 1.0f / v ); }
+  void v3::operator *= ( float v )                   { for( int i{}; i < 3; ++i ) data()[ i ] *= v; }
+  void v3::operator -= ( const v3& v )               { for( int i{}; i < 3; ++i ) data()[ i ] -= v[ i ]; }
+  void v3::operator += ( const v3& v )               { for( int i{}; i < 3; ++i ) data()[ i ] += v[ i ]; }
+  bool v3::operator == ( const v3& v ) const         { return x == v.x && y == v.y && z == v.z; }
+  bool v3::operator != ( const v3& v ) const         { return x != v.x || y != v.y || z != v.z; }
+  auto v3::operator - () const -> v3                 { return *this * -1.0f; }
+  auto v3::operator * ( float v ) const -> v3        { v3 result{ *this }; result *= v; return result; }
+  auto v3::operator / ( float v ) const -> v3        { return *this * ( 1.0f / v ); }
+  auto v3::operator + ( const v3& v ) const -> v3    { v3 result{ *this }; result += v; return result; }
+  auto v3::operator - ( const v3& v ) const -> v3    { v3 result{ *this }; result -= v; return result; }
 } // namespace Tac
 
-Tac::v3 Tac::operator *( float f, const v3& v )     { return v * f; }
-
-float Tac::Dot( const v3& lhs, const v3& rhs )
-{
-  return
-    lhs.x * rhs.x +
-    lhs.y * rhs.y +
-    lhs.z * rhs.z;
-}
-
-Tac::v3    Tac::Cross( const v3& l, const v3& r )
-{
-  return v3( l.y * r.z - l.z * r.y,
-             l.z * r.x - l.x * r.z,
-             l.x * r.y - l.y * r.x );
-}
-
-Tac::v3 Tac::Normalize( const v3& v )                  { v3 result { v }; result.Normalize(); return result; }
-float   Tac::Length( const v3& v )                     { return v.Length(); }
-float   Tac::Distance( const v3& lhs, const v3& rhs )  { return ( lhs - rhs ).Length(); }
-float   Tac::Quadrance( const v3& v )                  { return v.Quadrance(); }
-float   Tac::Quadrance( const v3& lhs, const v3& rhs ) { return ( lhs - rhs ).Quadrance(); }
-
-Tac::v3 Tac::Project( const v3& onto_b, const v3& of_a )
+auto Tac::operator *( float f, const v3& v ) -> v3           { return v * f; }
+auto Tac::Dot( const v3& lhs, const v3& rhs ) -> float       { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
+auto Tac::Cross( const v3& l, const v3& r ) -> v3            { return v3( l.y * r.z - l.z * r.y, l.z * r.x - l.x * r.z, l.x * r.y - l.y * r.x ); }
+auto Tac::Normalize( const v3& v ) -> v3                     { v3 result { v }; result.Normalize(); return result; }
+auto Tac::Length( const v3& v ) -> float                     { return v.Length(); }
+auto Tac::Distance( const v3& lhs, const v3& rhs ) -> float  { return ( lhs - rhs ).Length(); }
+auto Tac::Quadrance( const v3& v ) -> float                  { return v.Quadrance(); }
+auto Tac::Quadrance( const v3& lhs, const v3& rhs ) -> float { return ( lhs - rhs ).Quadrance(); }
+ 
+auto Tac::Project( const v3& onto_b, const v3& of_a ) -> v3
 {
   const float b_lengthsq { Quadrance( onto_b ) };
   if( b_lengthsq < 0.0001f )
@@ -78,7 +52,7 @@ Tac::v3 Tac::Project( const v3& onto_b, const v3& of_a )
   return result;
 }
 
-void    Tac::GetFrameRH( const v3& unitDir, v3& unitTan1, v3& unitTan2 )
+void Tac::GetFrameRH( const v3& unitDir, v3& unitTan1, v3& unitTan2 )
 {
   // From Erin Catto's blog post "Computing a Basis" posted on February 3, 2014
 
@@ -105,7 +79,7 @@ void    Tac::GetFrameRH( const v3& unitDir, v3& unitTan1, v3& unitTan2 )
   unitTan2 = Cross( unitDir, unitTan1 );
 }
 
-void    Tac::v3UnitTest()
+void Tac::v3UnitTest()
 {
   v3 a{ 3,-3,1 };
   v3 b{ 4,9,2 };

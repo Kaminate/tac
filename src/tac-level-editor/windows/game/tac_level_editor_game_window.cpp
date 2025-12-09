@@ -348,24 +348,21 @@ namespace Tac
 
       if( angleRadians.x != 0 )
       {
-        m3 matrix { m3::RotRadAngleAxis( -angleRadians.x, camera->mUp ) };
-        camera->mForwards = matrix * camera->mForwards;
-        camera->mRight = Cross( camera->mForwards, camera->mUp );
+        const m3 matrix { m3::RotRadAngleAxis( -angleRadians.x, camera->mUp ) };
+        camera->mForwards = Normalize( matrix * camera->mForwards );
+        camera->mRight = Normalize( Cross( camera->mForwards, camera->mUp ) );
       }
 
       if( angleRadians.y != 0 )
       {
-        m3 matrix { m3::RotRadAngleAxis( -angleRadians.y, camera->mRight ) };
-        camera->mForwards = matrix * camera->mForwards;
+        const m3 matrix { m3::RotRadAngleAxis( -angleRadians.y, camera->mRight ) };
+        camera->mForwards = Normalize( matrix * camera->mForwards );
         camera->mUp = Cross( camera->mRight, camera->mForwards );
       }
 
-      // Snapping right.y to the x-z plane prevents the camera from tilting side-to-side.
       camera->mForwards.Normalize();
-      camera->mRight.y = 0;
-      camera->mRight.Normalize();
-      camera->mUp = Cross( camera->mRight, camera->mForwards );
-      camera->mUp.Normalize();
+      camera->mUp = Normalize( Cross( v3( camera->mRight.x, 0, camera->mRight.z ), camera->mForwards ) );
+      camera->mRight = Normalize( Cross( camera->mForwards, camera->mUp ) );
     }
 
     if( AppKeyboardApi::IsPressed( Key::MouseMiddle ) &&
