@@ -19,6 +19,7 @@ auto Tac::KeyToString( const Key key ) -> StringView
     case Key::Backtick:     return "backtick";
     case Key::Escape:       return "escape";
     case Key::Modifier:     return "mod";
+    case Key::Enter:        return "enter";
 
     case Key::A:            return "A";
     case Key::B:            return "B";

@@ -54,6 +54,7 @@ namespace Tac
       case VK_BACK: return Key::Backspace;
       case VK_TAB: return Key::Tab;
       case VK_CONTROL: return Key::Modifier;
+      case VK_RETURN: return Key::Enter;
       case 'A': return Key::A;
       case 'B': return Key::B;
       case 'C': return Key::C;

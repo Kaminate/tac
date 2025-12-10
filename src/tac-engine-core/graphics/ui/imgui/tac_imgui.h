@@ -56,9 +56,9 @@ namespace Tac
   enum ImGuiWindowFlags
   {
     ImGuiWindowFlags_None = 0,
-    ImGuiWindowFlags_NoTitleBar,
-    ImGuiWindowFlags_NoResize,
-    ImGuiWindowFlags_AutoResize,
+    ImGuiWindowFlags_NoTitleBar = 1 << 0,
+    ImGuiWindowFlags_NoResize = 1 << 1,
+    ImGuiWindowFlags_AutoResize = 1 << 2,
   };
 
   enum class ImGuiCol

@@ -69,8 +69,6 @@ namespace Tac
     const v2 totalSize( width, fontSize );
     const ImGuiRect origRect { ImGuiRect::FromPosSize( pos, totalSize ) };
 
-    DragData* dragFloatData { ( DragData* )window->GetWindowResource( sDragDataID, id ) };
-
     window->ItemSize( totalSize );
     if( !window->Overlaps( origRect ) )
       return false;
@@ -78,127 +76,112 @@ namespace Tac
     const ImGuiRect clipRect { window->Clip( origRect ) };
     const v2 valuePos { pos + v2( buttonPaddingPx, 0 ) };
     const bool hovered { window->IsHovered( clipRect, id ) };
-
-    //static GameTime consumeMouse;
-    //if( hovered )
-    //  Mouse::TryConsumeMouseMovement( &consumeMouse, TAC_STACK_FRAME );
-
-    if( hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
-      ImGuiGlobals::SetActiveID( id, window );
-
     const bool active{ ImGuiGlobals::GetActiveID() == id };
-    if( active )
+
+    static float prevMouseX_uiwindowspace;
+    DragData* dragFloatData { ( DragData* )window->GetWindowResource( sDragDataID, id ) };
+
+    // Begin drag behavior
+    if( hovered
+        && !active
+        && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
     {
-      if( dragFloatData->mMode == DragMode::Drag )
+      dragFloatData->mMode = DragMode::Drag;
+      ImGuiGlobals::SetActiveID( id, window );
+      prevMouseX_uiwindowspace = window->GetMousePos_uiwindowspace().x;
+      dragFloatData->mDragDistPx = 0;
+      MemCpy( dragFloatData->mValueCopy, valueBytes, valueByteCount );
+    }
+
+    // End drag behavior
+    if( active
+        && dragFloatData->mMode == DragMode::Drag
+        && !UIKeyboardApi::IsPressed( Key::MouseLeft ) )
+      ImGuiGlobals::ClearActiveID();
+
+    // Continue drag behavior
+    if( active
+        && dragFloatData->mMode == DragMode::Drag
+        && UIKeyboardApi::IsPressed( Key::MouseLeft ) )
+    {
+      const float dx{ window->GetMousePos_uiwindowspace().x - prevMouseX_uiwindowspace };
+      dragFloatData->mDragDistPx += dx;
+      mouseHandler( dragFloatData->mDragDistPx, dragFloatData->mValueCopy, valueBytes );
+
+      v2 nextMousePos_uiwindowspace{ window->GetMousePos_uiwindowspace() };
+      if( dx )
       {
-        v2 screenspaceMousePos { UIKeyboardApi::GetMousePosScreenspace() };
-        static float lastMouseXDesktopWindowspace;
+        changed = true;
 
+        while( nextMousePos_uiwindowspace.x > window->mSize.x )
+          nextMousePos_uiwindowspace.x -= window->mSize.x;
+        while( nextMousePos_uiwindowspace.x < 0 )
+          nextMousePos_uiwindowspace.x += window->mSize.x;
 
-        if( UIKeyboardApi::JustPressed( Key::MouseLeft ) )
+        if( nextMousePos_uiwindowspace.x != window->GetMousePos_uiwindowspace().x )
         {
-          lastMouseXDesktopWindowspace = screenspaceMousePos.x;
-          dragFloatData->mDragDistPx = 0;
-          MemCpy( dragFloatData->mValueCopy, valueBytes, valueByteCount );
-        }
-        else if ( UIKeyboardApi::IsPressed( Key::MouseLeft ) )
-        {
-          WindowHandle windowHandle { window->GetWindowHandle() };
-          const v2 desktopWindowPos { AppWindowApi::GetPos( windowHandle ) };
-          const v2 viewportSpaceMousePos { screenspaceMousePos - desktopWindowPos };
+          v2 nextMousePos_desktopspace = nextMousePos_uiwindowspace + window->GetWindowPos_desktopspace();
 
-          float moveCursorDir {};
-          moveCursorDir = viewportSpaceMousePos.x > clipRect.mMaxi.x ? -1 : moveCursorDir;
-          moveCursorDir = viewportSpaceMousePos.x < clipRect.mMini.x ? 1 : moveCursorDir;
-          if( moveCursorDir )
-          {
-            Errors errors;
-            screenspaceMousePos.x += moveCursorDir * clipRect.GetWidth();
-            OS::OSSetScreenspaceCursorPos( screenspaceMousePos, errors );
-          }
-          else
-          {
-            dragFloatData->mDragDistPx += screenspaceMousePos.x - lastMouseXDesktopWindowspace;
-            mouseHandler( dragFloatData->mDragDistPx, dragFloatData->mValueCopy, valueBytes );
-            changed = true;
-          }
-        }
-        else
-        {
-          ImGuiGlobals::ClearActiveID();
-        }
+          Errors errors;
+          OS::OSSetScreenspaceCursorPos( nextMousePos_desktopspace, errors );
+          TAC_ASSERT( !errors );
 
-        lastMouseXDesktopWindowspace = screenspaceMousePos.x;
-
-        // handle double click
-        static GameTime lastMouseReleaseSeconds;
-        static v2 lastMousePositionDesktopWindowspace;
-        if( UIKeyboardApi::JustDepressed( Key::MouseLeft ) && hovered )
-        {
-          const GameTime mouseReleaseSeconds { ImGuiGlobals::mElapsedSeconds };
-          const GameTimeDelta kDoubleClickSecs{ .mSeconds{ 0.5f } };
-          if( mouseReleaseSeconds - lastMouseReleaseSeconds < kDoubleClickSecs &&
-              lastMousePositionDesktopWindowspace == screenspaceMousePos )
-          {
-            const CodepointString codepointString{ UTF8ToCodepointString( valueStr ) };
-            const CodepointView codepoints{ codepointString.data(), codepointString.size() };
-            inputData->SetCodepoints( codepoints );
-            inputData->mCaretCount = 2;
-            inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
-            inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
-            dragFloatData->mMode = DragMode::TextInput;
-          }
-          lastMouseReleaseSeconds = mouseReleaseSeconds;
-          lastMousePositionDesktopWindowspace = screenspaceMousePos;
+          //prevMousePos_uiwindowspace.x = nextMousePos_uiwindowspace.x;
         }
       }
 
-      if( dragFloatData->mMode == DragMode::TextInput )
-      {
-        const auto oldCodepoints { inputData->mCodepoints };
-        TextInputDataUpdateKeys( inputData, window->GetMousePos_uiwindowspace(), valuePos );
+      prevMouseX_uiwindowspace = nextMousePos_uiwindowspace.x;
+    }
 
-        const bool codepointsChanged { oldCodepoints != inputData->mCodepoints };
-        //const bool codepointsChanged = oldCodepoints.size() != inputData->mCodepoints.size()
-        //  || 0 != MemCmp( oldCodepoints.data(),
-        //                  inputData->mCodepoints.data(),
-        //                  oldCodepoints.size() * sizeof( Codepoint ) );
-        if( codepointsChanged )
+    // Begin TextInput behavior
+    if( hovered
+        && !active
+        && UIKeyboardApi::JustPressed( Key::MouseLeft ) )
+    {
+        static GameTime singleClickTime;
+        static v2i singleClickPos;
+
+        if( ( ImGuiGlobals::mElapsedSeconds - singleClickTime ) < GameTimeDelta{ .mSeconds{ 0.5f } } &&
+            UIKeyboardApi::GetMousePosScreenspace() == singleClickPos )
         {
-          changed = true;
+          const CodepointString codepointString{ UTF8ToCodepointString( valueStr ) };
+          const CodepointView codepoints{ codepointString.data(), codepointString.size() };
+          inputData->SetCodepoints( codepoints );
+          inputData->mCaretCount = 2;
+          inputData->mNumGlyphsBeforeCaret[ 0 ] = 0;
+          inputData->mNumGlyphsBeforeCaret[ 1 ] = codepoints.size();
+          dragFloatData->mMode = DragMode::TextInput;
+          ImGuiGlobals::SetActiveID( id, window );
+        }
 
+        singleClickTime = ImGuiGlobals::mElapsedSeconds;
+        singleClickPos = UIKeyboardApi::GetMousePosScreenspace();
+    }
+
+    // End TextInput behavior
+    if( active && dragFloatData->mMode == DragMode::TextInput )
+    {
+      if( bool clickedAway{ !hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) };
+          clickedAway || UIKeyboardApi::JustPressed( Key::Enter ) )
+      {
+        ImGuiGlobals::ClearActiveID();
+      }
+    }
+
+    // Continue TextInput behavior
+    if( active && dragFloatData->mMode == DragMode::TextInput )
+    {
+        const CodepointString oldCodepoints { inputData->mCodepoints };
+        TextInputDataUpdateKeys( inputData, window->GetMousePos_uiwindowspace(), valuePos );
+        if( oldCodepoints != inputData->mCodepoints )
+        {
           const StringView newText { CodepointsToUTF8(inputData->GetCodepointView()) };
           setter( newText, valueBytes );
           valueStr = newText;
-
-          // tab between x,y,z for imguidragfloat3
-          //if( UIKeyboardApi::JustPressed( Key::Tab ) )
-          //  window->mIDAllocator->mActiveID++;
+          changed = true;
         }
-      }
     }
 
-    if( id != ImGuiGlobals::GetActiveID() )
-    {
-      if( dragFloatData->mMode == DragMode::TextInput )
-      {
-        dragFloatData->mMode = DragMode::Drag;
-        dragFloatData->mDragDistPx = 0;
-      }
-      else
-      {
-        const auto remove_trailing_zeroes { []( String& s )
-        {
-          if( !s.contains( '.' ) )
-            return;
-          while( s.back() == '0' )
-            s.pop_back();
-          if( s.back() == '.' )
-            s.pop_back();
-        } };
-        remove_trailing_zeroes( valueStr );
-      }
-    }
 
     ImGuiCol colEnum { ImGuiCol::FrameBG };
     if( hovered ) { colEnum = ImGuiCol::FrameBGHovered; }
@@ -213,7 +196,7 @@ namespace Tac
         .mColor { color },
       }, &clipRect );
 
-    if( dragFloatData->mMode == DragMode::TextInput )
+    if( active && dragFloatData->mMode == DragMode::TextInput )
       TextInputDataDrawSelection( inputData, drawData, valuePos, &clipRect );
 
     drawData->AddText( UI2DDrawData::Text

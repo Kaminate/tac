@@ -10,6 +10,7 @@ namespace Tac
     Backspace,
     Delete,
     Modifier,
+    Enter, // aka Return
     Escape,
     Tab,
     Backtick,
