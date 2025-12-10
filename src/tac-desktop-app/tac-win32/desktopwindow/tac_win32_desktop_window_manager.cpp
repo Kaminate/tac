@@ -129,12 +129,12 @@ namespace Tac
     {
       case WM_SHOWWINDOW:
       {
-        const DesktopEventApi::WindowVisibleEvent data
-        {
-            .mWindowHandle { windowHandle },
-            .mVisible {  wParam == TRUE  },
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::WindowVisibleEvent 
+          {
+              .mWindowHandle { windowHandle },
+              .mVisible {  wParam == TRUE  },
+          } );
       } break;
       // Sent as a signal that a window or an application should terminate.
       case WM_CLOSE:
@@ -151,11 +151,11 @@ namespace Tac
         ImGuiSaveWindowSettings( windowHandle );
         const int i{ windowHandle.GetIndex() };
         sHWNDs[ i ] = nullptr;
-        const DesktopEventApi::WindowDestroyEvent data
-        {
-          .mWindowHandle = windowHandle
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::WindowDestroyEvent
+          {
+            .mWindowHandle = windowHandle
+          } );
       } break;
 
       case WM_CREATE:
@@ -210,11 +210,11 @@ namespace Tac
       } break;
       case WM_CHAR:
       {
-        const DesktopEventApi::KeyInputEvent data
-        {
-          ( Codepoint )wParam
-        };
-        DesktopEventApi::Queue( data );
+        DesktopEventApi::Queue(
+          DesktopEventApi::KeyInputEvent
+          {
+            ( Codepoint )wParam
+          } );
       } break;
       case WM_SYSKEYDOWN: // fallthrough
       case WM_SYSKEYUP: // fallthrough
@@ -229,7 +229,12 @@ namespace Tac
         const Key key{ GetKey( ( u8 )wParam ) };
         if( key == Key::Count )
           break;
-        DesktopEventApi::Queue( DesktopEventApi::KeyStateEvent { .mKey { key }, .mDown { isDown }, } );
+        DesktopEventApi::Queue(
+          DesktopEventApi::KeyStateEvent
+          {
+            .mKey { key },
+            .mDown { isDown },
+          } );
       } break;
 
       //case WM_SETCURSOR:
@@ -257,17 +262,14 @@ namespace Tac
         const DesktopEventApi::WindowActivationEvent::State state{ wParam == TRUE
           ? DesktopEventApi::WindowActivationEvent::Activated
           : DesktopEventApi::WindowActivationEvent::Deactivated };
-
         DesktopEventApi::Queue(
           DesktopEventApi::WindowActivationEvent
           {
             .mWindowHandle { windowHandle },
             .mState        { state },
           } );
-
         if( verboseActivate && wParam ) { OS::OSDebugPrintLine( "Window activate!" ); }
         if( verboseActivate && !wParam ) { OS::OSDebugPrintLine( "Window deactivate!" ); }
-
       } break;
 
       case WM_CAPTURECHANGED:
@@ -291,7 +293,12 @@ namespace Tac
         if( uMsg == WM_LBUTTONDOWN ) { key = Key::MouseLeft; }
         if( uMsg == WM_RBUTTONDOWN ) { key = Key::MouseRight; }
         if( uMsg == WM_MBUTTONDOWN ) { key = Key::MouseMiddle; }
-        DesktopEventApi::Queue( DesktopEventApi::KeyStateEvent { .mKey  { key }, .mDown { true }, } );
+        DesktopEventApi::Queue(
+          DesktopEventApi::KeyStateEvent
+          {
+            .mKey  { key },
+            .mDown { true },
+          } );
 
         // make it so clicking the window brings the window to the top of the z order
         ::SetActiveWindow( hwnd );
@@ -440,13 +447,11 @@ namespace Tac
       if( !hwnd )
         continue;
 
-      const ShortFixedString text{ ShortFixedString::Concat( "Window ",
-                                                              ToString( i ),
-                                                              " has HWND ",
-                                                              ToString( ( void* )hwnd ) ) };
+      const ShortFixedString text{
+        ShortFixedString::Concat(
+          "Window ", ToString( i ), " has HWND ", ToString( ( void* )hwnd ) ) };
 
       ImGuiText( text );
-
       hwndCount++;
     }
 
@@ -480,12 +485,12 @@ namespace Tac
   {
     const auto i{ windowHandle.GetIndex() };
     const HWND hwnd{ sHWNDs[ i ] };
-    DestroyWindow( hwnd );
+    ::DestroyWindow( hwnd );
   }
 
   void Win32WindowManager::SpawnWindow( const PlatformSpawnWindowParams& params, Errors& errors )
   {
-    const WindowHandle& windowHandle = params.mHandle;
+    const WindowHandle& windowHandle{ params.mHandle };
 
     // Name of the window, displayed in the window's title bar or alt-tab menu
     const char* name{ params.mName };
@@ -652,12 +657,10 @@ namespace Tac
 
   auto Platform::PlatformGetMouseHoveredWindow() -> WindowHandle
   {
-    POINT cursorPos;
-    if( !::GetCursorPos( &cursorPos ) )
-      return {};
-
-    const HWND hwnd{ ::WindowFromPoint( cursorPos ) };
-    return Win32WindowManager::FindWindow( hwnd );
+    if( POINT cursorPos; ::GetCursorPos( &cursorPos ) )
+      if( const HWND hwnd{ ::WindowFromPoint( cursorPos ) } )
+        return Win32WindowManager::FindWindow( hwnd );
+    return {};
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -665,7 +668,4 @@ namespace Tac
 
 } // namespace Tac
 
-void Tac::Win32WindowManagerInit( Errors& errors )
-{
-  Win32WindowManager::Init( errors );
-}
+void Tac::Win32WindowManagerInit( Errors& errors ) { Win32WindowManager::Init( errors ); }
