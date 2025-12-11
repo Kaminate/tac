@@ -125,10 +125,7 @@ namespace Tac
       {
         Camera* camera{ Creation::GetCamera() };
         World* world{ Creation::GetWorld() };
-        v3 pos{ camera->mPos };
-        v3 dir{ CreationMousePicking::GetWorldspaceMouseDir() };
-        Ray ray{ .mOrigin{ pos }, .mDirection{ dir } };
-
+        Ray ray{ CreationMousePicking::GetWorldspaceMouseRay() };
         Errors errors;
         TAC_CALL( MousePickingEntityDebug( ray, world, camera, errors ) );
         TAC_ASSERT( !errors );

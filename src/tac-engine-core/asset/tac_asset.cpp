@@ -87,7 +87,7 @@ namespace Tac
 #endif
   }
 
-  static UTF8Path::IterateType AssetToFSIterateType( AssetIterateType t )
+  static auto AssetToFSIterateType( AssetIterateType t ) -> UTF8Path::IterateType
   {
     switch( t )
     {

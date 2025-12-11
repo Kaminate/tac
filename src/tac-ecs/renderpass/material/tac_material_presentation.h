@@ -13,16 +13,16 @@ namespace Tac
 {
   struct MaterialPresentation
   {
-    static void        Init( Errors& );
-    static void        Uninit();
-    static void        Render( Render::IContext*,
+    static void Init( Errors& );
+    static void Uninit();
+    static void Render( Render::IContext*,
                                const World*,
                                const Camera*,
                                v2i viewSize,
                                Render::TextureHandle color,
                                Render::TextureHandle depth,
                                Errors& );
-    static void        DebugImGui();
+    static void DebugImGui();
 
     static Render::BufferHandle sConstBufHandle_PerFrame;
     static Render::BufferHandle sConstBufHandle_Material;

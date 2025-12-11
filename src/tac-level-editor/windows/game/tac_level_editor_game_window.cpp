@@ -260,9 +260,18 @@ namespace Tac
       ImGuiDragFloat( "cam near", &camera->mNearPlane );
     }
 
-    float deg { RadiansToDegrees( camera->mFovyrad ) };
-    if( ImGuiDragFloat( "entire y fov(deg)", &deg ) )
-      camera->mFovyrad = DegreesToRadians( deg );
+    if( camera->mType == Camera::kPerspective )
+      if( float deg{ RadiansToDegrees( camera->mFovyrad ) };
+          ImGuiDragFloat( "entire y fov(deg)", &deg ) )
+        camera->mFovyrad = DegreesToRadians( deg );
+
+    if( camera->mType == Camera::kOrthographic )
+      ImGuiDragFloat( "ortho height", &camera->mOrthoHeight );
+
+    ImGuiText( "Type: %s", Camera::TypeToString( camera->mType ) );
+    if( ImGuiSameLine(), ImGuiButton( "Change" ) )
+      camera->mType = ( Camera::Type )( ( camera->mType + 1 ) % Camera::Type::kCount );
+
 
     if( ImGuiButton( "cam snap pos" ) )
     {
@@ -466,13 +475,9 @@ namespace Tac
     CameraUpdateSaved();
     CameraUpdateControls();
     GizmoMgr::sInstance.ComputeArrowLen();
-    TAC_CALL(CreationMousePicking::Update(  errors ) );
-    const Ray ray
-    {
-      .mOrigin    { Creation::GetCamera()->mPos },
-      .mDirection { CreationMousePicking::GetWorldspaceMouseDir() },
-    };
-    TAC_CALL( GizmoMgr::sInstance.Update( ray, errors ) );
+    TAC_CALL( CreationMousePicking::Update( errors ) );
+    const Ray mousePickingRay{ CreationMousePicking::GetWorldspaceMouseRay() };
+    TAC_CALL( GizmoMgr::sInstance.Update( mousePickingRay, errors ) );
 
     if( sDrawGrid )
       Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DGrid();

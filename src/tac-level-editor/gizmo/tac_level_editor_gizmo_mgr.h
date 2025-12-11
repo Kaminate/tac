@@ -3,6 +3,7 @@
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_vector3.h"
+#include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_math.h"
 
 namespace Tac
@@ -12,6 +13,8 @@ namespace Tac
     void Update( Ray, Errors& );
     bool IsTranslationWidgetActive( int ) const;
     void ComputeArrowLen();
+
+    static auto WidgetRendererGetAxisWorld( const int iAxis ) -> m4;
 
     bool                mSelectedGizmo           {};
     v3                  mGizmoOrigin             {};

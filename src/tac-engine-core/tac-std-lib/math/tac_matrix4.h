@@ -51,6 +51,16 @@ namespace Tac
       float mFOVYRadians;
     };
 
+    struct OrthographicMatrixParams
+    {
+      float mNDCMinZ;
+      float mNDCMaxZ;
+      float mViewSpaceNear;
+      float mViewSpaceFar;
+      float mOrthoW;
+      float mOrthoH;
+    };
+
     static m4 FromRows( const v4&, const v4&, const v4&, const v4& );
     static m4 FromColumns( const v4&, const v4&, const v4&, const v4& );
     static m4 Identity();
@@ -70,6 +80,8 @@ namespace Tac
     static m4 ProjPerspective( ProjectionMatrixParams );
     static m4 ProjPerspectiveInv( ProjectionMatrixParams );
     static m4 ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio );
+    static m4 ProjOrthographic( OrthographicMatrixParams );
+    static m4 ProjOrthographicInv( OrthographicMatrixParams );
   };
 
   auto operator * ( const m4&, const v4& ) -> v4;

@@ -64,5 +64,19 @@ namespace Tac
       entity->mRelativeSpace.mPosition += translate;
   }
 
+  auto GizmoMgr::WidgetRendererGetAxisWorld( const int i ) -> m4
+  {
+    auto gizmoMgr{ &GizmoMgr::sInstance };
+    TAC_ASSERT( gizmoMgr->mGizmosEnabled && gizmoMgr->mSelectedGizmo );
+    const m4 rots[]{ m4::RotRadZ( -3.14f / 2.0f ),
+                     m4::Identity(),
+                     m4::RotRadX( 3.14f / 2.0f ), };
+    const v3 selectionGizmoOrigin{ gizmoMgr->mGizmoOrigin };
+    const m4 world{ m4::Translate( selectionGizmoOrigin ) *
+                    rots[ i ] *
+                    m4::Scale( v3( 1, 1, 1 ) * gizmoMgr-> mArrowLen ) };
+    return world;
+  }
+
 } // namespace Tac
 

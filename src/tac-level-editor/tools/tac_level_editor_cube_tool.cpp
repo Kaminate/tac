@@ -40,7 +40,7 @@ namespace Tac
     return previewOrigin;
   }
 
-  static auto GetEntityPreviewPos( Entity* pickedEntity ) -> PickingPreview
+  static auto GetEntityPreviewPos( const Entity* pickedEntity ) -> PickingPreview
   {
     const Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
     const Model* model{ Model::GetModel( pickedEntity ) };
@@ -124,6 +124,29 @@ namespace Tac
     return v4( color, 1 );
   }
 
+  static auto SpawnCube( v3 spawnPos )
+  {
+      // this should say spawn prefab instance
+
+      Entity* entity{ Creation::CreateEntity() };
+      entity->mRelativeSpace.mPosition = spawnPos;
+      entity->mStatic = true;
+
+      auto model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
+      model->mModelPath = "assets/essential/models/box/Box.gltf";
+      model->mModelIndex = 0;
+
+      auto material{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
+      material->mColor = RandomColor();
+      material->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
+      material->mIsGlTF_PBR_MetallicRoughness = true;
+      material->mPBR_Factor_Roughness = 1;
+
+      auto collider{ (Collider*) entity->AddNewComponent( Collider().GetEntry() ) };
+      //collider->SET SHAPE AS CUBE;
+
+  }
+
   CubeTool CubeTool::sInstance;
   CubeTool::CubeTool()
   {
@@ -135,67 +158,37 @@ namespace Tac
   }
   void CubeTool::Update()
   {
-    if( sPlacingCubes && !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
-      sPlacingCubes = false;
+    if( sPlacingCubes )
+      if( !AppWindowApi::IsHovered( CreationGameWindow::GetWindowHandle() ) ||
+          !AppKeyboardApi::IsPressed( Key::MouseLeft ) )
+        sPlacingCubes = false;
 
-    if( AppWindowApi::IsHovered( CreationGameWindow::GetWindowHandle() ) )
+    if( !AppWindowApi::IsHovered( CreationGameWindow::GetWindowHandle() ) )
+      return;
+
+    const Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
+
+    const World* world{ Creation::GetWorld() };
+    dynmc Debug3DDrawData* drawData{ world->mDebug3DDrawData };
+    const Entity* pickedEntity{ CreationMousePicking::GetPickedEntity() };
+    const PickingPreview pickingPreview{ pickedEntity ? GetEntityPreviewPos( pickedEntity ) : GetGroundPreviewPos() };
+    if( !pickingPreview.mIsValid )
+      return;
+
+    const v3 spawnPos{ Snap( pickingPreview.mPosition + pickingPreview.mUnitNormal * cubeSize / 2 ) };
+    drawData->DebugDraw3DOBB( spawnPos, v3(1,1,1) * cubeSize / 2, m3() );
+
+    bool shouldSpawnCube{};
+    shouldSpawnCube |= AppKeyboardApi::JustPressed( Key::MouseLeft );
+    shouldSpawnCube |= sPlacingCubes
+      && Abs( sPlacingCubePlane.SignedDistance( pickingPreview.mPosition ) ) < .01f
+      && Dot( sPlacingCubePlane.UnitNormal(), pickingPreview.mUnitNormal ) > .99f;
+    if( shouldSpawnCube )
     {
+      sPlacingCubePlane = Plane::FromPosUnitNormal( pickingPreview.mPosition, pickingPreview.mUnitNormal );
+      sPlacingCubes = true;
 
-      const Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
-
-      // show preview
-      World* world{ Creation::GetWorld() };
-      Debug3DDrawData* drawData{ world->mDebug3DDrawData };
-      
-      PickingPreview pickingPreview{};
-      if( Entity* pickedEntity{CreationMousePicking::GetPickedEntity()} )
-        pickingPreview = GetEntityPreviewPos(pickedEntity);
-      else
-        pickingPreview = GetGroundPreviewPos();
-
-      if( pickingPreview.mIsValid )
-      {
-        v3 spawnPos{ Snap( pickingPreview.mPosition + pickingPreview.mUnitNormal * cubeSize / 2 ) };
-        drawData->DebugDraw3DOBB( spawnPos, v3(1,1,1) * cubeSize / 2, m3() );
-
-        bool shouldSpawnCube{};
-
-        if( sPlacingCubes
-            && Abs( sPlacingCubePlane.SignedDistance( pickingPreview.mPosition ) ) < .01f
-            && Dot( sPlacingCubePlane.UnitNormal(), pickingPreview.mUnitNormal ) > .99f )
-        {
-          shouldSpawnCube = true;
-
-        }
-
-        if( AppKeyboardApi::JustPressed( Key::MouseLeft ) )
-          shouldSpawnCube = true;
-
-        if( shouldSpawnCube )
-        {
-          sPlacingCubePlane = Plane::FromPosUnitNormal( pickingPreview.mPosition, pickingPreview.mUnitNormal );
-          sPlacingCubes = true;
-
-          // this should say spawn prefab instance
-
-          Entity* entity{ Creation::CreateEntity() };
-          entity->mRelativeSpace.mPosition = spawnPos;
-          entity->mStatic = true;
-
-          auto model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
-          model->mModelPath = "assets/essential/models/box/Box.gltf";
-          model->mModelIndex = 0;
-
-          auto material{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
-          material->mColor = RandomColor();
-          material->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
-          material->mIsGlTF_PBR_MetallicRoughness = true;
-          material->mPBR_Factor_Roughness = 1;
-
-          auto collider{ (Collider*) entity->AddNewComponent( Collider().GetEntry() ) };
-          //collider->SET SHAPE AS CUBE;
-        }
-      }
+      SpawnCube( spawnPos );
     }
   }
 } // namespace Tac

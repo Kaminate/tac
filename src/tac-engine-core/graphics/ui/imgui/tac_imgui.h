@@ -189,7 +189,10 @@ namespace Tac
   void PopID();
 
   //   ImGuiText
+
   void ImGuiText( StringView );
+  void ImGuiText( const char*, ... );
+  //void ImGuiText( StringView );
   bool ImGuiInputText( StringView label, String& text );
 
 

@@ -11,6 +11,7 @@ namespace Tac
 {
 
 
-  int asdf {};
 
 } // namespace Tac
+
+int Tac::asdf {};

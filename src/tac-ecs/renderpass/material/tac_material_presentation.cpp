@@ -55,7 +55,7 @@ namespace Tac
       const Material*               mMaterial       {};
       const Render::RenderMaterial* mRenderMaterial {};
     };
-    static ConstBufData_ShaderGraph Get( const Params& );
+    static auto Get( const Params& ) -> ConstBufData_ShaderGraph;
     m4  mWorld              {};
     u32 mVertexBufferIndex  { ( u32 )-1 };
     u32 mInputLayoutIndex   { ( u32 )-1 };
@@ -80,7 +80,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static m4                    GetProjMtx( const Camera* camera, const v2i viewSize )
+  static auto GetProjMtx( const Camera* camera, const v2i viewSize ) -> m4
   {
     const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -98,18 +98,19 @@ namespace Tac
     return proj;
   }
 
-  static ConstBufData_PerFrame GetPerFrameParams( const Camera* camera, const v2i viewSize )
+  static auto GetPerFrameParams( const Camera* camera, const v2i viewSize ) -> ConstBufData_PerFrame
   {
+    const float aspect{ float( viewSize.x ) / float( viewSize.y ) };
     const m4 view{ camera->View() };
-    const m4 proj{ GetProjMtx( camera, viewSize ) };
+    const m4 proj{ camera->Proj( aspect ) };
     const m4 worldToClip{ proj * view };
     return ConstBufData_PerFrame
     {
-      .mWorldToClip    { worldToClip },
+      .mWorldToClip { worldToClip },
     };
   }
 
-  static ConstBufData_Material GetMaterialParams( const Material* material, Errors& errors )
+  static auto GetMaterialParams( const Material* material, Errors& errors ) -> ConstBufData_Material
   {
     MaterialFlags flags;
     flags.Set( MaterialFlags::kIsGLTF_PBR_MetallicRoughness,
@@ -150,7 +151,7 @@ namespace Tac
     };
   }
 
-  static Render::BufferHandle  CreateDynCBuf( int byteCount, const char* name, Errors& errors )
+  static auto CreateDynCBuf( int byteCount, const char* name, Errors& errors ) -> Render::BufferHandle
   {
     const Render::CreateBufferParams params
     {
@@ -165,7 +166,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  void             MaterialPresentation::Init( Errors& errors )
+  void MaterialPresentation::Init( Errors& errors )
   {
     if( sInitialized )
       return;
@@ -187,7 +188,7 @@ namespace Tac
     sInitialized = true;
   }
 
-  void             MaterialPresentation::Uninit()
+  void MaterialPresentation::Uninit()
   {
     if( sInitialized )
     {
@@ -196,7 +197,7 @@ namespace Tac
     }
   }
 
-  void             MaterialPresentation::Render( Render::IContext* renderContext,
+  void MaterialPresentation::Render( Render::IContext* renderContext,
                                                  const World* world,
                                                  const Camera* camera,
                                                  const v2i viewSize,
@@ -336,14 +337,14 @@ namespace Tac
 
   }
 
-  void             MaterialPresentation::DebugImGui()
+  void MaterialPresentation::DebugImGui()
   {
     ImGuiCheckbox( "Material Presentation", &sEnabled );
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  ConstBufData_ShaderGraph ConstBufData_ShaderGraph::Get( const Params& params )
+  auto ConstBufData_ShaderGraph::Get( const Params& params ) -> ConstBufData_ShaderGraph
   {
     struct Handle
     {

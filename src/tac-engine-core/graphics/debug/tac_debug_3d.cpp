@@ -41,23 +41,6 @@ namespace Tac
   
   static Debug3DCommonData gDebug3DCommonData;
 
-  static auto Debug3DGetProj( const Camera* camera, const v2i viewSize ) -> m4
-  {
-    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const auto ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
-    const m4::ProjectionMatrixParams projMtxParams
-    {
-      .mNDCMinZ       { ndcAttribs.mMinZ },
-      .mNDCMaxZ       { ndcAttribs.mMaxZ },
-      .mViewSpaceNear { camera->mNearPlane },
-      .mViewSpaceFar  { camera->mFarPlane },
-      .mAspectRatio   { ( float )viewSize.x / ( float )viewSize.y },
-      .mFOVYRadians   { camera->mFovyrad },
-    };
-
-    return m4::ProjPerspective( projMtxParams );
-  }
-  
   void Debug3DCommonData::Uninit() const
   {
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
@@ -620,8 +603,9 @@ namespace Tac
 
     //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
+    const float aspect { ( float )viewSize.x / ( float )viewSize.y };
     const m4 view{ camera->View() };
-    const m4 proj{ Debug3DGetProj( camera, viewSize ) };
+    const m4 proj{ camera->Proj( aspect ) };
 
     const Debug3DConstBuf constBufData
     {

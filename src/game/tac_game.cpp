@@ -38,47 +38,49 @@ namespace Tac
       TAC_CALL( sGhost->Update( errors ) );
     }
 
-    static bool doTest{ true };
+    static bool showWindow{ true };
+    static bool shownWindow{};
 
-    if( ImGuiBegin( "Game", &doTest ) )
+    if( ImGuiBegin( "Game", &showWindow ) )
     {
-      if( false )//  ImGuiBeginMenuBar() )
+      TAC_ON_DESTRUCT(ImGuiEnd());
+
+      shownWindow = true;
+      if( ImGuiBeginMenuBar() )
       {
+        TAC_ON_DESTRUCT(ImGuiEndMenuBar());
+
         if( ImGuiBeginMenu( "File" ) )
         {
+          TAC_ON_DESTRUCT(ImGuiEndMenu());
           ImGuiButton( "new" );
           ImGuiButton( "open" );
           ImGuiButton( "close" );
           ImGuiButton( "exit" );
           ImGuiButton( "save" );
-          ImGuiEndMenu();
         }
         if( ImGuiBeginMenu( "Edit" ) )
         {
+          TAC_ON_DESTRUCT(ImGuiEndMenu());
           ImGuiButton( "undo" );
           ImGuiButton( "redo" );
           ImGuiButton( "cut" );
           ImGuiButton( "copy" );
           ImGuiButton( "paste" );
-          ImGuiEndMenu();
         }
-        ImGuiEndMenuBar();
       }
 
-      //ImGuiBeginChild( "asdf", v2( 500, 500 ) );
       ImGuiBeginGroup();
-
+      TAC_ON_DESTRUCT(ImGuiEndGroup());
 
       ImGuiButton( "button a" );
       ImGuiText( "the quick brown fox jumped over the lazy dog. :) !@#@#O$*&SD l;kfj we" );
       ImGuiButton( "button b" );
       ImGuiButton( "button c" );
-
-
-      //ImGuiEndChild();
-      ImGuiEndGroup();
-      ImGuiEnd();
     }
+
+    if( !showWindow && shownWindow )
+      OS::OSAppStopRunning();
     
   }
   void GameApp::Render( RenderParams renderParams, Errors& errors ) 

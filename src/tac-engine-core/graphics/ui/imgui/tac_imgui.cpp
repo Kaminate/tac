@@ -22,6 +22,9 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 
+#include <stdarg.h> // va_list, va_start, va_end
+#include <stdio.h> // vsnprintf
+
 namespace Tac
 {
 
@@ -694,7 +697,18 @@ void Tac::ImGuiSeparator()
     }, &clipRect );
 }
 
-void Tac::ImGuiText( const StringView utf8 )
+void Tac::ImGuiText( const char* fmt, ... )//const StringView utf8 )
+{
+  const size_t bufSize{ 1024 };
+  char buf[ 1024 ];
+  va_list args;
+  va_start( args, fmt );
+  int n{ vsnprintf( buf, bufSize, fmt, args ) };
+  ImGuiText( n >= 0 ? StringView( buf, n ) : StringView( "<encoding error>" ) );
+  va_end( args );
+}
+
+void Tac::ImGuiText( StringView utf8 )
 {
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   UI2DDrawData* drawData{ window->mDrawData };

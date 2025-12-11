@@ -10,16 +10,43 @@ namespace Tac
   {
     const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
-    const m4::ProjectionMatrixParams projParams
+    return
+      m4::ProjectionMatrixParams
+      {
+        .mNDCMinZ       { ndcAttribs.mMinZ },
+        .mNDCMaxZ       { ndcAttribs.mMaxZ },
+        .mViewSpaceNear { camera->mNearPlane },
+        .mViewSpaceFar  { camera->mFarPlane },
+        .mAspectRatio   { aspectRatio },
+        .mFOVYRadians   { camera->mFovyrad },
+      };
+  }
+
+  static auto GetOrthoParams( const Camera* camera, float aspectRatio ) -> m4::OrthographicMatrixParams
+  {
+    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
+    return
+      m4::OrthographicMatrixParams
+      {
+        .mNDCMinZ       { ndcAttribs.mMinZ },
+        .mNDCMaxZ       { ndcAttribs.mMaxZ },
+        .mViewSpaceNear { camera->mNearPlane },
+        .mViewSpaceFar  { camera->mFarPlane },
+        .mOrthoW        { camera->mOrthoHeight * aspectRatio },
+        .mOrthoH        { camera->mOrthoHeight },
+      };
+
+  }
+
+  auto Camera::TypeToString( Type type ) -> const char*
+  {
+    switch( type )
     {
-      .mNDCMinZ       { ndcAttribs.mMinZ },
-      .mNDCMaxZ       { ndcAttribs.mMaxZ },
-      .mViewSpaceNear { camera->mNearPlane },
-      .mViewSpaceFar  { camera->mFarPlane },
-      .mAspectRatio   { aspectRatio },
-      .mFOVYRadians   { camera->mFovyrad },
-    };
-    return projParams;
+      case kPerspective: return "Perspective";
+      case kOrthographic: return "Orthographic";
+      default: TAC_ASSERT_INVALID_CASE( type ); return "???";
+    }
   }
 
   void Camera::SetForwards( v3 v )
@@ -37,16 +64,32 @@ namespace Tac
 
   auto Camera::Proj( float aspectRatio ) const -> m4
   {
-    const m4::ProjectionMatrixParams projParams{ GetProjParams( this, aspectRatio ) };
-    return m4::ProjPerspective( projParams );
+    switch( mType )
+    {
+      case kPerspective:
+        return m4::ProjPerspective( GetProjParams( this, aspectRatio ) );
+      case kOrthographic:
+        return m4::ProjOrthographic( GetOrthoParams( this, aspectRatio ) );
+      default:
+        TAC_ASSERT_INVALID_CASE( mType );
+        return {};
+    }
   }
 
   auto Camera::ViewInv() const -> m4 { return m4::ViewInv( mPos, mForwards, mRight, mUp ); }
 
   auto Camera::ProjInv( float aspectRatio ) const -> m4
   {
-    const m4::ProjectionMatrixParams projParams{ GetProjParams( this, aspectRatio ) };
-    return m4::ProjPerspectiveInv( projParams );
+    switch( mType )
+    {
+      case kPerspective:
+        return m4::ProjPerspectiveInv( GetProjParams( this, aspectRatio )  );
+      case kOrthographic:
+        return m4::ProjOrthographicInv( GetOrthoParams( this, aspectRatio )  );
+      default:
+        TAC_ASSERT_INVALID_CASE( mType );
+        return {};
+    }
   }
 
 }

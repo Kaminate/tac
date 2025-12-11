@@ -16,7 +16,6 @@ namespace Tac
     static void Init( Errors& );
     static void Update( Errors& );
     static bool IsTranslationWidgetPicked( int );
-    static auto GetWorldspaceMouseDir() -> v3;
     static auto GetWorldspaceMouseRay() -> Ray;
     static auto GetPickedEntity() -> Entity*;
     static auto GetPickedPos() -> v3;

@@ -3,7 +3,6 @@
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile_backend.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
@@ -11,6 +10,7 @@
 #include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac
 {
@@ -223,7 +223,7 @@ namespace Tac
           ImGuiSetNextWindowSize( textSize + v2( 1, 1 ) * 50.0f );
           ImGuiBegin( "hovered" );
           ImGuiText( profileFunction->mName );
-          ImGuiText( String() + "msec: " + ToString( boxDeltaMsec ) );
+          ImGuiText( ( StringView )ShortFixedString::Concat( "msec: ", ToString( boxDeltaMsec ) ) );
           ImGuiEnd();
         }
 

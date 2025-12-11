@@ -30,14 +30,14 @@ namespace Tac
       // params.mNDCMinZ = ( -nA + B ) / n
       // params.mNDCMaxZ = ( -fA + B ) / f
 
-      const float f { params.mViewSpaceFar };
-      const float n { params.mViewSpaceNear };
+      const float f{ params.mViewSpaceFar };
+      const float n{ params.mViewSpaceNear };
 
-      const float ndcZMin { params.mNDCMinZ }; // 0 in DirectX, -1 in OpenGL
-      const float ndcZMax { params.mNDCMaxZ }; // 1 in DirectX, 1 in OpenGL
+      const float ndcZMin{ params.mNDCMinZ }; // 0 in DirectX, -1 in OpenGL
+      const float ndcZMax{ params.mNDCMaxZ }; // 1 in DirectX, 1 in OpenGL
 
-      float A {};
-      float B {};
+      float A{};
+      float B{};
 
       if( ndcZMin == -1 && ndcZMax == 1 ) // OpenGL style
       {
@@ -46,7 +46,7 @@ namespace Tac
         A = ( n + f ) / ( n - f );
         B = n * ( A - 1 );
       }
-      else if(  ndcZMin == 0 && ndcZMax == 1 ) // DirectX style
+      else if( ndcZMin == 0 && ndcZMax == 1 ) // DirectX style
       {
         // 0 = ( -nA + B ) / n
         // 1 = ( -fA + B ) / f
@@ -81,7 +81,9 @@ namespace Tac
     : m00( f ), m01( 0 ), m02( 0 ), m03( 0 )
     , m10( 0 ), m11( f ), m12( 0 ), m13( 0 )
     , m20( 0 ), m21( 0 ), m22( f ), m23( 0 )
-    , m30( 0 ), m31( 0 ), m32( 0 ), m33( f ) {}
+    , m30( 0 ), m31( 0 ), m32( 0 ), m33( f )
+  {
+  }
 
   m4::m4( float mm00, float mm01, float mm02, float mm03,
           float mm10, float mm11, float mm12, float mm13,
@@ -90,10 +92,12 @@ namespace Tac
     : m00( mm00 ), m01( mm01 ), m02( mm02 ), m03( mm03 )
     , m10( mm10 ), m11( mm11 ), m12( mm12 ), m13( mm13 )
     , m20( mm20 ), m21( mm21 ), m22( mm22 ), m23( mm23 )
-    , m30( mm30 ), m31( mm31 ), m32( mm32 ), m33( mm33 ) {}
+    , m30( mm30 ), m31( mm31 ), m32( mm32 ), m33( mm33 )
+  {
+  }
 
-  auto m4::data() dynmc -> dynmc float*                           { return &m00; }
-  auto m4::data() const -> const float*                           { return &m00; }
+  auto m4::data() dynmc -> dynmc float* { return &m00; }
+  auto m4::data() const -> const float* { return &m00; }
   void m4::Transpose()
   {
     *this = m4( m00, m10, m20, m30,
@@ -120,7 +124,7 @@ namespace Tac
     ( ( v4* )data() )[ r ] = v;
   }
 
-  void m4::SetColumn( int c, const v4&  v )
+  void m4::SetColumn( int c, const v4& v )
   {
     for( int i{}; i < 4; ++i )
       this->operator()( i, c ) = v[ i ];
@@ -145,8 +149,8 @@ namespace Tac
 
   auto m4::operator()( int iRow, int iCol ) dynmc -> dynmc float& { return data()[ 4 * iRow + iCol ]; }
   auto m4::operator()( int iRow, int iCol ) const -> const float& { return data()[ 4 * iRow + iCol ]; }
-  auto m4::operator[]( int i ) dynmc -> dynmc float&              { return data()[ i ]; }
-  auto m4::operator[]( int i ) const -> const float&              { return data()[ i ]; }
+  auto m4::operator[]( int i ) dynmc -> dynmc float& { return data()[ i ]; }
+  auto m4::operator[]( int i ) const -> const float& { return data()[ i ]; }
   void m4::operator /= ( const float f )
   {
     const float finv = 1.0f / f;
@@ -197,9 +201,9 @@ namespace Tac
   }
 
   m4 m4::Scale( const v3& v ) { return m3::Scale( v ); }
-  m4 m4::RotRadX( float v )   { return m3::RotRadX( v ); }
-  m4 m4::RotRadY( float v )   { return m3::RotRadY( v ); }
-  m4 m4::RotRadZ( float v )   { return m3::RotRadZ( v ); }
+  m4 m4::RotRadX( float v ) { return m3::RotRadX( v ); }
+  m4 m4::RotRadY( float v ) { return m3::RotRadY( v ); }
+  m4 m4::RotRadZ( float v ) { return m3::RotRadZ( v ); }
 
   m4 m4::Transpose( m4 m )
   {
@@ -217,17 +221,17 @@ namespace Tac
 
   m4 m4::Transform( const v3& scale, const m3& rot, const v3& translate )
   {
-    float m00 { scale[ 0 ] * rot( 0, 0 ) };
-    float m01 { scale[ 1 ] * rot( 0, 1 ) };
-    float m02 { scale[ 2 ] * rot( 0, 2 ) };
+    float m00{ scale[ 0 ] * rot( 0, 0 ) };
+    float m01{ scale[ 1 ] * rot( 0, 1 ) };
+    float m02{ scale[ 2 ] * rot( 0, 2 ) };
 
-    float m10 { scale[ 0 ] * rot( 1, 0 ) };
-    float m11 { scale[ 1 ] * rot( 1, 1 ) };
-    float m12 { scale[ 2 ] * rot( 1, 2 ) };
+    float m10{ scale[ 0 ] * rot( 1, 0 ) };
+    float m11{ scale[ 1 ] * rot( 1, 1 ) };
+    float m12{ scale[ 2 ] * rot( 1, 2 ) };
 
-    float m20 { scale[ 0 ] * rot( 2, 0 ) };
-    float m21 { scale[ 1 ] * rot( 2, 1 ) };
-    float m22 { scale[ 2 ] * rot( 2, 2 ) };
+    float m20{ scale[ 0 ] * rot( 2, 0 ) };
+    float m21{ scale[ 1 ] * rot( 2, 1 ) };
+    float m22{ scale[ 2 ] * rot( 2, 2 ) };
 
     return m4( m00, m01, m02, translate[ 0 ],
                m10, m11, m12, translate[ 1 ],
@@ -379,8 +383,8 @@ namespace Tac
     const v3 s( 1.0f / scale[ 0 ],
                 1.0f / scale[ 1 ],
                 1.0f / scale[ 2 ] );
-    const v3 t { -translate };
-    const v3 zero  {} ;
+    const v3 t{ -translate };
+    const v3 zero{};
     if( eulerRads == zero )
     {
       const m4 result( s[ 0 ], 0, 0, s[ 0 ] * t[ 0 ],
@@ -393,10 +397,10 @@ namespace Tac
     {
       // NOTE( N8 ): this MUST be opposite order of Matrix4::Transform
       // ( Transform goes zyx, so TransformInverse goes xyz )
-      const m3 r { m3::RotRadEulerInv( eulerRads ) };
-      const float m03 { s[ 0 ] * ( t[ 0 ] * r( 0, 0 ) + t[ 1 ] * r( 0, 1 ) + t[ 2 ] * r( 0, 2 ) ) };
-      const float m13 { s[ 1 ] * ( t[ 0 ] * r( 1, 0 ) + t[ 1 ] * r( 1, 1 ) + t[ 2 ] * r( 1, 2 ) ) };
-      const float m23 { s[ 2 ] * ( t[ 0 ] * r( 2, 0 ) + t[ 1 ] * r( 2, 1 ) + t[ 2 ] * r( 2, 2 ) ) };
+      const m3 r{ m3::RotRadEulerInv( eulerRads ) };
+      const float m03{ s[ 0 ] * ( t[ 0 ] * r( 0, 0 ) + t[ 1 ] * r( 0, 1 ) + t[ 2 ] * r( 0, 2 ) ) };
+      const float m13{ s[ 1 ] * ( t[ 0 ] * r( 1, 0 ) + t[ 1 ] * r( 1, 1 ) + t[ 2 ] * r( 1, 2 ) ) };
+      const float m23{ s[ 2 ] * ( t[ 0 ] * r( 2, 0 ) + t[ 1 ] * r( 2, 1 ) + t[ 2 ] * r( 2, 2 ) ) };
       const m4 result( s[ 0 ] * r( 0, 0 ), s[ 0 ] * r( 0, 1 ), s[ 0 ] * r( 0, 2 ), m03,
                        s[ 1 ] * r( 1, 0 ), s[ 1 ] * r( 1, 1 ), s[ 1 ] * r( 1, 2 ), m13,
                        s[ 2 ] * r( 2, 0 ), s[ 2 ] * r( 2, 1 ), s[ 2 ] * r( 2, 2 ), m23,
@@ -407,7 +411,7 @@ namespace Tac
 
   m4 m4::View( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
   {
-    const v3 negZ { -camViewDir };
+    const v3 negZ{ -camViewDir };
     const m4 worldToCamRot( camR[ 0 ], camR[ 1 ], camR[ 2 ], 0,
                             camU[ 0 ], camU[ 1 ], camU[ 2 ], 0,
                             negZ[ 0 ], negZ[ 1 ], negZ[ 2 ], 0,
@@ -416,13 +420,13 @@ namespace Tac
                             0, 1, 0, -camPos[ 1 ],
                             0, 0, 1, -camPos[ 2 ],
                             0, 0, 0, 1 );
-    const m4 result { worldToCamRot * worldToCamTra };
+    const m4 result{ worldToCamRot * worldToCamTra };
     return result;
   }
 
   m4 m4::ViewInv( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )
   {
-    const v3 negZ { -camViewDir };
+    const v3 negZ{ -camViewDir };
     const m4 camToWorRot( camR[ 0 ], camU[ 0 ], negZ[ 0 ], 0,
                           camR[ 1 ], camU[ 1 ], negZ[ 1 ], 0,
                           camR[ 2 ], camU[ 2 ], negZ[ 2 ], 0,
@@ -431,7 +435,7 @@ namespace Tac
                           0, 1, 0, camPos[ 1 ],
                           0, 0, 1, camPos[ 2 ],
                           0, 0, 0, 1 );
-    const m4 result { camToWorTra * camToWorRot };
+    const m4 result{ camToWorTra * camToWorRot };
     return result;
   }
 
@@ -439,15 +443,12 @@ namespace Tac
   {
     TAC_ASSERT( params.mViewSpaceNear > 0 );
     TAC_ASSERT( params.mViewSpaceFar > 0 );
-
-
     const AB ab( params );
-    const float A { ab.mA};
-    const float B { ab.mB };
-    const float cotTheta { 1.0f / Tan( params.mFOVYRadians / 2.0f ) };
-    const float sX { cotTheta / params.mAspectRatio }; // sX, sY map to -1, 1
-    const float sY { cotTheta };
-
+    const float A{ ab.mA };
+    const float B{ ab.mB };
+    const float cotTheta{ 1.0f / Tan( params.mFOVYRadians / 2.0f ) };
+    const float sX{ cotTheta / params.mAspectRatio }; // sX, sY map to -1, 1
+    const float sY{ cotTheta };
     return { sX, 0, 0, 0,
              0, sY, 0, 0,
              0, 0, A, B,
@@ -479,10 +480,10 @@ namespace Tac
     //
     // sX = d / (pW / 2) = cot(theta) / aspectRatio
     // sY = d / (pH / 2)
-    const float theta { mFieldOfViewYRad / 2.0f };
-    const float cotTheta { 1.0f / Tan( theta ) };
-    const float sX { cotTheta / mAspectRatio }; // sX, sY map to -1, 1
-    const float sY { cotTheta };
+    const float theta{ mFieldOfViewYRad / 2.0f };
+    const float cotTheta{ 1.0f / Tan( theta ) };
+    const float sX{ cotTheta / mAspectRatio }; // sX, sY map to -1, 1
+    const float sY{ cotTheta };
     return { sX, 0, 0, 0,
              0, sY, 0, 0,
              0, 0, A, B,
@@ -492,13 +493,13 @@ namespace Tac
   m4 m4::ProjPerspectiveInv( ProjectionMatrixParams params )
   {
     // http://allenchou.net/2014/02/game-math-how-to-eyeball-the-inverse-of-a-matrix/
-    const float theta { params.mFOVYRadians / 2.0f };
-    const float cotTheta { 1.0f / Tan( theta ) };
-    const float sX { cotTheta / params.mAspectRatio }; // maps x to -1, 1
-    const float sY { cotTheta }; // maps y to -1, 1
+    const float theta{ params.mFOVYRadians / 2.0f };
+    const float cotTheta{ 1.0f / Tan( theta ) };
+    const float sX{ cotTheta / params.mAspectRatio }; // maps x to -1, 1
+    const float sY{ cotTheta }; // maps y to -1, 1
     const AB ab( params );
-    const float A { ab.mA};
-    const float B { ab.mB };
+    const float A{ ab.mA };
+    const float B{ ab.mB };
     return { 1.0f / sX, 0, 0, 0,
              0, 1.0f / sY, 0, 0,
              0, 0, 0, -1,
@@ -508,14 +509,37 @@ namespace Tac
   m4 m4::ProjPerspectiveInv( float A, float B, float mFieldOfViewYRad, float mAspectRatio )
   {
     // http://allenchou.net/2014/02/game-math-how-to-eyeball-the-inverse-of-a-matrix/
-    const float theta { mFieldOfViewYRad / 2.0f };
-    const float cotTheta { 1.0f / Tan( theta ) };
-    const float sX { cotTheta / mAspectRatio }; // maps x to -1, 1
-    const float sY { cotTheta }; // maps y to -1, 1
+    const float theta{ mFieldOfViewYRad / 2.0f };
+    const float cotTheta{ 1.0f / Tan( theta ) };
+    const float sX{ cotTheta / mAspectRatio }; // maps x to -1, 1
+    const float sY{ cotTheta }; // maps y to -1, 1
     return { 1.0f / sX, 0, 0, 0,
              0, 1.0f / sY, 0, 0,
              0, 0, 0, -1,
              0, 0, 1.0f / B, A / B };
+  }
+
+  m4 m4::ProjOrthographic( OrthographicMatrixParams params )
+  {
+    TAC_ASSERT( params.mNDCMinZ == 0 );
+    TAC_ASSERT( params.mNDCMaxZ == 1 );
+    const float f{ params.mViewSpaceFar };
+    const float n{ params.mViewSpaceNear };
+    m4 result{ m4::Identity() };
+    result.m00 = 2 / params.mOrthoW;
+    result.m11 = 2 / params.mOrthoH;
+    result.m22 = -1 / ( f - n );
+    result.m23 = -n / ( f - n );
+		return result;
+  }
+
+  m4 m4::ProjOrthographicInv( OrthographicMatrixParams params )
+  {
+    bool projInvExists{};
+    m4 proj{ ProjOrthographic( params ) };
+    m4 projInv{ m4::Inverse( proj, &projInvExists ) };
+    TAC_ASSERT( projInvExists );
+    return projInv;
   }
 
 } // namespace Tac
@@ -536,20 +560,20 @@ auto Tac::operator*( const m4& m, const v4& v ) -> v4
 }
 
 auto Tac::operator*( const m4& lhs, const m4& rhs ) -> m4
+{
+  m4 result;
+  for( int r {}; r < 4; ++r )
   {
-    m4 result;
-    for( int r {}; r < 4; ++r )
+    for( int c {}; c < 4; ++c )
     {
-      for( int c {}; c < 4; ++c )
+      float sum {};
+      for( int i{}; i < 4; ++i )
       {
-        float sum {};
-        for( int i{}; i < 4; ++i )
-        {
-          sum += lhs( r, i ) * rhs( i, c );
-        }
-        result( r, c ) = sum;
+        sum += lhs( r, i ) * rhs( i, c );
       }
+      result( r, c ) = sum;
     }
-    return result;
   }
+  return result;
+}
 

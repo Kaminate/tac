@@ -205,25 +205,13 @@ namespace Tac
   }
 
 
-  static auto WidgetRendererGetAxisWorld( const int i ) -> m4
-  {
-    auto gizmoMgr{ &GizmoMgr::sInstance };
-    const m4 rots[]{ m4::RotRadZ( -3.14f / 2.0f ),
-                     m4::Identity(),
-                     m4::RotRadX( 3.14f / 2.0f ), };
-    const v3 selectionGizmoOrigin{ gizmoMgr->mGizmoOrigin };
-    const m4 world{ m4::Translate( selectionGizmoOrigin ) *
-                    rots[ i ] *
-                    m4::Scale( v3( 1, 1, 1 ) * gizmoMgr-> mArrowLen ) };
-    return world;
-  }
 
   static void WidgetRendererUpdatePerObject( Render::IContext* renderContext, int i, Errors& errors )
   {
     const PerObj perObj
     {
-      .mWorld {  WidgetRendererGetAxisWorld( i )  },
-      .mColor {  WidgetRendererGetAxisColor( i )  },
+      .mWorld { GizmoMgr::WidgetRendererGetAxisWorld( i )  },
+      .mColor { WidgetRendererGetAxisColor( i )  },
     };
     const Render::UpdateBufferParams update
     {
@@ -289,5 +277,6 @@ namespace Tac
   }
 
 } // namespace Tac
+
 
 #endif
