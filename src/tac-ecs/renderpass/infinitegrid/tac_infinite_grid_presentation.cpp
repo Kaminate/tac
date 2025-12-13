@@ -15,15 +15,6 @@ namespace Tac
       CameraType_Orthographic,
     };
 
-    static auto CPUToGPUCameraType( Camera::Type cpuCameraType ) -> CameraType
-    {
-      switch( cpuCameraType )
-      {
-        case Camera::Type::kOrthographic: return CameraType_Orthographic;
-        case Camera::Type::kPerspective: return CameraType_Perspective;
-        default: TAC_ASSERT_INVALID_CASE( cpuCameraType ); return {};
-      }
-    }
 
     m4         mInvView   {};
     m4         mInvProj   {};
@@ -41,6 +32,16 @@ namespace Tac
   static ConstantBuffer                sConstantData;
   static bool                          sInitialized;
   static bool                          sEnabled { true };
+
+  static auto CPUToGPUCameraType( Camera::Type cpuCameraType ) -> ConstantBuffer::CameraType
+  {
+    switch( cpuCameraType )
+    {
+      case Camera::Type::kOrthographic: return ConstantBuffer::CameraType_Orthographic;
+      case Camera::Type::kPerspective: return ConstantBuffer::CameraType_Perspective;
+      default: TAC_ASSERT_INVALID_CASE( cpuCameraType ); return {};
+    }
+  }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -129,7 +130,7 @@ namespace Tac
       .mViewProj = camera->Proj( ( float )viewSize.x / ( float )viewSize.y ) * camera->View(),
       .mCamPos_ws = v4( camera->mPos, 1 ),
       .mCamDir_ws = v4( camera->mForwards, 0 ),
-      .mCamType = ConstantBuffer::CPUToGPUCameraType( camera->mType ),
+      .mCamType = CPUToGPUCameraType( camera->mType ),
     };
     TAC_RENDER_GROUP_BLOCK( renderContext, "Infinite Grid" );
     renderContext->SetViewport( viewSize );
