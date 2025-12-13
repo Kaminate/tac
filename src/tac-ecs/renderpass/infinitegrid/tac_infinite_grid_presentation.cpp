@@ -1,6 +1,7 @@
 #include "tac_infinite_grid_presentation.h" // self-inc
 
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+//#include "tac-std-lib/error/tac_assert.h"
 
 #if TAC_INFINITE_GRID_PRESENTATION_ENABLED()
 
@@ -8,10 +9,28 @@ namespace Tac
 {
   struct ConstantBuffer
   {
-    m4 mInvView   {};
-    m4 mInvProj   {};
-    m4 mViewProj  {};
-    v4 mCamPos_ws {};
+    enum CameraType : u32
+    {
+      CameraType_Perspective,
+      CameraType_Orthographic,
+    };
+
+    static auto CPUToGPUCameraType( Camera::Type cpuCameraType ) -> CameraType
+    {
+      switch( cpuCameraType )
+      {
+        case Camera::Type::kOrthographic: return CameraType_Orthographic;
+        case Camera::Type::kPerspective: return CameraType_Perspective;
+        default: TAC_ASSERT_INVALID_CASE( cpuCameraType ); return {};
+      }
+    }
+
+    m4         mInvView   {};
+    m4         mInvProj   {};
+    m4         mViewProj  {};
+    v4         mCamPos_ws {};
+    v4         mCamDir_ws {};
+    CameraType mCamType   {};
   };
 
   static Render::ProgramHandle         sProgram;
@@ -108,7 +127,9 @@ namespace Tac
       .mInvView = camera->ViewInv(),
       .mInvProj = camera->ProjInv( ( float )viewSize.x / ( float )viewSize.y ),
       .mViewProj = camera->Proj( ( float )viewSize.x / ( float )viewSize.y ) * camera->View(),
-      .mCamPos_ws = v4( camera->mPos, 1.0f ),
+      .mCamPos_ws = v4( camera->mPos, 1 ),
+      .mCamDir_ws = v4( camera->mForwards, 0 ),
+      .mCamType = ConstantBuffer::CPUToGPUCameraType( camera->mType ),
     };
     TAC_RENDER_GROUP_BLOCK( renderContext, "Infinite Grid" );
     renderContext->SetViewport( viewSize );

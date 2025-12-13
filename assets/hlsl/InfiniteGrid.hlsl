@@ -1,11 +1,19 @@
 // 
 
+enum CameraType
+{
+  CameraType_Perspective,
+  CameraType_Orthographic,
+};
+
 struct ConstBufStruct
 {
   row_major matrix mInvView;
   row_major matrix mInvProj;
   row_major matrix mViewProj;
   float4           mCamPos_ws;
+  float4           mCamDir_ws;
+  uint             mCamType;
 };
 
 struct VS_INPUT
@@ -17,8 +25,8 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 mPos_cs : SV_POSITION;
-  float4 mPos_ws : TAC_AUTO_SEMANTIC;
-  float4 mPos_vs : TAC_AUTO_SEMANTIC;
+  float4 mPos_ws : TAC_AUTO_SEMANTIC; // TODO: make this ALSO the rayPos for ORTHO!
+  // float4 mPos_vs : TAC_AUTO_SEMANTIC;
 };
 
 typedef ConstantBuffer< ConstBufStruct > ConstBuf;
@@ -72,7 +80,7 @@ VS_OUTPUT VS( VS_INPUT input )
   VS_OUTPUT output;
   output.mPos_cs = float4( nearplane_xy_ndc, 0, 1 ); // not actually in clip space
   output.mPos_ws = nearplane_pos_ws;
-  output.mPos_vs = nearplane_pos_vs;
+  // output.mPos_vs = nearplane_pos_vs;
   return output;
 }
 
@@ -89,19 +97,6 @@ struct PS_OUTPUT
   float4 mColor : SV_Target0;
   float  mDepth : SV_Depth;
 };
-
-bool intersect( float4 rayPos, float4 rayDir, out float t )
-{
-  // plane eq: y = 0
-  // ray eq: rO.y + t * rD.y = y
-  //
-  // therefore t = -rO.y / rD.y
-  t = -rayPos.y / rayDir.y;
-  if (t < 0)
-    return false;
-
-  return true;
-}
 
 // https://bgolus.medium.com/the-best-darn-grid-shader-yet-727f9278b9d8
 // http://iquilezles.org/articles/filterableprocedurals
@@ -122,15 +117,24 @@ PS_OUTPUT PS( PS_INPUT input )
 {
   const matrix viewProj = sConstants.mViewProj;
 
-  float4 rayPos_ws = sConstants.mCamPos_ws;
-  float4 rayDir_ws = input.mPos_ws - sConstants.mCamPos_ws; // unnormalized
+  float4 rayPos_ws = (float4)0;
+  float4 rayDir_ws = (float4)0;
 
-  float t;
-  bool hit = intersect( rayPos_ws, rayDir_ws, t );
-  if (!hit)
+  if( sConstants.mCamType == CameraType_Perspective)
   {
-    discard;
+    rayPos_ws = sConstants.mCamPos_ws;
+    rayDir_ws = input.mPos_ws - sConstants.mCamPos_ws; // unnormalized
   }
+  else if ( sConstants.mCamType == CameraType_Orthographic)
+  {
+    rayPos_ws = input.mPos_ws;
+    rayDir_ws = sConstants.mCamDir_ws;
+  }
+
+
+
+  // Ignoring t < 0 is okay in perspectie (and necessarily in ortho???)
+  float t = -rayPos_ws.y / rayDir_ws.y; // plane eq: y=0, ray eq: y=rO.y+t*rD.y
 
   float4 hitPos_ws = rayPos_ws + rayDir_ws * t;
   float4 hitPos_cs = mul(viewProj, hitPos_ws);

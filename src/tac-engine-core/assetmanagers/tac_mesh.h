@@ -5,8 +5,8 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/math/tac_vector3.h"
-#include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/math/tac_matrix4.h"
+#include "tac-std-lib/dataprocess/tac_hash.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-rhi/render3/tac_render_api.h"
@@ -26,7 +26,9 @@ namespace Tac
     };
 
     using SubMeshTriangles = Vector< Triangle >;
-    auto Raycast( Ray ) const -> Result;
+    auto Raycast( Ray ray_modelspace ) const -> Result;
+
+    static auto ConvertWorldToModelRay( Ray ray_worldspace, m4 model_to_world ) -> Ray;
     SubMeshTriangles mTris {};
   };
 

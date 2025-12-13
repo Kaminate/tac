@@ -266,7 +266,8 @@ namespace Tac
         camera->mFovyrad = DegreesToRadians( deg );
 
     if( camera->mType == Camera::kOrthographic )
-      ImGuiDragFloat( "ortho height", &camera->mOrthoHeight );
+      if( ImGuiDragFloat( "ortho height", &camera->mOrthoHeight ) )
+        camera->mOrthoHeight = Max( camera->mOrthoHeight, 0.0f );
 
     ImGuiText( "Type: %s", Camera::TypeToString( camera->mType ) );
     if( ImGuiSameLine(), ImGuiButton( "Change" ) )
@@ -385,14 +386,21 @@ namespace Tac
     const float mouseDeltaScroll { AppKeyboardApi::GetMouseWheelDelta() };
     if( mouseDeltaScroll )
     {
-      float unitsPerTick { 1.0f };
-      if( !SelectedEntities::empty() )
+      if( camera->mType == Camera::Type::kPerspective )
       {
-        const v3 origin { SelectedEntities::ComputeAveragePosition() };
-        unitsPerTick = Distance( origin, camera->mPos ) * 0.1f;
-      }
+        float unitsPerTick{ 1.0f };
+        if( !SelectedEntities::empty() )
+        {
+          const v3 origin{ SelectedEntities::ComputeAveragePosition() };
+          unitsPerTick = Distance( origin, camera->mPos ) * 0.1f;
+        }
 
-      camera->mPos += camera->mForwards * mouseDeltaScroll * unitsPerTick;
+        camera->mPos += camera->mForwards * mouseDeltaScroll * unitsPerTick;
+      }
+      if( camera->mType == Camera::Type::kOrthographic)
+      {
+        camera->mOrthoHeight = Max( 0.0f, camera->mOrthoHeight - mouseDeltaScroll );
+      }
     }
 
     CameraWASDControls( camera );

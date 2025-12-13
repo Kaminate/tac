@@ -9,18 +9,17 @@ namespace Tac::Render
 {
   struct DX12PipelineMgr
   {
-
-    PipelineHandle CreatePipeline( PipelineParams, Errors& );
-    void           DestroyPipeline( PipelineHandle );
-    DX12Pipeline*  FindPipeline( PipelineHandle );
-    void           HotReload( Span< ProgramHandle > changed, Errors& );
+    auto CreatePipeline( PipelineParams, Errors& ) -> PipelineHandle;
+    void DestroyPipeline( PipelineHandle );
+    auto FindPipeline( PipelineHandle ) -> DX12Pipeline*;
+    void HotReload( Span< ProgramHandle > changed, Errors& );
 
   private:
     using DX12Pipelines = Array< DX12Pipeline, 100 >;
 
-    void           CreatePipelineAtIndex( PipelineHandle, PipelineParams, Errors& );
+    void CreatePipelineAtIndex( PipelineHandle, PipelineParams, Errors& );
 
-    DX12Pipelines  mPipelines    {};
+    DX12Pipelines mPipelines {};
   };
 } // namespace Tac::Render
 

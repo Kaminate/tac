@@ -85,17 +85,8 @@ namespace Tac
     if( !mesh )
       return {};
 
-    bool invExists;
-    const m4 worldToModel_dir{ m4::Transpose( entity->mWorldTransform ) };
-    const m4 worldToModel_pos{ m4::Inverse( entity->mWorldTransform, &invExists ) };
-    if( !invExists )
-      return {};
-
-    const Ray ray_modelspace
-    {
-      .mOrigin    { ( worldToModel_pos * v4( ray_worldspace.mOrigin, 1 ) ).xyz() },
-      .mDirection { ( worldToModel_dir * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
-    };
+    const Ray ray_modelspace{
+      MeshRaycast::ConvertWorldToModelRay( ray_worldspace, entity->mWorldTransform ) };
 
     const MeshRaycast::Result meshRaycastResult { mesh->mMeshRaycast.Raycast( ray_modelspace ) };
     if ( !meshRaycastResult.IsValid() )

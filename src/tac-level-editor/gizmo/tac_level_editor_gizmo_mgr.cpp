@@ -67,7 +67,7 @@ namespace Tac
   auto GizmoMgr::WidgetRendererGetAxisWorld( const int i ) -> m4
   {
     auto gizmoMgr{ &GizmoMgr::sInstance };
-    TAC_ASSERT( gizmoMgr->mGizmosEnabled && gizmoMgr->mSelectedGizmo );
+    TAC_ASSERT( gizmoMgr->mGizmosEnabled && gizmoMgr->mTranslationGizmoVisible );
     const m4 rots[]{ m4::RotRadZ( -3.14f / 2.0f ),
                      m4::Identity(),
                      m4::RotRadX( 3.14f / 2.0f ), };

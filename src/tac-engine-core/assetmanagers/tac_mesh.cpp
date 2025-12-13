@@ -8,7 +8,7 @@ namespace Tac
 
   bool MeshRaycast::Result::IsValid() const { return mT; }
 
-  auto MeshRaycast::Raycast( Ray ray ) const -> Result
+  auto MeshRaycast::Raycast( Ray ray_modelspace ) const -> Result
   {
     int iClosest{};
     float tClosest{};
@@ -16,7 +16,7 @@ namespace Tac
     const int triCount{ ( int )mTris.size() };
     for( int iTri{}; iTri < triCount; ++iTri )
     {
-      if( const RayTriangle rayTri( ray, mTris[ iTri ] ); rayTri.mValid
+      if( const RayTriangle rayTri( ray_modelspace, mTris[ iTri ] ); rayTri.mValid
           && ( !tClosest || rayTri.mT < tClosest ) )
       {
         tClosest = rayTri.mT;
@@ -28,7 +28,7 @@ namespace Tac
       return {};
 
     const Triangle closest{ mTris[ iClosest ] };
-    const RayTriangle rayTri( ray, closest );
+    const RayTriangle rayTri( ray_modelspace, closest );
     return MeshRaycast::Result
     {
       .mT      { rayTri.mT },
@@ -36,6 +36,20 @@ namespace Tac
       .mV      { rayTri.mV },
       .mTriIdx { iClosest },
     };
+  }
+
+  auto MeshRaycast::ConvertWorldToModelRay( Ray ray_worldspace, m4 model_to_world ) -> Ray
+  {
+    bool invExists;
+    const m4 worldToModel_pos{ m4::Inverse( model_to_world, &invExists ) };
+    TAC_ASSERT(invExists);
+    const m4 worldToModel_dir{ m4::Transpose( worldToModel_pos ) };
+    const Ray ray_modelspace
+    {
+      .mOrigin    { ( worldToModel_pos * v4( ray_worldspace.mOrigin, 1 ) ).xyz() },
+      .mDirection { ( worldToModel_dir * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
+    };
+    return ray_modelspace;
   }
 
   // -----------------------------------------------------------------------------------------------

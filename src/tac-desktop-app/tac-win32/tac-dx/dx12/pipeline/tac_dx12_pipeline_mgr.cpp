@@ -12,7 +12,7 @@
 
 namespace Tac::Render
 {
-  static D3D12_COMPARISON_FUNC  GetDX12DepthFunc( DepthFunc depthFunc )
+  static auto GetDX12DepthFunc( DepthFunc depthFunc ) -> D3D12_COMPARISON_FUNC
   {
     switch( depthFunc )
     {
@@ -22,7 +22,7 @@ namespace Tac::Render
     }
   }
 
-  static D3D12_FILL_MODE        GetDX12FillMode( FillMode fillMode )
+  static auto GetDX12FillMode( FillMode fillMode ) -> D3D12_FILL_MODE
   {
     switch( fillMode )
     {
@@ -32,7 +32,7 @@ namespace Tac::Render
     }
   }
 
-  static D3D12_CULL_MODE        GetDX12CullMode( CullMode cullMode )
+  static auto GetDX12CullMode( CullMode cullMode ) -> D3D12_CULL_MODE
   {
     switch( cullMode )
     {
@@ -43,7 +43,7 @@ namespace Tac::Render
     }
   }
 
-  static D3D12_BLEND            GetDX12Blend( BlendConstants blendConstants )
+  static auto GetDX12Blend( BlendConstants blendConstants ) -> D3D12_BLEND
   {
     switch( blendConstants )
     {
@@ -56,7 +56,7 @@ namespace Tac::Render
     }
   }
 
-  static D3D12_BLEND_OP         GetDX12BlendOp( BlendMode blendMode )
+  static auto GetDX12BlendOp( BlendMode blendMode ) -> D3D12_BLEND_OP
   {
     switch( blendMode )
     {
@@ -65,12 +65,12 @@ namespace Tac::Render
     }
   }
 
-  static D3D12_DEPTH_WRITE_MASK GetDX12DepthWriteMask( bool depthWrite )
+  static auto GetDX12DepthWriteMask( bool depthWrite ) -> D3D12_DEPTH_WRITE_MASK
   {
     return depthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
   }
 
-  static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetDX12PrimTopo( PrimitiveTopology top )
+  static auto GetDX12PrimTopo( PrimitiveTopology top ) -> D3D12_PRIMITIVE_TOPOLOGY_TYPE
   {
     switch( top )
     {
@@ -93,7 +93,7 @@ namespace Tac::Render
     }
   }
 
-  void           DX12PipelineMgr::CreatePipelineAtIndex( PipelineHandle h,
+  void DX12PipelineMgr::CreatePipelineAtIndex( PipelineHandle h,
                                                          PipelineParams params,
                                                          Errors& errors )
   {
@@ -216,20 +216,19 @@ namespace Tac::Render
     };
   }
 
-  PipelineHandle DX12PipelineMgr::CreatePipeline( PipelineParams params, Errors& errors )
+  auto DX12PipelineMgr::CreatePipeline( PipelineParams params, Errors& errors ) -> PipelineHandle
   {
     const PipelineHandle h{ AllocPipelineHandle() };
     CreatePipelineAtIndex( h, params, errors );
     return h;
   }
 
-  DX12Pipeline*  DX12PipelineMgr::FindPipeline( PipelineHandle h )
+  auto DX12PipelineMgr::FindPipeline( PipelineHandle h ) -> DX12Pipeline*
   {
     return h.IsValid() ? &mPipelines[ h.GetIndex() ] : nullptr;
   }
 
-  void           DX12PipelineMgr::HotReload( Span< ProgramHandle > changedPrograms,
-                                            Errors& errors )
+  void DX12PipelineMgr::HotReload( Span< ProgramHandle > changedPrograms, Errors& errors )
   {
     if( changedPrograms.empty() )
       return;
@@ -259,7 +258,9 @@ namespace Tac::Render
       const int nVarsPrev{ pipeline.mShaderVariables.size() };
 
       PipelineHandle h{ i };
+      PipelineBindCache prevBindCache{ pipeline.mPipelineBindCache };
       TAC_CALL( CreatePipelineAtIndex( h, pipeline.mPipelineParams, errors ) );
+      pipeline.mPipelineBindCache = prevBindCache;
 
       const IShaderVar* pVarsCurr{ pipeline.mShaderVariables.data() };
       const int nVarsCurr{ pipeline.mShaderVariables.size() };
@@ -267,7 +268,6 @@ namespace Tac::Render
       // check that IShaderVar* out in the wild are still valid
       TAC_ASSERT( pVarsCurr == pVarsPrev );
       TAC_ASSERT( nVarsCurr == nVarsPrev );
-
     }
   }
 

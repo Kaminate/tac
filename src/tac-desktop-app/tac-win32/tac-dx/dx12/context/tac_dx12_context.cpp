@@ -36,29 +36,21 @@ namespace Tac::Render
     DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
     DX12PipelineMgr* pipelineMgr{ &renderer.mPipelineMgr };
     TAC_ASSERT( pipelineMgr );
-
-
     DX12Pipeline* pipeline{ pipelineMgr->FindPipeline( mState.mPipeline ) };
     if( !pipeline )
       return;
 
     ID3D12GraphicsCommandList* commandList{ GetCommandList() };
-
     heapMgr.Bind( commandList );
-
-
-
     for( RootParameterBinding& binding : pipeline->mPipelineBindCache )
-    {
-      const CommitParams commitParams
-      {
-          .mCommandList        { commandList },
-          .mDescriptorCache    { &mState.mDescriptorCache },
-          .mIsCompute          { mState.mIsCompute },
-          .mRootParameterIndex { binding.mRootParameterIndex },
-      };
-      binding.Commit( commitParams );
-    }
+      binding.Commit(
+        CommitParams
+        {
+            .mCommandList        { commandList },
+            .mDescriptorCache    { &mState.mDescriptorCache },
+            .mIsCompute          { mState.mIsCompute },
+            .mRootParameterIndex { binding.mRootParameterIndex },
+        } );
   }
 
   void DX12Context::UpdateTexture( TextureHandle h,
