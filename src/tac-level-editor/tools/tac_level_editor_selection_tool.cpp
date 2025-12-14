@@ -17,7 +17,7 @@
 namespace Tac
 {
 
-  static void MousePickingEntityDebug( Ray ray_worldspace,
+  static void MousePickingEntityDebug( const Ray ray_worldspace,
                                        const World* world,
                                        const Camera* ,
                                        Errors& errors )
@@ -28,7 +28,6 @@ namespace Tac
     Entity* entity { CreationMousePicking::GetPickedEntity() };
     if( !entity )
       return;
-
 
     if( Material * material{ Material::GetMaterial( entity ) } )
       if( !material->mRenderEnabled )
@@ -42,19 +41,8 @@ namespace Tac
     if( !mesh )
       return;
 
-    bool isInverseValid{};
-    m4 worldToModel_dir{ m4::Transpose( entity->mWorldTransform ) };
-    m4 worldToModel_pos{ m4::Inverse( entity->mWorldTransform, &isInverseValid ) };
-    if( !isInverseValid )
-      return;
-
-    m4 modelToWorld_dir = m4::Transpose(worldToModel_pos);
-
-    Ray ray_modelspace
-    {
-      .mOrigin    { ( worldToModel_pos * v4( ray_worldspace.mOrigin, 1 ) ).xyz()},
-      .mDirection { ( worldToModel_dir * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
-    };
+    Ray ray_modelspace{
+      MeshRaycast::ConvertWorldToModelRay( ray_worldspace, entity->mWorldTransform ) };
 
     // TODO(N8):
     //
@@ -71,12 +59,10 @@ namespace Tac
       drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2, color );
     }
 
-    
-
     if( MeshRaycast::Result closestResult_modelspace{ mesh->mMeshRaycast.Raycast( ray_modelspace ) };
         closestResult_modelspace.IsValid() )
     {
-      Triangle closestTri_modelspace{ mesh->mMeshRaycast.mTris[ closestResult_modelspace.mTriIdx ] };
+      const Triangle closestTri_modelspace{ mesh->mMeshRaycast.mTris[ closestResult_modelspace.mTriIdx ] };
       const v3 triColor{ 0, 1, 0 };
 
       v3 v0{ ( model->mEntity->mWorldTransform * v4( closestTri_modelspace[ 0 ], 1.0f ) ).xyz() };
