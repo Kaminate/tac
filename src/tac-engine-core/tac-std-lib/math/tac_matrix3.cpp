@@ -226,27 +226,27 @@ namespace Tac
 
   auto m3::Cofactor() const -> m3
   {
-      float c00 = m2( m11, m12,
-                      m21, m22 ).Determinant();
-      float c01 = m2( m10, m12,
-                      m20, m22 ).Determinant();
-      float c02 = m2( m10, m11,
-                      m20, m21 ).Determinant();
-      float c10 = m2( m01, m02,
-                      m21, m22 ).Determinant();
-      float c11 = m2( m00, m02,
-                      m20, m22 ).Determinant();
-      float c12 = m2( m00, m01,
-                      m20, m21 ).Determinant();
-      float c20 = m2( m01, m02,
-                      m11, m12 ).Determinant();
-      float c21 = m2( m00, m02,
-                      m10, m12 ).Determinant();
-      float c22 = m2( m00, m01,
-                      m10, m11 ).Determinant();
-      return { c00, -c01, c02,
-               -c10, c11, -c12,
-               c20, -c21, c22 };
+    float c00{ m2( m11, m12,
+                   m21, m22 ).Determinant() };
+    float c01{ m2( m10, m12,
+                   m20, m22 ).Determinant() };
+    float c02{ m2( m10, m11,
+                   m20, m21 ).Determinant() };
+    float c10{ m2( m01, m02,
+                   m21, m22 ).Determinant() };
+    float c11{ m2( m00, m02,
+                   m20, m22 ).Determinant() };
+    float c12{ m2( m00, m01,
+                   m20, m21 ).Determinant() };
+    float c20{ m2( m01, m02,
+                   m11, m12 ).Determinant() };
+    float c21{ m2( m00, m02,
+                   m10, m12 ).Determinant() };
+    float c22{ m2( m00, m01,
+                   m10, m11 ).Determinant() };
+    return { c00, -c01, c02,
+             -c10, c11, -c12,
+             c20, -c21, c22 };
   }
 
   void m3::Transpose()

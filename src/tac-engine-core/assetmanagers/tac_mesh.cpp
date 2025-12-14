@@ -41,13 +41,12 @@ namespace Tac
   auto MeshRaycast::ConvertWorldToModelRay( Ray ray_worldspace, m4 model_to_world ) -> Ray
   {
     bool invExists;
-    const m4 worldToModel_pos{ m4::Inverse( model_to_world, &invExists ) };
+    const m4 world_to_model{ m4::Inverse( model_to_world, &invExists ) };
     TAC_ASSERT(invExists);
-    const m4 worldToModel_dir{ m4::Transpose( worldToModel_pos ) };
     const Ray ray_modelspace
     {
-      .mOrigin    { ( worldToModel_pos * v4( ray_worldspace.mOrigin, 1 ) ).xyz() },
-      .mDirection { ( worldToModel_dir * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
+      .mOrigin    { ( world_to_model * v4( ray_worldspace.mOrigin, 1 ) ).xyz() },
+      .mDirection { ( world_to_model * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
     };
     return ray_modelspace;
   }
