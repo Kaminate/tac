@@ -104,6 +104,7 @@ namespace Tac
   // Geometry
   // --------
   struct Ray3D{ v3 mOrigin; v3 mDirection; };
+  //struct UnitRay3D{ v3 mOrigin; v3 mUnitDirection; };
   struct Triangle3D
   {
     v3 mVertices[ 3 ];
@@ -127,6 +128,7 @@ namespace Tac
   struct Sphere3D { v3 mOrigin; float mRadius; };
 
   using Ray = Ray3D;
+  //using UnitRay = UnitRay3D;
   using Triangle = Triangle3D;
   using LineSegment = LineSegment3D;
   using Sphere = Sphere3D;
@@ -137,7 +139,7 @@ namespace Tac
   // ------------
 
   auto RaySphere( Ray, Sphere ) -> float; // returns -1 on failure
-  auto ClosestPointLineSegment( LineSegment, const v3& p ) -> v3;
+  auto ClosestPointLineSegment( LineSegment, const v3& ) -> v3;
 
   struct RayPlane
   {

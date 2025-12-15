@@ -173,7 +173,7 @@ namespace Tac
                mRadius * Sin( mPhi ) * Sin( mTheta ) );
   }
 
-  auto SphericalCoordinate::FromCartesian(v3 v) -> SphericalCoordinate
+  auto SphericalCoordinate::FromCartesian( v3 v ) -> SphericalCoordinate
   {
     const float x = v.x;
     const float y = v.y;

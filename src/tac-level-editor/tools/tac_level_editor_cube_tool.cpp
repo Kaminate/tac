@@ -53,45 +53,31 @@ namespace Tac
       .mPath       { model->mModelPath },
       .mModelIndex { model->mModelIndex },
     };
-    bool isInverseValid{};
-    const m4 worldToModel_dir{ m4::Transpose( pickedEntity->mWorldTransform ) };
-    const m4 worldToModel_pos{ m4::Inverse( pickedEntity->mWorldTransform, &isInverseValid ) };
-    if( !isInverseValid )
-      return {};
-
-    const m4 modelToWorld_dir{ m4::Transpose( worldToModel_pos ) };
-
-    const Ray mouseRay_modelspace
-    {
-      .mOrigin    { ( worldToModel_pos * v4( mouseRay_worldspace.mOrigin, 1 ) ).xyz()},
-      .mDirection { ( worldToModel_dir * v4( mouseRay_worldspace.mDirection, 0 ) ).xyz() },
-    };
 
     const Mesh* mesh{ ModelAssetManager::GetMesh( getMeshParams, errors ) };
     TAC_ASSERT( !errors );
     if( !mesh )
       return {};
 
-    const MeshRaycast::Result raycastResult{ mesh->mMeshRaycast.Raycast( mouseRay_modelspace ) };
-    if( !raycastResult.IsValid() )
+    const MeshRaycast::Result raycastResult_worldspace{ mesh->mMeshRaycast.Raycast_worldspace( mouseRay_worldspace, pickedEntity->mWorldTransform ) };
+    if( !raycastResult_worldspace.IsValid() )
       return {};
 
-    const Triangle closest{ mesh->mMeshRaycast.mTris[ raycastResult.mTriIdx ] };
-    const v3 e1{ closest.mVertices[ 1 ] - closest.mVertices[ 0 ] };
-    const v3 e2{ closest.mVertices[ 2 ] - closest.mVertices[ 0 ] };
-    const v3 n_modelspace{ Cross( e1, e2 ) };
-    const v3 n_worldspace{ ( modelToWorld_dir * v4( n_modelspace, 0 ) ).xyz() };
-    const v3 hitPos_modelspace{ mouseRay_modelspace.mOrigin + mouseRay_modelspace.mDirection * raycastResult.mT };
-    const v3 hitPos_worldspace{ ( pickedEntity->mWorldTransform * v4( hitPos_modelspace, 1 ) ).xyz() };
-
-    return PickingPreview{
-      .mIsValid{ true },
-      .mUnitNormal{ Normalize( n_worldspace ) },
-      .mPosition {hitPos_worldspace},
+    const Triangle closest_modelspace{ mesh->mMeshRaycast.mTris[ raycastResult_worldspace.mTriIdx ] };
+    const Triangle closest_worldspace{
+      .mVertices{
+        ( pickedEntity->mWorldTransform * v4( closest_modelspace.mVertices[ 0 ], 1 ) ).xyz(),
+        ( pickedEntity->mWorldTransform * v4( closest_modelspace.mVertices[ 1 ], 1 ) ).xyz(),
+        ( pickedEntity->mWorldTransform * v4( closest_modelspace.mVertices[ 2 ], 1 ) ).xyz(),
+      },
     };
-
-    //v3 previewPos_unsnapped = hitPos_worldspace + n_worldspace * cubeSize / 2;
-
+    const v3 e1_worldspace{ closest_worldspace.mVertices[ 1 ] - closest_worldspace.mVertices[ 0 ] };
+    const v3 e2_worldspace{ closest_worldspace.mVertices[ 2 ] - closest_worldspace.mVertices[ 0 ] };
+    return PickingPreview{
+      .mIsValid    { true },
+      .mUnitNormal { Normalize( Cross( e1_worldspace, e2_worldspace ) )  },
+      .mPosition   { mouseRay_worldspace.mOrigin + mouseRay_worldspace.mDirection * raycastResult_worldspace.mT },
+    };
   }
 
   static auto GetGroundPreviewPos() -> PickingPreview

@@ -4,11 +4,23 @@
 namespace Tac
 {
 
+
   // -----------------------------------------------------------------------------------------------
 
-  bool MeshRaycast::Result::IsValid() const { return mT; }
+  bool MeshRaycast::Result::IsValid() const { return mT > 0; }
 
-  auto MeshRaycast::Raycast( Ray ray_modelspace ) const -> Result
+  auto MeshRaycast::ConvertWorldToModelRay( const Ray& ray_worldspace, const m4& model_to_world ) -> Ray
+  {
+    bool invExists;
+    const m4 world_to_model{ m4::Inverse( model_to_world, &invExists ) };
+    TAC_ASSERT( invExists );
+    return Ray{
+        .mOrigin    { ( world_to_model * v4( ray_worldspace.mOrigin, 1 ) ).xyz() },
+        .mDirection { ( world_to_model * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
+    };
+  }
+
+  auto MeshRaycast::Raycast_modelspace( const Ray& ray_modelspace ) const -> Result
   {
     int iClosest{};
     float tClosest{};
@@ -38,17 +50,18 @@ namespace Tac
     };
   }
 
-  auto MeshRaycast::ConvertWorldToModelRay( Ray ray_worldspace, m4 model_to_world ) -> Ray
+  auto MeshRaycast::Raycast_worldspace( const Ray& ray_worldspace, const m4& model_to_world ) const -> Result
   {
-    bool invExists;
-    const m4 world_to_model{ m4::Inverse( model_to_world, &invExists ) };
-    TAC_ASSERT(invExists);
-    const Ray ray_modelspace
-    {
-      .mOrigin    { ( world_to_model * v4( ray_worldspace.mOrigin, 1 ) ).xyz() },
-      .mDirection { ( world_to_model * v4( ray_worldspace.mDirection, 0 ) ).xyz() },
-    };
-    return ray_modelspace;
+    const Ray ray_modelspace{ ConvertWorldToModelRay( ray_worldspace, model_to_world ) };
+    const MeshRaycast::Result result_modelspace{ Raycast_modelspace( ray_modelspace ) };
+    if( !result_modelspace.IsValid() )
+      return {};
+    const v3 hitPoint_modelspace{ray_modelspace.mOrigin + result_modelspace.mT * ray_modelspace.mDirection };
+    const v3 hitPoint_worldspace{ ( model_to_world * v4( hitPoint_modelspace, 1 ) ).xyz() };
+    dynmc MeshRaycast::Result result_worldspace{ result_modelspace };
+    result_worldspace.mT = Dot( hitPoint_worldspace - ray_worldspace.mOrigin, ray_worldspace.mDirection )
+      / ray_worldspace.mDirection.Length();
+    return result_worldspace;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -64,25 +77,5 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-#if 0
-  MeshRaycast::Result Mesh::MeshModelSpaceRaycast( MeshRaycast::Ray meshRay ) const
-  {
-    MeshRaycast::Result raycastResult{};
-
-    for( const SubMesh& subMesh : mSubMeshes )
-    {
-      const MeshRaycast::Result submeshRaycastResult { subMesh.mMeshRaycast.Raycast( meshRay ) };
-      if( !submeshRaycastResult.mHit )
-        continue;
-
-      if( raycastResult.mHit && submeshRaycastResult.mT > raycastResult.mT )
-        continue;
-
-      raycastResult = submeshRaycastResult;
-    }
-
-    return raycastResult;
-  }
-#endif
 
 } // namespace Tac

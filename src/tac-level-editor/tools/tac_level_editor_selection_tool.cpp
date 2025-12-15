@@ -41,8 +41,6 @@ namespace Tac
     if( !mesh )
       return;
 
-    Ray ray_modelspace{
-      MeshRaycast::ConvertWorldToModelRay( ray_worldspace, entity->mWorldTransform ) };
 
     // TODO(N8):
     //
@@ -59,8 +57,9 @@ namespace Tac
       drawData->DebugDraw3DTriangle( wsTriv0, wsTriv1, wsTriv2, color );
     }
 
-    if( MeshRaycast::Result closestResult_modelspace{ mesh->mMeshRaycast.Raycast( ray_modelspace ) };
-        closestResult_modelspace.IsValid() )
+    if( const MeshRaycast::Result closestResult_modelspace{
+      mesh->mMeshRaycast.Raycast_worldspace( ray_worldspace, entity->mWorldTransform ) };
+      closestResult_modelspace.IsValid() )
     {
       const Triangle closestTri_modelspace{ mesh->mMeshRaycast.mTris[ closestResult_modelspace.mTriIdx ] };
       const v3 triColor{ 0, 1, 0 };

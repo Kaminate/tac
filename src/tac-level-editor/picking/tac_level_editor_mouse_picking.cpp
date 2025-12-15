@@ -80,26 +80,13 @@ namespace Tac
   static auto MousePickingEntityModel( const Model* model, Errors& errors ) -> RaycastResult
   {
     const Ray ray_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
-    const Entity* entity { model->mEntity };
-    TAC_CALL_RET( const Mesh* mesh { MeshPresentation::GetModelMesh( model, errors ) } );
-    if( !mesh )
-      return {};
-
-    const Ray ray_modelspace{
-      MeshRaycast::ConvertWorldToModelRay( ray_worldspace, entity->mWorldTransform ) };
-
-    const MeshRaycast::Result meshRaycastResult { mesh->mMeshRaycast.Raycast( ray_modelspace ) };
-    if ( !meshRaycastResult.IsValid() )
-      return {};
-
-    const v3 hitPoint_modelspace{ ray_modelspace.mOrigin + ray_modelspace.mDirection * meshRaycastResult.mT };
-    const v3 hitPoint_worldspace{ ( entity->mWorldTransform * v4( hitPoint_modelspace, 1 ) ).xyz() };
-
-    return RaycastResult
-    {
-      .mHit { true },
-      .mT   { Distance( ray_worldspace.mOrigin, hitPoint_worldspace ) },
-    };
+    TAC_CALL_RET( const Mesh * mesh{ MeshPresentation::GetModelMesh( model, errors ) } );
+    if( mesh )
+      if( const MeshRaycast::Result meshRaycastResult_worldspace{
+        mesh->mMeshRaycast.Raycast_worldspace( ray_worldspace, model->mEntity->mWorldTransform ) };
+        meshRaycastResult_worldspace.IsValid() )
+        return RaycastResult{ .mHit { true }, .mT { meshRaycastResult_worldspace.mT }, };
+    return {};
   }
 
   static auto MousePickingEntity( const Entity* entity, Errors& errors ) -> RaycastResult
@@ -141,25 +128,14 @@ namespace Tac
     {
       const Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
       const m4 gizmoWorldMatrix{ GizmoMgr::WidgetRendererGetAxisWorld( i ) };
-      dynmc bool worldToModelExists{};
-      const m4 worldToModel_pos{ m4::Inverse( gizmoWorldMatrix, &worldToModelExists ) };
-      TAC_ASSERT(worldToModelExists);
-      const m4 worldToModel_dir{ m4::Transpose( gizmoWorldMatrix ) };
-      const Ray mouseRay_modelspace
+      if( const MeshRaycast::Result meshRaycastResult_worldspace{
+        mArrow->mMeshRaycast.Raycast_worldspace( mouseRay_worldspace, gizmoWorldMatrix ) };
+        meshRaycastResult_worldspace.IsValid() )
       {
-        .mOrigin{ ( worldToModel_pos * v4( mouseRay_worldspace.mOrigin, 1 ) ).xyz() },
-        .mDirection{ ( worldToModel_dir * v4 ( mouseRay_worldspace.mDirection, 0 ) ).xyz() },
-      };
-      if( const MeshRaycast::Result meshRaycastResult{ mArrow->mMeshRaycast.Raycast( mouseRay_modelspace ) };
-          meshRaycastResult.IsValid() )
-      {
-        v3 hitPos_modelspace{ meshRaycastResult.mT * mouseRay_modelspace.mDirection + mouseRay_modelspace.mOrigin };
-        v3 hitPos_worldspace{ ( gizmoWorldMatrix * v4( hitPos_modelspace, 1 ) ).xyz() };
-        if( const float dist{ Distance( hitPos_worldspace, mouseRay_worldspace.mOrigin ) };
-            pickData.IsNewClosest( dist ) )
+        if( pickData.IsNewClosest( meshRaycastResult_worldspace.mT ) )
         {
           pickData.arrowAxis = i;
-          pickData.closestDist = dist;
+          pickData.closestDist = meshRaycastResult_worldspace.mT;
           pickData.pickedObject = PickedObject::WidgetTranslationArrow;
         }
       }
@@ -293,37 +269,24 @@ namespace Tac
     const Camera* camera{ Creation::GetCamera() };
     const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
     const v2i windowPos{ AppWindowApi::GetPos( mWindowHandle ) };
-    const float w{ ( float )windowSize.x };
-    const float h{ ( float )windowSize.y };
-    const float x{ ( float )windowPos.x };
-    const float y{ ( float )windowPos.y };
     const v2 screenspaceCursorPos { AppKeyboardApi::GetMousePosScreenspace() };
-    dynmc float xNDC { ( ( screenspaceCursorPos.x - x ) / w ) };
-    dynmc float yNDC { ( ( screenspaceCursorPos.y - y ) / h ) };
+    dynmc float xNDC { ( ( screenspaceCursorPos.x - ( float )windowPos.x ) / ( float )windowSize.x ) };
+    dynmc float yNDC { ( ( screenspaceCursorPos.y - ( float )windowPos.y ) / ( float )windowSize.y ) };
     yNDC = 1 - yNDC;
     xNDC = xNDC * 2 - 1;
     yNDC = yNDC * 2 - 1;
-    const float aspect { w / h };
-    const float theta { camera->mFovyrad / 2.0f };
-    const float cotTheta { 1.0f / Tan( theta ) };
-    const float sX { cotTheta / aspect };
-    const float sY { cotTheta };
-    const m4 viewInv{ m4::ViewInv( camera->mPos,
-                                   camera->mForwards,
-                                   camera->mRight,
-                                   camera->mUp ) };
-    const v3 viewSpaceMousePosNearPlane{ xNDC / sX,
-                                         yNDC / sY,
-                                         -1 };
-    const v3 viewSpaceMouseDir { Normalize( viewSpaceMousePosNearPlane ) };
-    const v4 viewSpaceMouseDir4 { v4( viewSpaceMouseDir, 0 ) };
-    const v4 worldSpaceMouseDir4 { viewInv * viewSpaceMouseDir4 };
     TAC_ASSERT(camera->mType == Camera::Type::kPerspective);
+    const m4 projInv{ camera->ProjInv(  (float)windowSize.x / (float)windowSize.y  ) };
+    const m4 viewInv{ camera->ViewInv() };
+    const v4 mousePos_ndc( xNDC, yNDC, 1, 1 ); // on far plane
+    dynmc v4 mouseDir_view{ projInv * mousePos_ndc };
+    mouseDir_view.xyz() /= mouseDir_view.w;
+    const v3 mouseDir_world{ Normalize( ( viewInv * v4( mouseDir_view.xyz(), 0 ) ).xyz() ) };
     return 
       Ray
       {
-          .mOrigin{camera->mPos},
-          .mDirection{worldSpaceMouseDir4.xyz()},
+          .mOrigin    { camera->mPos },
+          .mDirection { mouseDir_world },
       };
   }
 

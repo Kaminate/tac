@@ -26,9 +26,9 @@ namespace Tac
     };
 
     using SubMeshTriangles = Vector< Triangle >;
-    auto Raycast( Ray ray_modelspace ) const -> Result;
-
-    static auto ConvertWorldToModelRay( Ray ray_worldspace, m4 model_to_world ) -> Ray;
+    auto Raycast_modelspace( const Ray& ray_modelspace ) const -> Result;
+    auto Raycast_worldspace( const Ray& ray_worldspace, const m4& model_to_world ) const -> Result;
+    static auto ConvertWorldToModelRay( const Ray& ray_worldspace, const m4& model_to_world ) -> Ray;
     SubMeshTriangles mTris {};
   };
 
