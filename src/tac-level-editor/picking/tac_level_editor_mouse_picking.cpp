@@ -240,72 +240,54 @@ namespace Tac
     }
   }
 
-  static auto ComputeOrthoMouseRay_worldspace( WindowHandle mWindowHandle ) -> Ray
+  static auto ComputeMouseRay_worldspace( WindowHandle mWindowHandle ) -> Ray
   {
     const Camera* camera{ Creation::GetCamera() };
-    TAC_ASSERT(camera->mType == Camera::Type::kOrthographic);
-
     const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
-    const v2 mousePos_screenspace { AppKeyboardApi::GetMousePosScreenspace() };
+    const v2i mousePos_screenspace { AppKeyboardApi::GetMousePosScreenspace() };
     const v2i windowPos_screenspace{ AppWindowApi::GetPos( mWindowHandle ) };
-    const v2 mousePos_nwhspace{ mousePos_screenspace - windowPos_screenspace };
-    v2 mousePos_ndc( ( mousePos_nwhspace.x / windowSize.x ) * 2 - 1,
-                     ( mousePos_nwhspace.y / windowSize.y ) * -2 + 1 );
-    float aspect{ (float)windowSize.x / ( float )windowSize.y };
-    float orthoHeight{ camera->mOrthoHeight };
-    float orthoWidth{ camera->mOrthoHeight * aspect };
-    v3 origin{ camera->mPos
-      + camera->mRight * mousePos_ndc.x * orthoWidth / 2
-      + camera->mUp * mousePos_ndc.y * orthoHeight / 2 };
-    return Ray
+    const v2i mousePos_nwhspace{ mousePos_screenspace - windowPos_screenspace };
+    const v4 mousePos_ndc( ( ( float )mousePos_nwhspace.x / windowSize.x ) * 2 - 1,
+                           ( ( float )mousePos_nwhspace.y / windowSize.y ) * -2 + 1,
+                           1, // on far plane
+                           1 );
+    switch( camera->mType )
     {
-      .mOrigin    { origin },
-      .mDirection { camera->mForwards },
-    };
-  }
-
-  static auto ComputePerspectiveMouseRay_worldspace( WindowHandle mWindowHandle ) -> Ray
-  {
-    const Camera* camera{ Creation::GetCamera() };
-    const v2i windowSize{ AppWindowApi::GetSize( mWindowHandle ) };
-    const v2i windowPos{ AppWindowApi::GetPos( mWindowHandle ) };
-    const v2 screenspaceCursorPos { AppKeyboardApi::GetMousePosScreenspace() };
-    dynmc float xNDC { ( ( screenspaceCursorPos.x - ( float )windowPos.x ) / ( float )windowSize.x ) };
-    dynmc float yNDC { ( ( screenspaceCursorPos.y - ( float )windowPos.y ) / ( float )windowSize.y ) };
-    yNDC = 1 - yNDC;
-    xNDC = xNDC * 2 - 1;
-    yNDC = yNDC * 2 - 1;
-    TAC_ASSERT(camera->mType == Camera::Type::kPerspective);
-    const m4 projInv{ camera->ProjInv(  (float)windowSize.x / (float)windowSize.y  ) };
-    const m4 viewInv{ camera->ViewInv() };
-    const v4 mousePos_ndc( xNDC, yNDC, 1, 1 ); // on far plane
-    dynmc v4 mouseDir_view{ projInv * mousePos_ndc };
-    mouseDir_view.xyz() /= mouseDir_view.w;
-    const v3 mouseDir_world{ Normalize( ( viewInv * v4( mouseDir_view.xyz(), 0 ) ).xyz() ) };
-    return 
-      Ray
+      case Camera::kOrthographic:
       {
-          .mOrigin    { camera->mPos },
-          .mDirection { mouseDir_world },
-      };
+        const float aspect{ (float)windowSize.x / ( float )windowSize.y };
+        const v3 origin{ camera->mPos
+          + camera->mRight * mousePos_ndc.x *  camera->mOrthoHeight * aspect  / 2
+          + camera->mUp * mousePos_ndc.y * camera->mOrthoHeight / 2 };
+        return Ray
+        {
+          .mOrigin    { origin },
+          .mDirection { camera->mForwards },
+        };
+      }
+      case Camera::kPerspective:
+      {
+          const m4 projInv{ camera->ProjInv(  (float)windowSize.x / (float)windowSize.y  ) };
+          const m4 viewInv{ camera->ViewInv() };
+          dynmc v4 mouseDir_view{ projInv * mousePos_ndc };
+          mouseDir_view.xyz() /= mouseDir_view.w;
+          const v3 mouseDir_world{ Normalize( ( viewInv * v4( mouseDir_view.xyz(), 0 ) ).xyz() ) };
+          return Ray
+          {
+              .mOrigin    { camera->mPos },
+              .mDirection { mouseDir_world },
+          };
+      }
+      default:
+        TAC_ASSERT_INVALID_CASE( camera->mType );
+        return {};
+    }
   }
 
   void CreationMousePicking::BeginFrame( WindowHandle windowHandle )
   {
     mWindowHovered = AppWindowApi::IsHovered( windowHandle );
-    const Camera* camera{ Creation::GetCamera() };
-    switch( camera->mType )
-    {
-      case Camera::Type::kOrthographic:
-        sMouseRay_worldspace = ComputeOrthoMouseRay_worldspace(windowHandle);
-        break;
-      case Camera::Type::kPerspective:
-        sMouseRay_worldspace = ComputePerspectiveMouseRay_worldspace(windowHandle);
-        break;
-      default:
-        TAC_ASSERT_INVALID_CASE( camera->mType );
-        break;
-    }
+    sMouseRay_worldspace = ComputeMouseRay_worldspace( windowHandle );
   }
 
   auto CreationMousePicking::GetWorldspaceMouseRay() -> Ray { return sMouseRay_worldspace; }
