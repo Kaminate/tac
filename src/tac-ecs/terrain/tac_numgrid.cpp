@@ -97,6 +97,115 @@ namespace Tac
     return ( const NumGridSys* )world->GetSystem( NumGridSys::sInfo );
   }
 
+  void NumGridSys::DebugDraw3D( Errors& errors)
+  {
+    struct NumGridCBufData
+    {
+      u32 mWidth;
+      u32 mHeight;
+      u32 mBufferIndexOffset;
+    };
+
+    //static Vector<NumGridCBufData> sCPUCBufs;
+    static Vector<Render::BufferHandle> sAllGPUNumbers;
+    static Vector<u8> sAllCPUNumbers;
+
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    sAllGPUNumbers.resize( Render::RenderApi::GetMaxGPUFrameCount() );
+
+    Render::BufferHandle& allGPUNumbers{
+      sAllGPUNumbers[ Render::RenderApi::GetCurrentRenderFrameIndex() ] };
+
+    Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors) };
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+
+#if 0
+    how to manage lifetime of gpu objects? (cbuf, data buf)
+
+    theres the master editor world
+    that gets copied to the game world
+
+    that gets interpolated by netcode
+    that gets interpolated by the frame rate
+
+    the resulting World could be rendered into multiple viewports
+    or there could be multiple worlds rendered.
+
+    i could just Allocate, use, and delete immediately,
+    relying on the deletion queue.
+
+    as long as its the same World, it should have the same data buf.
+    the cbuf would be associated with each World Render instance
+
+
+
+
+
+#endif
+
+    sAllCPUNumbers.clear();
+    for( NumGrid* numGrid : mNumGrids )
+    {
+      if( numGrid->mData.empty() || !numGrid->mWidth || numGrid->mHeight )
+        continue;
+
+      TAC_ASSERT( numGrid->mData.size() == numGrid->mWidth * numGrid->mHeight );
+
+      NumGridCBufData cbufData
+      {
+        .mWidth { numGrid->mWidth },
+        .mHeight { numGrid->mHeight },
+        .mBufferIndexOffset{ sAllCPUNumbers.size() },
+      };
+
+        
+
+      numGrid->mData;
+
+
+      numGrid->mData;
+      numGrid->mWidth;
+      numGrid->mHeight;
+
+      //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      //renderDevice->CreateRenderContext();
+      //renderContext->SetVertexBuffer( {} );
+      //renderContext->SetIndexBuffer( {} );
+
+
+      Render::BufferHandle cbufhandle{
+      renderDevice->CreateBuffer(
+        Render::CreateBufferParams
+        {
+          .mByteCount     { sizeof(NumGridCBufData)},
+          .mBytes         {},
+          .mStride        {}, // used in creating the SRV and used for the input layout
+          .mUsage         { Render::Usage::Default },
+          .mBinding       { Render::Binding::None },
+          .mCpuAccess     { Render::CPUAccess::None },
+          .mGpuBufferMode { Render::GpuBufferMode::kUndefined },
+          .mOptionalName  { "numgrid"},
+          .mStackFrame    { TAC_STACK_FRAME },
+        } );
+      renderContext->;
+
+      renderContext->UpdateBufferSimple( h, t, errors );
+      renderContext->;
+
+      renderContext->Draw(
+        Render::DrawArgs
+        {
+          .mVertexCount { 6 * numGrid->mWidth * numGrid->mHeight },
+        } );
+    } );
+
+    //Graphics* graphics{ Graphics::From( world ) };
+    //graphics->
+
+    TAC_CALL( renderContext->Execute( errors ) );
+  }
+
+  }
 
 } // namespace Tac
 

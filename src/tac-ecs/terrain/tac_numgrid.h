@@ -27,6 +27,8 @@ namespace Tac
     void Update() override;
     void DebugImgui() override;
 
+    void DebugDraw3D(Errors&);
+
     static void SpaceInitNumGrid();
     static auto GetSystem( dynmc World* ) -> dynmc NumGridSys*;
     static auto GetSystem( const World* ) -> const NumGridSys*;

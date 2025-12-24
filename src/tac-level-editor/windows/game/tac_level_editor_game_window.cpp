@@ -444,53 +444,10 @@ namespace Tac
                                                        windowHandle,
                                                        camera,
                                                        errors ) );
-    NumGridSys* numGridSys{ NumGridSys::GetSystem( world ) };
-    numGridSys->ForEachNumGrid( [&](NumGrid* numGrid)
-    {
-      numGrid->mData;
-      numGrid->mWidth;
-      numGrid->mHeight;
-
-      //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      //renderDevice->CreateRenderContext();
-      //renderContext->SetVertexBuffer( {} );
-      //renderContext->SetIndexBuffer( {} );
-
-      struct NumGridCBufData
-      {
-        u32 mWidth;
-        u32 mHeight;
-      };
-
-      Render::BufferHandle cbufhandle{
-      renderDevice->CreateBuffer(
-        Render::CreateBufferParams
-        {
-          .mByteCount     { sizeof(NumGridCBufData)},
-          .mBytes         {},
-          .mStride        {}, // used in creating the SRV and used for the input layout
-          .mUsage         { Render::Usage::Default },
-          .mBinding       { Render::Binding::None },
-          .mCpuAccess     { Render::CPUAccess::None },
-          .mGpuBufferMode { Render::GpuBufferMode::kUndefined },
-          .mOptionalName  { "numgrid"},
-          .mStackFrame    { TAC_STACK_FRAME },
-        } );
-      renderContext->;
-
-      renderContext->UpdateBufferSimple( h, t, errors );
-      renderContext->;
-
-      renderContext->Draw(
-        Render::DrawArgs
-        {
-          .mVertexCount { 6 * numGrid->mWidth * numGrid->mHeight },
-        } );
-    } );
-
-    //Graphics* graphics{ Graphics::From( world ) };
-    //graphics->
 #endif
+
+    NumGridSys* numGridSys{ NumGridSys::GetSystem( world ) };
+    numGridSys->DebugDraw3D( errors );
 
 #if 0
     TAC_CALL( IconRenderer::RenderIcons( world,
