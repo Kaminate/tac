@@ -83,15 +83,17 @@ namespace Tac
 
     ImGuiSaveAs();
 
-    ImGuiText( "Windows" );
-    ImGuiIndent();
-    ImGuiCheckbox( "Show System Window", &CreationSystemWindow::sShowWindow );
-    ImGuiCheckbox( "Show Game Window", &CreationGameWindow::sShowWindow );
-    ImGuiCheckbox( "Show Properties Window", &CreationPropertyWindow::sShowWindow );
-    ImGuiCheckbox( "Show Profile Window", &CreationProfileWindow::sShowWindow );
-    ImGuiCheckbox( "Show Asset View", &CreationAssetView::sShowWindow  );
-    ImGuiCheckbox( "Show Shader Graph Window", &CreationShaderGraphWindow::sShowWindow  );
-    ImGuiUnindent();
+    if( ImGuiCollapsingHeader( "Windows" ) )
+    {
+      ImGuiIndent();
+      ImGuiCheckbox( "Show System Window", &CreationSystemWindow::sShowWindow );
+      ImGuiCheckbox( "Show Game Window", &CreationGameWindow::sShowWindow );
+      ImGuiCheckbox( "Show Properties Window", &CreationPropertyWindow::sShowWindow );
+      ImGuiCheckbox( "Show Profile Window", &CreationProfileWindow::sShowWindow );
+      ImGuiCheckbox( "Show Asset View", &CreationAssetView::sShowWindow );
+      ImGuiCheckbox( "Show Shader Graph Window", &CreationShaderGraphWindow::sShowWindow );
+      ImGuiUnindent();
+    }
 
     PrefabImGui();
 
@@ -102,6 +104,8 @@ namespace Tac
       OS::OSAppStopRunning();
 
     TAC_CALL( DesktopApp::DebugImGui( errors ) );
+
+    TAC_CALL( CreationGameWindow::DebugImGui( errors ));
 
     ImGuiEnd();
   }

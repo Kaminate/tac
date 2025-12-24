@@ -9,6 +9,7 @@
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-ecs/renderpass/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-ecs/terrain/tac_numgrid.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
@@ -285,7 +286,7 @@ namespace Tac
       camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
   }
 
-  static void ImGuiOverlay( Errors& errors )
+  void CreationGameWindow::DebugImGui( Errors& errors )
   {
     static bool mHideUI {};
     if( mHideUI )
@@ -298,10 +299,10 @@ namespace Tac
     ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
     TAC_ON_DESTRUCT(ImGuiEndChild());
 
-    if( ImGuiButton( "Close Window" ) )
+    if( ImGuiButton( "Close Game Window" ) )
       CreationGameWindow::sShowWindow = false;
 
-    if( ImGuiButton( "Close Other Windows" ) )
+    if( ImGuiButton( "Close all but Game Window" ) )
     {
       CreationMainWindow::sShowWindow = false;
       CreationPropertyWindow::sShowWindow = false;
@@ -334,9 +335,9 @@ namespace Tac
     if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
       ImGuiText( sStatusMessage );
 
-    ImGuiSeparator();
-    TAC_CALL( Toolbox::DebugImGui( errors ) );
-    ImGuiSeparator();
+    //ImGuiSeparator();
+    //TAC_CALL( Toolbox::DebugImGui( errors ) );
+    //ImGuiSeparator();
 
   }
 
@@ -443,6 +444,52 @@ namespace Tac
                                                        windowHandle,
                                                        camera,
                                                        errors ) );
+    NumGridSys* numGridSys{ NumGridSys::GetSystem( world ) };
+    numGridSys->ForEachNumGrid( [&](NumGrid* numGrid)
+    {
+      numGrid->mData;
+      numGrid->mWidth;
+      numGrid->mHeight;
+
+      //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+      //renderDevice->CreateRenderContext();
+      //renderContext->SetVertexBuffer( {} );
+      //renderContext->SetIndexBuffer( {} );
+
+      struct NumGridCBufData
+      {
+        u32 mWidth;
+        u32 mHeight;
+      };
+
+      Render::BufferHandle cbufhandle{
+      renderDevice->CreateBuffer(
+        Render::CreateBufferParams
+        {
+          .mByteCount     { sizeof(NumGridCBufData)},
+          .mBytes         {},
+          .mStride        {}, // used in creating the SRV and used for the input layout
+          .mUsage         { Render::Usage::Default },
+          .mBinding       { Render::Binding::None },
+          .mCpuAccess     { Render::CPUAccess::None },
+          .mGpuBufferMode { Render::GpuBufferMode::kUndefined },
+          .mOptionalName  { "numgrid"},
+          .mStackFrame    { TAC_STACK_FRAME },
+        } );
+      renderContext->;
+
+      renderContext->UpdateBufferSimple( h, t, errors );
+      renderContext->;
+
+      renderContext->Draw(
+        Render::DrawArgs
+        {
+          .mVertexCount { 6 * numGrid->mWidth * numGrid->mHeight },
+        } );
+    } );
+
+    //Graphics* graphics{ Graphics::From( world ) };
+    //graphics->
 #endif
 
 #if 0
@@ -495,7 +542,7 @@ namespace Tac
       Creation::GetWorld()->mDebug3DDrawData->DebugDraw3DCircle( GizmoMgr::sInstance.mGizmoOrigin,
                                                                  Creation::GetCamera()->mForwards,
                                                                  GizmoMgr::sInstance.mArrowLen );
-    TAC_CALL( ImGuiOverlay( errors ) );
+    //TAC_CALL( ImGuiOverlay( errors ) );
 
     if( Tool * tool{ Toolbox::GetActiveTool() } )
       tool->Update();

@@ -30,6 +30,13 @@ namespace Tac
     static void SpaceInitNumGrid();
     static auto GetSystem( dynmc World* ) -> dynmc NumGridSys*;
     static auto GetSystem( const World* ) -> const NumGridSys*;
+
+    template<typename T> void ForEachNumGrid( T&& t ) const
+    {
+      for( NumGrid* numGrid : mNumGrids )
+        t( numGrid );
+    }
+
     static SystemInfo* sInfo;
 
     using NumGrids = Set< NumGrid* >;

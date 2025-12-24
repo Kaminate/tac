@@ -15,6 +15,7 @@ namespace Tac
     static void Update( Errors& );
     static void Render( World*, const Camera*, Errors& );
     static void SetStatusMessage( StringView, GameTimeDelta );
+    static void DebugImGui( Errors& );
     static auto GetWindowHandle() -> WindowHandle;
     static bool sShowWindow;
   };
