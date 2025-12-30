@@ -10,11 +10,6 @@ namespace Tac::Render
     mGPUDescs.clear();
   }
 
-  //void DX12DescriptorCache::Clear()
-  //{
-  //  mGPUDescs.clear();
-  //}
-
   void DX12DescriptorCache::AddDescriptorRegion( DX12DescriptorRegion&& region )
   {
     mGPUDescs.push_back( move( region ) );

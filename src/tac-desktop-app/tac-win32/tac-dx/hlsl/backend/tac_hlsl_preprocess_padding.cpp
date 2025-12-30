@@ -6,7 +6,7 @@
 
 namespace Tac::Render
 {
-  static int GetPadByteCount( const StringView line )
+  static auto GetPadByteCount( const StringView line ) -> int
   {
     String numberStr;
 
@@ -27,7 +27,7 @@ namespace Tac::Render
     return padByteCount;
   }
 
-  Optional<String> HLSLLinePreprocessorPadding::Preprocess( Input input, Errors& )
+  auto HLSLLinePreprocessorPadding::Preprocess( Input input, Errors& ) -> Optional<String>
   {
     const StringView line{ input.mLine };
     if( !line.contains("TAC_PAD_BYTES") )

@@ -32,10 +32,8 @@ namespace Tac::Render
     bool IsSRV() const;
     bool IsUAV() const;
 
-    Classification GetClassification() const;
-
-  private:
-    static Classification Classify( const D3D12_SHADER_INPUT_BIND_DESC& );
+    auto GetClassification() const -> Classification;
+    auto ToString() -> const char*;
 
     Classification mClassification {};
   };

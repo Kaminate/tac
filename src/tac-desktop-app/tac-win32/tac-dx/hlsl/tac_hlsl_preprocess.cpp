@@ -12,7 +12,7 @@
 
 namespace Tac::Render
 {
-  String HLSLPreprocessor::Process( Vector< AssetPathString > assetPaths, Errors& errors )
+  auto HLSLPreprocessor::Process( Vector< AssetPathString > assetPaths, Errors& errors ) -> String
   {
     HLSLLinePreprocessorRegister processorRegister;
     HLSLLinePreprocessorIncludes processorIncludes;

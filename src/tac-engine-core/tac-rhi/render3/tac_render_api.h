@@ -302,8 +302,8 @@ namespace Tac::Render
   enum class GpuBufferMode
   {
     kUndefined = 0,
-    kFormatted,
-    kStructured,
+    kFormatted, // ie: Buffer<uint> gBuffer; (aka a "typed" buffer (?))
+    kStructured, // ie: struct MyData { uint a; float b; }; StructuredBuffer<MyData> gBuffer;
     kByteAddress,
   };
 
@@ -337,7 +337,7 @@ namespace Tac::Render
     //               and include handlers
     //
     //               It's also used for the file stem to save the preprocessed shader, (for PIX?)
-    String           mName;
+    String           mName; // (optional with a single mInput)
 
     //               Subpaths (no extension) within ProgramAttribs::mDir
     Vector< String > mInputs;

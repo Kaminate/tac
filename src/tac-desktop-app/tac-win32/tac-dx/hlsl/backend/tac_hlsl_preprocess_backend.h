@@ -17,17 +17,17 @@ namespace Tac::Render
       int                 mLineNumber;
     };
 
-    virtual Optional< String > Preprocess( Input, Errors& ) = 0;
+    virtual auto Preprocess( Input, Errors& ) -> Optional< String > = 0;
   };
 
   struct HLSLFilePreprocessor
   {
-    void   Add( HLSLLinePreprocessor* );
-    String PreprocessFile( AssetPathStringView, Errors& );
-    String PreprocessSource( StringView, Errors& );
+    void Add( HLSLLinePreprocessor* );
+    auto PreprocessFile( AssetPathStringView, Errors& ) -> String;
+    auto PreprocessSource( StringView, Errors& ) -> String;
 
   private:
-    Optional< String > PreprocessLine( HLSLLinePreprocessor::Input, Errors& );
+    auto PreprocessLine( HLSLLinePreprocessor::Input, Errors& ) -> Optional< String >;
 
     Vector< HLSLLinePreprocessor* > mProcessors;
     AssetPathString                 mAssetPath;

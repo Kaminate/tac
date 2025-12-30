@@ -9,11 +9,12 @@ namespace Tac::Render
   //   https://learn.microsoft.com/en-us/windows/win32/direct3d12/example-root-signatures
   bool D3D12ProgramBindDesc::BindsAsDescriptorTable() const
   {
-    // Samplers and textures can only be set through descriptor tables ( not root descriptors )
+    // There exist certain types of root UAVs and root SRVs, but we will not use them.
     return mBindCount != 1
       || mType.IsSampler()
-      || mType.IsUAV() // typed uav cannot be root descriptor
-      || mType.IsTexture();
+      || mType.IsTexture()
+      || mType.IsUAV()
+      || mType.IsSRV();
   }
 
 

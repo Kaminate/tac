@@ -11,8 +11,8 @@
 
 namespace Tac::Render
 {
-  String             HLSLLinePreprocessorIncludes::IncludeFile( AssetPathStringView path,
-                                                                Errors& errors )
+  auto HLSLLinePreprocessorIncludes::IncludeFile( AssetPathStringView path,
+                                                                Errors& errors ) -> String
   {
     if( IsIncluded( path ) )
       return String();
@@ -36,7 +36,7 @@ namespace Tac::Render
     return false;
   }
 
-  Optional< String > HLSLLinePreprocessorIncludes::Preprocess( Input input, Errors& errors )
+  auto HLSLLinePreprocessorIncludes::Preprocess( Input input, Errors& errors ) -> Optional< String >
   {
     if( !IsIncluded( input.mFile ) )
     {

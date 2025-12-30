@@ -43,7 +43,7 @@
 
 namespace Tac::Render
 {
-  static String GetFunctionName( const StringView line )
+  static auto GetFunctionName( const StringView line ) -> String
   {
     int iFunctionNameBegin { line.find( '(' ) + 1 };
     while( IsSpace( line[ iFunctionNameBegin ] ) )
@@ -54,7 +54,7 @@ namespace Tac::Render
                    line.data() + iFunctionNameEnd );
   }
 
-  static int GetBitCount( const StringView line )
+  static auto GetBitCount( const StringView line ) -> int
   {
     if constexpr( kIsDebugMode )
     {
@@ -80,7 +80,7 @@ namespace Tac::Render
     return 0;
   }
 
-  static String GetLeadingWhitespace( const StringView line )
+  static auto GetLeadingWhitespace( const StringView line ) -> String
   {
     String result;
     for( char c : line )
@@ -94,7 +94,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  Optional< String > HLSLLinePreprocessorBitfield::Preprocess( Input input, Errors& )
+  auto HLSLLinePreprocessorBitfield::Preprocess( Input input, Errors& ) -> Optional< String >
   {
     const StringView line{ input.mLine };
     if( line.contains( "TAC_DEFINE_BITFIELD_BEGIN" ) )

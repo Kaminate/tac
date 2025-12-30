@@ -5,18 +5,14 @@
 
 namespace Tac::Render
 {
-  // -----------------------------------------------------------------------------------------------
-
   void HLSLFilePreprocessor::Add( HLSLLinePreprocessor* p )
   {
     mProcessors.push_back( p );
     //p->mParent = this;
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  Optional<String> HLSLFilePreprocessor::PreprocessLine( HLSLLinePreprocessor::Input input,
-                                                         Errors& errors)
+  auto HLSLFilePreprocessor::PreprocessLine( HLSLLinePreprocessor::Input input,
+                                                         Errors& errors) -> Optional<String>
   {
     for( HLSLLinePreprocessor* lineProcessor : mProcessors )
     {
@@ -31,7 +27,7 @@ namespace Tac::Render
     return {};
   }
 
-  String HLSLFilePreprocessor::PreprocessSource( StringView sourceCode, Errors& errors )
+  auto HLSLFilePreprocessor::PreprocessSource( StringView sourceCode, Errors& errors ) -> String
   {
     String result;
 
@@ -66,8 +62,8 @@ namespace Tac::Render
     return result;
   }
 
-  String HLSLFilePreprocessor::PreprocessFile( const AssetPathStringView assetPath,
-                                               Errors& errors )
+  auto HLSLFilePreprocessor::PreprocessFile( const AssetPathStringView assetPath,
+                                               Errors& errors ) -> String
   {
     mAssetPath = assetPath;
     TAC_CALL_RET( const String sourceCode{ LoadAssetPath( assetPath, errors ) } );

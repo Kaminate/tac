@@ -6,7 +6,7 @@
 
 namespace Tac::Render
 {
-  Optional< String > HLSLLinePreprocessorFx::Preprocess( Input input, Errors& errors )
+  auto HLSLLinePreprocessorFx::Preprocess( Input input, Errors& errors ) -> Optional< String >
   {
     const StringView line{ input.mLine };
 

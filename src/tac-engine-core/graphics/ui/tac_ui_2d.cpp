@@ -760,7 +760,8 @@ namespace Tac
 #endif
   }
 
-  void UI2DRenderData::DebugDraw2DToTexture( const Span< UI2DDrawData* > drawDatas,
+  void UI2DRenderData::DebugDraw2DToTexture( Render::IContext* renderContext,
+                                             const Span< UI2DDrawData* > drawDatas,
                                              const Render::TextureHandle texture,
                                              const Render::TexFmt texFmt,
                                              const v2i textureSize,
@@ -781,8 +782,6 @@ namespace Tac
     int& vBByteCount{ mVBByteCounts[ iFrame ] };
     int& iBByteCount{ mIBByteCounts[ iFrame ] };
 
-    TAC_CALL( Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) } );
-    Render::IContext* renderContext{ renderContextScope.GetContext() };
 
     int combinedVtxCount{};
     int combinedIdxCount{};
@@ -894,7 +893,6 @@ namespace Tac
     }
 
     renderContext->DebugEventEnd();
-    TAC_CALL( renderContext->Execute( errors ) );
   }
 
 } // namespace Tac

@@ -12,8 +12,7 @@ namespace Tac::Render
 
   // GPUUploadAllocator
 
-  DX12UploadAllocator::DynAlloc DX12UploadAllocator::Allocate( const int byteCount,
-                                                               Errors& errors )
+  auto DX12UploadAllocator::Allocate( const int byteCount, Errors& errors ) -> DynAlloc
   {
     // byteCount allowed to be 0
     TAC_ASSERT( byteCount >= 0 );
@@ -111,7 +110,7 @@ namespace Tac::Render
   // GPUUploadPageManager
 
 
-  void           DX12UploadPageMgr::UnretirePages()
+  void DX12UploadPageMgr::UnretirePages()
   {
     DX12CommandQueue* mCommandQueue{ &DX12Renderer::sRenderer.mCommandQueue };
     dynmc int n { mRetiredPages.size() };
@@ -147,7 +146,7 @@ namespace Tac::Render
     mRetiredPages.resize( n );
   }
 
-  DX12UploadPage DX12UploadPageMgr::RequestPage( int byteCount, Errors& errors )
+  auto DX12UploadPageMgr::RequestPage( int byteCount, Errors& errors ) -> DX12UploadPage
   {
     TAC_SCOPE_GUARD( std::lock_guard, mPagesMutex );
 
@@ -163,7 +162,7 @@ namespace Tac::Render
     return AllocateNewPage( byteCount, errors );
   }
 
-  DX12UploadPage DX12UploadPageMgr::AllocateNewPage( int byteCount, Errors& errors )
+  auto DX12UploadPageMgr::AllocateNewPage( int byteCount, Errors& errors ) -> DX12UploadPage
   {
     const D3D12_HEAP_PROPERTIES HeapProps
     {
@@ -224,7 +223,7 @@ namespace Tac::Render
     };
   }
 
-  void           DX12UploadPageMgr::RetirePage( DX12UploadPage page, FenceSignal signal )
+  void DX12UploadPageMgr::RetirePage( DX12UploadPage page, FenceSignal signal )
   {
     TAC_SCOPE_GUARD( std::lock_guard, mPagesMutex );
     const RetiredPage retiredPage

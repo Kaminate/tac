@@ -32,6 +32,7 @@ namespace Tac
   static ConstantBuffer                sConstantData;
   static bool                          sInitialized;
   static bool                          sEnabled { true };
+  //static bool                          sEnabled { false };
 
   static auto CPUToGPUCameraType( Camera::Type cpuCameraType ) -> ConstantBuffer::CameraType
   {
@@ -68,7 +69,7 @@ namespace Tac
           } },
         .mDepthState     { Render::DepthState {
             .mDepthTest  { true },
-            .mDepthWrite { true },
+            .mDepthWrite { false },
             .mDepthFunc  { Render::DepthFunc::Less },
           }},
         .mRasterizerState { Render::RasterizerState

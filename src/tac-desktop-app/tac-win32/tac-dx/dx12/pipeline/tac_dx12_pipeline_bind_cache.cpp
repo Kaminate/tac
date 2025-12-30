@@ -89,7 +89,11 @@ namespace Tac::Render
     TAC_ASSERT_MSG( !programBindType.IsTexture(),
                     "Textures must be bound through descriptor tables" );
     TAC_ASSERT( programBindType.IsBuffer() ); // this includes constant buffers
-    //const bool isCompute{ commitParams.mIsCompute };
+    TAC_ASSERT_MSG( mResourceHandle.IsValid(), String()
+                    + mProgramBindDesc.mType.ToString()
+                    + " "
+                    + mProgramBindDesc.mName
+                    + " is not bound to a resource!" );
     const BufferHandle bufferHandle{ mResourceHandle };
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     DX12BufferMgr* bufferMgr{ &renderer.mBufMgr };

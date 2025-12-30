@@ -7,7 +7,7 @@ namespace Tac::Render
 
   struct HLSLLinePreprocessorSemantic : HLSLLinePreprocessor
   {
-    Optional< String > Preprocess( Input, Errors& ) override;
+    auto Preprocess( Input, Errors& ) -> Optional< String > override;
   };
 
 } // namespace Tac::Render

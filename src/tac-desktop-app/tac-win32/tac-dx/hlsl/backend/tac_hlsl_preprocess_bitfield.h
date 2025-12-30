@@ -6,7 +6,7 @@ namespace Tac::Render
 {
   struct HLSLLinePreprocessorBitfield : public HLSLLinePreprocessor
   {
-    Optional< String > Preprocess( Input, Errors& ) override;
+    auto Preprocess( Input, Errors& ) -> Optional< String > override;
 
     int  mRunningBitCount{};
     bool mProcessing{};

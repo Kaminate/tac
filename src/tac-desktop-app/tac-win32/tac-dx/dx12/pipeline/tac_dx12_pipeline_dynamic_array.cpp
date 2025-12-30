@@ -60,6 +60,7 @@ namespace Tac::Render
     {
       DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
       TAC_ASSERT( buffer );
+      TAC_ASSERT( buffer->mResource );
       TAC_ASSERT( buffer->mResource.GetState() & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
       // [ ] Q: why the fuck is this calling a textureMgr function?
       //        arent we in the buffermgr?
@@ -167,7 +168,7 @@ namespace Tac::Render
     const Span< DX12Descriptor > srcDescriptors{ GetDescriptors( &transitionHelper ) };
     transitionHelper.ResourceBarrier( commandList );
     dynmc DX12DescriptorHeap& heap{ renderer.mDescriptorHeapMgr.mGPUHeaps[ heapType ] };
-    dynmc DX12DescriptorAllocator* descriptorAllocator{ heap.GetRegionMgr() };
+    dynmc DX12DescriptorAllocator* descriptorAllocator{ heap.GetGPURegionMgr() };
     const int nDescriptors{ srcDescriptors.size() };
     DX12DescriptorRegion dstDescriptors { descriptorAllocator->Alloc( nDescriptors ) };
     for( int iDescriptor{}; iDescriptor < nDescriptors; ++iDescriptor )

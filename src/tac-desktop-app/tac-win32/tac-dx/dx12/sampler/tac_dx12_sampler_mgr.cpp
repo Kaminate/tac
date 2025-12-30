@@ -6,7 +6,7 @@
 namespace Tac::Render
 {
 
-  static D3D12_FILTER GetFilter( Filter filter )
+  static auto GetFilter( Filter filter ) -> D3D12_FILTER
   {
     switch( filter )
     {
@@ -21,21 +21,25 @@ namespace Tac::Render
   // -----------------------------------------------------------------------------------------------
 
 
-  DX12Sampler* DX12SamplerMgr::FindSampler( SamplerHandle h )
+  auto DX12SamplerMgr::FindSampler( SamplerHandle h ) -> DX12Sampler*
   {
     return h.IsValid() ? &mSamplers[ h.GetIndex() ] : nullptr;
   }
 
   void DX12SamplerMgr::DestroySampler( SamplerHandle h )
   {
-    if( h.IsValid() )
+    if( DX12Sampler * sampler{ FindSampler( h ) } )
     {
+      DX12Renderer::sRenderer
+        .mDescriptorHeapMgr
+        .mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ]
+        .GetCPURegionMgr()->Free( sampler->mDescriptor );
       FreeHandle( h );
-      mSamplers[ h.GetIndex() ] = {};
+      *sampler = {};
     }
   }
 
-  SamplerHandle DX12SamplerMgr::CreateSampler( CreateSamplerParams params )
+  auto DX12SamplerMgr::CreateSampler( CreateSamplerParams params ) -> SamplerHandle
   {
     DX12Renderer&          renderer{ DX12Renderer::sRenderer };
     DX12DescriptorHeapMgr& heapMgr { renderer.mDescriptorHeapMgr };
@@ -53,14 +57,14 @@ namespace Tac::Render
       .MinLOD         {},
       .MaxLOD         { D3D12_FLOAT32_MAX },
     };
-    const DX12Descriptor descriptor{ heap.Allocate( params.mName ) };
+    const DX12Descriptor descriptor{ heap.GetCPURegionMgr()->Allocate( params.mName ) };
     const D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle { descriptor.GetCPUHandle() };
     const SamplerHandle h{ AllocSamplerHandle() };
     device->CreateSampler( &Desc, descriptorHandle );
     mSamplers[ h.GetIndex() ] = DX12Sampler
     {
-      .mDescriptor{ descriptor },
-      .mName      { params.mName },
+      .mDescriptor { descriptor },
+      .mName       { params.mName },
     };
     return h;
   }

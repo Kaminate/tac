@@ -10,9 +10,8 @@ namespace Tac::Render
 {
   struct DX12DescriptorCache
   {
-    void                  SetFence( FenceSignal );
-    //void                  Clear();
-    void                  AddDescriptorRegion( DX12DescriptorRegion&& );
+    void SetFence( FenceSignal );
+    void AddDescriptorRegion( DX12DescriptorRegion&& );
   private:
     Vector< DX12DescriptorRegion >  mGPUDescs     {};
   };

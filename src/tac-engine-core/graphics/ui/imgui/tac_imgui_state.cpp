@@ -289,7 +289,8 @@ namespace Tac
     mCurrLineHeight = 0;
     mPrevLineHeight = 0;
 
-    mDrawData->AddBoxOutline( 
+    if( !( mFlags & ImGuiWindowFlags_NoBorder ) )
+      mDrawData->AddBoxOutline(
         UI2DDrawData::Box
         {
           .mMini  { mViewportSpacePos },
@@ -759,7 +760,7 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static void UpdateAndRenderWindow( ImGuiDesktopWindowImpl* desktopWindow, Errors& errors )
+  static void UpdateAndRenderWindow( Render::IContext* renderContext, ImGuiDesktopWindowImpl* desktopWindow, Errors& errors )
   {
     if( !AppWindowApi::IsShown( desktopWindow->mWindowHandle ) )
       return;
@@ -770,7 +771,7 @@ namespace Tac
     const Render::TextureHandle swapChainColor { renderDevice->GetSwapChainCurrentColor( fb ) };
     const Render::TexFmt fbFmt { renderDevice->GetSwapChainColorFmt( fb ) };
     const v2i windowSize { AppWindowApi::GetSize( desktopWindow->mWindowHandle ) };
-    TAC_CALL( desktopWindow->mRenderBuffers.DebugDraw2DToTexture( drawDatas, swapChainColor, fbFmt, windowSize, errors ) );
+    TAC_CALL( desktopWindow->mRenderBuffers.DebugDraw2DToTexture( renderContext, drawDatas, swapChainColor, fbFmt, windowSize, errors ) );
   }
 
   void Tac::ImGuiPlatformRender( Errors& errors )
@@ -792,10 +793,16 @@ namespace Tac
       }
     }
 
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    TAC_CALL( Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) } );
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+    renderContext->DebugEventBegin( "ImGuiPlatformRender()" );
     for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::mDesktopWindows )
     {
-      TAC_CALL( UpdateAndRenderWindow( desktopWindow, errors ) );
+      TAC_CALL( UpdateAndRenderWindow( renderContext, desktopWindow, errors ) );
     }
+    renderContext->DebugEventEnd();
+    renderContext->Execute( errors );
   }
 
   // -----------------------------------------------------------------------------------------------

@@ -17,6 +17,19 @@ namespace Tac::Render
   struct DX12DescriptorAllocator;
   struct DX12CommandQueue;
 
+  struct DX12CPUDescriptorAllocator
+  {
+    void Init( DX12DescriptorHeap*, UINT );
+    auto Allocate( StringView debugName ) -> DX12Descriptor;
+    auto Free( DX12Descriptor ) -> void;
+  private:
+    int                 mUsedIndexCount {};
+    Vector< int >       mFreeIndexes    {};
+    Vector< String >    mDebugNames     {};
+    DX12DescriptorHeap* mOwner          {};
+    UINT                mNumDescriptors {};
+  };
+
   struct DX12DescriptorHeap
   {
     struct Params
@@ -32,20 +45,17 @@ namespace Tac::Render
     auto IndexCPUDescriptorHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
     auto IndexGPUDescriptorHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
     auto GetDescriptorSize() const -> UINT;
-    auto Allocate( StringView debugName ) -> DX12Descriptor;
-    auto Free( DX12Descriptor ) -> void;
-    auto GetRegionMgr() -> DX12DescriptorAllocator*;
+    auto GetGPURegionMgr() -> DX12DescriptorAllocator*;
+    auto GetCPURegionMgr() -> DX12CPUDescriptorAllocator*;
     auto GetName() -> StringView;
 
   private:
 
-    auto AllocateIndex() -> int;
-
     String                       mName           {};
-    DX12DescriptorAllocator*     mRegionMgr      {}; // owned
-    int                          mUsedIndexCount {};
-    Vector< int >                mFreeIndexes    {};
-    Vector< String >             mDebugNames     {};
+
+    DX12CPUDescriptorAllocator   mCPURegionMgr   {};
+    DX12DescriptorAllocator*     mGPURegionMgr   {}; // owned, for temporary gpu allocations
+
     PCom< ID3D12DescriptorHeap > mHeap           {};
     D3D12_CPU_DESCRIPTOR_HANDLE  mHeapStartCPU   {};
     D3D12_GPU_DESCRIPTOR_HANDLE  mHeapStartGPU   {};

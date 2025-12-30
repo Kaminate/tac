@@ -7,7 +7,7 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  static D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType( D3D12ProgramBindType type )
+  static auto GetHeapType( D3D12ProgramBindType type ) -> D3D12_DESCRIPTOR_HEAP_TYPE
   {
     if( type.IsBuffer() || type.IsTexture() )
       return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -19,7 +19,7 @@ namespace Tac::Render
     return D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES;
   }
 
-  static D3D12ProgramBindType::Classification GetClassification( IBindlessArray::Params params )
+  static auto GetClassification( IBindlessArray::Params params ) -> D3D12ProgramBindType::Classification
   {
     const bool isShaderResource{ params.mBinding & Binding::ShaderResource };
     const bool isBuffer{ params.mHandleType == HandleType::kBuffer };
@@ -43,7 +43,7 @@ namespace Tac::Render
     mProgramBindType = D3D12ProgramBindType( classification );
   }
 
-  void                          BindlessArray::CheckType( ResourceHandle h )
+  void BindlessArray::CheckType( ResourceHandle h )
   {
     if constexpr( kIsDebugMode )
     {
@@ -58,7 +58,7 @@ namespace Tac::Render
     }
   }
 
-  void                          BindlessArray::Commit( const CommitParams commitParams )
+  void BindlessArray::Commit( const CommitParams commitParams )
   {
     ( commitParams.mCommandList->*(
       commitParams.mIsCompute
@@ -67,18 +67,16 @@ namespace Tac::Render
       ( commitParams.mRootParameterIndex, mDescriptorRegion.GetGPUHandle() );
   }
 
-  void                          BindlessArray::SetFenceSignal( const FenceSignal fenceSignal )
+  void BindlessArray::SetFenceSignal( const FenceSignal fenceSignal )
   {
     mFenceSignal = fenceSignal;
   }
 
-  void                          BindlessArray::Resize( const int newSize, Errors& errors )
+  void BindlessArray::Resize( const int newSize, Errors& errors )
   {
     const int oldSize{ mHandles.size() };
-
     TAC_ASSERT( mUnusedBindings.empty() );
     TAC_ASSERT( newSize > oldSize );
-
     mHandles.resize( newSize );
 
     // Allocating a new binding pops the back, so add in reverse order
@@ -90,24 +88,7 @@ namespace Tac::Render
     DX12Renderer& renderer                    { DX12Renderer::sRenderer };
     DX12DescriptorHeapMgr& heapMgr            { renderer.mDescriptorHeapMgr };
     DX12DescriptorHeap& heap                  { heapMgr.mGPUHeaps[ heapType ] };
-    DX12DescriptorAllocator* regionMgr        { heap.GetRegionMgr() };
-
-
-#if 0
-    DX12DescriptorRegion newRegion{ regionMgr->Alloc( newSize ) };
-
-    if( mDescriptorRegion.IsValid() )
-    {
-      ID3D12Device* device{ renderer.mDevice };
-      const D3D12_CPU_DESCRIPTOR_HANDLE dst{ newRegion.GetCPUHandle() };
-      const D3D12_CPU_DESCRIPTOR_HANDLE src{ mDescriptorRegion.GetCPUHandle() };
-      device->CopyDescriptorsSimple( oldSize, dst, src, heapType );
-      mDescriptorRegion.Free( mFenceSignal );
-    }
-
-
-    mDescriptorRegion = ( DX12DescriptorRegion&& )newRegion;
-#else
+    DX12DescriptorAllocator* regionMgr        { heap.GetGPURegionMgr() };
 
     if( mDescriptorRegion.IsValid() )
       mDescriptorRegion.Free( mFenceSignal );
@@ -122,10 +103,9 @@ namespace Tac::Render
         TAC_CALL( CopyDescriptor( handle, binding, errors ) );
       }
     }
-#endif
   }
 
-  IBindlessArray::Binding       BindlessArray::Bind( ResourceHandle h, Errors& errors )
+  auto BindlessArray::Bind( ResourceHandle h, Errors& errors ) -> Binding
   {
     CheckType( h );
 
@@ -145,9 +125,7 @@ namespace Tac::Render
     return binding;
   }
 
-  void                          BindlessArray::CopyDescriptor( IHandle h,
-                                                               Binding binding,
-                                                               Errors& errors )
+  void BindlessArray::CopyDescriptor( IHandle h, Binding binding, Errors& errors )
   {
 
     DX12Renderer&   renderer   { DX12Renderer::sRenderer };
@@ -211,12 +189,11 @@ namespace Tac::Render
     device->CopyDescriptorsSimple( 1, dst, src, heapType );
   }
 
-  void                          BindlessArray::Unbind( Binding binding )
+  void BindlessArray::Unbind( Binding binding )
   {
     mUnusedBindings.push_back( binding );
     mHandles[ binding.GetIndex() ] = IHandle::kInvalidIndex;
   }
-
 
   // -----------------------------------------------------------------------------------------------
 

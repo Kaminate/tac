@@ -28,12 +28,12 @@ namespace Tac::Render
 
   struct DX12UploadPageMgr
   {
-    DX12UploadPage RequestPage( int byteCount, Errors& );
-    void           RetirePage( DX12UploadPage, FenceSignal );
+    auto RequestPage( int byteCount, Errors& ) -> DX12UploadPage;
+    void RetirePage( DX12UploadPage, FenceSignal );
 
   private:
-    DX12UploadPage AllocateNewPage( int byteCount, Errors& );
-    void           UnretirePages();
+    auto AllocateNewPage( int byteCount, Errors& ) -> DX12UploadPage;
+    void UnretirePages();
     //void           FreeLargePages();
 
     struct RetiredPage
@@ -66,9 +66,9 @@ namespace Tac::Render
     DX12UploadAllocator() = default;
     DX12UploadAllocator( const DX12UploadAllocator& ) = delete;
 
-    void     Init( DX12UploadPageMgr* );
-    DynAlloc Allocate( int, Errors& );
-    void     FreeAll( FenceSignal );
+    void Init( DX12UploadPageMgr* );
+    auto Allocate( int, Errors& ) -> DynAlloc;
+    void FreeAll( FenceSignal );
 
     void operator = ( const DX12UploadAllocator& ) = delete;
 

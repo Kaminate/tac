@@ -137,14 +137,14 @@ namespace Tac::Render
       mTotalSize = cumulativeSubRscOffset;
     }
 
-    int GetCumulativeSubresourceOffset( int i ) const { return mCumSubRscOffsets[ i ]; }
-    int GetPitch( int i ) const                       { return mRowPitches[i]; }
-    int GetTotalSize() const                          { return mTotalSize; }
+    auto GetCumulativeSubresourceOffset( int i ) const { return mCumSubRscOffsets[ i ]; }
+    auto GetPitch( int i ) const                       { return mRowPitches[i]; }
+    auto GetTotalSize() const                          { return mTotalSize; }
 
   private:
-    int mRowPitches[ 20 ]{};
-    int mCumSubRscOffsets[ 20 ]{};
-    int mTotalSize{};
+    int mRowPitches[ 20 ]       {};
+    int mCumSubRscOffsets[ 20 ] {};
+    int mTotalSize              {};
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ namespace Tac::Render
     if( binding & Binding::RenderTarget )
     {
       DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_RTV ] };
-      mRTV = heap.Allocate( name + " rtv");
+      mRTV = heap.GetCPURegionMgr()->Allocate( name + " rtv");
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { mRTV->GetCPUHandle() };
       const D3D12_RENDER_TARGET_VIEW_DESC* pRTVDesc{};
       mDevice->CreateRenderTargetView( pResource, pRTVDesc, descDescriptor );
@@ -169,7 +169,7 @@ namespace Tac::Render
     if( binding & Binding::DepthStencil )
     {
       DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_DSV ] };
-      mDSV = heap.Allocate( name + " dsv" );
+      mDSV = heap.GetCPURegionMgr()->Allocate( name + " dsv" );
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { mDSV->GetCPUHandle() };
       const D3D12_DEPTH_STENCIL_VIEW_DESC* pDSVDesc{};
       mDevice->CreateDepthStencilView( pResource, pDSVDesc, descDescriptor );
@@ -178,7 +178,7 @@ namespace Tac::Render
     if( binding & Binding::ShaderResource )
     {
       DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] };
-      mSRV = heap.Allocate( name + " srv");
+      mSRV = heap.GetCPURegionMgr()->Allocate( name + " srv");
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { mSRV->GetCPUHandle() };
       const D3D12_SHADER_RESOURCE_VIEW_DESC* pSRVDesc{};
       mDevice->CreateShaderResourceView( pResource, pSRVDesc, descDescriptor );
@@ -187,7 +187,7 @@ namespace Tac::Render
     if( binding & Binding::UnorderedAccess )
     {
       DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] };
-      mUAV = heap.Allocate( name + " uav");
+      mUAV = heap.GetCPURegionMgr()->Allocate( name + " uav");
       const D3D12_CPU_DESCRIPTOR_HANDLE descDescriptor { mUAV->GetCPUHandle() };
       const D3D12_UNORDERED_ACCESS_VIEW_DESC* pUAVDesc{};
       ID3D12Resource* pCounterResource{ nullptr };
@@ -417,7 +417,7 @@ namespace Tac::Render
     DX12Texture* texture{ FindTexture( h ) };
     TAC_ASSERT( texture );
 
-    const DX12Descriptor allocation{ heap.Allocate( params.mName + " rtcolor " + ToString(idx) ) };
+    const DX12Descriptor allocation{ heap.GetCPURegionMgr()->Allocate( params.mName + " rtcolor " + ToString(idx) ) };
     const D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle{ allocation.GetCPUHandle() };
 
     ID3D12Resource* pResource{ resource.Get() };
@@ -447,30 +447,29 @@ namespace Tac::Render
 
   void DX12TextureMgr::DestroyTexture( TextureHandle h )
   {
-    if( !h.IsValid() )
-      return;
-    
-    FreeHandle( h );
-    DX12Texture& texture{ mTextures[ h.GetIndex() ] };
-
-    Optional< DX12Descriptor > optDescs[]
+    if( DX12Texture * texture{ FindTexture( h ) } )
     {
-      texture.mRTV,
-      texture.mDSV,
-      texture.mUAV,
-      texture.mSRV,
-    };
+      FreeHandle( h );
 
-    for( const Optional< DX12Descriptor >& optDesc : optDescs )
-    {
-      if( optDesc.HasValue() )
+      Optional< DX12Descriptor > optDescs[]
       {
-        DX12Descriptor desc{ optDesc.GetValue() };
-        desc.mOwner->Free( desc );
-      }
-    }
+        texture->mRTV,
+        texture->mDSV,
+        texture->mUAV,
+        texture->mSRV,
+      };
 
-    texture = {};
+      for( const Optional< DX12Descriptor >& optDesc : optDescs )
+      {
+        if( optDesc.HasValue() )
+        {
+          DX12Descriptor desc{ optDesc.GetValue() };
+          desc.mOwner->GetCPURegionMgr()->Free( desc );
+        }
+      }
+
+      texture = {};
+    }
   }
 
   auto DX12TextureMgr::FindTexture( TextureHandle h ) -> DX12Texture*
@@ -483,7 +482,6 @@ namespace Tac::Render
                                            DX12TransitionHelper* transitionHelper )
   {
     const D3D12_RESOURCE_STATES usageFromBinding{ GetBindingResourceState( binding ) };
-
     const DX12TransitionHelper::Params transitionParams
     {
       .mResource    { dx12Resource },

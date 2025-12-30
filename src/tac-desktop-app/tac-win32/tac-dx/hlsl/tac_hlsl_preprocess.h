@@ -9,7 +9,7 @@ namespace Tac::Render
 {
   struct HLSLPreprocessor
   {
-    static String Process( Vector< AssetPathString >, Errors& );
+    static auto Process( Vector< AssetPathString >, Errors& ) -> String;
   };
 } // namespace Tac::Render
 

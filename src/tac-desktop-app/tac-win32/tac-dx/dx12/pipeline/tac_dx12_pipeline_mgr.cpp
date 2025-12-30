@@ -151,7 +151,7 @@ namespace Tac::Render
     {
       .DepthEnable    { ( BOOL )params.mDepthState.mDepthTest },
       .DepthWriteMask { GetDX12DepthWriteMask( params.mDepthState.mDepthWrite ) },
-      .DepthFunc      {  GetDX12DepthFunc( params.mDepthState.mDepthFunc ) },
+      .DepthFunc      { GetDX12DepthFunc( params.mDepthState.mDepthFunc ) },
     };
 
     const D3D12_PRIMITIVE_TOPOLOGY_TYPE topology{ GetDX12PrimTopo( params.mPrimitiveTopology ) };

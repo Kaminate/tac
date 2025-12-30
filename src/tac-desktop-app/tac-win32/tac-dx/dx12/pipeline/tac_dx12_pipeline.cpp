@@ -76,10 +76,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  bool DX12Pipeline::IsValid() const
-  {
-    return mPSO.Get() != nullptr;
-  }
+  bool DX12Pipeline::IsValid() const { return mPSO.Get() != nullptr; }
 
 } // namespace Tac::Render
 

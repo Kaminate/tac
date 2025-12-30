@@ -59,7 +59,9 @@ namespace Tac
     ImGuiWindowFlags_NoTitleBar = 1 << 0,
     ImGuiWindowFlags_NoResize = 1 << 1,
     ImGuiWindowFlags_AutoResize = 1 << 2,
+    ImGuiWindowFlags_NoBorder = 1 << 3,
   };
+  inline auto operator | ( ImGuiWindowFlags a, ImGuiWindowFlags b ) -> ImGuiWindowFlags { return ( ImGuiWindowFlags )( ( u32 )a | ( u32 )b ); }
 
   enum class ImGuiCol
   {

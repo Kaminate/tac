@@ -5,6 +5,8 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-std-lib/containers/tac_set.h"
 #include "tac-engine-core/asset/tac_asset.h"
+#include "tac-engine-core/graphics/camera/tac_camera.h"
+#include "tac-rhi/render3/tac_render_api.h"
 
 namespace Tac
 {
@@ -14,20 +16,30 @@ namespace Tac
     auto GetEntry() const -> const ComponentInfo* override;
 
     AssetPathString mAsset  {};
-    int             mWidth  { 32 };
-    int             mHeight { 32 };
+    int             mWidth  { 1 };
+    int             mHeight { 1 };
     Vector<u8>      mData   {};
   };
 
   struct NumGridSys : public System
   {
+
+    struct RenderParams
+    {
+      Render::IContext*     mContext            {};
+      const Camera*         mCamera             {};
+      v2i                   mViewSize           {};
+      Render::TextureHandle mColor              {};
+      Render::TextureHandle mDepth              {};
+    };
+
     auto CreateNumGrid() -> NumGrid*;
     void DestroyNumGrid( NumGrid* );
 
     void Update() override;
     void DebugImgui() override;
 
-    void DebugDraw3D(Errors&);
+    void DebugDraw3D(const RenderParams&, Errors&);
 
     static void SpaceInitNumGrid();
     static auto GetSystem( dynmc World* ) -> dynmc NumGridSys*;

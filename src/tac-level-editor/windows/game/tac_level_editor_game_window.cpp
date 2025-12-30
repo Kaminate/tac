@@ -335,9 +335,9 @@ namespace Tac
     if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
       ImGuiText( sStatusMessage );
 
-    //ImGuiSeparator();
-    //TAC_CALL( Toolbox::DebugImGui( errors ) );
-    //ImGuiSeparator();
+    ImGuiSeparator();
+    TAC_CALL( Toolbox::DebugImGui( errors ) );
+    ImGuiSeparator();
 
   }
 
@@ -447,7 +447,15 @@ namespace Tac
 #endif
 
     NumGridSys* numGridSys{ NumGridSys::GetSystem( world ) };
-    numGridSys->DebugDraw3D( errors );
+    numGridSys->DebugDraw3D( 
+      NumGridSys::RenderParams
+      {
+        .mContext            { renderContext },
+        .mCamera             { camera },
+        .mViewSize           { AppWindowApi::GetSize( windowHandle )  },
+        .mColor              { renderDevice->GetSwapChainCurrentColor( swapChainHandle )  },
+        .mDepth              { renderDevice->GetSwapChainDepth( swapChainHandle )  },
+      }, errors );
 
 #if 0
     TAC_CALL( IconRenderer::RenderIcons( world,
@@ -469,7 +477,14 @@ namespace Tac
 
 
     ImGuiSetNextWindowDisableBG();
-    if( !ImGuiBegin( sImguiWindowName, &sShowWindow ) )
+    ImGuiWindowFlags flags
+    {
+      ImGuiWindowFlags::ImGuiWindowFlags_None
+      //| ImGuiWindowFlags::ImGuiWindowFlags_NoTitleBar
+      //| ImGuiWindowFlags::ImGuiWindowFlags_NoResize
+      //| ImGuiWindowFlags::ImGuiWindowFlags_NoBorder
+    };
+    if( !ImGuiBegin( sImguiWindowName, &sShowWindow, flags  ) )
       return;
 
     TAC_ON_DESTRUCT( ImGuiEnd() );

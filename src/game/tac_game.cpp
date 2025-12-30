@@ -95,7 +95,10 @@ namespace Tac
         const v2i windowSize{ AppWindowApi::GetSize( windowHandle ) };
         UI2DDrawData* pDrawData{ &sUI2DDrawData };
         Span<UI2DDrawData*> drawDatas( pDrawData );
-        sUI2DRenderData.DebugDraw2DToTexture( drawDatas, tex, texFmt, windowSize, errors );
+    TAC_CALL( Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors ) } );
+    Render::IContext* renderContext{ renderContextScope.GetContext() };
+        sUI2DRenderData.DebugDraw2DToTexture( renderContext, drawDatas, tex, texFmt, windowSize, errors );
+        renderContext->Execute( errors );
       }
     };
 

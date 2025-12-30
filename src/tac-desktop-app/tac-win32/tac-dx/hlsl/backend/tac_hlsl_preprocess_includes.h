@@ -6,10 +6,10 @@ namespace Tac::Render
 {
   struct HLSLLinePreprocessorIncludes : public HLSLLinePreprocessor
   {
-    Optional< String > Preprocess( Input, Errors& ) override;
+    auto Preprocess( Input, Errors& ) -> Optional< String > override ;
 
   private:
-    String IncludeFile( AssetPathStringView , Errors& );
+    auto IncludeFile( AssetPathStringView , Errors& ) -> String;
     bool IsIncluded( AssetPathString ) const;
 
     Vector< AssetPathString > mIncluded;

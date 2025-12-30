@@ -11,13 +11,12 @@ namespace Tac::Render
   void DX12CommandAllocatorPool::Retire( PCom< ID3D12CommandAllocator > allocator,
                                  FenceSignal signalVal )
   {
-    const Element element
-    {
-      .mCmdAllocator { allocator },
-      .mSignalValue  { signalVal },
-    };
-
-    mElements.Push( element );
+    mElements.Push(
+      Element
+      {
+        .mCmdAllocator { allocator },
+        .mSignalValue  { signalVal },
+      } );
   }
 
   PCom< ID3D12CommandAllocator > DX12CommandAllocatorPool::CreateNewCmdAllocator( Errors& errors )

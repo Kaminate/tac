@@ -1,6 +1,7 @@
 #include "tac_win32_main.h"
 #include "tac-win32/tac_win32.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -20,13 +21,13 @@ void Tac::Win32RedirectStdoutVisualStudioOutputWindow()
   //      ( OSDebugPrint() also calls std::cout, which is intercepted by this struct )
   static struct : public std::streambuf
   {
-    std::streamsize xsputn( const char* s, std::streamsize n ) override
+    auto xsputn( const char* s, std::streamsize n ) -> std::streamsize override
     {
       OutputDebugStringA( s );
       return n;
     }
 
-    int overflow( int c ) override
+    auto overflow( int c ) -> int override
     {
       const char s[]{ ( char )c, '\0' };
       OutputDebugStringA( s );

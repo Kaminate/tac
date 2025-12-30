@@ -12,7 +12,7 @@
 namespace Tac::Render
 {
 
-  StringView DX12DescriptorAllocator::RegionDesc::StateToString( State state )
+  auto DX12DescriptorAllocator::RegionDesc::StateToString( State state ) -> StringView
   {
     switch( state )
     {
@@ -56,23 +56,21 @@ namespace Tac::Render
 
   DX12DescriptorRegion::~DX12DescriptorRegion()
   {
-    if( !mRegionManager )
-      return;
-
-    DX12DescriptorAllocator::RegionDesc* regionDesc{
-      mRegionManager->GetRegionAtIndex( mRegionIndex ) };
-
-    if( !regionDesc )
-      return;
-
-    if( regionDesc->mState == DX12DescriptorAllocator::RegionDesc::kAllocated )
+    if( mRegionManager )
     {
-      // What is this code path doing?
-      //   Freeing a descriptor region that was not used in a draw call?
-      //
-      // Should there be a warning?
+      if( DX12DescriptorAllocator::RegionDesc* regionDesc{
+        mRegionManager->GetRegionAtIndex( mRegionIndex ) } )
+      {
+        if( regionDesc->mState == DX12DescriptorAllocator::RegionDesc::kAllocated )
+        {
+          // What is this code path doing?
+          //   Freeing a descriptor region that was not used in a draw call?
+          //
+          // Should there be a warning?
 
-      mRegionManager->Free( regionDesc );
+          mRegionManager->Free( regionDesc );
+        }
+      }
     }
   }
 

@@ -1,7 +1,9 @@
 #include "tac_numgrid.h" // self-inc
 #include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 
 namespace Tac
@@ -97,114 +99,241 @@ namespace Tac
     return ( const NumGridSys* )world->GetSystem( NumGridSys::sInfo );
   }
 
-  void NumGridSys::DebugDraw3D( Errors& errors)
+  void NumGridSys::DebugDraw3D(const RenderParams& renderParams, Errors& errors)
   {
     struct NumGridCBufData
     {
-      u32 mWidth;
-      u32 mHeight;
-      u32 mBufferIndexOffset;
+      m4  mClipFromModel {};
+      u32 mWidth         {};
+      u32 mHeight        {};
+      //u32 mBufferIndexOffset;
     };
 
     //static Vector<NumGridCBufData> sCPUCBufs;
-    static Vector<Render::BufferHandle> sAllGPUNumbers;
-    static Vector<u8> sAllCPUNumbers;
+    //static Vector<Render::BufferHandle> sAllGPUNumbers;
+    //static Vector<u8> sAllCPUNumbers;
 
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    sAllGPUNumbers.resize( Render::RenderApi::GetMaxGPUFrameCount() );
+    //sAllGPUNumbers.resize( Render::RenderApi::GetMaxGPUFrameCount() );
 
-    Render::BufferHandle& allGPUNumbers{
-      sAllGPUNumbers[ Render::RenderApi::GetCurrentRenderFrameIndex() ] };
+    //Render::BufferHandle& allGPUNumbers{
+    //  sAllGPUNumbers[ ( int )Render::RenderApi::GetCurrentRenderFrameIndex() ] };
 
-    Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors) };
-    Render::IContext* renderContext{ renderContextScope.GetContext() };
+    Render::IContext* renderContext{ renderParams.mContext };
+
+    //Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors) };
+    //Render::IContext* renderContext{ renderContextScope.GetContext() };
+    renderContext->DebugEventBegin( "NumGridSys::DebugEventBegin()" );
+    renderContext->SetViewport( renderParams.mViewSize  );
+    renderContext->SetScissor( renderParams.mViewSize );
+    renderContext->SetVertexBuffer( {} );
+    renderContext->SetIndexBuffer( {} );
+    renderContext->SetRenderTargets( 
+      Render::Targets
+      {
+        .mColors { renderParams.mColor },
+        .mDepth  { renderParams.mDepth },
+      } );
+
+    static Render::ProgramHandle program{
+      renderDevice->CreateProgram(
+        Render::ProgramParams
+        {
+          .mInputs{ "NumGrid" },
+          .mStackFrame{ TAC_STACK_FRAME },
+        }, errors ) };
+    static Render::PipelineHandle pipeline {
+      renderDevice->CreatePipeline(
+        Render::PipelineParams
+        {
+          .mProgram           { program },
+          .mBlendState
+          {
+            .mSrcRGB   { Render::BlendConstants::One },
+            .mDstRGB   { Render::BlendConstants::OneMinusSrcA },
+            .mBlendRGB { Render::BlendMode::Add },
+            .mSrcA     { Render::BlendConstants::One },
+            .mDstA     { Render::BlendConstants::One },
+            .mBlendA   { Render::BlendMode::Add },
+          },
+          .mDepthState
+          {
+            .mDepthTest  { true },
+            .mDepthWrite { false },
+            .mDepthFunc  { Render::DepthFunc::Less },
+          },
+          .mRasterizerState
+          {
+            .mFillMode              { Render::FillMode::Solid },
+            .mCullMode              { Render::CullMode::None },
+            .mFrontCounterClockwise { true },
+          },
+          .mRTVColorFmts      { Render::TexFmt::kRGBA16F },
+          .mDSVDepthFmt       { Render::TexFmt::kD24S8 },
+          .mPrimitiveTopology { Render::PrimitiveTopology::TriangleList },
+          .mName              { "numgrid" },
+          .mStackFrame        { TAC_STACK_FRAME },
+        }, errors ) };
+
 
 #if 0
-    how to manage lifetime of gpu objects? (cbuf, data buf)
+    how to manage lifetime of gpu objects ? ( cbuf, data buf )
 
-    theres the master editor world
-    that gets copied to the game world
+      theres the master editor world
+      that gets copied to the game world
 
-    that gets interpolated by netcode
-    that gets interpolated by the frame rate
+      that gets interpolated by netcode
+      that gets interpolated by the frame rate
 
-    the resulting World could be rendered into multiple viewports
-    or there could be multiple worlds rendered.
+      the resulting World could be rendered into multiple viewports
+      or there could be multiple worlds rendered.
 
-    i could just Allocate, use, and delete immediately,
-    relying on the deletion queue.
+      i could just Allocate, use, and delete immediately,
+      relying on the deletion queue.
 
-    as long as its the same World, it should have the same data buf.
-    the cbuf would be associated with each World Render instance
-
-
-
+      as long as its the same World, it should have the same data buf.
+      the cbuf would be associated with each World Render instance
 
 
 #endif
 
-    sAllCPUNumbers.clear();
-    for( NumGrid* numGrid : mNumGrids )
+
+
+      static Render::BufferHandle cbufhandle{ renderDevice->CreateBuffer(
+        Render::CreateBufferParams
+        {
+          .mUsage         { Render::Usage::Dynamic },
+          .mBinding       { Render::Binding::ConstantBuffer },
+          .mCpuAccess     { Render::CPUAccess::Write },
+          .mOptionalName  { "numgrid_cbuf"},
+          .mStackFrame    { TAC_STACK_FRAME },
+        }, errors ) };
+    renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
+    renderContext->SetPipeline( pipeline );
+
+    static Render::IShaderVar* cbufShaderVar{ renderDevice->GetShaderVariable( pipeline, "sNumGrid" ) };
+    //static Render::IShaderVar* texturesShaderVar{ renderDevice->GetShaderVariable( pipeline, "sTextures" ) };
+    static Render::IShaderVar* textureIndicesShaderVar{ renderDevice->GetShaderVariable( pipeline, "sTextureIndices" ) };
+    //static Render::IShaderVar* samplerShaderVar{ renderDevice->GetShaderVariable( pipeline, "sSampler" ) };
+    static Render::SamplerHandle sampler{
+      renderDevice->CreateSampler(
+        Render::CreateSamplerParams
+        {
+          .mFilter{ Render::Filter::Linear },
+          .mName{ "numgrid_sampler" },
+        } ) };
+
+    Render::IBindlessArray::Binding texbinding{ TextureAssetManager::GetBindlessIndex( "assets/unknown.png", errors ) };
+    Render::IBindlessArray* allTextures{ TextureAssetManager::GetBindlessArray() };
+
+    cbufShaderVar->SetResource( cbufhandle );
+    //texturesShaderVar->SetBindlessArray( allTextures );
+    //samplerShaderVar->SetResource( sampler );
+
+    const float aspect{ ( float )renderParams.mViewSize.x / ( float )renderParams.mViewSize.y };
+    
+    const m4 viewFromWorld{ renderParams.mCamera->View() };
+    const m4 clipFromView{ renderParams.mCamera->Proj( aspect ) };
+    const m4 clipFromWorld{ clipFromView * viewFromWorld };
+
+    static Entity sTempEntity;
+    static NumGrid snumGrid;
+    snumGrid.mWidth = 4;
+    snumGrid.mHeight = 2;
+    snumGrid.mData.resize( snumGrid.mWidth * snumGrid.mHeight );
+    snumGrid.mEntity = &sTempEntity;
+    NumGrid* tempGrids[] { &snumGrid };
+
+    for( NumGrid* numGrid :tempGrids )// mNumGrids )
     {
-      if( numGrid->mData.empty() || !numGrid->mWidth || numGrid->mHeight )
+      if( numGrid->mData.empty() || !numGrid->mWidth || !numGrid->mHeight )
         continue;
 
       TAC_ASSERT( numGrid->mData.size() == numGrid->mWidth * numGrid->mHeight );
 
-      NumGridCBufData cbufData
+      const int cpuTextureIndicesByteCount{ ( int )( sizeof( u32 ) * numGrid->mWidth * numGrid->mHeight ) };
+      dynmc u32* cpuTextureIndices = ( u32* )FrameMemoryAllocate( cpuTextureIndicesByteCount );
+      for( int r{}; r < numGrid->mHeight; ++r )
       {
-        .mWidth { numGrid->mWidth },
-        .mHeight { numGrid->mHeight },
-        .mBufferIndexOffset{ sAllCPUNumbers.size() },
-      };
+        for( int c{}; c < numGrid->mWidth; ++c )
+        {
+          int i{ numGrid->mWidth * r + c };
+          cpuTextureIndices[ i ] = (u32)texbinding.GetIndex();
+        }
+      }
 
-        
-
-      numGrid->mData;
-
-
-      numGrid->mData;
-      numGrid->mWidth;
-      numGrid->mHeight;
-
-      //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      //renderDevice->CreateRenderContext();
-      //renderContext->SetVertexBuffer( {} );
-      //renderContext->SetIndexBuffer( {} );
-
-
-      Render::BufferHandle cbufhandle{
-      renderDevice->CreateBuffer(
+      const Render::BufferHandle gridDataHandle{ renderDevice->CreateBuffer(
         Render::CreateBufferParams
         {
-          .mByteCount     { sizeof(NumGridCBufData)},
-          .mBytes         {},
-          .mStride        {}, // used in creating the SRV and used for the input layout
+          .mByteCount     { cpuTextureIndicesByteCount },
+          .mBytes         { cpuTextureIndices },
+          .mStride        { sizeof( u32 ) },
           .mUsage         { Render::Usage::Default },
-          .mBinding       { Render::Binding::None },
+          .mBinding       { Render::Binding::ShaderResource },
+          //.mCpuAccess     { Render::CPUAccess::Write },
           .mCpuAccess     { Render::CPUAccess::None },
-          .mGpuBufferMode { Render::GpuBufferMode::kUndefined },
-          .mOptionalName  { "numgrid"},
+          .mGpuBufferMode { Render::GpuBufferMode::kFormatted },
+          .mGpuBufferFmt  { Render::TexFmt::kR32_uint },
+          .mOptionalName  { "numgrid_data" },
           .mStackFrame    { TAC_STACK_FRAME },
-        } );
-      renderContext->;
+        }, errors ) };
 
-      renderContext->UpdateBufferSimple( h, t, errors );
-      renderContext->;
+      const m4& worldFromModel{ numGrid->mEntity->mWorldTransform };
+      const m4 clipFromModel{ clipFromWorld * worldFromModel };
 
+      NumGridCBufData cbufData
+      {
+        .mClipFromModel { clipFromModel },
+        .mWidth         { ( u32 )numGrid->mWidth },
+        .mHeight        { ( u32 )numGrid->mHeight },
+      };
+
+      Render::UpdateBufferParams updateGrid
+      {
+        .mSrcBytes     { cpuTextureIndices },
+        .mSrcByteCount { numGrid->mWidth * numGrid->mHeight * ( int )sizeof( u32 ) },
+      };
+
+#if 0
+      v4 pos_model( 6, 0, 0, 1 );
+      v4 pos_world = worldFromModel * pos_model;
+      v4 pos_view = viewFromWorld * pos_world;
+      v4 pos_clip = clipFromView * pos_view;
+
+      v4 pos_model_shader{ -.5f, -.5f, 0, 1 };
+      m4 clipFromModel_shader
+      { (float)0,         (float)-1.45843e-08, (float)0.150175,  (float)-6.4402 ,
+        (float)-0.002714, (float)1.73299,      (float)0.0202157, (float)-5.54176 ,
+        (float)0.133052,  (float)0.0117692,    (float)-0.991049, (float)8.17957 ,
+        (float)0.13305,   (float)0.011769,     (float)-0.991039, (float)8.27949 };
+      v4 pos_clip_shader = clipFromModel_shader * pos_model_shader;
+
+
+      v4 pos_clip2 = clipFromModel * pos_model;
+      ( void )pos_clip;
+      ( void )pos_clip2;
+
+      pos_clip.xyz() /= pos_clip.w;
+      pos_clip2.xyz() /= pos_clip2.w;
+
+#endif
+
+      renderContext->UpdateBufferSimple( cbufhandle, cbufData, errors );
+      //renderContext->UpdateBuffer( gridDataHandle, updateGrid, errors );
+
+      textureIndicesShaderVar->SetResource( gridDataHandle );
+
+      renderContext->CommitShaderVariables();
       renderContext->Draw(
         Render::DrawArgs
         {
-          .mVertexCount { 6 * numGrid->mWidth * numGrid->mHeight },
+          .mVertexCount { 6 * numGrid->mWidth * numGrid->mHeight }, // 6 = 2 * 3 tri verts
         } );
-    } );
 
-    //Graphics* graphics{ Graphics::From( world ) };
-    //graphics->
+      renderDevice->DestroyBuffer( gridDataHandle );
+    }
 
-    TAC_CALL( renderContext->Execute( errors ) );
-  }
-
+    renderContext->DebugEventEnd();
   }
 
 } // namespace Tac

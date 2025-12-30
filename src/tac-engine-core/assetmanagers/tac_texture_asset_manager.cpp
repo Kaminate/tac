@@ -652,12 +652,11 @@ namespace Tac
     if( textureFilepath.empty() )
       return {};
 
-    if( const Render::IBindlessArray::Binding binding{
-      mLoadedTextures.FindLoadedTexture( textureFilepath )->mBinding };
-      binding.IsValid() )
-      return binding;
+    if( const LoadedTexture * loadedTexture{ mLoadedTextures.FindLoadedTexture( textureFilepath ) } )
+      if( loadedTexture->mBinding.IsValid() )
+        return loadedTexture->mBinding;
 
-    const TextureLoadJob::Params params { .mFilepath  { textureFilepath }, };
+    const TextureLoadJob::Params params { .mFilepath { textureFilepath }, };
     LoadTextureAux( params, errors );
     return {};
   }

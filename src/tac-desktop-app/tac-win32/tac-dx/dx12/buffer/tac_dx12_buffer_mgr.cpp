@@ -30,13 +30,13 @@ namespace Tac::Render
 
   static auto GetSRVFormat( CreateBufferParams params ) -> DXGI_FORMAT
   {
-    if( params.mGpuBufferMode == GpuBufferMode::kStructured )
-      return DXGIFormatFromTexFmt( params.mGpuBufferFmt );
-
-    if( params.mGpuBufferMode == GpuBufferMode::kByteAddress )
-      return DXGI_FORMAT_R32_TYPELESS;
-
-    return DXGI_FORMAT_UNKNOWN;
+    switch( params.mGpuBufferMode )
+    {
+      case GpuBufferMode::kFormatted: return DXGIFormatFromTexFmt( params.mGpuBufferFmt );
+      case GpuBufferMode::kStructured: return DXGI_FORMAT_UNKNOWN;
+      case GpuBufferMode::kByteAddress: return DXGI_FORMAT_R32_TYPELESS;
+      default: return DXGI_FORMAT_UNKNOWN;
+    }
   }
 
   static const char* kDestroyBufferAction{"[destroying_buffer]"};
@@ -92,7 +92,7 @@ namespace Tac::Render
 
     if( binding & Binding::ShaderResource )
     {
-      const DX12Descriptor allocation{ heap.Allocate( params.mOptionalName + " srv") };
+      const DX12Descriptor allocation{ heap.GetCPURegionMgr()->Allocate( params.mOptionalName + " srv") };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
 
       TAC_ASSERT( params.mGpuBufferMode != GpuBufferMode::kUndefined );
@@ -136,7 +136,7 @@ namespace Tac::Render
 
     if( binding & Binding::UnorderedAccess )
     {
-      const DX12Descriptor allocation{ heap.Allocate( params.mOptionalName + "uav" ) };
+      const DX12Descriptor allocation{ heap.GetCPURegionMgr()->Allocate( params.mOptionalName + "uav" ) };
       const D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor{ allocation.GetCPUHandle() };
       mDevice->CreateUnorderedAccessView( resource, nullptr, nullptr, DestDescriptor );
       srv = allocation;
@@ -149,17 +149,15 @@ namespace Tac::Render
     };
   }
 
-  auto DX12BufferMgr::CreateBuffer( CreateBufferParams params, Errors& errors ) -> BufferHandle
+  auto DX12BufferMgr::CreateDynamicBuffer( CreateBufferParams params, Errors& errors) -> BufferHandle
   {
-    const int byteCount { params.mByteCount };
-    const StackFrame sf { params.mStackFrame };
+      TAC_ASSERT(params.mUsage == Usage::Dynamic );
+      const int byteCount { params.mByteCount };
+      const StackFrame sf { params.mStackFrame };
 
-    DX12Renderer& renderer{ DX12Renderer::sRenderer };
-    ID3D12Device* mDevice{ renderer.mDevice };
-    DX12ContextManager* contextManager{ &renderer.mContextManager };
-
-    if( params.mUsage == Usage::Dynamic )
-    {
+      DX12Renderer& renderer{ DX12Renderer::sRenderer };
+      ID3D12Device* mDevice{ renderer.mDevice };
+      DX12ContextManager* contextManager{ &renderer.mContextManager };
       const BufferHandle h{ AllocBufferHandle() };
       DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
       buffer = DX12Buffer{ .mCreateParams { params }, };
@@ -173,8 +171,18 @@ namespace Tac::Render
       LogBufferAux( kCreateBufferAction, h, &mBuffers[ h.GetIndex() ] );
 
       return h;
-    }
+  }
 
+  auto DX12BufferMgr::CreateNonDynamicBuffer( CreateBufferParams params, Errors& errors) -> BufferHandle
+  {
+    TAC_ASSERT( params.mUsage != Usage::Dynamic );
+    TAC_ASSERT( params.mByteCount );
+    const int byteCount{ params.mByteCount };
+    const StackFrame sf { params.mStackFrame };
+
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    ID3D12Device* mDevice{ renderer.mDevice };
+    DX12ContextManager* contextManager{ &renderer.mContextManager };
     D3D12_HEAP_TYPE heapType{ D3D12_HEAP_TYPE_DEFAULT };
     if( params.mUsage == Usage::Staging )
       heapType = D3D12_HEAP_TYPE_UPLOAD;
@@ -260,14 +268,13 @@ namespace Tac::Render
       }
       else
       {
-
-        const DX12TransitionHelper::Params transitionParams
-        {
-          .mResource    { &buffer },
-          .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
-        };
         DX12TransitionHelper transitionHelper;
-        transitionHelper.Append( transitionParams );
+        transitionHelper.Append(
+          DX12TransitionHelper::Params
+          {
+            .mResource    { &buffer },
+            .mStateAfter  { D3D12_RESOURCE_STATE_COPY_DEST },
+          } );
         transitionHelper.ResourceBarrier( commandList );
 
         DX12UploadAllocator::DynAlloc allocation{
@@ -321,6 +328,13 @@ namespace Tac::Render
     return h;
   }
 
+  auto DX12BufferMgr::CreateBuffer( CreateBufferParams params, Errors& errors ) -> BufferHandle
+  {
+    return params.mUsage == Usage::Dynamic
+      ? CreateDynamicBuffer( params, errors )
+      : CreateNonDynamicBuffer( params, errors );
+  }
+
   auto DX12BufferMgr::FindBuffer( BufferHandle h ) -> DX12Buffer*
   {
     return h.IsValid() ? &mBuffers[ h.GetIndex() ] : nullptr;
@@ -366,15 +380,13 @@ namespace Tac::Render
       if( binding & Binding::IndexBuffer )
         usageFromBinding |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
 
-
-      const DX12TransitionHelper::Params transitionParams
-      {
-        .mResource    { resource },
-        .mStateAfter  { usageFromBinding },
-      };
-
       DX12TransitionHelper transitionHelper;
-      transitionHelper.Append( transitionParams );
+      transitionHelper.Append(
+        DX12TransitionHelper::Params
+        {
+          .mResource    { resource },
+          .mStateAfter  { usageFromBinding },
+        } );
       transitionHelper.ResourceBarrier( commandList );
   }
 
@@ -383,6 +395,7 @@ namespace Tac::Render
                                     DX12Context* context,
                                     Errors& errors )
   {
+    TAC_ASSERT( !paramSpan.empty() );
     DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
     //ID3D12Resource* resource{ buffer.mResource.Get() };
 
@@ -394,13 +407,16 @@ namespace Tac::Render
 
     if( buffer.mCreateParams.mUsage == Usage::Dynamic )
     {
-      const int byteCount{ RoundUpToNearestMultiple(
-        buffer.mCreateParams.mByteCount,
-        D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT ) };
+      // I guess we're allowing dynamic buffers to have an optional byte count
+      dynmc int byteCount{ buffer.mCreateParams.mByteCount };
+      if( !byteCount )
+        for( const UpdateBufferParams& param : paramSpan )
+          byteCount = Max( byteCount, param.mDstByteOffset + param.mSrcByteCount );
 
-      //ID3D12GraphicsCommandList* commandList{ context->GetCommandList() };
-      DX12UploadAllocator* uploadAllocator{ &context->mGPUUploadAllocator };
+      byteCount = RoundUpToNearestMultiple( byteCount, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT );
+      TAC_ASSERT( byteCount );
 
+      dynmc DX12UploadAllocator* uploadAllocator{ &context->mGPUUploadAllocator };
       const DX12UploadAllocator::DynAlloc allocation{
         uploadAllocator->Allocate( byteCount, errors ) };
 
@@ -433,11 +449,28 @@ namespace Tac::Render
 
   void DX12BufferMgr::DestroyBuffer( BufferHandle h )
   {
+    DX12Renderer& renderer{ DX12Renderer::sRenderer };
+    DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
+    DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] };
+
     if( h.IsValid() )
     {
-      LogBufferAux( kDestroyBufferAction, h, &mBuffers[ h.GetIndex() ] );
+      DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
+      if( buffer.mSRV.HasValue() )
+      {
+        DX12Descriptor descriptor{ buffer.mSRV.GetValue() };
+        heap.GetCPURegionMgr()->Free( descriptor );
+        buffer.mSRV = {};
+      }
+      if( buffer.mUAV.HasValue() )
+      {
+        DX12Descriptor descriptor{ buffer.mUAV.GetValue() };
+        heap.GetCPURegionMgr()->Free( descriptor );
+        buffer.mUAV = {};
+      }
+      LogBufferAux( kDestroyBufferAction, h, &buffer );
       FreeHandle( h );
-      mBuffers[ h.GetIndex() ] = {};
+      buffer = {};
     }
   }
 } // namespace Tac::Render

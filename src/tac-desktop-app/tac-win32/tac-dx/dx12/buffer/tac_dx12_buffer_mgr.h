@@ -3,6 +3,7 @@
 #include "tac_dx12_dyn_buf.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/containers/tac_array.h"
+//#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_allocator.h"
 
 #include <d3d12.h>
 
@@ -34,6 +35,8 @@ namespace Tac::Render
       Optional< DX12Descriptor > mUAV;
     };
 
+    auto CreateDynamicBuffer( CreateBufferParams, Errors& ) -> BufferHandle;
+    auto CreateNonDynamicBuffer( CreateBufferParams, Errors& ) -> BufferHandle;
     auto CreateBindings( ID3D12Resource* , CreateBufferParams ) -> DescriptorBindings;
     void TransitionBuffer( Binding, DX12Resource*, ID3D12GraphicsCommandList* );
 

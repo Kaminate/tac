@@ -10,19 +10,18 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  static const int kMaxCPUDescriptorsRTV        { 25 };
-  static const int kMaxCPUDescriptorsDSV        { 25 };
-  static const int kMaxCPUDescriptorsCBV_SRV_UAV{ 1000 };
-  static const int kMaxCPUDescriptorsSampler    { 20 };
-
-  static const int kMaxGPUDescriptorsCBV_SRV_UAV{ 1000 };
-  static const int kMaxGPUDescriptorsSampler    { 1000 };
+  static const int kMaxCPUDescriptorsRTV         { 25 };
+  static const int kMaxCPUDescriptorsDSV         { 25 };
+  static const int kMaxCPUDescriptorsCBV_SRV_UAV { 1000 };
+  static const int kMaxCPUDescriptorsSampler     { 20 };
+  static const int kMaxGPUDescriptorsCBV_SRV_UAV { 1000 };
+  static const int kMaxGPUDescriptorsSampler     { 1000 };
 
   // -----------------------------------------------------------------------------------------------
 
   DX12DescriptorHeap::~DX12DescriptorHeap()
   {
-    TAC_DELETE mRegionMgr;
+    TAC_DELETE mGPURegionMgr;
   }
 
   void DX12DescriptorHeap::Init( Params params, Errors& errors )
@@ -55,14 +54,12 @@ namespace Tac::Render
     mDesc = desc;
     mName = params.mName;
 
-    const DX12DescriptorAllocator::Params regionMgrParams
-    {
-      .mDescriptorHeap { this },
-    };
-
-    mRegionMgr = TAC_NEW DX12DescriptorAllocator;
-    mRegionMgr->Init( regionMgrParams );
-    mDebugNames.resize( desc.NumDescriptors );
+    ( mGPURegionMgr = TAC_NEW DX12DescriptorAllocator )->Init(
+      DX12DescriptorAllocator::Params
+      {
+        .mDescriptorHeap { this },
+      } );
+    mCPURegionMgr.Init( this, desc.NumDescriptors );
   }
 
   auto DX12DescriptorHeap::GetDescriptorCount() const -> UINT
@@ -104,49 +101,14 @@ namespace Tac::Render
     return mDesc.Type;
   }
 
-  auto DX12DescriptorHeap::AllocateIndex() -> int
-  {
-    if( mFreeIndexes.empty() )
-    {
-      TAC_ASSERT( mUsedIndexCount < ( int )mDesc.NumDescriptors );
-      return mUsedIndexCount++;
-    }
-
-    const int i { mFreeIndexes.back() };
-    mFreeIndexes.pop_back();
-    return i;
-  }
-
-  auto DX12DescriptorHeap::Allocate( StringView debugName ) -> DX12Descriptor
-  {
-    TAC_ASSERT( !debugName.empty() && debugName[ 0 ] != ' ' );
-    const int index{ AllocateIndex() };
-    mDebugNames[ index ] = debugName;
-    return DX12Descriptor
-    {
-      .mOwner { this },
-      .mIndex { index },
-      .mCount { 1 },
-    };
-  }
-
-  void DX12DescriptorHeap::Free( DX12Descriptor allocation )
-  {
-    TAC_ASSERT( allocation.mCount == 1 );
-    TAC_ASSERT( allocation.mOwner == this );
-    mFreeIndexes.push_back( allocation.mIndex );
-    mDebugNames[ allocation.mIndex ] = {};
-  }
-
   auto DX12DescriptorHeap::GetName() -> StringView
   {
     return mName;
   }
 
-  auto DX12DescriptorHeap::GetRegionMgr() -> DX12DescriptorAllocator*
-  {
-    return mRegionMgr;
-  }
+  auto DX12DescriptorHeap::GetGPURegionMgr() -> DX12DescriptorAllocator* { return mGPURegionMgr; }
+
+  auto DX12DescriptorHeap::GetCPURegionMgr() -> DX12CPUDescriptorAllocator* { return &mCPURegionMgr; }
 
   // -----------------------------------------------------------------------------------------------
 
@@ -246,16 +208,54 @@ namespace Tac::Render
     DX12DescriptorHeap& gpuSamplerHeap{ mGPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER ] };
     ID3D12DescriptorHeap* gpuResourceHeapPtr{ gpuResourceHeap.GetID3D12DescriptorHeap() };
     ID3D12DescriptorHeap* gpuSamplerHeapPtr{ gpuSamplerHeap.GetID3D12DescriptorHeap() };
-
     const Array descHeaps
     {
       gpuResourceHeapPtr,
       gpuSamplerHeapPtr,
     };
-
     commandList->SetDescriptorHeaps( ( UINT )descHeaps.size(), descHeaps.data() );
   }
 
+  // -----------------------------------------------------------------------------------------------
+
+  void DX12CPUDescriptorAllocator::Init( DX12DescriptorHeap* owner, UINT numDescriptors )
+  {
+    mOwner = owner;
+    mNumDescriptors = numDescriptors;
+    mDebugNames.resize( numDescriptors );
+  }
+
+  auto DX12CPUDescriptorAllocator::Allocate( StringView debugName ) -> DX12Descriptor
+  {
+    TAC_ASSERT( !debugName.empty() && debugName[ 0 ] != ' ' );
+    dynmc int i{};
+    if( mFreeIndexes.empty() )
+    {
+      TAC_ASSERT( mUsedIndexCount < ( int )mNumDescriptors );
+      i = mUsedIndexCount++;
+    }
+    else
+    {
+      i = mFreeIndexes.back();
+      mFreeIndexes.pop_back();
+    }
+
+    mDebugNames[ i ] = debugName;
+    return DX12Descriptor
+    {
+      .mOwner { mOwner },
+      .mIndex { i },
+      .mCount { 1 },
+    };
+  }
+
+  void DX12CPUDescriptorAllocator::Free( DX12Descriptor allocation )
+  {
+    TAC_ASSERT( allocation.mCount == 1 );
+    TAC_ASSERT( allocation.mOwner == mOwner );
+    mFreeIndexes.push_back( allocation.mIndex );
+    mDebugNames[ allocation.mIndex ] = {};
+  }
 
 } // namespace Tac::Render
 

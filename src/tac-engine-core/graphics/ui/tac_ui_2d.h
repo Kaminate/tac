@@ -83,7 +83,8 @@ namespace Tac
 
   struct UI2DRenderData
   {
-    void DebugDraw2DToTexture( Span<UI2DDrawData*>, 
+    void DebugDraw2DToTexture( Render::IContext*,
+                               Span<UI2DDrawData*>,
                                Render::TextureHandle,
                                Render::TexFmt,
                                v2i,

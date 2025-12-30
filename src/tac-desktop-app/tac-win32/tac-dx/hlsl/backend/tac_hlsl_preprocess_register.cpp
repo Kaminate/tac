@@ -8,7 +8,37 @@ namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
 
-  static int GetRegisterCount( StringView line )
+  struct VirtualRegisterBindingSpace
+  {
+    const char* mType[ 10 ] {};
+    char        mLetter     {};
+  };
+
+  static const VirtualRegisterBindingSpace sBindings[]
+  {
+    VirtualRegisterBindingSpace // Shader Resource Views
+    {
+      .mType{ "Texture2D", "Texture3D", "TextureCube", "Buffer" },
+      .mLetter{ 't' },
+    },
+    VirtualRegisterBindingSpace // Unordered Access Views
+    {
+      .mType{ "RWBuffer" },
+      .mLetter{ 'u' },
+    },
+    VirtualRegisterBindingSpace // Constant Buffer Views
+    {
+      .mType{ "cbuffer", "ConstantBuffer" },
+      .mLetter{ 'b' },
+    },
+    VirtualRegisterBindingSpace // Samplers
+    {
+      .mType{ "SamplerState", "sampler" },
+      .mLetter{ 's' },
+    },
+  };
+
+  static auto GetRegisterCount( StringView line ) -> int
   {
       const int iOpen { line.find( '[' ) };
       const int iClose { line.find( ']' ) };
@@ -28,34 +58,24 @@ namespace Tac::Render
       ParseData parseData( line.data() + iOpenParen + 1, line.data() + iCloseParen );
       parseData.EatWhitespace();
       char c{ *parseData.EatByte() };
-      TAC_ASSERT( c == 't' || c == 'b' || c == 's' );
+      bool found{};
+      for( const VirtualRegisterBindingSpace& binding : sBindings )
+        found |= ( binding.mLetter == c );
+      TAC_ASSERT( found );
       return c;
     }
-
 
     ParseData parseData( line );
     parseData.EatWhitespace();
 
-    struct ResourceLetter
-    {
-      const char* mName;
-      const char  mLetter;
-    };
+    // https://learn.microsoft.com/en-us/windows/win32/direct3d12/resource-binding-in-hlsl
+    // HLSL programs can assign bindings to the virtual “register” binding space
+    // t# for SRVs, u# for UAVs, b# for CBVs, s# for samplers
 
-    const ResourceLetter resourceMap[]
-    {
-      { "Texture2D", 't'},
-      { "Texture3D", 't'},
-      { "TextureCube", 't'},
-      { "cbuffer", 'b'},
-      { "ConstantBuffer", 'b'},
-      { "sampler", 's'},
-      { "SamplerState", 's'},
-    };
-
-    for( auto [ name, letter ] : resourceMap )
-      if( parseData.PeekStringExpected( name ) )
-        return letter;
+    for( const VirtualRegisterBindingSpace& binding : sBindings )
+      for( const char* type : binding.mType )
+        if( type && parseData.PeekStringExpected( type )  )
+          return binding.mLetter;
 
     return ( char )0;
   }
@@ -72,14 +92,14 @@ namespace Tac::Render
   //       This results in Add( 'b', 1 )
   // 
   // The return value is the register assigned to each resource.
-  int HLSLLinePreprocessorRegister::Add( char c, int n )
+  auto HLSLLinePreprocessorRegister::Add( char c, int n ) -> int
   {
     const int iResource { mLetterCounts[ c ] };
     mLetterCounts[ c ] += n;
     return iResource;
   }
 
-  Optional< String > HLSLLinePreprocessorRegister::Preprocess( Input input, Errors& )
+  auto HLSLLinePreprocessorRegister::Preprocess( Input input, Errors& ) -> Optional< String >
   {
     const StringView line{input.mLine};
     const StringView autoRegister { "TAC_AUTO_REGISTER" };

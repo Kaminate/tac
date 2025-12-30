@@ -7,8 +7,8 @@
 namespace Tac::Render
 {
 
-  static D3D12_DESCRIPTOR_RANGE_TYPE
-    D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( const D3D12ProgramBindType type )
+  static auto
+    D3D12ProgramBindingType_To_D3D12_DESCRIPTOR_RANGE_TYPE( const D3D12ProgramBindType type ) -> D3D12_DESCRIPTOR_RANGE_TYPE
   {
     const D3D12ProgramBindType::Classification classification{ type.GetClassification() };
     switch( classification )
@@ -33,8 +33,8 @@ namespace Tac::Render
     }
   }
 
-  static D3D12_ROOT_PARAMETER_TYPE
-    D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( const D3D12ProgramBindType type )
+  static auto
+    D3D12ProgramBindingType_To_D3D12_ROOT_PARAMETER_TYPE( const D3D12ProgramBindType type ) -> D3D12_ROOT_PARAMETER_TYPE
   {
     const D3D12ProgramBindType::Classification classification{ type.GetClassification() };
     switch( classification )
@@ -92,7 +92,7 @@ namespace Tac::Render
     mHasInputLayout = enabled;
   }
 
-  D3D12_DESCRIPTOR_RANGE1* DX12RootSigBuilder::AddRange( int n )
+  auto DX12RootSigBuilder::AddRange( int n ) -> D3D12_DESCRIPTOR_RANGE1*
   {
     const int rangeOffset { mRanges.size() };
     mRangeOffsets.push_back( rangeOffset );
@@ -171,7 +171,7 @@ namespace Tac::Render
     mRootParams.push_back( rootParam );
   }
 
-  PCom< ID3D12RootSignature > DX12RootSigBuilder::Build( Errors& errors )
+  auto DX12RootSigBuilder::Build( Errors& errors ) -> PCom< ID3D12RootSignature >
   {
     // root param is allowed to be empty
     //TAC_ASSERT( !mRootParams.empty() );
