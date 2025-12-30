@@ -22,7 +22,7 @@ namespace Tac
   static Map< HashValue, Mesh* >   sMeshMap;
   static Render::IBindlessArray*   sModelBindlessArray;
 
-  static HashValue HashVertexDeclaration( const Render::VertexDeclaration& vertexDeclaration )
+  static auto HashVertexDeclaration( const Render::VertexDeclaration& vertexDeclaration ) -> HashValue
   {
     return Hash( ( HashValue )vertexDeclaration.mAlignedByteOffset,
                  ( HashValue )vertexDeclaration.mAttribute,
@@ -31,7 +31,7 @@ namespace Tac
                  ( HashValue )vertexDeclaration.mFormat.mPerElementDataType );
   }
 
-  static HashValue HashVertexDeclarations( const Render::VertexDeclarations& vertexDeclarations )
+  static auto HashVertexDeclarations( const Render::VertexDeclarations& vertexDeclarations ) -> HashValue
   {
     Hasher hasher;
     for( const Render::VertexDeclaration& vertexDeclaration : vertexDeclarations )
@@ -40,9 +40,9 @@ namespace Tac
     return hasher;
   }
 
-  static HashValue GetModelHash( const AssetPathStringView& path,
+  static auto GetModelHash( const AssetPathStringView& path,
                                  const int iModel,
-                                 const Render::VertexDeclarations& vtxDecls )
+                                 const Render::VertexDeclarations& vtxDecls ) -> HashValue
   {
     const HashValue hashPath{ Hash( ( StringView )path ) };
     const HashValue hashDecl{ HashVertexDeclarations( vtxDecls ) };
@@ -54,7 +54,7 @@ namespace Tac
     return hasher;
   }
 
-  static HashValue GetModelHash( const ModelAssetManager::Params& params)
+  static auto GetModelHash( const ModelAssetManager::Params& params ) -> HashValue
   {
     const AssetPathStringView& path{ params.mPath };
     const int iModel{ params.mModelIndex };

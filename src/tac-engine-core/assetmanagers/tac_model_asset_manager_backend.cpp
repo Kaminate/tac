@@ -20,29 +20,25 @@ namespace Tac
     }
   }
 
-  static HashValue ModelExtensionHash( MeshFileExt ext )
+  static auto ModelExtensionHash( MeshFileExt ext ) -> HashValue
   {
     Hasher hasher;
     for( char c : ext )
       hasher.Eat( ToLower( c ) );
-
     return hasher;
   }
 }
 
-void Tac::ModelLoadFunctionRegister( MeshLoadFunction meshLoadFunction,
-                                     MeshFileExt ext )
+void Tac::ModelLoadFunctionRegister( MeshLoadFunction meshLoadFunction, MeshFileExt ext )
 {
   ValidateExt( ext );
-
   const HashValue hashedValue { ModelExtensionHash( ext ) };
   functionMap[ hashedValue ] = meshLoadFunction;
 }
 
-Tac::MeshLoadFunction Tac::ModelLoadFunctionFind( MeshFileExt ext )
+auto Tac::ModelLoadFunctionFind( MeshFileExt ext ) -> MeshLoadFunction
 {
   ValidateExt( ext );
-
   const HashValue hashedValue{ ModelExtensionHash( ext ) };
   auto it{ functionMap.find( hashedValue ) };
   if( it == functionMap.end() )

@@ -27,12 +27,12 @@ namespace Tac
       Render::VertexDeclarations mOptVtxDecls {};
     };
 
-    static void                    Init();
-    static void                    Uninit();
+    static void Init();
+    static void Uninit();
 
-    //                             Note: IBindlessArray::Bindings are inside each Mesh's SubMesh
-    static Mesh*                   GetMesh( Params, Errors& );
-    static Render::IBindlessArray* GetBindlessArray();
+    // Note: IBindlessArray::Bindings are inside each Mesh's SubMesh
+    static auto GetMesh( Params, Errors& ) -> Mesh*;
+    static auto GetBindlessArray() -> Render::IBindlessArray*;
   };
 
 } // namespace Tac

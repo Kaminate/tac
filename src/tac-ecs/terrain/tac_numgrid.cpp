@@ -212,9 +212,9 @@ namespace Tac
     renderContext->SetPipeline( pipeline );
 
     static Render::IShaderVar* cbufShaderVar{ renderDevice->GetShaderVariable( pipeline, "sNumGrid" ) };
-    //static Render::IShaderVar* texturesShaderVar{ renderDevice->GetShaderVariable( pipeline, "sTextures" ) };
+    static Render::IShaderVar* texturesShaderVar{ renderDevice->GetShaderVariable( pipeline, "sTextures" ) };
     static Render::IShaderVar* textureIndicesShaderVar{ renderDevice->GetShaderVariable( pipeline, "sTextureIndices" ) };
-    //static Render::IShaderVar* samplerShaderVar{ renderDevice->GetShaderVariable( pipeline, "sSampler" ) };
+    static Render::IShaderVar* samplerShaderVar{ renderDevice->GetShaderVariable( pipeline, "sSampler" ) };
     static Render::SamplerHandle sampler{
       renderDevice->CreateSampler(
         Render::CreateSamplerParams
@@ -227,8 +227,8 @@ namespace Tac
     Render::IBindlessArray* allTextures{ TextureAssetManager::GetBindlessArray() };
 
     cbufShaderVar->SetResource( cbufhandle );
-    //texturesShaderVar->SetBindlessArray( allTextures );
-    //samplerShaderVar->SetResource( sampler );
+    texturesShaderVar->SetBindlessArray( allTextures );
+    samplerShaderVar->SetResource( sampler );
 
     const float aspect{ ( float )renderParams.mViewSize.x / ( float )renderParams.mViewSize.y };
     
@@ -270,7 +270,6 @@ namespace Tac
           .mStride        { sizeof( u32 ) },
           .mUsage         { Render::Usage::Default },
           .mBinding       { Render::Binding::ShaderResource },
-          //.mCpuAccess     { Render::CPUAccess::Write },
           .mCpuAccess     { Render::CPUAccess::None },
           .mGpuBufferMode { Render::GpuBufferMode::kFormatted },
           .mGpuBufferFmt  { Render::TexFmt::kR32_uint },
@@ -288,39 +287,7 @@ namespace Tac
         .mHeight        { ( u32 )numGrid->mHeight },
       };
 
-      Render::UpdateBufferParams updateGrid
-      {
-        .mSrcBytes     { cpuTextureIndices },
-        .mSrcByteCount { numGrid->mWidth * numGrid->mHeight * ( int )sizeof( u32 ) },
-      };
-
-#if 0
-      v4 pos_model( 6, 0, 0, 1 );
-      v4 pos_world = worldFromModel * pos_model;
-      v4 pos_view = viewFromWorld * pos_world;
-      v4 pos_clip = clipFromView * pos_view;
-
-      v4 pos_model_shader{ -.5f, -.5f, 0, 1 };
-      m4 clipFromModel_shader
-      { (float)0,         (float)-1.45843e-08, (float)0.150175,  (float)-6.4402 ,
-        (float)-0.002714, (float)1.73299,      (float)0.0202157, (float)-5.54176 ,
-        (float)0.133052,  (float)0.0117692,    (float)-0.991049, (float)8.17957 ,
-        (float)0.13305,   (float)0.011769,     (float)-0.991039, (float)8.27949 };
-      v4 pos_clip_shader = clipFromModel_shader * pos_model_shader;
-
-
-      v4 pos_clip2 = clipFromModel * pos_model;
-      ( void )pos_clip;
-      ( void )pos_clip2;
-
-      pos_clip.xyz() /= pos_clip.w;
-      pos_clip2.xyz() /= pos_clip2.w;
-
-#endif
-
       renderContext->UpdateBufferSimple( cbufhandle, cbufData, errors );
-      //renderContext->UpdateBuffer( gridDataHandle, updateGrid, errors );
-
       textureIndicesShaderVar->SetResource( gridDataHandle );
 
       renderContext->CommitShaderVariables();

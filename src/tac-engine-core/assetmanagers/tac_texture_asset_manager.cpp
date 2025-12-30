@@ -121,8 +121,8 @@ namespace Tac
 
   struct LoadedTextureMap : public Map< StringID, LoadedTexture >
   {
-    const LoadedTexture*            FindLoadedTexture( AssetPathStringView ) const;
-    Render::IBindlessArray*         GetBindlessArray() const;
+    auto FindLoadedTexture( AssetPathStringView ) const -> const LoadedTexture*;
+    auto GetBindlessArray() const -> Render::IBindlessArray*;
   };
 
   using LoadingTextureMap = Map< StringID, TextureLoadJob* >;
@@ -569,6 +569,7 @@ namespace Tac
     return job;
   }
 
+
   static void UpdateTextureLoadJob( const AssetPathStringView& key, TextureLoadJob* asyncTexture, Errors& errors )
   {
     const JobState status{ asyncTexture->GetStatus() };
@@ -579,19 +580,7 @@ namespace Tac
       TAC_CALL( const Render::TextureHandle texture{ asyncTexture->CreateTexture( errors ) } );
       mLoadingTextures.erase( id );
       TAC_ON_DESTRUCT( TAC_DELETE asyncTexture );
-
-      if( !sBindlessArray )
-      {
-        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-        const Render::IBindlessArray::Params bindlessArrayParams
-        {
-          .mHandleType { Render::HandleType::kTexture },
-          .mBinding    { Render::Binding::ShaderResource },
-        };
-        sBindlessArray = renderDevice->CreateBindlessArray( bindlessArrayParams );
-        TAC_ASSERT( sBindlessArray );
-      }
-
+      TAC_ASSERT( sBindlessArray );
       TAC_CALL( const Render::IBindlessArray::Binding binding{
         sBindlessArray->Bind( texture, errors ) } );
 
@@ -624,6 +613,19 @@ namespace Tac
   }
 
   // -----------------------------------------------------------------------------------------------
+
+  void TextureAssetManager::Init()
+  {
+    TAC_ASSERT( !sBindlessArray );
+    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    const Render::IBindlessArray::Params bindlessArrayParams
+    {
+      .mHandleType { Render::HandleType::kTexture },
+      .mBinding    { Render::Binding::ShaderResource },
+    };
+    sBindlessArray = renderDevice->CreateBindlessArray( bindlessArrayParams );
+    TAC_ASSERT( sBindlessArray );
+  }
 
   auto TextureAssetManager::GetTextureSize( AssetPathStringView path, Errors& errors ) -> v3i
   {
@@ -661,10 +663,7 @@ namespace Tac
     return {};
   }
 
-  auto TextureAssetManager::GetBindlessArray() -> Render::IBindlessArray*
-  {
-    return sBindlessArray;
-  }
+  auto TextureAssetManager::GetBindlessArray() -> Render::IBindlessArray* { return sBindlessArray; }
 
   // -----------------------------------------------------------------------------------------------
    
@@ -677,10 +676,7 @@ namespace Tac
     return &texture;
   }
 
-  auto LoadedTextureMap::GetBindlessArray() const -> Render::IBindlessArray*
-  {
-    return sBindlessArray;
-  }
+  auto LoadedTextureMap::GetBindlessArray() const -> Render::IBindlessArray* { return sBindlessArray; }
 
   // -----------------------------------------------------------------------------------------------
 } // namespace Tac

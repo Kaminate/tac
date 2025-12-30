@@ -9,7 +9,7 @@ namespace Tac
   using MeshLoadFunction = Mesh( * )( ModelAssetManager::Params, Errors& );
   using MeshFileExt = StringView;
 
-  void             ModelLoadFunctionRegister( MeshLoadFunction, MeshFileExt );
-  MeshLoadFunction ModelLoadFunctionFind( MeshFileExt );
+  void ModelLoadFunctionRegister( MeshLoadFunction, MeshFileExt );
+  auto ModelLoadFunctionFind( MeshFileExt ) -> MeshLoadFunction;
 }
 

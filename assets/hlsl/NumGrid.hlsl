@@ -9,8 +9,8 @@ struct NumGridCBufData
 
 ConstantBuffer< NumGridCBufData > sNumGrid        : TAC_AUTO_REGISTER;
 Buffer< uint >                    sTextureIndices : TAC_AUTO_REGISTER;
-//Texture2D                         sTextures[]     : TAC_AUTO_REGISTER;
-//SamplerState                      sSampler        : TAC_AUTO_REGISTER;
+Texture2D                         sTextures[]     : TAC_AUTO_REGISTER;
+SamplerState                      sSampler        : TAC_AUTO_REGISTER;
 
 struct VS_INPUT
 {
@@ -44,12 +44,12 @@ VS_OUTPUT VS( VS_INPUT input )
   uint row = iCell / sNumGrid.mWidth;
   uint col = iCell % sNumGrid.mWidth;
 
-  float4 pos_modelspace = float4( uv.x + col, 0, uv.y + row, 1 );
+  float4 pos_modelspace = float4( uv.x + col, 0, -uv.y - row, 1 );
   float4 pos_clipspace = mul( sNumGrid.mClipFromModel, pos_modelspace );
 
   VS_OUTPUT output = ( VS_OUTPUT )0;
   output.mUV_directx = float2( uv.x, 1.0 - uv.y );
-  output.mGridVal = sTextureIndices[iVert];
+  output.mGridVal = sTextureIndices[iCell];
   output.mPos_clipspace = pos_clipspace;
   return output;
 }
@@ -69,19 +69,11 @@ struct PS_OUTPUT
 
 PS_OUTPUT PS( PS_INPUT input )
 {
-  //float4 texSample = float4(1,0,0,1);
-  //if(input.mGridVal != uint(-1))
-  //   texSample = sTextures[ input.mGridVal ].Sample( sSampler, input.mUV_directx );
+  float4 texSample = float4(1,0,0,1);
+  if( input.mGridVal != uint(-1) )
+    texSample = sTextures[ input.mGridVal ].Sample( sSampler, input.mUV_directx );
 
   PS_OUTPUT output = ( PS_OUTPUT )0;
-  output.mColor = float4(0,0,0,1);
-  output.mColor = float4(input.mUV_directx,0,1);
-
-  if( input.mGridVal == 0 )
-    output.mColor = float4(1,0,0,1);
-  if( input.mGridVal == 1 )
-    output.mColor = float4(0,1,0,1);
-
-  //output.mColor = texSample;
+  output.mColor += texSample;
   return output;
 }

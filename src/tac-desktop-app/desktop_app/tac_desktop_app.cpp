@@ -229,6 +229,7 @@ namespace Tac
         .mShaderOutputPath { Shell::sShellPrefPath },
       }, errors ) );
     Job::JobQueueInit();
+    TextureAssetManager::Init();
     ModelAssetManager::Init();
     TAC_CALL( LocalizationLoad( "assets/localization.txt", errors ) );
     TAC_CALL( Render::DefaultCBufferPerFrame::Init( errors ) );

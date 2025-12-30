@@ -60,6 +60,9 @@ namespace Tac::Render
 
   void BindlessArray::Commit( const CommitParams commitParams )
   {
+    if( mHandles.empty() )
+      return;
+
     ( commitParams.mCommandList->*(
       commitParams.mIsCompute
       ? &ID3D12GraphicsCommandList::SetComputeRootDescriptorTable
@@ -127,7 +130,6 @@ namespace Tac::Render
 
   void BindlessArray::CopyDescriptor( IHandle h, Binding binding, Errors& errors )
   {
-
     DX12Renderer&   renderer   { DX12Renderer::sRenderer };
     DX12TextureMgr* textureMgr { &renderer.mTexMgr };
     DX12BufferMgr*  bufferMgr  { &renderer.mBufMgr };
