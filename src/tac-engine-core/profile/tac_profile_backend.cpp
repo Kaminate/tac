@@ -97,9 +97,7 @@ namespace Tac
 
   void ProfileFrame::operator = ( ProfileFrame&& other ) noexcept
   {
-    mThreadFrames = other.mThreadFrames;
-    //other.mThreadFrames
-    OS::OSDebugBreak(); // todooooooooooooo
+    mThreadFrames.swap( other.mThreadFrames );
   }
 
   void ProfileFrame::operator = ( const ProfileFrame& other )
@@ -120,7 +118,10 @@ namespace Tac
     for(PerThreadProfileFrame& perThreadData : mThreadFrames )
       if( perThreadData.mThreadId == id )
         return &perThreadData;
-    return nullptr;
+    PerThreadProfileFrame frame;
+    frame.mThreadId = id;
+    mThreadFrames.push_back( frame );
+    return &mThreadFrames.back();
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -160,41 +161,14 @@ namespace Tac
     }
 
     // there should be one mutex per thread?
-      ProfiledFunctions::Scope scope;
-      PerThreadProfileFrame* perThread { scope.mProfileFrame.Find( std::this_thread::get_id() ) };
+    ProfiledFunctions::Scope scope;
+    PerThreadProfileFrame* perThread { scope.mProfileFrame.Find( std::this_thread::get_id() ) };
+    TAC_ASSERT(perThread);
 
-      // Since we just added a top-level function, use this opportunity to clean old data.
-      perThread->RemoveOldFunctions();
-
-      //ProfileFrame& frame = scope.mProfileFrame;
-
-      //const std::thread::id id = std::this_thread::get_id();
-
-
-      // Deallocate old profile function memory
-      //ProfiledFunctionList& list = sProfiledFunctions[ id ];
-      //Vector< ProfileFunction* >& list = mFunctions;
-      //ProfiledFunctionList::Iterator it = list.begin();
-      //int i{};
-      //int n = 
-      //while( i < n )
-      //{
-      //  ProfileFunction* profileFunction = *it;
-      //  const float secondsAgo = sFunctionUnfinished->mEndTime - profileFunction->mBeginTime;
-      //  if( secondsAgo > kProfileStoreSeconds )
-      //  {
-      //    ProfileFunctionPool::sFunctionPool.Dealloc( profileFunction );
-      //    it = list.Erase( it );
-      //    i++;
-      //  }
-      //  else
-      //  {
-      //    break;
-      //  }
-      //}
-      perThread->mFunctions.push_back( sFunctionUnfinished );
-      sFunctionUnfinished = nullptr;
-
+    // Since we just added a top-level function, use this opportunity to clean old data.
+    perThread->RemoveOldFunctions();
+    perThread->mFunctions.push_back( sFunctionUnfinished );
+    sFunctionUnfinished = nullptr;
   }
 
 } // namespace Tac

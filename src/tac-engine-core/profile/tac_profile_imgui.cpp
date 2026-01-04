@@ -78,13 +78,13 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static auto CalculateProfileHeight( ProfileFunction* profileFunction ) -> int
+  static auto CalculateProfileHeight( const ProfileFunction* profileFunction ) -> int
   {
     if( !profileFunction )
       return 0;
 
     int childDepthMax {};
-    for( ProfileFunction* child { profileFunction->mChildren }; child; child = child->mNext )
+    for( const ProfileFunction* child { profileFunction->mChildren }; child; child = child->mNext )
     {
       const int childDepth { CalculateProfileHeight( child ) };
       childDepthMax = childDepth > childDepthMax ? childDepth : childDepthMax;
@@ -140,13 +140,13 @@ namespace Tac
 
     IndexedThreadProfileData indexedThreadProfileDatas[ 10 ]  {};
 
-    for( PerThreadProfileFrame& threadFrame : sProfiledFunctions.mThreadFrames )
+    for( const PerThreadProfileFrame& threadFrame : sProfiledFunctions.mThreadFrames )
     {
-      List< ProfileFunction* >& profiledFunctionList { threadFrame.mFunctions };
+      const List< ProfileFunction* >& profiledFunctionList { threadFrame.mFunctions };
       const int iThread { sProfileThreadManager.GetProfileThreadNumber( threadFrame.mThreadId ) };
 
       int treeHeight {};
-      for( ProfileFunction* profileFunction : profiledFunctionList )
+      for( const ProfileFunction* profileFunction : profiledFunctionList )
       {
         const int depth { CalculateProfileHeight( profileFunction ) };
         treeHeight = depth > treeHeight ? depth : treeHeight;
@@ -338,14 +338,13 @@ void Tac::ImGuiProfileWidget()
   const v4    fastColor( 0, 1, 0, 1 );
   const v4    slowColor( 1, 0, 0, 1 );
   const v4    fpsColor { Lerp( slowColor, fastColor, fpsT ) };
-
-  const UI2DDrawData::Box fpsBox
-  {
-    .mMini { fpsBoxMin },
-    .mMaxi { fpsBoxMax },
-    .mColor { fpsColor },
-  };
-  drawData->AddBox( fpsBox );
+  drawData->AddBox(
+    UI2DDrawData::Box
+    {
+      .mMini { fpsBoxMin },
+      .mMaxi { fpsBoxMax },
+      .mColor { fpsColor },
+    } );
 
 
   ImGuiText( String() + "FPS: " + ToString( fps ) );
@@ -376,12 +375,13 @@ void Tac::ImGuiProfileWidget()
 
   // Q: Why is this done twice?
   imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
-  imguiWindow->mViewportSpaceCurrCursor.y += timelineSize.y;
 
   if( profileDrawGrid )
   {
     const v2 cameraViewportPos { imguiWindow->mViewportSpaceCurrCursor };
-    const v2 cameraViewportSize { imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos };
+    v2 cameraViewportSize { imguiWindow->mViewportSpaceVisibleRegion.mMaxi - cameraViewportPos };
+    cameraViewportSize.x = Max( cameraViewportSize.x, 0.f );
+    cameraViewportSize.y = Max( cameraViewportSize.y, 0.f );
     ImGuiProfileWidgetTimeScale( timelinePos, timelineSize );
     ImGuiProfileWidgetCamera( cameraViewportPos, cameraViewportSize );
   }

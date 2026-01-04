@@ -10,9 +10,8 @@ namespace Tac
 {
   struct CreationProfileWindow
   {
-    static void                   Update( Errors& );
-    static bool                   sShowWindow;
-    static const char*            gProfileWindowName;
+    static void Update( Errors& );
+    static bool sShowWindow;
   };
 }
 

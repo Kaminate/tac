@@ -20,10 +20,8 @@
 namespace Tac
 {
   static const String sWindowName{ "Profile Window"};
-
-  const char* CreationProfileWindow::gProfileWindowName { "ProfileWindow" };
-  bool        CreationProfileWindow::sShowWindow{};
-  void        CreationProfileWindow::Update( Errors& )
+  bool CreationProfileWindow::sShowWindow{};
+  void CreationProfileWindow::Update( Errors& )
   {
     if( !Creation::CanShowWindow( sWindowName ) )
       return;

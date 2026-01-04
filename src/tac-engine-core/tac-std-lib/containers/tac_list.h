@@ -28,13 +28,13 @@ public:
 
   struct ConstIterator
   {
-    operator      bool()        { return mNode; }
-    bool          operator == ( const ConstIterator& ) const = default;
-    const T&      operator *()  { return mNode->mT; }
-    dynmc T*      operator ->() { return &mNode->mT; }
-    void          operator ++() { mNode = mNode->mNext; }
-    void          operator --() { mNode = mNode->mPrev; } // pre-dec
-    ConstIterator operator --(int) // post-dec
+    operator bool()        { return mNode; }
+    bool operator == ( const ConstIterator& ) const = default;
+    auto operator *() -> const T&  { return mNode->mT; }
+    auto operator ->() -> dynmc T* { return &mNode->mT; }
+    void operator ++() { mNode = mNode->mNext; }
+    void operator --() { mNode = mNode->mPrev; } // pre-dec
+    auto operator --(int) -> ConstIterator // post-dec
     {
       ConstIterator it { *this };
       mNode = mNode->mPrev;
@@ -46,13 +46,13 @@ public:
 
   struct Iterator
   {
-    operator    bool()        { return mNode; }
-    bool        operator == ( const Iterator& ) const = default;
-    dynmc T&    operator *()  { return mNode->mT; }
-    dynmc T*    operator ->() { return &mNode->mT; }
-    void        operator ++() { mNode = mNode->mNext; }
-    void        operator --() { mNode = mNode->mPrev; } // pre-dec
-    Iterator    operator --(int) // post-dec
+    operator bool()        { return mNode; }
+    bool operator == ( const Iterator& ) const = default;
+    auto operator *() -> dynmc T& { return mNode->mT; }
+    auto operator ->() -> dynmc T* { return &mNode->mT; }
+    void operator ++() { mNode = mNode->mNext; }
+    void operator --() { mNode = mNode->mPrev; } // pre-dec
+    auto operator --(int) -> Iterator // post-dec
     {
       Iterator it { *this };
       mNode = mNode->mPrev;
@@ -63,41 +63,40 @@ public:
   };
 
   List() = default;
-  //List()                                     { mDummy.mNext = &mDummy; mDummy.mPrev = &mDummy; }
-  List(const List& other) : List()           { assign( other ); }
-  ~List()                                    { clear(); }
+  List(const List& other) : List()          { assign( other ); }
+  ~List()                                   { clear(); }
 
 
-  void          push_front( T t )             { InsertAfter( &mDummy, t ); }
-  void          push_back( T t )              { InsertBefore( &mDummy, t ); }
-  T             pop_front();
-  T             pop_back();
-  T&            front()                      { return mDummy.mNext->mT; }
-  const T&      front() const                { return mDummy.mNext->mT; }
-  T&            back()                       { return mDummy.mPrev->mT; }
-  const T&      back() const                 { return mDummy.mPrev->mT; }
-  Iterator      begin()                      { return { mDummy.mNext }; }
-  ConstIterator begin() const                { return { mDummy.mNext }; }
-  Iterator      rbegin()                     { return { mDummy.mPrev }; }
-  ConstIterator rbegin() const               { return { mDummy.mPrev }; }
-  Iterator      end()                        { return { &mDummy }; }
-  ConstIterator end() const                  { return { &mDummy }; }
-  Iterator      Find( T t )                  { return { FindNode( t ) }; }
-  ConstIterator Find( T t ) const            { return { FindNode( t ) }; }
-  bool          empty() const                { return !mSize; }
-  int           size() const                 { return mSize; }
-  void          clear();
-  Iterator      erase( Iterator it ); // returns the next iterator after `it`
-  void          operator = ( const List& l ) { assign( l ); }
+  void push_front( T t )                    { InsertAfter( &mDummy, t ); }
+  void push_back( T t )                     { InsertBefore( &mDummy, t ); }
+  auto pop_front() -> T;
+  auto pop_back() -> T;
+  auto front() dynmc -> dynmc T&            { return mDummy.mNext->mT; }
+  auto front() const -> const T&            { return mDummy.mNext->mT; }
+  auto back() dynmc -> dynmc T&             { return mDummy.mPrev->mT; }
+  auto back() const -> const T&             { return mDummy.mPrev->mT; }
+  auto begin() dynmc -> Iterator            { return { mDummy.mNext }; }
+  auto begin() const -> ConstIterator       { return { mDummy.mNext }; }
+  auto rbegin() dynmc -> Iterator           { return { mDummy.mPrev }; }
+  auto rbegin() const -> ConstIterator      { return { mDummy.mPrev }; }
+  auto end() dynmc -> Iterator              { return { &mDummy }; }
+  auto end() const -> ConstIterator         { return { &mDummy }; }
+  auto Find( T  t ) dynmc -> Iterator       { return { FindNode( t ) }; }
+  auto Find( T t ) const -> ConstIterator   { return { FindNode( t ) }; }
+  auto empty() const -> bool                { return !mSize; }
+  auto size() const -> int                  { return mSize; }
+  void clear();
+  auto erase( Iterator it ) -> Iterator; // returns the next iterator after `it`
+  void operator = ( const List& l ) { assign( l ); }
 
 private:
 
-  void          assign( const List& );
-  Node*         FindNode( T );
-  void          EraseNode( Node* );
-  void          InsertAfter( Node* n, T t )  { InsertBetween( n, n->mNext, t ); }
-  void          InsertBefore( Node* n, T t ) { InsertBetween( n->mPrev, n, t ); }
-  void          InsertBetween( Node*, Node*, T );
+  void assign( const List& );
+  auto FindNode( T ) -> Node*;
+  void EraseNode( Node* );
+  void InsertAfter( Node* n, T t )  { InsertBetween( n, n->mNext, t ); }
+  void InsertBefore( Node* n, T t ) { InsertBetween( n->mPrev, n, t ); }
+  void InsertBetween( Node*, Node*, T );
 
   Node          mDummy{ .mPrev = &mDummy, .mNext = &mDummy };
   int           mSize {  };
@@ -105,7 +104,7 @@ private:
 
 
 template< typename T >
-void          Tac::List<T>::assign( const List& other )
+void Tac::List<T>::assign( const List& other )
 {
   clear();
   for( const T& t : other )
@@ -113,7 +112,7 @@ void          Tac::List<T>::assign( const List& other )
 }
 
 template< typename T >
-T          Tac::List<T>::pop_front()
+auto Tac::List<T>::pop_front() -> T
 {
   TAC_ASSERT( !empty() );
   const T t { mDummy.mNext->mT };
@@ -122,7 +121,7 @@ T          Tac::List<T>::pop_front()
 }
 
 template< typename T >
-T          Tac::List<T>::pop_back()
+auto Tac::List<T>::pop_back() -> T
 {
   TAC_ASSERT( !empty() );
   T t { mDummy.mPrev.mT };
@@ -131,7 +130,7 @@ T          Tac::List<T>::pop_back()
 }
 
 template< typename T >
-Tac::List<T>::Node* Tac::List<T>::FindNode( T t )
+auto Tac::List<T>::FindNode( T t ) -> Node* 
 {
   for( Node* node { mDummy.mNext }; node != &mDummy; node = node->mNext )
     if( node->mT == t )
@@ -140,7 +139,7 @@ Tac::List<T>::Node* Tac::List<T>::FindNode( T t )
 }
 
 template< typename T >
-Tac::List<T>::Iterator      Tac::List<T>::erase( Iterator it )
+auto Tac::List<T>::erase( Iterator it ) -> Iterator
 {
   TAC_ASSERT( it.mNode != &mDummy );
   Node* next { it.mNode->mNext };
@@ -149,7 +148,7 @@ Tac::List<T>::Iterator      Tac::List<T>::erase( Iterator it )
 }
 
 template< typename T >
-void       Tac::List<T>::clear()
+void Tac::List<T>::clear()
 {
   Node* node { mDummy.mNext };
   while( node != &mDummy )
@@ -166,7 +165,7 @@ void       Tac::List<T>::clear()
 
 
 template< typename T >
-void       Tac::List<T>::InsertBetween( Node* head, Node* tail, T t )
+void Tac::List<T>::InsertBetween( Node* head, Node* tail, T t )
 {
   Node* node = TAC_NEW Node
   {
