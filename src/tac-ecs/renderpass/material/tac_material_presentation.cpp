@@ -80,23 +80,23 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  static auto GetProjMtx( const Camera* camera, const v2i viewSize ) -> m4
-  {
-    const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
-    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
-    const m4::ProjectionMatrixParams projParams
-    {
-      .mNDCMinZ       { ndcAttribs.mMinZ },
-      .mNDCMaxZ       { ndcAttribs.mMaxZ },
-      .mViewSpaceNear { camera->mNearPlane },
-      .mViewSpaceFar  { camera->mFarPlane },
-      .mAspectRatio   { aspectRatio },
-      .mFOVYRadians   { camera->mFovyrad },
-    };
-    const m4 proj{ m4::ProjPerspective( projParams ) };
-    return proj;
-  }
+  //static auto GetProjMtx( const Camera* camera, const v2i viewSize ) -> m4
+  //{
+  //  const float aspectRatio{ ( float )viewSize.x / ( float )viewSize.y };
+  //  const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+  //  const Render::NDCAttribs ndcAttribs{ renderDevice->GetInfo().mNDCAttribs };
+  //  const m4::ProjectionMatrixParams projParams
+  //  {
+  //    .mNDCMinZ       { ndcAttribs.mMinZ },
+  //    .mNDCMaxZ       { ndcAttribs.mMaxZ },
+  //    .mViewSpaceNear { camera->mNearPlane },
+  //    .mViewSpaceFar  { camera->mFarPlane },
+  //    .mAspectRatio   { aspectRatio },
+  //    .mFOVYRadians   { camera->mFovyrad },
+  //  };
+  //  const m4 proj{ m4::ProjPerspective( projParams ) };
+  //  return proj;
+  //}
 
   static auto GetPerFrameParams( const Camera* camera, const v2i viewSize ) -> ConstBufData_PerFrame
   {

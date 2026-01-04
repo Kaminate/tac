@@ -131,7 +131,7 @@ namespace Tac
   {
     for( CameraComponent* cameraComponent : ( ( GraphicsImpl* )this )->mCameras )
     {
-      dynmc Camera& camera{ cameraComponent->mCamera };
+      //dynmc Camera& camera{ cameraComponent->mCamera };
       cameraComponent->mCamera.mPos = cameraComponent->mEntity->mWorldTransform.GetColumn(3).xyz();
       cameraComponent->mCamera.mForwards = cameraComponent->mEntity->mWorldTransform.GetColumn( 2 ).xyz();
       cameraComponent->mCamera.mRight = cameraComponent->mEntity->mWorldTransform.GetColumn( 0 ).xyz();

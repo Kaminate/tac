@@ -223,7 +223,7 @@ namespace Tac
   {
     TAC_RENDER_GROUP_BLOCK( renderContext, "RenderIcons" );
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Graphics* graphics { Graphics::From( world ) };
+    //const Graphics* graphics { Graphics::From( world ) };
     const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
     Render::SwapChainHandle swapChain { AppWindowApi::GetSwapChainHandle( viewHandle ) };
     renderContext->SetScissor( windowSize );

@@ -149,27 +149,24 @@ namespace Tac::Render
     };
   }
 
-  auto DX12BufferMgr::CreateDynamicBuffer( CreateBufferParams params, Errors& errors) -> BufferHandle
+  auto DX12BufferMgr::CreateDynamicBuffer( CreateBufferParams params, Errors& ) -> BufferHandle
   {
       TAC_ASSERT(params.mUsage == Usage::Dynamic );
-      const int byteCount { params.mByteCount };
-      const StackFrame sf { params.mStackFrame };
-
-      DX12Renderer& renderer{ DX12Renderer::sRenderer };
-      ID3D12Device* mDevice{ renderer.mDevice };
-      DX12ContextManager* contextManager{ &renderer.mContextManager };
+      //const int byteCount { params.mByteCount };
+      //const StackFrame sf { params.mStackFrame };
+      //DX12Renderer& renderer{ DX12Renderer::sRenderer };
+      //ID3D12Device* mDevice{ renderer.mDevice };
+      //DX12ContextManager* contextManager{ &renderer.mContextManager };
       const BufferHandle h{ AllocBufferHandle() };
       DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
       buffer = DX12Buffer{ .mCreateParams { params }, };
-
       if( !params.mOptionalName.empty() )
       {
         buffer.mCreateName = params.mOptionalName;
         buffer.mCreateParams.mOptionalName = buffer.mCreateName;
       }
 
-      LogBufferAux( kCreateBufferAction, h, &mBuffers[ h.GetIndex() ] );
-
+      LogBufferAux( kCreateBufferAction, h, &buffer );
       return h;
   }
 

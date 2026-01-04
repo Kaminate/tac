@@ -468,7 +468,7 @@ namespace Tac::Render
         }
       }
 
-      *texture = DX12Texture{};
+      *texture = DX12Texture{}; // release the comptr rsc
     }
   }
 

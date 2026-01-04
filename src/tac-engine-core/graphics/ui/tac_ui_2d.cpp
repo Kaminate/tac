@@ -767,7 +767,7 @@ namespace Tac
                                              const v2i textureSize,
                                              Errors& errors )
   {
-    Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+    //Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
 
     const int nFrames{ Render::RenderApi::GetMaxGPUFrameCount() };
     const int iFrame{ ( int )( Render::RenderApi::GetCurrentRenderFrameIndex() % ( u64 )nFrames ) };

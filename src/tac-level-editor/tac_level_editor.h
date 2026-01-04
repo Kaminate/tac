@@ -26,6 +26,8 @@ namespace Tac
     static auto GetWorld() -> World*;
     static auto GetEntityUUIDCounter() -> EntityUUIDCounter*;
     static bool IsGameRunning();
+    static void SetShowOnlyWindowName( StringView );
+    static bool CanShowWindow( StringView );
   };
 
 

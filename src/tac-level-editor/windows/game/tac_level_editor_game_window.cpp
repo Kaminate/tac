@@ -25,11 +25,9 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-level-editor/tac_level_editor.h"
-#include "tac-level-editor/windows/main/tac_level_editor_main_window.h"
 #include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
 #include "tac-level-editor/prefab/tac_level_editor_prefab.h"
 #include "tac-level-editor/render/tac_level_editor_widget_renderer.h"
-#include "tac-level-editor/windows/property/tac_level_editor_property_window.h"
 #include "tac-level-editor/gizmo/tac_level_editor_gizmo_mgr.h"
 #include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
 #include "tac-level-editor/tools/tac_level_editor_tool.h"
@@ -303,10 +301,7 @@ namespace Tac
       CreationGameWindow::sShowWindow = false;
 
     if( ImGuiButton( "Close all but Game Window" ) )
-    {
-      CreationMainWindow::sShowWindow = false;
-      CreationPropertyWindow::sShowWindow = false;
-    }
+      Creation::SetShowOnlyWindowName( sImguiWindowName );
 
     ImGuiCheckbox( "Draw grid", &sDrawGrid );
     ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
@@ -413,6 +408,8 @@ namespace Tac
   {
 #if 0
     TAC_CALL( PlayGame( errors ) );
+#else
+    TAC_UNUSED_PARAMETER( errors );
 #endif
   }
 

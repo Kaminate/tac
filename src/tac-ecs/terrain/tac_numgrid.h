@@ -15,10 +15,13 @@ namespace Tac
     static auto GetComponent( Entity* ) -> NumGrid*;
     auto GetEntry() const -> const ComponentInfo* override;
 
+    using GridImages = AssetPathString[ 256 ];
+
     AssetPathString mAsset  {};
+    GridImages      mImages {};
     int             mWidth  { 1 };
     int             mHeight { 1 };
-    Vector<u8>      mData   {};
+    Vector< u8 >    mData   {};
   };
 
   struct NumGridSys : public System

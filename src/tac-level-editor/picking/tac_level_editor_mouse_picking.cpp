@@ -112,7 +112,7 @@ namespace Tac
 
   static void MousePickingGizmos()
   {
-    const Camera* camera{ Creation::GetCamera() };
+    //const Camera* camera{ Creation::GetCamera() };
     GizmoMgr* gizmoMgr{ &GizmoMgr::sInstance };
     if( SelectedEntities::empty()
         || !gizmoMgr->mGizmosEnabled
@@ -233,7 +233,7 @@ namespace Tac
     if( pickData.pickedObject != PickedObject::None )
     {
       dynmc World* world{ Creation::GetWorld() };
-      const Camera* camera{ Creation::GetCamera() };
+      //const Camera* camera{ Creation::GetCamera() };
       const Ray ray_worldspace{ GetWorldspaceMouseRay() };
       const v3 worldSpaceHitPoint{ ray_worldspace.mOrigin + pickData.closestDist * ray_worldspace.mDirection };
       world->mDebug3DDrawData->DebugDraw3DSphere( worldSpaceHitPoint, 0.2f, v3( 1, 1, 0 ) );

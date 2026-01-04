@@ -34,6 +34,7 @@ namespace Tac
   static void CameraComponentDebugImgui( Component* component )
   {
     auto camera{ ( CameraComponent* )component };
+    TAC_UNUSED_PARAMETER( camera );
   }
 
 

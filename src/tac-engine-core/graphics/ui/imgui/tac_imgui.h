@@ -235,7 +235,7 @@ namespace Tac
   void ImGuiPlatformRenderFrameBegin( Errors& );
   void ImGuiPlatformRender( Errors& );
   void ImGuiPlatformPresent( Errors& );
-  void ImGuiPlatformHandleDpiChange();
+  void ImGuiPlatformHandleDpiChange( WindowHandle );
 
 #define TAC_IMGUI_INDENT_BLOCK            ImGuiIndent();                          \
                                           TAC_ON_DESTRUCT( ImGuiUnindent() );

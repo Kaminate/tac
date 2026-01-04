@@ -24,8 +24,8 @@ namespace Tac
 
   using IterateFn = bool( * )( const std::filesystem::directory_entry& );
 
-  static auto StdPath( const char* s )                                 { return std::filesystem::path( ( char8_t* )s ); }
-  static auto StdPath( const String& s )                               { return std::filesystem::path( ( char8_t* )s.c_str() ); }
+  //static auto StdPath( const char* s )                                 { return std::filesystem::path( ( char8_t* )s ); }
+  //static auto StdPath( const String& s )                               { return std::filesystem::path( ( char8_t* )s.c_str() ); }
   static auto StdPath( const UTF8Path *path )                          { return std::filesystem::path( ( char8_t* )path->c_str() ); }
   static auto StdPath( const UTF8Path &path )                          { return std::filesystem::path( ( char8_t* )path.c_str() ); }
   static auto TacPath( const std::filesystem::path& p )                { return UTF8Path( ( char* )p.u8string().c_str() ); }

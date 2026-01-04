@@ -128,7 +128,7 @@ namespace Tac
       material->mIsGlTF_PBR_MetallicRoughness = true;
       material->mPBR_Factor_Roughness = 1;
 
-      auto collider{ (Collider*) entity->AddNewComponent( Collider().GetEntry() ) };
+      //auto collider{ (Collider*) entity->AddNewComponent( Collider().GetEntry() ) };
       //collider->SET SHAPE AS CUBE;
 
   }

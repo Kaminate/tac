@@ -132,8 +132,6 @@ namespace Tac
 
   static void ImGuiDeleteWindows()
   {
-    
-    
     dynmc int nAllWindows{ ImGuiGlobals::mAllWindows.size() };
     dynmc int iAllWindows{};
     while( iAllWindows < nAllWindows )
@@ -143,12 +141,14 @@ namespace Tac
       const GameTimeDelta deletionWaitSeconds{ 0.1f };
       if( curSeconds > window->mRequestTime + deletionWaitSeconds )
       {
+        // Remove from window array before destruction, because that goes through wndproc,
+        // which goes back to imgui which iterates all windows
+        ImGuiGlobals::mAllWindows[ iAllWindows ] = ImGuiGlobals::mAllWindows[ --nAllWindows ];
+        ImGuiGlobals::mAllWindows.resize( nAllWindows );
         if( window->mWindowHandleOwned )
         {
           AppWindowApi::DestroyWindow( window->GetWindowHandle() );
         }
-
-        ImGuiGlobals::mAllWindows[ iAllWindows ] = ImGuiGlobals::mAllWindows[ --nAllWindows ];
         TAC_DELETE window;
       }
       else
@@ -156,7 +156,6 @@ namespace Tac
         ++iAllWindows;
       }
     }
-    ImGuiGlobals::mAllWindows.resize( nAllWindows );
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -1349,7 +1348,7 @@ auto Tac::ImGuiGetButtonPaddingPx() -> float
     / ImGuiGlobals::mReferenceResolution.mDpi;
 }
 
-void Tac::ImGuiInit( const ImGuiInitParams& params, Errors& errors )
+void Tac::ImGuiInit( const ImGuiInitParams& params, Errors& )
 {
   
   ImGuiGlobals::mMaxGpuFrameCount = params.mMaxGpuFrameCount;
@@ -1360,7 +1359,6 @@ void Tac::ImGuiInit( const ImGuiInitParams& params, Errors& errors )
 
 void Tac::ImGuiSaveWindowSettings( WindowHandle windowHandle )
 {
-  
   for( ImGuiWindow* window : ImGuiGlobals::mAllWindows )
     if( window->mDesktopWindow->mWindowHandle == windowHandle )
       ImGuiSaveWindowSettings( window );
@@ -1418,10 +1416,11 @@ void Tac::ImGuiPlatformRenderFrameBegin( Errors& errors )
   }
 }
 
-void Tac::ImGuiPlatformHandleDpiChange()
+void Tac::ImGuiPlatformHandleDpiChange( WindowHandle h )
 {
   for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::mDesktopWindows )
-    desktopWindow->mMonitorDpiRequested = true;
+    if( desktopWindow->mWindowHandle == h )
+      desktopWindow->mMonitorDpiRequested = true;
 }
 
 void Tac::ImGuiPlatformPresent( Errors& errors )

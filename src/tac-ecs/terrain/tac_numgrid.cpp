@@ -36,9 +36,50 @@ namespace Tac
 
     ImGuiText( "Asset: " );
     ImGuiSameLine();
-    ImGuiText(numGrid->mAsset.data());
+    ImGuiText( numGrid->mAsset.data() );
     ImGuiDragInt( "W", &numGrid->mWidth );
     ImGuiDragInt( "H", &numGrid->mHeight );
+    numGrid->mImages;
+    static Errors numGridErrors;
+    if( numGridErrors )
+      ImGuiText( "Errors: %s", numGridErrors.ToString().c_str() );
+
+    int firstFreeSpace{ -1 };
+    for( int i{}; i < 256; ++i )
+    {
+      AssetPathStringView imgPath{ numGrid->mImages[ i ] };
+      if( imgPath.empty() && firstFreeSpace == -1 )
+        firstFreeSpace = i;
+
+      if( imgPath.empty() )
+        continue;
+
+      Render::TextureHandle imgHandle{
+             TextureAssetManager::GetTexture( imgPath, numGridErrors ) };
+      if( !imgHandle.IsValid() )
+        continue;
+      v3i imgSize{ TextureAssetManager::GetTextureSize( imgPath, numGridErrors ) };
+      float aspect{ imgSize.x / ( float )imgSize.y };
+
+      ImGuiText( "Image %i", i );
+      ImGuiSameLine();
+      if( ImGuiButton( "Remove" ) )
+        numGrid->mImages[ i ] = {};
+      ImGuiSameLine();
+      if( ImGuiButton( "Change" ) )
+        if( AssetPathStringView newPath{ AssetOpenDialog( numGridErrors ) } )
+          numGrid->mImages[ i ] = newPath;
+      ImGuiSameLine();
+      ImGuiImage( imgHandle.GetIndex(), v2( 100 * aspect, 100 ) );
+    }
+
+    if( firstFreeSpace != -1 )
+    {
+      if( ImGuiButton( "Add image" ) )
+        if( AssetPathStringView newPath{ AssetOpenDialog( numGridErrors ) } )
+          numGrid->mImages[ firstFreeSpace ] = newPath;
+    }
+      
   }
 
   static ComponentInfo* sRegistry         {};

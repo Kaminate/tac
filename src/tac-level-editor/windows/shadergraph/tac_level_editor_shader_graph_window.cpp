@@ -1,4 +1,6 @@
 #include "tac_level_editor_shader_graph_window.h" // self-inc
+
+#include "tac_level_editor.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
@@ -11,6 +13,8 @@
 
 namespace Tac
 {
+  static const String sWindowName{"Shader Graph"};
+
   // Helper struct that defines the allowed data types for system-value semantic
   struct SVSemantic
   {
@@ -392,7 +396,9 @@ namespace Tac
       return;
 
     ImGuiSetNextWindowMoveResize();
-    if( !ImGuiBegin( "Shader Graph" ) )
+    if( !Creation::CanShowWindow( sWindowName ) )
+      return;
+    if( !ImGuiBegin( sWindowName) )
       return;
 
     sShowWindow |= !ImGuiButton( "Close Window" );

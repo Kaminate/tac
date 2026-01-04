@@ -119,14 +119,14 @@ namespace Tac
   void Physics::DebugDrawCapsules()
   {
     //Graphics* graphics = Graphics::Get( mWorld );
-    for( Collider* collider : mColliders )
-    {
+    //for( Collider* collider : mColliders )
+    //{
       //const CapsuleSupport capsuleSupport { GetSupport( collider ) };
       //graphics->DebugDrawCapsule( capsuleSupport.mBotSpherePos,
       //                               capsuleSupport.mTopSpherePos,
       //                               capsuleSupport.mRadius,
       //                               mDebugDrawCapsuleColor );
-    }
+    //}
   }
   void Physics::DebugDrawTerrains()
   {

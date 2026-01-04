@@ -19,16 +19,19 @@
 
 namespace Tac
 {
+  static const String sWindowName{ "Profile Window"};
 
   const char* CreationProfileWindow::gProfileWindowName { "ProfileWindow" };
   bool        CreationProfileWindow::sShowWindow{};
   void        CreationProfileWindow::Update( Errors& )
   {
+    if( !Creation::CanShowWindow( sWindowName ) )
+      return;
     if( !sShowWindow )
       return;
 
     ImGuiSetNextWindowStretch();
-    if( ImGuiBegin( "Profile Window" ) )
+    if( ImGuiBegin( sWindowName ) )
     {
       TAC_PROFILE_BLOCK;
       if( ImGuiButton( "Close Window" ) )

@@ -219,7 +219,7 @@ namespace Tac
   static void ImGuiHierarchy(  Errors& errors )
   {
     {
-      ImGuiBeginChild( "Hierarchy", v2( 250, -100 ) );
+      ImGuiBeginChild( "Hierarchy", v2( 250, -400 ) );
       for( World* world{ Creation::GetWorld() };
            Entity* entity : world->mEntities )
         if( !entity->mParent )
@@ -245,15 +245,19 @@ namespace Tac
 
   bool CreationPropertyWindow::sShowWindow{};
 
+  static const String sWindowName{"Properties"};
 
   void CreationPropertyWindow::Update( Errors& errors )
   {
     if( !sShowWindow)
       return;
+    if( !Creation::CanShowWindow( sWindowName ) )
+      return;
+
     TAC_PROFILE_BLOCK;
 
     ImGuiSetNextWindowStretch();
-    if( !ImGuiBegin( "Properties", &sShowWindow ) )
+    if( !ImGuiBegin(sWindowName, &sShowWindow ) )
       return;
 
     ImGuiBeginGroup();

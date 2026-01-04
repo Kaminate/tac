@@ -96,7 +96,7 @@ namespace Tac
 
   void DesktopEventHandler::Handle( const DesktopEventApi::WindowDpiChangedEvent& data) 
   {
-    ImGuiPlatformHandleDpiChange();
+    ImGuiPlatformHandleDpiChange( data.mWindowHandle );
   }
 
 } // namespace Tac

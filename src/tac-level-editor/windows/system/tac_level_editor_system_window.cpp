@@ -17,10 +17,11 @@
 
 namespace Tac
 {
-  static const SystemInfo*          sSystemInfo{};
-  static const char*                nSysPath{ "SystemWindow.nSys" };
-  static bool                       sInitialized;
-  static const StringView           sDefaultSystem{ "Graphics" };
+  static const String               sWindowName    { "System Window" };
+  static const SystemInfo*          sSystemInfo    {};
+  static const char*                nSysPath       { "SystemWindow.nSys" };
+  static bool                       sInitialized   {};
+  static const StringView           sDefaultSystem { "Graphics" };
 
   static void Initialize()
   {
@@ -42,7 +43,9 @@ namespace Tac
     Initialize();
     ImGuiSetNextWindowStretch();
 
-    if( !ImGuiBegin( "System Window" ) )
+    if( !Creation::CanShowWindow( sWindowName ) )
+      return;
+    if( !ImGuiBegin( sWindowName) )
       return;
 
 

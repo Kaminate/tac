@@ -251,7 +251,6 @@ namespace Tac
 
   void ImGuiWindow::BeginFrame()
   {
-    const UIStyle& style{ ImGuiGetStyle() };
     const float windowPaddingPx{ ImGuiGetWindowPaddingPx() };
 
     if( mParent )
@@ -361,6 +360,7 @@ namespace Tac
 
       mViewportSpaceCurrCursor.x = mViewportSpaceVisibleRegion.mMaxi.x - titleBarButtonsWidthPx;
       moveWindowGrabbableMaxi.x = mViewportSpaceVisibleRegion.mMaxi.x - titleBarButtonsWidthPx;
+      moveWindowGrabbableMaxi.x = Max( moveWindowGrabbableMaxi.x, moveWindowGrabbableMini.x );
 
       if( ImGuiButton( minimizeStr ) )
         AppWindowApi::MinimizeWindow( mDesktopWindow->mWindowHandle );
@@ -497,7 +497,7 @@ namespace Tac
               .mSpringyness      { 32.0f },
               .mDeltaTimeSeconds { TAC_DT } } );
 
-        const bool drawBorder{ true };
+        //const bool drawBorder{ true };
 
         //if( drawBorder )
         {

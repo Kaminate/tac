@@ -182,6 +182,7 @@ namespace Tac
   static EntityUUIDCounter    sEditorEntityUUIDCounter {};
   static World                sGameWorld               {};
   static EntityUUIDCounter    sGameEntityUUIDCounter   {};
+  static StringView           sShowOnlyWindowName      {};
 
   void Creation::Init( Errors& errors )
   {
@@ -298,6 +299,12 @@ namespace Tac
   }
 
   bool Creation::IsGameRunning()        { return sIsGameRunning; }
+
+  bool Creation::CanShowWindow( StringView s )
+  {
+    return sShowOnlyWindowName.empty() || sShowOnlyWindowName == s;
+  }
+  void Creation::SetShowOnlyWindowName( StringView s ) { sShowOnlyWindowName = s; }
 
 } // namespace Tac
 

@@ -550,7 +550,7 @@ namespace Tac
 
     ImGuiBeginGroup();
     {
-      const int n{ sAssetViewFolders.size() };
+      //const int n{ sAssetViewFolders.size() };
       for( AssetPathStringView asset : sAssetViewFolders )
       {
         if( const String folder{ asset.GetFilename() };

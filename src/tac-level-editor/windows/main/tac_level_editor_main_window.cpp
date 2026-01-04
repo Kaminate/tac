@@ -26,6 +26,7 @@
 
 namespace Tac
 {
+    static const String sWindowName{"Main Window"};
   // -----------------------------------------------------------------------------------------------
 
   static void ImGuiSaveEntityAs(Entity* entity, Errors& errors)
@@ -75,10 +76,12 @@ namespace Tac
     if( !sShowWindow )
       return;
 
-    TAC_PROFILE_BLOCK;
+    if( !Creation::CanShowWindow( sWindowName ) )
+      return;
 
+    TAC_PROFILE_BLOCK;
     ImGuiSetNextWindowStretch();
-    if( !ImGuiBegin( "Main Window", &sShowWindow ) )
+    if( !ImGuiBegin( sWindowName, &sShowWindow ) )
       return;
 
     ImGuiSaveAs();
