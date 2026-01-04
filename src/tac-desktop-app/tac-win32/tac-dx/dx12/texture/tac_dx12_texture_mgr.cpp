@@ -468,7 +468,7 @@ namespace Tac::Render
         }
       }
 
-      texture = {};
+      *texture = DX12Texture{};
     }
   }
 
