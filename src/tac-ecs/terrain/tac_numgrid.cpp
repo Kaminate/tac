@@ -106,23 +106,10 @@ namespace Tac
       m4  mClipFromModel {};
       u32 mWidth         {};
       u32 mHeight        {};
-      //u32 mBufferIndexOffset;
     };
 
-    //static Vector<NumGridCBufData> sCPUCBufs;
-    //static Vector<Render::BufferHandle> sAllGPUNumbers;
-    //static Vector<u8> sAllCPUNumbers;
-
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    //sAllGPUNumbers.resize( Render::RenderApi::GetMaxGPUFrameCount() );
-
-    //Render::BufferHandle& allGPUNumbers{
-    //  sAllGPUNumbers[ ( int )Render::RenderApi::GetCurrentRenderFrameIndex() ] };
-
     Render::IContext* renderContext{ renderParams.mContext };
-
-    //Render::IContext::Scope renderContextScope{ renderDevice->CreateRenderContext( errors) };
-    //Render::IContext* renderContext{ renderContextScope.GetContext() };
     renderContext->DebugEventBegin( "NumGridSys::DebugEventBegin()" );
     renderContext->SetViewport( renderParams.mViewSize  );
     renderContext->SetScissor( renderParams.mViewSize );
@@ -175,39 +162,15 @@ namespace Tac
           .mStackFrame        { TAC_STACK_FRAME },
         }, errors ) };
 
-
-#if 0
-    how to manage lifetime of gpu objects ? ( cbuf, data buf )
-
-      theres the master editor world
-      that gets copied to the game world
-
-      that gets interpolated by netcode
-      that gets interpolated by the frame rate
-
-      the resulting World could be rendered into multiple viewports
-      or there could be multiple worlds rendered.
-
-      i could just Allocate, use, and delete immediately,
-      relying on the deletion queue.
-
-      as long as its the same World, it should have the same data buf.
-      the cbuf would be associated with each World Render instance
-
-
-#endif
-
-
-
-      static Render::BufferHandle cbufhandle{ renderDevice->CreateBuffer(
-        Render::CreateBufferParams
-        {
-          .mUsage         { Render::Usage::Dynamic },
-          .mBinding       { Render::Binding::ConstantBuffer },
-          .mCpuAccess     { Render::CPUAccess::Write },
-          .mOptionalName  { "numgrid_cbuf"},
-          .mStackFrame    { TAC_STACK_FRAME },
-        }, errors ) };
+    static Render::BufferHandle cbufhandle{ renderDevice->CreateBuffer(
+      Render::CreateBufferParams
+      {
+        .mUsage         { Render::Usage::Dynamic },
+        .mBinding       { Render::Binding::ConstantBuffer },
+        .mCpuAccess     { Render::CPUAccess::Write },
+        .mOptionalName  { "numgrid_cbuf"},
+        .mStackFrame    { TAC_STACK_FRAME },
+      }, errors ) };
     renderContext->SetPrimitiveTopology( Render::PrimitiveTopology::TriangleList );
     renderContext->SetPipeline( pipeline );
 
@@ -231,7 +194,6 @@ namespace Tac
     samplerShaderVar->SetResource( sampler );
 
     const float aspect{ ( float )renderParams.mViewSize.x / ( float )renderParams.mViewSize.y };
-    
     const m4 viewFromWorld{ renderParams.mCamera->View() };
     const m4 clipFromView{ renderParams.mCamera->Proj( aspect ) };
     const m4 clipFromWorld{ clipFromView * viewFromWorld };
