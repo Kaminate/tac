@@ -16,6 +16,7 @@ PUBLIC
   tac_span.h
   tac_vector.h
   tac_vector_meta.h
+  tac_array_meta.h
 PRIVATE
   tac_ring_buffer.cpp
   tac_list.cpp

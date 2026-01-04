@@ -2,23 +2,23 @@
 
 namespace Tac
 {
-  void        MetaType::Read( ReadStream*, void* ) const
+  void MetaType::Read( ReadStream*, void* ) const
   {
     TAC_ASSERT_UNIMPLEMENTED;
   }
 
-  void        MetaType::Write( WriteStream*, const void* ) const
+  void MetaType::Write( WriteStream*, const void* ) const
   {
     TAC_ASSERT_UNIMPLEMENTED;
   }
 
-  bool        MetaType::Equals( const void*, const void* ) const
+  bool MetaType::Equals( const void*, const void* ) const
   {
     TAC_ASSERT_UNIMPLEMENTED;
     return false;
   }
 
-  void        MetaType::Copy( CopyParams ) const
+  void MetaType::Copy( CopyParams ) const
   {
     TAC_ASSERT_UNIMPLEMENTED;
   }

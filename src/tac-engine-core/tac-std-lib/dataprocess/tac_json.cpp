@@ -263,7 +263,7 @@ namespace Tac
     json.mType = JsonType::Null;
   };
 
-  [[nodiscard]] Json Json::Parse( const char* bytes, int byteCount, Errors& errors )
+  Json Json::Parse( const char* bytes, int byteCount, Errors& errors )
   {
     ParseData parseData( bytes, byteCount );
 
@@ -273,7 +273,7 @@ namespace Tac
     return json;
   }
 
-  [[nodiscard]] Json Json::Parse( StringView s, Errors& errors )
+  Json Json::Parse( StringView s, Errors& errors )
   {
     ParseData parseData( s.data(), s.size() );
 
@@ -283,13 +283,13 @@ namespace Tac
     return json;
   }
 
-  Json*  Json::FindChild( StringView key ) const
+  auto Json::FindChild( StringView key ) const -> Json*
   {
     auto it{ mObjectChildrenMap.find( key ) };
     return it == mObjectChildrenMap.end() ? nullptr : ( *it ).second;
   }
 
-  Json&  Json::GetChild( StringView key )
+  auto Json::GetChild( StringView key ) -> Json&
   {
     if( Json * child{ mObjectChildrenMap[ key ] } )
       return *child;
@@ -301,9 +301,9 @@ namespace Tac
     mType = JsonType::Object;
     return *child;
   }
-  Json&  Json::operator[]( StringView key )    { return GetChild( key ); }
-  Json&  Json::operator[]( const char* key )   { return GetChild( key ); }
-  Json&  Json::operator[]( int i )
+  auto Json::operator[]( StringView key ) -> Json&    { return GetChild( key ); }
+  auto Json::operator[]( const char* key ) -> Json&   { return GetChild( key ); }
+  auto Json::operator[]( int i ) -> Json&
   {
     mType = JsonType::Array;
 
@@ -312,21 +312,21 @@ namespace Tac
 
     return *mArrayElements[ i ];
   }
-  Json&  Json::operator = ( const Json& json )     { DeepCopy( &json ); return *this; }
-  Json&  Json::operator = ( const Json* json )     { DeepCopy( json );return *this;  }
-  Json&  Json::operator = ( Json&& json ) noexcept { TakeOver( move( json ) ); return *this; }
-  Json&  Json::operator = ( StringView v )         { SetString( v ); return *this; }
-  Json&  Json::operator = ( JsonNumber v )         { SetNumber( v ); return *this; }
-  Json&  Json::operator = ( int v )                { SetNumber( ( JsonNumber )v );return *this;  }
-  Json&  Json::operator = ( bool v )               { SetBool( v ); return *this; }
+  auto Json::operator = ( const Json& json ) -> Json&     { DeepCopy( &json ); return *this; }
+  auto Json::operator = ( const Json* json ) -> Json&     { DeepCopy( json );return *this;  }
+  auto Json::operator = ( Json&& json ) noexcept -> Json& { TakeOver( move( json ) ); return *this; }
+  auto Json::operator = ( StringView v ) -> Json&         { SetString( v ); return *this; }
+  auto Json::operator = ( JsonNumber v ) -> Json&         { SetNumber( v ); return *this; }
+  auto Json::operator = ( int v ) -> Json&                { SetNumber( ( JsonNumber )v );return *this;  }
+  auto Json::operator = ( bool v ) -> Json&               { SetBool( v ); return *this; }
 
-  void   Json::AddChild( const Json& json )
+  void Json::AddChild( const Json& json )
   {
     Json* child { AddChild() };
     *child = json;
   }
 
-  Json*  Json::AddChild()
+  auto Json::AddChild() -> Json*
   {
     mType = JsonType::Array;
     auto child { TAC_NEW Json };
@@ -334,12 +334,12 @@ namespace Tac
     return child;
   }
 
-  bool   Json::HasChild( StringView key )
+  bool Json::HasChild( StringView key )
   {
     return mObjectChildrenMap.contains( key );
   }
 
-  Json*  Json::AddChild( StringView key )
+  auto Json::AddChild( StringView key ) -> Json*
   {
     mType = JsonType::Object;
     auto child { TAC_NEW Json };
@@ -347,7 +347,7 @@ namespace Tac
     return child;
   }
 
-  void   Json::DeepCopy( const Json* json )
+  void Json::DeepCopy( const Json* json )
   {
     mType = json->mType;
     mString = json->mString;

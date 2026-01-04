@@ -28,21 +28,20 @@ namespace Tac
   struct MetaCompositeType : public MetaType
   {
     MetaCompositeType() = default;
-    //MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars );
-    const char*           GetName() const override;
-    void                  SetName( const char* );
-    void                  SetSize( int );
-    void                  AddMetaMember( MetaMember );
-    int                   GetSizeOf() const override;
-    String                ToString( const void* ) const override;
-    float                 ToNumber( const void* ) const override;
-    void                  Cast( CastParams ) const override;
-    const MetaMember&     GetMember( int ) const;
-    int                   GetMemberCount() const;
-    void                  JsonSerialize( Json* json, const void* v ) const override;
-    void                  JsonDeserialize( const Json* json, void* v ) const override;
-    bool                  Equals( const void*, const void* ) const override;
-    void                  Copy( CopyParams ) const override;
+    auto GetName() const -> const char* override;
+    void SetName( const char* );
+    void SetSize( int );
+    void AddMetaMember( MetaMember );
+    auto GetSizeOf() const -> int override;
+    auto ToString( const void* ) const -> String override;
+    auto ToNumber( const void* ) const -> float override;
+    void Cast( CastParams ) const override;
+    auto GetMember( int ) const -> const MetaMember&;
+    auto GetMemberCount() const -> int;
+    void JsonSerialize( Json* json, const void* v ) const override;
+    void JsonDeserialize( const Json* json, void* v ) const override;
+    bool Equals( const void*, const void* ) const override;
+    void Copy( CopyParams ) const override;
 
   protected:
     Vector< MetaMember >  mMetaVars {};

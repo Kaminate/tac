@@ -6,55 +6,25 @@
 
 namespace Tac
 {
+  void MetaCompositeType::SetName( const char* name )    { mName = name; }
+  void MetaCompositeType::SetSize( int size )            { mSize = size; }
+  void MetaCompositeType::AddMetaMember( MetaMember m )  { mMetaVars.push_back( m ); }
+  auto MetaCompositeType::GetName() const -> const char* { return mName; }
+  auto MetaCompositeType::GetSizeOf() const -> int       { return mSize; }
 
-  //MetaMember::MetaMember( const char* name, int offset, const MetaType* metaType ) :
-  //  mName( name ),
-  //  mOffset( offset ),
-  //  mMetaType( metaType ){}
-
-  //MetaCompositeType::MetaCompositeType( const char* name, int size, Vector< MetaMember > metaVars ) :
-  //  mName( name ),
-  //  mSize( size ),
-  //  mMetaVars( metaVars )
-  //{
-  //}
-
-  void              MetaCompositeType::SetName( const char* name )
-  {
-    mName = name;
-  }
-  void              MetaCompositeType::SetSize( int size )
-  {
-    mSize = size;
-  }
-  void              MetaCompositeType::AddMetaMember( MetaMember m )
-  {
-    mMetaVars.push_back( m );
-  }
-
-  const char*       MetaCompositeType::GetName() const
-  {
-    return mName;
-  }
-
-  int               MetaCompositeType::GetSizeOf() const
-  {
-    return mSize;
-  }
-
-  String            MetaCompositeType::ToString( const void* ) const
+  auto MetaCompositeType::ToString( const void* ) const -> String
   {
     TAC_ASSERT_INVALID_CODE_PATH;
     return 0;
   }
 
-  float             MetaCompositeType::ToNumber( const void* ) const
+  auto MetaCompositeType::ToNumber( const void* ) const -> float
   {
     TAC_ASSERT_INVALID_CODE_PATH;
     return 0;
   }
 
-  void              MetaCompositeType::Cast( const CastParams castParams ) const
+  void MetaCompositeType::Cast( const CastParams castParams ) const
   {
     if( castParams.mSrcType == this )
     {
@@ -70,17 +40,11 @@ namespace Tac
     TAC_ASSERT_INVALID_CODE_PATH;
   }
 
-  const MetaMember& MetaCompositeType::GetMember( int i ) const
-  {
-    return mMetaVars[ i ];
-  }
+  auto MetaCompositeType::GetMember( int i ) const -> const MetaMember& { return mMetaVars[ i ]; }
 
-  int               MetaCompositeType::GetMemberCount() const
-  {
-    return mMetaVars.size();
-  }
+  auto MetaCompositeType::GetMemberCount() const -> int { return mMetaVars.size(); }
 
-  void              MetaCompositeType::JsonSerialize( Json* json, const void* v ) const
+  void MetaCompositeType::JsonSerialize( Json* json, const void* v ) const
   {
     const int n{ GetMemberCount() };
     for( int i {}; i < n; ++i )
@@ -92,7 +56,7 @@ namespace Tac
     }
   }
 
-  void              MetaCompositeType::JsonDeserialize( const Json* json, void* v ) const
+  void MetaCompositeType::JsonDeserialize( const Json* json, void* v ) const
   {
     const int n{ GetMemberCount() };
     for( int i {}; i < n; ++i )
@@ -105,7 +69,7 @@ namespace Tac
     }
   }
 
-  bool              MetaCompositeType::Equals( const void* a, const void* b ) const
+  bool MetaCompositeType::Equals( const void* a, const void* b ) const
   {
     for( const MetaMember& metaMember : mMetaVars )
     {
@@ -118,16 +82,14 @@ namespace Tac
     return true;
   }
 
-  void              MetaCompositeType::Copy( CopyParams copyParams ) const
+  void MetaCompositeType::Copy( CopyParams copyParams ) const
   {
     for( const MetaMember& metaMember : mMetaVars )
     {
-      dynmc void* dstMember{ ( dynmc char* )copyParams.mDst + metaMember.mOffset };
-      const void* srcMember{ ( const char* )copyParams.mSrc + metaMember.mOffset };
       const CopyParams memberCopyParams
       {
-        .mDst { dstMember },
-        .mSrc { srcMember },
+        .mDst { ( dynmc char* )copyParams.mDst + metaMember.mOffset  },
+        .mSrc { ( const char* )copyParams.mSrc + metaMember.mOffset  },
       };
       metaMember.mMetaType->Copy( memberCopyParams );
     }

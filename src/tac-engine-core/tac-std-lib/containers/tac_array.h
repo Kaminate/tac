@@ -3,26 +3,27 @@
 #pragma once
 
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
 {
   template< typename T, int N >
   struct Array
   {
-    int      size()  const                 { return N; }
-    T&       front()                       { return mTs[ 0 ]; }
-    T        front() const                 { return mTs[ 0 ]; }
-    T        back()  const                 { return mTs[ N - 1 ]; }
-    T&       back()                        { return mTs[ N - 1 ]; }
-    T*       data()                        { return mTs; }
-    const T* data() const                  { return mTs; }
-    T*       begin()                       { return mTs; }
-    const T* begin() const                 { return mTs; }
-    T*       end()                         { return mTs + N; }
-    const T* end()   const                 { return mTs + N; }
-    T&       operator[]( int i )           { TAC_ASSERT_INDEX( i, N ); return mTs[ i ]; }
+    auto size() const -> int               { return N; }
+    auto front() dynmc -> dynmc T&         { return mTs[ 0 ]; }
+    auto front() const -> const T&         { return mTs[ 0 ]; }
+    auto back() const -> const T&          { return mTs[ N - 1 ]; }
+    auto back() dynmc -> dynmc T&          { return mTs[ N - 1 ]; }
+    auto data() dynmc -> dynmc T*          { return mTs; }
+    auto data() const -> const T*          { return mTs; }
+    auto begin() dynmc -> dynmc T*         { return mTs; }
+    auto begin() const -> const T*         { return mTs; }
+    auto end() dynmc -> dynmc T*           { return mTs + N; }
+    auto end() const -> const T*           { return mTs + N; }
+    dynmc T& operator[]( int i ) dynmc     { TAC_ASSERT_INDEX( i, N ); return mTs[ i ]; }
     const T& operator[]( int i ) const     { TAC_ASSERT_INDEX( i, N ); return mTs[ i ]; }
-    T        mTs[ N ]{};
+    T mTs[ N ]{};
   };
 
   // C++17 array deduction guide. Tac::Array foo{ 2, 4, 6 }; is deduced to be Array< int, 3 >

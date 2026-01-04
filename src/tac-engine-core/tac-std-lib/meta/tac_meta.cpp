@@ -36,66 +36,62 @@ namespace Tac
 
   struct MetaBool : public MetaType
   {
-    const char* GetName() const override { return "bool"; }
-    int         GetSizeOf() const override { return sizeof( bool ); }
-    String      ToString( const void* v ) const override { return AsBool( v ) ? "true" : "false"; }
-    float       ToNumber( const void* v ) const override { return AsBool( v ) ? 1.0f : 0.0f; }
-    void        Cast( CastParams castParams ) const override { AsBool( castParams.mDst ) = ( bool )castParams.mSrcType->ToNumber( castParams.mSrc ); }
-    void        JsonSerialize( Json* json, const void* v ) const override { json->SetBool( AsBool( v ) ); }
-    void        JsonDeserialize( const Json* json, void* v ) const override
+    auto GetName() const -> const char* override { return "bool"; }
+    auto GetSizeOf() const -> int override { return sizeof( bool ); }
+    auto ToString( const void* v ) const -> String override { return AsBool( v ) ? "true" : "false"; }
+    auto ToNumber( const void* v ) const -> float override { return AsBool( v ) ? 1.0f : 0.0f; }
+    void Cast( CastParams castParams ) const override { AsBool( castParams.mDst ) = ( bool )castParams.mSrcType->ToNumber( castParams.mSrc ); }
+    void JsonSerialize( Json* json, const void* v ) const override { json->SetBool( AsBool( v ) ); }
+    void JsonDeserialize( const Json* json, void* v ) const override
     {
       if( json->mType == JsonType::Bool )
-      {
         AsBool( v ) = json->mBoolean;
-        return;
-      }
-
-      const CastParams castParams
-      {
-        .mDst     { v },
-        .mSrc     { TryGetJsonMetapointer( json ) },
-        .mSrcType { TryGetJsonMetatype( json ) },
-      };
-      Cast( castParams );
+      else
+        Cast(
+          CastParams
+          {
+            .mDst     { v },
+            .mSrc     { TryGetJsonMetapointer( json ) },
+            .mSrcType { TryGetJsonMetatype( json ) },
+          } );
     }
-    bool        Equals( const void* a, const void* b ) const override { return AsBool( a ) == AsBool( b ); }
-    void        Copy( CopyParams cp ) const override { AsBool( cp.mDst ) = AsBool( cp.mSrc ); }
+    bool Equals( const void* a, const void* b ) const override { return AsBool( a ) == AsBool( b ); }
+    void Copy( CopyParams cp ) const override { AsBool( cp.mDst ) = AsBool( cp.mSrc ); }
 
   private:
-    const char* mName{};
-    const bool& AsBool( const void* v ) const { return *( bool* )v; }
-    dynmc bool& AsBool( dynmc void* v ) const { return *( bool* )v; }
+    auto AsBool( const void* v ) const -> const bool& { return *( bool* )v; }
+    auto AsBool( dynmc void* v ) const -> dynmc bool& { return *( bool* )v; }
   };
 
   struct MetaConstCharStar : public MetaType
   {
-    const char* GetName() const override { return "char*"; }
-    int         GetSizeOf() const override { return sizeof( char* ); }
-    String      ToString( const void* v ) const override { return AsStr( v ); }
-    float       ToNumber( const void* v ) const override { return ( float )Atoi( AsStr( v ) ); }
-    void        Cast( CastParams ) const override { TAC_ASSERT_INVALID_CODE_PATH; }
-    void        JsonSerialize( Json* json, const void* v ) const override { json->SetString( AsStr( v ) ); }
-    void        JsonDeserialize( const Json*, void* ) const override { TAC_ASSERT_INVALID_CODE_PATH; }
+    auto GetName() const -> const char* override                   { return "char*"; }
+    auto GetSizeOf() const -> int override                         { return sizeof( char* ); }
+    auto ToString( const void* v ) const -> String override        { return AsStr( v ); }
+    auto ToNumber( const void* v ) const -> float override         { return ( float )Atoi( AsStr( v ) ); }
+    void Cast( CastParams ) const override                         { TAC_ASSERT_INVALID_CODE_PATH; }
+    void JsonSerialize( Json* json, const void* v ) const override { json->SetString( AsStr( v ) ); }
+    void JsonDeserialize( const Json*, void* ) const override      { TAC_ASSERT_INVALID_CODE_PATH; }
 
   private:
-    const char* AsStr( const void* v ) const { return ( const char* )v; }
+    auto AsStr( const void* v ) const -> const char* { return ( const char* )v; }
   };
 
   struct MetaFloat : public MetaType
   {
-    const char* GetName() const override { return "float"; }
-    int         GetSizeOf() const override { return sizeof( float ); }
-    String      ToString( const void* v ) const override { return Tac::ToString( AsFloatRef( v ) ); }
-    float       ToNumber( const void* v ) const override { return AsFloatRef( v ); }
-    void        Cast( CastParams castParams ) const override
+    auto GetName() const -> const char* override               { return "float"; }
+    auto GetSizeOf() const -> int override                     { return sizeof( float ); }
+    auto ToString( const void* v ) const -> String override    { return Tac::ToString( AsFloatRef( v ) ); }
+    auto ToNumber( const void* v ) const -> float override     { return AsFloatRef( v ); }
+    void Cast( CastParams castParams ) const override
     {
       *( float* )castParams.mDst = ( float )castParams.mSrcType->ToNumber( castParams.mSrc );
     }
-    void        JsonSerialize( Json* json, const void* v ) const override
+    void JsonSerialize( Json* json, const void* v ) const override
     {
       json->SetNumber( MetaCast< JsonNumber >( v, this ) );
     }
-    void        JsonDeserialize( const Json* json, void* v ) const override
+    void JsonDeserialize( const Json* json, void* v ) const override
     {
       const CastParams castParams
       {
@@ -105,29 +101,29 @@ namespace Tac
       };
       Cast( castParams );
     }
-    bool        Equals( const void* a, const void* b ) const override { return AsFloatRef( a ) == AsFloatRef( b ); }
-    void        Copy( CopyParams cp ) const override { AsFloatRef( cp.mDst ) = AsFloatRef( cp.mSrc ); }
+    bool Equals( const void* a, const void* b ) const override { return AsFloatRef( a ) == AsFloatRef( b ); }
+    void Copy( CopyParams cp ) const override                  { AsFloatRef( cp.mDst ) = AsFloatRef( cp.mSrc ); }
 
   private:
-    const float& AsFloatRef( const void* v ) const { return *( float* )v; }
-    dynmc float& AsFloatRef( dynmc void* v ) const { return *( float* )v; }
+    auto AsFloatRef( const void* v ) const -> const float&     { return *( float* )v; }
+    auto AsFloatRef( dynmc void* v ) const -> dynmc float&     { return *( float* )v; }
   };
 
   struct MetaDouble : public MetaType
   {
-    const char* GetName() const override { return "double"; }
-    int         GetSizeOf() const override { return sizeof( double ); }
-    String      ToString( const void* v ) const override { return Tac::ToString( AsDoubleRef( v ) ); }
-    float       ToNumber( const void* v ) const override { return ( float )AsDoubleRef( v ); }
-    void        Cast( CastParams castParams ) const override
+    auto GetName() const -> const char* override               { return "double"; }
+    auto GetSizeOf() const -> int override                     { return sizeof( double ); }
+    auto ToString( const void* v ) const -> String override    { return Tac::ToString( AsDoubleRef( v ) ); }
+    auto ToNumber( const void* v ) const -> float override     { return ( float )AsDoubleRef( v ); }
+    void Cast( CastParams castParams ) const override
     {
       *( double* )castParams.mDst = ( double )castParams.mSrcType->ToNumber( castParams.mSrc );
     }
-    void        JsonSerialize( Json* json, const void* v ) const override
+    void JsonSerialize( Json* json, const void* v ) const override
     {
       json->SetNumber( MetaCast< JsonNumber >( v, this ) );
     }
-    void        JsonDeserialize( const Json* json, void* v ) const override
+    void JsonDeserialize( const Json* json, void* v ) const override
     {
       const CastParams castParams
       {
@@ -137,23 +133,23 @@ namespace Tac
       };
       Cast( castParams );
     }
-    bool        Equals( const void* a, const void* b ) const override { return AsDoubleRef( a ) == AsDoubleRef( b ); }
-    void        Copy( CopyParams cp ) const override { AsDoubleRef( cp.mDst ) = AsDoubleRef( cp.mSrc ); }
+    bool Equals( const void* a, const void* b ) const override { return AsDoubleRef( a ) == AsDoubleRef( b ); }
+    void Copy( CopyParams cp ) const override                  { AsDoubleRef( cp.mDst ) = AsDoubleRef( cp.mSrc ); }
 
   private:
-    const double& AsDoubleRef( const void* v ) const { return *( double* )v; }
-    dynmc double& AsDoubleRef( dynmc void* v ) const { return *( double* )v; }
+    auto AsDoubleRef( const void* v ) const -> const double&   { return *( double* )v; }
+    auto AsDoubleRef( dynmc void* v ) const -> dynmc double&   { return *( double* )v; }
   };
 
   struct MetaNull : public MetaType
   {
-    const char* GetName() const override                             { return "null"; }
-    int         GetSizeOf() const override                           { return 0; }
-    String      ToString( const void* ) const override               { return "null"; }
-    float       ToNumber( const void* ) const override               { return 0; }
-    void        Cast( CastParams ) const override                    { TAC_ASSERT_INVALID_CODE_PATH; }
-    void        JsonSerialize( Json*, const void* ) const override   { TAC_ASSERT_INVALID_CODE_PATH; }
-    void        JsonDeserialize( const Json*, void* ) const override { TAC_ASSERT_INVALID_CODE_PATH; }
+    auto GetName() const -> const char* override               { return "null"; }
+    auto GetSizeOf() const -> int override                     { return 0; }
+    auto ToString( const void* ) const -> String override      { return "null"; }
+    auto ToNumber( const void* ) const -> float override       { return 0; }
+    void Cast( CastParams ) const override                     { TAC_ASSERT_INVALID_CODE_PATH; }
+    void JsonSerialize( Json*, const void* ) const override    { TAC_ASSERT_INVALID_CODE_PATH; }
+    void JsonDeserialize( const Json*, void* ) const override  { TAC_ASSERT_INVALID_CODE_PATH; }
   };
 
   struct Metai8  : public MetaIntegralType< i8 >  { Metai8()  : MetaIntegralType( "i8" )  {} };
@@ -185,5 +181,5 @@ namespace Tac
   TAC_META_IMPL_INSTANCE2( ConstCharStar, MetaConstCharStar );
 }
 
-const Tac::MetaType& Tac::GetNullMetaType() { static const MetaNull sMetaNull; return sMetaNull; }
+auto Tac::GetNullMetaType() -> const Tac::MetaType& { static const MetaNull sMetaNull; return sMetaNull; }
 

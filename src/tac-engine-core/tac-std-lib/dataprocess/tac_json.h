@@ -33,7 +33,7 @@ namespace Tac
 	};
 
 	// The function names Stringify and Parse mimic the built-in javascript api
-	struct Json
+  struct [[nodiscard]] Json
 	{
 		// Assign common types at time of level_editor
 		Json( String );
@@ -46,9 +46,8 @@ namespace Tac
     Json( const Json& );
 		~Json();
 
-    // [[nodiscard]] is being ignored? compiler bug?
-    static [[nodiscard]] Json Parse( StringView, Errors& );
-		static [[nodiscard]] Json Parse( const char* bytes, int byteCount, Errors& );
+    static Json Parse( StringView, Errors& );
+		static Json Parse( const char* bytes, int byteCount, Errors& );
 
 		// Setters
 		void Clear();

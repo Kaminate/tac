@@ -64,21 +64,15 @@ namespace Tac
     settingsNode.GetChild( kPrefabSettingsPath ).SetValue( children );
   }
 
-  static auto GetPrefabCameraNode( SettingsNode settingsNode, const AssetPathStringView prefabPath ) -> SettingsNode
+  static auto GetPrefabCameraNode( const AssetPathStringView prefabPath ) -> SettingsNode
   {
-    if( prefabPath.empty() )
-      return {}; // when would this ever happen?
-
-    Span< SettingsNode > nodes{
-      settingsNode.GetChild( "prefabCameraRefFrames" ).GetChildrenArray() };
-
-    for( SettingsNode node : nodes )
+    TAC_ASSERT(!prefabPath.empty());
+    SettingsNode frames{ Shell::sShellSettings.GetChild( "prefabCameraRefFrames" ) };
+    for( SettingsNode node : frames.GetChildrenArray()  )
       if( node.GetChild( "path" ).GetValue() == prefabPath )
         return node;
-
-    return {};
+    return frames.GetChild( "[0]" ); // create if not exist
   }
-
 
   static auto PrefabFind( Entity* entity ) -> Prefab*
   {
@@ -184,7 +178,7 @@ void Tac::PrefabLoadAtPath( const AssetPathStringView prefabPath, Errors& errors
 
   if( world->mEntities.empty() )
     if( Camera * camera{ Creation::GetEditorCamera() } )
-      if( SettingsNode node{ GetPrefabCameraNode( Shell::sShellSettings, prefabPath ) };
+      if( SettingsNode node{ GetPrefabCameraNode( prefabPath ) };
           node.IsValid() )
         for( int iAxis{}; iAxis < 3; ++iAxis )
           for( CameraSaveHelper helper : kCameraSaveHelpers )
@@ -234,10 +228,10 @@ bool Tac::PrefabSave( World* world, Errors& errors )
 
 void Tac::PrefabSaveCamera( const Camera* camera, const AssetPathStringView prefabPath )
 {
-  SettingsNode settingsNode{ Shell::sShellSettings };
+  //SettingsNode settingsNode{ Shell::sShellSettings };
   for( Prefab* prefab : sPrefabs )
     if( ( AssetPathStringView )prefab->mAssetPath == prefabPath )
-      if( SettingsNode node{ GetPrefabCameraNode( settingsNode, prefabPath ) };
+      if( SettingsNode node{ GetPrefabCameraNode( prefabPath ) };
           node.IsValid() )
         for( CameraSaveHelper helper : kCameraSaveHelpers )
           if( const v3& v{ *( const v3* )( ( const u8* )camera + helper.mOffset ) }; true )

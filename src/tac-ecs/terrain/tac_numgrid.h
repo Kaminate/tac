@@ -7,6 +7,7 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#include "tac-std-lib/containers/tac_array.h"
 
 namespace Tac
 {
@@ -15,12 +16,12 @@ namespace Tac
     static auto GetComponent( Entity* ) -> NumGrid*;
     auto GetEntry() const -> const ComponentInfo* override;
 
-    using GridImages = AssetPathString[ 256 ];
+    using GridImages = Array< AssetPathString, 256 >;
 
     AssetPathString mAsset  {};
     GridImages      mImages {};
-    int             mWidth  { 1 };
-    int             mHeight { 1 };
+    int             mWidth  {};
+    int             mHeight {};
     Vector< u8 >    mData   {};
   };
 
