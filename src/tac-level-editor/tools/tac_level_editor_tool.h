@@ -9,6 +9,7 @@ namespace Tac
   {
     virtual void OnToolSelected() {}
     virtual void Update() = 0;
+    virtual void ToolUI() {};
 
     const char*     mDisplayName {};
     AssetPathString mIcon        {};

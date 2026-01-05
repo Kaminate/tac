@@ -19,7 +19,7 @@ namespace Tac
   {
     ImGuiID( HashValue value = 0 ) : mValue( value ) {}
     bool        IsValid() const { return mValue; }
-    operator    HashValue() { return mValue; }
+    operator    HashValue() const { return mValue; }
     friend auto operator <=> ( const ImGuiID&, const ImGuiID& ) = default;
 
     HashValue mValue{};
@@ -205,6 +205,7 @@ namespace Tac
   bool ImGuiSelectable( StringView , bool );
   bool ImGuiCheckbox( StringView , bool* );
   void ImGuiImage( int hTex, const v2& size, const v4& color = { 1, 1, 1, 1 } );
+  bool ImGuiImageButton( int hTex, const v2& size, const v4& color = { 1, 1, 1, 1 } );
   bool ImGuiCollapsingHeader( StringView, ImGuiNodeFlags = ImGuiNodeFlags_None );
   void ImGuiSameLine();
   void ImGuiSeparator();

@@ -1,9 +1,11 @@
 #include "tac_numgrid.h" // self-inc
+
 #include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
+#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/containers/tac_vector_meta.h"
 #include "tac-std-lib/containers/tac_array_meta.h"
@@ -51,8 +53,8 @@ namespace Tac
     numGrid->mHeight = Max( numGrid->mHeight, 1 );
     if( oldW != numGrid->mWidth || oldH != numGrid->mHeight )
     {
-      int newW{numGrid->mWidth};
-      int newH{numGrid->mHeight};
+      int newW{ numGrid->mWidth };
+      int newH{ numGrid->mHeight };
       Vector< u8 > newData( newW * newH );
       for( int r{}; r < Min( oldH, newH ); ++r )
         for( int c{}; c < Min( oldW, newW ); ++c )
@@ -63,6 +65,11 @@ namespace Tac
     static Errors numGridErrors;
     if( numGridErrors )
       ImGuiText( "Errors: %s", numGridErrors.ToString().c_str() );
+
+  
+    if( ImGuiButton( "Zero Data" ) )
+      for( u8& data : numGrid->mData )
+        data = 0;
 
     int firstFreeSpace{ -1 };
     for( int i{}; i < 256; ++i )
@@ -81,14 +88,15 @@ namespace Tac
       v3i imgSize{ TextureAssetManager::GetTextureSize( imgPath, numGridErrors ) };
       float aspect{ imgSize.x / ( float )imgSize.y };
 
+      ImGuiBeginGroup();
       ImGuiText( "Image %i", i );
-      ImGuiSameLine();
       if( ImGuiButton( "Remove" ) )
         numGrid->mImages[ i ] = {};
-      ImGuiSameLine();
       if( ImGuiButton( "Change" ) )
         if( AssetPathStringView newPath{ AssetOpenDialog( numGridErrors ) } )
           numGrid->mImages[ i ] = newPath;
+      ImGuiEndGroup();
+
       ImGuiSameLine();
       ImGuiImage( imgHandle.GetIndex(), v2( 100 * aspect, 100 ) );
     }
@@ -99,21 +107,36 @@ namespace Tac
         if( AssetPathStringView newPath{ AssetOpenDialog( numGridErrors ) } )
           numGrid->mImages[ firstFreeSpace ] = newPath;
     }
-      
+
+    //if( Debug3DDrawData * drawData{ component->mEntity->mWorld->mDebug3DDrawData } )
+    //{
+    //  const NumGrid::WorldspaceCorners corners{ numGrid->GetWorldspaceCorners() };
+    //  const v4 color( 1, 1, 1, 1 );
+    //  drawData->DebugDraw3DLine( corners.mBL, corners.mBR, color );
+    //  drawData->DebugDraw3DLine( corners.mBL, corners.mTL, color );
+    //  drawData->DebugDraw3DLine( corners.mTL, corners.mTR, color );
+    //  drawData->DebugDraw3DLine( corners.mTR, corners.mBR, color );
+    //}
   }
 
   static ComponentInfo* sRegistry         {};
   SystemInfo*           NumGridSys::sInfo {};
 
-  auto NumGrid::GetComponent( Entity* entity ) -> NumGrid*
-  {
-    return ( NumGrid* )entity->GetComponent( sRegistry );
-  }
+  auto NumGrid::GetComponent( const Entity* entity ) -> const NumGrid* { return ( const NumGrid* )entity->GetComponent( sRegistry ); }
+  auto NumGrid::GetComponent( dynmc Entity* entity ) -> dynmc NumGrid* { return ( dynmc NumGrid* )entity->GetComponent( sRegistry ); }
 
-  auto NumGrid::GetEntry() const -> const ComponentInfo*
+  auto NumGrid::GetWorldspaceCorners() const -> WorldspaceCorners
   {
-    return sRegistry;
+    v4 bl{ 0,0,0,1 };
+    v4 tl{ 0,0,( float )-mHeight, 1 };
+    v4 tr{ ( float )mWidth,0,( float )-mHeight, 1 };
+    v4 br{ ( float )mWidth,0,0, 1 };
+    v4* points[ 4 ]{ &bl, &tl, &tr, &br };
+    for( v4* point : points )
+      point->xyz() = ( mEntity->mWorldTransform * *point ).xyz();
+    return { .mBL{ bl.xyz() }, .mTL{ tl.xyz() }, .mTR{ tr.xyz() }, .mBR{ br.xyz() } };
   }
+  auto NumGrid::GetEntry() const -> const ComponentInfo* { return sRegistry; }
 
   auto NumGridSys::CreateNumGrid() -> NumGrid*
   {
@@ -135,66 +158,9 @@ namespace Tac
   void NumGridSys::DebugImgui()
   {
   }
-  // ----------------------------------------------------
-  // delete me begin
-  // ----------------------------------------------------
-
-  struct NumGrid2 : public Component
-  {
-    static auto GetComponent( Entity* ) -> NumGrid*;
-    auto GetEntry() const -> const ComponentInfo* override;
-
-    using GridImages = Array< AssetPathString, 256 >;
-
-    AssetPathString mAsset  {};
-    GridImages      mImages {};
-    int             mWidth  {};
-    int             mHeight {};
-    Vector< u8 >    mData   {};
-  };
-
-    struct MetaNumGrid2 : public MetaCompositeType
-    {
-      using BaseType = NumGrid;
-
-      MetaNumGrid2()
-      {
-        int offset = (uintptr_t)&(( ( NumGrid* )( nullptr ) )->mData);
-        offset;
-
-    Vector< u8 >    mData   {};
-
-        MetaCompositeType::SetName( "NumGrid" );
-        MetaCompositeType::SetSize( sizeof( NumGrid ) );
-        void missing_semicolon();
-          const MetaType*       metaType { &GetMetaType< decltype( BaseType::mImages ) >() };
-        MetaCompositeType::AddMetaMember(
-
-          MetaMember{
-            .mName{ "mImages" },
-            .mOffset{ ( ( int )( size_t ) & reinterpret_cast< char const volatile& >( ( ( ( BaseType* )0 )->mImages ) ) ) },
-            .mMetaType{ metaType}, } );
-        void missing_semicolon();
-      }
-    };
-    static const MetaNumGrid sMetaNumGrid2;
-    struct MetaType;
-    const MetaType& GetMetaType( const NumGrid2& )
-    {
-      return sMetaNumGrid2;
-    }; void missing_semicolon();
-
-  // ----------------------------------------------------
-  // delete me end
-  // ----------------------------------------------------
 
   void NumGridSys::SpaceInitNumGrid()
   {
-
-    MetaNumGrid2 foo;
-
-
-
     sInfo = SystemInfo::Register();
     sInfo->mName = "NumGrid";
     sInfo->mCreateFn = CreateNumGridSystem;
@@ -319,13 +285,6 @@ namespace Tac
     const m4 clipFromView{ renderParams.mCamera->Proj( aspect ) };
     const m4 clipFromWorld{ clipFromView * viewFromWorld };
 
-    //static Entity sTempEntity;
-    //static NumGrid snumGrid;
-    //snumGrid.mWidth = 4;
-    //snumGrid.mHeight = 2;
-    //snumGrid.mData.resize( snumGrid.mWidth * snumGrid.mHeight );
-    //snumGrid.mEntity = &sTempEntity;
-    //NumGrid* tempGrids[] { &snumGrid };
 
     for( NumGrid* numGrid : mNumGrids )
     {
@@ -371,27 +330,23 @@ namespace Tac
           .mOptionalName  { "numgrid_data" },
           .mStackFrame    { TAC_STACK_FRAME },
         }, errors ) };
-
       const m4& worldFromModel{ numGrid->mEntity->mWorldTransform };
       const m4 clipFromModel{ clipFromWorld * worldFromModel };
-
-      NumGridCBufData cbufData
+      const NumGridCBufData cbufData
       {
         .mClipFromModel { clipFromModel },
         .mWidth         { ( u32 )numGrid->mWidth },
         .mHeight        { ( u32 )numGrid->mHeight },
       };
 
-      renderContext->UpdateBufferSimple( cbufhandle, cbufData, errors );
       textureIndicesShaderVar->SetResource( gridDataHandle );
-
+      renderContext->UpdateBufferSimple( cbufhandle, cbufData, errors );
       renderContext->CommitShaderVariables();
       renderContext->Draw(
         Render::DrawArgs
         {
           .mVertexCount { 6 * numGrid->mWidth * numGrid->mHeight }, // 6 = 2 * 3 tri verts
         } );
-
       renderDevice->DestroyBuffer( gridDataHandle );
     }
 

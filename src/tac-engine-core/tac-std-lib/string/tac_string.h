@@ -46,8 +46,8 @@ namespace Tac
     void operator = ( const String& );
     void operator = ( StringView );
     void operator = ( const char* );
-    void operator += ( StringView );
-    void operator += ( char );
+    auto operator += ( StringView ) -> String&;
+    auto operator += ( char ) -> String&;
 
     void clear();
     bool empty() const;

@@ -19,17 +19,16 @@ namespace Tac::Render
   struct BindlessArray : public IBindlessArray
   {
     BindlessArray( IBindlessArray::Params );
-    Binding                Bind( ResourceHandle, Errors& ) override;
-    void                   Unbind( Binding ) override;
-    void                   Resize( int, Errors& );
-    void                   SetFenceSignal( FenceSignal );
-    //Span< DX12Descriptor > GetDescriptors( DX12TransitionHelper* ) const override;
-    void                   Commit( CommitParams );
+    auto Bind( ResourceHandle, Errors& ) -> Binding override ;
+    void Unbind( Binding ) override;
+    void Resize( int, Errors& );
+    void SetFenceSignal( FenceSignal );
+    void Commit( CommitParams );
 
   private:
 
-    void                   CheckType( ResourceHandle );
-    void                   CopyDescriptor( IHandle, Binding, Errors& );
+    void CheckType( ResourceHandle );
+    void CopyDescriptor( IHandle, Binding, Errors& );
 
     Vector< IHandle >      mHandles          {};
     Vector< Binding >      mUnusedBindings   {};

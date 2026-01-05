@@ -631,13 +631,15 @@ void Tac::ImGuiBeginGroup()
 {
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
   window->PushXOffset();
-  window->mCurrLineHeight = 0;
   window->mGroupStack.push_back(
     GroupData
     {
       .mSavedCursorDrawPos { window->mViewportSpaceCurrCursor },
       .mSavedLineHeight    { window->mCurrLineHeight },
+      .mSavedViewportSpaceMaxiCursor { window->mViewportSpaceMaxiCursor },
     } );
+  window->mCurrLineHeight = 0;
+  window->mViewportSpaceMaxiCursor = window->mViewportSpaceCurrCursor;
 }
 
 void Tac::ImGuiEndGroup()
@@ -649,6 +651,7 @@ void Tac::ImGuiEndGroup()
   window->mXOffsets.pop_back();
   window->mCurrLineHeight = groupData.mSavedLineHeight;
   window->mViewportSpaceCurrCursor = groupData.mSavedCursorDrawPos;
+  window->mViewportSpaceMaxiCursor = groupData.mSavedViewportSpaceMaxiCursor;
   window->ItemSize( groupSize );
   window->mGroupStack.pop_back();
 }
@@ -838,8 +841,6 @@ bool Tac::ImGuiInputText( const StringView label, String& text )
 
 bool Tac::ImGuiSelectable( const StringView str, bool selected )
 {
-  
-
   ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
 
   const float remainingWidth{ window->GetRemainingWidth() };
@@ -1077,6 +1078,20 @@ void Tac::ImGuiImage( const int hTex, const v2& size, const v4& color )
       .mTextureHandle { Render::TextureHandle( hTex ) },
     } );
   drawData->PopDebugGroup();
+}
+
+bool Tac::ImGuiImageButton( int hTex, const v2& size, const v4& color )
+{
+  ImGuiWindow* window{ ImGuiGlobals::mCurrentWindow };
+  const ImGuiID id{ window->GetID( Tac::ToString( hTex )  += "button" ) };
+  const v2 pos{window->mViewportSpaceCurrCursor};
+  const ImGuiRect clipRect{ window->Clip( ImGuiRect::FromPosSize( pos, size ) ) };
+  const bool hovered{ window->IsHovered( clipRect, id ) };
+  const bool clicked{ hovered && UIKeyboardApi::JustPressed( Key::MouseLeft ) };
+  ImGuiImage( hTex, size, color );
+  if( hovered )
+    window->mDrawData->AddBoxOutline( UI2DDrawData::Box{ .mMini{ pos }, .mMaxi{ pos + size } }, &clipRect );
+  return clicked;
 }
 
 auto Tac::ImGuiGetDrawData() -> Tac::UI2DDrawData*

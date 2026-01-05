@@ -5,4 +5,6 @@
     "tac_level_editor_cube_tool.h"
     "tac_level_editor_selection_tool.cpp"
     "tac_level_editor_selection_tool.h"
+    "tac_level_editor_numgrid_tool.cpp"
+    "tac_level_editor_numgrid_tool.h"
     )

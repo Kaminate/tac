@@ -145,6 +145,8 @@ namespace Tac
     return A * w + B * u + C * v;
   }
 
+  RayTriangle::operator bool() const { return mValid; }
+
   RayTriangle::RayTriangle( const Ray& ray, const Triangle& triangle )
   {
     // Moller-Trumbore algorithm - "Fast, Minimum Storage Ray/Triangle Intersection" (1977)

@@ -137,22 +137,20 @@ namespace Tac
         return i;
     return npos;
   }
-  auto String::find( char c ) const -> int{ return StringView( this->data(), this->size() ).find_first_of( c ); }
-  bool String::contains( const StringView s ) const { return npos != find( s ); }
-  bool String::contains( char c ) const                   { return npos != find( c ); }
+  auto String::find( char c ) const -> int                    { return StringView( this->data(), this->size() ).find_first_of( c ); }
+  bool String::contains( const StringView s ) const           { return npos != find( s ); }
+  bool String::contains( char c ) const                       { return npos != find( c ); }
   auto String::substr( int pos, int len ) const -> String
   {
     const int remainingLen{ mLen - pos };
     const int resultLen{ len == npos ? remainingLen : Min( remainingLen, len ) };
     return String( mStr + pos, resultLen );
   }
-  void String::operator = ( const char* str )        { assign( StringView( str ) ); }
-  void String::operator = ( const String& str )      { assign( str.c_str(), str.size() ); }
-  void String::operator = ( const StringView str )  { assign( str.data(), str.size() ); }
-  //void   String::operator += ( const char* str )       { append( str, StrLen( str ) ); }
-  //void   String::operator += ( const String& s )       { append( s.mStr, s.mLen ); }
-  void String::operator += ( char c )                { append( &c, 1 ); }
-  void String::operator += ( const StringView sv )  { append( sv.data(), sv.size() ); }
+  void String::operator = ( const char* str )                 { assign( StringView( str ) ); }
+  void String::operator = ( const String& str )               { assign( str.c_str(), str.size() ); }
+  void String::operator = ( const StringView str )            { assign( str.data(), str.size() ); }
+  auto String::operator += ( char c ) -> String&              { append( &c, 1 ); return *this; }
+  auto String::operator += ( const StringView sv ) -> String& { append( sv.data(), sv.size() ); return *this; }
 
   void String::erase( int pos, int len )
   {

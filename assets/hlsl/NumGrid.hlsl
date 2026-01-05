@@ -71,9 +71,29 @@ PS_OUTPUT PS( PS_INPUT input )
 {
   float4 texSample = float4(1,0,0,1);
   if( input.mGridVal != uint(-1) )
-    texSample = sTextures[ input.mGridVal ].Sample( sSampler, input.mUV_directx );
+    texSample = sTextures[ 
+NonUniformResourceIndex(
+    input.mGridVal ) ].Sample( sSampler, input.mUV_directx );
 
   PS_OUTPUT output = ( PS_OUTPUT )0;
   output.mColor += texSample;
+  //output.mColor.a = 1.;
+
+#if 0
+  output.mColor.xyz *= 0.0001;
+  texSample *= 0.0001;
+  if( input.mGridVal == 4u )
+    texSample = sTextures[ input.mGridVal ].Sample( sSampler, input.mUV_directx );
+  if( input.mGridVal == 7u )
+    texSample += sTextures[ input.mGridVal ].Sample( sSampler, input.mUV_directx );
+  if( input.mGridVal == 5u )
+    texSample += sTextures[ input.mGridVal ].Sample( sSampler, input.mUV_directx );
+  if( input.mGridVal == 6u )
+    texSample += sTextures[ input.mGridVal ].Sample( sSampler, input.mUV_directx );
+  output.mColor.xyz += texSample.xyz;
+  output.mColor.w =1.;
+#endif
+
+
   return output;
 }

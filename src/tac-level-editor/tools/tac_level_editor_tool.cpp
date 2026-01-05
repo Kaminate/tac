@@ -5,6 +5,7 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-level-editor/tools/tac_level_editor_selection_tool.h"
 #include "tac-level-editor/tools/tac_level_editor_cube_tool.h"
+#include "tac-level-editor/tools/tac_level_editor_numgrid_tool.h"
 
 namespace Tac
 {
@@ -15,9 +16,9 @@ namespace Tac
   {
     sRegisteredTools.push_back( &SelectionTool::sInstance );
     sRegisteredTools.push_back( &CubeTool::sInstance );
+    sRegisteredTools.push_back( &NumGridTool::sInstance );
     SelectTool( &SelectionTool::sInstance );
   }
-
 
   void Toolbox::SelectTool( Tool* tool )
   {
@@ -38,6 +39,7 @@ namespace Tac
       const bool isActive{ tool == sActiveTool };
       Render::TextureHandle textureHandle{ TextureAssetManager::GetTexture( tool->mIcon, errors ) };
       float toolIconSize{ 20.0f };
+
       ImGuiImage( textureHandle.GetIndex(), v2( 1, 1 ) * toolIconSize );
       ImGuiSameLine();
       if( ImGuiSelectable( tool->mDisplayName, isActive ) )
@@ -46,8 +48,7 @@ namespace Tac
       }
       if( isActive )
       {
-        ImGuiSameLine();
-        ImGuiText( "<-- active" );
+        sActiveTool->ToolUI();
       }
     }
   }

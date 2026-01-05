@@ -13,8 +13,12 @@ namespace Tac
 {
   struct NumGrid : public Component
   {
-    static auto GetComponent( Entity* ) -> NumGrid*;
+    struct WorldspaceCorners { v3 mBL; v3 mTL; v3 mTR; v3 mBR; };
+
+    static auto GetComponent( const Entity* ) -> const NumGrid*;
+    static auto GetComponent( dynmc Entity* ) -> dynmc NumGrid*;
     auto GetEntry() const -> const ComponentInfo* override;
+    auto GetWorldspaceCorners() const -> WorldspaceCorners;
 
     using GridImages = Array< AssetPathString, 256 >;
 

@@ -12,6 +12,7 @@
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-ecs/renderpass/mesh/tac_mesh_presentation.h"
 #include "tac-ecs/graphics/material/tac_material.h"
+#include "tac-ecs/terrain/tac_numgrid.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 
 
@@ -106,6 +107,18 @@ namespace Tac
       if( const RaycastResult raycastResult{ MousePickingEntityLight( light ) };
           raycastResult.mHit )
         return raycastResult;
+
+    if( const NumGrid * numGrid{ NumGrid::GetComponent( entity ) } )
+    {
+      NumGrid::WorldspaceCorners worldspaceCorners{ numGrid->GetWorldspaceCorners() };
+      const Ray ray_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
+      const Triangle tri0_worldspace{ worldspaceCorners.mBL, worldspaceCorners.mBR, worldspaceCorners.mTL };
+      const Triangle tri1_worldspace{ worldspaceCorners.mBR, worldspaceCorners.mTR, worldspaceCorners.mTL };
+      if( RayTriangle rayTri0( ray_worldspace, tri0_worldspace ); rayTri0 )
+        return RaycastResult{ .mHit{ true }, .mT{ rayTri0.mT } };
+      if( RayTriangle rayTri1( ray_worldspace, tri1_worldspace ); rayTri1 )
+        return RaycastResult{ .mHit{ true }, .mT{ rayTri1.mT } };
+    }
 
     return {};
   }

@@ -153,6 +153,7 @@ namespace Tac
   {
     RayTriangle( const Ray&, const Triangle& );
     auto GetIntersectionPoint( const Triangle& ) const -> v3;
+    operator bool() const;
     float mT{};
     float mU{};
     float mV{};

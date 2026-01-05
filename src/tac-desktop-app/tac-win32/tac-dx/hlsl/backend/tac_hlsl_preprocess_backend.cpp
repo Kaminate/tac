@@ -27,6 +27,10 @@ namespace Tac::Render
     return {};
   }
 
+  //auto HLSLFilePreprocessor::PreprocessSourceChunk( StringView sourceCodeChunk, Errors& errors ) -> String
+  //{
+  //}
+
   auto HLSLFilePreprocessor::PreprocessSource( StringView sourceCode, Errors& errors ) -> String
   {
     String result;
@@ -45,6 +49,9 @@ namespace Tac::Render
       };
       TAC_CALL_RET( Optional< String > optResult{
         PreprocessLine( preprocessorInput, errors ) } );
+
+
+
       String procLine { optResult.GetValueOr( origLine ) };
       String recursed;
       const bool isSame { ( StringView )procLine == origLine };
@@ -56,7 +63,8 @@ namespace Tac::Render
       }
 
       result += procLine;
-      result += '\n';
+      if( shaderParseData.GetRemainingByteCount() )
+        result += '\n';
     }
 
     return result;

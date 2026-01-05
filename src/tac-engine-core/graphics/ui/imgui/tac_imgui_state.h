@@ -28,8 +28,9 @@ namespace Tac
   struct GroupData
   {
     //    Position of the cursor when starting the group
-    v2    mSavedCursorDrawPos {};
-    float mSavedLineHeight    {};
+    v2    mSavedCursorDrawPos           {};
+    float mSavedLineHeight              {};
+    v2    mSavedViewportSpaceMaxiCursor {};
   };
 
 
@@ -66,15 +67,15 @@ namespace Tac
     auto Clip( const ImGuiRect& ) const -> ImGuiRect;
     void UpdateMaxCursorDrawPos( v2 );
     auto GetWindowResource( ImGuiRscIdx, ImGuiID ) -> void*;
-    bool IsHovered( const ImGuiRect&, ImGuiID );
-    auto GetMousePos_uiwindowspace() -> v2; // mouse relative to ImGuiWindow corner
-    auto GetMousePos_nwhspace() -> v2; // mouse relative to win32 window corner
+    bool IsHovered( const ImGuiRect&, ImGuiID ) const;
+    auto GetMousePos_uiwindowspace() const -> v2; // mouse relative to ImGuiWindow corner
+    auto GetMousePos_nwhspace() const -> v2; // mouse relative to win32 window corner
     auto GetWindowPos_desktopspace() const -> v2; // mouse relative to primary monitor
     void Scrollbar();
     void PushXOffset();
     void BeginMoveControls();
     void UpdateMoveControls();
-    auto GetID( StringView ) -> ImGuiID;
+    auto GetID( StringView ) const -> ImGuiID;
     auto GetRemainingWidth() const -> float;
     auto GetRemainingHeight() const -> float;
     auto GetWindowHandle() const -> WindowHandle;

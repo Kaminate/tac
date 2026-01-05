@@ -30,7 +30,7 @@ namespace Tac
     };
 
     static void RegisterComponent();
-    static auto GetLight( Entity* ) -> dynmc Light*;
+    static auto GetLight( dynmc Entity* ) -> dynmc Light*;
     static auto GetLight( const Entity* ) -> const Light*;
 
     auto GetEntry() const -> const ComponentInfo* override;

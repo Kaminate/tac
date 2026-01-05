@@ -633,7 +633,7 @@ namespace Tac
     mViewportSpaceMaxiCursor.y = Max( mViewportSpaceMaxiCursor.y, pos.y );
   }
 
-  bool ImGuiWindow::IsHovered( const ImGuiRect& rectViewport, ImGuiID id )
+  bool ImGuiWindow::IsHovered( const ImGuiRect& rectViewport, ImGuiID id ) const
   {
     if( ImGuiGlobals::mHoveredID && ImGuiGlobals::mHoveredID != id )
       return false;
@@ -679,23 +679,23 @@ namespace Tac
     return nwh_screenspace + mViewportSpacePos;
   }
 
-  auto ImGuiWindow::GetMousePos_nwhspace() -> v2
+  auto ImGuiWindow::GetMousePos_nwhspace() const -> v2
   {
     const v2 mousePos_SS{ UIKeyboardApi::GetMousePosScreenspace() };
     const v2 nwh_SS{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
     return mousePos_SS - nwh_SS;
   }
 
-  auto ImGuiWindow::GetMousePos_uiwindowspace() -> v2
+  auto ImGuiWindow::GetMousePos_uiwindowspace() const -> v2
   {
     const v2 mousePos_SS{ UIKeyboardApi::GetMousePosScreenspace() };
     const v2 windowPos_SS{ GetWindowPos_desktopspace() };
     return mousePos_SS - windowPos_SS;
   }
 
-  auto ImGuiWindow::GetID( StringView s ) -> ImGuiID
+  auto ImGuiWindow::GetID( StringView s ) const -> ImGuiID
   {
-    return Hash( mIDStack.back(), Hash( s ) );
+    return Hash( mIDStack.back().mValue, Hash( s ) );
   }
 
   auto ImGuiWindow::GetWindowResource( ImGuiRscIdx index, ImGuiID imGuiId ) -> void*

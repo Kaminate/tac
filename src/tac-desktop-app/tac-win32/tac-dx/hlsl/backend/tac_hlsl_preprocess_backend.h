@@ -28,6 +28,7 @@ namespace Tac::Render
 
   private:
     auto PreprocessLine( HLSLLinePreprocessor::Input, Errors& ) -> Optional< String >;
+    //auto PreprocessSourceChunk( StringView, Errors& ) -> String;
 
     Vector< HLSLLinePreprocessor* > mProcessors;
     AssetPathString                 mAssetPath;
