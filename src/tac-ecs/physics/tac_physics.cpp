@@ -31,7 +31,7 @@ namespace Tac
 
   // Static variables
 
-  SystemInfo* Physics::sInfo {};
+  static SystemInfo* sInfo {};
 
   // -----------------------------------------------------------------------------------------------
 
@@ -364,10 +364,12 @@ namespace Tac
 
   void Physics::SpaceInitPhysics()
   {
-    sInfo = SystemInfo::Register();
-    sInfo->mName = "Physics";
-    sInfo->mCreateFn = CreatePhysicsSystem;
-    sInfo->mDebugImGui = PhysicsDebugImgui;
+    *( sInfo = SystemInfo::Register() ) = SystemInfo
+    {
+      .mName { "Physics"},
+      .mCreateFn { CreatePhysicsSystem},
+      .mDebugImGui { PhysicsDebugImgui},
+    };
 
     Terrain::SpaceInitPhysicsTerrain();
     Collider::RegisterComponent();
@@ -375,12 +377,12 @@ namespace Tac
 
   auto Physics::GetSystem( dynmc World* world ) -> dynmc Physics*
   {
-    return ( dynmc Physics* )world->GetSystem( Physics::sInfo );
+    return ( dynmc Physics* )world->GetSystem( sInfo );
   }
 
   auto Physics::GetSystem( const World* world ) -> const Physics*
   {
-    return ( const Physics* )world->GetSystem( Physics::sInfo );
+    return ( const Physics* )world->GetSystem( sInfo );
   }
 
 

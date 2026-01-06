@@ -14,14 +14,8 @@ namespace Tac
     static void RegisterComponent();
     static auto GetModel( dynmc Entity* ) -> dynmc Model*;
     static auto GetModel( const Entity* ) -> const Model*;
-    auto GetEntry() const -> const ComponentInfo* override ;
+    auto GetEntry() const -> const ComponentInfo* override;
 
-    //static const ComponentInfo* GetEntryStatic();
-    //TextureUUID                        mTextureUUID = NullTextureUUID;
-    //GeometryUUID                       mGeometryUUID = NullGeometryUUID;
-
-    //                                   todo: rename mColor_sRGB
-    //v3                                   mColorRGB   { 1, 1, 1 };
     AssetPathString mModelPath  {};
     int             mModelIndex { -1 };
     bool            mIsStatic   {};

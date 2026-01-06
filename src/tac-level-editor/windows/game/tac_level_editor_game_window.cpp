@@ -444,7 +444,7 @@ namespace Tac
 #endif
 
     NumGridSys* numGridSys{ NumGridSys::GetSystem( world ) };
-    numGridSys->DebugDraw3D( 
+    numGridSys->DebugRender( 
       NumGridSys::RenderParams
       {
         .mContext            { renderContext },

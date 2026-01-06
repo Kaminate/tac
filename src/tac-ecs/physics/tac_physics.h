@@ -34,7 +34,6 @@ namespace Tac
     static void SpaceInitPhysics();
     static auto GetSystem( dynmc World* ) -> dynmc Physics*;
     static auto GetSystem( const World* ) -> const Physics*;
-    static SystemInfo*          sInfo;
 
     // ---------------------------------------------------------------------------------------------
 

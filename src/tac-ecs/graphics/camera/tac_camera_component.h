@@ -10,7 +10,7 @@ namespace Tac
     static void RegisterComponent();
     static auto GetCamera( dynmc Entity* ) -> dynmc CameraComponent*;
     static auto GetCamera( const Entity* ) -> const CameraComponent*;
-    auto GetEntry() const -> const ComponentInfo* override ;
+    auto GetEntry() const -> const ComponentInfo* override;
     Camera mCamera;
   };
 

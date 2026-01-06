@@ -144,7 +144,7 @@ namespace Tac
       TAC_IMGUI_INDENT_BLOCK;
       for( Entity* potentialParent : potentialParents )
       {
-        if( ImGuiButton( "Set Parent: " + potentialParent->mName ) )
+        if( ImGuiButton( potentialParent->mName ) )
         {
           entity->Unparent();
           potentialParent->mChildren.push_back( entity );

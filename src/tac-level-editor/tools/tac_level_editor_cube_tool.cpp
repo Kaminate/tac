@@ -42,10 +42,18 @@ namespace Tac
 
   static auto GetEntityPreviewPos( const Entity* pickedEntity ) -> PickingPreview
   {
+    TAC_ASSERT( pickedEntity );
     const Ray mouseRay_worldspace{ CreationMousePicking::GetWorldspaceMouseRay() };
     const Model* model{ Model::GetModel( pickedEntity ) };
     if( !model )
-      return {};
+    {
+      return PickingPreview
+      {
+        .mIsValid { true },
+        .mUnitNormal { 0, 1, 0 },
+        .mPosition { CreationMousePicking::GetPickedPos() },
+      };
+    }
 
     Errors errors;
     const ModelAssetManager::Params getMeshParams
@@ -110,26 +118,42 @@ namespace Tac
     return v4( color, 1 );
   }
 
+  static auto GetCubeName()
+  {
+    World* world{ Creation::GetWorld() };
+    String result{ "Cube" };
+    int i{};
+    for( ;; )
+    {
+      if( !world->FindEntity( result ) )
+        break;
+      ++i;
+      result = "Cube (" + ToString( i ) + ")";
+    }
+    return result;
+  }
+
   static auto SpawnCube( v3 spawnPos )
   {
-      // this should say spawn prefab instance
+    // this should say spawn prefab instance
 
-      Entity* entity{ Creation::CreateEntity() };
-      entity->mRelativeSpace.mPosition = spawnPos;
-      entity->mStatic = true;
+    Entity* entity{ Creation::CreateEntity() };
+    entity->mRelativeSpace.mPosition = spawnPos;
+    entity->mStatic = true;
+    entity->mName = GetCubeName();
 
-      auto model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
-      model->mModelPath = "assets/essential/models/box/Box.gltf";
-      model->mModelIndex = 0;
+    auto model{ ( Model* )entity->AddNewComponent( Model().GetEntry() ) };
+    model->mModelPath = "assets/essential/models/box/Box.gltf";
+    model->mModelIndex = 0;
 
-      auto material{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
-      material->mColor = RandomColor();
-      material->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
-      material->mIsGlTF_PBR_MetallicRoughness = true;
-      material->mPBR_Factor_Roughness = 1;
+    auto material{ ( Material* )entity->AddNewComponent( Material().GetEntry() ) };
+    material->mColor = RandomColor();
+    material->mShaderGraph = "assets/shader-graphs/gltf_pbr.tac.sg";
+    material->mIsGlTF_PBR_MetallicRoughness = true;
+    material->mPBR_Factor_Roughness = 1;
 
-      //auto collider{ (Collider*) entity->AddNewComponent( Collider().GetEntry() ) };
-      //collider->SET SHAPE AS CUBE;
+    //auto collider{ (Collider*) entity->AddNewComponent( Collider().GetEntry() ) };
+    //collider->SET SHAPE AS CUBE;
 
   }
 

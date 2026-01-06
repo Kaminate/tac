@@ -20,7 +20,7 @@ namespace Tac
     auto GetEntry() const -> const ComponentInfo* override;
     auto GetWorldspaceCorners() const -> WorldspaceCorners;
 
-    using GridImages = Array< AssetPathString, 256 >;
+    using GridImages = Vector< AssetPathString >;
 
     AssetPathString mAsset  {};
     GridImages      mImages {};
@@ -31,7 +31,6 @@ namespace Tac
 
   struct NumGridSys : public System
   {
-
     struct RenderParams
     {
       Render::IContext*     mContext            {};
@@ -41,13 +40,9 @@ namespace Tac
       Render::TextureHandle mDepth              {};
     };
 
-    auto CreateNumGrid() -> NumGrid*;
-    void DestroyNumGrid( NumGrid* );
-
     void Update() override;
     void DebugImgui() override;
-
-    void DebugDraw3D(const RenderParams&, Errors&);
+    void DebugRender( const RenderParams&, Errors& );
 
     static void SpaceInitNumGrid();
     static auto GetSystem( dynmc World* ) -> dynmc NumGridSys*;
@@ -59,9 +54,8 @@ namespace Tac
         t( numGrid );
     }
 
-    static SystemInfo* sInfo;
-
     using NumGrids = Set< NumGrid* >;
+
     NumGrids mNumGrids {};
   };
 

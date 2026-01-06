@@ -1,28 +1,21 @@
 #include "tac_level_editor_numgrid_tool.h" // self-inc
 
 #include "tac-ecs/terrain/tac_numgrid.h"
-//#include "tac-rhi/render3/tac_render_api.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-//#include "tac-ecs/graphics/material/tac_material.h"
-//#include "tac-ecs/graphics/model/tac_model.h"
-//#include "tac-ecs/renderpass/mesh/tac_mesh_presentation.h"
-//#include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
 #include "tac-level-editor/windows/game/tac_level_editor_game_window.h"
 #include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
 #include "tac-level-editor/tac_level_editor.h"
-//#include "tac-level-editor/gizmo/tac_level_editor_gizmo_mgr.h"
 
 namespace Tac
 {
-
-  static int sBrushIndex{};
-  static NumGrid* sNumGrid;
-  static Errors sNumGridErrors;
-  static bool sSelectingBrush;
-  static bool sShowAll{ true };
+  static int      sBrushIndex     {};
+  static NumGrid* sNumGrid        {};
+  static Errors   sNumGridErrors  {};
+  static bool     sSelectingBrush {};
+  static bool     sShowAll        { true };
 
   static [[nodiscard]] auto BrushesUI(Errors& errors) -> int
   {
@@ -30,7 +23,9 @@ namespace Tac
     {
       for( int c{}; c < 8; ++c )
       {
-        int i{ c + 8 * r };
+        const int i{ c + 8 * r };
+        if( i >= sNumGrid->mImages.size() )
+          break;
         AssetPathStringView imgPath{ sNumGrid->mImages[ i ] };
         Render::TextureHandle imgHandle{ imgPath.empty()
           ? Render::TextureHandle{}
@@ -47,11 +42,13 @@ namespace Tac
   }
 
   NumGridTool NumGridTool::sInstance;
+
   NumGridTool::NumGridTool()
   {
     mDisplayName = "NumGrid";
     mIcon = "assets/editor/tools/numgrid_tool.png";
   }
+
   void NumGridTool::OnToolSelected()
   {
   }
@@ -79,6 +76,7 @@ namespace Tac
       else
       {
         ImGuiCheckbox( "Select Brush", &sSelectingBrush );
+        ImGuiSetNextWindowPosition( AppKeyboardApi::GetMousePosScreenspace() );
         if( ImGuiBegin( "Select Brush", &sSelectingBrush, ImGuiWindowFlags_AutoResize ) )
         {
           if( int brushUI{ BrushesUI( sNumGridErrors ) }; brushUI != -1 )

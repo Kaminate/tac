@@ -27,16 +27,6 @@ namespace Tac
     ImGuiText( "NumGridDebugImGui()" );
   }
 
-  static auto CreateNumGridComponent( World* world ) -> Component*
-  {
-    return NumGridSys::GetSystem( world )->CreateNumGrid();
-  }
-
-  static void DestroyNumGridComponent( World* world, Component* component )
-  {
-    NumGridSys::GetSystem( world )->DestroyNumGrid( ( NumGrid* )component );
-  }
-
   static void DebugNumGridComponent( Component* component )
   {
     NumGrid* numGrid{ ( NumGrid* )component };
@@ -71,15 +61,18 @@ namespace Tac
       for( u8& data : numGrid->mData )
         data = 0;
 
-    int firstFreeSpace{ -1 };
-    for( int i{}; i < 256; ++i )
+    int lastValid{ -1 };
+    FixedVector< int, 256 > freeSpaces;
+    for( int i{}; i < numGrid->mImages.size(); ++i )
     {
       AssetPathStringView imgPath{ numGrid->mImages[ i ] };
-      if( imgPath.empty() && firstFreeSpace == -1 )
-        firstFreeSpace = i;
+      if( imgPath.empty() )
+        freeSpaces.push_back( i );
 
       if( imgPath.empty() )
         continue;
+
+      lastValid = i;
 
       Render::TextureHandle imgHandle{
              TextureAssetManager::GetTexture( imgPath, numGridErrors ) };
@@ -101,12 +94,19 @@ namespace Tac
       ImGuiImage( imgHandle.GetIndex(), v2( 100 * aspect, 100 ) );
     }
 
-    if( firstFreeSpace != -1 )
-    {
-      if( ImGuiButton( "Add image" ) )
-        if( AssetPathStringView newPath{ AssetOpenDialog( numGridErrors ) } )
-          numGrid->mImages[ firstFreeSpace ] = newPath;
-    }
+    numGrid->mImages.resize( lastValid + 1 );
+
+    if( numGrid->mImages.size() < 256 )
+      freeSpaces.push_back( numGrid->mImages.size() );
+
+    for( int i : freeSpaces )
+      if( ImGuiButton( String() + "Add image " + Tac::ToString( i ) ) )
+        if( const AssetPathStringView newPath{ AssetOpenDialog( numGridErrors ) }; !newPath.empty() )
+        {
+          if( i >= numGrid->mImages.size() )
+            numGrid->mImages.resize( i + 1 );
+          numGrid->mImages[ i ] = newPath;
+        }
 
     //if( Debug3DDrawData * drawData{ component->mEntity->mWorld->mDebug3DDrawData } )
     //{
@@ -119,8 +119,10 @@ namespace Tac
     //}
   }
 
-  static ComponentInfo* sRegistry         {};
-  SystemInfo*           NumGridSys::sInfo {};
+  static SystemInfo*    sInfo     {};
+  static ComponentInfo* sRegistry {};
+
+  // -----------------------------------------------------------------------------------------------
 
   auto NumGrid::GetComponent( const Entity* entity ) -> const NumGrid* { return ( const NumGrid* )entity->GetComponent( sRegistry ); }
   auto NumGrid::GetComponent( dynmc Entity* entity ) -> dynmc NumGrid* { return ( dynmc NumGrid* )entity->GetComponent( sRegistry ); }
@@ -138,18 +140,7 @@ namespace Tac
   }
   auto NumGrid::GetEntry() const -> const ComponentInfo* { return sRegistry; }
 
-  auto NumGridSys::CreateNumGrid() -> NumGrid*
-  {
-    auto numGrid { TAC_NEW NumGrid };
-    mNumGrids.insert( numGrid );
-    return numGrid;
-  }
-
-  void NumGridSys::DestroyNumGrid( NumGrid* numGrid )
-  {
-    mNumGrids.erase( numGrid );
-    TAC_DELETE numGrid;
-  }
+  // -----------------------------------------------------------------------------------------------
 
   void NumGridSys::Update()
   {
@@ -159,32 +150,7 @@ namespace Tac
   {
   }
 
-  void NumGridSys::SpaceInitNumGrid()
-  {
-    sInfo = SystemInfo::Register();
-    sInfo->mName = "NumGrid";
-    sInfo->mCreateFn = CreateNumGridSystem;
-    sInfo->mDebugImGui = NumGridDebugImGui;
-
-    *( sRegistry = ComponentInfo::Register() ) = ComponentInfo
-    {
-      .mName         { "NumGrid" },
-      .mCreateFn     { CreateNumGridComponent },
-      .mDestroyFn    { DestroyNumGridComponent },
-      .mDebugImguiFn { DebugNumGridComponent },
-      .mMetaType     { &GetMetaType< NumGrid >() }
-    };
-  }
-  auto NumGridSys::GetSystem( dynmc World* world ) -> dynmc NumGridSys*
-  {
-    return ( dynmc NumGridSys* )world->GetSystem( NumGridSys::sInfo );
-  }
-  auto NumGridSys::GetSystem( const World* world ) -> const NumGridSys*
-  {
-    return ( const NumGridSys* )world->GetSystem( NumGridSys::sInfo );
-  }
-
-  void NumGridSys::DebugDraw3D( const RenderParams& renderParams, Errors& errors )
+  void NumGridSys::DebugRender( const RenderParams& renderParams, Errors& errors )
   {
     struct NumGridCBufData
     {
@@ -274,8 +240,6 @@ namespace Tac
     Render::IBindlessArray::Binding unknownBinding{ TextureAssetManager::GetBindlessIndex( "assets/unknown.png", errors ) };
     Render::IBindlessArray* allTextures{ TextureAssetManager::GetBindlessArray() };
 
-
-
     cbufShaderVar->SetResource( cbufhandle );
     texturesShaderVar->SetBindlessArray( allTextures );
     samplerShaderVar->SetResource( sampler );
@@ -293,13 +257,14 @@ namespace Tac
         continue;
 
       Render::IBindlessArray::Binding texBindings[ 256 ] {};
-      for( int i{}; i < 256; ++i )
-      {
-        texBindings[ i ] = TextureAssetManager::GetBindlessIndex( numGrid->mImages[ i ], errors );
-        if( !texBindings[ i ].IsValid() )
-          texBindings[i] = unknownBinding;
-      }
+      for( Render::IBindlessArray::Binding& binding : texBindings )
+        binding = unknownBinding;
 
+      for( int i{}; i < numGrid->mImages.size(); ++i )
+        if( Render::IBindlessArray::Binding binding =
+            TextureAssetManager::GetBindlessIndex( numGrid->mImages[ i ], errors );
+            binding.IsValid() )
+          texBindings[ i ] = binding;
 
       TAC_ASSERT( numGrid->mData.size() == numGrid->mWidth * numGrid->mHeight );
 
@@ -309,9 +274,9 @@ namespace Tac
       {
         for( int c{}; c < numGrid->mWidth; ++c )
         {
-          int i{ numGrid->mWidth * r + c };
-          u8 data{ numGrid->mData[ i ] };
-          Render::IBindlessArray::Binding binding{ texBindings[ data ] };
+          const int i{ numGrid->mWidth * r + c };
+          const u8 data{ numGrid->mData[ i ] };
+          const Render::IBindlessArray::Binding binding{ texBindings[ data ] };
           cpuTextureIndices[ i ] = (u32)binding.GetIndex();
         }
       }
@@ -351,6 +316,47 @@ namespace Tac
     }
 
     renderContext->DebugEventEnd();
+  }
+
+  void NumGridSys::SpaceInitNumGrid()
+  {
+    *( sInfo = SystemInfo::Register() ) = SystemInfo{
+        .mName { "NumGrid" },
+        .mCreateFn { CreateNumGridSystem },
+        .mDebugImGui { NumGridDebugImGui},
+    };
+    const ComponentInfo::ComponentCreateFn numGridCreateFn{
+      []( World* world ) -> Component*
+      {
+        NumGridSys* numGridSys{ NumGridSys::GetSystem( world ) };
+        auto numGrid { TAC_NEW NumGrid };
+        numGridSys->mNumGrids.insert( numGrid );
+        return numGrid;
+      } };
+    const ComponentInfo::ComponentDestroyFn numGridDestroyFn {
+      []( World* world, Component* component )
+      {
+        NumGrid* numGrid{ ( NumGrid* )component };
+        NumGridSys* numGridSys{ NumGridSys::GetSystem( world ) };
+        numGridSys->mNumGrids.erase( numGrid );
+        TAC_DELETE numGrid;
+      } };
+    *( sRegistry = ComponentInfo::Register() ) = ComponentInfo
+    {
+      .mName         { "NumGrid" },
+      .mCreateFn     { numGridCreateFn },
+      .mDestroyFn    { numGridDestroyFn },
+      .mDebugImguiFn { DebugNumGridComponent },
+      .mMetaType     { &GetMetaType< NumGrid >() }
+    };
+  }
+  auto NumGridSys::GetSystem( dynmc World* world ) -> dynmc NumGridSys*
+  {
+    return ( dynmc NumGridSys* )world->GetSystem( sInfo );
+  }
+  auto NumGridSys::GetSystem( const World* world ) -> const NumGridSys*
+  {
+    return ( const NumGridSys* )world->GetSystem( sInfo );
   }
 
 } // namespace Tac
