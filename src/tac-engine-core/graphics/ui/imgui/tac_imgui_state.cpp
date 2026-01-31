@@ -110,7 +110,7 @@ namespace Tac
     if( !scrollBarEnabled )
       return;
 
-    const bool stuffBelowScreen { mViewportSpaceMaxiCursor.y > mViewportSpaceVisibleRegion.mMaxi.y };
+    const bool stuffBelowScreen { mViewportSpacePrevCursor.y > mViewportSpaceVisibleRegion.mMaxi.y };
     const bool stuffAboveScreen{ ( bool )mScroll };
     if( !stuffBelowScreen && !stuffAboveScreen )
       return;
@@ -135,7 +135,7 @@ namespace Tac
     mDrawData->AddBox( bg );
 
     float contentAllMinY { mViewportSpacePos.y - mScroll };
-    float contentAllMaxY { mViewportSpaceMaxiCursor.y };
+    float contentAllMaxY { mViewportSpacePrevCursor.y };
     float contentAllHeight { contentAllMaxY - contentAllMinY };
     float contentVisibleMinY { mViewportSpacePos.y };
     float contentVisibleMaxY { mViewportSpacePos.y + mSize.y };
@@ -167,6 +167,9 @@ namespace Tac
     };
     const v2 scrollbarForegroundMaxi( scrollbarForegroundMaxiX,
                                       scrollbarForegroundMaxiY );
+
+    if( scrollbarForegroundMiniY > scrollbarForegroundMaxiY )
+      return; // cant fit scrollbar
 
     const ImGuiRect scrollbarForegroundRect{ ImGuiRect::FromMinMax( scrollbarForegroundMini,
                                                                      scrollbarForegroundMaxi ) };
@@ -247,6 +250,8 @@ namespace Tac
         mSize = tgtSize;
       }
     }
+
+    mViewportSpacePrevCursor = mViewportSpaceCurrCursor;
   }
 
   void ImGuiWindow::BeginFrame()
@@ -271,18 +276,17 @@ namespace Tac
     mViewportSpacePos = mParent ? mParent->mViewportSpaceCurrCursor : mViewportSpacePos;
     mViewportSpaceVisibleRegion = ImGuiRect::FromPosSize( mViewportSpacePos, mSize );
     mViewportSpaceCurrCursor = mViewportSpaceVisibleRegion.mMini;
-    mViewportSpacePrevCursor = mViewportSpaceCurrCursor;
     mViewportSpaceMaxiCursor = mViewportSpaceCurrCursor;
     mXOffsets.clear();
     PushXOffset();
     DrawWindowBackground();
-    Scrollbar();
     ResizeControls();
     MenuBar();
+    Scrollbar();
     mViewportSpaceVisibleRegion.mMini += v2( 1, 1 ) * windowPaddingPx;
     mViewportSpaceVisibleRegion.mMaxi -= v2( 1, 1 ) * windowPaddingPx;
     mViewportSpaceCurrCursor = mViewportSpaceVisibleRegion.mMini - v2( 0, mScroll ) ;
-    mViewportSpacePrevCursor = mViewportSpaceCurrCursor;
+    //mViewportSpacePrevCursor = mViewportSpaceCurrCursor;
     mViewportSpaceMaxiCursor = mViewportSpaceCurrCursor;
     PushXOffset();
     mCurrLineHeight = 0;

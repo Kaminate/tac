@@ -151,7 +151,7 @@ namespace Tac
   bool ImGuiBegin( StringView, bool* open = {}, ImGuiWindowFlags = {} );
   bool ImGuiBeginMenuBar();
   bool ImGuiBeginMenu( StringView );
-  void ImGuiBeginChild( StringView, const v2& size );
+  bool ImGuiBeginChild( StringView, const v2& size );
   void ImGuiBeginGroup();
   void ImGuiBeginFrame( const BeginFrameData& );
 

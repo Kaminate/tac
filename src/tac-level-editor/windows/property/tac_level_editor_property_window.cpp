@@ -234,8 +234,8 @@ namespace Tac
 
   static void ImGuiHierarchy(  Errors& errors )
   {
+    if( ImGuiBeginChild( "Hierarchy", v2( 250, -400 ) ) )
     {
-      ImGuiBeginChild( "Hierarchy", v2( 250, -400 ) );
       for( World* world{ Creation::GetWorld() };
            Entity* entity : world->mEntities )
         if( !entity->mParent )

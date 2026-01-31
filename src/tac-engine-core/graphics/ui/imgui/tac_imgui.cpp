@@ -594,7 +594,7 @@ void Tac::ImGuiEnd()
     : ImGuiGlobals::mWindowStack.back();
 }
 
-void Tac::ImGuiBeginChild( StringView name, const v2& size )
+bool Tac::ImGuiBeginChild( StringView name, const v2& size )
 {
   ImGuiWindow* parent{ ImGuiGlobals::mCurrentWindow };
   TAC_ASSERT( parent );
@@ -612,14 +612,20 @@ void Tac::ImGuiBeginChild( StringView name, const v2& size )
   child->mRequestTime = ImGuiGlobals::mElapsedSeconds;
   child->mSize = v2( size.x > 0 ? size.x : size.x + parent->mSize.x,
                      size.y > 0 ? size.y : size.y + parent->mSize.y );
-  ImGuiGlobals::mWindowStack.push_back( child );
-  ImGuiGlobals::mCurrentWindow = child;
-  child->BeginFrame();
+  if( child->mSize.y < 0 )
+    child->mSize.y = 0;
+  bool result{child->mSize.y > 0};
+  if( result )
+  {
+    ImGuiGlobals::mWindowStack.push_back( child );
+    ImGuiGlobals::mCurrentWindow = child;
+    child->BeginFrame();
+  }
+  return result;
 }
 
 void Tac::ImGuiEndChild()
 {
-  
   ImGuiWindow* child{ ImGuiGlobals::mCurrentWindow };
   child->mParent->ItemSize( child->mSize );
   child->EndFrame();

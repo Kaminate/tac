@@ -368,7 +368,8 @@ namespace Tac
     const v2 cursorPos{ ImGuiGetCursorPos() };
     const float w { 400 };
     const float h{ contentRect.mMaxi.y - cursorPos.y };
-    ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
+    if( !ImGuiBeginChild( "gameplay overlay", v2( w, h ) ) )
+      return;
     TAC_ON_DESTRUCT(ImGuiEndChild());
 
     if( ImGuiButton( "Close Game Window" ) )
