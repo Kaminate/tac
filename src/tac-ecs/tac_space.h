@@ -14,6 +14,8 @@ namespace Tac
   struct Terrain;
   struct Material;
   struct CameraComponent;
+  struct NumGrid;
+  struct Sprite3D;
 
   // Entity-Component Systems
   struct Component;

@@ -49,16 +49,6 @@ namespace Tac
 
   static ComponentInfo* sComponentInfo;
 
-  static auto CreateMaterialComponent( World* world ) -> Component*
-  {
-    return Graphics::From( world )->CreateMaterialComponent();
-  }
-
-  static void DestroyMaterialComponent( World* world, Component* component )
-  {
-    Graphics::From( world )->DestroyMaterialComponent( ( Material* )component );
-  }
-
 #if 0
   static void       SaveMaterialComponent( Json& json, Component* component )
   {
@@ -200,16 +190,27 @@ namespace Tac
   void Material::RegisterComponent()
   {
     const MetaCompositeType* metaType{ ( MetaCompositeType* )&GetMetaType< Material >() };
-
-    NetVarRegistration netVarRegistration {};
-    netVarRegistration.mNetMembers.SetAll();
-    netVarRegistration.mMetaType = metaType;
-
+    const NetVarRegistration netVarRegistration {
+      .mNetMembers{NetMembers::AllSet()},
+      .mMetaType{metaType},
+    };
+    const ComponentInfo::ComponentCreateFn createFn {
+      []( World* world ) -> Component*
+      {
+        return Graphics::From( world )->CreateMaterialComponent();
+      }
+    };
+    const ComponentInfo::ComponentDestroyFn destroyFn {
+      []( World* world, Component* component )
+      {
+        Graphics::From( world )->DestroyMaterialComponent( ( Material* )component );
+      }
+    };
     *( sComponentInfo = ComponentInfo::Register() ) = ComponentInfo
     {
       .mName               { "Material" },
-      .mCreateFn           { CreateMaterialComponent },
-      .mDestroyFn          { DestroyMaterialComponent },
+      .mCreateFn           { createFn },
+      .mDestroyFn          { destroyFn },
       .mDebugImguiFn       { []( Component* c ) { Material::DebugImgui( ( Material* )c ); } },
       .mNetVarRegistration { netVarRegistration },
       .mMetaType           { metaType },

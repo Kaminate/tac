@@ -199,15 +199,31 @@ namespace Tac
   static void RecursiveEntityHierarchyElement( Entity* entity )
   {
     const bool previouslySelected { SelectedEntities::IsSelected( entity ) };
+
+    static Map< Entity*, bool > sExpand;
+
+    const bool hasChildren{ !entity->mChildren.empty() };
+    const bool showChildren{ hasChildren && sExpand[ entity ] };
+
+    if( hasChildren )
+    {
+      if( ImGuiButton( showChildren ? "v" : ">" ) )
+        sExpand[ entity ] = !showChildren;
+      ImGuiSameLine();
+    }
+
     if( ImGuiSelectable( entity->mName, previouslySelected ) )
       SelectedEntities::Select( entity );
 
     if( entity->mChildren.empty() )
       return;
 
-    TAC_IMGUI_INDENT_BLOCK;
-    for( Entity* child : entity->mChildren )
-      RecursiveEntityHierarchyElement( child );
+    if( hasChildren && showChildren )
+    {
+      TAC_IMGUI_INDENT_BLOCK;
+      for( Entity* child : entity->mChildren )
+        RecursiveEntityHierarchyElement( child );
+    }
   }
 
   static void ImGuiSelectedEntities()

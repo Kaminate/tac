@@ -13,6 +13,8 @@ namespace Tac
   using LightVisitor    = ComponentVisitor< Light >;
   using MaterialVisitor = ComponentVisitor< Material >;
   using CameraVisitor   = ComponentVisitor< CameraComponent >;
+  using NumGridVisitor  = ComponentVisitor< NumGrid >;
+  using Sprite3DVisitor = ComponentVisitor< Sprite3D >;
 
   struct Graphics : public System
   {
@@ -31,15 +33,15 @@ namespace Tac
       VisitCameras( &tVisitor );
     }
 
-    virtual auto CreateMaterialComponent()  -> Material* = 0;
+    virtual auto CreateMaterialComponent() -> Material* = 0;
     virtual void DestroyMaterialComponent( Material* ) = 0;
     virtual void VisitMaterials( MaterialVisitor* ) const = 0;
 
-    virtual auto CreateSkyboxComponent()  -> Skybox* = 0;
+    virtual auto CreateSkyboxComponent() -> Skybox* = 0;
     virtual void DestroySkyboxComponent( Skybox* ) = 0;
     virtual void VisitSkyboxes( SkyboxVisitor* ) const = 0;
 
-    virtual auto CreateLightComponent()  -> Light* = 0;
+    virtual auto CreateLightComponent() -> Light* = 0;
     virtual void DestroyLightComponent( Light* ) = 0;
     virtual void VisitLights( LightVisitor* ) const = 0;
     template<typename T> void TVisitLights( T&& t ) const
@@ -50,14 +52,25 @@ namespace Tac
       VisitLights( &tVisitor );
     }
 
+    virtual auto CreateSprite3DComponent() -> Sprite3D* = 0;
+    virtual void DestroySprite3DComponent( Sprite3D* ) = 0;
+    virtual void VisitSprite3Ds( Sprite3DVisitor* ) const = 0;
+    template<typename T> void TVisitSprite3Ds( T&& t ) const
+    {
+      struct : public Sprite3DVisitor { void operator()( Sprite3D* sprite ) override { (*t)( sprite ); } T* t; }
+      tVisitor;
+      tVisitor.t = &t;
+      VisitSprite3Ds( &tVisitor );
+    }
+
     void Update() override;
     void DebugImgui() override;
 
     static void SpaceInitGraphics();
     static auto From( dynmc World* ) -> dynmc Graphics*;
     static auto From( const World* ) -> const Graphics*;
+    static void GraphicsDebugImgui( System* );
   };
 
-  void              GraphicsDebugImgui( System* );
 } // namespace Tac
 

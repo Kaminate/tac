@@ -40,6 +40,7 @@ namespace Tac
     void Set( int i )                       { mBitfield |= ( 1 << i ); }
     bool Empty() const                      { return !mBitfield; }
     void SetAll()                           { mBitfield = ( T )( -1 ); }
+    static auto AllSet()                    { Bitfield result; result.SetAll(); return result; }
 
     T mBitfield {};
   };

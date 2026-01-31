@@ -79,7 +79,7 @@
           "w": 1,
           "x": 0.317,
           "y": -0.002,
-          "z": 0.195
+          "z": 0.194
         },
         "mEmissive":
         {
@@ -197,7 +197,7 @@
       "mName": "Cube (2)",
       "mPosition":
       {
-        "x": 5.909,
+        "x": 5.908,
         "y": 0.5,
         "z": -10.6
       },
@@ -635,6 +635,282 @@
         "z": 2.838
       },
       "mStatic": false
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.471,
+          "y": 0.299,
+          "z": 0.499
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 1,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 0,
+        "mModelPath": "assets/essential/models/box/Box.gltf"
+      },
+      "mActive": true,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "Cube (4)",
+      "mPosition":
+      {
+        "x": 30.5,
+        "y": 0.5,
+        "z": -52.5
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": true
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.318,
+          "y": -0.002,
+          "z": 0.197
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 1,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 0,
+        "mModelPath": "assets/essential/models/box/Box.gltf"
+      },
+      "mActive": true,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "Cube (5)",
+      "mPosition":
+      {
+        "x": 37.5,
+        "y": 0.5,
+        "z": -48.5
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": true
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.499,
+          "y": 0.257,
+          "z": 0.457
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 1,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 0,
+        "mModelPath": "assets/essential/models/box/Box.gltf"
+      },
+      "mActive": true,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "Cube (6)",
+      "mPosition":
+      {
+        "x": 31.5,
+        "y": 0.5,
+        "z": -44.5
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": true
+    },
+    {
+      "Material":
+      {
+        "mColor":
+        {
+          "w": 1,
+          "x": 0.483,
+          "y": 0.295,
+          "z": 0.495
+        },
+        "mEmissive":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mIsGlTF_PBR_MetallicRoughness": true,
+        "mIsGlTF_PBR_SpecularGlossiness": false,
+        "mPBR_Factor_Diffuse":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mPBR_Factor_Glossiness": 0,
+        "mPBR_Factor_Metallic": 0,
+        "mPBR_Factor_Roughness": 1,
+        "mPBR_Factor_Specular":
+        {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "mRenderEnabled": true,
+        "mShaderGraph": "assets/shader-graphs/gltf_pbr.tac.sg",
+        "mTextureDiffuse": "",
+        "mTextureGlossiness": "",
+        "mTextureMetallic": "",
+        "mTextureRoughness": "",
+        "mTextureSpecular": ""
+      },
+      "Model":
+      {
+        "mIsStatic": false,
+        "mModelIndex": 0,
+        "mModelPath": "assets/essential/models/box/Box.gltf"
+      },
+      "mActive": true,
+      "mEulerRads":
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "mName": "Cube (7)",
+      "mPosition":
+      {
+        "x": 35.5,
+        "y": 0.5,
+        "z": -45.5
+      },
+      "mScale":
+      {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "mStatic": true
     }
   ],
   "mEulerRads":

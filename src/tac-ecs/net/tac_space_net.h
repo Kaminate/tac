@@ -20,8 +20,8 @@ namespace Tac
     Count,
   };
 
-  void       WriteNetMsgHeader( WriteStream*, NetMsgType );
-  NetMsgType ReadNetMsgHeader( ReadStream*, Errors& );
+  void WriteNetMsgHeader( WriteStream*, NetMsgType );
+  auto ReadNetMsgHeader( ReadStream*, Errors& ) -> NetMsgType;
 
 
   //NetBitDiff GetNetVarfield( const void* oldData,
@@ -36,8 +36,8 @@ namespace Tac
 
   struct LagTest
   {
-    void                       SaveMessage( const Vector< char >& data, GameTime elapsedSecs );
-    bool                       TryPopSavedMessage( Vector< char >& data, GameTime elapsedSecs );
+    void SaveMessage( const Vector< char >& data, GameTime elapsedSecs );
+    bool TryPopSavedMessage( Vector< char >& data, GameTime elapsedSecs );
 
     int                        mLagSimulationMS      {};
     List< DelayedNetMsg >      mSavedNetworkMessages {};
@@ -46,8 +46,8 @@ namespace Tac
   struct SnapshotBuffer
   {
     ~SnapshotBuffer();
-    void                AddSnapshot( const World* );
-    World*              FindSnapshot( GameTime elapsedGameSecs );
+    void AddSnapshot( const World* );
+    auto FindSnapshot( GameTime ) -> World*;
 
     List< World* >      mSnapshots   {};
     const int           maxSnapshots { 32 };

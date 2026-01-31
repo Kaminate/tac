@@ -9,146 +9,145 @@
 
 namespace Tac
 {
+  struct ModifiedPlayer
+  {
+    Player*    mPlayer;
+    NetVarDiff mDiff;
+  };
 
-    struct ModifiedPlayer
+  struct ModifiedPlayers
+  {
+    static void Read( World* world, ReadStream* reader, Errors& errors )
     {
-      Player*    mPlayer;
-      NetVarDiff mDiff;
-    };
+      const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
 
-    struct ModifiedPlayers
+      TAC_CALL( const PlayerCount n{ reader->Read<PlayerCount>( errors ) } );
+
+      for( PlayerCount i{}; i < n; ++i )
+      {
+        TAC_CALL( const PlayerUUID playerUUID{ reader->Read< PlayerUUID >( errors ) } );
+
+        Player* player{ world->FindPlayer( playerUUID ) };
+        TAC_ASSERT( player );
+
+        TAC_CALL( playerVars.Read( reader, player, errors ) );
+      }
+    }
+    void Write( WriteStream* writer )
     {
-      static void Read( World* world, ReadStream* reader, Errors& errors )
+      const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
+      writer->Write( ( PlayerCount )mModifiedPlayers.size() );
+      for( ModifiedPlayer& diff : mModifiedPlayers )
       {
-        const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
-
-        TAC_CALL( const PlayerCount n{ reader->Read<PlayerCount>( errors ) } );
-
-        for( PlayerCount i{}; i < n; ++i )
-        {
-          TAC_CALL( const PlayerUUID playerUUID{ reader->Read< PlayerUUID >( errors ) } );
-
-          Player* player{ world->FindPlayer( playerUUID ) };
-          TAC_ASSERT( player );
-
-          TAC_CALL( playerVars.Read( reader, player, errors ) );
-        }
+        writer->Write( diff.mPlayer->mPlayerUUID );
+        playerVars.Write( writer, diff.mPlayer, diff.mDiff );
       }
-      void Write( WriteStream* writer )
-      {
-        const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
-        writer->Write( ( PlayerCount )mModifiedPlayers.size() );
-        for( ModifiedPlayer& diff : mModifiedPlayers )
-        {
-          writer->Write( diff.mPlayer->mPlayerUUID );
-          playerVars.Write( writer, diff.mPlayer, diff.mDiff );
-        }
-      }
-      Vector< ModifiedPlayer >   mModifiedPlayers;
-    };
+    }
+    Vector< ModifiedPlayer >   mModifiedPlayers;
+  };
 
-    struct DeletedPlayers
+  struct DeletedPlayers
+  {
+    DeletedPlayers() = default;
+    DeletedPlayers( WorldsToDiff params )
     {
-      DeletedPlayers() = default;
-      DeletedPlayers( WorldsToDiff params )
-      {
-        World* oldWorld{ params.mOldWorld };
-        World* newWorld{ params.mNewWorld};
+      World* oldWorld{ params.mOldWorld };
+      World* newWorld{ params.mNewWorld};
 
-        for( Player* oldPlayer : oldWorld->mPlayers )
-        if( !newWorld->FindPlayer( oldPlayer->mPlayerUUID ) )
-          mDeletedPlayerIDs.push_back( oldPlayer->mPlayerUUID );
-      }
-      static void Read( World* world, ReadStream* reader, Errors& errors )
-      {
-        TAC_CALL( const auto n{ reader->Read<PlayerCount>( errors ) } );
-
-        for( PlayerCount i{}; i < n; ++i )
-        {
-          TAC_CALL( const PlayerUUID playerUUID{ reader->Read<PlayerUUID >( errors ) } );
-          world->KillPlayer( playerUUID );
-        }
-      }
-      void Write( WriteStream* writer )
-      {
-        writer->Write( ( PlayerCount )mDeletedPlayerIDs.size() );
-        writer->WriteBytes( mDeletedPlayerIDs.data(),
-                            mDeletedPlayerIDs.size() * sizeof( PlayerUUID ) );
-
-      }
-      Vector< PlayerUUID >       mDeletedPlayerIDs;
-    };
-
-    struct CreatedPlayers
+      for( Player* oldPlayer : oldWorld->mPlayers )
+      if( !newWorld->FindPlayer( oldPlayer->mPlayerUUID ) )
+        mDeletedPlayerIDs.push_back( oldPlayer->mPlayerUUID );
+    }
+    static void Read( World* world, ReadStream* reader, Errors& errors )
     {
-      static void Read( World* world, ReadStream* reader, Errors& errors )
+      TAC_CALL( const auto n{ reader->Read<PlayerCount>( errors ) } );
+
+      for( PlayerCount i{}; i < n; ++i )
       {
-        const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
-        TAC_CALL( const PlayerCount n{ reader->Read< PlayerCount >( errors ) } );
-        for( PlayerCount i{}; i < n; ++i )
-        {
-          Player player{};
-          TAC_CALL( playerVars.Read( reader, &player, errors ) );
-          *world->SpawnPlayer( player.mPlayerUUID ) = player;
-        }
+        TAC_CALL( const PlayerUUID playerUUID{ reader->Read<PlayerUUID >( errors ) } );
+        world->KillPlayer( playerUUID );
       }
-      void Write( WriteStream* writer )
-      {
-        const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
-
-        NetVarDiff diff;
-        diff.SetAll();
-
-        writer->Write( ( PlayerCount )mCreatedPlayers.size() );
-        for( Player* player : mCreatedPlayers )
-          playerVars.Write( writer, player, diff );
-      }
-      Vector< Player* >          mCreatedPlayers;
-    };
-
-
-    struct PlayerDiffsAux
+    }
+    void Write( WriteStream* writer )
     {
-      PlayerDiffsAux( WorldsToDiff params )
+      writer->Write( ( PlayerCount )mDeletedPlayerIDs.size() );
+      writer->WriteBytes( mDeletedPlayerIDs.data(),
+                          mDeletedPlayerIDs.size() * sizeof( PlayerUUID ) );
+
+    }
+    Vector< PlayerUUID > mDeletedPlayerIDs;
+  };
+
+  struct CreatedPlayers
+  {
+    static void Read( World* world, ReadStream* reader, Errors& errors )
+    {
+      const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
+      TAC_CALL( const PlayerCount n{ reader->Read< PlayerCount >( errors ) } );
+      for( PlayerCount i{}; i < n; ++i )
       {
-        mDeletedPlayers = DeletedPlayers( params );
-        World* oldWorld{ params.mOldWorld };
-        World* newWorld{ params.mNewWorld };
-
-        for( Player* newPlayer : newWorld->mPlayers )
-        {
-          const PlayerUUID playerUUID { newPlayer->mPlayerUUID };
-          const Player* oldPlayer { oldWorld->FindPlayer( playerUUID ) };
-
-          if( !oldPlayer )
-          {
-            mCreatedPlayers.mCreatedPlayers.push_back( newPlayer );
-            continue;
-          }
-
-          const NetVarRegistration& playerNetVars{ PlayerNetVarsGet() };
-          const NetVarRegistration::DiffParams diffParams
-          {
-            .mOld{ oldPlayer },
-            .mNew{ newPlayer },
-          };
-          const NetVarDiff bitfield{ playerNetVars.Diff( diffParams ) };
-          if( bitfield.Empty() )
-            continue;
-
-          const ModifiedPlayer modifiedPlayers
-          {
-            .mPlayer     { newPlayer },
-            .mDiff       { bitfield },
-          };
-          mModifiedPlayers.mModifiedPlayers.push_back( modifiedPlayers );
-        }
+        Player player{};
+        TAC_CALL( playerVars.Read( reader, &player, errors ) );
+        *world->SpawnPlayer( player.mPlayerUUID ) = player;
       }
+    }
+    void Write( WriteStream* writer )
+    {
+      const NetVarRegistration& playerVars{ PlayerNetVarsGet() };
 
-      ModifiedPlayers mModifiedPlayers;
-      DeletedPlayers mDeletedPlayers;
-      CreatedPlayers mCreatedPlayers;
-    };
+      NetVarDiff diff;
+      diff.SetAll();
+
+      writer->Write( ( PlayerCount )mCreatedPlayers.size() );
+      for( Player* player : mCreatedPlayers )
+        playerVars.Write( writer, player, diff );
+    }
+    Vector< Player* >          mCreatedPlayers;
+  };
+
+
+  struct PlayerDiffsAux
+  {
+    PlayerDiffsAux( WorldsToDiff params )
+    {
+      mDeletedPlayers = DeletedPlayers( params );
+      World* oldWorld{ params.mOldWorld };
+      World* newWorld{ params.mNewWorld };
+
+      for( Player* newPlayer : newWorld->mPlayers )
+      {
+        const PlayerUUID playerUUID { newPlayer->mPlayerUUID };
+        const Player* oldPlayer { oldWorld->FindPlayer( playerUUID ) };
+
+        if( !oldPlayer )
+        {
+          mCreatedPlayers.mCreatedPlayers.push_back( newPlayer );
+          continue;
+        }
+
+        const NetVarRegistration& playerNetVars{ PlayerNetVarsGet() };
+        const NetVarRegistration::DiffParams diffParams
+        {
+          .mOld{ oldPlayer },
+          .mNew{ newPlayer },
+        };
+        const NetVarDiff bitfield{ playerNetVars.Diff( diffParams ) };
+        if( bitfield.Empty() )
+          continue;
+
+        const ModifiedPlayer modifiedPlayers
+        {
+          .mPlayer     { newPlayer },
+          .mDiff       { bitfield },
+        };
+        mModifiedPlayers.mModifiedPlayers.push_back( modifiedPlayers );
+      }
+    }
+
+    ModifiedPlayers mModifiedPlayers;
+    DeletedPlayers mDeletedPlayers;
+    CreatedPlayers mCreatedPlayers;
+  };
 
 
   // ----------------------------------------------------------------------------------------------

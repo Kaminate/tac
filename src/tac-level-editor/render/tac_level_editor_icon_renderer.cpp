@@ -42,31 +42,15 @@ namespace Tac
   static const float                   kCameraIconSize           { 6 }; 
   static const Render::DrawArgs        drawArgs                  { .mVertexCount { 6 }, };
 
-  static auto GetProj( WindowHandle viewHandle, const Camera* camera ) -> m4
+  static void IconRendererUpdatePerFrame( Render::IContext* renderContext,
+                                          const WindowHandle viewHandle,
+                                          const Camera* camera,
+                                          Errors& errors )
   {
-    
     const v2i windowSize{ AppWindowApi::GetSize( viewHandle ) };
     const float aspectRatio{ ( float )windowSize.x / ( float )windowSize.y };
-    const Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-    const Render::NDCAttribs ndcAttribs { renderDevice->GetInfo().mNDCAttribs };
-    const m4::ProjectionMatrixParams projParams
-    {
-      .mNDCMinZ       { ndcAttribs.mMinZ },
-      .mNDCMaxZ       { ndcAttribs.mMaxZ },
-      .mViewSpaceNear { camera->mNearPlane },
-      .mViewSpaceFar  { camera->mFarPlane },
-      .mAspectRatio   { aspectRatio },
-      .mFOVYRadians   { camera->mFovyrad },
-    };
-    return m4::ProjPerspective( projParams );
-  }
-  static void IconRendererUpdatePerFrame( Render::IContext* renderContext,
-                                     const WindowHandle viewHandle,
-                                     const Camera* camera,
-                                     Errors& errors )
-  {
-    const m4 view { camera->View() };
-    const m4 proj { GetProj( viewHandle, camera ) };
+    const m4 view{ camera->View() };
+    const m4 proj{ camera->Proj( aspectRatio ) };
     const PerFrame perFrame
     {
       .mView{ view },
@@ -81,9 +65,9 @@ namespace Tac
   }
 
   static void IconRendererUpdatePerObj( Render::IContext* renderContext,
-                                   const Entity* entity,
-                                    const float widgetSize,
-                                   Errors& errors )
+                                        const Entity* entity,
+                                        const float widgetSize,
+                                        Errors& errors )
   {
 
     // note: Only scaling the m00, quad x and y scale are handled by m00, see 3DSprite.hlsl
@@ -101,6 +85,39 @@ namespace Tac
     renderContext->UpdateBuffer( sPerObj, update, errors );
   }
 
+  static void RenderLightIcons( Render::IContext* renderContext, const World* world, Errors& errors )
+  {
+    TAC_RENDER_GROUP_BLOCK( renderContext, "RenderLightIcons" );
+    if( const Render::TextureHandle lightTextureHandle{
+      TextureAssetManager::GetTexture( kLightIconPath, errors ) };
+      lightTextureHandle.IsValid() )
+    {
+      sShaderTexture->SetResource( lightTextureHandle );
+      Graphics::From( world )->TVisitLights( [&]( Light* light )
+      {
+        TAC_CALL( IconRendererUpdatePerObj( renderContext, light->mEntity, kLightIconSize, errors ) );
+        renderContext->CommitShaderVariables();
+        renderContext->Draw( drawArgs );
+      } );
+    }
+  }
+
+  static void RenderCameraIcons( Render::IContext* renderContext, const World* world, Errors& errors )
+  {
+    TAC_RENDER_GROUP_BLOCK( renderContext, "RenderCameraIcons" );
+    if( const Render::TextureHandle textureHandle{
+      TextureAssetManager::GetTexture( kCameraIconPath, errors ) };
+      textureHandle.IsValid() )
+    {
+      sShaderTexture->SetResource( textureHandle );
+      Graphics::From( world )->TVisitCameras( [&]( CameraComponent* cameraComponent )
+      {
+        TAC_CALL( IconRendererUpdatePerObj( renderContext, cameraComponent->mEntity, kCameraIconSize, errors ) );
+        renderContext->CommitShaderVariables();
+        renderContext->Draw( drawArgs );
+      } );
+    }
+  }
 
   void IconRenderer::Init( Errors& errors )
   {
@@ -179,40 +196,6 @@ namespace Tac
     Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
     renderDevice->DestroyProgram( sSpriteShader);
     renderDevice->DestroyPipeline( sSpritePipeline);
-  }
-
-  static void RenderLightIcons( Render::IContext* renderContext, const World* world, Errors& errors )
-  {
-    TAC_RENDER_GROUP_BLOCK( renderContext, "RenderLightIcons" );
-    if( const Render::TextureHandle lightTextureHandle{
-      TextureAssetManager::GetTexture( kLightIconPath, errors ) };
-      lightTextureHandle.IsValid() )
-    {
-      sShaderTexture->SetResource( lightTextureHandle );
-      Graphics::From( world )->TVisitLights( [&]( Light* light )
-      {
-        TAC_CALL( IconRendererUpdatePerObj( renderContext, light->mEntity, kLightIconSize, errors ) );
-        renderContext->CommitShaderVariables();
-        renderContext->Draw( drawArgs );
-      } );
-    }
-  }
-
-  static void RenderCameraIcons( Render::IContext* renderContext, const World* world, Errors& errors )
-  {
-    TAC_RENDER_GROUP_BLOCK( renderContext, "RenderCameraIcons" );
-    if( const Render::TextureHandle textureHandle{
-      TextureAssetManager::GetTexture( kCameraIconPath, errors ) };
-      textureHandle.IsValid() )
-    {
-      sShaderTexture->SetResource( textureHandle );
-      Graphics::From( world )->TVisitCameras( [&]( CameraComponent* cameraComponent )
-      {
-        TAC_CALL( IconRendererUpdatePerObj( renderContext, cameraComponent->mEntity, kCameraIconSize, errors ) );
-        renderContext->CommitShaderVariables();
-        renderContext->Draw( drawArgs );
-      } );
-    }
   }
 
   void IconRenderer::RenderIcons(  const World* world,

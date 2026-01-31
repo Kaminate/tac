@@ -3,9 +3,7 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
-namespace Tac
-{
-  void WriteNetMsgHeader( WriteStream* writer, NetMsgType networkMessageType )
+void Tac::WriteNetMsgHeader( WriteStream* writer, NetMsgType networkMessageType )
   {
     writer->Write( ( u8 )'t' );
     writer->Write( ( u8 )'a' );
@@ -13,16 +11,19 @@ namespace Tac
     writer->Write( ( u8 )networkMessageType );
   }
 
-  NetMsgType ReadNetMsgHeader( ReadStream* reader,  Errors& errors )
-  {
-    TAC_CALL_RET( const u8 t{ reader->Read< u8 >( errors ) } );
-    TAC_CALL_RET( const u8 a{ reader->Read< u8 >( errors ) } );
-    TAC_CALL_RET( const u8 c{ reader->Read< u8 >( errors ) } );
-    TAC_RAISE_ERROR_IF_RETURN( t != 't', "net msg header mismatch" );
-    TAC_RAISE_ERROR_IF_RETURN( a != 'a', "net msg header mismatch" );
-    TAC_RAISE_ERROR_IF_RETURN( c != 'c', "net msg header mismatch" );
-    return reader->Read< NetMsgType >( errors );
-  }
+auto Tac::ReadNetMsgHeader( ReadStream* reader,  Errors& errors ) -> NetMsgType
+{
+  TAC_CALL_RET( const u8 t{ reader->Read< u8 >( errors ) } );
+  TAC_CALL_RET( const u8 a{ reader->Read< u8 >( errors ) } );
+  TAC_CALL_RET( const u8 c{ reader->Read< u8 >( errors ) } );
+  TAC_RAISE_ERROR_IF_RETURN( t != 't', "net msg header mismatch" );
+  TAC_RAISE_ERROR_IF_RETURN( a != 'a', "net msg header mismatch" );
+  TAC_RAISE_ERROR_IF_RETURN( c != 'c', "net msg header mismatch" );
+  return reader->Read< NetMsgType >( errors );
+}
+
+namespace Tac
+{
 
   //NetBitDiff GetNetVarfield( const void* oldData,
   //                           const void* newData,
@@ -57,6 +58,7 @@ namespace Tac
     return true;
   }
 
+  // -----------------------------------------------------------------------------------------------
 
   SnapshotBuffer::~SnapshotBuffer()
   {
@@ -80,7 +82,7 @@ namespace Tac
     mSnapshots.push_back( snapshot );
   }
 
-  World* SnapshotBuffer::FindSnapshot( GameTime elapsedGameSecs )
+  auto SnapshotBuffer::FindSnapshot( GameTime elapsedGameSecs ) -> World*
   {
     for( World* world : mSnapshots )
       if( world->mElapsedSecs == elapsedGameSecs )

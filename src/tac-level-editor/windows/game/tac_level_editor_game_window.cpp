@@ -32,6 +32,7 @@
 #include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
 #include "tac-level-editor/tools/tac_level_editor_tool.h"
 #include "tac-level-editor/tools/tac_level_editor_selection_tool.h"
+#include "tac-level-editor/misc/tac_level_editor_misc_math.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
@@ -40,12 +41,14 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 
+
 namespace Tac
 {
   static bool                          sDrawGrid                 {};
   static float                         sWASDCameraPanSpeed       { 10 };
   static float                         sWASDCameraOrbitSpeed     { 5 };
   static bool                          sWASDCameraOrbitSnap      { true };
+  static bool                          sDrawPlaneOfBestFit       { false };
   static float                         sWASDCameraNoSnapScale    { .01f };
   static StringView                    sImguiWindowName          { "Level Editor Game Window" };
 #if 0
@@ -139,6 +142,7 @@ namespace Tac
 
     static float sThetaVel{};
     static float sPhiVel{};
+    const float kDamping{ .5f };
     if( !thetaOffset && !phiOffset && !sThetaVel && !sPhiVel)
       return;
 
@@ -152,9 +156,8 @@ namespace Tac
     if( phiOffset )
       sPhiVel = phiOffset * sWASDCameraOrbitSpeed;
 
-    // damping
-    sThetaVel *= .5f;
-    sPhiVel *= .5f;
+    sThetaVel *= kDamping;
+    sPhiVel *= kDamping;
 
     
     const SphericalCoordinate prevSpherical{ camOrbitSpherical };
@@ -183,7 +186,7 @@ namespace Tac
 
   static void CameraWASDControls( Camera* camera )
   {
-    if( SelectedEntities::empty() &&
+    if( !SelectedEntities::empty() &&
         Toolbox::GetActiveTool() == &SelectionTool::sInstance )
     {
       CameraWASDControlsOrbit( camera, GizmoMgr::sInstance.mGizmoOrigin );
@@ -284,62 +287,13 @@ namespace Tac
       camera->SetForwards( SnapToUnitDir( camera->mForwards ) );
   }
 
-  void CreationGameWindow::DebugImGui( Errors& errors )
-  {
-    static bool mHideUI {};
-    if( mHideUI )
-      return;
-
-    const ImGuiRect contentRect{ Tac::ImGuiGetContentRect() };
-    const v2 cursorPos{ ImGuiGetCursorPos() };
-    const float w { 400 };
-    const float h{ contentRect.mMaxi.y - cursorPos.y };
-    ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
-    TAC_ON_DESTRUCT(ImGuiEndChild());
-
-    if( ImGuiButton( "Close Game Window" ) )
-      CreationGameWindow::sShowWindow = false;
-
-    if( ImGuiButton( "Close all but Game Window" ) )
-      Creation::SetShowOnlyWindowName( sImguiWindowName );
-
-    ImGuiCheckbox( "Draw grid", &sDrawGrid );
-    ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
-    ImGuiCheckbox( "draw gizmos", &GizmoMgr::sInstance.mGizmosEnabled );
-    ImGuiCheckbox( "Draw raycast", &CreationMousePicking::sDrawRaycast );
-
-#if 0
-    if( sSoul )
-    {
-      if( ImGuiButton( "End simulation" ) )
-      {
-        TAC_DELETE sSoul;
-        sSoul = nullptr;
-      }
-    }
-    else
-    {
-      if( ImGuiButton( "Begin simulation" ) )
-      {
-        TAC_CALL( PlayGame( errors ) );
-      }
-    }
-#endif
-
-    ImGuiCamera();
-    if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
-      ImGuiText( sStatusMessage );
-
-    ImGuiSeparator();
-    TAC_CALL( Toolbox::DebugImGui( errors ) );
-    ImGuiSeparator();
-
-  }
-
   static void CameraUpdateControls()
   {
     WindowHandle mWindowHandle{ ImGuiGetWindowHandle( sImguiWindowName ) };
     if( !AppWindowApi::IsHovered( mWindowHandle ) )
+      return;
+
+    if( AppKeyboardApi::IsPressed( Key::Modifier ) )
       return;
     
     dynmc Camera* camera{ Creation::GetCamera() };
@@ -403,6 +357,58 @@ namespace Tac
   }
 
   // -----------------------------------------------------------------------------------------------
+
+  void CreationGameWindow::DebugImGui( Errors& errors )
+  {
+    static bool mHideUI {};
+    if( mHideUI )
+      return;
+
+    const ImGuiRect contentRect{ Tac::ImGuiGetContentRect() };
+    const v2 cursorPos{ ImGuiGetCursorPos() };
+    const float w { 400 };
+    const float h{ contentRect.mMaxi.y - cursorPos.y };
+    ImGuiBeginChild( "gameplay overlay", v2( w, h ) );
+    TAC_ON_DESTRUCT(ImGuiEndChild());
+
+    if( ImGuiButton( "Close Game Window" ) )
+      CreationGameWindow::sShowWindow = false;
+
+    if( ImGuiButton( "Close all but Game Window" ) )
+      Creation::SetShowOnlyWindowName( sImguiWindowName );
+
+    ImGuiCheckbox( "Draw grid", &sDrawGrid );
+    ImGuiCheckbox( "hide ui", &mHideUI ); // for screenshots
+    ImGuiCheckbox( "draw gizmos", &GizmoMgr::sInstance.mGizmosEnabled );
+    ImGuiCheckbox( "Draw raycast", &CreationMousePicking::sDrawRaycast );
+
+#if 0
+    if( sSoul )
+    {
+      if( ImGuiButton( "End simulation" ) )
+      {
+        TAC_DELETE sSoul;
+        sSoul = nullptr;
+      }
+    }
+    else
+    {
+      if( ImGuiButton( "Begin simulation" ) )
+      {
+        TAC_CALL( PlayGame( errors ) );
+      }
+    }
+#endif
+
+    ImGuiCamera();
+    if( GameTimer::GetElapsedTime() < sStatusMessageEndTime )
+      ImGuiText( sStatusMessage );
+
+    ImGuiSeparator();
+    TAC_CALL( Toolbox::DebugImGui( errors ) );
+    ImGuiSeparator();
+
+  }
 
   void CreationGameWindow::Init( Errors& errors )
   {
@@ -515,6 +521,9 @@ namespace Tac
 
     if( Tool * tool{ Toolbox::GetActiveTool() } )
       tool->Update();
+
+    if( sDrawPlaneOfBestFit )
+      MiscMath::DrawPlaneOfBestFit();
   }
 
   void CreationGameWindow::SetStatusMessage( const StringView msg, const GameTimeDelta duration )

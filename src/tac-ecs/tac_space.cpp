@@ -6,30 +6,27 @@
 #include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/component/tac_component_registry.h"
 
-namespace Tac
+static bool sInitialized;
+
+void Tac::SpaceInit()
 {
-  static bool sInitialized;
+  if( sInitialized )
+    return;
 
-  void SpaceInit()
+  Graphics::SpaceInitGraphics();
+  Physics::SpaceInitPhysics();
+  NumGridSys::SpaceInitNumGrid();
+
+  for( const SystemInfo& entry : SystemInfo::Iterate() )
   {
-    if( sInitialized )
-      return;
-
-    Graphics::SpaceInitGraphics();
-    Physics::SpaceInitPhysics();
-    NumGridSys::SpaceInitNumGrid();
-
-    for( const SystemInfo& entry : SystemInfo::Iterate() )
-    {
-      TAC_ASSERT( entry.mName );
-    }
-
-    for( const ComponentInfo& entry : ComponentInfo::Iterate() )
-    {
-      TAC_ASSERT( entry.mName );
-    }
-
-    sInitialized = true;
+    TAC_ASSERT( entry.mName );
   }
+
+  for( const ComponentInfo& entry : ComponentInfo::Iterate() )
+  {
+    TAC_ASSERT( entry.mName );
+  }
+
+  sInitialized = true;
 }
 

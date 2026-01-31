@@ -11,17 +11,18 @@
 #include "tac-ecs/graphics/camera/tac_camera_component.h"
 #include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-ecs/graphics/model/tac_model.h"
+#include "tac-ecs/graphics/sprite3d/tac_sprite3d.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 #include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/world/tac_world.h"
+#include "tac-ecs/renderpass/game/tac_game_presentation.h"
 
 namespace Tac
 {
 
   struct GraphicsImpl : public Graphics
   {
-
     // TODO: this shit is rediculous, i need a better ECS
 
     auto CreateModelComponent() -> Model* override
@@ -115,12 +116,32 @@ namespace Tac
           ( *visitor )( cam );
     }
 
+    auto CreateSprite3DComponent() -> Sprite3D* override
+    {
+      auto sprite{ TAC_NEW Sprite3D };
+      mSprite3Ds.insert( sprite );
+      return sprite;
+    }
+    void DestroySprite3DComponent( Sprite3D* Sprite3D ) override
+    {
+      mSprite3Ds.erase( Sprite3D );
+      TAC_DELETE Sprite3D;
+    }
+    void VisitSprite3Ds( Sprite3DVisitor* visitor ) const override
+    {
+      for( Sprite3D* sprite : mSprite3Ds )
+        if( sprite->mEntity->mActive )
+          ( *visitor )( sprite );
+    }
+
+
 
     Set< Model* >           mModels;
     Set< Skybox* >          mSkyboxes;
     Set< Light* >           mLights;
     Set< Material* >        mMaterials;
     Set< CameraComponent* > mCameras;
+    Set< Sprite3D* >        mSprite3Ds;
   };
 
   static SystemInfo* sGraphicsInfo;
@@ -152,6 +173,18 @@ namespace Tac
     ImGuiText( "Graphics::DebugImgui()" );
   }
 
+  void Graphics::GraphicsDebugImgui( System* system )
+  {
+    Graphics* graphics { ( Graphics* )system };
+
+  #if TAC_GAME_PRESENTATION_ENABLED()
+    // ??????
+    GamePresentation::DebugImGui( graphics );
+  #endif
+
+  }
+
+
   void Graphics::SpaceInitGraphics()
   {
     sGraphicsInfo = SystemInfo::Register();
@@ -164,6 +197,7 @@ namespace Tac
     Light::RegisterComponent();
     Material::RegisterComponent();
     CameraComponent::RegisterComponent();
+    Sprite3D::RegisterComponent();
   }
 
   auto Graphics::From( dynmc World* world ) -> dynmc Graphics* { return ( dynmc Graphics* )world->GetSystem( sGraphicsInfo ); }

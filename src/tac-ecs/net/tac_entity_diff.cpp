@@ -20,11 +20,11 @@ namespace Tac
     ComponentRegistryBits( Entity* );
     void UnionWith( const ComponentInfo* );
     bool HasComponent( const ComponentInfo* ) const;
-    u64  GetBitfield() const;
+    auto GetBitfield() const -> u64;
     bool operator == ( const ComponentRegistryBits& ) const = default;
 
   private:
-    u64 Mask( const ComponentInfo* ) const;
+    auto Mask( const ComponentInfo* ) const -> u64;
 
     // Each bit of the bitfield represents an entry in the Component Registry
     u64 mBitfield {};
@@ -32,9 +32,9 @@ namespace Tac
 
   struct ChangedComponentBitfields
   {
-    void       Set( const ComponentInfo*, NetVarDiff );
-    NetVarDiff Get( const ComponentInfo* ) const;
-    bool       IsDirty() const;
+    void Set( const ComponentInfo*, NetVarDiff );
+    auto Get( const ComponentInfo* ) const -> NetVarDiff;
+    bool IsDirty() const;
 
   private:
     // Each element in this array is a bitfield which represents dirty NetVars corresponding
@@ -84,7 +84,7 @@ namespace Tac
         UnionWith( &info );
   }
 
-  u64  ComponentRegistryBits::Mask( const ComponentInfo* entry ) const
+  auto ComponentRegistryBits::Mask( const ComponentInfo* entry ) const -> u64
   {
     return ( u64 )1 << entry->GetIndex();
   }
@@ -99,22 +99,22 @@ namespace Tac
     return mBitfield & Mask( entry );
   }
 
-  u64  ComponentRegistryBits::GetBitfield() const { return mBitfield; }
+  auto ComponentRegistryBits::GetBitfield() const -> u64 { return mBitfield; } 
 
   // ----------------------------------------------------------------------------------------------
 
-  void        ChangedComponentBitfields::Set( const ComponentInfo* entry, NetVarDiff data )
+  void ChangedComponentBitfields::Set( const ComponentInfo* entry, NetVarDiff data )
   {
     mData[ entry->GetIndex() ] = data;
     mDirty |= !data.Empty();
   }
 
-  NetVarDiff  ChangedComponentBitfields::Get( const ComponentInfo* entry ) const
+  auto ChangedComponentBitfields::Get( const ComponentInfo* entry ) const -> NetVarDiff
   {
     return mData[ entry->GetIndex() ];
   }
 
-  bool        ChangedComponentBitfields::IsDirty() const { return mDirty; }
+  auto ChangedComponentBitfields::IsDirty() const -> bool { return mDirty; } 
 
   // ----------------------------------------------------------------------------------------------
 

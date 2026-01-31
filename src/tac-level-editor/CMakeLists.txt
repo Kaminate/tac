@@ -37,6 +37,7 @@ function( tac_target )
   )
 
   add_subdirectory( gizmo )
+  add_subdirectory( misc )
   add_subdirectory( picking )
   add_subdirectory( prefab )
   add_subdirectory( render )
