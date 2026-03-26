@@ -1,13 +1,13 @@
 # Tac
-This repository contains the full source code, game assets, and formal documentation for the Tac 2D game engine.
+This repository contains the full source code, game assets, and formal documentation for the Tac game engine.
 
 ## Repository Structure
 ```
 assets/                 Runtime loaded by the game (sound, textures, models...)
 cmake/                  The directory CMAKE_MODULE_PATH is set to for find_package to find Find<package>.cmake files
-run/                    Scripts
+run/                    Scripts and utilities
 src/                    C++ source code
-include/                GL stuff
+include/                Currently only used for OpenGL stuff
 ```
 
 ## Getting the source
@@ -155,7 +155,7 @@ modify it
 
 
 ## License
-(c) 2024 Nathan Park  
+(c) 2026 Nathan Park  
 This work is liscensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.  
 You should have received a copy of the license along with this work.  
 If not, see <http://creativecommons.org/licenses/by-nc-sa/4.0/>.  
