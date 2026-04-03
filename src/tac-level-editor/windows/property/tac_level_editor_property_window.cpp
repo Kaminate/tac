@@ -127,6 +127,7 @@ namespace Tac
       }
     }
 
+    static String filter;
     Vector< Entity* > potentialParents;
     for( Entity* potentialParent : entity->mWorld->mEntities )
     {
@@ -135,6 +136,9 @@ namespace Tac
 
       if( entity->mParent == potentialParent )
         continue;
+
+      if( !filter.empty() && !potentialParent->mName.contains( filter ) )
+        continue;
       
       potentialParents.push_back( potentialParent );
     }
@@ -142,6 +146,8 @@ namespace Tac
     if( !potentialParents.empty() && ImGuiCollapsingHeader( "Set Parent" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
+
+      ImGuiInputText( "Filter: ", filter );
       for( Entity* potentialParent : potentialParents )
       {
         if( ImGuiButton( potentialParent->mName ) )
