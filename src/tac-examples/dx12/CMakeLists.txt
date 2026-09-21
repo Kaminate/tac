@@ -31,8 +31,6 @@ get_property( exe_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSY
 add_library( TacDX12ShaderCompile
   tac_dx12_tutorial_shader_compile.cpp
   tac_dx12_tutorial_shader_compile.h
-  tac_dx12_tutorial_2_dxc.cpp
-  tac_dx12_tutorial_2_dxc.h
 )
 
 target_link_libraries( TacDX12ShaderCompile TacWin32 TacRHI TacStdLib TacDX )

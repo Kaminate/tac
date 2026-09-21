@@ -1,7 +1,6 @@
 #include "tac_dx12_tutorial_2_triangle.h" // self-inc
 #include "tac_dx12_tutorial_shader_compile.h"
 #include "tac_dx12_tutorial_input_layout_builder.h"
-#include "tac_dx12_tutorial_2_dxc.h"
 #include "tac_dx12_tutorial.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"

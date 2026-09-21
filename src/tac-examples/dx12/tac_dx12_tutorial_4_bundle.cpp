@@ -18,7 +18,6 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-win32/tac_win32.h"
 #include "tac_dx12_tutorial.h"
-#include "tac_dx12_tutorial_2_dxc.h"
 #include "tac_dx12_tutorial_checkerboard.h"
 #include "tac_dx12_tutorial_input_layout_builder.h"
 #include "tac_dx12_tutorial_root_sig_builder.h"
