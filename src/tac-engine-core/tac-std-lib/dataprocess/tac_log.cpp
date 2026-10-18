@@ -16,9 +16,12 @@
   #include <filesystem>
 #endif
 
+  static bool hackhackahack_stoplogging = false;
+
 namespace Tac
 {
 #if 0
+
 
   // TODO: fix log unhandled exceptions!!!!!!!!!!!!!!!!!!!
   // Q: How to repro?
@@ -285,6 +288,10 @@ namespace Tac
 
   void Log::Flush()
   {
+
+    if( hackhackahack_stoplogging )
+      return;
+
     EnsureOpen();
     if( !mBuffer.empty() )
     {
@@ -302,6 +309,9 @@ namespace Tac
 
   void Log::LogMessagePrintLine( StringView sv )
   {
+    if( hackhackahack_stoplogging )
+      return;
+
     mBuffer += sv;
     mBuffer += '\n';
     if( mBuffer.size() > 1024 * 1024 * 100 )
@@ -310,6 +320,8 @@ namespace Tac
 
   void Log::LogMessagePrint( StringView sv )
   {
+    if( hackhackahack_stoplogging )
+      return;
     mBuffer += sv;
     if( mBuffer.size() > 1024 * 1024 * 100 )
       Flush();
@@ -333,6 +345,12 @@ namespace Tac
     sLog.LogMessagePrint( sv );
     if( severity == kError )
       sLog.Flush();
+  }
+
+
+  void LogApi::LogHACK_HACK_HACK____STOP_LOGGING()
+  {
+    hackhackahack_stoplogging = true;
   }
 
   void LogApi::LogMessagePrintLine( const StringView sv, Severity severity )

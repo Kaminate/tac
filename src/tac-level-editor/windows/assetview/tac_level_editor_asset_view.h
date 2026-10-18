@@ -10,7 +10,10 @@ namespace Tac
   {
     static void Update( Errors& );
     static void Render( Errors& );
+    static auto GetWindowName() -> StringView;
+
     static bool sShowWindow;
+
   };
 }
 

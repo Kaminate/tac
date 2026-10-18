@@ -17,6 +17,7 @@ namespace Tac
     static void SetStatusMessage( StringView, GameTimeDelta );
     static void DebugImGui( Errors& );
     static auto GetWindowHandle() -> WindowHandle;
+    static auto GetWindowName() -> StringView;
     static bool sShowWindow;
   };
 }

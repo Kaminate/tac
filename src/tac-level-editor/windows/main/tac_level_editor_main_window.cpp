@@ -69,6 +69,11 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
+  auto CreationMainWindow::GetWindowName() -> StringView
+  {
+    return sWindowName;
+  }
+
   bool CreationMainWindow::sShowWindow{};
 
   void CreationMainWindow::Update(  Errors& errors )

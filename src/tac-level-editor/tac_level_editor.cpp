@@ -9,6 +9,7 @@
 #include "tac-ecs/tac_space.h"
 #include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
+#include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/color/tac_color_util.h"
@@ -40,6 +41,8 @@
 #include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
+
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 
 namespace Tac
@@ -78,6 +81,36 @@ namespace Tac
 
   static void CloseAppWhenAllWindowsClosed()
   {
+    StringView systemName = CreationSystemWindow::GetWindowName();
+    StringView mainName = CreationMainWindow::GetWindowName();
+    StringView assetName = CreationAssetView::GetWindowName();
+    StringView propertyName = CreationPropertyWindow::GetWindowName();
+    StringView shaderGraphName = CreationShaderGraphWindow::GetWindowName();
+    StringView gameName = CreationGameWindow::GetWindowName();
+
+    Array names
+    {
+      systemName ,
+      mainName ,
+      assetName ,
+      propertyName ,
+      shaderGraphName ,
+      gameName ,
+    };
+
+    int numShown = 0;
+    for( StringView name : names )
+    {
+      WindowHandle windowHandle = ImGuiGetWindowHandle( name );
+      if( windowHandle.IsValid() )
+      {
+        bool shown = AppWindowApi::IsShown( windowHandle );
+        if( shown )
+          numShown++;
+      }
+    }
+
+    /*
     static bool hasAnyWindowShown;
     const bool isAnyWindowShown{
       CreationSystemWindow::sShowWindow ||
@@ -88,6 +121,12 @@ namespace Tac
       CreationPropertyWindow::sShowWindow };
     hasAnyWindowShown |= isAnyWindowShown;
     if( hasAnyWindowShown && !isAnyWindowShown )
+      OS::OSAppStopRunning();
+      */
+
+    static bool anyEverShown = false;
+    anyEverShown |= numShown > 0;
+    if( anyEverShown && !numShown)
       OS::OSAppStopRunning();
   }
 
@@ -128,42 +167,76 @@ namespace Tac
       return sInstance;
     }
 
-    void Load() { for( Data& data : mDatas ) Load( data.mWindowName, *data.mShow ); } 
-    void Save() { for( Data& data : mDatas ) Save( data.mWindowName, *data.mShow ); } 
+    void Load()
+    {
+      for( Data& data : mDatas )
+        Load( data );
+    } 
+    void Save()
+    {
+      for( Data& data : mDatas )
+        Save( data );
+    } 
 
   private:
     struct Data
     {
-      StringView mWindowName {};
-      bool*      mShow       {};
+      String mWindowName_savefile {};
+      String mWindowName_wndmgr {};
+      bool* mShow       {};
     };
 
     ShowWindowHelper()
     {
-      AddData( "main", &CreationMainWindow::sShowWindow );
-      AddData( "property", &CreationPropertyWindow::sShowWindow );
-      AddData( "game", &CreationGameWindow::sShowWindow );
-      AddData( "asset", &CreationAssetView::sShowWindow );
+      mDatas.push_back( Data 
+      {
+        .mWindowName_savefile { "main" },
+        .mWindowName_wndmgr   { CreationMainWindow::GetWindowName()},
+        .mShow                { &CreationMainWindow::sShowWindow},
+      } );
+
+      mDatas.push_back( Data 
+      {
+        .mWindowName_savefile { "property" },
+        .mWindowName_wndmgr   { CreationPropertyWindow::GetWindowName()},
+        .mShow                { &CreationPropertyWindow::sShowWindow},
+      } );
+      mDatas.push_back( Data 
+      {
+        .mWindowName_savefile { "game" },
+        .mWindowName_wndmgr   { CreationGameWindow::GetWindowName()},
+        .mShow                { &CreationGameWindow::sShowWindow},
+      } );
+      mDatas.push_back( Data 
+      {
+        .mWindowName_savefile { "asset" },
+        .mWindowName_wndmgr   { CreationAssetView::GetWindowName()},
+        .mShow                { &CreationAssetView::sShowWindow},
+      } );
+      mDatas.push_back( Data 
+      {
+        .mWindowName_savefile { "system" },
+        .mWindowName_wndmgr   { CreationSystemWindow::GetWindowName()},
+        .mShow                { &CreationSystemWindow::sShowWindow},
+      } );
+      mDatas.push_back( Data 
+      {
+        .mWindowName_savefile { "shadergraph" },
+        .mWindowName_wndmgr   { CreationShaderGraphWindow::GetWindowName()},
+        .mShow                { &CreationShaderGraphWindow::sShowWindow},
+      } );
     }
 
-    void Load( StringView windowName, bool& show )
+    void Load( Data& data )
     {
-      const ShortFixedString path{ MakePath( windowName ) };
-      show = Shell::sShellSettings.GetChild( path ).GetValueWithFallback( true );
+      const ShortFixedString path{ MakePath( data.mWindowName_savefile ) };
+      *data.mShow = Shell::sShellSettings.GetChild( path ).GetValueWithFallback( true );
     }
 
-    void Save( StringView windowName, bool& show )
+    void Save(Data&data)
     {
-      const ShortFixedString path{ MakePath( windowName ) };
-      Shell::sShellSettings.GetChild( path ).SetValue( show );
-    }
-
-    void AddData( StringView windowName, bool* show )
-    {
-      Data data;
-      data.mWindowName = windowName;
-      data.mShow = show;
-      mDatas.push_back( data );
+      const ShortFixedString path{ MakePath( data.mWindowName_savefile  ) };
+      Shell::sShellSettings.GetChild( path ).SetValue( *data.mShow );
     }
 
     auto MakePath( StringView name ) -> ShortFixedString
@@ -207,6 +280,9 @@ namespace Tac
 
   void Creation::Uninit( Errors& )
   {
+
+    LogApi::LogHACK_HACK_HACK____STOP_LOGGING();
+
     ShowWindowHelper::GetInstance().Save();
     IconRenderer::Uninit();
     WidgetRenderer::Uninit();

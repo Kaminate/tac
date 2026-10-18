@@ -13,6 +13,7 @@ namespace Tac
   struct CreationPropertyWindow
   {
     static void Update( Errors& );
+    static auto GetWindowName() -> StringView;
     static bool sShowWindow;
   };
 }

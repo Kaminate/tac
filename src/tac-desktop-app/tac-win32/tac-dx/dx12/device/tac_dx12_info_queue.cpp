@@ -10,15 +10,20 @@ namespace Tac::Render
   {
     switch( Severity )
     {
-    case D3D12_MESSAGE_SEVERITY_CORRUPTION: return "Corruption";
-    case D3D12_MESSAGE_SEVERITY_ERROR:      return "Error";
-    case D3D12_MESSAGE_SEVERITY_WARNING:    return "Warning";
-    case D3D12_MESSAGE_SEVERITY_INFO:       return "Info";
-    case D3D12_MESSAGE_SEVERITY_MESSAGE:    return "Message";
-    default:                                return "???";
+      case D3D12_MESSAGE_SEVERITY_CORRUPTION: return "Corruption";
+      case D3D12_MESSAGE_SEVERITY_ERROR:      return "Error";
+      case D3D12_MESSAGE_SEVERITY_WARNING:    return "Warning";
+      case D3D12_MESSAGE_SEVERITY_INFO:       return "Info";
+      case D3D12_MESSAGE_SEVERITY_MESSAGE:    return "Message";
+      default:                                return "???";
     }
   }
 
+  static bool breaks = true;
+   void DX12InfoQueue::SetBreaking( bool b)
+   {
+     breaks = b;
+  }
 
   static void MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
                                   D3D12_MESSAGE_SEVERITY Severity,
@@ -30,6 +35,11 @@ namespace Tac::Render
     TAC_UNUSED_PARAMETER( Severity );
     TAC_UNUSED_PARAMETER( ID );
     TAC_UNUSED_PARAMETER( pContext );
+
+    // hackity hack hack
+    if( pDescription && StringView( pDescription ) == StringView("Process is terminating. Using simple reporting. Please call ReportLiveObjects() at runtime for standard reporting.") )
+      return;
+
     if( pDescription )
       OS::OSDebugPrintLine(
         String()
@@ -37,6 +47,7 @@ namespace Tac::Render
         + ": "
         + pDescription );
 
+    if(breaks)
     OS::OSDebugBreak();
   }
 

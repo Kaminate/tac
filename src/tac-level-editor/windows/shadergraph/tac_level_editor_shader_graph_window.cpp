@@ -390,6 +390,12 @@ namespace Tac
 
   bool CreationShaderGraphWindow::sShowWindow{};
 
+
+  auto CreationShaderGraphWindow::GetWindowName() -> StringView
+  {
+    return sWindowName;
+  }
+
   void CreationShaderGraphWindow::Update( Errors& errors )
   {
     if( !sShowWindow )

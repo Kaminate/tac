@@ -522,6 +522,12 @@ namespace Tac
   }
 
   // -----------------------------------------------------------------------------------------------
+  static const String sWindowName{ "Asset View" };
+
+  auto CreationAssetView::GetWindowName() -> StringView
+  {
+    return sWindowName;
+  };
 
   bool CreationAssetView::sShowWindow{};
 
@@ -532,7 +538,7 @@ namespace Tac
 
     ImGuiSetNextWindowStretch();
     ImGuiSetNextWindowMoveResize();
-    if( !ImGuiBegin( "Asset View" ) )
+    if( !ImGuiBegin( sWindowName ) )
       return;
 
     TAC_PROFILE_BLOCK;

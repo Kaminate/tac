@@ -533,6 +533,11 @@ namespace Tac
     sStatusMessageEndTime = GameTimer::GetElapsedTime() + duration;
   }
 
+  auto CreationGameWindow::GetWindowName() -> StringView
+  {
+    return sImguiWindowName;
+  }
+
   auto CreationGameWindow::GetWindowHandle() -> WindowHandle
   {
     return ImGuiGetWindowHandle( sImguiWindowName );
