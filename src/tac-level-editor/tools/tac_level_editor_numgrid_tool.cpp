@@ -11,7 +11,7 @@
 
 namespace Tac
 {
-  static int      sBrushIndex     {};
+  static int      sBrushIndex     {}; // selected brush
   static NumGrid* sNumGrid        {};
   static Errors   sNumGridErrors  {};
   static bool     sSelectingBrush {};
@@ -30,10 +30,15 @@ namespace Tac
         Render::TextureHandle imgHandle{ imgPath.empty()
           ? Render::TextureHandle{}
           : TextureAssetManager::GetTexture( imgPath, errors ) };
-        if( ImGuiImageButton( imgHandle.GetIndex(), v2( 50, 50 ) ) )
-        {
+        const v2 cursorPos{ ImGuiGetCursorPos() };
+        const v2 buttonSize{ 50, 50 };
+        if( ImGuiImageButton( imgHandle.GetIndex(), buttonSize ) )
           return i;
-        }
+        if( i == sBrushIndex) // highlight selected brush
+          ImGuiGetDrawData()->AddBoxOutline(
+            UI2DDrawData::Box{
+              .mMini{ cursorPos - v2(1,1)},
+              .mMaxi{ cursorPos + buttonSize + v2(1,1)} } );
         if( c != 7 )
           ImGuiSameLine();
       }
