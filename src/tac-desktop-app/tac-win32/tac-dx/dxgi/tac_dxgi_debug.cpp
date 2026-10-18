@@ -1,6 +1,7 @@
 #include "tac_dxgi_debug.h" // self-inc
 
 #include "tac-win32/tac_win32_com_ptr.h"
+#include "tac-win32/tac-dx/dx12/device/tac_dx12_info_queue.h" // hack
 
 #include <dxgidebug.h>
 #include <dxgi1_3.h> // DXGIGetDebugInterface1
@@ -39,7 +40,12 @@ namespace Tac::Render
       TAC_SCOPE_GUARD( ScopedSeverityBreak );
 #endif
 
+      /*
+      DX12InfoQueue:: SetBreaking( false ); // hack
       mDbg->ReportLiveObjects( DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL );
+      DX12InfoQueue:: SetBreaking( true ); // hack
+      */
+
     }
   }
 

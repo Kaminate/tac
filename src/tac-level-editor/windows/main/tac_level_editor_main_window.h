@@ -8,6 +8,7 @@ namespace Tac
   struct CreationMainWindow
   {
     static void Update( Errors& );
+    static auto GetWindowName() -> StringView;
 
     static bool sShowWindow;
   };

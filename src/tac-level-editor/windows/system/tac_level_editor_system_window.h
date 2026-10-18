@@ -13,6 +13,8 @@ namespace Tac
   struct CreationSystemWindow
   {
     static void Update();
+    static auto GetWindowName() -> StringView;
+
     static bool sShowWindow;
   };
 }

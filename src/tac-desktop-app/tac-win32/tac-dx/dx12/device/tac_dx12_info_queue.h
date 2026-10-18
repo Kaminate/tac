@@ -13,6 +13,10 @@ namespace Tac::Render
   {
     void Init( const DX12DebugLayer&, ID3D12Device*, Errors& );
 
+    static void SetBreaking( bool );
+
     PCom< ID3D12InfoQueue >            mInfoQueue;
   };
+
+
 }

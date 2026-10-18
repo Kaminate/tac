@@ -65,6 +65,7 @@ namespace Tac
     void LogMessagePrintLine( StringView, Severity = kInfo );
     void LogFlush();
     void LogSetPath( const UTF8Path& );
+    void LogHACK_HACK_HACK____STOP_LOGGING();
   }
 
   // -----------------------------------------------------------------------------------------------

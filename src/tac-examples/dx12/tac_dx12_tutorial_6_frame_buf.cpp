@@ -1,7 +1,6 @@
 #include "tac_dx12_tutorial_6_frame_buf.h" // self-inc
 
 #include "tac_dx12_tutorial_shader_compile.h"
-#include "tac_dx12_tutorial_2_dxc.h"
 #include "tac_dx12_tutorial_root_sig_builder.h"
 #include "tac_dx12_tutorial_input_layout_builder.h"
 #include "tac_dx12_tutorial_checkerboard.h"

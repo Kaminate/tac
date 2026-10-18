@@ -269,6 +269,11 @@ namespace Tac
 
   static const String sWindowName{"Properties"};
 
+  auto CreationPropertyWindow::GetWindowName() -> StringView
+  {
+    return sWindowName;
+  }
+
   void CreationPropertyWindow::Update( Errors& errors )
   {
     if( !sShowWindow)
