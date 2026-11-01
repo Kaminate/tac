@@ -3,22 +3,25 @@
 
 #pragma once
 
+#include "tac-std-lib/tac_ints.h"
+
 namespace Tac
 {
   struct WindowHandle
   {
-    WindowHandle( int index = -1 ) : mIndex( index ) {}
+    //WindowHandle( int index = -1 ) : mIndex( index ) {}
 
-    bool IsValid() const  { return mIndex != -1; }
-    int  GetIndex() const { return mIndex; }
+    //bool IsValid() const  { return mIndex != -1; }
+    //auto GetIndex() const { return mIndex; }
+    //auto GetGeneration() const { return mGeneration; }
 
     // Comparison operators so client can compare search among their handles
     // without having to call GetIndex()
-    bool operator ==( const WindowHandle& ) const = default;
-    bool operator !=( const WindowHandle& ) const = default;
+    //bool operator ==( const WindowHandle& ) const = default;
+    //bool operator !=( const WindowHandle& ) const = default;
 
-  private:
-    int mIndex;
+    u16 mIndex{};
+    u16 mGeneration{};
   };
 } // namespace Tac
 

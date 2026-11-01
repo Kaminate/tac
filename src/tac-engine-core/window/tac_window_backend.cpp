@@ -41,18 +41,12 @@ namespace Tac
 
   static auto AllocWindowHandle() -> WindowHandle
   {
-    int i;
     if( sFreeHandles.empty() )
-    {
-      i = sHandleCounter++;
-    }
-    else
-    {
-      i = sFreeHandles.back();
-      sFreeHandles.pop_back();
-    }
+      return WindowHandle{ sHandleCounter++ };
 
-    return WindowHandle{ i };
+    WindowHandle result{ sFreeHandles.back() };
+    sFreeHandles.pop_back();
+    return result;
   }
 
   // -----------------------------------------------------------------------------------------------
