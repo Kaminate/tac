@@ -3,7 +3,7 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
@@ -87,6 +87,11 @@ void Tac::HrCallAux( const HRESULT hr, const char* fnName, Errors& errors )
 {
   TAC_RAISE_ERROR( String() +
                    fnName + " failed with return value " + ToString( ( unsigned long long ) hr ) );
+}
+
+HWND Tac::NativeWindowHandleToHWND( NativeWindowHandle nwh )
+{
+  return ( HWND )nwh.mPointer;
 }
 
 

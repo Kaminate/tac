@@ -58,9 +58,10 @@ namespace Tac::Render
 
     case D3D12ProgramBindType::kBufferSRV:
     {
-      DX12Buffer* buffer{ bufferMgr->FindBuffer( BufferHandle{ iHandle } ) };
-      TAC_ASSERT( buffer );
-      TAC_ASSERT( buffer->mResource );
+      const BufferHandle bufferHandle{ iHandle };
+      DX12Buffer* buffer{ bufferMgr->FindBuffer( bufferHandle ) };
+      TAC_ASSERT_MSG( buffer, "Cannot find buffer " + ToString( iHandle ) + "!" );
+      TAC_ASSERT_MSG( buffer->mResource, bufferMgr->DEBUG_StringifyBuffer( bufferHandle ) + " missing resource!" );
       TAC_ASSERT( buffer->mResource.GetState() & D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE );
       // [ ] Q: why the fuck is this calling a textureMgr function?
       //        arent we in the buffermgr?

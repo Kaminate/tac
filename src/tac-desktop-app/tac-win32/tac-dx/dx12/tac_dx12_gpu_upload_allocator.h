@@ -4,8 +4,9 @@
 
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
 #include "tac-std-lib/containers/tac_vector.h"
+#include "tac-dx/dx12/tac_dx12_command_queue.h"
+#include "tac-dx/dx12/resource/tac_dx12_resource.h"
 
-#include "tac_dx12_command_queue.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
@@ -19,8 +20,12 @@ namespace Tac::Render
   {
     static const int          kDefaultByteCount { 2 * 1024 * 1024 };
 
-    PCom< ID3D12Resource >    mBuffer;
+#if 0
+    PCom< ID3D12Resource >    mBuffer        {};
     D3D12_RESOURCE_STATES     mResourceState {};
+#else
+    DX12Resource              mResource      {};
+#endif
     D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr       {};
     void*                     mCPUAddr       {};
     int                       mByteCount     {};
@@ -53,6 +58,7 @@ namespace Tac::Render
   {
     struct DynAlloc
     {
+#if 0
       ID3D12Resource*           mResource          {};
       D3D12_RESOURCE_STATES*    mResourceState     {};
       u64                       mResourceOffest    {};
@@ -61,6 +67,46 @@ namespace Tac::Render
       void*                     mUnoffsetCPUAddr   {};
       int                       mByteCount         {}; // Bytes for just this allocation
       int                       mResourceByteCount {}; // Bytes for this whole resource
+#else
+      DX12UploadAllocator*      mParent            {};
+      int                       mActivePageIndex   { -1 };
+      int                       mLargePageIndex    { -1 };
+      int                       mByteCount         {}; // Bytes for just this allocation
+      u64                       mResourceOffest    {};
+      D3D12_GPU_VIRTUAL_ADDRESS mGPUAddr           {}; // already offset
+      void*                     mCPUAddr           {}; // already offset
+
+
+      auto GetUploadPage() const -> DX12UploadPage*
+      {
+        if( mLargePageIndex != -1 )
+          return &mParent->mLargePages[ mLargePageIndex ];
+        if( mActivePageIndex != -1 )
+          return &mParent->mActivePages[ mActivePageIndex ];
+        TAC_ASSERT_INVALID_CODE_PATH;
+        return nullptr;
+      }
+
+      //ID3D12Resource* GetResourcePtr() const
+      //{
+      //  DX12UploadPage* page{ GetUploadPage() };
+      //  return page->mResource.Get();
+      //}
+
+      auto GetResource() const -> DX12Resource&
+      {
+        DX12UploadPage* page{ GetUploadPage() };
+        return page->mResource;
+      }
+
+      //D3D12_RESOURCE_STATES GetResourceStates() const
+      //{
+      //  DX12UploadPage* page{ GetUploadPage() };
+      //  return page->mResource.GetState();
+      //}
+
+#endif
+
     };
 
     DX12UploadAllocator() = default;

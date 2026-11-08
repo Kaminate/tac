@@ -8,9 +8,10 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/memory/tac_memory_util.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_string_util.h"
 
 
@@ -52,9 +53,12 @@ namespace Tac
   //   At 5 pixel away from boundary edge will have value 128 - ( 25.6 * 5 ) = 0
   static const float         pixel_dist_scale{ onedge_value / ( float )FontCellInnerSDFPadding };
 
+  // For cells with no sdf ( ie: the ' ' caracter ), clear the cell to black.
+  static const u8 black[ FontCellPxWidth * FontCellPxHeight ]  {};
+
   // -----------------------------------------------------------------------------------------------
 
-  static Language GetAssetPathLanguage( const AssetPathStringView& assetPath )
+  static auto GetAssetPathLanguage( const AssetPathStringView& assetPath ) -> Language
   {
     const String lowerAssetPath { ToLower( assetPath ) };
 
@@ -305,7 +309,7 @@ namespace Tac
       msg += ToString( mCellRowCount );
       msg += ", Col Count: ";
       msg += ToString( mCellColCount );
-      OS::OSDebugPrintLine( msg );
+      LogApi::LogMessagePrintLine( msg );
     }
 
     const u8 dark { ( u8 )( 0.25f * 255 ) };
@@ -482,9 +486,6 @@ namespace Tac
       pxRow += TextPxHeight;
     }
   }
-
-    // For cells with no sdf ( ie: the ' ' caracter ), clear the cell to black.
-    static const u8 black[ FontCellPxWidth * FontCellPxHeight ]  {};
 
   void FontAtlas::UploadCellGPU( FontAtlasCell* cell, Errors& errors ) const
   {

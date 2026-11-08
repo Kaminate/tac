@@ -97,7 +97,7 @@
 #include <stddef.h>
 #include <stdint.h> /* For uint8_t, uint32_t */
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 #ifdef __cplusplus

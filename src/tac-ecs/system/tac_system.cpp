@@ -24,7 +24,7 @@ namespace Tac
 
   auto SystemInfo::GetIndex() const -> int { return int( this - sSystemInfos.data() ); }
 
-  auto SystemInfo::Iterate::begin() const -> const SystemInfo*{ return sSystemInfos.begin(); }
+  auto SystemInfo::Iterate::begin() const -> const SystemInfo* { return sSystemInfos.begin(); }
 
   auto SystemInfo::Iterate::end() const -> const SystemInfo* { return sSystemInfos.end(); }
 

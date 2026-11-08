@@ -7,9 +7,11 @@ namespace Tac
 {
   struct AssertFns
   {
+    using Callback = void( * )( StringView );
     static void HandleAssert( StringView, StackFrame );
     static void HandleAssertCase( const char*, int, StackFrame );
     static void HandleAssertIndex( unsigned, unsigned, StackFrame );
+    static void AddAssertCallback( Callback );
 
     template< typename T >
     static auto HandleVerify( T&& t, const char* str, StackFrame sf ) { if( !t ) HandleAssert( str, sf ); return t; }

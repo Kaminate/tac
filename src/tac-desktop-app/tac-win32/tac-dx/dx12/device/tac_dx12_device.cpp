@@ -14,6 +14,14 @@ namespace Tac::Render
       TAC_ASSERT( debugLayer.IsEnabled() );
     }
 
+    if constexpr( kIsDebugMode ) // enable DRED before device creation
+    {
+      PCom< ID3D12DeviceRemovedExtendedDataSettings > dred;
+      TAC_DX12_CALL( D3D12GetDebugInterface( dred.iid(), dred.ppv() ) );
+      dred->SetAutoBreadcrumbsEnablement( D3D12_DRED_ENABLEMENT_FORCED_ON );
+      dred->SetPageFaultEnablement( D3D12_DRED_ENABLEMENT_FORCED_ON );
+    }
+
     IDXGIAdapter* adapter{ ( IDXGIAdapter* )DXGIGetBestAdapter() };
     TAC_DX12_CALL( D3D12CreateDevice(
                    adapter,

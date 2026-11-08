@@ -2,7 +2,7 @@
 
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-std-lib/math/tac_vector3.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
 

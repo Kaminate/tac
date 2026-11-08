@@ -6,13 +6,14 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/dataprocess/tac_serialization.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-win32/tac_win32.h"
 
 #include <WinSock2.h> // SOCKET
@@ -392,7 +393,7 @@ namespace Tac::Network
       if( mPrintReceivedMessages )
       {
         const StringView recvMsg( recvBuf, recvResult );
-        OS::OSDebugPrintLine( String() + "Received message: " + recvMsg );
+        LogApi::LogMessagePrintLine( String() + "Received message: " + recvMsg );
       }
 
       socketWinsock->OnMessage( recvBuf, recvResult );

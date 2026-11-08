@@ -19,7 +19,6 @@ add_subdirectory( math )
 add_subdirectory( memory )
 add_subdirectory( meta )
 add_subdirectory( mutex )
-add_subdirectory( os )
 add_subdirectory( preprocess )
 add_subdirectory( string )
 

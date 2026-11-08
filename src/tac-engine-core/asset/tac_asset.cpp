@@ -6,7 +6,7 @@
 #include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
@@ -14,28 +14,28 @@ namespace Tac
 {
 
   struct MetaAssetPathString : public MetaType
-                                                                                                    {
-    const char* GetName() const override                                                            { return "AssetPathString"; }
-    int         GetSizeOf() const override                                                          { return sizeof( AssetPathString ); }
-    String      ToString( const void* ) const override                                              { TAC_ASSERT_UNIMPLEMENTED; return {}; }
-    float       ToNumber( const void* ) const override                                              { TAC_ASSERT_UNIMPLEMENTED; return {}; }
-    void        Cast( CastParams ) const  override                                                  { TAC_ASSERT_UNIMPLEMENTED; }
+  {
+    auto GetName() const -> const char* override                                             { return "AssetPathString"; }
+    auto GetSizeOf() const -> int override                                                   { return sizeof( AssetPathString ); }
+    auto ToString( const void* ) const -> String override                                    { TAC_ASSERT_UNIMPLEMENTED; return {}; }
+    auto ToNumber( const void* ) const -> float override                                     { TAC_ASSERT_UNIMPLEMENTED; return {}; }
+    void Cast( CastParams ) const  override                                                  { TAC_ASSERT_UNIMPLEMENTED; }
 
-    void        JsonSerialize( Json* json, const void* v ) const override                           { json->SetString( ToRef( v ) ); }
-    void        JsonDeserialize( const Json* json, void* v ) const override                         { ToRef( v ) = json->mString; }
+    void JsonSerialize( Json* json, const void* v ) const override                           { json->SetString( ToRef( v ) ); }
+    void JsonDeserialize( const Json* json, void* v ) const override                         { ToRef( v ) = json->mString; }
 
-    void        Read( ReadStream* , dynmc void* ) const override                                    { TAC_ASSERT_UNIMPLEMENTED; }
-    void        Write( WriteStream* , const void* ) const override                                  { TAC_ASSERT_UNIMPLEMENTED; }
+    void Read( ReadStream* , dynmc void* ) const override                                    { TAC_ASSERT_UNIMPLEMENTED; }
+    void Write( WriteStream* , const void* ) const override                                  { TAC_ASSERT_UNIMPLEMENTED; }
 
-    bool        Equals( const void* a, const void* b ) const override                               { return ToRef( a ) == ToRef( b ); }
-    void        Copy( CopyParams copyParams ) const override                                        { ToRef( copyParams.mDst ) = ToRef( copyParams.mSrc ); }
+    bool Equals( const void* a, const void* b ) const override                               { return ToRef( a ) == ToRef( b ); }
+    void Copy( CopyParams copyParams ) const override                                        { ToRef( copyParams.mDst ) = ToRef( copyParams.mSrc ); }
 
   private:
-    dynmc AssetPathString& ToRef( dynmc void* v ) const                                             { return *( AssetPathString* )v; }
-    const AssetPathString& ToRef( const void* v ) const                                             { return *( AssetPathString* )v; }
+    dynmc AssetPathString& ToRef( dynmc void* v ) const                                      { return *( AssetPathString* )v; }
+    const AssetPathString& ToRef( const void* v ) const                                      { return *( AssetPathString* )v; }
   };
 
-  static const UTF8Path sInitialWorkingDir   { UTF8Path::GetCurrentWorkingDirectory() };
+  static const UTF8Path      sInitialWorkingDir       { UTF8Path::GetCurrentWorkingDirectory() };
   static const char          sAssetPathSeperator      { '/' };
   static const char*         sAssetPathRootFolderName { "assets" };
   TAC_META_IMPL_INSTANCE2( AssetPathString, MetaAssetPathString );

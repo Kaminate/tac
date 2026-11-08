@@ -7,9 +7,9 @@ namespace Tac
 {
   struct WindowCreateParams
   {
-    StringView  mName { "" };
-    v2i         mPos;
-    v2i         mSize;
+    StringView  mName {};
+    v2i         mPos  {};
+    v2i         mSize {};
   };
 } // namespace Tac
 

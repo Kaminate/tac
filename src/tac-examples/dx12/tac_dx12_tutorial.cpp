@@ -1,8 +1,9 @@
 #include "tac_dx12_tutorial.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
@@ -20,7 +21,7 @@ namespace Tac::Render
     TAC_UNUSED_PARAMETER( ID );
     TAC_UNUSED_PARAMETER( pContext );
     if( pDescription )
-      OS::OSDebugPrintLine( pDescription );
+      LogApi::LogMessagePrintLine( pDescription );
 
     OS::OSDebugBreak();
   }

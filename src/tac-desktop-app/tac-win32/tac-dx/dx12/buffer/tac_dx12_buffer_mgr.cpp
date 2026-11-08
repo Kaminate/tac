@@ -47,8 +47,8 @@ namespace Tac::Render
       return;
 
     const auto name{ [ & ]() ->StringView {
-      if( !buffer->mCreateName.empty() )
-        return buffer->mCreateName;
+      if( !buffer->mCreateParams.mOptionalName.empty() )
+        return buffer->mCreateParams.mOptionalName;
 
       if( buffer->mResource )
         return DX12GetName( buffer->mResource );
@@ -151,22 +151,12 @@ namespace Tac::Render
 
   auto DX12BufferMgr::CreateDynamicBuffer( CreateBufferParams params, Errors& ) -> BufferHandle
   {
-      TAC_ASSERT(params.mUsage == Usage::Dynamic );
-      //const int byteCount { params.mByteCount };
-      //const StackFrame sf { params.mStackFrame };
-      //DX12Renderer& renderer{ DX12Renderer::sRenderer };
-      //ID3D12Device* mDevice{ renderer.mDevice };
-      //DX12ContextManager* contextManager{ &renderer.mContextManager };
+      TAC_ASSERT( params.mUsage == Usage::Dynamic );
       const BufferHandle h{ AllocBufferHandle() };
       DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
       buffer = DX12Buffer{ .mCreateParams { params }, };
-      if( !params.mOptionalName.empty() )
-      {
-        buffer.mCreateName = params.mOptionalName;
-        buffer.mCreateParams.mOptionalName = buffer.mCreateName;
-      }
-
       LogBufferAux( kCreateBufferAction, h, &buffer );
+
       return h;
   }
 
@@ -244,10 +234,9 @@ namespace Tac::Render
       committedResource.iid(),
       committedResource.ppv() ) );
 
-    DX12Resource buffer{ DX12Resource( committedResource, ResourceDesc, initialResourceStates ) };
+    DX12Resource buffer( committedResource, ResourceDesc, initialResourceStates );
 
     ID3D12Resource* resource{ buffer.Get() };
-
 
     void* mappedCPUAddr{};
     if( heapType == D3D12_HEAP_TYPE_UPLOAD )
@@ -282,7 +271,7 @@ namespace Tac::Render
         const UINT64 dstResourceOffset{};
         commandList->CopyBufferRegion( resource,
                                        dstResourceOffset,
-                                       allocation.mResource,
+                                       allocation.GetResource().Get(), //allocation.mResource,
                                        allocation.mResourceOffest,
                                        params.mByteCount );
       }
@@ -301,19 +290,15 @@ namespace Tac::Render
     }.NameObject( resource );
 
     // Transition to the intended usage for context root signature binding
-    TransitionBuffer( params.mBinding,
-                      &buffer,
-                      commandList );
+    TransitionBuffer( params.mBinding, &buffer, commandList );
 
     // do we context->SetSynchronous() ?
     TAC_CALL_RET( context->Execute( errors ) );
 
-    const D3D12_GPU_VIRTUAL_ADDRESS gpuVritualAddress { buffer->GetGPUVirtualAddress() };
-
     mBuffers[ i ] = DX12Buffer
     {
       .mResource       { buffer },
-      .mGPUVirtualAddr { gpuVritualAddress },
+      .mGPUVirtualAddr { buffer->GetGPUVirtualAddress() },
       .mSRV            { descriptorBindings.mSRV },
       .mUAV            { descriptorBindings.mUAV },
       .mMappedCPUAddr  { mappedCPUAddr },
@@ -387,6 +372,32 @@ namespace Tac::Render
       transitionHelper.ResourceBarrier( commandList );
   }
 
+  auto DX12BufferMgr::DEBUG_StringifyBuffer( BufferHandle h ) -> String
+  {
+    const DX12Buffer* buffer{ FindBuffer( h ) };
+    if( !buffer )
+      return "<invalid buffer>";
+
+    String result;
+    const char* separator{ "" };
+    auto AppendMsg = [&]( StringView msg )
+    {
+      result += separator;
+      result += msg;
+      separator = ", ";
+    };
+
+    const StringView displayName{ buffer->mCreateParams.mOptionalName.empty()
+      ? "<unnamed>"
+      : buffer->mCreateParams.mOptionalName };
+
+    AppendMsg( "Buffer" );
+    AppendMsg( "Idx: " + ToString( h.GetIndex() ) );
+    AppendMsg( "Name: " + displayName );
+    AppendMsg( "Stack Frame: " + buffer->mCreateParams.mStackFrame.Stringify() );
+    return result;
+  }
+
   void DX12BufferMgr::UpdateBuffer( BufferHandle h,
                                     Span< const UpdateBufferParams > paramSpan,
                                     DX12Context* context,
@@ -419,11 +430,21 @@ namespace Tac::Render
 
       buffer.mMappedCPUAddr = allocation.mCPUAddr;
       buffer.mGPUVirtualAddr = allocation.mGPUAddr;
-      buffer.mResource.SetState( *allocation.mResourceState ); // ???
+
+#if 0
+      buffer.mResource.SetState( allocation.GetResourceStates() ); // ???
+#else
+      buffer.mResource = allocation.GetResource();
+#endif
+
+
+#if 1 // TEST
+    const DescriptorBindings descriptorBindings{ CreateBindings( buffer.mResource, buffer.mCreateParams ) };
+    buffer.mSRV = descriptorBindings.mSRV;
+    buffer.mUAV = descriptorBindings.mUAV;
+#endif
 
       // uhh so like if the allocation could be used for other things, then
-      // i dont really want to use buffer.mCreateParams.mOptionalName/buffer.mCreateName;
-
       // Do i even want descriptor bindings? isnt that only useful if the buffer is sent through
       // a descriptor table? but i think dynamic buffers may be used through root parameters only
     }
@@ -449,25 +470,17 @@ namespace Tac::Render
     DX12Renderer& renderer{ DX12Renderer::sRenderer };
     DX12DescriptorHeapMgr& heapMgr{ renderer.mDescriptorHeapMgr };
     DX12DescriptorHeap& heap{ heapMgr.mCPUHeaps[ D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV ] };
-
-    if( h.IsValid() )
+    if( DX12Buffer* buffer{ FindBuffer( h ) })
     {
-      DX12Buffer& buffer{ mBuffers[ h.GetIndex() ] };
-      if( buffer.mSRV.HasValue() )
-      {
-        DX12Descriptor descriptor{ buffer.mSRV.GetValue() };
-        heap.GetCPURegionMgr()->Free( descriptor );
-        buffer.mSRV = {};
-      }
-      if( buffer.mUAV.HasValue() )
-      {
-        DX12Descriptor descriptor{ buffer.mUAV.GetValue() };
-        heap.GetCPURegionMgr()->Free( descriptor );
-        buffer.mUAV = {};
-      }
-      LogBufferAux( kDestroyBufferAction, h, &buffer );
+      if( buffer->mSRV.HasValue() )
+        heap.GetCPURegionMgr()->Free( buffer->mSRV.GetValue() );
+
+      if( buffer->mUAV.HasValue() )
+        heap.GetCPURegionMgr()->Free( buffer->mUAV.GetValue() );
+
+      LogBufferAux( kDestroyBufferAction, h, buffer );
       FreeHandle( h );
-      buffer = {};
+      *buffer = {};
     }
   }
 } // namespace Tac::Render

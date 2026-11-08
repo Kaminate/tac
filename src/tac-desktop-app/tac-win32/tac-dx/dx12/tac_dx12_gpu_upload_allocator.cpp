@@ -21,6 +21,9 @@ namespace Tac::Render
     // so normally, when allocating a page, you first check if a retired page can be reused,
     // but large pages are just deleted when they are no longer used.
 
+    int activePageIndex{ -1 };
+    int largePageIndex{ -1 };
+
     DX12UploadPage* pageToAllocateFrom {};
     if( byteCount > DX12UploadPage::kDefaultByteCount )
     {
@@ -28,22 +31,23 @@ namespace Tac::Render
          mPageManager->RequestPage( byteCount, errors ) } );
       mLargePages.push_back( requested );
       pageToAllocateFrom = &mLargePages.back();
+      largePageIndex = mLargePages.size() - 1;
     }
 
     // see if the allocation will fit in the current page
     if( !pageToAllocateFrom && !mActivePages.empty() )
     {
-      DX12UploadPage* curPage { &mActivePages.back() };
-
       if( byteCount ) // avoid divide by 0
       {
         // if the allocation doesn't fit this page will be retired
         mCurPageUsedByteCount = RoundUpToNearestMultiple( mCurPageUsedByteCount, byteCount );
       }
 
-      if( byteCount <= curPage->mByteCount - mCurPageUsedByteCount )
+      if( DX12UploadPage* curPage { &mActivePages.back() };
+          byteCount <= curPage->mByteCount - mCurPageUsedByteCount )
       {
         pageToAllocateFrom = curPage;
+        activePageIndex = mActivePages.size() - 1;
       }
     }
 
@@ -58,9 +62,11 @@ namespace Tac::Render
 
       mCurPageUsedByteCount = 0;
       pageToAllocateFrom = &mActivePages.back();
+      activePageIndex = mActivePages.size() - 1;
     }
 
     TAC_ASSERT( pageToAllocateFrom );
+    TAC_ASSERT( activePageIndex != -1 || largePageIndex != -1 );
 
     const u64 offset{ ( u64 )mCurPageUsedByteCount };
     mCurPageUsedByteCount += byteCount;
@@ -68,6 +74,7 @@ namespace Tac::Render
     const D3D12_GPU_VIRTUAL_ADDRESS gpuAddr{ pageToAllocateFrom->mGPUAddr + offset };
     void* cpuAddr{ ( u8* )pageToAllocateFrom->mCPUAddr + offset };
 
+#if 0
     return DynAlloc
     {
       .mResource          { pageToAllocateFrom->mBuffer.Get() },
@@ -79,6 +86,18 @@ namespace Tac::Render
       .mByteCount         { byteCount },
       .mResourceByteCount { pageToAllocateFrom->mByteCount },
     };
+#else
+    return DynAlloc
+    {
+      .mParent            { this },
+      .mActivePageIndex   { activePageIndex },
+      .mLargePageIndex    { largePageIndex },
+      .mByteCount         { byteCount },
+      .mResourceOffest    { offset },
+      .mGPUAddr           { gpuAddr },
+      .mCPUAddr           { cpuAddr },
+    };
+#endif
   }
 
   // call at end of each context
@@ -213,10 +232,16 @@ namespace Tac::Render
     const D3D12_RANGE* pReadRange{};
     TAC_DX12_CALL_RET( buffer->Map( subresourceIdx, pReadRange, &cpuAddr ) );
 
+    DX12Resource resource( buffer, ResourceDesc, resourceState );
+
     return DX12UploadPage
     {
+#if 0
       .mBuffer        { buffer },
       .mResourceState { resourceState },
+#else
+      .mResource      { resource },
+#endif
       .mGPUAddr       { buffer->GetGPUVirtualAddress() },
       .mCPUAddr       { cpuAddr },
       .mByteCount     { byteCount },

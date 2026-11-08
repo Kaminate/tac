@@ -22,7 +22,6 @@ namespace Tac::Render
     UAV                       mUAV            {};
     void*                     mMappedCPUAddr  {};
     CreateBufferParams        mCreateParams   {};
-    String                    mCreateName     {};
   };
 
 } // namespace Tac::Render

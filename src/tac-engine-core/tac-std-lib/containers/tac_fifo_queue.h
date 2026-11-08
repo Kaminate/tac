@@ -93,7 +93,9 @@ namespace Tac
       for( int i{}; i < mTCount; ++i )
       {
         T& oldT{ mTs[ ( mStartIndex + i ) % mTCapacity ] };
-        TAC_PLACEMENT_NEW( newTs + i )T( move( oldT ) );
+        T& newT{ newTs[ i ] };
+        TAC_PLACEMENT_NEW( &newT )T( move( oldT ) );
+        oldT.~T();
       }
 
       Tac::Deallocate( mTs );
@@ -128,7 +130,7 @@ namespace Tac
     bool empty() const              { return !mTCount; }
     auto size() const               { return mTCount; }
 
-    void swap( FifoQueue<T>&& other ) noexcept
+    void swap( FifoQueue< T >&& other ) noexcept
     {
       Swap( mTs, other.mTs );
       Swap( mTCount, other.mTCount );
@@ -160,6 +162,7 @@ namespace Tac
 
     void operator =( const FifoQueue< T >& v )
     {
+      clear();
       reserve( v.mTCount );
       for( T& t : v )
         push( t );

@@ -57,6 +57,7 @@ namespace Tac
   {
     enum Severity
     {
+      kDebug,
       kInfo,
       kWarning,
       kError,

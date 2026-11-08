@@ -11,7 +11,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/string/tac_string_util.h"

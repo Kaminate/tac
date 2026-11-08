@@ -9,7 +9,7 @@
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 
 #include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/entity/tac_entity.h"

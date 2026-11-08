@@ -14,13 +14,14 @@ namespace Tac
     auto GetValue() const -> const T&    { TAC_ASSERT( mExist ); return mT; }
     auto GetValueOr( T t ) const -> T    { return mExist ? mT : t; }
     bool HasValue() const                { return mExist; }
+    void SetValue( T t )                 { mT = t; mExist = true; }
     operator bool() const                { return mExist; }
     auto operator *() const -> T         { return mT; }
     auto operator ->() const -> const T* { return &mT; }
     auto operator ->() dynmc -> dynmc T* { return &mT; }
     bool operator == ( const T& t )      { return mExist && mT == t; }
     bool operator != ( const T& t )      { return !mExist || mT != t; }
-    void operator = ( const T& t )       { mT = t; mExist = true; }
+    void operator = ( const T& t )       { SetValue( t ); }
   private:
     T    mT     {};
     bool mExist {};

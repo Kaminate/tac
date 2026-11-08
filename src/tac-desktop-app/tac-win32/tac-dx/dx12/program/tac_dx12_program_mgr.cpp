@@ -1,13 +1,14 @@
 #include "tac_dx12_program_mgr.h" // self-inc
 
-#include "tac-dx/hlsl/tac_hlsl_preprocess.h"
-#include "tac-dx/dxc/tac_dxc.h"
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
-#include "tac-rhi/render3/tac_render_backend.h"
-#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
+#include "tac-dx/dxc/tac_dxc.h"
+#include "tac-dx/hlsl/tac_hlsl_preprocess.h"
+#include "tac-engine-core/os/tac_os.h"
+#include "tac-engine-core/shell/tac_shell_time.h"
+#include "tac-rhi/render3/tac_render_backend.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 namespace Tac::Render
 {
@@ -212,7 +213,7 @@ namespace Tac::Render
         if( reloadErrors )
         {
           const String errorStr{ reloadErrors.ToString() };
-          OS::OSDebugPrintLine( errorStr );
+          LogApi::LogMessagePrintLine( errorStr );
           OS::OSDebugPopupBox( errorStr );
           reloadErrors = {};
         }

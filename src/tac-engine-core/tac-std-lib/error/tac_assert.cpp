@@ -1,13 +1,33 @@
 #include "tac_assert.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-std-lib/containers/tac_vector.h"
 
 namespace Tac
 {
+  Vector< AssertFns::Callback > sCallbacks;
+
+  void AssertFns::AddAssertCallback( Callback cb )
+  {
+    sCallbacks.push_back( cb );
+  }
+
   void AssertFns::HandleAssert( StringView message, StackFrame sf )
   {
-    OS::OSDebugAssert( message, sf );
+    const String str{ String()
+      + "ASSERT FAILED( " + message + " ) "
+      + "in " + sf.Stringify() };
+    LogApi::LogMessagePrintLine( str, LogApi::kError );
+
+    for( Callback cb : sCallbacks )
+      cb( str );
+
+    if constexpr( !kIsDebugMode )
+    {
+      std::exit( -1 );
+    }
+    // TODO: c++26 <debugging> std::is_debugger_present
   }
 
   void AssertFns::HandleAssertCase( const char* name, int val, StackFrame sf )

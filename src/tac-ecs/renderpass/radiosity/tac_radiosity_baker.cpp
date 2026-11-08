@@ -10,7 +10,7 @@
 #include "tac-engine-core/thirdparty/cgltf/cgltf_write.h"
 #include "tac-engine-core/graphics/color/tac_color.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 
  #if TAC_SHOULD_IMPORT_STD()
    import std;

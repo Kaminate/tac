@@ -24,22 +24,62 @@ namespace Tac
   // | id in the same frame                                       |
   // +------------------------------------------------------------+
 
+
   struct AppWindowApiBackend
   {
+    struct WindowState
+    {
+      WindowHandle::Gen       mGeneration          {}; // should we just put the whole WindowHandle here instead?
+      String                  mName                {};
+      v2i                     mPos                 {};
+      v2i                     mSize                {};
+      bool                    mShown               {};
+      Render::SwapChainHandle mSwapChainHandle     {};
+      NativeWindowHandle      mNativeWindowHandle  {};
+    };
+
+    struct WindowCreatedParams
+    {
+      NativeWindowHandle mNWH  {};
+      StringView         mName {};
+      v2i                mPos  {};
+      v2i                mSize {};
+    };
+
+    static bool          sCreatesSwapChain;
+    static WindowHandle  sAppHovered;
+
     // Handle desktop event queue on the platform thread
-    static void SetWindowCreated( WindowHandle,
-                                  const void*,
-                                  StringView,
-                                  v2i pos,
-                                  v2i size,
-                                  Errors& );
-    static void SetWindowDestroyed( WindowHandle );
-    static void SetWindowIsVisible( WindowHandle, bool );
-    static void SetWindowSize( WindowHandle, v2i, Errors& );
-    static void SetWindowPos( WindowHandle, v2i );
-    static void SetWindowHovered( WindowHandle );
-    static auto GetWindowPos( WindowHandle ) -> v2i;
-    static void SetCreatesSwapChain( bool );
+    static void OnWindowCreated( WindowCreatedParams, Errors& );
+    static void OnWindowDestroyed( NativeWindowHandle );
+    static void OnWindowSize( NativeWindowHandle, v2i, Errors& );
+
+    //static void SetWindowPos( WindowHandle, v2i );
+    //static void SetWindowHovered( WindowHandle );
+    //static auto GetWindowPos( WindowHandle ) -> v2i;
+    //static auto GetWindowNWH( WindowHandle ) -> NativeWindowHandle;
+    //static void SetCreatesSwapChain( bool );
+
+    static auto FindWindowHandleFromNWH( NativeWindowHandle ) -> WindowHandle;
+    static auto FindWindowStateFromWH( WindowHandle ) -> WindowState*;
+    static auto FindWindowStateFromNWH( NativeWindowHandle ) -> WindowState*;
+
+    // Usage:
+    //
+    //   for( WindowHandle h : AppWindowApiBackend::WindowIterator() )
+    //   {
+    //     ...
+    //   }
+    //
+    struct WindowIterator
+    {
+      auto begin() -> WindowIterator;
+      auto end() -> WindowIterator;
+      auto operator *() -> WindowHandle;
+      void operator ++();
+      bool operator == ( const WindowIterator& ) const = default;
+      WindowHandle::Idx mCurrIdx{};
+    };
   };
 }
 

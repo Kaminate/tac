@@ -18,7 +18,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 
@@ -534,8 +534,7 @@ bool Tac::ImGuiBegin( const StringView name, bool* open, ImGuiWindowFlags flags 
     const v2 size{ ImGuiNextWindow::gNextWindow.mSize.x + ( ImGuiNextWindow::gNextWindow.mSize.x > 0 ? 0 : desktopWindowWidth ),
                    ImGuiNextWindow::gNextWindow.mSize.y + ( ImGuiNextWindow::gNextWindow.mSize.y > 0 ? 0 : desktopWindowHeight ) };
 
-    ImGuiDesktopWindowImpl* imguiDesktopWindow
-      = ImGuiGlobals::FindDesktopWindow( hDesktopWindow );
+    ImGuiDesktopWindowImpl* imguiDesktopWindow{ ImGuiGlobals::FindDesktopWindow( hDesktopWindow ) };
     if( !imguiDesktopWindow )
     {
       imguiDesktopWindow = TAC_NEW ImGuiDesktopWindowImpl;
@@ -549,7 +548,7 @@ bool Tac::ImGuiBegin( const StringView name, bool* open, ImGuiWindowFlags flags 
     window->mDrawData = TAC_NEW UI2DDrawData;
     window->mTextInputData = TAC_NEW TextInputData;
     window->mDesktopWindow = imguiDesktopWindow;
-    window->mWindowHandleOwned = !ImGuiNextWindow::gNextWindow.mWindowHandle.IsValid();
+    window->mWindowHandleOwned = ( ImGuiNextWindow::gNextWindow.mWindowHandle == WindowHandle() );
     window->mViewportSpacePos = {};
     window->mSize = size;
     window->mPreviousViewportToggleSize = size;
@@ -558,7 +557,6 @@ bool Tac::ImGuiBegin( const StringView name, bool* open, ImGuiWindowFlags flags 
     window->mEnableBG = ImGuiNextWindow::gNextWindow.mEnableBG;
     ImGuiGlobals::mAllWindows.push_back( window );
   }
-
 
   ImGuiNextWindow::gNextWindow = {};
 
@@ -1304,7 +1302,7 @@ void Tac::ImGuiBeginFrame( const BeginFrameData& data )
   {
     if( desktopWindow->mMonitorDpiRequested )
     {
-      const void* nwh{ AppWindowApi::GetNativeWindowHandle( desktopWindow->mWindowHandle ) };
+      const NativeWindowHandle nwh{ AppWindowApi::GetNativeWindowHandle( desktopWindow->mWindowHandle ) };
       const Monitor monitor{ OS::OSGetMonitorFromNativeWindowHandle( nwh ) };
       desktopWindow->mMonitorDpi = ( float )monitor.mDpi;
       desktopWindow->mMonitorDpiRequested = false;
@@ -1422,8 +1420,14 @@ void Tac::ImGuiPlatformRenderFrameBegin( Errors& errors )
 
     const Render::SwapChainHandle fb{ AppWindowApi::GetSwapChainHandle( hDesktopWindow ) };
 
-    const ShortFixedString renderGroupStr{ ShortFixedString::Concat(
-      __FUNCTION__ , "(" , Tac::ToString( hDesktopWindow.GetIndex() ) , ")" ) };
+    const ShortFixedString renderGroupStr{
+      ShortFixedString::Concat(
+      __FUNCTION__,
+        "(",
+        Tac::ToString( hDesktopWindow.GetIdx() ),
+        ", ",
+        Tac::ToString( hDesktopWindow.GetGen() ),
+        ")" ) };
 
     {
       TAC_RENDER_GROUP_BLOCK( renderContext, renderGroupStr );

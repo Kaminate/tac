@@ -6,6 +6,7 @@
 #include "tac-std-lib/error/tac_stack_frame.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-engine-core/window/tac_window_handle.h"
 
 namespace Tac
 {
@@ -23,7 +24,7 @@ namespace Tac
 
   struct SaveParams
   {
-    UTF8Path mDefaultFolder {};
+    UTF8Path mDefaultFolder     {};
     UTF8Path mSuggestedFilename {};
   };
 }
@@ -31,9 +32,11 @@ namespace Tac
 namespace Tac::OS
 {
   extern void      ( *OSDebugBreak )( );
-  void                OSDebugAssert( StringView, const StackFrame& );
+  //void                OSDebugAssert( StringView, const StackFrame& );
+#if 0
   void                OSDebugPrintLine( StringView );
   void                OSDebugPrint( StringView );
+#endif
   extern void      ( *OSDebugPopupBox )( StringView );
   extern auto      ( *OSGetApplicationDataPath )( Errors& )-> UTF8Path; // save files & user configs go here
   extern auto      ( *OSSaveDialog )( const SaveParams&, Errors& ) -> UTF8Path;
@@ -41,7 +44,7 @@ namespace Tac::OS
   extern void      ( *OSOpenPath )( const UTF8Path&, Errors& );
   extern auto      ( *OSGetPrimaryMonitor )() -> Monitor;
   extern auto      ( *OSGetMonitorAtPoint )( v2 ) -> Monitor;
-  extern auto      ( *OSGetMonitorFromNativeWindowHandle )( const void* ) -> Monitor;
+  extern auto      ( *OSGetMonitorFromNativeWindowHandle )( NativeWindowHandle ) -> Monitor;
   extern void      ( *OSSetScreenspaceCursorPos )( const v2&, Errors& );
   void                OSThreadSleepSec( float );
   void                OSThreadSleepMsec( int );

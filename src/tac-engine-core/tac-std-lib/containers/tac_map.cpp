@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 void Tac::MapUnitTest()
 {
@@ -31,19 +31,19 @@ void Tac::MapUnitTest()
   for( auto [first, second] : myMap )
   {
     const String str { String() + ToString( first ) + " " + second };
-    OS::OSDebugPrintLine(str); 
+    LogApi::LogMessagePrintLine(str); 
   }
 
   if( auto it { myMap.Find( 0 ) }; it != myMap.end() )
   {
     const String& s{ ( *it ).second };
-    OS::OSDebugPrintLine( s );
+    LogApi::LogMessagePrintLine( s );
   }
 
   if( auto it{ myMap.Find( 3 ) }; it != myMap.end() )
   {
     const String& s{ ( *it ).second };
-    OS::OSDebugPrintLine( s );
+    LogApi::LogMessagePrintLine( s );
   }
 
 }

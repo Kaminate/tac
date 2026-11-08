@@ -2,7 +2,7 @@
 
 #include "tac_render_tutorial.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac

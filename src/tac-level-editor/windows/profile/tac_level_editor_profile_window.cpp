@@ -15,7 +15,7 @@
 #include "tac-level-editor/tac_level_editor.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 
 namespace Tac
 {

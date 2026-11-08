@@ -1,5 +1,6 @@
 #include "tac_win32_desktop_window_manager.h" // self-inc
 
+#include "tac-win32/tac_win32.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
@@ -9,7 +10,8 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-win32/input/tac_win32_mouse_edge.h"
@@ -19,23 +21,11 @@
 
 namespace Tac
 {
-  static const char*  sClassName{ "tac" };
-  static HWND         sHWNDs[ kDesktopWindowCapacity ]{};
-  static HWND         sParentHWND{};
-  static WindowHandle sWindowUnderConstruction{};
-  static bool         sMouseInWindow{};
-
-  struct Win32WindowManager
-  {
-    static void Init( Errors& );
-    static void Poll( Errors& );
-    static void SpawnWindow( const PlatformSpawnWindowParams&, Errors& );
-    static void DespawnWindow( WindowHandle );
-    static void MinimizeWindow( WindowHandle );
-    static auto FindWindow( HWND ) -> WindowHandle;
-    static HWND GetHWND( WindowHandle );
-    static void DebugImGui();
-  };
+  static const char*  sClassName               { "tac" };
+  static HWND         sParentHWND              {};
+  static WindowHandle sWindowUnderConstruction {};
+  static WindowHandle sMouseHoveredWindow      {};
+  static bool         sMouseInWindow           {};
 
   // -----------------------------------------------------------------------------------------------
 
@@ -110,8 +100,12 @@ namespace Tac
     static bool verboseActivate{};
     static bool verboseCapture{};
 
+    const NativeWindowHandle nativeWindowHandle{ .mPointer{ hwnd } };
+
     // [ ] Q: wtf is sWindowUnderConstruction???
-    const WindowHandle windowHandleFound{ Win32WindowManager::FindWindow( hwnd ) };
+
+#if 0 // ???
+    const WindowHandle windowHandleFound{ HWNDToWindowHandle( hwnd ) };
     const WindowHandle windowHandle{ windowHandleFound.IsValid()
       ? windowHandleFound
       : sWindowUnderConstruction };
@@ -125,16 +119,18 @@ namespace Tac
         default: TAC_ASSERT_INVALID_CASE( uMsg );
       }
     }
+#endif
 
     switch( uMsg )
     {
       case WM_SHOWWINDOW:
       {
-        DesktopEventApi::Queue(
+        const bool visible{ wParam == TRUE };
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::WindowVisibleEvent 
           {
-              .mWindowHandle { windowHandle },
-              .mVisible {  wParam == TRUE  },
+            .mWindowHandle { nativeWindowHandle },
+            .mVisible      { visible },
           } );
       } break;
       // Sent as a signal that a window or an application should terminate.
@@ -149,28 +145,25 @@ namespace Tac
       // Sent when a window is being destroyed
       case WM_DESTROY:
       {
-        ImGuiSaveWindowSettings( windowHandle );
-        const int i{ windowHandle.GetIndex() };
-        sHWNDs[ i ] = nullptr;
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::WindowDestroyEvent
           {
-            .mWindowHandle = windowHandle
+            .mWindowHandle = nativeWindowHandle
           } );
       } break;
 
       case WM_CREATE:
       {
-        const int i{ windowHandle.GetIndex() };
-        sHWNDs[ i ] = hwnd;
+        //const int i{ windowHandle.GetIndex() };
+        //sHWNDs[ i ] = hwnd;
         sWindowUnderConstruction = {};
         auto windowInfo{ ( const CREATESTRUCT* )lParam };
         TAC_ASSERT( windowInfo->cx && windowInfo->cy );
         TAC_ASSERT( windowInfo->lpszName );
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::WindowCreateEvent
           {
-              .mWindowHandle       { windowHandle },
+              .mWindowHandle       { nativeWindowHandle },
               .mName               { windowInfo->lpszName },
               .mNativeWindowHandle { hwnd },
               .mX                  { windowInfo->x },
@@ -191,27 +184,27 @@ namespace Tac
       // - notify the logic thread that the windowstate has been updated
       case WM_SIZE:
       {
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::WindowResizeEvent
           {
-            .mWindowHandle { windowHandle },
+            .mWindowHandle { nativeWindowHandle },
             .mWidth        { ( int )LOWORD( lParam ) },
             .mHeight       { ( int )HIWORD( lParam ) },
           } );
       } break;
       case WM_MOVE:
       {
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::WindowMoveEvent
           {
-            .mWindowHandle { windowHandle },
+            .mWindowHandle { nativeWindowHandle },
             .mX            { ( int )( short )LOWORD( lParam ) },
             .mY            { ( int )( short )HIWORD( lParam ) },
           } );
       } break;
       case WM_CHAR:
       {
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::KeyInputEvent
           {
             ( Codepoint )wParam
@@ -230,7 +223,7 @@ namespace Tac
         const Key key{ GetKey( ( u8 )wParam ) };
         if( key == Key::Count )
           break;
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::KeyStateEvent
           {
             .mKey { key },
@@ -244,13 +237,13 @@ namespace Tac
       case WM_SETFOCUS:
       {
         if( verboseFocus )
-          OS::OSDebugPrintLine( "window gained keyboard focus " );
+          LogApi::LogMessagePrintLine( "window gained keyboard focus " );
       } break;
 
       case WM_KILLFOCUS:
       {
         if( verboseFocus )
-          OS::OSDebugPrintLine( "window about to lose keyboard focus" );
+          LogApi::LogMessagePrintLine( "window about to lose keyboard focus" );
       } break;
 
       // Sent when a window belonging to a different application than the active window
@@ -263,20 +256,23 @@ namespace Tac
         const DesktopEventApi::WindowActivationEvent::State state{ wParam == TRUE
           ? DesktopEventApi::WindowActivationEvent::Activated
           : DesktopEventApi::WindowActivationEvent::Deactivated };
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::WindowActivationEvent
           {
-            .mWindowHandle { windowHandle },
+            .mWindowHandle { nativeWindowHandle },
             .mState        { state },
           } );
-        if( verboseActivate && wParam ) { OS::OSDebugPrintLine( "Window activate!" ); }
-        if( verboseActivate && !wParam ) { OS::OSDebugPrintLine( "Window deactivate!" ); }
+        if( verboseActivate && wParam )
+          LogApi::LogMessagePrintLine( "Window activate!" );
+
+        if( verboseActivate && !wParam )
+          LogApi::LogMessagePrintLine( "Window deactivate!" );
       } break;
 
       case WM_CAPTURECHANGED:
       {
         if( verboseCapture )
-          OS::OSDebugPrintLine( "WM_CAPTURECHANGED ( mouse capture lost )" );
+          LogApi::LogMessagePrintLine( "WM_CAPTURECHANGED ( mouse capture lost )" );
       } break;
 
 
@@ -294,7 +290,7 @@ namespace Tac
         if( uMsg == WM_LBUTTONDOWN ) { key = Key::MouseLeft; }
         if( uMsg == WM_RBUTTONDOWN ) { key = Key::MouseRight; }
         if( uMsg == WM_MBUTTONDOWN ) { key = Key::MouseMiddle; }
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::KeyStateEvent
           {
             .mKey  { key },
@@ -318,7 +314,7 @@ namespace Tac
         if( uMsg == WM_LBUTTONUP ) { key = Key::MouseLeft; }
         if( uMsg == WM_RBUTTONUP ) { key = Key::MouseRight; }
         if( uMsg == WM_MBUTTONUP ) { key = Key::MouseMiddle; }
-        DesktopEventApi::Queue( DesktopEventApi::KeyStateEvent { .mKey  { key }, .mDown {}, } );
+        DesktopEventApi::QueueEvent( DesktopEventApi::KeyStateEvent { .mKey  { key }, .mDown {}, } );
 
         // Release mouse input capturing
         if( hwnd == ::GetCapture() )
@@ -340,10 +336,10 @@ namespace Tac
         }
         const int xPos{ GET_X_LPARAM( lParam ) };
         const int yPos{ GET_Y_LPARAM( lParam ) };
-        DesktopEventApi::Queue(
+        DesktopEventApi::QueueEvent(
           DesktopEventApi::MouseMoveEvent
           {
-            .mWindowHandle { windowHandle },
+            .mWindowHandle { nativeWindowHandle },
             .mX            { xPos },
             .mY            { yPos },
           } );
@@ -353,7 +349,7 @@ namespace Tac
       {
         const short delta{ GET_WHEEL_DELTA_WPARAM( wParam ) };
         const float deltaScaled{ ( float )delta / WHEEL_DELTA };
-        DesktopEventApi::Queue( DesktopEventApi::MouseWheelEvent{ .mDelta{ deltaScaled } } );
+        DesktopEventApi::QueueEvent( DesktopEventApi::MouseWheelEvent{ .mDelta{ deltaScaled } } );
       } break;
 
       case WM_DPICHANGED:
@@ -364,7 +360,7 @@ namespace Tac
         const int w{ suggested_rect->right - suggested_rect->left };
         const int h{ suggested_rect->bottom - suggested_rect->top };
         ::SetWindowPos( hwnd, nullptr, x, y, w, h, SWP_NOZORDER | SWP_NOACTIVATE );
-        DesktopEventApi::Queue( DesktopEventApi::WindowDpiChangedEvent{ .mWindowHandle{windowHandle } } );
+        DesktopEventApi::QueueEvent( DesktopEventApi::WindowDpiChangedEvent{ .mWindowHandle{nativeWindowHandle } } );
         return 0;
       }
     }
@@ -421,51 +417,55 @@ namespace Tac
 
   // -----------------------------------------------------------------------------------------------
 
-  auto Win32WindowManager::FindWindow( HWND hwnd ) -> Tac::WindowHandle
+  void Platform::PlatformImGui( Errors& errors )
   {
-    for( int i{}; i < kDesktopWindowCapacity; ++i )
-      if( sHWNDs[ i ] == hwnd )
-        return { i };
-    return {};
-  }
-
-  HWND Win32WindowManager::GetHWND( WindowHandle h )
-  {
-    return sHWNDs[ h.GetIndex() ];
-  }
-
-  void Win32WindowManager::DebugImGui()
-  {
-    if( !ImGuiCollapsingHeader( "Win32WindowManagerDebugImGui" ) )
+    TAC_UNUSED_PARAMETER( errors );
+    if( !ImGuiCollapsingHeader( "Platform::PlatformImGui" ) )
       return;
 
     TAC_IMGUI_INDENT_BLOCK;
 
     int hwndCount{};
-    for( int i{}; i < kDesktopWindowCapacity; ++i )
+
+
+    for( WindowHandle windowHandle : AppWindowApiBackend::WindowIterator() )
     {
-      const HWND hwnd{ sHWNDs[ i ] };
-      if( !hwnd )
-        continue;
+      if( AppWindowApiBackend::WindowState * windowState{
+        AppWindowApiBackend::FindWindowStateFromWH( windowHandle ) } )
+      {
+        if( const NativeWindowHandle nwh{ windowState->mNativeWindowHandle };
+            nwh.mPointer )
+        {
+          const ShortFixedString text{
+            ShortFixedString::Concat(
+              "Window ",
+              ToString( windowHandle.GetIdx() ),
+              " has HWND ",
+              ToString( ( void* )nwh.mPointer ) ) };
 
-      const ShortFixedString text{
-        ShortFixedString::Concat(
-          "Window ", ToString( i ), " has HWND ", ToString( ( void* )hwnd ) ) };
-
-      ImGuiText( text );
-      hwndCount++;
+          ImGuiText( text );
+          hwndCount++;
+        }
+      }
     }
 
     if( !hwndCount )
       ImGuiText( "No windows... how are you seeing this?" );
   }
 
-  void Win32WindowManager::Init( Errors& errors )
+  static auto FindMouseHoveredWindow() -> WindowHandle
   {
-    RegisterWindowClass( errors );
+    if( POINT cursorPos; ::GetCursorPos( &cursorPos ) )
+      if( const HWND cursorHwnd{ ::WindowFromPoint( cursorPos ) } )
+        for( const WindowHandle currWindowHandle : AppWindowApiBackend::WindowIterator() )
+          if( const AppWindowApiBackend::WindowState * windowState{
+            AppWindowApiBackend::FindWindowStateFromWH( currWindowHandle ) } )
+            if( NativeWindowHandleToHWND( windowState->mNativeWindowHandle ) == cursorHwnd )
+              return currWindowHandle;
+    return {};
   }
 
-  void Win32WindowManager::Poll( Errors& )
+  void Platform::PlatformFrameBegin( Errors& errors ) 
   {
     MSG msg{};
     while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
@@ -473,23 +473,20 @@ namespace Tac
       TranslateMessage( &msg );
       DispatchMessage( &msg );
     }
+
+    sMouseHoveredWindow = FindMouseHoveredWindow();
   }
 
-  void Win32WindowManager::MinimizeWindow( WindowHandle h )
+  void Platform::PlatformFrameEnd( Errors& errors ) 
   {
-    const auto i{ h.GetIndex() };
-    const HWND hwnd{ sHWNDs[ i ] };
-    ::ShowWindow( hwnd, SW_MINIMIZE );
+    TAC_UNUSED_PARAMETER( errors );
+    //Win32MouseEdgeUpdate();
+    //const WindowHandle windowHandle{Win32MouseEdgeGetCursorHovered()};
+    const WindowHandle windowHandle{ sMouseHoveredWindow };
+    DesktopEventApi::QueueEvent( DesktopEventApi::CursorUnobscuredEvent{ .mWindowHandle{ windowHandle } } );
   }
 
-  void Win32WindowManager::DespawnWindow( WindowHandle windowHandle )
-  {
-    const auto i{ windowHandle.GetIndex() };
-    const HWND hwnd{ sHWNDs[ i ] };
-    ::DestroyWindow( hwnd );
-  }
-
-  void Win32WindowManager::SpawnWindow( const PlatformSpawnWindowParams& params, Errors& errors )
+  auto Platform::PlatformSpawnWindow( const PlatformSpawnWindowParams& params, Errors& errors ) -> NativeWindowHandle
   {
     const WindowHandle& windowHandle{ params.mHandle };
 
@@ -546,7 +543,7 @@ namespace Tac
       msg += "\n - if one of the controls in the dialog template is not registered, or its window window procedure fails WM_CREATE or WM_NCCREATE";
       msg += "\nGetLastError() returned: ";
       msg += lastErrorString;
-      TAC_RAISE_ERROR( msg );
+      TAC_RAISE_ERROR_RETURN( msg );
     }
 
     SetFocus( hwnd ); // Sets the keyboard focus to the specified window
@@ -560,50 +557,28 @@ namespace Tac
 
     ShowWindow( hwnd, Win32GetStartupCmdShow() );
 #if 0
-      sParentHWND = sParentHWND ? sParentHWND : hwnd; // combine windows into one tab group
+    sParentHWND = sParentHWND ? sParentHWND : hwnd; // combine windows into one tab group
 #endif
+    return NativeWindowHandle{ .mPointer{ hwnd } };
   }
 
-  // -----------------------------------------------------------------------------------------------
-
-  void Platform::PlatformImGui( Errors& errors )
+  void Platform::PlatformDespawnWindow( NativeWindowHandle handle ) 
   {
-    TAC_UNUSED_PARAMETER( errors );
-    if( !ImGuiCollapsingHeader( "Win32Platform::PlatformImGui" ) )
-      return;
-
-    TAC_IMGUI_INDENT_BLOCK;
-    Win32WindowManager::DebugImGui();
+    const HWND hwnd{ NativeWindowHandleToHWND( handle ) };
+    ::DestroyWindow( hwnd );
   }
 
-  void Platform::PlatformFrameBegin( Errors& errors ) 
+  void Platform::PlatformMinimizeWindow( NativeWindowHandle h )
   {
-    Win32WindowManager::Poll( errors );
+    const HWND hwnd{ NativeWindowHandleToHWND( h ) };
+    ::ShowWindow( hwnd, SW_MINIMIZE );
   }
 
-  void Platform::PlatformFrameEnd( Errors& errors ) 
+  void Platform::PlatformSetWindowPos( NativeWindowHandle nwh, v2i pos) 
   {
-    TAC_UNUSED_PARAMETER( errors );
-    Win32MouseEdgeUpdate();
-    const WindowHandle windowHandle{Win32MouseEdgeGetCursorHovered()};
-    DesktopEventApi::Queue( DesktopEventApi::CursorUnobscuredEvent{ .mWindowHandle{ windowHandle } } );
-  }
 
-  void Platform::PlatformSpawnWindow( const PlatformSpawnWindowParams& params, Errors& errors ) 
-  {
-    Win32WindowManager::SpawnWindow( params, errors );
-  }
+    const HWND hwnd{ NativeWindowHandleToHWND( nwh ) };
 
-  void Platform::PlatformDespawnWindow( WindowHandle handle ) 
-  {
-    Win32WindowManager::DespawnWindow( handle );
-  }
-
-  void Platform::PlatformMinimizeWindow( WindowHandle h ) { Win32WindowManager::MinimizeWindow( h ); }
-
-  void Platform::PlatformSetWindowPos( WindowHandle windowHandle, v2i pos) 
-  {
-    const HWND hwnd{ Win32WindowManager::GetHWND( windowHandle ) };
     RECT rect;
     if( !::GetWindowRect( hwnd, &rect ) )
     {
@@ -639,9 +614,10 @@ namespace Tac
     }
   }
 
-  void Platform::PlatformSetWindowSize( WindowHandle windowHandle, v2i size) 
+  void Platform::PlatformSetWindowSize( NativeWindowHandle nwh, v2i size) 
   {
-    const HWND hwnd{ Win32WindowManager::GetHWND( windowHandle ) };
+    const HWND hwnd{ NativeWindowHandleToHWND( nwh ) };
+
     RECT rect;
     if( !::GetWindowRect( hwnd, &rect ) )
     {
@@ -658,10 +634,7 @@ namespace Tac
 
   auto Platform::PlatformGetMouseHoveredWindow() -> WindowHandle
   {
-    if( POINT cursorPos; ::GetCursorPos( &cursorPos ) )
-      if( const HWND hwnd{ ::WindowFromPoint( cursorPos ) } )
-        return Win32WindowManager::FindWindow( hwnd );
-    return {};
+    return sMouseHoveredWindow;
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -669,4 +642,7 @@ namespace Tac
 
 } // namespace Tac
 
-void Tac::Win32WindowManagerInit( Errors& errors ) { Win32WindowManager::Init( errors ); }
+void Tac::Win32WindowManagerInit( Errors& errors )
+{
+  RegisterWindowClass( errors );
+}

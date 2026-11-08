@@ -17,7 +17,6 @@ namespace Tac
     //AppWindowMgr::Condition mSizeCondition;
   };
 
-
   struct AppWindowData
   {
     String       mName;
@@ -25,9 +24,12 @@ namespace Tac
     GameTime     mRequestTime;
   };
 
-  static NextWindowData        sNextWindow;
-  static Vector<AppWindowData> sAllWindowDatas;
-  static Vector<int>           sWindowDataStack;
+  using AllWindowDatas = Vector< AppWindowData >;
+  using WindowDataStack = Vector< int >;
+
+  static NextWindowData  sNextWindow      {};
+  static AllWindowDatas  sAllWindowDatas  {};
+  static WindowDataStack sWindowDataStack {};
 
   static auto FindAppWindowData( StringView name ) -> int
   {
@@ -124,14 +126,17 @@ namespace Tac
   {
     return sAllWindowDatas[ sWindowDataStack.back() ].mWindowHandle;
   }
+
   void AppWindowMgr::WindowEnd()
   {
     sWindowDataStack.pop_back();
   }
+
   void AppWindowMgr::FrameBegin()
   {
     TAC_ASSERT( sWindowDataStack.empty() );
   }
+
   void AppWindowMgr::FrameEnd()
   {
     TAC_ASSERT( sWindowDataStack.empty() );

@@ -2,7 +2,7 @@
 
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/meta/tac_meta.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 namespace Tac
 {
@@ -117,7 +117,7 @@ namespace Tac
       const char* strType { member.mMetaType->GetName() };
       const char* strStruct { metaStruct.GetName() };
       const char* strMember { member.mName };
-      OS::OSDebugPrintLine( String() + strType + " " + strStruct + ":: " + strMember );
+      LogApi::LogMessagePrintLine( String() + strType + " " + strStruct + ":: " + strMember );
     }
   }
 

@@ -3,6 +3,7 @@
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_array.h"
@@ -10,7 +11,6 @@
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-win32/filedialog/tac_win32_file_dialog.h"
@@ -103,9 +103,10 @@ namespace Tac
     return Win32MonitorToTacMonitor( win32Monitor );
   }
 
-  static auto Win32OSGetMonitorFromNativeWindowHandle ( const void* p ) -> Monitor
+  static auto Win32OSGetMonitorFromNativeWindowHandle ( NativeWindowHandle nwh ) -> Monitor
   {
-    HMONITOR win32Monitor{ ::MonitorFromWindow( ( HWND )p, MONITOR_DEFAULTTOPRIMARY ) };
+    HWND hwnd{ NativeWindowHandleToHWND( nwh) };
+    HMONITOR win32Monitor{ ::MonitorFromWindow( hwnd, MONITOR_DEFAULTTOPRIMARY ) };
     return Win32MonitorToTacMonitor( win32Monitor );
   }
 
@@ -172,10 +173,17 @@ namespace Tac
     return path;
   }
 
+  static void Win32AssertCallback(StringView msg)
+  {
+    Win32OSDebugPopupBox( msg );
+    Win32DebugBreak();
+  }
+
 } // namespace Tac
 
 void Tac::Win32OSInit()
 {
+  AssertFns::AddAssertCallback( Win32AssertCallback );
   OS::OSDebugBreak = Win32DebugBreak;
   OS::OSDebugPopupBox = Win32OSDebugPopupBox;
   OS::OSGetApplicationDataPath = Win32OSGetApplicationDataPath;

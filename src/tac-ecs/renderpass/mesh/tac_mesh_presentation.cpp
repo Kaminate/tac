@@ -17,7 +17,7 @@
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/tac_ints.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/model/tac_model.h"

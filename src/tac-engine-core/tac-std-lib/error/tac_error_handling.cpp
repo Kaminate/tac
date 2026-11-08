@@ -1,7 +1,20 @@
 #include "tac_error_handling.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h" // OSDebugPrintLine, OSDebugBreak
+//#include "tac-engine-core/os/tac_os.h" // OSDebugPrintLine, OSDebugBreak
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/string/tac_string_view.h"
+
+#if 0 // c++26, vs2026
+#if TAC_SHOULD_IMPORT_STD()
+  import std;
+#else
+  #include <debugging>
+#endif
+#endif
+
+#if _WIN32
+#include <debugapi.h> // IsDebuggerPresent
+#endif
 
 namespace Tac
 {
@@ -38,12 +51,23 @@ namespace Tac
       if( !mBroken && ( mFlags & Flags::kDebugBreaks ) )
       {
         const String errStr{ ToString() };
-        OS::OSDebugPrintLine( String( 100, '-' ) );
-        OS::OSDebugPrintLine( String( 47, ' ' ) + "ERROR!" );
-        OS::OSDebugPrintLine( String( 100, '-' ) );
-        OS::OSDebugPrintLine( errStr );
-        OS::OSDebugPrintLine( String( 100, '-' ) );
-        OS::OSDebugBreak();
+        LogApi::LogMessagePrintLine( String( 100, '-' ) );
+        LogApi::LogMessagePrintLine( String( 47, ' ' ) + "ERROR!" );
+        LogApi::LogMessagePrintLine( String( 100, '-' ) );
+        LogApi::LogMessagePrintLine( errStr );
+        LogApi::LogMessagePrintLine( String( 100, '-' ) );
+
+#if _WIN32
+        if constexpr( kIsDebugMode )
+          if( ::IsDebuggerPresent() )
+            // If the process is not being debugged, the function uses the search logic of a standard
+            // exception handler. In most cases, this causes the calling process to terminate because
+            // of an unhandled breakpoint exception.
+            ::DebugBreak();
+#else
+#error todo debug break
+#endif
+
         mBroken = true;
       }
     }

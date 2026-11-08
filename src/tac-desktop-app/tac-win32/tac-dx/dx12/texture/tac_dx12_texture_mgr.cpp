@@ -354,7 +354,7 @@ namespace Tac::Render
       for( int iRow{}; iRow < srcH; ++iRow )
       {
         char* src{ ( char* )subRsc.mBytes + subRsc.mPitch * iRow };
-        char* dst{ ( char* )upload.mUnoffsetCPUAddr
+        char* dst{ ( char* )upload.mCPUAddr // mUnoffsetCPUAddr???
           + uploadSubRscOffset
           + uploadSubRscRowPitch * iRow };
 
@@ -389,7 +389,7 @@ namespace Tac::Render
 
       const D3D12_TEXTURE_COPY_LOCATION texCopySrc
       {
-        .pResource       { upload.mResource },
+        .pResource       { upload.GetResource().Get() },
         .Type            { D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT },
         .PlacedFootprint { srcPlacedSubRscFootprint },
       };

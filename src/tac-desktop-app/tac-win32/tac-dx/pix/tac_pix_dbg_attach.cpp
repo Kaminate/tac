@@ -1,9 +1,10 @@
 #include "tac_pix_dbg_attach.h" // self-inc
 
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/error/tac_error_handling.h"
+#include "tac-std-lib/filesystem/tac_filesystem.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac::Render
 {
@@ -84,9 +85,11 @@ namespace Tac::Render
       const String path8{ path };
       if( path8.empty() )
       {
-        OS::OSDebugPrintLine( String() + "Warning: Could not find PIX dll " + pixDllName
-                              + ". Is it installed? "
-                              "PIX will not be able to attach to the running process." );
+        LogApi::LogMessagePrintLine(
+          String() +
+          "Warning: Could not find PIX dll " + pixDllName + ". "
+          "Is it installed? "
+          "PIX will not be able to attach to the running process." );
         return;
       }
 
@@ -94,8 +97,8 @@ namespace Tac::Render
       if( void* lib{ OS::OSLoadDLL( path ) };
           !lib )
       {
-        OS::OSDebugPrintLine( String() +
-                              "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
+        LogApi::LogMessagePrintLine(
+          String() + "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
       }
     }
   }

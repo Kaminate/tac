@@ -16,7 +16,8 @@
 namespace Tac::OS
 {
 
-  static bool mStopRunRequested{};
+  static bool          mStopRunRequested{};
+  static Set< String > sFlags;
 
 #define TAC_INIT_PTR( ptr ) decltype( ptr ) ptr {}
 
@@ -42,22 +43,9 @@ namespace Tac
 
   void OS::OSAppStopRunning() { mStopRunRequested = true; }
 
-  void OS::OSDebugAssert( const StringView msg, const StackFrame& frame )
-  {
-    const String str{ String()
-      + "ASSERT FAILED( " + msg + " ) "
-      + "in " + frame.Stringify() };
-    OSDebugPrintLine( str );
-    LogApi::LogMessagePrintLine( str, LogApi::kError );
-    OSDebugPopupBox( str );
-    OSDebugBreak();
-    if constexpr( !kIsDebugMode )
-    {
-      std::exit( -1 );
-    }
-    // TODO: c++26 <debugging> std::is_debugger_present
-  }
 
+
+#if 0
   void OS::OSDebugPrint( const StringView s )
   {
     if constexpr( kIsDebugMode )
@@ -67,21 +55,16 @@ namespace Tac
     }
   }
 
-  void OS::OSDebugPrintLine( const StringView s )
+  void LogApi::LogMessagePrintLine( const StringView s )
   {
     if constexpr( kIsDebugMode )
     {
       const char* szstr{ s.c_str() };
       std::cout << szstr << std::endl;
       LogApi::LogMessagePrintLine( s );
-      const bool good{ std::cout.good() };
-      if( !good )
-      {
-        // this should never happen hopefully
-        OSDebugBreak();
-      }
     }
   }
+#endif
 
   void OS::OSThreadSleepSec( float t )
   {
@@ -93,14 +76,12 @@ namespace Tac
     std::this_thread::sleep_for( std::chrono::milliseconds( t ) );
   }
 
-
-  static Set< String > sFlags;
-  void Tac::OS::CmdLineAddFlag( StringView flag )
+  void OS::CmdLineAddFlag( StringView flag )
   {
     sFlags.insert( flag );
   }
 
-  bool Tac::OS::CmdLineIsFlagPresent( StringView flag )
+  bool OS::CmdLineIsFlagPresent( StringView flag )
   {
     return sFlags.contains( flag );
   }

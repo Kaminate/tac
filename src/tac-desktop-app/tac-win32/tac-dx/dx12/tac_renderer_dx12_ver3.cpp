@@ -63,6 +63,7 @@ namespace Tac::Render
         break;
 
       const Entry& entry{ mEntries.front() };
+      TAC_ASSERT( entry.mResourceHandle.IsValid() );
       const GameFrame simulationFrameIndex { GameTimer::GetElapsedFrames() };
       const bool canDelete{
         ( currentRenderFrameIndex > entry.mRenderFrameIndex + maxGPUFrameCount ) &&
@@ -225,7 +226,7 @@ namespace Tac::Render
 
   void DX12Device::DestroyPipeline( PipelineHandle h )
   {
-    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
+      DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   auto DX12Device::CreateProgram( ProgramParams params, Errors& errors ) -> ProgramHandle
@@ -240,7 +241,7 @@ namespace Tac::Render
 
   void DX12Device::DestroyProgram( ProgramHandle h )
   {
-    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
+      DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   auto DX12Device::CreateSampler( CreateSamplerParams params ) -> SamplerHandle
@@ -250,7 +251,7 @@ namespace Tac::Render
 
   void DX12Device::DestroySampler( SamplerHandle h )
   {
-    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
+      DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   void DX12Device::BeginRenderFrame( Errors& errors )
@@ -284,7 +285,7 @@ namespace Tac::Render
 
   void DX12Device::DestroySwapChain( SwapChainHandle h )
   {
-    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
+      DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   auto DX12Device::GetSwapChainCurrentColor( SwapChainHandle h) -> TextureHandle
@@ -346,7 +347,7 @@ namespace Tac::Render
 
   void DX12Device::DestroyBuffer( BufferHandle h )
   {
-    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
+      DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
   auto DX12Device::CreateRenderContext( Errors& errors ) -> IContext::Scope
@@ -367,7 +368,7 @@ namespace Tac::Render
 
   void DX12Device::DestroyTexture( TextureHandle h )
   {
-    DX12Renderer::sRenderer.mDeletionQueue.Push( h );
+      DX12Renderer::sRenderer.mDeletionQueue.Push( h );
   }
 
 } // namespace Tac::Render

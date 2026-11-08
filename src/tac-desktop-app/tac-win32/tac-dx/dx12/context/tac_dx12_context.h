@@ -89,6 +89,7 @@ namespace Tac::Render
     PCom< ID3D12CommandAllocator >    mCommandAllocator             {};
 
     // ok so like this needs to be owned so different command lists dont mix up their upload memory
+    // ^ u sure?
     DX12UploadAllocator               mGPUUploadAllocator           {};
   };
 

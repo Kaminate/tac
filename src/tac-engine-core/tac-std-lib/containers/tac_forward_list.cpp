@@ -1,6 +1,6 @@
 #include "tac_forward_list.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
@@ -29,12 +29,12 @@ void Tac::ForwardListUnitTest()
 
   for( const int i : myList )
   {
-    OS::OSDebugPrintLine( ToString( i ) );
+    LogApi::LogMessagePrintLine( ToString( i ) );
   }
 
   while( !myList.empty() )
   {
     const int val = myList.PopFront();
-    OS::OSDebugPrintLine( ToString( val ) );
+    LogApi::LogMessagePrintLine( ToString( val ) );
   }
 }

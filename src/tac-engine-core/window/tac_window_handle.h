@@ -7,21 +7,26 @@
 
 namespace Tac
 {
+  struct NativeWindowHandle
+  {
+    bool operator == ( const NativeWindowHandle& ) const = default;
+    const void* mPointer;
+  };
+
   struct WindowHandle
   {
-    //WindowHandle( int index = -1 ) : mIndex( index ) {}
-
-    //bool IsValid() const  { return mIndex != -1; }
-    //auto GetIndex() const { return mIndex; }
-    //auto GetGeneration() const { return mGeneration; }
-
-    // Comparison operators so client can compare search among their handles
-    // without having to call GetIndex()
-    //bool operator ==( const WindowHandle& ) const = default;
-    //bool operator !=( const WindowHandle& ) const = default;
-
-    u16 mIndex{};
-    u16 mGeneration{};
+    enum Idx : u16 {};
+    enum Gen : u16 {}; // Generation
+    WindowHandle() = default;
+    WindowHandle( Idx idx, Gen gen ) : mIdx( idx ), mGen( gen ) {}
+    bool IsValid() const;
+    auto GetIdx() const { return mIdx; }
+    auto GetGen() const { return mGen; }
+    bool operator ==( const WindowHandle& ) const = default;
+    bool operator !=( const WindowHandle& ) const = default;
+  private:
+    Idx mIdx{};
+    Gen mGen{}; // starts at 1 for valid windows
   };
 } // namespace Tac
 

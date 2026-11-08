@@ -20,7 +20,7 @@ namespace Tac
     static auto GetSize( WindowHandle ) -> v2i;
     static void SetSize( WindowHandle, v2i );
     static auto GetName( WindowHandle ) -> StringView;
-    static auto GetNativeWindowHandle( WindowHandle ) -> const void*;
+    static auto GetNativeWindowHandle( WindowHandle ) -> NativeWindowHandle;
     static auto CreateWindow( WindowCreateParams, Errors& ) -> WindowHandle;
     static void DestroyWindow( WindowHandle );
     static void MinimizeWindow( WindowHandle );

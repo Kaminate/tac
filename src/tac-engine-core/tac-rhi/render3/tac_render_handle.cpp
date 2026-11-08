@@ -35,13 +35,12 @@ namespace Tac::Render
   ResourceHandle::ResourceHandle( BufferHandle h )    : ResourceHandle( HandleType::kBuffer,    h ) {}
   ResourceHandle::ResourceHandle( TextureHandle h )   : ResourceHandle( HandleType::kTexture,   h ) {}
   ResourceHandle::ResourceHandle( SamplerHandle h )   : ResourceHandle( HandleType::kSampler,   h ) {}
-  ResourceHandle::operator SwapChainHandle() const { TAC_ASSERT( mHandleType == HandleType::kSwapChain ); return mHandle.GetIndex(); }
-  ResourceHandle::operator PipelineHandle() const  { TAC_ASSERT( mHandleType == HandleType::kPipeline );  return mHandle.GetIndex(); }
-  ResourceHandle::operator ProgramHandle() const   { TAC_ASSERT( mHandleType == HandleType::kProgram );   return mHandle.GetIndex(); }
-  ResourceHandle::operator BufferHandle() const    { TAC_ASSERT( mHandleType == HandleType::kBuffer );    return mHandle.GetIndex(); }
-  ResourceHandle::operator TextureHandle() const   { TAC_ASSERT( mHandleType == HandleType::kTexture );   return mHandle.GetIndex(); }
-  ResourceHandle::operator SamplerHandle() const   { TAC_ASSERT( mHandleType == HandleType::kSampler );   return mHandle.GetIndex(); }
-  auto ResourceHandle::GetHandleType() const -> HandleType { return mHandleType; }
+  ResourceHandle::operator SwapChainHandle() const { TAC_ASSERT( mHandleType == HandleType::kSwapChain ); return SwapChainHandle( mHandle.GetIndex() ); }
+  ResourceHandle::operator PipelineHandle() const  { TAC_ASSERT( mHandleType == HandleType::kPipeline );  return PipelineHandle( mHandle.GetIndex() ); }
+  ResourceHandle::operator ProgramHandle() const   { TAC_ASSERT( mHandleType == HandleType::kProgram );   return ProgramHandle( mHandle.GetIndex() ); }
+  ResourceHandle::operator BufferHandle() const    { TAC_ASSERT( mHandleType == HandleType::kBuffer );    return BufferHandle( mHandle.GetIndex() ); }
+  ResourceHandle::operator TextureHandle() const   { TAC_ASSERT( mHandleType == HandleType::kTexture );   return TextureHandle( mHandle.GetIndex() ); }
+  ResourceHandle::operator SamplerHandle() const   { TAC_ASSERT( mHandleType == HandleType::kSampler );   return SamplerHandle( mHandle.GetIndex() ); }
 
  // -----------------------------------------------------------------------------------------------
 

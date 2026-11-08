@@ -281,13 +281,21 @@ namespace Tac
         }
       }
 
+
+      const Render::Usage gridDataUsage
+#if 0
+          { Render::Usage::Dynamic };
+#else
+          { Render::Usage::Default };
+#endif
+
       const Render::BufferHandle gridDataHandle{ renderDevice->CreateBuffer(
         Render::CreateBufferParams
         {
           .mByteCount     { cpuTextureIndicesByteCount },
           .mBytes         { cpuTextureIndices },
           .mStride        { sizeof( u32 ) },
-          .mUsage         { Render::Usage::Default },
+          .mUsage         { gridDataUsage },
           .mBinding       { Render::Binding::ShaderResource },
           .mCpuAccess     { Render::CPUAccess::None },
           .mGpuBufferMode { Render::GpuBufferMode::kFormatted },
@@ -306,6 +314,15 @@ namespace Tac
 
       textureIndicesShaderVar->SetResource( gridDataHandle );
       renderContext->UpdateBufferSimple( cbufhandle, cbufData, errors );
+      if constexpr( gridDataUsage == Render::Usage::Dynamic )
+        renderContext->UpdateBufferSimple(
+          gridDataHandle,
+          Render::UpdateBufferParams
+          {
+            .mSrcBytes{ cpuTextureIndices },
+            .mSrcByteCount{ cpuTextureIndicesByteCount },
+          },
+          errors );
       renderContext->CommitShaderVariables();
       renderContext->Draw(
         Render::DrawArgs

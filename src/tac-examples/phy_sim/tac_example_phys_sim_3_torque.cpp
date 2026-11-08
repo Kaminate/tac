@@ -6,7 +6,8 @@
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+//#include "tac-engine-core/os/tac_os.h"
 
 
 // This example based off
@@ -19,7 +20,7 @@ namespace Tac
   static bool     drawDragForce     {};
   static bool     debugPrintRotMtx  {};
 
-  static auto InertiaTensorBox(float mass, float a, float b, float c ) -> m3
+  static auto InertiaTensorBox( float mass, float a, float b, float c ) -> m3
   {
     float s { mass / 12 };
     float ixx { s * ( b * b + c * c ) };
@@ -36,7 +37,7 @@ namespace Tac
     // - the box is of uniform density
     // - 'mass' is of the entire box
     // - 'size'.xyz is the full width/height/depth of the box size length
-    return InertiaTensorBox(mass, size.x, size.y, size.z);
+    return InertiaTensorBox( mass, size.x, size.y, size.z );
   }
 
   static auto Format( float f ) -> String
@@ -58,8 +59,8 @@ namespace Tac
       + Format( r1.x ) + " " + Format( r1.y ) + " " + Format( r1.z ) + "\n"
       + Format( r2.x ) + " " + Format( r2.y ) + " " + Format( r2.z ) + "\n"
     };
-    OS::OSDebugPrintLine( s );
-    OS::OSDebugPrintLine( "\n" );
+    LogApi::LogMessagePrintLine( s );
+    LogApi::LogMessagePrintLine( "\n" );
   }
 
 

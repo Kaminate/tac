@@ -319,7 +319,7 @@ namespace Tac::Render
 
     //            Used if the GpuBufferMode is kFormatted, and for index buffers
     TexFmt        mGpuBufferFmt  { TexFmt::kUnknown };
-    StringView    mOptionalName  {};
+    String        mOptionalName  {};
     StackFrame    mStackFrame    {};
   };
 

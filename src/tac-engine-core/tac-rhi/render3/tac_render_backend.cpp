@@ -31,12 +31,12 @@ namespace Tac
 
   static IdMgr sIdMgrs[ ( int )Render::HandleType::kCount ];
 
-  auto Render::AllocBufferHandle() -> BufferHandle       { return sIdMgrs[ ( int )Render::HandleType::kBuffer ].Alloc(); }
-  auto Render::AllocPipelineHandle() -> PipelineHandle   { return sIdMgrs[ ( int )Render::HandleType::kPipeline ].Alloc(); }
-  auto Render::AllocProgramHandle() -> ProgramHandle     { return sIdMgrs[ ( int )Render::HandleType::kProgram ].Alloc(); }
-  auto Render::AllocSamplerHandle() -> SamplerHandle     { return sIdMgrs[ ( int )Render::HandleType::kSampler ].Alloc(); }
-  auto Render::AllocSwapChainHandle() -> SwapChainHandle { return sIdMgrs[ ( int )Render::HandleType::kSwapChain ].Alloc(); }
-  auto Render::AllocTextureHandle() -> TextureHandle     { return sIdMgrs[ ( int )Render::HandleType::kTexture ].Alloc(); }
+  auto Render::AllocBufferHandle() -> BufferHandle       { return BufferHandle( sIdMgrs[ ( int )Render::HandleType::kBuffer ].Alloc() ); }
+  auto Render::AllocPipelineHandle() -> PipelineHandle   { return PipelineHandle( sIdMgrs[ ( int )Render::HandleType::kPipeline ].Alloc() ); }
+  auto Render::AllocProgramHandle() -> ProgramHandle     { return ProgramHandle( sIdMgrs[ ( int )Render::HandleType::kProgram ].Alloc() ); }
+  auto Render::AllocSamplerHandle() -> SamplerHandle     { return SamplerHandle( sIdMgrs[ ( int )Render::HandleType::kSampler ].Alloc() ); }
+  auto Render::AllocSwapChainHandle() -> SwapChainHandle { return SwapChainHandle( sIdMgrs[ ( int )Render::HandleType::kSwapChain ].Alloc() ); }
+  auto Render::AllocTextureHandle() -> TextureHandle     { return TextureHandle( sIdMgrs[ ( int )Render::HandleType::kTexture ].Alloc() ); }
   void Render::FreeHandle( ResourceHandle h ) 
   {
     if( !h.IsValid() )

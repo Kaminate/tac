@@ -7,7 +7,7 @@ namespace Tac
   // similar to c++20 std::source_location
   struct StackFrame
   {
-    String Stringify() const;
+    auto Stringify() const -> String;
     operator bool() const { return mFile; }
     int         mLine {};
     const char* mFile {};

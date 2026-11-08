@@ -12,7 +12,7 @@
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
@@ -306,7 +306,7 @@ namespace Tac
   {
     const v2i windowSize{ AppWindowApi::GetSize( mDesktopWindow->mWindowHandle ) };
     const v2i windowPos{ AppWindowApi::GetPos( mDesktopWindow->mWindowHandle ) };
-    const void* nwh{ AppWindowApi::GetNativeWindowHandle( mDesktopWindow->mWindowHandle ) };
+    const NativeWindowHandle nwh{ AppWindowApi::GetNativeWindowHandle( mDesktopWindow->mWindowHandle ) };
     const Monitor monitor{ OS::OSGetMonitorFromNativeWindowHandle( nwh ) };
     const bool isFullscreen{ windowPos == monitor.mPos && windowSize == monitor.mSize };
     if( isFullscreen )
@@ -644,7 +644,7 @@ namespace Tac
 
     const WindowHandle mouseHoveredWindow { ImGuiGlobals::mMouseHoveredWindow };
     const WindowHandle windowHandle { GetWindowHandle() };
-    if( mouseHoveredWindow.GetIndex() != windowHandle.GetIndex() )
+    if( mouseHoveredWindow != windowHandle )
       return false;
 
     if( !rectViewport.ContainsPoint( GetMousePos_nwhspace() ) )
@@ -728,7 +728,7 @@ namespace Tac
   auto ImGuiGlobals::FindDesktopWindow( WindowHandle h ) -> ImGuiDesktopWindowImpl*
   {
     for( ImGuiDesktopWindowImpl* impl : mDesktopWindows )
-      if( impl->mWindowHandle.GetIndex() == h.GetIndex() )
+      if( impl->mWindowHandle == h )
         return impl;
 
     return nullptr;

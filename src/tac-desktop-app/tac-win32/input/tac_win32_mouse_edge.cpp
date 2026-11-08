@@ -1,3 +1,4 @@
+#if 0
 #include "tac_win32_mouse_edge.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
@@ -5,7 +6,7 @@
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/platform/tac_platform.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-win32/desktopwindow/tac_win32_desktop_window_manager.h"
@@ -104,7 +105,7 @@ namespace Tac
   {
     bool verbose {};
     if( verbose )
-      OS::OSDebugPrintLine( ShortFixedString( "Cursor lock: ", cursorDir ) );
+      LogApi::LogMessagePrintLine( ShortFixedString( "Cursor lock: ", cursorDir ) );
 
     mCursorLock = cursorDir;
   }
@@ -112,11 +113,9 @@ namespace Tac
 #endif
   static HWND GetMouseHoveredHWND()
   {
-    POINT cursorPos;
-    if( !::GetCursorPos( &cursorPos ) )
-      return NULL;
-
-    return ::WindowFromPoint( cursorPos );
+    if( POINT cursorPos; ::GetCursorPos( &cursorPos ) )
+      return ::WindowFromPoint( cursorPos );
+    return NULL;
   }
 
   //static void SetCursor( const CursorDir cursorDir )
@@ -314,3 +313,4 @@ auto Tac::Win32MouseEdgeGetCursorHovered() -> Tac::WindowHandle
 {
   return sMouseHoveredDesktopWindow;
 }
+#endif

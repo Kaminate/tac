@@ -12,181 +12,281 @@
 
 namespace Tac
 {
-  struct WindowState
-  {
-    String                  mName                {};
-    v2i                     mPos                 {};
-    v2i                     mSize                {};
-    bool                    mShown               {};
-    Render::SwapChainHandle mSwapChainHandle     {};
-    const void*             mNativeWindowHandle  {};
-  };
 
-  using WindowStates = Array< WindowState, kDesktopWindowCapacity >;
+  using WindowStates = Array< AppWindowApiBackend::WindowState, kDesktopWindowCapacity >;
 
-  static int                       sHandleCounter        {};
-  static Vector< int >             sFreeHandles          {};
+  static WindowHandle::Idx         sHandleCounter        {};
+  static Vector< WindowHandle >    sFreedHandles         {};
   static Render::TexFmt            sSwapChainColorFormat { Render::TexFmt::kRGBA16F };
   static Render::TexFmt            sSwapChainDepthFormat { Render::TexFmt::kD24S8 };
-  static WindowHandle              sAppHovered           {};
   static WindowStates              sAppCurr              {};
-  static bool                      mCreatesSwapChain     { true };
+
+  bool          AppWindowApiBackend::sCreatesSwapChain   { true };
+  WindowHandle  AppWindowApiBackend::sAppHovered         {};
+
+  auto AppWindowApiBackend::FindWindowHandleFromNWH( NativeWindowHandle nwh ) -> WindowHandle
+  {
+    for( WindowHandle wh : AppWindowApiBackend::WindowIterator() )
+      if( WindowState& state{ sAppCurr[ wh.GetIdx() ] }; state.mNativeWindowHandle == nwh )
+        return wh;
+    return {};
+  }
+
+  auto AppWindowApiBackend::FindWindowStateFromNWH( NativeWindowHandle nwh ) -> WindowState*
+  {
+    WindowHandle wh{ FindWindowHandleFromNWH( nwh ) };
+    return FindWindowStateFromWH( wh );
+  }
+
+  //auto AppWindowApiBackend::FindWindowStateFromNWH( NativeWindowHandle nwh ) -> WindowState*
+  //{
+  //  for( WindowHandle wh : AppWindowApiBackend::WindowIterator() )
+  //    if( WindowState& state{ sAppCurr[ wh.GetIdx() ] };
+  //        state.mNativeWindowHandle == nwh )
+  //      return &state;
+  //  return nullptr;
+  //}
+
+  auto AppWindowApiBackend::FindWindowStateFromWH( WindowHandle h ) -> WindowState*
+  {
+    if( WindowHandle::Idx idx{ h.GetIdx() }; idx < kDesktopWindowCapacity )
+      if( WindowState* state{ &sAppCurr[ idx ] }; state->mGeneration == h.GetGen() )
+        return state;
+    return nullptr;
+  }
+
+  auto AppWindowApiBackend::WindowIterator::begin() -> WindowIterator
+  {
+    WindowHandle::Idx idx{};
+    while( idx < kDesktopWindowCapacity && !sAppCurr[ idx ].mGeneration )
+      idx = ( WindowHandle::Idx )( idx + 1 );
+
+    return WindowIterator{ .mCurrIdx{ idx } };
+  }
+
+  auto AppWindowApiBackend::WindowIterator::end()->WindowIterator
+  {
+    return WindowIterator{ .mCurrIdx{ ( WindowHandle::Idx )kDesktopWindowCapacity} };
+  }
+
+  void AppWindowApiBackend::WindowIterator::operator++()
+  {
+    WindowHandle::Idx idx{ ( WindowHandle::Idx )( mCurrIdx + 1 ) };
+
+    while( idx < kDesktopWindowCapacity && !sAppCurr[ idx ].mGeneration )
+      idx = ( WindowHandle::Idx )( idx + 1 );
+    mCurrIdx = idx;
+  }
+
+  auto AppWindowApiBackend::WindowIterator::operator*() -> WindowHandle
+  {
+    return WindowHandle( mCurrIdx, sAppCurr[ mCurrIdx ].mGeneration );
+  }
+
 
   // -----------------------------------------------------------------------------------------------
 
-  static void FreeWindowHandle( WindowHandle h )
+  bool WindowHandle::IsValid() const
   {
-    sFreeHandles.push_back( h.GetIndex() );
-  }
-
-  static auto AllocWindowHandle() -> WindowHandle
-  {
-    if( sFreeHandles.empty() )
-      return WindowHandle{ sHandleCounter++ };
-
-    WindowHandle result{ sFreeHandles.back() };
-    sFreeHandles.pop_back();
-    return result;
+    if( mGen )
+      if( AppWindowApiBackend::WindowState* windowState{
+          AppWindowApiBackend::FindWindowStateFromWH( *this ) };
+          windowState->mGeneration == mGen )
+        return true;
+    return false;
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  void AppWindowApiBackend::SetWindowCreated( WindowHandle h,
-                                 const void* nwh,
-                                 StringView name,
-                                 v2i pos,
-                                 v2i size,
-                                 Errors& errors )
+  void AppWindowApiBackend::OnWindowCreated( WindowCreatedParams wcparams, Errors& errors )
   {
-    Render::SwapChainHandle swapChainHandle;
-    if( mCreatesSwapChain )
+    WindowHandle wh{ FindWindowHandleFromNWH( wcparams.mNWH ) };
+    WindowState* windowState{ FindWindowStateFromWH( wh ) };
+    TAC_ASSERT( windowState );
+
+    Render::SwapChainHandle swapChainHandle{};
+    if( sCreatesSwapChain )
     {
       Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      const Render::SwapChainParams params
+      const Render::SwapChainParams scparams
       {
-        .mNWH      { nwh },
-        .mSize     { size },
+        .mNWH      { wcparams.mNWH.mPointer },
+        .mSize     { wcparams.mSize },
         .mColorFmt { sSwapChainColorFormat },
         .mDepthFmt { sSwapChainDepthFormat },
-        .mName     { name },
+        .mName     { wcparams.mName },
       };
-      swapChainHandle = renderDevice->CreateSwapChain( params, errors );
+      swapChainHandle = renderDevice->CreateSwapChain( scparams, errors );
     }
 
-    sAppCurr[ h.GetIndex() ] = WindowState
-    {
-      .mName               { name },
-      .mPos                { pos },
-      .mSize               { size },
-      .mShown              {},
-      .mSwapChainHandle    { swapChainHandle },
-      .mNativeWindowHandle { nwh },
-    };
+    windowState->mName = wcparams.mName;
+    windowState->mPos = wcparams.mPos;
+    windowState->mSize = wcparams.mSize;
+    windowState->mShown = false;
+    windowState->mSwapChainHandle = swapChainHandle;
   }
 
-  void AppWindowApiBackend::SetWindowDestroyed( WindowHandle h )
+  // The aftermath of WM_DESTROY
+  void AppWindowApiBackend::OnWindowDestroyed( NativeWindowHandle h )
   {
-    WindowState& windowState{ sAppCurr[ h.GetIndex() ] };
-    if( mCreatesSwapChain )
+    WindowHandle wh{ FindWindowHandleFromNWH( h ) };
+    if( WindowState * windowState{ FindWindowStateFromWH( wh ) } )
     {
-      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      renderDevice->DestroySwapChain( windowState.mSwapChainHandle );
-    }
+      if( sCreatesSwapChain )
+      {
+        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+        renderDevice->DestroySwapChain( windowState->mSwapChainHandle );
+      }
 
-    windowState = {};
-  }
+      ImGuiSaveWindowSettings( wh );
 
-  void AppWindowApiBackend::SetWindowIsVisible( WindowHandle h, bool shown )
-  {
-    sAppCurr[ h.GetIndex() ].mShown = shown;
-  }
-
-  void AppWindowApiBackend::SetWindowSize( WindowHandle h, v2i size, Errors& errors )
-  {
-    WindowState& windowState{ sAppCurr[ h.GetIndex() ] };
-    windowState.mSize = size;
-    windowState.mShown = size.x > 0 && size.y > 0;
-    if( mCreatesSwapChain )
-    {
-      Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
-      TAC_CALL( renderDevice->ResizeSwapChain( windowState.mSwapChainHandle, size, errors ) );
+      sFreedHandles.push_back( wh );
+      *windowState = {};
     }
   }
 
-  void AppWindowApiBackend::SetWindowPos( WindowHandle h, v2i pos )
+  void AppWindowApiBackend::OnWindowSize( NativeWindowHandle h, v2i size, Errors& errors )
   {
-    sAppCurr[ h.GetIndex() ].mPos = pos;
+    if( WindowState * windowState{ FindWindowStateFromNWH( h ) } )
+    {
+      windowState->mSize = size;
+      windowState->mShown = ( size.x > 0 ) && ( size.y > 0 );
+      if( sCreatesSwapChain )
+      {
+        Render::IDevice* renderDevice{ Render::RenderApi::GetRenderDevice() };
+        TAC_CALL( renderDevice->ResizeSwapChain( windowState->mSwapChainHandle, size, errors ) );
+      }
+    }
   }
 
-  void AppWindowApiBackend::SetWindowHovered( WindowHandle h )
-  {
-    sAppHovered = h;
-  }
+  //void AppWindowApiBackend::SetWindowPos( WindowHandle h, v2i pos )
+  //{
+  //  if( WindowState * windowState{ FindWindowStateFromWH( h ) } )
+  //    windowState->mPos = pos;
+  //}
 
-  auto AppWindowApiBackend::GetWindowPos( WindowHandle h ) -> v2i
-  {
-    return sAppCurr[ h.GetIndex() ].mPos;
-  }
+  //void AppWindowApiBackend::SetWindowHovered( WindowHandle h )
+  //{
+  //  sAppHovered = h;
+  //}
 
-  void AppWindowApiBackend::SetCreatesSwapChain( bool createsSwapChain )
-  {
-    mCreatesSwapChain = createsSwapChain;
-  }
+  //auto AppWindowApiBackend::GetWindowPos( WindowHandle h ) -> v2i
+  //{
+  //  if( WindowState * windowState{ FindWindowStateFromWH( h ) } )
+  //    return windowState->mPos;
+  //  TAC_ASSERT( false ); // ???
+  //  return {};
+  //}
+
+  //auto AppWindowApiBackend::GetWindowNWH( WindowHandle h ) -> NativeWindowHandle
+  //{
+  //  if( WindowState * windowState{ FindWindowStateFromWH( h ) } )
+  //    return windowState->mNativeWindowHandle;
+
+  //  TAC_ASSERT( false ); // ???
+  //  return {};
+  //}
+
+  //void AppWindowApiBackend::SetCreatesSwapChain( bool createsSwapChain )
+  //{
+  //  mCreatesSwapChain = createsSwapChain;
+  //}
 
   // -----------------------------------------------------------------------------------------------
 
   bool AppWindowApi::IsShown( WindowHandle h)
   {
-    return h.IsValid() ? sAppCurr[ h.GetIndex() ].mShown : false;
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+      return windowState->mShown;
+    return {};
   }
 
   bool AppWindowApi::IsHovered( WindowHandle h )
   {
-    return h.IsValid() ? sAppHovered == h : false;
+    return h == AppWindowApiBackend::sAppHovered;
   }
 
   auto AppWindowApi::GetPos( WindowHandle h ) -> v2i
   {
-    TAC_ASSERT( h.IsValid() );
-    return sAppCurr[ h.GetIndex() ].mPos;
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+      return windowState->mPos;
+    TAC_ASSERT( false ); //???
+    return {};
   }
 
   void AppWindowApi::SetPos( WindowHandle h, v2i pos)
   {
-    TAC_ASSERT( h.IsValid() );
-    sAppCurr[ h.GetIndex() ].mPos = pos;
-    Platform::PlatformSetWindowPos( h, pos );
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+    {
+      windowState->mPos = pos;
+      Platform::PlatformSetWindowPos( windowState->mNativeWindowHandle, pos );
+    }
   }
 
   auto AppWindowApi::GetSize( WindowHandle h) -> v2i
   {
-    TAC_ASSERT( h.IsValid() );
-    return sAppCurr[ h.GetIndex() ].mSize;
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+      return windowState->mSize;
+
+    TAC_ASSERT( false ); //???
+    return {};
   }
 
   void AppWindowApi::SetSize( WindowHandle h, v2i size )
   {
-    TAC_ASSERT( h.IsValid() );
-    sAppCurr[ h.GetIndex() ].mSize = size;
-    Platform::PlatformSetWindowSize( h, size );
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+    {
+      windowState->mSize = size;
+      Platform::PlatformSetWindowSize( windowState->mNativeWindowHandle, size );
+    }
   }
 
-  auto AppWindowApi::GetName( WindowHandle h) -> StringView
+  auto AppWindowApi::GetName( WindowHandle h ) -> StringView
   {
-    TAC_ASSERT( h.IsValid() );
-    return sAppCurr[ h.GetIndex() ].mName;
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+      return windowState->mName;
+
+    TAC_ASSERT( false ); //???
+    return {};
   }
 
-  auto AppWindowApi::GetNativeWindowHandle( WindowHandle h) -> const void*
+  auto AppWindowApi::GetNativeWindowHandle( WindowHandle h) -> NativeWindowHandle
   {
-    TAC_ASSERT( h.IsValid() );
-    return sAppCurr[ h.GetIndex() ].mNativeWindowHandle;
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+      return windowState->mNativeWindowHandle;
+    TAC_ASSERT( false ); //???
+    return {};
   }
 
   auto AppWindowApi::CreateWindow( WindowCreateParams params, Errors& errors ) -> WindowHandle
   {
-    const WindowHandle h{ AllocWindowHandle() };
-    TAC_CALL_RET( Platform::PlatformSpawnWindow(
+    WindowHandle::Idx idx{};
+    WindowHandle::Gen gen{};
+    if( sFreedHandles.empty() )
+    {
+      idx = sHandleCounter;
+      gen = ( WindowHandle::Gen )1;
+      sHandleCounter = ( WindowHandle::Idx )( sHandleCounter + 1 );
+    }
+    else
+    {
+      const WindowHandle freedHandle{ sFreedHandles.back() };
+      sFreedHandles.pop_back();
+      idx = freedHandle.GetIdx();
+      gen = ( WindowHandle::Gen )( freedHandle.GetGen() + 1 );
+    }
+
+    const WindowHandle h( idx, gen );
+
+    NativeWindowHandle nwh{};
+    TAC_CALL_RET( nwh = Platform::PlatformSpawnWindow(
       PlatformSpawnWindowParams
       {
         .mHandle { h },
@@ -194,29 +294,53 @@ namespace Tac
         .mPos    { params.mPos },
         .mSize   { params.mSize },
       }, errors ) );
+
+    sAppCurr[ idx ] = AppWindowApiBackend::WindowState
+    {
+      .mGeneration = gen,
+      .mName = params.mName,
+      .mPos = params.mPos,
+      .mSize = params.mSize,
+      .mShown = false,
+      .mSwapChainHandle = {},
+      .mNativeWindowHandle = nwh,
+    };
+
     return h;
   }
 
-  void AppWindowApi::DestroyWindow( WindowHandle h)
+  // The application requests for this window to be destroyed.
+  // It will not actually be destroyed until after WM_DESTROY,
+  // after which AppWindowApiBackend::SetWindowDestroyed takes care of the rest
+  void AppWindowApi::DestroyWindow( WindowHandle h )
   {
-    Platform::PlatformDespawnWindow( h );
-    FreeWindowHandle( h );
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+      Platform::PlatformDespawnWindow( windowState->mNativeWindowHandle );
   }
 
   void AppWindowApi::MinimizeWindow( WindowHandle h )
   {
-    sAppCurr[ h.GetIndex() ].mShown = false;
-    Platform::PlatformMinimizeWindow( h );
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+    {
+      windowState->mShown = false;
+      Platform::PlatformMinimizeWindow( windowState->mNativeWindowHandle );
+    }
   }
 
   auto AppWindowApi::GetSwapChainHandle( WindowHandle h ) -> Render::SwapChainHandle
   {
-    return sAppCurr[ h.GetIndex() ].mSwapChainHandle;
+    if( AppWindowApiBackend::WindowState * windowState{
+      AppWindowApiBackend::FindWindowStateFromWH( h ) } )
+      return windowState->mSwapChainHandle;
+    TAC_ASSERT( false ); //???
+    return {};
   }
 
   void AppWindowApi::SetSwapChainAutoCreate( bool autoCreate)
   {
-    AppWindowApiBackend::SetCreatesSwapChain( autoCreate );
+    AppWindowApiBackend::sCreatesSwapChain = autoCreate;
   }
 
   void AppWindowApi::SetSwapChainColorFormat( Render::TexFmt texFmt )

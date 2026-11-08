@@ -6,7 +6,7 @@
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-std-lib/string/tac_string_identifier.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
 namespace Tac

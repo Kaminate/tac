@@ -1,3 +1,4 @@
+#if 0
 // This file handles the resizing and moving of a window when a
 // person drags at the edges.
 //
@@ -16,3 +17,4 @@ namespace Tac
   void Win32MouseEdgeSetResizable( const WindowHandle&, int );
   auto Win32MouseEdgeGetCursorHovered() -> WindowHandle;
 }
+#endif

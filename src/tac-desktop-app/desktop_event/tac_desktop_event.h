@@ -12,123 +12,120 @@
 #include "tac-engine-core/hid/tac_key.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 
-namespace Tac::DesktopEventApi
+
+namespace Tac
 {
-
-  struct WindowVisibleEvent
+  struct DesktopEventApi
   {
-    WindowHandle     mWindowHandle {};
-    bool             mVisible      {};
+
+    struct WindowVisibleEvent
+    {
+      NativeWindowHandle mWindowHandle{};
+      bool               mVisible{};
+    };
+
+    struct WindowCreateEvent
+    {
+      NativeWindowHandle mWindowHandle{};
+      ShortFixedString   mName{};
+      const void*        mNativeWindowHandle{};
+      int                mX{};
+      int                mY{};
+      int                mW{};
+      int                mH{};
+    };
+
+    struct WindowDestroyEvent
+    {
+      NativeWindowHandle mWindowHandle;
+    };
+
+    struct CursorUnobscuredEvent
+    {
+      WindowHandle mWindowHandle;
+    };
+
+    struct WindowResizeEvent
+    {
+      NativeWindowHandle mWindowHandle{};
+      int          mWidth{};
+      int          mHeight{};
+    };
+
+    struct KeyStateEvent
+    {
+      Key  mKey{ Key::Count };
+      bool mDown{};
+    };
+
+    struct KeyInputEvent
+    {
+      Codepoint mCodepoint{};
+    };
+
+    struct WindowActivationEvent
+    {
+      enum State { Deactivated, Activated };
+      NativeWindowHandle mWindowHandle;
+      State        mState;
+    };
+
+    struct MouseWheelEvent
+    {
+      float mDelta{};
+    };
+
+    struct MouseMoveEvent
+    {
+      // Window that the mouse moved over (?)
+      NativeWindowHandle        mWindowHandle{};
+
+      // Position of the mouse relative to the top left corner of the window
+      int                 mX{};
+      int                 mY{};
+    };
+
+    struct WindowMoveEvent
+    {
+      NativeWindowHandle mWindowHandle{};
+      int          mX{};
+      int          mY{};
+    };
+
+    struct WindowDpiChangedEvent
+    {
+      NativeWindowHandle mWindowHandle{};
+    };
+
+    // -----------------------------------------------------------------------------------------------
+
+
+    static void Init();
+    static void QueueEvent( const WindowActivationEvent& );
+    static void QueueEvent( const WindowCreateEvent& );
+    static void QueueEvent( const WindowDestroyEvent& );
+    static void QueueEvent( const CursorUnobscuredEvent& );
+    static void QueueEvent( const KeyInputEvent& );
+    static void QueueEvent( const KeyStateEvent& );
+    static void QueueEvent( const MouseMoveEvent& );
+    static void QueueEvent( const MouseWheelEvent& );
+    static void QueueEvent( const WindowMoveEvent& );
+    static void QueueEvent( const WindowResizeEvent& );
+    static void QueueEvent( const WindowVisibleEvent& );
+    static void QueueEvent( const WindowDpiChangedEvent& );
+    static void HandleEvent( const CursorUnobscuredEvent& );
+    static void HandleEvent( const KeyInputEvent& );
+    static void HandleEvent( const KeyStateEvent& );
+    static void HandleEvent( const MouseMoveEvent& );
+    static void HandleEvent( const MouseWheelEvent& );
+    static void HandleEvent( const WindowCreateEvent&, Errors& );
+    static void HandleEvent( const WindowDestroyEvent& );
+    static void HandleEvent( const WindowMoveEvent& );
+    static void HandleEvent( const WindowResizeEvent&, Errors& );
+    static void HandleEvent( const WindowVisibleEvent& );
+    static void HandleEvent( const WindowActivationEvent& );
+    static void HandleEvent( const WindowDpiChangedEvent& );
+    static void ApplyQueuedEvents( Errors& );
   };
-  
-  struct WindowCreateEvent
-  {
-    WindowHandle     mWindowHandle       {};
-    ShortFixedString mName               {};
-    const void*      mNativeWindowHandle {};
-    int              mX                  {};
-    int              mY                  {};
-    int              mW                  {};
-    int              mH                  {};
-  };
-
-  struct WindowDestroyEvent
-  {
-    WindowHandle mWindowHandle;
-  };
-
-  struct CursorUnobscuredEvent
-  {
-    WindowHandle mWindowHandle;
-  };
-
-  struct WindowResizeEvent
-  {
-    WindowHandle mWindowHandle {};
-    int          mWidth        {};
-    int          mHeight       {};
-  };
-
-  struct KeyStateEvent
-  {
-    Key  mKey  { Key::Count };
-    bool mDown {};
-  };
-
-  struct KeyInputEvent
-  {
-    Codepoint mCodepoint {};
-  };
-
-  struct WindowActivationEvent
-  {
-    enum State { Deactivated, Activated };
-    WindowHandle mWindowHandle;
-    State        mState;
-  };
-
-  struct MouseWheelEvent
-  {
-    float mDelta {};
-  };
-
-  struct MouseMoveEvent
-  {
-    // Window that the mouse moved over (?)
-    WindowHandle        mWindowHandle {};
-
-    // Position of the mouse relative to the top left corner of the window
-    int                 mX            {};
-    int                 mY            {};
-  };
-
-  struct WindowMoveEvent
-  {
-    WindowHandle mWindowHandle {};
-    int          mX            {};
-    int          mY            {};
-  };
-
-  struct WindowDpiChangedEvent
-  {
-    WindowHandle mWindowHandle {};
-  };
-
-  // -----------------------------------------------------------------------------------------------
-
-  struct Handler
-  {
-    virtual void Handle( const CursorUnobscuredEvent& ) {};
-    virtual void Handle( const KeyInputEvent& ) {};
-    virtual void Handle( const KeyStateEvent& ) {};
-    virtual void Handle( const MouseMoveEvent& ) {};
-    virtual void Handle( const MouseWheelEvent& ) {};
-    virtual void Handle( const WindowCreateEvent&, Errors& ) {};
-    virtual void Handle( const WindowDestroyEvent& ) {};
-    virtual void Handle( const WindowMoveEvent& ) {};
-    virtual void Handle( const WindowResizeEvent&, Errors& ) {};
-    virtual void Handle( const WindowVisibleEvent& ) {};
-    virtual void Handle( const WindowActivationEvent& ) {};
-    virtual void Handle( const WindowDpiChangedEvent& ) {};
-  };
-
-  void Init( Handler* );
-  void Queue( const WindowActivationEvent& );
-  void Queue( const WindowCreateEvent& );
-  void Queue( const WindowDestroyEvent& );
-  void Queue( const CursorUnobscuredEvent& );
-  void Queue( const KeyInputEvent& );
-  void Queue( const KeyStateEvent& );
-  void Queue( const MouseMoveEvent& );
-  void Queue( const MouseWheelEvent& );
-  void Queue( const WindowMoveEvent& );
-  void Queue( const WindowResizeEvent& );
-  void Queue( const WindowVisibleEvent& );
-  void Queue( const WindowDpiChangedEvent& );
-
-  void Apply( Errors& );
-
-
-  // -----------------------------------------------------------------------------------------------
 
 } // namespace Tac

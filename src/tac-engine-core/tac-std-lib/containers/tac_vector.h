@@ -182,7 +182,12 @@ namespace Tac
 
       T* newTs{ ( T* )Allocate( sizeof( T ) * capacity ) };
       for( int i{}; i < mTCount; ++i )
-        TAC_PLACEMENT_NEW ( &newTs[ i ] )T( Tac::move( mTs[ i ] ) );
+      {
+        T& newT{ newTs[ i ] };
+        T& oldT{ mTs[ i ] };
+        TAC_PLACEMENT_NEW( &newT )T( Tac::move( oldT ) );
+        oldT.~T();
+      }
 
       Deallocate( mTs );
       mTs = newTs;
@@ -196,16 +201,16 @@ namespace Tac
       Swap( mTCapacity, other.mTCapacity );
     }
 
-    dynmc T* begin() dynmc              { return mTs; };
-    const T* begin() const              { return mTs; };
-    dynmc T* end() dynmc                { return mTs + mTCount; };
-    const T* end() const                { return mTs + mTCount; };
-    dynmc T& front() dynmc              { TAC_ASSERT( mTCount ); return *mTs; }
-    const T& front() const              { TAC_ASSERT( mTCount ); return *mTs; }
-    dynmc T& back() dynmc               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
-    const T& back() const               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
-    dynmc T* data() dynmc               { return mTs; }
-    const T* data() const               { return mTs; }
+    auto begin() dynmc -> dynmc T*              { return mTs; };
+    auto begin() const -> const T*              { return mTs; };
+    auto end() dynmc -> dynmc T*                { return mTs + mTCount; };
+    auto end() const -> const T*                { return mTs + mTCount; };
+    auto front() dynmc -> dynmc T&              { TAC_ASSERT( mTCount ); return *mTs; }
+    auto front() const -> const T&              { TAC_ASSERT( mTCount ); return *mTs; }
+    auto back() dynmc -> dynmc T&               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
+    auto back() const -> const T&               { TAC_ASSERT( mTCount ); return mTs[ mTCount - 1 ]; }
+    auto data() dynmc -> dynmc T*               { return mTs; }
+    auto data() const -> const T*               { return mTs; }
 
     // why do i use this fn?
     //T*       insert( T* pos, std::initializer_list< T > ts )
@@ -222,8 +227,8 @@ namespace Tac
     //  return mTs + iPos;
     //}
 
-    dynmc T& operator[]( int i ) dynmc  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
-    const T& operator[]( int i ) const  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
+    auto operator[]( int i ) dynmc -> dynmc T&  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
+    auto operator[]( int i ) const -> const T&  { TAC_ASSERT_INDEX( i, mTCount ); return mTs[ i ]; }
 
     T*       mTs        {};
     int      mTCount    {};

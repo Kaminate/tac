@@ -7,13 +7,14 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
+//#include "tac-engine-core/os/tac_os.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
 #else
   #include <fstream>
   #include <filesystem>
+  #include <iostream>
 #endif
 
   static bool hackhackahack_stoplogging = false;
@@ -271,6 +272,7 @@ namespace Tac
     if( !mPath.empty() )
       return;
 
+#if 0
     if( OS::OSOpenDialog )
     {
       Errors dialogErrors;
@@ -281,7 +283,7 @@ namespace Tac
         return;
       }
     }
-
+#endif
       
     mPath = "default.tac.log";
   }
@@ -342,6 +344,11 @@ namespace Tac
 
   void LogApi::LogMessagePrint( const StringView sv, Severity severity )
   {
+    if constexpr( kIsDebugMode )
+    {
+      std::cout << sv.c_str();
+    }
+
     sLog.LogMessagePrint( sv );
     if( severity == kError )
       sLog.Flush();
@@ -355,6 +362,12 @@ namespace Tac
 
   void LogApi::LogMessagePrintLine( const StringView sv, Severity severity )
   {
+    if constexpr( kIsDebugMode )
+    {
+      const char* szstr{ sv.c_str() };
+      std::cout << szstr << std::endl;
+    }
+
     sLog.LogMessagePrintLine( sv );
     if( severity == kError )
       sLog.Flush();

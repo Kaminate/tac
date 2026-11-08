@@ -2,7 +2,8 @@
 #include "tac_dx12_debug_layer.h"
 
 #include "tac-dx/dx12/tac_dx12_helper.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 namespace Tac::Render
 {
@@ -19,10 +20,11 @@ namespace Tac::Render
     }
   }
 
-  static bool breaks = true;
-   void DX12InfoQueue::SetBreaking( bool b)
-   {
-     breaks = b;
+  static bool sInfoQueueBreaks = true;
+
+  void DX12InfoQueue::SetBreaking( bool b )
+  {
+    sInfoQueueBreaks = b;
   }
 
   static void MyD3D12MessageFunc( D3D12_MESSAGE_CATEGORY Category,
@@ -37,18 +39,21 @@ namespace Tac::Render
     TAC_UNUSED_PARAMETER( pContext );
 
     // hackity hack hack
-    if( pDescription && StringView( pDescription ) == StringView("Process is terminating. Using simple reporting. Please call ReportLiveObjects() at runtime for standard reporting.") )
+    if( pDescription && StringView( pDescription ) == StringView(
+      "Process is terminating. "
+      "Using simple reporting. "
+      "Please call ReportLiveObjects() at runtime for standard reporting." ) )
       return;
 
     if( pDescription )
-      OS::OSDebugPrintLine(
+      LogApi::LogMessagePrintLine(
         String()
         + D3D12_MESSAGE_SEVERITY_ToString( Severity )
         + ": "
         + pDescription );
 
-    if(breaks)
-    OS::OSDebugBreak();
+    if( sInfoQueueBreaks )
+      OS::OSDebugBreak();
   }
 
   void DX12InfoQueue::Init( const DX12DebugLayer& debugLayer,
@@ -72,10 +77,10 @@ namespace Tac::Render
       // But as of 2023-12-11 not available on my machine :(
       if( PCom< ID3D12InfoQueue1 > infoQueue1{ mInfoQueue.QueryInterface< ID3D12InfoQueue1 >() } )
       {
-        const D3D12MessageFunc             CallbackFunc{ MyD3D12MessageFunc };
+        const D3D12MessageFunc CallbackFunc{ MyD3D12MessageFunc };
         const D3D12_MESSAGE_CALLBACK_FLAGS CallbackFilterFlags{ D3D12_MESSAGE_CALLBACK_FLAG_NONE };
         void* pContext{ this };
-        DWORD                              pCallbackCookie{};
+        DWORD pCallbackCookie{};
         TAC_DX12_CALL( infoQueue1->RegisterMessageCallback( CallbackFunc,
                                                             CallbackFilterFlags,
                                                             pContext,
@@ -83,7 +88,7 @@ namespace Tac::Render
       }
       else if( kIsDebugMode )
       {
-        OS::OSDebugPrintLine( "ID3D12InfoQueue1 unavailable, sorry! (it is Windows 11 only)" );
+        LogApi::LogMessagePrintLine( "ID3D12InfoQueue1 unavailable, sorry! (it is Windows 11 only)" );
       }
     }
   }

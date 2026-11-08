@@ -3,7 +3,7 @@
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
-#include "tac-std-lib/os/tac_os.h" //tmp
+#include "tac-engine-core/os/tac_os.h" //tmp
 #include "tac-dx/dxc/tac_dxc.h"
 #include "tac-dx/hlsl/tac_hlsl_preprocess.h"
 

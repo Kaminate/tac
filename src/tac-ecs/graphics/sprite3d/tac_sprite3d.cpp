@@ -9,7 +9,7 @@
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"

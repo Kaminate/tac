@@ -26,7 +26,7 @@
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-win32/tac_win32.h"
 
@@ -759,7 +759,7 @@ namespace Tac
     if( m_swapChainValid )
       return;
 
-    auto hwnd { ( HWND )AppWindowApi::GetNativeWindowHandle( hDesktopWindow ) };
+    auto hwnd { ( HWND )AppWindowApi::GetNativeWindowHandle( hDesktopWindow ).mPointer };
     if( !hwnd )
       return;
 

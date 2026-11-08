@@ -19,10 +19,12 @@ int CALLBACK WinMain( _In_     HINSTANCE hInstance,
   using namespace Tac;
   Errors& errors{ DesktopApp::GetMainErrors() };
   TAC_SCOPE_GUARD( LogScope );
+
+
   Win32RedirectStdoutVisualStudioOutputWindow();
   Win32EnableDpiAwareness();
   Win32SetStartupParams( hInstance, hPrevInstance, lpCmdLine, nCmdShow );
-  Win32MouseEdgeInit();
+  //Win32MouseEdgeInit();
   Win32OSInit();
   TAC_CALL_RET( Win32InitWinsock( errors ) );
   TAC_CALL_RET( Win32InitXInput( errors ) );

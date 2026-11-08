@@ -24,6 +24,7 @@ namespace Tac::Render
 
     auto FindBuffer( BufferHandle ) -> DX12Buffer*;
     void DestroyBuffer( BufferHandle );
+    auto DEBUG_StringifyBuffer( BufferHandle )->String;
 
   private:
 

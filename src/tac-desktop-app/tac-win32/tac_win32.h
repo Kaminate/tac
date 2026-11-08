@@ -22,6 +22,8 @@
 #include <Windowsx.h>
 #undef CreateWindow
 
+#include "tac-engine-core/window/tac_window_handle.h"
+
 namespace Tac { struct Errors; struct String; }
 
 namespace Tac
@@ -42,6 +44,8 @@ namespace Tac
   void Win32OSInit();
 
   void HrCallAux( const HRESULT, const char*, Errors& );
+
+  HWND NativeWindowHandleToHWND( NativeWindowHandle );
 
   BOOL _IsWindowsVersionOrGreater( WORD, WORD, WORD );
 }

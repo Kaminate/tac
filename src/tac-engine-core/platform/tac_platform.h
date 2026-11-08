@@ -32,11 +32,11 @@ namespace Tac
     static void PlatformImGui( Errors& );
     static void PlatformFrameBegin( Errors& );
     static void PlatformFrameEnd( Errors& );
-    static void PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& );
-    static void PlatformDespawnWindow( WindowHandle );
-    static void PlatformMinimizeWindow( WindowHandle );
-    static void PlatformSetWindowPos( WindowHandle, v2i );
-    static void PlatformSetWindowSize( WindowHandle, v2i );
+    static auto PlatformSpawnWindow( const PlatformSpawnWindowParams&, Errors& ) -> NativeWindowHandle;
+    static void PlatformDespawnWindow( NativeWindowHandle );
+    static void PlatformMinimizeWindow( NativeWindowHandle );
+    static void PlatformSetWindowPos( NativeWindowHandle, v2i );
+    static void PlatformSetWindowSize( NativeWindowHandle, v2i );
     static void PlatformSetMouseCursor( PlatformMouseCursor );
     static auto PlatformGetMouseHoveredWindow() -> WindowHandle;
   };

@@ -29,12 +29,12 @@ namespace Tac::Render
 
   auto HandleTypeToString( HandleType ) -> const char*;
 
-  struct SwapChainHandle : public IHandle { SwapChainHandle ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct PipelineHandle  : public IHandle { PipelineHandle  ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct ProgramHandle   : public IHandle { ProgramHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct BufferHandle    : public IHandle { BufferHandle    ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct TextureHandle   : public IHandle { TextureHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
-  struct SamplerHandle   : public IHandle { SamplerHandle   ( int i = kInvalidIndex ) : IHandle{ i } {} };
+  struct SwapChainHandle : public IHandle { SwapChainHandle() = default; explicit SwapChainHandle ( int i  ) : IHandle{ i } {} };
+  struct PipelineHandle  : public IHandle { PipelineHandle() = default;  explicit PipelineHandle  ( int i  ) : IHandle{ i } {} };
+  struct ProgramHandle   : public IHandle { ProgramHandle() = default;   explicit ProgramHandle   ( int i  ) : IHandle{ i } {} };
+  struct BufferHandle    : public IHandle { BufferHandle() = default;    explicit BufferHandle    ( int i  ) : IHandle{ i } {} };
+  struct TextureHandle   : public IHandle { TextureHandle() = default;   explicit TextureHandle   ( int i  ) : IHandle{ i } {} };
+  struct SamplerHandle   : public IHandle { SamplerHandle() = default;   explicit SamplerHandle   ( int i  ) : IHandle{ i } {} };
 
   // Basically a variant that can hold any type of gpu resource
   struct ResourceHandle// : public IHandle
@@ -54,11 +54,11 @@ namespace Tac::Render
     operator TextureHandle() const;
     operator SamplerHandle() const;
 
-    auto GetHandle() const -> IHandle { return mHandle; }
-    auto GetHandleType() const -> HandleType;
-    bool IsValid() const  { return mHandle.IsValid(); }
-    auto GetIndex() const { return mHandle.GetIndex(); }
-    operator IHandle() const { return mHandle; }
+    auto GetHandle() const -> IHandle        { return mHandle; }
+    auto GetHandleType() const -> HandleType { return mHandleType;}
+    bool IsValid() const                     { return mHandle.IsValid(); }
+    auto GetIndex() const                    { return mHandle.GetIndex(); }
+    operator IHandle() const                 { return mHandle; }
 
   private:
     HandleType mHandleType {};

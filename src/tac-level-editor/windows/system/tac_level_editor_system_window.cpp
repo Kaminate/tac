@@ -12,7 +12,7 @@
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac

@@ -1,6 +1,6 @@
 #include "tac_list.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
 void Tac::ListUnitTest()
@@ -32,13 +32,13 @@ void Tac::ListUnitTest()
   // should print 123456
   for( const int i : myList )
   {
-    OS::OSDebugPrintLine( ToString( i ) );
+    LogApi::LogMessagePrintLine( ToString( i ) );
   }
 
 
   while( !myList.empty() )
   {
-    const int val = myList.pop_front();
-    OS::OSDebugPrintLine( ToString( val ) );
+    const int val{ myList.pop_front() };
+    LogApi::LogMessagePrintLine( ToString( val ) );
   }
 }

@@ -15,7 +15,8 @@
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
+#include "tac-engine-core/os/tac_os.h"
 
 namespace Tac
 {
@@ -301,7 +302,7 @@ namespace Tac
     Vector< u8 > websocketKey{ Network::GenerateSecWebsocketKey() };
 		httpRequest.FormatRequestWebsocket( "/game", mHostname, websocketKey );
 		if( mPrintHTTPRequest )
-      OS::OSDebugPrintLine( httpRequest.ToString() );
+      LogApi::LogMessagePrintLine( httpRequest.ToString() );
 
 		TAC_CALL( mSocket->Send( httpRequest, errors ) );
 		mPretendWebsocketHandshakeDone = true;

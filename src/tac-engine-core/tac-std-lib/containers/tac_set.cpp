@@ -1,6 +1,6 @@
 #include "tac_set.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
 void Tac::SetUnitTest()
@@ -11,9 +11,6 @@ void Tac::SetUnitTest()
   mySet.insert( 3 );
   TAC_ASSERT( true == mySet.Contains( 2 ) );
   TAC_ASSERT( false == mySet.Contains( 4 ) );
-
-  for( int i : mySet )
-  {
-    OS::OSDebugPrintLine( ToString( i ) );
-  }
+  for( const int i : mySet )
+    LogApi::LogMessagePrintLine( ToString( i ) );
 }

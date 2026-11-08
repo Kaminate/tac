@@ -4,8 +4,9 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/string/tac_string_util.h" // IsAscii
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/error/tac_assert.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
 
 #include <d3d12shader.h> // Shader reflection (ID3D12ShaderReflection)
@@ -148,7 +149,7 @@ namespace Tac::Render
     if( S_OK != pdbUtils->Load( pPDB ) )
       return;
 
-    PCom<IDxcVersionInfo> verInfo;
+    PCom< IDxcVersionInfo > verInfo;
     if( S_OK != pdbUtils->GetVersionInfo( verInfo.CreateAddress() ) )
       return;
 
@@ -157,7 +158,7 @@ namespace Tac::Render
     UINT32 flags{};
     UINT32 major{};
     UINT32 minor{};
-    if( PCom<IDxcVersionInfo2> verInfo2{ verInfo.QueryInterface<IDxcVersionInfo2>() } )
+    if( PCom< IDxcVersionInfo2 > verInfo2{ verInfo.QueryInterface< IDxcVersionInfo2 >() } )
     {
       verInfo2->GetCommitInfo( &commitCount, &commitHash );
       verInfo2->GetFlags( &flags );
@@ -165,10 +166,8 @@ namespace Tac::Render
     }
 
     char* ver {};
-    if( PCom<IDxcVersionInfo3> verInfo3{ verInfo.QueryInterface<IDxcVersionInfo3>() } )
-    {
+    if( PCom< IDxcVersionInfo3 > verInfo3{ verInfo.QueryInterface< IDxcVersionInfo3 >() } )
       verInfo3->GetCustomVersionString( &ver );
-    }
 
     Vector< String > strs;
     strs.push_back( String() + "Dxc Compiler commit count " + Tac::ToString( commitCount ) + " hash " + commitHash );
@@ -176,7 +175,7 @@ namespace Tac::Render
     strs.push_back( String() + "Version: " + Tac::ToString( major ) + "." + Tac::ToString( minor ) );
     strs.push_back( String() + "Custom Version: " + ( ver ? ver : "n/a" ) );
 
-    OS::OSDebugPrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
+    LogApi::LogMessagePrintLine( AsciiBoxAround( Join( strs, "\n" ) ) );
     sPrintedCompilerInfo = true;
   }
 
@@ -221,8 +220,8 @@ namespace Tac::Render
 
     const DxcBuffer reflBuf
     {
-        .Ptr { reflBlob->GetBufferPointer() },
-        .Size { reflBlob->GetBufferSize() },
+        .Ptr      { reflBlob->GetBufferPointer() },
+        .Size     { reflBlob->GetBufferSize() },
         .Encoding {},
     };
 
@@ -256,10 +255,12 @@ namespace Tac::Render
 
       if( desc.Type == D3D_SIT_BYTEADDRESS ) // or D3D_SIT_TEXTURE
       {
+        TAC_NO_OP;
       }
       if( desc.Dimension == D3D_SRV_DIMENSION_BUFFER ) // or D3D_SRV_DIMENSION_TEXTURE2D
       {
-        desc.BindCount ; // size of buffer, if fixed, 0 if unbounded
+
+        TAC_NO_OP; // desc.BindCount ; // size of buffer, if fixed, 0 if unbounded
       }
 
       reflInfo->AddBinding( desc );

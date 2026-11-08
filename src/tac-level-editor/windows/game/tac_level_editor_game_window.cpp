@@ -38,7 +38,7 @@
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/math/tac_vector2.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 
 

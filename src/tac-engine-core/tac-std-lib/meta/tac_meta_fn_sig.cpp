@@ -1,6 +1,6 @@
 #include "tac_meta_fn_sig.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
 namespace Tac
@@ -25,15 +25,15 @@ namespace Tac
       sep = ", ";
     }
 
-    OS::OSDebugPrintLine( String() + "Ret: " + fnSig.RetType()->GetName() + "( " + args + ")" );
+    LogApi::LogMessagePrintLine( String() + "Ret: " + fnSig.RetType()->GetName() + "( " + args + ")" );
   }
 
   void MetaFnSigUnitTest()
   {
-    OS::OSDebugPrintLine( "The signature of Foo is: " );
+    LogApi::LogMessagePrintLine( "The signature of Foo is: " );
     PrintMetaFnSig( MetaFnSig( Foo ) );
 
-    OS::OSDebugPrintLine( "The signature of Qux is: " );
+    LogApi::LogMessagePrintLine( "The signature of Qux is: " );
     PrintMetaFnSig( MetaFnSig( Qux ) );
   }
 

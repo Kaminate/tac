@@ -1,6 +1,6 @@
 #include "tac_meta_var.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
@@ -9,7 +9,11 @@ namespace Tac
   void MetaPrintVariables()
   {
     for( MetaVar* var : MetaVar::Range() )
-      OS::OSDebugPrintLine( String() + var->mName + " = " + var->mType.ToString( var->mAddr ) );
+      LogApi::LogMessagePrintLine(
+        String()
+        + var->mName
+        + " = "
+        + var->mType.ToString( var->mAddr ) );
   }
 
   void MetaVarUnitTest()

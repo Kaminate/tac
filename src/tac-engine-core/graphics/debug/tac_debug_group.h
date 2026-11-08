@@ -45,9 +45,9 @@ namespace Tac::Render::DebugGroup
 
   private:
 
-    bool                  Contains( const Node* ) const;
-    const Node*           back() const;
-    bool                  empty() const;
+    bool Contains( const Node* ) const;
+    auto back() const -> const Node*;
+    bool empty() const;
 
     bool                  mFinished      {};
     Vector< const Node* > mNodeStack     {}; // actual stack of nodes that were pushed/popped
@@ -59,21 +59,21 @@ namespace Tac::Render::DebugGroup
   // This is more of a tree...
   struct Stack
   {
-    void           Push( StringView );
-    void           Pop();
-    NodeIndex      GetInfo() const;
+    void Push( StringView );
+    void Pop();
+    auto GetInfo() const -> NodeIndex;
 
-    Iterator       IterateBegin( Render::IContext* ) const;
-    void           IterateElement( Iterator&, NodeIndex ) const;
-    void           IterateEnd( Iterator& ) const;
-    void           AssertNodeHeights() const;
-    bool           empty() const;
-    void           clear();
-    Span< const Node > GetNodes() const;
+    auto IterateBegin( Render::IContext* ) const -> Iterator;
+    void IterateElement( Iterator&, NodeIndex ) const;
+    void IterateEnd( Iterator& ) const;
+    void AssertNodeHeights() const;
+    bool empty() const;
+    void clear();
+    auto GetNodes() const -> Span< const Node >;
 
   private:
-    Node*          FindNode( NodeIndex );
-    const Node*    FindNode( NodeIndex ) const;
+    auto FindNode( NodeIndex ) -> Node*;
+    auto FindNode( NodeIndex ) const -> const Node*;
 
     Vector< Node > mNodes      {}; // all nodes of a tree, layed out linearly (flattened?)
     NodeIndex      mCurNodeIdx { NullNodeIndex };

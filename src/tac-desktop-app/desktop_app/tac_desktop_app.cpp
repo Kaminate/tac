@@ -2,7 +2,7 @@
 
 #include "tac-desktop-app/desktop_app/tac_desktop_app_error_report.h"
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
-#include "tac-desktop-app/desktop_event/tac_desktop_event_handler.h"
+#include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_move.h"
 #include "tac-desktop-app/desktop_window/tac_desktop_window_resize.h"
 #include "tac-ecs/tac_space.h"
@@ -17,6 +17,7 @@
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
+#include "tac-engine-core/hid/tac_keyboard_backend.h"
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/platform/tac_platform.h"
@@ -29,7 +30,7 @@
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 
@@ -41,7 +42,6 @@
 
 namespace Tac
 {
-  static DesktopEventHandler           sDesktopEventHandler;
   static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
   static App*                          sApp;
   static App::State                    sPrevState;
@@ -50,7 +50,7 @@ namespace Tac
   static SettingsRoot                  sSettingsRoot;
   static const bool                    sVerbose;
   static ThreadAllocator               sAppThreadAllocator;
-  static GameTime                     sRenderDelay;
+  static GameTime                      sRenderDelay;
   static int                           sNumRenderFramesSincePrevSimFrame{};
   
   static auto ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor ) -> PlatformMouseCursor
@@ -140,7 +140,7 @@ namespace Tac
       TAC_ASSERT( t >= 0 );
 
       if( sVerbose )
-        OS::OSDebugPrintLine( String() + "t before clamping: " + ToString( t ) );
+        LogApi::LogMessagePrintLine( String() + "t before clamping: " + ToString( t ) );
 
       t = Min( t, 1.0f );
       TAC_CALL( FontApi::UpdateGPU( errors ) );
@@ -165,7 +165,7 @@ namespace Tac
         oldCursor = newCursor;
         Platform::PlatformSetMouseCursor( newCursor );
         if( sVerbose )
-          OS::OSDebugPrintLine( "set mouse cursor : " + ToString( ( int )newCursor ) );
+          LogApi::LogMessagePrintLine( "set mouse cursor : " + ToString( ( int )newCursor ) );
       }
 
       for( ImGuiDesktopWindowImpl* desktopWindow : ImGuiGlobals::mDesktopWindows )
@@ -246,7 +246,7 @@ namespace Tac
         .mMaxGpuFrameCount { Render::RenderApi::GetMaxGPUFrameCount() },
         .mSettingsNode     { sSettingsRoot.GetRootNode() },
       }, errors ) );
-    DesktopEventApi::Init( &sDesktopEventHandler );
+    DesktopEventApi::Init();
     TAC_CALL( sApp->Init( errors ) );
     sCurrState = sApp->GameState_Create();
     sPrevState = sApp->GameState_Create();
@@ -278,7 +278,7 @@ namespace Tac
     while( OS::OSAppIsRunning() )
     {
       TAC_CALL( Platform::PlatformFrameBegin( errors ) ); // poll wndproc
-      TAC_CALL( DesktopEventApi::Apply( errors ) ); // apply queued wndproc events to keyboard/window state
+      TAC_CALL( DesktopEventApi::ApplyQueuedEvents( errors ) ); // apply queued wndproc events to keyboard/window state
       TAC_CALL( DesktopApp::Update( errors ) );
       TAC_CALL( Platform::PlatformFrameEnd( errors ) );
       TAC_CALL( Network::NetApi::Update( errors ) );

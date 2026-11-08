@@ -113,9 +113,9 @@ private:
   {
     if( kIsPointer< T > )
     {
-      OS::OSDebugPrintLine( "----- SET BEGIN --------" );
-      OS::OSDebugPrintLine( String() + "Capacity: " + ToString( mCapacity ) );
-      OS::OSDebugPrintLine( String() + "Size: " + ToString( mSize ) );
+      LogApi::LogMessagePrintLine( "----- SET BEGIN --------" );
+      LogApi::LogMessagePrintLine( String() + "Capacity: " + ToString( mCapacity ) );
+      LogApi::LogMessagePrintLine( String() + "Size: " + ToString( mSize ) );
       for( int i{}; i < mCapacity; ++i )
       {
         Node& node{mNodes[i]};
@@ -132,10 +132,10 @@ private:
           s += "(base hash: " + ToString( BaseNodeIndex(node.mHash ) ) + ")";
           s += "(T: " + ToString( node.mT ) + ")";
         }
-        OS::OSDebugPrintLine(s);
+        LogApi::LogMessagePrintLine(s);
       }
       
-      OS::OSDebugPrintLine( "----- SET END   --------" );
+      LogApi::LogMessagePrintLine( "----- SET END   --------" );
 
       
     }

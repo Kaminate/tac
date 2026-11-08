@@ -1,8 +1,9 @@
 #include "tac_meta_fn.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+//#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 namespace Tac
 {
@@ -26,7 +27,7 @@ namespace Tac
     Variable doubleRetVar( doubleRet );
     Variable doubleArgVar( doubleArg );
     Apply( DoubleMyGuy, doubleRetVar, &doubleArgVar, 1 );
-    OS::OSDebugPrintLine(
+    LogApi::LogMessagePrintLine(
       String()
       + "Double( " + ToString( doubleArg ) + " ) = " + ToString( doubleRet ) );
   }
@@ -39,7 +40,7 @@ namespace Tac
     Variable doubleArgVar( doubleArg );
     doubleMeta.Apply( doubleRetVar, &doubleArgVar, 1 );
     const char* fnname = doubleMeta.Name();
-    OS::OSDebugPrintLine(
+    LogApi::LogMessagePrintLine(
       String() + fnname + "( " + ToString( doubleArg) + " ) = " + ToString( doubleRet ) );
   }
 
@@ -52,7 +53,7 @@ namespace Tac
     Array variables{ Variable( arg0 ), Variable( arg1 ) };
     addFn.Apply( ret, variables.data(), variables.size() );
     const char* fnname = addFn.Name();
-    OS::OSDebugPrintLine(
+    LogApi::LogMessagePrintLine(
       String()
       + fnname + "( "
       + ToString( arg0 ) + ", "
@@ -82,7 +83,7 @@ void Tac::MetaPrintFunctions()
   for( MetaFn* fn : MetaFn::Range() )
   {
     String joinedArgs;
-    const char* sep = "";
+    const char* sep{ "" };
     for( int i {}; i < fn->ArgCount(); ++i )
     {
       joinedArgs += sep;
@@ -99,7 +100,7 @@ void Tac::MetaPrintFunctions()
     line += ')';
     line += '\n';
 
-    OS::OSDebugPrintLine( line );
+    LogApi::LogMessagePrintLine( line );
   }
 }
 

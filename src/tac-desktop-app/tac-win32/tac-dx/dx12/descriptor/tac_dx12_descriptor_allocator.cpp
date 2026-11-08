@@ -1,7 +1,8 @@
 #include "tac_dx12_descriptor_allocator.h" // self-inc
 
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
+#include "tac-std-lib/dataprocess/tac_log.h"
 
 #define TAC_GPU_REGION_DEBUG() TAC_IS_DEBUG_MODE() && 0
 #if TAC_GPU_REGION_DEBUG()
@@ -211,9 +212,9 @@ namespace Tac::Render
     if( mOwner->GetType() == TAC_GPU_REGION_DEBUG_TYPE )
     {
       const String str( 100, '-' );
-      OS::OSDebugPrintLine( str );
+      LogApi::LogMessagePrintLine( str );
       OS::OSDebugPrint( title );
-      OS::OSDebugPrintLine( " begin" );
+      LogApi::LogMessagePrintLine( " begin" );
     }
 #else
     TAC_UNUSED_PARAMETER( title );
@@ -227,8 +228,8 @@ namespace Tac::Render
     {
       const String str( 100, '-' );
       OS::OSDebugPrint( title );
-      OS::OSDebugPrintLine( " end" );
-      OS::OSDebugPrintLine( str );
+      LogApi::LogMessagePrintLine( " end" );
+      LogApi::LogMessagePrintLine( str );
     }
 #else
     TAC_UNUSED_PARAMETER( title );
@@ -401,12 +402,12 @@ namespace Tac::Render
       str += "-";
     str += "\n";
     str += mOwner->GetName() + ": ";
-    OS::OSDebugPrint( str );
-    OS::OSDebugPrintLine( DebugFreeListString() );
-    OS::OSDebugPrintLine( DebugPendingFreeListString() );
+    LogApi::LogMessagePrint( str );
+    LogApi::LogMessagePrintLine( DebugFreeListString() );
+    LogApi::LogMessagePrintLine( DebugPendingFreeListString() );
 
     str.clear();
-    OS::OSDebugPrintLine("Region List Begin");
+    LogApi::LogMessagePrintLine("Region List Begin");
 
     int loopCount {};
     for( RegionDesc* desc{ &mRegions[ 0 ] }; desc; desc = GetRegionAtIndex( desc->mRightIndex ) )
@@ -439,12 +440,12 @@ namespace Tac::Render
 
       str += "\t[" + properties.mString + "]";
 
-      OS::OSDebugPrintLine( str );
+      LogApi::LogMessagePrintLine( str );
       str.clear();
     }
 
-    OS::OSDebugPrintLine("Region List End");
-    OS::OSDebugPrintLine("");
+    LogApi::LogMessagePrintLine("Region List End");
+    LogApi::LogMessagePrintLine("");
   }
 
   void DX12DescriptorAllocator::PumpFreeQueue()

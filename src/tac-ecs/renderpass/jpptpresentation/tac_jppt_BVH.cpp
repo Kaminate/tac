@@ -4,7 +4,7 @@
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-std-lib/os/tac_os.h"
+#include "tac-engine-core/os/tac_os.h"
 #include "tac-ecs/entity/tac_entity.h"
 
 namespace Tac
