@@ -3,7 +3,7 @@
 
 namespace Tac::Render
 {
-  void             DXGIReportLiveObjects();
+  void DXGIReportLiveObjects();
 
 } // namespace Tac
 

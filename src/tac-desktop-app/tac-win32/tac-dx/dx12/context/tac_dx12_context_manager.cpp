@@ -1,15 +1,10 @@
 #include "tac_dx12_context_manager.h" // self-inc
 
-#include "tac-dx/dx12/tac_dx12_command_allocator_pool.h"
-#include "tac-dx/dx12/tac_dx12_gpu_upload_allocator.h"
-#include "tac-dx/dx12/texture/tac_dx12_texture_mgr.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
-#include "tac-dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 #include "tac-dx/pix/tac_pix_runtime.h"
 
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/containers/tac_fixed_vector.h"
 
 namespace Tac::Render
 {

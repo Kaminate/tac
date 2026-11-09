@@ -1,14 +1,7 @@
 #include "tac_dx12_pipeline.h" // self-inc
 
 #include "tac-dx/dx12/program/tac_dx12_program_bind_desc.h"
-#include "tac-dx/dx12/texture/tac_dx12_texture_mgr.h"
-#include "tac-dx/dx12/sampler/tac_dx12_sampler_mgr.h"
-#include "tac-dx/dx12/buffer/tac_dx12_buffer_mgr.h"
-#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_heap_allocation.h"
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
-#include "tac-dx/dx12/tac_dx12_transition_helper.h"
-
-#include "tac-engine-core/framememory/tac_frame_memory.h"
 
 namespace Tac::Render
 {

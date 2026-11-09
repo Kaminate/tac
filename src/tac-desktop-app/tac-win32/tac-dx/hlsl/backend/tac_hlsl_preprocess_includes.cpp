@@ -1,12 +1,8 @@
 #include "tac_hlsl_preprocess_includes.h" // self-inc
 
 #include "tac-std-lib/string/tac_string.h" // String
-#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
-#include "tac-std-lib/algorithm/tac_algorithm.h" // Contains
 #include "tac-std-lib/error/tac_error_handling.h" // TAC_CALL_RET
-#include "tac-rhi/render3/tac_render_api.h" // ShaderNameStringView
 #include "tac-std-lib/dataprocess/tac_text_parser.h" // ParseData
-//#include "tac-rhi/renderer/tac_renderer_backend.h" // GetShaderAssetPath
 #include "tac-engine-core/asset/tac_asset.h" // LoadAssetPath
 
 namespace Tac::Render
@@ -15,7 +11,7 @@ namespace Tac::Render
                                                                 Errors& errors ) -> String
   {
     if( IsIncluded( path ) )
-      return String();
+      return {};
 
     mIncluded.push_back( path );
 

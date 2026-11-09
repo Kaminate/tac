@@ -5,7 +5,6 @@
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/containers/tac_vector_meta.h"
 #include "tac-std-lib/containers/tac_array_meta.h"
@@ -269,7 +268,7 @@ namespace Tac
       TAC_ASSERT( numGrid->mData.size() == numGrid->mWidth * numGrid->mHeight );
 
       const int cpuTextureIndicesByteCount{ ( int )( sizeof( u32 ) * numGrid->mWidth * numGrid->mHeight ) };
-      dynmc u32* cpuTextureIndices = ( u32* )FrameMemoryAllocate( cpuTextureIndicesByteCount );
+      dynmc auto cpuTextureIndices{ ( u32* )FrameMemoryAllocate( cpuTextureIndicesByteCount ) };
       for( int r{}; r < numGrid->mHeight; ++r )
       {
         for( int c{}; c < numGrid->mWidth; ++c )

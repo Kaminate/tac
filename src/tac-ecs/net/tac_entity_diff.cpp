@@ -1,9 +1,7 @@
 #include "tac-ecs/net/tac_entity_diff.h" // self-inc
 
-#include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/tac_ints.h"
 #include "tac-ecs/tac_space_types.h"
-#include "tac-ecs/net/tac_space_net.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-std-lib/containers/tac_set.h"
 #include "tac-std-lib/error/tac_error_handling.h"

@@ -7,7 +7,7 @@
 
 #include <clocale>
 #include <cuchar>
-#include <climits>
+//#include <climits>
 
 namespace Tac
 {
@@ -55,16 +55,19 @@ namespace Tac
   }
 
   // ---------------------------------------------------------------------------------------------
-  MicroTeXImGuiTextLayout::MicroTeXImGuiTextLayout( const std::string& src, microtex::FontStyle style, float size )
+  MicroTeXImGuiTextLayout::MicroTeXImGuiTextLayout(
+    [[maybe_unused]]const std::string& src, 
+    [[maybe_unused]]microtex::FontStyle style,
+    float size )
     : _fontSize( size )
   {
     TODO();
   }
-  void MicroTeXImGuiTextLayout::getBounds( microtex::Rect& bounds )
+  void MicroTeXImGuiTextLayout::getBounds( [[maybe_unused]]microtex::Rect& bounds )
   {
     TODO();
   }
-  void MicroTeXImGuiTextLayout::draw( microtex::Graphics2D& g2, float x, float y )
+  void MicroTeXImGuiTextLayout::draw( [[maybe_unused]]microtex::Graphics2D& g2, [[maybe_unused]]float x, [[maybe_unused]]float y )
   {
     TODO();
   }
@@ -95,7 +98,7 @@ namespace Tac
   {
     _stroke.lineWidth = w;
   }
-  void MicroTeXImGuiGraphics::setDash( const std::vector<float>& dash )
+  void MicroTeXImGuiGraphics::setDash( [[maybe_unused]]const std::vector<float>& dash )
   {
     TODO();
   }
@@ -120,11 +123,11 @@ namespace Tac
   {
     sTransform = sTransform * m3::Scale( sx, sy );
   }
-  void MicroTeXImGuiGraphics::rotate( float angle )
+  void MicroTeXImGuiGraphics::rotate( [[maybe_unused]]float angle )
   {
     TODO();
   }
-  void MicroTeXImGuiGraphics::rotate( float angle, float px, float py )
+  void MicroTeXImGuiGraphics::rotate( [[maybe_unused]]float angle, [[maybe_unused]]float px, [[maybe_unused]]float py )
   {
     TODO();
   }
@@ -187,12 +190,12 @@ namespace Tac
     //std::size_t len = std::c16rtomb( buf, glyph, &state );
     //std::setlocale( LC_ALL, loc );
 
-    auto drawList = ImGuiGetDrawData(); // ImGui::GetWindowDrawList();
-    v2 pos = Transform( x, y );
+    UI2DDrawData* drawList{ ImGuiGetDrawData() }; // ImGui::GetWindowDrawList();
+    v2 pos{ Transform( x, y ) };
 
     ImGuiPushFontSize( _fontSize * sTransform.m11 );
 
-    float fontSize = ImGuiGetFontSizePx() * sMagicTextScale;
+    const float fontSize{ ImGuiGetFontSizePx() * sMagicTextScale };
     sLastGlyphFontSize = fontSize;
 
     
@@ -214,27 +217,32 @@ namespace Tac
     drawList->AddText( text );
     ImGuiPopFontSize();
   }
-  bool MicroTeXImGuiGraphics::beginPath( microtex::i32 id )
+  bool MicroTeXImGuiGraphics::beginPath( [[maybe_unused]]microtex::i32 id )
   {
     // not supported
     return false;
   }
-  void MicroTeXImGuiGraphics::moveTo( float x, float y )
+  void MicroTeXImGuiGraphics::moveTo( [[maybe_unused]]float x, [[maybe_unused]]float y )
   {
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::lineTo( float x, float y )
+  void MicroTeXImGuiGraphics::lineTo( [[maybe_unused]]float x, [[maybe_unused]]float y )
   {
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::cubicTo( float x1, float y1, float x2, float y2, float x3, float y3 )
+  void MicroTeXImGuiGraphics::cubicTo( [[maybe_unused]]float x1,
+                                       [[maybe_unused]]float y1,
+                                       [[maybe_unused]]float x2,
+                                       [[maybe_unused]]float y2,
+                                       [[maybe_unused]]float x3,
+                                       [[maybe_unused]]float y3 )
   {
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::quadTo( float x1, float y1, float x2, float y2 )
+  void MicroTeXImGuiGraphics::quadTo( [[maybe_unused]]float x1, [[maybe_unused]]float y1, [[maybe_unused]]float x2, [[maybe_unused]]float y2 )
   {
     TODO();
     TAC_ASSERT( false );
@@ -244,26 +252,29 @@ namespace Tac
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::fillPath( microtex::i32 id )
+  void MicroTeXImGuiGraphics::fillPath( [[maybe_unused]]microtex::i32 id )
   {
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::drawText( const std::wstring& src, float x, float y )
+  void MicroTeXImGuiGraphics::drawText(
+    [[maybe_unused]] const std::wstring & src,
+    [[maybe_unused]] float x,
+    [[maybe_unused]] float y )
   {
     TODO();
     TAC_ASSERT( false );
   }
   void MicroTeXImGuiGraphics::drawLine( float x1, float y1, float x2, float y2 )
   {
-    if( auto drawList = ImGuiGetDrawData() )
+    if( UI2DDrawData* drawList{ ImGuiGetDrawData() } )
     {
-      v2 p0 = Transform( x1, y1 ) + ImGuiGetWindowPos();
-      v2 p1 = Transform( x2, y2 ) + ImGuiGetWindowPos();
+      v2 p0 { Transform( x1, y1 ) + ImGuiGetWindowPos() };
+      v2 p1{ Transform( x2, y2 ) + ImGuiGetWindowPos() };
       p0.x -= ImGuiGetWindowContentRegionMin().x; // ???
       p0.y += ImGuiGetWindowContentRegionMin().y; // ???
       p1.y += ImGuiGetWindowContentRegionMin().y; // ???
-      const float thickness = sLastGlyphFontSize * sMagicLineWidth;
+      const float thickness{ sLastGlyphFontSize * sMagicLineWidth };
       const UI2DDrawData::Line line
       {
         .mP0         { p0 },
@@ -274,22 +285,42 @@ namespace Tac
       drawList->AddLine( line );
     }
   }
-  void MicroTeXImGuiGraphics::drawRect( float x, float y, float w, float h )
+  void MicroTeXImGuiGraphics::drawRect(
+    [[maybe_unused]]float x,
+    [[maybe_unused]]float y,
+    [[maybe_unused]]float w,
+    [[maybe_unused]]float h )
   {
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::fillRect( float x, float y, float w, float h )
+  void MicroTeXImGuiGraphics::fillRect(
+    [[maybe_unused]]float x,
+    [[maybe_unused]]float y,
+    [[maybe_unused]]float w,
+    [[maybe_unused]]float h )
   {
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::drawRoundRect( float x, float y, float w, float h, float rx, float ry )
+  void MicroTeXImGuiGraphics::drawRoundRect(
+    [[maybe_unused]]float x,
+    [[maybe_unused]]float y,
+    [[maybe_unused]]float w,
+    [[maybe_unused]]float h,
+    [[maybe_unused]]float rx,
+    [[maybe_unused]]float ry )
   {
     TODO();
     TAC_ASSERT( false );
   }
-  void MicroTeXImGuiGraphics::fillRoundRect( float x, float y, float w, float h, float rx, float ry )
+  void MicroTeXImGuiGraphics::fillRoundRect(
+    [[maybe_unused]]float x,
+    [[maybe_unused]]float y,
+    [[maybe_unused]]float w,
+    [[maybe_unused]]float h,
+    [[maybe_unused]]float rx,
+    [[maybe_unused]]float ry )
   {
     TODO();
     TAC_ASSERT( false );

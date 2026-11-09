@@ -19,8 +19,8 @@ namespace Tac
       if( const int n{ world->mEntities.size()}; n )
       {
         gte::SymmetricEigensolver3x3<float> solver;
-        std::array< float, 3 > eigenValues;
-        std::array< std::array< float, 3 >, 3 > eigenVectors;
+        std::array< float, 3 > eigenValues{};
+        std::array< std::array< float, 3 >, 3 > eigenVectors{};
 
         const float oneOverN{ 1.0f / n };
         v3 avgPosition{};

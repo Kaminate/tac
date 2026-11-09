@@ -4,7 +4,6 @@
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/string/tac_string_util.h" // IsAscii
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
@@ -137,7 +136,7 @@ namespace Tac::Render
     TAC_ASSERT( SUCCEEDED( pUtils->GetBlobAsUtf8(
       ( IDxcBlob* )blob16,
       pName8.CreateAddress() ) ) );
-    return String( pName8->GetStringPointer(), ( int )pName8->GetStringLength() );
+    return { pName8->GetStringPointer(), ( int )pName8->GetStringLength() };
   }
 
 
@@ -333,7 +332,7 @@ namespace Tac::Render
 
   static void CheckCompileSuccess( IDxcResult* pResults, Errors& errors )
   {
-    HRESULT compileStatus;
+    HRESULT compileStatus{};
     TAC_RAISE_ERROR_IF( FAILED( pResults->GetStatus( &compileStatus ) ),
                         "Failed to get shader compilation status" );
     if( SUCCEEDED( compileStatus ) )
@@ -390,7 +389,7 @@ namespace Tac::Render
     if( !optEntryPoint.HasValue() )
       return {};
 
-    const String entryPoint{ optEntryPoint.GetValue() };
+    const String& entryPoint{ optEntryPoint.GetValue() };
 
     const String target{ GetTarget( inputs.mCompileParams.mShaderModel ) };
 

@@ -72,7 +72,7 @@ namespace Tac
       TAC_ASSERT( StrCmp( oldPath, path ) );
     }
     TAC_ASSERT( root != mJson );
-    return SettingsNode( mRoot, root );
+    return { mRoot, root };
   }
 
   auto SettingsNode::GetChildrenArray() -> Span< SettingsNode >

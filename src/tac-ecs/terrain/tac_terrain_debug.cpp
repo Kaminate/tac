@@ -4,9 +4,6 @@
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 
 namespace Tac

@@ -1,11 +1,8 @@
 #include "tac_localization.h" // self-inc
 
-#include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/memory/tac_memory.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 
@@ -123,7 +120,7 @@ namespace Tac
 
   auto LocalizedStringStuff::GetCodepointView() const -> CodepointView
   {
-    return CodepointView( mCodepoints.data(), mCodepoints.size() );
+    return { mCodepoints.data(), mCodepoints.size() };
   }
 
   void LocalizedStringStuff::SetUTF8StringOnly( StringView utf8String )
@@ -311,13 +308,13 @@ auto Tac::UTF8ToCodepointView( StringView stringView ) -> CodepointView
   while( Codepoint codepoint{ converter.Extract() } )
     codepoints[ n++ ] = codepoint;
 
-  return CodepointView( codepoints, n );
+  return { codepoints, n };
 }
 
 auto Tac::CodepointsToUTF8( CodepointView codepointView ) -> StringView
 {
-  auto str { ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) ) };
-  int len {};
+  auto str{ ( char* )FrameMemoryAllocate( codepointView.size() * sizeof( Codepoint ) ) };
+  int len{};
 
   for( Codepoint codepoint : codepointView )
   {
@@ -345,7 +342,7 @@ auto Tac::CodepointsToUTF8( CodepointView codepointView ) -> StringView
     }
 
   }
-  return StringView( str, len );
+  return { str, len };
 }
 
 auto Tac::LocalizationGetString( Language language, StringView reference ) -> CodepointView

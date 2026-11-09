@@ -1,6 +1,5 @@
 #include "tac_json.h" // self-inc
 
-#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
@@ -217,7 +216,7 @@ namespace Tac
       {
         result += Tab( indentation, tabCount ) + "{\n";
         tabCount++;
-        for( auto [childKey, childValue ] : mObjectChildrenMap )
+        for( const auto& [childKey, childValue ] : mObjectChildrenMap )
         {
 
           result += Tab( indentation, tabCount ) + Quote( childKey ) + ":";
@@ -356,7 +355,7 @@ namespace Tac
     mObjectChildrenMap.clear();
     mArrayElements.clear();
 
-    for( auto [childKey, childJson] : json->mObjectChildrenMap )
+    for( const auto& [childKey, childJson] : json->mObjectChildrenMap )
       GetChild( childKey ).DeepCopy( childJson );
 
     for( const Json* child : json->mArrayElements )

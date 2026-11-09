@@ -2,7 +2,7 @@
 
 namespace Tac
 {
-  void MetaType::Read( ReadStream*, void* ) const
+  void MetaType::Read( ReadStream*, dynmc void* ) const
   {
     TAC_ASSERT_UNIMPLEMENTED;
   }

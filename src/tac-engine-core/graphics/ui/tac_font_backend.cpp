@@ -1,17 +1,14 @@
 #include "tac_font_backend.h" // self-inc
 
-#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/thirdparty/stb/stb_truetype.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/memory/tac_memory_util.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_string_util.h"
 
 
@@ -91,9 +88,9 @@ namespace Tac
     const float scale{ stbtt_ScaleForPixelHeight( &mFontInfo, ( float )TextPxHeight ) };
 
     // [ ] Q: Why are these not already floats?
-    int ascent;
-    int descent;
-    int linegap;
+    int ascent{};
+    int descent{};
+    int linegap{};
     stbtt_GetFontVMetrics( &mFontInfo, &ascent, &descent, &linegap );
 
     mFontDims = FontDims
@@ -108,8 +105,8 @@ namespace Tac
   auto FontFile::GetGlyphBytes( int glyphIndex ) const -> GlyphBytes
   {
     // return value      --  a 2D array of bytes 0..255, width*height in size
-    int w;
-    int h;
+    int w{};
+    int h{};
     unsigned char* sdfBytes{
       stbtt_GetGlyphSDF( &mFontInfo,
                          mFontDims.mScale ,
@@ -132,10 +129,10 @@ namespace Tac
   {
 
     // offset from the current horizontal position to the next horizontal position
-    int unscaledAdvanceWidth;
+    int unscaledAdvanceWidth{};
 
     // offset from the current horizontal position to the left edge of the character
-    int unscaledLeftSideBearing;
+    int unscaledLeftSideBearing{};
     stbtt_GetGlyphHMetrics( &mFontInfo,
                             glyphIndex,
                             &unscaledAdvanceWidth,
@@ -176,10 +173,10 @@ namespace Tac
     //int sdfyoff {};
 
     const float scale{ mFontDims.mScale };
-    int ix0;
-    int iy0;
-    int ix1;
-    int iy1;
+    int ix0{};
+    int iy0{};
+    int ix1{};
+    int iy1{};
 
     // get the bbox of the bitmap centered around the glyph origin; so the
     // bitmap width is ix1-ix0, height is iy1-iy0, and location to place

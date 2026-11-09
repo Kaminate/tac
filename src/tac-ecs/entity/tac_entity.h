@@ -31,7 +31,6 @@ namespace Tac
     void RemoveComponent( const ComponentInfo* );
     void RemoveAllComponents();
     void DeepCopy( const Entity& );
-    void DebugImgui();
     void Unparent();
     void AddChild( Entity* );
     Json Save();

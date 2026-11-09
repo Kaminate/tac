@@ -1,16 +1,14 @@
 #include "tac_dx12_tutorial_1_window.h" // self-inc
 #include "tac_dx12_tutorial.h"
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-win32/tac_win32.h"
 
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...

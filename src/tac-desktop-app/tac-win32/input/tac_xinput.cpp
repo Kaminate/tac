@@ -1,9 +1,7 @@
 #include "tac_xinput.h" // self-inc
 
 #include "tac-win32/tac_win32.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
@@ -21,7 +19,7 @@ namespace Tac
 
   struct DirectInputPerController : public Controller
   {
-    ~DirectInputPerController();
+    ~DirectInputPerController() override;
     void DebugImguiInner() override;
 
     DIDEVICEINSTANCE          mInstance {};
@@ -152,7 +150,7 @@ namespace Tac
                                            DIRECTINPUT_VERSION,
                                            IID_IDirectInput8,
                                            ( LPVOID* )&mDirectInput,
-                                           NULL ) };
+                                           nullptr ) };
     TAC_RAISE_ERROR_IF( hr != DI_OK, GetDirectInput8CreateErr( hr ) );
   }
 
@@ -249,7 +247,7 @@ namespace Tac
     IDirectInputDevice8* joystick {};
     HRESULT hr{ mDirectInput->CreateDevice( pdidInstance->guidInstance,
                                             &joystick,
-                                            NULL ) };
+                                            nullptr ) };
     TAC_ASSERT( SUCCEEDED( hr ) ); // ???
     controller = TAC_NEW DirectInputPerController;
     controller->mDevice = joystick;

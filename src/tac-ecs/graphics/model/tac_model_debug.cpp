@@ -4,17 +4,12 @@
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-ecs/renderpass/mesh/tac_mesh_presentation.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
-#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
-#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {

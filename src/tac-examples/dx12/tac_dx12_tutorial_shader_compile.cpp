@@ -2,8 +2,6 @@
 
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/dataprocess/tac_text_parser.h"
-#include "tac-engine-core/os/tac_os.h" //tmp
 #include "tac-dx/dxc/tac_dxc.h"
 #include "tac-dx/hlsl/tac_hlsl_preprocess.h"
 
@@ -11,8 +9,8 @@
 namespace Tac::Render
 {
   // -----------------------------------------------------------------------------------------------
-  static       UTF8Path    sOutputDir;
-  static const D3D_SHADER_MODEL kShaderModel{ D3D_SHADER_MODEL_6_5 };
+  static       UTF8Path         sOutputDir   {};
+  static const D3D_SHADER_MODEL kShaderModel { D3D_SHADER_MODEL_6_5 };
 
   static auto GetHighestShaderModel( ID3D12Device* device ) -> D3D_SHADER_MODEL
   {

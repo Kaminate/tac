@@ -3,9 +3,7 @@
 #include "tac_level_editor.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/os/tac_os.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/math/tac_math_meta.h"
 #include "tac-std-lib/meta/tac_meta.h"
@@ -37,7 +35,7 @@ namespace Tac
         mSemantics.push_back( position );
       }
 
-      return Span< const SVSemantic >( mSemantics.data(), mSemantics.size() );
+      return { mSemantics.data(), mSemantics.size() };
     }
 
     static auto Find( StringView semantic ) -> const SVSemantic*

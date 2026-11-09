@@ -9,7 +9,6 @@
 
 #pragma comment( lib, "d3d12.lib" ) // D3D12...
 
-#include <vector>
 
 namespace Tac::Render
 {
@@ -353,7 +352,7 @@ namespace Tac::Render
   auto DX12Device::CreateRenderContext( Errors& errors ) -> IContext::Scope
   {
     DX12Context* context{ DX12Renderer::sRenderer.mContextManager.GetContext( errors ) };
-    return IContext::Scope( context );
+    return { context };
   }
 
   auto DX12Device::CreateBindlessArray( IBindlessArray::Params params ) -> IBindlessArray*

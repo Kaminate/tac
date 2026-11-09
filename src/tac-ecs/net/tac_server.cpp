@@ -1,19 +1,12 @@
 #include "tac_server.h" // self-inc
 
-#include "tac-ecs/component/tac_component.h"
-#include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/net/tac_entity_diff.h"
 #include "tac-ecs/net/tac_player_diff.h"
 #include "tac-ecs/net/tac_space_net.h"
 #include "tac-ecs/player/tac_player.h"
-#include "tac-ecs/script/tac_script.h"
-#include "tac-ecs/scripts/tac_script_game_client.h"
 #include "tac-ecs/world/tac_world.h"
-#include "tac-std-lib/containers/tac_set.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
@@ -221,7 +214,7 @@ namespace Tac
 
     //if( mChat.mIsReadyToSend )
     //{
-    //  // todo: keep sending until the client has acknowled our message
+    //  // todo: keep sending until the client has acknowledged our message
     //  mChat.mIsReadyToSend = false;
     //  writer->mBuffer = buffer;
     //  TAC_CALL( WriteOutgoingChatMessage( writer, &mChat, errors ) );

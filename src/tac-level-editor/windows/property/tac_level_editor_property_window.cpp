@@ -1,27 +1,18 @@
 #include "tac_level_editor_property_window.h" // self-inc
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/component/tac_component_registry.h"
 #include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/system/tac_system.h"
 #include "tac-ecs/tac_space_types.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-level-editor/prefab/tac_level_editor_prefab.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/selection/tac_level_editor_entity_selection.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
-#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
@@ -106,7 +97,7 @@ namespace Tac
         entity->Unparent();
     }
 
-    if( entity->mChildren.size() && ImGuiCollapsingHeader( "Children" ) )
+    if( !entity->mChildren.empty() && ImGuiCollapsingHeader( "Children" ) )
     {
       TAC_IMGUI_INDENT_BLOCK;
       Vector< Entity* > childrenCopy = entity->mChildren; // For iterator invalidation

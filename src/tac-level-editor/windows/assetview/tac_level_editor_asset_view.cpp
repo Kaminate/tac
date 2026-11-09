@@ -6,22 +6,16 @@
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_gltf.h"
 #include "tac-engine-core/assetmanagers/gltf/tac_resident_model_file.h"
-#include "tac-engine-core/assetmanagers/obj/tac_model_asset_loader_obj.h"
 #include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/containers/tac_frame_vector.h"
-#include "tac-std-lib/containers/tac_map.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_short_fixed_string.h"
 #include "tac-std-lib/string/tac_string_util.h"
@@ -81,22 +75,9 @@ namespace Tac
     c2 /= scale.z;
 
     float
-      r11, r12, r13,
-      r21, r22, r23,
-      r31, r32, r33;
-    {
-      r11 = c0[ 0 ];
-      r21 = c0[ 1 ];
-      r31 = c0[ 2 ];
-
-      r12 = c1[ 0 ];
-      r22 = c1[ 1 ];
-      r32 = c1[ 2 ];
-
-      r13 = c2[ 0 ];
-      r23 = c2[ 1 ];
-      r33 = c2[ 2 ];
-    }
+      r11 = c0[ 0 ], r12 = c1[ 0 ], r13 = c2[ 0 ],
+      r21 = c0[ 1 ], r22 = c1[ 1 ], r23 = c2[ 1 ],
+      r31 = c0[ 2 ], r32 = c1[ 2 ], r33 = c2[ 2 ];
 
     // On-rotation-deformation-zones-for-finite-strain-Cosserat-plasticity.pdf
     // Rot( x, y, z ) = rotZ(phi) * rotY(theta) * rotX(psi)
@@ -137,7 +118,7 @@ namespace Tac
 
   static void AssetImporterAttemptLoadEntity( AssetViewImportedModel* loadedModel,
                                    const AssetPathStringView& path,
-                                   Errors& errors )
+                                   [[maybe_unused]]Errors& errors )
   {
     if( loadedModel->mAttemptedToLoadEntity )
       return;
@@ -424,7 +405,7 @@ namespace Tac
     }
   }
 
-  static void UIFilesOther( Errors& errors )
+  static void UIFilesOther( [[maybe_unused]]Errors& errors )
   {
     for( const AssetPathStringView assetPath : sAssetViewOtherPaths )
     {
@@ -489,7 +470,7 @@ namespace Tac
     }
   }
 
-  static void UIFilesImages( Errors& errors )
+  static void UIFilesImages( [[maybe_unused]]Errors& errors )
   {
     int shownImageCount {};
     bool goSameLine {};

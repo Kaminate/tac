@@ -1,8 +1,6 @@
 #include "tac_example_text.h" // self-inc
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
 
 namespace Tac
 {

@@ -2,7 +2,6 @@
 
 #include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL_RET
 #include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
 
 namespace Tac::Render
 {

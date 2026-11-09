@@ -4,7 +4,6 @@
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/tac_ints.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/string/tac_string_format.h"
 #include "tac-std-lib/string/tac_string_view.h"
 
 
@@ -144,7 +143,7 @@ namespace Tac
   {
     const int remainingLen{ mLen - pos };
     const int resultLen{ len == npos ? remainingLen : Min( remainingLen, len ) };
-    return String( mStr + pos, resultLen );
+    return { mStr + pos, resultLen };
   }
   void String::operator = ( const char* str )                 { assign( StringView( str ) ); }
   void String::operator = ( const String& str )               { assign( str.c_str(), str.size() ); }
@@ -306,7 +305,7 @@ auto Tac::Atoi( const StringView s ) -> int
 auto Tac::ToString( unsigned int val ) -> Tac::String       { return ItoaU64( ( u64 )val ); }
 auto Tac::ToString( unsigned long long val ) -> Tac::String { return ItoaU64( ( u64 )val ); }
 auto Tac::ToString( int val ) -> Tac::String                { return Itoa( val ); }
-auto Tac::ToString( char c ) -> Tac::String                 { return String( 1, c ); }
+auto Tac::ToString( char c ) -> Tac::String                 { return { 1, c }; }
 auto Tac::ToString( const void* val ) -> Tac::String        { return "0x" + ItoaU64( ( u64 )val, 16 ); }
 auto Tac::ToString( const double val ) -> Tac::String
 {

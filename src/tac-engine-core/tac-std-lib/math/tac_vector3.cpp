@@ -34,7 +34,7 @@ namespace Tac
 
 auto Tac::operator *( float f, const v3& v ) -> v3           { return v * f; }
 auto Tac::Dot( const v3& lhs, const v3& rhs ) -> float       { return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z; }
-auto Tac::Cross( const v3& l, const v3& r ) -> v3            { return v3( l.y * r.z - l.z * r.y, l.z * r.x - l.x * r.z, l.x * r.y - l.y * r.x ); }
+auto Tac::Cross( const v3& l, const v3& r ) -> v3            { return { l.y * r.z - l.z * r.y, l.z * r.x - l.x * r.z, l.x * r.y - l.y * r.x }; }
 auto Tac::Normalize( const v3& v ) -> v3                     { v3 result { v }; result.Normalize(); return result; }
 auto Tac::Length( const v3& v ) -> float                     { return v.Length(); }
 auto Tac::Distance( const v3& lhs, const v3& rhs ) -> float  { return ( lhs - rhs ).Length(); }

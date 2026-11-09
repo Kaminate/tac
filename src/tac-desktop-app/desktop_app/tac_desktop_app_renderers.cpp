@@ -1,8 +1,13 @@
-#include "tac_desktop_app_renderers.h" // self-inc
-
 #include "tac-std-lib/preprocess/tac_preprocessor.h" // Tac::asdf
+
+#if TAC_TEMPORARILY_DISABLED()
+#include "tac_desktop_app_renderers.h" // self-inc
+#endif
+
+#if TAC_TEMPORARILY_DISABLED()
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-rhi/render3/tac_render_api.h"
+#endif
 
 #if defined( TAC_USE_RENDERER_VK ) && __has_include( "tac_renderer_vulkan.h" )
 #define TAC_INCLUDED_RENDERER_VULKAN true
@@ -25,7 +30,7 @@ namespace Tac::Render
 
   // -----------------------------------------------------------------------------------------------
 
-  static RendererFactory GetFactoryFromSettings()
+  static auto GetFactoryFromSettings() -> RendererFactory
   {
     const String name { SettingsGetString( "chosen_renderer", "" ) };
     for( int i{}; i < ( int )RendererAPI::Count; ++i )
@@ -35,7 +40,7 @@ namespace Tac::Render
     return nullptr;
   }
 
-  static RendererFactory GetFactoryFromPlatform()
+  static auto GetFactoryFromPlatform() -> RendererFactory
   {
 #if defined _WIN32 || defined _WIN64 
     return GetRendererFactory( RendererAPI::DirectX11 );
@@ -44,7 +49,7 @@ namespace Tac::Render
 #endif
   }
 
-  static RendererFactory GetFactoryFromIndex()
+  static auto GetFactoryFromIndex() -> RendererFactory
   {
     for( int i{}; i < ( int )RendererAPI::Count; ++i )
       if( RendererFactory factory = GetRendererFactory( ( RendererAPI )i ) )
@@ -53,7 +58,7 @@ namespace Tac::Render
     return nullptr;
   }
 
-  static RendererFactory GetFactory()
+  static auto GetFactory() -> RendererFactory
   {
     const RendererFactory factories[]
     {

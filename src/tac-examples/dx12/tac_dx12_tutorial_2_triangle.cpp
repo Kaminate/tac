@@ -5,15 +5,11 @@
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-#include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
-#include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/asset/tac_asset.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
@@ -346,7 +342,7 @@ namespace Tac
 
     // Copy the triangle data to the vertex buffer upload heap.
     const D3D12_RANGE readRange{}; // not reading from CPU
-    void* pVertexDataBegin;
+    void* pVertexDataBegin{};
     TAC_DX12_CALL( m_vertexBufferUploadHeap->Map( 0, &readRange, &pVertexDataBegin ) );
     MemCpy( pVertexDataBegin, triangleVertices, m_vertexBufferSize );
     m_vertexBufferUploadHeap->Unmap( 0, nullptr );
@@ -620,10 +616,10 @@ namespace Tac
   void DX12AppHelloTriangle::TransitionRenderTarget( const int iRT,
                                                      const D3D12_RESOURCE_STATES targetState )
   {
-    ID3D12Resource* rtResource = (ID3D12Resource*)m_renderTargets[ iRT ];
+    auto rtResource{ ( ID3D12Resource* )m_renderTargets[ iRT ] };
     TAC_ASSERT(rtResource );
 
-    const D3D12_RESOURCE_STATES before = m_renderTargetStates[ iRT ];
+    const D3D12_RESOURCE_STATES before{ m_renderTargetStates[ iRT ] };
     TAC_ASSERT( before != targetState );
 
     const D3D12_RESOURCE_TRANSITION_BARRIER Transition

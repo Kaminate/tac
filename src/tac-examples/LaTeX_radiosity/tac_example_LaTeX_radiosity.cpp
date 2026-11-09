@@ -7,7 +7,6 @@
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/containers/tac_vector_meta.h"
 #include "tac-std-lib/error/tac_error_handling.h"
@@ -16,7 +15,6 @@
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/meta/tac_meta_enum.h"
 #include "tac-std-lib/string/tac_string_meta.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 
 #include <microtex/microtex.h>
 
@@ -290,7 +288,7 @@ namespace Tac
 
   }
 
-  static void DrawBorder(StringView eqStr, v2 pos_windowspace, v2 size_windowspace, float alpha )
+  static void DrawBorder([[maybe_unused]]StringView eqStr, v2 pos_windowspace, v2 size_windowspace, float alpha )
   {
     UI2DDrawData* drawList{ ImGuiGetDrawData() };
     if( !drawList )

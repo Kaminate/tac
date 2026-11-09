@@ -1,12 +1,8 @@
 #include "tac_win32.h" // self-inc
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-engine-core/os/tac_os.h"
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/containers/tac_fixed_vector.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h" // ParseData
 
 #include <debugapi.h> // IsDebuggerPresent
@@ -56,12 +52,12 @@ auto Tac::Win32ErrorStringFromDWORD( const DWORD winErrorValue ) -> String
     FORMAT_MESSAGE_FROM_SYSTEM |
     FORMAT_MESSAGE_IGNORE_INSERTS };
   const DWORD bufLen{ FormatMessage( flags,
-                                      NULL,
+                                      nullptr,
                                       winErrorValue,
                                       MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
                                       ( LPTSTR )&lpMsgBuf,
                                       0,
-                                      NULL ) };
+                                      nullptr ) };
   if( !bufLen )
     return "FormatMessage() failed";
 
@@ -75,6 +71,7 @@ auto Tac::Win32GetLastErrorString() -> String { return Win32ErrorStringFromDWORD
 void Tac::Win32DebugBreak()
 {
   // todo: replace with std::breakpoint_if_debugging (C++26)
+  // ^ 2026-11-08 still not available in VS2026
   if constexpr( kIsDebugMode )
     if( ::IsDebuggerPresent() )
       // If the process is not being debugged, the function uses the search logic of a standard
@@ -97,7 +94,7 @@ HWND Tac::NativeWindowHandleToHWND( NativeWindowHandle nwh )
 
 BOOL Tac::_IsWindowsVersionOrGreater( WORD major, WORD minor, WORD )
 {
-  typedef LONG( WINAPI* PFN_RtlVerifyVersionInfo )( OSVERSIONINFOEXW*, ULONG, ULONGLONG );
+  using PFN_RtlVerifyVersionInfo = LONG( WINAPI* )( OSVERSIONINFOEXW*, ULONG, ULONGLONG );
   static PFN_RtlVerifyVersionInfo RtlVerifyVersionInfoFn = nullptr;
   if( !RtlVerifyVersionInfoFn )
     if( HMODULE ntdllModule = ::GetModuleHandleA( "ntdll.dll" ) )

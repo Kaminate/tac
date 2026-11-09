@@ -1,8 +1,6 @@
 #include "tac_os.h" // self-inc
 
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/containers/tac_set.h"
 #include "tac-std-lib/string/tac_string.h"
 
@@ -10,7 +8,6 @@
   import std; // <cstdio> ( printf ), <thread>, <iostream>
 #else
   #include <thread>
-  #include <iostream>
 #endif
 
 namespace Tac::OS

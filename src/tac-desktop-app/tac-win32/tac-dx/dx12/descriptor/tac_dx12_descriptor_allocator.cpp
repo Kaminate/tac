@@ -343,7 +343,7 @@ namespace Tac::Render
       .mCount { allocRegion->mDescriptorCount },
     };
 
-    return DX12DescriptorRegion( descriptor, this, iAlloc );
+    return { descriptor, this, iAlloc };
   }
 
   auto DX12DescriptorAllocator::DebugPendingFreeListString() -> String

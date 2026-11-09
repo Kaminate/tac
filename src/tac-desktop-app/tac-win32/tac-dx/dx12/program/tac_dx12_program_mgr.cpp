@@ -1,6 +1,5 @@
 #include "tac_dx12_program_mgr.h" // self-inc
 
-#include "tac-dx/dx12/tac_dx12_helper.h" // TAC_DX12_CALL
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-dx/dxc/tac_dxc.h"
 #include "tac-dx/hlsl/tac_hlsl_preprocess.h"

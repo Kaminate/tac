@@ -1,7 +1,6 @@
 #include "tac_filesystem.h" // self-inc
 
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/memory/tac_memory.h"

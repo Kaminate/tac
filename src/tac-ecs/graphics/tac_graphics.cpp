@@ -1,22 +1,18 @@
 #include "tac_graphics.h" // self-inc
 
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/containers/tac_set.h"
-
-#include "tac-ecs/graphics/light/tac_light.h"
+#include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/camera/tac_camera_component.h"
+#include "tac-ecs/graphics/light/tac_light.h"
 #include "tac-ecs/graphics/material/tac_material.h"
 #include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/graphics/sprite3d/tac_sprite3d.h"
-#include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
-#include "tac-ecs/component/tac_component.h"
-#include "tac-ecs/world/tac_world.h"
+#include "tac-ecs/graphics/sprite3d/tac_sprite3d.h"
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
+#include "tac-ecs/world/tac_world.h"
+#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
+#include "tac-std-lib/containers/tac_set.h"
+#include "tac-std-lib/memory/tac_memory.h"
+#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 namespace Tac
 {

@@ -1,20 +1,15 @@
 #include "tac_imgui.h" // self-inc
 
-#include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_drag.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui_state.h"
 #include "tac-engine-core/graphics/ui/tac_text_edit.h"
 #include "tac-engine-core/graphics/ui/tac_ui_2d.h"
-
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
-
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/containers/tac_frame_vector.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_vector4.h"
@@ -22,8 +17,8 @@
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
 
-#include <stdarg.h> // va_list, va_start, va_end
-#include <stdio.h> // vsnprintf
+#include <cstdarg> // va_list, va_start, va_end
+#include <cstdio> // vsnprintf
 
 namespace Tac
 {
@@ -707,7 +702,7 @@ void Tac::ImGuiText( const char* fmt, ... )//const StringView utf8 )
 {
   const size_t bufSize{ 1024 };
   char buf[ 1024 ];
-  va_list args;
+  va_list args{};
   va_start( args, fmt );
   int n{ vsnprintf( buf, bufSize, fmt, args ) };
   ImGuiText( n >= 0 ? StringView( buf, n ) : StringView( "<encoding error>" ) );

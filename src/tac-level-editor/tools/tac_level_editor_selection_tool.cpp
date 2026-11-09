@@ -1,8 +1,5 @@
 #include "tac_level_editor_selection_tool.h" // self-inc
 
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-ecs/graphics/material/tac_material.h"

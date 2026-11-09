@@ -97,7 +97,7 @@ namespace Tac
   static void m2UnitTestInverse( m2 m, m2 minvexpected)
   {
     m2 minvfound{};
-    bool b;
+    bool b{};
     m.Invert(&b, &minvfound);
     AssertAboutEqual(minvfound, minvexpected);
   }

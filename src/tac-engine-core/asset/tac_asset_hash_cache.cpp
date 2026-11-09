@@ -1,8 +1,5 @@
 #include "tac_asset_hash_cache.h"
 
-#include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-engine-core/shell/tac_shell.h"
-
 #include "tac-std-lib/containers/tac_map.h"
 
 

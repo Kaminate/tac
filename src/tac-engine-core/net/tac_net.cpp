@@ -1,10 +1,6 @@
 #include "tac_net.h" // self-inc
 
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/tac_ints.h"
-
-//#include <cstdlib> // std::rand
 
 namespace Tac::Network
 {
@@ -72,9 +68,9 @@ namespace Tac::Network
     AddString( s );
     AddNewline();
   }
-  String HTTPRequest::ToString()
+  auto HTTPRequest::ToString() -> String
   {
-    return String( mBytes.data(), ( int )mBytes.size() );
+    return { mBytes.data(), ( int )mBytes.size() };
   }
   void HTTPRequest::FormatRequestHTTP( StringView requestMethod,
                                        StringView host,
@@ -148,7 +144,7 @@ namespace Tac::Network
         result += lookupTable[ d ];
         result += '=';
       } break;
-      default: TAC_ASSERT_INVALID_CASE( remaining ); return 0;
+      default: TAC_ASSERT_INVALID_CASE( remaining ); return {};
     }
     return result;
   }

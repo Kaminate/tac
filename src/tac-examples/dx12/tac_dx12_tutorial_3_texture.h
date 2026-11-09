@@ -1,7 +1,7 @@
 #pragma once
 
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-win32/tac_win32_com_ptr.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-win32/event/tac_win32_event.h"
 #include "tac-dx/dxgi/tac_dxgi.h"
 #include "tac-engine-core/window/tac_window_handle.h"
@@ -150,9 +150,9 @@ namespace Tac
     PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
     PCom< ID3D12GraphicsCommandList4 > m_commandListBundle;
-    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
-    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
+    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ]{};
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ]{};
+    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ]{};
     bool                               m_renderTargetInitialized {};
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).

@@ -1,7 +1,6 @@
 
 #include "tac-ecs/script/tac_script.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/containers/tac_frame_vector.h"
 
 namespace Tac

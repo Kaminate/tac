@@ -4,15 +4,8 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/graphics/model/tac_model_debug.h"
-#include "tac-engine-core/asset/tac_asset_hash_cache.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-std-lib/dataprocess/tac_json.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/os/tac_os.h"
-#include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
-#include "tac-std-lib/string/tac_string_meta.h"
 
 namespace Tac
 {

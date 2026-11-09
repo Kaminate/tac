@@ -1,13 +1,8 @@
 #include "tac_settings_root.h" // self-inc
 
 #include "tac-engine-core/shell/tac_shell_time.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/os/tac_os.h"
-#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
@@ -21,7 +16,7 @@ namespace Tac
     }
   }
 
-  auto SettingsRoot::GetRootNode() -> SettingsNode { return SettingsNode( this, &sJson ); }
+  auto SettingsRoot::GetRootNode() -> SettingsNode { return { this, &sJson }; }
 
   void SettingsRoot::Tick( Errors& errors )
   {

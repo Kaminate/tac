@@ -18,17 +18,18 @@ namespace Tac
 
   struct TextInputData
   {
-    int                 GetMinCaret();
-    int                 GetMaxCaret();
-    void                OnClick( int numGlyphsBeforeCaret );
-    void                OnDrag( int numGlyphsBeforeCaret );
-    void                OnKeyPressed( TextInputKey );
-    void                OnCodepoint( Codepoint );
-    void                SetCodepoints( CodepointView );
+    auto GetMinCaret() -> int;
+    auto GetMaxCaret() -> int;
+    void OnClick( int numGlyphsBeforeCaret );
+    void OnDrag( int numGlyphsBeforeCaret );
+    void OnKeyPressed( TextInputKey );
+    void OnCodepoint( Codepoint );
+    void SetCodepoints( CodepointView );
 
-    String              GetText();
-    void                SetText( StringView );
-    CodepointView       GetCodepointView() const;
+    auto GetText() -> String;
+    void SetText( StringView );
+    auto GetCodepointView() const -> CodepointView;
+
 
     int                 mNumGlyphsBeforeCaret[ 2 ]  {};
 
@@ -37,10 +38,10 @@ namespace Tac
     Vector< Codepoint > mCodepoints;
 
   private:
-    void                OnArrowKeyPressed( bool canMoveDirection,
-                                           int direction,
-                                           int numGlyphsBeforeCaretEdge );
-    void                OnDestructivePressed( int deletedCodepointsStartIndex );
+    void OnArrowKeyPressed( bool canMoveDirection,
+                            int direction,
+                            int numGlyphsBeforeCaretEdge );
+    void OnDestructivePressed( int deletedCodepointsStartIndex );
   };
 
   // mousePos and textPos must be in the same space

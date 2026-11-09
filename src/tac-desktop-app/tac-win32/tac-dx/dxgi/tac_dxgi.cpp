@@ -4,7 +4,6 @@
 #include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/tac_ints.h"
 
 #include <d3dcommon.h> // WKPDID_D3DDebugObjectName

@@ -2,7 +2,6 @@
 
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/string/tac_string_view.h"
 
 void Tac::ForwardListUnitTest()
 {
@@ -25,6 +24,7 @@ void Tac::ForwardListUnitTest()
   // test double delete on copy ctor
   {
     ForwardList< String > myStrs3(myStrs);
+    ( void )myStrs3;
   }
 
   for( const int i : myList )

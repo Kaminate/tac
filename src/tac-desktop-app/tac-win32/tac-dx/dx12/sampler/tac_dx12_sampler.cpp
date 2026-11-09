@@ -1,4 +1,3 @@
-#include "tac_dx12_sampler.h"
 
 namespace Tac::Render
 {

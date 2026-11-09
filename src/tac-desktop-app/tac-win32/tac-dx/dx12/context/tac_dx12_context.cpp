@@ -7,13 +7,11 @@
 #include "tac-dx/dx12/tac_renderer_dx12_ver3.h"
 #include "tac-dx/dx12/buffer/tac_dx12_frame_buf_mgr.h"
 #include "tac-dx/dx12/tac_dx12_transition_helper.h"
-#include "tac-dx/dx12/descriptor/tac_dx12_descriptor_allocator.h"
 #include "tac-dx/pix/tac_pix_runtime.h"
 
 
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_fixed_vector.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h" // Swap
 
 
 namespace Tac::Render

@@ -50,8 +50,8 @@ namespace Tac::Render
       iFunctionNameBegin++;
 
     const int iFunctionNameEnd { line.find( ',' ) };
-    return String( line.data() + iFunctionNameBegin,
-                   line.data() + iFunctionNameEnd );
+    return { line.data() + iFunctionNameBegin,
+             line.data() + iFunctionNameEnd };
   }
 
   static auto GetBitCount( const StringView line ) -> int

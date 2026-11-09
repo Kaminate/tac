@@ -1,7 +1,5 @@
 #include "tac_player.h" // self-inc
 
-#include "tac-ecs/world/tac_world.h"
-#include "tac-ecs/entity/tac_entity.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
 #include "tac-std-lib/meta/tac_meta_impl.h"
 #include "tac-std-lib/meta/tac_meta_integral.h"

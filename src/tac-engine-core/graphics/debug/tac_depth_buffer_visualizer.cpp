@@ -1,7 +1,8 @@
 #include "tac_depth_buffer_visualizer.h" // self-inc
 
-//#include "tac-rhi/render3/tac_render_api.h"
+#if TAC_TEMPORARILY_DISABLED()
 #include "tac-rhi/render3/tac_render_api.h"
+#endif
 #include "tac-std-lib/error/tac_error_handling.h"
 
 

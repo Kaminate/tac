@@ -3,7 +3,6 @@
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/terrain/tac_numgrid.h"
-#include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/component/tac_component_registry.h"
 
 static bool sInitialized;

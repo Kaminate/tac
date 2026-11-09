@@ -1,5 +1,4 @@
 #include "tac-std-lib/math/tac_vector3i.h"
-#include "tac-std-lib/math/tac_math.h"
 
 namespace Tac
 {

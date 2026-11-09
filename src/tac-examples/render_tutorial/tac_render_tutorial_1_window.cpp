@@ -1,8 +1,6 @@
 #include "tac_render_tutorial_1_window.h" // self-inc
 
 #include "tac_render_tutorial.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 
 namespace Tac

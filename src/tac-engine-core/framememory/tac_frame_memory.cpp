@@ -69,7 +69,7 @@ Tac::StringView  Tac::FrameMemoryCopy( const void* src, int n )
 {
   auto dst { ( char* )FrameMemoryAllocate( n ) };
   MemCpy( dst, src, n );
-  return StringView( dst, n );
+  return { dst, n };
 }
 
 Tac::StringView  Tac::FrameMemoryCopy( const StringView s)
@@ -79,7 +79,7 @@ Tac::StringView  Tac::FrameMemoryCopy( const StringView s)
   auto dst { ( char* )FrameMemoryAllocate( n + 1 ) };
   MemCpy( dst, src, n );
   dst[ n ] = '\0';
-  return StringView( dst, n );
+  return { dst, n };
 }
 
 bool        Tac::FrameMemoryIsAllocated( const void* ptr )

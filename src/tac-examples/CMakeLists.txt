@@ -11,8 +11,6 @@ target_sources( TacExamples PRIVATE
   "tac_examples_registry.h"
   "tac_examples_state_machine.cpp"
   "tac_examples_state_machine.h"
-  "tac_render_tutorial_examples.cpp"
-  "tac_render_tutorial_examples.h"
 )
 
 target_link_libraries( TacExamples PUBLIC TacECS )

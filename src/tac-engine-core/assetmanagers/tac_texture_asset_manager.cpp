@@ -4,13 +4,11 @@
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/settings/tac_settings_root.h"
 #include "tac-engine-core/thirdparty/stb/stb_image.h"
-#include "tac-engine-core/thirdparty/stb/stb_image_write.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string_util.h"
 #include "tac-std-lib/tac_ints.h"
@@ -35,7 +33,7 @@ namespace Tac
         mRgba[ 2 ] = b;
         mRgba[ 3 ] = 255;
     }
-    u8 mRgba[ sBPP ];
+    u8 mRgba[ sBPP ]{};
   };
 
   struct AsyncSubresourceData
@@ -265,9 +263,9 @@ namespace Tac
     SettingsNode settingsNode{ settingsRoot.GetRootNode() };
     mIs_sRGB = settingsNode.GetChild( "is sRGB" ).GetValueWithFallback( true );
     
-    int x;
-    int y;
-    int previousChannelCount;
+    int x{};
+    int y{};
+    int previousChannelCount{};
     const int requiredChannelCount{ sBPP };
 
     // rgba
@@ -511,9 +509,9 @@ namespace Tac
       const UTF8Path& filepath { files[ iFile ] };
       TAC_CALL( const String memory { filepath.LoadFilePath( errors ) });
 
-      int x;
-      int y;
-      int previousChannelCount;
+      int x{};
+      int y{};
+      int previousChannelCount{};
       const int requiredChannelCount{ sBPP };
       // rgba
       const auto memoryByteCount { ( int )memory.size() };

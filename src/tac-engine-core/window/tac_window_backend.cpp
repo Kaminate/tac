@@ -4,7 +4,6 @@
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/containers/tac_vector.h"
-#include "tac-std-lib/mutex/tac_mutex.h"
 #include "tac-engine-core/platform/tac_platform.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 
@@ -80,7 +79,7 @@ namespace Tac
 
   auto AppWindowApiBackend::WindowIterator::operator*() -> WindowHandle
   {
-    return WindowHandle( mCurrIdx, sAppCurr[ mCurrIdx ].mGeneration );
+    return { mCurrIdx, sAppCurr[ mCurrIdx ].mGeneration };
   }
 
 

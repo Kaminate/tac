@@ -1,12 +1,12 @@
 #include "tac_dx12_tutorial_6_frame_buf.h" // self-inc
 
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac_dx12_tutorial_shader_compile.h"
 #include "tac_dx12_tutorial_root_sig_builder.h"
 #include "tac_dx12_tutorial_input_layout_builder.h"
 #include "tac_dx12_tutorial_checkerboard.h"
 #include "tac_dx12_tutorial.h"
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"
 #include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
@@ -15,16 +15,13 @@
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/dataprocess/tac_text_parser.h"
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-win32/tac_win32.h"
 
@@ -207,7 +204,7 @@ namespace Tac
 
     m_textureResourceStates = D3D12_RESOURCE_STATE_COPY_DEST;
 
-    UINT64 totalBytes;
+    UINT64 totalBytes{};
     m_device->GetCopyableFootprints(
       &resourceDesc, 0, 1, 0, nullptr, nullptr, nullptr, &totalBytes );
 
@@ -254,7 +251,7 @@ namespace Tac
     Vector< D3D12_PLACED_SUBRESOURCE_FOOTPRINT > footprints( nSubRes ); // aka layouts?
     Vector< UINT64 > rowByteCounts( nSubRes );
     Vector< UINT > rowCounts( nSubRes );
-    UINT64 requiredByteCount;
+    UINT64 requiredByteCount{};
     m_device->GetCopyableFootprints( &m_textureDesc,
                                      0, // first subresource
                                      nSubRes,
@@ -267,11 +264,10 @@ namespace Tac
     // for each subresource
     for( int iSubRes {}; iSubRes < nSubRes; ++iSubRes )
     {
-
       TAC_ASSERT( totalBytes >= requiredByteCount );
 
       const D3D12_RANGE readRange{}; // not reading from CPU
-      void* mappedData;
+      void* mappedData{};
       TAC_DX12_CALL( textureUploadHeap->Map( ( UINT )iSubRes, &readRange, &mappedData ) );
 
       const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& layout { footprints[ iSubRes ] };
@@ -913,9 +909,9 @@ namespace Tac
         // must match MyCBufType in hlsl
         struct MyCBufType
         {
-          m4           mWorld;
-          u32          mVertexBuffer;
-          u32          mTexture;
+          m4           mWorld       {};
+          u32          mVertexBuffer{};
+          u32          mTexture     {};
         };
 
         const m4 transform{

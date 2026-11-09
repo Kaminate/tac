@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
@@ -58,9 +59,9 @@ namespace Tac
 
     PCom< ID3D12Device5 >              m_device;
 
-    PCom< ID3D12DescriptorHeap >       m_rtvHeap;
+    PCom< ID3D12DescriptorHeap >       m_rtvHeap{};
     UINT                               m_rtvDescriptorSize{};
-    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvHeapStart{};
 
     // A ID3D12CommandQueue provides methods for
     // - submitting command lists,
@@ -82,7 +83,7 @@ namespace Tac
     PCom< ID3D12CommandAllocator >     m_commandAllocator;
     PCom< ID3D12GraphicsCommandList4 > m_commandList;
     PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ]{};
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
@@ -94,9 +95,9 @@ namespace Tac
 
     // DXGI objects
 
-    Render::DXGISwapChainWrapper       m_swapChain;
+    Render::DXGISwapChainWrapper       m_swapChain{};
     bool                               m_swapChainValid{};
-    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc;
+    DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc{};
     DXGI_FORMAT                        RTVFormat{ DXGI_FORMAT_R16G16B16A16_FLOAT };
  
     // ---------------------------------------------------------------------------------------------
@@ -107,7 +108,7 @@ namespace Tac
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
     UINT                               m_frameIndex{};
-    Win32Event                         m_fenceEvent;
+    Win32Event                         m_fenceEvent{};
 
     // UINT64 is big enough to run at 1000 fps for 500 million years
     UINT64                             m_fenceValue{};

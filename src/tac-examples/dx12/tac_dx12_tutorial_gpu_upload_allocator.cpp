@@ -194,7 +194,7 @@ namespace Tac::Render
     ID3D12Resource* pBuffer{ buffer.Get() };
     DX12SetName( pBuffer, "upload page" );
 
-    void* cpuAddr;
+    void* cpuAddr{};
 
     TAC_DX12_CALL_RET( buffer->Map(
       0, // subrsc idx

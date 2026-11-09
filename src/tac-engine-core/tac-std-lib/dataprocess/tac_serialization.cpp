@@ -28,7 +28,7 @@ Tac::Endianness Tac::GetEndianness()
       u8 mu8[ 2 ];
     };
 
-    U16B u16b;
+    U16B u16b{};
     u16b.mu16 = 0xABCD;
 
     return ( u16b.mu8[ 0 ] == 0xCD && u16b.mu8[ 1 ] == 0xAB )

@@ -1,7 +1,6 @@
-#include "tac_win32_main.h"
+#include "tac_win32_main.h" // Win32RedirectStdoutVisualStudioOutputWindow
 #include "tac-win32/tac_win32.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/dataprocess/tac_log.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;

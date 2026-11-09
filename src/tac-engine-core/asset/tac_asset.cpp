@@ -7,7 +7,6 @@
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-engine-core/os/tac_os.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/framememory/tac_frame_memory.h"
 
 namespace Tac

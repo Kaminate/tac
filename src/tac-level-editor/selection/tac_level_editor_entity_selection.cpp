@@ -5,7 +5,6 @@
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/math/tac_vector4.h"
 
 namespace Tac
 {

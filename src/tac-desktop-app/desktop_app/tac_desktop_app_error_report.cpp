@@ -1,10 +1,6 @@
 #include "tac_desktop_app_error_report.h" // self-inc
 
-#include "tac_stack_frame_formatter.h"
-
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/containers/tac_span.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/containers/tac_vector.h"

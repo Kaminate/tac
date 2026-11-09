@@ -69,19 +69,13 @@ namespace Tac
     float mB;
   };
 
-  m4::m4( const m3& m )
+  m4::m4( const m3& m ) : m00( m.m00 ), m01( m.m01 ), m02( m.m02 ), 
+                          m10( m.m10 ), m11( m.m11 ), m12( m.m12 ), 
+                          m20( m.m20 ), m21( m.m21 ), m22( m.m22 )
   {
-    *this = m4( m.m00, m.m01, m.m02, 0,
-                m.m10, m.m11, m.m12, 0,
-                m.m20, m.m21, m.m22, 0,
-                0, 0, 0, 1 );
   }
 
-  m4::m4( float f )
-    : m00( f ), m01( 0 ), m02( 0 ), m03( 0 )
-    , m10( 0 ), m11( f ), m12( 0 ), m13( 0 )
-    , m20( 0 ), m21( 0 ), m22( f ), m23( 0 )
-    , m30( 0 ), m31( 0 ), m32( 0 ), m33( f )
+  m4::m4( float f ) : m00( f ), m11( f ), m22( f ), m33( f )
   {
   }
 
@@ -233,10 +227,10 @@ namespace Tac
     float m21{ scale[ 1 ] * rot( 2, 1 ) };
     float m22{ scale[ 2 ] * rot( 2, 2 ) };
 
-    return m4( m00, m01, m02, translate[ 0 ],
+    return { m00, m01, m02, translate[ 0 ],
                m10, m11, m12, translate[ 1 ],
                m20, m21, m22, translate[ 2 ],
-               0, 0, 0, 1 );
+               0, 0, 0, 1 };
   }
 
   m4 m4::Transform( const v3& scale, const v3& eulerRads, const v3& translate )
@@ -393,20 +387,18 @@ namespace Tac
                        0, 0, 0, 1 );
       return result;
     }
-    else
-    {
-      // NOTE( N8 ): this MUST be opposite order of Matrix4::Transform
-      // ( Transform goes zyx, so TransformInverse goes xyz )
-      const m3 r{ m3::RotRadEulerInv( eulerRads ) };
-      const float m03{ s[ 0 ] * ( t[ 0 ] * r( 0, 0 ) + t[ 1 ] * r( 0, 1 ) + t[ 2 ] * r( 0, 2 ) ) };
-      const float m13{ s[ 1 ] * ( t[ 0 ] * r( 1, 0 ) + t[ 1 ] * r( 1, 1 ) + t[ 2 ] * r( 1, 2 ) ) };
-      const float m23{ s[ 2 ] * ( t[ 0 ] * r( 2, 0 ) + t[ 1 ] * r( 2, 1 ) + t[ 2 ] * r( 2, 2 ) ) };
-      const m4 result( s[ 0 ] * r( 0, 0 ), s[ 0 ] * r( 0, 1 ), s[ 0 ] * r( 0, 2 ), m03,
-                       s[ 1 ] * r( 1, 0 ), s[ 1 ] * r( 1, 1 ), s[ 1 ] * r( 1, 2 ), m13,
-                       s[ 2 ] * r( 2, 0 ), s[ 2 ] * r( 2, 1 ), s[ 2 ] * r( 2, 2 ), m23,
-                       0, 0, 0, 1 );
-      return result;
-    }
+
+    // NOTE( N8 ): this MUST be opposite order of Matrix4::Transform
+    // ( Transform goes zyx, so TransformInverse goes xyz )
+    const m3 r{ m3::RotRadEulerInv( eulerRads ) };
+    const float m03{ s[ 0 ] * ( t[ 0 ] * r( 0, 0 ) + t[ 1 ] * r( 0, 1 ) + t[ 2 ] * r( 0, 2 ) ) };
+    const float m13{ s[ 1 ] * ( t[ 0 ] * r( 1, 0 ) + t[ 1 ] * r( 1, 1 ) + t[ 2 ] * r( 1, 2 ) ) };
+    const float m23{ s[ 2 ] * ( t[ 0 ] * r( 2, 0 ) + t[ 1 ] * r( 2, 1 ) + t[ 2 ] * r( 2, 2 ) ) };
+    const m4 result( s[ 0 ] * r( 0, 0 ), s[ 0 ] * r( 0, 1 ), s[ 0 ] * r( 0, 2 ), m03,
+                     s[ 1 ] * r( 1, 0 ), s[ 1 ] * r( 1, 1 ), s[ 1 ] * r( 1, 2 ), m13,
+                     s[ 2 ] * r( 2, 0 ), s[ 2 ] * r( 2, 1 ), s[ 2 ] * r( 2, 2 ), m23,
+                     0, 0, 0, 1 );
+    return result;
   }
 
   m4 m4::View( const v3& camPos, const v3& camViewDir, const v3& camR, const v3& camU )

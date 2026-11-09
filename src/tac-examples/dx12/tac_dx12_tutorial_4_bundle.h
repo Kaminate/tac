@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-engine-core/window/tac_window_handle.h" // WindowHandle
@@ -67,21 +68,21 @@ namespace Tac
     void DX12CreateSwapChain( Errors& );
     void CreateRenderTargetViews( Errors& );
     void ClearRenderTargetView();
-    D3D12_CPU_DESCRIPTOR_HANDLE GetRTVCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetRTVGpuDescHandle( int ) const;
+    auto GetRTVCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetRTVGpuDescHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGpuDescHandle( int ) const;
+    auto GetSRVCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetSRVGpuDescHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE GetSamplerCpuDescHandle( int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE GetSamplerGpuDescHandle( int ) const;
+    auto GetSamplerCpuDescHandle( int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto GetSamplerGpuDescHandle( int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
-                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
-                                                     int ) const;
-    D3D12_GPU_DESCRIPTOR_HANDLE OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
-                                                     D3D12_DESCRIPTOR_HEAP_TYPE,
-                                                     int ) const;
+    auto OffsetCpuDescHandle( D3D12_CPU_DESCRIPTOR_HANDLE,
+                              D3D12_DESCRIPTOR_HEAP_TYPE,
+                              int ) const -> D3D12_CPU_DESCRIPTOR_HANDLE;
+    auto OffsetGpuDescHandle( D3D12_GPU_DESCRIPTOR_HANDLE,
+                              D3D12_DESCRIPTOR_HEAP_TYPE,
+                              int ) const -> D3D12_GPU_DESCRIPTOR_HANDLE;
     void PopulateCommandList( Errors& );
     void ExecuteCommandLists();
     void ResourceBarrier( const D3D12_RESOURCE_BARRIER& );
@@ -108,24 +109,24 @@ namespace Tac
 
     // ID3D12 objects
 
-    PCom< ID3D12Device5 >              m_device;
+    PCom< ID3D12Device5 >              m_device{};
 
-    PCom< ID3D12Debug3 >               m_debug;
+    PCom< ID3D12Debug3 >               m_debug{};
     bool                               m_debugLayerEnabled {};
-    PCom<ID3D12DebugDevice2>           m_debugDevice;
+    PCom<ID3D12DebugDevice2>           m_debugDevice{};
 
     // samplers
-    PCom< ID3D12DescriptorHeap >       m_samplerHeap;
+    PCom< ID3D12DescriptorHeap >       m_samplerHeap{};
     D3D12_CPU_DESCRIPTOR_HANDLE        m_samplerCpuHeapStart{};
     D3D12_GPU_DESCRIPTOR_HANDLE        m_samplerGpuHeapStart{};
 
     // rtvs
-    PCom< ID3D12DescriptorHeap >       m_rtvHeap;
+    PCom< ID3D12DescriptorHeap >       m_rtvHeap{};
     D3D12_CPU_DESCRIPTOR_HANDLE        m_rtvCpuHeapStart{};
     D3D12_GPU_DESCRIPTOR_HANDLE        m_rtvGpuHeapStart{};
 
     // srvs
-    PCom< ID3D12DescriptorHeap >       m_srvHeap;
+    PCom< ID3D12DescriptorHeap >       m_srvHeap{};
     D3D12_CPU_DESCRIPTOR_HANDLE        m_srvCpuHeapStart{};
     D3D12_GPU_DESCRIPTOR_HANDLE        m_srvGpuHeapStart{};
 
@@ -147,14 +148,14 @@ namespace Tac
     // Together, CommandLists/CommandQueues replace the ID3D11DeviceContext (?)
     //
     // tldr: A command queue can submit command lists
-    PCom< ID3D12CommandQueue >         m_commandQueue;
-    PCom< ID3D12CommandAllocator >     m_commandAllocator;
-    PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle;
-    PCom< ID3D12GraphicsCommandList4 > m_commandList;
-    PCom< ID3D12GraphicsCommandList4 > m_commandListBundle;
-    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ];
-    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ];
-    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ];
+    PCom< ID3D12CommandQueue >         m_commandQueue{};
+    PCom< ID3D12CommandAllocator >     m_commandAllocator{};
+    PCom< ID3D12CommandAllocator >     m_commandAllocatorBundle{};
+    PCom< ID3D12GraphicsCommandList4 > m_commandList{};
+    PCom< ID3D12GraphicsCommandList4 > m_commandListBundle{};
+    PCom< ID3D12Resource >             m_renderTargets[ bufferCount ]{};
+    D3D12_RESOURCE_STATES              m_renderTargetStates[ bufferCount ]{};
+    D3D12_RESOURCE_DESC                m_renderTargetDescs[ bufferCount ]{};
     bool                               m_renderTargetInitialized { };
     // Note: the official imgui dx12 main just keeps an array of D3D12_CPU_DESCRIPTOR_HANDLE for
     //       their render targets, like so:
@@ -163,8 +164,8 @@ namespace Tac
 
     // A fence is used to synchronize the CPU with the GPU (see Multi-engine synchronization).
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/user-mode-heap-synchronization
-    PCom< ID3D12Fence1 >               m_fence;
-    PCom< ID3D12InfoQueue >            m_infoQueue;
+    PCom< ID3D12Fence1 >               m_fence{};
+    PCom< ID3D12InfoQueue >            m_infoQueue{};
 
     // A root signature defines what resources are bound to the graphics pipeline.
     // https://learn.microsoft.com/en-us/windows/win32/direct3d12/root-signatures
@@ -172,19 +173,19 @@ namespace Tac
     // I think you're supposed to think of the rootsignature as a function signature of the entire
     // graphics pipeline. A function signature is composed of function parameters/arguments,
     // or in the dx12 case, rootparameters/rootarguments (SRV descriptors, CBV descriptors, etc)
-    PCom< ID3D12RootSignature >        m_rootSignature;
+    PCom< ID3D12RootSignature >        m_rootSignature{};
 
     // A pipeline state object maintains the state of all currently set shaders as well as certain
     // fixed function state objects
     // (such as the input assembler, tesselator, rasterizer and output merger).
-    PCom< ID3D12PipelineState >        mPipelineState;
+    PCom< ID3D12PipelineState >        mPipelineState{};
 
-    PCom<ID3D12Resource>               m_texture;
+    PCom<ID3D12Resource>               m_texture{};
     D3D12_RESOURCE_DESC                m_textureDesc{};
     D3D12_RESOURCE_STATES              m_textureResourceStates{};
 
-    PCom<ID3D12Resource>               m_vertexBufferUploadHeap;
-    PCom<ID3D12Resource>               m_vertexBuffer;
+    PCom<ID3D12Resource>               m_vertexBufferUploadHeap{};
+    PCom<ID3D12Resource>               m_vertexBuffer{};
     //D3D12_VERTEX_BUFFER_VIEW           m_vertexBufferView;
     UINT                               m_vertexBufferByteCount{};
     bool                               m_vertexBufferCopied {};
@@ -192,14 +193,14 @@ namespace Tac
     D3D12_VIEWPORT                     m_viewport{};
     D3D12_RECT                         m_scissorRect{};
 
-    Viewports                          m_viewports;
-    ScissorRects                       m_scissorRects;
+    Viewports                          m_viewports{};
+    ScissorRects                       m_scissorRects{};
 
     // ---------------------------------------------------------------------------------------------
 
     // DXGI objects
 
-    DXGISwapChainWrapper               m_swapChain;
+    DXGISwapChainWrapper               m_swapChain{};
     bool                               m_swapChainValid{};
     DXGI_SWAP_CHAIN_DESC1              m_swapChainDesc{};
     DXGI_FORMAT                        RTVFormat{ DXGI_FORMAT_R16G16B16A16_FLOAT };
@@ -212,7 +213,7 @@ namespace Tac
     // 1. our commands will be drawing onto
     // 2. our swap chain will present to the monitor
     UINT                               m_frameIndex{};
-    Win32Event                         m_fenceEvent;
+    Win32Event                         m_fenceEvent{};
 
     // UINT64 is big enough to run at 1000 fps for 500 million years
     UINT64                             m_fenceValue{};

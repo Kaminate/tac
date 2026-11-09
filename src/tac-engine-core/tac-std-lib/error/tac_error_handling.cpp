@@ -37,7 +37,7 @@ namespace Tac
     mBroken = false;
   }
 
-  auto Errors::GetFrames() const -> Span< const StackFrame > { return Span( mFrames.data(), mFrames.size() ); }
+  auto Errors::GetFrames() const -> Span< const StackFrame > { return { mFrames.data(), mFrames.size() }; }
 
   auto Errors::GetMessage() const ->StringView{ return mMessage; }
 

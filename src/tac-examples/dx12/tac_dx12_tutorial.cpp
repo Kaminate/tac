@@ -1,7 +1,6 @@
 #include "tac_dx12_tutorial.h" // self-inc
 
 #include "tac-engine-core/os/tac_os.h"
-#include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-dx/dx12/tac_dx12_helper.h"

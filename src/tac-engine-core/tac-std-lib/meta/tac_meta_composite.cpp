@@ -15,13 +15,13 @@ namespace Tac
   auto MetaCompositeType::ToString( const void* ) const -> String
   {
     TAC_ASSERT_INVALID_CODE_PATH;
-    return 0;
+    return {};
   }
 
   auto MetaCompositeType::ToNumber( const void* ) const -> float
   {
     TAC_ASSERT_INVALID_CODE_PATH;
-    return 0;
+    return {};
   }
 
   void MetaCompositeType::Cast( const CastParams castParams ) const

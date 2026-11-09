@@ -82,8 +82,7 @@ namespace Tac::Render
         return;
 
       const UTF8Path path{ TryFindPIXDllPath( errors ) };
-      const String path8{ path };
-      if( path8.empty() )
+      if( path.empty() )
       {
         LogApi::LogMessagePrintLine(
           String() +
@@ -98,7 +97,7 @@ namespace Tac::Render
           !lib )
       {
         LogApi::LogMessagePrintLine(
-          String() + "Failed to load PIX dll " + pixDllName + " at path " + path8 + "." );
+          String() + "Failed to load PIX dll " + pixDllName + " at path " + path + "." );
       }
     }
   }

@@ -129,7 +129,7 @@ namespace Tac::Render
       *dstCur++ = descriptor;
     }
 
-    return Span< DX12Descriptor >( dstBegin, nBound );
+    return { dstBegin, nBound };
   }
 
   void PipelineDynamicArray::BindAtIndex( ResourceHandle h, int i )

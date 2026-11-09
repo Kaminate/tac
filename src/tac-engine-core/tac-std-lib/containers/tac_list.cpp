@@ -1,7 +1,6 @@
 #include "tac_list.h" // self-inc
 
 #include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-std-lib/string/tac_string_view.h"
 
 void Tac::ListUnitTest()
 {

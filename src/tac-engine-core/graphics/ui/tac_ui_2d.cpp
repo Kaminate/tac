@@ -4,18 +4,12 @@
 #include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/containers/tac_array.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_math_unit_test_helper.h"
-#include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/memory/tac_memory.h"
 
 namespace Tac
 {
@@ -88,12 +82,12 @@ namespace Tac
 
     Render::BufferHandle& mDstBuffer;
     int&                  mDstBufferByteCount;
-    int                   mSizeOfElem;
-    int                   mSrcTotElemCount;
-    GetDrawElementBytes   mGetDrawElementBytes;
-    GetDrawElementCount   mGetDrawElementCount;
-    StringView            mBufName;
-    Span< UI2DDrawData* > mDraws;
+    int                   mSizeOfElem{};
+    int                   mSrcTotElemCount{};
+    GetDrawElementBytes   mGetDrawElementBytes{};
+    GetDrawElementCount   mGetDrawElementCount{};
+    StringView            mBufName{};
+    Span< UI2DDrawData* > mDraws{};
     Render::TexFmt        mTexFmt  { Render::TexFmt::kUnknown };
     Render::Binding       mBinding { Render::Binding::None };
   };

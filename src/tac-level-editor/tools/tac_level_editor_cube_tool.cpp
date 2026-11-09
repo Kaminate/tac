@@ -1,14 +1,10 @@
 #include "tac_level_editor_cube_tool.h" // self-inc
 
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 #include "tac-ecs/graphics/material/tac_material.h"
-#include "tac-ecs/physics/collider/tac_collider.h"
 #include "tac-level-editor/windows/game/tac_level_editor_game_window.h"
 #include "tac-level-editor/tac_level_editor.h"
 #include "tac-level-editor/picking/tac_level_editor_mouse_picking.h"
@@ -18,13 +14,13 @@ namespace Tac
 
   struct PickingPreview
   {
-    bool mIsValid;
-    v3 mUnitNormal;
-    v3 mPosition;
+    bool mIsValid    {};
+    v3   mUnitNormal {};
+    v3   mPosition   {};
   };
 
-  static float cubeSize{ 1 };
-  static bool  sPlacingCubes{};
+  static float cubeSize          { 1 };
+  static bool  sPlacingCubes     {};
   static Plane sPlacingCubePlane {};
 
   static auto Snap( v3 previewOrigin ) -> v3

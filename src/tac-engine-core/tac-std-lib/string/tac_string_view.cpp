@@ -60,7 +60,7 @@ namespace Tac
     TAC_ASSERT( pos >= 0 && pos <= mLen );
     TAC_ASSERT( iEnd >= 0 && iEnd <= mLen );
     TAC_ASSERT( pos <= iEnd );
-    return StringView( mStr + pos, mStr + iEnd );
+    return { mStr + pos, mStr + iEnd };
   }
   char StringView::front() const                              { return mStr[ 0 ]; }
   char StringView::back() const                               { return mStr[ mLen - 1 ]; }

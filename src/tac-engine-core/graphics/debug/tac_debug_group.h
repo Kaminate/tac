@@ -72,7 +72,7 @@ namespace Tac::Render::DebugGroup
     auto GetNodes() const -> Span< const Node >;
 
   private:
-    auto FindNode( NodeIndex ) -> Node*;
+    auto FindNode( NodeIndex ) dynmc -> dynmc Node*;
     auto FindNode( NodeIndex ) const -> const Node*;
 
     Vector< Node > mNodes      {}; // all nodes of a tree, layed out linearly (flattened?)

@@ -2,9 +2,7 @@
 
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/system/tac_system.h"
-#include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/physics/collider/tac_collider.h"
-#include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/player/tac_player.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-std-lib/memory/tac_memory.h"

@@ -3,14 +3,8 @@
 #include "tac_render_tutorial.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_matrix4.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-engine-core/asset/tac_asset.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
-
 #include "tac-engine-core/window/tac_app_window_api.h"
-#include "tac-engine-core/window/tac_window_backend.h"
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 
 #define TAC_HELLO_BINDLESS() 1
 
@@ -20,8 +14,8 @@ namespace Tac
 
   struct MyCBufType
   {
-    m4  mWorld;
-    u32 mVertexBufferIndex;
+    m4  mWorld            {};
+    u32 mVertexBufferIndex{};
   };
 
   struct Vertex

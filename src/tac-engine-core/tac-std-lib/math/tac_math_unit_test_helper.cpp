@@ -1,7 +1,6 @@
 #include "tac_math_unit_test_helper.h" // self-inc
 
 #include "tac-std-lib/math/tac_math.h" // Abs
-#include "tac-std-lib/preprocess/tac_preprocessor.h" // TAC_ASSERT
 #include "tac-std-lib/math/tac_vector2.h"
 #include "tac-std-lib/math/tac_vector3.h"
 #include "tac-std-lib/math/tac_vector4.h"

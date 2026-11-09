@@ -1,26 +1,14 @@
 #include "tac_level_editor_game_window.h" // self-inc
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/ghost/tac_ghost.h"
 #include "tac-ecs/graphics/light/tac_light.h"
-#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/renderpass/game/tac_game_presentation.h"
-#include "tac-ecs/renderpass/skybox/tac_skybox_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-ecs/terrain/tac_numgrid.h"
-#include "tac-engine-core/assetmanagers/tac_mesh.h"
-#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-engine-core/framememory/tac_frame_memory.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/graphics/ui/tac_ui_2d.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
 #include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-engine-core/window/tac_app_window_api.h"
@@ -38,9 +26,6 @@
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/math/tac_vector2.h"
-#include "tac-engine-core/os/tac_os.h"
-#include "tac-std-lib/string/tac_short_fixed_string.h"
-
 
 namespace Tac
 {

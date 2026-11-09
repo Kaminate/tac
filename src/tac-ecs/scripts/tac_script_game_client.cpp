@@ -1,22 +1,13 @@
 #include "tac_script_game_client.h" // self-inc
 
-#include "tac-ecs/ghost/tac_ghost.h"
-#include "tac-ecs/graphics/tac_graphics.h"
-#include "tac-ecs/net/tac_server.h"
-#include "tac-ecs/world/tac_world.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/job/tac_job_queue.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
-#include "tac-engine-core/thirdparty/stb/stb_image.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-engine-core/os/tac_os.h"
 
 namespace Tac
 {

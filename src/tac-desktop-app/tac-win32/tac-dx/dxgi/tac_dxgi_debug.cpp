@@ -1,7 +1,6 @@
 #include "tac_dxgi_debug.h" // self-inc
 
 #include "tac-win32/tac_win32_com_ptr.h"
-#include "tac-win32/tac-dx/dx12/device/tac_dx12_info_queue.h" // hack
 
 #include <dxgidebug.h>
 #include <dxgi1_3.h> // DXGIGetDebugInterface1
@@ -36,9 +35,6 @@ namespace Tac::Render
       if( !mDbg )
         return;
 
-#if 0
-      TAC_SCOPE_GUARD( ScopedSeverityBreak );
-#endif
 
       /*
       DX12InfoQueue:: SetBreaking( false ); // hack
@@ -49,16 +45,15 @@ namespace Tac::Render
     }
   }
 
+} // namespace Tac::Render
 
-  void DXGIReportLiveObjects()
+  void Tac::Render::DXGIReportLiveObjects()
   {
     if constexpr( kIsDebugMode )
     {
-
       DXGIDebugWrapper wrapper;
       wrapper.Init();
       wrapper.Report();
     }
 
   }
-} // namespace Tac::Render

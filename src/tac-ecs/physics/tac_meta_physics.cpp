@@ -1,9 +1,7 @@
-#include "tac-ecs/physics/tac_physics.h"
-//#include "tac-std-lib/meta/tac_meta.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
+//#include "tac-ecs/physics/tac_physics.h"
+//#include "tac-std-lib/preprocess/tac_preprocessor.h"
 namespace Tac
 {
-
   void RegisterMetaphysics()
   {
     static bool registered {};

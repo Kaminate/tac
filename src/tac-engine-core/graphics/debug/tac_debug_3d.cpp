@@ -3,12 +3,10 @@
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/math/tac_matrix3.h"
-#include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/memory/tac_memory.h"
 
 namespace Tac
 {

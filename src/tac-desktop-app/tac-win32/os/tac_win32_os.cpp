@@ -1,32 +1,20 @@
-#include "tac_win32_os.h" // self-inc
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
-#include "tac-engine-core/asset/tac_asset.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/os/tac_os.h"
-#include "tac-rhi/render3/tac_render_api.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/containers/tac_array.h"
-#include "tac-std-lib/containers/tac_fixed_vector.h"
-#include "tac-std-lib/containers/tac_optional.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string_util.h"
 #include "tac-win32/filedialog/tac_win32_file_dialog.h"
 #include "tac-win32/tac_win32.h"
-#include "tac-win32/tac_win32_com_ptr.h"
 
 #if TAC_SHOULD_IMPORT_STD()
   import std;
 #else
   #include <filesystem>
-  #include <iostream>
 #endif
 //import std; // iostream, filesystem, ctime (mktime )
 
 #include <Shlobj.h> // SHGetKnownFolderPath
-#include <shobjidl_core.h> // IFileSaveDialog, IFileOpenDialog
 
 #include <shellapi.h> // ShellExecuteA
 
@@ -34,7 +22,7 @@ namespace Tac
 {
 
 
-  typedef enum { MDT_EFFECTIVE_DPI = 0, MDT_ANGULAR_DPI = 1, MDT_RAW_DPI = 2, MDT_DEFAULT = MDT_EFFECTIVE_DPI } MONITOR_DPI_TYPE;
+  using MONITOR_DPI_TYPE = enum { MDT_EFFECTIVE_DPI = 0, MDT_ANGULAR_DPI = 1, MDT_RAW_DPI = 2, MDT_DEFAULT = MDT_EFFECTIVE_DPI };
   using PFN_GetDpiForMonitor = HRESULT( WINAPI* )( HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT* );        // Shcore.lib + dll, Windows 8.1+
 
   static auto Win32GetMonitorDpi( HMONITOR monitor ) -> int
@@ -135,7 +123,7 @@ namespace Tac
     String pathStr{ path };
     pathStr.replace( "/", "\\" ); // <-- important
     const INT_PTR shellExecuteResult{ ( INT_PTR )
-      ::ShellExecuteA( NULL, "open", pathStr.data(), NULL, NULL, SW_SHOWDEFAULT ) };
+      ::ShellExecuteA( nullptr, "open", pathStr.data(), nullptr, nullptr, SW_SHOWDEFAULT ) };
     TAC_RAISE_ERROR_IF( shellExecuteResult <= 32, Win32GetLastErrorString() );
   }
 

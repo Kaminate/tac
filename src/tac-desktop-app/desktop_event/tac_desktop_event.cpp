@@ -8,7 +8,6 @@
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-std-lib/containers/tac_ring_buffer.h"
 #include "tac-std-lib/error/tac_assert.h"
-#include "tac-std-lib/mutex/tac_mutex.h"
 
 namespace Tac
 {

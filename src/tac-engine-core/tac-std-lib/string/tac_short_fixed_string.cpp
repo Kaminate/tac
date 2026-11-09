@@ -135,7 +135,7 @@ namespace Tac
   auto ShortFixedString::operator += ( char c ) -> ShortFixedString&        { FixedStringAppend( GetData(), StringView( &c, 1 ) ); return *this; }
   auto ShortFixedString::operator += ( StringView sv ) -> ShortFixedString& { FixedStringAppend( GetData(), sv ); return *this; }
 
-  ShortFixedString::operator StringView() const               { return StringView( mBuf, mSize ); }
+  ShortFixedString::operator StringView() const               { return { mBuf, mSize }; }
 
   // needed to convert the FixedString result from va()
   // into the const char* in TAC_ASSERT HandleAssert

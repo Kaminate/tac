@@ -2,9 +2,7 @@
 #include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/profile/tac_profile_function_pool.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
-#include "tac-std-lib/string/tac_string.h"
 #include "tac-std-lib/mutex/tac_mutex.h"
-#include "tac-engine-core/os/tac_os.h"
 
 namespace Tac
 {
@@ -12,14 +10,8 @@ namespace Tac
   {
     struct Scope
     {
-      Scope()
-        : mLockGuard( sProfiledFunctionsMutex )
-        , mProfileFrame( sProfiledFunctions )
-      {
-      }
-
-      ProfileFrame& mProfileFrame;
-      LockGuard     mLockGuard;
+      ProfileFrame& mProfileFrame { sProfiledFunctions };
+      LockGuard     mLockGuard    { sProfiledFunctionsMutex};
     };
 
   private:

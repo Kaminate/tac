@@ -1,5 +1,6 @@
 #pragma once
 
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 #include "tac-win32/tac_win32_com_ptr.h"
 #include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-dx/dxgi/tac_dxgi.h"

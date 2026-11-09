@@ -1,9 +1,7 @@
 #include "tac_gjk.h" // self-inc
 
 #include "tac-ecs/physics/tac_barycentric.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/math/tac_matrix3.h"
 #include "tac-std-lib/math/tac_matrix4.h"
 #include "tac-std-lib/math/tac_vector4.h"
 #include "tac-std-lib/math/tac_math.h"

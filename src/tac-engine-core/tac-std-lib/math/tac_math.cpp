@@ -170,9 +170,9 @@ namespace Tac
 
   auto SphericalCoordinate::ToCartesian() const -> v3
   {
-    return v3( mRadius * Cos( mPhi ) * Sin( mTheta ),
+    return { mRadius * Cos( mPhi ) * Sin( mTheta ),
                mRadius * Cos( mTheta ),
-               mRadius * Sin( mPhi ) * Sin( mTheta ) );
+               mRadius * Sin( mPhi ) * Sin( mTheta ) };
   }
 
   auto SphericalCoordinate::FromCartesian( v3 v ) -> SphericalCoordinate
@@ -299,11 +299,11 @@ auto Tac::Round( float f ) -> float             { return std::roundf( f ); }
 
 auto Tac::Floor( float f ) -> float             { return std::floor( f ); }
 auto Tac::Floor( double d ) -> double           { return std::floor( d ); }
-auto Tac::Floor( const v2& v ) -> Tac::v2       { return v2( Floor( v.x ), Floor( v.y ) ); }
-auto Tac::Floor( const v3& v ) -> Tac::v3       { return v3( Floor( v.x ), Floor( v.y ), Floor( v.z ) ); }
+auto Tac::Floor( const v2& v ) -> Tac::v2       { return { Floor( v.x ), Floor( v.y ) }; }
+auto Tac::Floor( const v3& v ) -> Tac::v3       { return { Floor( v.x ), Floor( v.y ), Floor( v.z ) }; }
 auto Tac::Ceil( float f ) -> float              { return std::ceil( f ); }
-auto Tac::Ceil( const v2& v ) -> Tac::v2        { return v2( Ceil( v.x ), Ceil( v.y ) ); }
-auto Tac::Ceil( const v3& v ) -> Tac::v3        { return v3( Ceil( v.x ), Ceil( v.y ), Ceil( v.z ) ); }
+auto Tac::Ceil( const v2& v ) -> Tac::v2        { return { Ceil( v.x ), Ceil( v.y ) }; }
+auto Tac::Ceil( const v3& v ) -> Tac::v3        { return { Ceil( v.x ), Ceil( v.y ), Ceil( v.z ) }; }
 auto Tac::Fmod( float x, float y ) -> float     { return std::fmodf( x, y ); }
 auto Tac::Fmod( double x, double y ) -> double  { return std::fmod( x, y ); }
 
@@ -374,7 +374,7 @@ auto Tac::ClosestPointLineSegment( LineSegment line, const v3& p ) -> Tac::v3
 
 auto Tac::Fract( float f ) -> float
 {
-  float integralpart;
+  float integralpart{};
   float fractionalpart { std::modf( f, &integralpart ) };
   return fractionalpart;
 }

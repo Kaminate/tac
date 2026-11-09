@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
+#include "tac-desktop-app/desktop_app/tac_iapp.h"
 
 namespace Tac
 {

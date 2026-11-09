@@ -1,6 +1,5 @@
 #include "tac_controller_internal.h" // self-inc
 
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/error/tac_assert.h"
 #include "tac-std-lib/memory/tac_memory.h"
 
@@ -71,7 +70,7 @@ namespace Tac
     ControllerIndex iController = FindControllerIndex();
     mInput->mControllers[ iController ] = nullptr;
   }
-  ControllerIndex Controller::FindControllerIndex()
+  auto Controller::FindControllerIndex() -> ControllerIndex
   {
     for( ControllerIndex iController {}; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
       if( mInput->mControllers[ iController ] == this )
@@ -79,32 +78,32 @@ namespace Tac
     TAC_ASSERT_INVALID_CODE_PATH;
     return TAC_CONTROLLER_COUNT_MAX;
   }
-  bool            Controller::IsButtonDown( ControllerButton controllerButton )
+  bool Controller::IsButtonDown( ControllerButton controllerButton )
   {
     return mControllerStateCurr.IsButtonDown( controllerButton );
   }
-  bool            Controller::IsButtonChanged( ControllerButton controllerButton )
+  bool Controller::IsButtonChanged( ControllerButton controllerButton )
   {
     return mControllerStateCurr.IsButtonDown( controllerButton ) !=
       mControllerStatePrev.IsButtonDown( controllerButton );
   }
-  bool            Controller::IsButtonJustPressed( ControllerButton controllerButton )
+  bool Controller::IsButtonJustPressed( ControllerButton controllerButton )
   {
     return mControllerStateCurr.IsButtonDown( controllerButton ) &&
       IsButtonChanged( controllerButton );
   }
-  bool            Controller::IsButtonJustReleased( ControllerButton controllerButton )
+  bool Controller::IsButtonJustReleased( ControllerButton controllerButton )
   {
     return !mControllerStateCurr.IsButtonDown( controllerButton ) &&
       IsButtonChanged( controllerButton );
   }
-  void            Controller::DebugImgui()
+  void Controller::DebugImgui()
   {
     //ImGui::Text( mName );
     //mControllerStateCurr.DebugImgui();
     //DebugImguiInner();
   }
-  void            Controller::DebugImguiInner()
+  void Controller::DebugImguiInner()
   {
   }
 
@@ -125,7 +124,7 @@ namespace Tac
     }
 
   }
-  void            ControllerInput::DebugImgui()
+  void ControllerInput::DebugImgui()
   {
     //ImGui::Checkbox( "Input", &mDebugging );
     //if( !mDebugging )
@@ -173,32 +172,32 @@ namespace Tac
     //  ImGui::End();
     //}
   }
-  void            ControllerInput::Update()
+  void ControllerInput::Update()
   {
     for( Controller* controller : mControllers )
       if( controller )
         controller->mControllerStatePrev = controller->mControllerStateCurr;
     UpdateInner();
   }
-  void            ControllerInput::DebugImguiInner()
+  void ControllerInput::DebugImguiInner()
   {
   }
-  void            ControllerInput::UpdateInner()
+  void ControllerInput::UpdateInner()
   {
   }
-  bool            ControllerInput::CanAddController()
+  bool ControllerInput::CanAddController()
   {
     const ControllerIndex n{ GetConnectedControllerCount() };
     return n < TAC_CONTROLLER_COUNT_MAX;
   }
-  ControllerIndex ControllerInput::GetConnectedControllerCount()
+  auto ControllerInput::GetConnectedControllerCount() -> ControllerIndex
   {
     ControllerIndex n{};
     for( Controller* controller : mControllers )
       n += controller ? 1 : 0;
     return n;
   }
-  ControllerIndex ControllerInput::AddController( Controller* controller )
+  auto ControllerInput::AddController( Controller* controller ) -> ControllerIndex
   {
     TAC_ASSERT( CanAddController() );
     for( ControllerIndex iController {}; iController < TAC_CONTROLLER_COUNT_MAX; ++iController )
@@ -212,7 +211,7 @@ namespace Tac
     TAC_ASSERT_INVALID_CODE_PATH;
     return TAC_CONTROLLER_COUNT_MAX;
   }
-  Controller*     ControllerInput::GetController( ControllerIndex ci )
+  auto ControllerInput::GetController( ControllerIndex ci ) -> Controller*
   {
     return mControllers[ ci ];
   }

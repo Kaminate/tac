@@ -48,14 +48,14 @@ namespace Tac
   struct Controller
   {
     Controller();
-    virtual                 ~Controller();
-    bool                    IsButtonDown( ControllerButton );
-    bool                    IsButtonChanged( ControllerButton );
-    bool                    IsButtonJustPressed( ControllerButton );
-    bool                    IsButtonJustReleased( ControllerButton );
-    void                    DebugImgui();
-    virtual void            DebugImguiInner();
-    ControllerIndex         FindControllerIndex();
+    virtual ~Controller();
+    bool IsButtonDown( ControllerButton );
+    bool IsButtonChanged( ControllerButton );
+    bool IsButtonJustPressed( ControllerButton );
+    bool IsButtonJustReleased( ControllerButton );
+    void DebugImgui();
+    auto FindControllerIndex() -> ControllerIndex;
+    virtual void DebugImguiInner();
 
     ControllerState         mControllerStatePrev  {};
     ControllerState         mControllerStateCurr  {};
@@ -69,15 +69,15 @@ namespace Tac
   {
     ControllerInput();
     static ControllerInput* Instance;
-    virtual                 ~ControllerInput();
-    virtual void            DebugImguiInner();
-    void                    DebugImgui();
-    void                    Update();
-    virtual void            UpdateInner();
-    bool                    CanAddController();
-    ControllerIndex         GetConnectedControllerCount();
-    ControllerIndex         AddController( Controller* );
-    Controller*             GetController( ControllerIndex );
+    virtual~ControllerInput();
+    void DebugImgui();
+    void Update();
+    bool CanAddController();
+    auto GetConnectedControllerCount() -> ControllerIndex;
+    auto AddController( Controller* ) -> ControllerIndex;
+    auto GetController( ControllerIndex ) -> Controller*;
+    virtual void UpdateInner();
+    virtual void DebugImguiInner();
 
     Controller*             mControllers[ TAC_CONTROLLER_COUNT_MAX ]  {};
     bool                    mDebugging                                {};

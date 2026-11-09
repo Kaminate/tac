@@ -2,18 +2,13 @@
 
 #include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/containers/tac_set.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/error/tac_error_handling.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
-#include "tac-std-lib/dataprocess/tac_serialization.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-engine-core/net/tac_net.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/string/tac_string_util.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-win32/tac_win32.h"
 
 #include <WinSock2.h> // SOCKET
@@ -27,7 +22,7 @@ namespace Tac::Network
 
   struct SocketWinsock : public Socket
   {
-    ~SocketWinsock();
+    ~SocketWinsock() override;
     void SetIsBlocking( bool isBlocking, Errors& );
     void SetKeepalive( bool keepAlive, Errors& );
     void Send( void* bytes, int byteCount, Errors& ) override;
@@ -41,7 +36,7 @@ namespace Tac::Network
 
   struct NetWinsock : public Net
   {
-    ~NetWinsock();
+    ~NetWinsock() override;
     void Init( Errors& ) override;
     void DebugImgui() override;
     void Update( Errors& ) override;
@@ -225,7 +220,7 @@ namespace Tac::Network
     TAC_ASSERT( mSocketType == SocketType::TCP );
     const String portString { Tac::ToString( port ) };
 
-    addrinfo* addrinfos;
+    addrinfo* addrinfos{};
     int wsaErrorCode {};
       
     wsaErrorCode = getaddrinfo( hostname.c_str(), portString.c_str(), nullptr, &addrinfos );
@@ -274,7 +269,7 @@ namespace Tac::Network
   void NetWinsock::Init( Errors& errors )
   {
     const WORD wsaVersion { MAKEWORD( 2, 2 ) };
-    dynmc WSAData wsaData;
+    dynmc WSAData wsaData{};
     if( const int wsaErrorCode{ WSAStartup( wsaVersion, &wsaData ) };
         wsaErrorCode )
     {

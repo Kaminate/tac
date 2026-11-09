@@ -14,7 +14,6 @@ target_sources( TacStdLib
   tac_string_view.cpp
   tac_short_fixed_string.cpp
   tac_string_literal.cpp
-  tac_string_format.cpp
   tac_string_identifier.cpp
   tac_string_util.cpp
 )

@@ -1,12 +1,6 @@
 #include "tac_game_presentation.h" // self-inc
 
-
-#include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/graphics/light/tac_light.h"
-#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 #include "tac-ecs/graphics/tac_graphics.h"
-#include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/renderpass/mesh/tac_mesh_presentation.h"
 #include "tac-ecs/renderpass/material/tac_material_presentation.h"
 #include "tac-ecs/renderpass/radiosity/tac_radiosity_bake_presentation.h"
@@ -15,26 +9,10 @@
 #include "tac-ecs/renderpass/terrain/tac_terrain_presentation.h"
 #include "tac-ecs/renderpass/infinitegrid/tac_infinite_grid_presentation.h"
 #include "tac-ecs/renderpass/jpptpresentation/tac_jppt_presentation.h"
-#include "tac-ecs/terrain/tac_terrain.h"
 #include "tac-ecs/world/tac_world.h"
-#include "tac-engine-core/assetmanagers/tac_mesh.h"
-#include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell_time.h"
-#include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/math/tac_math.h"
-#include "tac-std-lib/math/tac_matrix4.h"
-#include "tac-std-lib/math/tac_vector3.h"
-#include "tac-std-lib/math/tac_vector4.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/os/tac_os.h"
-#include "tac-std-lib/string/tac_short_fixed_string.h"
-#include "tac-std-lib/tac_ints.h"
 
 
 #if TAC_GAME_PRESENTATION_ENABLED()

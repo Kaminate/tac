@@ -1,7 +1,6 @@
 #include "tac_map.h" // self-inc
 
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-std-lib/string/tac_string_view.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 
 void Tac::MapUnitTest()
@@ -28,7 +27,7 @@ void Tac::MapUnitTest()
     }
   }
 
-  for( auto [first, second] : myMap )
+  for( const auto& [first, second] : myMap )
   {
     const String str { String() + ToString( first ) + " " + second };
     LogApi::LogMessagePrintLine(str); 

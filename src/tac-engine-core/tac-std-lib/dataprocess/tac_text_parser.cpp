@@ -36,12 +36,12 @@ namespace Tac
         const char* strEnd { GetPos() };
         EatNewLine();
         // The \r\n will be eaten but not returned
-        return StringView( strBegin, strEnd );
+        return { strBegin, strEnd };
       }
     } while( EatByte() );
 
     // Have reached EOF
-    return StringView( strBegin, GetPos() );
+    return { strBegin, GetPos() };
   }
 
   bool ParseData::EatNewLine()
@@ -87,7 +87,7 @@ namespace Tac
     EatWhitespace();
     const char* stringBegin { GetPos() };
     while( !PeekWhitespace() && EatByte() ) {}
-    return StringView( stringBegin, GetPos() );
+    return { stringBegin, GetPos() };
   }
 
   bool ParseData::EatUntilCharIsNext( const char c )

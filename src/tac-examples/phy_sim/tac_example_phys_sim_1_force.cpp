@@ -1,14 +1,10 @@
 #include "tac_example_phys_sim_1_force.h" // self-inc
 
-#include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/graphics/model/tac_model.h"
-#include "tac-ecs/renderpass/game/tac_game_presentation.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
-#include "tac-std-lib/preprocess/tac_preprocessor.h"
 
 // This example based off
 // https://github.com/jvanverth/essentialmath/tree/master/src/Examples/Ch13-Simulation/Simulation-01-Force

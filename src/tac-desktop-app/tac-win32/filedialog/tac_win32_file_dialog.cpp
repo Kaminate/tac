@@ -1,6 +1,5 @@
 #include "tac_win32_file_dialog.h" // self-inc
 
-#include "tac-engine-core/shell/tac_shell.h" // sShellInitialWorkingDir
 #include "tac-std-lib/error/tac_error_handling.h" // Errors
 #include "tac-win32/tac_win32.h" // TAC_HR_CALL
 #include "tac-win32/tac_win32_com_ptr.h" // PCom
@@ -64,7 +63,7 @@ namespace Tac
     TAC_RAISE_ERROR_IF_RETURN( FAILED( showResult ), "Failed to show dialog" );
     PCom< IShellItem > pItem;
     TAC_HR_CALL_RET( mDialog->GetResult( pItem.CreateAddress() ) );
-    PWSTR pszFilePath;
+    PWSTR pszFilePath{};
     TAC_HR_CALL_RET( pItem->GetDisplayName( SIGDN_FILESYSPATH, &pszFilePath ) );
     TAC_ON_DESTRUCT( CoTaskMemFree( pszFilePath ) );
     const std::filesystem::path stdPath( pszFilePath );
@@ -78,14 +77,14 @@ namespace Tac
     const std::filesystem::path stdDir( ( char8_t* )dir.c_str() );
     const std::wstring wDir { stdDir.wstring() };
     PCom< IShellItem > shDir;
-    TAC_HR_CALL( SHCreateItemFromParsingName( wDir.c_str(), NULL, shDir.iid(), shDir.ppv() ) );
+    TAC_HR_CALL( SHCreateItemFromParsingName( wDir.c_str(), nullptr, shDir.iid(), shDir.ppv() ) );
     TAC_HR_CALL( mDialog->SetDefaultFolder( ( IShellItem* )shDir ) );
   }
 
   void FileDialogHelper::InitDialog( REFCLSID sid, REFIID iid, void** ppv, Errors& errors )
   {
-    TAC_HR_CALL( CoInitializeEx( NULL, COINIT_MULTITHREADED ) );
-    TAC_HR_CALL( CoCreateInstance( sid, NULL, CLSCTX_INPROC_SERVER, iid, ppv ) );
+    TAC_HR_CALL( CoInitializeEx( nullptr, COINIT_MULTITHREADED ) );
+    TAC_HR_CALL( CoCreateInstance( sid, nullptr, CLSCTX_INPROC_SERVER, iid, ppv ) );
   }
 
   void FileDialogHelper::InitOpenDialog( Errors& errors )

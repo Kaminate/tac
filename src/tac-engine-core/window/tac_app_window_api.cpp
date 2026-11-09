@@ -8,13 +8,13 @@ namespace Tac
 #if 1
   struct NextWindowData
   {
-    bool                    mPositionValid;
-    v2                      mPosition;
-    //AppWindowMgr::Condition mPositionCondition;
+    bool                      mPositionValid     {};
+    v2                        mPosition          {};
+    //AppWindowMgr::Condition mPositionCondition {};
 
-    bool                    mSizeValid;
-    v2                      mSize;
-    //AppWindowMgr::Condition mSizeCondition;
+    bool                      mSizeValid         {};
+    v2                        mSize              {};
+    //AppWindowMgr::Condition mSizeCondition     {};
   };
 
   struct AppWindowData

@@ -1,17 +1,9 @@
 #include "tac_physics.h" // self-inc
 
-#include "tac-engine-core/assetmanagers/tac_texture_asset_manager.h"
-#include "tac-std-lib/containers/tac_vector.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-engine-core/graphics/debug/tac_debug_3d.h"
-#include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/shell/tac_shell.h"
-#include "tac-engine-core/thirdparty/stb/stb_image.h"
 #include "tac-ecs/physics/collider/tac_collider.h"
-#include "tac-ecs/graphics/tac_graphics.h"
-#include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/entity/tac_entity.h"
 #include "tac-ecs/physics/tac_gjk.h"
 #include "tac-ecs/world/tac_world.h"

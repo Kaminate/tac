@@ -1,11 +1,7 @@
 #include "tac_render_tutorial_2_triangle.h" // self-inc
 
 #include "tac-desktop-app/desktop_app/tac_iapp.h"
-#include "tac-std-lib/math/tac_vector3.h"
-#include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h" // WindowHandle
-
 #include "tac-engine-core/window/tac_app_window_api.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 

@@ -6,15 +6,9 @@
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/color/tac_color.h"
-#include "tac-engine-core/shell/tac_shell.h" // AssetOpenDialog
-#include "tac-std-lib/dataprocess/tac_json.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math_meta.h"
 #include "tac-std-lib/meta/tac_meta.h"
-#include "tac-std-lib/math/tac_math_unit_test_helper.h"
 #include "tac-std-lib/meta/tac_meta_composite.h"
-#include "tac-engine-core/os/tac_os.h"
-#include "tac-std-lib/string/tac_string_meta.h"
 #include "tac-engine-core/assetmanagers/tac_mesh.h"
 #include "tac-engine-core/assetmanagers/tac_model_asset_manager.h"
 
@@ -274,12 +268,12 @@ namespace Tac
       DenseSpectrum ds;
       for( int i{}; i < DenseSpectrum::kSampleCount; ++i )
       {
-        const float lambda = ( float )( DenseSpectrum::kLambdaMin + i );
-        const float L = 100.0f
+        const auto lambda{ ( float )( DenseSpectrum::kLambdaMin + i ) };
+        const float L{ 100.0f
           * Pow( 560.0f / lambda, 5.0f )
           * ( Exp( ( 1.435e7f / ( 2848 * 560 ) ) ) - 1 )
           / // -------------------------------------------
-          ( Exp( ( 1.435e7f / ( 2848 * lambda ) ) ) - 1 );
+          ( Exp( ( 1.435e7f / ( 2848 * lambda ) ) ) - 1 ) };
         ds.mValues[ i ] = L;
       }
 

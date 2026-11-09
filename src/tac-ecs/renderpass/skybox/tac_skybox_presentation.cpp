@@ -7,13 +7,8 @@
 #include "tac-engine-core/graphics/camera/tac_camera.h"
 #include "tac-engine-core/graphics/tac_renderer_util.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
-#include "tac-engine-core/profile/tac_profile.h"
-#include "tac-engine-core/window/tac_window_handle.h"
 #include "tac-rhi/render3/tac_render_api.h"
 #include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/error/tac_error_handling.h"
-#include "tac-std-lib/memory/tac_memory.h"
-#include "tac-std-lib/string/tac_string.h"
 #include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/graphics/skybox/tac_skybox_component.h"
 
@@ -40,10 +35,10 @@ namespace Tac
 
   struct SkyboxRenderParams
   {
-    const Camera*         mCamera;
-    v2i                   mViewSize;
-    Render::TextureHandle mViewId;
-    AssetPathStringView   mSkyboxDir;
+    const Camera*         mCamera    {};
+    v2i                   mViewSize  {};
+    Render::TextureHandle mViewId    {};
+    AssetPathStringView   mSkyboxDir {};
   };
 
 #if 0

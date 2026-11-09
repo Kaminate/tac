@@ -10,7 +10,5 @@ target_sources( TacDesktopApp
   "tac_desktop_app_threads.h"
   "tac_iapp.cpp"
   "tac_iapp.h"
-  "tac_stack_frame_formatter.cpp"
-  "tac_stack_frame_formatter.h"
 )
 

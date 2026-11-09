@@ -14,12 +14,12 @@ namespace Tac
     void        JsonSerialize( Json* json, const void* s ) const override                           { json->SetString( AsStringRef( s ) ); }
     void        JsonDeserialize( const Json* json ,void* s ) const override                         { AsStringRef( s ) = json->mString; }
     int         ToInt( const void* s ) const                                                        { return Atoi( AsStringRef( s ) ); };
-    bool        Equals( const void* a, const void* b ) const                                        { return AsStringRef( a ) == AsStringRef( b ); }
-    void        Copy( CopyParams cp ) const                                                         { AsStringRef( cp.mDst ) = AsStringRef( cp.mSrc ); }
+    bool        Equals( const void* a, const void* b ) const override                               { return AsStringRef( a ) == AsStringRef( b ); }
+    void        Copy( CopyParams cp ) const override                                                { AsStringRef( cp.mDst ) = AsStringRef( cp.mSrc ); }
 
   private:
     static const String& AsStringRef( const void* s )                                               { return *( String* )s; }
-    static dynmc String& AsStringRef( void* s )                                                     { return *( String* )s; }
+    static dynmc String& AsStringRef( dynmc void* s )                                               { return *( String* )s; }
   };
 
   TAC_META_IMPL_TYPE( String, MetaString );

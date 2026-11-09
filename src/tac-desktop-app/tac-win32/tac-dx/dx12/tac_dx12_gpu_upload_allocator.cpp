@@ -227,7 +227,7 @@ namespace Tac::Render
 
     DX12SetName( buffer.Get(), "upload page" );
 
-    void* cpuAddr;
+    void* cpuAddr{};
     const UINT subresourceIdx{};
     const D3D12_RANGE* pReadRange{};
     TAC_DX12_CALL_RET( buffer->Map( subresourceIdx, pReadRange, &cpuAddr ) );

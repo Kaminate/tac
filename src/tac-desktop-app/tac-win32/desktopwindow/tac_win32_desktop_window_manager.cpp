@@ -1,21 +1,15 @@
 #include "tac_win32_desktop_window_manager.h" // self-inc
 
 #include "tac-win32/tac_win32.h"
-#include "tac-desktop-app/desktop_app/tac_desktop_app.h"
 #include "tac-desktop-app/desktop_event/tac_desktop_event.h"
 #include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/platform/tac_platform.h"
-#include "tac-engine-core/profile/tac_profile.h"
 #include "tac-engine-core/window/tac_window_backend.h"
 #include "tac-engine-core/window/tac_window_handle.h"
-#include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/dataprocess/tac_log.h"
 #include "tac-engine-core/os/tac_os.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
 #include "tac-std-lib/string/tac_string.h"
-#include "tac-win32/input/tac_win32_mouse_edge.h"
-#include "tac-win32/net/tac_net_winsock.h"
 
 #undef FindWindow
 
@@ -465,7 +459,7 @@ namespace Tac
     return {};
   }
 
-  void Platform::PlatformFrameBegin( Errors& errors ) 
+  void Platform::PlatformFrameBegin( Errors& ) 
   {
     MSG msg{};
     while( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
@@ -595,12 +589,12 @@ namespace Tac
 
   void Platform::PlatformSetMouseCursor( PlatformMouseCursor cursor ) 
   {
-    static HCURSOR cursorArrow { LoadCursor( NULL, IDC_ARROW ) };
-    static HCURSOR cursorArrowNS { LoadCursor( NULL, IDC_SIZENS ) };
-    static HCURSOR cursorArrowEW { LoadCursor( NULL, IDC_SIZEWE ) };
-    static HCURSOR cursorArrowNE_SW { LoadCursor( NULL, IDC_SIZENESW ) };
-    static HCURSOR cursorArrowNW_SE { LoadCursor( NULL, IDC_SIZENWSE ) };
-    static HCURSOR cursorArrowNSEW { LoadCursor( NULL, IDC_SIZEALL ) };
+    static HCURSOR cursorArrow { LoadCursor( nullptr, IDC_ARROW ) };
+    static HCURSOR cursorArrowNS { LoadCursor( nullptr, IDC_SIZENS ) };
+    static HCURSOR cursorArrowEW { LoadCursor( nullptr, IDC_SIZEWE ) };
+    static HCURSOR cursorArrowNE_SW { LoadCursor( nullptr, IDC_SIZENESW ) };
+    static HCURSOR cursorArrowNW_SE { LoadCursor( nullptr, IDC_SIZENWSE ) };
+    static HCURSOR cursorArrowNSEW { LoadCursor( nullptr, IDC_SIZEALL ) };
     switch( cursor )
     {
     case PlatformMouseCursor::kNone:        ::SetCursor( nullptr );          break;

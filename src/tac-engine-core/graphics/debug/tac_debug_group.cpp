@@ -20,7 +20,7 @@ namespace Tac::Render::DebugGroup
     mFinished = false;
   }
 
-  bool        Iterator::Contains( const Node* node ) const
+  bool Iterator::Contains( const Node* node ) const
   {
     // search back to front
     const int n { mNodeStack.size() };
@@ -31,30 +31,27 @@ namespace Tac::Render::DebugGroup
     return false;
   }
 
-  const Node* Iterator::back() const
+  auto Iterator::back() const -> const Node*
   {
     return mNodeStack.back();
   }
 
-  bool        Iterator::empty() const
+  bool Iterator::empty() const
   {
     return mNodeStack.empty();
   }
 
   // -----------------------------------------------------------------------------------------------
 
-  NodeIndex   Stack::GetInfo() const
-  {
-    return mCurNodeIdx;
-  }
+  auto Stack::GetInfo() const -> NodeIndex { return mCurNodeIdx; }
 
-  Iterator    Stack::IterateBegin( Render::IContext* context ) const
+  auto Stack::IterateBegin( Render::IContext* context ) const -> Iterator
   {
     TAC_ASSERT_MSG( mCurNodeIdx == NullNodeIndex, "Mismatched Push/Pop calls" );
-    return Iterator( context );
+    return { context };
   }
 
-  void           Stack::AssertNodeHeights() const
+  void Stack::AssertNodeHeights() const
   {
 
     for( const Render::DebugGroup::Node& node : mNodes )
@@ -67,16 +64,16 @@ namespace Tac::Render::DebugGroup
     }
   }
 
-  bool           Stack::empty() const { return mNodes.empty(); }
+  bool Stack::empty() const { return mNodes.empty(); }
 
-  void           Stack::clear() { mNodes.clear(); mCurNodeIdx = NullNodeIndex; }
+  void Stack::clear() { mNodes.clear(); mCurNodeIdx = NullNodeIndex; }
   
-  Span< const Node > Stack::GetNodes() const
+  auto Stack::GetNodes() const -> Span< const Node >
   {
-    return Span< const Node >( mNodes.data(), mNodes.size() );
+    return { mNodes.data(), mNodes.size() };
   }
 
-  void        Stack::IterateElement( Iterator& it, const NodeIndex info ) const
+  void Stack::IterateElement( Iterator& it, const NodeIndex info ) const
   {
     const Node* node { FindNode( info ) };
     if( !node )
@@ -111,7 +108,7 @@ namespace Tac::Render::DebugGroup
     }
   }
 
-  void        Stack::IterateEnd( Iterator& it ) const
+  void Stack::IterateEnd( Iterator& it ) const
   {
     const int n { it.mNodeStack.size() };
     for( int i{}; i < n; ++i )
@@ -121,17 +118,17 @@ namespace Tac::Render::DebugGroup
     it.mFinished = true;
   }
 
-  Node*       Stack::FindNode( NodeIndex i )
+  auto Stack::FindNode( NodeIndex i ) dynmc -> dynmc Node*
   {
     return i == NullNodeIndex ? nullptr : &mNodes[ i ];
   }
 
-  const Node* Stack::FindNode( NodeIndex i ) const
+  auto Stack::FindNode( NodeIndex i ) const -> const Node*
   {
     return i == NullNodeIndex ? nullptr : &mNodes[ i ];
   }
 
-  void     Stack::Push( StringView str )
+  void Stack::Push( StringView str )
   {
     const NodeIndex nodeIndex{ mNodes.size() };
 
@@ -151,7 +148,7 @@ namespace Tac::Render::DebugGroup
     mCurNodeIdx = nodeIndex;
   }
 
-  void        Stack::Pop()
+  void Stack::Pop()
   {
     Node* node { FindNode( mCurNodeIdx ) };
     TAC_ASSERT( node );

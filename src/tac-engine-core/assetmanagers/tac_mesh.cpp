@@ -11,7 +11,7 @@ namespace Tac
 
   auto MeshRaycast::ConvertWorldToModelRay( const Ray& ray_worldspace, const m4& model_to_world ) -> Ray
   {
-    bool invExists;
+    bool invExists{};
     const m4 world_to_model{ m4::Inverse( model_to_world, &invExists ) };
     TAC_ASSERT( invExists );
     return Ray{

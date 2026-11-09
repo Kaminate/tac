@@ -2,29 +2,23 @@
 
 #include "tac-ecs/component/tac_component.h"
 #include "tac-ecs/component/tac_component_registry.h"
-#include "tac-ecs/system/tac_system.h"
 #include "tac-ecs/world/tac_world.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
 #include "tac-std-lib/dataprocess/tac_json.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/meta/tac_meta_composite.h"
-#include "tac-std-lib/meta/tac_meta.h"
 #include "tac-std-lib/error/tac_assert.h"
 
 namespace Tac
 {
-  static v3 Vector3FromJson( Json& json )
+  static auto Vector3FromJson( Json& json ) -> v3
   {
-    v3 v 
-    {
+    return {
       ( float )json[ "x" ].mNumber,
       ( float )json[ "y" ].mNumber,
-      ( float )json[ "z" ].mNumber,
-    };
-    return v;
+      ( float )json[ "z" ].mNumber, };
   }
 
-  static Json* Vector3ToJson( v3 v )
+  static auto Vector3ToJson( v3 v ) -> Json*
   {
     static Json json;
     json.GetChild( "x" ).SetNumber( v.x );
@@ -135,66 +129,6 @@ namespace Tac
     mChildren.push_back( child );
   }
 
-  void Entity::DebugImgui()
-  {
-    // This has been moved to tac_level_editor_property_window.cpp EntityImGui() (?)
-#if 0
-    ImGui::PushID( this );
-    OnDestruct( ImGui::PopID() );
-
-    const auto headerName = ShortFixedString::Concant( "Entity id ", ToString( mEntityUUID );
-    if( !ImGui::CollapsingHeader( headerName, ImGuiTreeNodeFlags_DefaultOpen ) )
-      return;
-
-    ImGui::Indent();
-    OnDestruct( ImGui::Unindent() );
-    ImGui::DragFloat3( "Position", mPosition.data(), 0.1f );
-
-    Vector< ComponentInfoIndex > couldBeAdded;
-    for( int i{}; i < ( int )ComponentInfoIndex::Count; i++ )
-    {
-      auto componentType = ( ComponentInfoIndex )i;
-      if( HasComponent( componentType ) )
-        continue;
-
-      auto componentData = GetComponentData( componentType );
-      if( !componentData )
-        continue;
-      couldBeAdded.push_back( componentType );
-    }
-
-    if( !couldBeAdded.empty() && ImGui::BeginMenu( "Add Component" ) )
-    {
-      for( ComponentInfoIndex componentType : couldBeAdded )
-      {
-        auto componentData = GetComponentData( componentType );
-        if( !ImGui::MenuItem( componentData->mName ) )
-          continue;
-
-        AddNewComponent( componentType );
-        break;
-      }
-
-      ImGui::EndMenu();
-    }
-
-    if( !mComponents.empty() && ImGui::BeginMenu( "Remove Component" ) )
-    {
-      for( auto component : mComponents )
-      {
-        auto componentType = component->GetComponentType();
-        auto componentData = GetComponentData( componentType );
-        if( !ImGui::MenuItem( componentData->mName ) )
-          continue;
-        RemoveComponent( componentType );
-        break;
-      }
-      ImGui::EndMenu();
-    }
-    for( auto component : mComponents )
-      component->DebugImgui();
-#endif
-  }
 
   void Entity::Unparent()
   {
