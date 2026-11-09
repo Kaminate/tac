@@ -168,7 +168,6 @@ namespace Tac
   {
     auto player { TAC_NEW Player() };
     player->mPlayerUUID = playerUUID;
-    player->mWorld = this;
     mPlayers.push_front( player );
     return player;
   }

@@ -89,7 +89,7 @@ namespace Tac
     TAC_CALL( PlayerDiffs::Read( mWorld, reader, errors ) );
     TAC_CALL( EntityDiffAPI::Read( mWorld, reader, errors ) );
 
-    mSnapshots.AddSnapshot( mWorld );;
+    mSnapshots.AddSnapshot( mWorld );
 
     if( mIsPredicting )
       ApplyPrediction( oldGameTime );

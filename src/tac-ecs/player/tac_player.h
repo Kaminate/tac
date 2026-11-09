@@ -18,7 +18,6 @@ namespace Tac
     v2         mInputDirection  {};
     bool       mIsSpaceJustDown {};
     v3         mCameraPos       {};
-    World*     mWorld           {};
   };
 
   TAC_META_DECL( Player );
