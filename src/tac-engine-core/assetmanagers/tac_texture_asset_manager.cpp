@@ -80,12 +80,12 @@ namespace Tac
 
   private:
 
-    Render::TextureHandle CreateTexSingle( Errors& );
-    Render::TextureHandle CreateTexCubemap( Errors& );
-    void                  ExecuteTexSingleJob( Errors& );
-    int                   CalculateMipCount( int, int, SettingsNode );
-    void                  ExecuteTexCubemapJob( Errors& );
-    void                  GenerateMip( int );
+    auto CreateTexSingle( Errors& ) -> Render::TextureHandle;
+    auto CreateTexCubemap( Errors& ) -> Render::TextureHandle;
+    void ExecuteTexSingleJob( Errors& );
+    auto CalculateMipCount( int, int, SettingsNode ) -> int;
+    void ExecuteTexCubemapJob( Errors& );
+    void GenerateMip( int );
 
 #if TAC_TEST_MIPS_BY_ASSIGNING_A_COLOR_PER_MIP()
     void                  TestMipsByAssigningAColorPerMip();
