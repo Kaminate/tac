@@ -115,10 +115,10 @@ namespace Tac
 
     void DrawRay(float aspect, Debug3DDrawData* drawData)
     {
-      if(!sCPURayDebug.mEnabled)
+      if(!mEnabled)
         return;
 
-      if( !sCPURayDebug.mCamera.HasValue() )
+      if( !mCamera.HasValue() )
         return;
 
       if(! sSceneBvh )
@@ -136,8 +136,8 @@ namespace Tac
       const v3 nearPlane0_worldspace{ camera->mPos + camera->mForwards * camera->mNearPlane };
 
       // directx style uvs
-      const float u{ sCPURayDebug.mUV[ 0 ] };
-      const float v{ sCPURayDebug.mUV[ 1 ] };
+      const float u{ mUV[ 0 ] };
+      const float v{ mUV[ 1 ] };
 
       const float ndcX{ ( 0 + u ) * 2 - 1 };
       const float ndcY{ ( 1 - v ) * 2 - 1 };
@@ -180,7 +180,7 @@ namespace Tac
 
     int GetDebugPx(int mWidth, int mHeight)
     {
-      if( !sCPURayDebug.mEnabled )
+      if( !mEnabled )
         return -1;
 
       int iDebugPx{ -1 };
@@ -196,7 +196,7 @@ namespace Tac
           const float u { ( iCol + 0.5f ) / mWidth };
           const float v { ( iRow + 0.5f ) / mHeight };
           const v2 uv( u, v );
-          const float dist{ Distance( uv, sCPURayDebug.mUV ) };
+          const float dist{ Distance( uv, mUV ) };
           if( !debugDistFound || dist < debugDist )
           {
             iDebugPx = iPixel;

@@ -17,7 +17,7 @@ namespace Tac
   static bool     sSelectingBrush {};
   static bool     sShowAll        { true };
 
-  static [[nodiscard]] auto BrushesUI(Errors& errors) -> int
+  [[nodiscard]] static auto BrushesUI(Errors& errors) -> int
   {
     for( int r{}; r < 8; ++r )
     {

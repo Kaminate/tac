@@ -1,28 +1,22 @@
 #include "tac_ghost.h" // self-inc
 
 #include "tac-ecs/entity/tac_entity.h"
-#include "tac-ecs/graphics/tac_graphics.h"
 #include "tac-ecs/net/tac_client.h"
 #include "tac-ecs/net/tac_server.h"
 #include "tac-ecs/physics/collider/tac_collider.h"
-#include "tac-ecs/physics/tac_physics.h"
 #include "tac-ecs/player/tac_player.h"
 #include "tac-ecs/script/tac_script.h"
 #include "tac-ecs/scripts/tac_script_game_client.h"
 #include "tac-ecs/world/tac_world.h"
-#include "tac-engine-core/graphics/ui/imgui/tac_imgui.h"
 #include "tac-engine-core/graphics/ui/tac_font.h"
 #include "tac-engine-core/hid/controller/tac_controller_input.h"
 #include "tac-engine-core/hid/tac_app_keyboard_api.h"
-#include "tac-engine-core/i18n/tac_localization.h"
 #include "tac-engine-core/shell/tac_shell.h"
 #include "tac-engine-core/shell/tac_shell_time.h"
 #include "tac-std-lib/algorithm/tac_algorithm.h"
-#include "tac-std-lib/filesystem/tac_filesystem.h"
 #include "tac-std-lib/math/tac_math.h"
 #include "tac-std-lib/memory/tac_memory.h"
 #include "tac-std-lib/preprocess/tac_preprocessor.h"
-#include "tac-std-lib/string/tac_string_util.h"
 
 namespace Tac
 {
@@ -82,6 +76,7 @@ namespace Tac
   {
     mScriptRoot = TAC_NEW ScriptRoot;
     mServerData = TAC_NEW ServerData;
+    mClientData = TAC_NEW ClientData;
   }
 
   Ghost::~Ghost()
@@ -92,6 +87,7 @@ namespace Tac
       TAC_DELETE user;
     TAC_DELETE mServerData;
     TAC_DELETE mClientData;
+    TAC_DELETE mScriptRoot;
   }
 
   void Ghost::Init( Errors& errors )
