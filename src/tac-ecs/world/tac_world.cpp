@@ -14,12 +14,12 @@ namespace Tac
   static void ComputeTransformsRecursivelyAux( const m4& parentTransform, Entity* entity )
   {
     const m4 localTransform{ m4::Transform( entity->mRelativeSpace.mScale,
-                                       entity->mRelativeSpace.mEulerRads,
-                                       entity->mRelativeSpace.mPosition ) };
+                                            entity->mRelativeSpace.mEulerRads,
+                                            entity->mRelativeSpace.mPosition ) };
     const m4 worldTransform { parentTransform * localTransform };
     const m4 localTransformNoScale{ m4::Transform( v3( 1, 1, 1 ),
-                                              entity->mRelativeSpace.mEulerRads,
-                                              entity->mRelativeSpace.mPosition ) };
+                                                   entity->mRelativeSpace.mEulerRads,
+                                                   entity->mRelativeSpace.mPosition ) };
     const m4 worldTransformNoScale { parentTransform * localTransformNoScale };
     entity->mWorldTransform = worldTransform;
     entity->mWorldPosition = ( worldTransform * v4( 0, 0, 0, 1 ) ).xyz();

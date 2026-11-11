@@ -52,15 +52,14 @@ use `TAC_SCOPE_GUARD`
 
 ## Use of auto
 
-Auto should be used if it avoids a type nobody cares about
-`auto it = ... // Map< Foo, Bar >::Iterator `
-
-Auto can be used if it avoids repeating types
+**Do** use `auto` to avoid repeating types
 `auto foo { TAC_NEW Foo }`
-`Foo foo { TAC_NEW Foo } // also ok`
 
-Auto should not be used when it hides useful type information
-`auto whatIsThisType = SomeFnCall()`
+**Do** use `auto` to avoid a type nobody cares about
+`auto it { myMap.begin() }; // Map< Foo, Bar >::Iterator `
+
+**Do not** use `auto` when it hides a type we potentially care about
+`auto whatIsThisType { SomeFnCall() }`
 
 use of auto for template fuckery is ok
 
@@ -80,6 +79,13 @@ Prefer to initialize variables with braces, leaving `=` for assignment.
 Foo f{ bar() }; // good
 Foo f = bar();  // bad
 ```
+
+However, prefer calling constructors with `Foo(bar)` over `Foo{bar}`.
+^ this rule is currently in contention while i experiment with
+| `return { bar, qux };` over `return Foo( bar, qux );`.
+| I think the latter is better, but I changed it to the former cuz i was
+| just complying with whatever visual assist x told me to do.
+
 
 ---
 

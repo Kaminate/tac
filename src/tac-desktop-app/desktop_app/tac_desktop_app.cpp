@@ -38,16 +38,16 @@
 
 namespace Tac
 {
-  static Errors                        gMainFunctionErrors( Errors::kDebugBreaks );
-  static App*                          sApp;
-  static App::State                    sPrevState;
-  static App::State                    sCurrState;
-  static DesktopApp                    sDesktopApp;
-  static SettingsRoot                  sSettingsRoot;
-  static const bool                    sVerbose;
-  static ThreadAllocator               sAppThreadAllocator;
-  static GameTime                      sRenderDelay;
-  static int                           sNumRenderFramesSincePrevSimFrame{};
+  static Errors          gMainFunctionErrors( Errors::kDebugBreaks );
+  static App*            sApp;
+  static App::State      sPrevState;
+  static App::State      sCurrState;
+  static DesktopApp      sDesktopApp;
+  static SettingsRoot    sSettingsRoot;
+  static const bool      sVerbose;
+  static ThreadAllocator sAppThreadAllocator;
+  static GameTime        sRenderDelay;
+  static int             sNumRenderFramesSincePrevSimFrame;
   
   static auto ImGuiToPlatformMouseCursor( ImGuiMouseCursor imguiCursor ) -> PlatformMouseCursor
   {
